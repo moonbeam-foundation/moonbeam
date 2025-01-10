@@ -8334,10 +8334,12 @@ fn test_rewards_do_not_auto_compound_on_payment_if_delegation_scheduled_revoke_e
 					account: 1,
 					rewards: 4,
 				},
+				// no compound since revoke request exists
 				Event::Rewarded {
 					account: 2,
 					rewards: 4,
 				},
+				// 50%
 				Event::Rewarded {
 					account: 3,
 					rewards: 4,
@@ -8403,10 +8405,12 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 					account: 1,
 					rewards: 6,
 				},
+				// 0%
 				Event::Rewarded {
 					account: 2,
 					rewards: 4,
 				},
+				// 50%
 				Event::Rewarded {
 					account: 3,
 					rewards: 4,
@@ -8416,6 +8420,7 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 					delegator: 3,
 					amount: 2,
 				},
+				// 100%
 				Event::Rewarded {
 					account: 4,
 					rewards: 4,
@@ -8425,6 +8430,7 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 					delegator: 4,
 					amount: 4,
 				},
+				// no-config
 				Event::Rewarded {
 					account: 5,
 					rewards: 4,
