@@ -874,4 +874,20 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 			.saturating_add(T::DbWeight::get().reads(10_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
+
+	/// Storage: `ParachainStaking::AtStake` (r:82 w:0)
+	/// Proof: `ParachainStaking::AtStake` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::AwardedPts` (r:81 w:0)
+	/// Proof: `ParachainStaking::AwardedPts` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::WasInactive` (r:0 w:81)
+	/// Proof: `ParachainStaking::WasInactive` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn mark_collators_as_inactive() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `8445`
+		//  Estimated: `212385`
+		// Minimum execution time: 980_000_000 picoseconds.
+		Weight::from_parts(1_094_000_000, 212385)
+			.saturating_add(RocksDbWeight::get().reads(163_u64))
+			.saturating_add(RocksDbWeight::get().writes(81_u64))
+	}
 }

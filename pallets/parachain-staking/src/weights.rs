@@ -91,6 +91,7 @@ pub trait WeightInfo {
 	fn delegate_with_auto_compound_worst() -> Weight;
 	fn mint_collator_reward() -> Weight;
 	fn notify_inactive_collator() -> Weight;
+	fn mark_collators_as_inactive() -> Weight;
 }
 
 /// Weights for pallet_parachain_staking using the Substrate node and recommended hardware.
@@ -918,6 +919,22 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(10_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
+
+	/// Storage: `ParachainStaking::AtStake` (r:82 w:0)
+	/// Proof: `ParachainStaking::AtStake` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::AwardedPts` (r:81 w:0)
+	/// Proof: `ParachainStaking::AwardedPts` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::WasInactive` (r:0 w:81)
+	/// Proof: `ParachainStaking::WasInactive` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn mark_collators_as_inactive() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `8445`
+		//  Estimated: `212385`
+		// Minimum execution time: 980_000_000 picoseconds.
+		Weight::from_parts(1_094_000_000, 212385)
+			.saturating_add(T::DbWeight::get().reads(163_u64))
+			.saturating_add(T::DbWeight::get().writes(81_u64))
+	}
 }
 
 // For backwards compatibility and tests
@@ -1742,5 +1759,21 @@ impl WeightInfo for () {
 			.saturating_add(Weight::from_parts(0, 17434))
 			.saturating_add(RocksDbWeight::get().reads(10_u64))
 			.saturating_add(RocksDbWeight::get().writes(2_u64))
+	}
+
+	/// Storage: `ParachainStaking::AtStake` (r:82 w:0)
+	/// Proof: `ParachainStaking::AtStake` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::AwardedPts` (r:81 w:0)
+	/// Proof: `ParachainStaking::AwardedPts` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::WasInactive` (r:0 w:81)
+	/// Proof: `ParachainStaking::WasInactive` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn mark_collators_as_inactive() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `8445`
+		//  Estimated: `212385`
+		// Minimum execution time: 980_000_000 picoseconds.
+		Weight::from_parts(1_094_000_000, 212385)
+			.saturating_add(RocksDbWeight::get().reads(163_u64))
+			.saturating_add(RocksDbWeight::get().writes(81_u64))
 	}
 }
