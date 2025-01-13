@@ -2275,7 +2275,7 @@ benchmarks! {
 	}
 
 	notify_inactive_collator {
-		use crate::{AtStake, CollatorSnapshot, AwardedPts};
+		use crate::{WasInactive};
 
 		// Blocks per-round must be greater than TotalSelected
 		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 101u32)?;
@@ -2325,11 +2325,8 @@ benchmarks! {
 
 		// Manually change these values for inactive_collator,
 		// so that it can be marked as inactive.
-		<AtStake<T>>::insert(1, &inactive_collator, CollatorSnapshot::default());
-		<AwardedPts<T>>::insert(1, &inactive_collator, 0);
-
-		<AtStake<T>>::insert(2, &inactive_collator, CollatorSnapshot::default());
-		<AwardedPts<T>>::insert(2, &inactive_collator, 0);
+		<WasInactive<T>>::insert(1, &inactive_collator, ());
+		<WasInactive<T>>::insert(2, &inactive_collator, ());
 
 		// Enable killswitch
 		<EnableMarkingOffline<T>>::set(true);
