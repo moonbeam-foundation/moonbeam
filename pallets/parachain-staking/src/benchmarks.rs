@@ -2346,8 +2346,8 @@ benchmarks! {
 		let mut candidate_count = 1u32;
 		let mut seed = USER_SEED;
 
-		// Create collators up to MaxCandidates
-		for i in 0..(T::MaxCandidates::get() - 1) {
+		// Create a similar amount of collators to those employed in Moonbeam at present (2025-01-13)
+		for i in 0..80 {
 			seed += i;
 			let collator = create_funded_collator::<T>(
 				"collator",
