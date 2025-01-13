@@ -498,9 +498,9 @@ pub mod pallet {
 			}
 
 			// add on_finalize weight
-			//   read:  Author, Points, AwardedPts
-			//   write: Points, AwardedPts
-			weight = weight.saturating_add(T::DbWeight::get().reads_writes(3, 2));
+			//   read:  Author, Points, AwardedPts, WasInactive
+			//   write: Points, AwardedPts, WasInactive
+			weight = weight.saturating_add(T::DbWeight::get().reads_writes(4, 3));
 			weight
 		}
 		fn on_finalize(_n: BlockNumberFor<T>) {
@@ -2347,17 +2347,18 @@ pub mod pallet {
 		}
 
 		/// Marks collators as inactive for the previous round if they received zero awarded points.
-		fn mark_collators_as_inactive(cur: RoundIndex) {
-			if cur == 0 {
-				return;
-			}
-
+		pub fn mark_collators_as_inactive(cur: RoundIndex) -> Weight {
+			// This function is called after round index increment,
+			// We don't need to saturate here because the genesis round is 1.
 			let prev = cur - 1;
+
 			for (account, _) in <AtStake<T>>::iter_prefix(prev) {
 				if <AwardedPts<T>>::get(prev, &account).is_zero() {
 					<WasInactive<T>>::insert(prev, account, ());
 				}
 			}
+
+			<T as Config>::WeightInfo::mark_collators_as_inactive()
 		}
 
 		/// Cleans up historical staking information that is older than MaxOfflineRounds

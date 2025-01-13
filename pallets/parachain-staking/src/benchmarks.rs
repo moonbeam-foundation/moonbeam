@@ -2335,6 +2335,40 @@ benchmarks! {
 	verify {
 		assert!(!Pallet::<T>::candidate_info(&inactive_collator).expect("must exist").is_active());
 	}
+
+	mark_collators_as_inactive {
+		// must come after 'let foo in 0..` statements for macro
+		use crate::{AtStake, CollatorSnapshot, AwardedPts};
+
+		let round = 2;
+		let prev = round - 1;
+
+		let mut candidate_count = 1u32;
+		let mut seed = USER_SEED;
+
+		// Create collators up to MaxCandidates
+		for i in 0..(T::MaxCandidates::get() - 1) {
+			seed += i;
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				min_candidate_stk::<T>() * 1_000_000u32.into(),
+				true,
+				candidate_count
+			)?;
+			candidate_count += 1;
+
+			// All collators were inactinve in previous round
+			<AtStake<T>>::insert(prev, &collator, CollatorSnapshot::default());
+			<AwardedPts<T>>::insert(prev, &collator, 0);
+		}
+
+	}: {
+		let cur = 2;
+		let inactive_info = Pallet::<T>::mark_collators_as_inactive(cur);
+	}
+	verify {
+	}
 }
 
 #[cfg(test)]
