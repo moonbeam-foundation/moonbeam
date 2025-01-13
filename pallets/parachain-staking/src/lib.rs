@@ -490,7 +490,7 @@ pub mod pallet {
 					total_balance: total_staked,
 				});
 				// record inactive collators
-				Self::mark_collators_as_inactive(round.current);
+				weight = weight.saturating_add(Self::mark_collators_as_inactive(round.current));
 				// account for Round write
 				weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 1));
 			} else {
