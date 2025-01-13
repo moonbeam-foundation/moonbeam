@@ -130,7 +130,9 @@ pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
+pub mod foreign_origin;
 mod weights;
+
 pub(crate) use weights as moonbase_weights;
 
 /// UNIT, the native token, uses 18 decimals of precision.
