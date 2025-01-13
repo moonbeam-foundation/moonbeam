@@ -107,7 +107,7 @@ pub enum AssetStatus {
 #[pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::traits::{Currency, ReservableCurrency};
+	use frame_support::traits::{Currency, EnsureOriginWithArg, ReservableCurrency};
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned, Convert};
 	use xcm_executor::traits::ConvertLocation;
@@ -133,17 +133,17 @@ pub mod pallet {
 		type EvmRunner: Runner<Self>;
 
 		/// Origin that is allowed to create a new foreign assets
-		type ForeignAssetCreatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		type ForeignAssetCreatorOrigin: EnsureOriginWithArg<Self::RuntimeOrigin, Location>;
 
 		/// Origin that is allowed to freeze all tokens of a foreign asset
-		type ForeignAssetFreezerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		type ForeignAssetFreezerOrigin: EnsureOriginWithArg<Self::RuntimeOrigin, Location>;
 
 		/// Origin that is allowed to modify asset information for foreign assets
-		type ForeignAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		type ForeignAssetModifierOrigin: EnsureOriginWithArg<Self::RuntimeOrigin, Location>;
 
 		/// Origin that is allowed to unfreeze all tokens of a foreign asset that was previously
 		/// frozen
-		type ForeignAssetUnfreezerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		type ForeignAssetUnfreezerOrigin: EnsureOriginWithArg<Self::RuntimeOrigin, Location>;
 
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
@@ -410,7 +410,7 @@ pub mod pallet {
 			symbol: BoundedVec<u8, ConstU32<256>>,
 			name: BoundedVec<u8, ConstU32<256>>,
 		) -> DispatchResult {
-			T::ForeignAssetCreatorOrigin::ensure_origin(origin.clone())?;
+			T::ForeignAssetCreatorOrigin::ensure_origin(origin.clone(), &xcm_location)?;
 
 			// Ensure such an assetId does not exist
 			ensure!(
@@ -478,7 +478,8 @@ pub mod pallet {
 			asset_id: AssetId,
 			new_xcm_location: Location,
 		) -> DispatchResult {
-			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
+			// Ensures that the origin is an XCM location that contains the asset
+			T::ForeignAssetModifierOrigin::ensure_origin(origin, &new_xcm_location)?;
 
 			let previous_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
@@ -511,10 +512,14 @@ pub mod pallet {
 			asset_id: AssetId,
 			allow_xcm_deposit: bool,
 		) -> DispatchResult {
-			T::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
+			ensure_signed(origin.clone())?;
 
 			let xcm_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			// Ensures that the origin is an XCM location that owns the asset
+			// represented by the assets xcm location
+			T::ForeignAssetFreezerOrigin::ensure_origin(origin, &xcm_location)?;
 
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
@@ -545,10 +550,12 @@ pub mod pallet {
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::unfreeze_foreign_asset())]
 		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
-			T::ForeignAssetUnfreezerOrigin::ensure_origin(origin)?;
+			ensure_signed(origin.clone())?;
 
 			let xcm_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+			// Ensures that the origin is an XCM location that contains the asset
+			T::ForeignAssetUnfreezerOrigin::ensure_origin(origin, &xcm_location)?;
 
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;

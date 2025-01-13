@@ -36,7 +36,7 @@ use sp_runtime::{
 };
 use sp_weights::Weight;
 
-use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
+use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
 
 use xcm_builder::{
@@ -66,6 +66,7 @@ use xcm_primitives::{
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
+use crate::foreign_origin::ForeignAssetOwnerOrigin;
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use sp_core::Get;
 use sp_std::{
@@ -700,19 +701,14 @@ parameter_types! {
 		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
 }
 
-pub type ForeignAssetManagerOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::FastGeneralAdmin,
-	>,
->;
+pub type ForeignAssetManagerOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, ForeignAssetOwnerOrigin>;
 
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type ForeignAssetCreatorOrigin = EnsureSigned<AccountId>;
+	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;

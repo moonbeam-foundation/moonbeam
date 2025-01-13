@@ -36,7 +36,7 @@ use frame_support::{
 	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
 
-use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
+use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
 use sp_weights::Weight;
 use xcm_builder::{
@@ -67,13 +67,13 @@ use xcm_primitives::{
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
+use crate::foreign_origin::ForeignAssetOwnerOrigin;
+use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use sp_core::Get;
 use sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::*,
 };
-
-use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
 parameter_types! {
 	// The network Id of the relay
@@ -98,8 +98,9 @@ parameter_types! {
 }
 
 /// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
-/// when determining ownership of accounts for asset transacting and when attempting to use XCM
-/// `Transact` in order to determine the dispatch Origin.
+/// when determining ownership of accounts for asset transacting, when attempting to use XCM
+/// `Transact` in order to determine the dispatch Origin, and when validating foreign assets
+/// creation and ownership through the moonbeam_foreign_assets pallet.
 pub type LocationToAccountId = (
 	// The parent (Relay-chain) origin converts to the default `AccountId`.
 	ParentIsPreset<AccountId>,
@@ -702,19 +703,14 @@ parameter_types! {
 		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
 }
 
-pub type ForeignAssetManagerOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::FastGeneralAdmin,
-	>,
->;
+pub type ForeignAssetManagerOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, ForeignAssetOwnerOrigin>;
 
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type ForeignAssetCreatorOrigin = EnsureSigned<AccountId>;
+	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;

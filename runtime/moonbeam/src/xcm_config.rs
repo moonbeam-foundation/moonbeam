@@ -66,6 +66,7 @@ use xcm_primitives::{
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
+use crate::foreign_origin::ForeignAssetOwnerOrigin;
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use sp_core::Get;
 use sp_std::{
@@ -680,13 +681,8 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	}
 }
 
-pub type ForeignAssetManagerOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::FastGeneralAdmin,
-	>,
->;
+pub type ForeignAssetManagerOrigin =
+	EitherOfDiverse<EnsureRoot<AccountId>, ForeignAssetOwnerOrigin>;
 
 parameter_types! {
 	/// Balance in the native currency that will be reserved from the user
