@@ -8965,7 +8965,7 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_parts(277168000, 0), weight);
+			assert_eq!(Weight::from_parts(402168000, 0), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
 			set_author(3, 1, POINTS_PER_ROUND); // must set some points for prepare_staking_payouts
@@ -8979,13 +8979,14 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2404547135;
-			assert_eq!(Weight::from_parts(expected_on_init, 32562), weight);
+			let expected_on_init = 15798547135;
+			assert_eq!(Weight::from_parts(expected_on_init, 244947), weight);
 
 			// assemble weight manually to ensure it is well understood
 			let mut expected_weight = 0u64;
 			expected_weight += PalletWeights::<Test>::base_on_initialize().ref_time();
 			expected_weight += PalletWeights::<Test>::prepare_staking_payouts().ref_time();
+			expected_weight += PalletWeights::<Test>::mark_collators_as_inactive().ref_time();
 
 			// TODO: this should be the same as <TotalSelected<Test>>. I believe this relates to
 			// genesis building
@@ -9000,9 +9001,9 @@ fn test_on_initialize_weights() {
 			// Round write, done in on-round-change code block inside on_initialize()
 			expected_weight += RocksDbWeight::get().reads_writes(0, 1).ref_time();
 			// more reads/writes manually accounted for for on_finalize
-			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
+			expected_weight += RocksDbWeight::get().reads_writes(4, 3).ref_time();
 
-			assert_eq!(Weight::from_parts(expected_weight, 32562), weight);
+			assert_eq!(Weight::from_parts(expected_weight, 244947), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
