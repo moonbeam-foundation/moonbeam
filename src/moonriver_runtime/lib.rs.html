@@ -1833,43 +1833,6 @@
 <a href="#1831" id="1831">1831</a>
 <a href="#1832" id="1832">1832</a>
 <a href="#1833" id="1833">1833</a>
-<a href="#1834" id="1834">1834</a>
-<a href="#1835" id="1835">1835</a>
-<a href="#1836" id="1836">1836</a>
-<a href="#1837" id="1837">1837</a>
-<a href="#1838" id="1838">1838</a>
-<a href="#1839" id="1839">1839</a>
-<a href="#1840" id="1840">1840</a>
-<a href="#1841" id="1841">1841</a>
-<a href="#1842" id="1842">1842</a>
-<a href="#1843" id="1843">1843</a>
-<a href="#1844" id="1844">1844</a>
-<a href="#1845" id="1845">1845</a>
-<a href="#1846" id="1846">1846</a>
-<a href="#1847" id="1847">1847</a>
-<a href="#1848" id="1848">1848</a>
-<a href="#1849" id="1849">1849</a>
-<a href="#1850" id="1850">1850</a>
-<a href="#1851" id="1851">1851</a>
-<a href="#1852" id="1852">1852</a>
-<a href="#1853" id="1853">1853</a>
-<a href="#1854" id="1854">1854</a>
-<a href="#1855" id="1855">1855</a>
-<a href="#1856" id="1856">1856</a>
-<a href="#1857" id="1857">1857</a>
-<a href="#1858" id="1858">1858</a>
-<a href="#1859" id="1859">1859</a>
-<a href="#1860" id="1860">1860</a>
-<a href="#1861" id="1861">1861</a>
-<a href="#1862" id="1862">1862</a>
-<a href="#1863" id="1863">1863</a>
-<a href="#1864" id="1864">1864</a>
-<a href="#1865" id="1865">1865</a>
-<a href="#1866" id="1866">1866</a>
-<a href="#1867" id="1867">1867</a>
-<a href="#1868" id="1868">1868</a>
-<a href="#1869" id="1869">1869</a>
-<a href="#1870" id="1870">1870</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1919,11 +1882,9 @@
 	parameter_types,
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect},
-		tokens::imbalance::ResolveTo,
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOfDiverse,
-		EqualPrivilegeOnly, Imbalance, InstanceFilter, LinearStoragePrice, OnFinalize,
-		OnUnbalanced,
+		EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice, OnFinalize, OnUnbalanced,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -1937,6 +1898,9 @@
 	Index, Signature,
 };
 <span class="kw">use </span>moonbeam_rpc_primitives_txpool::TxPoolResponse;
+<span class="kw">use </span>moonbeam_runtime_common::deal_with_fees::{
+	DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
+};
 <span class="kw">use </span>moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 <span class="kw">pub use </span>pallet_author_slot_filter::EligibilityValue;
 <span class="kw">use </span>pallet_ethereum::Call::transact;
@@ -1948,7 +1912,6 @@
 };
 <span class="kw">pub use </span>pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 <span class="kw">use </span>pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
-<span class="kw">use </span>pallet_treasury::TreasuryAccountId;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sp_api::impl_runtime_apis;
@@ -2206,52 +2169,6 @@
 	<span class="kw">type </span>WeightInfo = moonriver_weights::pallet_balances::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="kw">pub struct </span>DealWithFees&lt;R&gt;(sp_std::marker::PhantomData&lt;R&gt;);
-<span class="kw">impl</span>&lt;R&gt; OnUnbalanced&lt;Credit&lt;R::AccountId, pallet_balances::Pallet&lt;R&gt;&gt;&gt; <span class="kw">for </span>DealWithFees&lt;R&gt;
-<span class="kw">where
-	</span>R: pallet_balances::Config + pallet_treasury::Config,
-{
-	<span class="comment">// this seems to be called for substrate-based transactions
-	</span><span class="kw">fn </span>on_unbalanceds(
-		<span class="kw-2">mut </span>fees_then_tips: <span class="kw">impl </span>Iterator&lt;Item = Credit&lt;R::AccountId, pallet_balances::Pallet&lt;R&gt;&gt;&gt;,
-	) {
-		<span class="kw">if let </span><span class="prelude-val">Some</span>(fees) = fees_then_tips.next() {
-			<span class="kw">let </span>treasury_proportion =
-				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-			<span class="kw">let </span>treasury_part = treasury_proportion.deconstruct();
-			<span class="kw">let </span>burn_part = Perbill::one().deconstruct() - treasury_part;
-			<span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = fees.ration(burn_part, treasury_part);
-			<span class="comment">// Balances pallet automatically burns dropped Credits by decreasing
-			// total_supply accordingly
-			</span>ResolveTo::&lt;TreasuryAccountId&lt;R&gt;, pallet_balances::Pallet&lt;R&gt;&gt;::on_unbalanced(
-				to_treasury,
-			);
-
-			<span class="comment">// handle tip if there is one
-			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(tip) = fees_then_tips.next() {
-				<span class="comment">// for now we use the same burn/treasury strategy used for regular fees
-				</span><span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = tip.ration(burn_part, treasury_part);
-				ResolveTo::&lt;TreasuryAccountId&lt;R&gt;, pallet_balances::Pallet&lt;R&gt;&gt;::on_unbalanced(
-					to_treasury,
-				);
-			}
-		}
-	}
-
-	<span class="comment">// this is called from pallet_evm for Ethereum-based transactions
-	// (technically, it calls on_unbalanced, which calls this when non-zero)
-	</span><span class="kw">fn </span>on_nonzero_unbalanced(amount: Credit&lt;R::AccountId, pallet_balances::Pallet&lt;R&gt;&gt;) {
-		<span class="comment">// Balances pallet automatically burns dropped Credits by decreasing
-		// total_supply accordingly
-		</span><span class="kw">let </span>treasury_proportion =
-			runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-		<span class="kw">let </span>treasury_part = treasury_proportion.deconstruct();
-		<span class="kw">let </span>burn_part = Perbill::one().deconstruct() - treasury_part;
-		<span class="kw">let </span>(<span class="kw">_</span>, to_treasury) = amount.ration(burn_part, treasury_part);
-		ResolveTo::&lt;TreasuryAccountId&lt;R&gt;, pallet_balances::Pallet&lt;R&gt;&gt;::on_unbalanced(to_treasury);
-	}
-}
-
 <span class="kw">pub struct </span>LengthToFee;
 <span class="kw">impl </span>WeightToFeePolynomial <span class="kw">for </span>LengthToFee {
 	<span class="kw">type </span>Balance = Balance;
@@ -2276,7 +2193,13 @@
 
 <span class="kw">impl </span>pallet_transaction_payment::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>OnChargeTransaction = FungibleAdapter&lt;Balances, DealWithFees&lt;Runtime&gt;&gt;;
+	<span class="kw">type </span>OnChargeTransaction = FungibleAdapter&lt;
+		Balances,
+		DealWithSubstrateFeesAndTip&lt;
+			Runtime,
+			dynamic_params::runtime_config::FeesTreasuryProportion,
+		&gt;,
+	&gt;;
 	<span class="kw">type </span>OperationalFeeMultiplier = ConstU8&lt;<span class="number">5</span>&gt;;
 	<span class="kw">type </span>WeightToFee = ConstantMultiplier&lt;Balance, ConstU128&lt;{ currency::WEIGHT_FEE }&gt;&gt;;
 	<span class="kw">type </span>LengthToFee = LengthToFee;
@@ -2407,7 +2330,10 @@
 	<span class="kw">type </span>PrecompilesType = MoonriverPrecompiles&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>PrecompilesValue = PrecompilesValue;
 	<span class="kw">type </span>ChainId = EthereumChainId;
-	<span class="kw">type </span>OnChargeTransaction = OnChargeEVMTransaction&lt;DealWithFees&lt;Runtime&gt;&gt;;
+	<span class="kw">type </span>OnChargeTransaction = OnChargeEVMTransaction&lt;
+		DealWithEthereumBaseFees&lt;Runtime, dynamic_params::runtime_config::FeesTreasuryProportion&gt;,
+		DealWithEthereumPriorityFees&lt;Runtime&gt;,
+	&gt;;
 	<span class="kw">type </span>BlockGasLimit = BlockGasLimit;
 	<span class="kw">type </span>FindAuthor = FindAuthorAdapter&lt;AuthorInherent&gt;;
 	<span class="kw">type </span>OnCreate = ();

@@ -63,6 +63,10 @@
 <a href="#61" id="61">61</a>
 <a href="#62" id="62">62</a>
 <a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -87,13 +91,17 @@
 		<span class="kw">type </span>BalanceFor&lt;T&gt; =
 			&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency <span class="kw">as </span>Inspect&lt;FungibleAccountId&lt;T&gt;&gt;&gt;::Balance;
 
-		<span class="kw">pub struct </span>OnChargeEVMTransaction&lt;OU&gt;(sp_std::marker::PhantomData&lt;OU&gt;);
+		<span class="kw">pub struct </span>OnChargeEVMTransaction&lt;BaseFeesOU, PriorityFeesOU&gt;(
+			sp_std::marker::PhantomData&lt;(BaseFeesOU, PriorityFeesOU)&gt;
+		);
 
-		<span class="kw">impl</span>&lt;T, OU&gt; OnChargeEVMTransactionT&lt;T&gt; <span class="kw">for </span>OnChargeEVMTransaction&lt;OU&gt;
+		<span class="kw">impl</span>&lt;T, BaseFeesOU, PriorityFeesOU&gt; OnChargeEVMTransactionT&lt;T&gt;
+			<span class="kw">for </span>OnChargeEVMTransaction&lt;BaseFeesOU, PriorityFeesOU&gt;
 		<span class="kw">where
 			</span>T: pallet_evm::Config,
 			T::Currency: Balanced&lt;pallet_evm::AccountIdOf&lt;T&gt;&gt;,
-			OU: OnUnbalanced&lt;Credit&lt;pallet_evm::AccountIdOf&lt;T&gt;, T::Currency&gt;&gt;,
+			BaseFeesOU: OnUnbalanced&lt;Credit&lt;pallet_evm::AccountIdOf&lt;T&gt;, T::Currency&gt;&gt;,
+			PriorityFeesOU: OnUnbalanced&lt;Credit&lt;pallet_evm::AccountIdOf&lt;T&gt;, T::Currency&gt;&gt;,
 			U256: UniqueSaturatedInto&lt;&lt;T::Currency <span class="kw">as </span>Inspect&lt;pallet_evm::AccountIdOf&lt;T&gt;&gt;&gt;::Balance&gt;,
 			T::AddressMapping: pallet_evm::AddressMapping&lt;T::AccountId&gt;,
 		{
@@ -113,14 +121,14 @@
 				base_fee: U256,
 				already_withdrawn: <span class="self">Self</span>::LiquidityInfo,
 			) -&gt; <span class="self">Self</span>::LiquidityInfo {
-				&lt;EVMFungibleAdapter&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, OU&gt; <span class="kw">as </span>OnChargeEVMTransactionT&lt;
+				&lt;EVMFungibleAdapter&lt;&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::Currency, BaseFeesOU&gt; <span class="kw">as </span>OnChargeEVMTransactionT&lt;
 					T,
 				&gt;&gt;::correct_and_deposit_fee(who, corrected_fee, base_fee, already_withdrawn)
 			}
 
 			<span class="kw">fn </span>pay_priority_fee(tip: <span class="self">Self</span>::LiquidityInfo) {
 				<span class="kw">if let </span><span class="prelude-val">Some</span>(tip) = tip {
-					OU::on_unbalanced(tip);
+					PriorityFeesOU::on_unbalanced(tip);
 				}
 			}
 		}
