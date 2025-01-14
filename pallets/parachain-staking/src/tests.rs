@@ -8979,14 +8979,14 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 15798547135;
-			assert_eq!(Weight::from_parts(expected_on_init, 244947), weight);
+			let expected_on_init = 3541628080;
+			assert_eq!(Weight::from_parts(expected_on_init, 51512), weight);
 
 			// assemble weight manually to ensure it is well understood
 			let mut expected_weight = 0u64;
 			expected_weight += PalletWeights::<Test>::base_on_initialize().ref_time();
 			expected_weight += PalletWeights::<Test>::prepare_staking_payouts().ref_time();
-			expected_weight += PalletWeights::<Test>::mark_collators_as_inactive().ref_time();
+			expected_weight += PalletWeights::<Test>::mark_collators_as_inactive(5).ref_time();
 
 			// TODO: this should be the same as <TotalSelected<Test>>. I believe this relates to
 			// genesis building
@@ -9003,7 +9003,7 @@ fn test_on_initialize_weights() {
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(4, 3).ref_time();
 
-			assert_eq!(Weight::from_parts(expected_weight, 244947), weight);
+			assert_eq!(Weight::from_parts(expected_weight, 51512), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
