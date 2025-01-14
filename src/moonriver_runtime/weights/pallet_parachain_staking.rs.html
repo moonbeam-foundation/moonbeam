@@ -877,6 +877,28 @@
 <a href="#875" id="875">875</a>
 <a href="#876" id="876">876</a>
 <a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -1752,6 +1774,28 @@
 		</span>Weight::from_parts(<span class="number">70_567_000</span>, <span class="number">17472</span>)
 			.saturating_add(T::DbWeight::get().reads(<span class="number">10_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
+	}
+
+	<span class="doccomment">/// Storage: `ParachainStaking::AtStake` (r:52 w:0)
+	/// Proof: `ParachainStaking::AtStake` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::AwardedPts` (r:51 w:0)
+	/// Proof: `ParachainStaking::AwardedPts` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::WasInactive` (r:0 w:51)
+	/// Proof: `ParachainStaking::WasInactive` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// The range of component `x` is `[0, 50]`.
+	</span><span class="kw">fn </span>mark_collators_as_inactive(x: u32, ) -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `108 + x * (104 ±0)`
+		//  Estimated: `6050 + x * (2580 ±0)`
+		// Minimum execution time: 16_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">27_982_315</span>, <span class="number">6050</span>)
+			<span class="comment">// Standard Error: 27_443
+			</span>.saturating_add(Weight::from_parts(<span class="number">11_819_726</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
+			.saturating_add(T::DbWeight::get().reads((<span class="number">2_u64</span>).saturating_mul(x.into())))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(x.into())))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2580</span>).saturating_mul(x.into()))
 	}
 }
 </code></pre></div></section></main></body></html>

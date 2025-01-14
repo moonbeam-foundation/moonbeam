@@ -2361,6 +2361,38 @@
 <a href="#2359" id="2359">2359</a>
 <a href="#2360" id="2360">2360</a>
 <a href="#2361" id="2361">2361</a>
+<a href="#2362" id="2362">2362</a>
+<a href="#2363" id="2363">2363</a>
+<a href="#2364" id="2364">2364</a>
+<a href="#2365" id="2365">2365</a>
+<a href="#2366" id="2366">2366</a>
+<a href="#2367" id="2367">2367</a>
+<a href="#2368" id="2368">2368</a>
+<a href="#2369" id="2369">2369</a>
+<a href="#2370" id="2370">2370</a>
+<a href="#2371" id="2371">2371</a>
+<a href="#2372" id="2372">2372</a>
+<a href="#2373" id="2373">2373</a>
+<a href="#2374" id="2374">2374</a>
+<a href="#2375" id="2375">2375</a>
+<a href="#2376" id="2376">2376</a>
+<a href="#2377" id="2377">2377</a>
+<a href="#2378" id="2378">2378</a>
+<a href="#2379" id="2379">2379</a>
+<a href="#2380" id="2380">2380</a>
+<a href="#2381" id="2381">2381</a>
+<a href="#2382" id="2382">2382</a>
+<a href="#2383" id="2383">2383</a>
+<a href="#2384" id="2384">2384</a>
+<a href="#2385" id="2385">2385</a>
+<a href="#2386" id="2386">2386</a>
+<a href="#2387" id="2387">2387</a>
+<a href="#2388" id="2388">2388</a>
+<a href="#2389" id="2389">2389</a>
+<a href="#2390" id="2390">2390</a>
+<a href="#2391" id="2391">2391</a>
+<a href="#2392" id="2392">2392</a>
+<a href="#2393" id="2393">2393</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2852,6 +2884,8 @@
 					selected_collators_number: collator_count,
 					total_balance: total_staked,
 				});
+				<span class="comment">// record inactive collators
+				</span>weight = weight.saturating_add(<span class="self">Self</span>::mark_collators_as_inactive(round.current));
 				<span class="comment">// account for Round write
 				</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">0</span>, <span class="number">1</span>));
 			} <span class="kw">else </span>{
@@ -2859,13 +2893,14 @@
 			}
 
 			<span class="comment">// add on_finalize weight
-			//   read:  Author, Points, AwardedPts
-			//   write: Points, AwardedPts
-			</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">3</span>, <span class="number">2</span>));
+			//   read:  Author, Points, AwardedPts, WasInactive
+			//   write: Points, AwardedPts, WasInactive
+			</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">4</span>, <span class="number">3</span>));
 			weight
 		}
 		<span class="kw">fn </span>on_finalize(_n: BlockNumberFor&lt;T&gt;) {
 			<span class="self">Self</span>::award_points_to_block_author();
+			<span class="self">Self</span>::cleanup_inactive_collator_info();
 		}
 	}
 
@@ -3005,6 +3040,13 @@
 		CollatorSnapshot&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
 		OptionQuery,
 	&gt;;
+
+	<span class="attr">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>was_inactive)]
+	</span><span class="doccomment">/// Records collators' inactivity.
+	/// Data persists for MaxOfflineRounds + 1 rounds before being pruned.
+	</span><span class="kw">pub type </span>WasInactive&lt;T: Config&gt; =
+		StorageDoubleMap&lt;<span class="kw">_</span>, Twox64Concat, RoundIndex, Twox64Concat, T::AccountId, (), OptionQuery&gt;;
 
 	<span class="attr">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>delayed_payouts)]
@@ -3780,17 +3822,9 @@
 			// the collator should be notified as inactive
 			</span><span class="kw">let </span><span class="kw-2">mut </span>inactive_counter: RoundIndex = <span class="number">0u32</span>;
 
-			<span class="comment">// Iter rounds to check
-			//
-			// - The collator has AtStake associated and their AwardedPts are zero
-			//
-			// If the previous condition is met in all rounds of rounds_to_check,
-			// the collator is notified as inactive
+			<span class="comment">// Iter rounds and check whether the collator has been inactive
 			</span><span class="kw">for </span>r <span class="kw">in </span>rounds_to_check {
-				<span class="kw">let </span>stake = &lt;AtStake&lt;T&gt;&gt;::get(r, <span class="kw-2">&amp;</span>collator);
-				<span class="kw">let </span>pts = &lt;AwardedPts&lt;T&gt;&gt;::get(r, <span class="kw-2">&amp;</span>collator);
-
-				<span class="kw">if </span>stake.is_some() &amp;&amp; pts.is_zero() {
+				<span class="kw">if </span>&lt;WasInactive&lt;T&gt;&gt;::get(r, <span class="kw-2">&amp;</span>collator).is_some() {
 					inactive_counter = inactive_counter.saturating_add(<span class="number">1</span>);
 				}
 			}
@@ -4067,8 +4101,8 @@
 			<span class="kw">let </span>return_stake = |bond: Bond&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;| {
 				<span class="comment">// remove delegation from delegator state
 				</span><span class="kw">let </span><span class="kw-2">mut </span>delegator = DelegatorState::&lt;T&gt;::get(<span class="kw-2">&amp;</span>bond.owner).expect(
-					<span class="string">"Collator state and delegator state are consistent. 
-						Collator state has a record of this delegation. Therefore, 
+					<span class="string">"Collator state and delegator state are consistent.
+						Collator state has a record of this delegation. Therefore,
 						Delegator state also has a record. qed."</span>,
 				);
 
@@ -4696,17 +4730,47 @@
 				});
 			};
 		}
-	}
 
-	<span class="doccomment">/// Add reward points to block authors:
-	/// * 20 points to the block producer for producing a block in the chain
-	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
-		<span class="kw">fn </span>award_points_to_block_author() {
+		<span class="doccomment">/// Add reward points to block authors:
+		/// * 20 points to the block producer for producing a block in the chain
+		</span><span class="kw">fn </span>award_points_to_block_author() {
 			<span class="kw">let </span>author = T::BlockAuthor::get();
 			<span class="kw">let </span>now = &lt;Round&lt;T&gt;&gt;::get().current;
 			<span class="kw">let </span>score_plus_20 = &lt;AwardedPts&lt;T&gt;&gt;::get(now, <span class="kw-2">&amp;</span>author).saturating_add(<span class="number">20</span>);
 			&lt;AwardedPts&lt;T&gt;&gt;::insert(now, author, score_plus_20);
 			&lt;Points&lt;T&gt;&gt;::mutate(now, |x| <span class="kw-2">*</span>x = x.saturating_add(<span class="number">20</span>));
+		}
+
+		<span class="doccomment">/// Marks collators as inactive for the previous round if they received zero awarded points.
+		</span><span class="kw">pub fn </span>mark_collators_as_inactive(cur: RoundIndex) -&gt; Weight {
+			<span class="comment">// This function is called after round index increment,
+			// We don't need to saturate here because the genesis round is 1.
+			</span><span class="kw">let </span>prev = cur - <span class="number">1</span>;
+
+			<span class="kw">let </span><span class="kw-2">mut </span>collators_at_stake_count = <span class="number">0u32</span>;
+			<span class="kw">for </span>(account, <span class="kw">_</span>) <span class="kw">in </span>&lt;AtStake&lt;T&gt;&gt;::iter_prefix(prev) {
+				collators_at_stake_count = collators_at_stake_count.saturating_add(<span class="number">1u32</span>);
+				<span class="kw">if </span>&lt;AwardedPts&lt;T&gt;&gt;::get(prev, <span class="kw-2">&amp;</span>account).is_zero() {
+					&lt;WasInactive&lt;T&gt;&gt;::insert(prev, account, ());
+				}
+			}
+
+			&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::mark_collators_as_inactive(collators_at_stake_count)
+		}
+
+		<span class="doccomment">/// Cleans up historical staking information that is older than MaxOfflineRounds
+		/// by removing entries from the WasIactive storage map.
+		</span><span class="kw">fn </span>cleanup_inactive_collator_info() {
+			<span class="kw">let </span>now = &lt;Round&lt;T&gt;&gt;::get().current;
+			<span class="kw">let </span>minimum_rounds_required = T::MaxOfflineRounds::get() + <span class="number">1</span>;
+
+			<span class="kw">if </span>now &lt; minimum_rounds_required {
+				<span class="kw">return</span>;
+			}
+
+			<span class="kw">let _ </span>= &lt;WasInactive&lt;T&gt;&gt;::iter_prefix(now - minimum_rounds_required)
+				.drain()
+				.next();
 		}
 	}
 
