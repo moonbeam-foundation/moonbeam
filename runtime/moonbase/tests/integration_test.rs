@@ -53,6 +53,7 @@ use moonbase_runtime::{
 	RuntimeBlockWeights,
 	RuntimeCall,
 	RuntimeEvent,
+	Sudo,
 	System,
 	TransactionPayment,
 	TransactionPaymentAsGasPrice,
@@ -2971,6 +2972,76 @@ fn validate_transaction_fails_on_filtered_call() {
 			Err(TransactionValidityError::Invalid(InvalidTransaction::Call)),
 		);
 	});
+}
+
+#[test]
+fn test_treasury_spend_local() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			assert_ok!(moonbase_runtime::Sudo::sudo(
+				root_origin(),
+				Box::new(RuntimeCall::Treasury(pallet_treasury::Call::spend_local {
+					amount: 100u128,
+					beneficiary: AccountId::from(BOB),
+				}))
+			));
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.filter(|r| {
+						match r.event {
+							RuntimeEvent::Treasury(pallet_treasury::Event::SpendApproved {
+								..
+							}) => true,
+							_ => false,
+						}
+					})
+					.count(),
+				1
+			)
+		});
+}
+
+#[test]
+fn test_treasury_spend() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.build()
+		.execute_with(|| {
+			assert_ok!(moonbase_runtime::Sudo::sudo(
+				root_origin(),
+				Box::new(RuntimeCall::Treasury(pallet_treasury::Call::spend {
+					asset_kind: Box::new(()),
+					amount: 100u128,
+					beneficiary: Box::new(AccountId::from(BOB)),
+					valid_from: None
+				}))
+			));
+
+			assert_eq!(
+				System::events()
+					.into_iter()
+					.filter(|r| {
+						match r.event {
+							RuntimeEvent::Treasury(
+								pallet_treasury::Event::AssetSpendApproved { .. },
+							) => true,
+							_ => false,
+						}
+					})
+					.count(),
+				1
+			)
+		});
 }
 
 #[cfg(test)]

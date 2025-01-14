@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import type { ApiPromise } from "@polkadot/api";
 import { alith, baltathar, ethan } from "@moonwall/util";
+import { expectSubstrateEvent } from "../../../../helpers";
 
 describeSuite({
   id: "D013801",
@@ -24,8 +25,11 @@ describeSuite({
         const proposal_value = 1000000000n;
         const tx = api.tx.treasury.spendLocal(proposal_value, ethan.address);
         const signedTx = await tx.signAsync(baltathar);
-        await context.createBlock(signedTx, { allowFailures: false });
+        const blockResult = await context.createBlock(signedTx);
 
+        expectSubstrateEvent(blockResult, "system", "ExtrinsicFailed");
+
+        expect((await api.query.treasury.proposalCount()).toNumber()).to.equal(0);
         expect((await api.query.treasury.spendCount()).toNumber()).to.equal(0);
       },
     });
@@ -33,7 +37,10 @@ describeSuite({
     it({
       id: "T02",
       title: "Root should be able to spend (local) and approve a proposal",
+      timeout: -1,
       test: async function () {
+        const spendPeriod = api.consts.treasury.spendPeriod.toNumber();
+
         expect((await api.query.treasury.spendCount()).toNumber()).to.equal(0);
         // Creates a proposal
         // Value needs to be higher than the transaction fee paid by ethan,
@@ -41,9 +48,10 @@ describeSuite({
         const proposal_value = 1000000000n;
         const tx = api.tx.treasury.spendLocal(proposal_value, ethan.address);
         const signedTx = await api.tx.sudo.sudo(tx).signAsync(alith);
-        await context.createBlock(signedTx, { allowFailures: false });
+        const blockResult = await context.createBlock(signedTx, { allowFailures: false });
 
-        expect((await api.query.treasury.spendCount()).toNumber()).to.equal(1);
+        expectSubstrateEvent(blockResult, "treasury", "SpendApproved");
+        expect((await api.query.treasury.proposalCount()).toNumber()).to.equal(1);
       },
     });
   },
