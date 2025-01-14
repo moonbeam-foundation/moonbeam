@@ -133,17 +133,33 @@ pub mod pallet {
 		type EvmRunner: Runner<Self>;
 
 		/// Origin that is allowed to create a new foreign assets
-		type ForeignAssetCreatorOrigin: EnsureOriginWithArg<Self::RuntimeOrigin, Location>;
+		type ForeignAssetCreatorOrigin: EnsureOriginWithArg<
+			Self::RuntimeOrigin,
+			Location,
+			Success = Self::AccountId,
+		>;
 
 		/// Origin that is allowed to freeze all tokens of a foreign asset
-		type ForeignAssetFreezerOrigin: EnsureOriginWithArg<Self::RuntimeOrigin, Location>;
+		type ForeignAssetFreezerOrigin: EnsureOriginWithArg<
+			Self::RuntimeOrigin,
+			Location,
+			Success = Self::AccountId,
+		>;
 
 		/// Origin that is allowed to modify asset information for foreign assets
-		type ForeignAssetModifierOrigin: EnsureOriginWithArg<Self::RuntimeOrigin, Location>;
+		type ForeignAssetModifierOrigin: EnsureOriginWithArg<
+			Self::RuntimeOrigin,
+			Location,
+			Success = Self::AccountId,
+		>;
 
 		/// Origin that is allowed to unfreeze all tokens of a foreign asset that was previously
 		/// frozen
-		type ForeignAssetUnfreezerOrigin: EnsureOriginWithArg<Self::RuntimeOrigin, Location>;
+		type ForeignAssetUnfreezerOrigin: EnsureOriginWithArg<
+			Self::RuntimeOrigin,
+			Location,
+			Success = Self::AccountId,
+		>;
 
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
@@ -410,7 +426,8 @@ pub mod pallet {
 			symbol: BoundedVec<u8, ConstU32<256>>,
 			name: BoundedVec<u8, ConstU32<256>>,
 		) -> DispatchResult {
-			T::ForeignAssetCreatorOrigin::ensure_origin(origin.clone(), &xcm_location)?;
+			let owner_account =
+				T::ForeignAssetCreatorOrigin::ensure_origin(origin.clone(), &xcm_location)?;
 
 			// Ensure such an assetId does not exist
 			ensure!(
@@ -435,7 +452,6 @@ pub mod pallet {
 
 			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
-			let owner_account = ensure_signed(origin)?;
 			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
 			let deposit = T::ForeignAssetCreationDeposit::get();
 			let owner = AssetOwner::<T>::Account(owner_account.clone());
