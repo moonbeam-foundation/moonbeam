@@ -17,11 +17,11 @@
 use super::*;
 use crate as pallet_moonbeam_foreign_assets;
 
-use frame_support::traits::Everything;
+use frame_support::traits::{EnsureOriginWithArg, Everything};
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::EnsureSigned;
 use pallet_evm::{FrameSystemAccountProvider, SubstrateBlockHashMapping};
-use precompile_utils::testing::MockAccount;
+use precompile_utils::testing::{Alice, MockAccount};
 use sp_core::{H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
@@ -177,6 +177,18 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 	}
 }
 
+pub struct ForeignAssetMockOrigin;
+impl EnsureOriginWithArg<RuntimeOrigin, Location> for ForeignAssetMockOrigin {
+	type Success = AccountId;
+
+	fn try_origin(
+		_: RuntimeOrigin,
+		_: &Location,
+	) -> core::result::Result<Self::Success, RuntimeOrigin> {
+		Ok(Alice.into())
+	}
+}
+
 parameter_types! {
 	pub const ForeignAssetCreationDeposit: u128 = 1;
 }
@@ -186,9 +198,9 @@ impl crate::Config for Test {
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
 	type ForeignAssetCreatorOrigin = EnsureSigned<AccountId>;
-	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
+	type ForeignAssetFreezerOrigin = EnsureSigned<AccountId>;
+	type ForeignAssetModifierOrigin = EnsureSigned<AccountId>;
+	type ForeignAssetUnfreezerOrigin = EnsureSigned<AccountId>;
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;
