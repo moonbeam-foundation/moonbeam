@@ -427,7 +427,7 @@ pub type ResumeXcmOrigin = EitherOfDiverse<
 impl pallet_emergency_para_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CheckAssociatedRelayNumber =
-	cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
 	type PausedThreshold = ConstU32<300>;
 	type FastAuthorizeUpgradeOrigin = FastAuthorizeUpgradeOrigin;
@@ -525,7 +525,7 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 // How to convert from CurrencyId to Location
 pub struct CurrencyIdToLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<Location>>
-for CurrencyIdToLocation<AssetXConverter>
+	for CurrencyIdToLocation<AssetXConverter>
 where
 	AssetXConverter: sp_runtime::traits::MaybeEquivalence<Location, AssetId>,
 {
@@ -618,7 +618,7 @@ impl XcmTransact for Transactors {
 }
 
 pub type DerivativeAddressRegistrationOrigin =
-EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_xcm_transactor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
