@@ -570,11 +570,7 @@ impl pallet_treasury::Config for Runtime {
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = moonriver_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
-	#[cfg(not(feature = "runtime-benchmarks"))]
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
-	#[cfg(feature = "runtime-benchmarks")]
-	type SpendOrigin =
-		frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, benches::MaxBalance>;
+	type SpendOrigin = governance::TreasurySpender;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
