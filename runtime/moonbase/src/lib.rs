@@ -60,7 +60,7 @@ use frame_support::{
 	construct_runtime,
 	dispatch::{DispatchClass, GetDispatchInfo, PostDispatchInfo},
 	ensure,
-	pallet_prelude::{DispatchResult},
+	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect},
@@ -89,7 +89,6 @@ use pallet_evm::{
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
-use pallet_treasury::TreasuryAccountId;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use runtime_params::*;
 use scale_info::TypeInfo;

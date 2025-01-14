@@ -2517,7 +2517,8 @@ fn removed_precompiles() {
 #[test]
 fn deal_with_fees_handles_tip() {
 	use frame_support::traits::OnUnbalanced;
-	use moonriver_runtime::{DealWithSubstrateFeesAndTip, Treasury};
+	use moonbeam_runtime_common::deal_with_fees::DealWithSubstrateFeesAndTip;
+	use moonriver_runtime::Treasury;
 
 	ExtBuilder::default().build().execute_with(|| {
 		set_parachain_inherent_data();
@@ -2552,7 +2553,10 @@ fn deal_with_fees_handles_tip() {
 		assert_eq!(Balances::free_balance(&Treasury::account_id()), 0);
 
 		// Step 3: Execute the fees handling logic.
-		DealWithSubstrateFeesAndTip::on_unbalanceds(vec![fee, tip].into_iter());
+		DealWithSubstrateFeesAndTip::<
+			Runtime,
+			dynamic_params::runtime_config::FeesTreasuryProportion,
+		>::on_unbalanceds(vec![fee, tip].into_iter());
 
 		// Step 4: Compute the split between treasury and burned fees based on FeesTreasuryProportion (20%).
 		let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
