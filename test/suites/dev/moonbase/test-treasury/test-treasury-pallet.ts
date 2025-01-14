@@ -24,7 +24,7 @@ describeSuite({
         const proposal_value = 1000000000n;
         const tx = api.tx.treasury.spendLocal(proposal_value, ethan.address);
         const signedTx = await tx.signAsync(baltathar);
-        await context.createBlock([signedTx]);
+        await context.createBlock(signedTx, { allowFailures: false });
 
         expect((await api.query.treasury.spendCount()).toNumber()).to.equal(0);
       },
@@ -41,10 +41,9 @@ describeSuite({
         const proposal_value = 1000000000n;
         const tx = api.tx.treasury.spendLocal(proposal_value, ethan.address);
         const signedTx = await api.tx.sudo.sudo(tx).signAsync(alith);
-        await context.createBlock([signedTx]);
+        await context.createBlock(signedTx, { allowFailures: false });
 
-        // Local spends dont upadte the spend count
-        expect((await api.query.treasury.spendCount()).toNumber()).to.equal(0);
+        expect((await api.query.treasury.spendCount()).toNumber()).to.equal(1);
       },
     });
   },
