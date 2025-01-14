@@ -36,7 +36,7 @@ use sp_runtime::{
 };
 use sp_weights::Weight;
 
-use frame_system::{EnsureRoot, EnsureSigned, RawOrigin};
+use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
 
 use xcm_builder::{
@@ -427,7 +427,7 @@ pub type ResumeXcmOrigin = EitherOfDiverse<
 impl pallet_emergency_para_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type CheckAssociatedRelayNumber =
-		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
+	cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
 	type PausedThreshold = ConstU32<300>;
 	type FastAuthorizeUpgradeOrigin = FastAuthorizeUpgradeOrigin;
@@ -525,7 +525,7 @@ impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 // How to convert from CurrencyId to Location
 pub struct CurrencyIdToLocation<AssetXConverter>(sp_std::marker::PhantomData<AssetXConverter>);
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<Location>>
-	for CurrencyIdToLocation<AssetXConverter>
+for CurrencyIdToLocation<AssetXConverter>
 where
 	AssetXConverter: sp_runtime::traits::MaybeEquivalence<Location, AssetId>,
 {
@@ -618,7 +618,7 @@ impl XcmTransact for Transactors {
 }
 
 pub type DerivativeAddressRegistrationOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
+EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_xcm_transactor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -681,9 +681,6 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	}
 }
 
-pub type ForeignAssetManagerOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, ForeignAssetOwnerOrigin>;
-
 parameter_types! {
 	/// Balance in the native currency that will be reserved from the user
 	/// to create a new foreign asset
@@ -695,10 +692,10 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type ForeignAssetCreatorOrigin = EnsureSigned<AccountId>;
-	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetCreatorOrigin = ForeignAssetOwnerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetOwnerOrigin;
+	type ForeignAssetModifierOrigin = ForeignAssetOwnerOrigin;
+	type ForeignAssetUnfreezerOrigin = ForeignAssetOwnerOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;

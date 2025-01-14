@@ -703,17 +703,14 @@ parameter_types! {
 		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
 }
 
-pub type ForeignAssetManagerOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, ForeignAssetOwnerOrigin>;
-
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetCreatorOrigin = ForeignAssetOwnerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetOwnerOrigin;
+	type ForeignAssetModifierOrigin = ForeignAssetOwnerOrigin;
+	type ForeignAssetUnfreezerOrigin = ForeignAssetOwnerOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;
