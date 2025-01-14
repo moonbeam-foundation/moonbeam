@@ -2337,26 +2337,24 @@ benchmarks! {
 	}
 
 	mark_collators_as_inactive {
+		let x in 0..50; // num collators
+
 		// must come after 'let foo in 0..` statements for macro
 		use crate::{AtStake, CollatorSnapshot, AwardedPts};
 
 		let round = 2;
 		let prev = round - 1;
 
-		let mut candidate_count = 1u32;
-		let mut seed = USER_SEED;
 
-		// Create a similar amount of collators to those employed in Moonbeam at present (2025-01-13)
-		for i in 0..80 {
-			seed += i;
+
+		for i in 0..x {
 			let collator = create_funded_collator::<T>(
 				"collator",
-				seed,
+				USER_SEED + i,
 				min_candidate_stk::<T>() * 1_000_000u32.into(),
 				true,
-				candidate_count
+				999999,
 			)?;
-			candidate_count += 1;
 
 			// All collators were inactinve in previous round
 			<AtStake<T>>::insert(prev, &collator, CollatorSnapshot::default());

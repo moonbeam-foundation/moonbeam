@@ -2352,13 +2352,15 @@ pub mod pallet {
 			// We don't need to saturate here because the genesis round is 1.
 			let prev = cur - 1;
 
+			let mut collators_at_stake_count = 0u32;
 			for (account, _) in <AtStake<T>>::iter_prefix(prev) {
+				collators_at_stake_count = collators_at_stake_count.saturating_add(1u32);
 				if <AwardedPts<T>>::get(prev, &account).is_zero() {
 					<WasInactive<T>>::insert(prev, account, ());
 				}
 			}
 
-			<T as Config>::WeightInfo::mark_collators_as_inactive()
+			<T as Config>::WeightInfo::mark_collators_as_inactive(collators_at_stake_count)
 		}
 
 		/// Cleans up historical staking information that is older than MaxOfflineRounds
