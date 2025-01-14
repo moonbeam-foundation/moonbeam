@@ -116,9 +116,13 @@ const GENESIS_BLOCKS_PER_ROUND: BlockNumber = 5;
 const GENESIS_COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const GENESIS_PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const GENESIS_NUM_SELECTED_CANDIDATES: u32 = 5;
+
+pub const POINTS_PER_BLOCK: u32 = 20;
+pub const POINTS_PER_ROUND: u32 = GENESIS_BLOCKS_PER_ROUND * POINTS_PER_BLOCK;
+
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
-	pub const MaxOfflineRounds: u32 = 1;
+	pub const MaxOfflineRounds: u32 = 2;
 	pub const LeaveCandidatesDelay: u32 = 2;
 	pub const CandidateBondLessDelay: u32 = 2;
 	pub const LeaveDelegatorsDelay: u32 = 2;
@@ -278,6 +282,7 @@ impl ExtBuilder {
 
 /// Rolls forward one block. Returns the new block number.
 fn roll_one_block() -> BlockNumber {
+	ParachainStaking::on_finalize(System::block_number());
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
@@ -312,15 +317,31 @@ pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
 /// This will complete the block in which the round change occurs.
 /// Returns the number of blocks played.
 pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
-	let block = (round - 1) * GENESIS_BLOCKS_PER_ROUND;
-	roll_to(block)
+	let r = ParachainStaking::round();
+
+	// Return 0 if target round has already passed
+	if round < r.current + 1 {
+		return 0;
+	}
+
+	// Calculate target block by adding round length for each round difference
+	let target = r.first + (round - r.current) * r.length;
+	roll_to(target)
 }
 
 /// Rolls block-by-block to the end of the specified round.
 /// The block following will be the one in which the specified round change occurs.
 pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
-	let block = round * GENESIS_BLOCKS_PER_ROUND - 1;
-	roll_to(block)
+	let r = ParachainStaking::round();
+
+	// Return 0 if target round has already passed
+	if round < r.current {
+		return 0;
+	}
+
+	// Calculate target block by adding round length for each round difference
+	let target = r.first + (round - r.current + 1) * r.length - 1;
+	roll_to(target)
 }
 
 pub(crate) fn inflation_configs(
