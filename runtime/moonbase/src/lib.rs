@@ -1188,12 +1188,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
-			RuntimeCall::Treasury(
-				pallet_treasury::Call::spend { .. }
-				| pallet_treasury::Call::payout { .. }
-				| pallet_treasury::Call::check_status { .. }
-				| pallet_treasury::Call::void_spend { .. },
-			) => false,
 			_ => true,
 		}
 	}

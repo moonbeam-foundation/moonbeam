@@ -2711,8 +2711,7 @@ mod treasury_tests {
 				.to_vec();
 				expect_events(expected_events);
 
-				assert_eq!(Treasury::approvals().len(), 0);
-				assert_eq!(Treasury::proposal_count(), 0);
+				next_block();
 
 				// TreasuryCouncilCollective
 				assert_ok!(TreasuryCouncilCollective::set_members(
@@ -2725,9 +2724,11 @@ mod treasury_tests {
 				next_block();
 
 				// Perform treasury spending
-				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend_local {
+				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend {
 					amount: spend_amount,
-					beneficiary: AccountId::from(BOB),
+					asset_kind: Box::new(()),
+					beneficiary: Box::new(AccountId::from(BOB)),
+					valid_from: Some(5u32),
 				});
 				assert_ok!(TreasuryCouncilCollective::propose(
 					origin_of(AccountId::from(ALICE)),
@@ -2736,11 +2737,16 @@ mod treasury_tests {
 					1_000
 				));
 
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
 				let expected_events = [
-					RuntimeEvent::Treasury(pallet_treasury::Event::SpendApproved {
+					RuntimeEvent::Treasury(pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: (),
 						amount: spend_amount,
 						beneficiary: spend_beneficiary,
-						proposal_index: 0,
+						valid_from: 5u32,
+						expire_at: payout_period + 5u32,
 					}),
 					RuntimeEvent::TreasuryCouncilCollective(pallet_collective::Event::Executed {
 						proposal_hash: sp_runtime::traits::BlakeTwo256::hash_of(&proposal),
@@ -2750,42 +2756,21 @@ mod treasury_tests {
 				.to_vec();
 				expect_events(expected_events);
 
-				assert_eq!(Treasury::approvals().len(), 1);
-				assert_eq!(Treasury::proposal_count(), 1);
-
-				let spend_period =
-					<<Runtime as pallet_treasury::Config>::SpendPeriod as Get<u32>>::get();
-				for _ in 0..(spend_period.saturating_sub(System::block_number())) {
+				while System::block_number() < 5u32 {
 					next_block();
 				}
 
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
 				let expected_events = [
-					RuntimeEvent::Treasury(pallet_treasury::Event::Spending {
-						budget_remaining: initial_treasury_balance,
+					RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+						index: 0,
+						payment_id: (),
 					}),
-					RuntimeEvent::Balances(pallet_balances::Event::Deposit {
-						who: spend_beneficiary,
+					RuntimeEvent::Balances(pallet_balances::Event::Transfer {
+						from: Treasury::account_id(),
+						to: spend_beneficiary,
 						amount: spend_amount,
-					}),
-					RuntimeEvent::System(frame_system::Event::NewAccount {
-						account: spend_beneficiary,
-					}),
-					RuntimeEvent::Balances(pallet_balances::Event::Endowed {
-						account: spend_beneficiary,
-						free_balance: spend_amount,
-					}),
-					RuntimeEvent::Treasury(pallet_treasury::Event::Awarded {
-						proposal_index: 0,
-						award: spend_amount,
-						account: spend_beneficiary,
-					}),
-					RuntimeEvent::Treasury(pallet_treasury::Event::Burnt { burnt_funds: 0 }),
-					RuntimeEvent::Balances(pallet_balances::Event::Withdraw {
-						who: Treasury::account_id(),
-						amount: spend_amount,
-					}),
-					RuntimeEvent::Treasury(pallet_treasury::Event::Rollover {
-						rollover_balance: initial_treasury_balance.saturating_sub(spend_amount),
 					}),
 				]
 				.to_vec();
