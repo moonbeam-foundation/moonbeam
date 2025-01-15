@@ -2983,9 +2983,6 @@ mod treasury_tests {
 		let block_events: Vec<RuntimeEvent> =
 			System::events().into_iter().map(|r| r.event).collect();
 
-		dbg!(events.clone());
-		dbg!(block_events.clone());
-
 		assert!(events.iter().all(|evt| block_events.contains(evt)))
 	}
 
