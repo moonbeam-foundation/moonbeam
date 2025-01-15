@@ -2119,7 +2119,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		// This sets the default version, for not known destinations
 		assert_ok!(RelayChainPalletXcm::force_default_xcm_version(
 			relay_chain::RuntimeOrigin::root(),
-			Some(2)
+			Some(3)
 		));
 
 		// Wrap version, which sets VersionedStorage
@@ -2249,7 +2249,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		// This sets the default version, for not known destinations
 		assert_ok!(ParachainPalletXcm::force_default_xcm_version(
 			parachain::RuntimeOrigin::root(),
-			Some(2)
+			Some(3)
 		));
 		// Wrap version, which sets VersionedStorage
 		assert_ok!(<ParachainPalletXcm as WrapVersion>::wrap_version(
