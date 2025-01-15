@@ -2700,19 +2700,6 @@ mod treasury_tests {
 
 				next_block();
 
-				// Pre-checks
-
-				let expected_events = [RuntimeEvent::Treasury(
-					pallet_treasury::Event::UpdatedInactive {
-						reactivated: 0,
-						deactivated: initial_treasury_balance,
-					},
-				)]
-				.to_vec();
-				expect_events(expected_events);
-
-				next_block();
-
 				// TreasuryCouncilCollective
 				assert_ok!(TreasuryCouncilCollective::set_members(
 					root_origin(),

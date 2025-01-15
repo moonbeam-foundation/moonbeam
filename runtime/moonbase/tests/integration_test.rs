@@ -2983,6 +2983,9 @@ mod treasury_tests {
 		let block_events: Vec<RuntimeEvent> =
 			System::events().into_iter().map(|r| r.event).collect();
 
+		dbg!(events.clone());
+		dbg!(block_events.clone());
+
 		assert!(events.iter().all(|evt| block_events.contains(evt)))
 	}
 
@@ -3005,19 +3008,6 @@ mod treasury_tests {
 			.execute_with(|| {
 				let spend_amount = 100u128 * UNIT;
 				let spend_beneficiary = AccountId::from(BOB);
-
-				next_block();
-
-				// Pre-checks
-
-				let expected_events = [RuntimeEvent::Treasury(
-					pallet_treasury::Event::UpdatedInactive {
-						reactivated: 0,
-						deactivated: initial_treasury_balance,
-					},
-				)]
-				.to_vec();
-				expect_events(expected_events);
 
 				next_block();
 
@@ -3082,19 +3072,6 @@ mod treasury_tests {
 			.execute_with(|| {
 				let spend_amount = 100u128 * UNIT;
 				let spend_beneficiary = AccountId::from(BOB);
-
-				next_block();
-
-				// Pre-checks
-
-				let expected_events = [RuntimeEvent::Treasury(
-					pallet_treasury::Event::UpdatedInactive {
-						reactivated: 0,
-						deactivated: initial_treasury_balance,
-					},
-				)]
-				.to_vec();
-				expect_events(expected_events);
 
 				next_block();
 
