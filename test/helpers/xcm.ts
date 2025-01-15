@@ -348,25 +348,7 @@ export class XcmFragment {
   }
 
   // Add a `DepositAsset` instruction
-  deposit_asset(max_assets = 1n, network: "Any" | XcmV3JunctionNetworkId["type"] = "Any"): this {
-    if (this.config.beneficiary == null) {
-      console.warn("!Building a DepositAsset instruction without a configured beneficiary");
-    }
-    this.instructions.push({
-      DepositAsset: {
-        assets: { Wild: "All" },
-        maxAssets: max_assets,
-        beneficiary: {
-          parents: 0,
-          interior: { X1: { AccountKey20: { network, key: this.config.beneficiary } } },
-        },
-      },
-    });
-    return this;
-  }
-
-  // Add a `DepositAsset` instruction for xcm v3
-  deposit_asset_v3(max_assets = 1n, network: XcmV3JunctionNetworkId["type"] | null = null): this {
+  deposit_asset(max_assets = 1n, network: XcmV3JunctionNetworkId["type"] | null = null): this {
     if (this.config.beneficiary == null) {
       console.warn("!Building a DepositAsset instruction without a configured beneficiary");
     }
