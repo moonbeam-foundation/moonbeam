@@ -546,9 +546,10 @@ parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
 	pub TreasuryAccount: AccountId = Treasury::account_id();
+	pub const MaxSpendBalance: crate::Balance = crate::Balance::max_value();
 }
 
-type TreasuryRejectOrigin = EitherOfDiverse<
+type RootOrTreasuryCouncilOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
 >;
@@ -557,7 +558,7 @@ impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
 	// More than half of the council is required (or root) to reject a proposal
-	type RejectOrigin = TreasuryRejectOrigin;
+	type RejectOrigin = RootOrTreasuryCouncilOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type SpendPeriod = ConstU32<{ 6 * DAYS }>;
 	type Burn = ();
@@ -565,7 +566,8 @@ impl pallet_treasury::Config for Runtime {
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = moonbeam_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
-	type SpendOrigin = governance::TreasurySpender;
+	type SpendOrigin =
+		frame_system::EnsureWithSuccess<RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;

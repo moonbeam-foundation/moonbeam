@@ -20,7 +20,6 @@ pub mod councils;
 pub mod referenda;
 
 use super::*;
-use frame_system::EnsureRootWithSuccess;
 
 mod origins;
 pub use origins::{
@@ -28,8 +27,3 @@ pub use origins::{
 };
 mod tracks;
 pub use tracks::TracksInfo;
-
-parameter_types! {
-	pub const MaxBalance: Balance = Balance::max_value();
-}
-pub type TreasurySpender = EnsureRootWithSuccess<AccountId, MaxBalance>;
