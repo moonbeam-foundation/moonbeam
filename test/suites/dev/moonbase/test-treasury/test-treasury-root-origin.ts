@@ -6,7 +6,7 @@ import type { FrameSupportPalletId } from "@polkadot/types/lookup";
 
 describeSuite({
   id: "D013801",
-  title: "Treasury pallet tests",
+  title: "Treasury pallet spend_local call (Root Origin)",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let treasuryPalletId: FrameSupportPalletId;
