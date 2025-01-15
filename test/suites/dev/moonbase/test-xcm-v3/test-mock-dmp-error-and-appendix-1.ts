@@ -56,7 +56,7 @@ describeSuite({
           // But since there is no error, and the deposit is on the error handler, the assets
           // will be trapped
           .with(function () {
-            return this.set_error_handler_with([this.deposit_asset_v3]);
+            return this.set_error_handler_with([this.deposit_asset]);
           })
           .clear_origin()
           .as_v3();
