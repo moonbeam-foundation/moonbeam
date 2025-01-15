@@ -23,17 +23,13 @@ describeSuite({
       id: "T01",
       title: "Origins that are not Root or members of treasury council cannot spend treasury funds",
       test: async function () {
-        expect((await api.query.treasury.spendCount()).toNumber()).to.equal(0);
-
-        // Creates a proposal
         const proposal_value = 1000000000n;
-        const tx = api.tx.treasury.spendLocal(proposal_value, ethan.address);
+        const tx = api.tx.treasury.spend(null, proposal_value, ethan.address, null);
         const signedTx = await tx.signAsync(baltathar);
         await context.createBlock(signedTx, {
           expectEvents: [api.events.system.ExtrinsicFailed],
         });
 
-        expect((await api.query.treasury.proposalCount()).toNumber()).to.equal(0);
         expect((await api.query.treasury.spendCount()).toNumber()).to.equal(0);
       },
     });
@@ -52,21 +48,24 @@ describeSuite({
         expect((await api.query.treasury.deactivated()).toBigInt()).toBeGreaterThan(treasuryPot);
 
         // Pre-checks
-        expect((await api.query.treasury.proposalCount()).toNumber()).to.equal(0);
-        expect((await api.query.treasury.approvals()).length).to.equal(0);
+        expect((await api.query.treasury.spendCount()).toNumber()).to.equal(0);
 
         // Approve treasury spend to Ethan
         const proposal_value = 1_000_000_000_000_000n;
-        const tx = api.tx.treasury.spendLocal(proposal_value, ethan.address);
+        const tx = api.tx.treasury.spend(null, proposal_value, ethan.address, null);
         const signedTx = await api.tx.sudo.sudo(tx).signAsync(alith);
         await context.createBlock(signedTx, {
           allowFailures: false,
-          expectEvents: [api.events.treasury.SpendApproved],
+          expectEvents: [api.events.treasury.AssetSpendApproved],
         });
 
-        // Spending was successfully approved
-        expect((await api.query.treasury.proposalCount()).toNumber()).to.equal(1);
-        expect((await api.query.treasury.approvals()).length).to.equal(1);
+        // Spending was successfully submitted
+        expect((await api.query.treasury.spendCount()).toNumber()).to.equal(1);
+
+        await context.createBlock(await api.tx.treasury.payout(0).signAsync(ethan), {
+          allowFailures: false,
+          expectEvents: [api.events.treasury.Paid],
+        });
       },
     });
   },

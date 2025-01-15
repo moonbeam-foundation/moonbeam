@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import type { ApiPromise } from "@polkadot/api";
-import { alith, ethan } from "@moonwall/util";
+import { alith, baltathar, ethan } from "@moonwall/util";
 import type { FrameSupportPalletId } from "@polkadot/types/lookup";
 
 describeSuite({
@@ -25,7 +25,7 @@ describeSuite({
       test: async function () {
         // Set Alith as member of the treasury council
         const setMembersTX = api.tx.treasuryCouncilCollective.setMembers(
-          [alith.address],
+          [alith.address, baltathar.address],
           alith.address,
           3
         );
@@ -48,17 +48,60 @@ describeSuite({
 
         // Approve treasury spend to Ethan
         const proposal_value = 1_000_000_000_000_000n;
-        const tx = api.tx.treasury.spendLocal(proposal_value, ethan.address);
-        const signedTx = api.tx.treasuryCouncilCollective.propose(1, tx, 1_000).signAsync(alith);
-
-        await context.createBlock(signedTx, {
+        const tx = api.tx.treasury.spend(null, proposal_value, ethan.address, null);
+        const signedTx = api.tx.treasuryCouncilCollective.propose(2, tx, 1_000).signAsync(alith);
+        const blockResult = await context.createBlock(signedTx, {
           allowFailures: false,
-          expectEvents: [api.events.treasury.SpendApproved],
+          expectEvents: [api.events.treasuryCouncilCollective.Proposed],
         });
 
-        // Spending was successfully approved
-        expect((await api.query.treasury.proposalCount()).toNumber()).to.equal(1);
-        expect((await api.query.treasury.approvals()).length).to.equal(1);
+        const councilProposalHash = blockResult
+          .result!.events.find(({ event: { method } }) => method.toString() === "Proposed")!
+          .event.data[2].toHex();
+
+        await context.createBlock(
+          api.tx.treasuryCouncilCollective.vote(councilProposalHash, 0, true).signAsync(alith),
+          {
+            allowFailures: false,
+            expectEvents: [api.events.treasuryCouncilCollective.Voted],
+          }
+        );
+
+        await context.createBlock(
+          api.tx.treasuryCouncilCollective.vote(councilProposalHash, 0, true).signAsync(baltathar),
+          {
+            allowFailures: false,
+            expectEvents: [api.events.treasuryCouncilCollective.Voted],
+          }
+        );
+
+        await context.createBlock(
+          api.tx.treasuryCouncilCollective
+            .close(
+              councilProposalHash,
+              0,
+              {
+                refTime: 50_000_000_000,
+                proofSize: 100_000,
+              },
+              1_000
+            )
+            .signAsync(alith),
+          {
+            expectEvents: [
+              api.events.treasuryCouncilCollective.Closed,
+              api.events.treasury.AssetSpendApproved,
+            ],
+          }
+        );
+
+        // Spending was successfully submitted
+        expect((await api.query.treasury.spendCount()).toNumber()).to.equal(1);
+
+        await context.createBlock(await api.tx.treasury.payout(0).signAsync(ethan), {
+          allowFailures: false,
+          expectEvents: [api.events.treasury.Paid],
+        });
       },
     });
   },
