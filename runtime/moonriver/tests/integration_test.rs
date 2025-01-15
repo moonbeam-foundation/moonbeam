@@ -26,7 +26,10 @@ use frame_support::traits::fungible::Inspect;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
-	traits::{Currency as CurrencyT, EnsureOrigin, PalletInfo, OnInitialize, StorageInfo, StorageInfoTrait},
+	traits::{
+		Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo, StorageInfo,
+		StorageInfoTrait,
+	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
@@ -38,8 +41,8 @@ use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
 	AssetId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective, PolkadotXcm,
-	Precompiles, RuntimeBlockWeights, TransactionPayment, TransactionPaymentAsGasPrice,
-	TreasuryCouncilCollective, XcmTransactor, Treasury, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	Precompiles, RuntimeBlockWeights, TransactionPayment, TransactionPaymentAsGasPrice, Treasury,
+	TreasuryCouncilCollective, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -2665,8 +2668,8 @@ fn evm_success_keeps_substrate_events() {
 
 #[cfg(test)]
 mod treasury_tests {
-	use sp_runtime::traits::Hash;
 	use super::*;
+	use sp_runtime::traits::Hash;
 
 	fn expect_events(events: Vec<RuntimeEvent>) {
 		let block_events: Vec<RuntimeEvent> =

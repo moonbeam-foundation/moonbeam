@@ -2976,8 +2976,8 @@ fn validate_transaction_fails_on_filtered_call() {
 
 #[cfg(test)]
 mod treasury_tests {
-	use sp_runtime::traits::Hash;
 	use super::*;
+	use sp_runtime::traits::Hash;
 
 	fn expect_events(events: Vec<RuntimeEvent>) {
 		let block_events: Vec<RuntimeEvent> =

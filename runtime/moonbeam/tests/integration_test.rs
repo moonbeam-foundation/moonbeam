@@ -26,8 +26,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo, StorageInfo,
-		StorageInfoTrait,
+		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo,
+		StorageInfo, StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
@@ -40,8 +40,8 @@ use moonbeam_runtime::{
 	xcm_config::{CurrencyId, SelfReserve},
 	AccountId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective,
 	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
-	RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice,
-	TreasuryCouncilCollective, XcmTransactor, Treasury, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice, Treasury,
+	TreasuryCouncilCollective, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
@@ -2767,8 +2767,8 @@ fn evm_success_keeps_substrate_events() {
 
 #[cfg(test)]
 mod treasury_tests {
-	use sp_runtime::traits::Hash;
 	use super::*;
+	use sp_runtime::traits::Hash;
 
 	fn expect_events(events: Vec<RuntimeEvent>) {
 		let block_events: Vec<RuntimeEvent> =
