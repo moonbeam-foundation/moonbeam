@@ -37,54 +37,42 @@ benchmarks! {
 	}
 
 	change_existing_asset_type {
-		let x in 5..100;
-		for i in 0..x {
-			let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
-			let metadata = T::AssetRegistrarMetadata::default();
-			let amount = 1u32.into();
-			Pallet::<T>::register_foreign_asset(
-				RawOrigin::Root.into(),
-				asset_type.clone(),
-				metadata,
-				amount,
-				true
-			)?;
-		}
+		let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(1 as u128))).into();
+		let metadata = T::AssetRegistrarMetadata::default();
+		let amount = 1u32.into();
+		Pallet::<T>::register_foreign_asset(
+			RawOrigin::Root.into(),
+			asset_type.clone(),
+			metadata,
+			amount,
+			true
+		)?;
 
 		let new_asset_type = T::ForeignAssetType::default();
-		let asset_type_to_be_changed: T::ForeignAssetType = Location::new(
-			0,
-			X1(GeneralIndex((x-1) as u128))
-		).into();
-		let asset_id_to_be_changed = asset_type_to_be_changed.into();
-	}: _(RawOrigin::Root, asset_id_to_be_changed, new_asset_type.clone(), x)
+		let asset_id_to_be_changed = asset_type.clone().into();
+	}: _(RawOrigin::Root, asset_id_to_be_changed, new_asset_type.clone(), 1)
 	verify {
 		assert_eq!(Pallet::<T>::asset_id_type(asset_id_to_be_changed), Some(new_asset_type.clone()));
+		assert_eq!(Pallet::<T>::asset_type_id(new_asset_type.clone()), Some(asset_id_to_be_changed));
+		assert!(Pallet::<T>::asset_type_id(asset_type).is_none());
 	}
 
 	remove_existing_asset_type {
-		let x in 5..100;
-		for i in 0..x {
-			let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(i as u128))).into();
-			let metadata = T::AssetRegistrarMetadata::default();
-			let amount = 1u32.into();
-			Pallet::<T>::register_foreign_asset(
-				RawOrigin::Root.into(),
-				asset_type.clone(),
-				metadata,
-				amount,
-				true
-			)?;
-		}
-
-		let asset_type_to_be_removed: T::ForeignAssetType = Location::new(
-			0,
-			X1(GeneralIndex((x-1) as u128))
-		).into();
-		let asset_id: T::AssetId = asset_type_to_be_removed.clone().into();
-	}: _(RawOrigin::Root, asset_id, x)
+		let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(1 as u128))).into();
+		let metadata = T::AssetRegistrarMetadata::default();
+		let amount = 1u32.into();
+		Pallet::<T>::register_foreign_asset(
+			RawOrigin::Root.into(),
+			asset_type.clone(),
+			metadata,
+			amount,
+			true
+		)?;
+		let asset_id: T::AssetId = asset_type.clone().into();
+	}: _(RawOrigin::Root, asset_id, 1)
 	verify {
 		assert!(Pallet::<T>::asset_id_type(asset_id).is_none());
+		assert!(Pallet::<T>::asset_type_id(asset_type).is_none());
 	}
 }
 

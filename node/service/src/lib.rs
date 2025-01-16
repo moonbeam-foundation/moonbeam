@@ -568,17 +568,19 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				if experimental_block_import_strategy {
-					None
-				} else {
-					Some(!dev_service)
-				},
+				!experimental_block_import_strategy,
 			)?,
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
 	} else {
-		let parachain_block_import =
-			ParachainBlockImport::new(frontier_block_import, backend.clone());
+		let parachain_block_import = if experimental_block_import_strategy {
+			ParachainBlockImport::new(frontier_block_import, backend.clone())
+		} else {
+			ParachainBlockImport::new_with_delayed_best_block(
+				frontier_block_import,
+				backend.clone(),
+			)
+		};
 		(
 			nimbus_consensus::import_queue(
 				client.clone(),
@@ -586,11 +588,7 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				if experimental_block_import_strategy {
-					None
-				} else {
-					Some(!dev_service)
-				},
+				!experimental_block_import_strategy,
 			)?,
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)

@@ -190,6 +190,8 @@ import type {
   PalletMoonbeamForeignAssetsEvent,
   PalletMoonbeamLazyMigrationsCall,
   PalletMoonbeamLazyMigrationsError,
+  PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo,
+  PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus,
   PalletMoonbeamLazyMigrationsStateMigrationStatus,
   PalletMoonbeamOrbitersCall,
   PalletMoonbeamOrbitersCollatorPoolInfo,
@@ -587,6 +589,8 @@ declare module "@polkadot/types/types/registry" {
     PalletMoonbeamForeignAssetsEvent: PalletMoonbeamForeignAssetsEvent;
     PalletMoonbeamLazyMigrationsCall: PalletMoonbeamLazyMigrationsCall;
     PalletMoonbeamLazyMigrationsError: PalletMoonbeamLazyMigrationsError;
+    PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo: PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo;
+    PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus: PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus;
     PalletMoonbeamLazyMigrationsStateMigrationStatus: PalletMoonbeamLazyMigrationsStateMigrationStatus;
     PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
     PalletMoonbeamOrbitersCollatorPoolInfo: PalletMoonbeamOrbitersCollatorPoolInfo;
