@@ -1,13 +1,6 @@
 import "@moonbeam-network/api-augment";
-import {
-  beforeAll,
-  deployCreateCompiledContract,
-  describeSuite,
-  expect,
-} from "@moonwall/cli";
-import {
-  createViemTransaction,
-} from "@moonwall/util";
+import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import { createViemTransaction } from "@moonwall/util";
 import { error } from "console";
 
 describeSuite({
@@ -40,9 +33,9 @@ describeSuite({
 
         const cases = Array.from({ length: 100 }, (_, i) => i + 1);
 
-        let results: Results[] = [];
+        const results: Results[] = [];
 
-        for (let n of cases) {
+        for (const n of cases) {
           const txWithAL = await createViemTransaction(context, {
             to: helperProxy.contractAddress,
             data: data,
@@ -96,10 +89,10 @@ describeSuite({
 
         const cases = Array.from({ length: 100 }, (_, i) => i + 1);
 
-        let results: Results[] = [];
+        const results: Results[] = [];
 
-        for (let n of cases) {
-          let accessList: Address[] = [];
+        for (const n of cases) {
+          const accessList: Address[] = [];
           for (let i = 0; i < n; i++) {
             accessList.push({
               address: addresses[i],
@@ -166,7 +159,7 @@ describeSuite({
 });
 
 function generateSequentialStorageKeys(n: number): `0x${string}`[] {
-  let keys: `0x${string}`[] = [];
+  const keys: `0x${string}`[] = [];
   for (let i = 0; i < n; i++) {
     keys.push(`0x${i.toString().padStart(64, "0")}`);
   }
@@ -174,7 +167,7 @@ function generateSequentialStorageKeys(n: number): `0x${string}`[] {
 }
 
 function randomAddresses(n: number): `0x${string}`[] {
-  let addresses: `0x${string}`[] = [];
+  const addresses: `0x${string}`[] = [];
   for (let i = 0; i < n; i++) {
     let current = "0x";
     for (let j = 0; j < 40; j++) {
