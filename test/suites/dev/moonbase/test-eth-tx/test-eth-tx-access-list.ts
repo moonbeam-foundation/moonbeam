@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
 import { createViemTransaction } from "@moonwall/util";
-import { error } from "console";
+import { error } from "node:console";
 
 describeSuite({
   id: "D011304",
@@ -62,7 +62,7 @@ describeSuite({
         }
 
         results.forEach((result, index) => {
-          const diff = index == 0 ? "" : result.gasWithAL - results[index - 1].gasWithAL;
+          const diff = index === 0 ? "" : result.gasWithAL - results[index - 1].gasWithAL;
           if (result.keys > 4) {
             expect(diff).toBe(1900n);
           }
@@ -121,7 +121,7 @@ describeSuite({
         }
 
         results.forEach((result, index) => {
-          const diff = index == 0 ? "" : result.gasWithAL - results[index - 1].gasWithAL;
+          const diff = index === 0 ? "" : result.gasWithAL - results[index - 1].gasWithAL;
           if (result.addresses > 4) {
             expect(diff).toBe(2400n);
           }
