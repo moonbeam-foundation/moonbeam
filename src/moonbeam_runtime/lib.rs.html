@@ -1824,14 +1824,6 @@
 <a href="#1822" id="1822">1822</a>
 <a href="#1823" id="1823">1823</a>
 <a href="#1824" id="1824">1824</a>
-<a href="#1825" id="1825">1825</a>
-<a href="#1826" id="1826">1826</a>
-<a href="#1827" id="1827">1827</a>
-<a href="#1828" id="1828">1828</a>
-<a href="#1829" id="1829">1829</a>
-<a href="#1830" id="1830">1830</a>
-<a href="#1831" id="1831">1831</a>
-<a href="#1832" id="1832">1832</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2380,9 +2372,10 @@
 	<span class="kw">pub const </span>ProposalBond: Permill = Permill::from_percent(<span class="number">5</span>);
 	<span class="kw">pub const </span>TreasuryId: PalletId = PalletId(<span class="kw-2">*</span><span class="string">b"py/trsry"</span>);
 	<span class="kw">pub </span>TreasuryAccount: AccountId = Treasury::account_id();
+	<span class="kw">pub const </span>MaxSpendBalance: <span class="kw">crate</span>::Balance = <span class="kw">crate</span>::Balance::max_value();
 }
 
-<span class="kw">type </span>TreasuryRejectOrigin = EitherOfDiverse&lt;
+<span class="kw">type </span>RootOrTreasuryCouncilOrigin = EitherOfDiverse&lt;
 	EnsureRoot&lt;AccountId&gt;,
 	pallet_collective::EnsureProportionMoreThan&lt;AccountId, TreasuryCouncilInstance, <span class="number">1</span>, <span class="number">2</span>&gt;,
 &gt;;
@@ -2391,7 +2384,7 @@
 	<span class="kw">type </span>PalletId = TreasuryId;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="comment">// More than half of the council is required (or root) to reject a proposal
-	</span><span class="kw">type </span>RejectOrigin = TreasuryRejectOrigin;
+	</span><span class="kw">type </span>RejectOrigin = RootOrTreasuryCouncilOrigin;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>SpendPeriod = ConstU32&lt;{ <span class="number">6 </span>* DAYS }&gt;;
 	<span class="kw">type </span>Burn = ();
@@ -2399,11 +2392,8 @@
 	<span class="kw">type </span>MaxApprovals = ConstU32&lt;<span class="number">100</span>&gt;;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_treasury::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>SpendFunds = ();
-	<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
-	</span><span class="kw">type </span>SpendOrigin = frame_support::traits::NeverEnsureOrigin&lt;Balance&gt;; <span class="comment">// Disabled, no spending
-	</span><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
-	</span><span class="kw">type </span>SpendOrigin =
-		frame_system::EnsureWithSuccess&lt;EnsureRoot&lt;AccountId&gt;, AccountId, benches::MaxBalance&gt;;
+	<span class="kw">type </span>SpendOrigin =
+		frame_system::EnsureWithSuccess&lt;RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance&gt;;
 	<span class="kw">type </span>AssetKind = ();
 	<span class="kw">type </span>Beneficiary = AccountId;
 	<span class="kw">type </span>BeneficiaryLookup = IdentityLookup&lt;AccountId&gt;;
@@ -3027,12 +3017,6 @@
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			</span>RuntimeCall::EVM(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			RuntimeCall::Treasury(
-				pallet_treasury::Call::spend { .. }
-				| pallet_treasury::Call::payout { .. }
-				| pallet_treasury::Call::check_status { .. }
-				| pallet_treasury::Call::void_spend { .. },
-			) =&gt; <span class="bool-val">false</span>,
 			<span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
 		}
 	}
