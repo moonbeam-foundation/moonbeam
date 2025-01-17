@@ -39,7 +39,9 @@ for PALLET in "${PALLETS[@]}"; do
 
   OUTPUT=$(
     ./target/${profile}/moonbeam benchmark pallet \
-    --chain="${runtime}-dev" \
+    --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
+    --genesis-builder=runtime \
+    --genesis-builder-preset=development \
     --steps=50 \
     --repeat=20 \
     --pallet="$PALLET" \
