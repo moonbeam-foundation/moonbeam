@@ -558,9 +558,10 @@ parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub TreasuryAccount: AccountId = Treasury::account_id();
+	pub const MaxSpendBalance: crate::Balance = crate::Balance::max_value();
 }
 
-type TreasuryRejectOrigin = EitherOfDiverse<
+type RootOrTreasuryCouncilOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
 >;
@@ -569,7 +570,7 @@ impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
 	// More than half of the council is required (or root) to reject a proposal
-	type RejectOrigin = TreasuryRejectOrigin;
+	type RejectOrigin = RootOrTreasuryCouncilOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type SpendPeriod = ConstU32<{ 6 * DAYS }>;
 	type Burn = ();
@@ -577,11 +578,8 @@ impl pallet_treasury::Config for Runtime {
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = moonbase_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
-	#[cfg(not(feature = "runtime-benchmarks"))]
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
-	#[cfg(feature = "runtime-benchmarks")]
 	type SpendOrigin =
-		frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, benches::MaxBalance>;
+		frame_system::EnsureWithSuccess<RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
@@ -1190,12 +1188,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
-			RuntimeCall::Treasury(
-				pallet_treasury::Call::spend { .. }
-				| pallet_treasury::Call::payout { .. }
-				| pallet_treasury::Call::check_status { .. }
-				| pallet_treasury::Call::void_spend { .. },
-			) => false,
 			_ => true,
 		}
 	}
