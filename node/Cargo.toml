@@ -22,7 +22,7 @@ assert_cmd = { workspace = true }
 hex = { workspace = true, features = [ "std" ] }
 nix = { workspace = true }
 serde = { workspace = true, features = [ "derive" ] }
-serde_json = { workspace = true }
+serde_json = { workspace = true, default-features = true }
 tempfile = { workspace = true }
 tracing-core = { workspace = true }
 

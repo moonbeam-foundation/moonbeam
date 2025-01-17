@@ -29,6 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod asset_config;
+pub mod genesis_config_preset;
 pub mod governance;
 pub mod runtime_params;
 pub mod xcm_config;

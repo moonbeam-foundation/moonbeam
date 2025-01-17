@@ -119,6 +119,7 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 pub mod asset_config;
+pub mod genesis_config_preset;
 pub mod governance;
 pub mod runtime_params;
 mod weights;
