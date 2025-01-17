@@ -48,9 +48,13 @@ describeSuite({
             ],
           });
 
-          const hash = await context.viem().sendRawTransaction({ serializedTransaction: txWithAL });
-          await context.createBlock();
-          const receipt = await context.viem().getTransactionReceipt({ hash: hash });
+          // const hash = await context.viem().sendRawTransaction({ serializedTransaction: txWithAL });
+          await context.createBlock(txWithAL);
+          const block = await context.viem().getBlock();
+          const receipt = await context
+            .viem()
+            .getTransactionReceipt({ hash: block.transactions[0] as `0x${string}` });
+          // const receipt = await context.viem().getTransactionReceipt({ hash: hash });
           const gasCostWithAL = receipt.gasUsed;
           const txSize = txWithAL.length;
 
@@ -107,9 +111,13 @@ describeSuite({
             accessList,
           });
 
-          const hash = await context.viem().sendRawTransaction({ serializedTransaction: txWithAL });
-          await context.createBlock();
-          const receipt = await context.viem().getTransactionReceipt({ hash: hash });
+          // const hash = await context.viem().sendRawTransaction({ serializedTransaction: txWithAL });
+          await context.createBlock(txWithAL);
+          const block = await context.viem().getBlock();
+          const receipt = await context
+            .viem()
+            .getTransactionReceipt({ hash: block.transactions[0] as `0x${string}` });
+          // const receipt = await context.viem().getTransactionReceipt({ hash: hash });
           const gasCostWithAL = receipt.gasUsed;
           const txSize = txWithAL.length;
 
