@@ -1,16 +1,16 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, fetchCompiledContract, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createEthersTransaction } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
+import type { u128 } from "@polkadot/types-codec";
 import { numberToHex } from "@polkadot/util";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult, mockOldAssetBalance } from "../../../../helpers";
 
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
 describeSuite({
-  id: "D012900",
+  id: "D012902",
   title: "Precompiles - PalletXcm",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -5,16 +5,12 @@ import { numberToHex } from "@polkadot/util";
 import { encodeFunctionData, erc20Abi } from "viem";
 import {
   expectEVMResult,
-  mockAssetBalance,
-  registerForeignAsset,
   relayAssetMetadata,
   ARBITRARY_ASSET_ID,
   RELAY_SOURCE_LOCATION_V4,
   registerAndFundAsset,
-  PARA_1000_SOURCE_LOCATION,
 } from "../../../../helpers";
 import { ethers } from "ethers";
-import { para1000AssetMetadata } from "./test-precompile-pallet-xcm-2";
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
 describeSuite({
