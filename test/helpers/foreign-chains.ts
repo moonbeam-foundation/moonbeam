@@ -78,10 +78,6 @@ export const ForeignChainsEndpoints = [
         paraId: 2001,
       },
       {
-        name: "Khala",
-        paraId: 2004,
-      },
-      {
         name: "Shiden",
         paraId: 2007,
       },
@@ -191,10 +187,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Unique",
         paraId: 2037,
-      },
-      {
-        name: "Polkadex",
-        paraId: 2040,
       },
       {
         name: "OriginTrail",
