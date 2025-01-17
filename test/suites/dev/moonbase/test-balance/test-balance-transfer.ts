@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
+  CHARLETH_ADDRESS,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_PRIVATE_KEY,
@@ -77,16 +78,17 @@ describeSuite({
       id: "T03",
       title: "should decrease from account",
       test: async function () {
-        const balanceBefore = await context.viem().getBalance({ address: ALITH_ADDRESS });
+        const balanceBefore = await context.viem().getBalance({ address: CHARLETH_ADDRESS });
         const fees = 21000n * GENESIS_BASE_FEE;
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 512n, {
             gas: 21000n,
             gasPrice: GENESIS_BASE_FEE,
             txnType: "legacy",
+            privateKey: CHARLETH_PRIVATE_KEY,
           })
         );
-        const balanceAfter = await context.viem().getBalance({ address: ALITH_ADDRESS });
+        const balanceAfter = await context.viem().getBalance({ address: CHARLETH_ADDRESS });
         expect(balanceBefore - balanceAfter - fees).toBe(512n);
       },
     });
@@ -190,7 +192,7 @@ describeSuite({
       id: "T08",
       title: "should handle max_fee_per_gas",
       test: async function () {
-        const balanceBefore = await checkBalance(context);
+        const balanceBefore = await checkBalance(context, CHARLETH_ADDRESS);
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 1n * GLMR, {
             gas: 21000n,
@@ -198,9 +200,10 @@ describeSuite({
             maxPriorityFeePerGas: parseGwei("0.2"),
             gasPrice: GENESIS_BASE_FEE,
             type: "eip1559",
+            privateKey: CHARLETH_PRIVATE_KEY,
           })
         );
-        const balanceAfter = await checkBalance(context);
+        const balanceAfter = await checkBalance(context, CHARLETH_ADDRESS);
         const fee = 21000n * GENESIS_BASE_FEE;
 
         expect(balanceAfter + fee + 1n * GLMR).toBe(balanceBefore);

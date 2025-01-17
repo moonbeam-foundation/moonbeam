@@ -99,7 +99,7 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3(2n)
+          .deposit_asset(2n)
           .as_v3();
 
         // Mock the reception of the xcm message
@@ -254,7 +254,7 @@ describeSuite({
         const xcmMessageToClaimAssets = new XcmFragment(claimConfig)
           .claim_asset()
           .buy_execution()
-          .deposit_asset_v3()
+          .deposit_asset()
           .as_v3();
 
         const balanceBefore = (
@@ -325,7 +325,7 @@ describeSuite({
         const xcmMessageFailedClaim = new XcmFragment(failedClaimConfig)
           .claim_asset()
           .buy_execution()
-          .deposit_asset_v3()
+          .deposit_asset()
           .as_v3();
 
         await injectHrmpMessageAndSeal(context, paraId, {

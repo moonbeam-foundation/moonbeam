@@ -47,11 +47,9 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect},
-		tokens::imbalance::ResolveTo,
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOfDiverse,
-		EqualPrivilegeOnly, Imbalance, InstanceFilter, LinearStoragePrice, OnFinalize,
-		OnUnbalanced,
+		EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice, OnFinalize, OnUnbalanced,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -65,6 +63,9 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
+use moonbeam_runtime_common::deal_with_fees::{
+	DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
+};
 use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_ethereum::Call::transact;
@@ -76,7 +77,6 @@ use pallet_evm::{
 };
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
-use pallet_treasury::TreasuryAccountId;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
@@ -334,52 +334,6 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = moonriver_weights::pallet_balances::WeightInfo<Runtime>;
 }
 
-pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
-impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
-where
-	R: pallet_balances::Config + pallet_treasury::Config,
-{
-	// this seems to be called for substrate-based transactions
-	fn on_unbalanceds(
-		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
-	) {
-		if let Some(fees) = fees_then_tips.next() {
-			let treasury_proportion =
-				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-			let treasury_part = treasury_proportion.deconstruct();
-			let burn_part = Perbill::one().deconstruct() - treasury_part;
-			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
-			// Balances pallet automatically burns dropped Credits by decreasing
-			// total_supply accordingly
-			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
-				to_treasury,
-			);
-
-			// handle tip if there is one
-			if let Some(tip) = fees_then_tips.next() {
-				// for now we use the same burn/treasury strategy used for regular fees
-				let (_, to_treasury) = tip.ration(burn_part, treasury_part);
-				ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
-					to_treasury,
-				);
-			}
-		}
-	}
-
-	// this is called from pallet_evm for Ethereum-based transactions
-	// (technically, it calls on_unbalanced, which calls this when non-zero)
-	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
-		// Balances pallet automatically burns dropped Credits by decreasing
-		// total_supply accordingly
-		let treasury_proportion =
-			runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-		let treasury_part = treasury_proportion.deconstruct();
-		let burn_part = Perbill::one().deconstruct() - treasury_part;
-		let (_, to_treasury) = amount.ration(burn_part, treasury_part);
-		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);
-	}
-}
-
 pub struct LengthToFee;
 impl WeightToFeePolynomial for LengthToFee {
 	type Balance = Balance;
@@ -404,7 +358,13 @@ impl WeightToFeePolynomial for LengthToFee {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = FungibleAdapter<Balances, DealWithFees<Runtime>>;
+	type OnChargeTransaction = FungibleAdapter<
+		Balances,
+		DealWithSubstrateFeesAndTip<
+			Runtime,
+			dynamic_params::runtime_config::FeesTreasuryProportion,
+		>,
+	>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
 	type LengthToFee = LengthToFee;
@@ -535,7 +495,10 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = MoonriverPrecompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = EthereumChainId;
-	type OnChargeTransaction = OnChargeEVMTransaction<DealWithFees<Runtime>>;
+	type OnChargeTransaction = OnChargeEVMTransaction<
+		DealWithEthereumBaseFees<Runtime, dynamic_params::runtime_config::FeesTreasuryProportion>,
+		DealWithEthereumPriorityFees<Runtime>,
+	>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
 	type OnCreate = ();

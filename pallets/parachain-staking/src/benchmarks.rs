@@ -2275,7 +2275,7 @@ benchmarks! {
 	}
 
 	notify_inactive_collator {
-		use crate::{AtStake, CollatorSnapshot, AwardedPts};
+		use crate::{WasInactive};
 
 		// Blocks per-round must be greater than TotalSelected
 		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 101u32)?;
@@ -2325,11 +2325,8 @@ benchmarks! {
 
 		// Manually change these values for inactive_collator,
 		// so that it can be marked as inactive.
-		<AtStake<T>>::insert(1, &inactive_collator, CollatorSnapshot::default());
-		<AwardedPts<T>>::insert(1, &inactive_collator, 0);
-
-		<AtStake<T>>::insert(2, &inactive_collator, CollatorSnapshot::default());
-		<AwardedPts<T>>::insert(2, &inactive_collator, 0);
+		<WasInactive<T>>::insert(1, &inactive_collator, ());
+		<WasInactive<T>>::insert(2, &inactive_collator, ());
 
 		// Enable killswitch
 		<EnableMarkingOffline<T>>::set(true);
@@ -2337,6 +2334,38 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller), inactive_collator.clone())
 	verify {
 		assert!(!Pallet::<T>::candidate_info(&inactive_collator).expect("must exist").is_active());
+	}
+
+	mark_collators_as_inactive {
+		let x in 0..50; // num collators
+
+		// must come after 'let foo in 0..` statements for macro
+		use crate::{AtStake, CollatorSnapshot, AwardedPts};
+
+		let round = 2;
+		let prev = round - 1;
+
+
+
+		for i in 0..x {
+			let collator = create_funded_collator::<T>(
+				"collator",
+				USER_SEED + i,
+				min_candidate_stk::<T>() * 1_000_000u32.into(),
+				true,
+				999999,
+			)?;
+
+			// All collators were inactinve in previous round
+			<AtStake<T>>::insert(prev, &collator, CollatorSnapshot::default());
+			<AwardedPts<T>>::insert(prev, &collator, 0);
+		}
+
+	}: {
+		let cur = 2;
+		let inactive_info = Pallet::<T>::mark_collators_as_inactive(cur);
+	}
+	verify {
 	}
 }
 

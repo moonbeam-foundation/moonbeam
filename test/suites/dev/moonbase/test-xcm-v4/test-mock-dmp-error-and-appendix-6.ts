@@ -98,7 +98,7 @@ describeSuite({
           .claim_asset()
           .buy_execution()
           // Deposit assets, this time correctly, on Alith
-          .deposit_asset_v3()
+          .deposit_asset()
           .as_v4();
 
         const receivedMessage: XcmVersionedXcm = context

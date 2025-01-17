@@ -117,7 +117,7 @@ describeSuite({
               .withdraw_asset()
               .clear_origin()
               .buy_execution()
-              .deposit_asset_v3(limit)
+              .deposit_asset(limit)
               .as_v3(),
           });
 
