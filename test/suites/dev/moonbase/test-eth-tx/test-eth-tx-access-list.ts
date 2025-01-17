@@ -48,13 +48,11 @@ describeSuite({
             ],
           });
 
-          // const hash = await context.viem().sendRawTransaction({ serializedTransaction: txWithAL });
           await context.createBlock(txWithAL);
           const block = await context.viem().getBlock();
           const receipt = await context
             .viem()
             .getTransactionReceipt({ hash: block.transactions[0] as `0x${string}` });
-          // const receipt = await context.viem().getTransactionReceipt({ hash: hash });
           const gasCostWithAL = receipt.gasUsed;
           const txSize = txWithAL.length;
 
@@ -111,13 +109,11 @@ describeSuite({
             accessList,
           });
 
-          // const hash = await context.viem().sendRawTransaction({ serializedTransaction: txWithAL });
           await context.createBlock(txWithAL);
           const block = await context.viem().getBlock();
           const receipt = await context
             .viem()
             .getTransactionReceipt({ hash: block.transactions[0] as `0x${string}` });
-          // const receipt = await context.viem().getTransactionReceipt({ hash: hash });
           const gasCostWithAL = receipt.gasUsed;
           const txSize = txWithAL.length;
 
@@ -129,7 +125,9 @@ describeSuite({
         }
 
         results.forEach((result, index) => {
-          const diff = index === 0 ? "" : result.gasWithAL - results[index - 1].gasWithAL;
+          const diff = index === 0
+            ? 0n
+            : result.gasWithAL - results[index - 1].gasWithAL;
           if (result.addresses > 4) {
             expect(diff).toBe(2400n);
           }
