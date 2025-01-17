@@ -125,9 +125,7 @@ describeSuite({
         }
 
         results.forEach((result, index) => {
-          const diff = index === 0
-            ? 0n
-            : result.gasWithAL - results[index - 1].gasWithAL;
+          const diff = index === 0 ? 0n : result.gasWithAL - results[index - 1].gasWithAL;
           if (result.addresses > 4) {
             expect(diff).toBe(2400n);
           }
