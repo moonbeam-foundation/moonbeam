@@ -58,7 +58,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @dev this limit based on the size of the request and the processing of the
     /// @dev callback request in the fulfillRandomWords() function.
     /// @dev The fee paid to start the lottery needs to be sufficient to pay for the gas limit
-    uint64 public FULFILLMENT_GAS_LIMIT = 100000; // TODO: fill XXX
+    uint64 public FULFILLMENT_GAS_LIMIT = 200000; // Safe gas limit for processing NUM_WINNERS random words and transferring rewards
 
     /// @notice The minimum fee needed to start the lottery
     /// @dev This does not guarantee that there will be enough fee to pay for the
@@ -188,7 +188,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         /// We verify there is enough balance on the contract to pay for the deposit.
         /// This would fail only if the deposit amount required is changed in the
         /// Randomness Precompile.
-        uint256 requiredDeposit = 1000000000000000000; // TODO replace with RANDOMNESS_CONTRACT.requiredDeposit();
+        uint256 requiredDeposit = RANDOMNESS_CONTRACT.requiredDeposit();
         if (address(this).balance < jackpot + requiredDeposit) {
             revert DepositTooLow(
                 address(this).balance - jackpot,
