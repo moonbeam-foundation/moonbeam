@@ -357,6 +357,13 @@
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -375,10 +382,13 @@
 
 </span><span class="kw">use </span><span class="kw">super</span>::moonbase_weights;
 <span class="kw">use crate</span>::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
-	TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance,
+	xcm_config::{AssetType, XcmExecutorConfig},
+	OpenTechCommitteeInstance, TreasuryCouncilInstance,
 };
-<span class="kw">use crate</span>::{AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160};
+<span class="kw">use crate</span>::{
+	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160,
+};
 <span class="kw">use </span>frame_support::parameter_types;
 <span class="kw">use </span>moonkit_xcm_primitives::{
 	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
@@ -419,6 +429,7 @@
 <span class="kw">use </span>precompile_foreign_asset_migrator::ForeignAssetMigratorPrecompile;
 <span class="kw">use </span>precompile_utils::precompile_set::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>xcm_primitives::AsAssetType;
 
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub </span>P256VerifyWeight: frame_support::weights::Weight =
@@ -470,7 +481,10 @@
 
 <span class="comment">// Pallet-xcm precompile types.
 // Type that converts AssetId into Location
-</span><span class="kw">type </span>AssetIdToLocationManager = EvmForeignAssets;
+</span><span class="kw">type </span>AssetIdToLocationManager = (
+	AsAssetType&lt;AssetId, AssetType, AssetManager&gt;,
+	EvmForeignAssets,
+);
 
 <span class="comment">// The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
 </span><span class="kw">type </span>SingleAddressMatch = SingleAddressMatcher&lt;AccountId, ERC20_BALANCES_PRECOMPILE, Balances&gt;;

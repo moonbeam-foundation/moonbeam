@@ -304,6 +304,9 @@
 <a href="#302" id="302">302</a>
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -324,8 +327,8 @@
 <span class="kw">use crate</span>::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{AssetType, XcmExecutorConfig},
-	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, OpenTechCommitteeInstance, Runtime,
-	TreasuryCouncilInstance,
+	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, EvmForeignAssets,
+	OpenTechCommitteeInstance, Runtime, TreasuryCouncilInstance,
 };
 <span class="kw">use </span>frame_support::parameter_types;
 <span class="kw">use </span>moonkit_xcm_primitives::location_matcher::{
@@ -411,7 +414,10 @@
 
 <span class="comment">// Pallet-xcm precompile types.
 // Type that converts AssetId into Location
-</span><span class="kw">type </span>AssetIdToLocationManager = AsAssetType&lt;AssetId, AssetType, AssetManager&gt;;
+</span><span class="kw">type </span>AssetIdToLocationManager = (
+	AsAssetType&lt;AssetId, AssetType, AssetManager&gt;,
+	EvmForeignAssets,
+);
 
 <span class="comment">// The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
 </span><span class="kw">type </span>SingleAddressMatch = SingleAddressMatcher&lt;AccountId, ERC20_BALANCES_PRECOMPILE, Balances&gt;;
