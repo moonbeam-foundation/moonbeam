@@ -1006,7 +1006,6 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 					&& match PrecompileName::from_address(call.to.0) {
 						Some(
 							PrecompileName::AuthorMappingPrecompile
-							| PrecompileName::IdentityPrecompile
 							| PrecompileName::ParachainStakingPrecompile,
 						) => true,
 						Some(ref precompile) if is_governance_precompile(precompile) => true,
@@ -1059,26 +1058,28 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer => {
-				matches!(
-					c,
-					RuntimeCall::System(..)
-						| RuntimeCall::ParachainSystem(..)
-						| RuntimeCall::Timestamp(..)
-						| RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::Referenda(..)
-						| RuntimeCall::Preimage(..)
-						| RuntimeCall::ConvictionVoting(..)
-						| RuntimeCall::TreasuryCouncilCollective(..)
-						| RuntimeCall::OpenTechCommitteeCollective(..)
-						| RuntimeCall::Identity(..)
-						| RuntimeCall::Utility(..)
-						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
-						| RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::claim { .. }
-						)
-				)
-			}
+			ProxyType::NonTransfer => match c {
+				RuntimeCall::Identity(
+					pallet_identity::Call::add_sub { .. } | pallet_identity::Call::set_subs { .. },
+				) => false,
+				call => {
+					matches!(
+						call,
+						RuntimeCall::System(..)
+							| RuntimeCall::ParachainSystem(..)
+							| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
+							| RuntimeCall::Referenda(..) | RuntimeCall::Preimage(..)
+							| RuntimeCall::ConvictionVoting(..)
+							| RuntimeCall::TreasuryCouncilCollective(..)
+							| RuntimeCall::OpenTechCommitteeCollective(..)
+							| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
+							| RuntimeCall::Identity(..) | RuntimeCall::AuthorMapping(..)
+							| RuntimeCall::CrowdloanRewards(
+								pallet_crowdloan_rewards::Call::claim { .. }
+							)
+					)
+				}
+			},
 			ProxyType::Governance => matches!(
 				c,
 				RuntimeCall::Referenda(..)
