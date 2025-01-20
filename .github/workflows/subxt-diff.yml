@@ -30,7 +30,7 @@ jobs:
 
   local-diff:
     needs: build
-    runs-on: moonbeam-release-medium
+    runs-on: moonbeam-release
     permissions:
       contents: read
     strategy:
