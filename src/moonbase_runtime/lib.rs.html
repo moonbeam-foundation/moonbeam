@@ -1810,6 +1810,7 @@
 <a href="#1808" id="1808">1808</a>
 <a href="#1809" id="1809">1809</a>
 <a href="#1810" id="1810">1810</a>
+<a href="#1811" id="1811">1811</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2782,7 +2783,6 @@
 					&amp;&amp; <span class="kw">match </span>PrecompileName::from_address(call.to.<span class="number">0</span>) {
 						<span class="prelude-val">Some</span>(
 							PrecompileName::AuthorMappingPrecompile
-							| PrecompileName::IdentityPrecompile
 							| PrecompileName::ParachainStakingPrecompile,
 						) =&gt; <span class="bool-val">true</span>,
 						<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>precompile) <span class="kw">if </span>is_governance_precompile(precompile) =&gt; <span class="bool-val">true</span>,
@@ -2835,26 +2835,28 @@
 	<span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, c: <span class="kw-2">&amp;</span>RuntimeCall) -&gt; bool {
 		<span class="kw">match </span><span class="self">self </span>{
 			ProxyType::Any =&gt; <span class="bool-val">true</span>,
-			ProxyType::NonTransfer =&gt; {
-				<span class="macro">matches!</span>(
-					c,
-					RuntimeCall::System(..)
-						| RuntimeCall::ParachainSystem(..)
-						| RuntimeCall::Timestamp(..)
-						| RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::Referenda(..)
-						| RuntimeCall::Preimage(..)
-						| RuntimeCall::ConvictionVoting(..)
-						| RuntimeCall::TreasuryCouncilCollective(..)
-						| RuntimeCall::OpenTechCommitteeCollective(..)
-						| RuntimeCall::Identity(..)
-						| RuntimeCall::Utility(..)
-						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
-						| RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::claim { .. }
-						)
-				)
-			}
+			ProxyType::NonTransfer =&gt; <span class="kw">match </span>c {
+				RuntimeCall::Identity(
+					pallet_identity::Call::add_sub { .. } | pallet_identity::Call::set_subs { .. },
+				) =&gt; <span class="bool-val">false</span>,
+				call =&gt; {
+					<span class="macro">matches!</span>(
+						call,
+						RuntimeCall::System(..)
+							| RuntimeCall::ParachainSystem(..)
+							| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
+							| RuntimeCall::Referenda(..) | RuntimeCall::Preimage(..)
+							| RuntimeCall::ConvictionVoting(..)
+							| RuntimeCall::TreasuryCouncilCollective(..)
+							| RuntimeCall::OpenTechCommitteeCollective(..)
+							| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
+							| RuntimeCall::Identity(..) | RuntimeCall::AuthorMapping(..)
+							| RuntimeCall::CrowdloanRewards(
+								pallet_crowdloan_rewards::Call::claim { .. }
+							)
+					)
+				}
+			},
 			ProxyType::Governance =&gt; <span class="macro">matches!</span>(
 				c,
 				RuntimeCall::Referenda(..)
