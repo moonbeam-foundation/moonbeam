@@ -49,6 +49,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - name: Run Typegen
         run: |
+          chmod uog+x target/release/moonbeam
           pnpm i
           cd test
           pnpm typegen
