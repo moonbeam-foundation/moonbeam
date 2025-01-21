@@ -1,0 +1,54 @@
+name: Update Rust/TS bindings
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * *" # Runs every day at 5:00 AM UTC
+
+jobs:
+  build:
+    runs-on:
+      labels: bare-metal
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: "runtime-${{ github.event.inputs.spec_version }}"
+      - name: Local build new Node
+        uses: ./.github/workflow-templates/cargo-build
+      - name: Upload Node
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonbeam
+          path: build
+
+  update-typescript-api:
+    needs: build
+    runs-on: moonbeam-release-medium
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download Node
+        uses: actions/download-artifact@v4
+        with:
+          name: moonbeam
+          path: target/release
+      - name: Run Typegen
+        run: |
+          pnpm i
+          cd test
+          pnpm typegen
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          base: master
+          branch: "typescript-api-${{ github.event.ref }}"
+          commit-message: "Update Rust/TS bindings"
+          draft: true
+          title: "Update Rust/TS bindings"
+          reviewers: "moonsong-coredev"
+          labels: "B0-silent,D2-notlive"
