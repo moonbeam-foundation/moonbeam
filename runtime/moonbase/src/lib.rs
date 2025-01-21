@@ -1582,6 +1582,33 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			ConsensusHook::can_build_upon(included_hash, slot)
 		}
 	}
+
+	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+		fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+			frame_support::genesis_builder_helper::build_state::<RuntimeGenesisConfig>(config)
+		}
+
+		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+			frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, |id| {
+				let patch = match id.try_into() {
+					Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => {
+						let config = RuntimeGenesisConfig::default();
+						serde_json::to_value(config).expect("Could not build genesis config.")
+					},
+					_ => return None,
+				};
+				Some(
+					serde_json::to_string(&patch)
+						.expect("serialization to json is expected to work. qed.")
+						.into_bytes(),
+				)
+			})
+		}
+
+		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+			vec![sp_genesis_builder::PresetId::from(sp_genesis_builder::DEV_RUNTIME_PRESET)]
+		}
+	}
 }
 
 struct CheckInherents;
