@@ -48,9 +48,9 @@ async function main() {
 - [ ] Test the new client on stagenet (moonsama/moonlama).
 - [ ] Publish the client release draft.
 - [ ] When everything is ok, publish the new docker image: start github action Publish Docker
-with ${newVersion}.
+with ${newVersion} (!!! NOT before fully tested on stagenet !!!).
 - [ ] Publish the new tracing image: on repo moonbeam-runtime-overrides, start github action
-Publish Docker with ${newVersion} and master.
+Publish Docker with ${newVersion} and master (!!! NOT before fully tested on stagenet !!!).
 `;
 
   // Detect if it's a major release or hotfix
