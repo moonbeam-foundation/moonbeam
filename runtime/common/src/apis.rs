@@ -43,6 +43,12 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 		}
 
+		fn testnet_genesis() -> serde_json::Value {
+			let config = RuntimeGenesisConfig::default();
+
+			serde_json::to_value(config).expect("Could not build genesis config.")
+		}
+
 		impl_runtime_apis! {
 			$($custom)*
 
@@ -121,11 +127,21 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
-					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, |_| None)
+					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, |id| {
+						let patch = match id.try_into() {
+							Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => testnet_genesis(),
+							_ => return None,
+						};
+						Some(
+							serde_json::to_string(&patch)
+								.expect("serialization to json is expected to work. qed.")
+								.into_bytes(),
+						)
+					})
 				}
 
 				fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
-					vec![]
+					vec![sp_genesis_builder::PresetId::from(sp_genesis_builder::DEV_RUNTIME_PRESET)]
 				}
 			}
 
