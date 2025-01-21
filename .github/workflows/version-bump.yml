@@ -36,6 +36,17 @@ jobs:
         with:
           name: moonbeam
           path: target/release
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 9
+          run_install: false
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: "test/.nvmrc"
+          cache: pnpm
+          registry-url: https://registry.npmjs.org/
       - name: Run Typegen
         run: |
           pnpm i
