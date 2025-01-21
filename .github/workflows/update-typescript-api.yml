@@ -14,8 +14,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: "runtime-${{ github.event.inputs.spec_version }}"
       - name: Local build new Node
         uses: ./.github/workflow-templates/cargo-build
       - name: Upload Node
@@ -28,7 +26,8 @@ jobs:
     needs: build
     runs-on: moonbeam-release-medium
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,8 +36,20 @@ jobs:
         with:
           name: moonbeam
           path: target/release
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 9
+          run_install: false
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: "test/.nvmrc"
+          cache: pnpm
+          registry-url: https://registry.npmjs.org/
       - name: Run Typegen
         run: |
+          chmod uog+x target/release/moonbeam
           pnpm i
           cd test
           pnpm typegen
@@ -46,7 +57,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           base: master
-          branch: "typescript-api-${{ github.event.ref }}"
+          branch: "update-typescript-api-${{ github.run_id }}"
           commit-message: "Update Rust/TS bindings"
           draft: true
           title: "Update Rust/TS bindings"
