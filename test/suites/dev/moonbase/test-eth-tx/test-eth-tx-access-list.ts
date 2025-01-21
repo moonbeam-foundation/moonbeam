@@ -66,8 +66,7 @@ describeSuite({
         results.forEach((result, index) => {
           const diff = index === 0 ? "" : result.gasWithAL - results[index - 1].gasWithAL;
           if (result.keys > 4) {
-            expect(diff).toBe(1900n);
-          }
+            expect(diff, `Expected gas did not match when including ${result.keys} storage keys`).toBe(1900n);          }
         });
       },
     });
@@ -127,7 +126,7 @@ describeSuite({
         results.forEach((result, index) => {
           const diff = index === 0 ? 0n : result.gasWithAL - results[index - 1].gasWithAL;
           if (result.addresses > 4) {
-            expect(diff).toBe(2400n);
+            expect(diff, `Expected gas did not match when including ${result.addresses} addresses`).toBe(2400n);
           }
         });
       },
