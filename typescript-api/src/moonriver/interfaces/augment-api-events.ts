@@ -37,6 +37,7 @@ import type {
   MoonriverRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletConvictionVotingTally,
+  PalletConvictionVotingVoteAccountVote,
   PalletMultisigTimepoint,
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
@@ -581,6 +582,22 @@ declare module "@polkadot/api-base/types/events" {
        * An \[account\] has cancelled a previous delegation operation.
        **/
       Undelegated: AugmentedEvent<ApiType, [AccountId20]>;
+      /**
+       * An account that has voted
+       **/
+      Voted: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, vote: PalletConvictionVotingVoteAccountVote],
+        { who: AccountId20; vote: PalletConvictionVotingVoteAccountVote }
+      >;
+      /**
+       * A vote that been removed
+       **/
+      VoteRemoved: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, vote: PalletConvictionVotingVoteAccountVote],
+        { who: AccountId20; vote: PalletConvictionVotingVoteAccountVote }
+      >;
       /**
        * Generic event
        **/
