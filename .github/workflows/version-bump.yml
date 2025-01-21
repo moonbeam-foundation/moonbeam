@@ -1,38 +1,55 @@
-name: Create version bump ticket
+name: Update Rust/TS bindings
+
 on:
-  workflow_dispatch:
-    inputs:
-      from:
-        description: "Polkadot version to bump from (ex: v1.3.0)"
-        required: true
-      to:
-        description: "Polkadot version to bump to (ex: v1.7.2)"
-        required: true
+  pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
-  create_bump_ticket:
-    runs-on: ubuntu-latest
+  build:
+    runs-on:
+      labels: bare-metal
     permissions:
       contents: read
-      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Use Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version-file: "test/.nvmrc"
-      - name: Generate version bump issue
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ref: "runtime-${{ github.event.inputs.spec_version }}"
+      - name: Local build new Node
+        uses: ./.github/workflow-templates/cargo-build
+      - name: Upload Node
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonbeam
+          path: build
+
+  update-typescript-api:
+    needs: build
+    runs-on: moonbeam-release-medium
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download Node
+        uses: actions/download-artifact@v4
+        with:
+          name: moonbeam
+          path: target/release
+      - name: Run Typegen
         run: |
-          cd tools
-          yarn install
-          yarn --silent run print-version-bump-info -- --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../version-bump.md
-      - name: Create version bump issue
-        uses: peter-evans/create-issue-from-file@v5
+          pnpm i
+          cd test
+          pnpm typegen
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
         with:
-          title: Update polkadot-sdk from ${{ github.event.inputs.from }} to ${{ github.event.inputs.to }}
-          content-filepath: ./version-bump.md
-          labels: |
-            automated issue
+          base: master
+          branch: "typescript-api-${{ github.event.ref }}"
+          commit-message: "Update Rust/TS bindings"
+          draft: true
+          title: "Update Rust/TS bindings"
+          reviewers: "moonsong-coredev"
+          labels: "B0-silent,D2-notlive"
