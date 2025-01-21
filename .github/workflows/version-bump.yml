@@ -27,7 +27,8 @@ jobs:
     needs: build
     runs-on: moonbeam-release-medium
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,7 +58,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           base: master
-          branch: "typescript-api-${{ github.event.ref }}"
+          branch: "update-typescript-api-${{ github.run_id }}"
           commit-message: "Update Rust/TS bindings"
           draft: true
           title: "Update Rust/TS bindings"
