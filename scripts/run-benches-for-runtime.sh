@@ -16,8 +16,7 @@ PALLETS=($(
   ./target/${profile}/moonbeam benchmark pallet \
     --list \
     --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
-    --genesis-builder=runtime \
-    --genesis-builder-preset=development |\
+    --genesis-builder=runtime |\
   tail -n+2 |\
   cut -d',' -f1 |\
   sort |\
@@ -45,7 +44,6 @@ for PALLET in "${PALLETS[@]}"; do
     ./target/${profile}/moonbeam benchmark pallet \
       --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
       --genesis-builder=runtime \
-      --genesis-builder-preset=development \
       --steps=50 \
       --repeat=20 \
       --pallet="$PALLET" \

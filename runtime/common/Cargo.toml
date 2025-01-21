@@ -11,6 +11,8 @@ version = "0.8.0-dev"
 hex-literal = "0.3.4"
 impl-trait-for-tuples = "0.2.1"
 log = "0.4"
+serde = { workspace = true, default-features = false }
+serde_json = { workspace = true, default-features = false }
 
 # Moonbeam
 moonbeam-core-primitives = { workspace = true }
@@ -121,6 +123,8 @@ std = [
 	"parity-scale-codec/std",
 	"scale-info/std",
 	"precompile-utils/std",
+	"serde/std",
+	"serde_json/std",
 	"sp-consensus-slots/std",
 	"sp-core/std",
 	"sp-io/std",

@@ -43,6 +43,17 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 		}
 
+		fn default_preset<T: Default + serde::Serialize>() -> Option<Vec<u8>> {
+			let config = T::default();
+			let config = serde_json::to_value(config).expect("Could not build genesis config.");
+
+			Some(
+				serde_json::to_string(&config)
+					.expect("Could not build genesis config.")
+					.into_bytes(),
+			)
+		}
+
 		impl_runtime_apis! {
 			$($custom)*
 
@@ -116,16 +127,17 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 
 			impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+
 				fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
 					frame_support::genesis_builder_helper::build_state::<RuntimeGenesisConfig>(config)
 				}
 
 				fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
-					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, |_| None)
+					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, default_preset::<RuntimeGenesisConfig>)
 				}
 
 				fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
-					vec![]
+					vec![sp_genesis_builder::PresetId::from(sp_genesis_builder::DEV_RUNTIME_PRESET)]
 				}
 			}
 
