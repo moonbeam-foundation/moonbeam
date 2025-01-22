@@ -29,6 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod asset_config;
+mod genesis_config_preset;
 pub mod governance;
 pub mod runtime_params;
 pub mod xcm_config;
@@ -80,7 +81,7 @@ use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
-use nimbus_primitives::CanAuthor;
+use nimbus_primitives::{CanAuthor, NimbusId};
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
@@ -89,6 +90,7 @@ use pallet_evm::{
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
+use parachains_common::genesis_config_helpers::get_from_seed;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use runtime_params::*;
 use scale_info::TypeInfo;
@@ -1592,10 +1594,42 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
 			frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, |id| {
 				let patch = match id.try_into() {
-					Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => {
-						let config = RuntimeGenesisConfig::default();
-						serde_json::to_value(config).expect("Could not build genesis config.")
-					},
+					Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => genesis_config_preset::testnet_genesis(
+						// Alith is Sudo
+						AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+						// Treasury Council members: Baltathar, Charleth and Dorothy
+						vec![
+							AccountId::from(sp_core::hex2array!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+							AccountId::from(sp_core::hex2array!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+							AccountId::from(sp_core::hex2array!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+						],
+						// Open Tech committee members: Alith and Baltathar
+						vec![
+							AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+							AccountId::from(sp_core::hex2array!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+						],
+						// Collator Candidates
+						vec![
+							// Alice -> Alith
+							(
+								AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+								get_from_seed::<NimbusId>("Alice"),
+								1_000 * currency::UNIT,
+							),
+						],
+						// Delegations
+						vec![],
+						// Endowed: Alith, Baltathar, Charleth and Dorothy
+						vec![
+							AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+							AccountId::from(sp_core::hex2array!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+							AccountId::from(sp_core::hex2array!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+							AccountId::from(sp_core::hex2array!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+						],
+						3_000_000 * currency::UNIT,
+						Default::default(), // para_id
+						1280,               //ChainId
+					),
 					_ => return None,
 				};
 				Some(
