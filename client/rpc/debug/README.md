@@ -64,7 +64,7 @@ sp_api::decl_runtime_apis! {
 Substrate provides two macro attributes to do what we want: `api_version` and `changed_in`.
 
 - `api_version`: is the current version of the Api. In our case we updated it to `#[api_version(2)]`.
-- changed_in: is meant to describe for `decl_runtime_apis` macro past implementations of methods. In this case, we anotate our previous implementation with `#[changed_in(2)]`, telling the `decl_runtime_apis` macro that this is the implementation to use before version 2. In fact, this attribute will rename the method name for the trait in the client side to `METHOD_before_version_VERSION`, so `trace_transaction_before_version_2` in our example.
+- changed_in: is meant to describe for `decl_runtime_apis` macro past implementations of methods. In this case, we annotate our previous implementation with `#[changed_in(2)]`, telling the `decl_runtime_apis` macro that this is the implementation to use before version 2. In fact, this attribute will rename the method name for the trait in the client side to `METHOD_before_version_VERSION`, so `trace_transaction_before_version_2` in our example.
 
 The un-anotated method is considered the default implemetation, and holds the current `trace_transaction` signature, with the new header argument and the empty result.
 
