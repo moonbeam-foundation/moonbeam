@@ -24,34 +24,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Build production moonbeam
-        run: |
-          # Build moonbeam
-          # (we don't use volumes because of ownership/permissions issues)
-          docker build \
-            --tag prod --no-cache \
-            --build-arg="COMMIT=${{ github.event.inputs.sha }}" \
-            --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
-            - < docker/moonbeam-production.Dockerfile
-
-          # Copy moonbeam binary
-          docker rm -f dummy 2> /dev/null | true
-          docker create -ti --name dummy prod bash
-          docker cp dummy:/moonbeam/moonbeam moonbeam
-          docker rm -f dummy
-
-          # Cleanup
-          docker rmi prod
-
-      - name: Save parachain binary
-        run: |
-          mkdir -p build
-          cp moonbeam build/moonbeam-${{matrix.cpu}}
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
+      - name: Cargo build
+        uses: ./.github/workflow-templates/build-prod-binary
         with:
-          name: binaries-${{matrix.cpu}}
-          path: build/moonbeam-${{matrix.cpu}}
+          target: ${{ matrix.cpu }}
 
   ####### Prepare the release draft #######
   docker-release-candidate:
