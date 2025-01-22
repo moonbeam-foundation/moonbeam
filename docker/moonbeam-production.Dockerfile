@@ -2,7 +2,7 @@
 #
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
-FROM debian:stable AS builder
+FROM docker.io/library/ubuntu:22.04 AS builder
 
 # Branch or tag to build moonbeam from
 ARG COMMIT="master"
