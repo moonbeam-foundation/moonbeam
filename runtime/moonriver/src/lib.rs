@@ -121,6 +121,7 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonriverPrecompiles<Runtime>;
 
 pub mod asset_config;
+pub mod genesis_config_preset;
 pub mod governance;
 pub mod runtime_params;
 pub mod xcm_config;
@@ -1633,10 +1634,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
 			frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, |id| {
 				let patch = match id.try_into() {
-					Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => {
-						let config = RuntimeGenesisConfig::default();
-						serde_json::to_value(config).expect("Could not build genesis config.")
-					},
+					Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => genesis_config_preset::development(),
 					_ => return None,
 				};
 				Some(
