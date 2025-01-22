@@ -49,6 +49,11 @@ runs:
         fi
         echo "cargo build $params"
         cargo build $params
+    - name: Check glibc version
+      shell: bash
+      run: |
+        objdump -T ./target/release/moonbeam | grep GLIBC | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -V
+        echo "TODO: add checks"
     - name: Display binary comments
       shell: bash
       run: readelf -p .comment ./target/release/moonbeam
