@@ -13,6 +13,7 @@ use cumulus_primitives_core::ParaId;
 pub use fp_evm::GenesisAccount;
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
+use parachains_common::genesis_config_helpers::get_from_seed;
 use sp_runtime::{traits::One, Perbill, Percent};
 
 const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
@@ -20,6 +21,7 @@ const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const BLOCKS_PER_ROUND: u32 = 2 * HOURS;
 const BLOCKS_PER_YEAR: u32 = 31_557_600 / 6;
 const NUM_SELECTED_CANDIDATES: u32 = 8;
+
 pub fn moonbase_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
 		use pallet_parachain_staking::inflation::perbill_annual_to_perbill_round;
@@ -163,4 +165,65 @@ pub fn testnet_genesis(
 	};
 
 	serde_json::to_value(&config).expect("Could not build genesis config.")
+}
+
+pub fn development() -> serde_json::Value {
+	testnet_genesis(
+		// Alith is Sudo
+		AccountId::from(sp_core::hex2array!(
+			"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+		)),
+		// Treasury Council members: Baltathar, Charleth and Dorothy
+		vec![
+			AccountId::from(sp_core::hex2array!(
+				"3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0"
+			)),
+			AccountId::from(sp_core::hex2array!(
+				"798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc"
+			)),
+			AccountId::from(sp_core::hex2array!(
+				"773539d4Ac0e786233D90A233654ccEE26a613D9"
+			)),
+		],
+		// Open Tech committee members: Alith and Baltathar
+		vec![
+			AccountId::from(sp_core::hex2array!(
+				"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+			)),
+			AccountId::from(sp_core::hex2array!(
+				"3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0"
+			)),
+		],
+		// Collator Candidates
+		vec![
+			// Alice -> Alith
+			(
+				AccountId::from(sp_core::hex2array!(
+					"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+				)),
+				get_from_seed::<NimbusId>("Alice"),
+				1_000 * UNIT,
+			),
+		],
+		// Delegations
+		vec![],
+		// Endowed: Alith, Baltathar, Charleth and Dorothy
+		vec![
+			AccountId::from(sp_core::hex2array!(
+				"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+			)),
+			AccountId::from(sp_core::hex2array!(
+				"3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0"
+			)),
+			AccountId::from(sp_core::hex2array!(
+				"798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc"
+			)),
+			AccountId::from(sp_core::hex2array!(
+				"773539d4Ac0e786233D90A233654ccEE26a613D9"
+			)),
+		],
+		3_000_000 * UNIT,
+		Default::default(), // para_id
+		1280,               //ChainId
+	)
 }
