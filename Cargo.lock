@@ -6915,7 +6915,6 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde_json",
  "sp-api",
  "sp-consensus-slots",
  "sp-core",

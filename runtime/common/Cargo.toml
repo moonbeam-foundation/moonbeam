@@ -11,7 +11,6 @@ version = "0.8.0-dev"
 hex-literal = "0.3.4"
 impl-trait-for-tuples = "0.2.1"
 log = "0.4"
-serde_json = { version = "1.0.114", default-features = false }
 
 # Moonbeam
 moonbeam-core-primitives = { workspace = true }
