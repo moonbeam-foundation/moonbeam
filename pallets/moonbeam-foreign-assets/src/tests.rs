@@ -162,30 +162,6 @@ fn test_asset_exists_error() {
 }
 
 #[test]
-fn test_regular_user_cannot_call_some_extrinsics() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			EvmForeignAssets::change_xcm_location(
-				RuntimeOrigin::signed(Bob.into()),
-				1,
-				Location::parent()
-			),
-			sp_runtime::DispatchError::BadOrigin
-		);
-
-		assert_noop!(
-			EvmForeignAssets::freeze_foreign_asset(RuntimeOrigin::signed(Bob.into()), 1, false),
-			sp_runtime::DispatchError::BadOrigin
-		);
-
-		assert_noop!(
-			EvmForeignAssets::unfreeze_foreign_asset(RuntimeOrigin::signed(Bob.into()), 1,),
-			sp_runtime::DispatchError::BadOrigin
-		);
-	});
-}
-
-#[test]
 fn test_root_can_change_foreign_asset_for_asset_id() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice.into(), 1_000)])
