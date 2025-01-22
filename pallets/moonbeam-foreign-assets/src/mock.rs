@@ -193,14 +193,23 @@ parameter_types! {
 	pub const ForeignAssetCreationDeposit: u128 = 1;
 }
 
+pub struct ForeignAssetsEnsureXCM;
+
+impl EnsureXcmLocation<Test> for ForeignAssetsEnsureXCM {
+	fn ensure_xcm_origin(origin: RuntimeOrigin, location: &Location) -> Result<AccountId, DispatchError> {
+		ensure_signed(origin).map_err(|_| DispatchError::BadOrigin)
+	}
+
+	fn account_for_location(location: &Location) -> Option<AccountId> {
+		Some(Alice.into())
+	}
+}
+
 impl crate::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type ForeignAssetCreatorOrigin = EnsureSigned<AccountId>;
-	type ForeignAssetFreezerOrigin = EnsureSigned<AccountId>;
-	type ForeignAssetModifierOrigin = EnsureSigned<AccountId>;
-	type ForeignAssetUnfreezerOrigin = EnsureSigned<AccountId>;
+	type EnsureXcmLocation = ForeignAssetsEnsureXCM;
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;

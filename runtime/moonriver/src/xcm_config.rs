@@ -66,13 +66,14 @@ use xcm_primitives::{
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
-use crate::foreign_origin::ForeignAssetOwnerOrigin;
+use crate::foreign_origin::{ForeignAssetsEnsureXcmLocation};
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use sp_core::Get;
 use sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::*,
 };
+use pallet_moonbeam_foreign_assets::EnsureXcmLocation;
 
 parameter_types! {
 	// The network Id of the relay
@@ -705,10 +706,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type ForeignAssetCreatorOrigin = ForeignAssetOwnerOrigin;
-	type ForeignAssetFreezerOrigin = ForeignAssetOwnerOrigin;
-	type ForeignAssetModifierOrigin = ForeignAssetOwnerOrigin;
-	type ForeignAssetUnfreezerOrigin = ForeignAssetOwnerOrigin;
+	type EnsureXcmLocation = ForeignAssetsEnsureXcmLocation;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;

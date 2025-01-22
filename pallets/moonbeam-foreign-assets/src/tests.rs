@@ -57,7 +57,7 @@ fn create_foreign_and_freeze_unfreeze() {
 			assert_eq!(
 				EvmForeignAssets::assets_creation_details(&1),
 				Some(AssetCreationDetails {
-					owner: AssetOwner::Account(Alice.into()),
+					owner: Alice.into(),
 					deposit: Some(ForeignAssetCreationDeposit::get())
 				})
 			);
@@ -85,7 +85,7 @@ fn create_foreign_and_freeze_unfreeze() {
 			assert_eq!(
 				EvmForeignAssets::assets_creation_details(&1),
 				Some(AssetCreationDetails {
-					owner: AssetOwner::Account(Alice.into()),
+					owner: Alice.into(),
 					deposit: Some(1)
 				})
 			);
