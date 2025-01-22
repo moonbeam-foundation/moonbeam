@@ -46,6 +46,7 @@ async function main() {
 \`\`\`
 (matching your ${newVersion} tag) and increase the config version + 1.
 - [ ] Test the new client on stagenet (moonsama/moonlama).
+- [ ] Check glibc version (eg. objdump -T <binary> | grep GLIBC | sed 's/.*GLIBC_\\([.0-9]*\).*/\\1/g' | sort -Vu)
 - [ ] Publish the client release draft.
 - [ ] When everything is ok, publish the new docker image: start github action Publish Docker
 with ${newVersion} (!!! NOT before fully tested on stagenet !!!).
