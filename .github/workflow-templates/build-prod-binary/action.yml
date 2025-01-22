@@ -1,0 +1,53 @@
+name: Build Production Binary
+description: |
+  Builds production a moonbeam binary for a given CPU target
+
+inputs:
+  target:
+    description: The CPU target for the binary
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build production moonbeam
+      shell: bash
+      run: |
+        # Build moonbeam
+        # (we don't use volumes because of ownership/permissions issues)
+        docker build \
+          --tag prod --no-cache \
+          --build-arg="COMMIT=${{ github.event.inputs.sha }}" \
+          --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
+          - < docker/moonbeam-production.Dockerfile
+
+        # Copy moonbeam binary
+        docker rm -f dummy 2> /dev/null | true
+        docker create -ti --name dummy prod bash
+        docker cp dummy:/moonbeam/moonbeam moonbeam
+        docker rm -f dummy
+
+        GLIBC_VERSION="$(objdump -T moonbeam | grep "GLIBC_" | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu | tail -1)"
+
+        if [[ $GLIBC_VERSION == "2.34" ]]; then
+          echo "❌ Unexpected GLIBC version: ${GLIBC_VERSION}";
+          exit 1;
+        else
+          echo "✅ Using expected GLIBC version: ${GLIBC_VERSION}";
+        fi
+
+        # Cleanup
+        docker rmi prod
+
+    - name: Save parachain binary
+      shell: bash
+      run: |
+        mkdir -p build
+        cp moonbeam build/moonbeam-${{ inputs.target }}
+    - name: Upload binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: binaries-${{ inputs.target }}
+        path: build/moonbeam-${{matrix.cpu}}
