@@ -67,7 +67,7 @@ use xcm_primitives::{
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
-use crate::foreign_origin::{ForeignAssetsEnsureXcmLocation};
+use crate::foreign_origin::ForeignAssetsEnsureXcmLocation;
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use sp_core::Get;
 use sp_std::{

@@ -32,10 +32,13 @@ use polkadot_parachain::primitives::HeadData;
 use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
+use xcm_executor::traits::ConvertLocation;
 
 use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
+use moonbase_runtime::xcm_config::LocationToAccountId;
+use moonbase_runtime::{currency, RuntimeOrigin};
 use pallet_transaction_payment::Multiplier;
 
 pub fn existential_deposit() -> u128 {
@@ -226,8 +229,16 @@ impl ExtBuilder {
 			.build_storage()
 			.unwrap();
 
+		let mut balances_with_xcm_accounts = self.balances.clone();
+		for xcm_asset_initialization in self.xcm_assets.iter() {
+			let account =
+				LocationToAccountId::convert_location(&xcm_asset_initialization.xcm_location)
+					.expect("Could not convert location to account id");
+			let balance = 200 * UNIT;
+			balances_with_xcm_accounts.push((account, balance));
+		}
 		pallet_balances::GenesisConfig::<Runtime> {
-			balances: self.balances,
+			balances: balances_with_xcm_accounts,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
@@ -293,10 +304,12 @@ impl ExtBuilder {
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id = xcm_asset_initialization.asset_id;
-				EvmForeignAssets::create_foreign_asset(
-					moonbase_runtime::RuntimeOrigin::signed(AccountId::from(ALICE)),
+				let asset_location = xcm_asset_initialization.xcm_location;
+				let origin: RuntimeOrigin = pallet_xcm::Origin::Xcm(asset_location.clone()).into();
+				assert_ok!(EvmForeignAssets::create_foreign_asset(
+					origin,
 					asset_id,
-					xcm_asset_initialization.xcm_location,
+					asset_location,
 					xcm_asset_initialization.decimals,
 					xcm_asset_initialization
 						.symbol
@@ -310,8 +323,7 @@ impl ExtBuilder {
 						.to_vec()
 						.try_into()
 						.expect("too long"),
-				)
-				.expect("fail to create foreign asset");
+				),);
 
 				for (account, balance) in xcm_asset_initialization.balances {
 					if EvmForeignAssets::mint_into(asset_id, account, balance.into()).is_err() {

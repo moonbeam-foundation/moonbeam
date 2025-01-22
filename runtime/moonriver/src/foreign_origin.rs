@@ -32,16 +32,17 @@ pub struct ForeignAssetsEnsureXcmLocation;
 impl EnsureXcmLocation<Runtime> for ForeignAssetsEnsureXcmLocation {
 	fn ensure_xcm_origin(
 		o: RuntimeOrigin,
-		location: &Location,
+		location: Option<&Location>,
 	) -> Result<AccountId, DispatchError> {
-		let origin_account = ensure_signed(o.clone())?;
 		let origin_location = pallet_xcm::EnsureXcm::<Everything>::try_origin(o.clone())
 			.map_err(|_| DispatchError::BadOrigin)?;
-		ensure!(
-			location.starts_with(&origin_location),
-			DispatchError::BadOrigin
-		);
-		Ok(Self::account_for_location(location).unwrap_or(origin_account))
+		if let Some(location) = location {
+			ensure!(
+				location.starts_with(&origin_location),
+				DispatchError::BadOrigin
+			);
+		}
+		Self::account_for_location(&origin_location).ok_or(DispatchError::BadOrigin)
 	}
 
 	fn account_for_location(location: &Location) -> Option<AccountId> {

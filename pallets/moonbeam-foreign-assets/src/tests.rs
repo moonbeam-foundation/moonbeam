@@ -92,13 +92,13 @@ fn create_foreign_and_freeze_unfreeze() {
 
 			// Unfreeze should return AssetNotFrozen error
 			assert_noop!(
-				EvmForeignAssets::unfreeze_foreign_asset(RuntimeOrigin::root(), 1),
+				EvmForeignAssets::unfreeze_foreign_asset(RuntimeOrigin::signed(Alice.into()), 1),
 				Error::<Test>::AssetNotFrozen
 			);
 
 			// Freeze should work
 			assert_ok!(EvmForeignAssets::freeze_foreign_asset(
-				RuntimeOrigin::root(),
+				RuntimeOrigin::signed(Alice.into()),
 				1,
 				true
 			),);
@@ -109,13 +109,17 @@ fn create_foreign_and_freeze_unfreeze() {
 
 			// Should not be able to freeze an asset already frozen
 			assert_noop!(
-				EvmForeignAssets::freeze_foreign_asset(RuntimeOrigin::root(), 1, true),
+				EvmForeignAssets::freeze_foreign_asset(
+					RuntimeOrigin::signed(Alice.into()),
+					1,
+					true
+				),
 				Error::<Test>::AssetAlreadyFrozen
 			);
 
 			// Unfreeze should work
 			assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
-				RuntimeOrigin::root(),
+				RuntimeOrigin::signed(Alice.into()),
 				1
 			),);
 			assert_eq!(
@@ -197,7 +201,7 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 			));
 
 			assert_ok!(EvmForeignAssets::change_xcm_location(
-				RuntimeOrigin::root(),
+				RuntimeOrigin::signed(Alice.into()),
 				1,
 				Location::here()
 			));
@@ -233,7 +237,11 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 fn test_asset_id_non_existent_error() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			EvmForeignAssets::change_xcm_location(RuntimeOrigin::root(), 1, Location::parent()),
+			EvmForeignAssets::change_xcm_location(
+				RuntimeOrigin::from(Some(Alice.into())),
+				1,
+				Location::parent()
+			),
 			Error::<Test>::AssetDoesNotExist
 		);
 	});
@@ -278,7 +286,11 @@ fn test_location_already_exist_error() {
 			));
 
 			assert_noop!(
-				EvmForeignAssets::change_xcm_location(RuntimeOrigin::root(), 2, Location::parent()),
+				EvmForeignAssets::change_xcm_location(
+					RuntimeOrigin::from(Some(Alice.into())),
+					2,
+					Location::parent()
+				),
 				Error::<Test>::LocationAlreadyExists
 			);
 		});

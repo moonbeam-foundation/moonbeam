@@ -196,7 +196,10 @@ parameter_types! {
 pub struct ForeignAssetsEnsureXCM;
 
 impl EnsureXcmLocation<Test> for ForeignAssetsEnsureXCM {
-	fn ensure_xcm_origin(origin: RuntimeOrigin, location: &Location) -> Result<AccountId, DispatchError> {
+	fn ensure_xcm_origin(
+		origin: RuntimeOrigin,
+		location: Option<&Location>,
+	) -> Result<AccountId, DispatchError> {
 		ensure_signed(origin).map_err(|_| DispatchError::BadOrigin)
 	}
 

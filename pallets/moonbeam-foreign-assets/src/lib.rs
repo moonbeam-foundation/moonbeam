@@ -397,7 +397,7 @@ pub mod pallet {
 			name: BoundedVec<u8, ConstU32<256>>,
 		) -> DispatchResult {
 			let owner_account =
-				T::EnsureXcmLocation::ensure_xcm_origin(origin.clone(), &xcm_location)?;
+				T::EnsureXcmLocation::ensure_xcm_origin(origin.clone(), Some(&xcm_location))?;
 
 			// Ensure such an assetId does not exist
 			ensure!(
@@ -465,10 +465,12 @@ pub mod pallet {
 			new_xcm_location: Location,
 		) -> DispatchResult {
 			// Ensures that the origin is an XCM location that contains the asset
-			T::EnsureXcmLocation::ensure_xcm_origin(origin, &new_xcm_location)?;
+			T::EnsureXcmLocation::ensure_xcm_origin(origin.clone(), Some(&new_xcm_location))?;
 
 			let previous_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			T::EnsureXcmLocation::ensure_xcm_origin(origin, Some(&previous_location))?;
 
 			ensure!(
 				!AssetsByLocation::<T>::contains_key(&new_xcm_location),
@@ -498,14 +500,15 @@ pub mod pallet {
 			asset_id: AssetId,
 			allow_xcm_deposit: bool,
 		) -> DispatchResult {
-			ensure_signed(origin.clone())?;
+			// Ensure that the origin is coming from an XCM.
+			T::EnsureXcmLocation::ensure_xcm_origin(origin.clone(), None)?;
 
 			let xcm_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
 			// Ensures that the origin is an XCM location that owns the asset
 			// represented by the assets xcm location
-			T::EnsureXcmLocation::ensure_xcm_origin(origin, &xcm_location)?;
+			T::EnsureXcmLocation::ensure_xcm_origin(origin, Some(&xcm_location))?;
 
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
@@ -536,12 +539,12 @@ pub mod pallet {
 		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::unfreeze_foreign_asset())]
 		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
-			ensure_signed(origin.clone())?;
+			T::EnsureXcmLocation::ensure_xcm_origin(origin.clone(), None)?;
 
 			let xcm_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 			// Ensures that the origin is an XCM location that contains the asset
-			T::EnsureXcmLocation::ensure_xcm_origin(origin, &xcm_location)?;
+			T::EnsureXcmLocation::ensure_xcm_origin(origin, Some(&xcm_location))?;
 
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
@@ -664,7 +667,7 @@ pub mod pallet {
 	pub trait EnsureXcmLocation<T: Config> {
 		fn ensure_xcm_origin(
 			origin: T::RuntimeOrigin,
-			location: &Location,
+			location: Option<&Location>,
 		) -> Result<T::AccountId, DispatchError>;
 		fn account_for_location(location: &Location) -> Option<T::AccountId>;
 	}

@@ -66,14 +66,14 @@ use xcm_primitives::{
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
-use crate::foreign_origin::{ForeignAssetsEnsureXcmLocation};
+use crate::foreign_origin::ForeignAssetsEnsureXcmLocation;
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
+use pallet_moonbeam_foreign_assets::EnsureXcmLocation;
 use sp_core::Get;
 use sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::*,
 };
-use pallet_moonbeam_foreign_assets::EnsureXcmLocation;
 
 parameter_types! {
 	// The network Id of the relay
