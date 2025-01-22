@@ -1596,6 +1596,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 					Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => genesis_config_preset::development(),
 					_ => return None,
 				};
+
 				Some(
 					serde_json::to_string(&patch)
 						.expect("serialization to json is expected to work. qed.")

@@ -1,12 +1,32 @@
+// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+//! Moonbeam Chain Specifications and utilities for building them.
+//!
+//! Learn more about Substrate chain specifications at
+//! https://substrate.dev/docs/en/knowledgebase/integrate/chain-spec
 extern crate alloc;
 
 use crate::{
-	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
-	InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
+	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
+	Balance, BalancesConfig, CrowdloanRewardsConfig, EVMConfig, EligibilityValue,
+	EthereumChainIdConfig, EthereumConfig, InflationInfo, MaintenanceModeConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
-	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
+	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, TransactionPaymentConfig,
+	TreasuryCouncilCollectiveConfig, HOURS,
 };
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
@@ -14,15 +34,14 @@ use fp_evm::GenesisAccount;
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
 use parachains_common::genesis_config_helpers::get_from_seed;
-use sp_runtime::{traits::One, Perbill, Percent};
+use sp_runtime::{Perbill, Percent};
 
 const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
-const BLOCKS_PER_ROUND: u32 = 2 * HOURS;
-const BLOCKS_PER_YEAR: u32 = 31_557_600 / 6;
+const BLOCKS_PER_ROUND: u32 = 6 * HOURS;
+const BLOCKS_PER_YEAR: u32 = 31_557_600 / 12;
 const NUM_SELECTED_CANDIDATES: u32 = 8;
-
-pub fn moonbase_inflation_config() -> InflationInfo<Balance> {
+pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
 		use pallet_parachain_staking::inflation::perbill_annual_to_perbill_round;
 		perbill_annual_to_perbill_round(
@@ -39,9 +58,9 @@ pub fn moonbase_inflation_config() -> InflationInfo<Balance> {
 	InflationInfo {
 		// staking expectations
 		expect: Range {
-			min: 100_000 * UNIT,
-			ideal: 200_000 * UNIT,
-			max: 500_000 * UNIT,
+			min: 100_000 * GLMR * SUPPLY_FACTOR,
+			ideal: 200_000 * GLMR * SUPPLY_FACTOR,
+			max: 500_000 * GLMR * SUPPLY_FACTOR,
 		},
 		// annual inflation
 		annual,
@@ -50,7 +69,6 @@ pub fn moonbase_inflation_config() -> InflationInfo<Balance> {
 }
 
 pub fn testnet_genesis(
-	root_key: AccountId,
 	treasury_council_members: Vec<AccountId>,
 	open_tech_committee_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
@@ -72,14 +90,11 @@ pub fn testnet_genesis(
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, 1 << 80))
+				.map(|k| (k, 1 << 110))
 				.collect(),
 		},
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
-		},
-		sudo: SudoConfig {
-			key: Some(root_key),
 		},
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
@@ -117,7 +132,7 @@ pub fn testnet_genesis(
 				.map(|(account, _, bond)| (account, bond))
 				.collect(),
 			delegations,
-			inflation_config: moonbase_inflation_config(),
+			inflation_config: moonbeam_inflation_config(),
 			collator_commission: COLLATOR_COMMISSION,
 			parachain_bond_reserve_percent: PARACHAIN_BOND_RESERVE_PERCENT,
 			blocks_per_round: BLOCKS_PER_ROUND,
@@ -155,24 +170,14 @@ pub fn testnet_genesis(
 			multiplier: Multiplier::from(8u128),
 			..Default::default()
 		},
-		moonbeam_orbiters: MoonbeamOrbitersConfig {
-			min_orbiter_deposit: One::one(),
-		},
-		xcm_transactor: XcmTransactorConfig {
-			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
-			..Default::default()
-		},
 	};
 
 	serde_json::to_value(&config).expect("Could not build genesis config.")
 }
 
+/// Generate a chain spec for use with the development service.
 pub fn development() -> serde_json::Value {
 	testnet_genesis(
-		// Alith is Sudo
-		AccountId::from(sp_core::hex2array!(
-			"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
-		)),
 		// Treasury Council members: Baltathar, Charleth and Dorothy
 		vec![
 			AccountId::from(sp_core::hex2array!(
@@ -194,20 +199,16 @@ pub fn development() -> serde_json::Value {
 				"3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0"
 			)),
 		],
-		// Collator Candidates
-		vec![
-			// Alice -> Alith
-			(
-				AccountId::from(sp_core::hex2array!(
-					"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
-				)),
-				get_from_seed::<NimbusId>("Alice"),
-				1_000 * UNIT,
-			),
-		],
+		// Collator Candidate: Alice -> Alith
+		vec![(
+			AccountId::from(sp_core::hex2array!(
+				"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+			)),
+			get_from_seed::<NimbusId>("Alice"),
+			20_000 * GLMR * SUPPLY_FACTOR,
+		)],
 		// Delegations
 		vec![],
-		// Endowed: Alith, Baltathar, Charleth and Dorothy
 		vec![
 			AccountId::from(sp_core::hex2array!(
 				"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
@@ -222,8 +223,8 @@ pub fn development() -> serde_json::Value {
 				"773539d4Ac0e786233D90A233654ccEE26a613D9"
 			)),
 		],
-		3_000_000 * UNIT,
+		1_500_000 * GLMR * SUPPLY_FACTOR,
 		Default::default(), // para_id
-		1280,               //ChainId
+		1281,               //ChainId
 	)
 }
