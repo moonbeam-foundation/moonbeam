@@ -28,18 +28,7 @@ runs:
       run: |
         mkdir -p mold
         curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.30.0/mold-2.30.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
-    # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
-    # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
-    - name: Setup Rust toolchain
-      shell: bash
-      run: |
-        if ! which "rustup" > /dev/null; then
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        fi
-        rustup override unset
-        rustup show
-        rustup target add wasm32-unknown-unknown
-    - name: Build Node
+    - name: Build moonbeam
       shell: bash
       run: |
         env
@@ -48,7 +37,12 @@ runs:
           params="$params --features ${{ inputs.features }}"
         fi
         echo "cargo build $params"
-        cargo build $params
+        # Build moonbeam
+        docker build \
+          --tag ci --no-cache \
+          --build-arg="BUILD_PARAMS=${{ $params }}" \
+          --build-arg="RUSTFLAGS=$RUSTFLAGS" \
+          - < docker/moonbeam-builder.Dockerfile
     - name: Check glibc version
       shell: bash
       run: |
