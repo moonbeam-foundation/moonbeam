@@ -4,9 +4,10 @@
 
 FROM docker.io/library/ubuntu:22.04 AS builder
 
-ARG RUSTFLAGS=""
+ARG BUILD_PARAMS="--release --all"
+ARG RUSTFLAGS="-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=/build/mold/bin/mold"
+ENV BUILD_PARAMS=$BUILD_PARAMS
 ENV RUSTFLAGS=$RUSTFLAGS
-ENV BUILD_PARAMS="--release --all"
 ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /build
@@ -18,6 +19,11 @@ RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificat
 RUN apt install --assume-yes git clang curl libssl-dev llvm libudev-dev make protobuf-compiler pkg-config
 
 RUN set -e
+
+# Setup mold linker
+RUN echo "*** Setup mold linker ***"
+RUN mkdir -p mold
+RUN curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.30.0/mold-2.30.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
 
 RUN echo "*** Installing Rust environment ***"
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y

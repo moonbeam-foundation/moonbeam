@@ -19,15 +19,6 @@ runs:
         echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
         echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
         echo "SCCACHE_CACHE_SIZE=100GB" >> $GITHUB_ENV
-        # Set RUSTFLAGS if not already set
-        if [ -z "$RUSTFLAGS" ]; then
-          echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
-        fi
-    - name: Setup Mold Linker
-      shell: bash
-      run: |
-        mkdir -p mold
-        curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.30.0/mold-2.30.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
     - name: Build moonbeam
       shell: bash
       run: |
