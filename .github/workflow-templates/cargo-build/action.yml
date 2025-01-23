@@ -34,14 +34,14 @@ runs:
           --build-arg="BUILD_PARAMS=$params" \
           --build-arg="RUSTFLAGS=$RUSTFLAGS" \
           -f $(pwd)/docker/moonbeam-builder.Dockerfile $(pwd)
-
-        ls -al ./target
-
+        
         # Copy target folder
         docker rm -f dummy 2> /dev/null | true
         docker create -ti --name dummy ci bash
         docker cp dummy:/build/target target
         docker rm -f dummy
+
+        ls -al ./target
 
         GLIBC_VERSION="$(objdump -T ./target/release/moonbeam | grep "GLIBC_" | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu | tail -1)"
 

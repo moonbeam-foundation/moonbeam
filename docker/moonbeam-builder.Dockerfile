@@ -12,7 +12,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /build
 COPY . /build/
-RUN ls -al /build
 
 RUN echo "*** Installing Basic dependencies ***"
 RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
