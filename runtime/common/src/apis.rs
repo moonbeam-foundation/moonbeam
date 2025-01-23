@@ -115,6 +115,20 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+				fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+					frame_support::genesis_builder_helper::build_state::<RuntimeGenesisConfig>(config)
+				}
+
+				fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, genesis_config_preset::get_preset)
+				}
+
+				fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+					genesis_config_preset::preset_names()
+				}
+			}
+
 			impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index> for Runtime {
 				fn account_nonce(account: AccountId) -> Index {
 					System::account_nonce(account)

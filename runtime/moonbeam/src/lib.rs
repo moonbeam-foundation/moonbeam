@@ -1624,20 +1624,6 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			ConsensusHook::can_build_upon(included_hash, slot)
 		}
 	}
-
-	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-		fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
-			frame_support::genesis_builder_helper::build_state::<RuntimeGenesisConfig>(config)
-		}
-
-		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
-			frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, crate::genesis_config_preset::get_preset)
-		}
-
-		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
-			crate::genesis_config_preset::preset_names()
-		}
-	}
 }
 
 struct CheckInherents;
