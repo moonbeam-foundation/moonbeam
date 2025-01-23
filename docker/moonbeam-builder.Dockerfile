@@ -9,8 +9,9 @@ ENV RUSTFLAGS=$RUSTFLAGS
 ENV BUILD_PARAMS="--release --all"
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN ls -al
-WORKDIR /
+WORKDIR /build
+COPY ./* /build
+RUN ls -al /build
 
 RUN echo "*** Installing Basic dependencies ***"
 RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificates
