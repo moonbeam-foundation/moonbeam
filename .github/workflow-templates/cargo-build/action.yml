@@ -34,11 +34,27 @@ runs:
           --build-arg="BUILD_PARAMS=$params" \
           --build-arg="RUSTFLAGS=$RUSTFLAGS" \
           -f $(pwd)/docker/moonbeam-builder.Dockerfile $(pwd)
-    - name: Check glibc version
-      shell: bash
-      run: |
-        objdump -T ./target/release/moonbeam | grep GLIBC | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -V
-        echo "TODO: add checks"
+
+        ls -al ./target
+
+        # Copy target folder
+        docker rm -f dummy 2> /dev/null | true
+        docker create -ti --name dummy ci bash
+        docker cp dummy:/build/target target
+        docker rm -f dummy
+
+        GLIBC_VERSION="$(objdump -T ./target/release/moonbeam | grep "GLIBC_" | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu | tail -1)"
+
+        if [[ $GLIBC_VERSION == "2.34" ]]; then
+          echo "✅ Using expected GLIBC version: ${GLIBC_VERSION}";
+        else
+          echo "❌ Unexpected GLIBC version: ${GLIBC_VERSION}";
+          exit 1;
+        fi
+
+        # Cleanup
+        docker rmi ci
+        
     - name: Display binary comments
       shell: bash
       run: readelf -p .comment ./target/release/moonbeam
