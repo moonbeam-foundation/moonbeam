@@ -1,4 +1,4 @@
-# Node for Moonbase Alphanet.
+# Moonbeam Binary
 #
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
@@ -8,8 +8,7 @@ RUN apt-get update && apt-get install -y ca-certificates && update-ca-certificat
 
 FROM debian:stable-slim
 LABEL maintainer="alan@moonsonglabs.com"
-LABEL description="Binary for Moonbeam Collator"
-
+LABEL description="Moonbeam Binary"
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbeam moonbeam && \
 	mkdir -p /moonbeam/.local/share && \
