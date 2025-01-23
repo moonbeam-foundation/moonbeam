@@ -32,10 +32,10 @@ runs:
         GLIBC_VERSION="$(objdump -T moonbeam | grep "GLIBC_" | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu | tail -1)"
 
         if [[ $GLIBC_VERSION == "2.34" ]]; then
+          echo "✅ Using expected GLIBC version: ${GLIBC_VERSION}";
+        else
           echo "❌ Unexpected GLIBC version: ${GLIBC_VERSION}";
           exit 1;
-        else
-          echo "✅ Using expected GLIBC version: ${GLIBC_VERSION}";
         fi
 
         # Cleanup
