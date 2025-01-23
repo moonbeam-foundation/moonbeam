@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Moonbeam Chain Specifications and utilities for building them.
-//!
-//! Learn more about Substrate chain specifications at
-//! https://substrate.dev/docs/en/knowledgebase/integrate/chain-spec
 extern crate alloc;
 
 use crate::{
@@ -41,6 +37,7 @@ const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const BLOCKS_PER_ROUND: u32 = 6 * HOURS;
 const BLOCKS_PER_YEAR: u32 = 31_557_600 / 12;
 const NUM_SELECTED_CANDIDATES: u32 = 8;
+
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
 		use pallet_parachain_staking::inflation::perbill_annual_to_perbill_round;
