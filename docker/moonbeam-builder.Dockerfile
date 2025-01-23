@@ -30,4 +30,4 @@ WORKDIR /moonbeam/moonbeam
 RUN rustc --print target-cpus
 
 RUN echo "*** Building Moonbeam ***"
-RUN cargo build "$BUILD_PARAMS"
+RUN cargo build $BUILD_PARAMS
