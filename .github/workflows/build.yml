@@ -703,6 +703,7 @@ jobs:
         with:
           context: .
           file: ./docker/moonbeam.Dockerfile
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.prep.outputs.tags }}
           labels: |
