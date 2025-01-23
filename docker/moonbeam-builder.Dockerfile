@@ -10,7 +10,7 @@ ENV BUILD_PARAMS="--release --all"
 ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /build
-COPY ./* /build
+COPY . /build/
 RUN ls -al /build
 
 RUN echo "*** Installing Basic dependencies ***"
