@@ -154,7 +154,7 @@ jobs:
           echo "tags=${DOCKER_IMAGE}:${TAG}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
       - name: Cargo build
-        uses: ./.github/workflow-templates/build-prod-binary
+        uses: ./.github/workflow-templates/publish-docker
         with:
           dockerhub_username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
           dockerhub_password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
