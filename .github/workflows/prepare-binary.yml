@@ -15,7 +15,7 @@ jobs:
   ####### Building binaries #######
 
   build-binary:
-    runs-on: ubuntu-latest
+    runs-on: moonbeam-release-medium
     permissions:
       contents: read
     strategy:
