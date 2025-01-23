@@ -40,7 +40,7 @@ use moonbase_runtime::{
 	xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards, EvmForeignAssets,
 	Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, System, TransactionPayment,
-	TransactionPaymentAsGasPrice, Treasury,TreasuryCouncilCollective, XcmTransactor,
+	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
