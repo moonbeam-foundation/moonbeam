@@ -17,45 +17,66 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Prepare
+        id: prep
+        run: |
+          mkdir -p build
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam -O build/moonbeam
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-skylake -O build/moonbeam-skylake
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-znver3 -O build/moonbeam-znver3
+
+          DOCKER_IMAGE=moonbeamfoundation/moonbeam
+          VERSION="${{ github.event.inputs.tag }}"
+          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
+          COMMIT_SHA8=sha-${COMMIT::8}
+
+          TAG_SHA="${DOCKER_IMAGE}:sha-${COMMIT_SHA8}"
+          TAG_VER="${DOCKER_IMAGE}:${VERSION}"
+
+          TAGS="${TAG_SHA},${TAG_VER}"
+          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            MINOR=${VERSION%.*}
+            echo tagging "${DOCKER_IMAGE}:${MINOR}"
+            TAGS="${TAGS},${DOCKER_IMAGE}:${MINOR}"
+
+            MAJOR=${MINOR%.*}
+            echo tagging "${DOCKER_IMAGE}:${MAJOR}"
+            TAGS="${TAGS},${DOCKER_IMAGE}:${MAJOR}"
+
+            echo tagging "${DOCKER_IMAGE}:latest"
+            TAGS="${TAGS},${DOCKER_IMAGE}:latest"
+          fi
+
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.8.0
+        with:
+          version: latest
+          driver-opts: |
+            image=moby/buildkit:master
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
-      - run: |
-          DOCKER_IMAGE=moonbeamfoundation/moonbeam
-          VERSION="${{ github.event.inputs.tag }}"
-          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
-          SHA=sha-${COMMIT::8}
-          echo using "${DOCKER_IMAGE}:${SHA} as base image"
-
-          mkdir -p build 
-          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam -O build/moonbeam
-          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-skylake -O build/moonbeam-skylake
-          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-znver3 -O build/moonbeam-znver3
-
-          echo building "${DOCKER_IMAGE}:${VERSION}"
-          docker build \
-            --build-arg DOCKER_IMAGE="$DOCKER_IMAGE" \
-            --build-arg SHA="$SHA" \
-            -f docker/moonbeam-release.Dockerfile \
-            -t "${DOCKER_IMAGE}:${VERSION}" \
-            . 
-
-          docker push "${DOCKER_IMAGE}:${VERSION}"
-
-          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            MINOR=${VERSION%.*}
-            echo tagging "${DOCKER_IMAGE}:${MINOR}"
-            docker tag "${DOCKER_IMAGE}:${VERSION}" "${DOCKER_IMAGE}:${MINOR}"
-            docker push "${DOCKER_IMAGE}:${MINOR}"
-
-            MAJOR=${MINOR%.*}
-            echo tagging "${DOCKER_IMAGE}:${MAJOR}"
-            docker tag "${DOCKER_IMAGE}:${VERSION}" "${DOCKER_IMAGE}:${MAJOR}"
-            docker push "${DOCKER_IMAGE}:${MAJOR}"
-
-            echo tagging "${DOCKER_IMAGE}:latest"
-            docker tag "${DOCKER_IMAGE}:${VERSION}" "${DOCKER_IMAGE}:latest"
-            docker push "${DOCKER_IMAGE}:latest"
-          fi
+      - name: Build and push moonbeam
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./docker/moonbeam.Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.prep.outputs.tags }}
+          labels: |
+            org.opencontainers.image.title=${{ github.event.repository.name }}
+            org.opencontainers.image.description=${{ github.event.repository.description }}
+            org.opencontainers.image.url=${{ github.event.repository.html_url }}
+            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
+            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+            
