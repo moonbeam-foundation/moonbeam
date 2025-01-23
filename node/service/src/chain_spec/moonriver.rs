@@ -25,14 +25,12 @@ use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonriver_runtime::{
-	currency::MOVR, genesis_config_preset::testnet_genesis, AccountId, Balance, InflationInfo,
-	Range, HOURS, WASM_BINARY,
+	currency::MOVR, genesis_config_preset::testnet_genesis, AccountId, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
-use sp_runtime::Perbill;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
@@ -151,34 +149,6 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	.build()
 }
 
-const BLOCKS_PER_ROUND: u32 = 2 * HOURS;
-const BLOCKS_PER_YEAR: u32 = 31_557_600 / 12;
-pub fn moonriver_inflation_config() -> InflationInfo<Balance> {
-	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
-		use pallet_parachain_staking::inflation::perbill_annual_to_perbill_round;
-		perbill_annual_to_perbill_round(
-			annual,
-			// rounds per year
-			BLOCKS_PER_YEAR / BLOCKS_PER_ROUND,
-		)
-	}
-	let annual = Range {
-		min: Perbill::from_percent(4),
-		ideal: Perbill::from_percent(5),
-		max: Perbill::from_percent(5),
-	};
-	InflationInfo {
-		// staking expectations
-		expect: Range {
-			min: 100_000 * MOVR,
-			ideal: 200_000 * MOVR,
-			max: 500_000 * MOVR,
-		},
-		// annual inflation
-		annual,
-		round: to_round_inflation(annual),
-	}
-}
 #[cfg(test)]
 mod tests {
 	use super::*;
