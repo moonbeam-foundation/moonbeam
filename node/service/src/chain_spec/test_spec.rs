@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Embedded specs for testing purposes, must be compiled with --features=test-spec
-use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
+use crate::chain_spec::moonbase::ChainSpec;
 use crate::chain_spec::{get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -39,7 +39,7 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 	.with_properties(
 		serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map"),
 	)
-	.with_genesis_config(testnet_genesis(
+	.with_genesis_config(moonbase_runtime::genesis_config_preset::testnet_genesis(
 		// Root
 		AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
 		// Treasury Council members: Baltathar, Charleth and Dorothy
@@ -104,7 +104,7 @@ pub fn lazy_loading_spec_builder(para_id: ParaId) -> sc_chain_spec::ChainSpecBui
 		)
 		.expect("Provided valid json map"),
 	)
-	.with_genesis_config(crate::chain_spec::moonbeam::testnet_genesis(
+	.with_genesis_config(moonbeam_runtime::genesis_config_preset::testnet_genesis(
 		// Treasury Council members: Baltathar, Charleth and Dorothy
 		vec![
 			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
