@@ -212,16 +212,14 @@ pub fn development() -> serde_json::Value {
 			)),
 		],
 		// Collator Candidates
-		vec![
+		vec![(
 			// Alice -> Alith
-			(
-				AccountId::from(sp_core::hex2array!(
-					"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
-				)),
-				get_from_seed::<NimbusId>("Alice"),
-				1_000 * UNIT,
-			),
-		],
+			AccountId::from(sp_core::hex2array!(
+				"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+			)),
+			get_from_seed::<NimbusId>("Alice"),
+			1_000 * UNIT,
+		)],
 		// Delegations
 		vec![],
 		// Endowed: Alith, Baltathar, Charleth and Dorothy
