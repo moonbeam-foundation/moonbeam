@@ -874,4 +874,26 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 			.saturating_add(T::DbWeight::get().reads(8_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
+
+	/// Storage: `ParachainStaking::AtStake` (r:52 w:0)
+	/// Proof: `ParachainStaking::AtStake` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::AwardedPts` (r:51 w:0)
+	/// Proof: `ParachainStaking::AwardedPts` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::WasInactive` (r:0 w:51)
+	/// Proof: `ParachainStaking::WasInactive` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// The range of component `x` is `[0, 50]`.
+	fn mark_collators_as_inactive(x: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `108 + x * (104 ±0)`
+		//  Estimated: `6050 + x * (2580 ±0)`
+		// Minimum execution time: 16_000_000 picoseconds.
+		Weight::from_parts(27_982_315, 6050)
+			// Standard Error: 27_443
+			.saturating_add(Weight::from_parts(11_819_726, 0).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().reads((2_u64).saturating_mul(x.into())))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(x.into())))
+			.saturating_add(Weight::from_parts(0, 2580).saturating_mul(x.into()))
+	}
 }

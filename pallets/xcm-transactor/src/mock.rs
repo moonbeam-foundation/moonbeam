@@ -137,7 +137,7 @@ impl WrapVersion for CustomVersionWrapper {
 		xcm: impl Into<VersionedXcm<RuntimeCall>>,
 	) -> Result<VersionedXcm<RuntimeCall>, ()> {
 		let xcm_version: u32 =
-			frame_support::storage::unhashed::get(XCM_VERSION_ROOT_KEY).unwrap_or(2);
+			frame_support::storage::unhashed::get(XCM_VERSION_ROOT_KEY).unwrap_or(3);
 		let xcm_converted = xcm.into().into_version(xcm_version)?;
 		Ok(xcm_converted)
 	}

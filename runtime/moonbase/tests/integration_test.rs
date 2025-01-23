@@ -30,8 +30,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo,
-		StorageInfoTrait,
+		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo,
+		StorageInfo, StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
@@ -40,7 +40,7 @@ use moonbase_runtime::{
 	xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards, EvmForeignAssets,
 	Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, System, TransactionPayment,
-	TransactionPaymentAsGasPrice, TreasuryCouncilCollective, XcmTransactor,
+	TransactionPaymentAsGasPrice, Treasury,TreasuryCouncilCollective, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
@@ -59,13 +59,14 @@ use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 //use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
+use moonbase_runtime::runtime_params::dynamic_params;
 use moonbase_runtime::xcm_config::LocationToAccountId;
 use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
-use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256};
+use sp_core::{crypto::UncheckedFrom, ByteArray, Get, Pair, H160, H256, U256};
 use sp_runtime::{bounded_vec, DispatchError, ModuleError};
 use std::cell::Cell;
 use std::rc::Rc;
@@ -1866,6 +1867,7 @@ fn transfer_ed_0_evm() {
 		])
 		.build()
 		.execute_with(|| {
+			set_parachain_inherent_data();
 			// EVM transfer
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(ALICE),
@@ -1918,7 +1920,7 @@ fn refund_ed_0_evm() {
 }
 
 #[test]
-fn author_does_not_receive_priority_fee() {
+fn author_does_receive_priority_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
@@ -1928,6 +1930,7 @@ fn author_does_not_receive_priority_fee() {
 		.execute_with(|| {
 			// Some block author as seen by pallet-evm.
 			let author = AccountId::from(<pallet_evm::Pallet<Runtime>>::find_author());
+			pallet_author_inherent::Author::<Runtime>::put(author);
 			// Currently the default impl of the evm uses `deposit_into_existing`.
 			// If we were to use this implementation, and for an author to receive eventual tips,
 			// the account needs to be somehow initialized, otherwise the deposit would fail.
@@ -1946,8 +1949,10 @@ fn author_does_not_receive_priority_fee() {
 				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
-			// Author free balance didn't change.
-			assert_eq!(Balances::free_balance(author), 100 * UNIT,);
+
+			let priority_fee = 200 * GIGAWEI * 21_000;
+			// Author free balance increased by priority fee.
+			assert_eq!(Balances::free_balance(author), 100 * UNIT + priority_fee,);
 		});
 }
 
@@ -1968,6 +1973,8 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			let author = AccountId::from(<pallet_evm::Pallet<Runtime>>::find_author());
+			pallet_author_inherent::Author::<Runtime>::put(author);
 			// EVM transfer.
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -1983,14 +1990,18 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 1 * base_fee + tip.
-			let fee = ((2 * BASE_FEE_GENISIS) * 21_000) as f64;
-			// 80% was burned.
-			let expected_burn = (fee * 0.8) as u128;
-			assert_eq!(issuance_after, issuance_before - expected_burn,);
-			// 20% was sent to treasury.
-			let expected_treasury = (fee * 0.2) as u128;
-			assert_eq!(moonbase_runtime::Treasury::pot(), expected_treasury);
+
+			let base_fee: Balance = BASE_FEE_GENISIS * 21_000;
+
+			let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
+
+			// only base fee is split between being burned and sent to treasury
+			let treasury_base_fee_part: Balance = treasury_proportion.mul_floor(base_fee);
+			let burnt_base_fee_part: Balance = base_fee - treasury_base_fee_part;
+
+			assert_eq!(issuance_after, issuance_before - burnt_base_fee_part);
+
+			assert_eq!(moonbase_runtime::Treasury::pot(), treasury_base_fee_part);
 		});
 }
 
@@ -2011,6 +2022,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 		])
 		.build()
 		.execute_with(|| {
+			set_parachain_inherent_data();
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 			// EVM transfer.
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
@@ -2030,13 +2042,18 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 			// Fee is 1 GWEI base fee.
 			let base_fee = TransactionPaymentAsGasPrice::min_gas_price().0;
 			assert_eq!(base_fee.as_u128(), BASE_FEE_GENISIS); // hint in case following asserts fail
-			let fee = (base_fee.as_u128() * 21_000u128) as f64;
-			// 80% was burned.
-			let expected_burn = (fee * 0.8) as u128;
-			assert_eq!(issuance_after, issuance_before - expected_burn,);
-			// 20% was sent to treasury.
-			let expected_treasury = (fee * 0.2) as u128;
-			assert_eq!(moonbase_runtime::Treasury::pot(), expected_treasury);
+
+			let base_fee: Balance = BASE_FEE_GENISIS * 21_000;
+
+			let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
+
+			// only base fee is split between being burned and sent to treasury
+			let treasury_base_fee_part: Balance = treasury_proportion.mul_floor(base_fee);
+			let burnt_base_fee_part: Balance = base_fee - treasury_base_fee_part;
+
+			assert_eq!(issuance_after, issuance_before - burnt_base_fee_part);
+
+			assert_eq!(moonbase_runtime::Treasury::pot(), treasury_base_fee_part);
 		});
 }
 
@@ -2765,21 +2782,27 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 #[test]
 fn deal_with_fees_handles_tip() {
 	use frame_support::traits::OnUnbalanced;
-	use moonbase_runtime::{DealWithFees, Treasury};
+	use moonbase_runtime::Treasury;
+	use moonbeam_runtime_common::deal_with_fees::DealWithSubstrateFeesAndTip;
 
 	ExtBuilder::default().build().execute_with(|| {
-		// This test checks the functionality of the `DealWithFees` trait implementation in the runtime.
-		// It simulates a scenario where a fee and a tip are issued to an account and ensures that the
-		// treasury receives the correct amount (20% of the total), and the rest is burned (80%).
-		//
-		// The test follows these steps:
-		// 1. It issues a fee of 100 and a tip of 1000.
-		// 2. It checks the total supply before the fee and tip are dealt with, which should be 1_100.
-		// 3. It checks that the treasury's balance is initially 0.
-		// 4. It calls `DealWithFees::on_unbalanceds` with the fee and tip.
-		// 5. It checks that the treasury's balance is now 220 (20% of the fee and tip).
-		// 6. It checks that the total supply has decreased by 880 (80% of the fee and tip), indicating
-		//    that this amount was burned.
+		set_parachain_inherent_data();
+		// This test validates the functionality of the `DealWithSubstrateFeesAndTip` trait implementation
+		// in the Moonbeam runtime. It verifies that:
+		// - The correct proportion of the fee is sent to the treasury.
+		// - The remaining fee is burned (removed from the total supply).
+		// - The entire tip is sent to the block author.
+
+		// The test details:
+		// 1. Simulate issuing a `fee` of 100 and a `tip` of 1000.
+		// 2. Confirm the initial total supply is 1,100 (equal to the sum of the issued fee and tip).
+		// 3. Confirm the treasury's balance is initially 0.
+		// 4. Execute the `DealWithSubstrateFeesAndTip::on_unbalanceds` function with the `fee` and `tip`.
+		// 5. Validate that the treasury's balance has increased by 20% of the fee (based on FeesTreasuryProportion).
+		// 6. Validate that 80% of the fee is burned, and the total supply decreases accordingly.
+		// 7. Validate that the entire tip (100%) is sent to the block author (collator).
+
+		// Step 1: Issue the fee and tip amounts.
 		let fee = <pallet_balances::Pallet<Runtime> as frame_support::traits::fungible::Balanced<
 			AccountId,
 		>>::issue(100);
@@ -2787,18 +2810,41 @@ fn deal_with_fees_handles_tip() {
 			AccountId,
 		>>::issue(1000);
 
+		// Step 2: Validate the initial supply and balances.
 		let total_supply_before = Balances::total_issuance();
+		let block_author = pallet_author_inherent::Pallet::<Runtime>::get();
+		let block_author_balance_before = Balances::free_balance(&block_author);
 		assert_eq!(total_supply_before, 1_100);
 		assert_eq!(Balances::free_balance(&Treasury::account_id()), 0);
 
-		DealWithFees::on_unbalanceds(vec![fee, tip].into_iter());
+		// Step 3: Execute the fees handling logic.
+		DealWithSubstrateFeesAndTip::<
+			Runtime,
+			dynamic_params::runtime_config::FeesTreasuryProportion,
+		>::on_unbalanceds(vec![fee, tip].into_iter());
 
-		// treasury should have received 20%
-		assert_eq!(Balances::free_balance(&Treasury::account_id()), 220);
+		// Step 4: Compute the split between treasury and burned fees based on FeesTreasuryProportion (20%).
+		let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
 
-		// verify 80% burned
+		let treasury_fee_part: Balance = treasury_proportion.mul_floor(100);
+		let burnt_fee_part: Balance = 100 - treasury_fee_part;
+
+		// Step 5: Validate the treasury received 20% of the fee.
+		assert_eq!(
+			Balances::free_balance(&Treasury::account_id()),
+			treasury_fee_part,
+		);
+
+		// Step 6: Verify that 80% of the fee was burned (removed from the total supply).
 		let total_supply_after = Balances::total_issuance();
-		assert_eq!(total_supply_before - total_supply_after, 880);
+		assert_eq!(total_supply_before - total_supply_after, burnt_fee_part,);
+
+		// Step 7: Validate that the block author (collator) received 100% of the tip.
+		let block_author_balance_after = Balances::free_balance(&block_author);
+		assert_eq!(
+			block_author_balance_after - block_author_balance_before,
+			1000,
+		);
 	});
 }
 
@@ -2910,6 +2956,173 @@ fn validate_transaction_fails_on_filtered_call() {
 			Err(TransactionValidityError::Invalid(InvalidTransaction::Call)),
 		);
 	});
+}
+
+#[cfg(test)]
+mod treasury_tests {
+	use super::*;
+	use sp_runtime::traits::Hash;
+
+	fn expect_events(events: Vec<RuntimeEvent>) {
+		let block_events: Vec<RuntimeEvent> =
+			System::events().into_iter().map(|r| r.event).collect();
+
+		dbg!(events.clone());
+		dbg!(block_events.clone());
+
+		assert!(events.iter().all(|evt| block_events.contains(evt)))
+	}
+
+	fn next_block() {
+		System::reset_events();
+		System::set_block_number(System::block_number() + 1u32);
+		System::on_initialize(System::block_number());
+		Treasury::on_initialize(System::block_number());
+	}
+
+	#[test]
+	fn test_treasury_spend_local_with_root_origin() {
+		let initial_treasury_balance = 1_000 * UNIT;
+		ExtBuilder::default()
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * UNIT),
+				(Treasury::account_id(), initial_treasury_balance),
+			])
+			.build()
+			.execute_with(|| {
+				let spend_amount = 100u128 * UNIT;
+				let spend_beneficiary = AccountId::from(BOB);
+
+				next_block();
+
+				// Perform treasury spending
+
+				assert_ok!(moonbase_runtime::Sudo::sudo(
+					root_origin(),
+					Box::new(RuntimeCall::Treasury(pallet_treasury::Call::spend {
+						amount: spend_amount,
+						asset_kind: Box::new(()),
+						beneficiary: Box::new(AccountId::from(BOB)),
+						valid_from: Some(5u32),
+					}))
+				));
+
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
+				let expected_events = [RuntimeEvent::Treasury(
+					pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: (),
+						amount: spend_amount,
+						beneficiary: spend_beneficiary,
+						valid_from: 5u32,
+						expire_at: payout_period + 5u32,
+					},
+				)]
+				.to_vec();
+				expect_events(expected_events);
+
+				while System::block_number() < 5u32 {
+					next_block();
+				}
+
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+						index: 0,
+						payment_id: (),
+					}),
+					RuntimeEvent::Balances(pallet_balances::Event::Transfer {
+						from: Treasury::account_id(),
+						to: spend_beneficiary,
+						amount: spend_amount,
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+			});
+	}
+
+	#[test]
+	fn test_treasury_spend_local_with_council_origin() {
+		let initial_treasury_balance = 1_000 * UNIT;
+		ExtBuilder::default()
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * UNIT),
+				(Treasury::account_id(), initial_treasury_balance),
+			])
+			.build()
+			.execute_with(|| {
+				let spend_amount = 100u128 * UNIT;
+				let spend_beneficiary = AccountId::from(BOB);
+
+				next_block();
+
+				// TreasuryCouncilCollective
+				assert_ok!(TreasuryCouncilCollective::set_members(
+					root_origin(),
+					vec![AccountId::from(ALICE)],
+					Some(AccountId::from(ALICE)),
+					1
+				));
+
+				next_block();
+
+				// Perform treasury spending
+				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend {
+					amount: spend_amount,
+					asset_kind: Box::new(()),
+					beneficiary: Box::new(AccountId::from(BOB)),
+					valid_from: Some(5u32),
+				});
+				assert_ok!(TreasuryCouncilCollective::propose(
+					origin_of(AccountId::from(ALICE)),
+					1,
+					Box::new(proposal.clone()),
+					1_000
+				));
+
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: (),
+						amount: spend_amount,
+						beneficiary: spend_beneficiary,
+						valid_from: 5u32,
+						expire_at: payout_period + 5u32,
+					}),
+					RuntimeEvent::TreasuryCouncilCollective(pallet_collective::Event::Executed {
+						proposal_hash: sp_runtime::traits::BlakeTwo256::hash_of(&proposal),
+						result: Ok(()),
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+
+				while System::block_number() < 5u32 {
+					next_block();
+				}
+
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+						index: 0,
+						payment_id: (),
+					}),
+					RuntimeEvent::Balances(pallet_balances::Event::Transfer {
+						from: Treasury::account_id(),
+						to: spend_beneficiary,
+						amount: spend_amount,
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+			});
+	}
 }
 
 #[cfg(test)]

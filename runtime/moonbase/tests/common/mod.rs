@@ -376,6 +376,9 @@ pub fn set_parachain_inherent_data() {
 	use cumulus_primitives_core::PersistedValidationData;
 	use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 
+	let author = AccountId::from(<pallet_evm::Pallet<Runtime>>::find_author());
+	pallet_author_inherent::Author::<Runtime>::put(author);
+
 	let mut relay_sproof = RelayStateSproofBuilder::default();
 	relay_sproof.para_id = 100u32.into();
 	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));

@@ -4,7 +4,6 @@ import {
   type BlockRangeOption,
   EXTRINSIC_BASE_WEIGHT,
   WEIGHT_PER_GAS,
-  calculateFeePortions,
   mapExtrinsics,
 } from "@moonwall/util";
 import type { ApiPromise } from "@polkadot/api";
@@ -17,6 +16,8 @@ import type { AccountId20, Block } from "@polkadot/types/interfaces/runtime/type
 import chalk from "chalk";
 import type { Debugger } from "debug";
 import Debug from "debug";
+import { calculateFeePortions, split } from "./fees.ts";
+import { getFeesTreasuryProportion } from "./parameters.ts";
 
 const debug = Debug("test:blocks");
 
@@ -149,6 +150,8 @@ export const verifyBlockFees = async (
                 ? (event.data[0] as DispatchInfo)
                 : (event.data[1] as DispatchInfo);
 
+            const feesTreasuryProportion = await getFeesTreasuryProportion(context);
+
             // We are only interested in fee paying extrinsics:
             // Either ethereum transactions or signed extrinsics with fees (substrate tx)
             if (
@@ -175,40 +178,47 @@ export const verifyBlockFees = async (
                 const baseFeePerGas = (
                   await context.viem().getBlock({ blockNumber: BigInt(number - 1) })
                 ).baseFeePerGas!;
-                let priorityFee;
 
+                let priorityFee;
+                let gasFee;
                 // Transaction is an enum now with as many variants as supported transaction types.
                 if (ethTxWrapper.isLegacy) {
                   priorityFee = ethTxWrapper.asLegacy.gasPrice.toBigInt();
+                  gasFee = priorityFee;
                 } else if (ethTxWrapper.isEip2930) {
                   priorityFee = ethTxWrapper.asEip2930.gasPrice.toBigInt();
+                  gasFee = priorityFee;
                 } else if (ethTxWrapper.isEip1559) {
                   priorityFee = ethTxWrapper.asEip1559.maxPriorityFeePerGas.toBigInt();
+                  gasFee = ethTxWrapper.asEip1559.maxFeePerGas.toBigInt();
                 }
 
-                let effectiveTipPerGas = priorityFee - baseFeePerGas;
-                if (effectiveTipPerGas < 0n) {
-                  effectiveTipPerGas = 0n;
+                let effectiveTipPerGas = gasFee - baseFeePerGas;
+                if (effectiveTipPerGas > priorityFee) {
+                  effectiveTipPerGas = priorityFee;
                 }
 
-                // Calculate the fees paid for base fee independently from tip fee. Both are subject
-                // to 80/20 split (burn/treasury) but calculating these over the sum of the two
-                // rather than independently leads to off-by-one errors.
+                // Calculate the fees paid for the base fee and tip fee independently.
+                // Only the base fee is subject to the split between burn and treasury.
                 const baseFeesPaid = gasUsed * baseFeePerGas;
                 const tipAsFeesPaid = gasUsed * effectiveTipPerGas;
 
-                const baseFeePortions = calculateFeePortions(baseFeesPaid);
-                const tipFeePortions = calculateFeePortions(tipAsFeesPaid);
+                const { burnt: baseFeePortionsBurnt } = calculateFeePortions(
+                  feesTreasuryProportion,
+                  baseFeesPaid
+                );
 
                 txFees += baseFeesPaid + tipAsFeesPaid;
-                txBurnt += baseFeePortions.burnt;
-                txBurnt += tipFeePortions.burnt;
+                txBurnt += baseFeePortionsBurnt;
               } else {
                 // For a regular substrate tx, we use the partialFee
-                const feePortions = calculateFeePortions(fee.partialFee.toBigInt());
-                const tipPortions = calculateFeePortions(extrinsic.tip.toBigInt());
+                const feePortions = calculateFeePortions(
+                  feesTreasuryProportion,
+                  fee.partialFee.toBigInt()
+                );
+
                 txFees += fee.partialFee.toBigInt() + extrinsic.tip.toBigInt();
-                txBurnt += feePortions.burnt + tipPortions.burnt;
+                txBurnt += feePortions.burnt;
 
                 // verify entire substrate txn fee
                 const apiAt = await context.polkadotJs().at(previousBlockHash);
@@ -239,11 +249,12 @@ export const verifyBlockFees = async (
                   })) as any
                 ).toBigInt();
 
-                // const tip = extrinsic.tip.toBigInt();
+                const tip = extrinsic.tip.toBigInt();
                 const expectedPartialFee = lengthFee + weightFee + baseFee;
 
-                // Verify the computed fees are equal to the actual fees
-                expect(expectedPartialFee).to.eq((paymentEvent!.data[1] as u128).toBigInt());
+                // Verify the computed fees are equal to the actual fees + tip
+                expect(expectedPartialFee + tip).to.eq((paymentEvent!.data[1] as u128).toBigInt());
+                expect(tip).to.eq((paymentEvent!.data[2] as u128).toBigInt());
 
                 // Verify the computed fees are equal to the rpc computed fees
                 expect(expectedPartialFee).to.eq(fee.partialFee.toBigInt());

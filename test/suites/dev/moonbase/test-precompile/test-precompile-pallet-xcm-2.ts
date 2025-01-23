@@ -20,8 +20,6 @@ import {
   PARA_1000_SOURCE_LOCATION,
   mockHrmpChannelExistanceTx,
   ARBITRARY_ASSET_ID,
-  mockAssetBalance,
-  registerForeignAsset,
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION_V4,
   registerAndFundAsset,

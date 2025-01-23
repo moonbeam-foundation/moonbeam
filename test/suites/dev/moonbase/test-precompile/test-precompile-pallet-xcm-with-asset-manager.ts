@@ -1,47 +1,48 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, fetchCompiledContract, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createEthersTransaction } from "@moonwall/util";
+import type { u128 } from "@polkadot/types-codec";
 import { numberToHex } from "@polkadot/util";
-import { encodeFunctionData, erc20Abi } from "viem";
-import {
-  expectEVMResult,
-  relayAssetMetadata,
-  ARBITRARY_ASSET_ID,
-  RELAY_SOURCE_LOCATION_V4,
-  registerAndFundAsset,
-} from "../../../../helpers";
-import { ethers } from "ethers";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import { encodeFunctionData } from "viem";
+import { expectEVMResult, mockOldAssetBalance } from "../../../../helpers";
+
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
 describeSuite({
-  id: "D012900",
+  id: "D012902",
   title: "Precompiles - PalletXcm",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let foreignAssetContract: ethers.Contract;
+    let assetId: u128;
+    const ADDRESS_ERC20 = "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080";
+    const ASSET_ID = 42259045809535163221576417993425387648n;
     const amountToSend = 100n;
 
     beforeAll(async () => {
-      const someBalance = 100_000_000_000_000_000_000_000_000n;
+      const balance = 200000000000000n;
+      const assetBalance: PalletAssetsAssetAccount = context
+        .polkadotJs()
+        .createType("PalletAssetsAssetAccount", {
+          balance: balance,
+        });
+      assetId = context.polkadotJs().createType("u128", ASSET_ID);
 
-      // Register the asset
-      const { registeredAssetId, contractAddress } = await registerAndFundAsset(
+      const assetDetails: PalletAssetsAssetDetails = context
+        .polkadotJs()
+        .createType("PalletAssetsAssetDetails", {
+          supply: balance,
+        });
+
+      await mockOldAssetBalance(
         context,
-        {
-          id: ARBITRARY_ASSET_ID,
-          location: RELAY_SOURCE_LOCATION_V4,
-          metadata: relayAssetMetadata,
-          relativePrice: 1_000_000_000_000_000_000n,
-        },
-        someBalance,
+        assetBalance,
+        assetDetails,
+        alith,
+        assetId,
         ALITH_ADDRESS,
-        false
+        true
       );
-
-      console.log("contract address: ", contractAddress);
-      console.log("asset id: ", registeredAssetId);
-
-      foreignAssetContract = new ethers.Contract(contractAddress, erc20Abi, context.ethers());
     });
 
     it({
@@ -49,9 +50,11 @@ describeSuite({
       title: "allows to call transferAssetsLocation function",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
-
-        console.log("BALANCE BEFORE: ", assetBalanceBefore);
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
 
         const dest: [number, any[]] = [1, []];
 
@@ -80,7 +83,11 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -90,10 +97,14 @@ describeSuite({
       title: "allows to call transferAssetsToPara20 function",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
 
         const paraId = 1000n;
-        const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
+        const assetAddressInfo = [[ADDRESS_ERC20, amountToSend]];
 
         const rawTxn = await createEthersTransaction(context, {
           to: PRECOMPILE_PALLET_XCM_ADDRESS,
@@ -108,7 +119,11 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -118,10 +133,14 @@ describeSuite({
       title: "allows to call transferAssetsToPara32 function",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
 
         const paraId = 1000n;
-        const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
+        const assetAddressInfo = [[ADDRESS_ERC20, amountToSend]];
         const beneficiaryAddress = "01010101010101010101010101010101";
 
         const rawTxn = await createEthersTransaction(context, {
@@ -137,7 +156,11 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -147,9 +170,13 @@ describeSuite({
       title: "allows to call transferAssetsToRelay function",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
 
-        const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
+        const assetAddressInfo = [[ADDRESS_ERC20, amountToSend]];
         const beneficiaryAddress = "01010101010101010101010101010101";
 
         const rawTxn = await createEthersTransaction(context, {
@@ -165,7 +192,11 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -175,7 +206,11 @@ describeSuite({
       title: "allows to call transferAssetsUsingTypeAndThenLocation::8425d893 selector",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
 
         const dest: [number, any[]] = [1, []];
         const assetLocation: [number, any[]] = [1, []];
@@ -213,7 +248,11 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -223,7 +262,11 @@ describeSuite({
       title: "allows to call transferAssetsUsingTypeAndThenLocation::fc19376c selector",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
 
         const paraIdInHex = numberToHex(2000, 32);
         const parachain_enum_selector = "0x00";
@@ -257,7 +300,11 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -267,11 +314,15 @@ describeSuite({
       title: "allows to call transferAssetsUsingTypeAndThenAddress::998093ee selector",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
 
         // Relay as destination
         const dest: [number, any[]] = [1, []];
-        const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
+        const assetAddressInfo = [[ADDRESS_ERC20, amountToSend]];
 
         // DestinationReserve
         const assetsAndFeesTransferType = 2;
@@ -305,7 +356,11 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -315,14 +370,18 @@ describeSuite({
       title: "allows to call transferAssetsUsingTypeAndThenAddress::aaecfc62 selector",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceBefore = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
 
         const paraIdInHex = numberToHex(2000, 32);
         const parachain_enum_selector = "0x00";
 
         // This represents X2(Parent, Parachain(2000))
         const dest: [number, any[]] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
-        const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
+        const assetAddressInfo = [[ADDRESS_ERC20, amountToSend]];
         const remoteReserve: [number, any[]] = [1, []];
 
         const message = {
@@ -347,7 +406,11 @@ describeSuite({
         const result = await context.createBlock(rawTxn);
         expectEVMResult(result.result!.events, "Succeed");
 
-        const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceAfter = (
+          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
+        )
+          .unwrap()
+          .balance.toBigInt();
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
