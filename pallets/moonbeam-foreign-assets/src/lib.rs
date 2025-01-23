@@ -107,7 +107,7 @@ pub enum AssetStatus {
 #[pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::traits::{Currency, EnsureOriginWithArg, ReservableCurrency};
+	use frame_support::traits::{Currency, ReservableCurrency};
 	use pallet_evm::{GasWeightMapping, Runner};
 	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned, Convert};
 	use xcm_executor::traits::ConvertLocation;

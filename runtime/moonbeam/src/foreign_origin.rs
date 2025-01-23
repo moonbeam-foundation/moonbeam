@@ -18,7 +18,6 @@ use crate::xcm_config::LocationToAccountId;
 use crate::{Runtime, RuntimeOrigin};
 use frame_support::ensure;
 use frame_support::traits::{EnsureOrigin, Everything};
-use frame_system::ensure_signed;
 use moonbeam_core_primitives::AccountId;
 use pallet_moonbeam_foreign_assets::EnsureXcmLocation;
 use sp_runtime::DispatchError;
