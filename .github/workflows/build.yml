@@ -662,43 +662,6 @@ jobs:
           pnpm compile-solidity
           pnpm moonwall test dev_moonbase_tracing
 
-  docker-moonbeam:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists == 'false' && !github.event.pull_request.head.repo.fork }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: moonbeam
-          path: build
-      - name: Prepare
-        id: prep
-        run: |
-          DOCKER_IMAGE=moonbeamfoundation/moonbeam
-          TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
-          echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-      - name: Cargo build
-        uses: ./.github/workflow-templates/publish-docker
-        with:
-          dockerhub_username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          dockerhub_password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
-          image_tags: ${{ steps.prep.outputs.tags }}
-          image_title: ${{ github.event.repository.name }}
-          image_description: ${{ github.event.repository.description }}
-          image_url: ${{ github.event.repository.html_url }}
-          image_source: ${{ github.event.repository.clone_url }}
-          image_created: ${{ steps.prep.outputs.created }}
-          image_revision: ${{ github.sha }}
-          image_licenses: ${{ github.event.repository.license.spdx_id }}
-
-
   lazy-loading-tests:
     runs-on:
       labels: bare-metal
@@ -847,13 +810,9 @@ jobs:
           path: target/release
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
-          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
-          DOCKER_TAG="moonbeamfoundation/moonbeam:sha-$MOONBEAM_COMMIT"
-
-          docker rm -f moonbeam_container 2> /dev/null | true
-          docker create --name moonbeam_container $DOCKER_TAG bash
-          docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
-          docker rm -f moonbeam_container
+          LATEST_CLIENT=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("v";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]')
+          echo "Latest client: $LATEST_CLIENT"
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$LATEST_CLIENT/moonbeam -O test/tmp/moonbeam_rt
       - name: Prepare Chainspecs
         run: |
           cd test
