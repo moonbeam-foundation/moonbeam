@@ -42,7 +42,7 @@ runs:
           --tag ci --no-cache \
           --build-arg="BUILD_PARAMS=$params" \
           --build-arg="RUSTFLAGS=$RUSTFLAGS" \
-          - < docker/moonbeam-builder.Dockerfile
+          -f $(pwd)/docker/moonbeam-builder.Dockerfile $(pwd)
     - name: Check glibc version
       shell: bash
       run: |
