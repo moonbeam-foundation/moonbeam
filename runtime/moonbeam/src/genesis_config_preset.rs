@@ -30,6 +30,7 @@ use fp_evm::GenesisAccount;
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
 use parachains_common::genesis_config_helpers::get_from_seed;
+use sp_genesis_builder::PresetId;
 use sp_runtime::{Perbill, Percent};
 
 const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
@@ -224,4 +225,22 @@ pub fn development() -> serde_json::Value {
 		Default::default(), // para_id
 		1281,               //ChainId
 	)
+}
+
+/// Provides the JSON representation of predefined genesis config for given `id`.
+pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
+	let patch = match id.try_into() {
+		Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => development(),
+		_ => return None,
+	};
+	Some(
+		serde_json::to_string(&patch)
+			.expect("serialization to json is expected to work. qed.")
+			.into_bytes(),
+	)
+}
+
+/// List of supported presets.
+pub fn preset_names() -> Vec<PresetId> {
+	vec![PresetId::from(sp_genesis_builder::DEV_RUNTIME_PRESET)]
 }

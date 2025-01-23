@@ -1631,21 +1631,11 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 		}
 
 		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
-			frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, |id| {
-				let patch = match id.try_into() {
-					Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => genesis_config_preset::development(),
-					_ => return None,
-				};
-				Some(
-					serde_json::to_string(&patch)
-						.expect("serialization to json is expected to work. qed.")
-						.into_bytes(),
-				)
-			})
+			frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, crate::genesis_config_preset::get_preset)
 		}
 
 		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
-			vec![sp_genesis_builder::PresetId::from(sp_genesis_builder::DEV_RUNTIME_PRESET)]
+			crate::genesis_config_preset::preset_names()
 		}
 	}
 }
