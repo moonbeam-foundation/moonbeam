@@ -40,7 +40,7 @@ runs:
         # Build moonbeam
         docker build \
           --tag ci --no-cache \
-          --build-arg="BUILD_PARAMS=${{ $params }}" \
+          --build-arg="BUILD_PARAMS=$params" \
           --build-arg="RUSTFLAGS=$RUSTFLAGS" \
           - < docker/moonbeam-builder.Dockerfile
     - name: Check glibc version
