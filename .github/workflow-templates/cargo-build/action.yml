@@ -50,9 +50,6 @@ runs:
     - name: Display binary comments
       shell: bash
       run: readelf -p .comment ./target/release/moonbeam
-    - name: Display sccache stats
-      shell: bash
-      run: ${SCCACHE_PATH} --show-stats
     - name: Verify binary version
       shell: bash
       run: |

@@ -106,9 +106,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.7
       - name: Setup Variables
         shell: bash
         run: |
+          echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+          echo "SCCACHE_CACHE_SIZE=100GB" >> $GITHUB_ENV
           echo "RUSTFLAGS=-C opt-level=3 -D warnings -C instrument-coverage -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
           # Disable coverage when building
           echo "LLVM_PROFILE_FILE=/dev/null" >> $GITHUB_ENV
@@ -150,6 +156,9 @@ jobs:
         with:
           moonwall_environment: dev_moonbase
           force-pass: true
+      - name: Display sccache stats
+        shell: bash
+        run: ${SCCACHE_PATH} --show-stats
       - name: Setup grcov
         run: |
           wget https://github.com/mozilla/grcov/releases/download/v${{ env.GRCOV_VERSION }}/grcov-x86_64-unknown-linux-gnu.tar.bz2

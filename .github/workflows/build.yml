@@ -480,6 +480,10 @@ jobs:
       - name: Setup Variables
         shell: bash
         run: |
+          echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+          echo "SCCACHE_CACHE_SIZE=100GB" >> $GITHUB_ENV
           echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
       - name: Setup Mold Linker
         shell: bash
