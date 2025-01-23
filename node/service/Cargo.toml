@@ -93,6 +93,7 @@ sp-block-builder = { workspace = true, features = ["std"] }
 sp-blockchain = { workspace = true }
 sp-consensus = { workspace = true }
 sp-core = { workspace = true, features = ["std"] }
+sp-genesis-builder = { workspace = true, features = ["std"] }
 sp-inherents = { workspace = true, features = ["std"] }
 sp-io = { workspace = true, features = ["std"] }
 sp-keystore = { workspace = true, features = ["std"] }
