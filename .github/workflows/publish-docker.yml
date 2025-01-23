@@ -54,7 +54,7 @@ jobs:
         with:
           dockerhub_username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
           dockerhub_password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
-          tags: ${{ steps.prep.outputs.tags }}
+          image_tags: ${{ steps.prep.outputs.tags }}
           image_title: ${{ github.event.repository.name }}
           image_description: ${{ github.event.repository.description }}
           image_url: ${{ github.event.repository.html_url }}
