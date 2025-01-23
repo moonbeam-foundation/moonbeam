@@ -16,18 +16,15 @@
 
 //! Embedded specs for testing purposes, must be compiled with --features=test-spec
 use crate::chain_spec::moonbase::ChainSpec;
-use crate::chain_spec::{get_from_seed, Extensions};
+use crate::chain_spec::Extensions;
 use cumulus_primitives_core::ParaId;
-use hex_literal::hex;
-use moonbase_runtime::{currency::UNIT, AccountId, WASM_BINARY};
-use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
 
 /// Generate testing chain_spec for staking integration tests with accounts initialized for
 /// collating and nominating.
 pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::builder(
-		WASM_BINARY.expect("WASM binary was not build, please build it!"),
+		moonbase_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 		Extensions {
 			relay_chain: "westend_local".into(),
 			para_id: para_id.into(),
@@ -39,58 +36,12 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 	.with_properties(
 		serde_json::from_str("{\"tokenDecimals\": 18}").expect("Provided valid json map"),
 	)
-	.with_genesis_config(moonbase_runtime::genesis_config_preset::testnet_genesis(
-		// Root
-		AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
-		// Treasury Council members: Baltathar, Charleth and Dorothy
-		vec![
-			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
-			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
-		],
-		// Open Tech Committee members: Alith and Baltathar
-		vec![
-			AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
-			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-		],
-		// Collators
-		vec![
-			(
-				AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
-				get_from_seed::<NimbusId>("Alice"),
-				1_000 * UNIT,
-			),
-			(
-				AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")),
-				get_from_seed::<NimbusId>("Faith"),
-				1_000 * UNIT,
-			),
-		],
-		// Delegations
-		vec![],
-		// Endowed accounts (each minted 1 << 80 balance)
-		vec![
-			// Alith, Baltathar, Charleth, Dorothy and Faith
-			AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
-			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
-			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
-			AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")),
-			// Additional accounts
-			AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")),
-			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-		],
-		3_000_000 * UNIT,
-		para_id,
-		// Chain ID
-		1280,
-	))
+	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
 	.build()
 }
 
 #[cfg(feature = "lazy-loading")]
-pub fn lazy_loading_spec_builder(para_id: ParaId) -> sc_chain_spec::ChainSpecBuilder<Extensions> {
-	use moonbeam_runtime::currency::{GLMR, SUPPLY_FACTOR};
+pub fn lazy_loading_spec_builder() -> sc_chain_spec::ChainSpecBuilder<Extensions> {
 	crate::chain_spec::moonbeam::ChainSpec::builder(
 		moonbeam_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 		Default::default(),
@@ -104,48 +55,5 @@ pub fn lazy_loading_spec_builder(para_id: ParaId) -> sc_chain_spec::ChainSpecBui
 		)
 		.expect("Provided valid json map"),
 	)
-	.with_genesis_config(moonbeam_runtime::genesis_config_preset::testnet_genesis(
-		// Treasury Council members: Baltathar, Charleth and Dorothy
-		vec![
-			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
-			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
-		],
-		// Open Tech Committee members: Alith and Baltathar
-		vec![
-			AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
-			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-		],
-		// Collators
-		vec![
-			(
-				AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
-				get_from_seed::<NimbusId>("Alice"),
-				20_000 * GLMR * SUPPLY_FACTOR,
-			),
-			(
-				AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")),
-				get_from_seed::<NimbusId>("Faith"),
-				20_000 * GLMR * SUPPLY_FACTOR,
-			),
-		],
-		// Delegations
-		vec![],
-		// Endowed accounts (each minted 1 << 80 balance)
-		vec![
-			// Alith, Baltathar, Charleth, Dorothy and Faith
-			AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
-			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
-			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
-			AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")),
-			// Additional accounts
-			AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")),
-			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-		],
-		1_500_000 * GLMR * SUPPLY_FACTOR,
-		para_id,
-		// Chain ID
-		1280,
-	))
+	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
 }
