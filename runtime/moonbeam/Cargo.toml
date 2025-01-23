@@ -295,6 +295,7 @@ std = [
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"scale-info/std",
+	"serde_json/std",
 	"session-keys-primitives/std",
 	"sp-api/std",
 	"sp-block-builder/std",
