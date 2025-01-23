@@ -9,6 +9,7 @@ ENV RUSTFLAGS=$RUSTFLAGS
 ENV BUILD_PARAMS="--release --all"
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN ls -al
 WORKDIR /
 
 RUN echo "*** Installing Basic dependencies ***"
@@ -22,9 +23,6 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:$PATH"
 RUN rustup default stable
 # rustup version are pinned in the rust-toolchain file
-
-
-WORKDIR /moonbeam/moonbeam
 
 # Print target cpu
 RUN rustc --print target-cpus
