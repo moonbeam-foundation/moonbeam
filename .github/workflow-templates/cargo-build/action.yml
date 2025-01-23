@@ -11,14 +11,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Run sccache-cache
-      uses: mozilla-actions/sccache-action@v0.0.4
-    - name: Setup Variables
-      shell: bash
-      run: |
-        echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
-        echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-        echo "SCCACHE_CACHE_SIZE=100GB" >> $GITHUB_ENV
     - name: Build moonbeam
       shell: bash
       run: |

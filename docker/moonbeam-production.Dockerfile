@@ -1,4 +1,4 @@
-# Node for Moonbeam
+# Production Node for Moonbeam
 #
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
@@ -50,7 +50,7 @@ RUN cargo build --profile=production --all
 
 FROM debian:stable-slim
 LABEL maintainer="alan@moonsonglabs.com"
-LABEL description="Binary for Moonbeam Nodes"
+LABEL description="Production Binary for Moonbeam Nodes"
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbeam moonbeam && \
 	mkdir -p /moonbeam/.local/share && \

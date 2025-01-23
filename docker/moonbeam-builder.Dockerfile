@@ -9,6 +9,7 @@ ARG RUSTFLAGS="-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=/
 ENV BUILD_PARAMS=$BUILD_PARAMS
 ENV RUSTFLAGS=$RUSTFLAGS
 ENV DEBIAN_FRONTEND=noninteractive
+ENV CARGO_INCREMENTAL=0
 
 WORKDIR /build
 COPY . /build/
