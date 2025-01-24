@@ -121,7 +121,7 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonriverPrecompiles<Runtime>;
 
 pub mod asset_config;
-#[cfg(feature = "enable-genesis-builder")]
+#[cfg(feature = "genesis-builder")]
 pub mod genesis_config_preset;
 pub mod governance;
 pub mod runtime_params;
