@@ -138,6 +138,6 @@ jobs:
           branch: "runtime-diff-${{ github.event.inputs.spec_version }}"
           commit-message: "runtime diff: v0.${{ github.event.inputs.spec_version }}.0"
           draft: true
-          title: "Notorize runtime upgrade differences: runtime-${{ github.event.inputs.spec_version }}"
+          title: "Notarize runtime upgrade differences: runtime-${{ github.event.inputs.spec_version }}"
           reviewers: "RomarQ,stiiifff"
           labels: "B0-silent,D2-notlive"
