@@ -47,7 +47,7 @@ docker run --network="host" moonbeamfoundation/moonbeam:v0.42.1 --dev --sealing 
 
 ### Prefunded Development Addresses
 
-Running Moonbeam in development mode will pre-fund several well-known addresses that (mostly) contain the letters "th" in their names to remind you that they are for ethereum-compatible usage. These addresses are derived from
+Running Moonbeam in development mode will pre-fund several well-known addresses that (mostly) contain the letter "th" in their names to remind you that they are for ethereum-compatible usage. These addresses are derived from
 Substrate's canonical mnemonic: `bottom drive obey lake curtain smoke basket hold race lonely fit walk`
 
 ```
@@ -127,7 +127,7 @@ cargo test
 ```
 
 > [!IMPORTANT]\
-> If you do not have **pnpm**, you can install with: `npm install -g pnpm`
+> If you do not have **pnpm**, you can install it with: `npm install -g pnpm`
 
 ```bash
 cd test
