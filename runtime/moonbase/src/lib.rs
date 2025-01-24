@@ -29,7 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod asset_config;
-#[cfg(not(feature = "disable-genesis-builder"))]
+#[cfg(feature = "enable-genesis-builder")]
 pub mod genesis_config_preset;
 pub mod governance;
 pub mod runtime_params;
