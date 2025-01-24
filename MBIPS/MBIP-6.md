@@ -76,7 +76,7 @@ GAS_REFUND = GAS_LIMIT - EFFECTIVE_GAS_USED; // 2000
 
 ### Example (S.2): `OutOfGas`
 
-A simplified example where a transfer's `to` is a 8kb contract, too big for it's POV size to be paid
+A simplified example where a transfer's `to` is an 8kb contract, too big for its POV size to be paid
 for using `GAS_LIMIT`.
 
 ```
