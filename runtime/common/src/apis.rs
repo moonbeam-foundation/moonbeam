@@ -115,7 +115,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			#[cfg(feature = "genesis-builder")]
+			#[cfg(not(feature = "disable-genesis-builder"))]
 			impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
 				fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
 					frame_support::genesis_builder_helper::build_state::<RuntimeGenesisConfig>(config)
