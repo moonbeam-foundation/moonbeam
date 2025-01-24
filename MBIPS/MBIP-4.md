@@ -30,7 +30,7 @@ and a given threshold.
 
 The notion of `baseFee` is split into 2:
 
-- `gasBaseFee` (hidden to the user) which represents the price per gas executed.
+- `gasBaseFee` (hidden from the user) which represents the price per gas executed.
 - `baseFee` (visible to the user) which represents the total price paid per gas consumed and
   includes the storage base fee into consideration.
 
@@ -45,7 +45,7 @@ approach to dynamically adjusting this would be to use the same formula used in
 which has been developed to achieve long-term average targets. Moonbeam uses this for its `base-fee`
 implementation based on block weight, but it would be useful here as well.
 
-Since the goal for storage is very long-term growth targets as opposed to short term congestion
+Since the goal for storage is very long-term growth targets as opposed to short-term congestion
 relief in the case of the base-fee, different parameters could be used to smooth it out:
 
 ```
