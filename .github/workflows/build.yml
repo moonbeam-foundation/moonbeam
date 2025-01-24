@@ -321,10 +321,11 @@ jobs:
           TARGET_BRANCH=${{ github.event.pull_request.base.ref }}
           LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$TARGET_BRANCH\" and .event == \"push\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
           echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
+          echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD"
       - name: Download latest target branch build artifacts
         run: |
-          gh run download $LATEST_TARGET_BRANCH_BUILD -n uncompressed-runtimes --dir uncompressed-runtimes-target-branch
-          gh run download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
+          gh -R moonbeam-foundation/moonbeam run download $LATEST_TARGET_BRANCH_BUILD -n uncompressed-runtimes --dir uncompressed-runtimes-target-branch
+          gh -R moonbeam-foundation/moonbeam run download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
       - name: Check Runtimes size for target branch
         run: |
           PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
