@@ -1004,6 +1004,7 @@ import type {
   ElectionCompute,
   ElectionPhase,
   ElectionResult,
+  ElectionResultToSpec10,
   ElectionScore,
   ElectionSize,
   ElectionStatus,
@@ -1648,6 +1649,7 @@ declare module "@polkadot/types/types/registry" {
     ElectionCompute: ElectionCompute;
     ElectionPhase: ElectionPhase;
     ElectionResult: ElectionResult;
+    ElectionResultToSpec10: ElectionResultToSpec10;
     ElectionScore: ElectionScore;
     ElectionSize: ElectionSize;
     ElectionStatus: ElectionStatus;

@@ -1,6 +1,6 @@
 {
   "name": "moonbeam-types-bundle",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Bundled types to instantiate the Polkadot JS api with a Moonbeam network",
   "main": "./dist/definitions.cjs",
   "prepublish": "tsc",
