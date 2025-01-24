@@ -58,7 +58,7 @@ A deposit ratio of 0.00001 GLMR / Byte / Year would lead to:
 Executing a Smart contract within the same block would trigger the "rent deposit" to be burnt only
 at the first execution.
 
-The "rent deposit" can be refilled by anyone include the chain treasury through Governance.
+The "rent deposit" can be refilled by anyone including the chain treasury through Governance.
 
 ### Example:
 
@@ -74,7 +74,7 @@ burn_rate = bytes * 0.0001 GLMR * elapsed_blocks / YEAR
           = 947 Gwei / block
 ```
 
-Deploying small contract with many storage data (1_000 bytes + 100 storage data) would require a deposit of:
+Deploying a small contract with many storage data (1_000 bytes + 100 storage data) would require a deposit of:
 
 ```
 bytes = 1_000 + 100 * (68 + 32)
@@ -115,7 +115,7 @@ the string "latest", "earliest" or "pending" and returns a `U256` or null
 ## New Precompiled Smart Contract
 
 1. `SmartContractManager`
-   - `addDeposit(address, amount)` - Adds deposit of given amount to the given Smart Contract.
+   - `addDeposit(address, amount)` - Adds deposit of a given amount to the given Smart Contract.
    - `lastBlockUsed(address) view returns (U256)` - Returns the last used block by the given Smart Contract.
 
 ## Impact
