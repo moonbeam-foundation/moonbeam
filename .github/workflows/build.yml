@@ -297,6 +297,7 @@ jobs:
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       pull-requests: write
     if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
@@ -328,6 +329,7 @@ jobs:
           name: runtimes
           path: runtimes-target-branch
           merge-multiple: true
+          github-token: ${{ github.token }}
           run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
       - name: "Download uncompressed-runtimes from target branch"
         uses: actions/download-artifact@v4
@@ -335,6 +337,7 @@ jobs:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-target-branch
           merge-multiple: true
+          github-token: ${{ github.token }}
           run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
       - name: Check Runtimes size for target branch
         run: |
