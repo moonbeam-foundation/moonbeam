@@ -58,6 +58,7 @@ use xcm::latest::prelude::{
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
+use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
 	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
@@ -66,8 +67,7 @@ use xcm_primitives::{
 
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
-
-use crate::foreign_origin::ForeignAssetsEnsureXcmLocation;
+use snowbridge_core::AllowSiblingsOnly;
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use sp_core::Get;
 use sp_std::{
@@ -707,8 +707,8 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type EnsureXcmLocation = ForeignAssetsEnsureXcmLocation;
-	type OnForeignAssetCreated = ();
+	type SiblingOrigin = EnsureXcm<AllowSiblingsOnly>;
+	type SiblingAccountOf = SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>;	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;

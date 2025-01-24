@@ -125,7 +125,6 @@ pub mod governance;
 pub mod runtime_params;
 pub mod xcm_config;
 
-mod foreign_origin;
 mod migrations;
 mod precompiles;
 mod weights;
