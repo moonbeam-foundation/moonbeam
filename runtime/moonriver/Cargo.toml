@@ -200,7 +200,7 @@ precompile-utils = { workspace = true, features = ["std", "testing"] }
 substrate-wasm-builder = { workspace = true }
 
 [features]
-default = ["std", "genesis-builder"]
+default = ["std"]
 std = [
 	"account/std",
 	"async-backing-primitives/std",
@@ -297,7 +297,6 @@ std = [
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"scale-info/std",
-	"serde_json/std",
 	"session-keys-primitives/std",
 	"sp-api/std",
 	"sp-block-builder/std",
