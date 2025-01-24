@@ -5,14 +5,14 @@
 Features listed in the root-level `Cargo.toml` and in individual crates `Cargo.toml` are additive
 (union of all sets of features). Also note that features may be enabled by other crates built to the
 same target (wasm vs client have distinct feature sets however). Features listed in the root-level
-`Cargo.toml` are enabled for all targets (hence the need for `default-features = false` for crates
+`Cargo.toml` is enabled for all targets (hence the need for `default-features = false` for crates
 used in a runtime crate.
 
 Prefer adding features in individual crates, unless it is a security flag feature like
 `forbid-evm-reentrancy` in which case it should be added to the root-level `Cargo.toml` to ensure it
 is never disabled by mistake.
 
-Note that `default-features = false` only have an effect inside the root-level Cargo.toml, and
+Note that `default-features = false` only has an effect inside the root-level Cargo.toml, and
 should be added to any dependency that defaults to std if it is used in at least one runtime/wasm
 crate.
 
