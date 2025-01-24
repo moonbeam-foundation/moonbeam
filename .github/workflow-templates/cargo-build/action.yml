@@ -11,7 +11,36 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Build moonbeam
+    - name: Run sccache-cache
+      uses: mozilla-actions/sccache-action@v0.0.4
+    - name: Setup Variables
+      shell: bash
+      run: |
+        echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV
+        echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+        echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+        echo "SCCACHE_CACHE_SIZE=100GB" >> $GITHUB_ENV
+        # Set RUSTFLAGS if not already set
+        if [ -z "$RUSTFLAGS" ]; then
+          echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
+        fi
+    - name: Setup Mold Linker
+      shell: bash
+      run: |
+        mkdir -p mold
+        curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.30.0/mold-2.30.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
+    # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
+    # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
+    - name: Setup Rust toolchain
+      shell: bash
+      run: |
+        if ! which "rustup" > /dev/null; then
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        fi
+        rustup override unset
+        rustup show
+        rustup target add wasm32-unknown-unknown
+    - name: Build Node
       shell: bash
       run: |
         env
@@ -20,36 +49,16 @@ runs:
           params="$params --features ${{ inputs.features }}"
         fi
         echo "cargo build $params"
-        # Build moonbeam
-        docker build \
-          --tag ci --no-cache \
-          --build-arg="BUILD_PARAMS=$params" \
-          --build-arg="RUSTFLAGS=$RUSTFLAGS" \
-          -f $(pwd)/docker/moonbeam-builder.Dockerfile $(pwd)
-        
-        # Copy target folder
-        docker rm -f dummy 2> /dev/null | true
-        docker create -ti --name dummy ci bash
-        docker cp dummy:/build/target target
-        docker rm -f dummy
-
-        ls -al ./target
-
-        GLIBC_VERSION="$(objdump -T ./target/release/moonbeam | grep "GLIBC_" | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu | tail -1)"
-
-        if [[ $GLIBC_VERSION == "2.34" ]]; then
-          echo "✅ Using expected GLIBC version: ${GLIBC_VERSION}";
-        else
-          echo "❌ Unexpected GLIBC version: ${GLIBC_VERSION}";
-          exit 1;
-        fi
-
-        # Cleanup
-        docker rmi ci
-        
+        cargo build $params
     - name: Display binary comments
       shell: bash
-      run: readelf -p .comment ./target/release/moonbeam
+      run: |
+        readelf -p .comment ./target/release/moonbeam
+        GLIBC_VERSION="$(objdump -T ./target/release/moonbeam | grep "GLIBC_" | sed 's/.*GLIBC_\([.0-9]*\).*/\1/g' | sort -Vu | tail -1)"
+        echo "GLIBC Version: $GLIBC_VERSION"
+    - name: Display sccache stats
+      shell: bash
+      run: ${SCCACHE_PATH} --show-stats
     - name: Verify binary version
       shell: bash
       run: |
