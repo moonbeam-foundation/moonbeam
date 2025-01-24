@@ -53,13 +53,13 @@ session-keys-primitives = { workspace = true }
 
 # Moonbeam runtimes
 moonbase-runtime = { workspace = true, features = [
-	"enable-genesis-builder",
+	"genesis-builder",
 ], optional = true }
 moonbeam-runtime = { workspace = true, features = [
-	"enable-genesis-builder",
+	"genesis-builder",
 ], optional = true }
 moonriver-runtime = { workspace = true, features = [
-	"enable-genesis-builder",
+	"genesis-builder",
 ], optional = true }
 
 # Substrate

@@ -204,7 +204,7 @@ precompile-utils = { workspace = true, features = ["std", "testing"] }
 substrate-wasm-builder = { workspace = true }
 
 [features]
-default = ["std", "enable-genesis-builder"]
+default = ["std", "genesis-builder"]
 std = [
 	"account/std",
 	"async-backing-primitives/std",
@@ -345,12 +345,12 @@ on-chain-release-build = ["metadata-hash", "sp-api/disable-logging"]
 
 # When enabled, the GenesisBuilder API will be supported, GenesisConfig shall be
 # stripped from the final binary
-enable-genesis-builder = ["serde_json"]
+genesis-builder = ["serde_json"]
 
 runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"cumulus-primitives-core/runtime-benchmarks",
-	"enable-genesis-builder",
+	"genesis-builder",
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking/runtime-benchmarks",
