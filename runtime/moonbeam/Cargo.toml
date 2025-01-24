@@ -14,7 +14,9 @@ log = { workspace = true }
 num_enum = { workspace = true }
 rlp = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true, default-features = false, features = ["alloc"] }
+serde_json = { workspace = true, default-features = false, features = [
+	"alloc",
+], optional = true }
 sha3 = { workspace = true, optional = true }
 smallvec = { workspace = true }
 strum = { workspace = true }
@@ -329,6 +331,10 @@ metadata-hash = ["substrate-wasm-builder/metadata-hash"]
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
 # to make it smaller like logging for example.
 on-chain-release-build = ["metadata-hash", "sp-api/disable-logging"]
+
+# When enabled, the GenesisBuilder API will be supported, GenesisConfig shall be
+# stripped from the final binary
+enable-genesis-builder = ["serde_json"]
 
 runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",

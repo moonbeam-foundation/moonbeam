@@ -204,7 +204,7 @@ precompile-utils = { workspace = true, features = ["std", "testing"] }
 substrate-wasm-builder = { workspace = true }
 
 [features]
-default = ["std", "serde_json"]
+default = ["std", "enable-genesis-builder"]
 std = [
 	"account/std",
 	"async-backing-primitives/std",
@@ -343,7 +343,7 @@ metadata-hash = ["substrate-wasm-builder/metadata-hash"]
 # to make it smaller like logging for example.
 on-chain-release-build = ["metadata-hash", "sp-api/disable-logging"]
 
-# When enabled, the GenesisBuilder API will not be supported, GenesisConfig shall be
+# When enabled, the GenesisBuilder API will be supported, GenesisConfig shall be
 # stripped from the final binary
 enable-genesis-builder = ["serde_json"]
 

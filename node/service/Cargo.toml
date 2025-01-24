@@ -52,9 +52,15 @@ pallet-xcm-transactor = { workspace = true }
 session-keys-primitives = { workspace = true }
 
 # Moonbeam runtimes
-moonbase-runtime = { workspace = true, optional = true }
-moonbeam-runtime = { workspace = true, optional = true }
-moonriver-runtime = { workspace = true, optional = true }
+moonbase-runtime = { workspace = true, features = [
+	"enable-genesis-builder",
+], optional = true }
+moonbeam-runtime = { workspace = true, features = [
+	"enable-genesis-builder",
+], optional = true }
+moonriver-runtime = { workspace = true, features = [
+	"enable-genesis-builder",
+], optional = true }
 
 # Substrate
 frame-system-rpc-runtime-api = { workspace = true, features = ["std"] }
