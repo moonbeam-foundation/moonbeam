@@ -369,6 +369,14 @@ jobs:
           echo "LATEST_MOONBASE=$LATEST_MOONBASE" >> $GITHUB_ENV
           echo "LATEST_MOONBEAM=$LATEST_MOONBEAM" >> $GITHUB_ENV
           echo "LATEST_MOONRIVER=$LATEST_MOONRIVER" >> $GITHUB_ENV
+      - name: Check Runtimes size for target branch
+        run: |
+          PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
+          PREVIOUS_MOONBEAM=$(du -k runtimes-target-branch/* | awk '/moonbeam_runtime/ {print $1}')
+          PREVIOUS_MOONRIVER=$(du -k runtimes-target-branch/* | awk '/moonriver_runtime/ {print $1}')
+          echo "PREVIOUS_MOONBASE=$PREVIOUS_MOONBASE" >> $GITHUB_ENV
+          echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
+          echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
       - name: Create Twiggy diff reports
         run: |
           # Install Twiggy if not already installed
