@@ -18,13 +18,14 @@
 
 use super::*;
 use crate as pallet_moonbeam_lazy_migrations;
-use frame_support::traits::AsEnsureOriginWithArg;
+use frame_support::traits::{AsEnsureOriginWithArg, ConstU128};
 use frame_support::weights::constants::RocksDbWeight;
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_asset_manager::AssetRegistrar;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
-use precompile_utils::testing::MockAccount;
+use pallet_moonbeam_foreign_assets::EnsureXcmLocation;
+use precompile_utils::testing::{Alice, MockAccount};
 use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup},
@@ -288,19 +289,34 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 	}
 }
 
+pub struct ForeignAssetsEnsureXCM;
+
+impl EnsureXcmLocation<Test> for ForeignAssetsEnsureXCM {
+	fn ensure_xcm_origin(
+		origin: RuntimeOrigin,
+		location: Option<&Location>,
+	) -> Result<AccountId, DispatchError> {
+		ensure_signed(origin).map_err(|_| DispatchError::BadOrigin)
+	}
+
+	fn account_for_location(location: &Location) -> Option<AccountId> {
+		Some(Alice.into())
+	}
+}
+
 impl pallet_moonbeam_foreign_assets::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
+	type EnsureXcmLocation = ForeignAssetsEnsureXCM;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type XcmLocationToH160 = ();
+	type ForeignAssetCreationDeposit = ConstU128<1>;
+	type Balance = Balance;
+	type Currency = Balances;
 }
 
 impl Config for Test {

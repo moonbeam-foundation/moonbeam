@@ -37,30 +37,11 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	//asset_config::ForeignAssetInstance,
-	xcm_config::SelfReserve,
-	AccountId,
-	AssetId,
-	Balances,
-	CrowdloanRewards,
-	EvmForeignAssets,
-	Executive,
-	OpenTechCommitteeCollective,
-	ParachainStaking,
-	PolkadotXcm,
-	Precompiles,
-	Runtime,
-	RuntimeBlockWeights,
-	RuntimeCall,
-	RuntimeEvent,
-	System,
-	TransactionPayment,
-	TransactionPaymentAsGasPrice,
-	Treasury,
-	TreasuryCouncilCollective,
-	XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	WEEKS,
+	xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards, EvmForeignAssets,
+	Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, System, TransactionPayment,
+	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -79,6 +60,7 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 //use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
 use moonbase_runtime::runtime_params::dynamic_params;
+use moonbase_runtime::xcm_config::LocationToAccountId;
 use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
@@ -1268,48 +1250,50 @@ fn update_reward_address_via_precompile() {
 
 #[test]
 fn create_and_manipulate_foreign_asset() {
-	ExtBuilder::default().build().execute_with(|| {
-		let source_location = xcm::v4::Location::parent();
+	let source_location = xcm::v4::Location::parent();
+	let account =
+		LocationToAccountId::convert_location(&source_location).expect("Cannot get account");
+	let origin: RuntimeOrigin = pallet_xcm::Origin::Xcm(source_location.clone()).into();
+	ExtBuilder::default()
+		.with_balances(vec![(account, 1_000 * UNIT)])
+		.build()
+		.execute_with(|| {
+			// Create foreign asset
+			assert_ok!(EvmForeignAssets::create_foreign_asset(
+				origin.clone(),
+				1,
+				source_location.clone(),
+				12,
+				bounded_vec![b'M', b'T'],
+				bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+			));
+			assert_eq!(
+				EvmForeignAssets::assets_by_id(1),
+				Some(source_location.clone())
+			);
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(&source_location),
+				Some((1, AssetStatus::Active))
+			);
 
-		// Create foreign asset
-		assert_ok!(EvmForeignAssets::create_foreign_asset(
-			moonbase_runtime::RuntimeOrigin::root(),
-			1,
-			source_location.clone(),
-			12,
-			bounded_vec![b'M', b'T'],
-			bounded_vec![b'M', b'y', b'T', b'o', b'k'],
-		));
-		assert_eq!(
-			EvmForeignAssets::assets_by_id(1),
-			Some(source_location.clone())
-		);
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(&source_location),
-			Some((1, AssetStatus::Active))
-		);
+			// Freeze foreign asset
+			assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+				origin.clone(),
+				1,
+				true
+			));
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(&source_location),
+				Some((1, AssetStatus::FrozenXcmDepositAllowed))
+			);
 
-		// Freeze foreign asset
-		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
-			moonbase_runtime::RuntimeOrigin::root(),
-			1,
-			true
-		));
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(&source_location),
-			Some((1, AssetStatus::FrozenXcmDepositAllowed))
-		);
-
-		// Unfreeze foreign asset
-		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
-			moonbase_runtime::RuntimeOrigin::root(),
-			1,
-		));
-		assert_eq!(
-			EvmForeignAssets::assets_by_location(&source_location),
-			Some((1, AssetStatus::Active))
-		);
-	});
+			// Unfreeze foreign asset
+			assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(origin, 1,));
+			assert_eq!(
+				EvmForeignAssets::assets_by_location(&source_location),
+				Some((1, AssetStatus::Active))
+			);
+		});
 }
 
 // The precoompile asset-erc20 is deprecated and not used anymore for new evm foreign assets

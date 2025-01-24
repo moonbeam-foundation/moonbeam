@@ -17,13 +17,13 @@
 //! XCM configuration for Moonbase.
 //!
 
-use super::moonbase_weights;
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
 	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
 	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
 	RuntimeOrigin, Treasury, XcmpQueue,
 };
+use super::{moonbase_weights, runtime_params};
 use crate::OpenTechCommitteeInstance;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
@@ -58,22 +58,22 @@ use xcm::latest::prelude::{
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
+use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
 	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
 	UtilityEncodeCall, XcmTransact,
 };
 
+use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
-
+use snowbridge_core::AllowSiblingsOnly;
 use sp_core::Get;
 use sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::*,
 };
-
-use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
 parameter_types! {
 	// The network Id of the relay
@@ -98,8 +98,9 @@ parameter_types! {
 }
 
 /// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
-/// when determining ownership of accounts for asset transacting and when attempting to use XCM
-/// `Transact` in order to determine the dispatch Origin.
+/// when determining ownership of accounts for asset transacting, when attempting to use XCM
+/// `Transact` in order to determine the dispatch Origin, and when validating foreign assets
+/// creation and ownership through the moonbeam_foreign_assets pallet.
 pub type LocationToAccountId = (
 	// The parent (Relay-chain) origin converts to the default `AccountId`.
 	ParentIsPreset<AccountId>,
@@ -695,27 +696,28 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	}
 }
 
-pub type ForeignAssetManagerOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::FastGeneralAdmin,
-	>,
->;
+parameter_types! {
+	/// Balance in the native currency that will be reserved from the user
+	/// to create a new foreign asset
+	pub ForeignAssetCreationDeposit: u128 =
+		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
+}
 
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
-	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
+	type SiblingOrigin = EnsureXcm<AllowSiblingsOnly>;
+	type SiblingAccountOf =
+		SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
+	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
+	type Balance = Balance;
+	type Currency = Balances;
 }
 
 pub struct AssetFeesFilter;

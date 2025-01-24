@@ -17,11 +17,11 @@
 use super::*;
 use crate as pallet_moonbeam_foreign_assets;
 
-use frame_support::traits::Everything;
+use frame_support::traits::{EnsureOriginWithArg, Everything};
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use frame_system::EnsureRoot;
+use frame_system::EnsureSigned;
 use pallet_evm::{FrameSystemAccountProvider, SubstrateBlockHashMapping};
-use precompile_utils::testing::MockAccount;
+use precompile_utils::testing::{Alice, MockAccount};
 use sp_core::{H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
@@ -29,6 +29,7 @@ use xcm::latest::Location;
 
 pub type Balance = u128;
 
+pub type BlockNumber = u32;
 type AccountId = MockAccount;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -176,19 +177,51 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 	}
 }
 
+pub struct ForeignAssetMockOrigin;
+impl EnsureOriginWithArg<RuntimeOrigin, Location> for ForeignAssetMockOrigin {
+	type Success = AccountId;
+
+	fn try_origin(
+		_: RuntimeOrigin,
+		_: &Location,
+	) -> core::result::Result<Self::Success, RuntimeOrigin> {
+		Ok(Alice.into())
+	}
+}
+
+parameter_types! {
+	pub const ForeignAssetCreationDeposit: u128 = 1;
+}
+
+pub struct ForeignAssetsEnsureXCM;
+
+impl EnsureXcmLocation<Test> for ForeignAssetsEnsureXCM {
+	fn ensure_xcm_origin(
+		origin: RuntimeOrigin,
+		location: Option<&Location>,
+	) -> Result<AccountId, DispatchError> {
+		ensure_signed(origin).map_err(|_| DispatchError::BadOrigin)
+	}
+
+	fn account_for_location(location: &Location) -> Option<AccountId> {
+		Some(Alice.into())
+	}
+}
+
 impl crate::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
+	type EnsureXcmLocation = ForeignAssetsEnsureXCM;
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type XcmLocationToH160 = ();
+	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
+	type Balance = Balance;
+
+	type Currency = Balances;
 }
 
 pub(crate) struct ExtBuilder {
@@ -216,6 +249,11 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
+	}
+
+	pub fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
+		self.balances = balances;
+		self
 	}
 }
 
