@@ -1737,7 +1737,7 @@ where
 		.system_properties()
 		.expect("Should fetch chain properties");
 
-	let spec_builder = chain_spec::test_spec::lazy_loading_spec_builder(Default::default())
+	let spec_builder = chain_spec::test_spec::lazy_loading_spec_builder()
 		.with_name(chain_name.as_str())
 		.with_properties(chain_properties);
 	config.chain_spec = Box::new(spec_builder.build());

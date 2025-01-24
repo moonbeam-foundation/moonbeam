@@ -420,6 +420,7 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T> {
 		pub relay_indices: RelayChainIndices,
+		#[serde(skip)]
 		pub _phantom: PhantomData<T>,
 	}
 

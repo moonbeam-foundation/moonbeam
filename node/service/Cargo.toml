@@ -21,7 +21,7 @@ log = { workspace = true }
 maplit = { workspace = true }
 parking_lot = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
+serde_json = { workspace = true, default-features = true }
 sha3 = { workspace = true }
 tiny-bip39 = { workspace = true }
 tokio = { workspace = true, features = ["sync", "rt-multi-thread"] }
@@ -93,6 +93,7 @@ sp-block-builder = { workspace = true, features = ["std"] }
 sp-blockchain = { workspace = true }
 sp-consensus = { workspace = true }
 sp-core = { workspace = true, features = ["std"] }
+sp-genesis-builder = { workspace = true, features = ["std"] }
 sp-inherents = { workspace = true, features = ["std"] }
 sp-io = { workspace = true, features = ["std"] }
 sp-keystore = { workspace = true, features = ["std"] }
