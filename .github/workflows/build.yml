@@ -335,16 +335,10 @@ jobs:
           echo "PREVIOUS_MOONBASE=$PREVIOUS_MOONBASE" >> $GITHUB_ENV
           echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
           echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
-      - name: "Download branch built runtime"
-        uses: actions/download-artifact@v4
-        with:
-          name: runtimes
-          path: runtimes-current-branch
-      - name: "Download branch built uncompressed-runtimes"
-        uses: actions/download-artifact@v4
-        with:
-          name: uncompressed-runtimes
-          path: uncompressed-runtimes-current-branch
+      - name: Download branch built runtimes
+        run: |
+          gh -R moonbeam-foundation/moonbeam run download ${{ github.run_id }} -n uncompressed-runtimes --dir uncompressed-runtimes-current-branch
+          gh -R moonbeam-foundation/moonbeam run download ${{ github.run_id }} -n runtimes --dir runtimes-current-branch
       - name: Check Runtimes size for current branch
         run: |
           du -k runtimes-current-branch/*
