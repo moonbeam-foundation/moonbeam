@@ -341,7 +341,6 @@ jobs:
           run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
       - name: Check Runtimes size for target branch
         run: |
-          du -k runtimes-target-branch/*
           PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
           PREVIOUS_MOONBEAM=$(du -k runtimes-target-branch/* | awk '/moonbeam_runtime/ {print $1}')
           PREVIOUS_MOONRIVER=$(du -k runtimes-target-branch/* | awk '/moonriver_runtime/ {print $1}')
@@ -362,7 +361,6 @@ jobs:
           merge-multiple: true
       - name: Check Runtimes size for current branch
         run: |
-          du -k runtimes-current-branch/*
           CURRENT_MOONBASE=$(du -k runtimes-current-branch/* | awk '/moonbase_runtime/ {print $1}')
           CURRENT_MOONBEAM=$(du -k runtimes-current-branch/* | awk '/moonbeam_runtime/ {print $1}')
           CURRENT_MOONRIVER=$(du -k runtimes-current-branch/* | awk '/moonriver_runtime/ {print $1}')
@@ -380,7 +378,6 @@ jobs:
           gh release download $LATEST_RELEASE_TAG -R moonbeam-foundation/moonbeam -p "moonbeam-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" -p "moonbase-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" -p "moonriver-runtime-${LATEST_RELEASE_TAG#runtime-}.wasm" --dir runtimes-latest-release
       - name: Check Runtimes size for latest release
         run: |
-          du -k runtimes-latest-release/*
           LATEST_MOONBASE=$(du -k runtimes-latest-release/* | awk '/moonbase-runtime/ {print $1}')
           LATEST_MOONBEAM=$(du -k runtimes-latest-release/* | awk '/moonbeam-runtime/ {print $1}')
           LATEST_MOONRIVER=$(du -k runtimes-latest-release/* | awk '/moonriver-runtime/ {print $1}')
