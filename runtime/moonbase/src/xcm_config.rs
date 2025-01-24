@@ -65,10 +65,10 @@ use xcm_primitives::{
 	UtilityEncodeCall, XcmTransact,
 };
 
+use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use snowbridge_core::AllowSiblingsOnly;
-use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use sp_core::Get;
 use sp_std::{
 	convert::{From, Into, TryFrom},
@@ -708,7 +708,9 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 	type SiblingOrigin = EnsureXcm<AllowSiblingsOnly>;
-	type SiblingAccountOf = SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>;	type OnForeignAssetCreated = ();
+	type SiblingAccountOf =
+		SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>;
+	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
