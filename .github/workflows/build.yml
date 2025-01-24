@@ -323,8 +323,9 @@ jobs:
           echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
       - name: Download latest target branch build artifacts
         run: |
-          gh run download $LATEST_TARGET_BRANCH_BUILD -n uncompressed-runtimes --dir uncompressed-runtimes-target-branch
-          gh run download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
+          gh run -R moonbeam-foundation/moonbeam download $LATEST_TARGET_BRANCH_BUILD -n uncompressed-runtimes --dir uncompressed-runtimes-target-branch
+          gh run -R moonbeam-foundation/moonbeam download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
+          ls runtimes-target-branch
       - name: Check Runtimes size for target branch
         run: |
           PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
