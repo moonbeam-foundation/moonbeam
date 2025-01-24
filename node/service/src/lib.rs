@@ -1627,7 +1627,7 @@ where
 
 #[cfg(test)]
 mod tests {
-	use crate::chain_spec::moonbase::ChainSpec;
+	use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
 	use crate::chain_spec::Extensions;
 	use jsonrpsee::server::BatchRequestConfig;
 	use moonbase_runtime::{currency::UNIT, AccountId};
@@ -1814,7 +1814,7 @@ mod tests {
 			.with_name("test")
 			.with_id(chain_id)
 			.with_chain_type(ChainType::Local)
-			.with_genesis_config(moonbase_runtime::genesis_config_preset::testnet_genesis(
+			.with_genesis_config(testnet_genesis(
 				AccountId::from_str("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b").unwrap(),
 				vec![],
 				vec![],

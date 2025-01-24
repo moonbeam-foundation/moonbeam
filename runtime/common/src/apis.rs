@@ -121,11 +121,11 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
-					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, genesis_config_preset::get_preset)
+					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, |_| None)
 				}
 
 				fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
-					genesis_config_preset::preset_names()
+					vec![]
 				}
 			}
 

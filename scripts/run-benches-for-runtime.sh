@@ -13,15 +13,11 @@ cargo build --profile=$profile --locked --features=runtime-benchmarks
 
 # Load all pallet names in an array.
 PALLETS=($(
-  ./target/${profile}/moonbeam benchmark pallet \
-    --list \
-    --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
-    --genesis-builder=runtime \
-    --genesis-builder-preset=development |\
-  tail -n+2 |\
-  cut -d',' -f1 |\
-  sort |\
-  uniq
+  ./target/${profile}/moonbeam benchmark pallet --list --chain="${runtime}-dev" |\
+    tail -n+2 |\
+    cut -d',' -f1 |\
+    sort |\
+    uniq
 ))
 
 echo "[+] Benchmarking ${#PALLETS[@]} pallets for runtime $runtime with $profile profile"
@@ -43,17 +39,15 @@ for PALLET in "${PALLETS[@]}"; do
 
   OUTPUT=$(
     ./target/${profile}/moonbeam benchmark pallet \
-      --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
-      --genesis-builder=runtime \
-      --genesis-builder-preset=development \
-      --steps=50 \
-      --repeat=20 \
-      --pallet="$PALLET" \
-      --extrinsic="*" \
-      --wasm-execution=compiled \
-      --header=./file_header.txt \
-      --template=./benchmarking/frame-weight-template.hbs \
-      --output="./runtime/${output}/src/weights/${output_file}" 2>&1
+    --chain="${runtime}-dev" \
+    --steps=50 \
+    --repeat=20 \
+    --pallet="$PALLET" \
+    --extrinsic="*" \
+    --wasm-execution=compiled \
+    --header=./file_header.txt \
+    --template=./benchmarking/frame-weight-template.hbs \
+    --output="./runtime/${output}/src/weights/${output_file}" 2>&1
   )
   if [ $? -ne 0 ]; then
     echo "$OUTPUT" >> "$ERR_FILE"
