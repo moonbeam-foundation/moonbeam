@@ -13,6 +13,8 @@ jobs:
     permissions:
       actions: read
       contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
