@@ -20,15 +20,15 @@ jobs:
       - name: Prepare
         id: prep
         run: |
-          mkdir -p build
-          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam -O build/moonbeam
-          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-skylake -O build/moonbeam-skylake
-          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-znver3 -O build/moonbeam-znver3
-
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           VERSION="${{ github.event.inputs.tag }}"
           COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
           COMMIT_SHA8=sha-${COMMIT::8}
+
+          mkdir -p build
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam -O build/moonbeam
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-skylake -O build/moonbeam-skylake
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$VERSION/moonbeam-znver3 -O build/moonbeam-znver3
 
           TAG_SHA="${DOCKER_IMAGE}:sha-${COMMIT_SHA8}"
           TAG_VER="${DOCKER_IMAGE}:${VERSION}"

@@ -4,31 +4,49 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: runtime tag (ex. runtime-2200) to publish on docker
+        description: runtime tag (ex. runtime-3400) to publish on docker
         required: true
 
 jobs:
   tag-docker:
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
-      - name: Publish runtime docker image
+      - name: Lookup for runtime build
+        run: |
+          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
+          RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
+          echo "Latest build for ${{ github.event.inputs.tag }}: $RUNTIME_BUILD"
+          echo "RUNTIME_BUILD=$RUNTIME_BUILD" >> $GITHUB_OUTPUT
+      - name: Download runtime build artifacts
+        run: |
+          gh run -R moonbeam-foundation/moonbeam download $RUNTIME_BUILD -n moonbeam --dir build
+      - name: Prepare
+        id: prep
         run: |
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           DOCKER_TAG="${{ github.event.inputs.tag }}"
-          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
-          SHA=sha-${COMMIT::8}
-          echo tagging "${DOCKER_IMAGE}:${SHA}"
-          docker pull "${DOCKER_IMAGE}:${SHA}"
-          docker tag "${DOCKER_IMAGE}:${SHA}" "${DOCKER_IMAGE}:${DOCKER_TAG}"
-          docker push "${DOCKER_IMAGE}:${DOCKER_TAG}"
+
+          TAGS="${DOCKER_IMAGE}:${DOCKER_TAG}"
+
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+      - name: Cargo build
+        uses: ./.github/workflow-templates/publish-docker
+        with:
+          dockerhub_username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          dockerhub_password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
+          image_tags: ${{ steps.prep.outputs.tags }}
+          image_title: ${{ github.event.repository.name }}
+          image_description: ${{ github.event.repository.description }}
+          image_url: ${{ github.event.repository.html_url }}
+          image_source: ${{ github.event.repository.clone_url }}
+          image_created: ${{ steps.prep.outputs.created }}
+          image_revision: ${{ github.sha }}
+          image_licenses: ${{ github.event.repository.license.spdx_id }}
