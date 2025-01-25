@@ -11,7 +11,7 @@ on:
 
 jobs:
   local-diff:
-    runs-on: moonbeam-release-medium
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
