@@ -15,7 +15,7 @@ jobs:
   ####### Building binaries #######
 
   build-binary:
-    runs-on: ubuntu-latest
+    runs-on: moonbeam-release-medium
     permissions:
       contents: read
     strategy:
@@ -24,34 +24,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Build production moonbeam
-        run: |
-          # Build moonbeam
-          # (we don't use volumes because of ownership/permissions issues)
-          docker build \
-            --tag prod --no-cache \
-            --build-arg="COMMIT=${{ github.event.inputs.sha }}" \
-            --build-arg="RUSTFLAGS=-C target-cpu=${{ matrix.cpu }}" \
-            - < docker/moonbeam-production.Dockerfile
-
-          # Copy moonbeam binary
-          docker rm -f dummy 2> /dev/null | true
-          docker create -ti --name dummy prod bash
-          docker cp dummy:/moonbeam/moonbeam moonbeam
-          docker rm -f dummy
-
-          # Cleanup
-          docker rmi prod
-
-      - name: Save parachain binary
-        run: |
-          mkdir -p build
-          cp moonbeam build/moonbeam-${{matrix.cpu}}
-      - name: Upload binary
-        uses: actions/upload-artifact@v4
+      - name: Cargo build
+        uses: ./.github/workflow-templates/build-prod-binary
         with:
-          name: binaries-${{matrix.cpu}}
-          path: build/moonbeam-${{matrix.cpu}}
+          target: ${{ matrix.cpu }}
 
   ####### Prepare the release draft #######
   docker-release-candidate:
@@ -79,33 +55,16 @@ jobs:
           TAGS="${TAG_SHA},${TAG_VER}"
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.8.0
+      - name: Cargo build
+        uses: ./.github/workflow-templates/publish-docker
         with:
-          version: latest
-          driver-opts: |
-            image=moby/buildkit:master
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
-      - name: Build and push moonbeam
-        id: docker_build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/moonbeam.Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.prep.outputs.tags }}
-          labels: |
-            org.opencontainers.image.title=${{ github.event.repository.name }}
-            org.opencontainers.image.description=${{ github.event.repository.description }}
-            org.opencontainers.image.url=${{ github.event.repository.html_url }}
-            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
+          dockerhub_username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
+          dockerhub_password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
+          image_tags: ${{ steps.prep.outputs.tags }}
+          image_title: ${{ github.event.repository.name }}
+          image_description: ${{ github.event.repository.description }}
+          image_url: ${{ github.event.repository.html_url }}
+          image_source: ${{ github.event.repository.clone_url }}
+          image_created: ${{ steps.prep.outputs.created }}
+          image_revision: ${{ github.sha }}
+          image_licenses: ${{ github.event.repository.license.spdx_id }}
