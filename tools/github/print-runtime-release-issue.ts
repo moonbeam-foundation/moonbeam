@@ -46,7 +46,8 @@ with runtime-${previousVersion} => runtime-${newVersion}
 - [ ] Upgrade stagenet
 - [ ] Create new tracing image for partners: start the github action Publish Docker
 with ${lastClientVersion} and master
-- [ ] Upgrade alphanet
+- [ ] Release comms
+- [ ] Upgrade alphanet (!!! NOT before release comms / tracing images !!!)
 - [ ] When everything is ok, publish the draft release
   `;
 
