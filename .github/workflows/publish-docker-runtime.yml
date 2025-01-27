@@ -8,35 +8,40 @@ on:
         required: true
 
 jobs:
-  tag-docker:
-    runs-on: ubuntu-latest
+  ####### Building binaries #######
+
+  build-binary:
+    runs-on: moonbeam-release-medium
     permissions:
-      actions: read
       contents: read
-    env:
-      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Cargo build
+        uses: ./.github/workflow-templates/build-prod-binary
         with:
-          fetch-depth: 0
-      - name: Lookup for runtime build
-        run: |
-          COMMIT=`git rev-list -n 1 '${{ github.event.inputs.tag }}'`
-          RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
-          echo "Latest build for ${{ github.event.inputs.tag }}: $RUNTIME_BUILD"
-          echo "RUNTIME_BUILD=$RUNTIME_BUILD" >> $GITHUB_OUTPUT
-      - name: Download runtime build artifacts
-        run: |
-          gh run -R moonbeam-foundation/moonbeam download $RUNTIME_BUILD -n moonbeam --dir build
+          target: "x86-64"
+
+  publish-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    needs: ["build-binary"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: binaries-*
+          merge-multiple: true
+          path: build
       - name: Prepare
         id: prep
         run: |
+          echo "rename default binary"
+          mv build/moonbeam-x86-64 build/moonbeam
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
-          DOCKER_TAG="${{ github.event.inputs.tag }}"
-
-          TAGS="${DOCKER_IMAGE}:${DOCKER_TAG}"
-
+          TAGS="${DOCKER_IMAGE}:${{ github.event.inputs.tag }}"
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
       - name: Cargo build
