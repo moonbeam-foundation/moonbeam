@@ -240,6 +240,7 @@ pub mod pallet {
 		/// Changed the xcm type mapping for a given asset id
 		ForeignAssetXcmLocationChanged {
 			asset_id: AssetId,
+			prev_xcm_location: Location,
 			new_xcm_location: Location,
 		},
 		// Freezes all tokens of a given asset id
@@ -254,8 +255,6 @@ pub mod pallet {
 		},
 		/// Tokens have been locked for asset creation
 		TokensLocked(T::AccountId, AssetId, AssetBalance),
-		/// Lock verification failed
-		LockVerificationFailed(T::AccountId, AssetId),
 	}
 
 	/// Mapping from an asset id to a Foreign asset type.
@@ -529,6 +528,7 @@ pub mod pallet {
 			Self::deposit_event(Event::ForeignAssetXcmLocationChanged {
 				asset_id,
 				new_xcm_location,
+				prev_xcm_location: previous_location,
 			});
 			Ok(())
 		}
