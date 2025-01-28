@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.3401.0",
+  "version": "0.3401.1",
   "type": "module",
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "Moonsong Labs",
@@ -93,7 +93,7 @@
     "@polkadot/types": "*",
     "@polkadot/types-codec": "*",
     "@types/node": "*",
-    "moonbeam-types-bundle": "workspace:*",
+    "@moonbeam-network/types-bundle": "workspace:*",
     "tsup": "*",
     "tsx": "*",
     "typescript": "*"

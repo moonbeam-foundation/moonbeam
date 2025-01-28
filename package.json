@@ -7,7 +7,7 @@
   "workspaces": [
     "test",
     "typescript-api",
-    "moonbeam-types-bundle"
+    "types-bundle"
   ],
   "scripts": {
     "clean-all": "rm -rf node_modules && pnpm -r clean",

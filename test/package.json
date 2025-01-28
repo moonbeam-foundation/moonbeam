@@ -49,7 +49,7 @@
     "json-bigint": "1.0.0",
     "json-stable-stringify": "1.1.1",
     "merkle-patricia-tree": "4.2.4",
-    "moonbeam-types-bundle": "workspace:*",
+    "@moonbeam-network/types-bundle": "workspace:*",
     "octokit": "4.0.2",
     "randomness": "1.6.16",
     "rlp": "3.0.0",
