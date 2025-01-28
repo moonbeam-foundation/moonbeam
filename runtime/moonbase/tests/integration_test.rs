@@ -1250,7 +1250,7 @@ fn update_reward_address_via_precompile() {
 
 #[test]
 fn create_and_manipulate_foreign_asset() {
-	let source_location = xcm::v4::Location::parent();
+	let source_location = Location::new(1, [Parachain(1)]);
 	let account =
 		LocationToAccountId::convert_location(&source_location).expect("Cannot get account");
 	let origin: RuntimeOrigin = pallet_xcm::Origin::Xcm(source_location.clone()).into();
