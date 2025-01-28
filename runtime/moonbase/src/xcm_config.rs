@@ -726,18 +726,31 @@ impl frame_support::traits::Contains<Location> for AssetFeesFilter {
 	}
 }
 
+pub type AddAndEditSupportedAssetOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EitherOfDiverse<
+		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+		governance::custom_origins::FastGeneralAdmin,
+	>,
+>;
+
+pub type RemoveSupportedAssetOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+>;
+
 impl pallet_xcm_weight_trader::Config for Runtime {
 	type AccountIdToLocation = AccountIdToLocation<AccountId>;
-	type AddSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type AddSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type AssetLocationFilter = AssetFeesFilter;
 	type AssetTransactor = AssetTransactors;
 	type Balance = Balance;
-	type EditSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type EditSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type NativeLocation = SelfReserve;
-	type PauseSupportedAssetOrigin = EnsureRoot<AccountId>;
-	type RemoveSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type PauseSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
+	type RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
 	type RuntimeEvent = RuntimeEvent;
-	type ResumeSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type ResumeSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type WeightInfo = moonbase_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;
