@@ -46,10 +46,10 @@
   ],
   "author": "Moonsong Labs",
   "license": "GPL-3.0-only",
-  "homepage": "https://github.com/moonbeam-foundation/moonbeam/tree/master/moonbeam-types-bundle#readme",
+  "homepage": "https://github.com/moonbeam-foundation/moonbeam/tree/master/types-bundle#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/moonbeam-foundation/moonbeam.git",
+    "url": "git+https://github.com/moonbeam-foundation/moonbeam.git",
     "directory": "typescript-api"
   },
   "dependencies": {

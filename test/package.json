@@ -6,7 +6,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "bundle-types": "cd ../moonbeam-types-bundle && pnpm build; cd ../test",
+    "bundle-types": "cd ../types-bundle && pnpm build; cd ../test",
     "typegen": "pnpm bundle-types && cd ../typescript-api && pnpm scrape && pnpm generate && pnpm build; cd ../test",
     "clean": "rm -rf node_modules",
     "fmt": "biome format .",
