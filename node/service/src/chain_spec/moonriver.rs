@@ -25,19 +25,12 @@ use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonriver_runtime::{
-	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
-	GenesisAccount, InflationInfo, MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig,
-	ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range,
-	RuntimeGenesisConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS,
-	WASM_BINARY,
+	currency::MOVR, genesis_config_preset::testnet_genesis, AccountId, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
-use pallet_transaction_payment::Multiplier;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
-use sp_runtime::{Perbill, Percent};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
@@ -113,186 +106,8 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		)
 		.expect("Provided valid json map"),
 	)
-	.with_genesis_config(testnet_genesis(
-		// Treasury Council members: Baltathar, Charleth and Dorothy
-		vec![
-			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
-			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
-		],
-		// Open Tech committee members: Alith and Baltathar
-		vec![
-			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-		],
-		// Collator Candidates
-		vec![
-			// Alice -> Alith
-			(
-				AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-				get_from_seed::<NimbusId>("Alice"),
-				100_000 * MOVR,
-			),
-			// Bob -> Baltathar
-			(
-				AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-				get_from_seed::<NimbusId>("Bob"),
-				100_000 * MOVR,
-			),
-		],
-		// Delegations
-		vec![],
-		// Endowed: Alith, Baltathar, Charleth and Dorothy
-		vec![
-			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
-			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
-		],
-		3_000_000 * MOVR,
-		para_id,
-		1280, //ChainId
-	))
+	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
 	.build()
-}
-
-const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
-const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
-const BLOCKS_PER_ROUND: u32 = 2 * HOURS;
-const BLOCKS_PER_YEAR: u32 = 31_557_600 / 12;
-const NUM_SELECTED_CANDIDATES: u32 = 8;
-pub fn moonriver_inflation_config() -> InflationInfo<Balance> {
-	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
-		use pallet_parachain_staking::inflation::perbill_annual_to_perbill_round;
-		perbill_annual_to_perbill_round(
-			annual,
-			// rounds per year
-			BLOCKS_PER_YEAR / BLOCKS_PER_ROUND,
-		)
-	}
-	let annual = Range {
-		min: Perbill::from_percent(4),
-		ideal: Perbill::from_percent(5),
-		max: Perbill::from_percent(5),
-	};
-	InflationInfo {
-		// staking expectations
-		expect: Range {
-			min: 100_000 * MOVR,
-			ideal: 200_000 * MOVR,
-			max: 500_000 * MOVR,
-		},
-		// annual inflation
-		annual,
-		round: to_round_inflation(annual),
-	}
-}
-
-pub fn testnet_genesis(
-	treasury_council_members: Vec<AccountId>,
-	open_tech_committee_members: Vec<AccountId>,
-	candidates: Vec<(AccountId, NimbusId, Balance)>,
-	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
-	endowed_accounts: Vec<AccountId>,
-	crowdloan_fund_pot: Balance,
-	para_id: ParaId,
-	chain_id: u64,
-) -> serde_json::Value {
-	// This is the simplest bytecode to revert without returning any data.
-	// We will pre-deploy it under all of our precompiles to ensure they can be called from
-	// within contracts.
-	// (PUSH1 0x00 PUSH1 0x00 REVERT)
-	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
-
-	let config = RuntimeGenesisConfig {
-		system: Default::default(),
-		balances: BalancesConfig {
-			balances: endowed_accounts
-				.iter()
-				.cloned()
-				.map(|k| (k, 1 << 80))
-				.collect(),
-		},
-		crowdloan_rewards: CrowdloanRewardsConfig {
-			funded_amount: crowdloan_fund_pot,
-		},
-		parachain_info: ParachainInfoConfig {
-			parachain_id: para_id,
-			..Default::default()
-		},
-		ethereum_chain_id: EthereumChainIdConfig {
-			chain_id,
-			..Default::default()
-		},
-		evm: EVMConfig {
-			// We need _some_ code inserted at the precompile address so that
-			// the evm will actually call the address.
-			accounts: Precompiles::used_addresses()
-				.map(|addr| {
-					(
-						addr.into(),
-						GenesisAccount {
-							nonce: Default::default(),
-							balance: Default::default(),
-							storage: Default::default(),
-							code: revert_bytecode.clone(),
-						},
-					)
-				})
-				.collect(),
-			..Default::default()
-		},
-		ethereum: EthereumConfig {
-			..Default::default()
-		},
-		parachain_staking: ParachainStakingConfig {
-			candidates: candidates
-				.iter()
-				.cloned()
-				.map(|(account, _, bond)| (account, bond))
-				.collect(),
-			delegations,
-			inflation_config: moonriver_inflation_config(),
-			collator_commission: COLLATOR_COMMISSION,
-			parachain_bond_reserve_percent: PARACHAIN_BOND_RESERVE_PERCENT,
-			blocks_per_round: BLOCKS_PER_ROUND,
-			num_selected_candidates: NUM_SELECTED_CANDIDATES,
-		},
-		treasury_council_collective: TreasuryCouncilCollectiveConfig {
-			phantom: Default::default(),
-			members: treasury_council_members,
-		},
-		open_tech_committee_collective: OpenTechCommitteeCollectiveConfig {
-			phantom: Default::default(),
-			members: open_tech_committee_members,
-		},
-		author_filter: AuthorFilterConfig {
-			eligible_count: EligibilityValue::new_unchecked(50),
-			..Default::default()
-		},
-		author_mapping: AuthorMappingConfig {
-			mappings: candidates
-				.iter()
-				.cloned()
-				.map(|(account_id, author_id, _)| (author_id, account_id))
-				.collect(),
-		},
-		proxy_genesis_companion: Default::default(),
-		treasury: Default::default(),
-		migrations: Default::default(),
-		maintenance_mode: MaintenanceModeConfig {
-			start_in_maintenance_mode: false,
-			..Default::default()
-		},
-		// This should initialize it to whatever we have set in the pallet
-		polkadot_xcm: PolkadotXcmConfig::default(),
-		transaction_payment: TransactionPaymentConfig {
-			multiplier: Multiplier::from(10u128),
-			..Default::default()
-		},
-	};
-
-	serde_json::to_value(&config).expect("Could not build genesis config.")
 }
 
 #[cfg(test)]

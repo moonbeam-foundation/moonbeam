@@ -12,6 +12,6 @@ ethereum = { workspace = true, features = [ "std", "with-codec" ] }
 ethereum-types = { workspace = true, features = [ "std" ] }
 jsonrpsee = { workspace = true, features = [ "macros", "server" ] }
 serde = { workspace = true, features = [ "derive" ] }
-serde_json = { workspace = true }
+serde_json = { workspace = true, default-features = true }
 
 fc-rpc-core = { workspace = true }

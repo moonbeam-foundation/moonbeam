@@ -866,8 +866,7 @@ pub fn run() -> Result<()> {
 						max_retries_per_request: cli.run.lazy_loading_max_retries_per_request,
 					};
 
-					let spec_builder =
-						chain_spec::test_spec::lazy_loading_spec_builder(Default::default());
+					let spec_builder = chain_spec::test_spec::lazy_loading_spec_builder();
 					config.chain_spec = Box::new(spec_builder.build());
 
 					// TODO: create a tokio runtime inside offchain_worker thread (otherwise it will panic)
