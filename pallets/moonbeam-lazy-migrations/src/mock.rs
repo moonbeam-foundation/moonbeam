@@ -347,7 +347,7 @@ impl pallet_moonbeam_foreign_assets::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type SiblingAccountOf = SiblingAccountOf;
+	type ConvertLocation = SiblingAccountOf;
 	type SiblingOrigin = SiblingOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<3>;

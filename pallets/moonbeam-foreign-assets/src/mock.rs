@@ -244,7 +244,7 @@ impl crate::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type SiblingAccountOf = SiblingAccountOf;
+	type ConvertLocation = SiblingAccountOf;
 	type SiblingOrigin = SiblingOrigin;
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;

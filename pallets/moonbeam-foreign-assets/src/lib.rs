@@ -76,12 +76,12 @@ impl<ForeignAsset> ForeignAssetCreatedHook<ForeignAsset> for () {
 }
 
 /// Ensure origin location is a sibling
-fn ensure_sibling<T>(location: &Location) -> Result<T::AccountId, DispatchError>
+fn convert_location<T>(location: &Location) -> Result<T::AccountId, DispatchError>
 where
 	T: Config,
 {
 	match location.unpack() {
-		(1, [Parachain(_)]) => T::SiblingAccountOf::convert_location(location)
+		(1, [Parachain(_)]) => T::ConvertLocation::convert_location(location)
 			.ok_or(Error::<T>::CannotConvertLocationToAccount.into()),
 		_ => Err(DispatchError::BadOrigin.into()),
 	}
@@ -159,7 +159,7 @@ pub mod pallet {
 		/// EVM runner
 		type EvmRunner: Runner<Self>;
 
-		type SiblingAccountOf: ConvertLocation<Self::AccountId>;
+		type ConvertLocation: ConvertLocation<Self::AccountId>;
 
 		type SiblingOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = Location>;
 
@@ -337,7 +337,7 @@ pub mod pallet {
 
 			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
 			let para_location = get_par_location_from_asset::<T>(&xcm_location)?;
-			let owner = T::SiblingAccountOf::convert_location(&para_location)
+			let owner = T::ConvertLocation::convert_location(&para_location)
 				.ok_or::<DispatchError>(Error::<T>::CannotConvertLocationToAccount.into())?;
 
 			// Insert the association assetId->foreigAsset
@@ -431,7 +431,7 @@ pub mod pallet {
 				asset_xcm_location.starts_with(&origin_location),
 				Error::<T>::LocationOutsideOfOrigin,
 			);
-			let owner_account = ensure_sibling::<T>(&origin_location)?;
+			let owner_account = convert_location::<T>(&origin_location)?;
 
 			// Ensure such an assetId does not exist
 			ensure!(

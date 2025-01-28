@@ -706,7 +706,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 	type SiblingOrigin = EnsureXcm<AllowSiblingsOnly>;
-	type SiblingAccountOf =
+	type ConvertLocation =
 		SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
