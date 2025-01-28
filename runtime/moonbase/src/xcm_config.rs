@@ -748,9 +748,9 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type EditSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type NativeLocation = SelfReserve;
 	type PauseSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
+	type ResumeSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
 	type RuntimeEvent = RuntimeEvent;
-	type ResumeSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type WeightInfo = moonbase_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;
