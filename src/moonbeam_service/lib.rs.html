@@ -3585,7 +3585,7 @@
 
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
-	<span class="kw">use </span><span class="kw">crate</span>::chain_spec::moonbase::{testnet_genesis, ChainSpec};
+	<span class="kw">use </span><span class="kw">crate</span>::chain_spec::moonbase::ChainSpec;
 	<span class="kw">use </span><span class="kw">crate</span>::chain_spec::Extensions;
 	<span class="kw">use </span>jsonrpsee::server::BatchRequestConfig;
 	<span class="kw">use </span>moonbase_runtime::{currency::UNIT, AccountId};
@@ -3772,7 +3772,7 @@
 			.with_name(<span class="string">"test"</span>)
 			.with_id(chain_id)
 			.with_chain_type(ChainType::Local)
-			.with_genesis_config(testnet_genesis(
+			.with_genesis_config(moonbase_runtime::genesis_config_preset::testnet_genesis(
 				AccountId::from_str(<span class="string">"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b"</span>).unwrap(),
 				<span class="macro">vec!</span>[],
 				<span class="macro">vec!</span>[],

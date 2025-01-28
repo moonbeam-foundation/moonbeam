@@ -1811,6 +1811,8 @@
 <a href="#1809" id="1809">1809</a>
 <a href="#1810" id="1810">1810</a>
 <a href="#1811" id="1811">1811</a>
+<a href="#1812" id="1812">1812</a>
+<a href="#1813" id="1813">1813</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1842,6 +1844,8 @@
 </span><span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">"OUT_DIR"</span>), <span class="string">"/wasm_binary.rs"</span>));
 
 <span class="kw">pub mod </span>asset_config;
+<span class="attr">#[cfg(not(feature = <span class="string">"disable-genesis-builder"</span>))]
+</span><span class="kw">pub mod </span>genesis_config_preset;
 <span class="kw">pub mod </span>governance;
 <span class="kw">pub mod </span>runtime_params;
 <span class="kw">pub mod </span>xcm_config;

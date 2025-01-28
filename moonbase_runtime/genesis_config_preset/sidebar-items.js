@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["development","get_preset","moonbase_inflation_config","preset_names","testnet_genesis"]};

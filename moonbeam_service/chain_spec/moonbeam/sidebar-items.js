@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["development_chain_spec","get_chain_spec","moonbeam_inflation_config","testnet_genesis"],"type":["ChainSpec"]};
+window.SIDEBAR_ITEMS = {"fn":["development_chain_spec","get_chain_spec"],"type":["ChainSpec"]};

@@ -1319,6 +1319,7 @@
 <a href="#1317" id="1317">1317</a>
 <a href="#1318" id="1318">1318</a>
 <a href="#1319" id="1319">1319</a>
+<a href="#1320" id="1320">1320</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1741,7 +1742,8 @@
 	<span class="attr">#[pallet::genesis_config]
 	</span><span class="kw">pub struct </span>GenesisConfig&lt;T&gt; {
 		<span class="kw">pub </span>relay_indices: RelayChainIndices,
-		<span class="kw">pub </span>_phantom: PhantomData&lt;T&gt;,
+		<span class="attr">#[serde(skip)]
+		</span><span class="kw">pub </span>_phantom: PhantomData&lt;T&gt;,
 	}
 
 	<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>GenesisConfig&lt;T&gt; {

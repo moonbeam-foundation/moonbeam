@@ -1139,7 +1139,6 @@
 <a href="#1137" id="1137">1137</a>
 <a href="#1138" id="1138">1138</a>
 <a href="#1139" id="1139">1139</a>
-<a href="#1140" id="1140">1140</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2008,8 +2007,7 @@
 						max_retries_per_request: cli.run.lazy_loading_max_retries_per_request,
 					};
 
-					<span class="kw">let </span>spec_builder =
-						chain_spec::test_spec::lazy_loading_spec_builder(Default::default());
+					<span class="kw">let </span>spec_builder = chain_spec::test_spec::lazy_loading_spec_builder();
 					config.chain_spec = Box::new(spec_builder.build());
 
 					<span class="comment">// TODO: create a tokio runtime inside offchain_worker thread (otherwise it will panic)

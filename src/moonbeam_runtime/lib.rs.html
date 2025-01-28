@@ -1826,6 +1826,8 @@
 <a href="#1824" id="1824">1824</a>
 <a href="#1825" id="1825">1825</a>
 <a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1947,6 +1949,8 @@
 <span class="kw">pub type </span>Precompiles = MoonbeamPrecompiles&lt;Runtime&gt;;
 
 <span class="kw">pub mod </span>asset_config;
+<span class="attr">#[cfg(not(feature = <span class="string">"disable-genesis-builder"</span>))]
+</span><span class="kw">pub mod </span>genesis_config_preset;
 <span class="kw">pub mod </span>governance;
 <span class="kw">pub mod </span>runtime_params;
 <span class="kw">mod </span>weights;
