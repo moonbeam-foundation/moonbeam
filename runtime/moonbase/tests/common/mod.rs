@@ -38,7 +38,7 @@ use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
 use moonbase_runtime::xcm_config::LocationToAccountId;
-use moonbase_runtime::{currency, RuntimeOrigin};
+use moonbase_runtime::RuntimeOrigin;
 use pallet_transaction_payment::Multiplier;
 
 pub fn existential_deposit() -> u128 {

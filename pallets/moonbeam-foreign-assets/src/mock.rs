@@ -17,15 +17,20 @@
 use super::*;
 use crate as pallet_moonbeam_foreign_assets;
 
-use frame_support::traits::{EnsureOriginWithArg, Everything};
+use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use frame_system::EnsureSigned;
+use frame_system::Origin;
 use pallet_evm::{FrameSystemAccountProvider, SubstrateBlockHashMapping};
-use precompile_utils::testing::{Alice, MockAccount};
+use precompile_utils::testing::MockAccount;
 use sp_core::{H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
-use xcm::latest::Location;
+use xcm::latest::{Junction, Location};
+
+pub const PARA_A: AccountId = MockAccount(H160([2; 20]));
+pub const PARA_B: AccountId = MockAccount(H160([2; 20]));
+pub const PARA_C: AccountId = MockAccount(H160([2; 20]));
+
 
 pub type Balance = u128;
 
@@ -177,34 +182,61 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 	}
 }
 
-pub struct ForeignAssetMockOrigin;
-impl EnsureOriginWithArg<RuntimeOrigin, Location> for ForeignAssetMockOrigin {
-	type Success = AccountId;
-
-	fn try_origin(
-		_: RuntimeOrigin,
-		_: &Location,
-	) -> core::result::Result<Self::Success, RuntimeOrigin> {
-		Ok(Alice.into())
-	}
-}
-
 parameter_types! {
 	pub const ForeignAssetCreationDeposit: u128 = 1;
 }
 
-pub struct ForeignAssetsEnsureXCM;
+pub struct SiblingAccountOf;
+impl xcm_executor::traits::ConvertLocation<AccountId> for SiblingAccountOf {
+	fn convert_location(location: &Location) -> Option<AccountId> {
+		let (parents, junctions) = location.unpack();
+		if parents != 1 {
+			return None;
+		}
+		if junctions.len() != 1 {
+			return None;
+		}
+		match junctions[0] {
+			Junction::Parachain(id) => match id {
+				1 => Some(PARA_A),
+				2 => Some(PARA_B),
+				3 => Some(PARA_C),
+				_ => None,
+			},
+			_ => None,
+		}
+	}
+}
 
-impl EnsureXcmLocation<Test> for ForeignAssetsEnsureXCM {
-	fn ensure_xcm_origin(
-		origin: RuntimeOrigin,
-		location: Option<&Location>,
-	) -> Result<AccountId, DispatchError> {
-		ensure_signed(origin).map_err(|_| DispatchError::BadOrigin)
+pub struct SiblingOrigin;
+impl EnsureOrigin<<Test as frame_system::Config>::RuntimeOrigin> for SiblingOrigin {
+	type Success = Location;
+	fn try_origin(
+		original_origin: <Test as frame_system::Config>::RuntimeOrigin,
+	) -> Result<Self::Success, <Test as frame_system::Config>::RuntimeOrigin> {
+		match original_origin.clone().caller {
+			OriginCaller::system(o) => match o {
+				Origin::<Test>::Signed(account) => {
+					let para_id = if account == PARA_A {
+						1
+					} else if account == PARA_B {
+						2
+					} else if account == PARA_C {
+						3
+					} else {
+						return Err(original_origin)
+					};
+					Ok(Location::new(1, [Junction::Parachain(para_id)]))
+				}
+				_ => Err(original_origin),
+			},
+			_ => Err(original_origin),
+		}
 	}
 
-	fn account_for_location(location: &Location) -> Option<AccountId> {
-		Some(Alice.into())
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin() -> Result<<Test as frame_system::Config>::RuntimeOrigin, ()> {
+		Ok(RuntimeOrigin::signed(PARA_A))
 	}
 }
 
@@ -212,7 +244,8 @@ impl crate::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type EnsureXcmLocation = ForeignAssetsEnsureXCM;
+	type SiblingAccountOf = SiblingAccountOf;
+	type SiblingOrigin = SiblingOrigin;
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;

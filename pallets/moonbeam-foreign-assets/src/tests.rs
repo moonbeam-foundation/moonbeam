@@ -18,7 +18,7 @@ use crate::*;
 use mock::*;
 
 use frame_support::{assert_noop, assert_ok};
-use precompile_utils::testing::{Alice, Bob};
+use precompile_utils::testing::Alice;
 use xcm::latest::prelude::*;
 
 fn encode_ticker(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
@@ -204,6 +204,7 @@ fn test_root_can_change_foreign_asset_for_asset_id() {
 				crate::Event::ForeignAssetXcmLocationChanged {
 					asset_id: 1,
 					new_xcm_location: Location::here(),
+					prev_xcm_location: Location::parent(),
 				},
 			])
 		});
