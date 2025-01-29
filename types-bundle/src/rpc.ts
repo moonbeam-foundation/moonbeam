@@ -69,10 +69,10 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
       params: [{ name: "txHash", type: "Hash" }],
       type: "bool",
     },
-    getLatestSyncedBlock: {
-      description: "Returns the latest synced block from frontier's backend",
+    getEthSyncBlockRange: {
+      description: "Returns the range of blocks that are fully indexed in frontier's backend.",
       params: [],
-      type: "u32",
+      type: "(H256, H256)",
     },
   },
 };

@@ -328,6 +328,7 @@ export const TYPES_900_undefined_deprecated: RegistryTypes = {
 };
 
 export const TYPES_POST_900: RegistryTypes = {
+  ...TYPES_800_899,
   ProxyType: {
     _enum: [
       "Any",
