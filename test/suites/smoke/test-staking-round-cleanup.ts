@@ -1,4 +1,3 @@
-import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import type { BN } from "@polkadot/util";

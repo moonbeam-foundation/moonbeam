@@ -1,5 +1,4 @@
-// import "@moonbeam-network/api-augment";
-import "@polkadot/api-augment";
+import "@moonbeam-network/api-augment";
 import { describeSuite, expect, beforeAll, fetchCompiledContract } from "@moonwall/cli";
 import { type Contract, ethers, type InterfaceAbi, type WebSocketProvider } from "ethers";
 import { ALITH_SESSION_ADDRESS, PRECOMPILES } from "@moonwall/util";

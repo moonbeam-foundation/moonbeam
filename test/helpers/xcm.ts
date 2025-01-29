@@ -875,7 +875,17 @@ export const expectXcmEventMessage = async (context: DevModeContext, message: st
     .map(({ event }) => (context.polkadotJs().events.xcmpQueue.Fail.is(event) ? event : undefined))
     .filter((event) => event);
 
-  return filteredEvents.length ? filteredEvents[0]!.data.error.toString() === message : false;
+  const filtered = filteredEvents[0];
+
+  if (!filtered) {
+    return false;
+  }
+
+  return (
+    context.polkadotJs().events.xcmpQueue.Fail.is(filtered) &&
+    // @ts-expect-error xcmpQueue.Fail isn't coming up as an event
+    filtered.data.error.toString() === message
+  );
 };
 
 type XcmCallback = (this: XcmFragment) => void;

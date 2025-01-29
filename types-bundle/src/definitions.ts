@@ -17,7 +17,7 @@ export const moduleDefinitions: Record<string, OverrideModuleType> = {
   },
 };
 
-export const moonbeamDefinitions = {
+export const moonbeamDefinitions: OverrideBundleDefinition = {
   alias: moduleDefinitions,
   rpc: rpcDefinitions,
   instances: {
@@ -78,9 +78,9 @@ export const moonbeamDefinitions = {
       types: Types.TYPES_POST_900,
     },
   ],
-} as OverrideBundleDefinition;
+};
 
-export const moonbeamDefinitionsDeprecated = {
+export const moonbeamDefinitionsDeprecated: OverrideBundleDefinition = {
   ...moonbeamDefinitions,
   types: [
     ...(moonbeamDefinitions.types as OverrideVersionedType[]),
@@ -89,25 +89,25 @@ export const moonbeamDefinitionsDeprecated = {
       types: Types.TYPES_900_undefined_deprecated,
     },
   ],
-} as OverrideBundleDefinition;
+};
 
-export const typesBundlePre900 = {
+export const typesBundle: OverrideBundleType = {
   spec: {
     moonbeam: moonbeamDefinitions,
     moonbeamDefinitions,
     moonbase: moonbeamDefinitions,
     moonriver: moonbeamDefinitions,
   },
-} as OverrideBundleType;
+};
 
-export const typesBundleDeprecated = {
+export const typesBundleDeprecated: OverrideBundleType = {
   spec: {
     moonbeam: moonbeamDefinitionsDeprecated,
     moonbeamDefinitions: moonbeamDefinitionsDeprecated,
     moonbase: moonbeamDefinitionsDeprecated,
     moonriver: moonbeamDefinitionsDeprecated,
   },
-} as OverrideBundleType;
+};
 
 // default types to use
-export const types = typesBundlePre900;
+export const types = typesBundle;

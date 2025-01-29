@@ -29,7 +29,6 @@
     "@openzeppelin/contracts": "4.9.6",
     "@polkadot-api/merkleize-metadata": "1.1.11",
     "@polkadot/api": "*",
-    "@polkadot/api-augment": "*",
     "@polkadot/api-derive": "*",
     "@polkadot/apps-config": "0.148.1",
     "@polkadot/keyring": "*",
