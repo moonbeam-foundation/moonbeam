@@ -315,7 +315,7 @@ parameter_types! {
 
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
-	pub const ExistentialDeposit: Balance = 100;
+	pub const ExistentialDeposit: Balance = 1;
 }
 
 impl pallet_balances::Config for Runtime {
