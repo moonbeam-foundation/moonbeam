@@ -399,12 +399,15 @@ export async function registerForeignAsset(
 
   // Sanitize Xcm Location
   const xcmLoc = patchLocationV4recursively(xcmLocation);
-  const api = context.polkadotJs();
+
   const { result } = await context.createBlock(
-    api.tx.sudo.sudoAs(
-      alith.address,
-      api.tx.evmForeignAssets.createForeignAsset(assetId, xcmLoc, decimals, symbol, name)
-    )
+    context
+      .polkadotJs()
+      .tx.sudo.sudo(
+        context
+          .polkadotJs()
+          .tx.evmForeignAssets.createForeignAsset(assetId, xcmLoc, decimals, symbol, name)
+      )
   );
 
   // Fetch the relevant event
