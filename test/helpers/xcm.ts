@@ -871,21 +871,12 @@ export const registerXcmTransactorDerivativeIndex = async (context: DevModeConte
 export const expectXcmEventMessage = async (context: DevModeContext, message: string) => {
   const records = await context.polkadotJs().query.system.events();
 
-  const filteredEvents = records
-    .map(({ event }) => (context.polkadotJs().events.xcmpQueue.Fail.is(event) ? event : undefined))
-    .filter((event) => event);
-
-  const filtered = filteredEvents[0];
-
-  if (!filtered) {
-    return false;
-  }
-
-  return (
-    context.polkadotJs().events.xcmpQueue.Fail.is(filtered) &&
-    // @ts-expect-error xcmpQueue.Fail isn't coming up as an event
-    filtered.data.error.toString() === message
-  );
+  return records
+    .filter(({ event }) => context.polkadotJs().events.xcmpQueue.Fail.is(event))
+    .some(
+      ({ event: { data: eventData } }: { event: { data: any } }) =>
+        eventData.error.toString() === message
+    );
 };
 
 type XcmCallback = (this: XcmFragment) => void;
