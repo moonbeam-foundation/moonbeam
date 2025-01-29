@@ -30,7 +30,7 @@
 ) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.77.0/core/pin/struct.Pin.html" title="struct core::pin::Pin">Pin</a>&lt;<a class="struct" href="https://doc.rust-lang.org/1.77.0/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;dyn <a class="trait" href="https://doc.rust-lang.org/1.77.0/core/future/future/trait.Future.html" title="trait core::future::future::Future">Future</a>&lt;Output = RpcResult&lt;<a class="primitive" href="https://doc.rust-lang.org/1.77.0/std/primitive.unit.html">()</a>&gt;&gt; + <a class="trait" href="https://doc.rust-lang.org/1.77.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + 'async_trait&gt;&gt;<div class="where">where
     Self: 'async_trait,
     'life0: 'async_trait,</div></h4></section></summary><div class="docblock"><p>Inject a downward xcm message - A message that comes from the relay chain.
-You may provide an arbitrary message, or if you provide an emtpy byte array,
+You may provide an arbitrary message, or if you provide an empty byte array,
 Then a default message (DOT transfer down to ALITH) will be injected</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="tymethod.inject_hrmp_message" class="method"><a class="src rightside" href="../src/moonbeam_dev_rpc/lib.rs.html#54">source</a><h4 class="code-header">fn <a href="#tymethod.inject_hrmp_message" class="fn">inject_hrmp_message</a>&lt;'life0, 'async_trait&gt;(
     &amp;'life0 self,

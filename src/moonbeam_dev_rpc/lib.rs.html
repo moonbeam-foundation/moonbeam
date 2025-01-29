@@ -206,7 +206,7 @@
 #[jsonrpsee::core::async_trait]
 </span><span class="kw">pub trait </span>DevApi {
 	<span class="doccomment">/// Inject a downward xcm message - A message that comes from the relay chain.
-	/// You may provide an arbitrary message, or if you provide an emtpy byte array,
+	/// You may provide an arbitrary message, or if you provide an empty byte array,
 	/// Then a default message (DOT transfer down to ALITH) will be injected
 	</span><span class="attr">#[method(name = <span class="string">"xcm_injectDownwardMessage"</span>)]
 	</span><span class="kw">async fn </span>inject_downward_message(<span class="kw-2">&amp;</span><span class="self">self</span>, message: Vec&lt;u8&gt;) -&gt; RpcResult&lt;()&gt;;
@@ -269,7 +269,7 @@
 		};
 
 		<span class="comment">// Push the message to the shared channel where it will be queued up
-		// to be injected in to an upcoming block.
+		// to be injected into an upcoming block.
 		</span>downward_message_channel
 			.send_async(msg)
 			.<span class="kw">await
@@ -316,7 +316,7 @@
 		};
 
 		<span class="comment">// Push the message to the shared channel where it will be queued up
-		// to be injected in to an upcoming block.
+		// to be injected into an upcoming block.
 		</span>hrmp_message_channel
 			.send_async((sender, msg))
 			.<span class="kw">await

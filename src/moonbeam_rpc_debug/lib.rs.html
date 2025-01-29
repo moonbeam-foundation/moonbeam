@@ -1379,7 +1379,7 @@
 			}
 		}<span class="question-mark">?</span>;
 
-		<span class="comment">// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
+		<span class="comment">// Get ApiRef. This handle allows to keep changes between txs in an internal buffer.
 		</span><span class="kw">let </span><span class="kw-2">mut </span>api = client.runtime_api();
 
 		<span class="comment">// Enable proof recording
@@ -1531,11 +1531,11 @@
 
 	<span class="doccomment">/// Replays a transaction in the Runtime at a given block height.
 	///
-	/// In order to succesfully reproduce the result of the original transaction we need a correct
+	/// In order to successfully reproduce the result of the original transaction we need a correct
 	/// state to replay over.
 	///
 	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlayed state.
-	/// This overlayed changes will live in-memory for the lifetime of the ApiRef.
+	/// These overlayed changes will live in-memory for the lifetime of the ApiRef.
 	</span><span class="kw">fn </span>handle_transaction_request(
 		client: Arc&lt;C&gt;,
 		backend: Arc&lt;BE&gt;,

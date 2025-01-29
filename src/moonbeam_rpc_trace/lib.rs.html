@@ -1083,7 +1083,7 @@
 		}
 	}
 
-	<span class="doccomment">/// `trace_filter` endpoint (wrapped in the trait implementation with futures compatibilty)
+	<span class="doccomment">/// `trace_filter` endpoint (wrapped in the trait implementation with futures compatibility)
 	</span><span class="kw">async fn </span>filter(<span class="self">self</span>, req: FilterRequest) -&gt; TxsTraceRes {
 		<span class="kw">let </span>from_block = <span class="self">self</span>.block_id(req.from_block)<span class="question-mark">?</span>;
 		<span class="kw">let </span>to_block = <span class="self">self</span>.block_id(req.to_block)<span class="question-mark">?</span>;
@@ -1334,7 +1334,7 @@
 
 <span class="doccomment">/// Data stored for each block in the cache.
 /// `active_batch_count` represents the number of batches using this
-/// block. It will increase immediatly when a batch is created, but will be
+/// block. It will increase immediately when a batch is created, but will be
 /// decrease only after the batch ends and its expiration delay passes.
 /// It allows to keep the data in the cache for following requests that would use
 /// this block, which is important to handle pagination efficiently.
@@ -1360,7 +1360,7 @@
 		</span><span class="attr">#[allow(dead_code)]
 		</span>unqueue_sender: oneshot::Sender&lt;()&gt;,
 	},
-	<span class="doccomment">/// Tracing has completed and the result is available. No Runtime API call
+	<span class="doccomment">/// Tracing has been completed and the result is available. No Runtime API call
 	/// will be needed until this block cache is removed.
 	</span>Cached { traces: TxsTraceRes },
 }
@@ -1373,7 +1373,7 @@
 	/// the semaphore. This is used to prevent the deletion of a cache entry for a block that has
 	/// started being traced.
 	</span>Started { block_hash: H256 },
-	<span class="doccomment">/// The tracing is finished and the result is send to the main task.
+	<span class="doccomment">/// The tracing is finished and the result is sent to the main task.
 	</span>Finished {
 		block_hash: H256,
 		result: TxsTraceRes,
@@ -1409,7 +1409,7 @@
 {
 	<span class="doccomment">/// Create a new cache task.
 	///
-	/// Returns a Future that needs to be added to a tokio executor, and an handle allowing to
+	/// Returns a Future that needs to be added to a tokio executor, and a handle allowing to
 	/// send requests to the task.
 	</span><span class="kw">pub fn </span>create(
 		client: Arc&lt;C&gt;,
@@ -1442,7 +1442,7 @@
 				<span class="prelude-val">None
 			</span>};
 			<span class="comment">// Contains the inner state of the cache task, excluding the pooled futures/channels.
-			// Having this object allow to refactor each event into its own function, simplifying
+			// Having this object allows to refactor each event into its own function, simplifying
 			// the main loop.
 			</span><span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">Self </span>{
 				client,
@@ -1515,7 +1515,7 @@
 		<span class="self">self</span>.batches.insert(<span class="self">self</span>.next_batch_id, blocks.clone());
 
 		<span class="kw">for </span>block <span class="kw">in </span>blocks {
-			<span class="comment">// The block is already in the cache, awesome !
+			<span class="comment">// The block is already in the cache, awesome!
 			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(block_cache) = <span class="self">self</span>.cached_blocks.get_mut(<span class="kw-2">&amp;</span>block) {
 				block_cache.active_batch_count += <span class="number">1</span>;
 				<span class="macro">tracing::trace!</span>(
@@ -1537,7 +1537,7 @@
 
 				<span class="comment">// Spawn all block caching asynchronously.
 				// It will wait to obtain a permit, then spawn a blocking task.
-				// When the blocking task returns its result, it is send
+				// When the blocking task returns its result, it is sent
 				// thought a channel to the main task loop.
 				</span>tokio::spawn(
 					<span class="kw">async move </span>{
@@ -1573,7 +1573,7 @@
 
 						<span class="macro">tracing::trace!</span>(<span class="string">"Block tracing finished, sending result to main task."</span>);
 
-						<span class="comment">// Send response to main task.
+						<span class="comment">// Send a response to the main task.
 						</span><span class="kw">let _ </span>= blocking_tx
 							.send(BlockingTaskMessage::Finished {
 								block_hash: block,
@@ -1602,13 +1602,13 @@
 		<span class="comment">// Respond with the batch ID.
 		</span><span class="kw">let _ </span>= sender.send(CacheBatchId(<span class="self">self</span>.next_batch_id));
 
-		<span class="comment">// Increase batch ID for next request.
+		<span class="comment">// Increase batch ID for the next request.
 		</span><span class="self">self</span>.next_batch_id = <span class="self">self</span>.next_batch_id.overflowing_add(<span class="number">1</span>).<span class="number">0</span>;
 	}
 
 	<span class="doccomment">/// Handle a request to get the traces of the provided block.
-	/// - If the result is stored in the cache, it sends it immediatly.
-	/// - If the block is currently being pooled, it is added in this block cache waiting list,
+	/// - If the result is stored in the cache, it sends it immediately.
+	/// - If the block is currently being pooled, it is added to this block cache waiting list,
 	///   and all requests concerning this block will be satisfied when the tracing for this block
 	///   is finished.
 	/// - If this block is missing from the cache, it means no batch asked for it. All requested
