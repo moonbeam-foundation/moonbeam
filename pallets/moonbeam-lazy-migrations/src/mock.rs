@@ -18,12 +18,13 @@
 
 use super::*;
 use crate as pallet_moonbeam_lazy_migrations;
-use frame_support::traits::{AsEnsureOriginWithArg, ConstU128};
+use frame_support::traits::{AsEnsureOriginWithArg, ConstU128, EitherOf};
 use frame_support::weights::constants::RocksDbWeight;
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use frame_system::{EnsureRoot, EnsureSigned, Origin};
 use pallet_asset_manager::AssetRegistrar;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
+use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use precompile_utils::testing::MockAccount;
 use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::{
@@ -327,7 +328,7 @@ impl EnsureOrigin<<Test as frame_system::Config>::RuntimeOrigin> for SiblingOrig
 					} else if account == PARA_C {
 						3
 					} else {
-						return Err(original_origin)
+						return Err(original_origin);
 					};
 					Ok(Location::new(1, [Junction::Parachain(para_id)]))
 				}
@@ -343,12 +344,18 @@ impl EnsureOrigin<<Test as frame_system::Config>::RuntimeOrigin> for SiblingOrig
 	}
 }
 
+pub type ForeignAssetManagerOrigin =
+	EitherOf<MapSuccessToGovernance<EnsureRoot<AccountId>>, MapSuccessToXcm<SiblingOrigin>>;
+
 impl pallet_moonbeam_foreign_assets::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
 	type ConvertLocation = SiblingAccountOf;
-	type SiblingOrigin = SiblingOrigin;
+	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;

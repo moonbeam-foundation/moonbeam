@@ -86,17 +86,40 @@ where
 		_ => Err(DispatchError::BadOrigin.into()),
 	}
 }
+#[derive(Decode, Encode, Debug, PartialEq, TypeInfo, Clone)]
+pub enum OriginType {
+	XCM(Location),
+	Governance,
+}
 
-fn get_par_location_from_asset<T>(location: &Location) -> Result<Location, DispatchError>
-where
-	T: Config,
+/// Used to convert the success of an EnsureOrigin into `OriginType::Governance`
+pub struct MapSuccessToGovernance<Original>(PhantomData<Original>);
+impl<O, Original: EnsureOrigin<O, Success = ()>> EnsureOrigin<O>
+	for MapSuccessToGovernance<Original>
 {
-	let (parents, junctions) = location.unpack();
-	ensure!(parents == 1, Error::<T>::AssetNotInSiblingPara);
-	ensure!(junctions.len() > 1, Error::<T>::AssetNotInSiblingPara);
-	match junctions[0] {
-		Parachain(para_id) => Ok(Location::new(1, [Parachain(para_id)])),
-		_ => Err(Error::<T>::AssetNotInSiblingPara.into()),
+	type Success = OriginType;
+	fn try_origin(o: O) -> Result<OriginType, O> {
+		Original::try_origin(o)?;
+		Ok(OriginType::Governance)
+	}
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin() -> Result<O, ()> {
+		Original::try_successful_origin()
+	}
+}
+
+/// Used to convert the success of an EnsureOrigin into `OriginType::XCM`
+pub struct MapSuccessToXcm<Original>(PhantomData<Original>);
+impl<O, Original: EnsureOrigin<O, Success = Location>> EnsureOrigin<O>
+	for MapSuccessToXcm<Original>
+{
+	type Success = OriginType;
+	fn try_origin(o: O) -> Result<OriginType, O> {
+		Original::try_origin(o).map(OriginType::XCM)
+	}
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin() -> Result<O, ()> {
+		Original::try_successful_origin()
 	}
 }
 
@@ -161,7 +184,18 @@ pub mod pallet {
 
 		type ConvertLocation: ConvertLocation<Self::AccountId>;
 
-		type SiblingOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = Location>;
+		/// Origin that is allowed to create a new foreign assets
+		type ForeignAssetCreatorOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = OriginType>;
+
+		/// Origin that is allowed to freeze all tokens of a foreign asset
+		type ForeignAssetFreezerOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = OriginType>;
+
+		/// Origin that is allowed to modify asset information for foreign assets
+		type ForeignAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = OriginType>;
+
+		/// Origin that is allowed to unfreeze all tokens of a foreign asset that was previously
+		/// frozen
+		type ForeignAssetUnfreezerOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = OriginType>;
 
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
@@ -240,7 +274,7 @@ pub mod pallet {
 		/// Changed the xcm type mapping for a given asset id
 		ForeignAssetXcmLocationChanged {
 			asset_id: AssetId,
-			prev_xcm_location: Location,
+			previous_xcm_location: Location,
 			new_xcm_location: Location,
 		},
 		// Freezes all tokens of a given asset id
@@ -277,12 +311,12 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn assets_creation_details)]
 	pub type AssetsCreationDetails<T: Config> =
-		StorageMap<_, Blake2_128Concat, AssetId, AssetCreationDetails<T>>;
+		StorageMap<_, Blake2_128Concat, AssetId, AssetDepositDetails<T>>;
 
 	#[derive(Clone, Decode, Encode, Eq, PartialEq, Debug, TypeInfo, MaxEncodedLen)]
-	pub struct AssetCreationDetails<T: Config> {
-		pub owner: T::AccountId,
-		pub deposit: Option<BalanceOf<T>>,
+	pub struct AssetDepositDetails<T: Config> {
+		pub deposit_account: T::AccountId,
+		pub deposit: BalanceOf<T>,
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -311,54 +345,7 @@ pub mod pallet {
 			symbol: BoundedVec<u8, ConstU32<256>>,
 			name: BoundedVec<u8, ConstU32<256>>,
 		) -> DispatchResult {
-			// Ensure such an assetId does not exist
-			ensure!(
-				!AssetsById::<T>::contains_key(&asset_id),
-				Error::<T>::AssetAlreadyExists
-			);
-
-			ensure!(
-				!AssetsByLocation::<T>::contains_key(&xcm_location),
-				Error::<T>::LocationAlreadyExists
-			);
-
-			ensure!(
-				AssetsById::<T>::count() < T::MaxForeignAssets::get(),
-				Error::<T>::TooManyForeignAssets
-			);
-
-			ensure!(
-				T::AssetIdFilter::contains(&asset_id),
-				Error::<T>::AssetIdFiltered
-			);
-
-			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
-			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
-
-			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
-			let para_location = get_par_location_from_asset::<T>(&xcm_location)?;
-			let owner = T::ConvertLocation::convert_location(&para_location)
-				.ok_or::<DispatchError>(Error::<T>::CannotConvertLocationToAccount.into())?;
-
-			// Insert the association assetId->foreigAsset
-			// Insert the association foreigAsset->assetId
-			AssetsById::<T>::insert(&asset_id, &xcm_location);
-			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
-			AssetsCreationDetails::<T>::insert(
-				&asset_id,
-				AssetCreationDetails {
-					owner,
-					deposit: None,
-				},
-			);
-
-			Self::deposit_event(Event::ForeignAssetCreated {
-				contract_address,
-				asset_id,
-				xcm_location,
-				deposit: None,
-			});
-			Ok(())
+			Self::do_create_asset(asset_id, xcm_location, decimals, symbol, name, None)
 		}
 
 		/// Mint an asset into a specific account
@@ -426,14 +413,116 @@ pub mod pallet {
 			symbol: BoundedVec<u8, ConstU32<256>>,
 			name: BoundedVec<u8, ConstU32<256>>,
 		) -> DispatchResult {
-			let origin_location = T::SiblingOrigin::ensure_origin(origin.clone())?;
-			ensure!(
-				asset_xcm_location.starts_with(&origin_location),
-				Error::<T>::LocationOutsideOfOrigin,
-			);
-			let owner_account = convert_location::<T>(&origin_location)?;
+			let origin_type = T::ForeignAssetCreatorOrigin::ensure_origin(origin.clone())?;
 
-			// Ensure such an assetId does not exist
+			Self::ensure_origin_can_modify_location(origin_type.clone(), &asset_xcm_location)?;
+			let deposit_account = Self::get_deposit_account(origin_type)?;
+
+			Self::do_create_asset(
+				asset_id,
+				asset_xcm_location,
+				decimals,
+				symbol,
+				name,
+				deposit_account,
+			)
+		}
+
+		/// Change the xcm type mapping for a given assetId
+		/// We also change this if the previous units per second where pointing at the old
+		/// assetType
+		#[pallet::call_index(1)]
+		#[pallet::weight(<T as Config>::WeightInfo::change_xcm_location())]
+		pub fn change_xcm_location(
+			origin: OriginFor<T>,
+			asset_id: AssetId,
+			new_xcm_location: Location,
+		) -> DispatchResult {
+			let origin_type = T::ForeignAssetModifierOrigin::ensure_origin(origin.clone())?;
+
+			Self::ensure_origin_can_modify_location(origin_type.clone(), &new_xcm_location)?;
+
+			let previous_location =
+				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			Self::ensure_origin_can_modify_location(origin_type, &previous_location)?;
+
+			Self::do_change_xcm_location(asset_id, previous_location, new_xcm_location)
+		}
+
+		/// Freeze a given foreign assetId
+		#[pallet::call_index(2)]
+		#[pallet::weight(<T as Config>::WeightInfo::freeze_foreign_asset())]
+		pub fn freeze_foreign_asset(
+			origin: OriginFor<T>,
+			asset_id: AssetId,
+			allow_xcm_deposit: bool,
+		) -> DispatchResult {
+			let origin_type = T::ForeignAssetFreezerOrigin::ensure_origin(origin.clone())?;
+
+			let xcm_location =
+				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			Self::ensure_origin_can_modify_location(origin_type, &xcm_location)?;
+
+			Self::do_freeze_asset(asset_id, xcm_location, allow_xcm_deposit)
+		}
+
+		/// Unfreeze a given foreign assetId
+		#[pallet::call_index(3)]
+		#[pallet::weight(<T as Config>::WeightInfo::unfreeze_foreign_asset())]
+		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
+			let origin_type = T::ForeignAssetUnfreezerOrigin::ensure_origin(origin.clone())?;
+
+			let xcm_location =
+				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			Self::ensure_origin_can_modify_location(origin_type, &xcm_location)?;
+
+			Self::do_unfreeze_asset(asset_id, xcm_location)
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		/// Ensure that the caller origin can modify the location,
+		fn ensure_origin_can_modify_location(
+			origin_type: OriginType,
+			location: &Location,
+		) -> DispatchResult {
+			match origin_type {
+				OriginType::XCM(origin_location) => {
+					ensure!(
+						location.starts_with(&origin_location),
+						Error::<T>::LocationOutsideOfOrigin,
+					);
+				}
+				OriginType::Governance => {
+					// nothing to check Governance can change any asset
+				}
+			};
+			Ok(())
+		}
+
+		fn get_deposit_account(
+			origin_type: OriginType,
+		) -> Result<Option<T::AccountId>, DispatchError> {
+			match origin_type {
+				OriginType::XCM(origin_location) => {
+					let deposit_account = convert_location::<T>(&origin_location)?;
+					Ok(Some(deposit_account))
+				}
+				OriginType::Governance => Ok(None),
+			}
+		}
+
+		pub fn do_create_asset(
+			asset_id: AssetId,
+			asset_xcm_location: Location,
+			decimals: u8,
+			symbol: BoundedVec<u8, ConstU32<256>>,
+			name: BoundedVec<u8, ConstU32<256>>,
+			deposit_account: Option<T::AccountId>,
+		) -> DispatchResult {
 			ensure!(
 				!AssetsById::<T>::contains_key(&asset_id),
 				Error::<T>::AssetAlreadyExists
@@ -457,25 +546,31 @@ pub mod pallet {
 			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
 			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
 			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
-			let deposit = T::ForeignAssetCreationDeposit::get();
-			let owner = owner_account.clone();
+
+			let deposit = if let Some(deposit_account) = deposit_account {
+				let deposit = T::ForeignAssetCreationDeposit::get();
+
+				// Reserve _deposit_ amount of funds from the caller
+				<T as Config>::Currency::reserve(&deposit_account, deposit)?;
+
+				// Insert the amount that is reserved from the user
+				AssetsCreationDetails::<T>::insert(
+					&asset_id,
+					AssetDepositDetails {
+						deposit_account,
+						deposit,
+					},
+				);
+
+				Some(deposit)
+			} else {
+				None
+			};
 
 			// Insert the association assetId->foreigAsset
 			// Insert the association foreigAsset->assetId
 			AssetsById::<T>::insert(&asset_id, &asset_xcm_location);
 			AssetsByLocation::<T>::insert(&asset_xcm_location, (asset_id, AssetStatus::Active));
-
-			// Reserve _deposit_ amount of funds from the caller
-			<T as Config>::Currency::reserve(&owner_account, deposit)?;
-
-			// Insert the amount that is reserved from the user
-			AssetsCreationDetails::<T>::insert(
-				&asset_id,
-				AssetCreationDetails {
-					owner,
-					deposit: Some(deposit),
-				},
-			);
 
 			T::OnForeignAssetCreated::on_asset_created(&asset_xcm_location, &asset_id);
 
@@ -483,42 +578,23 @@ pub mod pallet {
 				contract_address,
 				asset_id,
 				xcm_location: asset_xcm_location,
-				deposit: Some(deposit),
+				deposit,
 			});
 			Ok(())
 		}
 
-		/// Change the xcm type mapping for a given assetId
-		/// We also change this if the previous units per second where pointing at the old
-		/// assetType
-		#[pallet::call_index(1)]
-		#[pallet::weight(<T as Config>::WeightInfo::change_xcm_location())]
-		pub fn change_xcm_location(
-			origin: OriginFor<T>,
+		pub fn do_change_xcm_location(
 			asset_id: AssetId,
+			previous_xcm_location: Location,
 			new_xcm_location: Location,
 		) -> DispatchResult {
-			let origin_location = T::SiblingOrigin::ensure_origin(origin.clone())?;
-			ensure!(
-				new_xcm_location.starts_with(&origin_location),
-				Error::<T>::LocationOutsideOfOrigin,
-			);
-
-			let previous_location =
-				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
-
-			ensure!(
-				previous_location.starts_with(&origin_location),
-				Error::<T>::LocationOutsideOfOrigin,
-			);
-
 			ensure!(
 				!AssetsByLocation::<T>::contains_key(&new_xcm_location),
 				Error::<T>::LocationAlreadyExists
 			);
 
 			// Remove previous foreign asset info
-			let (_asset_id, asset_status) = AssetsByLocation::<T>::take(&previous_location)
+			let (_asset_id, asset_status) = AssetsByLocation::<T>::take(&previous_xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
 
 			// Insert new foreign asset info
@@ -528,29 +604,16 @@ pub mod pallet {
 			Self::deposit_event(Event::ForeignAssetXcmLocationChanged {
 				asset_id,
 				new_xcm_location,
-				prev_xcm_location: previous_location,
+				previous_xcm_location,
 			});
 			Ok(())
 		}
 
-		/// Freeze a given foreign assetId
-		#[pallet::call_index(2)]
-		#[pallet::weight(<T as Config>::WeightInfo::freeze_foreign_asset())]
-		pub fn freeze_foreign_asset(
-			origin: OriginFor<T>,
+		pub fn do_freeze_asset(
 			asset_id: AssetId,
+			xcm_location: Location,
 			allow_xcm_deposit: bool,
 		) -> DispatchResult {
-			let origin_location = T::SiblingOrigin::ensure_origin(origin.clone())?;
-
-			let xcm_location =
-				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
-
-			ensure!(
-				xcm_location.starts_with(&origin_location),
-				Error::<T>::LocationOutsideOfOrigin,
-			);
-
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
 
@@ -576,20 +639,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Unfreeze a given foreign assetId
-		#[pallet::call_index(3)]
-		#[pallet::weight(<T as Config>::WeightInfo::unfreeze_foreign_asset())]
-		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
-			let origin_location = T::SiblingOrigin::ensure_origin(origin.clone())?;
-
-			let xcm_location =
-				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
-
-			ensure!(
-				xcm_location.starts_with(&origin_location),
-				Error::<T>::LocationOutsideOfOrigin,
-			);
-
+		pub fn do_unfreeze_asset(asset_id: AssetId, xcm_location: Location) -> DispatchResult {
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
 

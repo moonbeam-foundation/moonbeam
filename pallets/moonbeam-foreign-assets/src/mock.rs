@@ -17,9 +17,9 @@
 use super::*;
 use crate as pallet_moonbeam_foreign_assets;
 
-use frame_support::traits::Everything;
+use frame_support::traits::{EitherOf, Everything};
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use frame_system::Origin;
+use frame_system::{EnsureRoot, Origin};
 use pallet_evm::{FrameSystemAccountProvider, SubstrateBlockHashMapping};
 use precompile_utils::testing::MockAccount;
 use sp_core::{H256, U256};
@@ -30,7 +30,6 @@ use xcm::latest::{Junction, Location};
 pub const PARA_A: AccountId = MockAccount(H160([2; 20]));
 pub const PARA_B: AccountId = MockAccount(H160([2; 20]));
 pub const PARA_C: AccountId = MockAccount(H160([2; 20]));
-
 
 pub type Balance = u128;
 
@@ -224,7 +223,7 @@ impl EnsureOrigin<<Test as frame_system::Config>::RuntimeOrigin> for SiblingOrig
 					} else if account == PARA_C {
 						3
 					} else {
-						return Err(original_origin)
+						return Err(original_origin);
 					};
 					Ok(Location::new(1, [Junction::Parachain(para_id)]))
 				}
@@ -240,12 +239,18 @@ impl EnsureOrigin<<Test as frame_system::Config>::RuntimeOrigin> for SiblingOrig
 	}
 }
 
+pub type ForeignAssetManagerOrigin =
+	EitherOf<MapSuccessToGovernance<EnsureRoot<AccountId>>, MapSuccessToXcm<SiblingOrigin>>;
+
 impl crate::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
 	type ConvertLocation = SiblingAccountOf;
-	type SiblingOrigin = SiblingOrigin;
+	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;
@@ -282,11 +287,6 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
-	}
-
-	pub fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
-		self.balances = balances;
-		self
 	}
 }
 
