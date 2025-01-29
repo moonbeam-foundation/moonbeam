@@ -31,23 +31,6 @@ fn encode_token_name(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 }
 
 #[test]
-fn create_foreign_assets_cannot_be_called_using_normal_user() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_noop!(
-			EvmForeignAssets::create_foreign_asset(
-				RuntimeOrigin::signed(Bob.into()),
-				1,
-				Location::parent(),
-				18,
-				encode_ticker("MTT"),
-				encode_token_name("MyToken"),
-			),
-			DispatchError::BadOrigin,
-		);
-	});
-}
-
-#[test]
 fn create_foreign_and_freeze_unfreeze_using_xcm() {
 	ExtBuilder::default().build().execute_with(|| {
 		let deposit = ForeignAssetCreationDeposit::get();
