@@ -44,7 +44,7 @@ describeSuite({
         ).event;
 
         const newLocation = locationChangeEvent.data[1];
-        const id = locationChangeEvent.data[0];
+        const id = locationChangeEvent.data[1];
 
         expect(JSON.stringify(newLocation).toLowerCase()).to.eq(
           JSON.stringify(PARA_1000_SOURCE_LOCATION_V4).toLowerCase()
