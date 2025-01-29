@@ -538,15 +538,6 @@ pub fn run() -> Result<()> {
 							#[cfg(not(feature = "moonbase-native"))]
 							_ => panic!("invalid chain spec"),
 						}
-					} else if cfg!(feature = "moonbase-runtime-benchmarks") {
-						#[cfg(feature = "moonbase-native")]
-						return runner.sync_run(|config| {
-							cmd.run_with_spec::<HashingFor<moonbeam_service::moonbase_runtime::Block>, HostFunctions>(
-								Some(config.chain_spec),
-							)
-						});
-						#[cfg(not(feature = "moonbase-native"))]
-						panic!("Benchmarking wasn't enabled when building the node.");
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 					You can enable it with `--features runtime-benchmarks`."

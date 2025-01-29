@@ -12,33 +12,50 @@ name = 'moonbeam'
 path = 'src/main.rs'
 
 [dependencies]
-futures = { workspace = true, features = [ "compat" ] }
+futures = { workspace = true, features = ["compat"] }
 
 moonbeam-cli = { workspace = true }
 moonbeam-service = { workspace = true }
 
 [dev-dependencies]
 assert_cmd = { workspace = true }
-hex = { workspace = true, features = [ "std" ] }
+hex = { workspace = true, features = ["std"] }
 nix = { workspace = true }
-serde = { workspace = true, features = [ "derive" ] }
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, default-features = true }
 tempfile = { workspace = true }
 tracing-core = { workspace = true }
 
 # Benchmarking
-pallet-xcm = { workspace = true, features = [ "std" ] }
-xcm-builder = { workspace = true, features = [ "std" ] }
+pallet-xcm = { workspace = true, features = ["std"] }
+xcm-builder = { workspace = true, features = ["std"] }
 
 [features]
-default = [ "moonbase-native", "moonbeam-native", "moonriver-native", "lazy-loading" ]
+default = [
+	"moonbase-native",
+	"moonbeam-native",
+	"moonriver-native",
+	"lazy-loading",
+]
 
-rococo-native = [ "moonbeam-service/rococo-native" ]
-westend-native = [ "moonbeam-cli/westend-native", "moonbeam-service/westend-native" ]
+rococo-native = ["moonbeam-service/rococo-native"]
+westend-native = [
+	"moonbeam-cli/westend-native",
+	"moonbeam-service/westend-native",
+]
 
-moonbase-native = [ "moonbeam-cli/moonbase-native", "moonbeam-service/moonbase-native" ]
-moonbeam-native = [ "moonbeam-cli/moonbeam-native", "moonbeam-service/moonbeam-native" ]
-moonriver-native = [ "moonbeam-cli/moonriver-native", "moonbeam-service/moonriver-native" ]
+moonbase-native = [
+	"moonbeam-cli/moonbase-native",
+	"moonbeam-service/moonbase-native",
+]
+moonbeam-native = [
+	"moonbeam-cli/moonbeam-native",
+	"moonbeam-service/moonbeam-native",
+]
+moonriver-native = [
+	"moonbeam-cli/moonriver-native",
+	"moonbeam-service/moonriver-native",
+]
 
 metadata-hash = ["moonbeam-service/metadata-hash"]
 
@@ -48,12 +65,6 @@ test-spec = []
 
 runtime-benchmarks = [
 	"moonbeam-cli/runtime-benchmarks",
-	"pallet-xcm/runtime-benchmarks",
-	"xcm-builder/runtime-benchmarks",
-]
-
-moonbase-runtime-benchmarks = [
-	"moonbeam-cli/moonbase-runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 ]
