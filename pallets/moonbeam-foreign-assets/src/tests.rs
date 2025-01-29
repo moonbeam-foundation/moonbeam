@@ -17,6 +17,7 @@
 use crate::*;
 use mock::*;
 
+use frame_support::traits::Currency;
 use frame_support::{assert_noop, assert_ok};
 use precompile_utils::testing::Bob;
 use xcm::latest::prelude::*;
@@ -30,7 +31,110 @@ fn encode_token_name(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 }
 
 #[test]
-fn create_foreign_and_freeze_unfreeze() {
+fn create_foreign_assets_cannot_be_called_using_normal_user() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			EvmForeignAssets::create_foreign_asset(
+				RuntimeOrigin::signed(Bob.into()),
+				1,
+				Location::parent(),
+				18,
+				encode_ticker("MTT"),
+				encode_token_name("MyToken"),
+			),
+			DispatchError::BadOrigin,
+		);
+	});
+}
+
+#[test]
+fn create_foreign_and_freeze_unfreeze_using_xcm() {
+	ExtBuilder::default().build().execute_with(|| {
+		let deposit = ForeignAssetCreationDeposit::get();
+
+		Balances::make_free_balance_be(&PARA_A, deposit);
+
+		let parachain_a_location: Location = (Parent, Parachain(1)).into();
+
+		// create foreign asset
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::signed(PARA_A),
+			1,
+			parachain_a_location.clone(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(1),
+			Some(parachain_a_location.clone())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(parachain_a_location.clone()),
+			Some((1, AssetStatus::Active)),
+		);
+		expect_events(vec![Event::ForeignAssetCreated {
+			contract_address: H160([
+				255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+			]),
+			asset_id: 1,
+			xcm_location: parachain_a_location.clone(),
+			deposit: Some(deposit),
+		}]);
+
+		let (xcm_location, asset_id): (Location, u128) = get_asset_created_hook_invocation()
+			.expect("Decoding of invocation data should not fail");
+		assert_eq!(xcm_location, parachain_a_location.clone());
+		assert_eq!(asset_id, 1u128);
+
+		// Check storage
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(&1),
+			Some(parachain_a_location.clone())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&parachain_a_location),
+			Some((1, AssetStatus::Active))
+		);
+
+		// Unfreeze should return AssetNotFrozen error
+		assert_noop!(
+			EvmForeignAssets::unfreeze_foreign_asset(RuntimeOrigin::signed(PARA_A), 1),
+			Error::<Test>::AssetNotFrozen
+		);
+
+		// Freeze should work
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			RuntimeOrigin::signed(PARA_A),
+			1,
+			true
+		),);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&parachain_a_location),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+
+		// Should not be able to freeze an asset already frozen
+		assert_noop!(
+			EvmForeignAssets::freeze_foreign_asset(RuntimeOrigin::signed(PARA_A), 1, true),
+			Error::<Test>::AssetAlreadyFrozen
+		);
+
+		// Unfreeze should work
+		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+			RuntimeOrigin::signed(PARA_A),
+			1
+		),);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&parachain_a_location),
+			Some((1, AssetStatus::Active))
+		);
+	});
+}
+
+#[test]
+fn create_foreign_and_freeze_unfreeze_using_root() {
 	ExtBuilder::default().build().execute_with(|| {
 		// create foreign asset
 		assert_ok!(EvmForeignAssets::create_foreign_asset(

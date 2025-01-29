@@ -182,7 +182,7 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 }
 
 parameter_types! {
-	pub const ForeignAssetCreationDeposit: u128 = 1;
+	pub const ForeignAssetCreationDeposit: u128 = 100;
 }
 
 pub struct SiblingAccountOf;
