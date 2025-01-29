@@ -29,6 +29,8 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod asset_config;
+#[cfg(not(feature = "disable-genesis-builder"))]
+pub mod genesis_config_preset;
 pub mod governance;
 pub mod runtime_params;
 pub mod xcm_config;
@@ -64,10 +66,9 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect},
-		tokens::imbalance::ResolveTo,
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOfDiverse,
-		EqualPrivilegeOnly, FindAuthor, Imbalance, InstanceFilter, LinearStoragePrice, OnFinalize,
+		EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice, OnFinalize,
 		OnUnbalanced,
 	},
 	weights::{
@@ -90,7 +91,6 @@ use pallet_evm::{
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
-use pallet_treasury::TreasuryAccountId;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use runtime_params::*;
 use scale_info::TypeInfo;
@@ -338,52 +338,6 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_balances::WeightInfo<Runtime>;
 }
 
-pub struct DealWithFees<R>(sp_std::marker::PhantomData<R>);
-impl<R> OnUnbalanced<Credit<R::AccountId, pallet_balances::Pallet<R>>> for DealWithFees<R>
-where
-	R: pallet_balances::Config + pallet_treasury::Config,
-{
-	// this seems to be called for substrate-based transactions
-	fn on_unbalanceds(
-		mut fees_then_tips: impl Iterator<Item = Credit<R::AccountId, pallet_balances::Pallet<R>>>,
-	) {
-		if let Some(fees) = fees_then_tips.next() {
-			let treasury_proportion =
-				runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-			let treasury_part = treasury_proportion.deconstruct();
-			let burn_part = Perbill::one().deconstruct() - treasury_part;
-			let (_, to_treasury) = fees.ration(burn_part, treasury_part);
-			// Balances pallet automatically burns dropped Credits by decreasing
-			// total_supply accordingly
-			ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
-				to_treasury,
-			);
-
-			// handle tip if there is one
-			if let Some(tip) = fees_then_tips.next() {
-				// for now we use the same burn/treasury strategy used for regular fees
-				let (_, to_treasury) = tip.ration(burn_part, treasury_part);
-				ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(
-					to_treasury,
-				);
-			}
-		}
-	}
-
-	// this is called from pallet_evm for Ethereum-based transactions
-	// (technically, it calls on_unbalanced, which calls this when non-zero)
-	fn on_nonzero_unbalanced(amount: Credit<R::AccountId, pallet_balances::Pallet<R>>) {
-		// Balances pallet automatically burns dropped Credits by decreasing
-		// total_supply accordingly
-		let treasury_proportion =
-			runtime_params::dynamic_params::runtime_config::FeesTreasuryProportion::get();
-		let treasury_part = treasury_proportion.deconstruct();
-		let burn_part = Perbill::one().deconstruct() - treasury_part;
-		let (_, to_treasury) = amount.ration(burn_part, treasury_part);
-		ResolveTo::<TreasuryAccountId<R>, pallet_balances::Pallet<R>>::on_unbalanced(to_treasury);
-	}
-}
-
 pub struct LengthToFee;
 impl WeightToFeePolynomial for LengthToFee {
 	type Balance = Balance;
@@ -408,7 +362,13 @@ impl WeightToFeePolynomial for LengthToFee {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = FungibleAdapter<Balances, DealWithFees<Runtime>>;
+	type OnChargeTransaction = FungibleAdapter<
+		Balances,
+		DealWithSubstrateFeesAndTip<
+			Runtime,
+			dynamic_params::runtime_config::FeesTreasuryProportion,
+		>,
+	>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
 	type LengthToFee = LengthToFee;
@@ -542,7 +502,10 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = MoonbasePrecompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = EthereumChainId;
-	type OnChargeTransaction = OnChargeEVMTransaction<DealWithFees<Runtime>>;
+	type OnChargeTransaction = OnChargeEVMTransaction<
+		DealWithEthereumBaseFees<Runtime, dynamic_params::runtime_config::FeesTreasuryProportion>,
+		DealWithEthereumPriorityFees<Runtime>,
+	>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AccountId20, H160, AuthorInherent>;
 	type OnCreate = ();
@@ -597,9 +560,10 @@ parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub TreasuryAccount: AccountId = Treasury::account_id();
+	pub const MaxSpendBalance: crate::Balance = crate::Balance::max_value();
 }
 
-type TreasuryRejectOrigin = EitherOfDiverse<
+type RootOrTreasuryCouncilOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
 >;
@@ -608,7 +572,7 @@ impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
 	// More than half of the council is required (or root) to reject a proposal
-	type RejectOrigin = TreasuryRejectOrigin;
+	type RejectOrigin = RootOrTreasuryCouncilOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type SpendPeriod = ConstU32<{ 6 * DAYS }>;
 	type Burn = ();
@@ -616,11 +580,8 @@ impl pallet_treasury::Config for Runtime {
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = moonbase_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
-	#[cfg(not(feature = "runtime-benchmarks"))]
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
-	#[cfg(feature = "runtime-benchmarks")]
 	type SpendOrigin =
-		frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, benches::MaxBalance>;
+		frame_system::EnsureWithSuccess<RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
@@ -1011,7 +972,6 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 					&& match PrecompileName::from_address(call.to.0) {
 						Some(
 							PrecompileName::AuthorMappingPrecompile
-							| PrecompileName::IdentityPrecompile
 							| PrecompileName::ParachainStakingPrecompile,
 						) => true,
 						Some(ref precompile) if is_governance_precompile(precompile) => true,
@@ -1064,26 +1024,28 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer => {
-				matches!(
-					c,
-					RuntimeCall::System(..)
-						| RuntimeCall::ParachainSystem(..)
-						| RuntimeCall::Timestamp(..)
-						| RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::Referenda(..)
-						| RuntimeCall::Preimage(..)
-						| RuntimeCall::ConvictionVoting(..)
-						| RuntimeCall::TreasuryCouncilCollective(..)
-						| RuntimeCall::OpenTechCommitteeCollective(..)
-						| RuntimeCall::Identity(..)
-						| RuntimeCall::Utility(..)
-						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
-						| RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::claim { .. }
-						)
-				)
-			}
+			ProxyType::NonTransfer => match c {
+				RuntimeCall::Identity(
+					pallet_identity::Call::add_sub { .. } | pallet_identity::Call::set_subs { .. },
+				) => false,
+				call => {
+					matches!(
+						call,
+						RuntimeCall::System(..)
+							| RuntimeCall::ParachainSystem(..)
+							| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
+							| RuntimeCall::Referenda(..) | RuntimeCall::Preimage(..)
+							| RuntimeCall::ConvictionVoting(..)
+							| RuntimeCall::TreasuryCouncilCollective(..)
+							| RuntimeCall::OpenTechCommitteeCollective(..)
+							| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
+							| RuntimeCall::Identity(..) | RuntimeCall::AuthorMapping(..)
+							| RuntimeCall::CrowdloanRewards(
+								pallet_crowdloan_rewards::Call::claim { .. }
+							)
+					)
+				}
+			},
 			ProxyType::Governance => matches!(
 				c,
 				RuntimeCall::Referenda(..)
@@ -1229,12 +1191,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
-			RuntimeCall::Treasury(
-				pallet_treasury::Call::spend { .. }
-				| pallet_treasury::Call::payout { .. }
-				| pallet_treasury::Call::check_status { .. }
-				| pallet_treasury::Call::void_spend { .. },
-			) => false,
 			_ => true,
 		}
 	}
@@ -1496,6 +1452,10 @@ pub type Executive = frame_executive::Executive<
 
 #[cfg(feature = "runtime-benchmarks")]
 use moonbeam_runtime_common::benchmarking::BenchmarkHelper;
+use moonbeam_runtime_common::deal_with_fees::{
+	DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
+};
+
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_support::parameter_types! {

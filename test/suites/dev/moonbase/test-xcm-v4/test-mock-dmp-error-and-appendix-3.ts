@@ -54,7 +54,7 @@ describeSuite({
           .buy_execution()
           // Set an appendix to be executed after the XCM message is executed. No matter if errors
           .with(function () {
-            return this.set_appendix_with([this.deposit_asset_v3]);
+            return this.set_appendix_with([this.deposit_asset]);
           })
           .as_v4();
 

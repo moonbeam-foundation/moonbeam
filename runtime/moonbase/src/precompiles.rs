@@ -20,7 +20,9 @@ use crate::{
 	xcm_config::{AssetType, XcmExecutorConfig},
 	OpenTechCommitteeInstance, TreasuryCouncilInstance,
 };
-use crate::{AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, Runtime, H160};
+use crate::{
+	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160,
+};
 use frame_support::parameter_types;
 use moonkit_xcm_primitives::{
 	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
@@ -113,7 +115,10 @@ type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, Callab
 
 // Pallet-xcm precompile types.
 // Type that converts AssetId into Location
-type AssetIdToLocationManager = AsAssetType<AssetId, AssetType, AssetManager>;
+type AssetIdToLocationManager = (
+	AsAssetType<AssetId, AssetType, AssetManager>,
+	EvmForeignAssets,
+);
 
 // The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
 type SingleAddressMatch = SingleAddressMatcher<AccountId, ERC20_BALANCES_PRECOMPILE, Balances>;
@@ -280,7 +285,11 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2074>,
 		PalletXcmPrecompile<R, (SingleAddressMatch, ForeignAssetMatch, Erc20Match)>,
-		(CallableByContract, CallableByPrecompile),
+		(
+			CallableByContract,
+			CallableByPrecompile,
+			SubcallWithMaxNesting<1>,
+		),
 	>,
 	PrecompileAt<AddressU64<2075>, ForeignAssetMigratorPrecompile<R>, ()>,
 );

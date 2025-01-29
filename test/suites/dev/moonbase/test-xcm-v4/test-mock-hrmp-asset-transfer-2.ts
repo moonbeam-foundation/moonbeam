@@ -89,7 +89,7 @@ describeSuite({
           .reserve_asset_deposited()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3()
+          .deposit_asset()
           .as_v4();
 
         // Send an XCM and create block to execute it

@@ -159,7 +159,7 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3(2n)
+          .deposit_asset(2n)
           .as_v3();
 
         // Mock the reception of the xcm message
@@ -258,7 +258,7 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3(2n)
+          .deposit_asset(2n)
           .as_v3();
 
         // Mock the reception of the xcm message

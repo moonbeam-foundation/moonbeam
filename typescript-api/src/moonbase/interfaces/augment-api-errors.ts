@@ -682,10 +682,6 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       ContractNotExist: AugmentedError<ApiType>;
       /**
-       * The key lengths exceeds the maximum allowed
-       **/
-      KeyTooLong: AugmentedError<ApiType>;
-      /**
        * The limit cannot be zero
        **/
       LimitCannotBeZero: AugmentedError<ApiType>;
@@ -1091,10 +1087,6 @@ declare module "@polkadot/api-base/types/errors" {
        * Preimage has already been noted on-chain.
        **/
       AlreadyNoted: AugmentedError<ApiType>;
-      /**
-       * No ticket with a cost was returned by [`Config::Consideration`] to store the preimage.
-       **/
-      NoCost: AugmentedError<ApiType>;
       /**
        * The user is not authorized to perform this action.
        **/

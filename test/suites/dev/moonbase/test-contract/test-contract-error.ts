@@ -6,7 +6,12 @@ import {
   describeSuite,
   expect,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
+import {
+  CHARLETH_PRIVATE_KEY,
+  CHARLETH_ADDRESS,
+  createEthersTransaction,
+  ALITH_ADDRESS,
+} from "@moonwall/util";
 import { encodeFunctionData, type Abi } from "viem";
 import { verifyLatestBlockFees } from "../../../../helpers";
 
@@ -31,10 +36,10 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) + 1}`,
         title: `"should return OutOfGas on inifinite loop ${txnType} call`,
         test: async function () {
-          expect(
+          await expect(
             async () =>
               await context.viem().call({
-                account: ALITH_ADDRESS,
+                account: CHARLETH_ADDRESS,
                 to: looperAddress,
                 data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
                 gas: 12_000_000n,
@@ -45,16 +50,25 @@ describeSuite({
       });
 
       it({
-        id: `T0${TransactionTypes.indexOf(txnType) * 2 + 1}`,
+        id: `T0${TransactionTypes.indexOf(txnType) + 1 + TransactionTypes.length}`,
         title: `should fail with OutOfGas on infinite loop ${txnType} transaction`,
         test: async function () {
+          const nonce = await context.viem().getTransactionCount({ address: CHARLETH_ADDRESS });
+
           const rawSigned = await createEthersTransaction(context, {
             to: looperAddress,
             data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
             txnType,
+            nonce,
+            privateKey: CHARLETH_PRIVATE_KEY,
           });
 
-          const { result } = await context.createBlock(rawSigned);
+          const { result } = await context.createBlock(rawSigned, {
+            signer: { type: "ethereum", privateKey: CHARLETH_PRIVATE_KEY },
+          });
+
+          expect(result.successful).to.be.true;
+
           const receipt = await context
             .viem("public")
             .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
@@ -63,16 +77,24 @@ describeSuite({
       });
 
       it({
-        id: `T0${TransactionTypes.indexOf(txnType) * 3 + 1}`,
+        id: `T0${TransactionTypes.indexOf(txnType) + 1 + TransactionTypes.length * 2}`,
         title: `should fail with OutOfGas on infinite loop ${txnType} transaction - check fees`,
         test: async function () {
+          const nonce = await context.viem().getTransactionCount({ address: CHARLETH_ADDRESS });
+
           const rawSigned = await createEthersTransaction(context, {
             to: looperAddress,
             data: encodeFunctionData({ abi: looperAbi, functionName: "infinite", args: [] }),
             txnType,
+            nonce,
+            privateKey: CHARLETH_PRIVATE_KEY,
           });
 
-          await context.createBlock(rawSigned);
+          const { result } = await context.createBlock(rawSigned, {
+            signer: { type: "ethereum", privateKey: CHARLETH_PRIVATE_KEY },
+          });
+
+          expect(result.successful).to.be.true;
           await verifyLatestBlockFees(context);
         },
       });

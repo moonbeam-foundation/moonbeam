@@ -7,7 +7,7 @@ const CHAINS = ["moonbase", "moonriver", "moonbeam"];
 const fetchMetadata = async (port = 9933) => {
   const maxRetries = 60;
   const sleepTime = 500;
-  const url = `http://localhost:${port}`;
+  const url = `http://127.0.0.1:${port}`;
   const payload = {
     id: "1",
     jsonrpc: "2.0",
@@ -75,7 +75,7 @@ async function main() {
       const metadata = await fetchMetadata();
       fs.writeFileSync(`metadata-${chain}.json`, JSON.stringify(metadata, null, 2));
       console.log(`✅ Metadata for ${chain} written to metadata-${chain}.json`);
-      nodes[chain].kill();
+      nodes[chain]?.kill();
       await new Promise((resolve) => setTimeout(resolve, 2000));
     } catch (error) {
       console.error(`❌ Error getting metadata for ${chain}`);
@@ -86,7 +86,7 @@ async function main() {
 
 process.on("SIGINT", () => {
   for (const chain of CHAINS) {
-    nodes[chain].kill();
+    nodes[chain]?.kill();
   }
   process.exit();
 });
@@ -98,6 +98,6 @@ main()
   })
   .finally(() => {
     for (const chain of CHAINS) {
-      nodes[chain].kill();
+      nodes[chain]?.kill();
     }
   });
