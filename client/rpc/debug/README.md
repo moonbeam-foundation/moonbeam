@@ -1,8 +1,8 @@
-A port crate of some of the tracing related rpc requests from the go-ethereum [debug namespace](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-debug). Includes `debug_traceTransaction`, `debug_traceBlockByNumber` and `debug_traceBlockByHash`.
+A port crate of some of the tracing-related rpc requests from the go-ethereum [debug namespace](https://geth.ethereum.org/docs/interacting-with-geth/rpc/ns-debug). Includes `debug_traceTransaction`, `debug_traceBlockByNumber` and `debug_traceBlockByHash`.
 
 ## How tracing works in Moonbeam
 
-Runtime wasms compiled with the `tracing` evm feature will emit events related to entering/exiting substates or opcode execution. This events are used by developers or indexer services to get a granular view on an evm transaction.
+Runtime wasms compiled with the `tracing` evm feature will emit events related to entering/exiting substates or opcode execution. These events are used by developers or indexer services to get a granular view on an evm transaction.
 
 Tracing wasms for each moonbeam/river/base runtime versions live at `moonbeam-runtime-overrides` repository in github.
 
