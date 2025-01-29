@@ -463,5 +463,3 @@ try-runtime = [
 	"pallet-async-backing/try-runtime",
 	"pallet-precompile-benchmarks/try-runtime",
 ]
-
-moonbase-runtime-benchmarks = []
