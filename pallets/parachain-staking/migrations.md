@@ -15,7 +15,7 @@
 ## Increase max delegations per candidate
 
 - [Migration PR `#1096`](https://github.com/moonbeam-foundation/moonbeam/pull/1096)
-- [Migratio bugfix `#1112`](https://github.com/moonbeam-foundation/moonbeam/pull/1112)
+- [Migration bugfix `#1112`](https://github.com/moonbeam-foundation/moonbeam/pull/1112)
 
 ## Manual Exits and Patch Lack of Delay for bond\_{more, less}
 
