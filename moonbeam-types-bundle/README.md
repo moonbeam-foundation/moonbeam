@@ -1,6 +1,6 @@
 # Moonbeam Types Bundle
 
-Exports npm package `moonbeam-types-bundle`, formated as per polkadot-js specification to use
+Exports npm package `moonbeam-types-bundle`, formatted as per polkadot-js specification to use
 with the app or the API.
 
 ## ⚠️Warning: Types deprecation⚠️
