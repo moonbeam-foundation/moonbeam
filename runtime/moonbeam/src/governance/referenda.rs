@@ -51,7 +51,8 @@ parameter_types! {
 // Origin for general admin or root
 pub type GeneralAdminOrRoot = EitherOf<EnsureRoot<AccountId>, origins::GeneralAdmin>;
 // The policy allows for Root or FastGeneralAdmin.
-pub type FastGeneralAdminOrRoot = EitherOf<EnsureRoot<AccountId>, origins::FastGeneralAdmin>;
+pub type FastGeneralAdminOrRoot =
+	EitherOf<EnsureRoot<AccountId>, EitherOf<origins::GeneralAdmin, origins::FastGeneralAdmin>>;
 
 impl custom_origins::Config for Runtime {}
 
