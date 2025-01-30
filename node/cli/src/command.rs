@@ -149,21 +149,6 @@ impl SubstrateCli for Cli {
 	}
 }
 
-impl Cli {
-	fn runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
-		match spec {
-			#[cfg(feature = "moonriver-native")]
-			spec if spec.is_moonriver() => return &moonbeam_service::moonriver_runtime::VERSION,
-			#[cfg(feature = "moonbeam-native")]
-			spec if spec.is_moonbeam() => return &moonbeam_service::moonbeam_runtime::VERSION,
-			#[cfg(feature = "moonbase-native")]
-			_ => return &moonbeam_service::moonbase_runtime::VERSION,
-			#[cfg(not(feature = "moonbase-native"))]
-			_ => panic!("invalid chain spec"),
-		}
-	}
-}
-
 impl SubstrateCli for RelayChainCli {
 	fn impl_name() -> String {
 		"Moonbeam Parachain Collator".into()
