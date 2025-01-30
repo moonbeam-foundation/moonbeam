@@ -67,5 +67,3 @@ runtime-benchmarks = [
     "moonbeam-service/runtime-benchmarks",
     "polkadot-service/runtime-benchmarks",
 ]
-
-moonbase-runtime-benchmarks = ["moonbeam-service/moonbase-runtime-benchmarks"]

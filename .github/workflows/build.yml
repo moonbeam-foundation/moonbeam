@@ -297,6 +297,7 @@ jobs:
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       pull-requests: write
     if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
@@ -317,24 +318,47 @@ jobs:
       - name: Download Twiggy
         run: cargo install twiggy
       - name: Lookup for latest target branch build
+        id: latest-target-build
         run: |
           TARGET_BRANCH=${{ github.event.pull_request.base.ref }}
           LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$TARGET_BRANCH\" and .event == \"push\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
           echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
-      - name: Download latest target branch build artifacts
+      - name: "Download runtimes from target branch"
+        uses: actions/download-artifact@v4
+        with:
+          name: runtimes
+          path: runtimes-target-branch
+          merge-multiple: true
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
+      - name: "Download uncompressed-runtimes from target branch"
+        uses: actions/download-artifact@v4
+        with:
+          name: uncompressed-runtimes
+          path: uncompressed-runtimes-target-branch
+          merge-multiple: true
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
+      - name: Check Runtimes size for target branch
         run: |
-          gh run -R moonbeam-foundation/moonbeam download $LATEST_TARGET_BRANCH_BUILD -n uncompressed-runtimes --dir uncompressed-runtimes-target-branch
-          gh run -R moonbeam-foundation/moonbeam download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
+          PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
+          PREVIOUS_MOONBEAM=$(du -k runtimes-target-branch/* | awk '/moonbeam_runtime/ {print $1}')
+          PREVIOUS_MOONRIVER=$(du -k runtimes-target-branch/* | awk '/moonriver_runtime/ {print $1}')
+          echo "PREVIOUS_MOONBASE=$PREVIOUS_MOONBASE" >> $GITHUB_ENV
+          echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
+          echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
       - name: "Download branch built runtime"
         uses: actions/download-artifact@v4
         with:
           name: runtimes
           path: runtimes-current-branch
+          merge-multiple: true
       - name: "Download branch built uncompressed-runtimes"
         uses: actions/download-artifact@v4
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-current-branch
+          merge-multiple: true
       - name: Check Runtimes size for current branch
         run: |
           CURRENT_MOONBASE=$(du -k runtimes-current-branch/* | awk '/moonbase_runtime/ {print $1}')
@@ -360,14 +384,6 @@ jobs:
           echo "LATEST_MOONBASE=$LATEST_MOONBASE" >> $GITHUB_ENV
           echo "LATEST_MOONBEAM=$LATEST_MOONBEAM" >> $GITHUB_ENV
           echo "LATEST_MOONRIVER=$LATEST_MOONRIVER" >> $GITHUB_ENV
-      - name: Check Runtimes size for target branch
-        run: |
-          PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
-          PREVIOUS_MOONBEAM=$(du -k runtimes-target-branch/* | awk '/moonbeam_runtime/ {print $1}')
-          PREVIOUS_MOONRIVER=$(du -k runtimes-target-branch/* | awk '/moonriver_runtime/ {print $1}')
-          echo "PREVIOUS_MOONBASE=$PREVIOUS_MOONBASE" >> $GITHUB_ENV
-          echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
-          echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
       - name: Create Twiggy diff reports
         run: |
           # Install Twiggy if not already installed
@@ -470,6 +486,7 @@ jobs:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
+      SCCACHE_GHA_ENABLED: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -662,59 +679,6 @@ jobs:
           pnpm compile-solidity
           pnpm moonwall test dev_moonbase_tracing
 
-  docker-moonbeam:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists == 'false' && !github.event.pull_request.head.repo.fork }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: moonbeam
-          path: build
-      - name: Prepare
-        id: prep
-        run: |
-          DOCKER_IMAGE=moonbeamfoundation/moonbeam
-          TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
-          echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.8.0
-        with:
-          version: latest
-          driver-opts: |
-            image=moby/buildkit:master
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
-      - name: Build and push moonbeam
-        id: docker_build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/moonbeam.Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.prep.outputs.tags }}
-          labels: |
-            org.opencontainers.image.title=${{ github.event.repository.name }}
-            org.opencontainers.image.description=${{ github.event.repository.description }}
-            org.opencontainers.image.url=${{ github.event.repository.html_url }}
-            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
-
   lazy-loading-tests:
     runs-on:
       labels: bare-metal
@@ -863,13 +827,9 @@ jobs:
           path: target/release
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
-          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
-          DOCKER_TAG="moonbeamfoundation/moonbeam:sha-$MOONBEAM_COMMIT"
-
-          docker rm -f moonbeam_container 2> /dev/null | true
-          docker create --name moonbeam_container $DOCKER_TAG bash
-          docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
-          docker rm -f moonbeam_container
+          LATEST_CLIENT=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("v";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]')
+          echo "Latest client: $LATEST_CLIENT"
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$LATEST_CLIENT/moonbeam -O test/tmp/moonbeam_rt
       - name: Prepare Chainspecs
         run: |
           cd test
