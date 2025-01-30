@@ -17,13 +17,13 @@
 //! XCM configuration for Moonbase.
 //!
 
+use super::moonbase_weights;
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
 	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
 	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
 	RuntimeOrigin, Treasury, XcmpQueue,
 };
-use super::{moonbase_weights, runtime_params};
 use crate::OpenTechCommitteeInstance;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
