@@ -28,7 +28,6 @@ $MOONBEAM_BINARY export-genesis-wasm \
 echo $ALPHANET_WASM generated
 
 $MOONBEAM_BINARY export-genesis-state \
-  --parachain-id $ALPHANET_PARACHAIN_ID \
   --chain $ALPHANET_PARACHAIN_SPEC_RAW \
   > $ALPHANET_GENESIS;
 echo $ALPHANET_GENESIS generated
