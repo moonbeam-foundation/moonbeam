@@ -30,14 +30,15 @@ use moonbeam_service::moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 use moonbeam_service::moonriver_runtime;
 
-use moonbeam_service::{chain_spec, frontier_database_dir, HostFunctions, IdentifyVariant};
+use moonbeam_service::{chain_spec, frontier_database_dir, Block, HostFunctions, IdentifyVariant};
 use parity_scale_codec::Encode;
 #[cfg(feature = "westend-native")]
 use polkadot_service::WestendChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
-	NetworkParams, Result, RpcEndpoint, RuntimeVersion, SharedParams, SubstrateCli,
+	NetworkParams, Result, RpcEndpoint, SharedParams, SubstrateCli,
 };
+use sc_executor::WasmtimeInstantiationStrategy;
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
 	DatabaseSource, PartialComponents,
@@ -145,21 +146,6 @@ impl SubstrateCli for Cli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		load_spec(id, self.run.parachain_id.unwrap_or(1000).into(), &self.run)
-	}
-}
-
-impl Cli {
-	fn runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
-		match spec {
-			#[cfg(feature = "moonriver-native")]
-			spec if spec.is_moonriver() => return &moonbeam_service::moonriver_runtime::VERSION,
-			#[cfg(feature = "moonbeam-native")]
-			spec if spec.is_moonbeam() => return &moonbeam_service::moonbeam_runtime::VERSION,
-			#[cfg(feature = "moonbase-native")]
-			_ => return &moonbeam_service::moonbase_runtime::VERSION,
-			#[cfg(not(feature = "moonbase-native"))]
-			_ => panic!("invalid chain spec"),
-		}
 	}
 }
 
@@ -419,17 +405,25 @@ pub fn run() -> Result<()> {
 			}
 		}
 		Some(Subcommand::ExportGenesisHead(params)) => {
+			let runner = cli.create_runner(params)?;
+			let chain_spec = runner.config().chain_spec.cloned_box();
+
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
-			// Cumulus approach here, we directly call the generic load_spec func
-			let chain_spec = load_spec(
-				params.chain.as_deref().unwrap_or_default(),
-				params.parachain_id.unwrap_or(1000).into(),
-				&cli.run,
-			)?;
-			let state_version = Cli::runtime_version(&chain_spec).state_version();
+			let storage = chain_spec.build_storage()?;
+			let executor = sc_executor::WasmExecutor::<HostFunctions>::builder()
+				.with_execution_method(sc_executor::WasmExecutionMethod::Compiled {
+					instantiation_strategy: WasmtimeInstantiationStrategy::PoolingCopyOnWrite,
+				})
+				.with_max_runtime_instances(1024)
+				.build();
+
+			let state_version = sc_chain_spec::resolve_state_version_from_wasm::<
+				_,
+				HashingFor<Block>,
+			>(&storage, &executor)?;
 
 			let output_buf = match chain_spec {
 				#[cfg(feature = "moonriver-native")]
