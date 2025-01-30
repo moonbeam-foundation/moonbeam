@@ -37,13 +37,13 @@ fn create_foreign_and_freeze_unfreeze_using_xcm() {
 
 		Balances::make_free_balance_be(&PARA_A, deposit);
 
-		let parachain_a_location: Location = (Parent, Parachain(1)).into();
+		let asset_location: Location = (Parent, Parachain(1), PalletInstance(13)).into();
 
 		// create foreign asset
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			RuntimeOrigin::signed(PARA_A),
 			1,
-			parachain_a_location.clone(),
+			asset_location.clone(),
 			18,
 			encode_ticker("MTT"),
 			encode_token_name("Mytoken"),
@@ -51,10 +51,10 @@ fn create_foreign_and_freeze_unfreeze_using_xcm() {
 
 		assert_eq!(
 			EvmForeignAssets::assets_by_id(1),
-			Some(parachain_a_location.clone())
+			Some(asset_location.clone())
 		);
 		assert_eq!(
-			EvmForeignAssets::assets_by_location(parachain_a_location.clone()),
+			EvmForeignAssets::assets_by_location(asset_location.clone()),
 			Some((1, AssetStatus::Active)),
 		);
 		expect_events(vec![Event::ForeignAssetCreated {
@@ -62,22 +62,22 @@ fn create_foreign_and_freeze_unfreeze_using_xcm() {
 				255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 			]),
 			asset_id: 1,
-			xcm_location: parachain_a_location.clone(),
+			xcm_location: asset_location.clone(),
 			deposit: Some(deposit),
 		}]);
 
 		let (xcm_location, asset_id): (Location, u128) = get_asset_created_hook_invocation()
 			.expect("Decoding of invocation data should not fail");
-		assert_eq!(xcm_location, parachain_a_location.clone());
+		assert_eq!(xcm_location, asset_location.clone());
 		assert_eq!(asset_id, 1u128);
 
 		// Check storage
 		assert_eq!(
 			EvmForeignAssets::assets_by_id(&1),
-			Some(parachain_a_location.clone())
+			Some(asset_location.clone())
 		);
 		assert_eq!(
-			EvmForeignAssets::assets_by_location(&parachain_a_location),
+			EvmForeignAssets::assets_by_location(&asset_location),
 			Some((1, AssetStatus::Active))
 		);
 
@@ -94,7 +94,7 @@ fn create_foreign_and_freeze_unfreeze_using_xcm() {
 			true
 		),);
 		assert_eq!(
-			EvmForeignAssets::assets_by_location(&parachain_a_location),
+			EvmForeignAssets::assets_by_location(&asset_location),
 			Some((1, AssetStatus::FrozenXcmDepositAllowed))
 		);
 
@@ -110,7 +110,7 @@ fn create_foreign_and_freeze_unfreeze_using_xcm() {
 			1
 		),);
 		assert_eq!(
-			EvmForeignAssets::assets_by_location(&parachain_a_location),
+			EvmForeignAssets::assets_by_location(&asset_location),
 			Some((1, AssetStatus::Active))
 		);
 	});
@@ -340,5 +340,85 @@ fn test_location_already_exist_error() {
 			EvmForeignAssets::change_xcm_location(RuntimeOrigin::root(), 2, Location::parent()),
 			Error::<Test>::LocationAlreadyExists
 		);
+	});
+}
+
+#[test]
+fn test_governance_can_change_any_asset_location() {
+	ExtBuilder::default().build().execute_with(|| {
+		let deposit = ForeignAssetCreationDeposit::get();
+
+		Balances::make_free_balance_be(&PARA_C, deposit + 10);
+
+		let asset_location: Location = (Parent, Parachain(3), PalletInstance(22)).into();
+		let asset_id = 5;
+
+		// create foreign asset using para c
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::signed(PARA_C),
+			asset_id,
+			asset_location.clone(),
+			10,
+			encode_ticker("PARC"),
+			encode_token_name("Parachain C Token"),
+		));
+
+		assert_eq!(Balances::free_balance(&PARA_C), 10);
+
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(asset_id),
+			Some(asset_location.clone())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(asset_location),
+			Some((asset_id, AssetStatus::Active)),
+		);
+
+		// This asset doesn't belong to PARA A, so it should not be able to change the location
+		assert_noop!(
+			EvmForeignAssets::freeze_foreign_asset(RuntimeOrigin::signed(PARA_A), asset_id, true),
+			Error::<Test>::LocationOutsideOfOrigin,
+		);
+
+		let new_asset_location: Location = (Parent, Parachain(1), PalletInstance(1)).into();
+
+		// Also PARA A cannot change the location
+		assert_noop!(
+			EvmForeignAssets::change_xcm_location(
+				RuntimeOrigin::signed(PARA_A),
+				asset_id,
+				new_asset_location.clone(),
+			),
+			Error::<Test>::LocationOutsideOfOrigin,
+		);
+
+		// Change location using root, now PARA A can control this asset
+		assert_ok!(EvmForeignAssets::change_xcm_location(
+			RuntimeOrigin::root(),
+			asset_id,
+			new_asset_location.clone(),
+		));
+
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(asset_id),
+			Some(new_asset_location.clone())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(new_asset_location),
+			Some((asset_id, AssetStatus::Active)),
+		);
+
+		// Freeze will not work since this asset has been moved from PARA C to PARA A
+		assert_noop!(
+			EvmForeignAssets::freeze_foreign_asset(RuntimeOrigin::signed(PARA_C), asset_id, true),
+			Error::<Test>::LocationOutsideOfOrigin,
+		);
+
+		// But if we try using PARA A, it should work
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			RuntimeOrigin::signed(PARA_A),
+			asset_id,
+			true
+		));
 	});
 }

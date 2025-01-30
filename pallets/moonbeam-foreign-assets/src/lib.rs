@@ -251,7 +251,6 @@ pub mod pallet {
 		EvmInternalError,
 		/// Account has insufficient balance for locking
 		InsufficientBalance,
-		OriginIsNotAssetCreator,
 		CannotConvertLocationToAccount,
 		LocationOutsideOfOrigin,
 		AssetNotInSiblingPara,

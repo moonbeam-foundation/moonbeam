@@ -27,9 +27,9 @@ use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
 use xcm::latest::{Junction, Location};
 
-pub const PARA_A: AccountId = MockAccount(H160([2; 20]));
-pub const PARA_B: AccountId = MockAccount(H160([2; 20]));
-pub const PARA_C: AccountId = MockAccount(H160([2; 20]));
+pub const PARA_A: AccountId = MockAccount(H160([101; 20]));
+pub const PARA_B: AccountId = MockAccount(H160([102; 20]));
+pub const PARA_C: AccountId = MockAccount(H160([103; 20]));
 
 pub type Balance = u128;
 
