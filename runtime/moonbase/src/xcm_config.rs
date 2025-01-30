@@ -67,6 +67,7 @@ use xcm_primitives::{
 };
 
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
+use crate::runtime_params::dynamic_params;
 use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
@@ -698,13 +699,6 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	}
 }
 
-parameter_types! {
-	/// Balance in the native currency that will be reserved from the user
-	/// to create a new foreign asset
-	pub ForeignAssetCreationDeposit: u128 =
-		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
-}
-
 pub type ForeignAssetManagerOrigin = EitherOf<
 	MapSuccessToXcm<EnsureXcm<AllowSiblingsOnly>>,
 	MapSuccessToGovernance<
@@ -738,7 +732,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
-	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
+	type ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
 	type Balance = Balance;
 	type Currency = Balances;
 }
