@@ -36,7 +36,7 @@ use parity_scale_codec::Encode;
 use polkadot_service::WestendChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
-	NetworkParams, Result, RpcEndpoint, RuntimeVersion, SharedParams, SubstrateCli,
+	NetworkParams, Result, RpcEndpoint, SharedParams, SubstrateCli,
 };
 use sc_executor::WasmtimeInstantiationStrategy;
 use sc_service::{
