@@ -49,7 +49,7 @@ fn validate_url(arg: &str) -> Result<Url, String> {
 pub enum Subcommand {
 	/// Export the genesis state of the parachain.
 	#[clap(name = "export-genesis-state")]
-	ExportGenesisHead(ExportGenesisHeadCommand),
+	ExportGenesisHead(cumulus_client_cli::ExportGenesisHeadCommand),
 
 	/// Export the genesis wasm of the parachain.
 	#[clap(name = "export-genesis-wasm")]
@@ -106,26 +106,6 @@ pub struct BuildSpecCommand {
 	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
 	#[clap(long, conflicts_with = "chain")]
 	pub mnemonic: Option<String>,
-}
-
-/// Command for exporting the genesis state of the parachain
-#[derive(Debug, Parser)]
-pub struct ExportGenesisHeadCommand {
-	/// Output file name or stdout if unspecified.
-	#[clap(value_parser)]
-	pub output: Option<PathBuf>,
-
-	/// Id of the parachain this state is for.
-	#[clap(long)]
-	pub parachain_id: Option<u32>,
-
-	/// Write output in binary. Default is to write in hex.
-	#[clap(short, long)]
-	pub raw: bool,
-
-	/// The name of the chain for that the genesis state should be exported.
-	#[clap(long)]
-	pub chain: Option<String>,
 }
 
 /// Command for exporting the genesis wasm file.

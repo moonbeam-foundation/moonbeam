@@ -419,16 +419,13 @@ pub fn run() -> Result<()> {
 			}
 		}
 		Some(Subcommand::ExportGenesisHead(params)) => {
+			let runner = cli.create_runner(params)?;
+			let chain_spec = (runner.config().chain_spec).cloned_box();
+
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
-			// Cumulus approach here, we directly call the generic load_spec func
-			let chain_spec = load_spec(
-				params.chain.as_deref().unwrap_or_default(),
-				params.parachain_id.unwrap_or(1000).into(),
-				&cli.run,
-			)?;
 			let state_version = Cli::runtime_version(&chain_spec).state_version();
 
 			let output_buf = match chain_spec {
