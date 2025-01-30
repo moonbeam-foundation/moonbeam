@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment/moonbase";
-import "@polkadot/api-augment";
 import type { ApiDecoration } from "@polkadot/api/types";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { hexToBigInt, u8aConcat, u8aToHex } from "@polkadot/util";

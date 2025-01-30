@@ -22,7 +22,7 @@ import type {
   u32,
   u64
 } from "@polkadot/types-codec";
-import type { AnyNumber, Codec } from "@polkadot/types-codec/types";
+import type { AnyNumber, Codec, ITuple } from "@polkadot/types-codec/types";
 import type { ExtrinsicOrHash, ExtrinsicStatus } from "@polkadot/types/interfaces/author";
 import type { EpochAuthorship } from "@polkadot/types/interfaces/babe";
 import type { BeefyVersionedFinalityProof } from "@polkadot/types/interfaces/beefy";
@@ -763,9 +763,9 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
     };
     moon: {
       /**
-       * Returns the latest synced block from frontier's backend
+       * Returns the range of blocks that are fully indexed in frontier's backend.
        **/
-      getLatestSyncedBlock: AugmentedRpc<() => Observable<u32>>;
+      getEthSyncBlockRange: AugmentedRpc<() => Observable<ITuple<[H256, H256]>>>;
       /**
        * Returns whether an Ethereum block is finalized
        **/
@@ -790,6 +790,15 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
       version: AugmentedRpc<() => Observable<Text>>;
     };
     offchain: {
+      /**
+       * Clear offchain local storage under given key and prefix
+       **/
+      localStorageClear: AugmentedRpc<
+        (
+          kind: StorageKind | "PERSISTENT" | "LOCAL" | number | Uint8Array,
+          key: Bytes | string | Uint8Array
+        ) => Observable<Null>
+      >;
       /**
        * Get offchain local storage under given key and prefix
        **/

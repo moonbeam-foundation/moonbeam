@@ -106,9 +106,9 @@ const executeUpdateAPIScript = async () => {
   await checkBinary();
 
   // Bundle types
-  await executeScript("../../moonbeam-types-bundle", "pnpm i");
-  await executeScript("../../moonbeam-types-bundle", "pnpm build");
-  await executeScript("../../moonbeam-types-bundle", "pnpm check:fix");
+  await executeScript("../../types-bundle", "pnpm i");
+  await executeScript("../../types-bundle", "pnpm build");
+  await executeScript("../../types-bundle", "pnpm check:fix");
 
   // Generate types
   console.log("Extracting metadata for all runtimes...");

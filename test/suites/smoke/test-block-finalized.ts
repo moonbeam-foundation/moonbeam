@@ -1,5 +1,4 @@
-import "@polkadot/api-augment";
-import "@moonbeam-network/api-augment/moonbase";
+import "@moonbeam-network/api-augment";
 import {
   checkBlockFinalized,
   getBlockTime,
