@@ -75,6 +75,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
+
+
 	/// Storage: `ForeignAssetsCreator::AssetIdToForeignAsset` (r:1 w:1)
 	/// Proof: `ForeignAssetsCreator::AssetIdToForeignAsset` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ForeignAssetsCreator::ForeignAssetToAssetId` (r:0 w:2)

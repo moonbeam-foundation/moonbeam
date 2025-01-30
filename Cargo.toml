@@ -322,6 +322,7 @@ xcm = { package = "staging-xcm", git = "https://github.com/moonbeam-foundation/p
 xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
 xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
 xcm-runtime-apis = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
+snowbridge-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
 
 # Polkadot / XCM (client)
 #kusama-runtime = { package = "staging-kusama-runtime", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409" }

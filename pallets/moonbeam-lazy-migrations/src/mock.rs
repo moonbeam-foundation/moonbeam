@@ -18,18 +18,20 @@
 
 use super::*;
 use crate as pallet_moonbeam_lazy_migrations;
-use frame_support::traits::AsEnsureOriginWithArg;
+use frame_support::traits::{AsEnsureOriginWithArg, ConstU128, EitherOf};
 use frame_support::weights::constants::RocksDbWeight;
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
-use frame_system::{EnsureRoot, EnsureSigned};
+use frame_system::{EnsureRoot, EnsureSigned, Origin};
 use pallet_asset_manager::AssetRegistrar;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
+use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use precompile_utils::testing::MockAccount;
 use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup},
 	BuildStorage, Perbill,
 };
+use xcm::v4::Junction;
 
 pub type AssetId = u128;
 pub type Balance = u128;
@@ -288,19 +290,80 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 	}
 }
 
+pub struct SiblingAccountOf;
+impl xcm_executor::traits::ConvertLocation<AccountId> for SiblingAccountOf {
+	fn convert_location(location: &Location) -> Option<AccountId> {
+		let (parents, junctions) = location.unpack();
+		if parents != 1 {
+			return None;
+		}
+		if junctions.len() != 1 {
+			return None;
+		}
+		match junctions[0] {
+			Junction::Parachain(id) => match id {
+				1 => Some(PARA_A),
+				2 => Some(PARA_B),
+				3 => Some(PARA_C),
+				_ => None,
+			},
+			_ => None,
+		}
+	}
+}
+
+pub struct SiblingOrigin;
+impl EnsureOrigin<<Test as frame_system::Config>::RuntimeOrigin> for SiblingOrigin {
+	type Success = Location;
+	fn try_origin(
+		original_origin: <Test as frame_system::Config>::RuntimeOrigin,
+	) -> Result<Self::Success, <Test as frame_system::Config>::RuntimeOrigin> {
+		match original_origin.clone().caller {
+			OriginCaller::system(o) => match o {
+				Origin::<Test>::Signed(account) => {
+					let para_id = if account == PARA_A {
+						1
+					} else if account == PARA_B {
+						2
+					} else if account == PARA_C {
+						3
+					} else {
+						return Err(original_origin);
+					};
+					Ok(Location::new(1, [Junction::Parachain(para_id)]))
+				}
+				_ => Err(original_origin),
+			},
+			_ => Err(original_origin),
+		}
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin() -> Result<<Test as frame_system::Config>::RuntimeOrigin, ()> {
+		Ok(RuntimeOrigin::signed(PARA_A))
+	}
+}
+
+pub type ForeignAssetManagerOrigin =
+	EitherOf<MapSuccessToGovernance<EnsureRoot<AccountId>>, MapSuccessToXcm<SiblingOrigin>>;
+
 impl pallet_moonbeam_foreign_assets::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
+	type ConvertLocation = SiblingAccountOf;
+	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type XcmLocationToH160 = ();
+	type ForeignAssetCreationDeposit = ConstU128<1>;
+	type Balance = Balance;
+	type Currency = Balances;
 }
 
 impl Config for Test {
@@ -311,6 +374,10 @@ impl Config for Test {
 // Constants for test accounts
 pub const ALITH: AccountId = MockAccount(H160([1; 20]));
 pub const BOB: AccountId = MockAccount(H160([2; 20]));
+
+pub const PARA_A: AccountId = MockAccount(H160([2; 20]));
+pub const PARA_B: AccountId = MockAccount(H160([2; 20]));
+pub const PARA_C: AccountId = MockAccount(H160([2; 20]));
 
 /// Externality builder for pallet migration's mock runtime
 pub(crate) struct ExtBuilder {
