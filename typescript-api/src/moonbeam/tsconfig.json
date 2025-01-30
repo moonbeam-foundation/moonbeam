@@ -7,7 +7,7 @@
     "declarationDir": "../../dist/moonbeam",
     "declarationMap": true,
     "paths": {
-      "@moonbeam/api-augment/*": ["src/moonbeam/*"],
+      "@moonbeam-network/api-augment/*": ["src/moonbeam/*"],
       "@polkadot/api/augment": ["src/moonbeam/interfaces/augment-api.ts"],
       "@polkadot/types/augment": ["src/moonbeam/interfaces/augment-types.ts"],
       "@polkadot/types/lookup": ["src/moonbeam/interfaces/types-lookup.ts"]

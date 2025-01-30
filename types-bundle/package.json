@@ -1,6 +1,6 @@
 {
-  "name": "moonbeam-types-bundle",
-  "version": "3.0.1",
+  "name": "@moonbeam-network/types-bundle",
+  "version": "1.0.2",
   "description": "Bundled types to instantiate the Polkadot JS api with a Moonbeam network",
   "main": "./dist/definitions.cjs",
   "prepublish": "tsc",
@@ -46,9 +46,11 @@
   ],
   "author": "Moonsong Labs",
   "license": "GPL-3.0-only",
+  "homepage": "https://github.com/moonbeam-foundation/moonbeam/tree/master/types-bundle#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/moonbeam-foundation/moonbeam.git"
+    "url": "git+https://github.com/moonbeam-foundation/moonbeam.git",
+    "directory": "typescript-api"
   },
   "dependencies": {
     "@biomejs/biome": "*",

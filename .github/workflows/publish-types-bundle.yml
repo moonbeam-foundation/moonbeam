@@ -31,14 +31,14 @@ jobs:
           node-version-file: "test/.nvmrc"
           cache: pnpm
           registry-url: https://registry.npmjs.org/
-      - name: Build moonbeam-types-bundle package
+      - name: Build types-bundle package
         run: |
-          cd moonbeam-types-bundle
+          cd types-bundle
           pnpm i --frozen-lockfile
           pnpm build
-      - name: Publish moonbeam-types-bundle
+      - name: Publish types-bundle
         run: |
-          cd moonbeam-types-bundle
+          cd types-bundle
           if [ "${{ github.event.inputs.DryRun }}" == "true" ]; then
             pnpm publish --access public --no-git-checks --dry-run
           else
