@@ -30,7 +30,7 @@ use moonbeam_service::moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 use moonbeam_service::moonriver_runtime;
 
-use moonbeam_service::{chain_spec, frontier_database_dir, HostFunctions, IdentifyVariant};
+use moonbeam_service::{chain_spec, frontier_database_dir, Block, HostFunctions, IdentifyVariant};
 use parity_scale_codec::Encode;
 #[cfg(feature = "westend-native")]
 use polkadot_service::WestendChainSpec;
@@ -38,6 +38,7 @@ use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RpcEndpoint, RuntimeVersion, SharedParams, SubstrateCli,
 };
+use sc_executor::WasmtimeInstantiationStrategy;
 use sc_service::{
 	config::{BasePath, PrometheusConfig},
 	DatabaseSource, PartialComponents,
@@ -420,13 +421,24 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::ExportGenesisHead(params)) => {
 			let runner = cli.create_runner(params)?;
-			let chain_spec = (runner.config().chain_spec).cloned_box();
+			let chain_spec = runner.config().chain_spec.cloned_box();
 
 			let mut builder = sc_cli::LoggerBuilder::new("");
 			builder.with_profiling(sc_tracing::TracingReceiver::Log, "");
 			let _ = builder.init();
 
-			let state_version = Cli::runtime_version(&chain_spec).state_version();
+			let storage = chain_spec.build_storage()?;
+			let executor = sc_executor::WasmExecutor::<HostFunctions>::builder()
+				.with_execution_method(sc_executor::WasmExecutionMethod::Compiled {
+					instantiation_strategy: WasmtimeInstantiationStrategy::PoolingCopyOnWrite,
+				})
+				.with_max_runtime_instances(1024)
+				.build();
+
+			let state_version = sc_chain_spec::resolve_state_version_from_wasm::<
+				_,
+				HashingFor<Block>,
+			>(&storage, &executor)?;
 
 			let output_buf = match chain_spec {
 				#[cfg(feature = "moonriver-native")]

@@ -6382,6 +6382,7 @@ dependencies = [
  "sc-cli",
  "sc-client-api",
  "sc-consensus-grandpa",
+ "sc-executor",
  "sc-network",
  "sc-service",
  "sc-sysinfo",
