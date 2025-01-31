@@ -24,24 +24,8 @@ use sp_runtime::traits::ConstU32;
 use sp_runtime::BoundedVec;
 use xcm::latest::prelude::*;
 
-fn create_n_foreign_asset<T: Config>(n: u32) -> DispatchResult {
-	for i in 1..=n {
-		Pallet::<T>::create_foreign_asset(
-			RawOrigin::Root.into(),
-			i as u128,
-			location_of(i),
-			18,
-			str_to_bv("MT"),
-			str_to_bv("Mytoken"),
-		)?;
-		assert_eq!(Pallet::<T>::assets_by_id(i as u128), Some(location_of(i)));
-	}
-
-	Ok(())
-}
-
-fn location_of(n: u32) -> Location {
-	Location::new(0, [Junction::GeneralIndex(n as u128)])
+fn location_of(n: u128) -> Location {
+	Location::new(0, [Junction::GeneralIndex(n)])
 }
 
 fn str_to_bv(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
@@ -51,7 +35,6 @@ fn str_to_bv(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 benchmarks! {
 	// Worst case scenario: MaxForeignAssets minus one already exists
 	create_foreign_asset {
-		create_n_foreign_asset::<T>(T::MaxForeignAssets::get().saturating_sub(1))?;
 		let asset_id = T::MaxForeignAssets::get() as u128;
 	}: _(RawOrigin::Root, asset_id, Location::parent(), 18, str_to_bv("MT"), str_to_bv("Mytoken"))
 	verify {
@@ -63,23 +46,39 @@ benchmarks! {
 
 	// Worst case scenario: MaxForeignAssets already exists
 	change_xcm_location {
-		create_n_foreign_asset::<T>(T::MaxForeignAssets::get())?;
-	}: _(RawOrigin::Root, 1, Location::here())
+		let asset_id = T::MaxForeignAssets::get() as u128;
+		Pallet::<T>::create_foreign_asset(
+			RawOrigin::Root.into(),
+			asset_id,
+			location_of(asset_id),
+			18,
+			str_to_bv("MT"),
+			str_to_bv("Mytoken"),
+		)?;
+	}: _(RawOrigin::Root, asset_id, Location::here())
 	verify {
 		assert_eq!(
-			Pallet::<T>::assets_by_id(1),
+			Pallet::<T>::assets_by_id(asset_id),
 			Some(Location::here())
 		);
 	}
 
 	// Worst case scenario: MaxForeignAssets already exists
 	freeze_foreign_asset {
-		create_n_foreign_asset::<T>(T::MaxForeignAssets::get())?;
-	}: _(RawOrigin::Root, 1, true)
+		let asset_id = T::MaxForeignAssets::get() as u128;
+		Pallet::<T>::create_foreign_asset(
+			RawOrigin::Root.into(),
+			asset_id,
+			location_of(asset_id),
+			18,
+			str_to_bv("MT"),
+			str_to_bv("Mytoken"),
+		)?;
+	}: _(RawOrigin::Root, asset_id, true)
 	verify {
 		assert_eq!(
-			Pallet::<T>::assets_by_location(location_of(1)),
-			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+			Pallet::<T>::assets_by_location(location_of(asset_id)),
+			Some((asset_id, AssetStatus::FrozenXcmDepositAllowed))
 		);
 	}
 
@@ -87,21 +86,29 @@ benchmarks! {
 	// - MaxForeignAssets already exists
 	// - The asset to unfreeze is already frozen (to avoid early error)
 	unfreeze_foreign_asset {
-		create_n_foreign_asset::<T>(T::MaxForeignAssets::get())?;
+		let asset_id = T::MaxForeignAssets::get() as u128;
+		Pallet::<T>::create_foreign_asset(
+			RawOrigin::Root.into(),
+			asset_id,
+			location_of(asset_id),
+			18,
+			str_to_bv("MT"),
+			str_to_bv("Mytoken"),
+		)?;
 		Pallet::<T>::freeze_foreign_asset(
 			RawOrigin::Root.into(),
-			1,
+			asset_id,
 			true
 		)?;
 		assert_eq!(
-			Pallet::<T>::assets_by_location(location_of(1)),
-			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+			Pallet::<T>::assets_by_location(location_of(asset_id)),
+			Some((asset_id, AssetStatus::FrozenXcmDepositAllowed))
 		);
-	}: _(RawOrigin::Root, 1)
+	}: _(RawOrigin::Root, asset_id)
 	verify {
 		assert_eq!(
-			Pallet::<T>::assets_by_location(location_of(1)),
-			Some((1, AssetStatus::Active))
+			Pallet::<T>::assets_by_location(location_of(asset_id)),
+			Some((asset_id.into(), AssetStatus::Active))
 		);
 	}
 }
