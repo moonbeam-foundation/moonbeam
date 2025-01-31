@@ -1813,6 +1813,9 @@
 <a href="#1811" id="1811">1811</a>
 <a href="#1812" id="1812">1812</a>
 <a href="#1813" id="1813">1813</a>
+<a href="#1814" id="1814">1814</a>
+<a href="#1815" id="1815">1815</a>
+<a href="#1816" id="1816">1816</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1882,9 +1885,9 @@
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect},
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
-		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOfDiverse,
-		EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice, OnFinalize,
-		OnUnbalanced,
+		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
+		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
+		OnFinalize, OnUnbalanced,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -2939,7 +2942,10 @@
 	EnsureRoot&lt;AccountId&gt;,
 	EitherOfDiverse&lt;
 		pallet_collective::EnsureProportionMoreThan&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;,
-		governance::custom_origins::FastGeneralAdmin,
+		EitherOf&lt;
+			governance::custom_origins::GeneralAdmin,
+			governance::custom_origins::FastGeneralAdmin,
+		&gt;,
 	&gt;,
 &gt;;
 

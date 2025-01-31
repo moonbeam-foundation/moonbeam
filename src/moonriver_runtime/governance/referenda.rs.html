@@ -100,6 +100,7 @@
 <a href="#98" id="98">98</a>
 <a href="#99" id="99">99</a>
 <a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -152,8 +153,9 @@
 
 <span class="comment">// Origin for general admin or root
 </span><span class="kw">pub type </span>GeneralAdminOrRoot = EitherOf&lt;EnsureRoot&lt;AccountId&gt;, origins::GeneralAdmin&gt;;
-<span class="comment">// The policy allows for Root or FastGeneralAdmin.
-</span><span class="kw">pub type </span>FastGeneralAdminOrRoot = EitherOf&lt;EnsureRoot&lt;AccountId&gt;, origins::FastGeneralAdmin&gt;;
+<span class="doccomment">/// The policy allows for Root, GeneralAdmin or FastGeneralAdmin.
+</span><span class="kw">pub type </span>FastGeneralAdminOrRoot =
+	EitherOf&lt;EnsureRoot&lt;AccountId&gt;, EitherOf&lt;origins::GeneralAdmin, origins::FastGeneralAdmin&gt;&gt;;
 
 <span class="kw">impl </span>custom_origins::Config <span class="kw">for </span>Runtime {}
 

@@ -776,6 +776,25 @@
 <a href="#774" id="774">774</a>
 <a href="#775" id="775">775</a>
 <a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -811,7 +830,7 @@
 
 <span class="kw">use </span>frame_support::{
 	parameter_types,
-	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
+	traits::{EitherOf, EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
 
 <span class="kw">use </span>frame_system::{EnsureRoot, RawOrigin};
@@ -1477,7 +1496,10 @@
 	EnsureRoot&lt;AccountId&gt;,
 	EitherOfDiverse&lt;
 		pallet_collective::EnsureProportionMoreThan&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;,
-		governance::custom_origins::FastGeneralAdmin,
+		EitherOf&lt;
+			governance::custom_origins::GeneralAdmin,
+			governance::custom_origins::FastGeneralAdmin,
+		&gt;,
 	&gt;,
 &gt;;
 
@@ -1504,18 +1526,34 @@
 	}
 }
 
+<span class="kw">pub type </span>AddAndEditSupportedAssetOrigin = EitherOfDiverse&lt;
+	EnsureRoot&lt;AccountId&gt;,
+	EitherOfDiverse&lt;
+		pallet_collective::EnsureProportionMoreThan&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;,
+		EitherOf&lt;
+			governance::custom_origins::GeneralAdmin,
+			governance::custom_origins::FastGeneralAdmin,
+		&gt;,
+	&gt;,
+&gt;;
+
+<span class="kw">pub type </span>RemoveSupportedAssetOrigin = EitherOfDiverse&lt;
+	EnsureRoot&lt;AccountId&gt;,
+	pallet_collective::EnsureProportionMoreThan&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;,
+&gt;;
+
 <span class="kw">impl </span>pallet_xcm_weight_trader::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>AccountIdToLocation = AccountIdToLocation&lt;AccountId&gt;;
-	<span class="kw">type </span>AddSupportedAssetOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>AddSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	<span class="kw">type </span>AssetLocationFilter = AssetFeesFilter;
 	<span class="kw">type </span>AssetTransactor = AssetTransactors;
 	<span class="kw">type </span>Balance = Balance;
-	<span class="kw">type </span>EditSupportedAssetOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>EditSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	<span class="kw">type </span>NativeLocation = SelfReserve;
-	<span class="kw">type </span>PauseSupportedAssetOrigin = EnsureRoot&lt;AccountId&gt;;
-	<span class="kw">type </span>RemoveSupportedAssetOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>PauseSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
+	<span class="kw">type </span>ResumeSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
+	<span class="kw">type </span>RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>ResumeSupportedAssetOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_xcm_weight_trader::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>WeightToFee = &lt;Runtime <span class="kw">as </span>pallet_transaction_payment::Config&gt;::WeightToFee;
 	<span class="kw">type </span>XcmFeesAccount = XcmFeesAccount;
