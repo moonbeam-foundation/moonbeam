@@ -404,8 +404,8 @@ pub fn run() -> Result<()> {
 				_ => panic!("invalid chain spec"),
 			}
 		}
-		Some(Subcommand::ExportGenesisHead(params)) => {
-			let runner = cli.create_runner(params)?;
+		Some(Subcommand::ExportGenesisHead(cmd)) => {
+			let runner = cli.create_runner(cmd)?;
 			let chain_spec = runner.config().chain_spec.cloned_box();
 
 			let mut builder = sc_cli::LoggerBuilder::new("");
@@ -417,7 +417,7 @@ pub fn run() -> Result<()> {
 				.with_execution_method(sc_executor::WasmExecutionMethod::Compiled {
 					instantiation_strategy: WasmtimeInstantiationStrategy::PoolingCopyOnWrite,
 				})
-				.with_max_runtime_instances(1024)
+				.with_max_runtime_instances(runner.config().executor.max_runtime_instances)
 				.build();
 
 			let state_version = sc_chain_spec::resolve_state_version_from_wasm::<
@@ -431,7 +431,7 @@ pub fn run() -> Result<()> {
 					let block: moonbeam_service::moonriver_runtime::Block =
 						generate_genesis_block(&*chain_spec, state_version)?;
 					let raw_header = block.header().encode();
-					let output_buf = if params.raw {
+					let output_buf = if cmd.raw {
 						raw_header
 					} else {
 						format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
@@ -443,7 +443,7 @@ pub fn run() -> Result<()> {
 					let block: moonbeam_service::moonbeam_runtime::Block =
 						generate_genesis_block(&*chain_spec, state_version)?;
 					let raw_header = block.header().encode();
-					let output_buf = if params.raw {
+					let output_buf = if cmd.raw {
 						raw_header
 					} else {
 						format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
@@ -455,7 +455,7 @@ pub fn run() -> Result<()> {
 					let block: moonbeam_service::moonbase_runtime::Block =
 						generate_genesis_block(&*chain_spec, state_version)?;
 					let raw_header = block.header().encode();
-					let output_buf = if params.raw {
+					let output_buf = if cmd.raw {
 						raw_header
 					} else {
 						format!("0x{:?}", HexDisplay::from(&block.header().encode())).into_bytes()
@@ -466,7 +466,7 @@ pub fn run() -> Result<()> {
 				_ => panic!("invalid chain spec"),
 			};
 
-			if let Some(output) = &params.output {
+			if let Some(output) = &cmd.output {
 				std::fs::write(output, output_buf)?;
 			} else {
 				std::io::stdout().write_all(&output_buf)?;
