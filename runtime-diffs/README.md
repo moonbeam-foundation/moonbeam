@@ -34,7 +34,7 @@ For example, above you can see that AuthorInherent has changed, in that a new St
 Meanwhile, `LocalAssets` pallet has been removed, so you would expect references to storages, extrinsics, events; to be removed.
 
 > [!NOTE]  
-> Adding new pallets may not nessecarily correspond to new storages or extrinsics being added - althougth it often does.
+> Adding new pallets may not necessarily correspond to new storages or extrinsics being added - althougth it often does.
 
 ## Resources
 
