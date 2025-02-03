@@ -41,4 +41,4 @@ Meanwhile, `LocalAssets` pallet has been removed, so you would expect references
 - [subxt cli readme](https://github.com/paritytech/subxt/tree/master/cli) - Some basic instructions in readme
 - [subxt release docs](https://github.com/paritytech/subxt/releases) - Latest releases have usage guide for new CLI features
 - [polkadot metadata explorer](https://wiki.polkadot.network/docs/metadata) - An interactive explorer of polkadot metadata
-- [substrate docs](https://docs.substrate.io/build/application-development/#exposing-runtime-information-as-metadata) - Some background on how metadata blobs get generated with which to serve when requested.
+- [substrate docs](https://docs.polkadot.com/polkadot-protocol/basics/chain-data/#expose-runtime-information-as-metadata) - Some background on how metadata blobs get generated with which to serve when requested.
