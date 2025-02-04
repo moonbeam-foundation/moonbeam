@@ -237,38 +237,38 @@
 	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
 	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
-	/// Storage: `EVM::AccountCodes` (r:2 w:1)
-	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodesMetadata` (r:2 w:1)
+	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `System::Account` (r:2 w:2)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `EVM::AccountCodesMetadata` (r:1 w:1)
-	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `EVM::AccountStorages` (r:4 w:4)
 	/// Proof: `EVM::AccountStorages` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `EVM::Suicided` (r:1 w:0)
 	/// Proof: `EVM::Suicided` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodes` (r:1 w:1)
+	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Ethereum::Pending` (r:1 w:1)
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	</span><span class="kw">fn </span>create_foreign_asset() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `3272387`
-		//  Estimated: `3283277`
-		// Minimum execution time: 3_610_969_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">3_661_242_000</span>, <span class="number">3283277</span>)
+		//  Measured:  `2124`
+		//  Estimated: `13014`
+		// Minimum execution time: 531_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">534_000_000</span>, <span class="number">13014</span>)
 			.saturating_add(T::DbWeight::get().reads(<span class="number">19_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">13_u64</span>))
 	}
 	<span class="doccomment">/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:1)
 	/// Proof: `EvmForeignAssets::AssetsById` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `EvmForeignAssets::AssetsByLocation` (r:1 w:2)
+	/// Storage: `EvmForeignAssets::AssetsByLocation` (r:2 w:2)
 	/// Proof: `EvmForeignAssets::AssetsByLocation` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	</span><span class="kw">fn </span>change_xcm_location() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `2020`
-		//  Estimated: `5485`
-		// Minimum execution time: 41_219_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">43_570_000</span>, <span class="number">5485</span>)
-			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
+		//  Measured:  `149`
+		//  Estimated: `6089`
+		// Minimum execution time: 22_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">23_000_000</span>, <span class="number">6089</span>)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
 	}
 	<span class="doccomment">/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:0)
@@ -285,14 +285,14 @@
 	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
 	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
-	/// Storage: `EVM::AccountCodes` (r:2 w:0)
-	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodesMetadata` (r:2 w:0)
+	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// Storage: `System::Digest` (r:1 w:0)
 	/// Proof: `System::Digest` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `EVM::AccountCodesMetadata` (r:1 w:0)
-	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodes` (r:1 w:0)
+	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Assets::Asset` (r:1 w:0)
 	/// Proof: `Assets::Asset` (`max_values`: None, `max_size`: Some(174), added: 2649, mode: `MaxEncodedLen`)
 	/// Storage: `EVM::AccountStorages` (r:1 w:1)
@@ -301,10 +301,10 @@
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	</span><span class="kw">fn </span>freeze_foreign_asset() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `3294569`
-		//  Estimated: `3300509`
-		// Minimum execution time: 3_594_457_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">3_644_553_000</span>, <span class="number">3300509</span>)
+		//  Measured:  `24167`
+		//  Estimated: `30107`
+		// Minimum execution time: 192_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">196_000_000</span>, <span class="number">30107</span>)
 			.saturating_add(T::DbWeight::get().reads(<span class="number">15_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">5_u64</span>))
 	}
@@ -322,14 +322,14 @@
 	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
 	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
-	/// Storage: `EVM::AccountCodes` (r:2 w:0)
-	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodesMetadata` (r:2 w:0)
+	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// Storage: `System::Digest` (r:1 w:0)
 	/// Proof: `System::Digest` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `EVM::AccountCodesMetadata` (r:1 w:0)
-	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodes` (r:1 w:0)
+	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Assets::Asset` (r:1 w:0)
 	/// Proof: `Assets::Asset` (`max_values`: None, `max_size`: Some(174), added: 2649, mode: `MaxEncodedLen`)
 	/// Storage: `EVM::AccountStorages` (r:1 w:1)
@@ -338,10 +338,10 @@
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	</span><span class="kw">fn </span>unfreeze_foreign_asset() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `3295628`
-		//  Estimated: `3301568`
-		// Minimum execution time: 3_632_781_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">3_692_099_000</span>, <span class="number">3301568</span>)
+		//  Measured:  `25226`
+		//  Estimated: `31166`
+		// Minimum execution time: 194_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">196_000_000</span>, <span class="number">31166</span>)
 			.saturating_add(T::DbWeight::get().reads(<span class="number">15_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">5_u64</span>))
 	}
