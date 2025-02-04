@@ -1,9 +1,7 @@
 import "@moonbeam-network/api-augment";
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect, beforeAll, fetchCompiledContract } from "@moonwall/cli";
+import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
-  ARBITRARY_ASSET_ID,
-  PARA_1000_SOURCE_LOCATION_V4,
   RELAY_SOURCE_LOCATION_V4,
   foreignAssetBalance,
   mockAssetBalance,
@@ -11,8 +9,6 @@ import {
   registerForeignAsset,
   relayAssetMetadata,
 } from "../../../../helpers";
-import { parseAbi } from "viem";
-import exp from "constants";
 import { alith, ALITH_ADDRESS, BALTATHAR_ADDRESS } from "@moonwall/util";
 
 describeSuite({
@@ -21,121 +17,130 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let assetId: bigint;
-    let assetLocation = RELAY_SOURCE_LOCATION_V4;
-    let xcmLoc = patchLocationV4recursively(assetLocation);
-    let decimals = 18;
+    const assetLocation = RELAY_SOURCE_LOCATION_V4;
+    const xcmLoc = patchLocationV4recursively(assetLocation);
+    const decimals = 18;
 
     it({
-        id: "T01",
-        "title": "Cost of creating an asset",
-        test: async function () {
+      id: "T01",
+      title: "Cost of creating an asset",
+      test: async function () {
+        const createAsset = context
+          .polkadotJs()
+          .tx.sudo.sudo(
+            context
+              .polkadotJs()
+              .tx.evmForeignAssets.createForeignAsset(assetId, xcmLoc, decimals, "test", "test")
+          );
 
-            const createAsset = context.polkadotJs().tx.sudo.sudo(
-                context.polkadotJs().tx.evmForeignAssets.createForeignAsset(assetId, xcmLoc, decimals, "test", "test")
-            );
+        const { weight, proofSize } = await calculateWeight(context, createAsset);
 
-            const { weight, proofSize } = await calculateWeight(context, createAsset);
-
-            expect(weight).toMatchInlineSnapshot(`2435166000`);
-            expect(proofSize).toMatchInlineSnapshot(`14519`);
-        }
-    })
-
-    it({
-        id: "T01",
-        "title": "Cost of changing an asset location",
-        test: async function () {
-
-            const changeLocation = context.polkadotJs().tx.sudo.sudo(
-                context.polkadotJs().tx.evmForeignAssets.changeXcmLocation(assetId, xcmLoc)
-            );
-
-            const { weight, proofSize } = await calculateWeight(context, changeLocation);
-
-            expect(weight).toMatchInlineSnapshot(`443464000`);
-            expect(proofSize).toMatchInlineSnapshot(`7594`);
-        }
-    })
+        expect(weight).toMatchInlineSnapshot(`2435166000`);
+        expect(proofSize).toMatchInlineSnapshot(`14519`);
+      },
+    });
 
     it({
-        id: "T01",
-        "title": "Cost of freezing an asset",
-        test: async function () {
+      id: "T01",
+      title: "Cost of changing an asset location",
+      test: async function () {
+        const changeLocation = context
+          .polkadotJs()
+          .tx.sudo.sudo(
+            context.polkadotJs().tx.evmForeignAssets.changeXcmLocation(assetId, xcmLoc)
+          );
 
-            const freezeAsset = context.polkadotJs().tx.sudo.sudo(
-                context.polkadotJs().tx.evmForeignAssets.freezeForeignAsset(assetId, false)
-            );
+        const { weight, proofSize } = await calculateWeight(context, changeLocation);
 
-            const { weight, proofSize } = await calculateWeight(context, freezeAsset);
-
-            expect(weight).toMatchInlineSnapshot(`1279934000`);
-            expect(proofSize).toMatchInlineSnapshot(`31612`);
-        }
-    })
-
-    it({
-        id: "T01",
-        "title": "Cost of unfreezing an asset",
-        test: async function () {
-
-            const unfreezeAsset = context.polkadotJs().tx.sudo.sudo(
-                context.polkadotJs().tx.evmForeignAssets.freezeForeignAsset(assetId, true)
-            );
-
-            const { weight, proofSize } = await calculateWeight(context, unfreezeAsset);
-
-            expect(weight).toMatchInlineSnapshot(`1279934000`);
-            expect(proofSize).toMatchInlineSnapshot(`31612`);
-        }
-    })
+        expect(weight).toMatchInlineSnapshot(`443464000`);
+        expect(proofSize).toMatchInlineSnapshot(`7594`);
+      },
+    });
 
     it({
-        id: "T01",
-        "title": "Size of the created contract",
-        test: async function () {
-            const someBalance = 100_000_000_000_000n;
-            const assetLocation = RELAY_SOURCE_LOCATION_V4;
-            const assetId = 1n;
+      id: "T01",
+      title: "Cost of freezing an asset",
+      test: async function () {
+        const freezeAsset = context
+          .polkadotJs()
+          .tx.sudo.sudo(
+            context.polkadotJs().tx.evmForeignAssets.freezeForeignAsset(assetId, false)
+          );
 
-            // Register the asset
-            const {contractAddress} = await registerForeignAsset(context, assetId, assetLocation, relayAssetMetadata);
-            // Mock asset balance
-            await mockAssetBalance(context, someBalance, assetId, alith, ALITH_ADDRESS);
+        const { weight, proofSize } = await calculateWeight(context, freezeAsset);
 
-            const newBalance = await foreignAssetBalance(context, assetId, ALITH_ADDRESS);
-            expect(newBalance).toBe(someBalance);
+        expect(weight).toMatchInlineSnapshot(`1279934000`);
+        expect(proofSize).toMatchInlineSnapshot(`31612`);
+      },
+    });
 
+    it({
+      id: "T01",
+      title: "Cost of unfreezing an asset",
+      test: async function () {
+        const unfreezeAsset = context
+          .polkadotJs()
+          .tx.sudo.sudo(context.polkadotJs().tx.evmForeignAssets.freezeForeignAsset(assetId, true));
 
-            const { request } = await context.viem().simulateContract({
-                address: contractAddress as `0x${string}`,
-                abi: fetchCompiledContract("ERC20Instance").abi,
-                functionName: "transfer",
-                args: [BALTATHAR_ADDRESS, someBalance / 2n],
-            });
+        const { weight, proofSize } = await calculateWeight(context, unfreezeAsset);
 
-            const hash = await context.viem().writeContract(request);
+        expect(weight).toMatchInlineSnapshot(`1279934000`);
+        expect(proofSize).toMatchInlineSnapshot(`31612`);
+      },
+    });
 
-            await context.createBlock();
+    it({
+      id: "T01",
+      title: "Size of the created contract",
+      test: async function () {
+        const someBalance = 100_000_000_000_000n;
+        const assetLocation = RELAY_SOURCE_LOCATION_V4;
+        const assetId = 1n;
 
-            const receipt = await context.viem().getTransactionReceipt({hash});
+        // Register the asset
+        const { contractAddress } = await registerForeignAsset(
+          context,
+          assetId,
+          assetLocation,
+          relayAssetMetadata
+        );
+        // Mock asset balance
+        await mockAssetBalance(context, someBalance, assetId, alith, ALITH_ADDRESS);
 
-            console.log(receipt);
+        const newBalance = await foreignAssetBalance(context, assetId, ALITH_ADDRESS);
+        expect(newBalance).toBe(someBalance);
 
-            expect(receipt.status).toBe('success');
-            expect(receipt.gasUsed).toMatchInlineSnapshot(`154976n`);
+        const { request } = await context.viem().simulateContract({
+          address: contractAddress as `0x${string}`,
+          abi: fetchCompiledContract("ERC20Instance").abi,
+          functionName: "transfer",
+          args: [BALTATHAR_ADDRESS, someBalance / 2n],
+        });
 
-            const transferredBalance = await foreignAssetBalance(context, assetId, BALTATHAR_ADDRESS);
-            expect(transferredBalance).toBe(someBalance / 2n);
+        const hash = await context.viem().writeContract(request);
 
-        }
-    })
+        await context.createBlock();
+
+        const receipt = await context.viem().getTransactionReceipt({ hash });
+
+        console.log(receipt);
+
+        expect(receipt.status).toBe("success");
+        expect(receipt.gasUsed).toMatchInlineSnapshot(`154976n`);
+
+        const transferredBalance = await foreignAssetBalance(context, assetId, BALTATHAR_ADDRESS);
+        expect(transferredBalance).toBe(someBalance / 2n);
+      },
+    });
   },
 });
 
 async function calculateWeight(context, transaction) {
-    const info = await context.polkadotJs().call.transactionPaymentApi.queryInfo(transaction.toU8a(), transaction.encodedLength);
-    return {
-        weight: info.weight.refTime,
-        proofSize: info.weight.proofSize
-    }
+  const info = await context
+    .polkadotJs()
+    .call.transactionPaymentApi.queryInfo(transaction.toU8a(), transaction.encodedLength);
+  return {
+    weight: info.weight.refTime,
+    proofSize: info.weight.proofSize,
+  };
 }
