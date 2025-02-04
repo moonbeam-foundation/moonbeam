@@ -1,6 +1,6 @@
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import Web3 from "web3";
-import { typesBundlePre900 } from "../../moonbeam-types-bundle/dist";
+import { typesBundlePre900 } from "moonbeam-types-bundle";
 import { FAITH } from "../test-constants";
 const wsProviderUrl = `wss://wss.testnet.moonbeam.network`;
 

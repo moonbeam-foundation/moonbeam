@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import "@polkadot/api-augment";
 
 describeSuite({
   id: "D013302",

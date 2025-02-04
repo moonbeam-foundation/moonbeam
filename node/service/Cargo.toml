@@ -226,10 +226,3 @@ try-runtime = [
 	"moonbase-runtime/try-runtime",
 	"polkadot-service/try-runtime",
 ]
-
-moonbase-runtime-benchmarks = [
-	"moonbase-native",
-	"moonbase-runtime/moonbase-runtime-benchmarks",
-	"moonbase-runtime/runtime-benchmarks",
-	"pallet-ethereum/runtime-benchmarks",
-]
