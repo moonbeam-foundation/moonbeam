@@ -110,16 +110,15 @@ import type {
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   PalletXcmVersionMigrationStage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
-  PolkadotPrimitivesV7AbridgedHostConfiguration,
-  PolkadotPrimitivesV7PersistedValidationData,
-  PolkadotPrimitivesV7UpgradeGoAhead,
-  PolkadotPrimitivesV7UpgradeRestriction,
+  PolkadotPrimitivesV8AbridgedHostConfiguration,
+  PolkadotPrimitivesV8PersistedValidationData,
+  PolkadotPrimitivesV8UpgradeGoAhead,
+  PolkadotPrimitivesV8UpgradeRestriction,
   SpRuntimeDigest,
   SpTrieStorageProof,
   SpWeightsWeightV2Weight,
   StagingXcmV4Instruction,
   StagingXcmV4Location,
-  StagingXcmV4Xcm,
   XcmVersionedAssetId,
   XcmVersionedLocation
 } from "@polkadot/types/lookup";
@@ -1143,6 +1142,19 @@ declare module "@polkadot/api-base/types/storage" {
       totalSelected: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
+       * Records collators' inactivity.
+       * Data persists for MaxOfflineRounds + 1 rounds before being pruned.
+       **/
+      wasInactive: AugmentedQuery<
+        ApiType,
+        (
+          arg1: u32 | AnyNumber | Uint8Array,
+          arg2: AccountId20 | string | Uint8Array
+        ) => Observable<Option<Null>>,
+        [u32, AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [u32, AccountId20]>;
+      /**
        * Generic query
        **/
       [key: string]: QueryableStorageEntry<ApiType>;
@@ -1187,7 +1199,7 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       hostConfiguration: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV7AbridgedHostConfiguration>>,
+        () => Observable<Option<PolkadotPrimitivesV8AbridgedHostConfiguration>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1333,7 +1345,7 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       upgradeGoAhead: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV7UpgradeGoAhead>>,
+        () => Observable<Option<PolkadotPrimitivesV8UpgradeGoAhead>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1348,7 +1360,7 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       upgradeRestrictionSignal: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV7UpgradeRestriction>>,
+        () => Observable<Option<PolkadotPrimitivesV8UpgradeRestriction>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -1371,7 +1383,7 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       validationData: AugmentedQuery<
         ApiType,
-        () => Observable<Option<PolkadotPrimitivesV7PersistedValidationData>>,
+        () => Observable<Option<PolkadotPrimitivesV8PersistedValidationData>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;

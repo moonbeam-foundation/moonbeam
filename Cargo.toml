@@ -397,7 +397,7 @@ parking_lot = "0.12.1"
 primitive-types = "0.12.1"
 prometheus = { version = "0.13.0", default-features = false }
 rand = "0.8.5"
-serde_json = { version = "1.0.114" }
+serde_json = { version = "1.0.114", default-features = false }
 similar-asserts = "1.1.0"
 tempfile = "3.8.1"
 tiny-bip39 = { version = "0.8", default-features = false }

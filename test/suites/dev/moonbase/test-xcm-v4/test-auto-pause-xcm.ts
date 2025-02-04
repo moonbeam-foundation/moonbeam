@@ -70,7 +70,7 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3()
+          .deposit_asset()
           .as_v4();
 
         // Inject an XCM message that should be included in the next block but not executed

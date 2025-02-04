@@ -10,50 +10,47 @@ on:
         required: true
 
 jobs:
-  build:
-    runs-on:
-      labels: bare-metal
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: "runtime-${{ github.event.inputs.spec_version }}"
-      - name: Local build new Node
-        uses: ./.github/workflow-templates/cargo-build
-      - name: Upload Node
-        uses: actions/upload-artifact@v4
-        with:
-          name: moonbeam
-          path: build
-
   local-diff:
-    needs: build
-    runs-on: moonbeam-release-medium
+    runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
     strategy:
       matrix:
         runtime: [moonbeam, moonbase, moonriver]
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Download Node
-        uses: actions/download-artifact@v4
         with:
-          name: moonbeam
-          path: build
+          fetch-depth: 0
       - name: Install Subxt-cli
         run: |
           rustup override unset
           rustup show
           cargo install subxt-cli@0.37.0 --locked
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-      - name: Run last_release node via Docker
+      - name: Lookup previous runtime release build
         run: |
-          docker pull moonbeamfoundation/moonbeam:runtime-${{ github.event.inputs.last_spec_version }}
-          docker run -d --name moonbeam_container -p 9911:9911 moonbeamfoundation/moonbeam:runtime-${{ github.event.inputs.last_spec_version }} \
+          COMMIT=`git rev-list -n 1 'runtim-${{ github.event.inputs.last_spec_version }}'`
+          PREVIOUS_RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
+          echo "Latest build for runtim-${{ github.event.inputs.last_spec_version }}: $PREVIOUS_RUNTIME_BUILD"
+          echo "PREVIOUS_RUNTIME_BUILD=$PREVIOUS_RUNTIME_BUILD" >> $GITHUB_OUTPUT
+      - name: Lookup previous runtime release build
+        run: |
+          COMMIT=`git rev-list -n 1 'runtim-${{ github.event.inputs.spec_version }}'`
+          RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
+          echo "Latest build for runtim-${{ github.event.inputs.spec_version }}: $RUNTIME_BUILD"
+          echo "NEXT_RUNTIME_BUILD=$RUNTIME_BUILD" >> $GITHUB_OUTPUT
+      - name: Download binaries for each runtime
+        run: |
+          gh run -R moonbeam-foundation/moonbeam download $PREVIOUS_RUNTIME_BUILD -n moonbeam --dir previous-runtime-release
+          gh run -R moonbeam-foundation/moonbeam download $NEXT_RUNTIME_BUILD -n moonbeam --dir next-runtime-release
+      - name: Run previous runtime
+        run: |
+          chmod +x previous-runtime-release/moonbeam
+          nohup sh -c './previous-runtime-release/moonbeam \
           --chain=${{ matrix.runtime }}-dev \
           --no-hardware-benchmarks \
           --no-telemetry \
@@ -65,15 +62,13 @@ jobs:
           --no-prometheus \
           --unsafe-rpc-external \
           --alice \
-          --unsafe-force-node-key-generation \
           --rpc-port=9911 \
-          --tmp
-
-          sleep 2
-      - name: Run Local Node
+          --unsafe-force-node-key-generation \
+          --tmp & sleep 2' &
+      - name: Run current runtime
         run: |
-          chmod +x build/moonbeam
-          nohup sh -c './build/moonbeam \
+          chmod +x next-runtime-release/moonbeam
+          nohup sh -c './next-runtime-release/moonbeam \
           --chain=${{ matrix.runtime }}-dev \
           --no-hardware-benchmarks \
           --no-telemetry \
@@ -96,8 +91,6 @@ jobs:
       - name: Stop Node Services
         if: always()
         run: |
-          docker stop moonbeam_container
-          docker rm moonbeam_container
           pkill moonbeam
 
       - name: Upload diff artifacts
@@ -138,6 +131,6 @@ jobs:
           branch: "runtime-diff-${{ github.event.inputs.spec_version }}"
           commit-message: "runtime diff: v0.${{ github.event.inputs.spec_version }}.0"
           draft: true
-          title: "Notorize runtime upgrade differences: runtime-${{ github.event.inputs.spec_version }}"
+          title: "Notarize runtime upgrade differences: runtime-${{ github.event.inputs.spec_version }}"
           reviewers: "RomarQ,stiiifff"
           labels: "B0-silent,D2-notlive"

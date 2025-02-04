@@ -1,6 +1,22 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, type KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
+import { BN, u8aToU8a } from "@polkadot/util";
+import type { EventRecord } from "@polkadot/types/interfaces";
+import type { ApiPromise } from "@polkadot/api";
+import type { RegistryError } from "@polkadot/types-codec/types";
+
+const getProxyErrors = (api: ApiPromise, events: EventRecord[]): RegistryError[] => {
+  return events
+    .filter(({ event }) => api.events.proxy.ProxyExecuted.is(event))
+    .map(({ event }) => {
+      const module = event.data["result"].toJSON()["err"]["module"];
+      return api.registry.findMetaError({
+        index: new BN(module.index),
+        error: u8aToU8a(module.error),
+      });
+    });
+};
 
 describeSuite({
   id: "D013005",
@@ -135,6 +151,55 @@ describeSuite({
             decision: "0",
           },
         });
+      },
+    });
+
+    it({
+      id: "T03",
+      title: "Should fail when calling pallet_identity through a `NonTransfer` proxy",
+      test: async () => {
+        // Add Alith as NonTransfer Proxy of another account
+        const blockAdd = await context.createBlock(
+          context.polkadotJs().tx.proxy.addProxy(alith.address, "NonTransfer", 0).signAsync(signer)
+        );
+        expect(blockAdd.result?.successful).to.be.true;
+
+        let alithNonce = await context
+          .viem()
+          .getTransactionCount({ address: alith.address as `0x${string}` });
+        const blockExecute = await context.createBlock([
+          // Alith adds itself as sub account of another account using a proxy call,
+          // and reserves a deposit
+          await context
+            .polkadotJs()
+            .tx.proxy.proxy(
+              signer.address,
+              "NonTransfer",
+              context.polkadotJs().tx.identity.addSub(alith.address, { Raw: "test" })
+            )
+            .signAsync(alith, { nonce: alithNonce++ }),
+          // Another flavour of the call above, it does exactly the same thing.
+          await context
+            .polkadotJs()
+            .tx.proxy.proxy(
+              signer.address,
+              "NonTransfer",
+              context.polkadotJs().tx.identity.setSubs([[alith.address, { Raw: "test" }]])
+            )
+            .signAsync(alith, { nonce: alithNonce++ }),
+        ]);
+        expect(blockExecute.result!.length).to.equal(2);
+        expect(blockExecute.result!.every(({ successful }) => successful)).to.be.true;
+        const errors = blockExecute.result!.flatMap(({ events }) =>
+          getProxyErrors(context.polkadotJs(), events)
+        );
+        expect(errors.length).to.equal(2);
+        // We expect the calls to fail, `ProxyType` filters these calls
+        // for `NonTransfer` proxy calls.
+        for (const error of errors) {
+          expect(error.docs[0]).to.equal("The origin filter prevent the call to be dispatched.");
+          expect(error.name).to.equal("CallFiltered");
+        }
       },
     });
   },

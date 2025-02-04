@@ -1,5 +1,11 @@
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, createRawTransfer, GLMR, sendRawTransaction } from "@moonwall/util";
+import {
+  CHARLETH_ADDRESS,
+  CHARLETH_PRIVATE_KEY,
+  createRawTransfer,
+  GLMR,
+  sendRawTransaction,
+} from "@moonwall/util";
 import { parseGwei } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
@@ -10,10 +16,14 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let randomAddress: `0x${string}`;
     let currentNonce: number;
+    let actorPrivateKey: `0x${string}`;
+    let actorAddress: `0x${string}`;
 
     beforeEach(async function () {
+      actorPrivateKey = CHARLETH_PRIVATE_KEY;
+      actorAddress = CHARLETH_ADDRESS;
       randomAddress = privateKeyToAccount(generatePrivateKey()).address;
-      currentNonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
+      currentNonce = await context.viem().getTransactionCount({ address: actorAddress });
     });
 
     it({
@@ -25,11 +35,13 @@ describeSuite({
             nonce: currentNonce,
             maxFeePerGas: parseGwei("300"),
             maxPriorityFeePerGas: parseGwei("300"),
+            privateKey: actorPrivateKey,
           }),
           await createRawTransfer(context, randomAddress, 2, {
             nonce: currentNonce,
             maxFeePerGas: parseGwei("400"),
             maxPriorityFeePerGas: parseGwei("300"),
+            privateKey: actorPrivateKey,
             // same priority fee but higher max fee so higher tip
           }),
         ]);
@@ -45,10 +57,12 @@ describeSuite({
           await createRawTransfer(context, randomAddress, 1, {
             nonce: currentNonce,
             maxFeePerGas: parseGwei("20"),
+            privateKey: actorPrivateKey,
           }),
           await createRawTransfer(context, randomAddress, 2, {
             nonce: currentNonce,
             maxFeePerGas: parseGwei("10"),
+            privateKey: actorPrivateKey,
           }),
         ]);
         expect(await context.viem().getBalance({ address: randomAddress })).to.equal(1n);
@@ -65,11 +79,13 @@ describeSuite({
             nonce: currentNonce,
             maxFeePerGas: parseGwei("10"),
             gas: 1048575n,
+            privateKey: actorPrivateKey,
           }),
           await createRawTransfer(context, randomAddress, 2, {
             nonce: currentNonce,
             maxFeePerGas: parseGwei("20"),
             gas: 65536n,
+            privateKey: actorPrivateKey,
           }),
         ]);
 
@@ -82,13 +98,14 @@ describeSuite({
       title: "should prioritize higher gas tips",
       test: async function () {
         // GasFee are using very high value to ensure gasPrice is not impacting
-        const alithGLMR = (await context.viem().getBalance({ address: ALITH_ADDRESS })) / GLMR;
+        const addressGLMR = (await context.viem().getBalance({ address: actorAddress })) / GLMR;
         await sendRawTransaction(
           context,
           await createRawTransfer(context, randomAddress, 66, {
             nonce: currentNonce,
             maxFeePerGas: 1n * GLMR,
             maxPriorityFeePerGas: 1n * GLMR,
+            privateKey: actorPrivateKey,
           })
         );
 
@@ -100,14 +117,15 @@ describeSuite({
                 nonce: currentNonce,
                 maxFeePerGas: gasPrice,
                 maxPriorityFeePerGas: gasPrice,
+                privateKey: actorPrivateKey,
               })
           )
         );
 
         await context.createBlock(txns);
 
-        expect((await context.viem().getBalance({ address: ALITH_ADDRESS })) / GLMR).to.equal(
-          alithGLMR - 21000n * 20n
+        expect((await context.viem().getBalance({ address: actorAddress })) / GLMR).to.equal(
+          addressGLMR - 21000n * 20n
         );
         expect(await context.viem().getBalance({ address: randomAddress })).to.equal(77n);
       },
@@ -122,11 +140,13 @@ describeSuite({
             nonce: currentNonce,
             maxFeePerGas: parseGwei("300"),
             maxPriorityFeePerGas: parseGwei("10"),
+            privateKey: actorPrivateKey,
           }),
           await createRawTransfer(context, randomAddress, 2, {
             nonce: currentNonce,
             maxFeePerGas: parseGwei("400"),
             maxPriorityFeePerGas: parseGwei("10"),
+            privateKey: actorPrivateKey,
           }),
         ]);
         expect(await context.viem().getBalance({ address: randomAddress })).to.equal(1n);

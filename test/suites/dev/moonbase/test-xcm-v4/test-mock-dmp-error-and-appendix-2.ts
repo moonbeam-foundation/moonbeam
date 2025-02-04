@@ -55,7 +55,7 @@ describeSuite({
           // BuyExecution does not charge for fees because we registered it for not doing so
           // As a consequence the trapped assets will be entirely credited
           .with(function () {
-            return this.set_error_handler_with([this.deposit_asset_v3]);
+            return this.set_error_handler_with([this.deposit_asset]);
           })
           .trap()
           .as_v4();

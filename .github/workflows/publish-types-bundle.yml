@@ -1,0 +1,48 @@
+name: Publish moonbeam-types-bundle
+on:
+  workflow_dispatch:
+    inputs:
+      TargetSHA:
+        description: full sha of commit to publish moonbeam-types-bundle from
+        required: true
+      DryRun:
+        description: Dry run mode
+        required: false
+        default: "false"
+
+jobs:
+  publish-moonbeam-types-bundle:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.TargetSHA }}
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 9
+          run_install: false
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: "test/.nvmrc"
+          cache: pnpm
+          registry-url: https://registry.npmjs.org/
+      - name: Build types-bundle package
+        run: |
+          cd types-bundle
+          pnpm i --frozen-lockfile
+          pnpm build
+      - name: Publish types-bundle
+        run: |
+          cd types-bundle
+          if [ "${{ github.event.inputs.DryRun }}" == "true" ]; then
+            pnpm publish --access public --no-git-checks --dry-run
+          else
+            pnpm publish --access public --no-git-checks
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

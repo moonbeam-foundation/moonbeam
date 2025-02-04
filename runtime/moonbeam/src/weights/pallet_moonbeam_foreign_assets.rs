@@ -62,38 +62,38 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
 	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
-	/// Storage: `EVM::AccountCodes` (r:2 w:1)
-	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodesMetadata` (r:2 w:1)
+	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `System::Account` (r:2 w:2)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `EVM::AccountCodesMetadata` (r:1 w:1)
-	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `EVM::AccountStorages` (r:4 w:4)
 	/// Proof: `EVM::AccountStorages` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `EVM::Suicided` (r:1 w:0)
 	/// Proof: `EVM::Suicided` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodes` (r:1 w:1)
+	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Ethereum::Pending` (r:1 w:1)
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn create_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `3272387`
-		//  Estimated: `3283277`
-		// Minimum execution time: 3_610_969_000 picoseconds.
-		Weight::from_parts(3_661_242_000, 3283277)
+		//  Measured:  `2124`
+		//  Estimated: `13014`
+		// Minimum execution time: 531_000_000 picoseconds.
+		Weight::from_parts(534_000_000, 13014)
 			.saturating_add(T::DbWeight::get().reads(19_u64))
 			.saturating_add(T::DbWeight::get().writes(13_u64))
 	}
 	/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:1)
 	/// Proof: `EvmForeignAssets::AssetsById` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `EvmForeignAssets::AssetsByLocation` (r:1 w:2)
+	/// Storage: `EvmForeignAssets::AssetsByLocation` (r:2 w:2)
 	/// Proof: `EvmForeignAssets::AssetsByLocation` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	fn change_xcm_location() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `2020`
-		//  Estimated: `5485`
-		// Minimum execution time: 41_219_000 picoseconds.
-		Weight::from_parts(43_570_000, 5485)
-			.saturating_add(T::DbWeight::get().reads(2_u64))
+		//  Measured:  `149`
+		//  Estimated: `6089`
+		// Minimum execution time: 22_000_000 picoseconds.
+		Weight::from_parts(23_000_000, 6089)
+			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
 	/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:0)
@@ -110,14 +110,14 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
 	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
-	/// Storage: `EVM::AccountCodes` (r:2 w:0)
-	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodesMetadata` (r:2 w:0)
+	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// Storage: `System::Digest` (r:1 w:0)
 	/// Proof: `System::Digest` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `EVM::AccountCodesMetadata` (r:1 w:0)
-	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodes` (r:1 w:0)
+	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Assets::Asset` (r:1 w:0)
 	/// Proof: `Assets::Asset` (`max_values`: None, `max_size`: Some(174), added: 2649, mode: `MaxEncodedLen`)
 	/// Storage: `EVM::AccountStorages` (r:1 w:1)
@@ -126,10 +126,10 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn freeze_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `3294569`
-		//  Estimated: `3300509`
-		// Minimum execution time: 3_594_457_000 picoseconds.
-		Weight::from_parts(3_644_553_000, 3300509)
+		//  Measured:  `24167`
+		//  Estimated: `30107`
+		// Minimum execution time: 192_000_000 picoseconds.
+		Weight::from_parts(196_000_000, 30107)
 			.saturating_add(T::DbWeight::get().reads(15_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -147,14 +147,14 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
 	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
-	/// Storage: `EVM::AccountCodes` (r:2 w:0)
-	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodesMetadata` (r:2 w:0)
+	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// Storage: `System::Digest` (r:1 w:0)
 	/// Proof: `System::Digest` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `EVM::AccountCodesMetadata` (r:1 w:0)
-	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodes` (r:1 w:0)
+	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Assets::Asset` (r:1 w:0)
 	/// Proof: `Assets::Asset` (`max_values`: None, `max_size`: Some(174), added: 2649, mode: `MaxEncodedLen`)
 	/// Storage: `EVM::AccountStorages` (r:1 w:1)
@@ -163,10 +163,10 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn unfreeze_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `3295628`
-		//  Estimated: `3301568`
-		// Minimum execution time: 3_632_781_000 picoseconds.
-		Weight::from_parts(3_692_099_000, 3301568)
+		//  Measured:  `25226`
+		//  Estimated: `31166`
+		// Minimum execution time: 194_000_000 picoseconds.
+		Weight::from_parts(196_000_000, 31166)
 			.saturating_add(T::DbWeight::get().reads(15_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
