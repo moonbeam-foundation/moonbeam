@@ -76,10 +76,10 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn create_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `3272387`
-		//  Estimated: `3283277`
-		// Minimum execution time: 4_298_810_000 picoseconds.
-		Weight::from_parts(4_386_304_000, 3283277)
+		//  Measured:  `2124`
+		//  Estimated: `13014`
+		// Minimum execution time: 531_000_000 picoseconds.
+		Weight::from_parts(534_000_000, 13014)
 			.saturating_add(T::DbWeight::get().reads(19_u64))
 			.saturating_add(T::DbWeight::get().writes(13_u64))
 	}
@@ -89,10 +89,10 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `EvmForeignAssets::AssetsByLocation` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	fn change_xcm_location() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `2461`
-		//  Estimated: `8401`
-		// Minimum execution time: 53_007_000 picoseconds.
-		Weight::from_parts(58_736_000, 8401)
+		//  Measured:  `149`
+		//  Estimated: `6089`
+		// Minimum execution time: 22_000_000 picoseconds.
+		Weight::from_parts(23_000_000, 6089)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -126,10 +126,10 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn freeze_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `3294569`
-		//  Estimated: `3300509`
-		// Minimum execution time: 3_499_593_000 picoseconds.
-		Weight::from_parts(3_862_006_000, 3300509)
+		//  Measured:  `24167`
+		//  Estimated: `30107`
+		// Minimum execution time: 192_000_000 picoseconds.
+		Weight::from_parts(196_000_000, 30107)
 			.saturating_add(T::DbWeight::get().reads(15_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -163,10 +163,10 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn unfreeze_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `3295628`
-		//  Estimated: `3301568`
-		// Minimum execution time: 3_498_878_000 picoseconds.
-		Weight::from_parts(3_882_795_000, 3301568)
+		//  Measured:  `25226`
+		//  Estimated: `31166`
+		// Minimum execution time: 194_000_000 picoseconds.
+		Weight::from_parts(196_000_000, 31166)
 			.saturating_add(T::DbWeight::get().reads(15_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
