@@ -9594,6 +9594,7 @@ dependencies = [
  "hex",
  "log",
  "pallet-balances",
+ "pallet-ethereum",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",

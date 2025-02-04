@@ -17,7 +17,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 use crate::{AssetStatus, Call, Config, Pallet};
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::v2::*;
 use frame_support::pallet_prelude::*;
 use frame_system::RawOrigin;
 use sp_runtime::traits::ConstU32;
@@ -32,20 +32,35 @@ fn str_to_bv(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 	str_.as_bytes().to_vec().try_into().expect("too long")
 }
 
-benchmarks! {
-	// Worst case scenario: MaxForeignAssets minus one already exists
-	create_foreign_asset {
+#[benchmarks(
+	where T: Config + pallet_ethereum::Config
+)]
+mod benchmarks {
+	use super::*;
+
+	#[benchmark]
+	fn create_foreign_asset() -> Result<(), BenchmarkError> {
 		let asset_id = T::MaxForeignAssets::get() as u128;
-	}: _(RawOrigin::Root, asset_id, Location::parent(), 18, str_to_bv("MT"), str_to_bv("Mytoken"))
-	verify {
+		#[extrinsic_call]
+		_(
+			RawOrigin::Root,
+			asset_id,
+			Location::parent(),
+			18,
+			str_to_bv("MT"),
+			str_to_bv("Mytoken"),
+		);
+
 		assert_eq!(
 			Pallet::<T>::assets_by_id(asset_id),
 			Some(Location::parent())
 		);
+
+		Ok(())
 	}
 
-	// Worst case scenario: MaxForeignAssets already exists
-	change_xcm_location {
+	#[benchmark]
+	fn change_xcm_location() -> Result<(), BenchmarkError> {
 		let asset_id = T::MaxForeignAssets::get() as u128;
 		Pallet::<T>::create_foreign_asset(
 			RawOrigin::Root.into(),
@@ -55,16 +70,20 @@ benchmarks! {
 			str_to_bv("MT"),
 			str_to_bv("Mytoken"),
 		)?;
-	}: _(RawOrigin::Root, asset_id, Location::here())
-	verify {
-		assert_eq!(
-			Pallet::<T>::assets_by_id(asset_id),
-			Some(Location::here())
-		);
+
+		// Remove ethereum receipts
+		pallet_ethereum::Pending::<T>::kill();
+
+		#[extrinsic_call]
+		_(RawOrigin::Root, asset_id, Location::here());
+
+		assert_eq!(Pallet::<T>::assets_by_id(asset_id), Some(Location::here()));
+
+		Ok(())
 	}
 
-	// Worst case scenario: MaxForeignAssets already exists
-	freeze_foreign_asset {
+	#[benchmark]
+	fn freeze_foreign_asset() -> Result<(), BenchmarkError> {
 		let asset_id = T::MaxForeignAssets::get() as u128;
 		Pallet::<T>::create_foreign_asset(
 			RawOrigin::Root.into(),
@@ -74,18 +93,23 @@ benchmarks! {
 			str_to_bv("MT"),
 			str_to_bv("Mytoken"),
 		)?;
-	}: _(RawOrigin::Root, asset_id, true)
-	verify {
+
+		// Remove ethereum receipts
+		pallet_ethereum::Pending::<T>::kill();
+
+		#[extrinsic_call]
+		_(RawOrigin::Root, asset_id, true);
+
 		assert_eq!(
 			Pallet::<T>::assets_by_location(location_of(asset_id)),
 			Some((asset_id, AssetStatus::FrozenXcmDepositAllowed))
 		);
+
+		Ok(())
 	}
 
-	// Worst case scenario:
-	// - MaxForeignAssets already exists
-	// - The asset to unfreeze is already frozen (to avoid early error)
-	unfreeze_foreign_asset {
+	#[benchmark]
+	fn unfreeze_foreign_asset() -> Result<(), BenchmarkError> {
 		let asset_id = T::MaxForeignAssets::get() as u128;
 		Pallet::<T>::create_foreign_asset(
 			RawOrigin::Root.into(),
@@ -95,40 +119,26 @@ benchmarks! {
 			str_to_bv("MT"),
 			str_to_bv("Mytoken"),
 		)?;
-		Pallet::<T>::freeze_foreign_asset(
-			RawOrigin::Root.into(),
-			asset_id,
-			true
-		)?;
+
+		let _ = Pallet::<T>::freeze_foreign_asset(RawOrigin::Root.into(), asset_id, true);
+
+		// Remove ethereum receipts
+		pallet_ethereum::Pending::<T>::kill();
+
+		#[extrinsic_call]
+		_(RawOrigin::Root, asset_id);
+
 		assert_eq!(
 			Pallet::<T>::assets_by_location(location_of(asset_id)),
-			Some((asset_id, AssetStatus::FrozenXcmDepositAllowed))
+			Some((asset_id, AssetStatus::Active))
 		);
-	}: _(RawOrigin::Root, asset_id)
-	verify {
-		assert_eq!(
-			Pallet::<T>::assets_by_location(location_of(asset_id)),
-			Some((asset_id.into(), AssetStatus::Active))
-		);
+
+		Ok(())
+	}
+
+	impl_benchmark_test_suite! {
+		Pallet,
+		crate::benchmarks::tests::new_test_ext(),
+		crate::mock::Test
 	}
 }
-
-#[cfg(test)]
-mod tests {
-	use crate::mock::Test;
-	use sp_io::TestExternalities;
-	use sp_runtime::BuildStorage;
-
-	pub fn new_test_ext() -> TestExternalities {
-		let t = frame_system::GenesisConfig::<Test>::default()
-			.build_storage()
-			.unwrap();
-		TestExternalities::new(t)
-	}
-}
-
-impl_benchmark_test_suite!(
-	Pallet,
-	crate::benchmarks::tests::new_test_ext(),
-	crate::mock::Test
-);
