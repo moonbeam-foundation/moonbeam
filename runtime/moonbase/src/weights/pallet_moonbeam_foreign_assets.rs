@@ -80,8 +80,8 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 		// Proof Size summary in bytes:
 		//  Measured:  `2124`
 		//  Estimated: `13014`
-		// Minimum execution time: 596_752_000 picoseconds.
-		Weight::from_parts(605_751_000, 13014)
+		// Minimum execution time: 591_249_000 picoseconds.
+		Weight::from_parts(598_577_000, 13014)
 			.saturating_add(T::DbWeight::get().reads(19_u64))
 			.saturating_add(T::DbWeight::get().writes(13_u64))
 	}
@@ -93,8 +93,8 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 		// Proof Size summary in bytes:
 		//  Measured:  `149`
 		//  Estimated: `6089`
-		// Minimum execution time: 24_288_000 picoseconds.
-		Weight::from_parts(25_108_000, 6089)
+		// Minimum execution time: 23_326_000 picoseconds.
+		Weight::from_parts(24_198_000, 6089)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -128,10 +128,10 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn freeze_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `24167`
-		//  Estimated: `30107`
-		// Minimum execution time: 196_219_000 picoseconds.
-		Weight::from_parts(200_079_000, 30107)
+		//  Measured:  `11332`
+		//  Estimated: `17272`
+		// Minimum execution time: 183_565_000 picoseconds.
+		Weight::from_parts(187_266_000, 17272)
 			.saturating_add(T::DbWeight::get().reads(15_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -165,10 +165,10 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 	/// Proof: `Ethereum::Pending` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn unfreeze_foreign_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `25226`
-		//  Estimated: `31166`
-		// Minimum execution time: 194_220_000 picoseconds.
-		Weight::from_parts(197_934_000, 31166)
+		//  Measured:  `11332`
+		//  Estimated: `17272`
+		// Minimum execution time: 178_404_000 picoseconds.
+		Weight::from_parts(182_694_000, 17272)
 			.saturating_add(T::DbWeight::get().reads(15_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
