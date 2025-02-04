@@ -81,7 +81,6 @@ export const TYPES_19_35: RegistryTypes = {
     _enum: { Active: "Null", Idle: "Null", Leaving: "RoundIndex" },
   },
   // Staking inflation
-  Range: "RangeBalance",
   RangeBalance: {
     min: "Balance",
     ideal: "Balance",
@@ -328,6 +327,7 @@ export const TYPES_900_undefined_deprecated: RegistryTypes = {
 };
 
 export const TYPES_POST_900: RegistryTypes = {
+  ...TYPES_800_899,
   ProxyType: {
     _enum: [
       "Any",
@@ -340,3 +340,5 @@ export const TYPES_POST_900: RegistryTypes = {
     ],
   },
 };
+
+export const MOON_RPC_TYPES: RegistryTypes = {};

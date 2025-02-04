@@ -26,8 +26,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo,
-		StorageInfoTrait,
+		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo,
+		StorageInfo, StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
@@ -40,7 +40,7 @@ use moonbeam_runtime::{
 	xcm_config::{CurrencyId, SelfReserve},
 	AccountId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective,
 	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
-	RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice,
+	RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice, Treasury,
 	TreasuryCouncilCollective, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
@@ -2763,6 +2763,106 @@ fn evm_success_keeps_substrate_events() {
 
 			assert_eq!(transfer_count, 1, "there should be 1 transfer event");
 		});
+}
+
+#[cfg(test)]
+mod treasury_tests {
+	use super::*;
+	use sp_runtime::traits::Hash;
+
+	fn expect_events(events: Vec<RuntimeEvent>) {
+		let block_events: Vec<RuntimeEvent> =
+			System::events().into_iter().map(|r| r.event).collect();
+
+		assert!(events.iter().all(|evt| block_events.contains(evt)))
+	}
+
+	fn next_block() {
+		System::reset_events();
+		System::set_block_number(System::block_number() + 1u32);
+		System::on_initialize(System::block_number());
+		Treasury::on_initialize(System::block_number());
+	}
+
+	#[test]
+	fn test_treasury_spend_local_with_council_origin() {
+		let initial_treasury_balance = 1_000 * GLMR;
+		ExtBuilder::default()
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * GLMR),
+				(Treasury::account_id(), initial_treasury_balance),
+			])
+			.build()
+			.execute_with(|| {
+				let spend_amount = 100u128 * GLMR;
+				let spend_beneficiary = AccountId::from(BOB);
+
+				next_block();
+
+				// TreasuryCouncilCollective
+				assert_ok!(TreasuryCouncilCollective::set_members(
+					root_origin(),
+					vec![AccountId::from(ALICE)],
+					Some(AccountId::from(ALICE)),
+					1
+				));
+
+				next_block();
+
+				// Perform treasury spending
+				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend {
+					amount: spend_amount,
+					asset_kind: Box::new(()),
+					beneficiary: Box::new(AccountId::from(BOB)),
+					valid_from: Some(5u32),
+				});
+				assert_ok!(TreasuryCouncilCollective::propose(
+					origin_of(AccountId::from(ALICE)),
+					1,
+					Box::new(proposal.clone()),
+					1_000
+				));
+
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: (),
+						amount: spend_amount,
+						beneficiary: spend_beneficiary,
+						valid_from: 5u32,
+						expire_at: payout_period + 5u32,
+					}),
+					RuntimeEvent::TreasuryCouncilCollective(pallet_collective::Event::Executed {
+						proposal_hash: sp_runtime::traits::BlakeTwo256::hash_of(&proposal),
+						result: Ok(()),
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+
+				while System::block_number() < 5u32 {
+					next_block();
+				}
+
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+						index: 0,
+						payment_id: (),
+					}),
+					RuntimeEvent::Balances(pallet_balances::Event::Transfer {
+						from: Treasury::account_id(),
+						to: spend_beneficiary,
+						amount: spend_amount,
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+			});
+	}
 }
 
 #[cfg(test)]

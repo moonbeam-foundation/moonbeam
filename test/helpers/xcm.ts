@@ -871,11 +871,12 @@ export const registerXcmTransactorDerivativeIndex = async (context: DevModeConte
 export const expectXcmEventMessage = async (context: DevModeContext, message: string) => {
   const records = await context.polkadotJs().query.system.events();
 
-  const filteredEvents = records
-    .map(({ event }) => (context.polkadotJs().events.xcmpQueue.Fail.is(event) ? event : undefined))
-    .filter((event) => event);
-
-  return filteredEvents.length ? filteredEvents[0]!.data.error.toString() === message : false;
+  return records
+    .filter(({ event }) => context.polkadotJs().events.xcmpQueue.Fail.is(event))
+    .some(
+      ({ event: { data: eventData } }: { event: { data: any } }) =>
+        eventData.error.toString() === message
+    );
 };
 
 type XcmCallback = (this: XcmFragment) => void;

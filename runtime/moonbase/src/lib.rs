@@ -29,6 +29,8 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod asset_config;
+#[cfg(not(feature = "disable-genesis-builder"))]
+pub mod genesis_config_preset;
 pub mod governance;
 pub mod runtime_params;
 pub mod xcm_config;
@@ -65,9 +67,9 @@ use frame_support::{
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect},
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
-		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOfDiverse,
-		EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice, OnFinalize,
-		OnUnbalanced,
+		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
+		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
+		OnFinalize, OnUnbalanced,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -558,9 +560,10 @@ parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
 	pub TreasuryAccount: AccountId = Treasury::account_id();
+	pub const MaxSpendBalance: crate::Balance = crate::Balance::max_value();
 }
 
-type TreasuryRejectOrigin = EitherOfDiverse<
+type RootOrTreasuryCouncilOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
 >;
@@ -569,7 +572,7 @@ impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
 	// More than half of the council is required (or root) to reject a proposal
-	type RejectOrigin = TreasuryRejectOrigin;
+	type RejectOrigin = RootOrTreasuryCouncilOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type SpendPeriod = ConstU32<{ 6 * DAYS }>;
 	type Burn = ();
@@ -577,11 +580,8 @@ impl pallet_treasury::Config for Runtime {
 	type MaxApprovals = ConstU32<100>;
 	type WeightInfo = moonbase_weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
-	#[cfg(not(feature = "runtime-benchmarks"))]
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Disabled, no spending
-	#[cfg(feature = "runtime-benchmarks")]
 	type SpendOrigin =
-		frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, benches::MaxBalance>;
+		frame_system::EnsureWithSuccess<RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
@@ -972,7 +972,6 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 					&& match PrecompileName::from_address(call.to.0) {
 						Some(
 							PrecompileName::AuthorMappingPrecompile
-							| PrecompileName::IdentityPrecompile
 							| PrecompileName::ParachainStakingPrecompile,
 						) => true,
 						Some(ref precompile) if is_governance_precompile(precompile) => true,
@@ -1025,26 +1024,28 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer => {
-				matches!(
-					c,
-					RuntimeCall::System(..)
-						| RuntimeCall::ParachainSystem(..)
-						| RuntimeCall::Timestamp(..)
-						| RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::Referenda(..)
-						| RuntimeCall::Preimage(..)
-						| RuntimeCall::ConvictionVoting(..)
-						| RuntimeCall::TreasuryCouncilCollective(..)
-						| RuntimeCall::OpenTechCommitteeCollective(..)
-						| RuntimeCall::Identity(..)
-						| RuntimeCall::Utility(..)
-						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
-						| RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::claim { .. }
-						)
-				)
-			}
+			ProxyType::NonTransfer => match c {
+				RuntimeCall::Identity(
+					pallet_identity::Call::add_sub { .. } | pallet_identity::Call::set_subs { .. },
+				) => false,
+				call => {
+					matches!(
+						call,
+						RuntimeCall::System(..)
+							| RuntimeCall::ParachainSystem(..)
+							| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
+							| RuntimeCall::Referenda(..) | RuntimeCall::Preimage(..)
+							| RuntimeCall::ConvictionVoting(..)
+							| RuntimeCall::TreasuryCouncilCollective(..)
+							| RuntimeCall::OpenTechCommitteeCollective(..)
+							| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
+							| RuntimeCall::Identity(..) | RuntimeCall::AuthorMapping(..)
+							| RuntimeCall::CrowdloanRewards(
+								pallet_crowdloan_rewards::Call::claim { .. }
+							)
+					)
+				}
+			},
 			ProxyType::Governance => matches!(
 				c,
 				RuntimeCall::Referenda(..)
@@ -1123,7 +1124,10 @@ pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	EitherOfDiverse<
 		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::FastGeneralAdmin,
+		EitherOf<
+			governance::custom_origins::GeneralAdmin,
+			governance::custom_origins::FastGeneralAdmin,
+		>,
 	>,
 >;
 
@@ -1190,12 +1194,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
 			RuntimeCall::EVM(_) => false,
-			RuntimeCall::Treasury(
-				pallet_treasury::Call::spend { .. }
-				| pallet_treasury::Call::payout { .. }
-				| pallet_treasury::Call::check_status { .. }
-				| pallet_treasury::Call::void_spend { .. },
-			) => false,
 			_ => true,
 		}
 	}

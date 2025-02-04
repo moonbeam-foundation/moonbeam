@@ -1,6 +1,6 @@
 import { ApiPromise, Keyring, WsProvider } from "@polkadot/api";
 import { start } from "polkadot-launch";
-import { typesBundlePre900 } from "../../moonbeam-types-bundle/dist";
+import { typesBundlePre900 } from "moonbeam-types-bundle";
 import {
   ALITH,
   GERALD,
