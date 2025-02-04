@@ -1,0 +1,92 @@
+name: Weight Difference Report
+
+on:
+  pull_request:
+    paths:
+        - 'runtime/moonbase/src/weights/**/*.rs'
+        - 'runtime/moonbase/src/weights/*.rs'
+        - 'runtime/moonriver/src/weights/**/*.rs'
+        - 'runtime/moonriver/src/weights/*.rs'
+        - 'runtime/moonbeam/src/weights/**/*.rs'
+        - 'runtime/moonbeam/src/weights/*.rs'
+
+jobs:
+    weight-diff:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install subweight
+              run: cargo install subweight
+
+            - name: Get changed files
+              id: changed-files-yaml
+              uses: tj-actions/changed-files@v45
+              with:
+                files_yaml: |
+                    moonbase:
+                    - 'runtime/moonbase/src/weights/**'
+                    moonriver:
+                    - 'runtime/moonriver/src/weights/**'
+                    moonbeam:
+                    - 'runtime/moonbeam/src/weights/**'
+                files_ignore_yaml: |
+                    moonbase:
+                    - 'runtime/moonbase/src/weights/mod.rs'
+                    - 'runtime/moonbase/src/weights/db/mod.rs'
+                    moonriver:
+                    - 'runtime/moonriver/src/weights/mod.rs'
+                    - 'runtime/moonriver/src/weights/db/mod.rs'
+                    moonbeam:
+                    - 'runtime/moonbeam/src/weights/mod.rs'
+                    - 'runtime/moonbeam/src/weights/db/mod.rs'
+
+- name: Generate Weight Difference Report
+        run: |
+          generate_report() {
+            local runtime=$1
+            local changed_files=$2
+            local diffs_csv="${runtime}_diffs.csv"
+            local diffs_json="${runtime}_diffs.json"
+            local diffs_sorted_json="${runtime}_diffs_sorted.json"
+
+            for file in ${changed_files}; do
+              subweight compare commits --threshold 1 --strip-path-prefix ".*/" --format csv --no-color --method exact-worst --path-pattern $file ${{github.base_ref}} ${{github.head_ref}} | sed 1,1d | sed '$d' >> ${diffs_csv}
+            done
+
+            jq -R 'split(",") | {File: .[0], Extrinsic: .[1], Old: .[2], New: .[3], "Change Percent": (.[4] | tonumber)}' ${diffs_csv} | jq -s '.' > ${diffs_json}
+            jq 'sort_by(.["Change Percent"] | abs ) | reverse' ${diffs_json} > ${diffs_sorted_json}
+
+            echo "## ${runtime^} Weight Difference Report" >> weight_diff_report.md
+            echo "| File | Extrinsic | Old | New | Change Percent |" >> weight_diff_report.md
+            echo "|------|-----------|-----|-----|----------------|" >> weight_diff_report.md
+            jq -r '.[] | "| \(.File) | \(.Extrinsic) | \(.Old) | \(.New) | \(.["Change Percent"])% |"' ${diffs_sorted_json} >> weight_diff_report.md
+          }
+
+          if [[ "${{ steps.changed-files-yaml.outputs.moonbase_any_changed }}" == "true" ]]; then
+            generate_report "moonbase" "${{ steps.changed-files-yaml.outputs.moonbase_all_changed_files }}"
+          fi
+
+          if [[ "${{ steps.changed-files-yaml.outputs.moonriver_any_changed }}" == "true" ]]; then
+            generate_report "moonriver" "${{ steps.changed-files-yaml.outputs.moonriver_all_changed_files }}"
+          fi
+
+          if [[ "${{ steps.changed-files-yaml.outputs.moonbeam_any_changed }}" == "true" ]]; then
+            generate_report "moonbeam" "${{ steps.changed-files-yaml.outputs.moonbeam_all_changed_files }}"
+          fi
+            - name: Find Comment
+              uses: peter-evans/find-comment@v3
+              id: fc
+              with:
+                issue-number: ${{ github.event.pull_request.number }}
+                comment-author: "github-actions[bot]"
+                body-includes: "Weight Difference Report"
+
+            - name: Create or update comment
+              uses: peter-evans/create-or-update-comment@v4
+              with:
+                comment-id: ${{ steps.fc.outputs.comment-id }}
+                issue-number: ${{ github.event.pull_request.number }}
+                body-path: weight_diff_report.md
+                edit-mode: replace
