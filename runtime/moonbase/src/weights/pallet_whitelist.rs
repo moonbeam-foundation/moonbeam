@@ -58,8 +58,8 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `46`
 		//  Estimated: `3544`
-		// Minimum execution time: 17_646_000 picoseconds.
-		Weight::from_parts(18_304_000, 3544)
+		// Minimum execution time: 18_217_000 picoseconds.
+		Weight::from_parts(18_846_000, 3544)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -73,8 +73,8 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `175`
 		//  Estimated: `3544`
-		// Minimum execution time: 18_761_000 picoseconds.
-		Weight::from_parts(19_235_000, 3544)
+		// Minimum execution time: 19_265_000 picoseconds.
+		Weight::from_parts(19_708_000, 3544)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -91,10 +91,10 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `251 + n * (1 ±0)`
 		//  Estimated: `3715 + n * (1 ±0)`
-		// Minimum execution time: 29_740_000 picoseconds.
-		Weight::from_parts(30_090_000, 3715)
-			// Standard Error: 10
-			.saturating_add(Weight::from_parts(1_324, 0).saturating_mul(n.into()))
+		// Minimum execution time: 30_609_000 picoseconds.
+		Weight::from_parts(31_067_000, 3715)
+			// Standard Error: 7
+			.saturating_add(Weight::from_parts(1_307, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 			.saturating_add(Weight::from_parts(0, 1).saturating_mul(n.into()))
@@ -110,10 +110,10 @@ impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `175`
 		//  Estimated: `3544`
-		// Minimum execution time: 22_460_000 picoseconds.
-		Weight::from_parts(23_027_310, 3544)
-			// Standard Error: 3
-			.saturating_add(Weight::from_parts(1_371, 0).saturating_mul(n.into()))
+		// Minimum execution time: 23_102_000 picoseconds.
+		Weight::from_parts(23_621_635, 3544)
+			// Standard Error: 2
+			.saturating_add(Weight::from_parts(1_415, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}

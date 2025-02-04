@@ -54,8 +54,8 @@ impl<T: frame_system::Config> pallet_xcm_transactor::WeightInfo for WeightInfo<T
 		// Proof Size summary in bytes:
 		//  Measured:  `114`
 		//  Estimated: `3579`
-		// Minimum execution time: 10_798_000 picoseconds.
-		Weight::from_parts(11_133_000, 3579)
+		// Minimum execution time: 10_822_000 picoseconds.
+		Weight::from_parts(11_360_000, 3579)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -65,8 +65,8 @@ impl<T: frame_system::Config> pallet_xcm_transactor::WeightInfo for WeightInfo<T
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 6_265_000 picoseconds.
-		Weight::from_parts(6_531_000, 0)
+		// Minimum execution time: 6_326_000 picoseconds.
+		Weight::from_parts(6_490_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 	/// Storage: `XcmTransactor::TransactInfoWithWeightLimit` (r:0 w:1)
@@ -75,8 +75,8 @@ impl<T: frame_system::Config> pallet_xcm_transactor::WeightInfo for WeightInfo<T
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 7_546_000 picoseconds.
-		Weight::from_parts(7_796_000, 0)
+		// Minimum execution time: 7_542_000 picoseconds.
+		Weight::from_parts(7_738_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 	/// Storage: `XcmTransactor::TransactInfoWithWeightLimit` (r:0 w:1)
@@ -85,8 +85,8 @@ impl<T: frame_system::Config> pallet_xcm_transactor::WeightInfo for WeightInfo<T
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 6_848_000 picoseconds.
-		Weight::from_parts(7_108_000, 0)
+		// Minimum execution time: 6_963_000 picoseconds.
+		Weight::from_parts(7_175_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 	/// Storage: `XcmTransactor::DestinationAssetFeePerSecond` (r:0 w:1)
@@ -95,8 +95,8 @@ impl<T: frame_system::Config> pallet_xcm_transactor::WeightInfo for WeightInfo<T
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 7_052_000 picoseconds.
-		Weight::from_parts(7_212_000, 0)
+		// Minimum execution time: 6_970_000 picoseconds.
+		Weight::from_parts(7_194_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 	/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:0)
@@ -121,8 +121,8 @@ impl<T: frame_system::Config> pallet_xcm_transactor::WeightInfo for WeightInfo<T
 		// Proof Size summary in bytes:
 		//  Measured:  `493`
 		//  Estimated: `3958`
-		// Minimum execution time: 39_987_000 picoseconds.
-		Weight::from_parts(41_115_000, 3958)
+		// Minimum execution time: 40_791_000 picoseconds.
+		Weight::from_parts(41_431_000, 3958)
 			.saturating_add(T::DbWeight::get().reads(9_u64))
 	}
 	/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:0)
@@ -143,8 +143,8 @@ impl<T: frame_system::Config> pallet_xcm_transactor::WeightInfo for WeightInfo<T
 		// Proof Size summary in bytes:
 		//  Measured:  `427`
 		//  Estimated: `3892`
-		// Minimum execution time: 34_015_000 picoseconds.
-		Weight::from_parts(34_669_000, 3892)
+		// Minimum execution time: 34_401_000 picoseconds.
+		Weight::from_parts(35_378_000, 3892)
 			.saturating_add(T::DbWeight::get().reads(7_u64))
 	}
 	/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:0)
@@ -169,8 +169,8 @@ impl<T: frame_system::Config> pallet_xcm_transactor::WeightInfo for WeightInfo<T
 		// Proof Size summary in bytes:
 		//  Measured:  `471`
 		//  Estimated: `3936`
-		// Minimum execution time: 51_713_000 picoseconds.
-		Weight::from_parts(53_468_000, 3936)
+		// Minimum execution time: 52_002_000 picoseconds.
+		Weight::from_parts(53_373_000, 3936)
 			.saturating_add(T::DbWeight::get().reads(9_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -198,8 +198,8 @@ impl<T: frame_system::Config> pallet_xcm_transactor::WeightInfo for WeightInfo<T
 		// Proof Size summary in bytes:
 		//  Measured:  `475`
 		//  Estimated: `3940`
-		// Minimum execution time: 54_799_000 picoseconds.
-		Weight::from_parts(56_622_000, 3940)
+		// Minimum execution time: 55_456_000 picoseconds.
+		Weight::from_parts(56_968_000, 3940)
 			.saturating_add(T::DbWeight::get().reads(10_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}

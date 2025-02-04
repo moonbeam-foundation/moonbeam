@@ -80,8 +80,8 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 		// Proof Size summary in bytes:
 		//  Measured:  `2124`
 		//  Estimated: `13014`
-		// Minimum execution time: 596_246_000 picoseconds.
-		Weight::from_parts(607_045_000, 13014)
+		// Minimum execution time: 596_752_000 picoseconds.
+		Weight::from_parts(605_751_000, 13014)
 			.saturating_add(T::DbWeight::get().reads(19_u64))
 			.saturating_add(T::DbWeight::get().writes(13_u64))
 	}
@@ -93,8 +93,8 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 		// Proof Size summary in bytes:
 		//  Measured:  `149`
 		//  Estimated: `6089`
-		// Minimum execution time: 24_119_000 picoseconds.
-		Weight::from_parts(24_966_000, 6089)
+		// Minimum execution time: 24_288_000 picoseconds.
+		Weight::from_parts(25_108_000, 6089)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -130,8 +130,8 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 		// Proof Size summary in bytes:
 		//  Measured:  `24167`
 		//  Estimated: `30107`
-		// Minimum execution time: 196_814_000 picoseconds.
-		Weight::from_parts(200_629_000, 30107)
+		// Minimum execution time: 196_219_000 picoseconds.
+		Weight::from_parts(200_079_000, 30107)
 			.saturating_add(T::DbWeight::get().reads(15_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -167,8 +167,8 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 		// Proof Size summary in bytes:
 		//  Measured:  `25226`
 		//  Estimated: `31166`
-		// Minimum execution time: 195_724_000 picoseconds.
-		Weight::from_parts(199_418_000, 31166)
+		// Minimum execution time: 194_220_000 picoseconds.
+		Weight::from_parts(197_934_000, 31166)
 			.saturating_add(T::DbWeight::get().reads(15_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}

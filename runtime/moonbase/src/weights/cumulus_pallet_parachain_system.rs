@@ -63,10 +63,10 @@ impl<T: frame_system::Config> cumulus_pallet_parachain_system::WeightInfo for We
 		// Proof Size summary in bytes:
 		//  Measured:  `82`
 		//  Estimated: `3517`
-		// Minimum execution time: 2_922_000 picoseconds.
-		Weight::from_parts(3_061_000, 3517)
-			// Standard Error: 42_857
-			.saturating_add(Weight::from_parts(286_052_519, 0).saturating_mul(n.into()))
+		// Minimum execution time: 2_968_000 picoseconds.
+		Weight::from_parts(3_060_000, 3517)
+			// Standard Error: 42_861
+			.saturating_add(Weight::from_parts(292_651_439, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
