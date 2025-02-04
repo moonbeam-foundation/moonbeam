@@ -19,23 +19,12 @@ describeSuite({
   id: "D010111",
   title: "XCM - Costs of managing foreign assets",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
-    let address: string;
+  testCases: ({ context, it }) => {
     let assetId: bigint;
     let assetLocation = RELAY_SOURCE_LOCATION_V4;
     let xcmLoc = patchLocationV4recursively(assetLocation);
     let decimals = 18;
 
-    beforeAll(async () => {
-    });
-
-    // Cases
-    // 1. Cost of creating an asset
-    // 2. Cost of changing an asset's location
-    // 3. Cost of freezing an asset
-    // 4. Cost of unfreezing an asset
-    // 6. Size of the created contract
-    // 7. Cost of sending an asset
     it({
         id: "T01",
         "title": "Cost of creating an asset",
@@ -47,8 +36,8 @@ describeSuite({
 
             const { weight, proofSize } = await calculateWeight(context, createAsset);
 
-            expect(weight).toMatchInlineSnapshot(`6287470000`);
-            expect(proofSize).toMatchInlineSnapshot(`3284782`);
+            expect(weight).toMatchInlineSnapshot(`2435166000`);
+            expect(proofSize).toMatchInlineSnapshot(`14519`);
         }
     })
 
@@ -63,8 +52,8 @@ describeSuite({
 
             const { weight, proofSize } = await calculateWeight(context, changeLocation);
 
-            expect(weight).toMatchInlineSnapshot(`479200000`);
-            expect(proofSize).toMatchInlineSnapshot(`9906`);
+            expect(weight).toMatchInlineSnapshot(`443464000`);
+            expect(proofSize).toMatchInlineSnapshot(`7594`);
         }
     })
 
@@ -79,8 +68,8 @@ describeSuite({
 
             const { weight, proofSize } = await calculateWeight(context, freezeAsset);
 
-            expect(weight).toMatchInlineSnapshot(`4945940000`);
-            expect(proofSize).toMatchInlineSnapshot(`3302014`);
+            expect(weight).toMatchInlineSnapshot(`1279934000`);
+            expect(proofSize).toMatchInlineSnapshot(`31612`);
         }
     })
 
@@ -95,8 +84,8 @@ describeSuite({
 
             const { weight, proofSize } = await calculateWeight(context, unfreezeAsset);
 
-            expect(weight).toMatchInlineSnapshot(`4945940000`);
-            expect(proofSize).toMatchInlineSnapshot(`3302014`);
+            expect(weight).toMatchInlineSnapshot(`1279934000`);
+            expect(proofSize).toMatchInlineSnapshot(`31612`);
         }
     })
 
@@ -109,7 +98,7 @@ describeSuite({
             const assetId = 1n;
 
             // Register the asset
-            const {contractAddress, registeredAssetId } = await registerForeignAsset(context, assetId, assetLocation, relayAssetMetadata);
+            const {contractAddress} = await registerForeignAsset(context, assetId, assetLocation, relayAssetMetadata);
             // Mock asset balance
             await mockAssetBalance(context, someBalance, assetId, alith, ALITH_ADDRESS);
 
