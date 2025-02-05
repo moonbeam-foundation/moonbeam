@@ -78,7 +78,7 @@ jobs:
           --alice \
           --rpc-port=9911 \
           --unsafe-force-node-key-generation \
-          --tmp & sleep 10' > 9911.out &
+          --tmp' > 9911.out &
       - name: Run current runtime
         run: |
           chmod +x next-runtime-release/moonbeam
@@ -96,19 +96,20 @@ jobs:
           --alice \
           --rpc-port=9977 \
           --unsafe-force-node-key-generation \
-          --tmp & sleep 10' > 9977.out &
+          --tmp' > 9977.out &
       - name: Run Diffs
         run: |
+          sleep 20; # Wait for nodes to be ready
           mkdir -p runtime-diffs/${{ matrix.runtime }}
           subxt diff -a ws://127.0.0.1:9911 ws://127.0.0.1:9977 | sed 's/\x1b\[[0-9;]*m//g' > runtime-diffs/${{ matrix.runtime }}/${{ github.event.inputs.spec_version }}.txt
           if [ $? -ne 0 ]; then
+            cat 9911.out
+            cat 9977.out
             exit 1;
           fi
       - name: Stop Node Services
         if: always()
         run: |
-          cat 9911.out
-          cat 9977.out
           pkill moonbeam
 
       - name: Upload diff artifacts
