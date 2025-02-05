@@ -64,7 +64,7 @@ jobs:
           --alice \
           --rpc-port=9911 \
           --unsafe-force-node-key-generation \
-          --tmp & sleep 2' &
+          --tmp & sleep 10' > 9911.out &
       - name: Run current runtime
         run: |
           chmod +x next-runtime-release/moonbeam
@@ -82,8 +82,7 @@ jobs:
           --alice \
           --rpc-port=9977 \
           --unsafe-force-node-key-generation \
-          --tmp & sleep 2' &
-
+          --tmp & sleep 10' > 9977.out &
       - name: Run Diffs
         run: |
           mkdir -p runtime-diffs/${{ matrix.runtime }}
@@ -91,6 +90,8 @@ jobs:
       - name: Stop Node Services
         if: always()
         run: |
+          cat 9911.out
+          cat 9977.out
           pkill moonbeam
 
       - name: Upload diff artifacts
