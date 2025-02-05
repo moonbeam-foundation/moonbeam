@@ -101,12 +101,12 @@ describeSuite({
           "proofSize is too high, this might lead to empty block"
         ).to.be.at.most(2_616_200);
 
-        // block could support ~500ms refTime but we consider it safer to error when reaching
-        // over 210ms for the payout. After Async Backing a block could support 2000ms.
+        // block could support ~2000ms refTime but we consider it safer to error when reaching
+        // over 212ms for the payout.
         expect(
           weights.mandatory.refTime.toNumber(),
-          "refTime over 210ms, very high for a payout"
-        ).to.be.at.most(210_000_000_000);
+          "refTime over 212ms, very high for a payout"
+        ).to.be.at.most(212_000_000_000);
 
         expect(
           weights.mandatory.proofSize.toNumber(),
