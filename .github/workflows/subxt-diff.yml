@@ -34,13 +34,13 @@ jobs:
       - name: Lookup previous runtime release build
         run: |
           COMMIT=`git rev-list -n 1 'runtime-${{ github.event.inputs.last_spec_version }}'`
-          PREVIOUS_RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
+          PREVIOUS_RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=1000 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -1)
           echo "Latest build for runtime-${{ github.event.inputs.last_spec_version }}: $PREVIOUS_RUNTIME_BUILD"
           echo "PREVIOUS_RUNTIME_BUILD=$PREVIOUS_RUNTIME_BUILD" >> $GITHUB_OUTPUT
       - name: Lookup previous runtime release build
         run: |
           COMMIT=`git rev-list -n 1 'runtime-${{ github.event.inputs.spec_version }}'`
-          RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
+          RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=1000 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -1)
           echo "Latest build for runtime-${{ github.event.inputs.spec_version }}: $RUNTIME_BUILD"
           echo "NEXT_RUNTIME_BUILD=$RUNTIME_BUILD" >> $GITHUB_OUTPUT
       - name: Download binaries for each runtime
