@@ -61,10 +61,6 @@ jobs:
           merge-multiple: true
           github-token: ${{ github.token }}
           run-id: ${{ steps.next-runtime.outputs.NEXT_RUNTIME_BUILD }}
-      - name: Download binaries for each runtime
-        run: |
-          gh run -R moonbeam-foundation/moonbeam download $PREVIOUS_RUNTIME_BUILD -n moonbeam --dir previous-runtime-release
-          gh run -R moonbeam-foundation/moonbeam download $NEXT_RUNTIME_BUILD -n moonbeam --dir next-runtime-release
       - name: Run previous runtime
         run: |
           chmod +x previous-runtime-release/moonbeam
