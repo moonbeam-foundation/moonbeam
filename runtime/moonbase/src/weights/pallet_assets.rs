@@ -64,7 +64,7 @@ impl<T: frame_system::Config> pallet_assets::WeightInfo for WeightInfo<T> {
 		//  Measured:  `6`
 		//  Estimated: `3639`
 		// Minimum execution time: 10_296_000 picoseconds.
-		Weight::from_parts(10, 36)
+		Weight::from_parts(10_719_000, 3639)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
