@@ -825,23 +825,10 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - name: Retrieve moonbeam binary from docker (for plainSpec generation)
-        run: |
-          LATEST_CLIENT=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("v";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]')
-          echo "Latest client: $LATEST_CLIENT"
-          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$LATEST_CLIENT/moonbeam -O test/tmp/moonbeam_rt
-      - name: Prepare Chainspecs
+      - name: "Prepare chainspecs"
         run: |
           cd test
-          pnpm install
-
-          ## Generate old spec using latest published node, modify it, and generate raw spec
-          chmod uog+x tmp/moonbeam_rt
-          chmod uog+x ../target/release/moonbeam
-          tmp/moonbeam_rt build-spec --chain ${{ matrix.chain }}-local > tmp/${{ matrix.chain }}-plain-spec.json
-          pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json
-          tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
-          pnpm tsx scripts/preapprove-rt-rawspec.ts process tmp/${{ matrix.chain }}-raw-spec.json tmp/${{ matrix.chain }}-modified-raw-spec.json ../target/release/wbuild/${{ matrix.chain }}-runtime/${{ matrix.chain }}_runtime.compact.compressed.wasm
+          ./scripts/prepare-chainspecs-for-zombie.sh ${{ matrix.chain }}
       - name: "Run zombie upgrade test"
         run: |
           cd test
