@@ -828,6 +828,7 @@ jobs:
       - name: "Prepare chainspecs"
         run: |
           cd test
+          pnpm install
           ./scripts/prepare-chainspecs-for-zombie.sh ${{ matrix.chain }}
       - name: "Run zombie upgrade test"
         run: |
