@@ -22,6 +22,7 @@ sp-std = { workspace = true }
 # Frontier
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
+pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 
 # Polkadot
 xcm = { workspace = true }
@@ -60,5 +61,5 @@ std = [
 	"snowbridge-core/std"
 ]
 
-runtime-benchmarks = [ "frame-benchmarking"]
+runtime-benchmarks = ["frame-benchmarking"]
 try-runtime = [ "frame-support/try-runtime" ]

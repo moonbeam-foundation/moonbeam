@@ -34,11 +34,11 @@ For example, above you can see that AuthorInherent has changed, in that a new St
 Meanwhile, `LocalAssets` pallet has been removed, so you would expect references to storages, extrinsics, events; to be removed.
 
 > [!NOTE]  
-> Adding new pallets may not nessecarily correspond to new storages or extrinsics being added - althougth it often does.
+> Adding new pallets may not necessarily correspond to new storages or extrinsics being added - although it often does.
 
 ## Resources
 
 - [subxt cli readme](https://github.com/paritytech/subxt/tree/master/cli) - Some basic instructions in readme
 - [subxt release docs](https://github.com/paritytech/subxt/releases) - Latest releases have usage guide for new CLI features
 - [polkadot metadata explorer](https://wiki.polkadot.network/docs/metadata) - An interactive explorer of polkadot metadata
-- [substrate docs](https://docs.substrate.io/build/application-development/#exposing-runtime-information-as-metadata) - Some background on how metadata blobs get generated with which to serve when requested.
+- [substrate docs](https://docs.polkadot.com/polkadot-protocol/basics/chain-data/#expose-runtime-information-as-metadata) - Some background on how metadata blobs get generated with which to serve when requested.

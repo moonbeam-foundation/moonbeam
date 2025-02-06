@@ -20,6 +20,7 @@ use crate as pallet_moonbeam_foreign_assets;
 use frame_support::traits::{EitherOf, Everything};
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
 use frame_system::{EnsureRoot, Origin};
+use pallet_ethereum::{IntermediateStateRoot, PostLogContent};
 use pallet_evm::{FrameSystemAccountProvider, SubstrateBlockHashMapping};
 use precompile_utils::testing::MockAccount;
 use sp_core::{H256, U256};
@@ -44,6 +45,7 @@ construct_runtime!(
 		Balances: pallet_balances,
 		Timestamp: pallet_timestamp,
 		EVM: pallet_evm,
+		Ethereum: pallet_ethereum,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets,
 	}
 );
@@ -145,6 +147,17 @@ impl pallet_evm::Config for Test {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
 	type AccountProvider = FrameSystemAccountProvider<Test>;
+}
+
+parameter_types! {
+	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
+}
+
+impl pallet_ethereum::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
+	type StateRoot = IntermediateStateRoot<<Test as frame_system::Config>::Version>;
+	type PostLogContent = PostBlockAndTxnHashes;
+	type ExtraDataLength = ConstU32<30>;
 }
 
 /// Gets parameters of last `ForeignAssetCreatedHook::on_asset_created` hook invocation

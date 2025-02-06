@@ -18,16 +18,16 @@
 //!
 
 use super::{
-	governance, runtime_params, AccountId, AssetId, AssetManager, Balance, Balances,
-	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
-	OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
+	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance,
+	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 use super::moonbeam_weights;
 use frame_support::{
 	parameter_types,
-	traits::{EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
+	traits::{EitherOf, EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
@@ -57,7 +57,6 @@ use xcm::latest::prelude::{
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
-use frame_support::traits::EitherOf;
 use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
@@ -66,6 +65,7 @@ use xcm_primitives::{
 };
 
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
+use crate::runtime_params::dynamic_params;
 use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
@@ -683,13 +683,6 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	}
 }
 
-parameter_types! {
-	/// Balance in the native currency that will be reserved from the user
-	/// to create a new foreign asset
-	pub ForeignAssetCreationDeposit: u128 =
-		runtime_params::dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
-}
-
 pub type ForeignAssetManagerOrigin = EitherOf<
 	MapSuccessToXcm<EnsureXcm<AllowSiblingsOnly>>,
 	MapSuccessToGovernance<
@@ -702,7 +695,10 @@ pub type ForeignAssetManagerOrigin = EitherOf<
 					5,
 					9,
 				>,
-				governance::custom_origins::FastGeneralAdmin,
+				EitherOf<
+					governance::custom_origins::FastGeneralAdmin,
+					governance::custom_origins::GeneralAdmin,
+				>,
 			>,
 		>,
 	>,
@@ -723,7 +719,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
-	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
+	type ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
 	type Balance = Balance;
 	type Currency = Balances;
 }
@@ -736,19 +732,14 @@ impl frame_support::traits::Contains<Location> for AssetFeesFilter {
 	}
 }
 
-pub type AddSupportedAssetOrigin = EitherOfDiverse<
+pub type AddAndEditSupportedAssetOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	EitherOfDiverse<
 		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
-
-pub type EditSupportedAssetOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::FastGeneralAdmin,
+		EitherOf<
+			governance::custom_origins::GeneralAdmin,
+			governance::custom_origins::FastGeneralAdmin,
+		>,
 	>,
 >;
 
@@ -759,16 +750,16 @@ pub type RemoveSupportedAssetOrigin = EitherOfDiverse<
 
 impl pallet_xcm_weight_trader::Config for Runtime {
 	type AccountIdToLocation = AccountIdToLocation<AccountId>;
-	type AddSupportedAssetOrigin = AddSupportedAssetOrigin;
+	type AddSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type AssetLocationFilter = AssetFeesFilter;
 	type AssetTransactor = AssetTransactors;
 	type Balance = Balance;
-	type EditSupportedAssetOrigin = EditSupportedAssetOrigin;
+	type EditSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type NativeLocation = SelfReserve;
-	type PauseSupportedAssetOrigin = EditSupportedAssetOrigin;
+	type PauseSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
+	type ResumeSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
 	type RuntimeEvent = RuntimeEvent;
-	type ResumeSupportedAssetOrigin = RemoveSupportedAssetOrigin;
 	type WeightInfo = moonbeam_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;
