@@ -69,7 +69,26 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		)
 		.expect("Provided valid json map"),
 	)
-	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
+	.with_genesis_config(testnet_genesis(
+		// Alith is Sudo
+		accounts[0],
+		// Treasury Council members: Baltathar, Charleth and Dorothy
+		vec![accounts[1], accounts[2], accounts[3]],
+		// Open Tech committee members: Alith, Baltathar and Charleth
+		vec![accounts[0], accounts[1], accounts[2]],
+		// Collator Candidate: Alice -> Alith
+		vec![(
+			accounts[0],
+			get_from_seed::<NimbusId>("Alice"),
+			1_000 * UNIT,
+		)],
+		// Delegations
+		vec![],
+		accounts.clone(),
+		3_000_000 * UNIT,
+		Default::default(), // para_id
+		1281,               //ChainId
+	))
 	.build()
 }
 
