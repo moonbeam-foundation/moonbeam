@@ -159,6 +159,47 @@
 <a href="#157" id="157">157</a>
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -275,7 +316,48 @@
 		)
 		.expect(<span class="string">"Provided valid json map"</span>),
 	)
-	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
+	.with_genesis_config(testnet_genesis(
+		<span class="comment">// Alith is Sudo
+		</span>AccountId::from(<span class="macro">hex!</span>(<span class="string">"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"</span>)),
+		<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
+		</span><span class="macro">vec!</span>[
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">"3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0"</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">"798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc"</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">"773539d4Ac0e786233D90A233654ccEE26a613D9"</span>)),
+		],
+		<span class="comment">// Open Tech committee members: Alith and Baltathar
+		</span><span class="macro">vec!</span>[
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">"3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0"</span>)),
+		],
+		<span class="comment">// Collator Candidates
+		</span><span class="macro">vec!</span>[
+			<span class="comment">// Alice -&gt; Alith
+			</span>(
+				AccountId::from(<span class="macro">hex!</span>(<span class="string">"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"</span>)),
+				get_from_seed::&lt;NimbusId&gt;(<span class="string">"Alice"</span>),
+				<span class="number">1_000 </span>* UNIT,
+			),
+			<span class="comment">// Bob -&gt; Baltathar
+			</span>(
+				AccountId::from(<span class="macro">hex!</span>(<span class="string">"3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0"</span>)),
+				get_from_seed::&lt;NimbusId&gt;(<span class="string">"Bob"</span>),
+				<span class="number">1_000 </span>* UNIT,
+			),
+		],
+		<span class="comment">// Delegations
+		</span><span class="macro">vec!</span>[],
+		<span class="comment">// Endowed: Alith, Baltathar, Charleth and Dorothy
+		</span><span class="macro">vec!</span>[
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">"3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0"</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">"798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc"</span>)),
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">"773539d4Ac0e786233D90A233654ccEE26a613D9"</span>)),
+		],
+		<span class="number">3_000_000 </span>* UNIT,
+		para_id,
+		<span class="number">1280</span>, <span class="comment">//ChainId
+	</span>))
 	.build()
 }
 
