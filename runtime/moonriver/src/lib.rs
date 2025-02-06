@@ -79,6 +79,7 @@ use pallet_evm::{
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec as codec;
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
@@ -121,6 +122,7 @@ pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonriverPrecompiles<Runtime>;
 
+pub mod bridge_config;
 pub mod asset_config;
 #[cfg(not(feature = "disable-genesis-builder"))]
 pub mod genesis_config_preset;
@@ -1451,7 +1453,16 @@ construct_runtime! {
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
+
+		// Bridge pallets (reserved indexes from 130 to 135)
+		BridgePolkadotGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
 	}
+}
+
+bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
+	RuntimeCall, AccountId,
+	// Grandpa
+	BridgePolkadotGrandpa
 }
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -1516,6 +1527,7 @@ pub type SignedExtra = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	BridgeRejectObsoleteHeadersAndMessages,
 	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
 	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 );
