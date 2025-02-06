@@ -75,6 +75,7 @@ use pallet_evm::{
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec as codec;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use smallvec::smallvec;
@@ -119,6 +120,7 @@ pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
+pub mod bridge_config;
 pub mod asset_config;
 #[cfg(not(feature = "disable-genesis-builder"))]
 pub mod genesis_config_preset;
@@ -129,6 +131,10 @@ pub mod xcm_config;
 
 use governance::councils::*;
 pub(crate) use weights as moonbeam_weights;
+
+use bridge_runtime_common::extensions::{
+	CheckAndBoostBridgeGrandpaTransactions, CheckAndBoostBridgeParachainsTransactions,
+};
 
 /// GLMR, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -1456,7 +1462,22 @@ construct_runtime! {
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
+
+		// Bridge pallets (reserved indexes from 130 to 135)
+		BridgeKusamaGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
 	}
+}
+
+bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
+	RuntimeCall, AccountId,
+	// Grandpa
+	BridgeKusamaGrandpa
+	//CheckAndBoostBridgeGrandpaTransactions<
+	//	Runtime,
+	//	bridge_config::BridgeGrandpaKusamaInstance,
+	//	bridge_config::PriorityBoostPerRelayHeader,
+	//	TreasuryAccount,
+	//>
 }
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -1534,6 +1555,7 @@ pub type SignedExtra = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	BridgeRejectObsoleteHeadersAndMessages,
 	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
 	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 );
