@@ -39,11 +39,11 @@ yargs(hideBin(process.argv))
 
       plainSpec.bootNodes = [];
       if ("runtimeGenesis" in plainSpec.genesis) {
-        plainSpec.genesis.runtimeGenesis.config.authorMapping.mappings = [
+        plainSpec.genesis.runtimeGenesis.patch.authorMapping.mappings = [
           ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
         ];
 
-        plainSpec.genesis.runtimeGenesis.config.openTechCommitteeCollective.members = [
+        plainSpec.genesis.runtimeGenesis.patch.openTechCommitteeCollective.members = [
           ALITH_ADDRESS,
         ];
       } else {
