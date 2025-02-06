@@ -65,24 +65,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		)
 		.expect("Provided valid json map"),
 	)
-	.with_genesis_config(testnet_genesis(
-		// Treasury Council members: Baltathar, Charleth and Dorothy
-		vec![accounts[1], accounts[2], accounts[3]],
-		// Open Tech committee members: Alith and Baltathar
-		vec![accounts[0], accounts[1]],
-		// Collator Candidate: Alice -> Alith
-		vec![(
-			accounts[0],
-			get_from_seed::<NimbusId>("Alice"),
-			20_000 * GLMR * SUPPLY_FACTOR,
-		)],
-		// Delegations
-		vec![],
-		accounts.clone(),
-		1_500_000 * GLMR * SUPPLY_FACTOR,
-		Default::default(), // para_id
-		1281,               //ChainId
-	))
+	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
 	.build()
 }
 
@@ -108,7 +91,46 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		)
 		.expect("Provided valid json map"),
 	)
-	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
+	.with_genesis_config(testnet_genesis(
+		// Treasury Council members: Baltathar, Charleth and Dorothy
+		vec![
+			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+		],
+		// Open Tech committee members: Alith and Baltathar
+		vec![
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+		],
+		// Collator Candidates
+		vec![
+			// Alice -> Alith
+			(
+				AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+				get_from_seed::<NimbusId>("Alice"),
+				20_000 * GLMR * SUPPLY_FACTOR,
+			),
+			// Bob -> Baltathar
+			(
+				AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+				get_from_seed::<NimbusId>("Bob"),
+				20_000 * GLMR * SUPPLY_FACTOR,
+			),
+		],
+		// Delegations
+		vec![],
+		// Endowed: Alith, Baltathar, Charleth and Dorothy
+		vec![
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+		],
+		1_500_000 * GLMR * SUPPLY_FACTOR,
+		para_id,
+		1280, //ChainId
+	))
 	.build()
 }
 
