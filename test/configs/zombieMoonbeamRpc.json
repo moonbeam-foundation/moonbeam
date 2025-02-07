@@ -45,6 +45,15 @@
       "id": 1000,
       "chain": "moonbeam-local",
       "chain_spec_path": "tmp/moonbeam-modified-raw-spec.json",
+      "genesis": {
+        "runtimeGenesis": {
+          "patch": {
+            "parachainInfo": {
+              "parachainId": 1000
+            }
+          }
+        }
+      },
       "collators": [
         {
           "name": "alith",

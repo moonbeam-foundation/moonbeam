@@ -46,6 +46,15 @@
       "id": 1000,
       "chain": "moonbase-local",
       "chain_spec_path": "tmp/moonbase-modified-raw-spec.json",
+      "genesis": {
+        "runtimeGenesis": {
+          "patch": {
+            "parachainInfo": {
+              "parachainId": 1000
+            }
+          }
+        }
+      },
       "collator": {
         "name": "alith",
         "ws_port": 33345,
@@ -57,7 +66,7 @@
           "--database=paritydb"
         ]
       }
-    }
+    },
   ],
   "types": {
     "Header": {
