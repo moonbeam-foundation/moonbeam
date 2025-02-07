@@ -1,0 +1,43 @@
+[settings]
+provider = "native"
+
+[relaychain]
+default_command = "polkadot"
+default_args = [
+    "-lparachain=debug,runtime=debug,--insecure-validator-i-know-what-i-do",
+]
+chain = "polkadot"
+
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+rpc_port = 9944
+
+[[relaychain.nodes]]
+name = "bob"
+validator = true
+
+[[parachains]]
+id = 2004
+chain = "moonbeam-local"
+cumulus_based = true
+
+[parachains.genesis.runtimeGenesis.patch.parachainInfo]
+parachainId = 2004
+
+[[parachains.collators]]
+name = "alith"
+command = "moonbeam"
+ws_port = 8802
+args = [
+    "--no-hardware-benchmarks",
+    "--no-telemetry",
+    "-lparachain::availability=trace,sync=debug,parachain=debug,rpc=info",
+    "--pruning=archive",
+    "--database=rocksdb",
+]
+
+[types.Header]
+number = "u64"
+parent_hash = "Hash"
+post_state = "Hash"
