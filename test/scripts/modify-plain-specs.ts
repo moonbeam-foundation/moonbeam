@@ -45,9 +45,7 @@ yargs(hideBin(process.argv))
         ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
       ];
 
-      plainSpec.genesis.runtimeGenesis.patch.openTechCommitteeCollective.members = [
-        ALITH_ADDRESS,
-      ];
+      plainSpec.genesis.runtimeGenesis.patch.openTechCommitteeCollective.members = [ALITH_ADDRESS];
 
       process.stdout.write(`Writing to: ${argv.outputPath} ...`);
       await fs.writeFile(
