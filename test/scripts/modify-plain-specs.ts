@@ -38,20 +38,14 @@ yargs(hideBin(process.argv))
       process.stdout.write("Done ✅\n");
 
       plainSpec.bootNodes = [];
-      if ("runtimeGenesis" in plainSpec.genesis) {
-        plainSpec.genesis.runtimeGenesis.patch.authorMapping.mappings = [
-          ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
-        ];
+      // TODO: remove once client 0.44.0 is released
+      plainSpec.genesis.runtimeGenesis.patch.parachainInfo.parachainId = 1000;
 
-        plainSpec.genesis.runtimeGenesis.patch.openTechCommitteeCollective.members = [
-          ALITH_ADDRESS,
-        ];
-      } else {
-        plainSpec.genesis.runtime.authorMapping.mappings = [
-          ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
-        ];
-        plainSpec.genesis.runtime.openTechCommitteeCollective.members = [ALITH_ADDRESS];
-      }
+      plainSpec.genesis.runtimeGenesis.patch.authorMapping.mappings = [
+        ["5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX", ALITH_ADDRESS],
+      ];
+
+      plainSpec.genesis.runtimeGenesis.patch.openTechCommitteeCollective.members = [ALITH_ADDRESS];
 
       process.stdout.write(`Writing to: ${argv.outputPath} ...`);
       await fs.writeFile(
