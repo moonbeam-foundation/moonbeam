@@ -6343,7 +6343,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.12.3"
+version = "0.44.0"
 dependencies = [
  "assert_cmd",
  "futures 0.3.30",
@@ -6361,7 +6361,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.43.0"
+version = "0.44.0"
 dependencies = [
  "clap",
  "clap-num",
@@ -6399,7 +6399,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.43.0"
+version = "0.44.0"
 dependencies = [
  "account",
  "bip32",
@@ -6932,7 +6932,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.43.0"
+version = "0.44.0"
 dependencies = [
  "ansi_term",
  "async-backing-primitives",
@@ -9595,6 +9595,7 @@ dependencies = [
  "hex",
  "log",
  "pallet-balances",
+ "pallet-ethereum",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",

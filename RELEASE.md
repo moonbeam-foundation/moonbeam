@@ -15,7 +15,7 @@
 
 To release `vX.Y.Z`:
 
-1. Create a PR with increment client version
+1. Create a PR with increment the client version
 1. Get that PR approved and merged
 1. Tag master with `vX.Y.Z` and push to github
 1. Start the github action "Publish Binary Draft" (on master branch)
@@ -40,7 +40,7 @@ To release `vX.Y.Z`:
 
 To release `runtime-XXYY`:
 
-1. Create a PR that increment spec version (like #1051)
+1. Create a PR that increment the spec version (like #1051)
 1. Get that PR approved and merged
 1. Tag master with `runtime-XXYY` and push to github
 1. Start the github action "Publish Runtime Draft"

@@ -357,45 +357,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::ForeignAssetCreatorOrigin::ensure_origin(origin)?;
 
-			// Ensure such an assetId does not exist
-			ensure!(
-				!AssetsById::<T>::contains_key(&asset_id),
-				Error::<T>::AssetAlreadyExists
-			);
-
-			ensure!(
-				!AssetsByLocation::<T>::contains_key(&xcm_location),
-				Error::<T>::LocationAlreadyExists
-			);
-
-			ensure!(
-				AssetsById::<T>::count() < T::MaxForeignAssets::get(),
-				Error::<T>::TooManyForeignAssets
-			);
-
-			ensure!(
-				T::AssetIdFilter::contains(&asset_id),
-				Error::<T>::AssetIdFiltered
-			);
-
-			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
-			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
-
-			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
-
-			// Insert the association assetId->foreigAsset
-			// Insert the association foreigAsset->assetId
-			AssetsById::<T>::insert(&asset_id, &xcm_location);
-			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
-
-			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);
-
-			Self::deposit_event(Event::ForeignAssetCreated {
-				contract_address,
-				asset_id,
-				xcm_location,
-			});
-			Ok(())
+			Self::register_foreign_asset(asset_id, xcm_location, decimals, symbol, name)
 		}
 
 		/// Change the xcm type mapping for a given assetId
