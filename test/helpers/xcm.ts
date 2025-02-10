@@ -174,7 +174,8 @@ export async function injectHrmpMessageAndSeal(
   // using the remaining weight.
   //
   // See https://github.com/paritytech/polkadot-sdk/pull/3844 for more context.
-  await context.createBlock();
+  const { block } = await context.createBlock();
+  return block;
 }
 
 interface Junction {
