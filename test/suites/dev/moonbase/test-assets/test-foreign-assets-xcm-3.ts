@@ -1,15 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, type DevModeContext, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite } from "@moonwall/cli";
 
-import { generateKeyringPair } from "@moonwall/util";
 import {
-  XcmFragment,
-  type RawXcmMessage,
-  injectHrmpMessageAndSeal,
-  descendOriginFromAddress20,
   sovereignAccountOfSibling,
 } from "../../../../helpers/xcm.js";
-import { fundAccount, getReservedBalance } from "../../../../helpers/balances.js";
+import { fundAccount } from "../../../../helpers/balances.js";
+import { expectEvent, sendCallAsPara } from "./test-foreign-assets-xcm-0-utils.js";
 
 describeSuite({
   id: "D014112",
@@ -92,7 +88,7 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
         const block2 = await sendCallAsPara(freezeForeignAssetCall, 3000, fundAmount / 20n, context);
-        await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
+        await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
 
         // SiblingPara 4000 should be able to manage the asset
         const block3 = await sendCallAsPara(freezeForeignAssetCall, 4000, fundAmount / 20n, context);
@@ -101,77 +97,3 @@ describeSuite({
     });
   },
 });
-
-async function expectEvent(context: DevModeContext, blockHash: `0x${string}`, eventName: string) {
-  const apiAt = await context.polkadotJs().at(blockHash);
-  const events = await apiAt.query.system.events();
-  const event = events.find(({ event: { method } }) => method.toString() === eventName)!.event;
-  expect(event).to.exist;
-  return event;
-}
-
-async function expectNoEvent(context: DevModeContext, blockHash: `0x${string}`, eventName: string) {
-  const apiAt = await context.polkadotJs().at(blockHash);
-  const events = await apiAt.query.system.events();
-  const event = events.find(({ event: { method } }) => method.toString() === eventName);
-  expect(event).to.not.exist;
-  return event;
-}
-
-const getPalletIndex = async (name: string, context: DevModeContext) => {
-  const metadata = await context.polkadotJs().rpc.state.getMetadata();
-  return metadata.asLatest.pallets
-    .find(({ name: palletName }) => palletName.toString() === name)!
-    .index.toNumber();
-};
-
-const sendCallAsPara = async (
-  call: any,
-  paraId: number,
-  fungible: bigint = 10_000_000_000_000_000_000n, // Default 10 GLMR
-  context: DevModeContext
-) => {
-  const encodedCall = call.method.toHex();
-  const balancesPalletIndex = await getPalletIndex("Balances", context);
-
-  const xcmMessage = new XcmFragment({
-    assets: [
-      {
-        multilocation: {
-          parents: 0,
-          interior: {
-            X1: { PalletInstance: balancesPalletIndex },
-          },
-        },
-        fungible: fungible
-      },
-    ],
-    weight_limit: {
-      refTime: 40_000_000_000n,
-      proofSize: 120_000n,
-    },
-  })
-    .withdraw_asset()
-    .buy_execution()
-    .push_any({
-      Transact: {
-        originKind: "Xcm",
-        requireWeightAtMost: {
-          refTime: 20_089_165_000n,
-          proofSize: 80_000n,
-        },
-        call: {
-          encoded: encodedCall,
-        },
-      },
-    })
-    .as_v4();
-
-  // Send an XCM and create block to execute it
-  const block = await injectHrmpMessageAndSeal(context, paraId, {
-    type: "XcmVersionedXcm",
-    payload: xcmMessage,
-  } as RawXcmMessage);
-
-  return block;
-}
