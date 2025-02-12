@@ -8,7 +8,7 @@ import { expectEvent } from "../../../../helpers/expect.js";
 describeSuite({
   id: "D014110",
   title: "Create & manage Foreign Assets via XCM",
-  foundationMethods: "dev",
+ foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const fundAmount = 100_000_000_000_000_000_000_000n;
     const assetId = 1;
@@ -22,7 +22,7 @@ describeSuite({
 
       // Fund all accounts
       const fundAmount = 100_000_000_000_000_000_000_000n;
-      for (const address of siblingParaSovereignAccounts) {
+     for (const address of siblingParaSovereignAccounts) {
         await fundAccount(address as `0x${string}`, fundAmount, context);
       }
     });
@@ -42,7 +42,7 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
 
-        const block = await sendCallAsPara(createForeignAssetCall, 1000, fundAmount / 20n, context);
+        const block = await sendCallAsPara(createForeignAssetCall, 1000, context, fundAmount / 20n);
 
         await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
 
@@ -59,12 +59,12 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
 
-        const block2 = await sendCallAsPara(freezeCall, 1000, fundAmount / 20n, context);
+        const block2 = await sendCallAsPara(freezeCall, 1000, context, fundAmount / 20n);
         await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
 
         const unfreezeCall = context.polkadotJs().tx.evmForeignAssets.unfreezeForeignAsset(assetId);
 
-        const block3 = await sendCallAsPara(unfreezeCall, 1000, fundAmount / 20n, context);
+        const block3 = await sendCallAsPara(unfreezeCall, 1000, context, fundAmount / 20n);
         await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetUnfrozen");
 
         const newAssetLocation = {
@@ -78,7 +78,7 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, newAssetLocation);
 
-        const block4 = await sendCallAsPara(changeLocationCall, 1000, fundAmount / 20n, context);
+        const block4 = await sendCallAsPara(changeLocationCall, 1000, context, fundAmount / 20n);
         await expectEvent(context, block4.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
 
         const modifiedForeignAsset = (

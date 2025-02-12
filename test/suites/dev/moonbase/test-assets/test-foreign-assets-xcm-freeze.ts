@@ -36,7 +36,7 @@ describeSuite({
       const createForeignAssetCall = context
         .polkadotJs()
         .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
-      const block = await sendCallAsPara(createForeignAssetCall, 3000, fundAmount / 20n, context);
+      const block = await sendCallAsPara(createForeignAssetCall, 3000, context, fundAmount / 20n);
       await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
     });
 
@@ -71,16 +71,16 @@ describeSuite({
         const block1 = await sendCallAsPara(
           freezeForeignAssetCall,
           3000,
+          context,
           fundAmount / 20n,
-          context
         );
         await expectEvent(context, block1.hash as `0x${string}`, "ForeignAssetFrozen");
 
         const block2 = await sendCallAsPara(
           freezeForeignAssetCall,
           3000,
+          context,
           fundAmount / 20n,
-          context
         );
         await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
 
@@ -91,16 +91,16 @@ describeSuite({
         const block3 = await sendCallAsPara(
           unfreezeForeignAssetCall,
           3000,
+          context,
           fundAmount / 20n,
-          context
         );
         await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetUnfrozen");
 
         const block4 = await sendCallAsPara(
           unfreezeForeignAssetCall,
           3000,
+          context,
           fundAmount / 20n,
-          context
         );
         await expectNoEvent(context, block4.hash as `0x${string}`, "ForeignAssetUnfrozen");
       },
@@ -143,7 +143,7 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(255, false);
 
-        const block = await sendCallAsPara(freezeForeignAssetCall, 3000, fundAmount / 20n, context);
+        const block = await sendCallAsPara(freezeForeignAssetCall, 3000, context, fundAmount / 20n);
         await expectNoEvent(context, block.hash as `0x${string}`, "ForeignAssetFrozen");
 
         const unfreezeForeignAssetCall = context
@@ -153,8 +153,8 @@ describeSuite({
         const block2 = await sendCallAsPara(
           unfreezeForeignAssetCall,
           3000,
+          context,
           fundAmount / 20n,
-          context
         );
         await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetUnfrozen");
       },
@@ -168,7 +168,7 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
 
-        const block = await sendCallAsPara(freezeForeignAssetCall, 4000, fundAmount / 20n, context);
+        const block = await sendCallAsPara(freezeForeignAssetCall, 4000, context, fundAmount / 20n);
         await expectNoEvent(context, block.hash as `0x${string}`, "ForeignAssetFrozen");
 
         const unfreezeForeignAssetCall = context
@@ -178,8 +178,8 @@ describeSuite({
         const block2 = await sendCallAsPara(
           unfreezeForeignAssetCall,
           4000,
+          context,
           fundAmount / 20n,
-          context
         );
         await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetUnfrozen");
       },
