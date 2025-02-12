@@ -1,4 +1,4 @@
-ZOMBINET_VERSION := v1.3.120
+ZOMBINET_VERSION := v1.3.121
 POLKADOT_VERSION := stable2412-1
 
 ZOMBINET_DOWNLOAD_URL := https://github.com/paritytech/zombienet/releases/download/${ZOMBINET_VERSION}
@@ -48,5 +48,9 @@ zombienet/bin/polkadot zombienet/bin/polkadot%:
 	@chmod +x zombienet/bin/polkadot$*
 
 export PATH = $(ZOMBINET_PATHS)
-start-zombienet: all
-	@zombienet/bin/${ZOMBIENET_BIN} spawn zombienet/configuration.toml
+start-zombienet-moonbeam: all
+	@zombienet/bin/${ZOMBIENET_BIN} spawn zombienet/moonbeam-polkadot.toml
+
+export PATH = $(ZOMBINET_PATHS)
+start-zombienet-moonriver: all
+	@zombienet/bin/${ZOMBIENET_BIN} spawn zombienet/moonriver-kusama.toml
