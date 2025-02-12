@@ -584,3 +584,20 @@ export async function mockOldAssetBalance(
   );
   return;
 }
+
+export const getForeignAssetDetails = async (assetId: number, context: DevModeContext) => {
+  const createdForeignAsset = (
+    await context.polkadotJs().query.evmForeignAssets.assetsById(assetId)
+  ).toJSON();
+  const assetDetails = {
+    parents: createdForeignAsset!["parents"],
+    interior: {
+      X3: [
+        { Parachain: createdForeignAsset!["interior"]["x3"][0]["parachain"] },
+        { PalletInstance: createdForeignAsset!["interior"]["x3"][1]["palletInstance"] },
+        { GeneralIndex: createdForeignAsset!["interior"]["x3"][2]["generalIndex"] },
+      ],
+    },
+  };
+  return assetDetails;
+};

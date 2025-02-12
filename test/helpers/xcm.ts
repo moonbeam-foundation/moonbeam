@@ -881,3 +881,61 @@ export const expectXcmEventMessage = async (context: DevModeContext, message: st
 };
 
 type XcmCallback = (this: XcmFragment) => void;
+
+export const sendCallAsPara = async (
+  call: any,
+  paraId: number,
+  context: DevModeContext,
+  fungible = 10_000_000_000_000_000_000n // Default 10 GLMR
+) => {
+  const getPalletIndex = async (name: string, context: DevModeContext) => {
+    const metadata = await context.polkadotJs().rpc.state.getMetadata();
+    return metadata.asLatest.pallets
+      .find(({ name: palletName }) => palletName.toString() === name)!
+      .index.toNumber();
+  };
+
+  const encodedCall = call.method.toHex();
+  const balancesPalletIndex = await getPalletIndex("Balances", context);
+
+  const xcmMessage = new XcmFragment({
+    assets: [
+      {
+        multilocation: {
+          parents: 0,
+          interior: {
+            X1: { PalletInstance: balancesPalletIndex },
+          },
+        },
+        fungible: fungible,
+      },
+    ],
+    weight_limit: {
+      refTime: 40_000_000_000n,
+      proofSize: 120_000n,
+    },
+  })
+    .withdraw_asset()
+    .buy_execution()
+    .push_any({
+      Transact: {
+        originKind: "Xcm",
+        requireWeightAtMost: {
+          refTime: 20_089_165_000n,
+          proofSize: 80_000n,
+        },
+        call: {
+          encoded: encodedCall,
+        },
+      },
+    })
+    .as_v4();
+
+  // Send an XCM and create block to execute it
+  const block = await injectHrmpMessageAndSeal(context, paraId, {
+    type: "XcmVersionedXcm",
+    payload: xcmMessage,
+  } as RawXcmMessage);
+
+  return block;
+};

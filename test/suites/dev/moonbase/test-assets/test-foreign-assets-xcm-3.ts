@@ -1,11 +1,9 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite } from "@moonwall/cli";
 
-import {
-  sovereignAccountOfSibling,
-} from "../../../../helpers/xcm.js";
+import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectEvent, sendCallAsPara } from "./test-foreign-assets-xcm-0-utils.js";
+import { expectEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014112",
@@ -20,11 +18,10 @@ describeSuite({
         X3: [{ Parachain: 3000 }, { PalletInstance: 3 }, { GeneralIndex: 3 }],
       },
     };
-    
 
     beforeAll(async () => {
       // Sibling Paras
-      const siblingParas = [3000,4000];
+      const siblingParas = [3000, 4000];
       const siblingParaSovereignAccounts = siblingParas.map((paraId) =>
         sovereignAccountOfSibling(context, paraId)
       );
@@ -37,8 +34,8 @@ describeSuite({
 
       // Create a foreign asset
       const createForeignAssetCall = context
-          .polkadotJs()
-          .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
+        .polkadotJs()
+        .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
       const block = await sendCallAsPara(createForeignAssetCall, 3000, fundAmount / 20n, context);
       await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
     });
@@ -47,7 +44,6 @@ describeSuite({
       id: "T01",
       title: "Gov/Sudo should be able to freeze/unfreeze a foreign asset",
       test: async function () {
-
         const freezeForeignAssetCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
@@ -67,7 +63,8 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "Gov/Sudo should be able to change XCM location and only new SiblingPara be able to manage",
+      title:
+        "Gov/Sudo should be able to change XCM location and only new SiblingPara be able to manage",
       test: async function () {
         // Change location to Parachain 4000
         const newAssetLocation = {
@@ -87,11 +84,21 @@ describeSuite({
         const freezeForeignAssetCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-        const block2 = await sendCallAsPara(freezeForeignAssetCall, 3000, fundAmount / 20n, context);
+        const block2 = await sendCallAsPara(
+          freezeForeignAssetCall,
+          3000,
+          fundAmount / 20n,
+          context
+        );
         await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
 
         // SiblingPara 4000 should be able to manage the asset
-        const block3 = await sendCallAsPara(freezeForeignAssetCall, 4000, fundAmount / 20n, context);
+        const block3 = await sendCallAsPara(
+          freezeForeignAssetCall,
+          4000,
+          fundAmount / 20n,
+          context
+        );
         await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetFrozen");
       },
     });
