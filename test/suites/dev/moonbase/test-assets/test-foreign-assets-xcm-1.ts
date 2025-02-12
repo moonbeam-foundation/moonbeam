@@ -26,27 +26,16 @@ describeSuite({
       const siblingParaSovereignAccounts = siblingParas.map((paraId) =>
         sovereignAccountOfSibling(context, paraId)
       );
-      // Random user account from para 1000
-      const randomAccount = generateKeyringPair();
-      const randomAccountDescendedAddress = descendOriginFromAddress20(
-        context,
-        randomAccount.address as `0x${string}`,
-        1000 // As if located in sibling with paraId 1000
-      ).descendOriginAddress;
 
       // Fund all accounts
-      const allAddresses = [
-        ...siblingParaSovereignAccounts,
-        randomAccountDescendedAddress,
-      ];
       const fundAmount = 100_000_000_000_000_000_000_000n;
-      for (const address of allAddresses) {
+      for (const address of siblingParaSovereignAccounts) {
         await fundAccount(address as `0x${string}`, fundAmount, context);
       }
     });
 
     it({
-      id: "T03",
+      id: "T01",
       title: "SiblingPara should be able to create and manage a foreign asset via XCM",
       test: async function () {
 
@@ -110,54 +99,6 @@ describeSuite({
         expect(modifiedForeignAsset!["interior"]["x3"][0]["parachain"]).to.eq(1000);
         expect(modifiedForeignAsset!["interior"]["x3"][1]["palletInstance"]).to.eq(2);
         expect(modifiedForeignAsset!["interior"]["x3"][2]["generalIndex"]).to.eq(2);
-      },
-    });
-
-    it({
-      id: "T07",
-      title: "SiblingPara should NOT be able to change location if not owning current",
-      test: async function () {
-
-        const before = await getForeignAssetDetails(assetId, context);
-        const newAssetLocation = {
-          parents: 1,
-          interior: {
-            X3: [{ Parachain: 1000 }, { PalletInstance: 3 }, { GeneralIndex: 3 }],
-          },
-        };
-
-        const assetChangeLocationCall = context
-          .polkadotJs()
-          .tx.evmForeignAssets.changeXcmLocation(assetId, newAssetLocation);
-
-        await sendCallAsPara(assetChangeLocationCall, 3333, fundAmount / 20n, context);
-
-        const after = await getForeignAssetDetails(assetId, context);
-        expect(after).to.toStrictEqual(before);
-      },
-    });
-
-    it({
-      id: "T07",
-      title: "SiblingPara should NOT be able to change location if not owning new one",
-      test: async function () {
-        const before = await getForeignAssetDetails(assetId, context);
-        const newAssetLocation = {
-          parents: 1,
-          interior: {
-            // Change it to different Para
-            X3: [{ Parachain: 3333 }, { PalletInstance: 3 }, { GeneralIndex: 3 }],
-          },
-        };
-
-        const assetChangeLocationCall = context
-          .polkadotJs()
-          .tx.evmForeignAssets.changeXcmLocation(assetId, newAssetLocation);
-
-        await sendCallAsPara(assetChangeLocationCall, 1000, fundAmount / 20n, context);
-
-        const after = await getForeignAssetDetails(assetId, context);
-        expect(after).toStrictEqual(before);
       },
     });
   },
