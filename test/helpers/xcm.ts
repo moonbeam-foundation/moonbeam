@@ -921,6 +921,7 @@ export const sendCallAsPara = async (
       refTime: 40_000_000_000n,
       proofSize: 150_000n,
     },
+    beneficiary: sovereignAccountOfSibling(context, paraId),
   })
     .withdraw_asset()
     .buy_execution()
@@ -971,28 +972,33 @@ export const sendCallAsPara = async (
   const transactStatusDecoded = context
     .polkadotJs()
     .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
-  const transactStatusQuery = transactStatusDecoded.asV4[0].asQueryResponse;
-
-  expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
-
-  const dispatch = transactStatusQuery.response.asDispatchResult;
 
   let didSucceed = false;
   let errorName: string | null = null;
 
-  if (dispatch.isSuccess) {
+  if (transactStatusDecoded.asV4[0].isSubscribeVersion) {
+    // Successful executions don't generate response messages in the same block
+    // instead, they send a subscription message to the destination parachain
+    // We assume that the call was successful if we receive a subscription message
     didSucceed = true;
   } else {
-    const error = dispatch.asError;
-    const dispatchError = context.polkadotJs().createType("DispatchError", error) as DispatchError;
-    if (dispatchError.isModule) {
-      const err = context.polkadotJs().registry.findMetaError({
-        index: dispatchError.asModule.index,
-        error: dispatchError.asModule.error,
-      });
-      errorName = err.name;
+    const transactStatusQuery = transactStatusDecoded.asV4[0].asQueryResponse;
+    expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
+    const dispatch = transactStatusQuery.response.asDispatchResult;
+    if (dispatch.isSuccess) {
+      didSucceed = true;
     } else {
-      errorName = dispatchError.type;
+      const error = dispatch.asError;
+      const dispatchError = context.polkadotJs().createType("DispatchError", error) as DispatchError;
+      if (dispatchError.isModule) {
+        const err = context.polkadotJs().registry.findMetaError({
+          index: dispatchError.asModule.index,
+          error: dispatchError.asModule.error,
+        });
+        errorName = err.name;
+      } else {
+        errorName = dispatchError.type;
+      }
     }
   }
 
