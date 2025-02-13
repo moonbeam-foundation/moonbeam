@@ -5,10 +5,12 @@ import type {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmV3JunctionNetworkId,
   XcmVersionedXcm,
+  PalletMessageQueueEvent,
 } from "@polkadot/types/lookup";
 import { type BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
+import { expectEvent } from "./expect.ts";
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -963,6 +965,11 @@ export const sendCallAsPara = async (
   } as RawXcmMessage);
 
   const { block } = await context.createBlock();
+
+  const event = await expectEvent(context, block.hash as `0x${string}`, "Processed");
+  expect(context.polkadotJs().events.messageQueue.Processed.is(event)).to.be.true;
+  // Processed.success == true, to check that xcm message was processed successfully
+  expect(event.data[3].toJSON()).to.be.true;
 
   const transactStatusMsg = (
     await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages()
