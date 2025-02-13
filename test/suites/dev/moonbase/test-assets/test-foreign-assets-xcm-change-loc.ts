@@ -53,7 +53,7 @@ describeSuite({
       const createForeignAssetCall = context
         .polkadotJs()
         .tx.evmForeignAssets.createForeignAsset(assetId, firstAssetLocation, 18, "TEST", "TEST");
-      const block = await sendCallAsPara(createForeignAssetCall, 5001, context, fundAmount / 20n);
+      const { block } = await sendCallAsPara(createForeignAssetCall, 5001, context, fundAmount / 20n);
       await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
 
       originalLocation = (
@@ -97,13 +97,13 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, secondAssetLocation);
-        const block = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
+        const { block } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
         await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
 
         const freezeCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-        const block2 = await sendCallAsPara(freezeCall, 5001, context, fundAmount / 20n);
+        const {block: block2} = await sendCallAsPara(freezeCall, 5001, context, fundAmount / 20n);
         await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
       },
     });
@@ -115,7 +115,7 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, anotherParaLocation);
-        const block = await sendCallAsPara(changeLocationCall, 5002, context, fundAmount / 20n);
+        const { block } = await sendCallAsPara(changeLocationCall, 5002, context, fundAmount / 20n);
         await expectNoEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
       },
     });
@@ -127,7 +127,7 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, anotherParaLocation);
-        const block = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
+        const { block } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
         await expectNoEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
       },
     });
@@ -147,7 +147,7 @@ describeSuite({
         const freezeCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-        const block2 = await sendCallAsPara(freezeCall, 5002, context, fundAmount / 20n);
+        const { block: block2 } = await sendCallAsPara(freezeCall, 5002, context, fundAmount / 20n);
         await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
       },
     });
@@ -159,7 +159,7 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(255, anotherParaLocation);
-        const block = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
+        const { block } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
         await expectNoEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
       },
     });

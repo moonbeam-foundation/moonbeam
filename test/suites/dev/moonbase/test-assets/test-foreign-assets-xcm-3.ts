@@ -36,7 +36,7 @@ describeSuite({
       const createForeignAssetCall = context
         .polkadotJs()
         .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
-      const block = await sendCallAsPara(createForeignAssetCall, 3000, context, fundAmount / 20n);
+      const { block } = await sendCallAsPara(createForeignAssetCall, 3000, context, fundAmount / 20n);
       await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
     });
 
@@ -84,7 +84,7 @@ describeSuite({
         const freezeForeignAssetCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-        const block2 = await sendCallAsPara(
+        const { block: block2 } = await sendCallAsPara(
           freezeForeignAssetCall,
           3000,
           context,
@@ -93,7 +93,7 @@ describeSuite({
         await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
 
         // SiblingPara 4000 should be able to manage the asset
-        const block3 = await sendCallAsPara(
+        const { block: block3 } = await sendCallAsPara(
           freezeForeignAssetCall,
           4000,
           context,

@@ -890,7 +890,8 @@ export const sendCallAsPara = async (
   call: any,
   paraId: number,
   context: DevModeContext,
-  fungible = 10_000_000_000_000_000_000n // Default 10 GLMR
+  fungible = 10_000_000_000_000_000_000n, // Default 10 GLMR
+  allowFailure = false,
 ) => {
   const getPalletIndex = async (name: string, context: DevModeContext) => {
     const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -995,8 +996,9 @@ export const sendCallAsPara = async (
     }
   }
 
-  console.log("didSucceed", didSucceed);
-  console.log("errorName", errorName);
+  if (!allowFailure) {
+    expect(didSucceed).to.be.true;
+  }
 
-  return block;
+  return {block, didSucceed, errorName};
 };
