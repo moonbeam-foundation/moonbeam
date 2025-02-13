@@ -349,14 +349,18 @@ export class XcmFragment {
   }
 
   // Add a `DepositAsset` instruction
-  deposit_asset(max_assets = 1n, network: XcmV3JunctionNetworkId["type"] | null = null): this {
+  deposit_asset(
+    max_assets = 1n,
+    network: XcmV3JunctionNetworkId["type"] | null = null,
+    beneficiary: MultiLocation | null = null
+  ): this {
     if (this.config.beneficiary == null) {
       console.warn("!Building a DepositAsset instruction without a configured beneficiary");
     }
     this.instructions.push({
       DepositAsset: {
         assets: { Wild: { AllCounted: max_assets } },
-        beneficiary: {
+        beneficiary: beneficiary ?? {
           parents: 0,
           interior: { X1: { AccountKey20: { network, key: this.config.beneficiary } } },
         },
@@ -928,6 +932,11 @@ export const sendCallAsPara = async (
           encoded: encodedCall,
         },
       },
+    })
+    .refund_surplus()
+    .deposit_asset(1n, null, {
+      parents: 1,
+      interior: { X1: { Parachain: paraId } },
     })
     .as_v4();
 

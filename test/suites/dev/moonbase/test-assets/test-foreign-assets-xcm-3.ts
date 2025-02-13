@@ -88,7 +88,7 @@ describeSuite({
           freezeForeignAssetCall,
           3000,
           context,
-          fundAmount / 20n,
+          fundAmount / 20n
         );
         await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
 
@@ -97,7 +97,7 @@ describeSuite({
           freezeForeignAssetCall,
           4000,
           context,
-          fundAmount / 20n,
+          fundAmount / 20n
         );
         await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetFrozen");
       },

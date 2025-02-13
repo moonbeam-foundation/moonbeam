@@ -72,7 +72,7 @@ describeSuite({
           freezeForeignAssetCall,
           3000,
           context,
-          fundAmount / 20n,
+          fundAmount / 20n
         );
         await expectEvent(context, block1.hash as `0x${string}`, "ForeignAssetFrozen");
 
@@ -80,7 +80,7 @@ describeSuite({
           freezeForeignAssetCall,
           3000,
           context,
-          fundAmount / 20n,
+          fundAmount / 20n
         );
         await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
 
@@ -92,7 +92,7 @@ describeSuite({
           unfreezeForeignAssetCall,
           3000,
           context,
-          fundAmount / 20n,
+          fundAmount / 20n
         );
         await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetUnfrozen");
 
@@ -100,7 +100,7 @@ describeSuite({
           unfreezeForeignAssetCall,
           3000,
           context,
-          fundAmount / 20n,
+          fundAmount / 20n
         );
         await expectNoEvent(context, block4.hash as `0x${string}`, "ForeignAssetUnfrozen");
       },
@@ -154,7 +154,7 @@ describeSuite({
           unfreezeForeignAssetCall,
           3000,
           context,
-          fundAmount / 20n,
+          fundAmount / 20n
         );
         await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetUnfrozen");
       },
@@ -179,7 +179,7 @@ describeSuite({
           unfreezeForeignAssetCall,
           4000,
           context,
-          fundAmount / 20n,
+          fundAmount / 20n
         );
         await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetUnfrozen");
       },

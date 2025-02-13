@@ -8,7 +8,7 @@ import { expectEvent } from "../../../../helpers/expect.js";
 describeSuite({
   id: "D014110",
   title: "Create & manage Foreign Assets via XCM",
- foundationMethods: "dev",
+  foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const fundAmount = 100_000_000_000_000_000_000_000n;
     const assetId = 1;
@@ -22,7 +22,7 @@ describeSuite({
 
       // Fund all accounts
       const fundAmount = 100_000_000_000_000_000_000_000n;
-     for (const address of siblingParaSovereignAccounts) {
+      for (const address of siblingParaSovereignAccounts) {
         await fundAccount(address as `0x${string}`, fundAmount, context);
       }
     });
