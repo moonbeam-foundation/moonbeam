@@ -891,7 +891,7 @@ export const sendCallAsPara = async (
   paraId: number,
   context: DevModeContext,
   fungible = 10_000_000_000_000_000_000n, // Default 10 GLMR
-  allowFailure = false,
+  allowFailure = false
 ) => {
   const getPalletIndex = async (name: string, context: DevModeContext) => {
     const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -989,7 +989,9 @@ export const sendCallAsPara = async (
       didSucceed = true;
     } else {
       const error = dispatch.asError;
-      const dispatchError = context.polkadotJs().createType("DispatchError", error) as DispatchError;
+      const dispatchError = context
+        .polkadotJs()
+        .createType("DispatchError", error) as DispatchError;
       if (dispatchError.isModule) {
         const err = context.polkadotJs().registry.findMetaError({
           index: dispatchError.asModule.index,
@@ -1006,5 +1008,5 @@ export const sendCallAsPara = async (
     expect(didSucceed).to.be.true;
   }
 
-  return {block, didSucceed, errorName};
+  return { block, didSucceed, errorName };
 };

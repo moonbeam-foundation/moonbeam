@@ -4,7 +4,7 @@ import { afterEach, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { sovereignAccountOfSibling, sendCallAsPara } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
 import { expectEvent, expectNoEvent } from "../../../../helpers/expect.js";
-import { AnyJson } from "@polkadot/types-codec/types";
+import type { AnyJson } from "@polkadot/types-codec/types";
 
 describeSuite({
   id: "D014113",
@@ -33,7 +33,7 @@ describeSuite({
       interior: {
         x3: [{ Parachain: 5002 }, { palletInstance: 1 }, { generalIndex: 1 }],
       },
-    }
+    };
 
     beforeAll(async () => {
       // Sibling Paras
@@ -52,7 +52,12 @@ describeSuite({
       const createForeignAssetCall = context
         .polkadotJs()
         .tx.evmForeignAssets.createForeignAsset(assetId, firstAssetLocation, 18, "TEST", "TEST");
-      const { block } = await sendCallAsPara(createForeignAssetCall, 5001, context, fundAmount / 20n);
+      const { block } = await sendCallAsPara(
+        createForeignAssetCall,
+        5001,
+        context,
+        fundAmount / 20n
+      );
       await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
 
       originalLocation = (
@@ -62,7 +67,9 @@ describeSuite({
 
     afterEach(async () => {
       // Reset asset state and expect it to be active
-      const assetCurrentLocation = (await context.polkadotJs().query.evmForeignAssets.assetsById(assetId)).toJSON();
+      const assetCurrentLocation = (
+        await context.polkadotJs().query.evmForeignAssets.assetsById(assetId)
+      ).toJSON();
       const assetByLocation = (
         await context.polkadotJs().query.evmForeignAssets.assetsByLocation(assetCurrentLocation)
       ).toJSON();
@@ -79,7 +86,7 @@ describeSuite({
       expect(assetAfter![1]).to.eq("Active");
 
       // Reset asset location
-      if (assetCurrentLocation!.toString() != originalLocation!.toString()) {
+      if (assetCurrentLocation!.toString() !== originalLocation!.toString()) {
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, firstAssetLocation);
@@ -102,7 +109,7 @@ describeSuite({
         const freezeCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-        const {block: block2} = await sendCallAsPara(freezeCall, 5001, context, fundAmount / 20n);
+        const { block: block2 } = await sendCallAsPara(freezeCall, 5001, context, fundAmount / 20n);
         await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
       },
     });
@@ -114,7 +121,13 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, anotherParaLocation);
-        const { block, errorName } = await sendCallAsPara(changeLocationCall, 5002, context, fundAmount / 20n, true);
+        const { block, errorName } = await sendCallAsPara(
+          changeLocationCall,
+          5002,
+          context,
+          fundAmount / 20n,
+          true
+        );
         expect(errorName).to.eq("BadOrigin");
       },
     });
@@ -126,7 +139,13 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, anotherParaLocation);
-        const { block, errorName } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n, true);
+        const { block, errorName } = await sendCallAsPara(
+          changeLocationCall,
+          5001,
+          context,
+          fundAmount / 20n,
+          true
+        );
         expect(errorName).to.eq("LocationOutsideOfOrigin");
       },
     });
@@ -158,11 +177,15 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(255, anotherParaLocation);
-        const { block, errorName } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n, true);
+        const { block, errorName } = await sendCallAsPara(
+          changeLocationCall,
+          5001,
+          context,
+          fundAmount / 20n,
+          true
+        );
         expect(errorName).to.eq("AssetDoesNotExist");
       },
     });
-
-
   },
 });

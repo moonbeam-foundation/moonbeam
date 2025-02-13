@@ -36,7 +36,12 @@ describeSuite({
       const createForeignAssetCall = context
         .polkadotJs()
         .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
-      const { block } = await sendCallAsPara(createForeignAssetCall, 3000, context, fundAmount / 20n);
+      const { block } = await sendCallAsPara(
+        createForeignAssetCall,
+        3000,
+        context,
+        fundAmount / 20n
+      );
       await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
     });
 

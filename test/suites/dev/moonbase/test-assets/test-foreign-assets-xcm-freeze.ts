@@ -36,7 +36,12 @@ describeSuite({
       const createForeignAssetCall = context
         .polkadotJs()
         .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
-      const { block } = await sendCallAsPara(createForeignAssetCall, 3000, context, fundAmount / 20n);
+      const { block } = await sendCallAsPara(
+        createForeignAssetCall,
+        3000,
+        context,
+        fundAmount / 20n
+      );
       await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
     });
 
@@ -114,7 +119,13 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(255, false);
 
-        const { block, errorName: error1} = await sendCallAsPara(freezeForeignAssetCall, 3000, context, fundAmount / 20n, true);
+        const { block, errorName: error1 } = await sendCallAsPara(
+          freezeForeignAssetCall,
+          3000,
+          context,
+          fundAmount / 20n,
+          true
+        );
         expect(error1).to.eq("AssetDoesNotExist");
 
         const unfreezeForeignAssetCall = context
@@ -140,7 +151,13 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
 
-        const { block, errorName: error1 } = await sendCallAsPara(freezeForeignAssetCall, 4000, context, fundAmount / 20n, true);
+        const { block, errorName: error1 } = await sendCallAsPara(
+          freezeForeignAssetCall,
+          4000,
+          context,
+          fundAmount / 20n,
+          true
+        );
         expect(error1).to.eq("BadOrigin");
 
         const unfreezeForeignAssetCall = context
