@@ -1,10 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { afterEach, beforeAll, describeSuite, type DevModeContext, expect } from "@moonwall/cli";
+import { afterEach, beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sovereignAccountOfSibling, sendCallAsPara } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
 import { expectEvent, expectNoEvent } from "../../../../helpers/expect.js";
-import { PalletMoonbeamForeignAssetsAssetStatus } from "@polkadot/types/lookup";
 import { AnyJson } from "@polkadot/types-codec/types";
 
 describeSuite({
@@ -115,8 +114,8 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, anotherParaLocation);
-        const { block } = await sendCallAsPara(changeLocationCall, 5002, context, fundAmount / 20n);
-        await expectNoEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
+        const { block, errorName } = await sendCallAsPara(changeLocationCall, 5002, context, fundAmount / 20n, true);
+        expect(errorName).to.eq("BadOrigin");
       },
     });
 
@@ -127,8 +126,8 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, anotherParaLocation);
-        const { block } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
-        await expectNoEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
+        const { block, errorName } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n, true);
+        expect(errorName).to.eq("LocationOutsideOfOrigin");
       },
     });
 
@@ -159,8 +158,8 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(255, anotherParaLocation);
-        const { block } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
-        await expectNoEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
+        const { block, errorName } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n, true);
+        expect(errorName).to.eq("AssetDoesNotExist");
       },
     });
 

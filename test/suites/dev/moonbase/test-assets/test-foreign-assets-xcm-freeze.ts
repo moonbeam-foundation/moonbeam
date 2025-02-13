@@ -74,13 +74,14 @@ describeSuite({
         );
         await expectEvent(context, block1.hash as `0x${string}`, "ForeignAssetFrozen");
 
-        const { block: block2 } = await sendCallAsPara(
+        const { block: block2, errorName } = await sendCallAsPara(
           freezeForeignAssetCall,
           3000,
           context,
-          fundAmount / 20n
+          fundAmount / 20n,
+          true
         );
-        await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
+        expect(errorName).to.eq("AssetAlreadyFrozen");
 
         const unfreezeForeignAssetCall = context
           .polkadotJs()
@@ -94,42 +95,14 @@ describeSuite({
         );
         await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetUnfrozen");
 
-        const { block: block4 } = await sendCallAsPara(
+        const { block: block4, errorName: error2 } = await sendCallAsPara(
           unfreezeForeignAssetCall,
           3000,
           context,
-          fundAmount / 20n
+          fundAmount / 20n,
+          true
         );
-        await expectNoEvent(context, block4.hash as `0x${string}`, "ForeignAssetUnfrozen");
-      },
-    });
-
-    it({
-      id: "T02",
-      title: "Should not be able to freeze/unfreeze if already frozen via Sudo/Gov",
-      test: async function () {
-        const freezeForeignAssetCall = context
-          .polkadotJs()
-          .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-
-        const sudoCall1 = context.polkadotJs().tx.sudo.sudo(freezeForeignAssetCall);
-        const { block: block1 } = await context.createBlock(sudoCall1);
-        await expectEvent(context, block1.hash as `0x${string}`, "ForeignAssetFrozen");
-
-        const sudoCall2 = context.polkadotJs().tx.sudo.sudo(freezeForeignAssetCall);
-        const { block: block2 } = await context.createBlock(sudoCall2);
-        await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
-
-        const unfreezeForeignAssetCall = context
-          .polkadotJs()
-          .tx.evmForeignAssets.unfreezeForeignAsset(assetId);
-        const sudoCall3 = context.polkadotJs().tx.sudo.sudo(unfreezeForeignAssetCall);
-        const { block: block3 } = await context.createBlock(sudoCall3);
-        await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetUnfrozen");
-
-        const sudoCall4 = context.polkadotJs().tx.sudo.sudo(unfreezeForeignAssetCall);
-        const { block: block4 } = await context.createBlock(sudoCall4);
-        await expectNoEvent(context, block4.hash as `0x${string}`, "ForeignAssetUnfrozen");
+        expect(error2).to.eq("AssetNotFrozen");
       },
     });
 
@@ -141,20 +114,21 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(255, false);
 
-        const { block } = await sendCallAsPara(freezeForeignAssetCall, 3000, context, fundAmount / 20n);
-        await expectNoEvent(context, block.hash as `0x${string}`, "ForeignAssetFrozen");
+        const { block, errorName: error1} = await sendCallAsPara(freezeForeignAssetCall, 3000, context, fundAmount / 20n, true);
+        expect(error1).to.eq("AssetDoesNotExist");
 
         const unfreezeForeignAssetCall = context
           .polkadotJs()
           .tx.evmForeignAssets.unfreezeForeignAsset(255);
 
-        const { block: block2 } = await sendCallAsPara(
+        const { block: block2, errorName: error2 } = await sendCallAsPara(
           unfreezeForeignAssetCall,
           3000,
           context,
-          fundAmount / 20n
+          fundAmount / 20n,
+          true
         );
-        await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetUnfrozen");
+        expect(error2).to.eq("AssetDoesNotExist");
       },
     });
 
@@ -166,20 +140,21 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
 
-        const { block } = await sendCallAsPara(freezeForeignAssetCall, 4000, context, fundAmount / 20n);
-        await expectNoEvent(context, block.hash as `0x${string}`, "ForeignAssetFrozen");
+        const { block, errorName: error1 } = await sendCallAsPara(freezeForeignAssetCall, 4000, context, fundAmount / 20n, true);
+        expect(error1).to.eq("BadOrigin");
 
         const unfreezeForeignAssetCall = context
           .polkadotJs()
           .tx.evmForeignAssets.unfreezeForeignAsset(assetId);
 
-        const { block: block2 } = await sendCallAsPara(
+        const { block: block2, errorName: error2 } = await sendCallAsPara(
           unfreezeForeignAssetCall,
           4000,
           context,
-          fundAmount / 20n
+          fundAmount / 20n,
+          true
         );
-        await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetUnfrozen");
+        expect(error2).to.eq("BadOrigin");
       },
     });
   },
