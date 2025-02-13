@@ -1001,6 +1001,8 @@ export const sendCallAsPara = async (
   }
 
   // this seems to fix an issue where we see SubscribeVersion instead of QueryResponse.
+  // a better fix would be set a correct XCM Version in pallet xcm for the parachain,
+  // so pallet xcm wouldn't need to send a SubscribeVersion message.
   await context.createBlock();
 
   return { block, didSucceed, errorName };
