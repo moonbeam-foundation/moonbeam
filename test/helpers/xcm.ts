@@ -976,37 +976,32 @@ export const sendCallAsPara = async (
   let didSucceed = false;
   let errorName: string | null = null;
 
-  if (transactStatusDecoded.asV4[0].isSubscribeVersion) {
-    // Successful executions don't generate response messages in the same block
-    // instead, they send a subscription message to the destination parachain
-    // We assume that the call was successful if we receive a subscription message
+  const transactStatusQuery = transactStatusDecoded.asV4[0].asQueryResponse;
+  expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
+  const dispatch = transactStatusQuery.response.asDispatchResult;
+  if (dispatch.isSuccess) {
     didSucceed = true;
   } else {
-    const transactStatusQuery = transactStatusDecoded.asV4[0].asQueryResponse;
-    expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
-    const dispatch = transactStatusQuery.response.asDispatchResult;
-    if (dispatch.isSuccess) {
-      didSucceed = true;
+    const error = dispatch.asError;
+    const dispatchError = context.polkadotJs().createType("DispatchError", error) as DispatchError;
+    if (dispatchError.isModule) {
+      const err = context.polkadotJs().registry.findMetaError({
+        index: dispatchError.asModule.index,
+        error: dispatchError.asModule.error,
+      });
+      errorName = err.name;
     } else {
-      const error = dispatch.asError;
-      const dispatchError = context
-        .polkadotJs()
-        .createType("DispatchError", error) as DispatchError;
-      if (dispatchError.isModule) {
-        const err = context.polkadotJs().registry.findMetaError({
-          index: dispatchError.asModule.index,
-          error: dispatchError.asModule.error,
-        });
-        errorName = err.name;
-      } else {
-        errorName = dispatchError.type;
-      }
+      errorName = dispatchError.type;
     }
   }
 
   if (!allowFailure) {
+    expect(errorName).to.be.null;
     expect(didSucceed).to.be.true;
   }
+
+  // this seems to fix an issue where we see SubscribeVersion instead of QueryResponse.
+  await context.createBlock();
 
   return { block, didSucceed, errorName };
 };
