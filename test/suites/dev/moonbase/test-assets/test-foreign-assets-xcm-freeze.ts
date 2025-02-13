@@ -6,16 +6,16 @@ import { fundAccount } from "../../../../helpers/balances.js";
 import { expectEvent, expectNoEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
-  id: "D014113",
+  id: "D014114",
   title: "Freezing and Unfreezing Foreign Assets via XCM",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     const fundAmount = 100_000_000_000_000_000_000_000n;
-    const assetId = 4;
+    const assetId = 5;
     const assetLocation = {
       parents: 1,
       interior: {
-        X3: [{ Parachain: 3000 }, { PalletInstance: 3 }, { GeneralIndex: 3 }],
+        X3: [{ Parachain: 3000 }, { PalletInstance: 5 }, { GeneralIndex: 5 }],
       },
     };
 
@@ -45,8 +45,6 @@ describeSuite({
       const assetByLocation = (
         await context.polkadotJs().query.evmForeignAssets.assetsByLocation(assetLocation)
       ).toJSON();
-      console.log("Asset by location:", assetByLocation);
-      console.log(assetByLocation![1]);
       if (assetByLocation![1] !== "Active") {
         const unfreezeForeignAssetCall = context
           .polkadotJs()
