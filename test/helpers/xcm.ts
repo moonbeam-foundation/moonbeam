@@ -1,6 +1,6 @@
-import { type DevModeContext, customDevRpcRequest } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
-import type { XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { type DevModeContext, customDevRpcRequest, expect } from "@moonwall/cli";
+import { alith, ALITH_ADDRESS, baltathar } from "@moonwall/util";
+import type { DispatchError, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import type {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmV3JunctionNetworkId,
@@ -902,6 +902,8 @@ export const sendCallAsPara = async (
   const encodedCall = call.method.toHex();
   const balancesPalletIndex = await getPalletIndex("Balances", context);
 
+  const QUERY_ID = 43981;
+
   const xcmMessage = new XcmFragment({
     assets: [
       {
@@ -916,7 +918,7 @@ export const sendCallAsPara = async (
     ],
     weight_limit: {
       refTime: 40_000_000_000n,
-      proofSize: 120_000n,
+      proofSize: 150_000n,
     },
   })
     .withdraw_asset()
@@ -933,6 +935,13 @@ export const sendCallAsPara = async (
         },
       },
     })
+    .report_transact_status(
+      {
+        parents: 1,
+        interior: { X1: { Parachain: paraId } },
+      },
+      QUERY_ID
+    )
     .refund_surplus()
     .deposit_asset(1n, null, {
       parents: 1,
@@ -940,11 +949,54 @@ export const sendCallAsPara = async (
     })
     .as_v4();
 
+  const mockHrmpExistanceTx = context
+    .polkadotJs()
+    .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, paraId, 1000, 102400, 102400));
+  await mockHrmpExistanceTx.signAndSend(alith);
+
   // Send an XCM and create block to execute it
-  const block = await injectHrmpMessageAndSeal(context, paraId, {
+  await injectHrmpMessage(context, paraId, {
     type: "XcmVersionedXcm",
     payload: xcmMessage,
   } as RawXcmMessage);
+
+  const { block } = await context.createBlock();
+
+  const transactStatusMsg = (
+    await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages()
+  )[0];
+
+  const transactStatusEncoded = "0x" + transactStatusMsg.data.toHex().slice(4);
+  const transactStatusDecoded = context
+    .polkadotJs()
+    .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
+  const transactStatusQuery = transactStatusDecoded.asV4[0].asQueryResponse;
+
+  expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
+
+  const dispatch = transactStatusQuery.response.asDispatchResult;
+
+  let didSucceed = false;
+  let errorName: string | null = null;
+
+  if (dispatch.isSuccess) {
+    didSucceed = true;
+  } else {
+    const error = dispatch.asError;
+    const dispatchError = context.polkadotJs().createType("DispatchError", error) as DispatchError;
+    if (dispatchError.isModule) {
+      const err = context.polkadotJs().registry.findMetaError({
+        index: dispatchError.asModule.index,
+        error: dispatchError.asModule.error,
+      });
+      errorName = err.name;
+    } else {
+      errorName = dispatchError.type;
+    }
+  }
+
+  console.log("didSucceed", didSucceed);
+  console.log("errorName", errorName);
 
   return block;
 };
