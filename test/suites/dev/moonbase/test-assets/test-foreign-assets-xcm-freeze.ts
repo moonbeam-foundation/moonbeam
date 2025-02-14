@@ -158,7 +158,7 @@ describeSuite({
           fundAmount / 20n,
           true
         );
-        expect(error1).to.eq("BadOrigin");
+        expect(error1).to.eq("LocationOutsideOfOrigin");
 
         const unfreezeForeignAssetCall = context
           .polkadotJs()
@@ -171,7 +171,7 @@ describeSuite({
           fundAmount / 20n,
           true
         );
-        expect(error2).to.eq("BadOrigin");
+        expect(error2).to.eq("LocationOutsideOfOrigin");
       },
     });
   },

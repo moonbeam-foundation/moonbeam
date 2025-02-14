@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectEvent } from "../../../../helpers/expect.js";
+import { expectEvent, expectNoEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014112",
@@ -71,7 +71,20 @@ describeSuite({
       title:
         "Gov/Sudo should be able to change XCM location and only new SiblingPara be able to manage",
       test: async function () {
-        // Change location to Parachain 4000
+        const freezeForeignAssetCall = context
+          .polkadotJs()
+          .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
+
+        // SiblingPara 3000 should be able to manage the asset, since the asset belongs to it
+        const { block: block0 } = await sendCallAsPara(
+          freezeForeignAssetCall,
+          3000,
+          context,
+          fundAmount / 20n
+        );
+        await expectEvent(context, block0.hash as `0x${string}`, "ForeignAssetFrozen");
+
+        // Change location to Parachain 4000 via sudo
         const newAssetLocation = {
           parents: 1,
           interior: {
@@ -85,19 +98,18 @@ describeSuite({
         const { block } = await context.createBlock(sudoCall);
         await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
 
-        // // SiblingPara 3000 should not be able to manage the asset anymore
-        const freezeForeignAssetCall = context
-          .polkadotJs()
-          .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-        const { block: block2 } = await sendCallAsPara(
+        // SiblingPara 3000 should not be able to manage the asset anymore
+        const { block: block2, errorName } = await sendCallAsPara(
           freezeForeignAssetCall,
           3000,
           context,
-          fundAmount / 20n
+          fundAmount / 20n,
+          false
         );
-        await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
+        await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
+        expect(errorName).to.eq("LocationOutsideOfOrigin");
 
-        // SiblingPara 4000 should be able to manage the asset
+        // But siblingPara 4000 should be able to manage the asset
         const { block: block3 } = await sendCallAsPara(
           freezeForeignAssetCall,
           4000,

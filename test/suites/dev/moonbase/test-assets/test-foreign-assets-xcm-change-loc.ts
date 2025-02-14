@@ -128,7 +128,7 @@ describeSuite({
           fundAmount / 20n,
           true
         );
-        expect(errorName).to.eq("BadOrigin");
+        expect(errorName).to.eq("LocationOutsideOfOrigin");
       },
     });
 
