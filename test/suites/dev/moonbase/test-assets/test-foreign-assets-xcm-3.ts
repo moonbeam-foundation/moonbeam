@@ -107,7 +107,7 @@ describeSuite({
           3000,
           context,
           fundAmount / 20n,
-          false
+          true
         );
         await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
         expect(errorName).to.eq("LocationOutsideOfOrigin");

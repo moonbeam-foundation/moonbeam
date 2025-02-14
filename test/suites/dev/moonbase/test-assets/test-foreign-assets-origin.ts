@@ -17,7 +17,7 @@ describeSuite({
   title: "XCM - Origin Tests",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    const calls = [
+    const getCalls = () => [
       context.polkadotJs().tx.evmForeignAssets.createForeignAsset(
         1n,
         {
@@ -44,6 +44,7 @@ describeSuite({
       id: "T01",
       title: "Cannot call externsics using normal account",
       test: async function () {
+        const calls = getCalls();
         for (const call of calls) {
           const { result } = await context.createBlock(call);
           expect(result.error?.name).to.be.eq("BadOrigin");
@@ -59,6 +60,7 @@ describeSuite({
         const siblingParaSovereignAccounts = sovereignAccountOfSibling(context, 3000);
         await fundAccount(siblingParaSovereignAccounts as `0x${string}`, fundAmount, context);
 
+        const calls = getCalls();
         for (const call of calls) {
           const { errorName } = await sendCallAsPara(call, 3000, context, fundAmount / 20n, true, {
             originKind: "SovereignAccount",
