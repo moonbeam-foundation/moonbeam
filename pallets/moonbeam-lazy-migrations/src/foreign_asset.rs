@@ -163,8 +163,6 @@ where
 		})
 	}
 
-	pub(super) fn call_without_metadata() {}
-
 	pub(super) fn do_migrate_foreign_asset_approvals(limit: u32) -> DispatchResult {
 		ensure!(limit != 0, Error::<T>::LimitCannotBeZero);
 
