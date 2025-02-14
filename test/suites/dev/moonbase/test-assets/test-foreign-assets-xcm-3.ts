@@ -74,6 +74,9 @@ describeSuite({
         const freezeForeignAssetCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
+        const unfreezeForeignAssetCall = context
+          .polkadotJs()
+          .tx.evmForeignAssets.unfreezeForeignAsset(assetId);
 
         // SiblingPara 3000 should be able to manage the asset, since the asset belongs to it
         const { block: block0 } = await sendCallAsPara(
@@ -100,7 +103,7 @@ describeSuite({
 
         // SiblingPara 3000 should not be able to manage the asset anymore
         const { block: block2, errorName } = await sendCallAsPara(
-          freezeForeignAssetCall,
+          unfreezeForeignAssetCall,
           3000,
           context,
           fundAmount / 20n,
@@ -111,12 +114,12 @@ describeSuite({
 
         // But siblingPara 4000 should be able to manage the asset
         const { block: block3 } = await sendCallAsPara(
-          freezeForeignAssetCall,
+          unfreezeForeignAssetCall,
           4000,
           context,
           fundAmount / 20n
         );
-        await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetFrozen");
+        await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetUnfrozen");
       },
     });
   },
