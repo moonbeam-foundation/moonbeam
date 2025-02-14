@@ -16,7 +16,7 @@
 
 use crate::{AssetId, Error, Pallet};
 use ethereum_types::{BigEndianHash, H160, H256, U256};
-use fp_evm::{ExitError, ExitReason, ExitSucceed};
+use fp_evm::{ExitReason, ExitSucceed};
 use frame_support::ensure;
 use frame_support::pallet_prelude::Weight;
 use pallet_evm::{GasWeightMapping, Runner};
