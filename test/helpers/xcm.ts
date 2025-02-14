@@ -893,7 +893,10 @@ export const sendCallAsPara = async (
   paraId: number,
   context: DevModeContext,
   fungible = 10_000_000_000_000_000_000n, // Default 10 GLMR
-  allowFailure = false
+  allowFailure = false,
+  opts?: {
+    originKind?: string;
+  }
 ) => {
   const getPalletIndex = async (name: string, context: DevModeContext) => {
     const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -929,7 +932,7 @@ export const sendCallAsPara = async (
     .buy_execution()
     .push_any({
       Transact: {
-        originKind: "Xcm",
+        originKind: opts?.originKind ?? "Xcm",
         requireWeightAtMost: {
           refTime: 20_089_165_000n,
           proofSize: 80_000n,
