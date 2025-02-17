@@ -3,9 +3,6 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectEvent } from "../../../../helpers/expect.js";
-import { SubmittableExtrinsic } from "@polkadot/api/types";
-import { ISubmittableResult } from "@polkadot/types/types";
 
 describeSuite({
   id: "D014114",
@@ -53,7 +50,9 @@ describeSuite({
           await context.createBlock(sudoCall);
         }
 
-        const totalAssets = await context.polkadotJs().query.evmForeignAssets.counterForAssetsById();
+        const totalAssets = await context
+          .polkadotJs()
+          .query.evmForeignAssets.counterForAssetsById();
         expect(totalAssets.toNumber()).to.eq(256);
 
         const extraAssetLocation = {

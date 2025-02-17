@@ -3,7 +3,7 @@ import { afterEach, beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sovereignAccountOfSibling, sendCallAsPara } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectEvent, expectNoEvent } from "../../../../helpers/expect.js";
+import { expectEvent } from "../../../../helpers/expect.js";
 import type { AnyJson } from "@polkadot/types-codec/types";
 
 describeSuite({

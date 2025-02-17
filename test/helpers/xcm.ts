@@ -1056,7 +1056,7 @@ export const sendCallAsDescendedOrigin = async (
       proofSize: 150_000n,
     },
     descend_origin: address,
-    beneficiary: descndedAddress.descendOriginAddress
+    beneficiary: descndedAddress.descendOriginAddress,
   })
     .withdraw_asset()
     .buy_execution()
