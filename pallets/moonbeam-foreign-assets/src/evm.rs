@@ -25,7 +25,7 @@ use precompile_utils::solidity::codec::{Address, BoundedString};
 use precompile_utils::solidity::Codec;
 use precompile_utils_macro::keccak256;
 use sp_runtime::traits::ConstU32;
-use sp_runtime::DispatchError;
+use sp_runtime::{format, DispatchError, SaturatedConversion};
 use sp_std::vec::Vec;
 use xcm::latest::Error as XcmError;
 
@@ -33,21 +33,22 @@ const ERC20_CALL_MAX_CALLDATA_SIZE: usize = 4 + 32 + 32; // selector + address +
 const ERC20_CREATE_MAX_CALLDATA_SIZE: usize = 16 * 1024; // 16Ko
 
 // Hardcoded gas limits (from manual binary search)
-const ERC20_CREATE_GAS_LIMIT: u64 = 3_410_000; // highest failure: 3_406_000
-pub(crate) const ERC20_BURN_FROM_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
-pub(crate) const ERC20_MINT_INTO_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
-const ERC20_PAUSE_GAS_LIMIT: u64 = 150_500; // highest failure: 150_500
-pub(crate) const ERC20_TRANSFER_GAS_LIMIT: u64 = 155_000; // highest failure: 154_000
-pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 154_000; // highest failure: 153_000
-const ERC20_UNPAUSE_GAS_LIMIT: u64 = 151_000; // highest failure: 149_500
+const ERC20_CREATE_GAS_LIMIT: u64 = 3_600_000; // highest failure: 3_600_000
+pub(crate) const ERC20_BURN_FROM_GAS_LIMIT: u64 = 160_000; // highest failure: 154_000
+pub(crate) const ERC20_MINT_INTO_GAS_LIMIT: u64 = 160_000; // highest failure: 154_000
+const ERC20_PAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 150_500
+pub(crate) const ERC20_TRANSFER_GAS_LIMIT: u64 = 160_000; // highest failure: 154_000
+pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 160_000; // highest failure: 153_000
+const ERC20_UNPAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 149_500
 
+#[derive(Debug)]
 pub enum EvmError {
-	BurnFromFail,
+	BurnFromFail(String),
 	ContractReturnInvalidValue,
 	DispatchError(DispatchError),
-	EvmCallFail,
-	MintIntoFail,
-	TransferFail,
+	EvmCallFail(String),
+	MintIntoFail(String),
+	TransferFail(String),
 }
 
 impl From<DispatchError> for EvmError {
@@ -59,7 +60,8 @@ impl From<DispatchError> for EvmError {
 impl From<EvmError> for XcmError {
 	fn from(error: EvmError) -> XcmError {
 		match error {
-			EvmError::BurnFromFail => {
+			EvmError::BurnFromFail(err) => {
+				log::debug!("BurnFromFail error: {:?}", err);
 				XcmError::FailedToTransactAsset("Erc20 contract call burnFrom fail")
 			}
 			EvmError::ContractReturnInvalidValue => {
@@ -69,11 +71,16 @@ impl From<EvmError> for XcmError {
 				log::debug!("dispatch error: {:?}", err);
 				Self::FailedToTransactAsset("storage layer error")
 			}
-			EvmError::EvmCallFail => XcmError::FailedToTransactAsset("Fail to call erc20 contract"),
-			EvmError::MintIntoFail => {
-				XcmError::FailedToTransactAsset("Erc20 contract call mintInto fail")
+			EvmError::EvmCallFail(err) => {
+				log::debug!("EvmCallFail error: {:?}", err);
+				XcmError::FailedToTransactAsset("Fail to call erc20 contract")
 			}
-			EvmError::TransferFail => {
+			EvmError::MintIntoFail(err) => {
+				log::debug!("MintIntoFail error: {:?}", err);
+				XcmError::FailedToTransactAsset("Erc20 contract call mintInto fail+")
+			}
+			EvmError::TransferFail(err) => {
+				log::debug!("TransferFail error: {:?}", err);
 				XcmError::FailedToTransactAsset("Erc20 contract call transfer fail")
 			}
 		}
@@ -134,7 +141,10 @@ impl<T: crate::Config> EvmCaller<T> {
 			&<T as pallet_evm::Config>::config(),
 			contract_adress,
 		)
-		.map_err(|_| Error::Erc20ContractCreationFail)?;
+		.map_err(|err| {
+			log::debug!("erc20_create (error): {:?}", err.error.into());
+			Error::<T>::Erc20ContractCreationFail
+		})?;
 
 		ensure!(
 			matches!(
@@ -179,14 +189,17 @@ impl<T: crate::Config> EvmCaller<T> {
 			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
-		.map_err(|_| EvmError::EvmCallFail)?;
+		.map_err(|err| EvmError::MintIntoFail(format!("{:?}", err.error.into())))?;
 
 		ensure!(
 			matches!(
 				exec_info.exit_reason,
 				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
 			),
-			EvmError::MintIntoFail
+			{
+				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
+				EvmError::MintIntoFail(err)
+			}
 		);
 
 		Ok(())
@@ -225,14 +238,17 @@ impl<T: crate::Config> EvmCaller<T> {
 			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
-		.map_err(|_| EvmError::EvmCallFail)?;
+		.map_err(|err| EvmError::TransferFail(format!("{:?}", err.error.into())))?;
 
 		ensure!(
 			matches!(
 				exec_info.exit_reason,
 				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
 			),
-			EvmError::TransferFail
+			{
+				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
+				EvmError::TransferFail(err)
+			}
 		);
 
 		// return value is true.
@@ -280,14 +296,17 @@ impl<T: crate::Config> EvmCaller<T> {
 			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
-		.map_err(|_| EvmError::EvmCallFail)?;
+		.map_err(|err| EvmError::EvmCallFail(format!("{:?}", err.error.into())))?;
 
 		ensure!(
 			matches!(
 				exec_info.exit_reason,
 				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
 			),
-			EvmError::EvmCallFail
+			{
+				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
+				EvmError::EvmCallFail(err)
+			}
 		);
 
 		Ok(())
@@ -325,14 +344,17 @@ impl<T: crate::Config> EvmCaller<T> {
 			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
-		.map_err(|_| EvmError::EvmCallFail)?;
+		.map_err(|err| EvmError::EvmCallFail(format!("{:?}", err.error.into())))?;
 
 		ensure!(
 			matches!(
 				exec_info.exit_reason,
 				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
 			),
-			EvmError::BurnFromFail
+			{
+				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
+				EvmError::BurnFromFail(err)
+			}
 		);
 
 		Ok(())
@@ -362,14 +384,21 @@ impl<T: crate::Config> EvmCaller<T> {
 			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
-		.map_err(|_| Error::<T>::EvmInternalError)?;
+		.map_err(|err| {
+			log::debug!("erc20_pause (error): {:?}", err.error.into());
+			Error::<T>::EvmInternalError
+		})?;
 
 		ensure!(
 			matches!(
 				exec_info.exit_reason,
 				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
 			),
-			Error::<T>::EvmCallPauseFail
+			{
+				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
+				log::debug!("erc20_pause (error): {:?}", err);
+				Error::<T>::EvmCallPauseFail
+			}
 		);
 
 		Ok(())
@@ -400,16 +429,57 @@ impl<T: crate::Config> EvmCaller<T> {
 			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
-		.map_err(|_| Error::<T>::EvmInternalError)?;
+		.map_err(|err| {
+			log::debug!("erc20_unpause (error): {:?}", err.error.into());
+			Error::<T>::EvmInternalError
+		})?;
 
 		ensure!(
 			matches!(
 				exec_info.exit_reason,
 				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
 			),
-			Error::<T>::EvmCallUnpauseFail
+			{
+				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
+				log::debug!("erc20_unpause (error): {:?}", err);
+				Error::<T>::EvmCallUnpauseFail
+			}
 		);
 
 		Ok(())
+	}
+}
+
+fn error_on_execution_failure(reason: &ExitReason, data: &[u8]) -> String {
+	match reason {
+		ExitReason::Succeed(_) => String::new(),
+		ExitReason::Error(err) => format!("evm error: {err:?}"),
+		ExitReason::Fatal(err) => format!("evm fatal: {err:?}"),
+		ExitReason::Revert(_) => extract_revert_message(data),
+	}
+}
+
+/// The data should contain a UTF-8 encoded revert reason with a minimum size consisting of:
+/// error function selector (4 bytes) + offset (32 bytes) + reason string length (32 bytes)
+fn extract_revert_message(data: &[u8]) -> String {
+	const LEN_START: usize = 36;
+	const MESSAGE_START: usize = 68;
+	const BASE_MESSAGE: &str = "VM Exception while processing transaction: revert";
+	// Return base message if data is too short
+	if data.len() <= MESSAGE_START {
+		return BASE_MESSAGE.into();
+	}
+	// Extract message length and calculate end position
+	let message_len = U256::from(&data[LEN_START..MESSAGE_START]).saturated_into::<usize>();
+	let message_end = MESSAGE_START.saturating_add(message_len);
+	// Return base message if data is shorter than expected message end
+	if data.len() < message_end {
+		return BASE_MESSAGE.into();
+	}
+	// Extract and decode the message
+	let body = &data[MESSAGE_START..message_end];
+	match core::str::from_utf8(body) {
+		Ok(reason) => format!("{BASE_MESSAGE} {reason}"),
+		Err(_) => BASE_MESSAGE.into(),
 	}
 }
