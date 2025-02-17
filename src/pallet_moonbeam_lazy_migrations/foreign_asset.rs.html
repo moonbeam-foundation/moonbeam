@@ -224,6 +224,28 @@
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
 <a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -246,7 +268,7 @@
 <span class="kw">use </span>frame_support::sp_runtime::Saturating;
 <span class="kw">use </span>frame_support::traits::{fungibles::metadata::Inspect, ReservableCurrency};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-<span class="kw">use </span>sp_core::U256;
+<span class="kw">use </span>sp_core::{H160, U256};
 
 <span class="attr">#[derive(Debug, Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
 </span><span class="kw">pub enum </span>ForeignAssetMigrationStatus {
@@ -273,6 +295,7 @@
 <span class="kw">where
 	</span>&lt;T <span class="kw">as </span>pallet_assets::Config&gt;::Balance: Into&lt;U256&gt;,
 	&lt;T <span class="kw">as </span>pallet_asset_manager::Config&gt;::ForeignAssetType: Into&lt;<span class="prelude-ty">Option</span>&lt;Location&gt;&gt;,
+	&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId: Into&lt;H160&gt; + From&lt;H160&gt;,
 {
 	<span class="doccomment">/// Start a foreign asset migration by freezing the asset and creating the SC with the moonbeam
 	/// foreign assets pallet.
@@ -365,14 +388,20 @@
 						<span class="kw">_ </span>=&gt; {}
 					};
 
-					MIGRATING_FOREIGN_ASSETS::using_once(<span class="kw-2">&amp;mut </span><span class="bool-val">true</span>, || {
-						pallet_moonbeam_foreign_assets::Pallet::&lt;T&gt;::mint_into(
-							info.asset_id,
-							who.clone(),
-							asset.balance.into(),
-						)
-					})
-					.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::MintFailed)<span class="question-mark">?</span>;
+					<span class="kw">let </span>zero_address = T::AccountId::from(H160::zero());
+					<span class="kw">if </span>who.clone() != zero_address {
+						MIGRATING_FOREIGN_ASSETS::using_once(<span class="kw-2">&amp;mut </span><span class="bool-val">true</span>, || {
+							pallet_moonbeam_foreign_assets::Pallet::&lt;T&gt;::mint_into(
+								info.asset_id,
+								who.clone(),
+								asset.balance.into(),
+							)
+						})
+						.map_err(|err| {
+							<span class="macro">log::debug!</span>(<span class="string">"Error: {err:?}"</span>);
+							Error::&lt;T&gt;::MintFailed
+						})<span class="question-mark">?</span>;
+					}
 
 					info.remaining_balances = info.remaining_balances.saturating_sub(<span class="number">1</span>);
 					<span class="prelude-val">Ok</span>::&lt;(), Error&lt;T&gt;&gt;(())
@@ -397,14 +426,29 @@
 					&lt;T <span class="kw">as </span>pallet_assets::Config&gt;::Currency::unreserve(<span class="kw-2">&amp;</span>owner, approval.deposit);
 
 					MIGRATING_FOREIGN_ASSETS::using_once(<span class="kw-2">&amp;mut </span><span class="bool-val">true</span>, || {
-						pallet_moonbeam_foreign_assets::Pallet::&lt;T&gt;::approve(
+						<span class="kw">let </span>address: H160 = owner.clone().into();
+
+						<span class="comment">// Temporarily remove metadata
+						</span><span class="kw">let </span>meta = pallet_evm::AccountCodesMetadata::&lt;T&gt;::take(address.clone());
+
+						<span class="kw">let </span>result = pallet_moonbeam_foreign_assets::Pallet::&lt;T&gt;::approve(
 							info.asset_id,
 							owner.clone(),
 							beneficiary,
 							approval.amount.into(),
-						)
+						);
+
+						<span class="comment">// Re-add metadata
+						</span><span class="kw">if let </span><span class="prelude-val">Some</span>(metadata) = meta {
+							pallet_evm::AccountCodesMetadata::&lt;T&gt;::insert(address, metadata);
+						}
+
+						result
 					})
-					.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::ApprovalFailed)<span class="question-mark">?</span>;
+					.map_err(|err| {
+						<span class="macro">log::debug!</span>(<span class="string">"Error: {err:?}"</span>);
+						Error::&lt;T&gt;::ApprovalFailed
+					})<span class="question-mark">?</span>;
 
 					info.remaining_approvals = info.remaining_approvals.saturating_sub(<span class="number">1</span>);
 					<span class="prelude-val">Ok</span>::&lt;(), Error&lt;T&gt;&gt;(())

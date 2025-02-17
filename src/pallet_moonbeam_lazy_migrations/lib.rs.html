@@ -256,6 +256,7 @@
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -388,6 +389,7 @@
 	<span class="kw">where
 		</span>&lt;T <span class="kw">as </span>pallet_assets::Config&gt;::Balance: Into&lt;U256&gt;,
 		&lt;T <span class="kw">as </span>pallet_asset_manager::Config&gt;::ForeignAssetType: Into&lt;<span class="prelude-ty">Option</span>&lt;Location&gt;&gt;,
+		&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId: Into&lt;H160&gt; + From&lt;H160&gt;,
 	{
 		<span class="attr">#[pallet::call_index(<span class="number">2</span>)]
 		#[pallet::weight(Pallet::&lt;T&gt;::create_contract_metadata_weight(MAX_CONTRACT_CODE_SIZE))]
