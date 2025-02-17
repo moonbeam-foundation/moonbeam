@@ -179,7 +179,7 @@ describeSuite({
           .tx.evmForeignAssets.changeXcmLocation(255, secondAssetLocation);
         const { block, errorName } = await sendCallAsPara(
           changeLocationCall,
-          5002,
+          5001,
           context,
           fundAmount / 20n,
           true
