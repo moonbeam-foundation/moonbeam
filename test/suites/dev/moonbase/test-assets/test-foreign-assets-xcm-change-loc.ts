@@ -176,7 +176,7 @@ describeSuite({
       test: async function () {
         const changeLocationCall = context
           .polkadotJs()
-          .tx.evmForeignAssets.changeXcmLocation(255, anotherParaLocation);
+          .tx.evmForeignAssets.changeXcmLocation(255, secondAssetLocation);
         const { block, errorName } = await sendCallAsPara(
           changeLocationCall,
           5002,

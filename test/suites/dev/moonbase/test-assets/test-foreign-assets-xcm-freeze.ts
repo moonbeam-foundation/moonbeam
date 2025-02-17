@@ -6,12 +6,12 @@ import { fundAccount } from "../../../../helpers/balances.js";
 import { expectEvent, expectNoEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
-  id: "D014114",
+  id: "D014116",
   title: "Freezing and Unfreezing Foreign Assets via XCM",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     const fundAmount = 100_000_000_000_000_000_000_000n;
-    const assetId = 5;
+    const assetId = 7;
     const assetLocation = {
       parents: 1,
       interior: {
