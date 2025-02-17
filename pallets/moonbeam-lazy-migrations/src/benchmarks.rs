@@ -21,6 +21,7 @@ use frame_support::traits::Currency;
 use frame_support::BoundedVec;
 use frame_system::RawOrigin;
 use pallet_asset_manager::AssetRegistrar;
+use sp_core::H160;
 use sp_core::{Get, U256};
 use sp_runtime::traits::StaticLookup;
 use sp_runtime::Saturating;
@@ -112,6 +113,7 @@ benchmarks! {
 		where
 		<T as pallet_assets::Config>::Balance: Into<U256>,
 		T::ForeignAssetType: Into<Option<Location>>,
+		<T as frame_system::Config>::AccountId: Into<H160> + From<H160>,
 	}
 	approve_assets_to_migrate {
 		let n in 1 .. 100u32;

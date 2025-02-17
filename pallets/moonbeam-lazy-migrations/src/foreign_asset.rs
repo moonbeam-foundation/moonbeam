@@ -20,7 +20,7 @@ use super::*;
 use frame_support::sp_runtime::Saturating;
 use frame_support::traits::{fungibles::metadata::Inspect, ReservableCurrency};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use sp_core::U256;
+use sp_core::{H160, U256};
 
 #[derive(Debug, Encode, Decode, scale_info::TypeInfo, PartialEq, MaxEncodedLen)]
 pub enum ForeignAssetMigrationStatus {
@@ -47,6 +47,7 @@ impl<T: Config> Pallet<T>
 where
 	<T as pallet_assets::Config>::Balance: Into<U256>,
 	<T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>,
+	<T as frame_system::Config>::AccountId: Into<H160> + From<H160>,
 {
 	/// Start a foreign asset migration by freezing the asset and creating the SC with the moonbeam
 	/// foreign assets pallet.
@@ -139,14 +140,20 @@ where
 						_ => {}
 					};
 
-					MIGRATING_FOREIGN_ASSETS::using_once(&mut true, || {
-						pallet_moonbeam_foreign_assets::Pallet::<T>::mint_into(
-							info.asset_id,
-							who.clone(),
-							asset.balance.into(),
-						)
-					})
-					.map_err(|_| Error::<T>::MintFailed)?;
+					let zero_address = T::AccountId::from(H160::zero());
+					if who.clone() != zero_address {
+						MIGRATING_FOREIGN_ASSETS::using_once(&mut true, || {
+							pallet_moonbeam_foreign_assets::Pallet::<T>::mint_into(
+								info.asset_id,
+								who.clone(),
+								asset.balance.into(),
+							)
+						})
+						.map_err(|err| {
+							log::debug!("Error: {err:?}");
+							Error::<T>::MintFailed
+						})?;
+					}
 
 					info.remaining_balances = info.remaining_balances.saturating_sub(1);
 					Ok::<(), Error<T>>(())
@@ -171,14 +178,29 @@ where
 					<T as pallet_assets::Config>::Currency::unreserve(&owner, approval.deposit);
 
 					MIGRATING_FOREIGN_ASSETS::using_once(&mut true, || {
-						pallet_moonbeam_foreign_assets::Pallet::<T>::approve(
+						let address: H160 = owner.clone().into();
+
+						// Temporarily remove metadata
+						let meta = pallet_evm::AccountCodesMetadata::<T>::take(address.clone());
+
+						let result = pallet_moonbeam_foreign_assets::Pallet::<T>::approve(
 							info.asset_id,
 							owner.clone(),
 							beneficiary,
 							approval.amount.into(),
-						)
+						);
+
+						// Re-add metadata
+						if let Some(metadata) = meta {
+							pallet_evm::AccountCodesMetadata::<T>::insert(address, metadata);
+						}
+
+						result
 					})
-					.map_err(|_| Error::<T>::ApprovalFailed)?;
+					.map_err(|err| {
+						log::debug!("Error: {err:?}");
+						Error::<T>::ApprovalFailed
+					})?;
 
 					info.remaining_approvals = info.remaining_approvals.saturating_sub(1);
 					Ok::<(), Error<T>>(())

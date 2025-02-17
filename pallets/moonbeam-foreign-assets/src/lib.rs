@@ -172,7 +172,6 @@ pub mod pallet {
 		AssetIdFiltered,
 		AssetNotFrozen,
 		CorruptedStorageOrphanLocation,
-		//Erc20ContractCallFail,
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
