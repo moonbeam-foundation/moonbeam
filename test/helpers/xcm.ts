@@ -1017,3 +1017,132 @@ export const sendCallAsPara = async (
 
   return { block, didSucceed, errorName };
 };
+
+export const sendCallAsDescendedOrigin = async (
+  address: `0x${string}`,
+  call: any,
+  paraId: number,
+  context: DevModeContext,
+  fungible = 10_000_000_000_000_000_000n, // Default 10 GLMR
+  allowFailure = false
+) => {
+  const descndedAddress = descendOriginFromAddress20(context, address, paraId);
+  const getPalletIndex = async (name: string, context: DevModeContext) => {
+    const metadata = await context.polkadotJs().rpc.state.getMetadata();
+    return metadata.asLatest.pallets
+      .find(({ name: palletName }) => palletName.toString() === name)!
+      .index.toNumber();
+  };
+
+  const encodedCall = call.method.toHex();
+  const balancesPalletIndex = await getPalletIndex("Balances", context);
+
+  const QUERY_ID = 43981;
+
+  const xcmMessage = new XcmFragment({
+    assets: [
+      {
+        multilocation: {
+          parents: 0,
+          interior: {
+            X1: { PalletInstance: balancesPalletIndex },
+          },
+        },
+        fungible: fungible,
+      },
+    ],
+    weight_limit: {
+      refTime: 40_000_000_000n,
+      proofSize: 150_000n,
+    },
+    descend_origin: address,
+    beneficiary: descndedAddress.descendOriginAddress
+  })
+    .withdraw_asset()
+    .buy_execution()
+    .descend_origin()
+    .push_any({
+      Transact: {
+        originKind: "Xcm",
+        requireWeightAtMost: {
+          refTime: 20_089_165_000n,
+          proofSize: 80_000n,
+        },
+        call: {
+          encoded: encodedCall,
+        },
+      },
+    })
+    .report_transact_status(
+      {
+        parents: 1,
+        interior: { X1: { Parachain: paraId } },
+      },
+      QUERY_ID
+    )
+    .refund_surplus()
+    .deposit_asset(1n, null, {
+      parents: 1,
+      interior: { X1: { Parachain: paraId } },
+    })
+    .as_v4();
+
+  const mockHrmpExistanceTx = context
+    .polkadotJs()
+    .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, paraId, 1000, 102400, 102400));
+  await mockHrmpExistanceTx.signAndSend(alith);
+
+  // Send an XCM and create block to execute it
+  await injectHrmpMessage(context, paraId, {
+    type: "XcmVersionedXcm",
+    payload: xcmMessage,
+  } as RawXcmMessage);
+
+  const { block } = await context.createBlock();
+
+  const transactStatusMsg = (
+    await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages()
+  )[0];
+
+  const transactStatusEncoded = "0x" + transactStatusMsg.data.toHex().slice(4);
+  const transactStatusDecoded = context
+    .polkadotJs()
+    .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
+
+  let didSucceed = false;
+  let errorName: string | null = null;
+
+  if (transactStatusDecoded.asV4[0].isSubscribeVersion) {
+    // Successful executions don't generate response messages in the same block
+    // instead, they send a subscription message to the destination parachain
+    // We assume that the call was successful if we receive a subscription message
+    didSucceed = true;
+  } else {
+    const transactStatusQuery = transactStatusDecoded.asV4[0].asQueryResponse;
+    expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
+    const dispatch = transactStatusQuery.response.asDispatchResult;
+    if (dispatch.isSuccess) {
+      didSucceed = true;
+    } else {
+      const error = dispatch.asError;
+      const dispatchError = context
+        .polkadotJs()
+        .createType("DispatchError", error) as DispatchError;
+      if (dispatchError.isModule) {
+        const err = context.polkadotJs().registry.findMetaError({
+          index: dispatchError.asModule.index,
+          error: dispatchError.asModule.error,
+        });
+        errorName = err.name;
+      } else {
+        errorName = dispatchError.type;
+      }
+    }
+  }
+
+  if (!allowFailure) {
+    expect(didSucceed).to.be.true;
+  }
+
+  return { block, didSucceed, errorName };
+};
