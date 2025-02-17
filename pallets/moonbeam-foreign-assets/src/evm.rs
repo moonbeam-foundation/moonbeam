@@ -450,32 +450,36 @@ impl<T: crate::Config> EvmCaller<T> {
 	}
 }
 
-pub fn error_on_execution_failure(reason: &ExitReason, data: &[u8]) -> String {
+fn error_on_execution_failure(reason: &ExitReason, data: &[u8]) -> String {
 	match reason {
-		ExitReason::Succeed(_) => "".into(),
+		ExitReason::Succeed(_) => String::new(),
 		ExitReason::Error(err) => format!("evm error: {err:?}"),
 		ExitReason::Fatal(err) => format!("evm fatal: {err:?}"),
-		ExitReason::Revert(_) => {
-			const LEN_START: usize = 36;
-			const MESSAGE_START: usize = 68;
+		ExitReason::Revert(_) => extract_revert_message(data),
+	}
+}
 
-			let mut message = "VM Exception while processing transaction: revert".into();
-			// A minimum size of error function selector (4) + offset (32) + string length (32)
-			// should contain a utf-8 encoded revert reason.
-			if data.len() > MESSAGE_START {
-				let message_len =
-					U256::from(&data[LEN_START..MESSAGE_START]).saturated_into::<usize>();
-				let message_end = MESSAGE_START.saturating_add(message_len);
-
-				if data.len() >= message_end {
-					let body: &[u8] = &data[MESSAGE_START..message_end];
-					if let Ok(reason) = core::str::from_utf8(body) {
-						message = format!("{message} {reason}");
-					}
-				}
-			}
-
-			message
-		}
+/// The data should contain a UTF-8 encoded revert reason with a minimum size consisting of:
+/// error function selector (4 bytes) + offset (32 bytes) + reason string length (32 bytes)
+fn extract_revert_message(data: &[u8]) -> String {
+	const LEN_START: usize = 36;
+	const MESSAGE_START: usize = 68;
+	const BASE_MESSAGE: &str = "VM Exception while processing transaction: revert";
+	// Return base message if data is too short
+	if data.len() <= MESSAGE_START {
+		return BASE_MESSAGE.into();
+	}
+	// Extract message length and calculate end position
+	let message_len = U256::from(&data[LEN_START..MESSAGE_START]).saturated_into::<usize>();
+	let message_end = MESSAGE_START.saturating_add(message_len);
+	// Return base message if data is shorter than expected message end
+	if data.len() < message_end {
+		return BASE_MESSAGE.into();
+	}
+	// Extract and decode the message
+	let body = &data[MESSAGE_START..message_end];
+	match core::str::from_utf8(body) {
+		Ok(reason) => format!("{BASE_MESSAGE} {reason}"),
+		Err(_) => BASE_MESSAGE.into(),
 	}
 }
