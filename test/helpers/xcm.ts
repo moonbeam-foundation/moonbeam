@@ -1130,6 +1130,7 @@ export const sendCallAsDescendedOrigin = async (
 
   if (!allowFailure) {
     expect(didSucceed).to.be.true;
+    expect(errorName).to.be.null;
   }
 
   return { block, didSucceed, errorName };
