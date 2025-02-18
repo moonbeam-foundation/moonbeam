@@ -11,6 +11,7 @@ import { type BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
 import { expectSubstrateEvent } from "./expect.ts";
+import { getPalletIndex } from "./pallets.ts";
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -898,13 +899,6 @@ export const sendCallAsPara = async (
     originKind?: string;
   }
 ) => {
-  const getPalletIndex = async (name: string, context: DevModeContext) => {
-    const metadata = await context.polkadotJs().rpc.state.getMetadata();
-    return metadata.asLatest.pallets
-      .find(({ name: palletName }) => palletName.toString() === name)!
-      .index.toNumber();
-  };
-
   const encodedCall = call.method.toHex();
   const balancesPalletIndex = await getPalletIndex("Balances", context);
 
@@ -1027,12 +1021,6 @@ export const sendCallAsDescendedOrigin = async (
   allowFailure = false
 ) => {
   const descndedAddress = descendOriginFromAddress20(context, address, paraId);
-  const getPalletIndex = async (name: string, context: DevModeContext) => {
-    const metadata = await context.polkadotJs().rpc.state.getMetadata();
-    return metadata.asLatest.pallets
-      .find(({ name: palletName }) => palletName.toString() === name)!
-      .index.toNumber();
-  };
 
   const encodedCall = call.method.toHex();
   const balancesPalletIndex = await getPalletIndex("Balances", context);
