@@ -103,13 +103,23 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, secondAssetLocation);
-        const { blockRes: block1 } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
+        const { blockRes: block1 } = await sendCallAsPara(
+          changeLocationCall,
+          5001,
+          context,
+          fundAmount / 20n
+        );
         await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetXcmLocationChanged");
 
         const freezeCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-        const { blockRes: block2 } = await sendCallAsPara(freezeCall, 5001, context, fundAmount / 20n);
+        const { blockRes: block2 } = await sendCallAsPara(
+          freezeCall,
+          5001,
+          context,
+          fundAmount / 20n
+        );
         await expectSubstrateEvent(block2, "evmForeignAssets", "ForeignAssetFrozen");
       },
     });
@@ -165,7 +175,12 @@ describeSuite({
         const freezeCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-        const { blockRes: block2 } = await sendCallAsPara(freezeCall, 5002, context, fundAmount / 20n);
+        const { blockRes: block2 } = await sendCallAsPara(
+          freezeCall,
+          5002,
+          context,
+          fundAmount / 20n
+        );
         await expectSubstrateEvent(block2, "evmForeignAssets", "ForeignAssetFrozen");
       },
     });

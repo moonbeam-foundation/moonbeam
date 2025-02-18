@@ -54,7 +54,7 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        
+
         await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
         const reservedBalanceAfter = await getReservedBalance(
           sovereignAccountOfSibling(context, 2000) as `0x${string}`,

@@ -64,7 +64,12 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
 
-        const { blockRes: block2 } = await sendCallAsPara(freezeCall, 1000, context, fundAmount / 20n);
+        const { blockRes: block2 } = await sendCallAsPara(
+          freezeCall,
+          1000,
+          context,
+          fundAmount / 20n
+        );
         await expectSubstrateEvent(block2, "evmForeignAssets", "ForeignAssetFrozen");
 
         const unfreezeCall = context.polkadotJs().tx.evmForeignAssets.unfreezeForeignAsset(assetId);
@@ -95,7 +100,7 @@ describeSuite({
           fundAmount / 20n
         );
         await expectSubstrateEvent(block4, "evmForeignAssets", "ForeignAssetXcmLocationChanged");
-        
+
         const modifiedForeignAsset = (
           await context.polkadotJs().query.evmForeignAssets.assetsById(assetId)
         ).toJSON();
