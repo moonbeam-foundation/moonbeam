@@ -166,7 +166,7 @@ export async function expectSystemEvent(
   ).to.be.length(1);
   expect(event, `Event ${section.toString()}.${method.toString()} not found in block ${blockHash}`)
     .to.not.be.undefined;
-  return event!.event as any;
+  return event;
 }
 
 async function getAllBlockEvents(hash: string, context: DevModeContext): Promise<EventRecord[]> {

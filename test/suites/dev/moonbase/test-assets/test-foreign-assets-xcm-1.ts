@@ -117,7 +117,7 @@ describeSuite({
         await expectSystemEvent(
           block4.block.hash,
           "evmForeignAssets",
-          "ForeignAssetLocationChanged",
+          "ForeignAssetXcmLocationChanged",
           context
         );
 
