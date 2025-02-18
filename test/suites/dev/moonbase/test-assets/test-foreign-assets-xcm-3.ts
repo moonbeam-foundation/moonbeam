@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectSubstrateEvent } from "../../../../helpers/expect.js";
+import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014112",
@@ -42,7 +42,12 @@ describeSuite({
         context,
         fundAmount / 20n
       );
-      await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
+      await expectSystemEvent(
+        blockRes.block.hash,
+        "evmForeignAssets",
+        "ForeignAssetCreated",
+        context
+      );
     });
 
     it({
@@ -85,7 +90,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        await expectSubstrateEvent(block0, "evmForeignAssets", "ForeignAssetFrozen");
+        await expectSystemEvent(
+          block0.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetFrozen",
+          context
+        );
 
         // Change location to Parachain 4000 via sudo
         const newAssetLocation = {
@@ -118,7 +128,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        await expectSubstrateEvent(block3, "evmForeignAssets", "ForeignAssetUnfrozen");
+        await expectSystemEvent(
+          block3.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetUnfrozen",
+          context
+        );
       },
     });
   },

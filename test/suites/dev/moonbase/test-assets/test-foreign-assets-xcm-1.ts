@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectSubstrateEvent } from "../../../../helpers/expect.js";
+import { expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014110",
@@ -49,7 +49,12 @@ describeSuite({
           fundAmount / 20n
         );
 
-        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetCreated");
+        await expectSystemEvent(
+          block1.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetCreated",
+          context
+        );
 
         const createdForeignAsset = (
           await context.polkadotJs().query.evmForeignAssets.assetsById(assetId)
@@ -70,7 +75,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        await expectSubstrateEvent(block2, "evmForeignAssets", "ForeignAssetFrozen");
+        await expectSystemEvent(
+          block2.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetFrozen",
+          context
+        );
 
         const unfreezeCall = context.polkadotJs().tx.evmForeignAssets.unfreezeForeignAsset(assetId);
 
@@ -80,7 +90,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        await expectSubstrateEvent(block3, "evmForeignAssets", "ForeignAssetUnfrozen");
+        await expectSystemEvent(
+          block3.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetUnfrozen",
+          context
+        );
 
         const newAssetLocation = {
           parents: 1,
@@ -99,7 +114,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        await expectSubstrateEvent(block4, "evmForeignAssets", "ForeignAssetXcmLocationChanged");
+        await expectSystemEvent(
+          block4.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetLocationChanged",
+          context
+        );
 
         const modifiedForeignAsset = (
           await context.polkadotJs().query.evmForeignAssets.assetsById(assetId)

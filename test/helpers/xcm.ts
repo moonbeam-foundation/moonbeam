@@ -10,7 +10,7 @@ import type {
 import { type BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
-import { expectSubstrateEvent } from "./expect.ts";
+import { expectSubstrateEvent, expectSystemEvent } from "./expect.ts";
 import { getPalletIndex } from "./pallets.ts";
 
 // Creates and returns the tx that overrides the paraHRMP existence
@@ -961,12 +961,18 @@ export const sendCallAsPara = async (
     payload: xcmMessage,
   } as RawXcmMessage);
 
-  const blockRes = await context.createBlock([]); // Passing an empty array to get the correct return type
+  const blockRes = await context.createBlock(); // Passing an empty array to get the correct return type
 
-  const event = await expectSubstrateEvent(blockRes, "messageQueue", "Processed");
-  // expect(context.polkadotJs().events.messageQueue.Processed.is(event)).to.be.true;
-  // Processed.success == true, to check that xcm message was processed successfully
-  expect(event.data[3].toJSON()).to.be.true;
+  if (!allowFailure) {
+    const event = await expectSystemEvent(
+      blockRes.block.hash,
+      "messageQueue",
+      "Processed",
+      context
+    );
+    // Processed.success == true, to check that xcm message was processed successfully
+    expect(event.event.data[3].toJSON()).to.be.true;
+  }
 
   const transactStatusMsg = (
     await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages()

@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
 import { generateKeyringPair } from "@moonwall/util";
-import { expectSubstrateEvent } from "../../../../helpers/expect.js";
+import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014115",
@@ -49,7 +49,12 @@ describeSuite({
         context,
         fundAmount / 20n
       );
-      await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
+      await expectSystemEvent(
+        blockRes.block.hash,
+        "evmForeignAssets",
+        "ForeignAssetCreated",
+        context
+      );
     });
 
     it({
@@ -75,7 +80,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetCreated");
+        await expectSystemEvent(
+          block1.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetCreated",
+          context
+        );
 
         const createForeignAssetCall2 = context
           .polkadotJs()
@@ -121,8 +131,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-
-        await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
+        await expectSystemEvent(
+          blockRes.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetCreated",
+          context
+        );
 
         const createForeignAssetCall2 = context
           .polkadotJs()

@@ -4,7 +4,7 @@ import { afterEach, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { sovereignAccountOfSibling, sendCallAsPara } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
 import type { AnyJson } from "@polkadot/types-codec/types";
-import { expectSubstrateEvent } from "../../../../helpers/expect.js";
+import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014113",
@@ -58,7 +58,12 @@ describeSuite({
         context,
         fundAmount / 20n
       );
-      await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
+      await expectSystemEvent(
+        blockRes.block.hash,
+        "evmForeignAssets",
+        "ForeignAssetCreated",
+        context
+      );
 
       originalLocation = (
         await context.polkadotJs().query.evmForeignAssets.assetsById(assetId)
@@ -109,7 +114,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetXcmLocationChanged");
+        await expectSystemEvent(
+          block1.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetXcmLocationChanged",
+          context
+        );
 
         const freezeCall = context
           .polkadotJs()
@@ -120,7 +130,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        await expectSubstrateEvent(block2, "evmForeignAssets", "ForeignAssetFrozen");
+        await expectSystemEvent(
+          block2.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetFrozen",
+          context
+        );
       },
     });
 
@@ -181,7 +196,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        await expectSubstrateEvent(block2, "evmForeignAssets", "ForeignAssetFrozen");
+        await expectSystemEvent(
+          block2.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetFrozen",
+          context
+        );
       },
     });
 

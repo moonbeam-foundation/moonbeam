@@ -12,3 +12,7 @@ export async function fundAccount(account: `0x${string}`, amount: bigint, contex
 export async function getReservedBalance(account: `0x${string}`, context: DevModeContext) {
   return (await context.polkadotJs().query.system.account(account)).data.reserved.toBigInt();
 }
+
+export async function getFreeBalance(account: `0x${string}`, context: DevModeContext) {
+  return (await context.polkadotJs().query.system.account(account)).data.free.toBigInt();
+}

@@ -3,7 +3,7 @@ import { afterEach, beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sovereignAccountOfSibling, sendCallAsPara } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectSubstrateEvent } from "../../../../helpers/expect.js";
+import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014116",
@@ -42,7 +42,12 @@ describeSuite({
         context,
         fundAmount / 20n
       );
-      await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
+      await expectSystemEvent(
+        blockRes.block.hash,
+        "evmForeignAssets",
+        "ForeignAssetCreated",
+        context
+      );
     });
 
     afterEach(async () => {
@@ -55,7 +60,8 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.unfreezeForeignAsset(assetId);
         const sudoCall = context.polkadotJs().tx.sudo.sudo(unfreezeForeignAssetCall);
-        await context.createBlock(sudoCall);
+        const block = await context.createBlock(sudoCall);
+        await expectSubstrateEvent(block, "evmForeignAssets", "ForeignAssetUnfrozen");
       }
       const assetAfter = (
         await context.polkadotJs().query.evmForeignAssets.assetsByLocation(assetLocation)
@@ -77,8 +83,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        // await expectEvent(context, block1.hash as `0x${string}`, "ForeignAssetFrozen");
-        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetFrozen");
+        await expectSystemEvent(
+          block1.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetFrozen",
+          context
+        );
 
         const { errorName } = await sendCallAsPara(
           freezeForeignAssetCall,
@@ -99,7 +109,12 @@ describeSuite({
           context,
           fundAmount / 20n
         );
-        await expectSubstrateEvent(block3, "evmForeignAssets", "ForeignAssetUnfrozen");
+        await expectSystemEvent(
+          block3.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetUnfrozen",
+          context
+        );
 
         const { errorName: error2 } = await sendCallAsPara(
           unfreezeForeignAssetCall,

@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount, getReservedBalance } from "../../../../helpers/balances.js";
-import { expectSubstrateEvent } from "../../../../helpers/expect.js";
+import { expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014111",
@@ -55,7 +55,13 @@ describeSuite({
           fundAmount / 20n
         );
 
-        await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
+        await expectSystemEvent(
+          blockRes.block.hash,
+          "evmForeignAssets",
+          "ForeignAssetCreated",
+          context
+        );
+
         const reservedBalanceAfter = await getReservedBalance(
           sovereignAccountOfSibling(context, 2000) as `0x${string}`,
           context
