@@ -156,7 +156,7 @@ export async function expectEvent(
 ) {
   const apiAt = await context.polkadotJs().at(blockHash);
   const events = await apiAt.query.system.events();
-  const event = events.find(({ event: { method } }) => method.toString() === eventName)!.event;
+  const event = events.find(({ event: { method } }) => method.toString() === eventName);
   expect(event).to.exist;
   return event;
 }
