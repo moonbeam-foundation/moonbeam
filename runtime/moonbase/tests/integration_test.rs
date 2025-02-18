@@ -54,7 +54,6 @@ use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
 
 use moonbase_runtime::currency::{GIGAWEI, WEI};
-//use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
 use moonbase_runtime::runtime_params::dynamic_params;
 use moonbase_runtime::xcm_config::LocationToAccountId;
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
