@@ -3,7 +3,7 @@ import { afterEach, beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sovereignAccountOfSibling, sendCallAsPara } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectEvent } from "../../../../helpers/expect.js";
+import { expectSubstrateEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014116",
@@ -36,13 +36,13 @@ describeSuite({
       const createForeignAssetCall = context
         .polkadotJs()
         .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
-      const { block } = await sendCallAsPara(
+      const { blockRes } = await sendCallAsPara(
         createForeignAssetCall,
         3000,
         context,
         fundAmount / 20n
       );
-      await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
+      await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
     });
 
     afterEach(async () => {
@@ -71,15 +71,16 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
 
-        const { block: block1 } = await sendCallAsPara(
+        const { blockRes: block1 } = await sendCallAsPara(
           freezeForeignAssetCall,
           3000,
           context,
           fundAmount / 20n
         );
-        await expectEvent(context, block1.hash as `0x${string}`, "ForeignAssetFrozen");
+        // await expectEvent(context, block1.hash as `0x${string}`, "ForeignAssetFrozen");
+        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetFrozen");
 
-        const { block: block2, errorName } = await sendCallAsPara(
+        const { errorName } = await sendCallAsPara(
           freezeForeignAssetCall,
           3000,
           context,
@@ -92,15 +93,15 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.unfreezeForeignAsset(assetId);
 
-        const { block: block3 } = await sendCallAsPara(
+        const { blockRes: block3 } = await sendCallAsPara(
           unfreezeForeignAssetCall,
           3000,
           context,
           fundAmount / 20n
         );
-        await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetUnfrozen");
+        await expectSubstrateEvent(block3, "evmForeignAssets", "ForeignAssetUnfrozen");
 
-        const { block: block4, errorName: error2 } = await sendCallAsPara(
+        const { errorName: error2 } = await sendCallAsPara(
           unfreezeForeignAssetCall,
           3000,
           context,
@@ -119,7 +120,7 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(255, false);
 
-        const { block, errorName: error1 } = await sendCallAsPara(
+        const { errorName: error1 } = await sendCallAsPara(
           freezeForeignAssetCall,
           3000,
           context,
@@ -132,7 +133,7 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.unfreezeForeignAsset(255);
 
-        const { block: block2, errorName: error2 } = await sendCallAsPara(
+        const { errorName: error2 } = await sendCallAsPara(
           unfreezeForeignAssetCall,
           3000,
           context,
@@ -151,7 +152,7 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
 
-        const { block, errorName: error1 } = await sendCallAsPara(
+        const { errorName: error1 } = await sendCallAsPara(
           freezeForeignAssetCall,
           4000,
           context,
@@ -164,7 +165,7 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.unfreezeForeignAsset(assetId);
 
-        const { block: block2, errorName: error2 } = await sendCallAsPara(
+        const { errorName: error2 } = await sendCallAsPara(
           unfreezeForeignAssetCall,
           4000,
           context,

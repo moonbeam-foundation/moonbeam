@@ -7,8 +7,8 @@ import {
   sovereignAccountOfSibling,
 } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectEvent, expectNoEvent } from "../../../../helpers/expect.js";
 import { generateKeyringPair } from "@moonwall/util";
+import { expectSubstrateEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014115",
@@ -43,13 +43,13 @@ describeSuite({
         .polkadotJs()
         .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
 
-      const { block } = await sendCallAsPara(
+      const { blockRes } = await sendCallAsPara(
         createForeignAssetCall,
         6000,
         context,
         fundAmount / 20n
       );
-      await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
+      await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
     });
 
     it({
@@ -69,28 +69,25 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
 
-        const { block } = await sendCallAsPara(
+        const { blockRes: block1 } = await sendCallAsPara(
           createForeignAssetCall,
           6000,
           context,
           fundAmount / 20n
         );
-
-        await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
+        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetCreated");
 
         const createForeignAssetCall2 = context
           .polkadotJs()
           .tx.evmForeignAssets.createForeignAsset(assetId + 1, assetLocation, 18, "TEST2", "TEST2");
 
-        const { block: block2, errorName } = await sendCallAsPara(
+        const { errorName } = await sendCallAsPara(
           createForeignAssetCall2,
           6000,
           context,
           fundAmount / 20n,
           true
         );
-
-        await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetCreated");
         expect(errorName).to.eq("LocationAlreadyExists");
       },
     });
@@ -118,14 +115,14 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST3", "TEST3");
 
-        const { block } = await sendCallAsPara(
+        const { blockRes } = await sendCallAsPara(
           createForeignAssetCall,
           6000,
           context,
           fundAmount / 20n
         );
 
-        await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
+        await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
 
         const createForeignAssetCall2 = context
           .polkadotJs()

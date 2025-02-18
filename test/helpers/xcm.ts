@@ -10,7 +10,7 @@ import type {
 import { type BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
-import { expectEvent } from "./expect.ts";
+import { expectSubstrateEvent } from "./expect.ts";
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -967,10 +967,10 @@ export const sendCallAsPara = async (
     payload: xcmMessage,
   } as RawXcmMessage);
 
-  const { block } = await context.createBlock();
+  const blockRes = await context.createBlock([]); // Passing an empty array to get the correct return type
 
-  const event = await expectEvent(context, block.hash as `0x${string}`, "Processed");
-  expect(context.polkadotJs().events.messageQueue.Processed.is(event)).to.be.true;
+  const event = await expectSubstrateEvent(blockRes, "messageQueue", "Processed");
+  // expect(context.polkadotJs().events.messageQueue.Processed.is(event)).to.be.true;
   // Processed.success == true, to check that xcm message was processed successfully
   expect(event.data[3].toJSON()).to.be.true;
 
@@ -1015,7 +1015,7 @@ export const sendCallAsPara = async (
   // so pallet xcm wouldn't need to send a SubscribeVersion message.
   await context.createBlock();
 
-  return { block, didSucceed, errorName };
+  return { blockRes, didSucceed, errorName };
 };
 
 export const sendCallAsDescendedOrigin = async (

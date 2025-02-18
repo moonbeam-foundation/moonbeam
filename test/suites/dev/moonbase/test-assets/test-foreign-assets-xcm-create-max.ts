@@ -3,6 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
+import { expectSubstrateEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014114",
@@ -47,7 +48,8 @@ describeSuite({
 
           const sudoCall = context.polkadotJs().tx.sudo.sudo(assetCreationCall);
 
-          await context.createBlock(sudoCall);
+          const block = await context.createBlock(sudoCall);
+          await expectSubstrateEvent(block, "evmForeignAssets", "ForeignAssetCreated");
         }
 
         const totalAssets = await context

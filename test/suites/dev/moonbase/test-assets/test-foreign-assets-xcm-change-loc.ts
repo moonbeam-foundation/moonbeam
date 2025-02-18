@@ -3,8 +3,8 @@ import { afterEach, beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sovereignAccountOfSibling, sendCallAsPara } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectEvent } from "../../../../helpers/expect.js";
 import type { AnyJson } from "@polkadot/types-codec/types";
+import { expectSubstrateEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014113",
@@ -52,13 +52,13 @@ describeSuite({
       const createForeignAssetCall = context
         .polkadotJs()
         .tx.evmForeignAssets.createForeignAsset(assetId, firstAssetLocation, 18, "TEST", "TEST");
-      const { block } = await sendCallAsPara(
+      const { blockRes } = await sendCallAsPara(
         createForeignAssetCall,
         5001,
         context,
         fundAmount / 20n
       );
-      await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
+      await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
 
       originalLocation = (
         await context.polkadotJs().query.evmForeignAssets.assetsById(assetId)
@@ -91,8 +91,8 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, firstAssetLocation);
         const sudoCall = context.polkadotJs().tx.sudo.sudo(changeLocationCall);
-        const { block } = await context.createBlock(sudoCall);
-        await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
+        const block = await context.createBlock(sudoCall);
+        await expectSubstrateEvent(block, "evmForeignAssets", "ForeignAssetXcmLocationChanged");
       }
     });
 
@@ -103,14 +103,14 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, secondAssetLocation);
-        const { block } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
-        await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
+        const { blockRes: block1 } = await sendCallAsPara(changeLocationCall, 5001, context, fundAmount / 20n);
+        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetXcmLocationChanged");
 
         const freezeCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-        const { block: block2 } = await sendCallAsPara(freezeCall, 5001, context, fundAmount / 20n);
-        await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
+        const { blockRes: block2 } = await sendCallAsPara(freezeCall, 5001, context, fundAmount / 20n);
+        await expectSubstrateEvent(block2, "evmForeignAssets", "ForeignAssetFrozen");
       },
     });
 
@@ -121,7 +121,7 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, anotherParaLocation);
-        const { block, errorName } = await sendCallAsPara(
+        const { errorName } = await sendCallAsPara(
           changeLocationCall,
           5002,
           context,
@@ -139,7 +139,7 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, anotherParaLocation);
-        const { block, errorName } = await sendCallAsPara(
+        const { errorName } = await sendCallAsPara(
           changeLocationCall,
           5001,
           context,
@@ -158,15 +158,15 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, anotherParaLocation);
         const sudoCall = context.polkadotJs().tx.sudo.sudo(changeLocationCall);
-        const { block } = await context.createBlock(sudoCall);
-        await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
+        const block1 = await context.createBlock(sudoCall);
+        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetXcmLocationChanged");
 
         // New para can manage the asset
         const freezeCall = context
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
-        const { block: block2 } = await sendCallAsPara(freezeCall, 5002, context, fundAmount / 20n);
-        await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
+        const { blockRes: block2 } = await sendCallAsPara(freezeCall, 5002, context, fundAmount / 20n);
+        await expectSubstrateEvent(block2, "evmForeignAssets", "ForeignAssetFrozen");
       },
     });
 
@@ -177,7 +177,7 @@ describeSuite({
         const changeLocationCall = context
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(255, secondAssetLocation);
-        const { block, errorName } = await sendCallAsPara(
+        const { errorName } = await sendCallAsPara(
           changeLocationCall,
           5001,
           context,

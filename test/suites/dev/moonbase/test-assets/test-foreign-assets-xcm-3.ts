@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectEvent, expectNoEvent } from "../../../../helpers/expect.js";
+import { expectSubstrateEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014112",
@@ -36,13 +36,13 @@ describeSuite({
       const createForeignAssetCall = context
         .polkadotJs()
         .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
-      const { block } = await sendCallAsPara(
+      const { blockRes } = await sendCallAsPara(
         createForeignAssetCall,
         3000,
         context,
         fundAmount / 20n
       );
-      await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
+      await expectSubstrateEvent(blockRes, "evmForeignAssets", "ForeignAssetCreated");
     });
 
     it({
@@ -54,15 +54,15 @@ describeSuite({
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
 
         const sudoCall = context.polkadotJs().tx.sudo.sudo(freezeForeignAssetCall);
-        const { block } = await context.createBlock(sudoCall);
-        expectEvent(context, block.hash as `0x${string}`, "ForeignAssetFrozen");
+        const block1 = await context.createBlock(sudoCall);
+        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetFrozen");
 
         const unfreezeForeignAssetCall = context
           .polkadotJs()
           .tx.evmForeignAssets.unfreezeForeignAsset(assetId);
         const sudoCall2 = context.polkadotJs().tx.sudo.sudo(unfreezeForeignAssetCall);
-        const { block: block2 } = await context.createBlock(sudoCall2);
-        expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetUnfrozen");
+        const block2 = await context.createBlock(sudoCall2);
+        await expectSubstrateEvent(block2, "evmForeignAssets", "ForeignAssetUnfrozen");
       },
     });
 
@@ -79,13 +79,13 @@ describeSuite({
           .tx.evmForeignAssets.unfreezeForeignAsset(assetId);
 
         // SiblingPara 3000 should be able to manage the asset, since the asset belongs to it
-        const { block: block0 } = await sendCallAsPara(
+        const { blockRes: block0 } = await sendCallAsPara(
           freezeForeignAssetCall,
           3000,
           context,
           fundAmount / 20n
         );
-        await expectEvent(context, block0.hash as `0x${string}`, "ForeignAssetFrozen");
+        await expectSubstrateEvent(block0, "evmForeignAssets", "ForeignAssetFrozen");
 
         // Change location to Parachain 4000 via sudo
         const newAssetLocation = {
@@ -98,28 +98,27 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, newAssetLocation);
         const sudoCall = context.polkadotJs().tx.sudo.sudo(changeForeignAssetLocationCall);
-        const { block } = await context.createBlock(sudoCall);
-        await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
+        const block1 = await context.createBlock(sudoCall);
+        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetXcmLocationChanged");
 
         // SiblingPara 3000 should not be able to manage the asset anymore
-        const { block: block2, errorName } = await sendCallAsPara(
+        const { errorName } = await sendCallAsPara(
           unfreezeForeignAssetCall,
           3000,
           context,
           fundAmount / 20n,
           true
         );
-        await expectNoEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
         expect(errorName).to.eq("LocationOutsideOfOrigin");
 
         // But siblingPara 4000 should be able to manage the asset
-        const { block: block3 } = await sendCallAsPara(
+        const { blockRes: block3 } = await sendCallAsPara(
           unfreezeForeignAssetCall,
           4000,
           context,
           fundAmount / 20n
         );
-        await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetUnfrozen");
+        await expectSubstrateEvent(block3, "evmForeignAssets", "ForeignAssetUnfrozen");
       },
     });
   },

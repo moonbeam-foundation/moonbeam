@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectEvent } from "../../../../helpers/expect.js";
+import { expectSubstrateEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014110",
@@ -42,14 +42,14 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
 
-        const { block } = await sendCallAsPara(
+        const { blockRes: block1 } = await sendCallAsPara(
           createForeignAssetCall,
           1000,
           context,
           fundAmount / 20n
         );
 
-        await expectEvent(context, block.hash as `0x${string}`, "ForeignAssetCreated");
+        await expectSubstrateEvent(block1, "evmForeignAssets", "ForeignAssetCreated");
 
         const createdForeignAsset = (
           await context.polkadotJs().query.evmForeignAssets.assetsById(assetId)
@@ -64,18 +64,18 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.freezeForeignAsset(assetId, false);
 
-        const { block: block2 } = await sendCallAsPara(freezeCall, 1000, context, fundAmount / 20n);
-        await expectEvent(context, block2.hash as `0x${string}`, "ForeignAssetFrozen");
+        const { blockRes: block2 } = await sendCallAsPara(freezeCall, 1000, context, fundAmount / 20n);
+        await expectSubstrateEvent(block2, "evmForeignAssets", "ForeignAssetFrozen");
 
         const unfreezeCall = context.polkadotJs().tx.evmForeignAssets.unfreezeForeignAsset(assetId);
 
-        const { block: block3 } = await sendCallAsPara(
+        const { blockRes: block3 } = await sendCallAsPara(
           unfreezeCall,
           1000,
           context,
           fundAmount / 20n
         );
-        await expectEvent(context, block3.hash as `0x${string}`, "ForeignAssetUnfrozen");
+        await expectSubstrateEvent(block3, "evmForeignAssets", "ForeignAssetUnfrozen");
 
         const newAssetLocation = {
           parents: 1,
@@ -88,14 +88,14 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.changeXcmLocation(assetId, newAssetLocation);
 
-        const { block: block4 } = await sendCallAsPara(
+        const { blockRes: block4 } = await sendCallAsPara(
           changeLocationCall,
           1000,
           context,
           fundAmount / 20n
         );
-        await expectEvent(context, block4.hash as `0x${string}`, "ForeignAssetXcmLocationChanged");
-
+        await expectSubstrateEvent(block4, "evmForeignAssets", "ForeignAssetXcmLocationChanged");
+        
         const modifiedForeignAsset = (
           await context.polkadotJs().query.evmForeignAssets.assetsById(assetId)
         ).toJSON();

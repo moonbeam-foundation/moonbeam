@@ -148,27 +148,3 @@ export function expectSubstrateEvents<
   expect(events.length > 0).to.not.be.null;
   return events.map(({ event }) => event) as any;
 }
-
-export async function expectEvent(
-  context: DevModeContext,
-  blockHash: `0x${string}`,
-  eventName: string
-) {
-  const apiAt = await context.polkadotJs().at(blockHash);
-  const events = await apiAt.query.system.events();
-  const event = events.find(({ event: { method } }) => method.toString() === eventName);
-  expect(event).to.exist;
-  return event;
-}
-
-export async function expectNoEvent(
-  context: DevModeContext,
-  blockHash: `0x${string}`,
-  eventName: string
-) {
-  const apiAt = await context.polkadotJs().at(blockHash);
-  const events = await apiAt.query.system.events();
-  const event = events.find(({ event: { method } }) => method.toString() === eventName);
-  expect(event).to.not.exist;
-  return event;
-}
