@@ -6592,6 +6592,7 @@ dependencies = [
  "futures 0.3.30",
  "hex-literal 0.4.1",
  "jsonrpsee",
+ "log",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-debug",
  "moonbeam-rpc-core-types",

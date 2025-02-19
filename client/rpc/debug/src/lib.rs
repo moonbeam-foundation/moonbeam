@@ -529,7 +529,7 @@ where
 
 						let n_txs = eth_transactions_by_index.len();
 						let n_traces = result.len();
-						if eth_transactions_by_index.len() != result.len() {
+						if n_txs != n_traces {
 							log::warn!(
 								"The traces in block {:?} don't match with the number of ethereum transactions. (txs: {}, traces: {})",
 								request_block_id,
