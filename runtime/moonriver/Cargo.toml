@@ -128,6 +128,11 @@ sp-version = { workspace = true }
 sp-weights = { workspace = true }
 sp-genesis-builder = { workspace = true }
 
+# Bridge
+bridge-runtime-common = { workspace = true }
+pallet-bridge-grandpa = { workspace = true }
+bp-polkadot = { workspace = true }
+
 # Frontier
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
@@ -292,6 +297,7 @@ std = [
 	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
 	"pallet-xcm-weight-trader/std",
+	"pallet-bridge-grandpa/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"parity-scale-codec/std",
@@ -318,6 +324,8 @@ std = [
 	"xcm-runtime-apis/std",
 	"xcm-primitives/std",
 	"xcm/std",
+	"bp-polkadot/std",
+	"bridge-runtime-common/std",
 ]
 
 # Must be enabled for tracing runtimes only
@@ -394,10 +402,12 @@ runtime-benchmarks = [
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"pallet-xcm-weight-trader/runtime-benchmarks",
+	"pallet-bridge-grandpa/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"xcm-runtime-apis/runtime-benchmarks",
+	"bridge-runtime-common/runtime-benchmarks",
 ]
 try-runtime = [
 	"cumulus-pallet-parachain-system/try-runtime",
