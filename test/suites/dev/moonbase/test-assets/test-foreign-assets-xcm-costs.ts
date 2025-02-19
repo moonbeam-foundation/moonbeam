@@ -1,14 +1,9 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import {
-  sendCallAsDescendedOrigin,
-  sendCallAsPara,
-  sovereignAccountOfSibling,
-} from "../../../../helpers/xcm.js";
+import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount, getFreeBalance } from "../../../../helpers/balances.js";
-import { generateKeyringPair } from "@moonwall/util";
-import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
+import { expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D014117",
@@ -18,7 +13,7 @@ describeSuite({
     const paraId = 9999;
     let paraSovereignAccount;
 
-    const feeAmount = 1_000_000_000_000_000_000_000n; // 1000 tokens
+    const feeAmount = 352_108_387_500_000n; // 1000 tokens
     const depositAmount = 100_000_000_000_000_000_000n; // 100 tokens
     const fundAmount = feeAmount + depositAmount;
 
@@ -40,7 +35,7 @@ describeSuite({
       title: "Cannot create if location already exists",
       test: async function () {
         const balanceBefore = await getFreeBalance(paraSovereignAccount, context);
-        expect(balanceBefore).toMatchInlineSnapshot(`1100000000000000000000n`);
+        expect(balanceBefore).toMatchInlineSnapshot(`100000352108387500000n`);
 
         const createForeignAssetCall = context
           .polkadotJs()
@@ -61,8 +56,7 @@ describeSuite({
         );
 
         const balanceAfter = await getFreeBalance(paraSovereignAccount, context);
-        expect(balanceAfter).toMatchInlineSnapshot();
-        expect(balanceBefore - balanceAfter).toMatchInlineSnapshot();
+        expect(balanceAfter).toMatchInlineSnapshot(`0n`);
       },
     });
   },
