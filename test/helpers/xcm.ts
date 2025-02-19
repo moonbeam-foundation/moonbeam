@@ -970,7 +970,6 @@ export const sendCallAsPara = async (
       "Processed",
       context
     );
-    console.log(event.event.data[3].toJSON());
     // Processed.success == true, to check that xcm message was processed successfully
     expect(event.event.data[3].toJSON()).to.be.true;
   }
