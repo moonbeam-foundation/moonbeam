@@ -527,6 +527,17 @@ where
 								})
 								.collect::<Vec<BlockTransactionTrace>>();
 
+						let n_txs = eth_transactions_by_index.len();
+						let n_traces = result.len();
+						if eth_transactions_by_index.len() != result.len() {
+							log::warn!(
+								"The traces in block {:?} don't match with the number of ethereum transactions. (txs: {}, traces: {})",
+								request_block_id,
+								n_txs,
+								n_traces
+							);
+						}
+
 						Ok(result)
 					}
 					_ => Err(internal_err(
