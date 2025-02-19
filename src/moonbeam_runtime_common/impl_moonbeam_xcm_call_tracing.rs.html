@@ -119,6 +119,11 @@
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -152,14 +157,14 @@
 				origin: RuntimeOrigin,
 			) -&gt; CallResult {
 				<span class="kw">if let </span><span class="prelude-val">Ok</span>(raw_origin) = TryInto::&lt;RawOrigin&lt;AccountId&gt;&gt;::try_into(origin.clone().caller) {
-					<span class="kw">match </span>(call.clone(), raw_origin) {
-						(
-							RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }) |
-							RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy {
-								xcm_transaction, ..
-							 }),
-							RawOrigin::Signed(account_id)
-						) =&gt; {
+					<span class="kw">match </span>call.clone() {
+						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }) |
+						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy {
+							xcm_transaction, ..
+						}) |
+						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::force_transact_as {
+							xcm_transaction, ..
+					 	}) =&gt; {
 							<span class="kw">use </span><span class="kw">crate</span>::EthereumXcm;
 							<span class="kw">use </span>moonbeam_evm_tracer::tracer::EvmTracer;
 							<span class="kw">use </span>xcm_primitives::{
@@ -173,9 +178,14 @@
 							<span class="kw">let </span>dispatch_call = || {
 								RuntimeCall::dispatch(
 									call,
-									pallet_ethereum_xcm::Origin::XcmEthereumTransaction(
-										account_id.into()
-									).into()
+									<span class="kw">match </span>raw_origin {
+										RawOrigin::Signed(account_id) =&gt; {
+											pallet_ethereum_xcm::Origin::XcmEthereumTransaction(
+												account_id.into()
+											).into()
+										},
+										origin =&gt; origin.into()
+									}
 								)
 							};
 
