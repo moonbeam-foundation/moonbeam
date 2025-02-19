@@ -8,6 +8,7 @@ repository = { workspace = true }
 version = "0.1.0"
 
 [dependencies]
+log = { workspace = true }
 futures = { workspace = true, features = [ "compat" ] }
 hex-literal = { workspace = true }
 jsonrpsee = { workspace = true, features = [ "macros", "server" ] }

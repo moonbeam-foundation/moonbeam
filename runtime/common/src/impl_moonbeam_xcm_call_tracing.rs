@@ -31,14 +31,14 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 				origin: RuntimeOrigin,
 			) -> CallResult {
 				if let Ok(raw_origin) = TryInto::<RawOrigin<AccountId>>::try_into(origin.clone().caller) {
-					match (call.clone(), raw_origin) {
-						(
-							RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }) |
-							RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy {
-								xcm_transaction, ..
-							 }),
-							RawOrigin::Signed(account_id)
-						) => {
+					match call.clone() {
+						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }) |
+						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy {
+							xcm_transaction, ..
+						}) |
+						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::force_transact_as {
+							xcm_transaction, ..
+					 	}) => {
 							use crate::EthereumXcm;
 							use moonbeam_evm_tracer::tracer::EvmTracer;
 							use xcm_primitives::{
@@ -52,9 +52,14 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 							let dispatch_call = || {
 								RuntimeCall::dispatch(
 									call,
-									pallet_ethereum_xcm::Origin::XcmEthereumTransaction(
-										account_id.into()
-									).into()
+									match raw_origin {
+										RawOrigin::Signed(account_id) => {
+											pallet_ethereum_xcm::Origin::XcmEthereumTransaction(
+												account_id.into()
+											).into()
+										},
+										origin => origin.into()
+									}
 								)
 							};
 
