@@ -29,7 +29,6 @@ moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
-snowbridge-core = { workspace = true}
 
 # Moonbeam pallets
 moonbeam-xcm-benchmarks = { workspace = true }
@@ -325,7 +324,6 @@ std = [
 	"xcm-runtime-apis/std",
 	"xcm-primitives/std",
 	"xcm/std",
-	"snowbridge-core/std"
 ]
 
 # Must be enabled for tracing runtimes only
@@ -406,7 +404,6 @@ runtime-benchmarks = [
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"xcm-runtime-apis/runtime-benchmarks",
-	"snowbridge-core/runtime-benchmarks",
 ]
 
 try-runtime = [

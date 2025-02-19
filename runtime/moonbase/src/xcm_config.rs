@@ -67,10 +67,10 @@ use xcm_primitives::{
 
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use crate::runtime_params::dynamic_params;
+use moonbeam_runtime_common::xcm_origins::AllowSiblingParachains;
 use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
-use snowbridge_core::AllowSiblingsOnly;
 use sp_core::Get;
 use sp_std::{
 	convert::{From, Into, TryFrom},
@@ -699,7 +699,7 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 }
 
 pub type ForeignAssetManagerOrigin = EitherOf<
-	MapSuccessToXcm<EnsureXcm<AllowSiblingsOnly>>,
+	MapSuccessToXcm<EnsureXcm<AllowSiblingParachains>>,
 	MapSuccessToGovernance<
 		EitherOf<
 			EnsureRoot<AccountId>,

@@ -27,7 +27,6 @@ pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 # Polkadot
 xcm = { workspace = true }
 xcm-executor = { workspace = true }
-snowbridge-core = { workspace = true }
 
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
@@ -58,7 +57,6 @@ std = [
 	"sp-std/std",
 	"xcm/std",
 	"xcm-executor/std",
-	"snowbridge-core/std"
 ]
 
 runtime-benchmarks = ["frame-benchmarking"]
