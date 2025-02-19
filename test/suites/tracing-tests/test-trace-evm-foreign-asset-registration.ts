@@ -7,7 +7,7 @@ import {
 } from "../../helpers";
 
 describeSuite({
-  id: "T16",
+  id: "T17",
   title: "Trace ERC20 Foreign asset creation",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -28,7 +28,7 @@ describeSuite({
           { tracer: "callTracer" },
         ]);
 
-        expect(traces).to.toMatchSnapshot([
+        expect(traces).to.toMatchObject([
           {
             result: {
               to: "0xffffffff1fcacbd218edc0eba20fc2308c778080",
