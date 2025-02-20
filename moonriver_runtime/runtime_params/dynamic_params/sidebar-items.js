@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["pallet_randomness","runtime_config"]};
+window.SIDEBAR_ITEMS = {"mod":["pallet_randomness","runtime_config","xcm_config"]};

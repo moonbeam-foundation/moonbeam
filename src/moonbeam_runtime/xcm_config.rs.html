@@ -781,6 +781,23 @@
 <a href="#779" id="779">779</a>
 <a href="#780" id="780">780</a>
 <a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -840,22 +857,24 @@
 <span class="kw">use </span>xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 <span class="kw">use </span>cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
+<span class="kw">use </span>pallet_xcm::EnsureXcm;
 <span class="kw">use </span>xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
 	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
 	UtilityEncodeCall, XcmTransact,
 };
 
+<span class="kw">use </span><span class="kw">crate</span>::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
+<span class="kw">use </span><span class="kw">crate</span>::runtime_params::dynamic_params;
+<span class="kw">use </span>moonbeam_runtime_common::xcm_origins::AllowSiblingParachains;
+<span class="kw">use </span>pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>scale_info::TypeInfo;
-
 <span class="kw">use </span>sp_core::Get;
 <span class="kw">use </span>sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::<span class="kw-2">*</span>,
 };
-
-<span class="kw">use </span><span class="kw">crate</span>::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
 <span class="macro">parameter_types! </span>{
 	<span class="comment">// The network Id of the relay
@@ -1464,13 +1483,23 @@
 	}
 }
 
-<span class="kw">pub type </span>ForeignAssetManagerOrigin = EitherOfDiverse&lt;
-	EnsureRoot&lt;AccountId&gt;,
-	EitherOfDiverse&lt;
-		pallet_collective::EnsureProportionMoreThan&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;,
+<span class="kw">pub type </span>ForeignAssetManagerOrigin = EitherOf&lt;
+	MapSuccessToXcm&lt;EnsureXcm&lt;AllowSiblingParachains&gt;&gt;,
+	MapSuccessToGovernance&lt;
 		EitherOf&lt;
-			governance::custom_origins::GeneralAdmin,
-			governance::custom_origins::FastGeneralAdmin,
+			EnsureRoot&lt;AccountId&gt;,
+			EitherOf&lt;
+				pallet_collective::EnsureProportionMoreThan&lt;
+					AccountId,
+					OpenTechCommitteeInstance,
+					<span class="number">5</span>,
+					<span class="number">9</span>,
+				&gt;,
+				EitherOf&lt;
+					governance::custom_origins::FastGeneralAdmin,
+					governance::custom_origins::GeneralAdmin,
+				&gt;,
+			&gt;,
 		&gt;,
 	&gt;,
 &gt;;
@@ -1479,6 +1508,8 @@
 	<span class="kw">type </span>AccountIdToH160 = AccountIdToH160;
 	<span class="kw">type </span>AssetIdFilter = EvmForeignAssetIdFilter;
 	<span class="kw">type </span>EvmRunner = EvmRunnerPrecompileOrEthXcm&lt;MoonbeamCall, <span class="self">Self</span>&gt;;
+	<span class="kw">type </span>ConvertLocation =
+		SiblingParachainConvertsVia&lt;polkadot_parachain::primitives::Sibling, AccountId&gt;;
 	<span class="kw">type </span>ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
 	<span class="kw">type </span>ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
 	<span class="kw">type </span>ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
@@ -1488,6 +1519,9 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>XcmLocationToH160 = LocationToH160;
+	<span class="kw">type </span>ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
+	<span class="kw">type </span>Balance = Balance;
+	<span class="kw">type </span>Currency = Balances;
 }
 
 <span class="kw">pub struct </span>AssetFeesFilter;
