@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.3;
 
 contract BLS12381Helper2 {
 	// Define the addresses for the BLS12-381 precompiles
-	address constant BLS12_G1ADD =      0x000000000000000000000000000000000000000b; // Replace with actual address
-	address constant BLS12_G1MULTIEXP = 0x000000000000000000000000000000000000000C; // Replace with actual address
-	address constant BLS12_G2ADD =      0x000000000000000000000000000000000000000d; // Replace with actual address
-	address constant BLS12_G2MULTIEXP = 0x000000000000000000000000000000000000000E; // Replace with actual address
+	address constant BLS12_G1ADD =      0x000000000000000000000000000000000000000b;
+	address constant BLS12_G1MULTIEXP = 0x000000000000000000000000000000000000000C;
+	address constant BLS12_G2ADD =      0x000000000000000000000000000000000000000d;
+	address constant BLS12_G2MULTIEXP = 0x000000000000000000000000000000000000000E;
 
     function testAll() public returns (bool) {
         // Hardcoded inputs and expected outputs for each precompile test vector
@@ -50,9 +50,9 @@ contract BLS12381Helper2 {
 
 contract BLS12381Helper1 {
 	// Define the addresses for the BLS12-381 precompiles
-	address constant BLS12_PAIRING =    0x000000000000000000000000000000000000000F; // Replace with actual address
-	address constant BLS12_MAP_FP_TO_G1 = 0x0000000000000000000000000000000000000010; // Replace with actual address
-	address constant BLS12_MAP_FP2_TO_G2 =0x0000000000000000000000000000000000000011; // Replace with actual address
+	address constant BLS12_PAIRING =    0x000000000000000000000000000000000000000F;
+	address constant BLS12_MAP_FP_TO_G1 = 0x0000000000000000000000000000000000000010;
+	address constant BLS12_MAP_FP2_TO_G2 =0x0000000000000000000000000000000000000011;
 
     function testAll() public returns (bool) {
         // Hardcoded inputs and expected outputs for each precompile test vector
