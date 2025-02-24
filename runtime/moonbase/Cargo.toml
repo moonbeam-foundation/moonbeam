@@ -141,9 +141,7 @@ pallet-evm-precompile-dispatch = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
-pallet-evm-precompile-storage-cleaner = { workspace = true }
 precompile-utils = { workspace = true }
-
 
 # Polkadot / XCM
 pallet-xcm = { workspace = true }
@@ -266,7 +264,6 @@ std = [
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
 	"pallet-evm-precompileset-assets-erc20/std",
-	"pallet-evm-precompile-storage-cleaner/std",
 	"pallet-evm-precompile-p256verify/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
