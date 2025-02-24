@@ -29,7 +29,10 @@ use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
 use pallet_evm_precompile_blake2::Blake2F;
-use pallet_evm_precompile_bls12381::{Bls12381G1Add, Bls12381G1MultiExp, Bls12381G2Add, Bls12381G2MultiExp, Bls12381Pairing, Bls12381MapG1, Bls12381MapG2};
+use pallet_evm_precompile_bls12381::{
+	Bls12381G1Add, Bls12381G1MultiExp, Bls12381G2Add, Bls12381G2MultiExp, Bls12381MapG1,
+	Bls12381MapG2, Bls12381Pairing,
+};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_call_permit::CallPermitPrecompile;
 use pallet_evm_precompile_collective::CollectivePrecompile;
