@@ -18,12 +18,17 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use bp_runtime::StorageMapKeyProvider;
+use bp_runtime::{EncodedOrDecodedCall, StorageMapKeyProvider};
 use frame_support::Blake2_128Concat;
 use sp_core::storage::StorageKey;
+use sp_runtime::generic;
 use sp_std::vec::Vec;
 
 pub use moonbeam_core_primitives::{AccountId, Balance, BlockNumber, Hash, Header, Signature};
+
+/// Unchecked Extrinsic type.
+pub type UncheckedExtrinsic<Call, SignedExt> =
+	generic::UncheckedExtrinsic<AccountId, EncodedOrDecodedCall<Call>, Signature, SignedExt>;
 
 /// Provides a storage key for account data.
 ///

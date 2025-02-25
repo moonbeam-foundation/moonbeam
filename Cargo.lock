@@ -1101,6 +1101,7 @@ dependencies = [
  "frame-support",
  "moonbeam-core-primitives",
  "sp-core",
+ "sp-runtime",
  "sp-std",
 ]
 
