@@ -496,46 +496,69 @@ inherits = "release"
 overflow-checks = true
 
 [patch."https://github.com/moonbeam-foundation/frontier"]
-pallet-base-fee = { path = "/Users/tarekkma/Developer/frontier/frame/base-fee" }
-fp-evm = { path = "/Users/tarekkma/Developer/frontier/primitives/evm" }
-pallet-dynamic-fee = { path = "/Users/tarekkma/Developer/frontier/frame/dynamic-fee" }
-fp-dynamic-fee = { path = "/Users/tarekkma/Developer/frontier/primitives/dynamic-fee" }
-pallet-ethereum = { path = "/Users/tarekkma/Developer/frontier/frame/ethereum" }
-fp-consensus = { path = "/Users/tarekkma/Developer/frontier/primitives/consensus" }
-fp-ethereum = { path = "/Users/tarekkma/Developer/frontier/primitives/ethereum" }
-fp-rpc = { path = "/Users/tarekkma/Developer/frontier/primitives/rpc" }
-fp-storage = { path = "/Users/tarekkma/Developer/frontier/primitives/storage" }
-pallet-evm = { path = "/Users/tarekkma/Developer/frontier/frame/evm" }
-fp-account = { path = "/Users/tarekkma/Developer/frontier/primitives/account" }
-pallet-evm-precompile-simple = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/simple" }
-pallet-evm-test-vector-support = { path = "/Users/tarekkma/Developer/frontier/frame/evm/test-vector-support" }
-fp-self-contained = { path = "/Users/tarekkma/Developer/frontier/primitives/self-contained" }
-pallet-evm-precompile-sha3fips = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/sha3fips" }
-pallet-evm-precompile-modexp = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/modexp" }
-pallet-evm-precompile-ed25519 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/ed25519" }
-pallet-evm-precompile-bn128 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/bn128" }
-pallet-evm-precompile-blake2 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/blake2" }
-pallet-evm-precompile-bw6761 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/bw6761" }
-pallet-evm-precompile-bls12377 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/bls12377" }
-pallet-evm-precompile-bls12381 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/bls12381" }
-pallet-evm-precompile-dispatch = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/dispatch" }
-pallet-evm-precompile-curve25519 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/curve25519" }
-pallet-evm-precompile-storage-cleaner = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/storage-cleaner" }
-precompile-utils = { path = "/Users/tarekkma/Developer/frontier/precompiles" }
-precompile-utils-macro = { path = "/Users/tarekkma/Developer/frontier/precompiles/macro" }
-pallet-evm-chain-id = { path = "/Users/tarekkma/Developer/frontier/frame/evm-chain-id" }
-pallet-hotfix-sufficients = { path = "/Users/tarekkma/Developer/frontier/frame/hotfix-sufficients" }
-fc-api = { path = "/Users/tarekkma/Developer/frontier/client/api" }
-fc-consensus = { path = "/Users/tarekkma/Developer/frontier/client/consensus" }
-fc-rpc-core = { path = "/Users/tarekkma/Developer/frontier/client/rpc-core" }
-fc-rpc = { path = "/Users/tarekkma/Developer/frontier/client/rpc" }
-fc-mapping-sync = { path = "/Users/tarekkma/Developer/frontier/client/mapping-sync" }
-fc-db = { path = "/Users/tarekkma/Developer/frontier/client/db" }
-fc-storage = { path = "/Users/tarekkma/Developer/frontier/client/storage" }
-frontier-template-runtime = { path = "/Users/tarekkma/Developer/frontier/template/runtime" }
-fc-rpc-v2 = { path = "/Users/tarekkma/Developer/frontier/client/rpc-v2" }
-fc-rpc-v2-api = { path = "/Users/tarekkma/Developer/frontier/client/rpc-v2/api" }
-fc-rpc-v2-types = { path = "/Users/tarekkma/Developer/frontier/client/rpc-v2/types" }
-frontier-template-node = { path = "/Users/tarekkma/Developer/frontier/template/node" }
-fc-cli = { path = "/Users/tarekkma/Developer/frontier/client/cli" }
-precompile-utils-tests-external = { path = "/Users/tarekkma/Developer/frontier/precompiles/tests-external" }
+moonkey = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-cli-opt = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+account = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-dev-rpc = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+xcm-primitives = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-finality-rpc = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-vrf = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-cli = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-service = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbase-runtime = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+evm-tracing-events = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-core-primitives = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-evm-tracer = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-primitives-ext = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-relay-encoder = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-relay-encoder = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-xcm-transactor = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-runtime = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-rpc-primitives-debug = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-rpc-primitives-txpool = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-runtime-common = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-xcm-benchmarks = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-erc20-xcm-bridge = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-moonbeam-foreign-assets = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-asset-manager = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-ethereum-xcm = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-proxy = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-moonbeam-lazy-migrations = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-moonbeam-orbiters = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-parachain-staking = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-precompile-benchmarks = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-p256verify = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+storage-proof-primitives = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-xcm-weight-trader = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-author-mapping = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-balances-erc20 = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-batch = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-call-permit = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-collective = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-conviction-voting = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-crowdloan-rewards = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-gmp = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-identity = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-parachain-staking = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-preimage = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-randomness = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-referenda = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-registry = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-relay-verifier = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-xcm-transactor = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-xcm-utils = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompile-xtokens = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm-precompileset-assets-erc20 = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-proxy-genesis-companion = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonriver-runtime = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+precompile-foreign-asset-migrator = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-rpc-debug = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-client-evm-tracing = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-rpc-core-debug = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-rpc-core-types = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-rpc-trace = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-rpc-core-trace = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-rpc-txpool = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+moonbeam-rpc-core-txpool = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+summarize-precompile-checks = { git = "https://github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
