@@ -276,7 +276,7 @@ jobs:
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
         with:
-          features: metadata-hash
+          features: metadata-hash, full-pov-size
       - name: Upload runtimes
         uses: actions/upload-artifact@v4
         with:
@@ -627,7 +627,7 @@ jobs:
 
   typescript-tracing-tests:
     if: >
-      (github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork) || 
+      (github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork) ||
       (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on:
       labels: bare-metal
