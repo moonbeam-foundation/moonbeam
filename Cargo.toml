@@ -42,6 +42,7 @@ members = [
     "precompiles/xtokens",
     "precompiles/p256verify",
     "primitives/storage-proof",
+    "primitives/bridge/common",
     "primitives/bridge/moonbeam",
     "primitives/bridge/moonriver",
     "runtime/moonbase",
@@ -117,6 +118,7 @@ pallet-xcm-weight-trader = { path = "pallets/xcm-weight-trader", default-feature
 precompile-foreign-asset-migrator = { path = "precompiles/foreign-asset-migrator", default-features = false }
 xcm-primitives = { path = "primitives/xcm", default-features = false }
 
+bp-moonbeam-common = { path = "primitives/bridge/common", default-features = false }
 bp-moonbeam = { path = "primitives/bridge/moonbeam", default-features = false }
 bp-moonriver = { path = "primitives/bridge/moonriver", default-features = false }
 

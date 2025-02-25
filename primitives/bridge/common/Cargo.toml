@@ -1,5 +1,5 @@
 [package]
-name = "bp-moonriver"
+name = "bp-moonbeam-common"
 authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
@@ -10,31 +10,22 @@ version = "0.0.1"
 [dependencies]
 
 # Moonbeam Dependencies
-bp-moonbeam-common = { workspace = true }
+moonbeam-core-primitives = { workspace = true }
 
 # Bridge Dependencies
-bp-bridge-hub-cumulus = { workspace = true }
-bp-header-chain = { workspace = true }
-bp-messages = { workspace = true }
 bp-runtime = { workspace = true }
 
 # Substrate Based Dependencies
 frame-support = { workspace = true }
-frame-system = { workspace = true }
-sp-api = { workspace = true }
-sp-runtime = { workspace = true }
+sp-core = { workspace = true }
 sp-std = { workspace = true }
 
 [features]
 default = ["std"]
 std = [
-    "bp-bridge-hub-cumulus/std",
-    "bp-messages/std",
+    "moonbeam-core-primitives/std",
     "bp-runtime/std",
-    "bp-moonbeam-common/std",
     "frame-support/std",
-    "frame-system/std",
-    "sp-api/std",
-    "sp-runtime/std",
+    "sp-core/std",
     "sp-std/std",
 ]

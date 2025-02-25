@@ -10,7 +10,7 @@ version = "0.0.1"
 [dependencies]
 
 # Moonbeam Dependencies
-moonbeam-core-primitives = { workspace = true }
+bp-moonbeam-common = { workspace = true }
 
 # Bridge Dependencies
 bp-bridge-hub-cumulus = { workspace = true }
@@ -28,11 +28,12 @@ sp-std = { workspace = true }
 [features]
 default = ["std"]
 std = [
-    "moonbeam-core-primitives/std",
     "bp-bridge-hub-cumulus/std",
     "bp-messages/std",
     "bp-runtime/std",
+    "bp-moonbeam-common/std",
     "frame-support/std",
+    "frame-system/std",
     "sp-api/std",
     "sp-runtime/std",
     "sp-std/std",

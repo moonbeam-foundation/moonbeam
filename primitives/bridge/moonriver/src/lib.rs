@@ -19,12 +19,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use bp_bridge_hub_cumulus::{
-	AccountInfoStorageMapKeyProvider, BlockLength, BlockWeights, Hasher, Nonce, SignedBlock,
-	UncheckedExtrinsic, MAX_UNCONFIRMED_MESSAGES_IN_CONFIRMATION_TX,
+	BlockLength, BlockWeights, Hasher, Nonce, SignedBlock, UncheckedExtrinsic,
+	AVERAGE_BLOCK_INTERVAL, MAX_UNCONFIRMED_MESSAGES_IN_CONFIRMATION_TX,
 	MAX_UNREWARDED_RELAYERS_IN_CONFIRMATION_TX,
 };
 use bp_messages::{ChainWithMessages, MessageNonce};
-pub use moonbeam_core_primitives::{AccountId, Balance, BlockNumber, Hash, Header, Signature};
+
+pub use bp_moonbeam_common::{
+	AccountId, AccountInfoStorageMapKeyProvider, Balance, BlockNumber, Hash, Header, Signature,
+};
 
 use bp_runtime::{
 	decl_bridge_finality_runtime_apis, /* decl_bridge_messages_runtime_apis, */
