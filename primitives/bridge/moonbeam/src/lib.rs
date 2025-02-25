@@ -19,7 +19,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use bp_bridge_hub_cumulus::{
-	BlockLength, BlockWeights, Hasher, Nonce, MAX_UNCONFIRMED_MESSAGES_IN_CONFIRMATION_TX,
+	AccountInfoStorageMapKeyProvider, BlockLength, BlockWeights, Hasher, Nonce, SignedBlock,
+	UncheckedExtrinsic, MAX_UNCONFIRMED_MESSAGES_IN_CONFIRMATION_TX,
 	MAX_UNREWARDED_RELAYERS_IN_CONFIRMATION_TX,
 };
 use bp_messages::{ChainWithMessages, MessageNonce};
