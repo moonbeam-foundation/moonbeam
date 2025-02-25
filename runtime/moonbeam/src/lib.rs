@@ -74,8 +74,8 @@ use pallet_evm::{
 };
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use parity_scale_codec as codec;
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use smallvec::smallvec;
@@ -120,8 +120,8 @@ pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
-pub mod bridge_config;
 pub mod asset_config;
+pub mod bridge_config;
 #[cfg(not(feature = "disable-genesis-builder"))]
 pub mod genesis_config_preset;
 pub mod governance;
@@ -1453,15 +1453,20 @@ construct_runtime! {
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
 
-		// Bridge pallets (reserved indexes from 130 to 135)
-		BridgeKusamaGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
+		// Bridge pallets (reserved indexes from 130 to 140)
+		// With-Kusama GRANDPA bridge module.
+		BridgeKusamaGrandpa: pallet_bridge_grandpa::<Instance1> = 130,
+		// With-Kusama parachain bridge module.
+		BridgeKusamaParachains: pallet_bridge_parachains::<Instance1> = 131,
 	}
 }
 
 bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
 	RuntimeCall, AccountId,
 	// Grandpa
-	BridgeKusamaGrandpa
+	BridgeKusamaGrandpa,
+	// Parachains
+	BridgeKusamaParachains
 	//CheckAndBoostBridgeGrandpaTransactions<
 	//	Runtime,
 	//	bridge_config::BridgeGrandpaKusamaInstance,
@@ -1649,6 +1654,33 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			slot: async_backing_primitives::Slot,
 		) -> bool {
 			ConsensusHook::can_build_upon(included_hash, slot)
+		}
+	}
+
+	impl bp_kusama::KusamaFinalityApi<Block> for Runtime {
+		fn best_finalized() -> Option<bp_runtime::HeaderId<bp_kusama::Hash, bp_kusama::BlockNumber>> {
+			BridgeKusamaGrandpa::best_finalized()
+		}
+		fn free_headers_interval() -> Option<bp_kusama::BlockNumber> {
+			<Runtime as pallet_bridge_grandpa::Config<
+				bridge_config::BridgeGrandpaKusamaInstance
+			>>::FreeHeadersInterval::get()
+		}
+		fn synced_headers_grandpa_info(
+		) -> Vec<bp_header_chain::StoredHeaderGrandpaInfo<bp_kusama::Header>> {
+			BridgeKusamaGrandpa::synced_headers_grandpa_info()
+		}
+	}
+
+	impl bp_moonriver::MoonriverKusamaFinalityApi<Block> for Runtime {
+		fn best_finalized() -> Option<bp_runtime::HeaderId<bp_moonriver::Hash, bp_moonriver::BlockNumber>> {
+			BridgeKusamaParachains::best_parachain_head_id::<
+				bp_moonriver::Moonriver
+			>().unwrap_or(None)
+		}
+		fn free_headers_interval() -> Option<bp_moonriver::BlockNumber> {
+			// "free interval" is not currently used for parachains
+			None
 		}
 	}
 }

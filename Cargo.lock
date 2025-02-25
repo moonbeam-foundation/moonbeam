@@ -1017,6 +1017,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bp-bridge-hub-cumulus"
+version = "0.18.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+dependencies = [
+ "bp-messages",
+ "bp-polkadot-core",
+ "bp-runtime",
+ "frame-support",
+ "frame-system",
+ "polkadot-primitives",
+ "sp-api",
+ "sp-std",
+]
+
+[[package]]
 name = "bp-header-chain"
 version = "0.18.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
@@ -1059,6 +1074,38 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-io",
+ "sp-std",
+]
+
+[[package]]
+name = "bp-moonbeam"
+version = "0.0.1"
+dependencies = [
+ "bp-bridge-hub-cumulus",
+ "bp-header-chain",
+ "bp-messages",
+ "bp-runtime",
+ "frame-support",
+ "frame-system",
+ "moonbeam-core-primitives",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "bp-moonriver"
+version = "0.0.1"
+dependencies = [
+ "bp-bridge-hub-cumulus",
+ "bp-header-chain",
+ "bp-messages",
+ "bp-runtime",
+ "frame-support",
+ "frame-system",
+ "moonbeam-core-primitives",
+ "sp-api",
+ "sp-runtime",
  "sp-std",
 ]
 
@@ -5357,7 +5404,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4979f22fdb869068da03c9f7528f8297c6fd2606bc3a4affe42e6a823fdb8da4"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.6",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -6927,7 +6974,11 @@ version = "0.8.4"
 dependencies = [
  "account",
  "async-backing-primitives",
+ "bp-header-chain",
  "bp-kusama",
+ "bp-moonriver",
+ "bp-parachains",
+ "bp-runtime",
  "bridge-runtime-common",
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
@@ -6973,6 +7024,7 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-bridge-grandpa",
+ "pallet-bridge-parachains",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -7362,7 +7414,11 @@ version = "0.8.4"
 dependencies = [
  "account",
  "async-backing-primitives",
+ "bp-header-chain",
+ "bp-moonbeam",
+ "bp-parachains",
  "bp-polkadot",
+ "bp-runtime",
  "bridge-runtime-common",
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
@@ -7408,6 +7464,7 @@ dependencies = [
  "pallet-author-slot-filter",
  "pallet-balances",
  "pallet-bridge-grandpa",
+ "pallet-bridge-parachains",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -8070,7 +8127,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af1844ef2428cc3e1cb900be36181049ef3d3193c63e43026cfe202983b27a56"
 dependencies = [
- "proc-macro-crate 3.2.0",
+ "proc-macro-crate 1.1.3",
  "proc-macro2",
  "quote",
  "syn 2.0.77",
@@ -10715,8 +10772,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -17639,7 +17696,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 

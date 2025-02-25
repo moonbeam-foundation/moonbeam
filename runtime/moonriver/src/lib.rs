@@ -78,8 +78,8 @@ use pallet_evm::{
 };
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use parity_scale_codec as codec;
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
@@ -122,8 +122,8 @@ pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonriverPrecompiles<Runtime>;
 
-pub mod bridge_config;
 pub mod asset_config;
+pub mod bridge_config;
 #[cfg(not(feature = "disable-genesis-builder"))]
 pub mod genesis_config_preset;
 pub mod governance;
@@ -1454,8 +1454,9 @@ construct_runtime! {
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
 
-		// Bridge pallets (reserved indexes from 130 to 135)
-		BridgePolkadotGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
+		// Bridge pallets (reserved indexes from 130 to 140)
+		BridgePolkadotGrandpa: pallet_bridge_grandpa::<Instance1> = 130,
+		BridgePolkadotParachains: pallet_bridge_parachains::<Instance1> = 131,
 	}
 }
 
@@ -1640,6 +1641,33 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			slot: async_backing_primitives::Slot,
 		) -> bool {
 			ConsensusHook::can_build_upon(included_hash, slot)
+		}
+	}
+
+	impl bp_polkadot::PolkadotFinalityApi<Block> for Runtime {
+		fn best_finalized() -> Option<bp_runtime::HeaderId<bp_polkadot::Hash, bp_polkadot::BlockNumber>> {
+			BridgePolkadotGrandpa::best_finalized()
+		}
+		fn free_headers_interval() -> Option<bp_polkadot::BlockNumber> {
+			<Runtime as pallet_bridge_grandpa::Config<
+				bridge_config::BridgeGrandpaPolkadotInstance
+			>>::FreeHeadersInterval::get()
+		}
+		fn synced_headers_grandpa_info(
+		) -> Vec<bp_header_chain::StoredHeaderGrandpaInfo<bp_polkadot::Header>> {
+			BridgePolkadotGrandpa::synced_headers_grandpa_info()
+		}
+	}
+
+	impl bp_moonbeam::MoonbeamPolkadotFinalityApi<Block> for Runtime {
+		fn best_finalized() -> Option<bp_runtime::HeaderId<bp_moonbeam::Hash, bp_moonbeam::BlockNumber>> {
+			BridgePolkadotParachains::best_parachain_head_id::<
+				bp_moonbeam::Moonbeam
+			>().unwrap_or(None)
+		}
+		fn free_headers_interval() -> Option<bp_moonbeam::BlockNumber> {
+			// "free interval" is not currently used for parachains
+			None
 		}
 	}
 }

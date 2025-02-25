@@ -15,11 +15,18 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{Runtime, RuntimeEvent};
+use bp_parachains::SingleParaStoredHeaderDataBuilder;
 use frame_support::{parameter_types, traits::ConstU32};
+
 parameter_types! {
-    pub const RelayChainHeadersToKeep: u32 = 1024;
-    // see the `FEE_BOOST_PER_RELAY_HEADER` constant get the meaning of this value
-    pub PriorityBoostPerRelayHeader: u64 = 32_007_814_407_814;
+	pub const RelayChainHeadersToKeep: u32 = 1024;
+	pub const ParachainHeadsToKeep: u32 = 64;
+
+	pub const PolkadotBridgeParachainPalletName: &'static str = bp_polkadot::PARAS_PALLET_NAME;
+	pub const MaxPolkadotParaHeadDataSize: u32 = bp_polkadot::MAX_NESTED_PARACHAIN_HEAD_DATA_SIZE;
+
+	// see the `FEE_BOOST_PER_RELAY_HEADER` constant get the meaning of this value
+	pub PriorityBoostPerRelayHeader: u64 = 32_007_814_407_814;
 }
 /// Add GRANDPA bridge pallet to track Polkadot relay chain.
 pub type BridgeGrandpaPolkadotInstance = pallet_bridge_grandpa::Instance1;
@@ -31,4 +38,16 @@ impl pallet_bridge_grandpa::Config<BridgeGrandpaPolkadotInstance> for Runtime {
 	type HeadersToKeep = RelayChainHeadersToKeep;
 	// TODO: Use weights generated for this runtime
 	type WeightInfo = pallet_bridge_grandpa::weights::BridgeWeight<Runtime>;
+}
+
+/// Add parachain bridge pallet to track Moonbeam parachain.
+pub type BridgeMoonbeamInstance = pallet_bridge_parachains::Instance1;
+impl pallet_bridge_parachains::Config<BridgeMoonbeamInstance> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_bridge_parachains::weights::BridgeWeight<Runtime>;
+	type BridgesGrandpaPalletInstance = BridgeGrandpaPolkadotInstance;
+	type ParasPalletName = PolkadotBridgeParachainPalletName;
+	type ParaStoredHeaderDataBuilder = SingleParaStoredHeaderDataBuilder<bp_moonbeam::Moonbeam>;
+	type HeadsToKeep = ParachainHeadsToKeep;
+	type MaxParaHeadDataSize = MaxPolkadotParaHeadDataSize;
 }
