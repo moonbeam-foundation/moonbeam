@@ -63,7 +63,7 @@ pallet-balances = { workspace = true, features = ["std"] }
 pallet-transaction-payment = { workspace = true, features = ["std"] }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [
-    "std",
+	"std",
 ] }
 parity-scale-codec = { workspace = true }
 sc-basic-authorship = { workspace = true }
@@ -117,16 +117,16 @@ fc-db = { workspace = true }
 fc-api = { workspace = true }
 fc-mapping-sync = { workspace = true, features = ["sql"] }
 fc-rpc = { workspace = true, features = [
-    "rpc-binary-search-estimate",
-    "txpool",
+	"rpc-binary-search-estimate",
+	"txpool",
 ] }
 fc-rpc-core = { workspace = true }
 fp-consensus = { workspace = true, features = ["std"] }
 fp-rpc = { workspace = true, features = ["std"] }
 fp-storage = { workspace = true, features = ["std"] }
 pallet-ethereum = { workspace = true, features = [
-    "forbid-evm-reentrancy",
-    "std",
+	"forbid-evm-reentrancy",
+	"std",
 ] }
 
 # Cumulus / Nimbus
@@ -184,11 +184,11 @@ substrate-build-script-utils = { workspace = true }
 
 [features]
 default = [
-    "moonbase-native",
-    "moonbeam-native",
-    "moonriver-native",
-    "rococo-native",
-    "westend-native",
+	"moonbase-native",
+	"moonbeam-native",
+	"moonriver-native",
+	"rococo-native",
+	"westend-native",
 ]
 
 lazy-loading = ["sc-service/test-helpers", "parking_lot/send_guard"]
@@ -198,8 +198,8 @@ full-pov-size = ["nimbus-consensus/full-pov-size"]
 
 rococo-native = ["polkadot-cli/rococo-native", "polkadot-service/rococo-native"]
 westend-native = [
-    "polkadot-cli/westend-native",
-    "polkadot-service/westend-native",
+	"polkadot-cli/westend-native",
+	"polkadot-service/westend-native",
 ]
 
 moonbase-native = ["moonbase-runtime", "westend-native"]
@@ -207,25 +207,25 @@ moonbeam-native = ["moonbeam-runtime"]
 moonriver-native = ["moonriver-runtime"]
 
 metadata-hash = [
-    "moonbase-runtime/metadata-hash",
-    "moonriver-runtime/metadata-hash",
-    "moonbeam-runtime/metadata-hash",
+	"moonbase-runtime/metadata-hash",
+	"moonriver-runtime/metadata-hash",
+	"moonbeam-runtime/metadata-hash",
 ]
 
 test-spec = []
 
 runtime-benchmarks = [
-    "moonbase-native",
-    "moonbase-runtime/runtime-benchmarks",
-    "moonbeam-native",
-    "moonbeam-runtime/runtime-benchmarks",
-    "moonriver-native",
-    "moonriver-runtime/runtime-benchmarks",
-    "pallet-ethereum/runtime-benchmarks",
+	"moonbase-native",
+	"moonbase-runtime/runtime-benchmarks",
+	"moonbeam-native",
+	"moonbeam-runtime/runtime-benchmarks",
+	"moonriver-native",
+	"moonriver-runtime/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks",
 ]
 
 try-runtime = [
-    "moonbase-runtime",
-    "moonbase-runtime/try-runtime",
-    "polkadot-service/try-runtime",
+	"moonbase-runtime",
+	"moonbase-runtime/try-runtime",
+	"polkadot-service/try-runtime",
 ]
