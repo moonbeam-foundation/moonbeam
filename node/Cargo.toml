@@ -44,6 +44,8 @@ metadata-hash = ["moonbeam-service/metadata-hash"]
 
 lazy-loading = ["moonbeam-service/lazy-loading", "moonbeam-cli/lazy-loading"]
 
+full-pov-size = ["moonbeam-service/full-pov-size"]
+
 test-spec = []
 
 runtime-benchmarks = [
