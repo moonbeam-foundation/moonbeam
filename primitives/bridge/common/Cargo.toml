@@ -19,6 +19,7 @@ bp-runtime = { workspace = true }
 frame-support = { workspace = true }
 sp-core = { workspace = true }
 sp-std = { workspace = true }
+sp-runtime = { workspace = true }
 
 [features]
 default = ["std"]
@@ -28,4 +29,5 @@ std = [
     "frame-support/std",
     "sp-core/std",
     "sp-std/std",
+    "sp-runtime/std",
 ]
