@@ -16,7 +16,7 @@
 
 #[macro_export]
 macro_rules! impl_runtime_apis_plus_common {
-	{$($custom:tt)*} => {
+    ({$($custom:tt)*} {$($bench_custom:tt)*}) => {
 
 		#[cfg(feature = "evm-tracing")]
 		// Helper function to replay the "on_idle" hook for all pallets, we need this for
@@ -1105,6 +1105,8 @@ macro_rules! impl_runtime_apis_plus_common {
 							Err(BenchmarkError::Skip)
 						}
 					}
+
+					$($bench_custom)*
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
 						// Block Number

@@ -28,6 +28,8 @@ pub mod pallet_author_slot_filter;
 pub mod pallet_balances;
 pub mod pallet_collective_open_tech_committee;
 pub mod pallet_collective_treasury_council;
+pub mod pallet_bridge_grandpa;
+pub mod pallet_bridge_parachains;
 pub mod pallet_conviction_voting;
 pub mod pallet_crowdloan_rewards;
 pub mod pallet_evm;
@@ -53,3 +55,27 @@ pub mod pallet_whitelist;
 pub mod pallet_xcm;
 pub mod pallet_xcm_transactor;
 pub mod pallet_xcm_weight_trader;
+
+use crate::{Runtime, Weight};
+use ::pallet_bridge_grandpa::WeightInfoExt as GrandpaWeightInfoExt;
+use ::pallet_bridge_parachains::WeightInfoExt as ParachainsWeightInfoExt;
+
+impl GrandpaWeightInfoExt for pallet_bridge_grandpa::WeightInfo<Runtime> {
+	fn submit_finality_proof_overhead_from_runtime() -> Weight {
+		// our signed extension:
+		// 1) checks whether relayer registration is active from validate/pre_dispatch;
+		// 2) may slash and deregister relayer from post_dispatch
+		// (2) includes (1), so (2) is the worst case
+		Weight::zero() // TODO(Rodrigo): Confirm later
+	}
+}
+
+impl ParachainsWeightInfoExt for pallet_bridge_parachains::WeightInfo<Runtime> {
+	fn submit_parachain_heads_overhead_from_runtime() -> Weight {
+		Weight::zero() // TODO(Rodrigo): Confirm later
+	}
+
+	fn expected_extra_storage_proof_size() -> u32 {
+		0 // TODO(Rodrigo): Confirm later
+	}
+}

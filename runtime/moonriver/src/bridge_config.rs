@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{Runtime, RuntimeEvent};
+use crate::{moonriver_weights, Runtime, RuntimeEvent};
 use bp_parachains::SingleParaStoredHeaderDataBuilder;
 use frame_support::{parameter_types, traits::ConstU32};
 
@@ -36,18 +36,17 @@ impl pallet_bridge_grandpa::Config<BridgeGrandpaPolkadotInstance> for Runtime {
 	type MaxFreeHeadersPerBlock = ConstU32<4>;
 	type FreeHeadersInterval = ConstU32<5>;
 	type HeadersToKeep = RelayChainHeadersToKeep;
-	// TODO: Use weights generated for this runtime
-	type WeightInfo = pallet_bridge_grandpa::weights::BridgeWeight<Runtime>;
+	type WeightInfo = moonriver_weights::pallet_bridge_grandpa::WeightInfo<Runtime>;
 }
 
 /// Add parachain bridge pallet to track Moonbeam parachain.
 pub type BridgeMoonbeamInstance = pallet_bridge_parachains::Instance1;
 impl pallet_bridge_parachains::Config<BridgeMoonbeamInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_bridge_parachains::weights::BridgeWeight<Runtime>;
 	type BridgesGrandpaPalletInstance = BridgeGrandpaPolkadotInstance;
 	type ParasPalletName = PolkadotBridgeParachainPalletName;
 	type ParaStoredHeaderDataBuilder = SingleParaStoredHeaderDataBuilder<bp_moonbeam::Moonbeam>;
 	type HeadsToKeep = ParachainHeadsToKeep;
 	type MaxParaHeadDataSize = MaxPolkadotParaHeadDataSize;
+	type WeightInfo = moonriver_weights::pallet_bridge_parachains::WeightInfo<Runtime>;
 }

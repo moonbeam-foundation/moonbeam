@@ -1529,6 +1529,8 @@ mod benches {
 		[pallet_xcm_weight_trader, XcmWeightTrader]
 		[pallet_collective_treasury_council, TreasuryCouncilCollective]
 		[pallet_collective_open_tech_committee, OpenTechCommitteeCollective]
+		[pallet_bridge_grandpa, BridgePolkadotGrandpa]
+		[pallet_bridge_parachains, pallet_bridge_parachains::benchmarking::Pallet::<Runtime, bridge_config::BridgeMoonbeamInstance>]
 	);
 }
 
@@ -1578,120 +1580,149 @@ pub type Executive = frame_executive::Executive<
 //     // Specific impls provided to the `impl_runtime_apis_plus_common!` macro.
 // }
 // ```
-moonbeam_runtime_common::impl_runtime_apis_plus_common! {
-	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
-		fn validate_transaction(
-			source: TransactionSource,
-			xt: <Block as BlockT>::Extrinsic,
-			block_hash: <Block as BlockT>::Hash,
-		) -> TransactionValidity {
-			// Filtered calls should not enter the tx pool as they'll fail if inserted.
-			// If this call is not allowed, we return early.
-			if !<Runtime as frame_system::Config>::BaseCallFilter::contains(&xt.0.function) {
-				return InvalidTransaction::Call.into();
+moonbeam_runtime_common::impl_runtime_apis_plus_common!(
+	{
+		impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
+			fn validate_transaction(
+				source: TransactionSource,
+				xt: <Block as BlockT>::Extrinsic,
+				block_hash: <Block as BlockT>::Hash,
+			) -> TransactionValidity {
+				// Filtered calls should not enter the tx pool as they'll fail if inserted.
+				// If this call is not allowed, we return early.
+				if !<Runtime as frame_system::Config>::BaseCallFilter::contains(&xt.0.function) {
+					return InvalidTransaction::Call.into();
+				}
+
+				// This runtime uses Substrate's pallet transaction payment. This
+				// makes the chain feel like a standard Substrate chain when submitting
+				// frame transactions and using Substrate ecosystem tools. It has the downside that
+				// transaction are not prioritized by gas_price. The following code reprioritizes
+				// transactions to overcome this.
+				//
+				// A more elegant, ethereum-first solution is
+				// a pallet that replaces pallet transaction payment, and allows users
+				// to directly specify a gas price rather than computing an effective one.
+				// #HopefullySomeday
+
+				// First we pass the transactions to the standard FRAME executive. This calculates all the
+				// necessary tags, longevity and other properties that we will leave unchanged.
+				// This also assigns some priority that we don't care about and will overwrite next.
+				let mut intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)?;
+
+				let dispatch_info = xt.get_dispatch_info();
+
+				// If this is a pallet ethereum transaction, then its priority is already set
+				// according to gas price from pallet ethereum. If it is any other kind of transaction,
+				// we modify its priority.
+				Ok(match &xt.0.function {
+					RuntimeCall::Ethereum(transact { .. }) => intermediate_valid,
+					_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
+					_ => {
+						let tip = match xt.0.signature {
+							None => 0,
+							Some((_, _, ref signed_extra)) => {
+								// Yuck, this depends on the index of charge transaction in Signed Extra
+								let charge_transaction = &signed_extra.7;
+								charge_transaction.tip()
+							}
+						};
+
+						// Calculate the fee that will be taken by pallet transaction payment
+						let fee: u64 = TransactionPayment::compute_fee(
+							xt.encode().len() as u32,
+							&dispatch_info,
+							tip,
+						).saturated_into();
+
+						// Calculate how much gas this effectively uses according to the existing mapping
+						let effective_gas =
+							<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+								dispatch_info.weight
+							);
+
+						// Here we calculate an ethereum-style effective gas price using the
+						// current fee of the transaction. Because the weight -> gas conversion is
+						// lossy, we have to handle the case where a very low weight maps to zero gas.
+						let effective_gas_price = if effective_gas > 0 {
+							fee / effective_gas
+						} else {
+							// If the effective gas was zero, we just act like it was 1.
+							fee
+						};
+
+						// Overwrite the original prioritization with this ethereum one
+						intermediate_valid.priority = effective_gas_price;
+						intermediate_valid
+					}
+				})
+			}
+		}
+
+		impl async_backing_primitives::UnincludedSegmentApi<Block> for Runtime {
+			fn can_build_upon(
+				included_hash: <Block as BlockT>::Hash,
+				slot: async_backing_primitives::Slot,
+			) -> bool {
+				ConsensusHook::can_build_upon(included_hash, slot)
+			}
+		}
+
+		impl bp_polkadot::PolkadotFinalityApi<Block> for Runtime {
+			fn best_finalized() -> Option<bp_runtime::HeaderId<bp_polkadot::Hash, bp_polkadot::BlockNumber>> {
+				BridgePolkadotGrandpa::best_finalized()
+			}
+			fn free_headers_interval() -> Option<bp_polkadot::BlockNumber> {
+				<Runtime as pallet_bridge_grandpa::Config<
+					bridge_config::BridgeGrandpaPolkadotInstance
+				>>::FreeHeadersInterval::get()
+			}
+			fn synced_headers_grandpa_info(
+			) -> Vec<bp_header_chain::StoredHeaderGrandpaInfo<bp_polkadot::Header>> {
+				BridgePolkadotGrandpa::synced_headers_grandpa_info()
+			}
+		}
+
+		impl bp_moonbeam::MoonbeamPolkadotFinalityApi<Block> for Runtime {
+			fn best_finalized() -> Option<bp_runtime::HeaderId<bp_moonbeam::Hash, bp_moonbeam::BlockNumber>> {
+				BridgePolkadotParachains::best_parachain_head_id::<
+					bp_moonbeam::Moonbeam
+				>().unwrap_or(None)
+			}
+			fn free_headers_interval() -> Option<bp_moonbeam::BlockNumber> {
+				// "free interval" is not currently used for parachains
+				None
+			}
+		}
+	}
+
+	// Benchmark customizations
+	{
+		impl pallet_bridge_parachains::benchmarking::Config<bridge_config::BridgeMoonbeamInstance> for Runtime {
+			fn parachains() -> Vec<bp_polkadot_core::parachains::ParaId> {
+				use bp_runtime::Parachain;
+				vec![bp_polkadot_core::parachains::ParaId(bp_moonbeam::Moonbeam::PARACHAIN_ID)]
 			}
 
-			// This runtime uses Substrate's pallet transaction payment. This
-			// makes the chain feel like a standard Substrate chain when submitting
-			// frame transactions and using Substrate ecosystem tools. It has the downside that
-			// transaction are not prioritized by gas_price. The following code reprioritizes
-			// transactions to overcome this.
-			//
-			// A more elegant, ethereum-first solution is
-			// a pallet that replaces pallet transaction payment, and allows users
-			// to directly specify a gas price rather than computing an effective one.
-			// #HopefullySomeday
-
-			// First we pass the transactions to the standard FRAME executive. This calculates all the
-			// necessary tags, longevity and other properties that we will leave unchanged.
-			// This also assigns some priority that we don't care about and will overwrite next.
-			let mut intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)?;
-
-			let dispatch_info = xt.get_dispatch_info();
-
-			// If this is a pallet ethereum transaction, then its priority is already set
-			// according to gas price from pallet ethereum. If it is any other kind of transaction,
-			// we modify its priority.
-			Ok(match &xt.0.function {
-				RuntimeCall::Ethereum(transact { .. }) => intermediate_valid,
-				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
-				_ => {
-					let tip = match xt.0.signature {
-						None => 0,
-						Some((_, _, ref signed_extra)) => {
-							// Yuck, this depends on the index of charge transaction in Signed Extra
-							let charge_transaction = &signed_extra.7;
-							charge_transaction.tip()
-						}
-					};
-
-					// Calculate the fee that will be taken by pallet transaction payment
-					let fee: u64 = TransactionPayment::compute_fee(
-						xt.encode().len() as u32,
-						&dispatch_info,
-						tip,
-					).saturated_into();
-
-					// Calculate how much gas this effectively uses according to the existing mapping
-					let effective_gas =
-						<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-							dispatch_info.weight
-						);
-
-					// Here we calculate an ethereum-style effective gas price using the
-					// current fee of the transaction. Because the weight -> gas conversion is
-					// lossy, we have to handle the case where a very low weight maps to zero gas.
-					let effective_gas_price = if effective_gas > 0 {
-						fee / effective_gas
-					} else {
-						// If the effective gas was zero, we just act like it was 1.
-						fee
-					};
-
-					// Overwrite the original prioritization with this ethereum one
-					intermediate_valid.priority = effective_gas_price;
-					intermediate_valid
-				}
-			})
+			fn prepare_parachain_heads_proof(
+				parachains: &[bp_polkadot_core::parachains::ParaId],
+				parachain_head_size: u32,
+				proof_params: bp_runtime::UnverifiedStorageProofParams,
+			) -> (
+				bp_parachains::RelayBlockNumber,
+				bp_parachains::RelayBlockHash,
+				bp_polkadot_core::parachains::ParaHeadsProof,
+				Vec<(bp_polkadot_core::parachains::ParaId, bp_polkadot_core::parachains::ParaHash)>,
+			) {
+				bridge_runtime_common::parachains_benchmarking::prepare_parachain_heads_proof::<Runtime, bridge_config::BridgeMoonbeamInstance>(
+					parachains,
+					parachain_head_size,
+					proof_params,
+				)
+			}
 		}
 	}
-
-	impl async_backing_primitives::UnincludedSegmentApi<Block> for Runtime {
-		fn can_build_upon(
-			included_hash: <Block as BlockT>::Hash,
-			slot: async_backing_primitives::Slot,
-		) -> bool {
-			ConsensusHook::can_build_upon(included_hash, slot)
-		}
-	}
-
-	impl bp_polkadot::PolkadotFinalityApi<Block> for Runtime {
-		fn best_finalized() -> Option<bp_runtime::HeaderId<bp_polkadot::Hash, bp_polkadot::BlockNumber>> {
-			BridgePolkadotGrandpa::best_finalized()
-		}
-		fn free_headers_interval() -> Option<bp_polkadot::BlockNumber> {
-			<Runtime as pallet_bridge_grandpa::Config<
-				bridge_config::BridgeGrandpaPolkadotInstance
-			>>::FreeHeadersInterval::get()
-		}
-		fn synced_headers_grandpa_info(
-		) -> Vec<bp_header_chain::StoredHeaderGrandpaInfo<bp_polkadot::Header>> {
-			BridgePolkadotGrandpa::synced_headers_grandpa_info()
-		}
-	}
-
-	impl bp_moonbeam::MoonbeamPolkadotFinalityApi<Block> for Runtime {
-		fn best_finalized() -> Option<bp_runtime::HeaderId<bp_moonbeam::Hash, bp_moonbeam::BlockNumber>> {
-			BridgePolkadotParachains::best_parachain_head_id::<
-				bp_moonbeam::Moonbeam
-			>().unwrap_or(None)
-		}
-		fn free_headers_interval() -> Option<bp_moonbeam::BlockNumber> {
-			// "free interval" is not currently used for parachains
-			None
-		}
-	}
-}
+);
 
 struct CheckInherents;
 

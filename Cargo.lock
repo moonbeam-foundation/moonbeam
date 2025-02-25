@@ -7425,6 +7425,7 @@ dependencies = [
  "bp-moonbeam",
  "bp-parachains",
  "bp-polkadot",
+ "bp-polkadot-core",
  "bp-runtime",
  "bridge-runtime-common",
  "cumulus-pallet-dmp-queue",
