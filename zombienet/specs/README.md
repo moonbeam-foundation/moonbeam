@@ -9,5 +9,5 @@ Generate the chain spec files with the following commands:
 
 ```sh 
 ./target/release/chain-spec-generator polkadot-local > polkadot-local.json
-./target/release/chain-spec-generator polkadot-local > kusama-local.json
+./target/release/chain-spec-generator kusama-local > kusama-local.json
 ```

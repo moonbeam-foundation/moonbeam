@@ -30,6 +30,9 @@ moonbeam-runtime-common = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
 
+# Moonbeam bridge primitives
+bp-moonriver = { workspace = true }
+
 # Moonbeam pallets
 moonbeam-xcm-benchmarks = { workspace = true }
 pallet-asset-manager = { workspace = true }
@@ -131,6 +134,10 @@ sp-genesis-builder = { workspace = true }
 bridge-runtime-common = { workspace = true }
 pallet-bridge-grandpa = { workspace = true }
 bp-kusama = { workspace = true }
+bp-runtime = { workspace = true }
+bp-header-chain = { workspace = true }
+bp-parachains = { workspace = true }
+pallet-bridge-parachains = { workspace = true }
 
 # Frontier
 fp-evm = { workspace = true }
@@ -298,6 +305,7 @@ std = [
 	"pallet-xcm/std",
 	"pallet-xcm-weight-trader/std",
 	"pallet-bridge-grandpa/std",
+	"pallet-bridge-parachains/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"parity-scale-codec/std",
@@ -325,6 +333,10 @@ std = [
 	"xcm-primitives/std",
 	"xcm/std",
 	"bp-kusama/std",
+	"bp-runtime/std",
+	"bp-header-chain/std",
+	"bp-parachains/std",
+	"bp-moonriver/std",
 	"bridge-runtime-common/std",
 ]
 evm-tracing = ["evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3"]
