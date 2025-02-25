@@ -138,6 +138,7 @@ bp-polkadot = { workspace = true }
 bp-runtime = { workspace = true }
 bp-header-chain = { workspace = true }
 bp-parachains = { workspace = true }
+bp-polkadot-core = { workspace = true }
 pallet-bridge-parachains = { workspace = true }
 
 # Frontier
@@ -337,6 +338,7 @@ std = [
 	"bp-header-chain/std",
 	"bp-parachains/std",
 	"bp-moonbeam/std",
+	"bp-polkadot-core/std",
 	"bridge-runtime-common/std",
 ]
 
@@ -415,6 +417,7 @@ runtime-benchmarks = [
 	"pallet-xcm/runtime-benchmarks",
 	"pallet-xcm-weight-trader/runtime-benchmarks",
 	"pallet-bridge-grandpa/runtime-benchmarks",
+	"pallet-bridge-parachains/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
@@ -476,4 +479,6 @@ try-runtime = [
 	"pallet-whitelist/try-runtime",
 	"pallet-erc20-xcm-bridge/try-runtime",
 	"pallet-multisig/try-runtime",
+	"pallet-bridge-grandpa/try-runtime",
+	"pallet-bridge-parachains/try-runtime",
 ]
