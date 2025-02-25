@@ -16,6 +16,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use cumulus_primitives_storage_weight_reclaim::get_proof_size;
 use account::SYSTEM_ACCOUNT_SIZE;
 use evm::ExitReason;
 use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
@@ -166,6 +167,8 @@ where
 		proxy_type: u8,
 		delay: u32,
 	) -> EvmResult {
+		let pov_before = get_proof_size();
+		log::debug!(target: "pov", "[addProxy] Proof size before addProxy: {:?}", pov_before);
 		let delegate = Runtime::AddressMapping::into_account_id(delegate.into());
 		let proxy_type = Runtime::ProxyType::decode(&mut proxy_type.to_le_bytes().as_slice())
 			.map_err(|_| {
@@ -203,6 +206,11 @@ where
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call, 0)?;
 
+
+		let pov_after = get_proof_size();
+		log::debug!(target: "pov", "[addProxy] Proof size after addProxy: {:?}", pov_after);
+		let pov_diff = pov_after.unwrap_or_default() - pov_before.unwrap_or_default();
+		log::debug!(target: "pov", "[addProxy] Proof size diff: {:?}", pov_diff);
 		Ok(())
 	}
 
@@ -356,6 +364,7 @@ where
 		force_proxy_type: Option<<Runtime as pallet_proxy::Config>::ProxyType>,
 		evm_subcall: EvmSubCall,
 	) -> EvmResult {
+		let pov = get_proof_size();
 		// Check that we only perform proxy calls on behalf of externally owned accounts
 		let AddressType::EOA = precompile_set::get_address_type::<Runtime>(handle, real.into())?
 		else {
@@ -372,7 +381,11 @@ where
 		)?;
 		let def =
 			pallet_proxy::Pallet::<Runtime>::find_proxy(&real_account_id, &who, force_proxy_type)
-				.map_err(|_| RevertReason::custom("Not proxy"))?;
+				.map_err(|_| {
+					let diff = get_proof_size().unwrap_or_default() - pov.unwrap_or_default();
+					log::debug!(target: "pov", "[inner_proxy] before not proxy Proof size diff: {:?}", diff);
+					RevertReason::custom("Not proxy")
+				})?;
 		frame_support::ensure!(def.delay.is_zero(), revert("Unannounced"));
 
 		// Read subcall recipient code

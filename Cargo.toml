@@ -494,3 +494,48 @@ debug = 1               # debug symbols are useful for profilers
 debug-assertions = true # Enable debug-assert! for non-production profiles
 inherits = "release"
 overflow-checks = true
+
+[patch."https://github.com/moonbeam-foundation/frontier"]
+pallet-base-fee = { path = "/Users/tarekkma/Developer/frontier/frame/base-fee" }
+fp-evm = { path = "/Users/tarekkma/Developer/frontier/primitives/evm" }
+pallet-dynamic-fee = { path = "/Users/tarekkma/Developer/frontier/frame/dynamic-fee" }
+fp-dynamic-fee = { path = "/Users/tarekkma/Developer/frontier/primitives/dynamic-fee" }
+pallet-ethereum = { path = "/Users/tarekkma/Developer/frontier/frame/ethereum" }
+fp-consensus = { path = "/Users/tarekkma/Developer/frontier/primitives/consensus" }
+fp-ethereum = { path = "/Users/tarekkma/Developer/frontier/primitives/ethereum" }
+fp-rpc = { path = "/Users/tarekkma/Developer/frontier/primitives/rpc" }
+fp-storage = { path = "/Users/tarekkma/Developer/frontier/primitives/storage" }
+pallet-evm = { path = "/Users/tarekkma/Developer/frontier/frame/evm" }
+fp-account = { path = "/Users/tarekkma/Developer/frontier/primitives/account" }
+pallet-evm-precompile-simple = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/simple" }
+pallet-evm-test-vector-support = { path = "/Users/tarekkma/Developer/frontier/frame/evm/test-vector-support" }
+fp-self-contained = { path = "/Users/tarekkma/Developer/frontier/primitives/self-contained" }
+pallet-evm-precompile-sha3fips = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/sha3fips" }
+pallet-evm-precompile-modexp = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/modexp" }
+pallet-evm-precompile-ed25519 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/ed25519" }
+pallet-evm-precompile-bn128 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/bn128" }
+pallet-evm-precompile-blake2 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/blake2" }
+pallet-evm-precompile-bw6761 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/bw6761" }
+pallet-evm-precompile-bls12377 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/bls12377" }
+pallet-evm-precompile-bls12381 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/bls12381" }
+pallet-evm-precompile-dispatch = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/dispatch" }
+pallet-evm-precompile-curve25519 = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/curve25519" }
+pallet-evm-precompile-storage-cleaner = { path = "/Users/tarekkma/Developer/frontier/frame/evm/precompile/storage-cleaner" }
+precompile-utils = { path = "/Users/tarekkma/Developer/frontier/precompiles" }
+precompile-utils-macro = { path = "/Users/tarekkma/Developer/frontier/precompiles/macro" }
+pallet-evm-chain-id = { path = "/Users/tarekkma/Developer/frontier/frame/evm-chain-id" }
+pallet-hotfix-sufficients = { path = "/Users/tarekkma/Developer/frontier/frame/hotfix-sufficients" }
+fc-api = { path = "/Users/tarekkma/Developer/frontier/client/api" }
+fc-consensus = { path = "/Users/tarekkma/Developer/frontier/client/consensus" }
+fc-rpc-core = { path = "/Users/tarekkma/Developer/frontier/client/rpc-core" }
+fc-rpc = { path = "/Users/tarekkma/Developer/frontier/client/rpc" }
+fc-mapping-sync = { path = "/Users/tarekkma/Developer/frontier/client/mapping-sync" }
+fc-db = { path = "/Users/tarekkma/Developer/frontier/client/db" }
+fc-storage = { path = "/Users/tarekkma/Developer/frontier/client/storage" }
+frontier-template-runtime = { path = "/Users/tarekkma/Developer/frontier/template/runtime" }
+fc-rpc-v2 = { path = "/Users/tarekkma/Developer/frontier/client/rpc-v2" }
+fc-rpc-v2-api = { path = "/Users/tarekkma/Developer/frontier/client/rpc-v2/api" }
+fc-rpc-v2-types = { path = "/Users/tarekkma/Developer/frontier/client/rpc-v2/types" }
+frontier-template-node = { path = "/Users/tarekkma/Developer/frontier/template/node" }
+fc-cli = { path = "/Users/tarekkma/Developer/frontier/client/cli" }
+precompile-utils-tests-external = { path = "/Users/tarekkma/Developer/frontier/precompiles/tests-external" }
