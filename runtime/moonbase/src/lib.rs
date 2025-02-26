@@ -65,7 +65,7 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
-		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId},
+		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId, UnionOf, NativeFromLeft},
 		tokens::{PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
 		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
@@ -565,6 +565,8 @@ impl pallet_asset_rate::Config for Runtime {
     type UpdateOrigin = EnsureRoot<AccountId>;
     type Currency = Balances;
     type AssetKind = NativeOrWithId<u32>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelper;
 }
 
 parameter_types! {
@@ -578,6 +580,9 @@ type RootOrTreasuryCouncilOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
 >;
+
+pub type NativeAndAssets =
+    UnionOf<Balances, Assets, NativeFromLeft, NativeOrWithId<u32>, AccountId>;
 
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
