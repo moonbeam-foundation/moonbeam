@@ -276,7 +276,7 @@ jobs:
       - name: Cargo build
         uses: ./.github/workflow-templates/cargo-build
         with:
-          features: metadata-hash, full-pov-size
+          features: metadata-hash,full-pov-size
       - name: Upload runtimes
         uses: actions/upload-artifact@v4
         with:
