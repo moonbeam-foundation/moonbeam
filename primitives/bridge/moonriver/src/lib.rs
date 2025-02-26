@@ -22,7 +22,7 @@ pub use bp_bridge_hub_cumulus::{
 	BlockLength, BlockWeights, Hasher, Nonce, SignedBlock, AVERAGE_BLOCK_INTERVAL,
 	MAX_UNCONFIRMED_MESSAGES_IN_CONFIRMATION_TX, MAX_UNREWARDED_RELAYERS_IN_CONFIRMATION_TX,
 };
-use bp_messages::{ChainWithMessages, MessageNonce};
+use bp_messages::{ChainWithMessages, MessageNonce, LegacyLaneId};
 
 pub use bp_moonbeam_common::{
 	AccountId, AccountInfoStorageMapKeyProvider, Balance, BlockNumber, Hash, Header, Signature,
@@ -30,7 +30,7 @@ pub use bp_moonbeam_common::{
 };
 
 use bp_runtime::{
-	decl_bridge_finality_runtime_apis, /* decl_bridge_messages_runtime_apis, */
+	decl_bridge_finality_runtime_apis, decl_bridge_messages_runtime_apis,
 	Chain, ChainId, Parachain,
 };
 use frame_support::{dispatch::DispatchClass, weights::Weight};
@@ -92,4 +92,4 @@ pub const WITH_MOONRIVER_KUSAMA_MESSAGES_PALLET_NAME: &str = "BridgeKusamaMessag
 pub const WITH_MOONBEAM_KUSAMA_RELAYERS_PALLET_NAME: &str = "BridgeRelayers";
 
 decl_bridge_finality_runtime_apis!(moonriver_kusama);
-//decl_bridge_messages_runtime_apis!(moonriver_kusama, LegacyLaneId);
+decl_bridge_messages_runtime_apis!(moonriver_kusama, LegacyLaneId);
