@@ -6240,6 +6240,7 @@ dependencies = [
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
  "pallet-evm-precompile-blake2",
+ "pallet-evm-precompile-bls12381",
  "pallet-evm-precompile-bn128",
  "pallet-evm-precompile-call-permit",
  "pallet-evm-precompile-collective",
@@ -6758,6 +6759,7 @@ dependencies = [
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
  "pallet-evm-precompile-blake2",
+ "pallet-evm-precompile-bls12381",
  "pallet-evm-precompile-bn128",
  "pallet-evm-precompile-call-permit",
  "pallet-evm-precompile-collective",
@@ -7190,6 +7192,7 @@ dependencies = [
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
  "pallet-evm-precompile-blake2",
+ "pallet-evm-precompile-bls12381",
  "pallet-evm-precompile-bn128",
  "pallet-evm-precompile-call-permit",
  "pallet-evm-precompile-collective",
@@ -8758,6 +8761,18 @@ name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#48028bbad21d66b2b9d467a5343a8707e00c8b6c"
 dependencies = [
+ "fp-evm",
+]
+
+[[package]]
+name = "pallet-evm-precompile-bls12381"
+version = "1.0.0-dev"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2409#48028bbad21d66b2b9d467a5343a8707e00c8b6c"
+dependencies = [
+ "ark-bls12-381",
+ "ark-ec",
+ "ark-ff",
+ "ark-std",
  "fp-evm",
 ]
 
@@ -10403,8 +10418,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.7.3",
- "rand_core 0.5.1",
+ "rand 0.8.5",
+ "rand_core 0.6.4",
  "serde",
  "unicode-normalization",
 ]
@@ -17292,7 +17307,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.7.3",
+ "rand 0.8.5",
  "static_assertions",
 ]
 
