@@ -6221,6 +6221,7 @@ dependencies = [
  "nimbus-primitives",
  "num_enum 0.5.11",
  "pallet-asset-manager",
+ "pallet-asset-rate",
  "pallet-assets",
  "pallet-async-backing",
  "pallet-author-inherent",
