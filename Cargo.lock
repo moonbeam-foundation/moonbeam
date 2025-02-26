@@ -6986,6 +6986,7 @@ dependencies = [
  "bp-kusama",
  "bp-moonriver",
  "bp-parachains",
+ "bp-polkadot-core",
  "bp-runtime",
  "bridge-runtime-common",
  "cumulus-pallet-dmp-queue",
