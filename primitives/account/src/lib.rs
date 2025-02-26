@@ -201,21 +201,6 @@ impl From<ecdsa::Public> for EthereumSigner {
 	}
 }
 
-impl From<ecdsa::Public> for AccountId20 {
-	fn from(x: ecdsa::Public) -> Self {
-		let decompressed = libsecp256k1::PublicKey::parse_slice(
-			&x.0,
-			Some(libsecp256k1::PublicKeyFormat::Compressed),
-		)
-			.expect("Wrong compressed public key provided")
-			.serialize();
-		let mut m = [0u8; 64];
-		m.copy_from_slice(&decompressed[1..65]);
-		let account = H160::from_slice(&Keccak256::digest(m).as_slice()[12..32]);
-		account.into()
-	}
-}
-
 impl From<libsecp256k1::PublicKey> for EthereumSigner {
 	fn from(x: libsecp256k1::PublicKey) -> Self {
 		let mut m = [0u8; 64];
