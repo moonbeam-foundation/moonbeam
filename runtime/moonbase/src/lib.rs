@@ -65,8 +65,8 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
-		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId, UnionOf, NativeFromLeft},
-		tokens::{PayFromAccount, UnityAssetBalanceConversion},
+		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeFromLeft, NativeOrWithId, UnionOf},
+		tokens::{pay::PayAssetFromAccount, PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
 		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
 		OnFinalize, OnUnbalanced,
@@ -564,7 +564,7 @@ impl pallet_asset_rate::Config for Runtime {
     type RemoveOrigin = EnsureRoot<AccountId>;
     type UpdateOrigin = EnsureRoot<AccountId>;
     type Currency = Balances;
-    type AssetKind = NativeOrWithId<u32>;
+    type AssetKind = NativeOrWithId<AssetId>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
 }
@@ -582,7 +582,7 @@ type RootOrTreasuryCouncilOrigin = EitherOfDiverse<
 >;
 
 pub type NativeAndAssets =
-    UnionOf<Balances, Assets, NativeFromLeft, NativeOrWithId<u32>, AccountId>;
+    UnionOf<Balances, Assets, NativeFromLeft, NativeOrWithId<AssetId>, AccountId>;
 
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
@@ -598,11 +598,11 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 	type SpendOrigin =
 		frame_system::EnsureWithSuccess<RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance>;
-	type AssetKind = ();
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
-	type BalanceConverter = UnityAssetBalanceConversion;
+	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>;
+	type BalanceConverter = AssetRate;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
