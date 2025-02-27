@@ -29,8 +29,6 @@ fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 precompile-utils = { workspace = true }
 
-cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
-
 [dev-dependencies]
 derive_more = { workspace = true }
 hex-literal = { workspace = true }
@@ -61,5 +59,4 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"account/std",
-	"cumulus-primitives-storage-weight-reclaim/std",
 ]
