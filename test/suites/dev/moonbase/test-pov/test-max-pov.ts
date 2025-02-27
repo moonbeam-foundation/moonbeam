@@ -55,9 +55,9 @@ describeSuite({
       id: "T01",
       title: "should generate a large PoV by accessing many storage slots",
       test: async function () {
-        // Now create a transaction that reads all these storage slots
+        // Now create a transaction that modifies all these storage slots
         // This will force the inclusion of all storage proofs in the PoV
-        const readData = encodeFunctionData({
+        const modifyData = encodeFunctionData({
           abi: storageFillerAbi,
           functionName: "modifyStorageBatch",
           args: [0, NUM_SLOTS],
@@ -66,14 +66,14 @@ describeSuite({
         const gasEstimate = await context.viem().estimateGas({
           account: ALITH_ADDRESS,
           to: storageFillerAddress,
-          data: readData,
+          data: modifyData,
         });
 
-        log(`Estimated gas for reading all slots: ${gasEstimate}`);
+        log(`Estimated gas for modifying all slots: ${gasEstimate}`);
 
         const rawSigned = await createEthersTransaction(context, {
           to: storageFillerAddress,
-          data: readData,
+          data: modifyData,
           txnType: "eip1559",
           gasLimit: gasEstimate * 120n / 100n, // Add 20% buffer
         });
@@ -99,7 +99,7 @@ describeSuite({
 
         for (const count of slotCounts) {
           try {
-            const readData = encodeFunctionData({
+            const modifyData = encodeFunctionData({
               abi: storageFillerAbi,
               functionName: "modifyStorageBatch",
               args: [0, count],
@@ -108,12 +108,12 @@ describeSuite({
             const gasEstimate = await context.viem().estimateGas({
               account: ALITH_ADDRESS,
               to: storageFillerAddress,
-              data: readData,
+              data: modifyData,
             });
 
             const rawSigned = await createEthersTransaction(context, {
               to: storageFillerAddress,
-              data: readData,
+              data: modifyData,
               txnType: "eip1559",
               gasLimit: gasEstimate * 120n / 100n,
             });
