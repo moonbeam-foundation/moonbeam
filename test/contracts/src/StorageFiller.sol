@@ -25,19 +25,29 @@ contract StorageFiller {
         }
     }
 
-    // Read a single storage slot
-    function readStorage(uint256 slot) public view returns (bytes memory) {
+    // Modify all existing slots with a small value
+    function modifyStorage(uint256 slot) public returns (bytes memory) {
+        for (uint256 i = 0; i < slot + 1; i++) {
+            if (largeStorage[i].length > 0) {
+                bytes memory data = largeStorage[i];
+                // Modify each byte in the existing data
+                for (uint256 j = 0; j < data.length; j++) {
+                    data[j] = bytes1(uint8((i + j) % 256));
+                }
+                largeStorage[i] = data;
+            }
+        }
         return largeStorage[slot];
     }
 
-    // Read multiple storage slots in one transaction
-    function readStorageBatch(
+    // Modify multiple storage slots in one transaction
+    function modifyStorageBatch(
         uint256 startSlot,
         uint256 count
-    ) public view returns (uint256) {
+    ) external returns (uint256) {
         uint256 totalSize = 0;
         for (uint256 i = 0; i < count; i++) {
-            totalSize += readStorage(startSlot + i).length;
+            totalSize += modifyStorage(startSlot + i).length;
         }
         return totalSize;
     }

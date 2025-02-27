@@ -59,7 +59,7 @@ describeSuite({
         // This will force the inclusion of all storage proofs in the PoV
         const readData = encodeFunctionData({
           abi: storageFillerAbi,
-          functionName: "readStorageBatch",
+          functionName: "modifyStorageBatch",
           args: [0, NUM_SLOTS],
         });
 
@@ -101,7 +101,7 @@ describeSuite({
           try {
             const readData = encodeFunctionData({
               abi: storageFillerAbi,
-              functionName: "readStorageBatch",
+              functionName: "modifyStorageBatch",
               args: [0, count],
             });
 
