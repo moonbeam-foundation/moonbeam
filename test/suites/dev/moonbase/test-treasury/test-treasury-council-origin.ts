@@ -12,11 +12,20 @@ describeSuite({
     let treasuryPalletId: FrameSupportPalletId;
     let treasuryAddress: string;
     let api: ApiPromise;
+    let assetKind;
 
     beforeAll(async function () {
       api = context.polkadotJs();
       treasuryPalletId = api.consts.treasury.palletId;
       treasuryAddress = `0x6d6f646C${treasuryPalletId.toString().slice(2)}0000000000000000`;
+    
+      assetKind = api.createType("FrameSupportTokensFungibleUnionOfNativeOrWithId", "Native");
+      const createRate = api.tx.assetRate.create(
+        assetKind,
+        api.createType("u128", 1n)
+      );
+      const sudoCall = api.tx.sudo.sudo(createRate);
+      await context.createBlock(sudoCall, { allowFailures: false });
     });
 
     it({
@@ -48,7 +57,7 @@ describeSuite({
 
         // Approve treasury spend to Ethan
         const proposal_value = 1_000_000_000_000_000n;
-        const tx = api.tx.treasury.spend(null, proposal_value, ethan.address, null);
+        const tx = api.tx.treasury.spend(assetKind, proposal_value, ethan.address, null);
         const signedTx = api.tx.treasuryCouncilCollective.propose(2, tx, 1_000).signAsync(alith);
         const blockResult = await context.createBlock(signedTx, {
           allowFailures: false,

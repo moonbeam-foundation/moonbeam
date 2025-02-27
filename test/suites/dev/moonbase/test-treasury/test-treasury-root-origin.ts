@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import type { ApiPromise } from "@polkadot/api";
 import { alith, baltathar, ethan } from "@moonwall/util";
-import type { FrameSupportPalletId } from "@polkadot/types/lookup";
+import { FrameSupportPalletId } from "@polkadot/types/lookup";
 
 describeSuite({
   id: "D013801",
@@ -12,19 +12,29 @@ describeSuite({
     let treasuryPalletId: FrameSupportPalletId;
     let treasuryAddress: string;
     let api: ApiPromise;
+    let assetKind;
 
     beforeAll(async function () {
       api = context.polkadotJs();
       treasuryPalletId = api.consts.treasury.palletId;
       treasuryAddress = `0x6d6f646C${treasuryPalletId.toString().slice(2)}0000000000000000`;
+      
+      assetKind = api.createType("FrameSupportTokensFungibleUnionOfNativeOrWithId", "Native");
+      const createRate = api.tx.assetRate.create(
+        assetKind,
+        api.createType("u128", 1n)
+      );
+      const sudoCall = api.tx.sudo.sudo(createRate);
+      await context.createBlock(sudoCall, { allowFailures: false });
     });
 
     it({
       id: "T01",
       title: "Origins that are not Root or members of treasury council cannot spend treasury funds",
       test: async function () {
+
         const proposal_value = 1000000000n;
-        const tx = api.tx.treasury.spend(null, proposal_value, ethan.address, null);
+        const tx = api.tx.treasury.spend(assetKind, proposal_value, ethan.address, null);
         const signedTx = await tx.signAsync(baltathar);
         await context.createBlock(signedTx, {
           expectEvents: [api.events.system.ExtrinsicFailed],
@@ -52,7 +62,7 @@ describeSuite({
 
         // Approve treasury spend to Ethan
         const proposal_value = 1_000_000_000_000_000n;
-        const tx = api.tx.treasury.spend(null, proposal_value, ethan.address, null);
+        const tx = api.tx.treasury.spend(assetKind, proposal_value, ethan.address, null);
         const signedTx = await api.tx.sudo.sudo(tx).signAsync(alith);
         await context.createBlock(signedTx, {
           allowFailures: false,
