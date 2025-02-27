@@ -500,12 +500,16 @@ pallet-base-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" 
 fp-evm = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
 pallet-dynamic-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
 fp-dynamic-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-ethereum = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-ethereum = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes", features = [
+    "forbid-evm-reentrancy",
+]  }
 fp-consensus = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
 fp-ethereum = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
 fp-rpc = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
 fp-storage = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+pallet-evm = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes", features = [
+    "forbid-evm-reentrancy",
+]  }
 fp-account = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
 pallet-evm-precompile-simple = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
 pallet-evm-test-vector-support = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
