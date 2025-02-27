@@ -38,6 +38,7 @@ frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-assets = { workspace = true }
+pallet-asset-rate = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-collective = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
@@ -100,6 +101,7 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"moonbeam-core-primitives/std",
+	"pallet-asset-rate/std",
 	"pallet-asset-manager/std",
 	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
@@ -140,6 +142,7 @@ runtime-benchmarks = [
 	"frame-benchmarking/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
+	"pallet-asset-rate/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-author-slot-filter/runtime-benchmarks",

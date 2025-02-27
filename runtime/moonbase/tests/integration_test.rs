@@ -3052,7 +3052,8 @@ use sp_runtime::traits::Hash;
 
 				assert_ok!(AssetRate::create(
 					root_origin(),
-					Box::new(NativeOrWithId::Native), 1.into()
+					Box::new(NativeOrWithId::Native),
+					1.into()
 				));
 
 				next_block();

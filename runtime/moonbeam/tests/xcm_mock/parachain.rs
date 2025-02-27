@@ -21,7 +21,8 @@ use frame_support::{
 	dispatch::GetDispatchInfo,
 	ensure, parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess,
+		tokens::pay::PayAssetFromAccount,
+		fungible::{NativeOrWithId, UnionOf, NativeFromLeft}, AsEnsureOriginWithArg, ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess
 	},
 	weights::Weight,
 	PalletId,
@@ -421,6 +422,9 @@ parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
+pub type NativeAndAssets =
+    UnionOf<Balances, Assets, NativeFromLeft, NativeOrWithId<AssetId>, AccountId>;
+
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
@@ -433,10 +437,10 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = ();
 	type SpendFunds = ();
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
-	type AssetKind = ();
+	type AssetKind = NativeOrWithId<u128>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
+	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]

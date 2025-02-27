@@ -21,12 +21,15 @@ use frame_support::{
 	dispatch::GetDispatchInfo,
 	ensure, parameter_types,
 	traits::{
+		fungible::{NativeFromLeft,NativeOrWithId, UnionOf},
+		tokens::pay::PayAssetFromAccount,
 		AsEnsureOriginWithArg, ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess,
 	},
 	weights::Weight,
 	PalletId,
 };
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
+use moonriver_runtime::NativeAndAssets;
 use pallet_xcm::migration::v1::VersionUncheckedMigrateToV1;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
@@ -438,10 +441,10 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = ();
 	type SpendFunds = ();
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
-	type AssetKind = ();
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
+	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]

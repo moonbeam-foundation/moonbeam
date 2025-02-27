@@ -45,8 +45,8 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
-		fungible::{Balanced, Credit, HoldConsideration, Inspect},
-		tokens::{PayFromAccount, UnityAssetBalanceConversion},
+		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeFromLeft, NativeOrWithId, UnionOf},
+		tokens::{pay::PayAssetFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
 		EitherOfDiverse, EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice, OnFinalize,
 		OnUnbalanced,
@@ -545,6 +545,18 @@ impl pallet_preimage::Config for Runtime {
 	>;
 }
 
+impl pallet_asset_rate::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_asset_rate::weights::SubstrateWeight<Runtime>;
+    type CreateOrigin = EnsureRoot<AccountId>;
+    type RemoveOrigin = EnsureRoot<AccountId>;
+    type UpdateOrigin = EnsureRoot<AccountId>;
+    type Currency = Balances;
+    type AssetKind = NativeOrWithId<AssetId>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelper;
+}
+
 parameter_types! {
 	pub const ProposalBond: Permill = Permill::from_percent(5);
 	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
@@ -556,6 +568,9 @@ type RootOrTreasuryCouncilOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
 >;
+
+pub type NativeAndAssets =
+    UnionOf<Balances, Assets, NativeFromLeft, NativeOrWithId<AssetId>, AccountId>;
 
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
@@ -571,11 +586,11 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 	type SpendOrigin =
 		frame_system::EnsureWithSuccess<RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance>;
-	type AssetKind = ();
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
-	type BalanceConverter = UnityAssetBalanceConversion;
+	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>;
+	type BalanceConverter = AssetRate;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
@@ -1417,6 +1432,7 @@ construct_runtime! {
 
 		// Treasury stuff.
 		Treasury: pallet_treasury::{Pallet, Storage, Config<T>, Event<T>, Call} = 80,
+		AssetRate: pallet_asset_rate::{Pallet, Call, Storage, Event<T>} = 81,
 
 		// Crowdloan stuff.
 		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 90,
