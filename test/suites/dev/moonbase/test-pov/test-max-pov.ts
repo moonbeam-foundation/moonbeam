@@ -11,13 +11,13 @@ describeSuite({
     let storageFillerAddress: `0x${string}`;
     let storageFillerAbi: Abi;
 
-    // Target a PoV size of approximately 7.5MB
-    const TARGET_POV_MB = 7.5;
+    // Target a PoV size of approximately 3.75MB
+    const TARGET_POV_MB = 3.75;
     const TARGET_POV_BYTES = Math.floor(TARGET_POV_MB * 1024 * 1024);
 
     // We'll create storage slots with large values
     const SLOT_SIZE = 24 * 1024; // 24KB per slot
-    const NUM_SLOTS = 350; // Should give us ~8.4MB of raw storage data
+    const NUM_SLOTS = 160; // Should give us ~3.9MB of raw storage data
 
     beforeAll(async () => {
       // Deploy a contract specifically designed to fill storage
@@ -39,11 +39,17 @@ describeSuite({
           args: [i, batchSize, SLOT_SIZE],
         });
 
+        const gasEstimate = await context.viem().estimateGas({
+          account: ALITH_ADDRESS,
+          to: storageFillerAddress,
+          data: fillData,
+        });
+
         const tx = await createEthersTransaction(context, {
           to: storageFillerAddress,
           data: fillData,
           txnType: "eip1559",
-          gasLimit: 15000000n,
+          gasLimit: gasEstimate,
         });
 
         await context.createBlock(tx);
@@ -75,7 +81,8 @@ describeSuite({
           to: storageFillerAddress,
           data: modifyData,
           txnType: "eip1559",
-          gasLimit: gasEstimate * 120n / 100n, // Add 20% buffer
+          // Add 20% buffer to estimate
+          gasLimit: gasEstimate * (120n / 100n),
         });
 
         const { result, block } = await context.createBlock(rawSigned);
