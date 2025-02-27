@@ -51,4 +51,21 @@ contract StorageFiller {
         }
         return totalSize;
     }
+
+    // Read a single storage slot
+    function readStorage(uint256 slot) public view returns (bytes memory) {
+        return largeStorage[slot];
+    }
+
+    // Read multiple storage slots in one transaction
+    function readStorageBatch(
+        uint256 startSlot,
+        uint256 count
+    ) public view returns (uint256) {
+        uint256 totalSize = 0;
+        for (uint256 i = 0; i < count; i++) {
+            totalSize += readStorage(startSlot + i).length;
+        }
+        return totalSize;
+    }
 }
