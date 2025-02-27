@@ -16,15 +16,23 @@
 
 use account::AccountId20;
 use pallet_treasury::ArgumentsFactory;
+use frame_support::traits::fungible::NativeOrWithId;
+use pallet_asset_rate::AssetKindFactory;
 
 pub struct BenchmarkHelper;
 
-impl ArgumentsFactory<(), AccountId20> for BenchmarkHelper {
-	fn create_asset_kind(_seed: u32) -> () {
-		()
+impl ArgumentsFactory<NativeOrWithId<u128>, AccountId20> for BenchmarkHelper {
+	fn create_asset_kind(_seed: u32) -> NativeOrWithId<u128> {
+		NativeOrWithId::Native
 	}
 
 	fn create_beneficiary(seed: [u8; 32]) -> AccountId20 {
 		AccountId20::from(seed)
+	}
+}
+
+impl AssetKindFactory<NativeOrWithId<u128>> for BenchmarkHelper {
+	fn create_asset_kind(_seed: u32) -> NativeOrWithId<u128> {
+		NativeOrWithId::Native
 	}
 }
