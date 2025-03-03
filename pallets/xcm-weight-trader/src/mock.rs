@@ -26,10 +26,10 @@ use frame_support::{
 use frame_system::EnsureSignedBy;
 use sp_core::H256;
 use sp_runtime::{
-	traits::{BlakeTwo256, IdentityLookup},
+	traits::{BlakeTwo256, IdentityLookup, MaybeEquivalence},
 	BuildStorage,
 };
-use xcm::v4::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
+use xcm::v4::{Asset, Error as XcmError, Junction, Junctions, Location, Result as XcmResult, XcmContext};
 
 type AccountId = u64;
 type Balance = u128;
@@ -152,6 +152,24 @@ impl TransactAsset for MockAssetTransactor {
 	}
 }
 
+pub struct MockAssetIndentifier;
+impl MaybeEquivalence<Location, u128> for MockAssetIndentifier {
+	fn convert(location: &Location) -> Option<u128> {
+		match location {
+			Location { parents: 0, interior: Junctions::Here } => Some(0),
+			Location { parents: 1, interior: Junctions::Here } => Some(1),
+			_ => None,
+		}
+	}
+	fn convert_back(asset_id: &u128) -> Option<Location> {
+		match asset_id {
+			0 => Some(Location::here()),
+			1 => Some(Location::parent()),
+			_ => None,
+		}
+	}
+}
+
 ord_parameter_types! {
 	pub const AddAccount: u64 = 1;
 	pub const EditAccount: u64 = 2;
@@ -171,6 +189,7 @@ impl Config for Test {
 	type AddSupportedAssetOrigin = EnsureSignedBy<AddAccount, AccountId>;
 	type AssetLocationFilter = AssetLocationFilter;
 	type AssetTransactor = MockAssetTransactor;
+	type AssetIdentifier = MockAssetIndentifier;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = EnsureSignedBy<EditAccount, AccountId>;
 	type NativeLocation = NativeLocation;

@@ -28,6 +28,7 @@ mod tests;
 
 pub mod weights;
 
+use frame_support::traits::tokens::ConversionFromAssetBalance;
 pub use pallet::*;
 pub use weights::WeightInfo;
 
@@ -42,8 +43,12 @@ use xcm::v4::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Loca
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
 use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
+use moonbeam_core_primitives::{ Balance, AssetId };
+
 
 pub const RELATIVE_PRICE_DECIMALS: u32 = 18;
+
+use sp_runtime::traits::MaybeEquivalence;
 
 #[pallet]
 pub mod pallet {
@@ -68,6 +73,9 @@ pub mod pallet {
 
 		/// How to withdraw and deposit an asset.
 		type AssetTransactor: TransactAsset;
+
+		/// How to get an asset location from an asset id.
+		type AssetIdentifier: MaybeEquivalence<Location, u128>;
 
 		/// The native balance type.
 		type Balance: TryInto<u128>;
@@ -125,6 +133,8 @@ pub mod pallet {
 		XcmLocationFiltered,
 		/// The relative price cannot be zero
 		PriceCannotBeZero,
+		/// The relative price calculation overflowed
+		PriceOverflow,
 	}
 
 	#[pallet::event]
@@ -310,6 +320,24 @@ pub mod pallet {
 		#[cfg(any(feature = "std", feature = "runtime-benchmarks"))]
 		pub fn set_asset_price(asset_location: Location, relative_price: u128) {
 			SupportedAssets::<T>::insert(&asset_location, (true, relative_price));
+		}
+	}
+
+	impl <T: Config> ConversionFromAssetBalance<Balance, AssetId, Balance> for Pallet<T> {
+		type Error = Error<T>;
+		fn from_asset_balance(
+			asset_balance: Balance,
+			asset_id: AssetId,
+		) -> Result<Balance, Error<T>> {
+			let location = T::AssetIdentifier::convert_back(&asset_id)
+				.ok_or(pallet::Error::AssetNotFound)?;
+			let relative_price = Pallet::<T>::get_asset_relative_price(&location)
+				.ok_or(pallet::Error::AssetNotFound)?;
+			Ok(asset_balance
+				.checked_mul(relative_price)
+				.ok_or(pallet::Error::PriceOverflow)?
+				.checked_div(10u128.pow(RELATIVE_PRICE_DECIMALS))
+				.ok_or(pallet::Error::PriceOverflow)?)
 		}
 	}
 }

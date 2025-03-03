@@ -10357,6 +10357,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "moonbeam-core-primitives",
  "pallet-balances",
  "parity-scale-codec",
  "scale-info",
