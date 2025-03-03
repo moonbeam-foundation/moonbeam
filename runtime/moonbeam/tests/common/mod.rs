@@ -37,6 +37,8 @@ use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill
 use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
+use moonbeam_runtime::EvmForeignAssets;
+use sp_runtime::traits::MaybeEquivalence;
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
@@ -142,6 +144,7 @@ pub struct ExtBuilder {
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
 	// [assettype, metadata, Vec<Account, Balance,>, is_sufficient]
 	xcm_assets: Vec<XcmAssetInitialization>,
+	evm_native_foreign_assets: bool,
 	safe_xcm_version: Option<u32>,
 }
 
@@ -175,6 +178,7 @@ impl Default for ExtBuilder {
 			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
 			xcm_assets: vec![],
+			evm_native_foreign_assets: false,
 			safe_xcm_version: None,
 		}
 	}
@@ -216,6 +220,11 @@ impl ExtBuilder {
 
 	pub fn with_xcm_assets(mut self, xcm_assets: Vec<XcmAssetInitialization>) -> Self {
 		self.xcm_assets = xcm_assets;
+		self
+	}
+
+	pub fn with_evm_native_foreign_assets(mut self) -> Self {
+		self.evm_native_foreign_assets = true;
 		self
 	}
 
@@ -294,22 +303,40 @@ impl ExtBuilder {
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
-				AssetManager::register_foreign_asset(
-					root_origin(),
-					xcm_asset_initialization.asset_type,
-					xcm_asset_initialization.metadata,
-					1,
-					xcm_asset_initialization.is_sufficient,
-				)
-				.unwrap();
-				for (account, balance) in xcm_asset_initialization.balances {
-					moonbeam_runtime::Assets::mint(
-						origin_of(AssetManager::account_id()),
-						asset_id.into(),
-						account,
-						balance,
+				if self.evm_native_foreign_assets {
+					let AssetType::Xcm(location) = xcm_asset_initialization.asset_type;
+					let metadata = xcm_asset_initialization.metadata.clone();
+					EvmForeignAssets::register_foreign_asset(
+						asset_id,
+						xcm_builder::WithLatestLocationConverter::convert_back(&location).unwrap(),
+						metadata.decimals,
+						metadata.symbol.try_into().unwrap(),
+						metadata.name.try_into().unwrap(),
+					)
+					.expect("register evm native foreign asset");
+
+					for (account, balance) in xcm_asset_initialization.balances {
+						EvmForeignAssets::mint_into(asset_id.into(), account, balance.into())
+							.expect("mint evm native foreign asset");
+					}
+				} else {
+					AssetManager::register_foreign_asset(
+						root_origin(),
+						xcm_asset_initialization.asset_type,
+						xcm_asset_initialization.metadata,
+						1,
+						xcm_asset_initialization.is_sufficient,
 					)
 					.unwrap();
+					for (account, balance) in xcm_asset_initialization.balances {
+						moonbeam_runtime::Assets::mint(
+							origin_of(AssetManager::account_id()),
+							asset_id.into(),
+							account,
+							balance,
+						)
+						.unwrap();
+					}
 				}
 			}
 			System::set_block_number(1);
