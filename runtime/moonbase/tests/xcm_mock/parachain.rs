@@ -777,9 +777,9 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = xcm_primitives::AccountIdToLocation<AccountId>;
-	type CurrencyIdToLocation = moonbase_runtime::xcm_config::CurrencyIdToLocation<(
+	type CurrencyIdToLocation = CurrencyIdToLocation<(
 		EvmForeignAssets,
-		AsAssetType<moonbeam_core_primitives::AssetId, AssetType, moonbase_runtime::AssetManager>,
+		AsAssetType<moonbeam_core_primitives::AssetId, AssetType, AssetManager>,
 	)>;
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
