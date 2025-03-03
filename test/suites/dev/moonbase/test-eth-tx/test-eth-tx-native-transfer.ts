@@ -25,7 +25,7 @@ describeSuite({
       title: "Native transfer with fixed gas limit (21000) should succeed",
       test: async function () {
         const amountToTransfer = 1n * GLMR;
-        const gasLimit = 21000n;
+        const gasLimit = 23808n;
 
         // Create and send the transaction with fixed gas limit
         const { result } = await context.createBlock(

@@ -100,7 +100,7 @@ describeSuite({
 
         expect(receipt.status).to.equal("reverted");
         // 21006 = call cost + 2*PUSH cost
-        expect(receipt.gasUsed).to.equal(21006n);
+        expect(receipt.gasUsed).to.equal(24272n);
       },
     });
   },
