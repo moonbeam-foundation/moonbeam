@@ -28,6 +28,7 @@ mod tests;
 
 pub mod weights;
 
+use frame_support::traits::fungible::NativeOrWithId;
 use frame_support::traits::tokens::ConversionFromAssetBalance;
 pub use pallet::*;
 pub use weights::WeightInfo;
@@ -76,6 +77,9 @@ pub mod pallet {
 
 		/// How to get an asset location from an asset id.
 		type AssetIdentifier: MaybeEquivalence<Location, u128>;
+
+		/// Asset kind to use in the conversion
+		type AssetKind: Parameter + MaxEncodedLen;
 
 		/// The native balance type.
 		type Balance: TryInto<u128>;
@@ -322,22 +326,27 @@ pub mod pallet {
 			SupportedAssets::<T>::insert(&asset_location, (true, relative_price));
 		}
 	}
+}
 
-	impl <T: Config> ConversionFromAssetBalance<Balance, AssetId, Balance> for Pallet<T> {
-		type Error = Error<T>;
-		fn from_asset_balance(
-			asset_balance: Balance,
-			asset_id: AssetId,
-		) -> Result<Balance, Error<T>> {
-			let location = T::AssetIdentifier::convert_back(&asset_id)
-				.ok_or(pallet::Error::AssetNotFound)?;
-			let relative_price = Pallet::<T>::get_asset_relative_price(&location)
-				.ok_or(pallet::Error::AssetNotFound)?;
-			Ok(asset_balance
-				.checked_mul(relative_price)
-				.ok_or(pallet::Error::PriceOverflow)?
-				.checked_div(10u128.pow(RELATIVE_PRICE_DECIMALS))
-				.ok_or(pallet::Error::PriceOverflow)?)
+impl <T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Balance> for Pallet<T> {
+	type Error = Error<T>;
+	fn from_asset_balance(
+		asset_balance: Balance,
+		asset_kind: NativeOrWithId<AssetId>,
+	) -> Result<Balance, Error<T>> {
+		match asset_kind {
+			NativeOrWithId::Native => Ok(asset_balance),
+			NativeOrWithId::WithId(asset_id) => {
+				let location = T::AssetIdentifier::convert_back(&asset_id)
+					.ok_or(Error::<T>::AssetNotFound)?;
+				let relative_price = Pallet::<T>::get_asset_relative_price(&location)
+					.ok_or(Error::<T>::AssetNotFound)?;
+				Ok(asset_balance
+					.checked_mul(relative_price)
+					.ok_or(Error::<T>::PriceOverflow)?
+					.checked_div(10u128.pow(RELATIVE_PRICE_DECIMALS))
+					.ok_or(Error::<T>::PriceOverflow)?)
+			}
 		}
 	}
 }
