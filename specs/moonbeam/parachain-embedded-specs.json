@@ -17,7 +17,9 @@
     "/dns/sa-01.unitedbloc.com/tcp/37060/p2p/12D3KooWC3FoL2bFJ79C5CeLDjLmL2yRyozPxSjTQbm9RY95KNsV",
     "/dns/na-01.unitedbloc.com/tcp/37060/p2p/12D3KooWLEZwHD8tWvWiEqKcD976wxdE5JRUnq1JG9a6VJxHUjiS",
     "/dns/moonbeam-boot-ng.dwellir.com/tcp/443/wss/p2p/12D3KooWSKaKdqWFhNK8XTBhqNUZL2LUTZNCgFt1iXRN2HfvoLsh",
-    "/dns/moonbeam-boot-ng.dwellir.com/tcp/30364/p2p/12D3KooWSKaKdqWFhNK8XTBhqNUZL2LUTZNCgFt1iXRN2HfvoLsh"
+    "/dns/moonbeam-boot-ng.dwellir.com/tcp/30364/p2p/12D3KooWSKaKdqWFhNK8XTBhqNUZL2LUTZNCgFt1iXRN2HfvoLsh",
+    "/dns/boot.metaspan.io/tcp/51143/p2p/12D3KooWQNKbTaWXMAFV24Ytgjy93ZXLVSM3sJSbf8LNKqu3yrUM",
+    "/dns/boot.metaspan.io/tcp/51146/wss/p2p/12D3KooWQNKbTaWXMAFV24Ytgjy93ZXLVSM3sJSbf8LNKqu3yrUM"
   ],
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]
