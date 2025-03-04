@@ -1403,7 +1403,7 @@
 				<span class="kw">let </span>(client, <span class="kw">_</span>, import_queue, task_manager) = moonbeam_service::new_chain_ops(
 					<span class="kw-2">&amp;mut </span>config,
 					<span class="kw-2">&amp;</span>rpc_config,
-					cli.run.experimental_block_import_strategy,
+					cli.run.legacy_block_import_strategy,
 				)<span class="question-mark">?</span>;
 				<span class="prelude-val">Ok</span>((cmd.run(client, import_queue), task_manager))
 			})
@@ -1415,7 +1415,7 @@
 				<span class="kw">let </span>(client, <span class="kw">_</span>, <span class="kw">_</span>, task_manager) = moonbeam_service::new_chain_ops(
 					<span class="kw-2">&amp;mut </span>config,
 					<span class="kw-2">&amp;</span>rpc_config,
-					cli.run.experimental_block_import_strategy,
+					cli.run.legacy_block_import_strategy,
 				)<span class="question-mark">?</span>;
 				<span class="prelude-val">Ok</span>((cmd.run(client, config.database), task_manager))
 			})
@@ -1427,7 +1427,7 @@
 				<span class="kw">let </span>(client, <span class="kw">_</span>, <span class="kw">_</span>, task_manager) = moonbeam_service::new_chain_ops(
 					<span class="kw-2">&amp;mut </span>config,
 					<span class="kw-2">&amp;</span>rpc_config,
-					cli.run.experimental_block_import_strategy,
+					cli.run.legacy_block_import_strategy,
 				)<span class="question-mark">?</span>;
 				<span class="prelude-val">Ok</span>((cmd.run(client, config.chain_spec), task_manager))
 			})
@@ -1439,7 +1439,7 @@
 				<span class="kw">let </span>(client, <span class="kw">_</span>, import_queue, task_manager) = moonbeam_service::new_chain_ops(
 					<span class="kw-2">&amp;mut </span>config,
 					<span class="kw-2">&amp;</span>rpc_config,
-					cli.run.experimental_block_import_strategy,
+					cli.run.legacy_block_import_strategy,
 				)<span class="question-mark">?</span>;
 				<span class="prelude-val">Ok</span>((cmd.run(client, import_queue), task_manager))
 			})
@@ -1504,7 +1504,7 @@
 						<span class="kw-2">&amp;mut </span>config,
 						<span class="kw-2">&amp;</span>rpc_config,
 						<span class="bool-val">false</span>,
-						cli.run.experimental_block_import_strategy,
+						cli.run.legacy_block_import_strategy,
 					)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((
@@ -1521,7 +1521,7 @@
 						<span class="kw-2">&amp;mut </span>config,
 						<span class="kw-2">&amp;</span>rpc_config,
 						<span class="bool-val">false</span>,
-						cli.run.experimental_block_import_strategy,
+						cli.run.legacy_block_import_strategy,
 					)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((
@@ -1538,7 +1538,7 @@
 						<span class="kw-2">&amp;mut </span>config,
 						<span class="kw-2">&amp;</span>rpc_config,
 						<span class="bool-val">false</span>,
-						cli.run.experimental_block_import_strategy,
+						cli.run.legacy_block_import_strategy,
 					)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((
@@ -1690,7 +1690,7 @@
 									<span class="kw-2">&amp;mut </span>config,
 									<span class="kw-2">&amp;</span>rpc_config,
 									<span class="bool-val">false</span>,
-									cli.run.experimental_block_import_strategy,
+									cli.run.legacy_block_import_strategy,
 								)<span class="question-mark">?</span>;
 
 								cmd.run(params.client)
@@ -1706,7 +1706,7 @@
 									<span class="kw-2">&amp;mut </span>config,
 									<span class="kw-2">&amp;</span>rpc_config,
 									<span class="bool-val">false</span>,
-									cli.run.experimental_block_import_strategy,
+									cli.run.legacy_block_import_strategy,
 								)<span class="question-mark">?</span>;
 
 								cmd.run(params.client)
@@ -1722,7 +1722,7 @@
 									<span class="kw-2">&amp;mut </span>config,
 									<span class="kw-2">&amp;</span>rpc_config,
 									<span class="bool-val">false</span>,
-									cli.run.experimental_block_import_strategy,
+									cli.run.legacy_block_import_strategy,
 								)<span class="question-mark">?</span>;
 
 								cmd.run(params.client)
@@ -1752,7 +1752,7 @@
 									<span class="kw-2">&amp;mut </span>config,
 									<span class="kw-2">&amp;</span>rpc_config,
 									<span class="bool-val">false</span>,
-									cli.run.experimental_block_import_strategy,
+									cli.run.legacy_block_import_strategy,
 								)<span class="question-mark">?</span>;
 
 								<span class="kw">let </span>db = params.backend.expose_db();
@@ -1771,7 +1771,7 @@
 									<span class="kw-2">&amp;mut </span>config,
 									<span class="kw-2">&amp;</span>rpc_config,
 									<span class="bool-val">false</span>,
-									cli.run.experimental_block_import_strategy,
+									cli.run.legacy_block_import_strategy,
 								)<span class="question-mark">?</span>;
 
 								<span class="kw">let </span>db = params.backend.expose_db();
@@ -1790,7 +1790,7 @@
 									<span class="kw-2">&amp;mut </span>config,
 									<span class="kw-2">&amp;</span>rpc_config,
 									<span class="bool-val">false</span>,
-									cli.run.experimental_block_import_strategy,
+									cli.run.legacy_block_import_strategy,
 								)<span class="question-mark">?</span>;
 
 								<span class="kw">let </span>db = params.backend.expose_db();
@@ -1838,7 +1838,7 @@
 						<span class="kw-2">&amp;mut </span>config,
 						<span class="kw-2">&amp;</span>rpc_config,
 						<span class="bool-val">false</span>,
-						cli.run.experimental_block_import_strategy,
+						cli.run.legacy_block_import_strategy,
 					)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
@@ -1856,7 +1856,7 @@
 						<span class="kw-2">&amp;mut </span>config,
 						<span class="kw-2">&amp;</span>rpc_config,
 						<span class="bool-val">false</span>,
-						cli.run.experimental_block_import_strategy,
+						cli.run.legacy_block_import_strategy,
 					)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
@@ -1874,7 +1874,7 @@
 						<span class="kw-2">&amp;mut </span>config,
 						<span class="kw-2">&amp;</span>rpc_config,
 						<span class="bool-val">false</span>,
-						cli.run.experimental_block_import_strategy,
+						cli.run.legacy_block_import_strategy,
 					)<span class="question-mark">?</span>;
 
 					<span class="prelude-val">Ok</span>((cmd.run(backend, config.chain_spec), task_manager))
@@ -2062,7 +2062,7 @@
 						<span class="bool-val">true</span>,
 						cli.run.block_authoring_duration,
 						hwbench,
-						cli.run.experimental_block_import_strategy,
+						cli.run.legacy_block_import_strategy,
 					)
 					.<span class="kw">await
 					</span>.map(|r| r.<span class="number">0</span>)
@@ -2080,7 +2080,7 @@
 						<span class="bool-val">true</span>,
 						cli.run.block_authoring_duration,
 						hwbench,
-						cli.run.experimental_block_import_strategy,
+						cli.run.legacy_block_import_strategy,
 					)
 					.<span class="kw">await
 					</span>.map(|r| r.<span class="number">0</span>)
@@ -2098,7 +2098,7 @@
 						<span class="bool-val">true</span>,
 						cli.run.block_authoring_duration,
 						hwbench,
-						cli.run.experimental_block_import_strategy,
+						cli.run.legacy_block_import_strategy,
 					)
 					.<span class="kw">await
 					</span>.map(|r| r.<span class="number">0</span>)

@@ -435,7 +435,6 @@
 <a href="#433" id="433">433</a>
 <a href="#434" id="434">434</a>
 <a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -592,10 +591,9 @@
 	</span><span class="attr">#[clap(long)]
 	</span><span class="kw">pub </span>dev_service: bool,
 
-	<span class="doccomment">/// Enable the new block import strategy
-	/// Deprecated in: https://github.com/Moonsong-Labs/moonkit/pull/43
+	<span class="doccomment">/// Enable the legacy block import strategy
 	</span><span class="attr">#[clap(long)]
-	</span><span class="kw">pub </span>experimental_block_import_strategy: bool,
+	</span><span class="kw">pub </span>legacy_block_import_strategy: bool,
 
 	<span class="doccomment">/// Specifies the URL used to fetch chain data via RPC.
 	///

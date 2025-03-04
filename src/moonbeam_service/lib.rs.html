@@ -2320,7 +2320,7 @@
 </span><span class="kw">pub fn </span>new_chain_ops(
 	config: <span class="kw-2">&amp;mut </span>Configuration,
 	rpc_config: <span class="kw-2">&amp;</span>RpcConfig,
-	experimental_block_import_strategy: bool,
+	legacy_block_import_strategy: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;
 	(
 		Arc&lt;Client&gt;,
@@ -2335,17 +2335,17 @@
 		</span>spec <span class="kw">if </span>spec.is_moonriver() =&gt; new_chain_ops_inner::&lt;
 			moonriver_runtime::RuntimeApi,
 			MoonriverCustomizations,
-		&gt;(config, rpc_config, experimental_block_import_strategy),
+		&gt;(config, rpc_config, legacy_block_import_strategy),
 		<span class="attr">#[cfg(feature = <span class="string">"moonbeam-native"</span>)]
 		</span>spec <span class="kw">if </span>spec.is_moonbeam() =&gt; new_chain_ops_inner::&lt;
 			moonbeam_runtime::RuntimeApi,
 			MoonbeamCustomizations,
-		&gt;(config, rpc_config, experimental_block_import_strategy),
+		&gt;(config, rpc_config, legacy_block_import_strategy),
 		<span class="attr">#[cfg(feature = <span class="string">"moonbase-native"</span>)]
 		</span><span class="kw">_ </span>=&gt; new_chain_ops_inner::&lt;moonbase_runtime::RuntimeApi, MoonbaseCustomizations&gt;(
 			config,
 			rpc_config,
-			experimental_block_import_strategy,
+			legacy_block_import_strategy,
 		),
 		<span class="attr">#[cfg(not(feature = <span class="string">"moonbase-native"</span>))]
 		</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid chain spec"</span>),
@@ -2356,7 +2356,7 @@
 </span><span class="kw">fn </span>new_chain_ops_inner&lt;RuntimeApi, Customizations&gt;(
 	config: <span class="kw-2">&amp;mut </span>Configuration,
 	rpc_config: <span class="kw-2">&amp;</span>RpcConfig,
-	experimental_block_import_strategy: bool,
+	legacy_block_import_strategy: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;
 	(
 		Arc&lt;Client&gt;,
@@ -2383,7 +2383,7 @@
 		config,
 		rpc_config,
 		config.chain_spec.is_dev(),
-		experimental_block_import_strategy,
+		legacy_block_import_strategy,
 	)<span class="question-mark">?</span>;
 	<span class="prelude-val">Ok</span>((
 		Arc::new(Client::from(client)),
@@ -2423,7 +2423,7 @@
 	config: <span class="kw-2">&amp;mut </span>Configuration,
 	rpc_config: <span class="kw-2">&amp;</span>RpcConfig,
 	dev_service: bool,
-	experimental_block_import_strategy: bool,
+	legacy_block_import_strategy: bool,
 ) -&gt; PartialComponentsResult&lt;FullClient&lt;RuntimeApi&gt;, FullBackend&gt;
 <span class="kw">where
 	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
@@ -2527,18 +2527,18 @@
 				create_inherent_data_providers,
 				<span class="kw-2">&amp;</span>task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				!experimental_block_import_strategy,
+				legacy_block_import_strategy,
 			)<span class="question-mark">?</span>,
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
 	} <span class="kw">else </span>{
-		<span class="kw">let </span>parachain_block_import = <span class="kw">if </span>experimental_block_import_strategy {
-			ParachainBlockImport::new(frontier_block_import, backend.clone())
-		} <span class="kw">else </span>{
+		<span class="kw">let </span>parachain_block_import = <span class="kw">if </span>legacy_block_import_strategy {
 			ParachainBlockImport::new_with_delayed_best_block(
 				frontier_block_import,
 				backend.clone(),
 			)
+		} <span class="kw">else </span>{
+			ParachainBlockImport::new(frontier_block_import, backend.clone())
 		};
 		(
 			nimbus_consensus::import_queue(
@@ -2547,7 +2547,7 @@
 				create_inherent_data_providers,
 				<span class="kw-2">&amp;</span>task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				!experimental_block_import_strategy,
+				legacy_block_import_strategy,
 			)<span class="question-mark">?</span>,
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)
@@ -2612,7 +2612,7 @@
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
-	experimental_block_import_strategy: bool,
+	legacy_block_import_strategy: bool,
 ) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
 <span class="kw">where
 	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
@@ -2626,7 +2626,7 @@
 		<span class="kw-2">&amp;mut </span>parachain_config,
 		<span class="kw-2">&amp;</span>rpc_config,
 		<span class="bool-val">false</span>,
-		experimental_block_import_strategy,
+		legacy_block_import_strategy,
 	)<span class="question-mark">?</span>;
 	<span class="kw">let </span>(
 		block_import,
@@ -3109,7 +3109,7 @@
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
-	experimental_block_import_strategy: bool
+	legacy_block_import_strategy: bool
 ) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
 <span class="kw">where
 	</span>RuntimeApi:
@@ -3127,7 +3127,7 @@
 		async_backing,
 		block_authoring_duration,
 		hwbench,
-		experimental_block_import_strategy
+		legacy_block_import_strategy
 	)
 	.<span class="kw">await
 </span>}
