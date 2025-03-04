@@ -25,6 +25,7 @@ use super::{
 };
 
 use super::moonbeam_weights;
+use frame_support::traits::fungible::NativeOrWithId;
 use frame_support::{
 	parameter_types,
 	traits::{EitherOf, EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
@@ -754,6 +755,7 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type AssetLocationFilter = AssetFeesFilter;
 	type AssetTransactor = AssetTransactors;
 	type AssetIdentifier = EvmForeignAssets;
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type NativeLocation = SelfReserve;

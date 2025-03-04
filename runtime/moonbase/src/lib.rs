@@ -602,7 +602,7 @@ impl pallet_treasury::Config for Runtime {
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
 	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>;
-	type BalanceConverter = AssetRate;
+	type BalanceConverter = XcmWeightTrader;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;

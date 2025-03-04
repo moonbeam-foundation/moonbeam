@@ -264,6 +264,24 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 // We use both transactors
 pub type AssetTransactors = (LocalAssetTransactor, ForeignFungiblesTransactor);
 
+pub struct MockAssetIdentifier;
+impl MaybeEquivalence<Location, AssetId> for MockAssetIdentifier {
+	fn convert(location: &Location) -> Option<AssetId> {
+		match location {
+			Location { parents: 0, interior: Junctions::Here } => Some(0),
+			Location { parents: 1, interior: Junctions::Here } => Some(1),
+			_ => None,
+		}
+	}
+	fn convert_back(asset_id: &AssetId) -> Option<Location> {
+		match asset_id {
+			0 => Some(Location::here()),
+			1 => Some(Location::parent()),
+			_ => None,
+		}
+	}
+}
+
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type XcmBarrier = (
@@ -384,7 +402,6 @@ impl cumulus_pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
-
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
@@ -805,6 +822,8 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type AddSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type AssetLocationFilter = Everything;
 	type AssetTransactor = AssetTransactors;
+	type AssetIdentifier = MockAssetIdentifier;
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type NativeLocation = SelfReserve;
