@@ -777,8 +777,10 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = xcm_primitives::AccountIdToLocation<AccountId>;
-	type CurrencyIdToLocation =
-		CurrencyIdToLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+	type CurrencyIdToLocation = CurrencyIdToLocation<(
+		EvmForeignAssets,
+		AsAssetType<moonbeam_core_primitives::AssetId, AssetType, AssetManager>,
+	)>;
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type UniversalLocation = UniversalLocation;
@@ -1086,7 +1088,9 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
+use moonbase_runtime::EvmForeignAssets;
 use pallet_evm::FrameSystemAccountProvider;
+use xcm_primitives::AsAssetType;
 
 pub(crate) fn on_runtime_upgrade() {
 	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();
