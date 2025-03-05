@@ -13,7 +13,7 @@ import {
   ethan,
 } from "@moonwall/util";
 import { nToHex } from "@polkadot/util";
-import { setupWithParticipants } from "../../../../helpers";
+import { fundAccount, setupWithParticipants } from "../../../../helpers";
 
 describeSuite({
   id: "D012865",
@@ -44,6 +44,8 @@ describeSuite({
       await context.createBlock(
         context.polkadotJs().tx.proxy.addProxy(demoContractAddress, "Staking", 0).signAsync(dorothy)
       );
+
+      await fundAccount(DOROTHY_ADDRESS, 1n * GLMR, context);
 
       await context.writeContract!({
         contractAddress: demoContractAddress,
