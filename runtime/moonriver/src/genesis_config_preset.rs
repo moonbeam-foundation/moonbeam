@@ -22,12 +22,14 @@ extern crate alloc;
 
 use crate::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
-	InflationInfo, MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
-	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS,
+	BridgePolkadotGrandpaConfig, BridgePolkadotParachainsConfig, CrowdloanRewardsConfig, EVMConfig,
+	EligibilityValue, EthereumChainIdConfig, EthereumConfig, InflationInfo, MaintenanceModeConfig,
+	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
+	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, TransactionPaymentConfig,
+	TreasuryCouncilCollectiveConfig, HOURS,
 };
 use alloc::{vec, vec::Vec};
+use bp_runtime::BasicOperatingMode;
 use cumulus_primitives_core::ParaId;
 use fp_evm::GenesisAccount;
 use nimbus_primitives::NimbusId;
@@ -169,6 +171,15 @@ pub fn testnet_genesis(
 		polkadot_xcm: PolkadotXcmConfig::default(),
 		transaction_payment: TransactionPaymentConfig {
 			multiplier: Multiplier::from(10u128),
+			..Default::default()
+		},
+		bridge_polkadot_grandpa: BridgePolkadotGrandpaConfig {
+			owner: Some(endowed_accounts[0]),
+			init_data: None,
+		},
+		bridge_polkadot_parachains: BridgePolkadotParachainsConfig {
+			owner: Some(endowed_accounts[0]),
+			operating_mode: BasicOperatingMode::Normal,
 			..Default::default()
 		},
 	};
