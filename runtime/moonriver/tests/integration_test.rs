@@ -2727,7 +2727,9 @@ fn evm_success_keeps_substrate_events() {
 #[cfg(test)]
 mod treasury_tests {
 	use super::*;
-	use sp_runtime::traits::Hash;
+	use frame_support::traits::fungible::NativeOrWithId;
+use moonriver_runtime::AssetRate;
+use sp_runtime::traits::Hash;
 
 	fn expect_events(events: Vec<RuntimeEvent>) {
 		let block_events: Vec<RuntimeEvent> =
@@ -2758,6 +2760,14 @@ mod treasury_tests {
 
 				next_block();
 
+				assert_ok!(AssetRate::create(
+					root_origin(),
+					Box::new(NativeOrWithId::Native),
+					1.into()
+				));
+
+				next_block();
+
 				// TreasuryCouncilCollective
 				assert_ok!(TreasuryCouncilCollective::set_members(
 					root_origin(),
@@ -2771,7 +2781,7 @@ mod treasury_tests {
 				// Perform treasury spending
 				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend {
 					amount: spend_amount,
-					asset_kind: Box::new(()),
+					asset_kind: Box::new(NativeOrWithId::default()),
 					beneficiary: Box::new(AccountId::from(BOB)),
 					valid_from: Some(5u32),
 				});
@@ -2787,7 +2797,7 @@ mod treasury_tests {
 				let expected_events = [
 					RuntimeEvent::Treasury(pallet_treasury::Event::AssetSpendApproved {
 						index: 0,
-						asset_kind: (),
+						asset_kind: NativeOrWithId::default(),
 						amount: spend_amount,
 						beneficiary: spend_beneficiary,
 						valid_from: 5u32,
