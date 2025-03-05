@@ -810,6 +810,9 @@
 <a href="#808" id="808">808</a>
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1455,7 +1458,10 @@
 	<span class="kw">type </span>SovereignAccountDispatcherOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>CurrencyId = CurrencyId;
 	<span class="kw">type </span>AccountIdToLocation = AccountIdToLocation&lt;AccountId&gt;;
-	<span class="kw">type </span>CurrencyIdToLocation = CurrencyIdToLocation&lt;AsAssetType&lt;AssetId, AssetType, AssetManager&gt;&gt;;
+	<span class="kw">type </span>CurrencyIdToLocation = CurrencyIdToLocation&lt;(
+		EvmForeignAssets,
+		AsAssetType&lt;AssetId, AssetType, AssetManager&gt;,
+	)&gt;;
 	<span class="kw">type </span>XcmSender = XcmRouter;
 	<span class="kw">type </span>SelfLocation = SelfLocation;
 	<span class="kw">type </span>Weigher = XcmWeigher;
