@@ -56,7 +56,7 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm/std",
-	"xcm-executor/std"
+	"xcm-executor/std",
 ]
 
 runtime-benchmarks = ["frame-benchmarking"]
