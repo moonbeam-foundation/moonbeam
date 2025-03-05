@@ -127,13 +127,15 @@ describeSuite({
               to: storageFillerAddress,
               data: readData,
               txnType: "eip1559",
-              gasLimit: gasEstimate * 120n / 100n,
+              gasLimit: (gasEstimate * 120n) / 100n,
             });
 
             const { result, block } = await context.createBlock(rawSigned);
             const proofSize = block.proofSize ?? 0;
 
-            log(`Slots: ${count}, PoV size: ${proofSize} bytes(${(proofSize / (1024 * 1024)).toFixed(2)} MB), Success: ${result?.successful} `);
+            log(
+              `Slots: ${count}, PoV size: ${proofSize} bytes(${(proofSize / (1024 * 1024)).toFixed(2)} MB), Success: ${result?.successful} `
+            );
           } catch (error) {
             log(`Slots: ${count}, Error: ${error.message} `);
           }

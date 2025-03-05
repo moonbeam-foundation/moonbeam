@@ -169,7 +169,10 @@ export async function expectSystemEvent(
   return event;
 }
 
-export async function getAllBlockEvents(hash: string, context: DevModeContext): Promise<EventRecord[]> {
+export async function getAllBlockEvents(
+  hash: string,
+  context: DevModeContext
+): Promise<EventRecord[]> {
   const apiAt = await context.polkadotJs().at(hash);
   const events = await apiAt.query.system.events();
   return events;
