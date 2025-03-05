@@ -12,24 +12,30 @@ echo "[+] Compiling benchmarks with $profile profile... (this will take a while)
 cargo build --profile=$profile --locked --features=runtime-benchmarks
 
 # Load all pallet names in an array.
-PALLETS=($(
-  ./target/${profile}/moonbeam benchmark pallet \
-    --list \
-    --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
-    --genesis-builder=runtime \
-    --genesis-builder-preset=development |\
-  tail -n+2 |\
-  cut -d',' -f1 |\
-  sort |\
-  uniq
-))
+  PALLETS=($(
+    ./target/${profile}/moonbeam benchmark pallet \
+      --list \
+      --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
+      --genesis-builder=runtime \
+      --genesis-builder-preset=development |\
+    tail -n+2 |\
+    cut -d',' -f1 |\
+    sort |\
+    uniq
+  ))
 
-echo "[+] Benchmarking ${#PALLETS[@]} pallets for runtime $runtime with $profile profile"
+  echo "[+] Benchmarking ${#PALLETS[@]} pallets for runtime $runtime with $profile profile"
 
 # Define the error file.
 ERR_FILE="benchmarking_errors.txt"
 # Delete the error file before each run.
 rm -f $ERR_FILE
+
+# Install frame-omni-bencher if not already installed
+if ! frame-omni-bencher --version > /dev/null 2>&1; then
+  echo "[+] Installing frame-omni-bencher"
+  cargo install frame-omni-bencher --profile=production
+fi
 
 # Benchmark each pallet.
 for PALLET in "${PALLETS[@]}"; do
@@ -42,18 +48,18 @@ for PALLET in "${PALLETS[@]}"; do
   fi
 
   OUTPUT=$(
-    ./target/${profile}/moonbeam benchmark pallet \
+    frame-omni-bencher v1 benchmark pallet \
       --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
       --genesis-builder=runtime \
       --genesis-builder-preset=development \
-      --steps=50 \
-      --repeat=20 \
       --pallet="$PALLET" \
       --extrinsic="*" \
+      --steps=50 \
+      --repeat=20 \
       --wasm-execution=compiled \
       --header=./file_header.txt \
-      --template=./benchmarking/frame-weight-template.hbs \
-      --output="./runtime/${output}/src/weights/${output_file}" 2>&1
+      --template="./benchmarking/frame-weight-template.hbs" \
+      --output="./runtime/${output}/src/weights" 2>&1
   )
   if [ $? -ne 0 ]; then
     echo "$OUTPUT" >> "$ERR_FILE"

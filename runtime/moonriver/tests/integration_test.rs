@@ -44,6 +44,7 @@ use moonriver_runtime::{
 	Precompiles, RuntimeBlockWeights, TransactionPayment, TransactionPaymentAsGasPrice, Treasury,
 	TreasuryCouncilCollective, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
+use moonriver_runtime::{OpenTechCommitteeInstance, TreasuryCouncilInstance};
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
@@ -335,7 +336,7 @@ fn collective_set_members_general_admin_origin_works() {
 			root_caller.clone(),
 			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
 			Box::new(
-				pallet_collective::Call::<Runtime, pallet_collective::Instance3>::set_members {
+				pallet_collective::Call::<Runtime, TreasuryCouncilInstance>::set_members {
 					new_members: vec![alice, AccountId::from(BOB)],
 					prime: Some(alice),
 					old_count: 2,
@@ -348,7 +349,7 @@ fn collective_set_members_general_admin_origin_works() {
 			root_caller,
 			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
 			Box::new(
-				pallet_collective::Call::<Runtime, pallet_collective::Instance4>::set_members {
+				pallet_collective::Call::<Runtime, OpenTechCommitteeInstance>::set_members {
 					new_members: vec![alice, AccountId::from(BOB)],
 					prime: Some(alice),
 					old_count: 2,

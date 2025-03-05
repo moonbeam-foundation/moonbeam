@@ -37,8 +37,10 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards, EvmForeignAssets,
-	Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	governance::councils::{OpenTechCommitteeInstance, TreasuryCouncilInstance},
+	xcm_config::SelfReserve,
+	AccountId, AssetId, Balances, CrowdloanRewards, EvmForeignAssets, Executive,
+	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
 	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
@@ -324,7 +326,7 @@ fn collective_set_members_general_admin_origin_works() {
 			root_caller.clone(),
 			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
 			Box::new(
-				pallet_collective::Call::<Runtime, pallet_collective::Instance3>::set_members {
+				pallet_collective::Call::<Runtime, TreasuryCouncilInstance>::set_members {
 					new_members: vec![alice, AccountId::from(BOB)],
 					prime: Some(alice),
 					old_count: 2,
@@ -337,7 +339,7 @@ fn collective_set_members_general_admin_origin_works() {
 			root_caller,
 			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
 			Box::new(
-				pallet_collective::Call::<Runtime, pallet_collective::Instance4>::set_members {
+				pallet_collective::Call::<Runtime, OpenTechCommitteeInstance>::set_members {
 					new_members: vec![alice, AccountId::from(BOB)],
 					prime: Some(alice),
 					old_count: 2,

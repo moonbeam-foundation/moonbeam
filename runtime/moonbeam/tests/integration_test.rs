@@ -32,7 +32,6 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
-use moonbeam_runtime::currency::{GIGAWEI, WEI};
 use moonbeam_runtime::runtime_params::dynamic_params;
 use moonbeam_runtime::{
 	asset_config::ForeignAssetInstance,
@@ -42,6 +41,10 @@ use moonbeam_runtime::{
 	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
 	RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice, Treasury,
 	TreasuryCouncilCollective, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+};
+use moonbeam_runtime::{
+	currency::{GIGAWEI, WEI},
+	governance::councils::{OpenTechCommitteeInstance, TreasuryCouncilInstance},
 };
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
@@ -334,7 +337,7 @@ fn collective_set_members_general_admin_origin_works() {
 			root_caller.clone(),
 			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
 			Box::new(
-				pallet_collective::Call::<Runtime, pallet_collective::Instance3>::set_members {
+				pallet_collective::Call::<Runtime, TreasuryCouncilInstance>::set_members {
 					new_members: vec![alice, AccountId::from(BOB)],
 					prime: Some(alice),
 					old_count: 2,
@@ -347,7 +350,7 @@ fn collective_set_members_general_admin_origin_works() {
 			root_caller,
 			Box::new(OriginCaller::Origins(CustomOrigin::GeneralAdmin)),
 			Box::new(
-				pallet_collective::Call::<Runtime, pallet_collective::Instance4>::set_members {
+				pallet_collective::Call::<Runtime, OpenTechCommitteeInstance>::set_members {
 					new_members: vec![alice, AccountId::from(BOB)],
 					prime: Some(alice),
 					old_count: 2,

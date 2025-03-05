@@ -16,7 +16,14 @@
 
 #[macro_export]
 macro_rules! impl_runtime_apis_plus_common {
-	{$($custom:tt)*} => {
+	{
+        benchmark_type_aliases: {
+            $($bench_type_aliases:tt)*
+        }
+        custom_impls: {
+            $($custom:tt)*
+        }
+    } => {
 
 		#[cfg(feature = "evm-tracing")]
 		// Helper function to replay the "on_idle" hook for all pallets, we need this for
@@ -816,6 +823,9 @@ macro_rules! impl_runtime_apis_plus_common {
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
+
+					// Rename benchmarked pallets
+					$($bench_type_aliases)*
 
 					let mut list = Vec::<BenchmarkList>::new();
 					list_benchmarks!(list, extra);
