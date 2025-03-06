@@ -1032,17 +1032,13 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						call,
 						RuntimeCall::System(..)
 							| RuntimeCall::ParachainSystem(..)
-							| RuntimeCall::Timestamp(..)
-							| RuntimeCall::ParachainStaking(..)
-							| RuntimeCall::Referenda(..)
-							| RuntimeCall::Preimage(..)
+							| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
+							| RuntimeCall::Referenda(..) | RuntimeCall::Preimage(..)
 							| RuntimeCall::ConvictionVoting(..)
 							| RuntimeCall::TreasuryCouncilCollective(..)
 							| RuntimeCall::OpenTechCommitteeCollective(..)
-							| RuntimeCall::Utility(..)
-							| RuntimeCall::Proxy(..)
-							| RuntimeCall::Identity(..)
-							| RuntimeCall::AuthorMapping(..)
+							| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
+							| RuntimeCall::Identity(..) | RuntimeCall::AuthorMapping(..)
 							| RuntimeCall::CrowdloanRewards(
 								pallet_crowdloan_rewards::Call::claim { .. }
 							)

@@ -131,8 +131,7 @@ where
 		};
 
 		if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id.clone())
-			.is_some()
-			&& !is_migrating_foreign_assets()
+			.is_some() && !is_migrating_foreign_assets()
 		{
 			DiscriminantResult::Some(asset_id, extra_cost)
 		} else {
