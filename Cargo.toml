@@ -239,10 +239,10 @@ substrate-rpc-client = { git = "https://github.com/moonbeam-foundation/polkadot-
 
 # Frontier (wasm)
 
-ethereum = { version = "0.15.0", default-features = false, features = [
-    "with-codec",
+ethereum = { git = "https://github.com/rust-ethereum/ethereum.git", rev = "3be0d8fd4c2ad1ba216b69ef65b9382612efc8ba", default-features = false, features = [
+    "with-scale",
 ] }
-ethereum-types = { version = "0.14", default-features = false }
+ethereum-types = { version = "0.15.1", default-features = false }
 evm = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-stable2412", default-features = false }
 evm-gasometer = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-stable2412", default-features = false }
 evm-runtime = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-stable2412", default-features = false }
@@ -393,7 +393,7 @@ jsonrpsee = { version = "0.24.7", default-features = false }
 maplit = "1.0.2"
 nix = "0.28"
 parking_lot = "0.12.1"
-primitive-types = "0.12.1"
+primitive-types = "0.13.1"
 prometheus = { version = "0.13.0", default-features = false }
 rand = "0.8.5"
 serde_json = { version = "1.0.114", default-features = false }
