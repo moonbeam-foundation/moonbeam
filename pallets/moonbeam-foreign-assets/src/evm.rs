@@ -252,8 +252,7 @@ impl<T: crate::Config> EvmCaller<T> {
 		);
 
 		// return value is true.
-		let mut bytes = [0u8; 32];
-		U256::from(1).to_big_endian(&mut bytes);
+		let bytes: [u8; 32] = U256::from(1).to_big_endian();
 
 		// Check return value to make sure not calling on empty contracts.
 		ensure!(
@@ -470,7 +469,8 @@ fn extract_revert_message(data: &[u8]) -> String {
 		return BASE_MESSAGE.into();
 	}
 	// Extract message length and calculate end position
-	let message_len = U256::from(&data[LEN_START..MESSAGE_START]).saturated_into::<usize>();
+	let message_len =
+		U256::from_big_endian(&data[LEN_START..MESSAGE_START]).saturated_into::<usize>();
 	let message_end = MESSAGE_START.saturating_add(message_len);
 	// Return base message if data is shorter than expected message end
 	if data.len() < message_end {
