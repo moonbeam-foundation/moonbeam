@@ -28,6 +28,9 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+extern crate alloc;
+
+use alloc::borrow::Cow;
 use account::AccountId20;
 use cumulus_pallet_parachain_system::{
 	RelayChainStateProof, RelayStateProof, RelaychainDataProvider, ValidationData,
@@ -82,7 +85,7 @@ use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	generic, impl_opaque_keys,
 	traits::{
 		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
 		PostDispatchInfoOf, UniqueSaturatedInto, Zero,
@@ -190,8 +193,8 @@ pub mod opaque {
 /// changes which can be skipped.
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonbeam"),
-	impl_name: create_runtime_str!("moonbeam"),
+	spec_name: Cow::Borrowed("moonbeam"),
+	impl_name: Cow::Borrowed("moonbeam"),
 	authoring_version: 3,
 	spec_version: 3600,
 	impl_version: 0,
