@@ -1459,6 +1459,10 @@ use moonbeam_runtime_common::deal_with_fees::{
 	DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
 };
 
+// TODO: Temporary workaround before upgrading to latest polkadot-sdk https://github.com/paritytech/polkadot-sdk/pull/6435
+#[allow(unused_imports)]
+use pallet_collective as pallet_collective_open_tech_committee;
+
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_support::parameter_types! {
@@ -1499,8 +1503,9 @@ mod benches {
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]
-		[pallet_collective, TreasuryCouncilCollectiveBenchmark]
-		[pallet_collective, OpenTechCommitteeCollectiveBenchmark]
+		// pallet_collective instances
+		[pallet_collective, TreasuryCouncilCollective]
+		[pallet_collective_open_tech_committee, OpenTechCommitteeCollective]
 	);
 }
 
@@ -1550,10 +1555,7 @@ pub type Executive = frame_executive::Executive<
 // }
 // ```
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
-	benchmark_type_aliases: {
-		type TreasuryCouncilCollectiveBenchmark = pallet_collective::pallet::Pallet::<Runtime, TreasuryCouncilInstance>;
-		type OpenTechCommitteeCollectiveBenchmark = pallet_collective::pallet::Pallet::<Runtime, OpenTechCommitteeInstance>;
-	}
+	benchmark_type_aliases: {}
 	custom_impls: {
 		impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 			fn validate_transaction(
