@@ -125,7 +125,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`92638n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`92679n`);
 
         const rawTxn2 = await context.writePrecompile!({
           precompileName: "Proxy",
