@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: "0 5 * * 0" # Runs every Sunday at 5:00 AM UTC
     - cron: "0 5 * * 3" # Runs every Wednesday at 5:00 AM UTC
+    
+env:
+  FRAME_OMNI_BENCHER_RELEASE_VERSION: polkadot-stable2412
 
 jobs:
   set-tags:
@@ -59,6 +62,12 @@ jobs:
           rustup override unset
           rustup show
           rustup target add wasm32-unknown-unknown
+      - name: Install frame-omni-bencher
+        shell: bash
+        run: |
+          curl -sL https://github.com/paritytech/polkadot-sdk/releases/download/$FRAME_OMNI_BENCHER_RELEASE_VERSION/frame-omni-bencher -o frame-omni-bencher
+          chmod +x ./frame-omni-bencher
+          ./frame-omni-bencher --version
       - name: Run benchmarks
         shell: bash
         run: |

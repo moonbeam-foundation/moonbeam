@@ -39,7 +39,7 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	/// The maximum number of treasury council members.
 	type MaxMembers = ConstU32<9>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = moonbase_weights::pallet_collective::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_collective_treasury_council::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
 }
@@ -56,7 +56,7 @@ impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
 	/// The maximum number of technical committee members.
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = moonbase_weights::pallet_collective::WeightInfo<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_collective_open_tech_committee::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
 }
