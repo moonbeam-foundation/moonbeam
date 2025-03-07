@@ -71,7 +71,6 @@ jobs:
       - name: Run benchmarks
         shell: bash
         run: |
-          ln -s $(pwd)/frame-omni-bencher ./scripts/frame-omni-bencher
           ./scripts/run-benches-for-runtime.sh ${{ matrix.runtime }} release
           if test -f "benchmarking_errors.txt"; then
             cat benchmarking_errors.txt
