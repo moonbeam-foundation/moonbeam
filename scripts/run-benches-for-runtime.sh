@@ -42,7 +42,7 @@ for PALLET in "${PALLETS[@]}"; do
   fi
 
   OUTPUT=$(
-    frame-omni-bencher v1 benchmark pallet \
+    ./frame-omni-bencher v1 benchmark pallet \
       --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
       --genesis-builder=runtime \
       --genesis-builder-preset=development \
