@@ -21,12 +21,15 @@ use frame_support::{
 	dispatch::GetDispatchInfo,
 	ensure, parameter_types,
 	traits::{
+		fungible::NativeOrWithId,
+		tokens::pay::PayAssetFromAccount,
 		AsEnsureOriginWithArg, ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess,
 	},
 	weights::Weight,
 	PalletId,
 };
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
+use moonriver_runtime::{AssetRate, NativeAndAssets};
 use pallet_xcm::migration::v1::VersionUncheckedMigrateToV1;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
@@ -259,6 +262,24 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 // We use both transactors
 pub type AssetTransactors = (LocalAssetTransactor, ForeignFungiblesTransactor);
 
+pub struct MockAssetIdentifier;
+impl MaybeEquivalence<Location, AssetId> for MockAssetIdentifier {
+	fn convert(location: &Location) -> Option<AssetId> {
+		match location {
+			Location { parents: 0, interior: Junctions::Here } => Some(0),
+			Location { parents: 1, interior: Junctions::Here } => Some(1),
+			_ => None,
+		}
+	}
+	fn convert_back(asset_id: &AssetId) -> Option<Location> {
+		match asset_id {
+			0 => Some(Location::here()),
+			1 => Some(Location::parent()),
+			_ => None,
+		}
+	}
+}
+
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type XcmBarrier = (
@@ -438,11 +459,11 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = ();
 	type SpendFunds = ();
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
-	type AssetKind = ();
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
-	type BalanceConverter = UnityAssetBalanceConversion;
+	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>;
+	type BalanceConverter = AssetRate;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ArgumentsBenchmarkHelper;
@@ -794,6 +815,8 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type AddSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type AssetLocationFilter = Everything;
 	type AssetTransactor = AssetTransactors;
+	type AssetIdentifier = MockAssetIdentifier;
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type NativeLocation = SelfReserve;
@@ -1078,7 +1101,6 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
 use moonriver_runtime::EvmForeignAssets;
 use pallet_evm::FrameSystemAccountProvider;

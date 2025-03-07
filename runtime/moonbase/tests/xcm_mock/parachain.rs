@@ -21,6 +21,7 @@ use frame_support::{
 	dispatch::GetDispatchInfo,
 	ensure, parameter_types,
 	traits::{
+		fungible::{NativeFromLeft, NativeOrWithId, UnionOf},
 		AsEnsureOriginWithArg, ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess,
 	},
 	weights::Weight,
@@ -263,6 +264,24 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 // We use both transactors
 pub type AssetTransactors = (LocalAssetTransactor, ForeignFungiblesTransactor);
 
+pub struct MockAssetIdentifier;
+impl MaybeEquivalence<Location, AssetId> for MockAssetIdentifier {
+	fn convert(location: &Location) -> Option<AssetId> {
+		match location {
+			Location { parents: 0, interior: Junctions::Here } => Some(0),
+			Location { parents: 1, interior: Junctions::Here } => Some(1),
+			_ => None,
+		}
+	}
+	fn convert_back(asset_id: &AssetId) -> Option<Location> {
+		match asset_id {
+			0 => Some(Location::here()),
+			1 => Some(Location::parent()),
+			_ => None,
+		}
+	}
+}
+
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type XcmBarrier = (
@@ -383,7 +402,6 @@ impl cumulus_pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
-
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum CurrencyId {
@@ -435,6 +453,9 @@ parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
+pub type NativeAndAssets =
+    UnionOf<Balances, Assets, NativeFromLeft, NativeOrWithId<AssetId>, AccountId>;
+
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
@@ -447,10 +468,10 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = ();
 	type SpendFunds = ();
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
-	type AssetKind = ();
+	type AssetKind = NativeOrWithId<u128>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
+	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>;
 	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
@@ -803,6 +824,8 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type AddSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type AssetLocationFilter = Everything;
 	type AssetTransactor = AssetTransactors;
+	type AssetIdentifier = MockAssetIdentifier;
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type NativeLocation = SelfReserve;
@@ -1086,7 +1109,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
+use frame_support::traits::tokens::{pay::PayAssetFromAccount, UnityAssetBalanceConversion};
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
 use moonbase_runtime::EvmForeignAssets;
 use pallet_evm::FrameSystemAccountProvider;
