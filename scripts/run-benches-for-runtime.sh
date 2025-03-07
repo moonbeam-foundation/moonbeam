@@ -31,6 +31,12 @@ ERR_FILE="benchmarking_errors.txt"
 # Delete the error file before each run.
 rm -f $ERR_FILE
 
+# Install frame-omni-bencher if not already installed
+if ! frame-omni-bencher --version > /dev/null 2>&1; then
+  echo "[+] Installing frame-omni-bencher"
+  cargo install frame-omni-bencher --profile=production
+fi
+
 # Benchmark each pallet.
 for PALLET in "${PALLETS[@]}"; do
   echo "[+] Benchmarking $PALLET for $runtime";
@@ -42,7 +48,7 @@ for PALLET in "${PALLETS[@]}"; do
   fi
 
   OUTPUT=$(
-    ./target/${profile}/moonbeam benchmark pallet \
+    frame-omni-bencher v1 benchmark pallet \
       --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
       --genesis-builder=runtime \
       --genesis-builder-preset=development \
@@ -53,7 +59,7 @@ for PALLET in "${PALLETS[@]}"; do
       --wasm-execution=compiled \
       --header=./file_header.txt \
       --template=./benchmarking/frame-weight-template.hbs \
-      --output="./runtime/${output}/src/weights/${output_file}" 2>&1
+      --output="./runtime/${output}/src/weights" 2>&1
   )
   if [ $? -ne 0 ]; then
     echo "$OUTPUT" >> "$ERR_FILE"
