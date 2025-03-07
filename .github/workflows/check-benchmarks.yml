@@ -59,6 +59,12 @@ jobs:
           rustup override unset
           rustup show
           rustup target add wasm32-unknown-unknown
+      - name: Install frame-omni-bencher
+        shell: bash
+        run: |
+          if ! which frame-omni-bencher > /dev/null; then
+            cargo install frame-omni-bencher --profile=release
+          fi
       - name: Run benchmarks
         shell: bash
         run: |

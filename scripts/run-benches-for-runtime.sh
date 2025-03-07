@@ -31,12 +31,6 @@ ERR_FILE="benchmarking_errors.txt"
 # Delete the error file before each run.
 rm -f $ERR_FILE
 
-# Install frame-omni-bencher if not already installed
-if ! frame-omni-bencher --version > /dev/null 2>&1; then
-  echo "[+] Installing frame-omni-bencher"
-  cargo install frame-omni-bencher --profile=production
-fi
-
 # Benchmark each pallet.
 for PALLET in "${PALLETS[@]}"; do
   echo "[+] Benchmarking $PALLET for $runtime";
