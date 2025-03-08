@@ -33,6 +33,8 @@ impl super::ResponseFormatter for Formatter {
 	fn format(listener: Listener) -> Option<Vec<TransactionTrace>> {
 		let mut traces = Vec::new();
 		for (eth_tx_index, entry) in listener.entries.iter().enumerate() {
+			// Skip empty BTreeMaps pushed to `entries`.
+			// I.e. InvalidNonce or other pallet_evm::runner exits
 			if entry.is_empty() {
 				log::debug!(
 					target: "tracing",
