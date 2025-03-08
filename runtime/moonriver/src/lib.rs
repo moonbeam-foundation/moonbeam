@@ -226,8 +226,8 @@ pub struct RuntimeBlockWeights;
 impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
 	#[cfg(feature = "evm-tracing")]
 	fn get() -> frame_system::limits::BlockWeights {
-		moonbeam_runtime_common::fail_to_compile_if_on_chain_build!();
-		frame_system::limits::BlockWeights::simple_max(Weight::MAX)
+		let max_weight = Weight::MAX.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
+		frame_system::limits::BlockWeights::simple_max(max_weight)
 	}
 
 	#[cfg(not(feature = "evm-tracing"))]
