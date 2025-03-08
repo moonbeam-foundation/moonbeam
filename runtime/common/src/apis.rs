@@ -249,16 +249,39 @@ macro_rules! impl_runtime_apis_plus_common {
 						for ext in extrinsics.into_iter() {
 							match &ext.0.function {
 								RuntimeCall::Ethereum(transact { transaction }) => {
-									if known_transactions.contains(&transaction.hash()) {
+									let tx_hash = &transaction.hash();
+									if known_transactions.contains(&tx_hash) {
 										// Each known extrinsic is a new call stack.
 										EvmTracer::emit_new();
-										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+										EvmTracer::new().trace(|| {
+											if let Err(err) = Executive::apply_extrinsic(ext) {
+												log::debug!(
+													target: "tracing",
+													"Could not trace eth transaction (hash: {}): {:?}",
+													&tx_hash,
+													err
+												);
+											}
+										});
 									} else {
-										let _ = Executive::apply_extrinsic(ext);
+										if let Err(err) = Executive::apply_extrinsic(ext) {
+											log::debug!(
+												target: "tracing",
+												"Failed to apply eth extrinsic (hash: {}): {:?}",
+												&tx_hash,
+												err
+											);
+										}
 									}
 								}
 								_ => {
-									let _ = Executive::apply_extrinsic(ext);
+									if let Err(err) = Executive::apply_extrinsic(ext) {
+										log::debug!(
+											target: "tracing",
+											"Failed to apply non-eth extrinsic: {:?}",
+											err
+										);
+									}
 								}
 							};
 						}
