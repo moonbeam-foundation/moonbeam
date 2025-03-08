@@ -29,6 +29,6 @@
 macro_rules! fail_to_compile_if_on_chain_build {
 	() => {
 		#[cfg(feature = "on-chain-release-build")]
-		compile_error!("Not allowed in on-chain builds.");
+		compile_error!("Not allowed in production builds for on-chain environments.");
 	};
 }
