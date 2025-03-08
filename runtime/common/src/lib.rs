@@ -19,7 +19,7 @@
 mod apis;
 #[cfg(feature = "runtime-benchmarks")]
 pub mod benchmarking;
-pub mod compilation_checks;
+mod compilation_checks;
 pub mod deal_with_fees;
 mod impl_moonbeam_xcm_call;
 mod impl_moonbeam_xcm_call_tracing;
