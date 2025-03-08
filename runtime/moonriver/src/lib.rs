@@ -224,6 +224,13 @@ pub const EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_parts(10000 * WEIGHT_PER_
 
 pub struct RuntimeBlockWeights;
 impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
+	#[cfg(feature = "evm-tracing")]
+	fn get() -> frame_system::limits::BlockWeights {
+		moonbeam_runtime_common::fail_to_compile_if_on_chain_build!();
+		frame_system::limits::BlockWeights::simple_max(Weight::MAX)
+	}
+
+	#[cfg(not(feature = "evm-tracing"))]
 	fn get() -> frame_system::limits::BlockWeights {
 		frame_system::limits::BlockWeights::builder()
 			.for_class(DispatchClass::Normal, |weights| {
