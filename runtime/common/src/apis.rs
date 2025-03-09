@@ -249,6 +249,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						for ext in extrinsics.into_iter() {
 							match &ext.0.function {
 								RuntimeCall::Ethereum(transact { transaction }) => {
+
+									// Reset the previously consumed weight when tracing multiple transactions.
+									// This is necessary because EVM tracing introduces additional
+									// (ref_time) overhead, which differs from the production runtime behavior.
+									// Without resetting the block weight, the extra tracing overhead could
+									// leading to some transactions to incorrectly fail during tracing.
+									frame_system::BlockWeight::<Runtime>::kill();
+
 									let tx_hash = &transaction.hash();
 									if known_transactions.contains(&tx_hash) {
 										// Each known extrinsic is a new call stack.
