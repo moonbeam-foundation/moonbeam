@@ -219,13 +219,6 @@ pub const EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_parts(10000 * WEIGHT_PER_
 
 pub struct RuntimeBlockWeights;
 impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
-	#[cfg(feature = "evm-tracing")]
-	fn get() -> frame_system::limits::BlockWeights {
-		let max_weight = Weight::MAX.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
-		frame_system::limits::BlockWeights::simple_max(max_weight)
-	}
-
-	#[cfg(not(feature = "evm-tracing"))]
 	fn get() -> frame_system::limits::BlockWeights {
 		frame_system::limits::BlockWeights::builder()
 			.for_class(DispatchClass::Normal, |weights| {

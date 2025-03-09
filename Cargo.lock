@@ -6418,7 +6418,6 @@ dependencies = [
  "ethereum-types",
  "evm-tracing-events",
  "hex",
- "log",
  "moonbeam-rpc-primitives-debug",
  "parity-scale-codec",
  "serde",
