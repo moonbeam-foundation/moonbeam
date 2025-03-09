@@ -803,7 +803,7 @@ where
 					substrate_hash, e
 				)
 			})?
-			.ok_or_else(|| format!("Subtrate block {} don't exist", substrate_hash))?;
+			.ok_or_else(|| format!("Substrate block {} don't exist", substrate_hash))?;
 
 		let height = *block_header.number();
 		let substrate_parent_hash = *block_header.parent_hash();
@@ -890,6 +890,7 @@ where
 				.map_err(|e| format!("Blockchain error when replaying block {} : {:?}", height, e))?
 				.map_err(|e| {
 					tracing::warn!(
+						target: "tracing",
 						"Internal runtime error when replaying block {} : {:?}",
 						height,
 						e
@@ -935,6 +936,7 @@ where
 						}
 						None => {
 							log::warn!(
+								target: "tracing",
 								"A trace in block {} does not map to any known ethereum transaction. Trace: {:?}",
 								height,
 								trace,
