@@ -260,6 +260,8 @@ pub fn development() -> serde_json::Value {
 			AccountId::from(sp_core::hex2array!(
 				"773539d4Ac0e786233D90A233654ccEE26a613D9"
 			)),
+			// Bridge Location::new(1, [Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID)])
+			AccountId::from(hex!("7369626ce7070000000000000000000000000000")),
 		],
 		3_000_000 * MOVR,
 		Default::default(), // para_id
