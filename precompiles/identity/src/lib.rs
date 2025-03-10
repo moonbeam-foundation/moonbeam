@@ -379,7 +379,7 @@ where
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
-		let identity = pallet_identity::Pallet::<Runtime>::identity(who);
+		let identity = pallet_identity::IdentityOf::<Runtime>::get(who);
 
 		Ok(Self::identity_to_output(identity)?)
 	}
@@ -446,7 +446,7 @@ where
 			.saturating_mul(Runtime::MaxRegistrars::get() as usize),
 		)?;
 
-		let registrars = pallet_identity::Pallet::<Runtime>::registrars()
+		let registrars = pallet_identity::Registrars::<Runtime>::get()
 			.into_iter()
 			.enumerate()
 			.map(|(index, maybe_reg)| {
@@ -586,25 +586,18 @@ where
 	}
 
 	fn identity_to_output(
-		registration: Option<(
+		registration: Option<
 			pallet_identity::Registration<
 				BalanceOf<Runtime>,
 				Runtime::MaxRegistrars,
 				Runtime::IdentityInformation,
 			>,
-			Option<
-				frame_support::BoundedVec<
-					u8,
-					<Runtime as pallet_identity::Config>::MaxUsernameLength,
-				>,
-			>,
-		)>,
+		>,
 	) -> MayRevert<Registration<MaxAdditionalFields>> {
-		if registration.is_none() {
+		let Some(registration) = registration else {
 			return Ok(Registration::<MaxAdditionalFields>::default());
-		}
+		};
 
-		let registration = registration.expect("none case checked above; qed").0;
 		let mut identity_info = IdentityInfo::<MaxAdditionalFields> {
 			additional: Default::default(),
 			display: Self::data_to_output(registration.info.display),
