@@ -1161,6 +1161,45 @@
 <a href="#1159" id="1159">1159</a>
 <a href="#1160" id="1160">1160</a>
 <a href="#1161" id="1161">1161</a>
+<a href="#1162" id="1162">1162</a>
+<a href="#1163" id="1163">1163</a>
+<a href="#1164" id="1164">1164</a>
+<a href="#1165" id="1165">1165</a>
+<a href="#1166" id="1166">1166</a>
+<a href="#1167" id="1167">1167</a>
+<a href="#1168" id="1168">1168</a>
+<a href="#1169" id="1169">1169</a>
+<a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
+<a href="#1172" id="1172">1172</a>
+<a href="#1173" id="1173">1173</a>
+<a href="#1174" id="1174">1174</a>
+<a href="#1175" id="1175">1175</a>
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1336,6 +1375,14 @@
 						</span><span class="kw">for </span>ext <span class="kw">in </span>extrinsics.into_iter() {
 							<span class="kw">let _ </span>= <span class="kw">match </span><span class="kw-2">&amp;</span>ext.<span class="number">0</span>.function {
 								RuntimeCall::Ethereum(transact { transaction }) =&gt; {
+
+									<span class="comment">// Reset the previously consumed weight when tracing ethereum transactions.
+									// This is necessary because EVM tracing introduces additional
+									// (ref_time) overhead, which differs from the production runtime behavior.
+									// Without resetting the block weight, the extra tracing overhead could
+									// leading to some transactions to incorrectly fail during tracing.
+									</span>frame_system::BlockWeight::&lt;Runtime&gt;::kill();
+
 									<span class="kw">if </span>transaction == traced_transaction {
 										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 										<span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -1412,16 +1459,47 @@
 						</span><span class="kw">for </span>ext <span class="kw">in </span>extrinsics.into_iter() {
 							<span class="kw">match </span><span class="kw-2">&amp;</span>ext.<span class="number">0</span>.function {
 								RuntimeCall::Ethereum(transact { transaction }) =&gt; {
-									<span class="kw">if </span>known_transactions.contains(<span class="kw-2">&amp;</span>transaction.hash()) {
+
+									<span class="comment">// Reset the previously consumed weight when tracing multiple transactions.
+									// This is necessary because EVM tracing introduces additional
+									// (ref_time) overhead, which differs from the production runtime behavior.
+									// Without resetting the block weight, the extra tracing overhead could
+									// leading to some transactions to incorrectly fail during tracing.
+									</span>frame_system::BlockWeight::&lt;Runtime&gt;::kill();
+
+									<span class="kw">let </span>tx_hash = <span class="kw-2">&amp;</span>transaction.hash();
+									<span class="kw">if </span>known_transactions.contains(<span class="kw-2">&amp;</span>tx_hash) {
 										<span class="comment">// Each known extrinsic is a new call stack.
 										</span>EvmTracer::emit_new();
-										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+										EvmTracer::new().trace(|| {
+											<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = Executive::apply_extrinsic(ext) {
+												<span class="macro">log::debug!</span>(
+													target: <span class="string">"tracing"</span>,
+													<span class="string">"Could not trace eth transaction (hash: {}): {:?}"</span>,
+													<span class="kw-2">&amp;</span>tx_hash,
+													err
+												);
+											}
+										});
 									} <span class="kw">else </span>{
-										<span class="kw">let _ </span>= Executive::apply_extrinsic(ext);
+										<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = Executive::apply_extrinsic(ext) {
+											<span class="macro">log::debug!</span>(
+												target: <span class="string">"tracing"</span>,
+												<span class="string">"Failed to apply eth extrinsic (hash: {}): {:?}"</span>,
+												<span class="kw-2">&amp;</span>tx_hash,
+												err
+											);
+										}
 									}
 								}
 								<span class="kw">_ </span>=&gt; {
-									<span class="kw">let _ </span>= Executive::apply_extrinsic(ext);
+									<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = Executive::apply_extrinsic(ext) {
+										<span class="macro">log::debug!</span>(
+											target: <span class="string">"tracing"</span>,
+											<span class="string">"Failed to apply non-eth extrinsic: {:?}"</span>,
+											err
+										);
+									}
 								}
 							};
 						}

@@ -972,6 +972,8 @@
 <a href="#970" id="970">970</a>
 <a href="#971" id="971">971</a>
 <a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1777,7 +1779,7 @@
 					substrate_hash, e
 				)
 			})<span class="question-mark">?
-			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">"Subtrate block {} don't exist"</span>, substrate_hash))<span class="question-mark">?</span>;
+			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">"Substrate block {} don't exist"</span>, substrate_hash))<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>height = <span class="kw-2">*</span>block_header.number();
 		<span class="kw">let </span>substrate_parent_hash = <span class="kw-2">*</span>block_header.parent_hash();
@@ -1864,6 +1866,7 @@
 				.map_err(|e| <span class="macro">format!</span>(<span class="string">"Blockchain error when replaying block {} : {:?}"</span>, height, e))<span class="question-mark">?
 				</span>.map_err(|e| {
 					<span class="macro">tracing::warn!</span>(
+						target: <span class="string">"tracing"</span>,
 						<span class="string">"Internal runtime error when replaying block {} : {:?}"</span>,
 						height,
 						e
@@ -1909,6 +1912,7 @@
 						}
 						<span class="prelude-val">None </span>=&gt; {
 							<span class="macro">log::warn!</span>(
+								target: <span class="string">"tracing"</span>,
 								<span class="string">"A trace in block {} does not map to any known ethereum transaction. Trace: {:?}"</span>,
 								height,
 								trace,
