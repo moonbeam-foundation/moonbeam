@@ -173,6 +173,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						for ext in extrinsics.into_iter() {
 							let _ = match &ext.0.function {
 								RuntimeCall::Ethereum(transact { transaction }) => {
+
+									// Reset the previously consumed weight when tracing ethereum transactions.
+									// This is necessary because EVM tracing introduces additional
+									// (ref_time) overhead, which differs from the production runtime behavior.
+									// Without resetting the block weight, the extra tracing overhead could
+									// leading to some transactions to incorrectly fail during tracing.
+									frame_system::BlockWeight::<Runtime>::kill();
+
 									if transaction == traced_transaction {
 										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 										return Ok(());
@@ -249,16 +257,47 @@ macro_rules! impl_runtime_apis_plus_common {
 						for ext in extrinsics.into_iter() {
 							match &ext.0.function {
 								RuntimeCall::Ethereum(transact { transaction }) => {
-									if known_transactions.contains(&transaction.hash()) {
+
+									// Reset the previously consumed weight when tracing multiple transactions.
+									// This is necessary because EVM tracing introduces additional
+									// (ref_time) overhead, which differs from the production runtime behavior.
+									// Without resetting the block weight, the extra tracing overhead could
+									// leading to some transactions to incorrectly fail during tracing.
+									frame_system::BlockWeight::<Runtime>::kill();
+
+									let tx_hash = &transaction.hash();
+									if known_transactions.contains(&tx_hash) {
 										// Each known extrinsic is a new call stack.
 										EvmTracer::emit_new();
-										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+										EvmTracer::new().trace(|| {
+											if let Err(err) = Executive::apply_extrinsic(ext) {
+												log::debug!(
+													target: "tracing",
+													"Could not trace eth transaction (hash: {}): {:?}",
+													&tx_hash,
+													err
+												);
+											}
+										});
 									} else {
-										let _ = Executive::apply_extrinsic(ext);
+										if let Err(err) = Executive::apply_extrinsic(ext) {
+											log::debug!(
+												target: "tracing",
+												"Failed to apply eth extrinsic (hash: {}): {:?}",
+												&tx_hash,
+												err
+											);
+										}
 									}
 								}
 								_ => {
-									let _ = Executive::apply_extrinsic(ext);
+									if let Err(err) = Executive::apply_extrinsic(ext) {
+										log::debug!(
+											target: "tracing",
+											"Failed to apply non-eth extrinsic: {:?}",
+											err
+										);
+									}
 								}
 							};
 						}
