@@ -158,6 +158,8 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
 	is_pallet_prefix::<moonbeam_runtime::MoonbeamLazyMigrations>("MoonbeamLazyMigrations");
 	is_pallet_prefix::<moonbeam_runtime::RelayStorageRoots>("RelayStorageRoots");
+	is_pallet_prefix::<moonbeam_runtime::BridgeKusamaGrandpa>("BridgeKusamaGrandpa");
+	is_pallet_prefix::<moonbeam_runtime::BridgeKusamaParachains>("BridgeKusamaParachains");
 
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
@@ -458,6 +460,8 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::AssetManager>(105);
 	// is_pallet_index::<moonbeam_runtime::XTokens>(106); Removed
 	is_pallet_index::<moonbeam_runtime::XcmTransactor>(107);
+	is_pallet_index::<moonbeam_runtime::BridgeKusamaGrandpa>(130);
+	is_pallet_index::<moonbeam_runtime::BridgeKusamaParachains>(131);
 }
 
 #[test]
