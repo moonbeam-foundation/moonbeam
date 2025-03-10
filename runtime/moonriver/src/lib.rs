@@ -30,8 +30,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 extern crate alloc;
 
-use alloc::borrow::Cow;
 use account::AccountId20;
+use alloc::borrow::Cow;
 use cumulus_pallet_parachain_system::{
 	RelayChainStateProof, RelayStateProof, RelaychainDataProvider, ValidationData,
 };
@@ -1043,13 +1043,17 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						call,
 						RuntimeCall::System(..)
 							| RuntimeCall::ParachainSystem(..)
-							| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
-							| RuntimeCall::Referenda(..) | RuntimeCall::Preimage(..)
+							| RuntimeCall::Timestamp(..)
+							| RuntimeCall::ParachainStaking(..)
+							| RuntimeCall::Referenda(..)
+							| RuntimeCall::Preimage(..)
 							| RuntimeCall::ConvictionVoting(..)
 							| RuntimeCall::TreasuryCouncilCollective(..)
 							| RuntimeCall::OpenTechCommitteeCollective(..)
-							| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
-							| RuntimeCall::Identity(..) | RuntimeCall::AuthorMapping(..)
+							| RuntimeCall::Utility(..)
+							| RuntimeCall::Proxy(..)
+							| RuntimeCall::Identity(..)
+							| RuntimeCall::AuthorMapping(..)
 							| RuntimeCall::CrowdloanRewards(
 								pallet_crowdloan_rewards::Call::claim { .. }
 							)

@@ -197,7 +197,7 @@ pub mod opaque {
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("moonbase"),
-	impl_name: Cow::Borrowed(("moonbase"),
+	impl_name: Cow::Borrowed("moonbase"),
 	authoring_version: 4,
 	spec_version: 3600,
 	impl_version: 0,
@@ -1037,13 +1037,17 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						call,
 						RuntimeCall::System(..)
 							| RuntimeCall::ParachainSystem(..)
-							| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
-							| RuntimeCall::Referenda(..) | RuntimeCall::Preimage(..)
+							| RuntimeCall::Timestamp(..)
+							| RuntimeCall::ParachainStaking(..)
+							| RuntimeCall::Referenda(..)
+							| RuntimeCall::Preimage(..)
 							| RuntimeCall::ConvictionVoting(..)
 							| RuntimeCall::TreasuryCouncilCollective(..)
 							| RuntimeCall::OpenTechCommitteeCollective(..)
-							| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
-							| RuntimeCall::Identity(..) | RuntimeCall::AuthorMapping(..)
+							| RuntimeCall::Utility(..)
+							| RuntimeCall::Proxy(..)
+							| RuntimeCall::Identity(..)
+							| RuntimeCall::AuthorMapping(..)
 							| RuntimeCall::CrowdloanRewards(
 								pallet_crowdloan_rewards::Call::claim { .. }
 							)
