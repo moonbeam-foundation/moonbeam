@@ -419,15 +419,16 @@ where
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
-		let (deposit, accounts) = pallet_identity::Pallet::<Runtime>::subs_of(who);
+		let subs = pallet_identity::Pallet::<Runtime>::subs(&who);
 
-		let accounts = accounts
-			.into_iter()
-			.map(|account| Address(account.into()))
+		let accounts: Vec<Address> = subs
+			.iter()
+			.map(|(account, _)| Address((*account).into()))
 			.collect();
 
+		// TODO compute deposit
 		Ok(SubsOf {
-			deposit: deposit.into(),
+			deposit: 0,
 			accounts,
 		})
 	}
