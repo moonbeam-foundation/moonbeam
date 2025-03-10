@@ -103,7 +103,7 @@
 	<span class="doccomment">/// The maximum number of treasury council members.
 	</span><span class="kw">type </span>MaxMembers = ConstU32&lt;<span class="number">9</span>&gt;;
 	<span class="kw">type </span>DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_collective::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_collective_treasury_council::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	<span class="kw">type </span>MaxProposalWeight = MaxProposalWeight;
 }
@@ -120,7 +120,7 @@
 	<span class="doccomment">/// The maximum number of technical committee members.
 	</span><span class="kw">type </span>MaxMembers = ConstU32&lt;<span class="number">100</span>&gt;;
 	<span class="kw">type </span>DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_collective::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_collective_open_tech_committee::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	<span class="kw">type </span>MaxProposalWeight = MaxProposalWeight;
 }
