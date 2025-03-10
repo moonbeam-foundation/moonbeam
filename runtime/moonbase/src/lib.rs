@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -131,6 +131,7 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
 mod weights;
+
 pub(crate) use weights as moonbase_weights;
 
 /// UNIT, the native token, uses 18 decimals of precision.

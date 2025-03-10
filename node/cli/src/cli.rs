@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -154,10 +154,9 @@ pub struct RunCmd {
 	#[clap(long)]
 	pub dev_service: bool,
 
-	/// Enable the new block import strategy
-	/// Deprecated in: https://github.com/Moonsong-Labs/moonkit/pull/43
+	/// Enable the legacy block import strategy
 	#[clap(long)]
-	pub experimental_block_import_strategy: bool,
+	pub legacy_block_import_strategy: bool,
 
 	/// Specifies the URL used to fetch chain data via RPC.
 	///

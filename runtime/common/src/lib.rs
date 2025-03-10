@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -28,3 +28,4 @@ mod impl_xcm_evm_runner;
 pub mod migrations;
 pub mod timestamp;
 pub mod types;
+pub mod xcm_origins;

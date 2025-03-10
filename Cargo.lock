@@ -6730,6 +6730,7 @@ dependencies = [
  "ethereum-types",
  "evm-tracing-events",
  "hex",
+ "log",
  "moonbeam-rpc-primitives-debug",
  "parity-scale-codec",
  "serde",
@@ -6904,6 +6905,7 @@ dependencies = [
  "futures 0.3.30",
  "hex-literal 0.4.1",
  "jsonrpsee",
+ "log",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-debug",
  "moonbeam-rpc-core-types",
@@ -10057,6 +10059,7 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "staging-xcm",
+ "staging-xcm-executor",
  "xcm-primitives 0.1.1",
 ]
 

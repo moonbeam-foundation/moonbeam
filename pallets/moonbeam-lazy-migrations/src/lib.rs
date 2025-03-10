@@ -130,6 +130,7 @@ pub mod pallet {
 	where
 		<T as pallet_assets::Config>::Balance: Into<U256>,
 		<T as pallet_asset_manager::Config>::ForeignAssetType: Into<Option<Location>>,
+		<T as frame_system::Config>::AccountId: Into<H160> + From<H160>,
 	{
 		#[pallet::call_index(2)]
 		#[pallet::weight(Pallet::<T>::create_contract_metadata_weight(MAX_CONTRACT_CODE_SIZE))]

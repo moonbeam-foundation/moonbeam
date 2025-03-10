@@ -1,4 +1,4 @@
-// Copyright 2024 Moonbeam Foundation.
+// Copyright 2025 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -17,19 +17,24 @@
 use super::*;
 use crate as pallet_moonbeam_foreign_assets;
 
-use frame_support::traits::Everything;
+use frame_support::traits::{EitherOf, Everything};
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, Origin};
 use pallet_ethereum::{IntermediateStateRoot, PostLogContent};
 use pallet_evm::{FrameSystemAccountProvider, SubstrateBlockHashMapping};
 use precompile_utils::testing::MockAccount;
 use sp_core::{H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
-use xcm::latest::Location;
+use xcm::latest::{Junction, Location};
+
+pub const PARA_A: AccountId = MockAccount(H160([101; 20]));
+pub const PARA_B: AccountId = MockAccount(H160([102; 20]));
+pub const PARA_C: AccountId = MockAccount(H160([103; 20]));
 
 pub type Balance = u128;
 
+pub type BlockNumber = u32;
 type AccountId = MockAccount;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -189,19 +194,85 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 	}
 }
 
+parameter_types! {
+	pub const ForeignAssetCreationDeposit: u128 = 100;
+}
+
+pub struct SiblingAccountOf;
+impl xcm_executor::traits::ConvertLocation<AccountId> for SiblingAccountOf {
+	fn convert_location(location: &Location) -> Option<AccountId> {
+		let (parents, junctions) = location.unpack();
+		if parents != 1 {
+			return None;
+		}
+		if junctions.len() != 1 {
+			return None;
+		}
+		match junctions[0] {
+			Junction::Parachain(id) => match id {
+				1 => Some(PARA_A),
+				2 => Some(PARA_B),
+				3 => Some(PARA_C),
+				_ => None,
+			},
+			_ => None,
+		}
+	}
+}
+
+pub struct SiblingOrigin;
+impl EnsureOrigin<<Test as frame_system::Config>::RuntimeOrigin> for SiblingOrigin {
+	type Success = Location;
+	fn try_origin(
+		original_origin: <Test as frame_system::Config>::RuntimeOrigin,
+	) -> Result<Self::Success, <Test as frame_system::Config>::RuntimeOrigin> {
+		match original_origin.clone().caller {
+			OriginCaller::system(o) => match o {
+				Origin::<Test>::Signed(account) => {
+					let para_id = if account == PARA_A {
+						1
+					} else if account == PARA_B {
+						2
+					} else if account == PARA_C {
+						3
+					} else {
+						return Err(original_origin);
+					};
+					Ok(Location::new(1, [Junction::Parachain(para_id)]))
+				}
+				_ => Err(original_origin),
+			},
+			_ => Err(original_origin),
+		}
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin() -> Result<<Test as frame_system::Config>::RuntimeOrigin, ()> {
+		Ok(RuntimeOrigin::signed(PARA_A))
+	}
+}
+
+pub type ForeignAssetManagerOrigin =
+	EitherOf<MapSuccessToGovernance<EnsureRoot<AccountId>>, MapSuccessToXcm<SiblingOrigin>>;
+
 impl crate::Config for Test {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = Everything;
 	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type ForeignAssetCreatorOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetFreezerOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type ForeignAssetUnfreezerOrigin = EnsureRoot<AccountId>;
+	type ConvertLocation = SiblingAccountOf;
+	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type XcmLocationToH160 = ();
+	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
+	type Balance = Balance;
+
+	type Currency = Balances;
 }
 
 pub(crate) struct ExtBuilder {

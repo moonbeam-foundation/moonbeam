@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -58,22 +58,24 @@ use xcm::latest::prelude::{
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
+use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
 	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
 	UtilityEncodeCall, XcmTransact,
 };
 
+use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
+use crate::runtime_params::dynamic_params;
+use moonbeam_runtime_common::xcm_origins::AllowSiblingParachains;
+use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
-
 use sp_core::Get;
 use sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::*,
 };
-
-use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
 parameter_types! {
 	// The network Id of the relay
@@ -98,8 +100,9 @@ parameter_types! {
 }
 
 /// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
-/// when determining ownership of accounts for asset transacting and when attempting to use XCM
-/// `Transact` in order to determine the dispatch Origin.
+/// when determining ownership of accounts for asset transacting, when attempting to use XCM
+/// `Transact` in order to determine the dispatch Origin, and when validating foreign assets
+/// creation and ownership through the moonbeam_foreign_assets pallet.
 pub type LocationToAccountId = (
 	// The parent (Relay-chain) origin converts to the default `AccountId`.
 	ParentIsPreset<AccountId>,
@@ -695,13 +698,23 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	}
 }
 
-pub type ForeignAssetManagerOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+pub type ForeignAssetManagerOrigin = EitherOf<
+	MapSuccessToXcm<EnsureXcm<AllowSiblingParachains>>,
+	MapSuccessToGovernance<
 		EitherOf<
-			governance::custom_origins::GeneralAdmin,
-			governance::custom_origins::FastGeneralAdmin,
+			EnsureRoot<AccountId>,
+			EitherOf<
+				pallet_collective::EnsureProportionMoreThan<
+					AccountId,
+					OpenTechCommitteeInstance,
+					5,
+					9,
+				>,
+				EitherOf<
+					governance::custom_origins::FastGeneralAdmin,
+					governance::custom_origins::GeneralAdmin,
+				>,
+			>,
 		>,
 	>,
 >;
@@ -710,6 +723,8 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type ConvertLocation =
+		SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>;
 	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
@@ -719,6 +734,9 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
+	type ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
+	type Balance = Balance;
+	type Currency = Balances;
 }
 
 pub struct AssetFeesFilter;
