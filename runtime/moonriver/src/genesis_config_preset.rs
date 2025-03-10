@@ -22,13 +22,15 @@ extern crate alloc;
 
 use crate::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	BridgePolkadotGrandpaConfig, BridgePolkadotParachainsConfig, CrowdloanRewardsConfig, EVMConfig,
-	EligibilityValue, EthereumChainIdConfig, EthereumConfig, InflationInfo, MaintenanceModeConfig,
+	BridgePolkadotGrandpaConfig, BridgePolkadotMessagesConfig, BridgePolkadotParachainsConfig,
+	BridgeXcmOverMoonbeamConfig, CrowdloanRewardsConfig, EVMConfig, EligibilityValue,
+	EthereumChainIdConfig, EthereumConfig, InflationInfo, MaintenanceModeConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
 	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, TransactionPaymentConfig,
 	TreasuryCouncilCollectiveConfig, HOURS,
 };
 use alloc::{vec, vec::Vec};
+use bp_messages::MessagesOperatingMode;
 use bp_runtime::BasicOperatingMode;
 use cumulus_primitives_core::ParaId;
 use fp_evm::GenesisAccount;
@@ -37,6 +39,8 @@ use pallet_transaction_payment::Multiplier;
 use parachains_common::genesis_config_helpers::get_from_seed;
 use sp_genesis_builder::PresetId;
 use sp_runtime::{Perbill, Percent};
+use xcm::latest::{Junctions, Location, NetworkId};
+use xcm::prelude::Parachain;
 
 const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
@@ -180,7 +184,29 @@ pub fn testnet_genesis(
 		bridge_polkadot_parachains: BridgePolkadotParachainsConfig {
 			owner: Some(endowed_accounts[0]),
 			operating_mode: BasicOperatingMode::Normal,
-			..Default::default()
+			_phantom: Default::default(),
+		},
+		bridge_polkadot_messages: BridgePolkadotMessagesConfig {
+			owner: Some(endowed_accounts[0]),
+			opened_lanes: vec![],
+			operating_mode: MessagesOperatingMode::Basic(BasicOperatingMode::Normal),
+			_phantom: Default::default(),
+		},
+		bridge_xcm_over_moonbeam: BridgeXcmOverMoonbeamConfig {
+			opened_bridges: vec![(
+				Location::new(
+					1,
+					[Parachain(
+						<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID,
+					)],
+				),
+				Junctions::from([
+					NetworkId::Polkadot.into(),
+					Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
+				]),
+				Some(bp_messages::LegacyLaneId([0, 0, 0, 1])),
+			)],
+			_phantom: Default::default(),
 		},
 	};
 
