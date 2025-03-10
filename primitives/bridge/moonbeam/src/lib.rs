@@ -22,7 +22,7 @@ pub use bp_bridge_hub_cumulus::{
 	BlockLength, BlockWeights, Hasher, Nonce, SignedBlock, AVERAGE_BLOCK_INTERVAL,
 	MAX_UNCONFIRMED_MESSAGES_IN_CONFIRMATION_TX, MAX_UNREWARDED_RELAYERS_IN_CONFIRMATION_TX,
 };
-use bp_messages::{ChainWithMessages, MessageNonce, LegacyLaneId};
+use bp_messages::{ChainWithMessages, LegacyLaneId, MessageNonce};
 
 pub use bp_moonbeam_common::{
 	AccountId, AccountInfoStorageMapKeyProvider, Balance, BlockNumber, Hash, Header, Signature,
@@ -30,8 +30,7 @@ pub use bp_moonbeam_common::{
 };
 
 use bp_runtime::{
-	decl_bridge_finality_runtime_apis, decl_bridge_messages_runtime_apis,
-	Chain, ChainId, Parachain,
+	decl_bridge_finality_runtime_apis, decl_bridge_messages_runtime_apis, Chain, ChainId, Parachain,
 };
 use frame_support::{dispatch::DispatchClass, weights::Weight};
 use sp_runtime::StateVersion;
