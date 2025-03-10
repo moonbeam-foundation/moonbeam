@@ -1457,13 +1457,19 @@ construct_runtime! {
 		// Bridge pallets (reserved indexes from 130 to 140)
 		BridgePolkadotGrandpa: pallet_bridge_grandpa::<Instance1> = 130,
 		BridgePolkadotParachains: pallet_bridge_parachains::<Instance1> = 131,
+		BridgePolkadotMessages: pallet_bridge_messages::<Instance1> = 132,
+		BridgeXcmOverMoonbeam: pallet_xcm_bridge_hub::<Instance1> = 133,
 	}
 }
 
 bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
 	RuntimeCall, AccountId,
 	// Grandpa
-	BridgePolkadotGrandpa
+	BridgePolkadotGrandpa,
+	// Parachains
+	BridgePolkadotParachains,
+	// Messages
+	BridgePolkadotMessages
 }
 
 #[cfg(feature = "runtime-benchmarks")]

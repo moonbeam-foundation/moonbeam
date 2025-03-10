@@ -1450,10 +1450,10 @@ construct_runtime! {
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
 
 		// Bridge pallets (reserved indexes from 130 to 140)
-		// With-Kusama GRANDPA bridge module.
 		BridgeKusamaGrandpa: pallet_bridge_grandpa::<Instance1> = 130,
-		// With-Kusama parachain bridge module.
 		BridgeKusamaParachains: pallet_bridge_parachains::<Instance1> = 131,
+		BridgeKusamaMessages: pallet_bridge_messages::<Instance1> = 132,
+		BridgeXcmOverMoonriver: pallet_xcm_bridge_hub::<Instance1> = 133,
 	}
 }
 
@@ -1462,7 +1462,9 @@ bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
 	// Grandpa
 	BridgeKusamaGrandpa,
 	// Parachains
-	BridgeKusamaParachains
+	BridgeKusamaParachains,
+	// Messages
+	BridgeKusamaMessages
 	//CheckAndBoostBridgeGrandpaTransactions<
 	//	Runtime,
 	//	bridge_config::BridgeGrandpaKusamaInstance,
@@ -1518,7 +1520,7 @@ mod benches {
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]
 		[pallet_bridge_grandpa, BridgeKusamaGrandpa]
-		[pallet_bridge_parachains, BridgeKusamaParachains]
+		[pallet_bridge_parachains, pallet_bridge_parachains::benchmarking::Pallet::<Runtime, bridge_config::BridgeMoonriverInstance>]
 	);
 }
 

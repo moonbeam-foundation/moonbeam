@@ -353,6 +353,8 @@ bp-bridge-hub-cumulus = { git = "https://github.com/moonbeam-foundation/polkadot
 pallet-bridge-grandpa = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
 pallet-bridge-parachains = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
 pallet-bridge-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
+pallet-xcm-bridge-hub = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
+bridge-hub-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
 
 # Moonkit (wasm)
 async-backing-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-stable2409", default-features = false }
