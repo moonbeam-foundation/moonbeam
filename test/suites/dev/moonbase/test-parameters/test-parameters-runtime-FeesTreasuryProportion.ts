@@ -219,7 +219,7 @@ describeSuite({
                 expect(collatorIncrease, "No tip should be paid to the collator").to.equal(0n);
               }
 
-              // await verifyLatestBlockFees(context, t.transfer_amount);
+              await verifyLatestBlockFees(context, t.transfer_amount);
             },
           });
         }
