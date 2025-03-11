@@ -72,7 +72,7 @@ mod benchmarks {
 		)?;
 
 		// Remove ethereum receipts
-		pallet_ethereum::Pending::<T>::kill();
+		let _ = pallet_ethereum::Pending::<T>::clear(pallet_ethereum::Pending::<T>::count(), None);
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id, Location::here());
@@ -95,7 +95,7 @@ mod benchmarks {
 		)?;
 
 		// Remove ethereum receipts
-		pallet_ethereum::Pending::<T>::kill();
+		let _ = pallet_ethereum::Pending::<T>::clear(pallet_ethereum::Pending::<T>::count(), None);
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id, true);
@@ -123,7 +123,7 @@ mod benchmarks {
 		let _ = Pallet::<T>::freeze_foreign_asset(RawOrigin::Root.into(), asset_id, true);
 
 		// Remove ethereum receipts
-		pallet_ethereum::Pending::<T>::kill();
+		let _ = pallet_ethereum::Pending::<T>::clear(pallet_ethereum::Pending::<T>::count(), None);
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id);
