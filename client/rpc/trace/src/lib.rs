@@ -846,7 +846,7 @@ where
 		{
 			api_version
 		} else {
-			return Err(format!("Runtime api version call failed (trace)"));
+			return Err("Runtime api version call failed (trace)".to_string());
 		};
 
 		// Trace the block.

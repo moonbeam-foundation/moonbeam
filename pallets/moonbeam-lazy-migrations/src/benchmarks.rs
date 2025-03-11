@@ -46,7 +46,7 @@ fn setup_foreign_asset<T: Config>(n_accounts: u32) -> T::AssetIdParameter {
 		<T as pallet_asset_manager::Config>::Balance::from(1u32),
 		true,
 	)
-	.unwrap();
+	.expect("Root origin should always be able to register a foreign asset in benchmark setup");
 
 	let _ = <T as pallet_assets::Config>::Currency::deposit_creating(
 		&caller,
@@ -66,7 +66,7 @@ fn setup_foreign_asset<T: Config>(n_accounts: u32) -> T::AssetIdParameter {
 		dummy,
 		18,
 	)
-	.unwrap();
+	.expect("Foreign asset registration with root origin should never fail during benchmark setup");
 
 	// Create approval
 	pallet_assets::Pallet::<T>::mint(
@@ -75,7 +75,7 @@ fn setup_foreign_asset<T: Config>(n_accounts: u32) -> T::AssetIdParameter {
 		caller_lookup,
 		(100 * (n_accounts + 1)).into(),
 	)
-	.unwrap();
+	.expect("Asset minting should not fail in benchmark setup with proper caller permissions and valid asset ID");
 
 	// Setup n accounts with balances and approvals
 	for i in 0..n_accounts {
@@ -89,7 +89,7 @@ fn setup_foreign_asset<T: Config>(n_accounts: u32) -> T::AssetIdParameter {
 			user_lookup,
 			100u32.into(),
 		)
-		.unwrap();
+		.expect("Asset minting should succeed: caller is the asset admin/owner, asset ID is valid, and recipient exists.");
 
 		let spender: T::AccountId = account("spender", i, 0);
 		let spender_lookup = T::Lookup::unlookup(spender.clone());
@@ -102,7 +102,7 @@ fn setup_foreign_asset<T: Config>(n_accounts: u32) -> T::AssetIdParameter {
 			spender_lookup,
 			5u32.into(),
 		)
-		.unwrap();
+		.expect("Transfer approval should succeed with valid caller, asset, and spender in benchmark setup");
 	}
 
 	asset_id.into()
@@ -128,7 +128,8 @@ benchmarks! {
 			).expect("failed to create asset");
 			asset_id
 		}).collect();
-	}: _(RawOrigin::Root, BoundedVec::try_from(assets.clone()).unwrap())
+	}: _(RawOrigin::Root, BoundedVec::try_from(assets.clone())
+		.expect("Asset list should fit within bounds for benchmark"))
 	verify {
 		for asset_id in assets {
 			assert!(crate::pallet::ApprovedForeignAssets::<T>::contains_key(asset_id));
@@ -140,7 +141,8 @@ benchmarks! {
 
 		Pallet::<T>::approve_assets_to_migrate(
 			RawOrigin::Root.into(),
-			BoundedVec::try_from(vec![asset_id.clone().into()]).unwrap()
+			BoundedVec::try_from(vec![asset_id.clone().into()])
+				.expect("Single asset ID should fit within bounds for benchmark")
 		)?;
 	}: _(RawOrigin::Signed(account("caller", 0, 0)), asset_id.into())
 	verify {
@@ -156,7 +158,8 @@ benchmarks! {
 
 		Pallet::<T>::approve_assets_to_migrate(
 			RawOrigin::Root.into(),
-			BoundedVec::try_from(vec![asset_id.clone().into()]).unwrap()
+			BoundedVec::try_from(vec![asset_id.clone().into()])
+				.expect("Single asset ID should fit within bounds for benchmark")
 		)?;
 
 		Pallet::<T>::start_foreign_assets_migration(
@@ -179,7 +182,8 @@ benchmarks! {
 
 		Pallet::<T>::approve_assets_to_migrate(
 			RawOrigin::Root.into(),
-			BoundedVec::try_from(vec![asset_id.clone().into()]).unwrap()
+			BoundedVec::try_from(vec![asset_id.clone().into()])
+				.expect("Single asset ID should fit within bounds for benchmark")
 		)?;
 
 		Pallet::<T>::start_foreign_assets_migration(
@@ -207,7 +211,8 @@ benchmarks! {
 
 		Pallet::<T>::approve_assets_to_migrate(
 			RawOrigin::Root.into(),
-			BoundedVec::try_from(vec![asset_id.clone().into()]).unwrap()
+			BoundedVec::try_from(vec![asset_id.clone().into()])
+				.expect("Single asset ID should fit within bounds for benchmark")
 		)?;
 
 		Pallet::<T>::start_foreign_assets_migration(

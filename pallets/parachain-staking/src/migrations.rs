@@ -75,7 +75,9 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 
 		ensure!(state.is_some(), "State not found");
 
-		Ok(state.unwrap().encode())
+		Ok(state
+			.expect("State should be ensured to be Some(_) at this point")
+			.encode())
 	}
 
 	#[cfg(feature = "try-runtime")]
