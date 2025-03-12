@@ -325,6 +325,7 @@ pub struct RunCmd {
 	pub block_authoring_duration: Duration,
 
 	/// Enable full proof-of-validation mode for Nimbus
+	#[clap(long)]
 	pub nimbus_full_pov: bool,
 }
 
