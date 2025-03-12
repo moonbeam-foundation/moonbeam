@@ -105,12 +105,12 @@ describeSuite({
           change === Change.Unchanged &&
           feeMultiplier === minMultiplier:
           return true;
-        case blockWeightValue == targetWeight && change === Change.Unchanged:
+        case blockWeightValue === targetWeight && change === Change.Unchanged:
           return true;
 
         case change === Change.Unknown:
           return true;
-        case blockWeightValue != targetWeight && change === Change.Unchanged:
+        case blockWeightValue !== targetWeight && change === Change.Unchanged:
           log(
             `Note: Block #${blockNum} has UNCHANGED multiplier when it should ${blockWeightValue >= targetWeight ? "increase" : "decrease"} with limiting_demension: ${limitingDimension}, block_weight: ${blockWeightValue}, target_weight: ${targetWeight}`
           );
