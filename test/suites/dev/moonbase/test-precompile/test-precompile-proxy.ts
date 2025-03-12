@@ -49,7 +49,7 @@ describeSuite({
         });
         const { result } = await context.createBlock(rawTxn);
         expectEVMResult(result!.events, "Revert");
-        await expect(
+        expect(
           async () =>
             await context.writePrecompile!({
               precompileName: "Proxy",
