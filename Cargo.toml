@@ -496,50 +496,50 @@ inherits = "release"
 overflow-checks = true
 
 [patch."https://github.com/moonbeam-foundation/frontier"]
-pallet-base-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fp-evm = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-dynamic-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fp-dynamic-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-ethereum = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes", features = [
+pallet-base-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fp-evm = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-dynamic-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fp-dynamic-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-ethereum = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409", features = [
     "forbid-evm-reentrancy",
 ]  }
-fp-consensus = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fp-ethereum = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fp-rpc = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fp-storage = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes", features = [
+fp-consensus = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fp-ethereum = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fp-rpc = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fp-storage = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409", features = [
     "forbid-evm-reentrancy",
 ]  }
-fp-account = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-simple = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-test-vector-support = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fp-self-contained = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-sha3fips = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-modexp = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-ed25519 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-bn128 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-blake2 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-bw6761 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-bls12377 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-bls12381 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-dispatch = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-curve25519 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-precompile-storage-cleaner = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-precompile-utils = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-precompile-utils-macro = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-evm-chain-id = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-pallet-hotfix-sufficients = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-api = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-consensus = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-rpc-core = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-rpc = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-mapping-sync = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-db = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-storage = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-frontier-template-runtime = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-rpc-v2 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-rpc-v2-api = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-rpc-v2-types = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-frontier-template-node = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-fc-cli = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
-precompile-utils-tests-external = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/pov-fixes" }
+fp-account = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-simple = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-test-vector-support = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fp-self-contained = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-sha3fips = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-modexp = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-ed25519 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-bn128 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-blake2 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-bw6761 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-bls12377 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-bls12381 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-dispatch = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-curve25519 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-precompile-storage-cleaner = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+precompile-utils = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+precompile-utils-macro = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-evm-chain-id = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+pallet-hotfix-sufficients = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-api = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-consensus = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-rpc-core = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-rpc = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-mapping-sync = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-db = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-storage = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+frontier-template-runtime = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-rpc-v2 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-rpc-v2-api = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-rpc-v2-types = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+frontier-template-node = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+fc-cli = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
+precompile-utils-tests-external = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "moonbeam-polkadot-stable2409" }
