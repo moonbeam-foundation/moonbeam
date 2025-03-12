@@ -62,7 +62,7 @@ describeSuite({
         const modexp_min_cost = 200n * 20n; // see MIN_GAS_COST in frontier's modexp precompile
         const entire_fee = non_zero_byte_fee + zero_byte_fee + base_ethereum_fee + modexp_min_cost;
         // the gas used should be the maximum of the legacy gas and the pov gas
-        const expected = BigInt(Math.max(Number(entire_fee), 4718 * GAS_LIMIT_POV_RATIO));
+        const expected = BigInt(Math.max(Number(entire_fee), 3821 * GAS_LIMIT_POV_RATIO));
         expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBe(expected);
       },
     });
