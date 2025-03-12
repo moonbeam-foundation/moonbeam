@@ -17,6 +17,9 @@ import { ethers } from "ethers";
 import { checkTimeSliceForUpgrades, rateLimiter, RUNTIME_CONSTANTS } from "../../helpers";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
 import type { Perbill } from "@polkadot/types/interfaces/runtime";
+import Debug from "debug";
+
+const debug = Debug("dynamic-fees");
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
@@ -83,32 +86,37 @@ describeSuite({
       }
     };
 
-    const isChangeDirectionValid = (
-      blockRecord: BlockFilteredRecord,
-      change: Change,
-    ) => {
+    const isChangeDirectionValid = (blockRecord: BlockFilteredRecord, change: Change) => {
       const { blockNum, blockWeightValue, targetWeight, limitingDimension } = blockRecord;
       const feeMultiplier = blockRecord.nextFeeMultiplier.toBigInt();
       const minMultiplier = blockRecord.minMultiplier;
       const maxMultiplier = blockRecord.maxMultiplier;
-      
+
       switch (true) {
         case blockWeightValue >= targetWeight && change === Change.Increased:
           return true;
-        case blockWeightValue >= targetWeight && change === Change.Unchanged && feeMultiplier === maxMultiplier:
+        case blockWeightValue >= targetWeight &&
+          change === Change.Unchanged &&
+          feeMultiplier === maxMultiplier:
           return true;
         case blockWeightValue < targetWeight && change === Change.Decreased:
           return true;
-        case blockWeightValue < targetWeight && change === Change.Unchanged && feeMultiplier === minMultiplier:
+        case blockWeightValue < targetWeight &&
+          change === Change.Unchanged &&
+          feeMultiplier === minMultiplier:
           return true;
         case blockWeightValue == targetWeight && change === Change.Unchanged:
           return true;
-          
+
         case change === Change.Unknown:
           return true;
         case blockWeightValue != targetWeight && change === Change.Unchanged:
-          log(`Note: Block #${blockNum} has UNCHANGED multiplier when it should ${blockWeightValue >= targetWeight ? 'increase' : 'decrease'} with limiting_demension: ${limitingDimension}, block_weight: ${blockWeightValue}, target_weight: ${targetWeight}`);
-          log(`  Current multiplier: ${feeMultiplier}, MIN_FEE_MULTIPLIER: ${minMultiplier}, MAX_FEE_MULTIPLIER: ${maxMultiplier}`);
+          log(
+            `Note: Block #${blockNum} has UNCHANGED multiplier when it should ${blockWeightValue >= targetWeight ? "increase" : "decrease"} with limiting_demension: ${limitingDimension}, block_weight: ${blockWeightValue}, target_weight: ${targetWeight}`
+          );
+          log(
+            `  Current multiplier: ${feeMultiplier}, MIN_FEE_MULTIPLIER: ${minMultiplier}, MAX_FEE_MULTIPLIER: ${maxMultiplier}`
+          );
           return false;
         default:
           return false;
@@ -162,40 +170,56 @@ describeSuite({
         const receipts = (await apiAt.query.ethereum.currentReceipts()).unwrapOr([]);
         const events = await apiAt.query.system.events();
         const nextFeeMultiplier = await apiAt.query.transactionPayment.nextFeeMultiplier();
-        
-        // Get normal class weights
+
+        // The following section mirrors the logic in the `TargetedFeeAdjustment` implementation in the pallet-transaction-payment.
+        //
+        // In the Rust implementation, the fee adjustment algorithm works by:
+        // 1. Getting the current block weights for normal dispatch class
+        // 2. Normalizing the dimensions (ref_time and proof_size) to compare them
+        // 3. Determining which dimension is the limiting factor
+        // 4. Calculating the target weight based on the target block fullness
+        // 5. Comparing the current block weight to the target to determine if fees should increase or decrease
         const blockWeights = apiAt.consts.system.blockWeights;
         const normalMaxWeight = blockWeights.perClass.normal.maxTotal.unwrap();
         const normalBlockWeight = weights.normal;
-        
-        // Calculate normalized dimensions
-        const refTimeRatio = normalBlockWeight.refTime.unwrap().toBigInt() * 1_000_000_000n / 
-                            (normalMaxWeight.refTime.unwrap().toBigInt() || 1n);
-        const normalizedRefTime = apiAt.registry.createType('Perbill', refTimeRatio.toString());
-        
-        const proofSizeRatio = normalBlockWeight.proofSize.unwrap().toBigInt() * 1_000_000_000n / 
-                              (normalMaxWeight.proofSize.unwrap().toBigInt() || 1n);
-        const normalizedProofSize = apiAt.registry.createType('Perbill', proofSizeRatio.toString());
-        
-        // Determine limiting dimension
-        const isRefTimeLimiting = normalizedRefTime.lt(normalizedProofSize);
-        const limitingDimension = isRefTimeLimiting ? "proof_size" : "ref_time";
-        
-        const normalLimitingDimension = isRefTimeLimiting 
-          ? normalBlockWeight.proofSize.unwrap().toBigInt()
-          : normalBlockWeight.refTime.unwrap().toBigInt();
-          
+
+        // Calculate normalized ref time and proof size dimensions based on perbill type (parts per billion)
+        const BILL = 1_000_000_000n;
+        const refTimeRatio =
+          (normalBlockWeight.refTime.unwrap().toBigInt() * BILL) /
+          normalMaxWeight.refTime.unwrap().toBigInt();
+        const normalizedRefTime = apiAt.registry.createType("Perbill", refTimeRatio);
+
+        const proofSizeRatio =
+          (normalBlockWeight.proofSize.unwrap().toBigInt() * BILL) /
+          normalMaxWeight.proofSize.unwrap().toBigInt();
+        const normalizedProofSize = apiAt.registry.createType("Perbill", proofSizeRatio);
+
+        // The limiting dimension is the one that has the higher normalized value (higher percentage of max).
+        // If proof_size is using a higher percentage of its maximum than ref_time, then proof_size is the
+        // limiting dimension, and vice versa.
+        const isRefTimeLimiting = normalizedProofSize.lt(normalizedRefTime);
+        const limitingDimension = isRefTimeLimiting ? "ref_time" : "proof_size";
+
+        const normalLimitingDimension = isRefTimeLimiting
+          ? normalBlockWeight.refTime.unwrap().toBigInt()
+          : normalBlockWeight.proofSize.unwrap().toBigInt();
+
         const maxLimitingDimension = isRefTimeLimiting
-          ? normalMaxWeight.proofSize.unwrap().toBigInt()
-          : normalMaxWeight.refTime.unwrap().toBigInt();
-        
+          ? normalMaxWeight.refTime.unwrap().toBigInt()
+          : normalMaxWeight.proofSize.unwrap().toBigInt();
+
+        // Represents the desired block fullness as a permill (parts per million).
+        // We divide by 1_000_000n to convert from permill to a ratio.
         const targetWeight = (targetFillPermill * maxLimitingDimension) / 1_000_000n;
         const blockWeightValue = normalLimitingDimension;
-        
-        log(`Block #${blockNum}`);
-        log(`  Limiting dimension: ${limitingDimension}`);
-        log(`  Normalized ref_time: ${(Number(refTimeRatio) / 10_000_000).toFixed(2)}%, proof_size: ${(Number(proofSizeRatio) / 10_000_000).toFixed(2)}%`);
-        log(`  Target weight: ${targetWeight}, Block weight: ${blockWeightValue}`);
+
+        debug(`Block #${blockNum}`);
+        debug(`  Limiting dimension: ${limitingDimension}`);
+        debug(
+          `  Normalized ref_time: ${(Number(refTimeRatio) / 10_000_000).toFixed(2)}%, proof_size: ${(Number(proofSizeRatio) / 10_000_000).toFixed(2)}%`
+        );
+        debug(`  Target weight: ${targetWeight}, Block weight: ${blockWeightValue}\n`);
 
         return {
           blockNum,
@@ -251,23 +275,35 @@ describeSuite({
           return;
         }
         const enriched = blockData.map((blockRecord) => {
-          const { 
-            blockNum, 
-            nextFeeMultiplier, 
-            blockWeightValue, 
+          const {
+            blockNum,
+            nextFeeMultiplier,
+            blockWeightValue,
             targetWeight,
             limitingDimension,
             normalizedRefTime,
-            normalizedProofSize
+            normalizedProofSize,
           } = blockRecord;
-          
-          const change = checkMultiplier(
-            allBlocks.find((blockDatum) => blockDatum.blockNum === blockNum - 1)!,
-            nextFeeMultiplier
-          );
-          
+
+          const prevBlock = allBlocks.find((blockDatum) => blockDatum.blockNum === blockNum - 1)!;
+          const change = checkMultiplier(prevBlock, nextFeeMultiplier);
+
           const valid = isChangeDirectionValid(blockRecord, change);
-          
+
+          debug(`Block #${blockNum} - Fee multiplier change: ${change}, Valid: ${valid}`);
+          debug(
+            `  Previous multiplier: ${prevBlock ? prevBlock.nextFeeMultiplier.toString() : "N/A"}, Current multiplier: ${nextFeeMultiplier.toString()}`
+          );
+
+          // Calculate block weight as percentage of target weight
+          const blockWeightPercentage = (
+            (Number(blockWeightValue) / Number(targetWeight)) *
+            100
+          ).toFixed(2);
+          debug(
+            `  Block weight: ${blockWeightValue} (${blockWeightPercentage}% of target ${targetWeight})`
+          );
+
           return {
             blockNum,
             change,
@@ -282,39 +318,40 @@ describeSuite({
         });
 
         const failures = enriched.filter(({ valid }) => !valid);
-        failures.forEach(({ 
-          blockNum, 
-          change, 
-          shouldIncrease, 
-          limitingDimension,
-          normalizedRefTime,
-          normalizedProofSize,
-          blockWeightValue,
-          targetWeight
-        }) => {
-          // Extract values directly from Perbill objects for display
-          const refTimeRatio = normalizedRefTime.toString();
-          const proofSizeRatio = normalizedProofSize.toString();
-          
-          // Format values for display only
-          const refTimePercentFormatted = (Number(refTimeRatio) / 10_000_000).toFixed(2);
-          const proofSizePercentFormatted = (Number(proofSizeRatio) / 10_000_000).toFixed(2);
-          
-          // Get the block record to access multiplier values
-          const blockRecord = blockData.find(b => b.blockNum === blockNum);
-          const feeMultiplier = blockRecord ? blockRecord.nextFeeMultiplier.toBigInt() : null;
-          const minMultiplier = blockRecord ? blockRecord.minMultiplier : null;
-          const maxMultiplier = blockRecord ? blockRecord.maxMultiplier : null;
-          
-          log(
-            `Block #${blockNum} with feeMultiplier ${change}\n` +
-            `  Limiting dimension: ${limitingDimension}\n` +
-            `  Normalized ref_time: ${refTimePercentFormatted}%, proof_size: ${proofSizePercentFormatted}%\n` +
-            `  Target weight: ${targetWeight}, Block weight: ${blockWeightValue}\n` +
-            `  Should increase multiplier: ${shouldIncrease}\n` +
-            `  Current multiplier: ${feeMultiplier}, MIN: ${minMultiplier}, MAX: ${maxMultiplier}`
-          );
-        });
+        failures.forEach(
+          ({
+            blockNum,
+            change,
+            shouldIncrease,
+            limitingDimension,
+            normalizedRefTime,
+            normalizedProofSize,
+            blockWeightValue,
+            targetWeight,
+          }) => {
+            // Extract values directly from Perbill objects for display
+            const refTimeRatio = normalizedRefTime.toString();
+            const proofSizeRatio = normalizedProofSize.toString();
+
+            // Format values for display only
+            const refTimePercentFormatted = (Number(refTimeRatio) / 10_000_000).toFixed(2);
+            const proofSizePercentFormatted = (Number(proofSizeRatio) / 10_000_000).toFixed(2);
+
+            // Get the block record to access multiplier values
+            const blockRecord = blockData.find((b) => b.blockNum === blockNum);
+            const { minMultiplier, maxMultiplier, nextFeeMultiplier } = blockRecord ?? {};
+            const feeMultiplier = nextFeeMultiplier?.toBigInt();
+
+            debug(
+              `Block #${blockNum} with feeMultiplier ${change}\n` +
+                `  Limiting dimension: ${limitingDimension}\n` +
+                `  Normalized ref_time: ${refTimePercentFormatted}%, proof_size: ${proofSizePercentFormatted}%\n` +
+                `  Target weight: ${targetWeight}, Block weight: ${blockWeightValue}\n` +
+                `  Should increase multiplier: ${shouldIncrease}\n` +
+                `  Current multiplier: ${feeMultiplier}, MIN: ${minMultiplier}, MAX: ${maxMultiplier}`
+            );
+          }
+        );
 
         expect(
           failures.length,
@@ -333,69 +370,73 @@ describeSuite({
           return;
         }
         const enriched = blockData.map((blockRecord) => {
-          const { 
-            blockNum, 
-            limitingDimension, 
-            normalizedRefTime, 
+          const {
+            blockNum,
+            limitingDimension,
+            normalizedRefTime,
             normalizedProofSize,
             blockWeightValue,
-            targetWeight
+            targetWeight,
           } = blockRecord;
-          
-          const change = checkMultiplier(
-            allBlocks.find((blockDatum) => blockDatum.blockNum === blockNum - 1)!,
-            blockRecord.nextFeeMultiplier
-          );
-          
+
+          const prevBlock = allBlocks.find((blockDatum) => blockDatum.blockNum === blockNum - 1)!;
+          const change = checkMultiplier(prevBlock, blockRecord.nextFeeMultiplier);
+
           const valid = isChangeDirectionValid(blockRecord, change);
-          
-          return { 
-            blockNum, 
-            change, 
+
+          debug(`Block #${blockNum} - Fee multiplier change: ${change}, Valid: ${valid}`);
+          debug(
+            `  Previous multiplier: ${prevBlock ? prevBlock.nextFeeMultiplier.toString() : "N/A"}, Current multiplier: ${blockRecord.nextFeeMultiplier.toString()}`
+          );
+
+          return {
+            blockNum,
+            change,
             valid,
             limitingDimension,
             normalizedRefTime,
             normalizedProofSize,
             blockWeightValue,
             targetWeight,
-            shouldIncrease: blockWeightValue >= targetWeight
+            shouldIncrease: blockWeightValue >= targetWeight,
           };
         });
 
         const failures = enriched.filter(({ valid }) => !valid);
-        failures.forEach(({ 
-          blockNum, 
-          change, 
-          limitingDimension, 
-          normalizedRefTime,
-          normalizedProofSize,
-          blockWeightValue,
-          targetWeight,
-          shouldIncrease
-        }) => {
-          // Extract values directly from Perbill objects for display
-          const refTimeRatio = normalizedRefTime.toString();
-          const proofSizeRatio = normalizedProofSize.toString();
-          
-          // Format values for display only
-          const refTimePercentFormatted = (Number(refTimeRatio) / 10_000_000).toFixed(2);
-          const proofSizePercentFormatted = (Number(proofSizeRatio) / 10_000_000).toFixed(2);
-          
-          // Get the block record to access multiplier values
-          const blockRecord = blockData.find(b => b.blockNum === blockNum);
-          const feeMultiplier = blockRecord ? blockRecord.nextFeeMultiplier.toBigInt() : null;
-          const minMultiplier = blockRecord ? blockRecord.minMultiplier : null;
-          const maxMultiplier = blockRecord ? blockRecord.maxMultiplier : null;
-          
-          log(
-            `Block #${blockNum} with feeMultiplier ${change}\n` +
-            `  Limiting dimension: ${limitingDimension}\n` +
-            `  Normalized ref_time: ${refTimePercentFormatted}%, proof_size: ${proofSizePercentFormatted}%\n` +
-            `  Target weight: ${targetWeight}, Block weight: ${blockWeightValue}\n` +
-            `  Should increase multiplier: ${shouldIncrease}\n` +
-            `  Current multiplier: ${feeMultiplier}, MIN: ${minMultiplier}, MAX: ${maxMultiplier}`
-          );
-        });
+        failures.forEach(
+          ({
+            blockNum,
+            change,
+            limitingDimension,
+            normalizedRefTime,
+            normalizedProofSize,
+            blockWeightValue,
+            targetWeight,
+            shouldIncrease,
+          }) => {
+            // Extract values directly from Perbill objects for display
+            const refTimeRatio = normalizedRefTime.toString();
+            const proofSizeRatio = normalizedProofSize.toString();
+
+            // Format values for display only
+            const refTimePercentFormatted = (Number(refTimeRatio) / 10_000_000).toFixed(2);
+            const proofSizePercentFormatted = (Number(proofSizeRatio) / 10_000_000).toFixed(2);
+
+            // Get the block record to access multiplier values
+            const blockRecord = blockData.find((b) => b.blockNum === blockNum);
+            const { minMultiplier, maxMultiplier, nextFeeMultiplier } = blockRecord ?? {};
+            const feeMultiplier = nextFeeMultiplier?.toBigInt();
+
+            debug(
+              `Block #${blockNum} with feeMultiplier ${change}\n` +
+                `  Limiting dimension: ${limitingDimension}\n` +
+                `  Normalized ref_time: ${refTimePercentFormatted}%, proof_size: ${proofSizePercentFormatted}%\n` +
+                `  Target weight: ${targetWeight}, Block weight: ${blockWeightValue}\n` +
+                `  Should increase multiplier: ${shouldIncrease}\n` +
+                `  Current multiplier: ${feeMultiplier}, MIN: ${minMultiplier}, MAX: ${maxMultiplier}`
+            );
+          }
+        );
         expect(
           failures.length,
           `Please investigate blocks ${failures.map(({ blockNum }) => blockNum).join(`, `)}`
