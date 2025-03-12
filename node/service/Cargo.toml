@@ -193,8 +193,6 @@ default = [
 
 lazy-loading = ["sc-service/test-helpers", "parking_lot/send_guard"]
 
-full-pov-size = ["nimbus-consensus/full-pov-size"]
-
 rococo-native = ["polkadot-cli/rococo-native", "polkadot-service/rococo-native"]
 westend-native = [
 	"polkadot-cli/westend-native",
