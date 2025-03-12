@@ -71,9 +71,6 @@ mod benchmarks {
 			str_to_bv("Mytoken"),
 		)?;
 
-		// Remove ethereum receipts
-		pallet_ethereum::Pending::<T>::kill();
-
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id, Location::here());
 
@@ -93,9 +90,6 @@ mod benchmarks {
 			str_to_bv("MT"),
 			str_to_bv("Mytoken"),
 		)?;
-
-		// Remove ethereum receipts
-		pallet_ethereum::Pending::<T>::kill();
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id, true);
@@ -121,9 +115,6 @@ mod benchmarks {
 		)?;
 
 		let _ = Pallet::<T>::freeze_foreign_asset(RawOrigin::Root.into(), asset_id, true);
-
-		// Remove ethereum receipts
-		pallet_ethereum::Pending::<T>::kill();
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id);
