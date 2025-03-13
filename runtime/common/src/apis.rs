@@ -442,16 +442,17 @@ macro_rules! impl_runtime_apis_plus_common {
 						// pallet ethereum index: 1
 						// transact call index: 1
 						// Transaction enum variant: 1
-						// chain_id 8 bytes
+						// chain_id 9 bytes (some varient)
 						// nonce: 32
-						// max_priority_fee_per_gas: 32
-						// max_fee_per_gas: 32
+						// max_priority_fee_per_gas: 33 (some varient)
+						// max_fee_per_gas: 33 (some varient)
+						// gas_price: 1 (none varient)
 						// gas_limit: 32
 						// action: 21 (enum varianrt + call address)
 						// value: 32
 						// access_list: 1 (empty vec size)
 						// 65 bytes signature
-						258;
+						261;
 
 					if access_list.is_some() {
 						estimated_transaction_len += access_list.encoded_size();
@@ -471,6 +472,12 @@ macro_rules! impl_runtime_apis_plus_common {
 							_ => (None, None),
 						};
 
+					log::debug!(
+						target: "evm",
+						"Estimated transaction len: {}, data.len(): {}",
+						estimated_transaction_len,
+						data.len(),
+					);
 					<Runtime as pallet_evm::Config>::Runner::call(
 						from,
 						to,
