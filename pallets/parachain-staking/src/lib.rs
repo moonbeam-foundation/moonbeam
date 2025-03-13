@@ -1169,30 +1169,11 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// DEPRECATED use delegateWithAutoCompound
-		/// If caller is not a delegator and not a collator, then join the set of delegators
-		/// If caller is a delegator, then makes delegation to change their delegation state
+		/// REMOVED, was delegate
 		#[pallet::call_index(17)]
-		#[pallet::weight(
-			<T as Config>::WeightInfo::delegate_with_auto_compound_worst()
-		)]
-		pub fn delegate(
-			origin: OriginFor<T>,
-			candidate: T::AccountId,
-			amount: BalanceOf<T>,
-			candidate_delegation_count: u32,
-			delegation_count: u32,
-		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-			<AutoCompoundDelegations<T>>::delegate_with_auto_compound(
-				candidate,
-				delegator,
-				amount,
-				Percent::zero(),
-				candidate_delegation_count,
-				0,
-				delegation_count,
-			)
+		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
+		pub fn removed_call_17(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
+			fail!(Error::<T>::RemovedCall)
 		}
 
 		/// If caller is not a delegator and not a collator, then join the set of delegators

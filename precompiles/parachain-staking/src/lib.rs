@@ -672,10 +672,12 @@ where
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = pallet_parachain_staking::Call::<Runtime>::delegate {
+		let call = pallet_parachain_staking::Call::<Runtime>::delegate_with_auto_compound {
 			candidate,
 			amount,
+			auto_compound: Percent::zero(),
 			candidate_delegation_count,
+			candidate_auto_compounding_delegation_count: 0,
 			delegation_count: delegator_delegation_count,
 		};
 
