@@ -490,7 +490,7 @@
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbase-dev"
       ],
       "multiThreads": 4,
-      "envVars": ["DEBUG_COLORS=1"],
+      "envVars": ["DEBUG_COLORS=1", "RUST_LOG=debug"],
       "reporters": ["basic", "html", "json"],
       "reportFile": {
         "json": "./tmp/testResultsMoonbase.json"
