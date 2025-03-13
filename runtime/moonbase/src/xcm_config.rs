@@ -25,6 +25,7 @@ use super::{
 	RuntimeOrigin, Treasury, XcmpQueue,
 };
 use crate::OpenTechCommitteeInstance;
+use frame_support::traits::fungible::NativeOrWithId;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
 	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
@@ -768,6 +769,8 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type AddSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type AssetLocationFilter = AssetFeesFilter;
 	type AssetTransactor = AssetTransactors;
+	type AssetIdentifier = EvmForeignAssets;
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type NativeLocation = SelfReserve;
