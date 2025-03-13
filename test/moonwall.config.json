@@ -382,7 +382,8 @@
               "--rpc-cors=all",
               "--alice",
               "--sealing=manual",
-              "--tmp"
+              "--tmp",
+              "--nimbus-full-pov"
             ],
             "defaultForkConfig": {
               "url": "https://moonbeam.unitedbloc.com",
@@ -430,7 +431,8 @@
               "--alice",
               "--chain=tmp/moonbeam-dev-raw.json",
               "--sealing=manual",
-              "--tmp"
+              "--tmp",
+              "--nimbus-full-pov"
             ]
           }
         ]
@@ -473,7 +475,8 @@
               "--alice",
               "--chain=tmp/moonriver-dev-raw.json",
               "--sealing=manual",
-              "--tmp"
+              "--tmp",
+              "--nimbus-full-pov"
             ]
           }
         ]
@@ -516,7 +519,8 @@
               "--alice",
               "--chain=tmp/moonbase-dev-raw.json",
               "--sealing=manual",
-              "--tmp"
+              "--tmp",
+              "--nimbus-full-pov"
             ]
           }
         ]
@@ -557,7 +561,8 @@
               "--sealing=manual",
               "--tmp",
               "--wasm-runtime-overrides=moonbase-overrides",
-              "--blocks-pruning=archive"
+              "--blocks-pruning=archive",
+              "--nimbus-full-pov"
             ]
           }
         ]
