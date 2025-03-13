@@ -1956,6 +1956,13 @@
 <a href="#1954" id="1954">1954</a>
 <a href="#1955" id="1955">1955</a>
 <a href="#1956" id="1956">1956</a>
+<a href="#1957" id="1957">1957</a>
+<a href="#1958" id="1958">1958</a>
+<a href="#1959" id="1959">1959</a>
+<a href="#1960" id="1960">1960</a>
+<a href="#1961" id="1961">1961</a>
+<a href="#1962" id="1962">1962</a>
+<a href="#1963" id="1963">1963</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2613,6 +2620,7 @@
 	block_authoring_duration: Duration,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
 	legacy_block_import_strategy: bool,
+	nimbus_full_pov: bool,
 ) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
 <span class="kw">where
 	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
@@ -2907,6 +2915,7 @@
 			relay_chain_slot_duration,
 			block_authoring_duration,
 			sync_service.clone(),
+			nimbus_full_pov,
 		)<span class="question-mark">?</span>;
 		<span class="comment">/*let parachain_consensus = build_consensus(
 			client.clone(),
@@ -2970,6 +2979,7 @@
 	relay_chain_slot_duration: Duration,
 	block_authoring_duration: Duration,
 	sync_oracle: SO,
+	nimbus_full_pov: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), sc_service::Error&gt;
 <span class="kw">where
 	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
@@ -3064,6 +3074,7 @@
 				slot_duration: <span class="prelude-val">None</span>,
 				sync_oracle,
 				reinitialize: <span class="bool-val">false</span>,
+				full_pov_size: nimbus_full_pov,
 			}),
 		);
 	} <span class="kw">else </span>{
@@ -3089,6 +3100,7 @@
 					para_client: client,
 					proposer,
 					relay_client: relay_chain_interface,
+					full_pov_size: nimbus_full_pov,
 				},
 			),
 		);
@@ -3109,7 +3121,8 @@
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
-	legacy_block_import_strategy: bool
+	legacy_block_import_strategy: bool,
+	nimbus_full_pov: bool,
 ) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
 <span class="kw">where
 	</span>RuntimeApi:
@@ -3127,7 +3140,8 @@
 		async_backing,
 		block_authoring_duration,
 		hwbench,
-		legacy_block_import_strategy
+		legacy_block_import_strategy,
+		nimbus_full_pov,
 	)
 	.<span class="kw">await
 </span>}

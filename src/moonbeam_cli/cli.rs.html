@@ -435,6 +435,10 @@
 <a href="#433" id="433">433</a>
 <a href="#434" id="434">434</a>
 <a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -760,6 +764,10 @@
 	<span class="doccomment">/// Maximum duration in milliseconds to produce a block
 	</span><span class="attr">#[clap(long, default_value = <span class="string">"2000"</span>, value_parser=block_authoring_duration_parser)]
 	</span><span class="kw">pub </span>block_authoring_duration: Duration,
+
+	<span class="doccomment">/// Enable full proof-of-validation mode for Nimbus
+	</span><span class="attr">#[clap(long)]
+	</span><span class="kw">pub </span>nimbus_full_pov: bool,
 }
 
 <span class="kw">fn </span>block_authoring_duration_parser(s: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Duration, String&gt; {
