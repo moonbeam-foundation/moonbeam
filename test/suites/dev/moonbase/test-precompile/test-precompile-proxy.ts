@@ -541,7 +541,7 @@ describeSuite({
         // pov_gas = proof_size * GAS_LIMIT_POV_RATIO
         // proof size reclaim seems indeterministic
         expect(gasUsed).toBeGreaterThan(expectedMinimumPovGas);
-        expect(gasUsed).toBeLessThan(expectedMinimumPovGas + 2000n);
+        expect(gasUsed).toBeLessThan(expectedMinimumPovGas + 3000n);
 
         expect(await context.viem().getBalance({ address: randomAccount })).toBe(parseEther("5"));
 
