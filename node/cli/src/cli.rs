@@ -323,6 +323,10 @@ pub struct RunCmd {
 	/// Maximum duration in milliseconds to produce a block
 	#[clap(long, default_value = "2000", value_parser=block_authoring_duration_parser)]
 	pub block_authoring_duration: Duration,
+
+	/// Enable full proof-of-validation mode for Nimbus
+	#[clap(long)]
+	pub nimbus_full_pov: bool,
 }
 
 fn block_authoring_duration_parser(s: &str) -> Result<Duration, String> {
