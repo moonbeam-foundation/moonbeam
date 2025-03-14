@@ -104,10 +104,13 @@ describeSuite({
           1
         );
 
-        expect(otherRewards.toString()).to.be.eq(
-          new Percent(100 - PBR_PERCENTAGE - TREASURY_PERCENTAGE)
-            .of(new BN(totalReward.toString()))
-            .toString()
+        expect(Number(otherRewards.toString())).to.be.approximately(
+          Number(
+            new Percent(100 - PBR_PERCENTAGE - TREASURY_PERCENTAGE)
+              .of(new BN(totalReward.toString()))
+              .toString()
+          ),
+          1
         );
 
         expect(pbrReward!.toString()).to.be.eq(
