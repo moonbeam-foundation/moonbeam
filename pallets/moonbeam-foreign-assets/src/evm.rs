@@ -13,8 +13,10 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+extern crate alloc;
 
 use crate::{AssetId, Error, Pallet};
+use alloc::format;
 use ethereum_types::{BigEndianHash, H160, H256, U256};
 use fp_evm::{ExitReason, ExitSucceed};
 use frame_support::ensure;
@@ -189,7 +191,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
-		.map_err(|err| EvmError::MintIntoFail(format!("{:?}", err.error.into())))?;
+		.map_err(|err| EvmError::MintIntoFail(alloc::format!("{:?}", err.error.into())))?;
 
 		ensure!(
 			matches!(
@@ -238,7 +240,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
-		.map_err(|err| EvmError::TransferFail(format!("{:?}", err.error.into())))?;
+		.map_err(|err| EvmError::TransferFail(alloc::format!("{:?}", err.error.into())))?;
 
 		ensure!(
 			matches!(
@@ -295,7 +297,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
-		.map_err(|err| EvmError::EvmCallFail(format!("{:?}", err.error.into())))?;
+		.map_err(|err| EvmError::EvmCallFail(alloc::format!("{:?}", err.error.into())))?;
 
 		ensure!(
 			matches!(
@@ -343,7 +345,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
-		.map_err(|err| EvmError::EvmCallFail(format!("{:?}", err.error.into())))?;
+		.map_err(|err| EvmError::EvmCallFail(alloc::format!("{:?}", err.error.into())))?;
 
 		ensure!(
 			matches!(
@@ -451,16 +453,16 @@ impl<T: crate::Config> EvmCaller<T> {
 
 fn error_on_execution_failure(reason: &ExitReason, data: &[u8]) -> String {
 	match reason {
-		ExitReason::Succeed(_) => String::new(),
-		ExitReason::Error(err) => format!("evm error: {err:?}"),
-		ExitReason::Fatal(err) => format!("evm fatal: {err:?}"),
+		ExitReason::Succeed(_) => alloc::string::String::new(),
+		ExitReason::Error(err) => alloc::format!("evm error: {err:?}"),
+		ExitReason::Fatal(err) => alloc::format!("evm fatal: {err:?}"),
 		ExitReason::Revert(_) => extract_revert_message(data),
 	}
 }
 
 /// The data should contain a UTF-8 encoded revert reason with a minimum size consisting of:
 /// error function selector (4 bytes) + offset (32 bytes) + reason string length (32 bytes)
-fn extract_revert_message(data: &[u8]) -> String {
+fn extract_revert_message(data: &[u8]) -> alloc::string::String {
 	const LEN_START: usize = 36;
 	const MESSAGE_START: usize = 68;
 	const BASE_MESSAGE: &str = "VM Exception while processing transaction: revert";
