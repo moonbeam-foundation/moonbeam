@@ -97,8 +97,8 @@ describeSuite({
               .tx.parachainStaking.delegateWithAutoCompound(
                 alith.address,
                 MIN_GLMR_DELEGATOR + 10n * GLMR,
-                maxDelegationCount,
                 0,
+                maxDelegationCount,
                 0,
                 1
               )
@@ -147,8 +147,8 @@ describeSuite({
             .tx.parachainStaking.delegateWithAutoCompound(
               alith.address,
               MIN_GLMR_DELEGATOR + 10n * GLMR,
-              maxDelegationCount,
               0,
+              maxDelegationCount,
               0,
               0
             )

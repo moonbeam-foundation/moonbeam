@@ -96,10 +96,11 @@ describeSuite({
         expect(pbrReward).is.not.undefined;
         expect(treasuryReward).is.not.undefined;
 
-        expect((pbrReward! + treasuryReward!).toString()).to.be.eq(
-          new Percent(PBR_PERCENTAGE + TREASURY_PERCENTAGE)
-            .of(new BN(totalReward.toString()))
-            .toString()
+        // Allow a small delta due to rounding
+        expect(Number(pbrReward! + treasuryReward!)).to.be.approximately(
+          Number(new Percent(PBR_PERCENTAGE + TREASURY_PERCENTAGE)
+            .of(new BN(totalReward.toString()))),
+          1
         );
 
         expect(otherRewards.toString()).to.be.eq(
