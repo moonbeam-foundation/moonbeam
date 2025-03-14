@@ -2468,13 +2468,6 @@ mod tests {
 	}
 
 	#[test]
-	fn bench_delegate() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_delegate());
-		});
-	}
-
-	#[test]
 	fn bench_schedule_revoke_delegation() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_schedule_revoke_delegation());

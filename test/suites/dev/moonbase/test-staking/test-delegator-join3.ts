@@ -22,11 +22,11 @@ describeSuite({
           .signAsync(baltathar),
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .tx.parachainStaking.delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 0, 0, 0, 0)
           .signAsync(charleth),
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .tx.parachainStaking.delegateWithAutoCompound(baltathar.address, MIN_GLMR_DELEGATOR, 0, 0, 0, 0)
           .signAsync(ethan),
       ]);
     });
@@ -38,7 +38,7 @@ describeSuite({
         const block = await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 1)
+            .tx.parachainStaking.delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 0, 0, 0, 1)
             .signAsync(ethan)
         );
         expect(block.result!.successful!).to.be.false;
