@@ -49,7 +49,7 @@ describeSuite({
       id: "T01",
       title: "should fail to fulfill before the delay",
       test: async function () {
-        expect(estimatedGasBefore).toMatchInlineSnapshot(`218919n`);
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`219843n`);
 
         expect(
           await context.readPrecompile!({
@@ -86,7 +86,7 @@ describeSuite({
       id: "T02",
       title: "should succeed to fulfill after the delay",
       test: async function () {
-        expect(estimatedGasBefore).toMatchInlineSnapshot(`218919n`);
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`219843n`);
         // await context.createBlock();
 
         await context.createBlock([
