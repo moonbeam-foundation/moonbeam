@@ -21,14 +21,28 @@ describeSuite({
           .signAsync(baltathar),
         context
           .polkadotJs()
-          .tx.parachainStaking.delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR + 10n, 0, 0, 0, 0)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            alith.address,
+            MIN_GLMR_DELEGATOR + 10n,
+            0,
+            0,
+            0,
+            0
+          )
           .signAsync(ethan),
       ]);
 
       await context.createBlock([
         context
           .polkadotJs()
-          .tx.parachainStaking.delegateWithAutoCompound(baltathar.address, MIN_GLMR_DELEGATOR + 10n, 0, 0, 0, 1)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            baltathar.address,
+            MIN_GLMR_DELEGATOR + 10n,
+            0,
+            0,
+            0,
+            1
+          )
           .signAsync(ethan),
       ]);
       await context.createBlock([

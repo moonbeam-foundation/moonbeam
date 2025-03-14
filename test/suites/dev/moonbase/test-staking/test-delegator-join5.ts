@@ -13,7 +13,14 @@ describeSuite({
       await context.createBlock(
         context
           .polkadotJs()
-          .tx.parachainStaking.delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 0, 1, 0, 0)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            alith.address,
+            MIN_GLMR_DELEGATOR,
+            0,
+            1,
+            0,
+            0
+          )
           .signAsync(ethan),
         { allowFailures: false }
       );
