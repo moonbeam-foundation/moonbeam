@@ -82,7 +82,6 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
-	use frame_support::fail;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
