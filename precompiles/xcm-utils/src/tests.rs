@@ -187,7 +187,7 @@ fn test_executor_transact() {
 			encoded.append(&mut call_bytes);
 			let xcm_to_execute = VersionedXcm::<()>::V4(Xcm(vec![Transact {
 				origin_kind: OriginKind::SovereignAccount,
-				require_weight_at_most: Weight::from_parts(1_000_000_000u64, 5206u64),
+				fallback_max_weight: Some(Weight::from_parts(1_000_000_000u64, 5206u64)),
 				call: encoded.into(),
 			}]))
 			.encode();
