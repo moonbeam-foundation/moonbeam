@@ -98,8 +98,9 @@ describeSuite({
 
         // Allow a small delta due to rounding
         expect(Number(pbrReward! + treasuryReward!)).to.be.approximately(
-          Number(new Percent(PBR_PERCENTAGE + TREASURY_PERCENTAGE)
-            .of(new BN(totalReward.toString()))),
+          Number(
+            new Percent(PBR_PERCENTAGE + TREASURY_PERCENTAGE).of(new BN(totalReward.toString()))
+          ),
           1
         );
 
