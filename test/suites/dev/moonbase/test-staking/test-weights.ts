@@ -44,7 +44,7 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "delegate",
+      title: "delegateWithAutoCompound",
       test: async () => {
         const maxTransactions = 350;
         const randomAccounts = await createAccounts(context, maxTransactions, INITIAL_AMOUNT);
