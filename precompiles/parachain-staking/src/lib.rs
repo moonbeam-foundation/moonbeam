@@ -656,37 +656,6 @@ where
 		Ok(())
 	}
 
-	#[precompile::public("delegate(address,uint256,uint256,uint256)")]
-	fn delegate(
-		handle: &mut impl PrecompileHandle,
-		candidate: Address,
-		amount: U256,
-		candidate_delegation_count: Convert<U256, u32>,
-		delegator_delegation_count: Convert<U256, u32>,
-	) -> EvmResult {
-		let amount = Self::u256_to_amount(amount).in_field("amount")?;
-		let candidate_delegation_count = candidate_delegation_count.converted();
-		let delegator_delegation_count = delegator_delegation_count.converted();
-
-		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
-
-		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = pallet_parachain_staking::Call::<Runtime>::delegate_with_auto_compound {
-			candidate,
-			amount,
-			auto_compound: Percent::zero(),
-			candidate_delegation_count,
-			candidate_auto_compounding_delegation_count: 0,
-			delegation_count: delegator_delegation_count,
-		};
-
-		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
-
-		Ok(())
-	}
-
 	#[precompile::public("delegateWithAutoCompound(address,uint256,uint8,uint256,uint256,uint256)")]
 	fn delegate_with_auto_compound(
 		handle: &mut impl PrecompileHandle,
