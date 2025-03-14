@@ -36,7 +36,7 @@ use crate::{
 	DELEGATOR_LOCK_ID,
 };
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
-use frame_support::{assert_err, assert_noop, assert_ok, BoundedVec};
+use frame_support::{assert_noop, assert_ok, BoundedVec};
 use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 // ~~ ROOT ~~
@@ -9132,22 +9132,4 @@ fn test_compute_top_candidates_is_stable() {
 				vec![2, 3, 4, 5, 6]
 			);
 		});
-}
-
-#[test]
-fn test_removed_calls() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_err!(
-			ParachainStaking::removed_call_19(RuntimeOrigin::root()),
-			Error::<Test>::RemovedCall
-		);
-		assert_err!(
-			ParachainStaking::removed_call_20(RuntimeOrigin::root()),
-			Error::<Test>::RemovedCall
-		);
-		assert_err!(
-			ParachainStaking::removed_call_21(RuntimeOrigin::root()),
-			Error::<Test>::RemovedCall
-		);
-	});
 }
