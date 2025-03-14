@@ -97,10 +97,12 @@ describeSuite({
         const { result } = await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(
+            .tx.parachainStaking.delegateWithAutoCompound(
               alith.address,
               MIN_GLMR_DELEGATOR,
+              0,
               1,
+              0,
               maxDelegationsPerDelegator + 1n
             )
             .signAsync(randomAccount)

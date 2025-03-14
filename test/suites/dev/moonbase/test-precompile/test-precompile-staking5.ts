@@ -16,8 +16,8 @@ describeSuite({
     beforeAll(async function () {
       await context.writePrecompile!({
         precompileName: "ParachainStaking",
-        functionName: "delegate",
-        args: [ALITH_ADDRESS, MIN_GLMR_STAKING, 0, 0],
+        functionName: "delegateWithAutoCompound",
+        args: [ALITH_ADDRESS, MIN_GLMR_STAKING, 0, 0, 0, 0],
         privateKey: ETHAN_PRIVATE_KEY,
       });
       await context.createBlock();

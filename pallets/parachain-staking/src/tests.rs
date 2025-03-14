@@ -36,7 +36,7 @@ use crate::{
 	DELEGATOR_LOCK_ID,
 };
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
-use frame_support::{assert_err, assert_noop, assert_ok, BoundedVec};
+use frame_support::{assert_noop, assert_ok, BoundedVec};
 use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 // ~~ ROOT ~~
@@ -2363,10 +2363,12 @@ fn delegate_event_emits_correctly() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				0
 			));
@@ -2388,10 +2390,12 @@ fn delegate_reserves_balance() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 10);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				0
 			));
@@ -2407,10 +2411,12 @@ fn delegate_updates_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert!(ParachainStaking::delegator_state(2).is_none());
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				0
 			));
@@ -2436,10 +2442,12 @@ fn delegate_updates_collator_state() {
 				ParachainStaking::top_delegations(1).expect("registered in genesis");
 			assert!(top_delegations.delegations.is_empty());
 			assert!(top_delegations.total.is_zero());
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				0
 			));
@@ -2465,10 +2473,12 @@ fn can_delegate_immediately_after_other_join_candidates() {
 				20,
 				0
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				20,
+				Percent::zero(),
+				0,
 				0,
 				0
 			));
@@ -2487,10 +2497,12 @@ fn can_delegate_if_revoking() {
 				RuntimeOrigin::signed(2),
 				1
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				4,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				2
 			));
@@ -2527,7 +2539,15 @@ fn cannot_delegate_if_full_and_new_delegation_less_than_or_equal_lowest_bottom()
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(RuntimeOrigin::signed(11), 1, 10, 8, 0),
+				ParachainStaking::delegate_with_auto_compound(
+					RuntimeOrigin::signed(11),
+					1,
+					10,
+					Percent::zero(),
+					8,
+					0,
+					0
+				),
 				Error::<Test>::CannotDelegateLessThanOrEqualToLowestBottomWhenFull
 			);
 		});
@@ -2562,11 +2582,13 @@ fn can_delegate_if_full_and_new_delegation_greater_than_lowest_bottom() {
 		])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(11),
 				1,
 				11,
+				Percent::zero(),
 				8,
+				0,
 				0
 			));
 			assert_events_emitted!(Event::DelegationKicked {
@@ -2593,13 +2615,15 @@ fn can_still_delegate_if_leaving() {
 				RuntimeOrigin::signed(2),
 				1,
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				3,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				1
-			),);
+			));
 		});
 }
 
@@ -2611,7 +2635,15 @@ fn cannot_delegate_if_candidate() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(RuntimeOrigin::signed(2), 1, 10, 0, 0),
+				ParachainStaking::delegate_with_auto_compound(
+					RuntimeOrigin::signed(2),
+					1,
+					10,
+					Percent::zero(),
+					0,
+					0,
+					0
+				),
 				Error::<Test>::CandidateExists
 			);
 		});
@@ -2626,7 +2658,15 @@ fn cannot_delegate_if_already_delegated() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(RuntimeOrigin::signed(2), 1, 10, 1, 1),
+				ParachainStaking::delegate_with_auto_compound(
+					RuntimeOrigin::signed(2),
+					1,
+					10,
+					Percent::zero(),
+					1,
+					0,
+					1
+				),
 				Error::<Test>::AlreadyDelegatedCandidate
 			);
 		});
@@ -2641,7 +2681,15 @@ fn cannot_delegate_more_than_max_delegations() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(RuntimeOrigin::signed(2), 6, 10, 0, 4),
+				ParachainStaking::delegate_with_auto_compound(
+					RuntimeOrigin::signed(2),
+					6,
+					10,
+					Percent::zero(),
+					0,
+					0,
+					4,
+				),
 				Error::<Test>::ExceedMaxDelegationsPerDelegator,
 			);
 		});
@@ -2668,22 +2716,26 @@ fn sufficient_delegate_weight_hint_succeeds() {
 		.execute_with(|| {
 			let mut count = 4u32;
 			for i in 7..11 {
-				assert_ok!(ParachainStaking::delegate(
+				assert_ok!(ParachainStaking::delegate_with_auto_compound(
 					RuntimeOrigin::signed(i),
 					1,
 					10,
+					Percent::zero(),
 					count,
-					0u32
+					0,
+					0
 				));
 				count += 1u32;
 			}
 			let mut count = 0u32;
 			for i in 3..11 {
-				assert_ok!(ParachainStaking::delegate(
+				assert_ok!(ParachainStaking::delegate_with_auto_compound(
 					RuntimeOrigin::signed(i),
 					2,
 					10,
+					Percent::zero(),
 					count,
+					0,
 					1u32
 				));
 				count += 1u32;
@@ -2713,26 +2765,44 @@ fn insufficient_delegate_weight_hint_fails() {
 			let mut count = 3u32;
 			for i in 7..11 {
 				assert_noop!(
-					ParachainStaking::delegate(RuntimeOrigin::signed(i), 1, 10, count, 0u32),
+					ParachainStaking::delegate_with_auto_compound(
+						RuntimeOrigin::signed(i),
+						1,
+						10,
+						Percent::zero(),
+						count,
+						0,
+						0
+					),
 					Error::<Test>::TooLowCandidateDelegationCountToDelegate
 				);
 			}
 			// to set up for next error test
 			count = 4u32;
 			for i in 7..11 {
-				assert_ok!(ParachainStaking::delegate(
+				assert_ok!(ParachainStaking::delegate_with_auto_compound(
 					RuntimeOrigin::signed(i),
 					1,
 					10,
+					Percent::zero(),
 					count,
-					0u32
+					0,
+					0
 				));
 				count += 1u32;
 			}
 			count = 0u32;
 			for i in 3..11 {
 				assert_noop!(
-					ParachainStaking::delegate(RuntimeOrigin::signed(i), 2, 10, count, 0u32),
+					ParachainStaking::delegate_with_auto_compound(
+						RuntimeOrigin::signed(i),
+						2,
+						10,
+						Percent::zero(),
+						count,
+						0,
+						0
+					),
 					Error::<Test>::TooLowDelegationCountToDelegate
 				);
 				count += 1u32;
@@ -4143,10 +4213,12 @@ fn delegator_schedule_revocation_total() {
 					.expect("delegator state must exist"),
 				0
 			);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				5,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				2
 			));
@@ -4687,11 +4759,13 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			assert_eq!(Balances::free_balance(&11), 127);
 			set_author(8, 1, POINTS_PER_ROUND);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(8),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_eq!(Event::Delegation {
@@ -4934,18 +5008,22 @@ fn paid_collator_commission_matches_config() {
 			);
 
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(5),
 				4,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(6),
 				4,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_eq!(
@@ -5449,25 +5527,31 @@ fn multiple_delegations() {
 				},
 			);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(6),
 				2,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(6),
 				3,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(6),
 				4,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_eq!(
@@ -5495,18 +5579,22 @@ fn multiple_delegations() {
 			);
 			roll_to_round_begin(6);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(7),
 				2,
 				80,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(10),
 				2,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
@@ -6050,11 +6138,13 @@ fn payouts_follow_delegation_changes() {
 				},
 			);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(8),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_eq!(Event::Delegation {
@@ -6222,11 +6312,13 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 			assert!(top_delegations.delegations.is_empty());
 			assert!(bottom_delegations.delegations.is_empty());
 			// 1 delegator => 1 top delegator, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
@@ -6234,11 +6326,13 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 			assert_eq!(top_delegations.delegations.len(), 1usize);
 			assert!(bottom_delegations.delegations.is_empty());
 			// 2 delegators => 2 top delegators, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(3),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
@@ -6246,11 +6340,13 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 			assert_eq!(top_delegations.delegations.len(), 2usize);
 			assert!(bottom_delegations.delegations.is_empty());
 			// 3 delegators => 3 top delegators, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(4),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
@@ -6258,11 +6354,13 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 			assert_eq!(top_delegations.delegations.len(), 3usize);
 			assert!(bottom_delegations.delegations.is_empty());
 			// 4 delegators => 4 top delegators, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(5),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
@@ -6479,11 +6577,13 @@ fn delegation_events_convey_correct_position() {
 			// 11 + 12 + 13 + 14 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 70);
 			// Top delegations are full, new highest delegation is made
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(7),
 				1,
 				15,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_emitted!(Event::Delegation {
@@ -6497,11 +6597,13 @@ fn delegation_events_convey_correct_position() {
 			// 12 + 13 + 14 + 15 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 74);
 			// New delegation is added to the bottom
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(8),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_emitted!(Event::Delegation {
@@ -7125,12 +7227,14 @@ fn delegation_kicked_from_bottom_removes_pending_request() {
 				1
 			));
 			// 10 delegates to full 1 => kicks lowest delegation (2, 19)
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(10),
 				1,
 				20,
+				Percent::zero(),
 				8,
-				0
+				0,
+				0,
 			));
 			// check the event
 			assert_events_emitted!(Event::DelegationKicked {
@@ -8278,12 +8382,14 @@ fn test_delegation_kicked_from_bottom_delegation_removes_auto_compounding_state(
 			));
 
 			// kicks lowest delegation (2, 19)
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(10),
 				1,
 				20,
+				Percent::zero(),
 				8,
-				0
+				0,
+				0,
 			));
 
 			assert!(
@@ -8916,11 +9022,13 @@ fn test_delegate_skips_auto_compound_storage_but_emits_event_for_zero_auto_compo
 		.execute_with(|| {
 			// We already have an auto-compounding delegation from 3 -> 1, so the hint validation
 			// would cause a failure if the auto-compounding isn't skipped properly.
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
 				1,
+				0,
 				0,
 			));
 			assert_eq!(1, ParachainStaking::auto_compounding_delegations(&1).len(),);
@@ -8965,7 +9073,7 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_parts(402168000, 0), weight);
+			assert_eq!(Weight::from_parts(401000000, 0), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
 			set_author(3, 1, POINTS_PER_ROUND); // must set some points for prepare_staking_payouts
@@ -8979,8 +9087,8 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 3541628080;
-			assert_eq!(Weight::from_parts(expected_on_init, 51512), weight);
+			let expected_on_init = 2999210735;
+			assert_eq!(Weight::from_parts(expected_on_init, 51554), weight);
 
 			// assemble weight manually to ensure it is well understood
 			let mut expected_weight = 0u64;
@@ -9003,7 +9111,7 @@ fn test_on_initialize_weights() {
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(4, 3).ref_time();
 
-			assert_eq!(Weight::from_parts(expected_weight, 51512), weight);
+			assert_eq!(Weight::from_parts(expected_weight, 51554), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
@@ -9024,22 +9132,4 @@ fn test_compute_top_candidates_is_stable() {
 				vec![2, 3, 4, 5, 6]
 			);
 		});
-}
-
-#[test]
-fn test_removed_calls() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_err!(
-			ParachainStaking::removed_call_19(RuntimeOrigin::root()),
-			Error::<Test>::RemovedCall
-		);
-		assert_err!(
-			ParachainStaking::removed_call_20(RuntimeOrigin::root()),
-			Error::<Test>::RemovedCall
-		);
-		assert_err!(
-			ParachainStaking::removed_call_21(RuntimeOrigin::root()),
-			Error::<Test>::RemovedCall
-		);
-	});
 }

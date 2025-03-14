@@ -44,7 +44,7 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "delegate",
+      title: "delegateWithAutoCompound",
       test: async () => {
         const maxTransactions = 350;
         const randomAccounts = await createAccounts(context, maxTransactions, INITIAL_AMOUNT);
@@ -52,7 +52,14 @@ describeSuite({
           randomAccounts.map((account) =>
             context
               .polkadotJs()
-              .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, maxTransactions, 0)
+              .tx.parachainStaking.delegateWithAutoCompound(
+                alith.address,
+                MIN_GLMR_DELEGATOR,
+                0,
+                maxTransactions,
+                0,
+                0
+              )
               .signAsync(account)
           )
         );

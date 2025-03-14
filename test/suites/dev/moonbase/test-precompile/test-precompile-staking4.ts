@@ -10,8 +10,8 @@ describeSuite({
     beforeAll(async function () {
       const rawTxn = await context.writePrecompile!({
         precompileName: "ParachainStaking",
-        functionName: "delegate",
-        args: [ALITH_ADDRESS, MIN_GLMR_STAKING, 0, 0],
+        functionName: "delegateWithAutoCompound",
+        args: [ALITH_ADDRESS, MIN_GLMR_STAKING, 0, 0, 0, 0],
         rawTxOnly: true,
         privateKey: ETHAN_PRIVATE_KEY,
       });

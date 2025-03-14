@@ -11,7 +11,7 @@ contract StakingAttacker {
     /// Substrate storage to score free delegations for a collator candidate of our choosing
     function score_a_free_delegation() public payable {
         // We delegate our target collator with all the tokens provided
-        PARACHAIN_STAKING_CONTRACT.delegate(target, msg.value, 1, 1);
+        PARACHAIN_STAKING_CONTRACT.delegateWithAutoCompound(target, msg.value, 0, 1, 0, 1);
         revert(
             "By reverting this transaction, we return the eth to the caller"
         );

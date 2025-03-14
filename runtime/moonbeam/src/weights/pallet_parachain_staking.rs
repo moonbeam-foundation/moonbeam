@@ -405,39 +405,6 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	/// Storage: `System::Account` (r:1 w:1)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `ParachainStaking::DelegatorState` (r:1 w:1)
-	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
-	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::TopDelegations` (r:1 w:1)
-	/// Proof: `ParachainStaking::TopDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
-	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:1 w:1)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:1 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
-	/// Storage: `ParachainStaking::Total` (r:1 w:1)
-	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// The range of component `x` is `[3, 100]`.
-	/// The range of component `y` is `[2, 300]`.
-	fn delegate(x: u32, y: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `2443 + x * (79 ±0) + y * (38 ±0)`
-		//  Estimated: `5682 + x * (81 ±0) + y * (39 ±0)`
-		// Minimum execution time: 98_001_000 picoseconds.
-		Weight::from_parts(90_350_272, 5682)
-			// Standard Error: 1_310
-			.saturating_add(Weight::from_parts(145_492, 0).saturating_mul(x.into()))
-			// Standard Error: 429
-			.saturating_add(Weight::from_parts(51_033, 0).saturating_mul(y.into()))
-			.saturating_add(T::DbWeight::get().reads(8_u64))
-			.saturating_add(T::DbWeight::get().writes(7_u64))
-			.saturating_add(Weight::from_parts(0, 81).saturating_mul(x.into()))
-			.saturating_add(Weight::from_parts(0, 39).saturating_mul(y.into()))
-	}
 	/// Storage: `ParachainStaking::DelegatorState` (r:1 w:1)
 	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::DelegationScheduledRequests` (r:1 w:1)
