@@ -54,7 +54,7 @@ use self::evm::EvmCaller;
 use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
-use frame_support::traits::Contains;
+use frame_support::traits::{Contains, fungibles::{Inspect}};
 use frame_system::pallet_prelude::*;
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
@@ -63,6 +63,8 @@ use xcm::latest::{
 use xcm::prelude::Parachain;
 use xcm_executor::traits::ConvertLocation;
 use xcm_executor::traits::Error as MatchError;
+
+mod impl_fungibles;
 
 const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
 
@@ -247,6 +249,8 @@ pub mod pallet {
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
+		EvmCallBalanceOfFail,
+		EvmCallTotalSupplyFail,
 		EvmInternalError,
 		/// Account has insufficient balance for locking
 		InsufficientBalance,
@@ -754,4 +758,18 @@ pub mod pallet {
 			AssetsById::<T>::get(asset_id)
 		}
 	}
+
+	// impl <T: Config> frame_support::traits::tokens::fungibles::Create<T::AccountId> for Pallet<T> {
+	// 	fn create(who: &T::AccountId, amount: AssetBalance) {
+	// 		let asset_id = 0;
+	// 		let contract_address = Self::contract_address_from_asset_id(asset_id);
+	// 		let beneficiary = T::AccountIdToH160::convert(who.clone());
+	// 		let amount = U256::from(amount);
+	// 		// We perform the evm call in a storage transaction to ensure that if it fail
+	// 		// any contract storage changes are rolled back.
+	// 		frame_support::storage::with_storage_layer(|| {
+	// 			EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
+	// 		}).unwrap();
+	// 	}
+	// }
 }
