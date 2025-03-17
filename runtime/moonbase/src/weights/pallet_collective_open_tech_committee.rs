@@ -286,4 +286,10 @@ impl<T: frame_system::Config> pallet_collective_open_tech_committee::WeightInfo 
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
+	fn kill(d: u32, p: u32, ) -> Weight {
+	    todo!()
+	}
+	fn release_proposal_cost() -> Weight {
+	    todo!()
+	}
 }

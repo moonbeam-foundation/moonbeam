@@ -397,17 +397,31 @@ impl<T: frame_system::Config> pallet_identity::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	/// Storage: `Identity::AccountOfUsername` (r:1 w:1)
-	/// Proof: `Identity::AccountOfUsername` (`max_values`: None, `max_size`: Some(69), added: 2544, mode: `MaxEncodedLen`)
-	/// Storage: `Identity::IdentityOf` (r:1 w:0)
-	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7560), added: 10035, mode: `MaxEncodedLen`)
-	fn remove_dangling_username() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `86`
-		//  Estimated: `11025`
-		// Minimum execution time: 12_800_000 picoseconds.
-		Weight::from_parts(13_148_000, 11025)
-			.saturating_add(T::DbWeight::get().reads(2_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
+	fn kill_username(p: u32, ) -> Weight {
+	    todo!()
+	}
+	fn remove_username() -> Weight {
+	    todo!()
+	}
+	fn unbind_username() -> Weight {
+	    todo!()
+	}
+	fn migration_v2_identity_step() -> Weight {
+	    todo!()
+	}
+	fn migration_v2_username_step() -> Weight {
+	    todo!()
+	}
+	fn migration_v2_authority_step() -> Weight {
+	    todo!()
+	}
+	fn migration_v2_cleanup_username_step() -> Weight {
+	    todo!()
+	}
+	fn migration_v2_pending_username_step() -> Weight {
+	    todo!()
+	}
+	fn migration_v2_cleanup_authority_step() -> Weight {
+	    todo!()
 	}
 }
