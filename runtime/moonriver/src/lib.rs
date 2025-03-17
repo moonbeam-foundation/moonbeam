@@ -46,7 +46,7 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
-		fungible::{Balanced, Credit, HoldConsideration, Inspect},
+		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeFromLeft, NativeOrWithId, UnionOf},
 		tokens::{pay::PayAssetFromAccount, PayFromAccount, UnityAssetBalanceConversion},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
 		EitherOfDiverse, EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice, OnFinalize,

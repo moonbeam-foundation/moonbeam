@@ -65,7 +65,7 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
-		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId}, fungibles::UnionOf, tokens::{pay::PayAssetFromAccount, PayFromAccount, UnityAssetBalanceConversion}, ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice, OnFinalize, OnUnbalanced
+		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeFromLeft, NativeOrWithId, UnionOf}, tokens::{pay::PayAssetFromAccount, PayFromAccount, UnityAssetBalanceConversion}, ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice, OnFinalize, OnUnbalanced
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -565,7 +565,7 @@ type RootOrTreasuryCouncilOrigin = EitherOfDiverse<
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
 >;
 
-type NativeAndAssets = UnionOf<Balances, EvmForeignAssets, NativeForLeft, NativeOrWithId<AssetId>, AccountId>;
+type NativeAndAssets = UnionOf<Balances, EvmForeignAssets, NativeFromLeft, NativeOrWithId<AssetId>, AccountId>;
 
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
