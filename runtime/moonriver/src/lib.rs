@@ -28,7 +28,10 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+extern crate alloc;
+
 use account::AccountId20;
+use alloc::borrow::Cow;
 use cumulus_pallet_parachain_system::{
 	RelayChainStateProof, RelayStateProof, RelaychainDataProvider, ValidationData,
 };
@@ -84,7 +87,7 @@ use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	generic, impl_opaque_keys,
 	serde::{Deserialize, Serialize},
 	traits::{
 		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
@@ -195,8 +198,8 @@ pub mod opaque {
 /// changes which can be skipped.
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonriver"),
-	impl_name: create_runtime_str!("moonriver"),
+	spec_name: Cow::Borrowed("moonriver"),
+	impl_name: Cow::Borrowed("moonriver"),
 	authoring_version: 3,
 	spec_version: 3600,
 	impl_version: 0,
@@ -1040,13 +1043,17 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						call,
 						RuntimeCall::System(..)
 							| RuntimeCall::ParachainSystem(..)
-							| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
-							| RuntimeCall::Referenda(..) | RuntimeCall::Preimage(..)
+							| RuntimeCall::Timestamp(..)
+							| RuntimeCall::ParachainStaking(..)
+							| RuntimeCall::Referenda(..)
+							| RuntimeCall::Preimage(..)
 							| RuntimeCall::ConvictionVoting(..)
 							| RuntimeCall::TreasuryCouncilCollective(..)
 							| RuntimeCall::OpenTechCommitteeCollective(..)
-							| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
-							| RuntimeCall::Identity(..) | RuntimeCall::AuthorMapping(..)
+							| RuntimeCall::Utility(..)
+							| RuntimeCall::Proxy(..)
+							| RuntimeCall::Identity(..)
+							| RuntimeCall::AuthorMapping(..)
 							| RuntimeCall::CrowdloanRewards(
 								pallet_crowdloan_rewards::Call::claim { .. }
 							)

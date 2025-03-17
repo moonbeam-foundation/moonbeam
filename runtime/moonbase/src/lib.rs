@@ -21,7 +21,7 @@
 //! * Moonbase tokenomics
 
 #![cfg_attr(not(feature = "std"), no_std)]
-// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
+// `construct_runtime!` does a lot of recursion and requires us to increase the limit.
 #![recursion_limit = "512"]
 
 // Make the WASM binary available.
@@ -38,6 +38,9 @@ pub mod xcm_config;
 mod migrations;
 mod precompiles;
 
+extern crate alloc;
+
+use alloc::borrow::Cow;
 // Re-export required by get! macro.
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
@@ -98,7 +101,7 @@ use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	generic, impl_opaque_keys,
 	traits::{
 		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
 		PostDispatchInfoOf, UniqueSaturatedInto, Zero,
@@ -193,8 +196,8 @@ pub mod opaque {
 /// changes which can be skipped.
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonbase"),
-	impl_name: create_runtime_str!("moonbase"),
+	spec_name: Cow::Borrowed("moonbase"),
+	impl_name: Cow::Borrowed("moonbase"),
 	authoring_version: 4,
 	spec_version: 3600,
 	impl_version: 0,
@@ -1034,13 +1037,17 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						call,
 						RuntimeCall::System(..)
 							| RuntimeCall::ParachainSystem(..)
-							| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
-							| RuntimeCall::Referenda(..) | RuntimeCall::Preimage(..)
+							| RuntimeCall::Timestamp(..)
+							| RuntimeCall::ParachainStaking(..)
+							| RuntimeCall::Referenda(..)
+							| RuntimeCall::Preimage(..)
 							| RuntimeCall::ConvictionVoting(..)
 							| RuntimeCall::TreasuryCouncilCollective(..)
 							| RuntimeCall::OpenTechCommitteeCollective(..)
-							| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
-							| RuntimeCall::Identity(..) | RuntimeCall::AuthorMapping(..)
+							| RuntimeCall::Utility(..)
+							| RuntimeCall::Proxy(..)
+							| RuntimeCall::Identity(..)
+							| RuntimeCall::AuthorMapping(..)
 							| RuntimeCall::CrowdloanRewards(
 								pallet_crowdloan_rewards::Call::claim { .. }
 							)
