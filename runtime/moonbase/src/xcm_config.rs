@@ -50,9 +50,12 @@ use xcm_builder::{
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
-use xcm::latest::prelude::{
-	AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId,
-	PalletInstance, Parachain, Wild, WildFungible,
+use xcm::latest::{
+	prelude::{
+		AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location,
+		NetworkId, PalletInstance, Parachain, Wild, WildFungible,
+	},
+	WESTEND_GENESIS_HASH,
 };
 
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
@@ -79,7 +82,7 @@ use sp_std::{
 
 parameter_types! {
 	// The network Id of the relay
-	pub const RelayNetwork: NetworkId = NetworkId::Westend;
+	pub const RelayNetwork: NetworkId = NetworkId::ByGenesis(WESTEND_GENESIS_HASH);
 	// The relay chain Origin type
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	// The universal location within the global consensus system
