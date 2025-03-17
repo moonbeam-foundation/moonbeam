@@ -151,6 +151,9 @@ jobs:
           VERSION="${{ github.event.inputs.to }}"
           TAG="${VERSION}-rc"
 
+          # Rename binary
+          mv build/moonbeam-x86-64 build/moonbeam
+
           echo "tags=${DOCKER_IMAGE}:${TAG}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
       - name: Cargo build
