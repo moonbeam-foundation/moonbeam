@@ -672,7 +672,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn convert_transaction(
 					transaction: pallet_ethereum::Transaction
 				) -> <Block as BlockT>::Extrinsic {
-					UncheckedExtrinsic::new_unsigned(
+					UncheckedExtrinsic::new_bare(
 						pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 					)
 				}

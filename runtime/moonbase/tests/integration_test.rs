@@ -2989,7 +2989,7 @@ fn validate_transaction_fails_on_filtered_call() {
 	use sp_transaction_pool::runtime_api::runtime_decl_for_tagged_transaction_queue::TaggedTransactionQueueV3; // editorconfig-checker-disable-line
 
 	ExtBuilder::default().build().execute_with(|| {
-		let xt = UncheckedExtrinsic::new_unsigned(
+		let xt = UncheckedExtrinsic::new_bare(
 			pallet_evm::Call::<Runtime>::call {
 				source: Default::default(),
 				target: H160::default(),
