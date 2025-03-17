@@ -41,6 +41,9 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	type WeightInfo = moonriver_weights::pallet_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
+	type DisapproveOrigin = EnsureRoot<AccountId>;
+	type KillOrigin = EnsureRoot<AccountId>;
+	type Consideration = ();
 }
 
 impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
@@ -58,4 +61,7 @@ impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
 	type WeightInfo = moonriver_weights::pallet_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
+	type DisapproveOrigin = EnsureRoot<AccountId>;
+	type KillOrigin = EnsureRoot<AccountId>;
+	type Consideration = ();
 }

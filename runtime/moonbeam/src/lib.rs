@@ -290,6 +290,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 impl pallet_utility::Config for Runtime {
@@ -333,6 +334,7 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type WeightInfo = moonbeam_weights::pallet_balances::WeightInfo<Runtime>;
+	type DoneSlashHandler = ();
 }
 
 pub struct LengthToFee;
@@ -370,6 +372,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
 	type LengthToFee = LengthToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
+	type WeightInfo = ();
 }
 
 impl pallet_evm_chain_id::Config for Runtime {}
@@ -504,7 +507,6 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = RelayTimestamp;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
@@ -582,6 +584,7 @@ impl pallet_treasury::Config for Runtime {
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
+	type BlockNumberProvider = ();
 }
 
 parameter_types! {
@@ -620,13 +623,15 @@ impl pallet_identity::Config for Runtime {
 	type MaxSuffixLength = MaxSuffixLength;
 	type MaxUsernameLength = MaxUsernameLength;
 	type WeightInfo = moonbeam_weights::pallet_identity::WeightInfo<Runtime>;
+	type UsernameDeposit = ();
+	type UsernameGracePeriod = ();
 }
 
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
-		UncheckedExtrinsic::new_unsigned(
+		UncheckedExtrinsic::new_bare(
 			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 		)
 	}
@@ -682,6 +687,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = moonbeam_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
+	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
 }
 
 pub struct EthereumXcmEnsureProxy;
@@ -1607,7 +1613,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 					// Calculate how much gas this effectively uses according to the existing mapping
 					let effective_gas =
 						<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-							dispatch_info.weight
+							dispatch_info.total_weight()
 						);
 
 					// Here we calculate an ethereum-style effective gas price using the
