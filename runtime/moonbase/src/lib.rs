@@ -1580,7 +1580,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 
 					let effective_gas =
 						<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-							dispatch_info.weight
+							dispatch_info.total_weight()
 						);
 					let tip_per_gas = if effective_gas > 0 {
 						tip.saturating_div(effective_gas as u128)
