@@ -951,7 +951,7 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::SovereignAccount,
-				require_weight_at_most: tx_weight,
+				fallback_max_weight: Some(tx_weight),
 				call: Transactors::Relay
 					.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8]))
 					.into(),
@@ -1022,7 +1022,7 @@ fn test_send_through_sovereign_with_custom_weight_and_fee() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::SovereignAccount,
-				require_weight_at_most: tx_weight,
+				fallback_max_weight: Some(tx_weight),
 				call: vec![1u8].into(),
 			}));
 		})
@@ -1087,7 +1087,7 @@ fn test_transact_through_sovereign_with_fee_payer_none() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::SovereignAccount,
-				require_weight_at_most: tx_weight,
+				fallback_max_weight: Some(tx_weight),
 				call: vec![1u8].into(),
 			}));
 		})
@@ -1145,7 +1145,7 @@ fn test_send_through_signed_with_custom_weight_and_fee() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::SovereignAccount,
-				require_weight_at_most: tx_weight,
+				fallback_max_weight: Some(tx_weight),
 				call: vec![1u8].into(),
 			}));
 		})
@@ -1194,7 +1194,7 @@ fn test_hrmp_manipulator_init() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
-				require_weight_at_most: tx_weight,
+				fallback_max_weight: tx_weight,
 				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
@@ -1246,7 +1246,7 @@ fn test_hrmp_manipulator_init_v2_convert_works() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
-				require_weight_at_most: tx_weight,
+				fallback_max_weight: tx_weight,
 				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 
@@ -1310,7 +1310,7 @@ fn test_hrmp_manipulator_init_v3_convert_works() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
-				require_weight_at_most: tx_weight,
+				fallback_max_weight: Some(tx_weight),
 				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 
@@ -1442,7 +1442,7 @@ fn test_hrmp_manipulator_accept() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
-				require_weight_at_most: tx_weight,
+				fallback_max_weight: Some(tx_weight),
 				call: vec![0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
@@ -1495,7 +1495,7 @@ fn test_hrmp_manipulator_cancel() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
-				require_weight_at_most: tx_weight,
+				fallback_max_weight: Some(tx_weight),
 				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
@@ -1543,7 +1543,7 @@ fn test_hrmp_manipulator_close() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
-				require_weight_at_most: tx_weight,
+				fallback_max_weight: Some(tx_weight),
 				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
