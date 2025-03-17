@@ -31,7 +31,7 @@ export const PARA_2000_SOURCE_LOCATION = {
   Xcm: { parents: 1, interior: { X1: { Parachain: 2000 } } },
 };
 
-// XCM V4 Locations
+// TODO: XCM V5 Locations
 export const RELAY_SOURCE_LOCATION_V4 = { parents: 1, interior: { here: null } };
 export const PARA_1000_SOURCE_LOCATION_V4 = { parents: 1, interior: { X1: [{ Parachain: 1000 }] } };
 export const PARA_1001_SOURCE_LOCATION_V4 = { parents: 1, interior: { X1: [{ Parachain: 1001 }] } };

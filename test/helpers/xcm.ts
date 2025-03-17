@@ -464,7 +464,7 @@ export class XcmFragment {
     };
   }
 
-  /// XCM V4 calls
+  /// TODO: XCM V5 calls
   as_v4(): any {
     const patchLocationV4recursively = (value: any) => {
       // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
@@ -488,7 +488,7 @@ export class XcmFragment {
       return value;
     };
     return {
-      V4: this.instructions.map((inst) => patchLocationV4recursively(inst)),
+      V5: this.instructions.map((inst) => patchLocationV4recursively(inst)),
     };
   }
 

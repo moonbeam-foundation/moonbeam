@@ -158,7 +158,7 @@ describeSuite({
                 .tx.polkadotXcm.transferAssets(
                   // Destination
                   {
-                    V4: {
+                    V5: {
                       parents: 1n,
                       interior: {
                         X1: [{ Parachain: 2000n }],
@@ -167,7 +167,7 @@ describeSuite({
                   } as any,
                   // Beneficiary
                   {
-                    V4: {
+                    V5: {
                       parents: 0n,
                       interior: {
                         X1: [{ AccountKey20: { network: null, key: hexToU8a(baltathar.address) } }],
@@ -176,10 +176,10 @@ describeSuite({
                   } as any,
                   // Assets
                   {
-                    V4: [
+                    V5: [
                       {
                         id: {
-                          V4: {
+                          V5: {
                             parents: 0n,
                             interior: {
                               Here: null,

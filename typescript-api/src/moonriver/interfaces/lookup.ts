@@ -1799,14 +1799,14 @@ export default {
     }
   },
   /**
-   * Lookup140: staging_xcm::v4::location::Location
+   * Lookup140: staging_xcm::v5::location::Location
    **/
   StagingXcmV4Location: {
     parents: "u8",
     interior: "StagingXcmV4Junctions"
   },
   /**
-   * Lookup141: staging_xcm::v4::junctions::Junctions
+   * Lookup141: staging_xcm::v5::junctions::Junctions
    **/
   StagingXcmV4Junctions: {
     _enum: {
@@ -1822,7 +1822,7 @@ export default {
     }
   },
   /**
-   * Lookup143: staging_xcm::v4::junction::Junction
+   * Lookup143: staging_xcm::v5::junction::Junction
    **/
   StagingXcmV4Junction: {
     _enum: {
@@ -1854,7 +1854,7 @@ export default {
     }
   },
   /**
-   * Lookup146: staging_xcm::v4::junction::NetworkId
+   * Lookup146: staging_xcm::v5::junction::NetworkId
    **/
   StagingXcmV4JunctionNetworkId: {
     _enum: {
@@ -2712,7 +2712,7 @@ export default {
       V2: "XcmV2MultiLocation",
       __Unused2: "Null",
       V3: "StagingXcmV3MultiLocation",
-      V4: "StagingXcmV4Location"
+      V5: "StagingXcmV4Location"
     }
   },
   /**
@@ -2904,7 +2904,7 @@ export default {
       __Unused1: "Null",
       V2: "XcmV2Xcm",
       V3: "XcmV3Xcm",
-      V4: "StagingXcmV4Xcm"
+      V5: "StagingXcmV4Xcm"
     }
   },
   /**
@@ -3470,11 +3470,11 @@ export default {
     }
   },
   /**
-   * Lookup312: staging_xcm::v4::Xcm<Call>
+   * Lookup312: staging_xcm::v5::Xcm<Call>
    **/
   StagingXcmV4Xcm: "Vec<StagingXcmV4Instruction>",
   /**
-   * Lookup314: staging_xcm::v4::Instruction<Call>
+   * Lookup314: staging_xcm::v5::Instruction<Call>
    **/
   StagingXcmV4Instruction: {
     _enum: {
@@ -3616,22 +3616,22 @@ export default {
     }
   },
   /**
-   * Lookup315: staging_xcm::v4::asset::Assets
+   * Lookup315: staging_xcm::v5::asset::Assets
    **/
   StagingXcmV4AssetAssets: "Vec<StagingXcmV4Asset>",
   /**
-   * Lookup317: staging_xcm::v4::asset::Asset
+   * Lookup317: staging_xcm::v5::asset::Asset
    **/
   StagingXcmV4Asset: {
     id: "StagingXcmV4AssetAssetId",
     fun: "StagingXcmV4AssetFungibility"
   },
   /**
-   * Lookup318: staging_xcm::v4::asset::AssetId
+   * Lookup318: staging_xcm::v5::asset::AssetId
    **/
   StagingXcmV4AssetAssetId: "StagingXcmV4Location",
   /**
-   * Lookup319: staging_xcm::v4::asset::Fungibility
+   * Lookup319: staging_xcm::v5::asset::Fungibility
    **/
   StagingXcmV4AssetFungibility: {
     _enum: {
@@ -3640,7 +3640,7 @@ export default {
     }
   },
   /**
-   * Lookup320: staging_xcm::v4::asset::AssetInstance
+   * Lookup320: staging_xcm::v5::asset::AssetInstance
    **/
   StagingXcmV4AssetAssetInstance: {
     _enum: {
@@ -3653,7 +3653,7 @@ export default {
     }
   },
   /**
-   * Lookup321: staging_xcm::v4::Response
+   * Lookup321: staging_xcm::v5::Response
    **/
   StagingXcmV4Response: {
     _enum: {
@@ -3666,7 +3666,7 @@ export default {
     }
   },
   /**
-   * Lookup323: staging_xcm::v4::PalletInfo
+   * Lookup323: staging_xcm::v5::PalletInfo
    **/
   StagingXcmV4PalletInfo: {
     index: "Compact<u32>",
@@ -3677,7 +3677,7 @@ export default {
     patch: "Compact<u32>"
   },
   /**
-   * Lookup327: staging_xcm::v4::QueryResponseInfo
+   * Lookup327: staging_xcm::v5::QueryResponseInfo
    **/
   StagingXcmV4QueryResponseInfo: {
     destination: "StagingXcmV4Location",
@@ -3685,7 +3685,7 @@ export default {
     maxWeight: "SpWeightsWeightV2Weight"
   },
   /**
-   * Lookup328: staging_xcm::v4::asset::AssetFilter
+   * Lookup328: staging_xcm::v5::asset::AssetFilter
    **/
   StagingXcmV4AssetAssetFilter: {
     _enum: {
@@ -3694,7 +3694,7 @@ export default {
     }
   },
   /**
-   * Lookup329: staging_xcm::v4::asset::WildAsset
+   * Lookup329: staging_xcm::v5::asset::WildAsset
    **/
   StagingXcmV4AssetWildAsset: {
     _enum: {
@@ -3712,7 +3712,7 @@ export default {
     }
   },
   /**
-   * Lookup330: staging_xcm::v4::asset::WildFungibility
+   * Lookup330: staging_xcm::v5::asset::WildFungibility
    **/
   StagingXcmV4AssetWildFungibility: {
     _enum: ["Fungible", "NonFungible"]
@@ -3726,7 +3726,7 @@ export default {
       V2: "XcmV2MultiassetMultiAssets",
       __Unused2: "Null",
       V3: "XcmV3MultiassetMultiAssets",
-      V4: "StagingXcmV4AssetAssets"
+      V5: "StagingXcmV4AssetAssets"
     }
   },
   /**
@@ -3749,7 +3749,7 @@ export default {
       __Unused1: "Null",
       __Unused2: "Null",
       V3: "XcmV3MultiassetAssetId",
-      V4: "StagingXcmV4AssetAssetId"
+      V5: "StagingXcmV4AssetAssetId"
     }
   },
   /**
@@ -4417,7 +4417,7 @@ export default {
     }
   },
   /**
-   * Lookup390: staging_xcm::v4::traits::Outcome
+   * Lookup390: staging_xcm::v5::traits::Outcome
    **/
   StagingXcmV4TraitsOutcome: {
     _enum: {
@@ -6243,7 +6243,7 @@ export default {
       __Unused1: "Null",
       V2: "XcmV2Response",
       V3: "XcmV3Response",
-      V4: "StagingXcmV4Response"
+      V5: "StagingXcmV4Response"
     }
   },
   /**

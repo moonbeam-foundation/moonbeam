@@ -1664,9 +1664,9 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(xcm::VersionedLocation::V4(chain_part.clone())),
-					Box::new(xcm::VersionedLocation::V4(beneficiary.clone())),
-					Box::new(VersionedAssets::V4(asset.clone().into())),
+					Box::new(xcm::VersionedLocation::V5(chain_part.clone())),
+					Box::new(xcm::VersionedLocation::V5(beneficiary.clone())),
+					Box::new(VersionedAssets::V5(asset.clone().into())),
 					0,
 					WeightLimit::Limited(4000000000.into())
 				),
@@ -1682,9 +1682,9 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(xcm::VersionedLocation::V4(chain_part)),
-				Box::new(xcm::VersionedLocation::V4(beneficiary)),
-				Box::new(VersionedAssets::V4(asset.clone().into())),
+				Box::new(xcm::VersionedLocation::V5(chain_part)),
+				Box::new(xcm::VersionedLocation::V5(beneficiary)),
+				Box::new(VersionedAssets::V5(asset.clone().into())),
 				0,
 				WeightLimit::Limited(4000000000.into())
 			));
@@ -2119,9 +2119,9 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedLocation::V4(dest.clone())),
-					beneficiary: Box::new(VersionedLocation::V4(dest)),
-					assets: Box::new(VersionedAssets::V4(assets)),
+					dest: Box::new(VersionedLocation::V5(dest.clone())),
+					beneficiary: Box::new(VersionedLocation::V5(dest)),
+					assets: Box::new(VersionedAssets::V5(assets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2163,7 +2163,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::V5(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				20000.into(),
@@ -2173,7 +2173,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::V5(Location::parent())),
 				1
 			));
 
@@ -2183,7 +2183,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V5(
 							Location::parent()
 						))),
 						fee_amount: None
@@ -2346,9 +2346,9 @@ fn call_xtokens_with_fee() {
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(chain_part)),
-				Box::new(VersionedLocation::V4(beneficiary)),
-				Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+				Box::new(VersionedLocation::V5(chain_part)),
+				Box::new(VersionedLocation::V5(beneficiary)),
+				Box::new(VersionedAssets::V5(vec![asset_fee, asset].into())),
 				0,
 				WeightLimit::Limited(4000000000.into()),
 			),);
@@ -2440,7 +2440,7 @@ fn test_xcm_utils_weight_message() {
 		let expected_weight =
 			XcmWeight::<moonriver_runtime::Runtime, RuntimeCall>::clear_origin().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),

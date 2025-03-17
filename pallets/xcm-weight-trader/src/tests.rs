@@ -21,7 +21,7 @@ use {
 	frame_support::pallet_prelude::Weight,
 	frame_support::{assert_noop, assert_ok},
 	sp_runtime::DispatchError,
-	xcm::v4::{
+	xcm::v5::{
 		Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext, XcmHash,
 	},
 	xcm::{IntoVersion, VersionedAssetId},
@@ -566,7 +566,7 @@ fn test_query_acceptable_payment_assets() {
 		// By default, only native asset should be supported
 		assert_eq!(
 			XcmWeightTrader::query_acceptable_payment_assets(4),
-			Ok(vec![VersionedAssetId::V4(XcmAssetId(
+			Ok(vec![VersionedAssetId::V5(XcmAssetId(
 				<Test as crate::Config>::NativeLocation::get()
 			))])
 		);
@@ -574,7 +574,7 @@ fn test_query_acceptable_payment_assets() {
 		// We should support XCMv3
 		assert_eq!(
 			XcmWeightTrader::query_acceptable_payment_assets(3),
-			Ok(vec![VersionedAssetId::V4(XcmAssetId(
+			Ok(vec![VersionedAssetId::V5(XcmAssetId(
 				<Test as crate::Config>::NativeLocation::get()
 			))
 			.into_version(3)
@@ -602,8 +602,8 @@ fn test_query_acceptable_payment_assets() {
 		assert_eq!(
 			XcmWeightTrader::query_acceptable_payment_assets(4),
 			Ok(vec![
-				VersionedAssetId::V4(XcmAssetId(<Test as crate::Config>::NativeLocation::get())),
-				VersionedAssetId::V4(XcmAssetId(Location::parent()))
+				VersionedAssetId::V5(XcmAssetId(<Test as crate::Config>::NativeLocation::get())),
+				VersionedAssetId::V5(XcmAssetId(Location::parent()))
 			])
 		);
 
@@ -620,7 +620,7 @@ fn test_query_acceptable_payment_assets() {
 		// We should not support paused assets
 		assert_eq!(
 			XcmWeightTrader::query_acceptable_payment_assets(4),
-			Ok(vec![VersionedAssetId::V4(XcmAssetId(
+			Ok(vec![VersionedAssetId::V5(XcmAssetId(
 				<Test as crate::Config>::NativeLocation::get()
 			)),])
 		);
@@ -631,8 +631,8 @@ fn test_query_acceptable_payment_assets() {
 fn test_query_weight_to_asset_fee() {
 	new_test_ext().execute_with(|| {
 		let native_asset =
-			VersionedAssetId::V4(XcmAssetId(<Test as crate::Config>::NativeLocation::get()));
-		let parent_asset = VersionedAssetId::V4(XcmAssetId(Location::parent()));
+			VersionedAssetId::V5(XcmAssetId(<Test as crate::Config>::NativeLocation::get()));
+		let parent_asset = VersionedAssetId::V5(XcmAssetId(Location::parent()));
 		let weight_to_buy = Weight::from_parts(10_000, 0);
 
 		// Native asset price should be 1:1

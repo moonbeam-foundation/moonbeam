@@ -270,7 +270,7 @@ describeSuite({
           .index.toNumber();
 
         const dest = {
-          V4: {
+          V5: {
             parents: 1n,
             interior: {
               X1: [{ Parachain: 2104n }],
@@ -279,7 +279,7 @@ describeSuite({
         } as any;
 
         const beneficiary = {
-          V4: {
+          V5: {
             parents: 0n,
             interior: {
               X1: [
@@ -295,10 +295,10 @@ describeSuite({
         } as any;
 
         const assetsToSend = {
-          V4: [
+          V5: [
             {
               id: {
-                V4: {
+                V5: {
                   parents: 0n,
                   interior: {
                     Here: null,
@@ -309,7 +309,7 @@ describeSuite({
             },
             {
               id: {
-                V4: {
+                V5: {
                   parents: 0n,
                   interior: {
                     X2: [

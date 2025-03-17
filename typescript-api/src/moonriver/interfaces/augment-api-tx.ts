@@ -2911,14 +2911,14 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedAssets
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           beneficiary:
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
@@ -2936,7 +2936,7 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       execute: AugmentedSubmittable<
         (
-          message: XcmVersionedXcm | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array,
+          message: XcmVersionedXcm | { V2: any } | { V3: any } | { V5: any } | string | Uint8Array,
           maxWeight:
             | SpWeightsWeightV2Weight
             | { refTime?: any; proofSize?: any }
@@ -2970,7 +2970,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
@@ -3000,7 +3000,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
@@ -3059,21 +3059,21 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           beneficiary:
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           assets:
             | XcmVersionedAssets
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           feeAssetItem: u32 | AnyNumber | Uint8Array,
@@ -3112,21 +3112,21 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           beneficiary:
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           assets:
             | XcmVersionedAssets
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           feeAssetItem: u32 | AnyNumber | Uint8Array,
@@ -3177,21 +3177,21 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           beneficiary:
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           assets:
             | XcmVersionedAssets
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           feeAssetItem: u32 | AnyNumber | Uint8Array
@@ -3204,10 +3204,10 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
-          message: XcmVersionedXcm | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array
+          message: XcmVersionedXcm | { V2: any } | { V3: any } | { V5: any } | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [XcmVersionedLocation, XcmVersionedXcm]
       >;
@@ -3237,21 +3237,21 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           beneficiary:
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           assets:
             | XcmVersionedAssets
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           feeAssetItem: u32 | AnyNumber | Uint8Array
@@ -3299,21 +3299,21 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           beneficiary:
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           assets:
             | XcmVersionedAssets
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           feeAssetItem: u32 | AnyNumber | Uint8Array,
@@ -3382,14 +3382,14 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           assets:
             | XcmVersionedAssets
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           assetsTransferType:
@@ -3400,7 +3400,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | { RemoteReserve: any }
             | string
             | Uint8Array,
-          remoteFeesId: XcmVersionedAssetId | { V3: any } | { V4: any } | string | Uint8Array,
+          remoteFeesId: XcmVersionedAssetId | { V3: any } | { V5: any } | string | Uint8Array,
           feesTransferType:
             | StagingXcmExecutorAssetTransferTransferType
             | { Teleport: any }
@@ -3413,7 +3413,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedXcm
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           weightLimit:
@@ -4812,7 +4812,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
@@ -4827,7 +4827,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
@@ -4842,7 +4842,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           feePerSecond: u128 | AnyNumber | Uint8Array
@@ -4858,7 +4858,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           transactExtraWeight:
@@ -4932,7 +4932,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           fee:
@@ -4968,7 +4968,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmVersionedLocation
             | { V2: any }
             | { V3: any }
-            | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array,
           feePayer: Option<AccountId20> | null | Uint8Array | AccountId20 | string,

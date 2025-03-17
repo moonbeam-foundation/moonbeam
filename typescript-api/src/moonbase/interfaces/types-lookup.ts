@@ -2095,7 +2095,7 @@ declare module "@polkadot/types/lookup" {
     readonly asV3: XcmV3MultiassetMultiAssets;
     readonly isV4: boolean;
     readonly asV4: StagingXcmV4AssetAssets;
-    readonly type: "V2" | "V3" | "V4";
+    readonly type: "V2" | "V3" | "V5";
   }
 
   /** @name XcmV2MultiassetMultiAssets (130) */
@@ -2489,7 +2489,7 @@ declare module "@polkadot/types/lookup" {
     readonly asV3: StagingXcmV3MultiLocation;
     readonly isV4: boolean;
     readonly asV4: StagingXcmV4Location;
-    readonly type: "V2" | "V3" | "V4";
+    readonly type: "V2" | "V3" | "V5";
   }
 
   /** @name PalletAssetsEvent (155) */
@@ -4395,7 +4395,7 @@ declare module "@polkadot/types/lookup" {
     readonly asV3: XcmV3Xcm;
     readonly isV4: boolean;
     readonly asV4: StagingXcmV4Xcm;
-    readonly type: "V2" | "V3" | "V4";
+    readonly type: "V2" | "V3" | "V5";
   }
 
   /** @name XcmV2Xcm (291) */
@@ -4987,7 +4987,7 @@ declare module "@polkadot/types/lookup" {
     readonly asV3: XcmV3MultiassetAssetId;
     readonly isV4: boolean;
     readonly asV4: StagingXcmV4AssetAssetId;
-    readonly type: "V3" | "V4";
+    readonly type: "V3" | "V5";
   }
 
   /** @name PalletAssetsCall (329) */
@@ -7191,7 +7191,7 @@ declare module "@polkadot/types/lookup" {
     readonly asV3: XcmV3Response;
     readonly isV4: boolean;
     readonly asV4: StagingXcmV4Response;
-    readonly type: "V2" | "V3" | "V4";
+    readonly type: "V2" | "V3" | "V5";
   }
 
   /** @name PalletXcmVersionMigrationStage (581) */

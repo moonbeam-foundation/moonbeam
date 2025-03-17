@@ -1002,7 +1002,7 @@ export default {
     }
   },
   /**
-   * Lookup81: staging_xcm::v4::traits::Outcome
+   * Lookup81: staging_xcm::v5::traits::Outcome
    **/
   StagingXcmV4TraitsOutcome: {
     _enum: {
@@ -1191,14 +1191,14 @@ export default {
     }
   },
   /**
-   * Lookup84: staging_xcm::v4::location::Location
+   * Lookup84: staging_xcm::v5::location::Location
    **/
   StagingXcmV4Location: {
     parents: "u8",
     interior: "StagingXcmV4Junctions"
   },
   /**
-   * Lookup85: staging_xcm::v4::junctions::Junctions
+   * Lookup85: staging_xcm::v5::junctions::Junctions
    **/
   StagingXcmV4Junctions: {
     _enum: {
@@ -1214,7 +1214,7 @@ export default {
     }
   },
   /**
-   * Lookup87: staging_xcm::v4::junction::Junction
+   * Lookup87: staging_xcm::v5::junction::Junction
    **/
   StagingXcmV4Junction: {
     _enum: {
@@ -1246,7 +1246,7 @@ export default {
     }
   },
   /**
-   * Lookup90: staging_xcm::v4::junction::NetworkId
+   * Lookup90: staging_xcm::v5::junction::NetworkId
    **/
   StagingXcmV4JunctionNetworkId: {
     _enum: {
@@ -1309,11 +1309,11 @@ export default {
     }
   },
   /**
-   * Lookup101: staging_xcm::v4::Xcm<Call>
+   * Lookup101: staging_xcm::v5::Xcm<Call>
    **/
   StagingXcmV4Xcm: "Vec<StagingXcmV4Instruction>",
   /**
-   * Lookup103: staging_xcm::v4::Instruction<Call>
+   * Lookup103: staging_xcm::v5::Instruction<Call>
    **/
   StagingXcmV4Instruction: {
     _enum: {
@@ -1455,22 +1455,22 @@ export default {
     }
   },
   /**
-   * Lookup104: staging_xcm::v4::asset::Assets
+   * Lookup104: staging_xcm::v5::asset::Assets
    **/
   StagingXcmV4AssetAssets: "Vec<StagingXcmV4Asset>",
   /**
-   * Lookup106: staging_xcm::v4::asset::Asset
+   * Lookup106: staging_xcm::v5::asset::Asset
    **/
   StagingXcmV4Asset: {
     id: "StagingXcmV4AssetAssetId",
     fun: "StagingXcmV4AssetFungibility"
   },
   /**
-   * Lookup107: staging_xcm::v4::asset::AssetId
+   * Lookup107: staging_xcm::v5::asset::AssetId
    **/
   StagingXcmV4AssetAssetId: "StagingXcmV4Location",
   /**
-   * Lookup108: staging_xcm::v4::asset::Fungibility
+   * Lookup108: staging_xcm::v5::asset::Fungibility
    **/
   StagingXcmV4AssetFungibility: {
     _enum: {
@@ -1479,7 +1479,7 @@ export default {
     }
   },
   /**
-   * Lookup109: staging_xcm::v4::asset::AssetInstance
+   * Lookup109: staging_xcm::v5::asset::AssetInstance
    **/
   StagingXcmV4AssetAssetInstance: {
     _enum: {
@@ -1492,7 +1492,7 @@ export default {
     }
   },
   /**
-   * Lookup112: staging_xcm::v4::Response
+   * Lookup112: staging_xcm::v5::Response
    **/
   StagingXcmV4Response: {
     _enum: {
@@ -1505,7 +1505,7 @@ export default {
     }
   },
   /**
-   * Lookup116: staging_xcm::v4::PalletInfo
+   * Lookup116: staging_xcm::v5::PalletInfo
    **/
   StagingXcmV4PalletInfo: {
     index: "Compact<u32>",
@@ -1538,7 +1538,7 @@ export default {
     encoded: "Bytes"
   },
   /**
-   * Lookup124: staging_xcm::v4::QueryResponseInfo
+   * Lookup124: staging_xcm::v5::QueryResponseInfo
    **/
   StagingXcmV4QueryResponseInfo: {
     destination: "StagingXcmV4Location",
@@ -1546,7 +1546,7 @@ export default {
     maxWeight: "SpWeightsWeightV2Weight"
   },
   /**
-   * Lookup125: staging_xcm::v4::asset::AssetFilter
+   * Lookup125: staging_xcm::v5::asset::AssetFilter
    **/
   StagingXcmV4AssetAssetFilter: {
     _enum: {
@@ -1555,7 +1555,7 @@ export default {
     }
   },
   /**
-   * Lookup126: staging_xcm::v4::asset::WildAsset
+   * Lookup126: staging_xcm::v5::asset::WildAsset
    **/
   StagingXcmV4AssetWildAsset: {
     _enum: {
@@ -1573,7 +1573,7 @@ export default {
     }
   },
   /**
-   * Lookup127: staging_xcm::v4::asset::WildFungibility
+   * Lookup127: staging_xcm::v5::asset::WildFungibility
    **/
   StagingXcmV4AssetWildFungibility: {
     _enum: ["Fungible", "NonFungible"]
@@ -1596,7 +1596,7 @@ export default {
       V2: "XcmV2MultiassetMultiAssets",
       __Unused2: "Null",
       V3: "XcmV3MultiassetMultiAssets",
-      V4: "StagingXcmV4AssetAssets"
+      V5: "StagingXcmV4AssetAssets"
     }
   },
   /**
@@ -1873,7 +1873,7 @@ export default {
       V2: "XcmV2MultiLocation",
       __Unused2: "Null",
       V3: "StagingXcmV3MultiLocation",
-      V4: "StagingXcmV4Location"
+      V5: "StagingXcmV4Location"
     }
   },
   /**
@@ -3481,7 +3481,7 @@ export default {
       __Unused1: "Null",
       V2: "XcmV2Xcm",
       V3: "XcmV3Xcm",
-      V4: "StagingXcmV4Xcm"
+      V5: "StagingXcmV4Xcm"
     }
   },
   /**
@@ -3903,7 +3903,7 @@ export default {
       __Unused1: "Null",
       __Unused2: "Null",
       V3: "XcmV3MultiassetAssetId",
-      V4: "StagingXcmV4AssetAssetId"
+      V5: "StagingXcmV4AssetAssetId"
     }
   },
   /**
@@ -5883,7 +5883,7 @@ export default {
       __Unused1: "Null",
       V2: "XcmV2Response",
       V3: "XcmV3Response",
-      V4: "StagingXcmV4Response"
+      V5: "StagingXcmV4Response"
     }
   },
   /**

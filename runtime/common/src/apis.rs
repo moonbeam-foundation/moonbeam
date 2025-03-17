@@ -911,7 +911,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						) -> Option<(XcmAssets, u32, Location, Box<dyn FnOnce()>)> {
 							use xcm_config::SelfReserve;
 
-							let destination: xcm::v4::Location = Parent.into();
+							let destination: xcm::v5::Location = Parent.into();
 
 							let fee_amount: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
 							let fee_asset: Asset = (SelfReserve::get(), fee_amount).into();

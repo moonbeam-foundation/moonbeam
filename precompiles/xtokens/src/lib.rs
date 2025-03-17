@@ -100,9 +100,9 @@ where
 			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
 
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
-			dest: Box::new(VersionedLocation::V4(chain_part)),
-			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(asset.into())),
+			dest: Box::new(VersionedLocation::V5(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V5(beneficiary)),
+			assets: Box::new(VersionedAssets::V5(asset.into())),
 			fee_asset_item: 0,
 			weight_limit: dest_weight_limit,
 		};
@@ -161,9 +161,9 @@ where
 			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
 
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
-			dest: Box::new(VersionedLocation::V4(chain_part)),
-			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(asset.into())),
+			dest: Box::new(VersionedLocation::V5(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V5(beneficiary)),
+			assets: Box::new(VersionedAssets::V5(asset.into())),
 			fee_asset_item: 0,
 			weight_limit: dest_weight_limit,
 		};
@@ -202,9 +202,9 @@ where
 			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
 
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
-			dest: Box::new(VersionedLocation::V4(chain_part)),
-			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(
+			dest: Box::new(VersionedLocation::V5(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V5(beneficiary)),
+			assets: Box::new(VersionedAssets::V5(
 				Asset {
 					id: AssetId(asset),
 					fun: Fungibility::Fungible(to_balance),
@@ -254,9 +254,9 @@ where
 			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
 
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
-			dest: Box::new(VersionedLocation::V4(chain_part)),
-			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(
+			dest: Box::new(VersionedLocation::V5(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V5(beneficiary)),
+			assets: Box::new(VersionedAssets::V5(
 				Asset {
 					id: AssetId(asset.clone()),
 					fun: Fungibility::Fungible(amount),
@@ -333,9 +333,9 @@ where
 			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
 
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
-			dest: Box::new(VersionedLocation::V4(chain_part)),
-			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(assets.into())),
+			dest: Box::new(VersionedLocation::V5(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V5(beneficiary)),
+			assets: Box::new(VersionedAssets::V5(assets.into())),
 			fee_asset_item: fee_item,
 			weight_limit: dest_weight_limit,
 		};
@@ -396,9 +396,9 @@ where
 			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
 
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
-			dest: Box::new(VersionedLocation::V4(chain_part)),
-			beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(assets)),
+			dest: Box::new(VersionedLocation::V5(chain_part)),
+			beneficiary: Box::new(VersionedLocation::V5(beneficiary)),
+			assets: Box::new(VersionedAssets::V5(assets)),
 			fee_asset_item: fee_item,
 			weight_limit: dest_weight_limit,
 		};

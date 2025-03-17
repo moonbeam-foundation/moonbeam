@@ -38,7 +38,7 @@ use frame_support::weights::WeightToFee;
 use frame_system::pallet_prelude::*;
 use sp_runtime::traits::{Convert, Zero};
 use sp_std::vec::Vec;
-use xcm::v4::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
+use xcm::v5::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
 use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
@@ -269,13 +269,13 @@ pub mod pallet {
 				return Err(XcmPaymentApiError::UnhandledXcmVersion);
 			}
 
-			let v4_assets = [VersionedAssetId::V4(XcmAssetId::from(
+			let v4_assets = [VersionedAssetId::V5(XcmAssetId::from(
 				T::NativeLocation::get(),
 			))]
 			.into_iter()
 			.chain(
 				SupportedAssets::<T>::iter().filter_map(|(asset_location, (enabled, _))| {
-					enabled.then(|| VersionedAssetId::V4(XcmAssetId(asset_location)))
+					enabled.then(|| VersionedAssetId::V5(XcmAssetId(asset_location)))
 				}),
 			)
 			.collect::<Vec<_>>();
@@ -294,7 +294,7 @@ pub mod pallet {
 			weight: Weight,
 			asset: VersionedAssetId,
 		) -> Result<u128, XcmPaymentApiError> {
-			if let VersionedAssetId::V4(XcmAssetId(asset_location)) = asset
+			if let VersionedAssetId::V5(XcmAssetId(asset_location)) = asset
 				.into_version(4)
 				.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?
 			{

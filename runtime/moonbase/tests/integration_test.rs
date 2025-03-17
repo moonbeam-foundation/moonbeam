@@ -1250,7 +1250,7 @@ fn update_reward_address_via_precompile() {
 #[test]
 fn create_and_manipulate_foreign_asset_using_root() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = xcm::v4::Location::parent();
+		let source_location = xcm::v5::Location::parent();
 
 		// Create foreign asset
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
@@ -1357,7 +1357,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1412,7 +1412,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1473,7 +1473,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1555,7 +1555,7 @@ fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1653,7 +1653,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -2119,7 +2119,7 @@ fn root_can_change_default_xcm_vers() {
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -2143,8 +2143,8 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::V4(Location::parent())),
-					Box::new(VersionedLocation::V4(Location {
+					Box::new(VersionedLocation::V5(Location::parent())),
+					Box::new(VersionedLocation::V5(Location {
 						parents: 0,
 						interior: [AccountId32 {
 							network: None,
@@ -2152,7 +2152,7 @@ fn root_can_change_default_xcm_vers() {
 						}]
 						.into(),
 					})),
-					Box::new(VersionedAssets::V4(asset.clone().into())),
+					Box::new(VersionedAssets::V5(asset.clone().into())),
 					0,
 					WeightLimit::Unlimited
 				),
@@ -2168,8 +2168,8 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(Location::parent())),
-				Box::new(VersionedLocation::V4(Location {
+				Box::new(VersionedLocation::V5(Location::parent())),
+				Box::new(VersionedLocation::V5(Location {
 					parents: 0,
 					interior: [AccountId32 {
 						network: None,
@@ -2177,7 +2177,7 @@ fn root_can_change_default_xcm_vers() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::V4(asset.into())),
+				Box::new(VersionedAssets::V5(asset.into())),
 				0,
 				WeightLimit::Unlimited
 			));
@@ -2193,7 +2193,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -2211,7 +2211,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::V5(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				20000.into(),
@@ -2220,7 +2220,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::V5(Location::parent())),
 				1,
 			));
 
@@ -2230,7 +2230,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V5(
 							Location::parent()
 						))),
 						fee_amount: None
@@ -2287,7 +2287,7 @@ fn root_can_use_hrmp_manage() {
 						para_id: 2000u32.into()
 					},
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V5(
 							Location::parent()
 						))),
 						fee_amount: Some(10000)
@@ -2325,7 +2325,7 @@ fn transact_through_signed_precompile_works_v1() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::V5(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				Weight::from_parts(200_000, (xcm_primitives::DEFAULT_PROOF_SIZE) + 4000),
@@ -2334,7 +2334,7 @@ fn transact_through_signed_precompile_works_v1() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::V5(Location::parent())),
 				1,
 			));
 
@@ -2676,7 +2676,7 @@ fn test_xcm_utils_weight_message() {
 		let expected_weight =
 			XcmWeight::<moonbase_runtime::Runtime, RuntimeCall>::clear_origin().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),
