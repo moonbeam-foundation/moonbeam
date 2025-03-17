@@ -232,8 +232,8 @@ pub fn development() -> serde_json::Value {
 
 /// Provides the JSON representation of predefined genesis config for given `id`.
 pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
-	let patch = match id.try_into() {
-		Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => development(),
+	let patch = match id.as_str() {
+		sp_genesis_builder::DEV_RUNTIME_PRESET => development(),
 		_ => return None,
 	};
 	Some(
