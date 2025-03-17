@@ -395,7 +395,7 @@ where
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
-		if let Some((account, data)) = pallet_identity::Pallet::<Runtime>::super_of(who) {
+		if let Some((account, data)) = pallet_identity::SuperOf::<Runtime>::get(who) {
 			Ok(SuperOf {
 				is_valid: true,
 				account: Address(account.into()),
@@ -419,7 +419,7 @@ where
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
-		let (deposit, accounts) = pallet_identity::Pallet::<Runtime>::subs_of(who);
+		let (deposit, accounts) = pallet_identity::SubsOf::<Runtime>::get(who);
 
 		let accounts = accounts
 			.into_iter()
