@@ -206,20 +206,6 @@ interface ParachainStaking {
     /// @custom:selector b5ad5f07
     function cancelCandidateBondLess() external;
 
-    /// @notice DEPRECATED use delegateWithAutoCompound instead for lower weight and better UX
-    /// @dev Make a delegation in support of a collator candidate
-    /// @custom:selector 829f5ee3
-    /// @param candidate The address of the supported collator candidate
-    /// @param amount The amount bonded in support of the collator candidate
-    /// @param candidateDelegationCount The number of delegations in support of the candidate
-    /// @param delegatorDelegationCount The number of existing delegations by the caller
-    function delegate(
-        address candidate,
-        uint256 amount,
-        uint256 candidateDelegationCount,
-        uint256 delegatorDelegationCount
-    ) external;
-
     /// @dev Make a delegation in support of a collator candidate
     /// @custom:selector 4b8bc9bf
     /// @param candidate The address of the supported collator candidate
