@@ -851,6 +851,13 @@
 <a href="#849" id="849">849</a>
 <a href="#850" id="850">850</a>
 <a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -886,6 +893,7 @@
 <span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>polkadot_primitives::{
 	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
+	UpgradeRestriction,
 };
 <span class="kw">use </span>sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
 <span class="kw">use </span>sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks, StorageProvider};
@@ -1508,6 +1516,12 @@
 									parachain_id,
 								)),
 								<span class="prelude-val">Some</span>(UpgradeGoAhead::GoAhead).encode(),
+							));
+							additional_key_values.push((
+								relay_chain::well_known_keys::upgrade_restriction_signal(
+									ParaId::new(parachain_id),
+								),
+								<span class="prelude-val">None</span>::&lt;UpgradeRestriction&gt;.encode(),
 							));
 						}
 
