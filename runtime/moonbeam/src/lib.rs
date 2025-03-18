@@ -96,6 +96,7 @@ use sp_runtime::{
 	ApplyExtrinsicResult, DispatchErrorWithPostInfo, FixedPointNumber, Perbill, Permill,
 	Perquintill, SaturatedConversion,
 };
+use sp_runtime::generic::Preamble;
 use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use xcm_runtime_apis::{
@@ -1602,13 +1603,15 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 				RuntimeCall::Ethereum(transact { .. }) => intermediate_valid,
 				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
 				_ => {
-					let tip = match xt.0.signature {
-						None => 0,
-						Some((_, _, ref signed_extra)) => {
-							// Yuck, this depends on the index of charge transaction in Signed Extra
-							let charge_transaction = &signed_extra.7;
-							charge_transaction.tip()
-						}
+					let tip = match &xt.0.preamble {
+						Preamble::Bare(_) => 0,
+						Preamble::Signed(_, _, signed_extra) => {
+							// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
+							// Get the 7th item from the tuple
+							let charge_transaction_payment = &signed_extra.7;
+							charge_transaction_payment.tip()
+						},
+						Preamble::General(_, _) => 0,
 					};
 
 					// Calculate the fee that will be taken by pallet transaction payment

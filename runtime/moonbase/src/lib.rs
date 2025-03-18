@@ -100,6 +100,7 @@ use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
+use sp_runtime::generic::Preamble;
 use sp_runtime::{
 	generic, impl_opaque_keys,
 	traits::{
@@ -1575,13 +1576,14 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 				RuntimeCall::Ethereum(transact { .. }) => intermediate_valid,
 				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
 				_ => {
-					let tip = match xt.0.signature {
-						None => 0,
-						Some((_, _, ref signed_extra)) => {
-							// Yuck, this depends on the index of charge transaction in Signed Extra
-							let charge_transaction = &signed_extra.7;
-							charge_transaction.tip()
-						}
+					let tip = match &xt.0.preamble {
+						Preamble::Bare(_) => 0,
+						Preamble::Signed(_, _, signed_extra) => {
+							// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
+							let charge_transaction_payment = &signed_extra.7;
+							charge_transaction_payment.tip()
+						},
+						Preamble::General(_, _) => 0,
 					};
 
 					let effective_gas =
