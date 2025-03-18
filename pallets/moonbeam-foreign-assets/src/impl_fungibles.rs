@@ -3,6 +3,8 @@ use frame_support::traits::tokens::{DepositConsequence, Provenance, WithdrawCons
 use moonbeam_core_primitives::{Balance, AssetId};
 use sp_runtime::traits::Convert;
 
+mod evm;
+
 impl <T: Config> Inspect<T::AccountId>  for Pallet<T> {
     type AssetId = AssetId;
     type Balance = Balance;
@@ -82,5 +84,49 @@ impl <T: Config> Inspect<T::AccountId>  for Pallet<T> {
 
     fn asset_exists(asset: Self::AssetId) -> bool {
         AssetsById::<T>::contains_key(&asset)
+    }
+}
+
+impl <T: Config> Create<T::AccountId> for Pallet<T> {
+    fn create(
+            _id: Self::AssetId,
+            _admin: T::AccountId,
+            _is_sufficient: bool,
+            _min_balance: Self::Balance,
+        ) -> sp_runtime::DispatchResult {
+
+           sp_runtime::DispatchResult::Err(DispatchError::Other("Not implemented, must create through create_foreign_asset"))
+    }
+}
+
+impl <T: Config> Unbalanced<T::AccountId> for Pallet<T> {
+    fn handle_dust(dust: frame_support::traits::fungibles::Dust<T::AccountId, Self>) {}
+    fn set_total_issuance(asset: Self::AssetId, amount: Self::Balance) {}
+    fn write_balance(
+            asset: Self::AssetId,
+            who: &T::AccountId,
+            amount: Self::Balance,
+        ) -> Result<Option<Self::Balance>, DispatchError> {
+        let balance = EvmCaller::<T>::erc20_balance_of(asset, T::AccountIdToH160::convert(who.clone())).unwrap_or(U256::zero());
+        let contract_address = Pallet::<T>::contract_address_from_asset_id(asset);
+        match (U256::from(amount),balance) {
+            (amount, balance) if amount == balance => {
+                let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
+                Ok(Some(Self::Balance::from(as_u128)))
+            },
+            (amount, balance) if amount > balance => {
+                EvmCaller::<T>::erc20_mint_into(contract_address, T::AccountIdToH160::convert(who.clone()), U256::from(amount).saturating_sub(balance));
+                let balance = EvmCaller::<T>::erc20_balance_of(asset, T::AccountIdToH160::convert(who.clone())).unwrap_or(U256::zero());
+                let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
+                Ok(Some(Self::Balance::from(as_u128)))
+            } // Add balance
+            (amount, balance) if amount < balance => {
+                EvmCaller::<T>::erc20_burn_from(contract_address, T::AccountIdToH160::convert(who.clone()), U256::from(balance).saturating_sub(amount));
+                let balance = EvmCaller::<T>::erc20_balance_of(asset, T::AccountIdToH160::convert(who.clone())).unwrap_or(U256::zero());
+                let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
+                Ok(Some(Self::Balance::from(as_u128)))
+            },
+            (_,_) => Err(DispatchError::Other("Invalid amount"))
+        } 
     }
 }
