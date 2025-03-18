@@ -269,13 +269,13 @@ pub mod pallet {
 				return Err(XcmPaymentApiError::UnhandledXcmVersion);
 			}
 
-			let v4_assets = [VersionedAssetId::V4(XcmAssetId::from(
+			let v4_assets = [VersionedAssetId::from(XcmAssetId::from(
 				T::NativeLocation::get(),
 			))]
 			.into_iter()
 			.chain(
 				SupportedAssets::<T>::iter().filter_map(|(asset_location, (enabled, _))| {
-					enabled.then(|| VersionedAssetId::V4(XcmAssetId(asset_location)))
+					enabled.then(|| VersionedAssetId::from(XcmAssetId(asset_location)))
 				}),
 			)
 			.collect::<Vec<_>>();
@@ -294,7 +294,7 @@ pub mod pallet {
 			weight: Weight,
 			asset: VersionedAssetId,
 		) -> Result<u128, XcmPaymentApiError> {
-			if let VersionedAssetId::V4(XcmAssetId(asset_location)) = asset
+			if let VersionedAssetId::from(XcmAssetId(asset_location)) = asset
 				.into_version(4)
 				.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?
 			{
