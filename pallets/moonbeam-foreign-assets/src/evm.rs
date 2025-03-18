@@ -533,7 +533,7 @@ impl<T: crate::Config> EvmCaller<T> {
 				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
 				log::debug!("erc20_balance_of (error): {:?}", err);
 				Error::<T>::EvmCallBalanceOfFail
-			}
+			}	
 		);
 
 		let balance = U256::from_big_endian(&exec_info.value);

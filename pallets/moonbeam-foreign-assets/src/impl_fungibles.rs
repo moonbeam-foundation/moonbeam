@@ -130,3 +130,5 @@ impl <T: Config> Unbalanced<T::AccountId> for Pallet<T> {
         } 
     }
 }
+
+impl <T: Config> Mutate<T::AccountId> for Pallet<T> {}
