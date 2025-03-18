@@ -42,6 +42,10 @@ use xcm::v4::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Loca
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
 use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
+use frame_support::traits::fungible::NativeOrWithId;
+use frame_support::traits::tokens::ConversionFromAssetBalance;
+use moonbeam_core_primitives::{ Balance, AssetId };
+use sp_runtime::traits::MaybeEquivalence;
 
 pub const RELATIVE_PRICE_DECIMALS: u32 = 18;
 
@@ -68,6 +72,12 @@ pub mod pallet {
 
 		/// How to withdraw and deposit an asset.
 		type AssetTransactor: TransactAsset;
+
+		/// How to get an asset location from an asset id.
+		type AssetIdentifier: MaybeEquivalence<Location, u128>;
+
+		/// Asset kind to use in the conversion
+		type AssetKind: Parameter + MaxEncodedLen;
 
 		/// The native balance type.
 		type Balance: TryInto<u128>;
@@ -125,6 +135,8 @@ pub mod pallet {
 		XcmLocationFiltered,
 		/// The relative price cannot be zero
 		PriceCannotBeZero,
+		/// The relative price calculation overflowed
+		PriceOverflow,
 	}
 
 	#[pallet::event]
@@ -467,6 +479,29 @@ impl<T: crate::Config> Drop for Trader<T> {
 				None,
 			);
 			debug_assert!(res.is_ok());
+		}
+	}
+}
+
+impl <T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Balance> for Pallet<T> {
+	type Error = Error<T>;
+	fn from_asset_balance(
+		asset_balance: Balance,
+		asset_kind: NativeOrWithId<AssetId>,
+	) -> Result<Balance, Error<T>> {
+		match asset_kind {
+			NativeOrWithId::Native => Ok(asset_balance),
+			NativeOrWithId::WithId(asset_id) => {
+				let location = T::AssetIdentifier::convert_back(&asset_id)
+					.ok_or(Error::<T>::AssetNotFound)?;
+				let relative_price = Pallet::<T>::get_asset_relative_price(&location)
+					.ok_or(Error::<T>::AssetNotFound)?;
+				Ok(asset_balance
+					.checked_mul(relative_price)
+					.ok_or(Error::<T>::PriceOverflow)?
+					.checked_div(10u128.pow(RELATIVE_PRICE_DECIMALS))
+					.ok_or(Error::<T>::PriceOverflow)?)
+			}
 		}
 	}
 }

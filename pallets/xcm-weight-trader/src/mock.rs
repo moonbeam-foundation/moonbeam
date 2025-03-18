@@ -20,7 +20,7 @@ use super::*;
 use crate as pallet_xcm_weight_trader;
 use frame_support::{
 	construct_runtime, ord_parameter_types, parameter_types,
-	traits::{Currency, Everything},
+	traits::{Currency, Everything, MaybeEquivalence},
 	weights::{constants::RocksDbWeight, IdentityFee},
 };
 use frame_system::EnsureSignedBy;
@@ -29,7 +29,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
 };
-use xcm::v4::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
+use xcm::v4::{Asset, Error as XcmError, Junction, Junctions, Location, Result as XcmResult, XcmContext};
 
 type AccountId = u64;
 type Balance = u128;
@@ -152,6 +152,24 @@ impl TransactAsset for MockAssetTransactor {
 	}
 }
 
+pub struct MockAssetIndentifier;
+impl MaybeEquivalence<Location, u128> for MockAssetIndentifier {
+	fn convert(location: &Location) -> Option<u128> {
+		match location {
+			Location { parents: 0, interior: Junctions::Here } => Some(0),
+			Location { parents: 1, interior: Junctions::Here } => Some(1),
+			_ => None,
+		}
+	}
+	fn convert_back(asset_id: &u128) -> Option<Location> {
+		match asset_id {
+			0 => Some(Location::here()),
+			1 => Some(Location::parent()),
+			_ => None,
+		}
+	}
+}
+
 ord_parameter_types! {
 	pub const AddAccount: u64 = 1;
 	pub const EditAccount: u64 = 2;
@@ -171,6 +189,8 @@ impl Config for Test {
 	type AddSupportedAssetOrigin = EnsureSignedBy<AddAccount, AccountId>;
 	type AssetLocationFilter = AssetLocationFilter;
 	type AssetTransactor = MockAssetTransactor;
+	type AssetIdentifier = MockAssetIndentifier;
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = EnsureSignedBy<EditAccount, AccountId>;
 	type NativeLocation = NativeLocation;

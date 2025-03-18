@@ -8,6 +8,9 @@ version = "0.1.0"
 [dependencies]
 log = { workspace = true }
 
+# Moonbeam
+moonbeam-core-primitives = { workspace = true }
+
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
