@@ -693,7 +693,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 
 	let reanchored_para_a_balances = Location::new(0, [PalletInstance(1u8)]);
 
-	let message = xcm::VersionedXcm::<()>::V4(Xcm(vec![
+	let message = xcm::VersionedXcm::<()>::V5(Xcm(vec![
 		WithdrawAsset((reanchored_para_a_balances.clone(), 100).into()),
 		ClearOrigin,
 		BuyExecution {
