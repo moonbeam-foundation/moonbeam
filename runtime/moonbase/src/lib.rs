@@ -581,7 +581,7 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 	type SpendOrigin =
 		frame_system::EnsureWithSuccess<RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance>;
-	type AssetKind = NativeAndAssets;
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
 	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>;

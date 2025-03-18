@@ -578,10 +578,10 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 	type SpendOrigin =
 		frame_system::EnsureWithSuccess<RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance>;
-	type AssetKind = NativeAndAssets;
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>
+	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>;
 	type BalanceConverter = XcmWeightTrader;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
