@@ -38,7 +38,7 @@ use frame_support::weights::WeightToFee;
 use frame_system::pallet_prelude::*;
 use sp_runtime::traits::{Convert, Zero};
 use sp_std::vec::Vec;
-use xcm::v4::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
+use xcm::v5::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
 use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
@@ -294,7 +294,8 @@ pub mod pallet {
 			weight: Weight,
 			asset: VersionedAssetId,
 		) -> Result<u128, XcmPaymentApiError> {
-			if let VersionedAssetId::from(XcmAssetId(asset_location)) = asset
+			let asset_id = VersionedAssetId::from(XcmAssetId(asset_location));
+			if let asset_id = asset
 				.into_version(4)
 				.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?
 			{

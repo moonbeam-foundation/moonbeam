@@ -53,7 +53,7 @@ export const relayAssetMetadata: AssetMetadata = {
 export interface TestAsset {
   // The asset id as required by pallet - moonbeam - foreign - assets
   id: bigint | string;
-  // The asset's XCM location (preferably a v4)
+  // The asset's XCM location
   location: any;
   // The asset's metadata
   metadata: AssetMetadata;

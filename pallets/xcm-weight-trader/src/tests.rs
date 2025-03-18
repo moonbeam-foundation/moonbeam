@@ -21,7 +21,7 @@ use {
 	frame_support::pallet_prelude::Weight,
 	frame_support::{assert_noop, assert_ok},
 	sp_runtime::DispatchError,
-	xcm::v4::{
+	xcm::v5::{
 		Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext, XcmHash,
 	},
 	xcm::{IntoVersion, VersionedAssetId},

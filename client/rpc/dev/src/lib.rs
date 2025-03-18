@@ -26,7 +26,7 @@ use jsonrpsee::{
 };
 use parity_scale_codec::Encode;
 use xcm::opaque::lts::Weight;
-use xcm::v4::prelude::*;
+use xcm::v5::prelude::*;
 use xcm_primitives::DEFAULT_PROOF_SIZE;
 
 /// This RPC interface is used to provide methods in dev mode only

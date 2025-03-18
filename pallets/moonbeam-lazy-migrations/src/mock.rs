@@ -31,7 +31,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup},
 	BuildStorage, Perbill,
 };
-use xcm::v4::Junction;
+use xcm::v5::Junction;
 
 pub type AssetId = u128;
 pub type Balance = u128;
