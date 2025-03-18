@@ -251,7 +251,6 @@ pub mod pallet {
 		TooLowCandidateCountWeightHintGoOffline,
 		CandidateLimitReached,
 		CannotSetAboveMaxCandidates,
-		RemovedCall,
 		MarkingOfflineNotEnabled,
 		CurrentRoundTooLow,
 	}
