@@ -1250,7 +1250,7 @@ fn update_reward_address_via_precompile() {
 #[test]
 fn create_and_manipulate_foreign_asset_using_root() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = xcm::v4::Location::parent();
+		let source_location = xcm::v5::Location::parent();
 
 		// Create foreign asset
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
@@ -1357,7 +1357,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1412,7 +1412,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1473,7 +1473,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1555,7 +1555,7 @@ fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1653,7 +1653,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -2119,7 +2119,7 @@ fn root_can_change_default_xcm_vers() {
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -2193,7 +2193,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,

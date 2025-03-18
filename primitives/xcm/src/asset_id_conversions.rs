@@ -41,19 +41,19 @@ where
 		AssetIdInfoGetter::get_asset_type(what.clone()).and_then(Into::into)
 	}
 }
-impl<AssetId, AssetType, AssetIdInfoGetter> MaybeEquivalence<xcm::v4::Location, AssetId>
+impl<AssetId, AssetType, AssetIdInfoGetter> MaybeEquivalence<xcm::v5::Location, AssetId>
 	for AsAssetType<AssetId, AssetType, AssetIdInfoGetter>
 where
 	AssetId: Clone,
 	AssetType: From<Location> + Into<Option<Location>> + Clone,
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
-	fn convert(id: &xcm::v4::Location) -> Option<AssetId> {
+	fn convert(id: &xcm::v5::Location) -> Option<AssetId> {
 		let v3_location =
 			xcm_builder::WithLatestLocationConverter::<xcm::v3::Location>::convert(id)?;
 		AssetIdInfoGetter::get_asset_id(v3_location.clone().into())
 	}
-	fn convert_back(what: &AssetId) -> Option<xcm::v4::Location> {
+	fn convert_back(what: &AssetId) -> Option<xcm::v5::Location> {
 		let v3_location: Location =
 			AssetIdInfoGetter::get_asset_type(what.clone()).and_then(Into::into)?;
 		xcm_builder::WithLatestLocationConverter::convert_back(&v3_location)
@@ -66,7 +66,7 @@ where
 	AssetType: From<Location> + Into<Option<Location>> + Clone,
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
-	fn convert_location(id: &xcm::v4::Location) -> Option<AssetId> {
+	fn convert_location(id: &xcm::v5::Location) -> Option<AssetId> {
 		let v3_location =
 			xcm_builder::WithLatestLocationConverter::<xcm::v3::Location>::convert(id)?;
 		AssetIdInfoGetter::get_asset_id(v3_location.clone().into())
