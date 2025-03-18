@@ -3,8 +3,6 @@ use frame_support::traits::tokens::{DepositConsequence, Provenance, WithdrawCons
 use moonbeam_core_primitives::{Balance, AssetId};
 use sp_runtime::traits::Convert;
 
-mod evm;
-
 impl <T: Config> Inspect<T::AccountId>  for Pallet<T> {
     type AssetId = AssetId;
     type Balance = Balance;
@@ -115,13 +113,15 @@ impl <T: Config> Unbalanced<T::AccountId> for Pallet<T> {
                 Ok(Some(Self::Balance::from(as_u128)))
             },
             (amount, balance) if amount > balance => {
-                EvmCaller::<T>::erc20_mint_into(contract_address, T::AccountIdToH160::convert(who.clone()), U256::from(amount).saturating_sub(balance));
+                EvmCaller::<T>::erc20_mint_into(contract_address, T::AccountIdToH160::convert(who.clone()), U256::from(amount).saturating_sub(balance))
+                    .map_err(|_| DispatchError::Other("Failed to mint into account"))?;
                 let balance = EvmCaller::<T>::erc20_balance_of(asset, T::AccountIdToH160::convert(who.clone())).unwrap_or(U256::zero());
                 let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
                 Ok(Some(Self::Balance::from(as_u128)))
             } // Add balance
             (amount, balance) if amount < balance => {
-                EvmCaller::<T>::erc20_burn_from(contract_address, T::AccountIdToH160::convert(who.clone()), U256::from(balance).saturating_sub(amount));
+                EvmCaller::<T>::erc20_burn_from(contract_address, T::AccountIdToH160::convert(who.clone()), U256::from(balance).saturating_sub(amount))
+                    .map_err(|_| DispatchError::Other("Failed to burn from account"))?;
                 let balance = EvmCaller::<T>::erc20_balance_of(asset, T::AccountIdToH160::convert(who.clone())).unwrap_or(U256::zero());
                 let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
                 Ok(Some(Self::Balance::from(as_u128)))
