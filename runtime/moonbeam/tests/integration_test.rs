@@ -1668,8 +1668,8 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::V4(Location::parent())),
-					Box::new(VersionedLocation::V4(Location {
+					Box::new(VersionedLocation::from(Location::parent())),
+					Box::new(VersionedLocation::from(Location {
 						parents: 0,
 						interior: [AccountId32 {
 							network: None,
@@ -1693,8 +1693,8 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(Location::parent())),
-				Box::new(VersionedLocation::V4(Location {
+				Box::new(VersionedLocation::from(Location::parent())),
+				Box::new(VersionedLocation::from(Location {
 					parents: 0,
 					interior: [AccountId32 {
 						network: None,
@@ -2128,8 +2128,8 @@ fn make_sure_glmr_can_be_transferred_precompile() {
 		.execute_with(|| {
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(Location::parent())),
-				Box::new(VersionedLocation::V4(Location {
+				Box::new(VersionedLocation::from(Location::parent())),
+				Box::new(VersionedLocation::from(Location {
 					parents: 0,
 					interior: [AccountId32 {
 						network: None,
@@ -2175,8 +2175,8 @@ fn make_sure_glmr_can_be_transferred() {
 			};
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(Location::parent())),
-				Box::new(VersionedLocation::V4(dest)),
+				Box::new(VersionedLocation::from(Location::parent())),
+				Box::new(VersionedLocation::from(dest)),
 				Box::new(VersionedAssets::V4(
 					Asset {
 						id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
@@ -2220,8 +2220,8 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedLocation::V4(dest.clone())),
-					beneficiary: Box::new(VersionedLocation::V4(dest)),
+					dest: Box::new(VersionedLocation::from(dest.clone())),
+					beneficiary: Box::new(VersionedLocation::from(dest)),
 					assets: Box::new(VersionedAssets::V4(assets)),
 					fee_asset_item: 0,
 				})
@@ -2347,7 +2347,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				20000.into(),
@@ -2357,7 +2357,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1,
 			));
 
@@ -2367,9 +2367,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbeam_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
-							Location::parent()
-						))),
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedLocation::from(Location::parent())
+						)),
 						fee_amount: None
 					},
 					vec![],
@@ -2445,8 +2445,8 @@ fn call_xtokens_with_fee() {
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(chain_part)),
-				Box::new(VersionedLocation::V4(beneficiary)),
+				Box::new(VersionedLocation::from(chain_part)),
+				Box::new(VersionedLocation::from(beneficiary)),
 				Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
 				0,
 				WeightLimit::Limited(4000000000.into())

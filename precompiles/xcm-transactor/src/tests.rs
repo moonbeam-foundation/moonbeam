@@ -150,7 +150,7 @@ fn take_transact_info() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000u64.into(),
 				None
@@ -159,7 +159,7 @@ fn take_transact_info() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -189,7 +189,7 @@ fn take_transact_info_with_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000u64.into(),
 				Some(1.into())
@@ -198,7 +198,7 @@ fn take_transact_info_with_signed() {
 			// Root can set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -229,7 +229,7 @@ fn take_fee_per_second() {
 			// Root can set fee per secnd
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 			precompiles()
@@ -342,7 +342,7 @@ fn take_transact_info_with_signed_v3() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000u64.into(),
 				Some(1.into())
@@ -351,7 +351,7 @@ fn take_transact_info_with_signed_v3() {
 			// Root can set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -387,7 +387,7 @@ fn test_transact_derivative_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				None
@@ -396,7 +396,7 @@ fn test_transact_derivative_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -440,7 +440,7 @@ fn test_transact_derivative() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				None
@@ -449,7 +449,7 @@ fn test_transact_derivative() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -562,7 +562,7 @@ fn test_transact_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				Some(1.into())
@@ -571,7 +571,7 @@ fn test_transact_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -678,7 +678,7 @@ fn test_transact_signed_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				Some(1.into())
@@ -687,7 +687,7 @@ fn test_transact_signed_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
