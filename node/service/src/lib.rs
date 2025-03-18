@@ -103,7 +103,7 @@ type PartialComponentsResult<Client, Backend> = Result<
 		Backend,
 		MaybeSelectChain<Backend>,
 		sc_consensus::DefaultImportQueue<Block>,
-		sc_transaction_pool::FullPool<Block, Client>,
+		sc_transaction_pool::TransactionPoolHandle<Block, Client>,
 		(
 			BlockImportPipeline<FrontierBlockImport<Client>, ParachainBlockImport<Client, Backend>>,
 			Option<FilterPool>,
@@ -628,8 +628,13 @@ async fn build_relay_chain_interface(
 	if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
 		collator_options.relay_chain_mode
 	{
-		build_minimal_relay_chain_node_with_rpc(polkadot_config, task_manager, rpc_target_urls)
-			.await
+		build_minimal_relay_chain_node_with_rpc(
+			polkadot_config,
+			parachain_config.prometheus_registry(),
+			task_manager,
+			rpc_target_urls,
+		)
+		.await
 	} else {
 		build_inprocess_relay_chain(
 			polkadot_config,
@@ -1004,7 +1009,9 @@ fn start_consensus<RuntimeApi, SO>(
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 	relay_chain_interface: Arc<dyn RelayChainInterface>,
-	transaction_pool: Arc<sc_transaction_pool::FullPool<Block, FullClient<RuntimeApi>>>,
+	transaction_pool: Arc<
+		sc_transaction_pool::TransactionPoolHandle<Block, FullClient<RuntimeApi>>,
+	>,
 	keystore: KeystorePtr,
 	para_id: ParaId,
 	collator_key: CollatorPair,
