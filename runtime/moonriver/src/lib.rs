@@ -562,7 +562,7 @@ type RootOrTreasuryCouncilOrigin = EitherOfDiverse<
 	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
 >;
 
-type NativeAndAssets = UnionOf<Balances, EvmForeignAssets, NativeForLeft, NativeOrWithId<AssetId>, AccountId>;
+type NativeAndAssets = UnionOf<Balances, EvmForeignAssets, NativeFromLeft, NativeOrWithId<AssetId>, AccountId>;
 
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
