@@ -1666,7 +1666,7 @@ fn root_can_change_default_xcm_vers() {
 					origin_of(AccountId::from(ALICE)),
 					Box::new(xcm::VersionedLocation::from(chain_part.clone())),
 					Box::new(xcm::VersionedLocation::from(beneficiary.clone())),
-					Box::new(VersionedAssets::V4(asset.clone().into())),
+					Box::new(VersionedAssets::from(asset.clone().into())),
 					0,
 					WeightLimit::Limited(4000000000.into())
 				),
@@ -1684,7 +1684,7 @@ fn root_can_change_default_xcm_vers() {
 				origin_of(AccountId::from(ALICE)),
 				Box::new(xcm::VersionedLocation::from(chain_part)),
 				Box::new(xcm::VersionedLocation::from(beneficiary)),
-				Box::new(VersionedAssets::V4(asset.clone().into())),
+				Box::new(VersionedAssets::from(asset.clone().into())),
 				0,
 				WeightLimit::Limited(4000000000.into())
 			));
@@ -2121,7 +2121,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
 					dest: Box::new(VersionedLocation::from(dest.clone())),
 					beneficiary: Box::new(VersionedLocation::from(dest)),
-					assets: Box::new(VersionedAssets::V4(assets)),
+					assets: Box::new(VersionedAssets::from(assets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2348,7 +2348,7 @@ fn call_xtokens_with_fee() {
 				origin_of(AccountId::from(ALICE)),
 				Box::new(VersionedLocation::from(chain_part)),
 				Box::new(VersionedLocation::from(beneficiary)),
-				Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+				Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
 				0,
 				WeightLimit::Limited(4000000000.into()),
 			),);

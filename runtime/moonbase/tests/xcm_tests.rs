@@ -216,7 +216,7 @@ fn send_relay_asset_to_relay() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -313,7 +313,7 @@ fn send_relay_asset_to_para_b() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -381,7 +381,7 @@ fn send_para_a_asset_to_para_b() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -463,7 +463,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -502,7 +502,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -564,7 +564,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -603,7 +603,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -664,7 +664,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -835,7 +835,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(10u64, DEFAULT_PROOF_SIZE))
 		));
@@ -910,7 +910,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1080,7 +1080,7 @@ fn transact_through_derivative_multilocation() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1232,7 +1232,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1386,7 +1386,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1551,7 +1551,7 @@ fn transact_through_sovereign() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1806,7 +1806,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1958,7 +1958,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -2264,7 +2264,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -2891,7 +2891,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
@@ -3028,7 +3028,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset].into())),
+			Box::new(VersionedAssets::from(vec![asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -3185,7 +3185,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -3347,7 +3347,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -3586,7 +3586,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
@@ -3844,7 +3844,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::V4(assets_to_send)),
+			Box::new(VersionedAssets::from(assets_to_send)),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));

@@ -236,7 +236,7 @@ where
 				Some(pallet_xcm::Call::<Runtime>::transfer_assets {
 					dest: Box::new(VersionedLocation::from(chain_part)),
 					beneficiary: Box::new(VersionedLocation::from(beneficiary)),
-					assets: Box::new(VersionedAssets::V4(asset.into())),
+					assets: Box::new(VersionedAssets::from(asset)),
 					fee_asset_item: 0,
 					weight_limit: WeightLimit::Unlimited,
 				})
@@ -295,7 +295,7 @@ where
 					Some(pallet_xcm::Call::<Runtime>::transfer_assets {
 						dest: Box::new(VersionedLocation::from(chain_part)),
 						beneficiary: Box::new(VersionedLocation::from(beneficiary)),
-						assets: Box::new(VersionedAssets::V4(asset.into())),
+						assets: Box::new(VersionedAssets::from(asset)),
 						fee_asset_item: 0,
 						weight_limit: WeightLimit::Unlimited,
 					})

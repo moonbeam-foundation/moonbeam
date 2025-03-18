@@ -102,7 +102,7 @@ where
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
 			dest: Box::new(VersionedLocation::from(chain_part)),
 			beneficiary: Box::new(VersionedLocation::from(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(asset.into())),
+			assets: Box::new(VersionedAssets::from(asset)),
 			fee_asset_item: 0,
 			weight_limit: dest_weight_limit,
 		};
@@ -163,7 +163,7 @@ where
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
 			dest: Box::new(VersionedLocation::from(chain_part)),
 			beneficiary: Box::new(VersionedLocation::from(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(asset.into())),
+			assets: Box::new(VersionedAssets::from(asset)),
 			fee_asset_item: 0,
 			weight_limit: dest_weight_limit,
 		};
@@ -201,16 +201,15 @@ where
 		let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(destination)
 			.ok_or_else(|| RevertReason::custom("Invalid destination").in_field("destination"))?;
 
+		let asset = Asset {
+			id: AssetId(asset),
+			fun: Fungibility::Fungible(to_balance),
+		};
+
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
 			dest: Box::new(VersionedLocation::from(chain_part)),
 			beneficiary: Box::new(VersionedLocation::from(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(
-				Asset {
-					id: AssetId(asset),
-					fun: Fungibility::Fungible(to_balance),
-				}
-				.into(),
-			)),
+			assets: Box::new(VersionedAssets::from(asset)),
 			fee_asset_item: 0,
 			weight_limit: dest_weight_limit,
 		};
@@ -256,13 +255,10 @@ where
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
 			dest: Box::new(VersionedLocation::from(chain_part)),
 			beneficiary: Box::new(VersionedLocation::from(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(
-				Asset {
-					id: AssetId(asset.clone()),
-					fun: Fungibility::Fungible(amount),
-				}
-				.into(),
-			)),
+			assets: Box::new(VersionedAssets::from(Asset {
+				id: AssetId(asset.clone()),
+				fun: Fungibility::Fungible(amount),
+			})),
 			fee_asset_item: 0,
 			weight_limit: dest_weight_limit,
 		};
@@ -335,7 +331,7 @@ where
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
 			dest: Box::new(VersionedLocation::from(chain_part)),
 			beneficiary: Box::new(VersionedLocation::from(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(assets.into())),
+			assets: Box::new(VersionedAssets::from(assets)),
 			fee_asset_item: fee_item,
 			weight_limit: dest_weight_limit,
 		};
@@ -398,7 +394,7 @@ where
 		let call = pallet_xcm::Call::<Runtime>::transfer_assets {
 			dest: Box::new(VersionedLocation::from(chain_part)),
 			beneficiary: Box::new(VersionedLocation::from(beneficiary)),
-			assets: Box::new(VersionedAssets::V4(assets)),
+			assets: Box::new(VersionedAssets::from(assets)),
 			fee_asset_item: fee_item,
 			weight_limit: dest_weight_limit,
 		};

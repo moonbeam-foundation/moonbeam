@@ -1677,7 +1677,7 @@ fn root_can_change_default_xcm_vers() {
 						}]
 						.into(),
 					})),
-					Box::new(VersionedAssets::V4(asset.clone().into())),
+					Box::new(VersionedAssets::from(asset.clone().into())),
 					0,
 					WeightLimit::Unlimited
 				),
@@ -1702,7 +1702,7 @@ fn root_can_change_default_xcm_vers() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::V4(asset.clone().into())),
+				Box::new(VersionedAssets::from(asset.clone().into())),
 				0,
 				WeightLimit::Unlimited
 			));
@@ -2137,7 +2137,7 @@ fn make_sure_glmr_can_be_transferred_precompile() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::V4(
+				Box::new(VersionedAssets::from(
 					Asset {
 						id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
 						fun: Fungible(1000)
@@ -2177,7 +2177,7 @@ fn make_sure_glmr_can_be_transferred() {
 				origin_of(AccountId::from(ALICE)),
 				Box::new(VersionedLocation::from(Location::parent())),
 				Box::new(VersionedLocation::from(dest)),
-				Box::new(VersionedAssets::V4(
+				Box::new(VersionedAssets::from(
 					Asset {
 						id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
 						fun: Fungible(100)
@@ -2222,7 +2222,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
 					dest: Box::new(VersionedLocation::from(dest.clone())),
 					beneficiary: Box::new(VersionedLocation::from(dest)),
-					assets: Box::new(VersionedAssets::V4(assets)),
+					assets: Box::new(VersionedAssets::from(assets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2447,7 +2447,7 @@ fn call_xtokens_with_fee() {
 				origin_of(AccountId::from(ALICE)),
 				Box::new(VersionedLocation::from(chain_part)),
 				Box::new(VersionedLocation::from(beneficiary)),
-				Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+				Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
 				0,
 				WeightLimit::Limited(4000000000.into())
 			));
