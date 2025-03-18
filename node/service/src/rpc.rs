@@ -172,13 +172,12 @@ where
 {
 	use fc_rpc::{
 		Eth, EthApiServer, EthFilter, EthFilterApiServer, EthPubSub, EthPubSubApiServer, Net,
-		NetApiServer, Web3, Web3ApiServer,
+		NetApiServer, TxPool, TxPoolApiServer, Web3, Web3ApiServer,
 	};
 	use moonbeam_dev_rpc::{DevApiServer, DevRpc};
 	use moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApiServer};
 	use moonbeam_rpc_debug::{Debug, DebugServer};
 	use moonbeam_rpc_trace::{Trace, TraceServer};
-	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
@@ -304,6 +303,7 @@ where
 		)
 		.into_rpc(),
 	)?;
+
 	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
 		io.merge(TxPool::new(Arc::clone(&client), graph).into_rpc())?;
 	}
