@@ -33,6 +33,7 @@ use nimbus_primitives::NimbusId;
 use parity_scale_codec::Encode;
 use polkadot_primitives::{
 	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
+	UpgradeRestriction,
 };
 use sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
 use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks, StorageProvider};
@@ -655,6 +656,12 @@ where
 									parachain_id,
 								)),
 								Some(UpgradeGoAhead::GoAhead).encode(),
+							));
+							additional_key_values.push((
+								relay_chain::well_known_keys::upgrade_restriction_signal(
+									ParaId::new(parachain_id),
+								),
+								None::<UpgradeRestriction>.encode(),
 							));
 						}
 

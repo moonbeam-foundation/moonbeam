@@ -24,10 +24,14 @@ describeSuite({
       await createBlock(sudo(psTx.forceJoinCandidates(baltathar.address, 0, 1)).signAsync(alith));
       await createBlock([
         sudo(psTx.setBlocksPerRound(10)).signAsync(alith),
-        psTx.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0).signAsync(ethan),
+        psTx
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 0, 0, 0, 0)
+          .signAsync(ethan),
       ]);
       await createBlock(
-        psTx.delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 1).signAsync(ethan)
+        psTx
+          .delegateWithAutoCompound(baltathar.address, MIN_GLMR_DELEGATOR, 0, 0, 0, 1)
+          .signAsync(ethan)
       );
       await createBlock(psTx.scheduleRevokeDelegation(alith.address).signAsync(ethan));
 

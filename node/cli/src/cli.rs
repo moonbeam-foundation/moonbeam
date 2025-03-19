@@ -154,10 +154,9 @@ pub struct RunCmd {
 	#[clap(long)]
 	pub dev_service: bool,
 
-	/// Enable the new block import strategy
-	/// Deprecated in: https://github.com/Moonsong-Labs/moonkit/pull/43
+	/// Enable the legacy block import strategy
 	#[clap(long)]
-	pub experimental_block_import_strategy: bool,
+	pub legacy_block_import_strategy: bool,
 
 	/// Specifies the URL used to fetch chain data via RPC.
 	///
@@ -324,6 +323,10 @@ pub struct RunCmd {
 	/// Maximum duration in milliseconds to produce a block
 	#[clap(long, default_value = "2000", value_parser=block_authoring_duration_parser)]
 	pub block_authoring_duration: Duration,
+
+	/// Enable full proof-of-validation mode for Nimbus
+	#[clap(long)]
+	pub nimbus_full_pov: bool,
 }
 
 fn block_authoring_duration_parser(s: &str) -> Result<Duration, String> {
