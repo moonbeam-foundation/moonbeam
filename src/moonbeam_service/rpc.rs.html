@@ -631,13 +631,12 @@
 {
 	<span class="kw">use </span>fc_rpc::{
 		Eth, EthApiServer, EthFilter, EthFilterApiServer, EthPubSub, EthPubSubApiServer, Net,
-		NetApiServer, Web3, Web3ApiServer,
+		NetApiServer, TxPool, TxPoolApiServer, Web3, Web3ApiServer,
 	};
 	<span class="kw">use </span>moonbeam_dev_rpc::{DevApiServer, DevRpc};
 	<span class="kw">use </span>moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApiServer};
 	<span class="kw">use </span>moonbeam_rpc_debug::{Debug, DebugServer};
 	<span class="kw">use </span>moonbeam_rpc_trace::{Trace, TraceServer};
-	<span class="kw">use </span>moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	<span class="kw">use </span>pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	<span class="kw">use </span>substrate_frame_rpc_system::{System, SystemApiServer};
 
@@ -763,6 +762,7 @@
 		)
 		.into_rpc(),
 	)<span class="question-mark">?</span>;
+
 	<span class="kw">if </span>ethapi_cmd.contains(<span class="kw-2">&amp;</span>EthApiCmd::Txpool) {
 		io.merge(TxPool::new(Arc::clone(<span class="kw-2">&amp;</span>client), graph).into_rpc())<span class="question-mark">?</span>;
 	}
