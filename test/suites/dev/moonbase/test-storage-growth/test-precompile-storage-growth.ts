@@ -37,7 +37,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`102539n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`103826n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -156,7 +156,7 @@ describeSuite({
         // Storage growth ratio is 366
         // storage_gas = 148 * 366 = 54168
         // pov_gas = proof_size * GAS_LIMIT_POV_RATIO
-        expect(gasUsed).toMatchInlineSnapshot(`58336n`);
+        expect(gasUsed).toMatchInlineSnapshot(`59392n`);
 
         const balAfter = await context.viem().getBalance({ address: FAITH_ADDRESS });
         expect(balBefore - balAfter).to.equal(parseEther("5"));
