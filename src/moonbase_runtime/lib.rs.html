@@ -1825,6 +1825,7 @@
 <a href="#1823" id="1823">1823</a>
 <a href="#1824" id="1824">1824</a>
 <a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2111,7 +2112,7 @@
 	<span class="kw">type </span>OnKilledAccount = ();
 	<span class="kw">type </span>DbWeight = moonbase_weights::db::rocksdb::constants::RocksDbWeight;
 	<span class="kw">type </span>BaseCallFilter = MaintenanceMode;
-	<span class="kw">type </span>SystemWeightInfo = ();
+	<span class="kw">type </span>SystemWeightInfo = moonbase_weights::frame_system::WeightInfo&lt;Runtime&gt;;
 	<span class="doccomment">/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	</span><span class="kw">type </span>SS58Prefix = ConstU16&lt;<span class="number">1287</span>&gt;;
 	<span class="kw">type </span>OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode&lt;<span class="self">Self</span>&gt;;
@@ -3300,6 +3301,7 @@
 	}
 
 	<span class="macro">frame_benchmarking::define_benchmarks!</span>(
+		[frame_system, SystemBench::&lt;Runtime&gt;]
 		[pallet_utility, Utility]
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
