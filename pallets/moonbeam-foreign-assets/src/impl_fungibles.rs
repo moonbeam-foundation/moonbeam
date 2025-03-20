@@ -68,11 +68,8 @@ impl <T: Config> Inspect<T::AccountId>  for Pallet<T> {
             who: &T::AccountId,
             amount: Self::Balance,
         ) -> WithdrawConsequence<Self::Balance> {
-            log::info!(target:"pablo/treasury","entered can_withdraw");
         if Self::asset_exists(asset) {
-            log::info!(target:"pablo/treasury","entered can_withdraw - asset exists");
             let balance = Self::balance(asset, who);
-            log::info!(target:"pablo/treasury","entered can_withdraw - got balance {:?}", balance);
             if balance >= Self::Balance::from(amount) {
                 WithdrawConsequence::Success
             } else {
@@ -134,7 +131,4 @@ impl <T: Config> Unbalanced<T::AccountId> for Pallet<T> {
     }
 }
 
-impl <T: Config> Mutate<T::AccountId> for Pallet<T> {
-}
-
-
+impl <T: Config> Mutate<T::AccountId> for Pallet<T> {}
