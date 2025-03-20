@@ -19,7 +19,7 @@ use mock::*;
 
 use frame_support::traits::Currency;
 use frame_support::{assert_noop, assert_ok};
-use precompile_utils::testing::Bob;
+use precompile_utils::testing::{Bob, MockAccount};
 use xcm::latest::prelude::*;
 
 fn encode_ticker(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
@@ -462,7 +462,7 @@ fn test_inspect_trait_impl() {
 		);
 
 		assert_eq!(
-			EvmForeignAssets::balance_of(asset_id, beneficiary),
+			EvmForeignAssets::balance(asset_id, &beneficiary),
 			Balance::from(1u32)
 		);
 
