@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 extern crate alloc;
 
-use alloc::format;
 use crate::{AssetId, Error, Pallet};
+use alloc::format;
 use ethereum_types::{BigEndianHash, H160, H256, U256};
 use fp_evm::{ExitReason, ExitSucceed};
 use frame_support::ensure;

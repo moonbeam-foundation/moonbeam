@@ -20,7 +20,7 @@ use crate::{
 	PendingConsensusDataProvider, RuntimeApiCollection, SOFT_DEADLINE_PERCENT,
 };
 use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
-use cumulus_primitives_core::{relay_chain, BlockT, ParaId};
+use cumulus_primitives_core::{relay_chain, BlockT, CollectCollationInfo, ParaId};
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_rpc::StorageOverrideHandler;
@@ -45,8 +45,8 @@ use sc_service::{
 	LocalCallExecutor, PartialComponents, TaskManager,
 };
 use sc_telemetry::{TelemetryHandle, TelemetryWorker};
-use sc_transaction_pool_api::OffchainTransactionPoolFactory;
-use sp_api::ConstructRuntimeApi;
+use sc_transaction_pool_api::{OffchainTransactionPoolFactory, TransactionPool};
+use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
 use sp_core::traits::CodeExecutor;
 use sp_core::{twox_128, H256};
@@ -296,13 +296,14 @@ where
 
 	let maybe_select_chain = Some(sc_consensus::LongestChain::new(backend.clone()));
 
-	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
-		config.role.is_authority().into(),
-		config.prometheus_registry(),
+	let transaction_pool = sc_transaction_pool::Builder::new(
 		task_manager.spawn_essential_handle(),
 		client.clone(),
-	);
+		config.role.is_authority().into(),
+	)
+	.with_options(config.transaction_pool.clone())
+	.with_prometheus(config.prometheus_registry())
+	.build();
 
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
@@ -349,7 +350,7 @@ where
 		import_queue,
 		keystore_container,
 		task_manager,
-		transaction_pool,
+		transaction_pool: transaction_pool.into(),
 		select_chain: maybe_select_chain,
 		other: (
 			block_import,
@@ -483,7 +484,7 @@ where
 				is_validator: config.role.is_authority(),
 				enable_http_requests: true,
 				custom_extensions: move |_| vec![],
-			})
+			})?
 			.run(client.clone(), task_manager.spawn_handle())
 			.boxed(),
 		);
@@ -511,16 +512,14 @@ where
 				moonbeam_cli_opt::Sealing::Instant => {
 					Box::new(
 						// This bit cribbed from the implementation of instant seal.
-						transaction_pool
-							.pool()
-							.validated_pool()
-							.import_notification_stream()
-							.map(|_| EngineCommand::SealNewBlock {
+						transaction_pool.import_notification_stream().map(|_| {
+							EngineCommand::SealNewBlock {
 								create_empty: false,
 								finalize: false,
 								parent_hash: None,
 								sender: None,
-							}),
+							}
+						}),
 					)
 				}
 				moonbeam_cli_opt::Sealing::Manual => {
@@ -546,8 +545,6 @@ where
 				Therefore, a `LongestChainRule` is present. qed.",
 		);
 
-		let client_set_aside_for_cidp = client.clone();
-
 		// Create channels for mocked XCM messages.
 		let (downward_xcm_sender, downward_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
 		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
@@ -558,12 +555,15 @@ where
 			additional_relay_offset,
 		));
 
-		let client_clone = client.clone();
+		// Need to clone it and store here to avoid moving of `client`
+		// variable in closure below.
+		let client_vrf = client.clone();
+
 		let keystore_clone = keystore_container.keystore().clone();
 		let maybe_provide_vrf_digest =
 			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
 				moonbeam_vrf::vrf_pre_digest::<Block, LazyLoadingClient<RuntimeApi>>(
-					&client_clone,
+					&client_vrf,
 					&keystore_clone,
 					nimbus_id,
 					parent,
@@ -572,6 +572,10 @@ where
 
 		let parachain_id = helpers::get_parachain_id(backend.rpc_client.clone())
 			.unwrap_or_else(|| panic!("Could not get parachain identifier for lazy loading mode."));
+
+		// Need to clone it and store here to avoid moving of `client`
+		// variable in closure below.
+		let client_clone = client.clone();
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
@@ -590,12 +594,17 @@ where
 					_phantom: Default::default(),
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
-					let maybe_current_para_block = client_set_aside_for_cidp.number(block);
-					let maybe_current_para_head = client_set_aside_for_cidp.expect_header(block);
+					let client_for_cidp = client_clone.clone();
+
+					let maybe_current_para_block = client_for_cidp.number(block);
+					let maybe_current_para_head = client_for_cidp.expect_header(block);
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
 
-					let client_for_cidp = client_set_aside_for_cidp.clone();
+					// Need to clone it and store here to avoid moving of `client`
+					// variable in closure below.
+					let client_for_xcm = client_for_cidp.clone();
+
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -646,7 +655,7 @@ where
 							twox_128(b"PendingValidationCode"),
 						]
 						.concat();
-						let has_pending_upgrade = client_for_cidp
+						let has_pending_upgrade = client_for_xcm
 							.storage(block, &StorageKey(storage_key))
 							.map_or(false, |ok| ok.map_or(false, |some| !some.0.is_empty()));
 						if has_pending_upgrade {
@@ -658,9 +667,31 @@ where
 							));
 						}
 
+						let current_para_head = client_for_xcm
+							.header(block)
+							.expect("Header lookup should succeed")
+							.expect("Header passed in as parent should be present in backend.");
+
+						let should_send_go_ahead = match client_for_xcm
+							.runtime_api()
+							.collect_collation_info(block, &current_para_head)
+						{
+							Ok(info) => info.new_validation_code.is_some(),
+							Err(e) => {
+								log::error!("Failed to collect collation info: {:?}", e);
+								false
+							}
+						};
+
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							para_id: ParaId::new(parachain_id),
+							upgrade_go_ahead: should_send_go_ahead.then(|| {
+								log::info!(
+									"Detected pending validation code, sending go-ahead signal."
+								);
+								UpgradeGoAhead::GoAhead
+							}),
 							current_para_block_head,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
@@ -668,7 +699,7 @@ where
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
 							xcm_config: MockXcmConfig::new(
-								&*client_for_cidp,
+								&*client_for_xcm,
 								block,
 								Default::default(),
 							),
@@ -762,6 +793,12 @@ where
 		let keystore = keystore_container.keystore();
 		let command_sink_for_task = command_sink.clone();
 		move |subscription_task_executor| {
+			let graph_pool = pool.0.as_any()
+                .downcast_ref::<sc_transaction_pool::BasicPool<
+                    sc_transaction_pool::FullChainApi<LazyLoadingClient<RuntimeApi>, Block>
+                    , Block
+                >>().expect("Frontier container chain template supports only single state transaction pool! Use --pool-type=single-state");
+
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -772,7 +809,7 @@ where
 					fc_db::Backend::KeyValue(ref b) => b.clone(),
 					fc_db::Backend::Sql(ref b) => b.clone(),
 				},
-				graph: pool.pool().clone(),
+				graph: graph_pool.pool().clone(),
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,

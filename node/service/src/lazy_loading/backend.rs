@@ -699,6 +699,11 @@ impl<Block: BlockT + DeserializeOwned> backend::BlockImportOperation<Block>
 	) -> sp_blockchain::Result<()> {
 		Ok(())
 	}
+
+	fn set_create_gap(&mut self, _create_gap: bool) {
+		// This implementation can be left empty or implemented as needed
+		// For now, we're just implementing the trait method with no functionality
+	}
 }
 
 /// DB-backed patricia trie state, transaction type is an overlay of changes to commit.
