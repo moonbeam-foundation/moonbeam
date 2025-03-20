@@ -422,3 +422,50 @@ fn test_governance_can_change_any_asset_location() {
 		));
 	});
 }
+
+#[test]
+fn test_inspect_trait_impl() {
+	ExtBuilder::default().build().execute_with(|| {
+
+		let asset_id = 6;
+		let deposit = ForeignAssetCreationDeposit::get();
+
+		Balances::make_free_balance_be(&PARA_A, deposit);
+
+		let asset_location: Location = (Parent, Parachain(1), PalletInstance(13)).into();
+
+		// create foreign asset
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::signed(PARA_A),
+			asset_id,
+			asset_location.clone(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		assert_eq!(
+			EvmForeignAssets::minimum_balance(asset_id),
+			Balance::from(0u32)
+		);
+
+		assert!(EvmForeignAssets::asset_exists(asset_id));
+
+		const ALICE: u64 = 4;
+		let beneficiary = MockAccount::from(ALICE);
+
+		assert_ok!(EvmForeignAssets::mint_into(asset_id, beneficiary, 1.into()));
+
+		assert_eq!(
+			EvmForeignAssets::total_issuance(asset_id),
+			Balance::from(1u32)
+		);
+
+		assert_eq!(
+			EvmForeignAssets::balance_of(asset_id, beneficiary),
+			Balance::from(1u32)
+		);
+
+
+	});
+}
