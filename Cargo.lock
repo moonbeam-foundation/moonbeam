@@ -6210,6 +6210,7 @@ dependencies = [
  "frame-try-runtime",
  "hex",
  "hex-literal 0.4.1",
+ "libsecp256k1",
  "log",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",

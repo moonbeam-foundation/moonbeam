@@ -2981,35 +2981,7 @@ fn evm_success_keeps_substrate_events() {
 		});
 }
 
-#[test]
-fn validate_transaction_fails_on_filtered_call() {
-	use sp_runtime::transaction_validity::{
-		InvalidTransaction, TransactionSource, TransactionValidityError,
-	};
-	use sp_transaction_pool::runtime_api::runtime_decl_for_tagged_transaction_queue::TaggedTransactionQueueV3; // editorconfig-checker-disable-line
-
-	ExtBuilder::default().build().execute_with(|| {
-		let xt = UncheckedExtrinsic::new_unsigned(
-			pallet_evm::Call::<Runtime>::call {
-				source: Default::default(),
-				target: H160::default(),
-				input: Vec::new(),
-				value: Default::default(),
-				gas_limit: Default::default(),
-				max_fee_per_gas: Default::default(),
-				max_priority_fee_per_gas: Default::default(),
-				nonce: Default::default(),
-				access_list: Default::default(),
-			}
-			.into(),
-		);
-
-		assert_eq!(
-			Runtime::validate_transaction(TransactionSource::External, xt, Default::default(),),
-			Err(TransactionValidityError::Invalid(InvalidTransaction::Call)),
-		);
-	});
-}
+// TODO: add more validate_transaction tests
 
 #[cfg(test)]
 mod treasury_tests {
@@ -3397,6 +3369,134 @@ mod fee_tests {
 				U256::from(31_250_000_000_000u128),
 				// upper bound enforced (min_gas_price * MaximumMultiplier)
 			);
+		});
+	}
+}
+
+mod validate_transaction_tests {
+	use ::account::{AccountId20, EthereumSignature, EthereumSigner};
+	use frame_support::dispatch::GetDispatchInfo;
+	use moonbase_runtime::SignedExtra;
+	use pallet_evm::GasWeightMapping;
+	use sp_core::ecdsa;
+	use sp_runtime::generic::{Era, SignedPayload};
+	use sp_runtime::traits::IdentifyAccount;
+	use sp_runtime::transaction_validity::{
+		InvalidTransaction, TransactionSource, TransactionValidityError,
+	};
+	use sp_transaction_pool::runtime_api::runtime_decl_for_tagged_transaction_queue::TaggedTransactionQueueV3;
+
+	use super::*;
+
+	#[test]
+	fn validate_transaction_fails_on_filtered_call() {
+		ExtBuilder::default().build().execute_with(|| {
+			let xt = UncheckedExtrinsic::new_unsigned(
+				pallet_evm::Call::<Runtime>::call {
+					source: Default::default(),
+					target: H160::default(),
+					input: Vec::new(),
+					value: Default::default(),
+					gas_limit: Default::default(),
+					max_fee_per_gas: Default::default(),
+					max_priority_fee_per_gas: Default::default(),
+					nonce: Default::default(),
+					access_list: Default::default(),
+				}
+				.into(),
+			);
+
+			assert_eq!(
+				Runtime::validate_transaction(TransactionSource::External, xt, Default::default(),),
+				Err(TransactionValidityError::Invalid(InvalidTransaction::Call)),
+			);
+		});
+	}
+
+	#[test]
+	fn validate_transaction_substrate_priority_based_on_tip_per_gas() {
+		ExtBuilder::default().build().execute_with(|| {
+			// Create two identical transactions with different tips
+			let low_tip = 5_000_000_000u128;
+			let high_tip = 10_000_000_000u128;
+
+			let extra: SignedExtra = (
+				frame_system::CheckNonZeroSender::<Runtime>::new(),
+				frame_system::CheckSpecVersion::<Runtime>::new(),
+				frame_system::CheckTxVersion::<Runtime>::new(),
+				frame_system::CheckGenesis::<Runtime>::new(),
+				frame_system::CheckEra::<Runtime>::from(Era::immortal()),
+				frame_system::CheckNonce::<Runtime>::from(
+					// frame_system::Pallet::<Runtime>::account(public.0.encode()).nonce,
+					0,
+				),
+				frame_system::CheckWeight::<Runtime>::new(),
+				pallet_transaction_payment::ChargeTransactionPayment::<Runtime>::from(0),
+				frame_metadata_hash_extension::CheckMetadataHash::new(false),
+				cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim::new(),
+			);
+
+			let call = pallet_balances::Call::<Runtime>::transfer_allow_death {
+				dest: Default::default(),
+				value: 100u128,
+			};
+
+			// Generate key pair
+			let (pair, _) = sp_core::ecdsa::Pair::generate();
+
+			// Get the correct address using EthereumSigner
+			let ethereum_signer = EthereumSigner::from(pair.public());
+			let ethereum_address = ethereum_signer.into_account();
+
+			// Create payload WITHOUT pre-hashing it
+			let payload = SignedPayload::new(call.clone(), extra.clone()).unwrap();
+
+			// Sign the raw payload - let the verify function handle the hashing
+			let signature = payload.using_encoded(|payload| pair.sign(payload));
+
+			// Convert to EthereumSignature
+			let eth_signature = EthereumSignature::from(signature);
+
+			let xt1 = UncheckedExtrinsic::new_signed(
+				call.clone().into(),
+				ethereum_address,
+				eth_signature.clone(),
+				extra.clone(),
+			);
+
+			let xt2 =
+				UncheckedExtrinsic::new_signed(call.into(), ethereum_address, eth_signature, extra);
+
+			// Validate both transactions
+			let result1 = Runtime::validate_transaction(
+				TransactionSource::External,
+				xt1.clone(),
+				H256::default(),
+			)
+			.unwrap();
+
+			let result2 = Runtime::validate_transaction(
+				TransactionSource::External,
+				xt2.clone(),
+				H256::default(),
+			)
+			.unwrap();
+
+			// Calculate expected priority based on tip and effective gas
+			let dispatch_info = xt1.get_dispatch_info();
+			let effective_gas = <Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+				dispatch_info.weight,
+			);
+
+			let expected_priority1 = (low_tip / effective_gas as u128) as u64;
+			let expected_priority2 = (high_tip / effective_gas as u128) as u64;
+
+			// Verify that priorities match expected values
+			assert_eq!(result1.priority, expected_priority1);
+			assert_eq!(result2.priority, expected_priority2);
+
+			// Verify that transaction with higher tip has higher priority
+			assert!(result2.priority > result1.priority);
 		});
 	}
 }
