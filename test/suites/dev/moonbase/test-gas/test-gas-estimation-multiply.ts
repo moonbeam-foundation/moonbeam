@@ -33,7 +33,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`22363n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`33048n`);
       },
     });
 
@@ -54,7 +54,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`22363n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`33048n`);
       },
     });
 
@@ -73,7 +73,7 @@ describeSuite({
           value: 0n,
         });
 
-        expect(estimatedGas).toMatchInlineSnapshot(`22363n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`33048n`);
       },
     });
 
@@ -94,7 +94,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`22363n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`33048n`);
       },
     });
 

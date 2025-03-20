@@ -37,7 +37,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`102597n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`115151n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -69,7 +69,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(proxyProxyEstimatedGas).toMatchInlineSnapshot(`92232n`);
+        expect(proxyProxyEstimatedGas).toMatchInlineSnapshot(`108088n`);
 
         const balBefore = await context.viem().getBalance({ address: FAITH_ADDRESS });
         const rawTxn2 = await context.writePrecompile!({
@@ -125,7 +125,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`92232n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`108088n`);
 
         const rawTxn2 = await context.writePrecompile!({
           precompileName: "Proxy",
