@@ -288,7 +288,7 @@ impl frame_system::Config for Runtime {
 	type OnKilledAccount = ();
 	type DbWeight = moonbase_weights::db::rocksdb::constants::RocksDbWeight;
 	type BaseCallFilter = MaintenanceMode;
-	type SystemWeightInfo = ();
+	type SystemWeightInfo = moonbase_weights::frame_system::WeightInfo<Runtime>;
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = ConstU16<1287>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
@@ -1487,6 +1487,7 @@ mod benches {
 	}
 
 	frame_benchmarking::define_benchmarks!(
+		[frame_system, SystemBench::<Runtime>]
 		[pallet_utility, Utility]
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]

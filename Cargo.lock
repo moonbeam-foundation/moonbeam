@@ -7186,18 +7186,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbeam-rpc-core-txpool"
-version = "0.6.0"
-dependencies = [
- "ethereum",
- "ethereum-types",
- "fc-rpc-core",
- "jsonrpsee 0.24.7",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "moonbeam-rpc-core-types"
 version = "0.1.0"
 dependencies = [
@@ -7302,28 +7290,6 @@ dependencies = [
  "substrate-prometheus-endpoint",
  "tokio",
  "tracing",
-]
-
-[[package]]
-name = "moonbeam-rpc-txpool"
-version = "0.6.0"
-dependencies = [
- "ethereum-types",
- "fc-rpc",
- "frame-system",
- "jsonrpsee 0.24.7",
- "moonbeam-rpc-core-txpool",
- "moonbeam-rpc-primitives-txpool",
- "rlp 0.5.2",
- "sc-transaction-pool",
- "sc-transaction-pool-api",
- "serde",
- "sha3",
- "sp-api",
- "sp-blockchain",
- "sp-io",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -7619,7 +7585,6 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-rpc-trace",
- "moonbeam-rpc-txpool",
  "moonbeam-runtime",
  "moonbeam-runtime-common",
  "moonbeam-vrf",

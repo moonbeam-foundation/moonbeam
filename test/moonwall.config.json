@@ -386,7 +386,7 @@
               "--nimbus-full-pov"
             ],
             "defaultForkConfig": {
-              "url": "https://moonbeam.unitedbloc.com",
+              "url": "https://trace.api.moonbeam.network",
               "stateOverridePath": "tmp/lazyLoadingStateOverrides.json",
               "verbose": true
             }

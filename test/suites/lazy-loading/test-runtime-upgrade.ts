@@ -13,7 +13,7 @@ describeSuite({
   foundationMethods: "dev",
   options: {
     forkConfig: {
-      url: process.env.FORK_URL ?? "https://moonbeam.unitedbloc.com",
+      url: process.env.FORK_URL ?? "https://trace.api.moonbeam.network",
       stateOverridePath: "tmp/lazyLoadingStateOverrides.json",
       verbose: true,
     },
