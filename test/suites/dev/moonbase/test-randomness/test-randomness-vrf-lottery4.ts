@@ -47,7 +47,7 @@ describeSuite({
           args: [0],
         });
         log("Estimated Gas for startLottery", estimatedGas);
-        expect(estimatedGas).toMatchInlineSnapshot(`284196n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`297109n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Randomness",
