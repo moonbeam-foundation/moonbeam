@@ -205,7 +205,7 @@ impl<C: Decode> WeightBounds<C> for DummyWeigher<C> {
 	fn weight(_message: &mut Xcm<C>) -> Result<Weight, ()> {
 		Ok(Weight::zero())
 	}
-	fn instr_weight(_instruction: &Instruction<C>) -> Result<Weight, ()> {
+	fn instr_weight(_instruction: &mut Instruction<C>) -> Result<Weight, ()> {
 		Ok(Weight::zero())
 	}
 }
