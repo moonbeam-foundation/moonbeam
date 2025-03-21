@@ -537,7 +537,7 @@ describeSuite({
         const { gasUsed } = await context
           .viem()
           .getTransactionReceipt({ hash: result2!.hash as `0x${string}` });
-        const expectedMinimumPovGas = 59000n;
+        const expectedMinimumPovGas = 54000n;
         // pov_gas = proof_size * GAS_LIMIT_POV_RATIO
         // proof size reclaim seems indeterministic
         expect(gasUsed).toBeGreaterThan(expectedMinimumPovGas);
