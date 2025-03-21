@@ -332,9 +332,7 @@ fn send_para_a_asset_to_para_b() {
 
 	// This represents the asset in paraA
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -403,9 +401,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 	// Represents para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -516,9 +512,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 
 	// Para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -619,9 +613,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -834,9 +826,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -912,9 +902,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -2203,9 +2191,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -2654,10 +2640,9 @@ fn test_statemine_like() {
 			xcm::latest::prelude::GeneralIndex(0u128),
 		],
 	);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&statemine_asset_a_balances)
-			.expect("convert to v3"),
-	);
+	let source_location = statemint_asset_a_balances
+		.try_into()
+		.expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -2760,9 +2745,7 @@ fn send_statemine_asset_from_para_a_to_statemine_with_relay_fee() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemine_location_asset = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&statemine_asset).expect("convert to v3"),
-	);
+	let statemine_location_asset = statemint_asset.try_into().expect("convert to v3");
 	let source_statemine_asset_id: parachain::AssetId = statemine_location_asset.clone().into();
 
 	let asset_metadata_statemine_asset = parachain::AssetMetadata {
@@ -3442,9 +3425,7 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multicurrencies() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemine_location_asset = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&statemine_asset).expect("convert to v3"),
-	);
+	let statemine_location_asset = statemint_asset.try_into().expect("convert to v3");
 	let source_statemine_asset_id: parachain::AssetId = statemine_location_asset.clone().into();
 
 	let asset_metadata_statemine_asset = parachain::AssetMetadata {
@@ -3690,9 +3671,7 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiassets() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemine_location_asset = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&statemine_asset).expect("convert to v3"),
-	);
+	let statemine_location_asset = statemint_asset.try_into().expect("convert to v3");
 	let source_statemine_asset_id: parachain::AssetId = statemine_location_asset.clone().into();
 
 	let asset_metadata_statemine_asset = parachain::AssetMetadata {
