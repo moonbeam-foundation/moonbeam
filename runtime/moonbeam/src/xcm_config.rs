@@ -456,8 +456,14 @@ impl From<xcm::v3::Location> for AssetType {
 // This can be removed once we fully adopt xcm::v4 everywhere
 impl TryFrom<Location> for AssetType {
 	type Error = ();
+
 	fn try_from(location: Location) -> Result<Self, Self::Error> {
-		Ok(Self::Xcm(location.try_into()?))
+		// Convert the V5 location to a V3 location
+		match xcm::VersionedLocation::V5(location).try_into() {
+			Ok(xcm::VersionedLocation::V3(loc)) => Ok(AssetType::Xcm(loc.into())),
+			// Any other version or conversion error returns an error
+			_ => Err(()),
+		}
 	}
 }
 
@@ -473,7 +479,11 @@ impl Into<Option<Location>> for AssetType {
 	fn into(self) -> Option<Location> {
 		match self {
 			Self::Xcm(location) => {
-				xcm_builder::WithLatestLocationConverter::convert_back(&location)
+				let versioned = xcm::VersionedLocation::V3(location);
+				match versioned.try_into() {
+					Ok(xcm::VersionedLocation::V5(loc)) => Some(loc),
+					_ => None,
+				}
 			}
 		}
 	}
@@ -773,7 +783,6 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 mod testing {
 	use super::*;
-	use xcm_builder::WithLatestLocationConverter;
 
 	/// This From exists for benchmarking purposes. It has the potential side-effect of calling
 	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
@@ -787,9 +796,7 @@ mod testing {
 			{
 				asset_id
 			} else {
-				let asset_type = AssetType::Xcm(
-					WithLatestLocationConverter::convert(&location).expect("convert to v3"),
-				);
+				let asset_type: AssetType = location.try_into().expect("convert to v3");
 				let asset_id: AssetId = asset_type.clone().into();
 				AssetManager::set_asset_type_asset_id(asset_type, asset_id);
 				asset_id

@@ -52,7 +52,7 @@ use xcm_simulator::TestExt;
 
 fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128) -> Result<(), ()> {
 	let parachain::AssetType::Xcm(location_v3) = asset_type;
-	let VersionedLocation::V4(location_v4) = VersionedLocation::V3(location_v3)
+	let VersionedLocation::from(location_v4) = VersionedLocation::V3(location_v3)
 		.into_version(4)
 		.map_err(|_| ())?
 	else {
@@ -132,7 +132,7 @@ fn receive_relay_asset_from_relay() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -184,7 +184,7 @@ fn send_relay_asset_to_relay() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -216,9 +216,9 @@ fn send_relay_asset_to_relay() {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 123);
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -282,7 +282,7 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -311,9 +311,9 @@ fn send_relay_asset_to_para_b() {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -336,9 +336,7 @@ fn send_para_a_asset_to_para_b() {
 
 	// This represents the asset in paraA
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -379,9 +377,9 @@ fn send_para_a_asset_to_para_b() {
 		// Free execution, full amount received
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -407,9 +405,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 	// Represents para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -458,9 +454,9 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -496,9 +492,9 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -516,9 +512,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 
 	// para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -556,9 +550,9 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -594,9 +588,9 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -656,7 +650,7 @@ fn receive_relay_asset_with_trader() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 100).into()),
 			0,
 			WeightLimit::Unlimited
@@ -676,9 +670,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -720,9 +712,9 @@ fn send_para_a_asset_to_para_b_with_trader() {
 		let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(10u64, DEFAULT_PROOF_SIZE))
 		));
@@ -754,9 +746,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&para_a_balances).expect("convert to v3"),
-	);
+	let source_location = para_a_balances.try_into().expect("convert to v3");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -795,9 +785,9 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 		let asset_fee = currency_to_asset(parachain::CurrencyId::SelfReserve, 1);
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -859,7 +849,7 @@ fn error_when_not_paying_enough() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 5).into()),
 			0,
 			WeightLimit::Unlimited
@@ -898,7 +888,7 @@ fn transact_through_derivative_multilocation() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000.into(),
 			20000000000.into(),
@@ -907,7 +897,7 @@ fn transact_through_derivative_multilocation() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			WEIGHT_REF_TIME_PER_SECOND as u128,
 		));
 	});
@@ -924,7 +914,7 @@ fn transact_through_derivative_multilocation() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -963,9 +953,9 @@ fn transact_through_derivative_multilocation() {
 		// free execution, full amount received
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1007,7 +997,7 @@ fn transact_through_derivative_multilocation() {
 			parachain::MockTransactors::Relay,
 			0,
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				fee_amount: None
@@ -1066,7 +1056,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1105,9 +1095,9 @@ fn transact_through_derivative_with_custom_fee_weight() {
 		// free execution, full amount received
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1150,7 +1140,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 			parachain::MockTransactors::Relay,
 			0,
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				// 1-1 fee weight mapping
@@ -1220,7 +1210,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 4000009100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1259,9 +1249,9 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 		// free execution, full amount received
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1304,7 +1294,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 			parachain::MockTransactors::Relay,
 			0,
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				// 1-1 fee weight mapping
@@ -1363,7 +1353,7 @@ fn transact_through_sovereign() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000.into(),
 			20000000000.into(),
@@ -1372,7 +1362,7 @@ fn transact_through_sovereign() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			WEIGHT_REF_TIME_PER_SECOND as u128,
 		));
 	});
@@ -1386,7 +1376,7 @@ fn transact_through_sovereign() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1424,9 +1414,9 @@ fn transact_through_sovereign() {
 		// free execution, full amount received
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1477,10 +1467,10 @@ fn transact_through_sovereign() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(dest)),
+			Box::new(xcm::VersionedLocation::from(dest)),
 			Some(PARAALICE.into()),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				fee_amount: None
@@ -1511,7 +1501,7 @@ fn transact_through_sovereign_fee_payer_none() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000.into(),
 			20000000000.into(),
@@ -1520,7 +1510,7 @@ fn transact_through_sovereign_fee_payer_none() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			WEIGHT_REF_TIME_PER_SECOND as u128,
 		));
 	});
@@ -1581,11 +1571,11 @@ fn transact_through_sovereign_fee_payer_none() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(dest)),
+			Box::new(xcm::VersionedLocation::from(dest)),
 			// No fee_payer here. The sovereign account will pay the fees on destination.
 			None,
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				fee_amount: None
@@ -1641,7 +1631,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1679,9 +1669,9 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 		// free execution, full amount received
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1733,10 +1723,10 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(dest)),
+			Box::new(xcm::VersionedLocation::from(dest)),
 			Some(PARAALICE.into()),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				// 1-1 fee-weight mapping
@@ -1793,7 +1783,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 4000009100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1831,9 +1821,9 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 		// free execution, full amount received
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -1885,10 +1875,10 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(dest)),
+			Box::new(xcm::VersionedLocation::from(dest)),
 			Some(PARAALICE.into()),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				// 1-1 fee-weight mapping
@@ -1975,7 +1965,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -2073,7 +2063,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
+			Box::new(VersionedLocation::from(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -2100,7 +2090,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -2148,7 +2138,7 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
+			Box::new(VersionedLocation::from(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -2204,7 +2194,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
+			Box::new(VersionedLocation::from(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -2278,7 +2268,7 @@ fn empty_account_should_not_be_reset() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::V4(dest.clone()).clone().into()),
+			Box::new(VersionedLocation::from(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -2403,7 +2393,7 @@ fn test_statemint_like() {
 		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(VersionedLocation::V4(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone().into()),
 			Box::new(
 				(
 					[
@@ -2450,9 +2440,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemint_location_asset = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&statemint_asset).expect("convert to v3"),
-	);
+	let statemint_location_asset = statemint_asset.try_into().expect("convert to v3");
 	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
 
 	let asset_metadata_statemint_asset = parachain::AssetMetadata {
@@ -2501,7 +2489,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_from_relay)
+				VersionedLocation::from(parachain_beneficiary_from_relay)
 					.clone()
 					.into()
 			),
@@ -2551,7 +2539,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_from_statemint)
+				VersionedLocation::from(parachain_beneficiary_from_statemint)
 					.clone()
 					.into()
 			),
@@ -2614,9 +2602,9 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(assets_to_send)),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(assets_to_send)),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
@@ -2691,7 +2679,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1000).into()),
 			Box::new(
-				VersionedLocation::V4(statemint_beneficiary_absolute)
+				VersionedLocation::from(statemint_beneficiary_absolute)
 					.clone()
 					.into()
 			),
@@ -2720,7 +2708,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute.clone())
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
 					.clone()
 					.into()
 			),
@@ -2752,9 +2740,9 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(asset.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset.into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -2777,7 +2765,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 			statemint_like::RuntimeOrigin::signed(RELAYBOB),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute)
+				VersionedLocation::from(parachain_beneficiary_absolute)
 					.clone()
 					.into()
 			),
@@ -2847,7 +2835,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1000).into()),
 			Box::new(
-				VersionedLocation::V4(statemint_beneficiary_absolute)
+				VersionedLocation::from(statemint_beneficiary_absolute)
 					.clone()
 					.into()
 			),
@@ -2876,7 +2864,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute.clone())
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
 					.clone()
 					.into()
 			),
@@ -2909,9 +2897,9 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 		let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 10);
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -2934,7 +2922,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 			statemint_like::RuntimeOrigin::signed(RELAYBOB),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute)
+				VersionedLocation::from(parachain_beneficiary_absolute)
 					.clone()
 					.into()
 			),
@@ -3007,7 +2995,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1000).into()),
 			Box::new(
-				VersionedLocation::V4(statemint_beneficiary_absolute)
+				VersionedLocation::from(statemint_beneficiary_absolute)
 					.clone()
 					.into()
 			),
@@ -3036,7 +3024,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute.clone())
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
 					.clone()
 					.into()
 			),
@@ -3066,9 +3054,9 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 	ParaA::execute_with(|| {
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4((Location::parent(), 100).into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from((Location::parent(), 100).into())),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -3091,7 +3079,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 			statemint_like::RuntimeOrigin::signed(RELAYBOB),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute)
+				VersionedLocation::from(parachain_beneficiary_absolute)
 					.clone()
 					.into()
 			),
@@ -3133,9 +3121,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemint_location_asset = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&statemint_asset).expect("convert to v3"),
-	);
+	let statemint_location_asset = statemint_asset.try_into().expect("convert to v3");
 	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
 
 	let asset_metadata_statemint_asset = parachain::AssetMetadata {
@@ -3190,7 +3176,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1000).into()),
 			Box::new(
-				VersionedLocation::V4(statemint_beneficiary_absolute)
+				VersionedLocation::from(statemint_beneficiary_absolute)
 					.clone()
 					.into()
 			),
@@ -3237,7 +3223,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute.clone())
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
 					.clone()
 					.into()
 			),
@@ -3251,7 +3237,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute.clone())
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
 					.clone()
 					.into()
 			),
@@ -3306,9 +3292,9 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 		let assets_to_send = vec![asset_1, asset_2];
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(assets_to_send.into())),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(assets_to_send.into())),
 			1,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
@@ -3336,7 +3322,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			statemint_like::RuntimeOrigin::signed(RELAYBOB),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute)
+				VersionedLocation::from(parachain_beneficiary_absolute)
 					.clone()
 					.into()
 			),
@@ -3381,9 +3367,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemint_location_asset = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&statemint_asset).expect("convert to v3"),
-	);
+	let statemint_location_asset = statemint_asset.try_into().expect("convert to v3");
 	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
 
 	let asset_metadata_statemint_asset = parachain::AssetMetadata {
@@ -3438,7 +3422,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1000).into()),
 			Box::new(
-				VersionedLocation::V4(statemint_beneficiary_absolute)
+				VersionedLocation::from(statemint_beneficiary_absolute)
 					.clone()
 					.into()
 			),
@@ -3485,7 +3469,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute.clone())
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
 					.clone()
 					.into()
 			),
@@ -3499,7 +3483,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute.clone())
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
 					.clone()
 					.into()
 			),
@@ -3563,9 +3547,9 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 	ParaA::execute_with(|| {
 		assert_ok!(PolkadotXcm::transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::V4(chain_part)),
-			Box::new(VersionedLocation::V4(beneficiary)),
-			Box::new(VersionedAssets::V4(assets_to_send)),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(assets_to_send)),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
@@ -3593,7 +3577,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			statemint_like::RuntimeOrigin::signed(RELAYBOB),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
 			Box::new(
-				VersionedLocation::V4(parachain_beneficiary_absolute)
+				VersionedLocation::from(parachain_beneficiary_absolute)
 					.clone()
 					.into()
 			),
@@ -3624,7 +3608,7 @@ fn transact_through_signed_multilocation() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000.into(),
 			20000000000.into(),
@@ -3634,7 +3618,7 @@ fn transact_through_signed_multilocation() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			WEIGHT_REF_TIME_PER_SECOND as u128,
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -3698,9 +3682,9 @@ fn transact_through_signed_multilocation() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				fee_amount: None
@@ -3790,9 +3774,9 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				fee_amount: Some(total_weight as u128)
@@ -3882,9 +3866,9 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedLocation::V4(Location::parent())),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				fee_amount: Some(total_weight as u128)
@@ -3922,7 +3906,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedLocation::V4(para_b_location.clone())),
+			Box::new(xcm::VersionedLocation::from(para_b_location.clone())),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -3932,7 +3916,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
+			Box::new(xcm::VersionedLocation::from(para_b_balances.clone())),
 			parachain::ParaTokensPerSecond::get(),
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -3993,9 +3977,9 @@ fn transact_through_signed_multilocation_para_to_para() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedLocation::V4(para_b_location)),
+			Box::new(xcm::VersionedLocation::from(para_b_location)),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					para_b_balances
 				))),
 				fee_amount: None
@@ -4030,7 +4014,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
+			Box::new(xcm::VersionedLocation::from(para_b_balances.clone())),
 			parachain::ParaTokensPerSecond::get(),
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -4092,9 +4076,9 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedLocation::V4(para_b_location)),
+			Box::new(xcm::VersionedLocation::from(para_b_location)),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					para_b_balances
 				))),
 				fee_amount: Some(overall_weight as u128)
@@ -4132,7 +4116,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedLocation::V4(para_b_location.clone())),
+			Box::new(xcm::VersionedLocation::from(para_b_location.clone())),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -4142,7 +4126,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
+			Box::new(xcm::VersionedLocation::from(para_b_balances.clone())),
 			parachain::ParaTokensPerSecond::get(),
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -4218,9 +4202,9 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedLocation::V4(para_b_location)),
+			Box::new(xcm::VersionedLocation::from(para_b_location)),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					para_b_balances
 				))),
 				fee_amount: None
@@ -4259,7 +4243,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedLocation::V4(para_b_location.clone())),
+			Box::new(xcm::VersionedLocation::from(para_b_location.clone())),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -4269,7 +4253,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
+			Box::new(xcm::VersionedLocation::from(para_b_balances.clone())),
 			parachain::ParaTokensPerSecond::get(),
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -4346,9 +4330,9 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedLocation::V4(para_b_location)),
+			Box::new(xcm::VersionedLocation::from(para_b_location)),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					para_b_balances
 				))),
 				fee_amount: None
@@ -4382,7 +4366,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		assert_ok!(XcmTransactor::set_transact_info(
 			parachain::RuntimeOrigin::root(),
 			// ParaB
-			Box::new(xcm::VersionedLocation::V4(para_b_location.clone())),
+			Box::new(xcm::VersionedLocation::from(para_b_location.clone())),
 			// Para charges 1000 for every instruction, and we have 3, so 3
 			3.into(),
 			20000000000.into(),
@@ -4392,7 +4376,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::V4(para_b_balances.clone())),
+			Box::new(xcm::VersionedLocation::from(para_b_balances.clone())),
 			parachain::ParaTokensPerSecond::get(),
 		));
 		ancestry = parachain::UniversalLocation::get().into();
@@ -4477,9 +4461,9 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(xcm::VersionedLocation::V4(para_b_location)),
+			Box::new(xcm::VersionedLocation::from(para_b_location)),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					para_b_balances
 				))),
 				fee_amount: None
@@ -4532,7 +4516,7 @@ fn hrmp_init_accept_through_root() {
 				proposed_max_message_size: 1
 			}),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				fee_amount: Some(total_fee)
@@ -4565,7 +4549,7 @@ fn hrmp_init_accept_through_root() {
 				para_id: 1u32.into()
 			},
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				fee_amount: Some(total_fee)
@@ -4623,7 +4607,7 @@ fn hrmp_close_works() {
 				recipient: 2u32.into()
 			}),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					Location::parent()
 				))),
 				fee_amount: Some(total_fee)

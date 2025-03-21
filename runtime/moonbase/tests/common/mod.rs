@@ -107,7 +107,7 @@ pub fn last_event() -> RuntimeEvent {
 #[derive(Clone)]
 pub struct XcmAssetInitialization {
 	pub asset_id: u128,
-	pub xcm_location: xcm::v4::Location,
+	pub xcm_location: xcm::v5::Location,
 	pub decimals: u8,
 	pub name: &'static str,
 	pub symbol: &'static str,
