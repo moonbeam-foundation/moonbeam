@@ -54,7 +54,10 @@ use self::evm::EvmCaller;
 use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
-use frame_support::traits::{Contains, fungibles::{Inspect, Create, Mutate, Unbalanced}};
+use frame_support::traits::{
+	fungibles::{Create, Inspect, Mutate, Unbalanced},
+	Contains,
+};
 use frame_system::pallet_prelude::*;
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,

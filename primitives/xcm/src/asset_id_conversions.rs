@@ -51,7 +51,7 @@ where
 	fn convert(id: &xcm::v4::Location) -> Option<AssetId> {
 		let v3_location =
 			xcm_builder::WithLatestLocationConverter::<xcm::v3::Location>::convert(id)?;
-		AssetIdInfoGetter::get_asset_id(v3_location.clone().into())
+		AssetIdInfoGetter::get_asset_id(v3_location.into())
 	}
 	fn convert_back(what: &AssetId) -> Option<xcm::v4::Location> {
 		let v3_location: Location =
@@ -69,7 +69,7 @@ where
 	fn convert_location(id: &xcm::v4::Location) -> Option<AssetId> {
 		let v3_location =
 			xcm_builder::WithLatestLocationConverter::<xcm::v3::Location>::convert(id)?;
-		AssetIdInfoGetter::get_asset_id(v3_location.clone().into())
+		AssetIdInfoGetter::get_asset_id(v3_location.into())
 	}
 }
 

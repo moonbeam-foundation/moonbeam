@@ -33,7 +33,10 @@ use sp_runtime::{
 
 use frame_support::{
 	parameter_types,
-	traits::{EitherOf, EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin, fungible::NativeOrWithId},
+	traits::{
+		fungible::NativeOrWithId, EitherOf, EitherOfDiverse, Everything, Nothing, PalletInfoAccess,
+		TransformOrigin,
+	},
 };
 
 use frame_system::{EnsureRoot, RawOrigin};

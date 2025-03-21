@@ -21,7 +21,8 @@ use frame_support::{
 	dispatch::GetDispatchInfo,
 	ensure, parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess,
+		fungible::NativeOrWithId, AsEnsureOriginWithArg, ConstU32, Everything, Get, InstanceFilter,
+		Nothing, PalletInfoAccess,
 	},
 	weights::Weight,
 	PalletId,
@@ -787,6 +788,8 @@ parameter_types! {
 impl pallet_xcm_weight_trader::Config for Runtime {
 	type AccountIdToLocation = xcm_primitives::AccountIdToLocation<AccountId>;
 	type AddSupportedAssetOrigin = EnsureRoot<AccountId>;
+	type AssetIdentifier = AsAssetType<AssetId, AssetType, AssetManager>;
+	type AssetKind = NativeOrWithId<AssetId>;
 	type AssetLocationFilter = Everything;
 	type AssetTransactor = AssetTransactors;
 	type Balance = Balance;

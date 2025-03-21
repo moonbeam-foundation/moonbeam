@@ -33,19 +33,19 @@ pub use weights::WeightInfo;
 
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
+use frame_support::traits::fungible::NativeOrWithId;
+use frame_support::traits::tokens::ConversionFromAssetBalance;
 use frame_support::traits::Contains;
 use frame_support::weights::WeightToFee;
 use frame_system::pallet_prelude::*;
+use moonbeam_core_primitives::{AssetId, Balance};
+use sp_runtime::traits::MaybeEquivalence;
 use sp_runtime::traits::{Convert, Zero};
 use sp_std::vec::Vec;
 use xcm::v4::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
 use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
-use frame_support::traits::fungible::NativeOrWithId;
-use frame_support::traits::tokens::ConversionFromAssetBalance;
-use moonbeam_core_primitives::{ Balance, AssetId };
-use sp_runtime::traits::MaybeEquivalence;
 
 pub const RELATIVE_PRICE_DECIMALS: u32 = 18;
 
@@ -483,7 +483,9 @@ impl<T: crate::Config> Drop for Trader<T> {
 	}
 }
 
-impl <T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Balance> for Pallet<T> {
+impl<T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Balance>
+	for Pallet<T>
+{
 	type Error = Error<T>;
 	fn from_asset_balance(
 		asset_balance: Balance,
@@ -492,8 +494,8 @@ impl <T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Ba
 		match asset_kind {
 			NativeOrWithId::Native => Ok(asset_balance),
 			NativeOrWithId::WithId(asset_id) => {
-				let location = T::AssetIdentifier::convert_back(&asset_id)
-					.ok_or(Error::<T>::AssetNotFound)?;
+				let location =
+					T::AssetIdentifier::convert_back(&asset_id).ok_or(Error::<T>::AssetNotFound)?;
 				let relative_price = Pallet::<T>::get_asset_relative_price(&location)
 					.ok_or(Error::<T>::AssetNotFound)?;
 				Ok(asset_balance
@@ -501,6 +503,20 @@ impl <T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Ba
 					.ok_or(Error::<T>::PriceOverflow)?
 					.checked_div(10u128.pow(RELATIVE_PRICE_DECIMALS))
 					.ok_or(Error::<T>::PriceOverflow)?)
+			}
+		}
+	}
+
+	/// Set a conversion rate to `1` for the `asset_id`.
+	#[cfg(feature = "runtime-benchmarks")]
+	fn ensure_successful(asset_id: NativeOrWithId<AssetId>) {
+		match asset_id {
+			NativeOrWithId::Native => (),
+			NativeOrWithId::WithId(asset_id) => {
+				let location = T::AssetIdentifier::convert_back(&asset_id).unwrap();
+				let enabled = true;
+				let relative_price = 10u128.pow(RELATIVE_PRICE_DECIMALS);
+				pallet::SupportedAssets::<T>::insert(&location, (enabled, relative_price));
 			}
 		}
 	}

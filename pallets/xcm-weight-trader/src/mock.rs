@@ -20,16 +20,19 @@ use super::*;
 use crate as pallet_xcm_weight_trader;
 use frame_support::{
 	construct_runtime, ord_parameter_types, parameter_types,
-	traits::{Currency, Everything, MaybeEquivalence},
+	traits::{Currency, Everything},
 	weights::{constants::RocksDbWeight, IdentityFee},
 };
 use frame_system::EnsureSignedBy;
 use sp_core::H256;
+use sp_runtime::traits::MaybeEquivalence;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
 };
-use xcm::v4::{Asset, Error as XcmError, Junction, Junctions, Location, Result as XcmResult, XcmContext};
+use xcm::v4::{
+	Asset, Error as XcmError, Junction, Junctions, Location, Result as XcmResult, XcmContext,
+};
 
 type AccountId = u64;
 type Balance = u128;
@@ -156,8 +159,14 @@ pub struct MockAssetIndentifier;
 impl MaybeEquivalence<Location, u128> for MockAssetIndentifier {
 	fn convert(location: &Location) -> Option<u128> {
 		match location {
-			Location { parents: 0, interior: Junctions::Here } => Some(0),
-			Location { parents: 1, interior: Junctions::Here } => Some(1),
+			Location {
+				parents: 0,
+				interior: Junctions::Here,
+			} => Some(0),
+			Location {
+				parents: 1,
+				interior: Junctions::Here,
+			} => Some(1),
 			_ => None,
 		}
 	}

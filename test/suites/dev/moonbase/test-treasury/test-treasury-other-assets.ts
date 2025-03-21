@@ -5,7 +5,13 @@ import { alith, ALITH_ADDRESS, baltathar, ethan, TREASURY_ACCOUNT } from "@moonw
 import { FrameSupportPalletId } from "@polkadot/types/lookup";
 import { sendCallAsPara } from "../../../../helpers/xcm";
 import { expectSystemEvent } from "../../../../helpers/expect";
-import { addAssetToWeightTrader, assetContractAddress, foreignAssetBalance, mockAssetBalance, PARA_1000_SOURCE_LOCATION } from "../../../../helpers";
+import {
+  addAssetToWeightTrader,
+  assetContractAddress,
+  foreignAssetBalance,
+  mockAssetBalance,
+  PARA_1000_SOURCE_LOCATION,
+} from "../../../../helpers";
 import { getContract } from "viem";
 
 describeSuite({
@@ -28,12 +34,11 @@ describeSuite({
       id: "T01",
       title: "Treasury can spend in non-native assets",
       test: async function () {
-
         const assetLocation = PARA_1000_SOURCE_LOCATION;
 
         const createForeignAssetCall = context
           .polkadotJs()
-          .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
+          .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation.Xcm, 18, "TEST", "TEST");
 
         const sudoCall = context.polkadotJs().tx.sudo.sudo(createForeignAssetCall);
         const block = await context.createBlock(sudoCall, { allowFailures: false });
@@ -48,7 +53,7 @@ describeSuite({
         await addAssetToWeightTrader(assetLocation, 1_000_000_000_000_000_000n, context);
 
         // Fund the treasury account
-        const treasuryBalance = 100_000_000_000_000_000_000n; 
+        const treasuryBalance = 100_000_000_000_000_000_000n;
         await mockAssetBalance(context, treasuryBalance, assetId, alith, TREASURY_ACCOUNT);
         const newBalance = await foreignAssetBalance(context, assetId, TREASURY_ACCOUNT);
         expect(newBalance).toBe(treasuryBalance);
@@ -83,7 +88,6 @@ describeSuite({
         });
         // const newBalanceAfter = await foreignAssetBalance(context, assetId, TREASURY_ACCOUNT);
         // expect(newBalanceAfter).toBe(treasuryBalance - proposal_value);
-
       },
     });
   },

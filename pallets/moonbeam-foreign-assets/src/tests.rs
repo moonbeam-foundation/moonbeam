@@ -426,7 +426,6 @@ fn test_governance_can_change_any_asset_location() {
 #[test]
 fn test_inspect_trait_impl() {
 	ExtBuilder::default().build().execute_with(|| {
-
 		let asset_id = 6;
 		let deposit = ForeignAssetCreationDeposit::get();
 
@@ -465,7 +464,5 @@ fn test_inspect_trait_impl() {
 			EvmForeignAssets::balance(asset_id, &beneficiary),
 			Balance::from(1u32)
 		);
-
-
 	});
 }

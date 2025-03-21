@@ -43,7 +43,6 @@ const ERC20_UNPAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 149_500
 pub(crate) const ERC20_TOTAL_SUPPLY_GAS_LIMIT: u64 = 40_000; // TODO check highest failure and adjust
 pub(crate) const ERC20_BALANCE_OF_GAS_LIMIT: u64 = 40_000; // TODO check highest failure and adjust
 
-
 #[derive(Debug)]
 pub enum EvmError {
 	BurnFromFail(String),
@@ -533,7 +532,7 @@ impl<T: crate::Config> EvmCaller<T> {
 				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
 				log::debug!("erc20_balance_of (error): {:?}", err);
 				Error::<T>::EvmCallBalanceOfFail
-			}	
+			}
 		);
 
 		let balance = U256::from_big_endian(&exec_info.value);
