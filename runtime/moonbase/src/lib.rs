@@ -597,7 +597,7 @@ impl pallet_treasury::Config for Runtime {
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
-	type BlockNumberProvider = ();
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {

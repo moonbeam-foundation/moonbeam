@@ -84,6 +84,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 parameter_types! {
@@ -106,6 +107,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 impl pallet_utility::Config for Runtime {
@@ -297,7 +299,7 @@ impl hrmp::Config for Runtime {
 	type VersionWrapper = XcmPallet;
 }
 
-impl<C> frame_system::offchain::SendTransactionTypes<C> for Runtime
+impl<C> sp_offchain::SendTransactionTypes<C> for Runtime
 where
 	RuntimeCall: From<C>,
 {
