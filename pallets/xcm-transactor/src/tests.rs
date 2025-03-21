@@ -1200,7 +1200,7 @@ fn test_hrmp_manipulator_init() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
-				fallback_max_weight: tx_weight,
+				fallback_max_weight: Some(tx_weight),
 				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 		})
@@ -1252,7 +1252,7 @@ fn test_hrmp_manipulator_init_v2_convert_works() {
 			}));
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::Native,
-				fallback_max_weight: tx_weight,
+				fallback_max_weight: Some(tx_weight),
 				call: vec![0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0].into(),
 			}));
 
