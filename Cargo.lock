@@ -3050,7 +3050,7 @@ dependencies = [
  "hash-db",
  "hash256-std-hasher",
  "parity-scale-codec",
- "rlp 0.6.1",
+ "rlp",
  "scale-info",
  "serde",
  "sha3",
@@ -3135,7 +3135,7 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "primitive-types 0.13.1",
- "rlp 0.6.1",
+ "rlp",
  "scale-info",
  "serde",
  "sha3",
@@ -3375,7 +3375,7 @@ dependencies = [
  "parity-scale-codec",
  "prometheus",
  "rand 0.8.5",
- "rlp 0.6.1",
+ "rlp",
  "sc-client-api",
  "sc-consensus-aura",
  "sc-network",
@@ -3414,7 +3414,7 @@ dependencies = [
  "ethereum",
  "ethereum-types",
  "jsonrpsee 0.24.7",
- "rlp 0.6.1",
+ "rlp",
  "rustc-hex",
  "serde",
  "serde_json",
@@ -5105,7 +5105,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "54ed8ad1f3877f7e775b8cbf30ed1bd3209a95401817f19a0eb4402d13f8cf90"
 dependencies = [
- "rlp 0.6.1",
+ "rlp",
 ]
 
 [[package]]
@@ -6933,7 +6933,7 @@ dependencies = [
  "polkadot-runtime-parachains",
  "precompile-foreign-asset-migrator",
  "precompile-utils",
- "rlp 0.5.2",
+ "rlp",
  "scale-info",
  "serde",
  "serde_json",
@@ -7416,7 +7416,7 @@ dependencies = [
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
  "precompile-utils",
- "rlp 0.5.2",
+ "rlp",
  "scale-info",
  "serde",
  "serde_json",
@@ -7848,7 +7848,7 @@ dependencies = [
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
  "precompile-utils",
- "rlp 0.5.2",
+ "rlp",
  "scale-info",
  "serde",
  "serde_json",
@@ -8430,7 +8430,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af1844ef2428cc3e1cb900be36181049ef3d3193c63e43026cfe202983b27a56"
 dependencies = [
- "proc-macro-crate 3.2.0",
+ "proc-macro-crate 1.1.3",
  "proc-macro2",
  "quote",
  "syn 2.0.100",
@@ -9197,7 +9197,7 @@ dependencies = [
  "pallet-proxy",
  "pallet-timestamp",
  "parity-scale-codec",
- "rlp 0.5.2",
+ "rlp",
  "scale-info",
  "serde",
  "sp-core",
@@ -10205,7 +10205,7 @@ dependencies = [
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
- "rlp 0.5.2",
+ "rlp",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -10973,8 +10973,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -13419,16 +13419,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bd124222d17ad93a644ed9d011a40f4fb64aa54275c08cc216524a9ea82fb09f"
 dependencies = [
  "digest 0.10.7",
-]
-
-[[package]]
-name = "rlp"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb919243f34364b6bd2fc10ef797edbfa75f33c252e7998527479c6d6b47e1ec"
-dependencies = [
- "bytes",
- "rustc-hex",
 ]
 
 [[package]]
@@ -18332,7 +18322,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
