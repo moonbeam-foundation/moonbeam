@@ -49,7 +49,7 @@ use frame_support::{
 		fungible::{
 			Balanced, Credit, HoldConsideration, Inspect, NativeFromLeft, NativeOrWithId, UnionOf,
 		},
-		tokens::{pay::PayAssetFromAccount, PayFromAccount, UnityAssetBalanceConversion},
+		tokens::pay::PayAssetFromAccount,
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
 		EitherOfDiverse, EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice, OnFinalize,
 		OnUnbalanced,

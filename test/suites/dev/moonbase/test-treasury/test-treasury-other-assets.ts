@@ -38,7 +38,7 @@ describeSuite({
 
         const createForeignAssetCall = context
           .polkadotJs()
-          .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation.Xcm, 18, "TEST", "TEST");
+          .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
 
         const sudoCall = context.polkadotJs().tx.sudo.sudo(createForeignAssetCall);
         const block = await context.createBlock(sudoCall, { allowFailures: false });
@@ -81,7 +81,7 @@ describeSuite({
 
         console.log("Total supply: ", totalSupply);
 
-        // // Trigger payout
+        // Trigger payout
         await context.createBlock(await api.tx.treasury.payout(0).signAsync(ethan), {
           allowFailures: false,
           expectEvents: [api.events.treasury.Paid],
