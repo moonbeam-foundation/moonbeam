@@ -439,6 +439,11 @@
 <a href="#437" id="437">437</a>
 <a href="#438" id="438">438</a>
 <a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -594,6 +599,11 @@
 	<span class="doccomment">/// Enable the development service to run without a backing relay chain
 	</span><span class="attr">#[clap(long)]
 	</span><span class="kw">pub </span>dev_service: bool,
+
+	<span class="doccomment">/// No-op
+	/// Deprecated in: https://github.com/moonbeam-foundation/moonbeam/pull/3204
+	</span><span class="attr">#[clap(long)]
+	</span><span class="kw">pub </span>experimental_block_import_strategy: bool,
 
 	<span class="doccomment">/// Enable the legacy block import strategy
 	</span><span class="attr">#[clap(long)]
