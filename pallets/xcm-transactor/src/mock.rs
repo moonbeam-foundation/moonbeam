@@ -20,7 +20,9 @@ use super::*;
 use crate as pallet_xcm_transactor;
 use cumulus_primitives_core::Assets;
 use frame_support::traits::PalletInfo as PalletInfoTrait;
-use frame_support::{construct_runtime, parameter_types, weights::Weight};
+use frame_support::{
+	construct_runtime, dispatch::GetDispatchInfo, parameter_types, weights::Weight,
+};
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
 
@@ -134,7 +136,7 @@ const XCM_VERSION_ROOT_KEY: &'static [u8] = b"XCM_VERSION_ROOT_KEY";
 
 pub struct CustomVersionWrapper;
 impl WrapVersion for CustomVersionWrapper {
-	fn wrap_version<RuntimeCall>(
+	fn wrap_version<RuntimeCall: Decode + GetDispatchInfo>(
 		_dest: &xcm::latest::Location,
 		xcm: impl Into<VersionedXcm<RuntimeCall>>,
 	) -> Result<VersionedXcm<RuntimeCall>, ()> {
