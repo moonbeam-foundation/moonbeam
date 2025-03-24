@@ -154,6 +154,11 @@ pub struct RunCmd {
 	#[clap(long)]
 	pub dev_service: bool,
 
+	/// No-op
+	/// Deprecated in: https://github.com/moonbeam-foundation/moonbeam/pull/3204
+	#[clap(long)]
+	pub experimental_block_import_strategy: bool,
+
 	/// Enable the legacy block import strategy
 	#[clap(long)]
 	pub legacy_block_import_strategy: bool,
