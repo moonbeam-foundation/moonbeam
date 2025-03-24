@@ -140,7 +140,7 @@ describeSuite({
         const pendingTransactions = await getPendingTransactions();
 
         // Find our transaction
-        const pendingTx = pendingTransactions.find(tx => tx.hash === hash);
+        const pendingTx = pendingTransactions.find((tx) => tx.hash === hash);
         expect(pendingTx).toBeDefined();
 
         // Check transaction details
