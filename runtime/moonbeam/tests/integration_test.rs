@@ -2829,6 +2829,87 @@ fn evm_success_keeps_substrate_events() {
 }
 
 #[cfg(test)]
+mod bridge_tests {
+	use crate::common::{origin_of, root_origin, ExtBuilder, ALICE, BOB};
+	use crate::currency_to_asset;
+	use frame_support::assert_ok;
+	use moonbeam_core_primitives::AccountId;
+	use moonbeam_runtime::bridge_config::BridgeMoonriverLocation;
+	use moonbeam_runtime::currency::GLMR;
+	use moonbeam_runtime::xcm_config::CurrencyId;
+	use moonbeam_runtime::{
+		BridgeKusamaMessages, PolkadotXcm
+	};
+	use xcm::latest::{Junctions, Location, NetworkId, WeightLimit};
+	use xcm::prelude::{AccountKey20, Parachain, XCM_VERSION};
+	use xcm::{VersionedAssets, VersionedLocation};
+
+	#[test]
+	fn transfer_asset_moonbeam_to_moonriver() {
+		frame_support::__private::sp_tracing::init_for_tests();
+
+		ExtBuilder::default()
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * GLMR),
+				(AccountId::from(BOB), 1_000 * GLMR),
+			])
+			.with_safe_xcm_version(XCM_VERSION)
+			.with_open_bridges(vec![(
+				Location::new(
+					1,
+					[Parachain(
+						<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID,
+					)],
+				),
+				Junctions::from([
+					NetworkId::Kusama.into(),
+					Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID),
+				]),
+				Some(bp_messages::LegacyLaneId([0, 0, 0, 0])),
+				None,
+			)])
+			.build()
+			.execute_with(|| {
+				assert_ok!(PolkadotXcm::force_xcm_version(
+					root_origin(),
+					Box::new(BridgeMoonriverLocation::get()),
+					XCM_VERSION
+				));
+
+				let asset = currency_to_asset(CurrencyId::SelfReserve, 100 * GLMR);
+
+				let message_data = BridgeKusamaMessages::outbound_message_data(
+					bp_messages::LegacyLaneId([0, 0, 0, 0]),
+					1u64,
+				);
+				assert!(message_data.is_none());
+
+				assert_ok!(PolkadotXcm::transfer_assets(
+					origin_of(AccountId::from(ALICE)),
+					Box::new(VersionedLocation::V4(BridgeMoonriverLocation::get())),
+					Box::new(VersionedLocation::V4(Location {
+						parents: 0,
+						interior: [AccountKey20 {
+							network: None,
+							key: ALICE,
+						}]
+						.into(),
+					})),
+					Box::new(VersionedAssets::V4(asset.into())),
+					0,
+					WeightLimit::Unlimited
+				));
+
+				let message_data = BridgeKusamaMessages::outbound_message_data(
+					bp_messages::LegacyLaneId([0, 0, 0, 0]),
+					1u64,
+				);
+				assert!(message_data.is_some());
+			})
+	}
+}
+
+#[cfg(test)]
 mod treasury_tests {
 	use super::*;
 	use sp_runtime::traits::Hash;
