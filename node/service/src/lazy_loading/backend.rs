@@ -771,8 +771,8 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 			remote_fetch(prefix, start_key, backend.block_hash)
 		} else {
 			let mut iter_args = sp_state_machine::backend::IterArgs::default();
-			iter_args.prefix = self.args.prefix.as_ref().map(|b| b.as_slice());
-			iter_args.start_at = self.args.start_at.as_ref().map(|b| b.as_slice());
+			iter_args.prefix = self.args.prefix.as_deref();
+			iter_args.start_at = self.args.start_at.as_deref();
 			iter_args.start_at_exclusive = true;
 			iter_args.stop_on_incomplete_database = true;
 
@@ -780,7 +780,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 			let next_storage_key = readable_db
 				.raw_iter(iter_args)
 				.map(|mut iter| iter.next_key(&readable_db))
-				.map(|op| op.map(|result| result.ok()).flatten())
+				.map(|op| op.and_then(|result| result.ok()))
 				.ok()
 				.flatten();
 
@@ -865,8 +865,8 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 			remote_fetch(prefix, start_key, backend.block_hash)
 		} else {
 			let mut iter_args = sp_state_machine::backend::IterArgs::default();
-			iter_args.prefix = self.args.prefix.as_ref().map(|b| b.as_slice());
-			iter_args.start_at = self.args.start_at.as_ref().map(|b| b.as_slice());
+			iter_args.prefix = self.args.prefix.as_deref();
+			iter_args.start_at = self.args.start_at.as_deref();
 			iter_args.start_at_exclusive = true;
 			iter_args.stop_on_incomplete_database = true;
 
@@ -874,7 +874,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 			let next_storage_key = readable_db
 				.raw_iter(iter_args)
 				.map(|mut iter| iter.next_key(&readable_db))
-				.map(|op| op.map(|result| result.ok()).flatten())
+				.map(|op| op.and_then(|result| result.ok()))
 				.ok()
 				.flatten();
 
@@ -907,8 +907,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 
 		let maybe_value = maybe_next_key
 			.clone()
-			.map(|key| (*backend).storage(key.as_slice()).ok())
-			.flatten()
+			.and_then(|key| (*backend).storage(key.as_slice()).ok())
 			.flatten();
 
 		if let Some(next_key) = maybe_next_key {
