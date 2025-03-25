@@ -249,9 +249,9 @@ parameter_types! {
 	/// `BlockWeights` in all runtimes. It can probably be removed once the custom
 	/// `RuntimeBlockWeights` has been pushed to each runtime.
 	pub BlockWeights: frame_system::limits::BlockWeights = RuntimeBlockWeights::get();
-	/// We allow for 10 MB blocks.
+	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
-		::max_with_normal_ratio(MAX_POV_SIZE, NORMAL_DISPATCH_RATIO);
+		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 }
 
 impl frame_system::Config for Runtime {
