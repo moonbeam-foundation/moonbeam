@@ -1666,7 +1666,7 @@ fn root_can_change_default_xcm_vers() {
 					origin_of(AccountId::from(ALICE)),
 					Box::new(xcm::VersionedLocation::from(chain_part.clone())),
 					Box::new(xcm::VersionedLocation::from(beneficiary.clone())),
-					Box::new(VersionedAssets::from(asset.clone().into())),
+					Box::new(VersionedAssets::from(asset.clone())),
 					0,
 					WeightLimit::Limited(4000000000.into())
 				),
@@ -1684,7 +1684,7 @@ fn root_can_change_default_xcm_vers() {
 				origin_of(AccountId::from(ALICE)),
 				Box::new(xcm::VersionedLocation::from(chain_part)),
 				Box::new(xcm::VersionedLocation::from(beneficiary)),
-				Box::new(VersionedAssets::from(asset.clone().into())),
+				Box::new(VersionedAssets::from(asset.clone())),
 				0,
 				WeightLimit::Limited(4000000000.into())
 			));
@@ -2348,7 +2348,7 @@ fn call_xtokens_with_fee() {
 				origin_of(AccountId::from(ALICE)),
 				Box::new(VersionedLocation::from(chain_part)),
 				Box::new(VersionedLocation::from(beneficiary)),
-				Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
+				Box::new(VersionedAssets::from(vec![asset_fee, asset])),
 				0,
 				WeightLimit::Limited(4000000000.into()),
 			),);
@@ -2903,7 +2903,8 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: extrinsic_weight,
+					call_weight: extrinsic_weight,
+					extension_weight: Weight::zero(),
 				},
 				tip,
 			);
