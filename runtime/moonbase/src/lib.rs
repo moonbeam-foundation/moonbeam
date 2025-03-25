@@ -159,10 +159,14 @@ pub mod currency {
 	}
 }
 
+/// Maximum PoV size we support right now.
+// Reference: https://github.com/polkadot-fellows/runtimes/pull/553
+pub const MAX_POV_SIZE: u32 = 10 * 1024 * 1024;
+
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, 0)
 	.saturating_mul(2)
-	.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
+	.set_proof_size(MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 6_000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -244,9 +248,9 @@ parameter_types! {
 	/// `BlockWeights` in all runtimes. It can probably be removed once the custom
 	/// `RuntimeBlockWeights` has been pushed to each runtime.
 	pub BlockWeights: frame_system::limits::BlockWeights = RuntimeBlockWeights::get();
-	/// We allow for 5 MB blocks.
+	/// We allow for 10 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
-		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+		::max_with_normal_ratio(MAX_POV_SIZE, NORMAL_DISPATCH_RATIO);
 }
 
 impl frame_system::Config for Runtime {
@@ -420,7 +424,7 @@ parameter_types! {
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	/// We should re-check `xcm_config::Erc20XcmBridgeTransferGasLimit` when changing this value
-	pub const GasLimitPovSizeRatio: u64 = 16;
+	pub const GasLimitPovSizeRatio: u64 = 8;
 	/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
 	/// (60_000_000 / 160 kb)
 	pub GasLimitStorageGrowthRatio: u64 = 366;

@@ -161,10 +161,15 @@ pub mod currency {
 	}
 }
 
+/// Maximum PoV size we support right now.
+// Kusama relay already supports 10Mb maximum PoV, but we will only enable it in runtime 3700
+// Reference: https://github.com/polkadot-fellows/runtimes/pull/553
+pub const MAX_POV_SIZE: u32 = relay_chain::MAX_POV_SIZE;
+
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, 0)
 	.saturating_mul(2)
-	.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
+	.set_proof_size(MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 6_000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -242,9 +247,9 @@ impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
-	/// We allow for 5 MB blocks.
+	/// We allow for 10 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
-		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+		::max_with_normal_ratio(MAX_POV_SIZE, NORMAL_DISPATCH_RATIO);
 }
 
 impl frame_system::Config for Runtime {
