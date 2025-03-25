@@ -120,7 +120,7 @@ describeSuite({
             ],
             weight_limit: {
               refTime: targetXcmWeight,
-              proofSize: (TX_GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 7,
+              proofSize: 43_208,
             } as any,
             descend_origin: sendingAddress,
           })
@@ -133,7 +133,9 @@ describeSuite({
                 // 21_000 gas limit + db read
                 requireWeightAtMost: {
                   refTime: 550_000_000n + STORAGE_READ_COST,
-                  proofSize: TX_GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+                  // This is impacted by ReservedXcmpWeight in pallet-ethereum-xcm
+                  // 1/4 of MAX_POV_SIZE
+                  proofSize: 2625, // Previously (with 5MB max PoV): 1312
                 },
                 call: {
                   encoded: transferCallEncoded,

@@ -120,8 +120,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmWeight = 5_000_000_000n + 100_000_000n;
-        const targetXcmFee = targetXcmWeight * 50_000n;
+        const targetXcmFee = 1_000_000_000_000_000n;
 
         for (const xcmTransaction of xcmTransactions) {
           expectedTransferredAmount += amountToTransfer;
@@ -147,8 +146,8 @@ describeSuite({
               },
             ],
             weight_limit: {
-              refTime: targetXcmWeight,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 7,
+              refTime: 4_778_641_000,
+              proofSize: 43_208,
             } as any,
             descend_origin: sendingAddress,
           })
@@ -160,8 +159,10 @@ describeSuite({
                 originKind: "SovereignAccount",
                 // 100_000 gas + 2db reads
                 requireWeightAtMost: {
-                  refTime: 575_000_000,
-                  proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+                  refTime: 608_484_000,
+                  // This is impacted by ReservedXcmpWeight in pallet-ethereum-xcm
+                  // 1/4 of MAX_POV_SIZE
+                  proofSize: 2_625, // Previously (with 5MB max PoV): 1312
                 },
                 call: {
                   encoded: transferCallEncoded,

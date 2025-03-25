@@ -63,7 +63,7 @@ describeSuite({
         .viem()
         .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
-      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`164016n`);
+      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`84926n`);
     });
     it({
       id: "T01",

@@ -102,8 +102,9 @@ export const RUNTIME_CONSTANTS = {
     EXTRINSIC_GAS_LIMIT: new RuntimeConstant({ 2900: 52_000_000n, 0: 13_000_000n }),
     // Maximum Gas to PoV ratio used in the gasometer
     GAS_PER_POV_BYTES: new RuntimeConstant({ 3600: 8n, 2900: 16n, 0: 4n }),
-    // Maximum PoV per block
-    MAX_POV: new RuntimeConstant({ 3600: 7_500_000n, 0: 3_750_000n }),
+    // Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
+    // MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES
+    MAX_ETH_POV_PER_TX: new RuntimeConstant({ 3600: 6_500_000n, 0: 3_250_000n }),
     // Storage read/write costs
     STORAGE_READ_COST: 41_742_000n,
     // Weight to gas conversion ratio
@@ -145,8 +146,9 @@ export const RUNTIME_CONSTANTS = {
     }),
     // Maximum Gas to PoV ratio used in the gasometer
     GAS_PER_POV_BYTES: new RuntimeConstant({ 3100: 16n, 3000: 8n, 0: 4n }),
-    // Maximum PoV per block
-    MAX_POV: new RuntimeConstant({ 0: 3_750_000n }),
+    // Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
+    // MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES
+    MAX_ETH_POV_PER_TX: new RuntimeConstant({ 0: 3_250_000n }),
   },
   MOONBEAM: {
     ...MOONBEAM_CONSTANTS,
@@ -184,8 +186,9 @@ export const RUNTIME_CONSTANTS = {
     }),
     // Maximum Gas to PoV ratio used in the gasometer
     GAS_PER_POV_BYTES: new RuntimeConstant({ 3200: 16n, 3100: 8n, 0: 4n }),
-    // Maximum PoV per block
-    MAX_POV: new RuntimeConstant({ 0: 3_750_000n }),
+    // Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
+    // MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES
+    MAX_ETH_POV_PER_TX: new RuntimeConstant({ 0: 3_250_000n }),
   },
 } as const;
 

@@ -20,7 +20,7 @@ describeSuite({
     beforeAll(async () => {
       const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
       const constants = ConstantStore(context);
-      MAX_ETH_POV_PER_TX = constants.MAX_POV.get(specVersion);
+      MAX_ETH_POV_PER_TX = constants.MAX_ETH_POV_PER_TX.get(specVersion);
 
       // Create an empty block to estimate empty block proof size
       const { block } = await context.createBlock();

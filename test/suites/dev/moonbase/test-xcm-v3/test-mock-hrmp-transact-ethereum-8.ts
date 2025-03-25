@@ -9,7 +9,6 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
-import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D014030",
@@ -20,13 +19,8 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
-    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
-      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
-      const constants = ConstantStore(context);
-      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
-
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
@@ -98,11 +92,9 @@ describeSuite({
           },
         ];
 
+        const targetXcmFee = 25_000_000n;
+
         let expectedTransferredAmountPlusFees = 0n;
-
-        const targetXcmWeight = 5_000_000_000n + 25_000_000n;
-        const targetXcmFee = targetXcmWeight * 50_000n;
-
         for (const xcmTransaction of xcmTransactions) {
           expectedTransferredAmountPlusFees += targetXcmFee;
           // TODO need to update lookup types for xcm ethereum transaction V2
@@ -124,8 +116,8 @@ describeSuite({
               },
             ],
             weight_limit: {
-              refTime: targetXcmWeight,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 7,
+              refTime: 4_745_157_000,
+              proofSize: 43_208,
             } as any,
             descend_origin: sendingAddress,
           })
@@ -138,7 +130,7 @@ describeSuite({
                 // 21_000 gas limit + db read
                 requireWeightAtMost: {
                   refTime: 575_000_000,
-                  proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+                  proofSize: 2_625, // Previously (with 5MB max PoV): 1312
                 },
                 call: {
                   encoded: transferCallEncoded,
