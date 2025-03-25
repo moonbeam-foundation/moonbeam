@@ -2,13 +2,14 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import type { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair, alith, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import { generateKeyringPair, alith } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D014030",
@@ -19,8 +20,13 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
+    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;

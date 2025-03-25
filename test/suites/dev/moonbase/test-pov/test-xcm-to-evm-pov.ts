@@ -9,7 +9,7 @@ import {
   descendOriginFromAddress20,
   injectHrmpMessage,
 } from "../../../../helpers/xcm.js";
-import { ConstantStore, GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
+import { ConstantStore } from "../../../../helpers/constants";
 
 describeSuite({
   id: "D012706",
@@ -25,9 +25,13 @@ describeSuite({
     const EXPECTED_POV_ROUGH = 24_000; // bytes
     let balancesPalletIndex: number;
     let STORAGE_READ_COST: bigint;
+    let GAS_LIMIT_POV_RATIO: number;
 
-    beforeAll(async function () {
-      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+    beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+      STORAGE_READ_COST = constants.STORAGE_READ_COST;
       // Get Pallet balances index
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       const foundPallet = metadata.asLatest.pallets.find(
