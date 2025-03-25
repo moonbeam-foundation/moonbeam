@@ -1302,7 +1302,7 @@ fn length_fee_is_sensible() {
 	// tests that length fee is sensible for a few hypothetical transactions
 	ExtBuilder::default().build().execute_with(|| {
 		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
-		let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
+		let uxt: TestXt<_, ()> = TestXt::new_signed(call, 1u64, (), ());
 
 		let calc_fee = |len: u32| -> Balance {
 			moonriver_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
