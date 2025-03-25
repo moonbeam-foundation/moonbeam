@@ -392,6 +392,11 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 pub const WEIGHT_PER_GAS: u64 = WEIGHT_REF_TIME_PER_SECOND / GAS_PER_SECOND;
 
+/// The highest amount of new storage that can be created in a block (160KB).
+/// Originally 40KB, then multiplied by 4 when the block deadline was increased from 500ms to 2000ms.
+/// Reference: https://github.com/moonbeam-foundation/moonbeam/blob/master/MBIPS/MBIP-5.md#specification
+pub const BLOCK_STORAGE_LIMIT: u64 = 160 * 1024;
+
 parameter_types! {
 	pub BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
