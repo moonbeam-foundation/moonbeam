@@ -1750,7 +1750,7 @@ mod tests {
 		// staking minimums
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCandidateStk, u128),
-			Balance::from(2_000_000 * GLMR)
+			Balance::from(500_000 * GLMR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinDelegation, u128),
