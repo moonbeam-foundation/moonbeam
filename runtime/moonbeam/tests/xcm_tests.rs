@@ -52,8 +52,8 @@ use xcm_simulator::TestExt;
 
 fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128) -> Result<(), ()> {
 	let parachain::AssetType::Xcm(location_v3) = asset_type;
-	let VersionedLocation::from(location_v4) = VersionedLocation::V3(location_v3)
-		.into_version(4)
+	let VersionedLocation::V5(location_v5) = VersionedLocation::V3(location_v3)
+		.into_version(5)
 		.map_err(|_| ())?
 	else {
 		return Err(());
@@ -77,7 +77,7 @@ fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128)
 		0u128
 	};
 	pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::insert(
-		location_v4,
+		location_v5,
 		(true, relative_price),
 	);
 	Ok(())
