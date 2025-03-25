@@ -2737,12 +2737,8 @@ mod bridge_tests {
 	use moonriver_runtime::bridge_config::BridgeMoonbeamLocation;
 	use moonriver_runtime::currency::MOVR;
 	use moonriver_runtime::xcm_config::CurrencyId;
-	use moonriver_runtime::{
-		BridgePolkadotMessages, PolkadotXcm
-	};
-	use xcm::latest::{
-		Junctions, Location, NetworkId, WeightLimit
-	};
+	use moonriver_runtime::{BridgePolkadotMessages, PolkadotXcm};
+	use xcm::latest::{Junctions, Location, NetworkId, WeightLimit};
 	use xcm::prelude::{AccountKey20, Parachain, XCM_VERSION};
 	use xcm::{VersionedAssets, VersionedLocation};
 

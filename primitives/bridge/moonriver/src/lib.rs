@@ -22,7 +22,7 @@ pub use bp_bridge_hub_cumulus::{
 	BlockLength, BlockWeights, Hasher, Nonce, SignedBlock, AVERAGE_BLOCK_INTERVAL,
 	MAX_UNCONFIRMED_MESSAGES_IN_CONFIRMATION_TX, MAX_UNREWARDED_RELAYERS_IN_CONFIRMATION_TX,
 };
-use bp_messages::{ChainWithMessages, LegacyLaneId, MessageNonce};
+use bp_messages::{ChainWithMessages, MessageNonce};
 
 pub use bp_moonbeam_common::{
 	AccountId, AccountInfoStorageMapKeyProvider, Balance, BlockNumber, Hash, Header, Signature,
@@ -90,5 +90,24 @@ pub const WITH_MOONRIVER_KUSAMA_MESSAGES_PALLET_NAME: &str = "BridgeKusamaMessag
 /// chains.
 pub const WITH_MOONRIVER_KUSAMA_RELAYERS_PALLET_NAME: &str = "BridgeRelayers";
 
+/// Bridge lane identifier.
+pub type LaneId = bp_messages::LegacyLaneId;
+
 decl_bridge_finality_runtime_apis!(moonriver_kusama);
-decl_bridge_messages_runtime_apis!(moonriver_kusama, LegacyLaneId);
+decl_bridge_messages_runtime_apis!(moonriver_kusama, LaneId);
+
+// TODO: Update values
+frame_support::parameter_types! {
+	/// The XCM fee that is paid for executing XCM program (with `ExportMessage` instruction) at the Kusama
+	/// BridgeHub.
+	/// (initially was calculated by test `BridgeHubKusama::can_calculate_weight_for_paid_export_message_with_reserve_transfer` + `33%`)
+	pub const BaseXcmFeeInMovr: u128 = 601_115_666;
+
+	/// Transaction fee that is paid at the Kusama BridgeHub for delivering single inbound message.
+	/// (initially was calculated by test `BridgeHubKusama::can_calculate_fee_for_complex_message_delivery_transaction` + `33%`)
+	pub const BaseDeliveryFeeInMovr: u128 = 3_142_112_953;
+
+	/// Transaction fee that is paid at the Kusama BridgeHub for delivering single outbound message confirmation.
+	/// (initially was calculated by test `BridgeHubKusama::can_calculate_fee_for_complex_message_confirmation_transaction` + `33%`)
+	pub const BaseConfirmationFeeInMovr: u128 = 575_036_072;
+}
