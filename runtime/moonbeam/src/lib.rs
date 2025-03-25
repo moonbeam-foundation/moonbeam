@@ -241,7 +241,7 @@ impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
-	/// We allow for 10 MB blocks.
+	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(MAX_POV_SIZE, NORMAL_DISPATCH_RATIO);
 }
