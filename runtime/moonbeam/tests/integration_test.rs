@@ -2837,9 +2837,7 @@ mod bridge_tests {
 	use moonbeam_runtime::bridge_config::BridgeMoonriverLocation;
 	use moonbeam_runtime::currency::GLMR;
 	use moonbeam_runtime::xcm_config::CurrencyId;
-	use moonbeam_runtime::{
-		BridgeKusamaMessages, PolkadotXcm
-	};
+	use moonbeam_runtime::{BridgeKusamaMessages, PolkadotXcm};
 	use xcm::latest::{Junctions, Location, NetworkId, WeightLimit};
 	use xcm::prelude::{AccountKey20, Parachain, XCM_VERSION};
 	use xcm::{VersionedAssets, VersionedLocation};

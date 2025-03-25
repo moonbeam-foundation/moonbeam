@@ -1453,7 +1453,8 @@ construct_runtime! {
 		BridgeKusamaGrandpa: pallet_bridge_grandpa::<Instance1> = 130,
 		BridgeKusamaParachains: pallet_bridge_parachains::<Instance1> = 131,
 		BridgeKusamaMessages: pallet_bridge_messages::<Instance1> = 132,
-		BridgeXcmOverMoonriver: pallet_xcm_bridge_hub::<Instance1> = 133,
+		BridgeXcmOverMoonriver: pallet_xcm_bridge::<Instance1> = 133,
+		ToKusamaXcmRouter: pallet_xcm_bridge_router::<Instance1> = 134,
 	}
 }
 
@@ -1682,6 +1683,31 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 			fn free_headers_interval() -> Option<bp_moonriver::BlockNumber> {
 				// "free interval" is not currently used for parachains
 				None
+			}
+		}
+
+		impl bp_moonriver::ToMoonriverKusamaOutboundLaneApi<Block> for Runtime {
+			fn message_details(
+				lane: bp_moonriver::LaneId,
+				begin: bp_messages::MessageNonce,
+				end: bp_messages::MessageNonce,
+			) -> Vec<bp_messages::OutboundMessageDetails> {
+				bridge_runtime_common::messages_api::outbound_message_details::<
+					Runtime,
+					bridge_config::WithKusamaMessagesInstance,
+				>(lane, begin, end)
+			}
+		}
+
+		impl bp_moonriver::FromMoonriverKusamaInboundLaneApi<Block> for Runtime {
+			fn message_details(
+				lane: bp_moonriver::LaneId,
+				messages: Vec<(bp_messages::MessagePayload, bp_messages::OutboundMessageDetails)>,
+			) -> Vec<bp_messages::InboundMessageDetails> {
+				bridge_runtime_common::messages_api::inbound_message_details::<
+					Runtime,
+					bridge_config::WithKusamaMessagesInstance,
+				>(lane, messages)
 			}
 		}
 	}

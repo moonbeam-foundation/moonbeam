@@ -21,7 +21,8 @@ use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, BridgeXcmOverMoonriver,
 	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
 	OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, ToKusamaXcmRouter, Treasury,
+	XcmpQueue,
 };
 
 use super::moonbeam_weights;
@@ -42,10 +43,11 @@ use sp_core::{ConstU32, H160, H256};
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
-	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
-	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, TrailingSetTopicAsId, WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
+	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter,
+	GlobalConsensusParachainConvertsFor, HashedDescription, NoChecking, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
+	WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
 };
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -105,8 +107,11 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
 	// If we receive a Location of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
-	// Generate remote accounts according to polkadot standards
+	// Foreign locations alias into accounts according to a hash of their standard description.
 	HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
+	// Different global consensus parachain sovereign account.
+	// (Used for over-bridge transfers and reserve processing)
+	GlobalConsensusParachainConvertsFor<UniversalLocation, AccountId>,
 );
 
 /// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
@@ -312,13 +317,22 @@ type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
 // Converts a Signed Local Origin into a Location
 pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
 
-/// The means for routing XCM messages which are not for local execution into the right message
-/// queues.
-pub type XcmRouter = WithUniqueTopic<(
+/// For routing XCM messages which do not cross local consensus boundary.
+pub type LocalXcmRouter = (
 	// Two routers - use UMP to communicate with the relay chain:
 	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, PolkadotXcm, ()>,
 	// ..and XCMP to communicate with the sibling chains.
 	XcmpQueue,
+);
+
+/// The means for routing XCM messages which are not for local execution into the right message
+/// queues.
+pub type XcmRouter = WithUniqueTopic<(
+	// The means for routing XCM messages which are not for local execution into the right message
+	// queues.
+	LocalXcmRouter,
+	// Router that exports messages to be delivered to the Kusama GlobalConsensus
+	ToKusamaXcmRouter,
 )>;
 
 impl pallet_xcm::Config for Runtime {
