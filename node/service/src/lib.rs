@@ -1459,7 +1459,7 @@ where
 						if has_pending_upgrade {
 							additional_key_values.push((
 								relay_chain::well_known_keys::upgrade_go_ahead_signal(ParaId::new(
-									para_id.unwrap(),
+									para_id.expect("para ID should be specified for dev service"),
 								)),
 								Some(relay_chain::UpgradeGoAhead::GoAhead).encode(),
 							));
@@ -1485,7 +1485,9 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
-							para_id: para_id.unwrap().into(),
+							para_id: para_id
+								.expect("para ID should be specified for dev service")
+								.into(),
 							upgrade_go_ahead: should_send_go_ahead.then(|| {
 								log::info!(
 									"Detected pending validation code, sending go-ahead signal."
