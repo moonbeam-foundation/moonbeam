@@ -127,6 +127,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 pub type ForeignAssetInstance = ();
