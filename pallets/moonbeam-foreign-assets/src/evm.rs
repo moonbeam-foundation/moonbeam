@@ -40,8 +40,8 @@ const ERC20_PAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 150_500
 pub(crate) const ERC20_TRANSFER_GAS_LIMIT: u64 = 160_000; // highest failure: 154_000
 pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 160_000; // highest failure: 153_000
 const ERC20_UNPAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 149_500
-pub(crate) const ERC20_TOTAL_SUPPLY_GAS_LIMIT: u64 = 40_000; // TODO check highest failure and adjust
-pub(crate) const ERC20_BALANCE_OF_GAS_LIMIT: u64 = 40_000; // TODO check highest failure and adjust
+pub(crate) const ERC20_TOTAL_SUPPLY_GAS_LIMIT: u64 = 160_000; // highest failure: 150_500
+pub(crate) const ERC20_BALANCE_OF_GAS_LIMIT: u64 = 155_000; // Calculated effective gas: max(used: 24276, pov: 150736, storage: 0) = 150736
 
 #[derive(Debug)]
 pub enum EvmError {

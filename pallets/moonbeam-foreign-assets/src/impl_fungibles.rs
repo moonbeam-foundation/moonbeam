@@ -1,7 +1,7 @@
 use super::*;
 use frame_support::traits::tokens::{DepositConsequence, Provenance, WithdrawConsequence};
 use moonbeam_core_primitives::{AssetId, Balance};
-use sp_runtime::traits::Convert;
+use sp_runtime::{traits::Convert, SaturatedConversion};
 
 impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 	type AssetId = AssetId;
@@ -9,7 +9,7 @@ impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 
 	fn total_issuance(asset: Self::AssetId) -> Self::Balance {
 		let total_supply = EvmCaller::<T>::erc20_total_supply(asset).unwrap_or(U256::zero());
-		let as_u128 = u128::try_from(total_supply).unwrap_or(u128::MAX);
+		let as_u128 = total_supply.saturated_into::<u128>();
 		Self::Balance::from(as_u128)
 	}
 
@@ -21,7 +21,7 @@ impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 		let balance =
 			EvmCaller::<T>::erc20_balance_of(asset, T::AccountIdToH160::convert(who.clone()))
 				.unwrap_or(U256::zero());
-		let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
+		let as_u128 = balance.saturated_into::<u128>();
 		Self::Balance::from(as_u128)
 	}
 
@@ -29,7 +29,7 @@ impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 		let balance =
 			EvmCaller::<T>::erc20_balance_of(asset, T::AccountIdToH160::convert(who.clone()))
 				.unwrap_or(U256::zero());
-		let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
+		let as_u128 = balance.saturated_into::<u128>();
 		Self::Balance::from(as_u128)
 	}
 
@@ -42,7 +42,7 @@ impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 		let balance =
 			EvmCaller::<T>::erc20_balance_of(asset, T::AccountIdToH160::convert(who.clone()))
 				.unwrap_or(U256::zero());
-		let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
+		let as_u128 = balance.saturated_into::<u128>();
 		Self::Balance::from(as_u128)
 	}
 
@@ -113,8 +113,8 @@ impl<T: Config> Create<T::AccountId> for Pallet<T> {
 }
 
 impl<T: Config> Unbalanced<T::AccountId> for Pallet<T> {
-	fn handle_dust(dust: frame_support::traits::fungibles::Dust<T::AccountId, Self>) {}
-	fn set_total_issuance(asset: Self::AssetId, amount: Self::Balance) {}
+	fn handle_dust(_dust: frame_support::traits::fungibles::Dust<T::AccountId, Self>) {}
+	fn set_total_issuance(_asset: Self::AssetId, _amount: Self::Balance) {}
 	fn write_balance(
 		asset: Self::AssetId,
 		who: &T::AccountId,
@@ -126,7 +126,7 @@ impl<T: Config> Unbalanced<T::AccountId> for Pallet<T> {
 		let contract_address = Pallet::<T>::contract_address_from_asset_id(asset);
 		match (U256::from(amount), balance) {
 			(amount, balance) if amount == balance => {
-				let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
+				let as_u128 = balance.saturated_into::<u128>();
 				Ok(Some(Self::Balance::from(as_u128)))
 			}
 			(amount, balance) if amount > balance => {
@@ -141,7 +141,7 @@ impl<T: Config> Unbalanced<T::AccountId> for Pallet<T> {
 					T::AccountIdToH160::convert(who.clone()),
 				)
 				.unwrap_or(U256::zero());
-				let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
+				let as_u128 = balance.saturated_into::<u128>();
 				Ok(Some(Self::Balance::from(as_u128)))
 			} // Add balance
 			(amount, balance) if amount < balance => {
@@ -156,7 +156,7 @@ impl<T: Config> Unbalanced<T::AccountId> for Pallet<T> {
 					T::AccountIdToH160::convert(who.clone()),
 				)
 				.unwrap_or(U256::zero());
-				let as_u128 = u128::try_from(balance).unwrap_or(u128::MAX);
+				let as_u128 = balance.saturated_into::<u128>();
 				Ok(Some(Self::Balance::from(as_u128)))
 			}
 			(_, _) => Err(DispatchError::Other("Invalid amount")),

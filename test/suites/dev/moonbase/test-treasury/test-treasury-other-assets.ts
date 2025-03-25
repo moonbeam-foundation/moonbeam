@@ -17,8 +17,6 @@ describeSuite({
   title: "Treasury pallet spend using non-native assets",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let treasuryPalletId: FrameSupportPalletId;
-    let treasuryAddress: string;
     let api: ApiPromise;
     let assetKind;
     const initialBalance: bigint = 500_000_000_000_000_000n;
@@ -36,7 +34,9 @@ describeSuite({
 
     beforeAll(async function () {
       api = context.polkadotJs();
-      assetKind = api.createType("FrameSupportTokensFungibleUnionOfNativeOrWithId", xcIntrAsset.id);
+      assetKind = api.createType("FrameSupportTokensFungibleUnionOfNativeOrWithId", {
+        WithId: xcIntrAsset.id,
+      });
     });
 
     it({
@@ -46,7 +46,11 @@ describeSuite({
         // Register foreign asset used to pay fees (i.e. xcINTR)
         await registerAndFundAsset(context, xcIntrAsset, initialBalance, TREASURY_ACCOUNT);
 
-        const newBalance = await foreignAssetBalance(context, BigInt(xcIntrAsset.id), TREASURY_ACCOUNT);
+        const newBalance = await foreignAssetBalance(
+          context,
+          BigInt(xcIntrAsset.id),
+          TREASURY_ACCOUNT
+        );
         expect(newBalance).toBe(initialBalance);
 
         // Treasury proposal spend value is half of the balance to ensure reducible balance covers the amount
@@ -66,7 +70,18 @@ describeSuite({
           expectEvents: [api.events.treasury.Paid],
         });
 
-        const newBalanceAfter = await foreignAssetBalance(context, BigInt(xcIntrAsset.id), TREASURY_ACCOUNT);
+        const balance = await foreignAssetBalance(
+          context,
+          BigInt(xcIntrAsset.id),
+          ethan.address as `0x${string}`
+        );
+        expect(balance).toBe(proposal_value);
+
+        const newBalanceAfter = await foreignAssetBalance(
+          context,
+          BigInt(xcIntrAsset.id),
+          TREASURY_ACCOUNT
+        );
         expect(newBalanceAfter).toBe(initialBalance - proposal_value);
       },
     });
