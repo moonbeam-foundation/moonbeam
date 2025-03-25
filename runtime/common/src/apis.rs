@@ -866,7 +866,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
-				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
+				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
 					use frame_benchmarking::{add_benchmark, BenchmarkBatch, Benchmarking};
 					use frame_support::traits::TrackedStorageKey;
 					use cumulus_primitives_core::ParaId;
