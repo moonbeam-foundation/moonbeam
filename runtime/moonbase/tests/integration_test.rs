@@ -2820,9 +2820,10 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 		let size_bytes = 0;
 		let tip = 0;
 		let dispatch_info = DispatchInfo {
-			weight: Weight::zero(),
 			class: DispatchClass::Normal,
 			pays_fee: Pays::Yes,
+			call_weight: Weight::zero(),
+			extension_weight: Weight::zero(),
 		};
 
 		assert_eq!(
@@ -3259,7 +3260,8 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: Weight::from_parts(extrinsic_weight, 1),
+					call_weight: Weight::from_parts(extrinsic_weight, 1),
+					extension_weight: Weight::zero(),
 				},
 				tip,
 			);
