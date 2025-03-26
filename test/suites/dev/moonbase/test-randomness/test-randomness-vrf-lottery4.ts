@@ -20,7 +20,7 @@ describeSuite({
         value: 1n * GLMR,
       });
       log("Estimated Gas for startLottery", estimatedGas);
-      expect(estimatedGas).toMatchInlineSnapshot(`220148n`);
+      expect(estimatedGas).toMatchInlineSnapshot(`110809n`);
 
       await context.writeContract!({
         contractAddress: lotteryContract,
@@ -47,7 +47,7 @@ describeSuite({
           args: [0],
         });
         log("Estimated Gas for startLottery", estimatedGas);
-        expect(estimatedGas).toMatchInlineSnapshot(`282663n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`149409n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Randomness",

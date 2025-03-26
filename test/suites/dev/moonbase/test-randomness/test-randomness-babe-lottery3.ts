@@ -49,7 +49,7 @@ describeSuite({
       id: "T01",
       title: "should fail to fulfill before the delay",
       test: async function () {
-        expect(estimatedGasBefore).toMatchInlineSnapshot(`220148n`);
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`110809n`);
 
         expect(
           await context.readPrecompile!({
@@ -86,8 +86,7 @@ describeSuite({
       id: "T02",
       title: "should succeed to fulfill after the delay",
       test: async function () {
-        expect(estimatedGasBefore).toMatchInlineSnapshot(`220148n`);
-        // await context.createBlock();
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`110809n`);
 
         await context.createBlock([
           // Faking relay epoch + 2 in randomness storage
@@ -110,7 +109,7 @@ describeSuite({
           account: BALTATHAR_ADDRESS,
         });
         log("Estimated Gas for startLottery", estimatedGas);
-        expect(estimatedGas).toMatchInlineSnapshot(`298338n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`155374n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Randomness",

@@ -13,7 +13,7 @@ describeSuite({
     let proxyAbi: Abi;
     let contracts: HeavyContract[];
     let callData: `0x${string}`;
-    const MAX_CONTRACTS = 20;
+    const MAX_CONTRACTS = 40;
     const EXPECTED_POV_ROUGH = 16_000; // bytes
 
     beforeAll(async () => {

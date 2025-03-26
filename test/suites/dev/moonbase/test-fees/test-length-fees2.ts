@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { createViemTransaction } from "@moonwall/util";
-import { ConstantStore, GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
+import { ConstantStore } from "../../../../helpers/constants";
 
 describeSuite({
   id: "D011607",
@@ -13,6 +13,7 @@ describeSuite({
       title: "should not charge length fee for precompile from Ethereum txn",
       test: async () => {
         const { specVersion } = await context.polkadotJs().consts.system.version;
+        const constants = ConstantStore(context);
         // we use modexp here because it allows us to send large-ish transactions
         const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
 
@@ -29,7 +30,7 @@ describeSuite({
 
         const tx = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
-          gas: BigInt(ConstantStore(context).EXTRINSIC_GAS_LIMIT.get(specVersion.toNumber())),
+          gas: BigInt(constants.EXTRINSIC_GAS_LIMIT.get(specVersion.toNumber())),
           data: ("0x0000000000000000000000000000000000000000000000000000000000000004" + // base
             "0000000000000000000000000000000000000000000000000000000000000004" + // exp
             "0000000000000000000000000000000000000000000000000000000000000004" + // mod
@@ -62,7 +63,12 @@ describeSuite({
         const modexp_min_cost = 200n * 20n; // see MIN_GAS_COST in frontier's modexp precompile
         const entire_fee = non_zero_byte_fee + zero_byte_fee + base_ethereum_fee + modexp_min_cost;
         // the gas used should be the maximum of the legacy gas and the pov gas
-        const expected = BigInt(Math.max(Number(entire_fee), 3897 * GAS_LIMIT_POV_RATIO));
+        const expected = BigInt(
+          Math.max(
+            Number(entire_fee),
+            3821 * Number(constants.GAS_PER_POV_BYTES.get(specVersion.toNumber()))
+          )
+        );
         expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBe(expected);
       },
     });
