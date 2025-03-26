@@ -1,11 +1,8 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import type { ApiPromise } from "@polkadot/api";
-import { alith, ALITH_ADDRESS, baltathar, ethan, TREASURY_ACCOUNT } from "@moonwall/util";
-import { FrameSupportPalletId } from "@polkadot/types/lookup";
-import { descendOriginFromAddress20 } from "../../../../helpers/xcm";
+import { alith, ethan, TREASURY_ACCOUNT } from "@moonwall/util";
 import {
-  assetContractAddress,
   foreignAssetBalance,
   PARA_1000_SOURCE_LOCATION,
   registerAndFundAsset,
