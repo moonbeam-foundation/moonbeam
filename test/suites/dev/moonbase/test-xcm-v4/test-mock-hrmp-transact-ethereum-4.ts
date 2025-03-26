@@ -126,8 +126,7 @@ describeSuite({
                 // 100_000 gas + 2 db read
                 requireWeightAtMost: {
                   refTime: 608_484_000,
-                  // This is impacted by ReservedXcmpWeight in pallet-ethereum-xcm
-                  // 1/4 of MAX_POV_SIZE
+                  // This is impacted by `GasWeightMapping::gas_to_weight` in pallet-ethereum-xcm
                   proofSize: 2625, // Previously (with 5MB max PoV): 1312
                 },
                 call: {
