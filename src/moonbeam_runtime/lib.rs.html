@@ -2649,7 +2649,7 @@
 	<span class="doccomment">/// Maximum delegations per delegator
 	</span><span class="kw">type </span>MaxDelegationsPerDelegator = ConstU32&lt;<span class="number">100</span>&gt;;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate
-	</span><span class="kw">type </span>MinCandidateStk = ConstU128&lt;{ <span class="number">20_000 </span>* currency::GLMR * currency::SUPPLY_FACTOR }&gt;;
+	</span><span class="kw">type </span>MinCandidateStk = ConstU128&lt;{ <span class="number">5_000 </span>* currency::GLMR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator
 	</span><span class="kw">type </span>MinDelegation = ConstU128&lt;{ <span class="number">500 </span>* currency::MILLIGLMR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="kw">type </span>BlockAuthor = AuthorInherent;
@@ -3593,7 +3593,7 @@
 		<span class="comment">// staking minimums
 		</span><span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_parachain_staking, MinCandidateStk, u128),
-			Balance::from(<span class="number">2_000_000 </span>* GLMR)
+			Balance::from(<span class="number">500_000 </span>* GLMR)
 		);
 		<span class="macro">assert_eq!</span>(
 			<span class="macro">get!</span>(pallet_parachain_staking, MinDelegation, u128),
