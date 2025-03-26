@@ -162,9 +162,9 @@ pub mod currency {
 }
 
 /// Maximum PoV size we support right now.
-// Kusama relay already supports 10Mb maximum PoV, but we will only enable it in runtime 3700
+// Kusama relay already supports 10Mb maximum PoV
 // Reference: https://github.com/polkadot-fellows/runtimes/pull/553
-pub const MAX_POV_SIZE: u32 = relay_chain::MAX_POV_SIZE;
+pub const MAX_POV_SIZE: u32 = 10 * 1024 * 1024;
 
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
