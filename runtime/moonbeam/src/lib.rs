@@ -157,10 +157,14 @@ pub mod currency {
 	}
 }
 
+/// Maximum PoV size we support right now.
+pub const MAX_POV_SIZE: u32 = relay_chain::MAX_POV_SIZE;
+
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
-	.saturating_mul(2)
-	.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+	WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
+	MAX_POV_SIZE as u64,
+);
 
 pub const MILLISECS_PER_BLOCK: u64 = 6_000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -279,7 +283,7 @@ impl frame_system::Config for Runtime {
 	type OnKilledAccount = ();
 	type DbWeight = moonbeam_weights::db::rocksdb::constants::RocksDbWeight;
 	type BaseCallFilter = MaintenanceMode;
-	type SystemWeightInfo = ();
+	type SystemWeightInfo = moonbeam_weights::frame_system::WeightInfo<Runtime>;
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = ConstU16<1284>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
@@ -382,6 +386,11 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 pub const WEIGHT_PER_GAS: u64 = WEIGHT_REF_TIME_PER_SECOND / GAS_PER_SECOND;
+
+/// The highest amount of new storage that can be created in a block (160KB).
+/// Originally 40KB, then multiplied by 4 when the block deadline was increased from 500ms to 2000ms.
+/// Reference: https://github.com/moonbeam-foundation/moonbeam/blob/master/MBIPS/MBIP-5.md#specification
+pub const BLOCK_STORAGE_LIMIT: u64 = 160 * 1024;
 
 parameter_types! {
 	pub BlockGasLimit: U256
@@ -715,6 +724,7 @@ impl pallet_ethereum_xcm::Config for Runtime {
 }
 
 parameter_types! {
+	// Reserved weight is 1/4 of MAXIMUM_BLOCK_WEIGHT
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
@@ -811,7 +821,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
 	/// Minimum stake required to be reserved to be a candidate
-	type MinCandidateStk = ConstU128<{ 20_000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type MinCandidateStk = ConstU128<{ 5_000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegation = ConstU128<{ 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR }>;
 	type BlockAuthor = AuthorInherent;
@@ -1473,6 +1483,7 @@ mod benches {
 	}
 
 	frame_benchmarking::define_benchmarks!(
+		[frame_system, SystemBench::<Runtime>]
 		[pallet_utility, Utility]
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
@@ -1754,7 +1765,7 @@ mod tests {
 		// staking minimums
 		assert_eq!(
 			get!(pallet_parachain_staking, MinCandidateStk, u128),
-			Balance::from(2_000_000 * GLMR)
+			Balance::from(500_000 * GLMR)
 		);
 		assert_eq!(
 			get!(pallet_parachain_staking, MinDelegation, u128),

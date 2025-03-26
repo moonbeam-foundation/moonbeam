@@ -26,12 +26,23 @@ describeSuite({
       await createBlock(
         [
           sudo(psTx.setBlocksPerRound(10)).signAsync(alith),
-          psTx.delegate(baltathar.address, MIN_GLMR_DELEGATOR + LESS_AMOUNT, 0, 0).signAsync(ethan),
+          psTx
+            .delegateWithAutoCompound(
+              baltathar.address,
+              MIN_GLMR_DELEGATOR + LESS_AMOUNT,
+              0,
+              0,
+              0,
+              0
+            )
+            .signAsync(ethan),
         ],
         { allowFailures: false }
       );
       await createBlock(
-        psTx.delegate(alith.address, MIN_GLMR_DELEGATOR + LESS_AMOUNT, 0, 1).signAsync(ethan),
+        psTx
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR + LESS_AMOUNT, 0, 0, 0, 1)
+          .signAsync(ethan),
         { allowFailures: false }
       );
       await createBlock(

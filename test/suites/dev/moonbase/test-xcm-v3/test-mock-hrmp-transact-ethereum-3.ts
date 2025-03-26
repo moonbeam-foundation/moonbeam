@@ -4,7 +4,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { BN } from "@polkadot/util";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import { type Abi, encodeFunctionData } from "viem";
-import { generateKeyringPair, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
@@ -57,8 +57,13 @@ describeSuite({
 
     let STORAGE_READ_COST: bigint;
 
+    let GAS_LIMIT_POV_RATIO: number;
+
     beforeAll(async () => {
-      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+      STORAGE_READ_COST = constants.STORAGE_READ_COST;
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
 
       contractDeployed = contractAddress;
