@@ -182,7 +182,7 @@ where
 		// Proxies:
 		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
 		handle.record_db_read::<Runtime>(
-			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 16,
 		)?;
 		if ProxyPallet::<Runtime>::proxies(origin.clone())
 			.0
@@ -340,7 +340,7 @@ where
 		// Proxies:
 		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
 		handle.record_db_read::<Runtime>(
-			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 16,
 		)?;
 		let is_proxy = ProxyPallet::<Runtime>::proxies(real)
 			.0
@@ -368,7 +368,7 @@ where
 		// Proxies:
 		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
 		handle.record_db_read::<Runtime>(
-			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 16,
 		)?;
 		let def =
 			pallet_proxy::Pallet::<Runtime>::find_proxy(&real_account_id, &who, force_proxy_type)

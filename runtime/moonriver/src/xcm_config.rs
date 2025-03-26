@@ -685,7 +685,7 @@ parameter_types! {
 
 	// To be able to support almost all erc20 implementations,
 	// we provide a sufficiently hight gas limit.
-	pub Erc20XcmBridgeTransferGasLimit: u64 = 800_000;
+	pub Erc20XcmBridgeTransferGasLimit: u64 = 400_000;
 }
 
 impl pallet_erc20_xcm_bridge::Config for Runtime {

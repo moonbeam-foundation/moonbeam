@@ -2,7 +2,7 @@ import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, createRawTransfer } from "@moonwall/util";
 
 describeSuite({
-  id: "D011205",
+  id: "D011206",
   title: "Transaction Index",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
