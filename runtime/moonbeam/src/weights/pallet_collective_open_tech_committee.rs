@@ -47,6 +47,8 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use sp_std::marker::PhantomData;
 
+use pallet_collective as pallet_collective_open_tech_committee;
+
 /// Weights for `pallet_collective_open_tech_committee`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_collective_open_tech_committee::WeightInfo for WeightInfo<T> {
