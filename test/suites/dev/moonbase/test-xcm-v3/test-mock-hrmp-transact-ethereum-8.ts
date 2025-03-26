@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import type { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair, alith, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import { generateKeyringPair, alith } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
@@ -92,11 +92,9 @@ describeSuite({
           },
         ];
 
+        const targetXcmFee = 25_000_000n;
+
         let expectedTransferredAmountPlusFees = 0n;
-
-        const targetXcmWeight = 5_000_000_000n + 25_000_000n;
-        const targetXcmFee = targetXcmWeight * 50_000n;
-
         for (const xcmTransaction of xcmTransactions) {
           expectedTransferredAmountPlusFees += targetXcmFee;
           // TODO need to update lookup types for xcm ethereum transaction V2
@@ -118,8 +116,8 @@ describeSuite({
               },
             ],
             weight_limit: {
-              refTime: targetXcmWeight,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 7,
+              refTime: 4_745_157_000,
+              proofSize: 43_208,
             } as any,
             descend_origin: sendingAddress,
           })
@@ -132,7 +130,7 @@ describeSuite({
                 // 21_000 gas limit + db read
                 requireWeightAtMost: {
                   refTime: 575_000_000,
-                  proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+                  proofSize: 2_625, // Previously (with 5MB max PoV): 1312
                 },
                 call: {
                   encoded: transferCallEncoded,

@@ -2,13 +2,14 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import type { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair, charleth, alith, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import { generateKeyringPair, charleth, alith } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D014029",
@@ -21,8 +22,13 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
+    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
         context,
         charleth.address as `0x${string}`
@@ -114,8 +120,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmWeight = 5_000_000_000n + 100_000_000n;
-        const targetXcmFee = targetXcmWeight * 50_000n;
+        const targetXcmFee = 1_000_000_000_000_000n;
 
         for (const xcmTransaction of xcmTransactions) {
           expectedTransferredAmount += amountToTransfer;
@@ -141,8 +146,8 @@ describeSuite({
               },
             ],
             weight_limit: {
-              refTime: targetXcmWeight,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 7,
+              refTime: 4_778_641_000,
+              proofSize: 43_208,
             } as any,
             descend_origin: sendingAddress,
           })
@@ -154,8 +159,9 @@ describeSuite({
                 originKind: "SovereignAccount",
                 // 100_000 gas + 2db reads
                 requireWeightAtMost: {
-                  refTime: 575_000_000,
-                  proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+                  refTime: 608_484_000,
+                  // This is impacted by `GasWeightMapping::gas_to_weight` in pallet-ethereum-xcm
+                  proofSize: 2_625, // Previously (with 5MB max PoV): 1312
                 },
                 call: {
                   encoded: transferCallEncoded,
