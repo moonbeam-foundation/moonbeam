@@ -796,7 +796,9 @@ mod testing {
 			{
 				asset_id
 			} else {
-				let asset_type: AssetType = location.try_into().expect("convert to v3");
+				let asset_type: AssetType = location
+					.try_into()
+					.expect("Location convertion to AssetType should succeed");
 				let asset_id: AssetId = asset_type.clone().into();
 				AssetManager::set_asset_type_asset_id(asset_type, asset_id);
 				asset_id

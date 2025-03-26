@@ -1677,7 +1677,7 @@ fn root_can_change_default_xcm_vers() {
 						}]
 						.into(),
 					})),
-					Box::new(VersionedAssets::from(asset.clone().into())),
+					Box::new(VersionedAssets::from(asset.clone())),
 					0,
 					WeightLimit::Unlimited
 				),
@@ -1702,7 +1702,7 @@ fn root_can_change_default_xcm_vers() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::from(asset.clone().into())),
+				Box::new(VersionedAssets::from(asset.clone())),
 				0,
 				WeightLimit::Unlimited
 			));
@@ -2137,13 +2137,10 @@ fn make_sure_glmr_can_be_transferred_precompile() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::from(
-					Asset {
-						id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
-						fun: Fungible(1000)
-					}
-					.into()
-				)),
+				Box::new(VersionedAssets::from(Asset {
+					id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
+					fun: Fungible(1000)
+				})),
 				0,
 				WeightLimit::Limited(40000.into())
 			));
@@ -2177,13 +2174,10 @@ fn make_sure_glmr_can_be_transferred() {
 				origin_of(AccountId::from(ALICE)),
 				Box::new(VersionedLocation::from(Location::parent())),
 				Box::new(VersionedLocation::from(dest)),
-				Box::new(VersionedAssets::from(
-					Asset {
-						id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
-						fun: Fungible(100)
-					}
-					.into()
-				)),
+				Box::new(VersionedAssets::from(Asset {
+					id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
+					fun: Fungible(100)
+				})),
 				0,
 				WeightLimit::Limited(40000.into())
 			));
@@ -2447,7 +2441,7 @@ fn call_xtokens_with_fee() {
 				origin_of(AccountId::from(ALICE)),
 				Box::new(VersionedLocation::from(chain_part)),
 				Box::new(VersionedLocation::from(beneficiary)),
-				Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
+				Box::new(VersionedAssets::from(vec![asset_fee, asset])),
 				0,
 				WeightLimit::Limited(4000000000.into())
 			));
@@ -3005,7 +2999,8 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: Weight::from_parts(extrinsic_weight, 1),
+					call_weight: Weight::from_parts(extrinsic_weight, 1),
+					extension_weight: Weight::zero(),
 				},
 				tip,
 			);

@@ -2152,7 +2152,7 @@ fn root_can_change_default_xcm_vers() {
 						}]
 						.into(),
 					})),
-					Box::new(VersionedAssets::from(asset.clone().into())),
+					Box::new(VersionedAssets::from(asset.clone())),
 					0,
 					WeightLimit::Unlimited
 				),
@@ -2177,7 +2177,7 @@ fn root_can_change_default_xcm_vers() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::from(asset.into())),
+				Box::new(VersionedAssets::from(asset)),
 				0,
 				WeightLimit::Unlimited
 			));
