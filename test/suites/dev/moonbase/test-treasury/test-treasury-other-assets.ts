@@ -14,7 +14,7 @@ import {
 
 describeSuite({
   id: "D013803",
-  title: "Treasury pallet spend using non-native assets",
+  title: "Treasury pallet spend using foreign assets",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let api: ApiPromise;

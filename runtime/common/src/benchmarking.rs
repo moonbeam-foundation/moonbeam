@@ -21,7 +21,6 @@ use pallet_treasury::ArgumentsFactory;
 
 pub struct BenchmarkHelper;
 
-// TODO snowmead: Why do we need this as a BenchmarkHelper if the methods are never used?
 impl ArgumentsFactory<NativeOrWithId<AssetId>, AccountId20> for BenchmarkHelper {
 	fn create_asset_kind(_seed: u32) -> NativeOrWithId<AssetId> {
 		NativeOrWithId::Native
