@@ -643,7 +643,7 @@
 		// Proxies:
 		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
 		</span>handle.record_db_read::&lt;Runtime&gt;(
-			<span class="number">28 </span>+ (<span class="number">29 </span>* (&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::MaxProxies::get() <span class="kw">as </span>usize)) + <span class="number">8</span>,
+			<span class="number">28 </span>+ (<span class="number">29 </span>* (&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::MaxProxies::get() <span class="kw">as </span>usize)) + <span class="number">16</span>,
 		)<span class="question-mark">?</span>;
 		<span class="kw">if </span>ProxyPallet::&lt;Runtime&gt;::proxies(origin.clone())
 			.<span class="number">0
@@ -801,7 +801,7 @@
 		<span class="comment">// Proxies:
 		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
 		</span>handle.record_db_read::&lt;Runtime&gt;(
-			<span class="number">28 </span>+ (<span class="number">29 </span>* (&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::MaxProxies::get() <span class="kw">as </span>usize)) + <span class="number">8</span>,
+			<span class="number">28 </span>+ (<span class="number">29 </span>* (&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::MaxProxies::get() <span class="kw">as </span>usize)) + <span class="number">16</span>,
 		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>is_proxy = ProxyPallet::&lt;Runtime&gt;::proxies(real)
 			.<span class="number">0
@@ -829,7 +829,7 @@
 		<span class="comment">// Proxies:
 		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
 		</span>handle.record_db_read::&lt;Runtime&gt;(
-			<span class="number">28 </span>+ (<span class="number">29 </span>* (&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::MaxProxies::get() <span class="kw">as </span>usize)) + <span class="number">8</span>,
+			<span class="number">28 </span>+ (<span class="number">29 </span>* (&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::MaxProxies::get() <span class="kw">as </span>usize)) + <span class="number">16</span>,
 		)<span class="question-mark">?</span>;
 		<span class="kw">let </span>def =
 			pallet_proxy::Pallet::&lt;Runtime&gt;::find_proxy(<span class="kw-2">&amp;</span>real_account_id, <span class="kw-2">&amp;</span>who, force_proxy_type)

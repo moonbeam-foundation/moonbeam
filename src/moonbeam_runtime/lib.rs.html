@@ -1841,6 +1841,16 @@
 <a href="#1839" id="1839">1839</a>
 <a href="#1840" id="1840">1840</a>
 <a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1998,10 +2008,14 @@
 	}
 }
 
+<span class="doccomment">/// Maximum PoV size we support right now.
+</span><span class="kw">pub const </span>MAX_POV_SIZE: u32 = relay_chain::MAX_POV_SIZE;
+
 <span class="doccomment">/// Maximum weight per block
-</span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
-	.saturating_mul(<span class="number">2</span>)
-	.set_proof_size(relay_chain::MAX_POV_SIZE <span class="kw">as </span>u64);
+</span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+	WEIGHT_REF_TIME_PER_SECOND.saturating_mul(<span class="number">2</span>),
+	MAX_POV_SIZE <span class="kw">as </span>u64,
+);
 
 <span class="kw">pub const </span>MILLISECS_PER_BLOCK: u64 = <span class="number">6_000</span>;
 <span class="kw">pub const </span>MINUTES: BlockNumber = <span class="number">60_000 </span>/ (MILLISECS_PER_BLOCK <span class="kw">as </span>BlockNumber);
@@ -2223,6 +2237,11 @@
 <span class="doccomment">/// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 </span><span class="kw">pub const </span>WEIGHT_PER_GAS: u64 = WEIGHT_REF_TIME_PER_SECOND / GAS_PER_SECOND;
+
+<span class="doccomment">/// The highest amount of new storage that can be created in a block (160KB).
+/// Originally 40KB, then multiplied by 4 when the block deadline was increased from 500ms to 2000ms.
+/// Reference: https://github.com/moonbeam-foundation/moonbeam/blob/master/MBIPS/MBIP-5.md#specification
+</span><span class="kw">pub const </span>BLOCK_STORAGE_LIMIT: u64 = <span class="number">160 </span>* <span class="number">1024</span>;
 
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub </span>BlockGasLimit: U256
@@ -2553,7 +2572,8 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(<span class="number">4</span>);
+	<span class="comment">// Reserved weight is 1/4 of MAXIMUM_BLOCK_WEIGHT
+	</span><span class="kw">pub const </span>ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(<span class="number">4</span>);
 	<span class="kw">pub const </span>ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(<span class="number">4</span>);
 	<span class="kw">pub const </span>RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }

@@ -1842,6 +1842,18 @@
 <a href="#1840" id="1840">1840</a>
 <a href="#1841" id="1841">1841</a>
 <a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2005,10 +2017,16 @@
 	}
 }
 
+<span class="doccomment">/// Maximum PoV size we support right now.
+</span><span class="comment">// Kusama relay already supports 10Mb maximum PoV
+// Reference: https://github.com/polkadot-fellows/runtimes/pull/553
+</span><span class="kw">pub const </span>MAX_POV_SIZE: u32 = <span class="number">10 </span>* <span class="number">1024 </span>* <span class="number">1024</span>;
+
 <span class="doccomment">/// Maximum weight per block
-</span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
-	.saturating_mul(<span class="number">2</span>)
-	.set_proof_size(relay_chain::MAX_POV_SIZE <span class="kw">as </span>u64);
+</span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+	WEIGHT_REF_TIME_PER_SECOND.saturating_mul(<span class="number">2</span>),
+	MAX_POV_SIZE <span class="kw">as </span>u64,
+);
 
 <span class="kw">pub const </span>MILLISECS_PER_BLOCK: u64 = <span class="number">6_000</span>;
 <span class="kw">pub const </span>MINUTES: BlockNumber = <span class="number">60_000 </span>/ (MILLISECS_PER_BLOCK <span class="kw">as </span>BlockNumber);
@@ -2230,6 +2248,11 @@
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 </span><span class="kw">pub const </span>WEIGHT_PER_GAS: u64 = WEIGHT_REF_TIME_PER_SECOND / GAS_PER_SECOND;
 
+<span class="doccomment">/// The highest amount of new storage that can be created in a block (160KB).
+/// Originally 40KB, then multiplied by 4 when the block deadline was increased from 500ms to 2000ms.
+/// Reference: https://github.com/moonbeam-foundation/moonbeam/blob/master/MBIPS/MBIP-5.md#specification
+</span><span class="kw">pub const </span>BLOCK_STORAGE_LIMIT: u64 = <span class="number">160 </span>* <span class="number">1024</span>;
+
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub </span>BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
@@ -2250,13 +2273,13 @@
 	</span><span class="kw">pub </span>MaximumMultiplier: Multiplier = Multiplier::from(<span class="number">100_000u128</span>);
 	<span class="kw">pub </span>PrecompilesValue: MoonriverPrecompiles&lt;Runtime&gt; = MoonriverPrecompiles::&lt;<span class="kw">_</span>&gt;::new();
 	<span class="kw">pub </span>WeightPerGas: Weight = Weight::from_parts(WEIGHT_PER_GAS, <span class="number">0</span>);
-	<span class="doccomment">/// The amount of gas per pov. A ratio of 16 if we convert ref_time to gas and we compare
+	<span class="doccomment">/// The amount of gas per pov. A ratio of 8 if we convert ref_time to gas and we compare
 	/// it with the pov_size for a block. E.g.
 	/// ceil(
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	/// We should re-check `xcm_config::Erc20XcmBridgeTransferGasLimit` when changing this value
-	</span><span class="kw">pub const </span>GasLimitPovSizeRatio: u64 = <span class="number">16</span>;
+	</span><span class="kw">pub const </span>GasLimitPovSizeRatio: u64 = <span class="number">8</span>;
 	<span class="doccomment">/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
 	/// The current definition of BLOCK_STORAGE_LIMIT is 160 KB, resulting in a value of 366.
 	</span><span class="kw">pub </span>GasLimitStorageGrowthRatio: u64 = <span class="number">366</span>;
@@ -2533,7 +2556,8 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub const </span>ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(<span class="number">4</span>);
+	<span class="comment">// Reserved weight is 1/4 of MAXIMUM_BLOCK_WEIGHT
+	</span><span class="kw">pub const </span>ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(<span class="number">4</span>);
 	<span class="kw">pub const </span>ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(<span class="number">4</span>);
 	<span class="kw">pub const </span>RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
