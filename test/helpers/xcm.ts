@@ -918,7 +918,7 @@ export const sendCallAsPara = async (
     ],
     weight_limit: {
       refTime: 40_000_000_000n,
-      proofSize: 150_000n,
+      proofSize: 150_713n,
     },
     beneficiary: sovereignAccountOfSibling(context, paraId),
   })
@@ -1047,7 +1047,7 @@ export const sendCallAsDescendedOrigin = async (
     ],
     weight_limit: {
       refTime: 40_000_000_000n,
-      proofSize: 150_000n,
+      proofSize: 150_713n,
     },
     descend_origin: address,
     beneficiary: descndedAddress.descendOriginAddress,

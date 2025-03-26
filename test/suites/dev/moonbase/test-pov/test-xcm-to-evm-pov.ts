@@ -20,9 +20,9 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let proxyAbi: Abi;
     let proxyAddress: `0x${string}`;
-    const MAX_CONTRACTS = 400;
+    const MAX_CONTRACTS = 800;
     let contracts: HeavyContract[];
-    const EXPECTED_POV_ROUGH = 24_000; // bytes
+    const EXPECTED_POV_ROUGH = 25_000; // bytes
     let balancesPalletIndex: number;
     let STORAGE_READ_COST: bigint;
     let GAS_LIMIT_POV_RATIO: number;
@@ -150,8 +150,8 @@ describeSuite({
         // With 500k gas we are allowed to use ~150k of POV, so verify the range.
         // The tx is still included in the block because it contains the failed tx,
         // so POV is included in the block as well.
-        expect(block.proofSize).to.be.at.least(15_000);
-        expect(block.proofSize).to.be.at.most(25_000);
+        expect(block.proofSize).to.be.at.least(EXPECTED_POV_ROUGH / 1.1);
+        expect(block.proofSize).to.be.at.most(EXPECTED_POV_ROUGH * 1.1);
 
         // Check the evm tx was not executed because of OutOfGas error
         const ethEvents = (await context.polkadotJs().query.system.events()).filter(({ event }) =>
