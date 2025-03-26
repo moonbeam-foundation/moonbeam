@@ -25,6 +25,7 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	BoundedVec,
 };
+use moonbeam_runtime::xcm_config::AssetType;
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
 };
@@ -336,7 +337,7 @@ fn send_para_a_asset_to_para_b() {
 
 	// This represents the asset in paraA
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = para_a_balances
+	let source_location: AssetType = para_a_balances
 		.try_into()
 		.expect("Location convertion to AssetType should succeed");
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -381,7 +382,7 @@ fn send_para_a_asset_to_para_b() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(asset.into())),
+			Box::new(VersionedAssets::from(asset)),
 			0,
 			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -407,7 +408,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 	// Represents para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = para_a_balances
+	let source_location: AssetType = para_a_balances
 		.try_into()
 		.expect("Location convertion to AssetType should succeed");
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -460,7 +461,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(asset.into())),
+			Box::new(VersionedAssets::from(asset)),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -498,7 +499,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(asset.into())),
+			Box::new(VersionedAssets::from(asset)),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -516,7 +517,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 
 	// para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = para_a_balances
+	let source_location: AssetType = para_a_balances
 		.try_into()
 		.expect("Location convertion to AssetType should succeed");
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -558,7 +559,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(asset.into())),
+			Box::new(VersionedAssets::from(asset)),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -596,7 +597,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(asset.into())),
+			Box::new(VersionedAssets::from(asset)),
 			0,
 			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 		));
@@ -676,7 +677,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = para_a_balances
+	let source_location: AssetType = para_a_balances
 		.try_into()
 		.expect("Location convertion to AssetType should succeed");
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -722,7 +723,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(asset.into())),
+			Box::new(VersionedAssets::from(asset)),
 			0,
 			WeightLimit::Limited(Weight::from_parts(10u64, DEFAULT_PROOF_SIZE))
 		));
@@ -754,7 +755,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location = para_a_balances
+	let source_location: AssetType = para_a_balances
 		.try_into()
 		.expect("Location convertion to AssetType should succeed");
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -797,7 +798,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset])),
 			0,
 			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -2342,10 +2343,9 @@ fn test_statemint_like() {
 			xcm::latest::prelude::GeneralIndex(0u128),
 		],
 	);
-	let source_location = parachain::AssetType::Xcm(
-		xcm_builder::WithLatestLocationConverter::convert(&statemint_asset_a_balances)
-			.expect("Location convertion to AssetType should succeed"),
-	);
+	let source_location: AssetType = statemint_asset_a_balances
+		.try_into()
+		.expect("Location convertion to AssetType should succeed");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {
@@ -2450,7 +2450,8 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemint_location_asset = statemint_asset
+	let statemint_location_asset: AssetType = statemint_asset
+		.clone()
 		.try_into()
 		.expect("Location convertion to AssetType should succeed");
 	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
@@ -2911,7 +2912,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(vec![asset_fee, asset].into())),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset])),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -3068,7 +3069,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from((Location::parent(), 100).into())),
+			Box::new(VersionedAssets::from((Location::parent(), 100))),
 			0,
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
@@ -3133,7 +3134,8 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemint_location_asset = statemint_asset
+	let statemint_location_asset: AssetType = statemint_asset
+		.clone()
 		.try_into()
 		.expect("Location convertion to AssetType should succeed");
 	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
@@ -3308,7 +3310,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(assets_to_send.into())),
+			Box::new(VersionedAssets::from(assets_to_send)),
 			1,
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
@@ -3381,7 +3383,8 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemint_location_asset = statemint_asset
+	let statemint_location_asset: AssetType = statemint_asset
+		.clone()
 		.try_into()
 		.expect("Location convertion to AssetType should succeed");
 	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
