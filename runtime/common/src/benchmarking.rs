@@ -31,14 +31,3 @@ impl ArgumentsFactory<NativeOrWithId<AssetId>, AccountId20> for BenchmarkHelper 
 		AccountId20::from(seed)
 	}
 }
-
-// TODO snowmead: Why do we need this as a BenchmarkHelper if the methods are never used?
-impl ArgumentsFactory<(), AccountId20> for BenchmarkHelper {
-	fn create_asset_kind(_seed: u32) -> () {
-		()
-	}
-
-	fn create_beneficiary(seed: [u8; 32]) -> AccountId20 {
-		AccountId20::from(seed)
-	}
-}

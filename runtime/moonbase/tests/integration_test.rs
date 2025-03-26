@@ -30,8 +30,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo,
-		StorageInfo, StorageInfoTrait,
+		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
+		EnsureOrigin, OnInitialize, PalletInfo, StorageInfo, StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
@@ -3015,6 +3015,7 @@ fn validate_transaction_fails_on_filtered_call() {
 mod treasury_tests {
 	use super::*;
 	use frame_support::traits::fungible::NativeOrWithId;
+	use moonbase_runtime::XcmWeightTrader;
 	use sp_runtime::traits::Hash;
 
 	fn expect_events(events: Vec<RuntimeEvent>) {
@@ -3050,14 +3051,14 @@ mod treasury_tests {
 				next_block();
 
 				// Perform treasury spending
-
+				let valid_from = System::block_number() + 5u32;
 				assert_ok!(moonbase_runtime::Sudo::sudo(
 					root_origin(),
 					Box::new(RuntimeCall::Treasury(pallet_treasury::Call::spend {
 						amount: spend_amount,
-						asset_kind: Box::new(NativeOrWithId::Native), // TODO snowmead: should this be an asset id
+						asset_kind: Box::new(NativeOrWithId::Native),
 						beneficiary: Box::new(AccountId::from(BOB)),
-						valid_from: Some(5u32),
+						valid_from: Some(valid_from),
 					}))
 				));
 
@@ -3066,17 +3067,17 @@ mod treasury_tests {
 				let expected_events = [RuntimeEvent::Treasury(
 					pallet_treasury::Event::AssetSpendApproved {
 						index: 0,
-						asset_kind: NativeOrWithId::Native, // TODO snowmead: should this be an asset id
+						asset_kind: NativeOrWithId::Native,
 						amount: spend_amount,
 						beneficiary: spend_beneficiary,
-						valid_from: 5u32,
-						expire_at: payout_period + 5u32,
+						valid_from,
+						expire_at: payout_period + valid_from,
 					},
 				)]
 				.to_vec();
 				expect_events(expected_events);
 
-				while System::block_number() < 5u32 {
+				while System::block_number() < valid_from {
 					next_block();
 				}
 
@@ -3124,11 +3125,12 @@ mod treasury_tests {
 				next_block();
 
 				// Perform treasury spending
+				let valid_from = System::block_number() + 5u32;
 				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend {
 					amount: spend_amount,
-					asset_kind: Box::new(NativeOrWithId::Native), // TODO snowmead: should this be an asset it
+					asset_kind: Box::new(NativeOrWithId::Native),
 					beneficiary: Box::new(AccountId::from(BOB)),
-					valid_from: Some(5u32),
+					valid_from: Some(valid_from),
 				});
 				assert_ok!(TreasuryCouncilCollective::propose(
 					origin_of(AccountId::from(ALICE)),
@@ -3142,11 +3144,11 @@ mod treasury_tests {
 				let expected_events = [
 					RuntimeEvent::Treasury(pallet_treasury::Event::AssetSpendApproved {
 						index: 0,
-						asset_kind: NativeOrWithId::Native, // TODO snowmead: should this be an asset id
+						asset_kind: NativeOrWithId::Native,
 						amount: spend_amount,
 						beneficiary: spend_beneficiary,
-						valid_from: 5u32,
-						expire_at: payout_period + 5u32,
+						valid_from,
+						expire_at: payout_period + valid_from,
 					}),
 					RuntimeEvent::TreasuryCouncilCollective(pallet_collective::Event::Executed {
 						proposal_hash: sp_runtime::traits::BlakeTwo256::hash_of(&proposal),
@@ -3156,7 +3158,7 @@ mod treasury_tests {
 				.to_vec();
 				expect_events(expected_events);
 
-				while System::block_number() < 5u32 {
+				while System::block_number() < valid_from {
 					next_block();
 				}
 
@@ -3175,6 +3177,220 @@ mod treasury_tests {
 				]
 				.to_vec();
 				expect_events(expected_events);
+			});
+	}
+
+	#[test]
+	fn test_treasury_spend_foreign_asset_with_root_origin() {
+		let initial_treasury_balance = 1_000 * UNIT;
+		let asset_id = 1000100010001000u128;
+		ExtBuilder::default()
+			.with_balances(vec![(AccountId::from(ALICE), 2_000 * UNIT)])
+			.build()
+			.execute_with(|| {
+				let spend_amount = 100u128 * UNIT;
+				let spend_beneficiary = AccountId::from(BOB);
+
+				let asset_location: Location = Location {
+					parents: 1,
+					interior: Junctions::Here,
+				};
+
+				assert_ok!(EvmForeignAssets::create_foreign_asset(
+					root_origin(),
+					asset_id,
+					asset_location.clone(),
+					12,
+					bounded_vec![b'M', b'T'],
+					bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+				));
+
+				assert_ok!(XcmWeightTrader::add_asset(
+					root_origin(),
+					asset_location,
+					1u128
+				));
+
+				assert_ok!(EvmForeignAssets::mint_into(
+					asset_id,
+					Treasury::account_id(),
+					initial_treasury_balance.into()
+				));
+
+				assert_eq!(
+					<EvmForeignAssets as FungiblesInspect<AccountId>>::balance(
+						asset_id,
+						&Treasury::account_id()
+					),
+					initial_treasury_balance,
+					"Treasury balance not updated"
+				);
+
+				assert_ok!(moonbase_runtime::Sudo::sudo(
+					root_origin(),
+					Box::new(RuntimeCall::Treasury(pallet_treasury::Call::spend {
+						amount: spend_amount,
+						asset_kind: Box::new(NativeOrWithId::WithId(asset_id)),
+						beneficiary: Box::new(spend_beneficiary),
+						valid_from: None,
+					}))
+				));
+
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
+
+				let current_block = System::block_number();
+				expect_events(vec![RuntimeEvent::Treasury(
+					pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: NativeOrWithId::WithId(asset_id),
+						amount: spend_amount,
+						beneficiary: spend_beneficiary,
+						valid_from: current_block,
+						expire_at: current_block + payout_period,
+					},
+				)]);
+
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
+				expect_events(vec![RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+					index: 0,
+					payment_id: (),
+				})]);
+
+				assert_eq!(
+					<EvmForeignAssets as FungiblesInspect<AccountId>>::balance(
+						asset_id,
+						&Treasury::account_id()
+					),
+					initial_treasury_balance - spend_amount,
+					"Treasury balance not updated"
+				);
+
+				assert_eq!(
+					<EvmForeignAssets as FungiblesInspect<AccountId>>::balance(
+						asset_id,
+						&spend_beneficiary
+					),
+					spend_amount,
+					"Treasury payout failed"
+				);
+			});
+	}
+
+	#[test]
+	fn test_treasury_spend_foreign_asset_with_council_origin() {
+		let initial_treasury_balance = 1_000 * UNIT;
+		let asset_id = 1000100010001000u128;
+		ExtBuilder::default()
+			.with_balances(vec![(AccountId::from(ALICE), 2_000 * UNIT)])
+			.build()
+			.execute_with(|| {
+				let spend_amount = 100u128 * UNIT;
+				let spend_beneficiary = AccountId::from(BOB);
+
+				let asset_location: Location = Location {
+					parents: 1,
+					interior: Junctions::Here,
+				};
+
+				assert_ok!(EvmForeignAssets::create_foreign_asset(
+					root_origin(),
+					asset_id,
+					asset_location.clone(),
+					12,
+					bounded_vec![b'M', b'T'],
+					bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+				));
+
+				assert_ok!(XcmWeightTrader::add_asset(
+					root_origin(),
+					asset_location,
+					1u128
+				));
+
+				assert_ok!(EvmForeignAssets::mint_into(
+					asset_id,
+					Treasury::account_id(),
+					initial_treasury_balance.into()
+				));
+
+				assert_eq!(
+					<EvmForeignAssets as FungiblesInspect<AccountId>>::balance(
+						asset_id,
+						&Treasury::account_id()
+					),
+					initial_treasury_balance,
+					"Treasury balance not updated"
+				);
+
+				// TreasuryCouncilCollective
+				assert_ok!(TreasuryCouncilCollective::set_members(
+					root_origin(),
+					vec![AccountId::from(ALICE)],
+					Some(AccountId::from(ALICE)),
+					1
+				));
+
+				// Perform treasury spending
+				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend {
+					amount: spend_amount,
+					asset_kind: Box::new(NativeOrWithId::WithId(asset_id)),
+					beneficiary: Box::new(spend_beneficiary),
+					valid_from: None,
+				});
+				assert_ok!(TreasuryCouncilCollective::propose(
+					origin_of(AccountId::from(ALICE)),
+					1,
+					Box::new(proposal.clone()),
+					1_000
+				));
+
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
+
+				let current_block = System::block_number();
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: NativeOrWithId::WithId(asset_id),
+						amount: spend_amount,
+						beneficiary: spend_beneficiary,
+						valid_from: current_block,
+						expire_at: current_block + payout_period,
+					}),
+					RuntimeEvent::TreasuryCouncilCollective(pallet_collective::Event::Executed {
+						proposal_hash: sp_runtime::traits::BlakeTwo256::hash_of(&proposal),
+						result: Ok(()),
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
+				expect_events(vec![RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+					index: 0,
+					payment_id: (),
+				})]);
+
+				assert_eq!(
+					<EvmForeignAssets as FungiblesInspect<AccountId>>::balance(
+						asset_id,
+						&Treasury::account_id()
+					),
+					initial_treasury_balance - spend_amount,
+					"Treasury balance not updated"
+				);
+
+				assert_eq!(
+					<EvmForeignAssets as FungiblesInspect<AccountId>>::balance(
+						asset_id,
+						&spend_beneficiary
+					),
+					spend_amount,
+					"Treasury payout failed"
+				);
 			});
 	}
 }

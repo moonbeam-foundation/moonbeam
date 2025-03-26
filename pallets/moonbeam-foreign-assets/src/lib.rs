@@ -761,18 +761,4 @@ pub mod pallet {
 			AssetsById::<T>::get(asset_id)
 		}
 	}
-
-	// impl <T: Config> frame_support::traits::tokens::fungibles::Create<T::AccountId> for Pallet<T> {
-	// 	fn create(who: &T::AccountId, amount: AssetBalance) {
-	// 		let asset_id = 0;
-	// 		let contract_address = Self::contract_address_from_asset_id(asset_id);
-	// 		let beneficiary = T::AccountIdToH160::convert(who.clone());
-	// 		let amount = U256::from(amount);
-	// 		// We perform the evm call in a storage transaction to ensure that if it fail
-	// 		// any contract storage changes are rolled back.
-	// 		frame_support::storage::with_storage_layer(|| {
-	// 			EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
-	// 		}).unwrap();
-	// 	}
-	// }
 }
