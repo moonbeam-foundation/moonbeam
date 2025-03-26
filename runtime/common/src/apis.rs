@@ -448,8 +448,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn storage_at(address: H160, index: U256) -> H256 {
-					let mut tmp = [0u8; 32];
-					index.to_big_endian(&mut tmp);
+					let tmp: [u8; 32] = index.to_big_endian();
 					pallet_evm::AccountStorages::<Runtime>::get(address, H256::from_slice(&tmp[..]))
 				}
 
@@ -672,7 +671,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn convert_transaction(
 					transaction: pallet_ethereum::Transaction
 				) -> <Block as BlockT>::Extrinsic {
-					UncheckedExtrinsic::new_unsigned(
+					UncheckedExtrinsic::new_bare(
 						pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 					)
 				}
@@ -867,7 +866,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
-				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
+				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
 					use frame_benchmarking::{add_benchmark, BenchmarkBatch, Benchmarking};
 					use frame_support::traits::TrackedStorageKey;
 					use cumulus_primitives_core::ParaId;
@@ -962,7 +961,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						) -> Option<(XcmAssets, u32, Location, Box<dyn FnOnce()>)> {
 							use xcm_config::SelfReserve;
 
-							let destination: xcm::v4::Location = Parent.into();
+							let destination: xcm::v5::Location = Parent.into();
 
 							let fee_amount: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
 							let fee_asset: Asset = (SelfReserve::get(), fee_amount).into();
