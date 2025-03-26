@@ -9,7 +9,7 @@ import {
   foreignAssetBalance,
   PARA_1000_SOURCE_LOCATION,
   registerAndFundAsset,
-  TestAsset,
+  type TestAsset,
 } from "../../../../helpers";
 
 describeSuite({
