@@ -565,7 +565,7 @@ fn test_query_acceptable_payment_assets() {
 	new_test_ext().execute_with(|| {
 		// By default, only native asset should be supported
 		assert_eq!(
-			XcmWeightTrader::query_acceptable_payment_assets(4),
+			XcmWeightTrader::query_acceptable_payment_assets(5),
 			Ok(vec![VersionedAssetId::from(XcmAssetId(
 				<Test as crate::Config>::NativeLocation::get()
 			))])
@@ -600,7 +600,7 @@ fn test_query_acceptable_payment_assets() {
 
 		// We should support parent asset now
 		assert_eq!(
-			XcmWeightTrader::query_acceptable_payment_assets(4),
+			XcmWeightTrader::query_acceptable_payment_assets(5),
 			Ok(vec![
 				VersionedAssetId::from(XcmAssetId(<Test as crate::Config>::NativeLocation::get())),
 				VersionedAssetId::from(XcmAssetId(Location::parent()))
@@ -619,7 +619,7 @@ fn test_query_acceptable_payment_assets() {
 
 		// We should not support paused assets
 		assert_eq!(
-			XcmWeightTrader::query_acceptable_payment_assets(4),
+			XcmWeightTrader::query_acceptable_payment_assets(5),
 			Ok(vec![VersionedAssetId::from(XcmAssetId(
 				<Test as crate::Config>::NativeLocation::get()
 			)),])
