@@ -340,41 +340,13 @@ macro_rules! impl_runtime_apis_plus_common {
 							let without_base_extrinsic_weight = true;
 
 
-							// Estimated encoded transaction size must be based on the transaction
-							// type (TransactionData) to be compatible with all transaction types.
-							// TODO: remove, since we will get rid of base_cost
-							let mut estimated_transaction_len = data.len() +
-								// pallet ethereum index: 1
-								// transact call index: 1
-								// Transaction enum variant: 1
-								// chain_id 9 bytes (some varient)
-								// nonce: 32
-								// max_priority_fee_per_gas: 33 (some varient)
-								// max_fee_per_gas: 33 (some varient)
-								// gas_price: 1 (none varient)
-								// gas_limit: 32
-								// action: 21 (enum varianrt + call address)
-								// value: 32
-								// access_list: 1 (empty vec size)
-								// 65 bytes signature
-								261;
-
-							if access_list.is_some() {
-								estimated_transaction_len += access_list.encoded_size();
-							}
-
-							let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
-
-							let (weight_limit, proof_size_base_cost) =
-								match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-									gas_limit,
-									without_base_extrinsic_weight
-								) {
-									weight_limit if weight_limit.proof_size() > 0 => {
-										(Some(weight_limit), Some(estimated_transaction_len as u64))
-									}
-									_ => (None, None),
-								};
+							let gas_limit = if gas_limit > U256::from(u64::MAX) {
+								u64::MAX
+							} else {
+								gas_limit.low_u64()
+							};
+							let weight_limit = <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(gas_limit, true);
+							let proof_size_pre_execution = cumulus_primitives_storage_weight_reclaim::get_proof_size().unwrap_or_default();
 
 							let _ = <Runtime as pallet_evm::Config>::Runner::call(
 								from,
@@ -388,8 +360,8 @@ macro_rules! impl_runtime_apis_plus_common {
 								access_list.unwrap_or_default(),
 								is_transactional,
 								validate,
-								weight_limit,
-								proof_size_base_cost,
+								Some(weight_limit),
+								proof_size_pre_execution,
 								<Runtime as pallet_evm::Config>::config(),
 							);
 						});
@@ -477,42 +449,13 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					// Estimated encoded transaction size must be based on the transaction
-					// type (TransactionData) to be compatible with all transaction types.
-					// TODO: remove, since we will get rid of base_cost
-					let mut estimated_transaction_len = data.len() +
-						// pallet ethereum index: 1
-						// transact call index: 1
-						// Transaction enum variant: 1
-						// chain_id 9 bytes (some varient)
-						// nonce: 32
-						// max_priority_fee_per_gas: 33 (some varient)
-						// max_fee_per_gas: 33 (some varient)
-						// gas_price: 1 (none varient)
-						// gas_limit: 32
-						// action: 21 (enum varianrt + call address)
-						// value: 32
-						// access_list: 1 (empty vec size)
-						// 65 bytes signature
-						261;
-
-					if access_list.is_some() {
-						estimated_transaction_len += access_list.encoded_size();
-					}
-
-					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
-					let without_base_extrinsic_weight = true;
-
-					let (weight_limit, proof_size_base_cost) =
-						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-							gas_limit,
-							without_base_extrinsic_weight
-						) {
-							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), Some(estimated_transaction_len as u64))
-							}
-							_ => (None, None),
-						};
+					let gas_limit = if gas_limit > U256::from(u64::MAX) {
+						u64::MAX
+					} else {
+						gas_limit.low_u64()
+					};
+					let weight_limit = <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(gas_limit, true);
+					let proof_size_pre_execution = cumulus_primitives_storage_weight_reclaim::get_proof_size().unwrap_or_default();
 
 					<Runtime as pallet_evm::Config>::Runner::call(
 						from,
@@ -526,8 +469,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						access_list.unwrap_or_default(),
 						is_transactional,
 						validate,
-						weight_limit,
-						proof_size_base_cost,
+						Some(weight_limit),
+						proof_size_pre_execution,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
@@ -553,43 +496,14 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					let mut estimated_transaction_len = data.len() +
-						// from: 20
-						// value: 32
-						// gas_limit: 32
-						// nonce: 32
-						// 1 byte transaction action variant
-						// chain id 8 bytes
-						// 65 bytes signature
-						190;
-
-					if max_fee_per_gas.is_some() {
-						estimated_transaction_len += 32;
-					}
-					if max_priority_fee_per_gas.is_some() {
-						estimated_transaction_len += 32;
-					}
-					if access_list.is_some() {
-						estimated_transaction_len += access_list.encoded_size();
-					}
-
 					let gas_limit = if gas_limit > U256::from(u64::MAX) {
 						u64::MAX
 					} else {
 						gas_limit.low_u64()
 					};
-					let without_base_extrinsic_weight = true;
 
-					let (weight_limit, proof_size_base_cost) =
-						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-							gas_limit,
-							without_base_extrinsic_weight
-						) {
-							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), Some(estimated_transaction_len as u64))
-							}
-							_ => (None, None),
-						};
+					let weight_limit = <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(gas_limit, true);
+					let proof_size_pre_execution = cumulus_primitives_storage_weight_reclaim::get_proof_size().unwrap_or_default();
 
 					#[allow(clippy::or_fun_call)] // suggestion not helpful here
 					<Runtime as pallet_evm::Config>::Runner::create(
@@ -603,8 +517,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						access_list.unwrap_or_default(),
 						is_transactional,
 						validate,
-						weight_limit,
-						proof_size_base_cost,
+						Some(weight_limit),
+						proof_size_pre_execution,
 						config.as_ref().unwrap_or(<Runtime as pallet_evm::Config>::config()),
 					).map_err(|err| err.error.into())
 				}
