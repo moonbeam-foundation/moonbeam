@@ -16,7 +16,7 @@
 
 use sp_runtime::traits::MaybeEquivalence;
 use sp_std::marker::PhantomData;
-use xcm::v3::Location;
+use xcm::{v3::Location, IntoVersion};
 use xcm_executor::traits::ConvertLocation;
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
@@ -49,15 +49,11 @@ where
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
 	fn convert(id: &xcm::v5::Location) -> Option<AssetId> {
-		// Convert v5 Location to v3 Location
-		xcm::VersionedLocation::V5(id.clone())
-			.try_into()
-			.ok()
-			.and_then(|v: xcm::VersionedLocation| match v {
-				xcm::VersionedLocation::V3(loc) => Some(loc),
-				_ => None,
-			})
-			.and_then(|v3_location| AssetIdInfoGetter::get_asset_id(v3_location.into()))
+		match xcm::VersionedLocation::V5(id.clone()).into_version(3) {
+			Ok(xcm::VersionedLocation::V3(loc)) => AssetIdInfoGetter::get_asset_id(loc.into()),
+			// Any other version or conversion error returns an error
+			_ => None,
+		}
 	}
 
 	fn convert_back(what: &AssetId) -> Option<xcm::v5::Location> {
@@ -66,7 +62,7 @@ where
 
 		// Convert v3 Location to v5 Location
 		let versioned = xcm::VersionedLocation::V3(v3_location);
-		match versioned.try_into() {
+		match versioned.into_version(5) {
 			Ok(xcm::VersionedLocation::V5(loc)) => Some(loc),
 			_ => None,
 		}
