@@ -1619,7 +1619,7 @@ declare module "@polkadot/api-base/types/submittable" {
       createForeignAsset: AugmentedSubmittable<
         (
           assetId: u128 | AnyNumber | Uint8Array,
-          xcmLocation:
+          assetXcmLocation:
             | StagingXcmV4Location
             | { parents?: any; interior?: any }
             | string
@@ -2553,20 +2553,6 @@ declare module "@polkadot/api-base/types/submittable" {
         [u128]
       >;
       /**
-       * DEPRECATED use delegateWithAutoCompound
-       * If caller is not a delegator and not a collator, then join the set of delegators
-       * If caller is a delegator, then makes delegation to change their delegation state
-       **/
-      delegate: AugmentedSubmittable<
-        (
-          candidate: AccountId20 | string | Uint8Array,
-          amount: u128 | AnyNumber | Uint8Array,
-          candidateDelegationCount: u32 | AnyNumber | Uint8Array,
-          delegationCount: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [AccountId20, u128, u32, u32]
-      >;
-      /**
        * If caller is not a delegator and not a collator, then join the set of delegators
        * If caller is a delegator, then makes delegation to change their delegation state
        * Sets the auto-compound config for the delegation
@@ -2672,18 +2658,6 @@ declare module "@polkadot/api-base/types/submittable" {
         (collator: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [AccountId20]
       >;
-      /**
-       * REMOVED, was schedule_leave_delegators
-       **/
-      removedCall19: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
-      /**
-       * REMOVED, was execute_leave_delegators
-       **/
-      removedCall20: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
-      /**
-       * REMOVED, was cancel_leave_delegators
-       **/
-      removedCall21: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
        * Request by collator candidate to decrease self bond by `less`
        **/
@@ -2886,6 +2860,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | MoonbeamRuntimeRuntimeParamsRuntimeParameters
             | { RuntimeConfig: any }
             | { PalletRandomness: any }
+            | { XcmConfig: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
