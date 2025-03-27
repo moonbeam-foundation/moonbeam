@@ -461,7 +461,7 @@ impl From<xcm::v3::Location> for AssetType {
 	}
 }
 
-// This can be removed once we fully adopt xcm::v4 everywhere
+// This can be removed once we fully adopt xcm::v5 everywhere
 impl TryFrom<Location> for AssetType {
 	type Error = ();
 	fn try_from(location: Location) -> Result<Self, Self::Error> {
