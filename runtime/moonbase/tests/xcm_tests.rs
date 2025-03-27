@@ -129,7 +129,7 @@ fn receive_relay_asset_from_relay() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -282,7 +282,7 @@ fn send_relay_asset_to_para_b() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -571,7 +571,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		));
 	});
 
-	// Balances have been substracted
+	// Balances have been subtracted
 	ParaA::execute_with(|| {
 		assert_eq!(
 			ParaBalances::free_balance(&PARAALICE.into()),
@@ -773,7 +773,7 @@ fn receive_relay_asset_with_trader() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 100).into()),
 			0,
 			WeightLimit::Unlimited
@@ -975,7 +975,7 @@ fn error_when_not_paying_enough() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 5).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1040,7 +1040,7 @@ fn transact_through_derivative_multilocation() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 4000003100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1192,7 +1192,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 4000003100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1346,7 +1346,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 4000009100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1512,7 +1512,7 @@ fn transact_through_sovereign() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 4000003100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1767,7 +1767,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 4000003100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -1919,7 +1919,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 4000009100u128).into()),
 			0,
 			WeightLimit::Unlimited
@@ -2101,7 +2101,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -2379,7 +2379,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([], 123).into()),
 			0,
 			WeightLimit::Unlimited
@@ -2680,7 +2680,7 @@ fn test_statemint_like() {
 		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
 			statemint_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(VersionedLocation::from(dest).clone().into()),
+			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(
 				(
 					[

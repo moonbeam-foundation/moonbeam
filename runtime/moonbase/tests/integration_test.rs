@@ -2162,7 +2162,7 @@ fn root_can_change_default_xcm_vers() {
 			// Root sets the defaultXcm
 			assert_ok!(PolkadotXcm::force_default_xcm_version(
 				root_origin(),
-				Some(4)
+				Some(5)
 			));
 
 			// Now transferring does not fail

@@ -49,9 +49,12 @@ use xcm_builder::{
 };
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
-use xcm::latest::prelude::{
-	AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location, NetworkId,
-	PalletInstance, Parachain, Wild, WildFungible,
+use xcm::{
+	latest::prelude::{
+		AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location,
+		NetworkId, PalletInstance, Parachain, Wild, WildFungible,
+	},
+	IntoVersion,
 };
 
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
@@ -459,7 +462,7 @@ impl TryFrom<Location> for AssetType {
 
 	fn try_from(location: Location) -> Result<Self, Self::Error> {
 		// Convert the V5 location to a V3 location
-		match xcm::VersionedLocation::V5(location).try_into() {
+		match xcm::VersionedLocation::V5(location).into_version(3) {
 			Ok(xcm::VersionedLocation::V3(loc)) => Ok(AssetType::Xcm(loc.into())),
 			// Any other version or conversion error returns an error
 			_ => Err(()),
@@ -480,7 +483,7 @@ impl Into<Option<Location>> for AssetType {
 		match self {
 			Self::Xcm(location) => {
 				let versioned = xcm::VersionedLocation::V3(location);
-				match versioned.try_into() {
+				match versioned.into_version(5) {
 					Ok(xcm::VersionedLocation::V5(loc)) => Some(loc),
 					_ => None,
 				}
