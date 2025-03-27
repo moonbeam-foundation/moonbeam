@@ -24,8 +24,7 @@ jobs:
 
   update-typescript-api:
     needs: build
-    runs-on:
-      labels: bare-metal
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
