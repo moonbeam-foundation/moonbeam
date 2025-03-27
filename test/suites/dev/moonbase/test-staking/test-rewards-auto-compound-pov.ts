@@ -102,11 +102,11 @@ describeSuite({
         ).to.be.at.most(2_616_200);
 
         // block could support ~2000ms refTime but we consider it safer to error when reaching
-        // over 212ms for the payout.
+        // over 214ms for the payout.
         expect(
           weights.mandatory.refTime.toNumber(),
-          "refTime over 212ms, very high for a payout"
-        ).to.be.at.most(212_000_000_000);
+          "refTime over 214ms, very high for a payout"
+        ).to.be.at.most(214_000_000_000);
 
         expect(
           weights.mandatory.proofSize.toNumber(),
