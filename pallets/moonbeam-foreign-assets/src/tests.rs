@@ -464,5 +464,176 @@ fn test_inspect_trait_impl() {
 			EvmForeignAssets::balance(asset_id, &beneficiary),
 			Balance::from(1u32)
 		);
+
+		assert_eq!(
+			EvmForeignAssets::total_balance(asset_id, &beneficiary),
+			Balance::from(1u32)
+		);
+
+		assert_eq!(
+			EvmForeignAssets::reducible_balance(
+				asset_id,
+				&beneficiary,
+				frame_support::traits::tokens::Preservation::Preserve,
+				frame_support::traits::tokens::Fortitude::Polite
+			),
+			Balance::from(1u32)
+		);
+
+		assert_eq!(
+			EvmForeignAssets::can_deposit(
+				asset_id,
+				&beneficiary,
+				Balance::from(100u32),
+				frame_support::traits::tokens::Provenance::Minted
+			),
+			frame_support::traits::tokens::DepositConsequence::Success
+		);
+
+		assert_eq!(
+			EvmForeignAssets::can_withdraw(asset_id, &beneficiary, Balance::from(1u32)),
+			frame_support::traits::tokens::WithdrawConsequence::Success
+		);
+
+		assert_eq!(
+			EvmForeignAssets::can_withdraw(asset_id, &beneficiary, Balance::from(2u32)),
+			frame_support::traits::tokens::WithdrawConsequence::BalanceLow
+		);
+
+		assert_eq!(
+			EvmForeignAssets::can_withdraw(7, &beneficiary, Balance::from(1u32)),
+			frame_support::traits::tokens::WithdrawConsequence::UnknownAsset
+		);
+
+		assert_ok!(EvmForeignAssets::mint_into(
+			asset_id,
+			beneficiary,
+			10.into()
+		));
+
+		assert_eq!(
+			EvmForeignAssets::balance(asset_id, &beneficiary),
+			Balance::from(11u32)
+		);
+
+		assert_eq!(
+			EvmForeignAssets::total_issuance(asset_id),
+			Balance::from(11u32)
+		);
+
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			RuntimeOrigin::signed(PARA_A),
+			asset_id,
+			false,
+		));
+
+		assert_eq!(
+			EvmForeignAssets::can_deposit(
+				asset_id,
+				&beneficiary,
+				Balance::from(100u32),
+				frame_support::traits::tokens::Provenance::Minted
+			),
+			frame_support::traits::tokens::DepositConsequence::Blocked
+		);
+
+		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+			RuntimeOrigin::signed(PARA_A),
+			asset_id,
+		));
+
+		assert_eq!(
+			EvmForeignAssets::can_deposit(
+				asset_id,
+				&beneficiary,
+				Balance::from(100u32),
+				frame_support::traits::tokens::Provenance::Minted
+			),
+			frame_support::traits::tokens::DepositConsequence::Success
+		);
+
+		// Test can_deposit with non-existent asset
+		assert_eq!(
+			EvmForeignAssets::can_deposit(
+				7,
+				&beneficiary,
+				Balance::from(100u32),
+				frame_support::traits::tokens::Provenance::Minted
+			),
+			frame_support::traits::tokens::DepositConsequence::UnknownAsset
+		);
+	});
+}
+
+#[test]
+fn test_write_balance_trait_impl() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_id = 7;
+		let deposit = ForeignAssetCreationDeposit::get();
+
+		Balances::make_free_balance_be(&PARA_A, deposit);
+
+		let asset_location: Location = (Parent, Parachain(1), PalletInstance(13)).into();
+
+		// create foreign asset
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::signed(PARA_A),
+			asset_id,
+			asset_location.clone(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		const ALICE: u64 = 4;
+		let beneficiary = MockAccount::from(ALICE);
+
+		// Initial balance of 0
+		assert_eq!(
+			EvmForeignAssets::balance(asset_id, &beneficiary),
+			Balance::from(0u32)
+		);
+
+		// Case 1: Increase balance (mint tokens)
+		assert_ok!(EvmForeignAssets::write_balance(
+			asset_id,
+			&beneficiary,
+			Balance::from(10u32)
+		));
+
+		assert_eq!(
+			EvmForeignAssets::balance(asset_id, &beneficiary),
+			Balance::from(10u32)
+		);
+
+		// Case 2: Write the same balance (no change)
+		assert_ok!(EvmForeignAssets::write_balance(
+			asset_id,
+			&beneficiary,
+			Balance::from(10u32)
+		));
+
+		assert_eq!(
+			EvmForeignAssets::balance(asset_id, &beneficiary),
+			Balance::from(10u32)
+		);
+
+		// Case 3: Decrease balance (burn tokens)
+		assert_ok!(EvmForeignAssets::write_balance(
+			asset_id,
+			&beneficiary,
+			Balance::from(5u32)
+		));
+
+		assert_eq!(
+			EvmForeignAssets::balance(asset_id, &beneficiary),
+			Balance::from(5u32)
+		);
+
+		// Ensure total supply is updated correctly
+		assert_eq!(
+			EvmForeignAssets::total_issuance(asset_id),
+			Balance::from(5u32)
+		);
 	});
 }
