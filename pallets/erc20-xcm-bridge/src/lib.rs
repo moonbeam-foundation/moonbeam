@@ -126,7 +126,7 @@ pub mod pallet {
 				false,
 				false,
 				Some(weight_limit),
-				0,
+				Some(0),
 				&<T as pallet_evm::Config>::config(),
 			)
 			.map_err(|_| Erc20TransferError::EvmCallFail)?;

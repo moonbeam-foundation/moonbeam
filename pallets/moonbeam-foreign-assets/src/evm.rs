@@ -137,7 +137,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			false,
 			false,
 			None,
-			0,
+			None,
 			&<T as pallet_evm::Config>::config(),
 			contract_adress,
 		)
@@ -186,7 +186,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			false,
 			false,
 			Some(weight_limit),
-			0,
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|err| EvmError::MintIntoFail(format!("{:?}", err.error.into())))?;
@@ -235,7 +235,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			false,
 			false,
 			Some(weight_limit),
-			0,
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|err| EvmError::TransferFail(format!("{:?}", err.error.into())))?;
@@ -293,7 +293,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			false,
 			false,
 			Some(weight_limit),
-			0,
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|err| EvmError::EvmCallFail(format!("{:?}", err.error.into())))?;
@@ -341,7 +341,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			false,
 			false,
 			Some(weight_limit),
-			0,
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|err| EvmError::EvmCallFail(format!("{:?}", err.error.into())))?;
@@ -381,7 +381,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			false,
 			false,
 			Some(weight_limit),
-			0,
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|err| {
@@ -426,7 +426,7 @@ impl<T: crate::Config> EvmCaller<T> {
 			false,
 			false,
 			Some(weight_limit),
-			0,
+			Some(0),
 			&<T as pallet_evm::Config>::config(),
 		)
 		.map_err(|err| {

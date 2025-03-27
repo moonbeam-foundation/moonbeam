@@ -52,7 +52,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_is_transactional: bool,
 				_validate: bool,
 				_weight_limit: Option<Weight>,
-				_transaction_len: u64,
+				_transaction_len: Option<u64>,
 				_config: &fp_evm::Config,
 			) -> Result<CallInfo, RunnerError<Self::Error>> {
 				// The `with_precompile_handle` function will execute the closure (and return the
@@ -140,7 +140,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_is_transactional: bool,
 				_validate: bool,
 				_weight_limit: Option<Weight>,
-				_transaction_len: u64,
+				_transaction_len: Option<u64>,
 				_config: &fp_evm::Config,
 			) -> Result<fp_evm::CreateInfo, RunnerError<Self::Error>> {
 				unimplemented!()
@@ -159,7 +159,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_is_transactional: bool,
 				_validate: bool,
 				_weight_limit: Option<Weight>,
-				_transaction_len: u64,
+				_transaction_len: Option<u64>,
 				_config: &fp_evm::Config,
 			) -> Result<fp_evm::CreateInfo, RunnerError<Self::Error>> {
 				unimplemented!()
@@ -177,7 +177,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				is_transactional: bool,
 				validate: bool,
 				weight_limit: Option<Weight>,
-				transaction_len: u64,
+				transaction_len: Option<u64>,
 				config: &fp_evm::Config,
 				force_address: H160,
 			) -> Result<fp_evm::CreateInfo, RunnerError<Self::Error>> {
@@ -231,7 +231,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_access_list: Vec<(H160, Vec<H256>)>,
 				_is_transactional: bool,
 				_weight_limit: Option<Weight>,
-				_transaction_len: u64,
+				_transaction_len: Option<u64>,
 				_evm_config: &fp_evm::Config,
 			) -> Result<(), RunnerError<Self::Error>> {
 				unimplemented!()
