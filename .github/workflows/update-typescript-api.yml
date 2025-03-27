@@ -7,8 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on:
-      labels: bare-metal
+    runs-on: moonbeam-release-medium
     permissions:
       contents: read
     steps:
