@@ -7,7 +7,8 @@ on:
 
 jobs:
   build:
-    runs-on: moonbeam-release-medium
+    runs-on:
+      labels: bare-metal
     permissions:
       contents: read
     steps:
@@ -23,7 +24,8 @@ jobs:
 
   update-typescript-api:
     needs: build
-    runs-on: moonbeam-release-medium
+    runs-on:
+      labels: bare-metal
     permissions:
       contents: write
       pull-requests: write
