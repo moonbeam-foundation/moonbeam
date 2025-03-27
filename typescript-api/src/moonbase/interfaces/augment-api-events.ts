@@ -11,6 +11,7 @@ import type {
   Null,
   Option,
   Result,
+  U256,
   U8aFixed,
   bool,
   u128,
@@ -748,8 +749,18 @@ declare module "@polkadot/api-base/types/events" {
        **/
       ForeignAssetCreated: AugmentedEvent<
         ApiType,
-        [contractAddress: H160, assetId: u128, xcmLocation: StagingXcmV4Location],
-        { contractAddress: H160; assetId: u128; xcmLocation: StagingXcmV4Location }
+        [
+          contractAddress: H160,
+          assetId: u128,
+          xcmLocation: StagingXcmV4Location,
+          deposit: Option<u128>
+        ],
+        {
+          contractAddress: H160;
+          assetId: u128;
+          xcmLocation: StagingXcmV4Location;
+          deposit: Option<u128>;
+        }
       >;
       ForeignAssetFrozen: AugmentedEvent<
         ApiType,
@@ -766,9 +777,21 @@ declare module "@polkadot/api-base/types/events" {
        **/
       ForeignAssetXcmLocationChanged: AugmentedEvent<
         ApiType,
-        [assetId: u128, newXcmLocation: StagingXcmV4Location],
-        { assetId: u128; newXcmLocation: StagingXcmV4Location }
+        [
+          assetId: u128,
+          previousXcmLocation: StagingXcmV4Location,
+          newXcmLocation: StagingXcmV4Location
+        ],
+        {
+          assetId: u128;
+          previousXcmLocation: StagingXcmV4Location;
+          newXcmLocation: StagingXcmV4Location;
+        }
       >;
+      /**
+       * Tokens have been locked for asset creation
+       **/
+      TokensLocked: AugmentedEvent<ApiType, [AccountId20, u128, U256]>;
       /**
        * Generic event
        **/
