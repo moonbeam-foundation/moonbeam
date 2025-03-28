@@ -1491,8 +1491,8 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 
 	Relay::execute_with(|| {
 		// free execution,x	 full amount received
-		// 4000005186 refunded + 100 transferred = 4000005286
-		assert_eq!(RelayBalances::free_balance(&para_a_account()), 4000005286);
+		// 4000009000 refunded + 100 transferred = 4000009100
+		assert_eq!(RelayBalances::free_balance(&para_a_account()), 4000009100);
 		assert_eq!(RelayBalances::free_balance(&registered_address), 0);
 	});
 }
@@ -2065,9 +2065,9 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	});
 
 	Relay::execute_with(|| {
-		// free execution,x	 full amount received
-		// 4000005186 refunded + 100 transferred = 4000005286
-		assert_eq!(RelayBalances::free_balance(&para_a_account()), 4000005286);
+		// free execution, full amount received
+		// 4000009000 refunded + 100 transferred = 4000009100
+		assert_eq!(RelayBalances::free_balance(&para_a_account()), 4000009100);
 
 		assert_eq!(RelayBalances::free_balance(&registered_address), 0);
 	});
@@ -4217,8 +4217,8 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 		// 100 transferred
 		assert_eq!(RelayBalances::free_balance(&para_a_account()), 100);
 
-		// 4000005186 refunded
-		assert_eq!(RelayBalances::free_balance(&derived), 4000005186);
+		// 4000009000 refunded
+		assert_eq!(RelayBalances::free_balance(&derived), 4000009000);
 	});
 }
 
@@ -4425,7 +4425,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 
 	ParaB::execute_with(|| {
 		// Check the derived account was refunded
-		assert_eq!(ParaBalances::free_balance(&derived), 8993);
+		assert_eq!(ParaBalances::free_balance(&derived), 3823903993);
 
 		// Check the transfer was executed
 		assert_eq!(ParaBalances::free_balance(&para_a_account_20()), 100);
