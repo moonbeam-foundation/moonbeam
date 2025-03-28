@@ -1,8 +1,33 @@
 import fs from "node:fs";
-import { type ChildProcessWithoutNullStreams, execSync, spawn } from "node:child_process";
+import {
+  type ChildProcessWithoutNullStreams,
+  type SpawnOptionsWithoutStdio,
+  execSync,
+  spawn
+} from "node:child_process";
 import path from "node:path";
 
 const CHAINS = ["moonbase", "moonriver", "moonbeam"];
+
+function wrapSpawnWithLogging(
+  command: string,
+  args?: readonly string[],
+  options?: SpawnOptionsWithoutStdio
+): ChildProcessWithoutNullStreams {
+  const process = spawn(command, args, options);
+
+  process.stdout.on("data", (data) => {
+    console.log(`stdout: ${data}`);
+  });
+  process.stderr.on("data", (data) => {
+    console.error(`stderr: ${data}`);
+  });
+  process.on("close", (code) => {
+    console.log(`child process exited with code ${code}`);
+  });
+
+  return process;
+}
 
 const fetchMetadata = async (port = 9933) => {
   const maxRetries = 60;
@@ -58,7 +83,7 @@ async function main() {
 
   for (const chain of CHAINS) {
     console.log(`Starting ${chain} node`);
-    nodes[chain] = spawn(nodePath, [
+    nodes[chain] = wrapSpawnWithLogging(nodePath, [
       "--no-hardware-benchmarks",
       "--unsafe-force-node-key-generation",
       "--no-telemetry",
