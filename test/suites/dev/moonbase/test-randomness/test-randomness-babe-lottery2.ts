@@ -47,7 +47,7 @@ describeSuite({
         args: [0],
         account: BALTATHAR_ADDRESS,
       });
-      expect(estimatedGas).toMatchInlineSnapshot(`153999n`);
+      expect(estimatedGas).toMatchInlineSnapshot(`154029n`);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
