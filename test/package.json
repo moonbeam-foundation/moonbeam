@@ -15,7 +15,8 @@
     "check:fix": "biome check . --write",
     "lint": "biome lint .",
     "compile-solidity": "tsx scripts/compile-contracts.ts compile",
-    "typecheck": "pnpm tsc --noEmit"
+    "typecheck": "pnpm tsc --noEmit",
+    "print-failed-tests": "tsx scripts/print-failed-tests.ts"
   },
   "keywords": [],
   "author": "",
