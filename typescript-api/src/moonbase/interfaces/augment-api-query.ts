@@ -73,6 +73,7 @@ import type {
   PalletIdentityRegistration,
   PalletMessageQueueBookState,
   PalletMessageQueuePage,
+  PalletMoonbeamForeignAssetsAssetDepositDetails,
   PalletMoonbeamForeignAssetsAssetStatus,
   PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus,
   PalletMoonbeamLazyMigrationsStateMigrationStatus,
@@ -492,6 +493,11 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, [U256]>;
       /**
+       * Counter for the related counted storage map
+       **/
+      counterForPending: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * The current Ethereum block.
        **/
       currentBlock: AugmentedQuery<ApiType, () => Observable<Option<EthereumBlock>>, []> &
@@ -519,16 +525,18 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       pending: AugmentedQuery<
         ApiType,
-        () => Observable<
-          Vec<
+        (
+          arg: u32 | AnyNumber | Uint8Array
+        ) => Observable<
+          Option<
             ITuple<
               [EthereumTransactionTransactionV2, FpRpcTransactionStatus, EthereumReceiptReceiptV3]
             >
           >
         >,
-        []
+        [u32]
       > &
-        QueryableStorageEntry<ApiType, []>;
+        QueryableStorageEntry<ApiType, [u32]>;
       /**
        * Generic query
        **/
@@ -616,6 +624,17 @@ declare module "@polkadot/api-base/types/storage" {
         [StagingXcmV4Location]
       > &
         QueryableStorageEntry<ApiType, [StagingXcmV4Location]>;
+      /**
+       * Mapping from an asset id to its creation details
+       **/
+      assetsCreationDetails: AugmentedQuery<
+        ApiType,
+        (
+          arg: u128 | AnyNumber | Uint8Array
+        ) => Observable<Option<PalletMoonbeamForeignAssetsAssetDepositDetails>>,
+        [u128]
+      > &
+        QueryableStorageEntry<ApiType, [u128]>;
       /**
        * Counter for the related counted storage map
        **/
@@ -1403,6 +1422,7 @@ declare module "@polkadot/api-base/types/storage" {
             | MoonbaseRuntimeRuntimeParamsRuntimeParametersKey
             | { RuntimeConfig: any }
             | { PalletRandomness: any }
+            | { XcmConfig: any }
             | string
             | Uint8Array
         ) => Observable<Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>>,
