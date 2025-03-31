@@ -253,7 +253,7 @@ where
 		_: &v5::Location,
 		_: &Option<AssetTransferFilter>,
 		_: &bool,
-		_: &Vec<AssetTransferFilter>,
+		_: &BoundedVec<AssetTransferFilter, MaxAssetTransferFilters>,
 		_: &v5::Xcm<()>,
 	) -> Weight {
 		todo!()

@@ -808,13 +808,14 @@ macro_rules! impl_runtime_apis_plus_common {
 				for Runtime {
 					fn dry_run_call(
 						origin: OriginCaller,
-						call: RuntimeCall
+						call: RuntimeCall,
+						result_xcms_version: XcmVersion
 					) -> Result<CallDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
 						PolkadotXcm::dry_run_call::<
 							Runtime,
 							xcm_config::XcmRouter,
 							OriginCaller,
-							RuntimeCall>(origin, call)
+							RuntimeCall>(origin, call, result_xcms_version)
 					}
 
 					fn dry_run_xcm(
