@@ -25,8 +25,8 @@
     "@acala-network/chopsticks": "1.0.2",
     "@biomejs/biome": "*",
     "@moonbeam-network/api-augment": "workspace:*",
-    "@moonwall/cli": "5.9.1",
-    "@moonwall/util": "5.9.1",
+    "@moonwall/cli": "5.11.0",
+    "@moonwall/util": "5.11.0",
     "@openzeppelin/contracts": "4.9.6",
     "@polkadot-api/merkleize-metadata": "1.1.11",
     "@polkadot/api": "*",
@@ -40,7 +40,7 @@
     "@polkadot/util-crypto": "*",
     "@substrate/txwrapper-core": "7.5.3",
     "@substrate/txwrapper-substrate": "7.5.3",
-    "@vitest/ui": "2.1.8",
+    "@vitest/ui": "3.1.1",
     "@zombienet/orchestrator": "0.0.98",
     "@zombienet/utils": "0.0.26",
     "chalk": "5.3.0",
@@ -57,9 +57,11 @@
     "solc": "0.8.25",
     "tsx": "*",
     "viem": "2.22.13",
-    "vitest": "2.1.8",
+    "vitest": "3.1.1",
     "web3": "4.16.0",
-    "yaml": "2.6.1"
+    "yaml": "2.6.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/debug": "4.1.12",
@@ -70,7 +72,7 @@
     "bottleneck": "2.19.5",
     "debug": "4.4.0",
     "inquirer": "12.2.0",
-    "typescript": "*",
+    "typescript": "5.5.4",
     "yargs": "17.7.2"
   },
   "engines": {
