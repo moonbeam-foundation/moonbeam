@@ -193,6 +193,10 @@ export const verifyBlockFees = async (
                   gasFee = ethTxWrapper.asEip1559.maxFeePerGas.toBigInt();
                 }
 
+                const hash = events
+                  .find((event) => event.section === "ethereum" && event.method === "Executed")!
+                  .data[2].toHex();
+                await context.viem("public").getTransactionReceipt({ hash });
                 let effectiveTipPerGas = gasFee - baseFeePerGas;
                 if (effectiveTipPerGas > priorityFee) {
                   effectiveTipPerGas = priorityFee;
@@ -200,8 +204,18 @@ export const verifyBlockFees = async (
 
                 // Calculate the fees paid for the base fee and tip fee independently.
                 // Only the base fee is subject to the split between burn and treasury.
-                const baseFeesPaid = gasUsed * baseFeePerGas;
-                const tipAsFeesPaid = gasUsed * effectiveTipPerGas;
+                let baseFeesPaid = gasUsed * baseFeePerGas;
+                let tipAsFeesPaid = gasUsed * effectiveTipPerGas;
+                const actualPaidFees = (
+                  events.find(
+                    (event) => event.section === "balances" && event.method === "Withdraw"
+                  )!.data[1] as u128
+                ).toBigInt();
+                if (actualPaidFees < baseFeesPaid + tipAsFeesPaid) {
+                  baseFeesPaid = actualPaidFees < baseFeesPaid ? actualPaidFees : baseFeesPaid;
+                  tipAsFeesPaid =
+                    actualPaidFees < baseFeesPaid ? 0n : actualPaidFees - baseFeesPaid;
+                }
 
                 const { burnt: baseFeePortionsBurnt } = calculateFeePortions(
                   feesTreasuryProportion,

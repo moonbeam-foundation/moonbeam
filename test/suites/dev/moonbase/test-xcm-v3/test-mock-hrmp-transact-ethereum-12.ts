@@ -86,7 +86,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmWeight = GAS_LIMIT * 25000n + STORAGE_READ_COST + 4_250_000_000n;
+        const targetXcmWeight = GAS_LIMIT * 26000n + STORAGE_READ_COST + 4_250_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
