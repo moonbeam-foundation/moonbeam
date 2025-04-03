@@ -203,12 +203,11 @@ export const verifyBlockFees = async (
                 if (effectiveTipPerGas > priorityFee) {
                   effectiveTipPerGas = priorityFee;
                 }
-                const effectiveGas = receipt!.gasUsed;
 
                 // Calculate the fees paid for the base fee and tip fee independently.
                 // Only the base fee is subject to the split between burn and treasury.
-                let baseFeesPaid = effectiveGas * baseFeePerGas;
-                let tipAsFeesPaid = effectiveGas * effectiveTipPerGas;
+                let baseFeesPaid = gasUsed * baseFeePerGas;
+                let tipAsFeesPaid = gasUsed * effectiveTipPerGas;
                 const actualPaidFees = (
                   events.find(
                     (event) => event.section === "balances" && event.method === "Withdraw"
