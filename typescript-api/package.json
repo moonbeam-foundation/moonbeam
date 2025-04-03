@@ -96,6 +96,7 @@
     "@types/node": "*",
     "axios": "*",
     "chalk": "*",
+    "node-fetch": "^3.3.2",
     "tsup": "*",
     "tsx": "*",
     "typescript": "*"

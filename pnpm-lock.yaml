@@ -287,6 +287,9 @@ importers:
       chalk:
         specifier: '*'
         version: 5.3.0
+      node-fetch:
+        specifier: ^3.3.2
+        version: 3.3.2
       tsup:
         specifier: 8.3.5
         version: 8.3.5(postcss@8.5.1)(tsx@4.19.2)(typescript@5.3.3)(yaml@2.7.1)
