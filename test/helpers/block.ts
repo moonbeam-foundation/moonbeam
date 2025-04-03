@@ -196,9 +196,7 @@ export const verifyBlockFees = async (
                 const hash = events
                   .find((event) => event.section === "ethereum" && event.method === "Executed")!
                   .data[2].toHex();
-
-                const receipt = await context.viem("public").getTransactionReceipt({ hash });
-
+                await context.viem("public").getTransactionReceipt({ hash });
                 let effectiveTipPerGas = gasFee - baseFeePerGas;
                 if (effectiveTipPerGas > priorityFee) {
                   effectiveTipPerGas = priorityFee;
