@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.3600.0",
+  "version": "0.3700.0",
   "type": "module",
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "Moonsong Labs",
@@ -86,6 +86,7 @@
   ],
   "dependencies": {
     "@biomejs/biome": "*",
+    "@moonbeam-network/types-bundle": "workspace:*",
     "@polkadot/api": "*",
     "@polkadot/api-base": "*",
     "@polkadot/rpc-core": "*",
@@ -93,7 +94,8 @@
     "@polkadot/types": "*",
     "@polkadot/types-codec": "*",
     "@types/node": "*",
-    "@moonbeam-network/types-bundle": "workspace:*",
+    "axios": "*",
+    "chalk": "*",
     "tsup": "*",
     "tsx": "*",
     "typescript": "*"
