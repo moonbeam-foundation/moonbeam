@@ -2,7 +2,7 @@
 
 trap "trap - TERM && kill -- -$$" INT TERM EXIT
 
-if [[ ! -f "../target/release/moonbeam" ]]; 
+if [[ ! -f "../target/release/moonbeam" ]];
 then
   echo 'Missing moonbeam binary. Please run cargo build --release'
   exit 1;
@@ -14,7 +14,7 @@ echo "Installing Packages"
 pnpm i
 
 echo "Starting moonbeam node"
-../target/release/moonbeam --tmp --chain=moonbase-local --rpc-port=9933 &> /tmp/node-start.log &
+../target/release/moonbeam --tmp --chain=moonbase-dev --rpc-port=9933 &> /tmp/node-start.log &
 PID=$!
 
 echo "Waiting node...(5s)"
