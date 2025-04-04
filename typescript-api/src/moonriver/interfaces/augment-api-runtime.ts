@@ -36,6 +36,7 @@ import type {
 } from "@polkadot/types/interfaces/eth";
 import type { EvmAccount, EvmCallInfoV2, EvmCreateInfoV2 } from "@polkadot/types/interfaces/evm";
 import type { Extrinsic } from "@polkadot/types/interfaces/extrinsics";
+import type { GenesisBuildErr } from "@polkadot/types/interfaces/genesisBuilder";
 import type { OpaqueMetadata } from "@polkadot/types/interfaces/metadata";
 import type { FeeDetails, RuntimeDispatchInfo } from "@polkadot/types/interfaces/payment";
 import type {
@@ -375,6 +376,24 @@ declare module "@polkadot/api-base/types/calls" {
           index: u256 | AnyNumber | Uint8Array
         ) => Observable<H256>
       >;
+      /**
+       * Generic call
+       **/
+      [key: string]: DecoratedCallBase<ApiType>;
+    };
+    /** 0xfbc577b9d747efd6/1 */
+    genesisBuilder: {
+      /**
+       * Build `RuntimeGenesisConfig` from a JSON blob not using any defaults and store it in the storage.
+       **/
+      buildConfig: AugmentedCall<
+        ApiType,
+        (json: Bytes | string | Uint8Array) => Observable<Result<ITuple<[]>, GenesisBuildErr>>
+      >;
+      /**
+       * Creates the default `RuntimeGenesisConfig` and returns it as a JSON blob.
+       **/
+      createDefaultConfig: AugmentedCall<ApiType, () => Observable<Bytes>>;
       /**
        * Generic call
        **/
