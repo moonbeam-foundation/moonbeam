@@ -4,10 +4,25 @@ import { existsSync, createWriteStream } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import fetch from "node-fetch";
-import { hackXcmV5Support } from "./utils/xcm-v5-hack";
+import { hackTypeReplacement } from "./utils/xcm-v5-hack";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Hack: polkadot-js does not support XCM v5 yet, we need to manually change some types
+export function hackXcmV5Support() {
+  // For moonbase, replace "Lookup88" with "StagingXcmV5Junction"
+  const moonbaseFilePath = "src/moonbase/interfaces/types-lookup.ts";
+  hackTypeReplacement(moonbaseFilePath, "Lookup88", "StagingXcmV5Junction", 8);
+
+  // For moonbeam, replace "Lookup88" with "StagingXcmV5Junction"
+  const moonbeamFilePath = "src/moonbeam/interfaces/types-lookup.ts";
+  hackTypeReplacement(moonbeamFilePath, "Lookup88", "StagingXcmV5Junction", 8);
+
+  // For moonbeam, replace "Lookup88" with "StagingXcmV5Junction"
+  const moonriverFilePath = "src/moonriver/interfaces/types-lookup.ts";
+  hackTypeReplacement(moonriverFilePath, "Lookup88", "StagingXcmV5Junction", 8);
+}
 
 async function checkMoonbeamBinary(): Promise<void> {
   const moonbeamPath = join(__dirname, "../../target/release/moonbeam");
@@ -75,15 +90,15 @@ async function generateTypes(): Promise<void> {
   console.log("Generating types...(10s)");
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  await runCommand("pnpm",["load:meta"]);
-  await runCommand("pnpm",["load:meta:local"]);
-  await runCommand("pnpm",["generate:defs"]);
-  await runCommand("pnpm",["generate:meta"]);
+  await runCommand("pnpm", ["load:meta"]);
+  await runCommand("pnpm", ["load:meta:local"]);
+  await runCommand("pnpm", ["generate:defs"]);
+  await runCommand("pnpm", ["generate:meta"]);
 
   // Hack: polkadot-js does not support XCM v5 yet, we need to manually change some types
   hackXcmV5Support();
 
-  await runCommand("pnpm",["fmt:fix"]);
+  await runCommand("pnpm", ["fmt:fix"]);
 }
 
 async function runCommand(command: string, args: string[]): Promise<void> {

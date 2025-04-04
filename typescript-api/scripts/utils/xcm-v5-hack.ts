@@ -1,26 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import chalk from "chalk";
 
-// Hack: polkadot-js does not support XCM v5 yet, we need to manually change some types
-//
-// Lookup88 => StagingXcmV5Junction
-// The index of LookupXX depends on this comment in the same file:
-//     /** @name StagingXcmV5Junction (88) */
-export function hackXcmV5Support() {
-  // For moonbase, replace "Lookup88" with "StagingXcmV5Junction"
-  const moonbaseFilePath = "src/moonbase/interfaces/types-lookup.ts";
-  hackTypeReplacement(moonbaseFilePath, "Lookup88", "StagingXcmV5Junction", 8);
-
-  // For moonbeam, replace "Lookup88" with "StagingXcmV5Junction"
-  const moonbeamFilePath = "src/moonbeam/interfaces/types-lookup.ts";
-  hackTypeReplacement(moonbeamFilePath, "Lookup88", "StagingXcmV5Junction", 8);
-
-  // For moonbeam, replace "Lookup88" with "StagingXcmV5Junction"
-  const moonriverFilePath = "src/moonriver/interfaces/types-lookup.ts";
-  hackTypeReplacement(moonriverFilePath, "Lookup88", "StagingXcmV5Junction", 8);
-}
-
-function hackTypeReplacement(
+export function hackTypeReplacement(
   filePath: string,
   oldType: string,
   newType: string,
