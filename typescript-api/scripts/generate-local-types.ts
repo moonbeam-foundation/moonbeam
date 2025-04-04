@@ -4,6 +4,7 @@ import { existsSync, createWriteStream } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import fetch from "node-fetch";
+import { hackXcmV5Support } from "./utils/xcm-v5-hack";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -74,17 +75,15 @@ async function generateTypes(): Promise<void> {
   console.log("Generating types...(10s)");
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  const commands = [
-    ["load:meta"],
-    ["load:meta:local"],
-    ["generate:defs"],
-    ["generate:meta"],
-    ["fmt:fix"]
-  ];
+  await runCommand("pnpm",["load:meta"]);
+  await runCommand("pnpm",["load:meta:local"]);
+  await runCommand("pnpm",["generate:defs"]);
+  await runCommand("pnpm",["generate:meta"]);
 
-  for (const command of commands) {
-    await runCommand("pnpm", command);
-  }
+  // Hack: polkadot-js does not support XCM v5 yet, we need to manually change some types
+  hackXcmV5Support();
+
+  await runCommand("pnpm",["fmt:fix"]);
 }
 
 async function runCommand(command: string, args: string[]): Promise<void> {
