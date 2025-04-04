@@ -63,3 +63,13 @@ function logMatchingLines(filePath: string, substring: string) {
     }
   }
 }
+
+async function main() {
+  // Hack: polkadot-js does not support XCM v5 yet, we need to manually change some types
+  hackXcmV5Support();
+}
+
+main().catch((error) => {
+  console.error("Error:", error);
+  process.exit(1);
+});
