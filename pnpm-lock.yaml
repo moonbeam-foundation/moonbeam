@@ -12,6 +12,7 @@ overrides:
   '@polkadot/rpc-provider': 15.9.1
   '@polkadot/types': 15.9.1
   '@polkadot/types-codec': 15.9.1
+  '@polkadot/types-create': 15.9.1
   '@polkadot/util': 13.4.3
   '@polkadot/util-crypto': 13.4.3
   ethers: 6.13.4
@@ -1723,10 +1724,6 @@ packages:
 
   '@polkadot/types-codec@15.9.1':
     resolution: {integrity: sha512-HtfbTSRualmOZQnil2+8Ff6OHJXv67ndN8f92+cbL1VhnesKbbgDK3TE64YqKlZfZkOTNy4q/2a1P9E1LTCBNA==}
-    engines: {node: '>=18'}
-
-  '@polkadot/types-create@15.5.1':
-    resolution: {integrity: sha512-qb8lDmWIZeOiw2INIKGFDM6dtMn08kU5WaIfjpIPDBAM+htqhhGNirxIvSwKIY15YuAUqapk4EXelZLnDxHJ8g==}
     engines: {node: '>=18'}
 
   '@polkadot/types-create@15.9.1':
@@ -8360,7 +8357,7 @@ snapshots:
       '@polkadot/types': 15.9.1
       '@polkadot/types-augment': 15.5.1
       '@polkadot/types-codec': 15.9.1
-      '@polkadot/types-create': 15.5.1
+      '@polkadot/types-create': 15.9.1
       '@polkadot/types-support': 15.5.1
       '@polkadot/util': 13.4.3
       '@polkadot/util-crypto': 13.4.3(@polkadot/util@13.4.3)
@@ -8393,12 +8390,6 @@ snapshots:
       '@polkadot/x-bigint': 13.4.3
       tslib: 2.8.1
 
-  '@polkadot/types-create@15.5.1':
-    dependencies:
-      '@polkadot/types-codec': 15.9.1
-      '@polkadot/util': 13.4.3
-      tslib: 2.8.1
-
   '@polkadot/types-create@15.9.1':
     dependencies:
       '@polkadot/types-codec': 15.9.1
@@ -8410,7 +8401,7 @@ snapshots:
       '@polkadot/networks': 13.3.1
       '@polkadot/types': 15.9.1
       '@polkadot/types-codec': 15.9.1
-      '@polkadot/types-create': 15.5.1
+      '@polkadot/types-create': 15.9.1
       '@polkadot/util': 13.4.3
       tslib: 2.8.1
 
