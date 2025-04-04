@@ -1244,14 +1244,14 @@ export default {
   StagingXcmV5Junctions: {
     _enum: {
       Here: "Null",
-      X1: "[Lookup88;1]",
-      X2: "[Lookup88;2]",
-      X3: "[Lookup88;3]",
-      X4: "[Lookup88;4]",
-      X5: "[Lookup88;5]",
-      X6: "[Lookup88;6]",
-      X7: "[Lookup88;7]",
-      X8: "[Lookup88;8]"
+      X1: "[StagingXcmV5Junction;1]",
+      X2: "[StagingXcmV5Junction;2]",
+      X3: "[StagingXcmV5Junction;3]",
+      X4: "[StagingXcmV5Junction;4]",
+      X5: "[StagingXcmV5Junction;5]",
+      X6: "[StagingXcmV5Junction;6]",
+      X7: "[StagingXcmV5Junction;7]",
+      X8: "[StagingXcmV5Junction;8]"
     }
   },
   /**
