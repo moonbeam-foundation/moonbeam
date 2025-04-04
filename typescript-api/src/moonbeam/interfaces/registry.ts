@@ -93,10 +93,6 @@ import type {
   MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters,
   MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey,
   MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigParameters,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey,
-  MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue,
   MoonbeamRuntimeRuntimeParamsRuntimeParameters,
   MoonbeamRuntimeRuntimeParamsRuntimeParametersKey,
   MoonbeamRuntimeRuntimeParamsRuntimeParametersValue,
@@ -188,7 +184,6 @@ import type {
   PalletMessageQueuePage,
   PalletMigrationsError,
   PalletMigrationsEvent,
-  PalletMoonbeamForeignAssetsAssetDepositDetails,
   PalletMoonbeamForeignAssetsAssetStatus,
   PalletMoonbeamForeignAssetsCall,
   PalletMoonbeamForeignAssetsError,
@@ -497,10 +492,6 @@ declare module "@polkadot/types/types/registry" {
     MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters: MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters;
     MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey: MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey;
     MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue: MoonbeamRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit: MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigParameters: MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigParameters;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey: MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey;
-    MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue: MoonbeamRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue;
     MoonbeamRuntimeRuntimeParamsRuntimeParameters: MoonbeamRuntimeRuntimeParamsRuntimeParameters;
     MoonbeamRuntimeRuntimeParamsRuntimeParametersKey: MoonbeamRuntimeRuntimeParamsRuntimeParametersKey;
     MoonbeamRuntimeRuntimeParamsRuntimeParametersValue: MoonbeamRuntimeRuntimeParamsRuntimeParametersValue;
@@ -592,7 +583,6 @@ declare module "@polkadot/types/types/registry" {
     PalletMessageQueuePage: PalletMessageQueuePage;
     PalletMigrationsError: PalletMigrationsError;
     PalletMigrationsEvent: PalletMigrationsEvent;
-    PalletMoonbeamForeignAssetsAssetDepositDetails: PalletMoonbeamForeignAssetsAssetDepositDetails;
     PalletMoonbeamForeignAssetsAssetStatus: PalletMoonbeamForeignAssetsAssetStatus;
     PalletMoonbeamForeignAssetsCall: PalletMoonbeamForeignAssetsCall;
     PalletMoonbeamForeignAssetsError: PalletMoonbeamForeignAssetsError;

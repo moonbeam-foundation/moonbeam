@@ -452,21 +452,14 @@ declare module "@polkadot/api-base/types/errors" {
       AssetDoesNotExist: AugmentedError<ApiType>;
       AssetIdFiltered: AugmentedError<ApiType>;
       AssetNotFrozen: AugmentedError<ApiType>;
-      AssetNotInSiblingPara: AugmentedError<ApiType>;
-      CannotConvertLocationToAccount: AugmentedError<ApiType>;
       CorruptedStorageOrphanLocation: AugmentedError<ApiType>;
       Erc20ContractCreationFail: AugmentedError<ApiType>;
       EvmCallPauseFail: AugmentedError<ApiType>;
       EvmCallUnpauseFail: AugmentedError<ApiType>;
       EvmInternalError: AugmentedError<ApiType>;
-      /**
-       * Account has insufficient balance for locking
-       **/
-      InsufficientBalance: AugmentedError<ApiType>;
       InvalidSymbol: AugmentedError<ApiType>;
       InvalidTokenName: AugmentedError<ApiType>;
       LocationAlreadyExists: AugmentedError<ApiType>;
-      LocationOutsideOfOrigin: AugmentedError<ApiType>;
       TooManyForeignAssets: AugmentedError<ApiType>;
       /**
        * Generic error
@@ -916,6 +909,7 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestDNE: AugmentedError<ApiType>;
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
+      RemovedCall: AugmentedError<ApiType>;
       RoundLengthMustBeGreaterThanTotalSelectedCollators: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
