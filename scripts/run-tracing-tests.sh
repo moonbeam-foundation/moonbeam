@@ -27,7 +27,7 @@ pnpm build
 
 cd ../typescript-api
 pnpm i
-scripts/runtime-upgrade.sh
+pnpm tsx scripts/runtime-upgrade.ts
 
 echo "Run tracing tests…"
 cd ../test

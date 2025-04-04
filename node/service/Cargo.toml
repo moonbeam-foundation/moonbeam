@@ -218,6 +218,7 @@ runtime-benchmarks = [
 	"moonriver-native",
 	"moonriver-runtime/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
+	"pallet-transaction-payment/runtime-benchmarks",
 ]
 
 try-runtime = [
