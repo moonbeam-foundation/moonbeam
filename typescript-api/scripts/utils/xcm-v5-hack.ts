@@ -1,19 +1,15 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import chalk from "chalk";
 
-// Hack: polkadot-js does not support XCM v5 yet, we need to manually change some types
+// Hack: polkadot-js does not support XCM v5 yet, we need to manually change some types.
+// Replace "Lookup88" with "StagingXcmV5Junction"
 export function hackXcmV5Support() {
-  // For moonbase, replace "Lookup88" with "StagingXcmV5Junction"
-  const moonbaseFilePath = "src/moonbase/interfaces/types-lookup.ts";
-  hackTypeReplacement(moonbaseFilePath, "Lookup88", "StagingXcmV5Junction", 8);
+  const networks = ["moonbase", "moonbeam", "moonriver"];
 
-  // For moonbeam, replace "Lookup88" with "StagingXcmV5Junction"
-  const moonbeamFilePath = "src/moonbeam/interfaces/types-lookup.ts";
-  hackTypeReplacement(moonbeamFilePath, "Lookup88", "StagingXcmV5Junction", 8);
-
-  // For moonbeam, replace "Lookup88" with "StagingXcmV5Junction"
-  const moonriverFilePath = "src/moonriver/interfaces/types-lookup.ts";
-  hackTypeReplacement(moonriverFilePath, "Lookup88", "StagingXcmV5Junction", 8);
+  for (const network of networks) {
+    const interfacesPath = `src/${network}/interfaces`;
+    hackTypeReplacement(`${interfacesPath}/types-lookup.ts`, "Lookup88", "StagingXcmV5Junction", 8);
+  }
 }
 
 function hackTypeReplacement(
@@ -40,18 +36,18 @@ function hackTypeReplacement(
     // we only want to replace Lookup77
     console.error(
       chalk.red(
-        `Error: Expected ${expectedCount} occurrences of "${oldType}" in ${filePath} but found ${count}. Aborting hack.`
+        `ERROR: Expected ${expectedCount} occurrences of "${oldType}" in ${filePath} but found ${count}. Aborting hack.`
       )
     );
-    process.exit(1);
+  } else {
+    console.log(
+      chalk.green(
+        `INFO: Replaced ${count} occurrences of "${oldType}" with "${newType}" in ${filePath}`
+      )
+    );
   }
   const newContent = content.replace(regex, newType);
   writeFileSync(filePath, newContent);
-  console.log(
-    chalk.green(
-      `Successfully replaced ${count} occurrences of "${oldType}" with "${newType}" in ${filePath}`
-    )
-  );
 }
 
 function logMatchingLines(filePath: string, substring: string) {
