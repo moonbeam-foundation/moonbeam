@@ -144,17 +144,17 @@
         {
           "name": "ethers",
           "type": "ethers",
-          "endpoints": ["wss://stagenet-unlimited.api.moondev.network"]
+          "endpoints": ["wss://wss.api.moondev.network"]
         },
         {
           "name": "viem",
           "type": "viem",
-          "endpoints": ["wss://stagenet-unlimited.api.moondev.network"]
+          "endpoints": ["wss://wss.api.moondev.network"]
         },
         {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://stagenet-unlimited.api.moondev.network"],
+          "endpoints": ["wss://wss.api.moondev.network"],
           "rpc": {
             "moon": {
               "isBlockFinalized": {
@@ -310,17 +310,17 @@
         {
           "name": "ethers",
           "type": "ethers",
-          "endpoints": ["wss://trace.api.moonbase.moonbeam.network"]
+          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
         },
         {
           "name": "viem",
           "type": "viem",
-          "endpoints": ["wss://trace.api.moonbase.moonbeam.network"]
+          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
         },
         {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://trace.api.moonbase.moonbeam.network"],
+          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"],
           "rpc": {
             "moon": {
               "isBlockFinalized": {
