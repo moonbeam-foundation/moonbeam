@@ -18,11 +18,11 @@
 //!
 
 use super::{
-	governance, AccountId, AssetId, AssetManager, Balance, Balances, BridgeXcmOverMoonriver,
-	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
-	OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, ToKusamaXcmRouter, Treasury,
-	XcmpQueue,
+	bridge_config, governance, AccountId, AssetId, AssetManager, Balance, Balances,
+	BridgeXcmOverMoonriver, EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode,
+	MessageQueue, OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm,
+	Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, ToKusamaXcmRouter,
+	Treasury, XcmpQueue,
 };
 
 use super::moonbeam_weights;
@@ -253,6 +253,8 @@ parameter_types! {
 type Reserves = (
 	// Assets bridged from different consensus systems held in reserve on Asset Hub.
 	IsBridgedConcreteAssetFrom<AssetHubLocation>,
+	// Assets bridged from Moonriver
+	IsBridgedConcreteAssetFrom<bridge_config::BridgeMoonriverLocation>,
 	// Relaychain (DOT) from Asset Hub
 	Case<RelayChainNativeAssetFromAssetHub>,
 	// Assets which the reserve is the same as the origin.
@@ -299,7 +301,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetExchanger = ();
 	type FeeManager = ();
 	type MessageExporter = BridgeXcmOverMoonriver;
-	type UniversalAliases = Nothing;
+	type UniversalAliases = bridge_config::UniversalAliases;
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
