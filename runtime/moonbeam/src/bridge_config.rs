@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::xcm_config::{SelfLocation, SelfReserve, UniversalLocation};
 use crate::{
 	moonbeam_weights, xcm_config, Balances, BridgeKusamaMessages, BridgeXcmOverMoonriver, Get,
@@ -34,7 +36,7 @@ use pallet_xcm_bridge::congestion::{
 	UpdateBridgeStatusXcmChannelManager,
 };
 use pallet_xcm_bridge::XcmAsPlainPayload;
-use parity_scale_codec::{alloc, Decode, Encode};
+use parity_scale_codec::{Decode, Encode};
 use polkadot_parachain::primitives::Sibling;
 use sp_runtime::traits::Convert;
 use sp_runtime::Vec;

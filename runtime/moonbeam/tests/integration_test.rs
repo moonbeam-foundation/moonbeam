@@ -3109,8 +3109,6 @@ mod bridge_tests {
 					)
 				};
 
-				bridge_message.encode();
-
 				let mut inbound_lane = LanesManager::<Runtime, WithKusamaMessagesInstance>::new()
 					.active_inbound_lane(bp_messages::LegacyLaneId([0, 0, 0, 0]))
 					.unwrap();

@@ -39,7 +39,7 @@ use std::collections::BTreeMap;
 use bp_xcm_bridge::Receiver;
 use fp_rpc::ConvertTransaction;
 use moonriver_runtime::bridge_config::XcmOverPolkadotInstance;
-use moonriver_runtime::{Assets, EvmForeignAssets};
+use moonriver_runtime::{Assets, EvmForeignAssets, XcmWeightTrader};
 use pallet_transaction_payment::Multiplier;
 use sp_runtime::traits::MaybeEquivalence;
 use xcm::latest::{InteriorLocation, Location};
@@ -357,6 +357,16 @@ impl ExtBuilder {
 						metadata.name.try_into().unwrap(),
 					)
 					.expect("register evm native foreign asset");
+
+					if xcm_asset_initialization.is_sufficient {
+						XcmWeightTrader::add_asset(
+							root_origin(),
+							xcm_builder::WithLatestLocationConverter::convert_back(&location)
+								.unwrap(),
+							1,
+						)
+						.expect("register evm native foreign asset as sufficient");
+					}
 
 					for (account, balance) in xcm_asset_initialization.balances {
 						EvmForeignAssets::mint_into(asset_id.into(), account, balance.into())

@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::xcm_config::{SelfLocation, SelfReserve, UniversalLocation};
 use crate::{
 	moonriver_weights, xcm_config, Balances, BridgePolkadotMessages, BridgeXcmOverMoonbeam, Get,
-	PolkadotXcm, Runtime, RuntimeEvent, RuntimeHoldReason, ToPolkadotXcmRouter,
+	MessageQueue, PolkadotXcm, Runtime, RuntimeEvent, RuntimeHoldReason, ToPolkadotXcmRouter,
 };
+use alloc::collections::btree_set::BTreeSet;
 use bp_parachains::SingleParaStoredHeaderDataBuilder;
 use bridge_hub_common::xcm_version::XcmVersionOfDestAndRemoteBridge;
 use core::marker::PhantomData;
+use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::pallet_prelude::PalletInfoAccess;
-use frame_support::traits::Everything;
-use frame_support::{parameter_types, traits::ConstU32};
+use frame_support::traits::{Contains, EnqueueMessage, Everything};
+use frame_support::{ensure, parameter_types, traits::ConstU32, BoundedVec};
 use frame_system::{EnsureNever, EnsureRoot};
 use moonbeam_core_primitives::{AccountId, Balance};
 use pallet_xcm_bridge::congestion::{
@@ -38,15 +42,17 @@ use sp_runtime::Vec;
 use sp_std::vec;
 use sp_weights::Weight;
 use xcm::latest::{
-	AssetId, InteriorLocation, Location, MaybeErrorCode, NetworkId, OriginKind, SendError,
-	SendResult, SendXcm, Xcm, XcmHash,
+	AssetId, InteriorLocation, Junction, Location, MaybeErrorCode, NetworkId, OriginKind,
+	SendError, SendResult, SendXcm, Xcm, XcmHash,
 };
+use xcm::opaque::VersionedXcm;
 use xcm::prelude::{
 	ExpectTransactStatus, GlobalConsensus, PalletInstance, Parachain, Transact, Unlimited,
 	UnpaidExecution,
 };
 use xcm_builder::{
-	ensure_is_remote, BridgeBlobDispatcher, ParentIsPreset, SiblingParachainConvertsVia,
+	ensure_is_remote, BridgeMessage, DispatchBlob, DispatchBlobError, ParentIsPreset,
+	SiblingParachainConvertsVia,
 };
 use xcm_executor::traits::{validate_export, ExportXcm};
 
@@ -87,7 +93,69 @@ parameter_types! {
 	// see the `FEE_BOOST_PER_RELAY_HEADER` constant get the meaning of this value
 	pub PriorityBoostPerRelayHeader: u64 = 32_007_814_407_814;
 
+
+	/// Universal aliases
+	pub UniversalAliases: BTreeSet<(Location, Junction)> = BTreeSet::from_iter(
+		alloc::vec![
+			(SelfLocation::get(), GlobalConsensus(PolkadotGlobalConsensusNetwork::get()))
+		]
+	);
+
 	pub storage BridgeDeposit: Balance = 0;
+}
+
+impl Contains<(Location, Junction)> for UniversalAliases {
+	fn contains(alias: &(Location, Junction)) -> bool {
+		UniversalAliases::get().contains(alias)
+	}
+}
+
+pub struct LocalBlobDispatcher<MQ, OurPlace, OurPlaceBridgeInstance>(
+	PhantomData<(MQ, OurPlace, OurPlaceBridgeInstance)>,
+);
+impl<
+		MQ: EnqueueMessage<AggregateMessageOrigin>,
+		OurPlace: Get<InteriorLocation>,
+		OurPlaceBridgeInstance: Get<Option<InteriorLocation>>,
+	> DispatchBlob for LocalBlobDispatcher<MQ, OurPlace, OurPlaceBridgeInstance>
+{
+	fn dispatch_blob(blob: Vec<u8>) -> Result<(), DispatchBlobError> {
+		let our_universal = OurPlace::get();
+		let our_global = our_universal
+			.global_consensus()
+			.map_err(|()| DispatchBlobError::Unbridgable)?;
+		let BridgeMessage {
+			universal_dest,
+			message,
+		} = Decode::decode(&mut &blob[..]).map_err(|_| DispatchBlobError::InvalidEncoding)?;
+		let universal_dest: InteriorLocation = universal_dest
+			.try_into()
+			.map_err(|_| DispatchBlobError::UnsupportedLocationVersion)?;
+		// `universal_dest` is the desired destination within the universe: first we need to check
+		// we're in the right global consensus.
+		let intended_global = universal_dest
+			.global_consensus()
+			.map_err(|()| DispatchBlobError::NonUniversalDestination)?;
+		ensure!(
+			intended_global == our_global,
+			DispatchBlobError::WrongGlobal
+		);
+		let dest = universal_dest.relative_to(&our_universal);
+		let mut xcm: Xcm<()> = message
+			.try_into()
+			.map_err(|_| DispatchBlobError::UnsupportedXcmVersion)?;
+
+		let msg: BoundedVec<u8, MQ::MaxMessageLen> = VersionedXcm::V4(xcm)
+			.encode()
+			.try_into()
+			.map_err(|_| DispatchBlobError::InvalidEncoding)?;
+		MQ::enqueue_message(
+			msg.as_bounded_slice(),
+			AggregateMessageOrigin::Here, // The message came from the para-chain itself.
+		);
+
+		Ok(())
+	}
 }
 
 /// TODO: This struct can be removed when updating to polkadot-sdk stable2503
@@ -253,11 +321,10 @@ impl pallet_xcm_bridge::Config<XcmOverPolkadotInstance> for Runtime {
 	// receiving/destination chain
 	type BlobDispatcher = BlobDispatcherWithChannelStatus<
 		// Dispatches received XCM messages from other bridge
-		BridgeBlobDispatcher<
-			// TODO: FAIL-CI wait for https://github.com/paritytech/polkadot-sdk/pull/6002#issuecomment-2469892343
-			xcm_config::LocalXcmRouter,
+		LocalBlobDispatcher<
+			MessageQueue,
 			UniversalLocation,
-			(),
+			BridgeKusamaToPolkadotMessagesPalletInstance,
 		>,
 		// Provides the status of the XCMP queue's outbound queue, indicating whether messages can
 		// be dispatched to the sibling.
