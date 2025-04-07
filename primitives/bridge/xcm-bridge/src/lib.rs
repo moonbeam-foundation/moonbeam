@@ -434,11 +434,10 @@ impl BridgeLocations {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use xcm::latest::ROCOCO_GENESIS_HASH;
 
 	const LOCAL_NETWORK: NetworkId = Kusama;
 	const REMOTE_NETWORK: NetworkId = Polkadot;
-	const UNREACHABLE_NETWORK: NetworkId = NetworkId::ByGenesis(ROCOCO_GENESIS_HASH);
+	const UNREACHABLE_NETWORK: NetworkId = NetworkId::Rococo;
 	const SIBLING_PARACHAIN: u32 = 1000;
 	const LOCAL_BRIDGE_HUB: u32 = 1001;
 	const REMOTE_PARACHAIN: u32 = 2000;

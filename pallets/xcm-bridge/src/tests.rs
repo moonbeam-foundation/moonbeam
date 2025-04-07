@@ -1010,7 +1010,7 @@ fn do_try_state_works() {
 
 #[test]
 fn ensure_encoding_compatibility() {
-	use codec::Encode;
+	use parity_scale_codec::Encode;
 
 	let bridge_destination_universal_location = BridgedUniversalDestination::get();
 	let may_prune_messages = 13;

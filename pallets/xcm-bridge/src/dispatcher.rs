@@ -209,7 +209,7 @@ mod tests {
 				nonce: 1,
 			},
 			data: DispatchMessageData {
-				payload: Err(codec::Error::from("test")),
+				payload: Err(parity_scale_codec::Error::from("test")),
 			},
 		}
 	}

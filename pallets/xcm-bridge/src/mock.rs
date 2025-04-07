@@ -23,7 +23,6 @@ use bp_messages::{
 };
 use bp_runtime::{messages::MessageDispatchResult, Chain, ChainId, HashOf};
 use bp_xcm_bridge::{BridgeId, BridgeLocations, LocalXcmChannelManager};
-use codec::Encode;
 use frame_support::{
 	assert_ok, derive_impl, parameter_types,
 	traits::{fungible::Mutate, EitherOf, EnsureOrigin, Equals, Everything, Get, OriginTrait},
@@ -34,7 +33,8 @@ use pallet_xcm_bridge::congestion::{
 	BlobDispatcherWithChannelStatus, CongestionLimits, HereOrLocalConsensusXcmChannelManager,
 	UpdateBridgeStatusXcmChannelManager,
 };
-use polkadot_parachain_primitives::primitives::Sibling;
+use parity_scale_codec::{Decode, Encode};
+use polkadot_parachain::primitives::Sibling;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header as SubstrateHeader,
@@ -42,12 +42,14 @@ use sp_runtime::{
 	AccountId32, BuildStorage, StateVersion,
 };
 use sp_std::{cell::RefCell, marker::PhantomData};
-use xcm::{latest::ROCOCO_GENESIS_HASH, prelude::*};
+use xcm::latest::SendError::{MissingArgument, NotApplicable};
+use xcm::prelude::*;
 use xcm_builder::{
-	AllowUnpaidExecutionFrom, DispatchBlob, DispatchBlobError, FixedWeightBounds,
-	InspectMessageQueues, LocalExporter, NetworkExportTable, NetworkExportTableItem,
-	ParentIsPreset, SiblingParachainConvertsVia, SovereignPaidRemoteExporter,
+	ensure_is_remote, AllowUnpaidExecutionFrom, DispatchBlob, DispatchBlobError, FixedWeightBounds,
+	InspectMessageQueues, NetworkExportTable, NetworkExportTableItem, ParentIsPreset,
+	SiblingParachainConvertsVia, SovereignPaidRemoteExporter,
 };
+use xcm_executor::traits::{validate_export, ExportXcm};
 use xcm_executor::{
 	traits::{ConvertLocation, ConvertOrigin},
 	XcmExecutor,
@@ -169,7 +171,7 @@ parameter_types! {
 	pub BridgedRelayNetworkLocation: Location = (Parent, GlobalConsensus(BridgedRelayNetwork::get())).into();
 	pub BridgedRelativeDestination: InteriorLocation = [Parachain(BRIDGED_ASSET_HUB_ID)].into();
 	pub BridgedUniversalDestination: InteriorLocation = [GlobalConsensus(BridgedRelayNetwork::get()), Parachain(BRIDGED_ASSET_HUB_ID)].into();
-	pub const NonBridgedRelayNetwork: NetworkId = NetworkId::ByGenesis(ROCOCO_GENESIS_HASH);
+	pub const NonBridgedRelayNetwork: NetworkId = NetworkId::Rococo;
 
 	pub const BridgeDeposit: Balance = 100_000;
 
@@ -186,6 +188,51 @@ parameter_types! {
 		];
 	pub UnitWeightCost: Weight = Weight::from_parts(10, 10);
 	pub storage TestCongestionLimits: CongestionLimits = CongestionLimits::default();
+}
+
+/// Implementation of `SendXcm` which uses the given `ExportXcm` implementation in order to forward
+/// the message over a bridge.
+///
+/// This is only useful when the local chain has bridging capabilities.
+pub struct LocalExporter<Exporter, UniversalLocation>(PhantomData<(Exporter, UniversalLocation)>);
+impl<Exporter: ExportXcm, UniversalLocation: Get<InteriorLocation>> SendXcm
+	for LocalExporter<Exporter, UniversalLocation>
+{
+	type Ticket = Exporter::Ticket;
+
+	fn validate(
+		dest: &mut Option<Location>,
+		msg: &mut Option<Xcm<()>>,
+	) -> SendResult<Exporter::Ticket> {
+		// This `clone` ensures that `dest` is not consumed in any case.
+		let d = dest.clone().ok_or(MissingArgument)?;
+		let universal_source = UniversalLocation::get();
+		let devolved = ensure_is_remote(universal_source.clone(), d).map_err(|_| NotApplicable)?;
+		let (remote_network, remote_location) = devolved;
+		let xcm = msg.take().ok_or(MissingArgument)?;
+
+		let hash =
+			(Some(Location::here()), &remote_location).using_encoded(sp_io::hashing::blake2_128);
+		let channel = u32::decode(&mut hash.as_ref()).unwrap_or(0);
+
+		validate_export::<Exporter>(
+			remote_network,
+			channel,
+			universal_source,
+			remote_location,
+			xcm.clone(),
+		)
+		.inspect_err(|err| {
+			if let NotApplicable = err {
+				// We need to make sure that msg is not consumed in case of `NotApplicable`.
+				*msg = Some(xcm);
+			}
+		})
+	}
+
+	fn deliver(ticket: Exporter::Ticket) -> Result<XcmHash, SendError> {
+		Exporter::deliver(ticket)
+	}
 }
 
 /// **Universal** `InteriorLocation` of bridged asset hub.
@@ -579,7 +626,7 @@ impl Convert<Vec<u8>, Xcm<()>> for UpdateBridgeStatusXcmProvider {
 			},
 			Transact {
 				origin_kind: OriginKind::Xcm,
-				fallback_max_weight: Some(Weight::from_parts(200_000_000, 6144)),
+				require_weight_at_most: Weight::from_parts(200_000_000, 6144),
 				call: encoded_call.into(),
 			},
 			ExpectTransactStatus(MaybeErrorCode::Success),
