@@ -39,7 +39,7 @@ use std::collections::BTreeMap;
 use bp_xcm_bridge::Receiver;
 use fp_rpc::ConvertTransaction;
 use moonbeam_runtime::bridge_config::XcmOverKusamaInstance;
-use moonbeam_runtime::EvmForeignAssets;
+use moonbeam_runtime::{EvmForeignAssets, XcmWeightTrader};
 use sp_runtime::traits::MaybeEquivalence;
 use xcm::latest::{InteriorLocation, Location};
 
@@ -350,6 +350,16 @@ impl ExtBuilder {
 						metadata.name.try_into().unwrap(),
 					)
 					.expect("register evm native foreign asset");
+
+					if xcm_asset_initialization.is_sufficient {
+						XcmWeightTrader::add_asset(
+							root_origin(),
+							xcm_builder::WithLatestLocationConverter::convert_back(&location)
+								.unwrap(),
+							1,
+						)
+						.expect("register evm native foreign asset as sufficient");
+					}
 
 					for (account, balance) in xcm_asset_initialization.balances {
 						EvmForeignAssets::mint_into(asset_id.into(), account, balance.into())
