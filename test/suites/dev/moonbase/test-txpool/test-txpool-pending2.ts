@@ -62,7 +62,7 @@ describeSuite({
           .transport.request({ method: "txpool_content" })) as any;
         const data = content.pending[ALITH_ADDRESS.toLowerCase()][toHex(1)];
         expect(data).to.include({
-          blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          blockHash: null,
           blockNumber: null,
           from: ALITH_ADDRESS.toLowerCase(),
           gas: "0xb71b00",

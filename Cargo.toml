@@ -142,7 +142,6 @@ moonbeam-rpc-core-txpool = { path = "client/rpc-core/txpool" }
 moonbeam-rpc-core-types = { path = "client/rpc-core/types" }
 moonbeam-rpc-debug = { path = "client/rpc/debug" }
 moonbeam-rpc-trace = { path = "client/rpc/trace" }
-moonbeam-rpc-txpool = { path = "client/rpc/txpool" }
 moonbeam-vrf = { path = "client/vrf" }
 
 moonbase-runtime = { path = "runtime/moonbase" }

@@ -154,6 +154,11 @@ pub struct RunCmd {
 	#[clap(long)]
 	pub dev_service: bool,
 
+	/// No-op
+	/// Deprecated in: https://github.com/moonbeam-foundation/moonbeam/pull/3204
+	#[clap(long)]
+	pub experimental_block_import_strategy: bool,
+
 	/// Enable the legacy block import strategy
 	#[clap(long)]
 	pub legacy_block_import_strategy: bool,
@@ -323,6 +328,10 @@ pub struct RunCmd {
 	/// Maximum duration in milliseconds to produce a block
 	#[clap(long, default_value = "2000", value_parser=block_authoring_duration_parser)]
 	pub block_authoring_duration: Duration,
+
+	/// Enable full proof-of-validation mode for Nimbus
+	#[clap(long)]
+	pub nimbus_full_pov: bool,
 }
 
 fn block_authoring_duration_parser(s: &str) -> Result<Duration, String> {

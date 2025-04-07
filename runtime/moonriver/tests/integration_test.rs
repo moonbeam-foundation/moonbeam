@@ -1817,7 +1817,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(24956)
+				.expect_cost(25026)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1881,7 +1881,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(15652)
+				.expect_cost(15669)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1902,7 +1902,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(30253)
+				.expect_cost(30329)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1991,7 +1991,7 @@ fn xtokens_precompiles_transfer() {
 							weight: 4_000_000,
 						},
 					)
-					.expect_cost(if evm_native { 176790 } else { 25190 })
+					.expect_cost(if evm_native { 176837 } else { 25237 })
 					.expect_no_logs()
 					// We expect an evm subcall ERC20.burnFrom
 					.with_subcall_handle(move |subcall| {
@@ -2087,7 +2087,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(25190)
+				.expect_cost(25237)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2258,7 +2258,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(21890)
+				.expect_cost(23742)
 				.expect_no_logs()
 				.execute_returns(());
 		});

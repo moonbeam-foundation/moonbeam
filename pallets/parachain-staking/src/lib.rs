@@ -82,7 +82,6 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
-	use frame_support::fail;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
@@ -252,7 +251,6 @@ pub mod pallet {
 		TooLowCandidateCountWeightHintGoOffline,
 		CandidateLimitReached,
 		CannotSetAboveMaxCandidates,
-		RemovedCall,
 		MarkingOfflineNotEnabled,
 		CurrentRoundTooLow,
 	}
@@ -1169,32 +1167,6 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// DEPRECATED use delegateWithAutoCompound
-		/// If caller is not a delegator and not a collator, then join the set of delegators
-		/// If caller is a delegator, then makes delegation to change their delegation state
-		#[pallet::call_index(17)]
-		#[pallet::weight(
-			<T as Config>::WeightInfo::delegate_with_auto_compound_worst()
-		)]
-		pub fn delegate(
-			origin: OriginFor<T>,
-			candidate: T::AccountId,
-			amount: BalanceOf<T>,
-			candidate_delegation_count: u32,
-			delegation_count: u32,
-		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-			<AutoCompoundDelegations<T>>::delegate_with_auto_compound(
-				candidate,
-				delegator,
-				amount,
-				Percent::zero(),
-				candidate_delegation_count,
-				0,
-				delegation_count,
-			)
-		}
-
 		/// If caller is not a delegator and not a collator, then join the set of delegators
 		/// If caller is a delegator, then makes delegation to change their delegation state
 		/// Sets the auto-compound config for the delegation
@@ -1225,27 +1197,6 @@ pub mod pallet {
 				candidate_auto_compounding_delegation_count,
 				delegation_count,
 			)
-		}
-
-		/// REMOVED, was schedule_leave_delegators
-		#[pallet::call_index(19)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
-		pub fn removed_call_19(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			fail!(Error::<T>::RemovedCall)
-		}
-
-		/// REMOVED, was execute_leave_delegators
-		#[pallet::call_index(20)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
-		pub fn removed_call_20(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			fail!(Error::<T>::RemovedCall)
-		}
-
-		/// REMOVED, was cancel_leave_delegators
-		#[pallet::call_index(21)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
-		pub fn removed_call_21(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			fail!(Error::<T>::RemovedCall)
 		}
 
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled

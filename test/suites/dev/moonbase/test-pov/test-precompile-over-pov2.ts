@@ -8,7 +8,7 @@ import {
 } from "@moonwall/cli";
 import { PRECOMPILE_BATCH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { type Abi, encodeFunctionData } from "viem";
-import { type HeavyContract, deployHeavyContracts, MAX_ETH_POV_PER_TX } from "../../../../helpers";
+import { type HeavyContract, deployHeavyContracts, ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D012705",
@@ -20,8 +20,13 @@ describeSuite({
     let proxyAbi: Abi;
     let proxyAddress: `0x${string}`;
     let emptyBlockProofSize: bigint;
+    let MAX_ETH_POV_PER_TX: bigint;
 
-    beforeAll(async function () {
+    beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      MAX_ETH_POV_PER_TX = constants.MAX_ETH_POV_PER_TX.get(specVersion);
+
       // Create an empty block to estimate empty block proof size
       const { block } = await context.createBlock();
       // Empty blocks usually do not exceed 50kb
