@@ -14,7 +14,7 @@ function convertTestsToCSV(runtime: string, failedSuites: any[]): string {
     suite.assertionResults.forEach((test: { title: string }) => {
       // Clean and escape the test title if it contains commas
       const cleanTitle = test.title.trim();
-      const escapedTitle = cleanTitle.includes(',') ? `"${cleanTitle}"` : cleanTitle;
+      const escapedTitle = cleanTitle.includes(",") ? `"${cleanTitle}"` : cleanTitle;
 
       csvContent += `${runtime},${file},${escapedTitle}\n`;
     });
@@ -38,9 +38,9 @@ function convertTestsToCSV(runtime: string, failedSuites: any[]): string {
   const failedTests = failedSuites
     .flatMap((suite) => {
       const file = suite.name.replaceAll(__dirname, "");
-      const fails = suite.assertionResults.map((test: { title: string }) =>
-        `\n\t\t> ${test.title.trim()}`
-      ).join("");
+      const fails = suite.assertionResults
+        .map((test: { title: string }) => `\n\t\t> ${test.title.trim()}`)
+        .join("");
       return `\t- ${file}${fails}`;
     })
     .join("\n");
