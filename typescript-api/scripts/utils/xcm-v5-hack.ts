@@ -4,12 +4,17 @@ import chalk from "chalk";
 // Hack: polkadot-js does not support XCM v5 yet, we need to manually change some types.
 // Replace "Lookup88" with "StagingXcmV5Junction"
 export function hackXcmV5Support() {
-  const networks = ["moonbase", "moonbeam", "moonriver"];
+  let network = "moonbase";
+  let interfacesPath = `src/${network}/interfaces`;
+  hackTypeReplacement(`${interfacesPath}/types-lookup.ts`, "Lookup88", "StagingXcmV5Junction", 8);
 
-  for (const network of networks) {
-    const interfacesPath = `src/${network}/interfaces`;
-    hackTypeReplacement(`${interfacesPath}/types-lookup.ts`, "Lookup88", "StagingXcmV5Junction", 8);
-  }
+  network = "moonbeam";
+  interfacesPath = `src/${network}/interfaces`;
+  hackTypeReplacement(`${interfacesPath}/types-lookup.ts`, "Lookup147", "StagingXcmV5Junction", 8);
+
+  network = "moonriver";
+  interfacesPath = `src/${network}/interfaces`;
+  hackTypeReplacement(`${interfacesPath}/types-lookup.ts`, "Lookup147", "StagingXcmV5Junction", 8);
 }
 
 function hackTypeReplacement(
