@@ -50,10 +50,10 @@ import type {
   FrameSystemEventRecord,
   FrameSystemLastRuntimeUpgradeInfo,
   FrameSystemPhase,
-  MoonbaseRuntimeRuntimeHoldReason,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonbaseRuntimeXcmConfigAssetType,
+  MoonbeamRuntimeRuntimeHoldReason,
+  MoonbeamRuntimeRuntimeParamsRuntimeParametersKey,
+  MoonbeamRuntimeRuntimeParamsRuntimeParametersValue,
+  MoonbeamRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletAssetsApproval,
   PalletAssetsAssetAccount,
@@ -143,7 +143,7 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg: u128 | AnyNumber | Uint8Array
-        ) => Observable<Option<MoonbaseRuntimeXcmConfigAssetType>>,
+        ) => Observable<Option<MoonbeamRuntimeXcmConfigAssetType>>,
         [u128]
       > &
         QueryableStorageEntry<ApiType, [u128]>;
@@ -155,11 +155,11 @@ declare module "@polkadot/api-base/types/storage" {
       assetTypeId: AugmentedQuery<
         ApiType,
         (
-          arg: MoonbaseRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array
+          arg: MoonbeamRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array
         ) => Observable<Option<u128>>,
-        [MoonbaseRuntimeXcmConfigAssetType]
+        [MoonbeamRuntimeXcmConfigAssetType]
       > &
-        QueryableStorageEntry<ApiType, [MoonbaseRuntimeXcmConfigAssetType]>;
+        QueryableStorageEntry<ApiType, [MoonbeamRuntimeXcmConfigAssetType]>;
       /**
        * Generic query
        **/
@@ -350,7 +350,7 @@ declare module "@polkadot/api-base/types/storage" {
         (arg: AccountId20 | string | Uint8Array) => Observable<
           Vec<
             {
-              readonly id: MoonbaseRuntimeRuntimeHoldReason;
+              readonly id: MoonbeamRuntimeRuntimeHoldReason;
               readonly amount: u128;
             } & Struct
           >
@@ -1448,16 +1448,16 @@ declare module "@polkadot/api-base/types/storage" {
         ApiType,
         (
           arg:
-            | MoonbaseRuntimeRuntimeParamsRuntimeParametersKey
+            | MoonbeamRuntimeRuntimeParamsRuntimeParametersKey
             | { RuntimeConfig: any }
             | { PalletRandomness: any }
             | { XcmConfig: any }
             | string
             | Uint8Array
-        ) => Observable<Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>>,
-        [MoonbaseRuntimeRuntimeParamsRuntimeParametersKey]
+        ) => Observable<Option<MoonbeamRuntimeRuntimeParamsRuntimeParametersValue>>,
+        [MoonbeamRuntimeRuntimeParamsRuntimeParametersKey]
       > &
-        QueryableStorageEntry<ApiType, [MoonbaseRuntimeRuntimeParamsRuntimeParametersKey]>;
+        QueryableStorageEntry<ApiType, [MoonbeamRuntimeRuntimeParamsRuntimeParametersKey]>;
       /**
        * Generic query
        **/
@@ -1854,17 +1854,6 @@ declare module "@polkadot/api-base/types/storage" {
         [ITuple<[u32, u32]>]
       > &
         QueryableStorageEntry<ApiType, [ITuple<[u32, u32]>]>;
-      /**
-       * Generic query
-       **/
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
-    sudo: {
-      /**
-       * The `AccountId` of the sudo key.
-       **/
-      key: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
-        QueryableStorageEntry<ApiType, []>;
       /**
        * Generic query
        **/

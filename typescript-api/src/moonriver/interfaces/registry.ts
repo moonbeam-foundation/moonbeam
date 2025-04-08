@@ -18,7 +18,6 @@ import type {
   CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth,
   CumulusPalletXcmEvent,
   CumulusPalletXcmOrigin,
-  CumulusPalletXcmpQueueCall,
   CumulusPalletXcmpQueueError,
   CumulusPalletXcmpQueueEvent,
   CumulusPalletXcmpQueueOutboundChannelDetails,
@@ -80,30 +79,30 @@ import type {
   FrameSystemLimitsBlockWeights,
   FrameSystemLimitsWeightsPerClass,
   FrameSystemPhase,
-  MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
-  MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin,
-  MoonbaseRuntimeOriginCaller,
-  MoonbaseRuntimeProxyType,
-  MoonbaseRuntimeRuntime,
-  MoonbaseRuntimeRuntimeHoldReason,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersKey,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersValue,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParameters,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey,
-  MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue,
-  MoonbaseRuntimeRuntimeParamsRuntimeParameters,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonbaseRuntimeXcmConfigAssetType,
-  MoonbaseRuntimeXcmConfigCurrencyId,
-  MoonbaseRuntimeXcmConfigTransactors,
+  MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
+  MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin,
+  MoonriverRuntimeOriginCaller,
+  MoonriverRuntimeProxyType,
+  MoonriverRuntimeRuntime,
+  MoonriverRuntimeRuntimeHoldReason,
+  MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit,
+  MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters,
+  MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersKey,
+  MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersValue,
+  MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion,
+  MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters,
+  MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey,
+  MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue,
+  MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit,
+  MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigParameters,
+  MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey,
+  MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue,
+  MoonriverRuntimeRuntimeParamsRuntimeParameters,
+  MoonriverRuntimeRuntimeParamsRuntimeParametersKey,
+  MoonriverRuntimeRuntimeParamsRuntimeParametersValue,
+  MoonriverRuntimeXcmConfigAssetType,
+  MoonriverRuntimeXcmConfigCurrencyId,
+  MoonriverRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletAssetManagerCall,
   PalletAssetManagerError,
@@ -274,9 +273,6 @@ import type {
   PalletSchedulerEvent,
   PalletSchedulerRetryConfig,
   PalletSchedulerScheduled,
-  PalletSudoCall,
-  PalletSudoError,
-  PalletSudoEvent,
   PalletTimestampCall,
   PalletTransactionPaymentChargeTransactionPayment,
   PalletTransactionPaymentEvent,
@@ -428,7 +424,6 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth: CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth;
     CumulusPalletXcmEvent: CumulusPalletXcmEvent;
     CumulusPalletXcmOrigin: CumulusPalletXcmOrigin;
-    CumulusPalletXcmpQueueCall: CumulusPalletXcmpQueueCall;
     CumulusPalletXcmpQueueError: CumulusPalletXcmpQueueError;
     CumulusPalletXcmpQueueEvent: CumulusPalletXcmpQueueEvent;
     CumulusPalletXcmpQueueOutboundChannelDetails: CumulusPalletXcmpQueueOutboundChannelDetails;
@@ -490,30 +485,30 @@ declare module "@polkadot/types/types/registry" {
     FrameSystemLimitsBlockWeights: FrameSystemLimitsBlockWeights;
     FrameSystemLimitsWeightsPerClass: FrameSystemLimitsWeightsPerClass;
     FrameSystemPhase: FrameSystemPhase;
-    MoonbaseRuntimeAssetConfigAssetRegistrarMetadata: MoonbaseRuntimeAssetConfigAssetRegistrarMetadata;
-    MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin: MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin;
-    MoonbaseRuntimeOriginCaller: MoonbaseRuntimeOriginCaller;
-    MoonbaseRuntimeProxyType: MoonbaseRuntimeProxyType;
-    MoonbaseRuntimeRuntime: MoonbaseRuntimeRuntime;
-    MoonbaseRuntimeRuntimeHoldReason: MoonbaseRuntimeRuntimeHoldReason;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit: MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters: MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersKey: MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersKey;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersValue: MoonbaseRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersValue;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit: MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParameters: MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParameters;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey: MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey;
-    MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue: MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue;
-    MoonbaseRuntimeRuntimeParamsRuntimeParameters: MoonbaseRuntimeRuntimeParamsRuntimeParameters;
-    MoonbaseRuntimeRuntimeParamsRuntimeParametersKey: MoonbaseRuntimeRuntimeParamsRuntimeParametersKey;
-    MoonbaseRuntimeRuntimeParamsRuntimeParametersValue: MoonbaseRuntimeRuntimeParamsRuntimeParametersValue;
-    MoonbaseRuntimeXcmConfigAssetType: MoonbaseRuntimeXcmConfigAssetType;
-    MoonbaseRuntimeXcmConfigCurrencyId: MoonbaseRuntimeXcmConfigCurrencyId;
-    MoonbaseRuntimeXcmConfigTransactors: MoonbaseRuntimeXcmConfigTransactors;
+    MoonriverRuntimeAssetConfigAssetRegistrarMetadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata;
+    MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin: MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin;
+    MoonriverRuntimeOriginCaller: MoonriverRuntimeOriginCaller;
+    MoonriverRuntimeProxyType: MoonriverRuntimeProxyType;
+    MoonriverRuntimeRuntime: MoonriverRuntimeRuntime;
+    MoonriverRuntimeRuntimeHoldReason: MoonriverRuntimeRuntimeHoldReason;
+    MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit: MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit;
+    MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters: MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters;
+    MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersKey: MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersKey;
+    MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersValue: MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParametersValue;
+    MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion: MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigFeesTreasuryProportion;
+    MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters: MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters;
+    MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey: MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey;
+    MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue: MoonriverRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue;
+    MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit: MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit;
+    MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigParameters: MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigParameters;
+    MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey: MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey;
+    MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue: MoonriverRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue;
+    MoonriverRuntimeRuntimeParamsRuntimeParameters: MoonriverRuntimeRuntimeParamsRuntimeParameters;
+    MoonriverRuntimeRuntimeParamsRuntimeParametersKey: MoonriverRuntimeRuntimeParamsRuntimeParametersKey;
+    MoonriverRuntimeRuntimeParamsRuntimeParametersValue: MoonriverRuntimeRuntimeParamsRuntimeParametersValue;
+    MoonriverRuntimeXcmConfigAssetType: MoonriverRuntimeXcmConfigAssetType;
+    MoonriverRuntimeXcmConfigCurrencyId: MoonriverRuntimeXcmConfigCurrencyId;
+    MoonriverRuntimeXcmConfigTransactors: MoonriverRuntimeXcmConfigTransactors;
     NimbusPrimitivesNimbusCryptoPublic: NimbusPrimitivesNimbusCryptoPublic;
     PalletAssetManagerCall: PalletAssetManagerCall;
     PalletAssetManagerError: PalletAssetManagerError;
@@ -684,9 +679,6 @@ declare module "@polkadot/types/types/registry" {
     PalletSchedulerEvent: PalletSchedulerEvent;
     PalletSchedulerRetryConfig: PalletSchedulerRetryConfig;
     PalletSchedulerScheduled: PalletSchedulerScheduled;
-    PalletSudoCall: PalletSudoCall;
-    PalletSudoError: PalletSudoError;
-    PalletSudoEvent: PalletSudoEvent;
     PalletTimestampCall: PalletTimestampCall;
     PalletTransactionPaymentChargeTransactionPayment: PalletTransactionPaymentChargeTransactionPayment;
     PalletTransactionPaymentEvent: PalletTransactionPaymentEvent;

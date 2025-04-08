@@ -31,11 +31,11 @@ import type {
   FrameSupportPreimagesBounded,
   FrameSupportTokensMiscBalanceStatus,
   FrameSystemDispatchEventInfo,
-  MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
-  MoonbaseRuntimeProxyType,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
-  MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonbaseRuntimeXcmConfigAssetType,
+  MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
+  MoonriverRuntimeProxyType,
+  MoonriverRuntimeRuntimeParamsRuntimeParametersKey,
+  MoonriverRuntimeRuntimeParamsRuntimeParametersValue,
+  MoonriverRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletConvictionVotingTally,
   PalletConvictionVotingVoteAccountVote,
@@ -69,8 +69,8 @@ declare module "@polkadot/api-base/types/events" {
        **/
       ForeignAssetDestroyed: AugmentedEvent<
         ApiType,
-        [assetId: u128, assetType: MoonbaseRuntimeXcmConfigAssetType],
-        { assetId: u128; assetType: MoonbaseRuntimeXcmConfigAssetType }
+        [assetId: u128, assetType: MoonriverRuntimeXcmConfigAssetType],
+        { assetId: u128; assetType: MoonriverRuntimeXcmConfigAssetType }
       >;
       /**
        * New asset with the asset manager is registered
@@ -79,13 +79,13 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [
           assetId: u128,
-          asset: MoonbaseRuntimeXcmConfigAssetType,
-          metadata: MoonbaseRuntimeAssetConfigAssetRegistrarMetadata
+          asset: MoonriverRuntimeXcmConfigAssetType,
+          metadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata
         ],
         {
           assetId: u128;
-          asset: MoonbaseRuntimeXcmConfigAssetType;
-          metadata: MoonbaseRuntimeAssetConfigAssetRegistrarMetadata;
+          asset: MoonriverRuntimeXcmConfigAssetType;
+          metadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata;
         }
       >;
       /**
@@ -93,16 +93,16 @@ declare module "@polkadot/api-base/types/events" {
        **/
       ForeignAssetRemoved: AugmentedEvent<
         ApiType,
-        [assetId: u128, assetType: MoonbaseRuntimeXcmConfigAssetType],
-        { assetId: u128; assetType: MoonbaseRuntimeXcmConfigAssetType }
+        [assetId: u128, assetType: MoonriverRuntimeXcmConfigAssetType],
+        { assetId: u128; assetType: MoonriverRuntimeXcmConfigAssetType }
       >;
       /**
        * Changed the xcm type mapping for a given asset id
        **/
       ForeignAssetXcmLocationChanged: AugmentedEvent<
         ApiType,
-        [assetId: u128, newAssetType: MoonbaseRuntimeXcmConfigAssetType],
-        { assetId: u128; newAssetType: MoonbaseRuntimeXcmConfigAssetType }
+        [assetId: u128, newAssetType: MoonriverRuntimeXcmConfigAssetType],
+        { assetId: u128; newAssetType: MoonriverRuntimeXcmConfigAssetType }
       >;
       /**
        * Removed all information related to an assetId and destroyed asset
@@ -113,8 +113,8 @@ declare module "@polkadot/api-base/types/events" {
        **/
       SupportedAssetRemoved: AugmentedEvent<
         ApiType,
-        [assetType: MoonbaseRuntimeXcmConfigAssetType],
-        { assetType: MoonbaseRuntimeXcmConfigAssetType }
+        [assetType: MoonriverRuntimeXcmConfigAssetType],
+        { assetType: MoonriverRuntimeXcmConfigAssetType }
       >;
       /**
        * Changed the amount of units we are charging per execution second for a given asset
@@ -1679,14 +1679,14 @@ declare module "@polkadot/api-base/types/events" {
       Updated: AugmentedEvent<
         ApiType,
         [
-          key: MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
-          oldValue: Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>,
-          newValue: Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>
+          key: MoonriverRuntimeRuntimeParamsRuntimeParametersKey,
+          oldValue: Option<MoonriverRuntimeRuntimeParamsRuntimeParametersValue>,
+          newValue: Option<MoonriverRuntimeRuntimeParamsRuntimeParametersValue>
         ],
         {
-          key: MoonbaseRuntimeRuntimeParamsRuntimeParametersKey;
-          oldValue: Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>;
-          newValue: Option<MoonbaseRuntimeRuntimeParamsRuntimeParametersValue>;
+          key: MoonriverRuntimeRuntimeParamsRuntimeParametersKey;
+          oldValue: Option<MoonriverRuntimeRuntimeParamsRuntimeParametersValue>;
+          newValue: Option<MoonriverRuntimeRuntimeParamsRuntimeParametersValue>;
         }
       >;
       /**
@@ -2001,13 +2001,13 @@ declare module "@polkadot/api-base/types/events" {
         [
           delegator: AccountId20,
           delegatee: AccountId20,
-          proxyType: MoonbaseRuntimeProxyType,
+          proxyType: MoonriverRuntimeProxyType,
           delay: u32
         ],
         {
           delegator: AccountId20;
           delegatee: AccountId20;
-          proxyType: MoonbaseRuntimeProxyType;
+          proxyType: MoonriverRuntimeProxyType;
           delay: u32;
         }
       >;
@@ -2027,13 +2027,13 @@ declare module "@polkadot/api-base/types/events" {
         [
           delegator: AccountId20,
           delegatee: AccountId20,
-          proxyType: MoonbaseRuntimeProxyType,
+          proxyType: MoonriverRuntimeProxyType,
           delay: u32
         ],
         {
           delegator: AccountId20;
           delegatee: AccountId20;
-          proxyType: MoonbaseRuntimeProxyType;
+          proxyType: MoonriverRuntimeProxyType;
           delay: u32;
         }
       >;
@@ -2046,13 +2046,13 @@ declare module "@polkadot/api-base/types/events" {
         [
           pure: AccountId20,
           who: AccountId20,
-          proxyType: MoonbaseRuntimeProxyType,
+          proxyType: MoonriverRuntimeProxyType,
           disambiguationIndex: u16
         ],
         {
           pure: AccountId20;
           who: AccountId20;
-          proxyType: MoonbaseRuntimeProxyType;
+          proxyType: MoonriverRuntimeProxyType;
           disambiguationIndex: u16;
         }
       >;
@@ -2326,40 +2326,6 @@ declare module "@polkadot/api-base/types/events" {
        * Scheduled some task.
        **/
       Scheduled: AugmentedEvent<ApiType, [when: u32, index: u32], { when: u32; index: u32 }>;
-      /**
-       * Generic event
-       **/
-      [key: string]: AugmentedEvent<ApiType>;
-    };
-    sudo: {
-      /**
-       * The sudo key has been updated.
-       **/
-      KeyChanged: AugmentedEvent<
-        ApiType,
-        [old: Option<AccountId20>, new_: AccountId20],
-        { old: Option<AccountId20>; new_: AccountId20 }
-      >;
-      /**
-       * The key was permanently removed.
-       **/
-      KeyRemoved: AugmentedEvent<ApiType, []>;
-      /**
-       * A sudo call just took place.
-       **/
-      Sudid: AugmentedEvent<
-        ApiType,
-        [sudoResult: Result<Null, SpRuntimeDispatchError>],
-        { sudoResult: Result<Null, SpRuntimeDispatchError> }
-      >;
-      /**
-       * A [sudo_as](Pallet::sudo_as) call just took place.
-       **/
-      SudoAsDone: AugmentedEvent<
-        ApiType,
-        [sudoResult: Result<Null, SpRuntimeDispatchError>],
-        { sudoResult: Result<Null, SpRuntimeDispatchError> }
-      >;
       /**
        * Generic event
        **/

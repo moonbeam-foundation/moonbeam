@@ -36,7 +36,7 @@ function hackTypeReplacement(
     // we only want to replace Lookup77
     console.error(
       chalk.red(
-        `ERROR: Expected ${expectedCount} occurrences of "${oldType}" in ${filePath} but found ${count}. Aborting hack.`
+        `ERROR: Expected ${expectedCount} occurrences of "${oldType}" in ${filePath} but found ${count}.`
       )
     );
   } else {

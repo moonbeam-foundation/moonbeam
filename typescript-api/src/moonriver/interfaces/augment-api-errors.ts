@@ -1291,16 +1291,6 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       [key: string]: AugmentedError<ApiType>;
     };
-    sudo: {
-      /**
-       * Sender must be the Sudo account.
-       **/
-      RequireSudo: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       **/
-      [key: string]: AugmentedError<ApiType>;
-    };
     system: {
       /**
        * The origin filter prevent the call to be dispatched.
