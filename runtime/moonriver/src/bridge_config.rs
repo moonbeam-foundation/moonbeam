@@ -140,8 +140,8 @@ impl<
 			intended_global == our_global,
 			DispatchBlobError::WrongGlobal
 		);
-		let dest = universal_dest.relative_to(&our_universal);
-		let mut xcm: Xcm<()> = message
+		// let dest = universal_dest.relative_to(&our_universal);
+		let xcm: Xcm<()> = message
 			.try_into()
 			.map_err(|_| DispatchBlobError::UnsupportedXcmVersion)?;
 
