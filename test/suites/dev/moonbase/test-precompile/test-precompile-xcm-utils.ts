@@ -111,7 +111,7 @@ describeSuite({
       title: "allows to retrieve weight of message",
       test: async function () {
         const message = {
-          V2: [
+          V4: [
             {
               ClearOrigin: null,
             },
@@ -172,11 +172,14 @@ describeSuite({
         const transferCallEncoded = transferCall?.method.toHex();
 
         const xcmMessage = {
-          V2: [
+          V4: [
             {
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
+                requireWeightAtMost: {
+                  refTime: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
+                  proofSize: 0n,
+                },
                 call: {
                   encoded: transferCallEncoded,
                 },
@@ -233,11 +236,14 @@ describeSuite({
         const transferCallEncoded = transferCall?.method.toHex();
 
         const xcmMessage = {
-          V2: [
+          V4: [
             {
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
+                requireWeightAtMost: {
+                  refTime: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
+                  proofSize: 0n,
+                },
                 call: {
                   encoded: transferCallEncoded,
                 },
@@ -306,7 +312,7 @@ describeSuite({
         ];
 
         const xcmMessage = {
-          V2: [
+          V4: [
             {
               ClearOrigin: null,
             },
@@ -402,7 +408,7 @@ describeSuite({
         ];
 
         const xcmMessage = {
-          V2: [
+          V4: [
             {
               ClearOrigin: null,
             },
