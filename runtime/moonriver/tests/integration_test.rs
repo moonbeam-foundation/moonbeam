@@ -2753,7 +2753,6 @@ mod bridge_tests {
 	use pallet_xcm_bridge::XcmBlobMessageDispatchResult::Dispatched;
 	use parity_scale_codec::Encode;
 	use sp_core::{hex2array, H256};
-	use sp_std::collections::btree_set::BTreeSet;
 	use sp_weights::Weight;
 	use xcm::latest::Junctions::X1;
 	use xcm::latest::{
