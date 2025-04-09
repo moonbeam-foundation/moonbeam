@@ -1212,6 +1212,8 @@
 <a href="#1210" id="1210">1210</a>
 <a href="#1211" id="1211">1211</a>
 <a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1556,20 +1558,21 @@
 
 							<span class="comment">// Estimated encoded transaction size must be based on the heaviest transaction
 							// type (EIP1559Transaction) to be compatible with all transaction types.
+							// TODO: remove, since we will get rid of base_cost
 							</span><span class="kw">let </span><span class="kw-2">mut </span>estimated_transaction_len = data.len() +
-							<span class="comment">// pallet ethereum index: 1
-							// transact call index: 1
-							// Transaction enum variant: 1
-							// chain_id 8 bytes
-							// nonce: 32
-							// max_priority_fee_per_gas: 32
-							// max_fee_per_gas: 32
-							// gas_limit: 32
-							// action: 21 (enum varianrt + call address)
-							// value: 32
-							// access_list: 1 (empty vec size)
-							// 65 bytes signature
-							</span><span class="number">258</span>;
+								<span class="comment">// pallet ethereum index: 1
+								// transact call index: 1
+								// Transaction enum variant: 1
+								// chain_id 8 bytes
+								// nonce: 32
+								// max_priority_fee_per_gas: 32
+								// max_fee_per_gas: 32
+								// gas_limit: 32
+								// action: 21 (enum varianrt + call address)
+								// value: 32
+								// access_list: 1 (empty vec size)
+								// 65 bytes signature
+								</span><span class="number">258</span>;
 
 							<span class="kw">if </span>access_list.is_some() {
 								estimated_transaction_len += access_list.encoded_size();
@@ -1689,8 +1692,9 @@
 					<span class="kw">let </span>is_transactional = <span class="bool-val">false</span>;
 					<span class="kw">let </span>validate = <span class="bool-val">true</span>;
 
-					<span class="comment">// Estimated encoded transaction size must be based on the heaviest transaction
-					// type (EIP1559Transaction) to be compatible with all transaction types.
+							<span class="comment">// Estimated encoded transaction size must be based on the heaviest transaction
+							// type (EIP1559Transaction) to be compatible with all transaction types.
+					// TODO: remove, since we will get rid of base_cost
 					</span><span class="kw">let </span><span class="kw-2">mut </span>estimated_transaction_len = data.len() +
 						<span class="comment">// pallet ethereum index: 1
 						// transact call index: 1
