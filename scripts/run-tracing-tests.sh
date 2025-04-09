@@ -25,13 +25,10 @@ cd moonbeam-types-bundle
 pnpm i
 pnpm build
 
-cd ../typescript-api
-pnpm i
-scripts/runtime-upgrade.sh
+cd ../test
+pnpm typegen
 
 echo "Run tracing tests…"
-cd ../test
-pnpm install
 pnpm compile-solidity
 pnpm moonwall test dev_moonbase_tracing
 cd ..

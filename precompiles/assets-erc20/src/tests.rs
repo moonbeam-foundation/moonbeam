@@ -245,7 +245,7 @@ fn approve() {
 						value: 500.into(),
 					},
 				)
-				.expect_cost(31625756)
+				.expect_cost(37024756)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -286,7 +286,7 @@ fn approve_saturating() {
 						value: U256::MAX,
 					},
 				)
-				.expect_cost(31625756)
+				.expect_cost(37024756)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -415,7 +415,7 @@ fn transfer() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(44795756) // 1 weight => 1 gas in mock
+				.expect_cost(50509756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -542,7 +542,7 @@ fn transfer_from() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(66146756) // 1 weight => 1 gas in mock
+				.expect_cost(70172756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -620,7 +620,7 @@ fn transfer_from_non_incremental_approval() {
 						value: 500.into(),
 					},
 				)
-				.expect_cost(31625756)
+				.expect_cost(37024756)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -643,7 +643,7 @@ fn transfer_from_non_incremental_approval() {
 						value: 300.into(),
 					},
 				)
-				.expect_cost(65259756)
+				.expect_cost(76042756)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -751,7 +751,7 @@ fn transfer_from_self() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(44795756) // 1 weight => 1 gas in mock
+				.expect_cost(50509756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -898,7 +898,7 @@ fn permit_valid() {
 						s: H256::from(rs.s.b32()),
 					},
 				)
-				.expect_cost(31624000)
+				.expect_cost(37023000)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -1007,7 +1007,7 @@ fn permit_valid_named_asset() {
 						s: H256::from(rs.s.b32()),
 					},
 				)
-				.expect_cost(31624000)
+				.expect_cost(37023000)
 				.expect_log(log3(
 					ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -1485,7 +1485,7 @@ fn permit_valid_with_metamask_signed_data() {
 						s: H256::from(s_real),
 					},
 				)
-				.expect_cost(31624000)
+				.expect_cost(37023000)
 				.expect_log(log3(
 					ForeignAssetId(1u128),
 					SELECTOR_LOG_APPROVAL,

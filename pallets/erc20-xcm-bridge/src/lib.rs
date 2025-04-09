@@ -140,8 +140,7 @@ pub mod pallet {
 			);
 
 			// return value is true.
-			let mut bytes = [0u8; 32];
-			U256::from(1).to_big_endian(&mut bytes);
+			let bytes: [u8; 32] = U256::from(1).to_big_endian();
 
 			// Check return value to make sure not calling on empty contracts.
 			ensure!(
