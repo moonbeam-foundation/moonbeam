@@ -340,8 +340,8 @@ macro_rules! impl_runtime_apis_plus_common {
 							let without_base_extrinsic_weight = true;
 
 
-							// Estimated encoded transaction size must be based on the transaction
-							// type (TransactionData) to be compatible with all transaction types.
+							// Estimated encoded transaction size must be based on the heaviest transaction
+							// type (EIP1559Transaction) to be compatible with all transaction types.
 							// TODO: remove, since we will get rid of base_cost
 							let mut estimated_transaction_len = data.len() +
 								// pallet ethereum index: 1
@@ -476,8 +476,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					// Estimated encoded transaction size must be based on the transaction
-					// type (TransactionData) to be compatible with all transaction types.
+							// Estimated encoded transaction size must be based on the heaviest transaction
+							// type (EIP1559Transaction) to be compatible with all transaction types.
 					// TODO: remove, since we will get rid of base_cost
 					let mut estimated_transaction_len = data.len() +
 						// pallet ethereum index: 1
