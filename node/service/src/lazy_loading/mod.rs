@@ -576,7 +576,7 @@ where
 
 		// Need to clone it and store here to avoid moving of `client`
 		// variable in closure below.
-		let client_clone = client.clone();
+		let client_for_cidp = client.clone();
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
@@ -595,8 +595,6 @@ where
 					_phantom: Default::default(),
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
-					let client_for_cidp = client_clone.clone();
-
 					let maybe_current_para_block = client_for_cidp.number(block);
 					let maybe_current_para_head = client_for_cidp.expect_header(block);
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
