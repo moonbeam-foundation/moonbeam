@@ -542,7 +542,7 @@ pub struct CurrencyIdToLocation<AssetXConverter>(sp_std::marker::PhantomData<Ass
 impl<AssetXConverter> sp_runtime::traits::Convert<CurrencyId, Option<Location>>
 	for CurrencyIdToLocation<AssetXConverter>
 where
-	AssetXConverter: sp_runtime::traits::MaybeEquivalence<Location, AssetId>,
+	AssetXConverter: MaybeEquivalence<Location, AssetId>,
 {
 	fn convert(currency: CurrencyId) -> Option<Location> {
 		match currency {
