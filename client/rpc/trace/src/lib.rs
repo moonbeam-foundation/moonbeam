@@ -244,7 +244,7 @@ where
 		self.clone()
 			.filter(filter)
 			.await
-			.map_err(|e| fc_rpc::internal_err(e))
+			.map_err(fc_rpc::internal_err)
 	}
 }
 
@@ -709,7 +709,7 @@ where
 					tracing::trace!("Pooled block {} is no longer requested.", block);
 					// Remove block from the cache. Drops the value,
 					// closing all the channels contained in it.
-					let _ = self.cached_blocks.remove(&block);
+					let _ = self.cached_blocks.remove(block);
 				}
 			}
 		}
@@ -846,7 +846,7 @@ where
 		{
 			api_version
 		} else {
-			return Err(format!("Runtime api version call failed (trace)"));
+			return Err("Runtime api version call failed (trace)".to_string());
 		};
 
 		// Trace the block.
