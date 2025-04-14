@@ -2753,6 +2753,7 @@ mod bridge_tests {
 	use pallet_xcm_bridge::XcmBlobMessageDispatchResult::Dispatched;
 	use parity_scale_codec::Encode;
 	use sp_core::{hex2array, H256};
+	use sp_runtime::{Percent, Saturating};
 	use sp_weights::Weight;
 	use xcm::latest::Junctions::X1;
 	use xcm::latest::{
@@ -2894,12 +2895,6 @@ mod bridge_tests {
 			)])
 			.build()
 			.execute_with(|| {
-				assert_ok!(PolkadotXcm::force_xcm_version(
-					root_origin(),
-					Box::new(BridgeMoonbeamLocation::get()),
-					XCM_VERSION
-				));
-
 				let bridge_message: BridgeMessage = BridgeMessage {
 					universal_dest: VersionedInteriorLocation::V4(
 						[
@@ -2925,7 +2920,7 @@ mod bridge_tests {
 													]
 												)
 											),
-											fun: Fungible(10_000_000_000_000_000_000_000_000_000_000_000)
+											fun: Fungible(2 * MOVR)
 										}
 									].into()
 								),
@@ -2942,15 +2937,14 @@ mod bridge_tests {
 												]
 											)
 										),
-										fun: Fungible(6_000_000_000_000_000_000_000_000_000_000_000)
+										fun:  Fungible(MOVR / 2)
 									},
 									weight_limit: WeightLimit::Unlimited
 								},
 								DepositAsset {
 									assets: AssetFilter::Wild(WildAsset::AllCounted(1)),
 									beneficiary: Location::new(0, [AccountKey20 { network: None, key: ALICE }]),
-								},
-								SetTopic([24, 73, 92, 41, 231, 15, 196, 44, 136, 120, 145, 143, 224, 187, 112, 187, 47, 89, 154, 44, 193, 175, 174, 249, 30, 194, 97, 183, 171, 39, 87, 147])
+								}
 							].into()
 						)
 					)
@@ -2975,9 +2969,9 @@ mod bridge_tests {
 				expect_events(vec![
 					RuntimeEvent::MessageQueue(
 						pallet_message_queue::Event::Processed {
-							id: H256::from(hex2array!("18495c29e70fc42c8878918fe0bb70bb2f599a2cc1afaef91ec261b7ab275793")),
+							id: H256::from(hex2array!("a46dbe621eda9f3c4898998053273145f3968a7ca56c9aae48b579728095ec59")),
 							origin: AggregateMessageOrigin::Here,
-							weight_used: Weight::from_parts(4358896000, 30545),
+							weight_used: Weight::from_parts(4353681000, 40545),
 							success: true
 						}
 					)

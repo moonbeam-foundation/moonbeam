@@ -356,7 +356,7 @@ impl ExtBuilder {
 							root_origin(),
 							xcm_builder::WithLatestLocationConverter::convert_back(&location)
 								.unwrap(),
-							1,
+							GLMR,
 						)
 						.expect("register evm native foreign asset as sufficient");
 					}
