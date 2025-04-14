@@ -1,4 +1,4 @@
-import { describeSuite, expect, extractInfo, TransactionTypes } from "@moonwall/cli";
+import { describeSuite, expect, TransactionTypes } from "@moonwall/cli";
 import {
   alith,
   ALITH_ADDRESS,
@@ -172,16 +172,29 @@ describeSuite({
               const treasuryIncrease = balAfter - balBefore;
               const issuanceDecrease = issuanceBefore - issuanceAfter;
               const collatorIncrease = collatorBalAfter - collatorBalBefore;
+              const fee = extractFee(result?.events)!.amount.toBigInt();
+              const min = (a: bigint, b: bigint) => (a < b ? a : b);
               const tipPaid = withTip
                 ? (() => {
-                    let priorityPerGas = GENESIS_BASE_FEE - baseFee;
-                    if (priorityPerGas > t.priorityFeePerGas) {
-                      priorityPerGas = t.priorityFeePerGas;
+                    const max_fee_per_gas = GENESIS_BASE_FEE;
+                    const max_priority_fee_per_gas = t.priorityFeePerGas;
+                    const actual_priority_fee_per_gas = min(
+                      max_fee_per_gas - baseFee,
+                      max_priority_fee_per_gas
+                    );
+                    const total_fee_per_gas = BigInt(baseFee) + BigInt(actual_priority_fee_per_gas);
+                    const effective_gas = receipt!.gasUsed;
+                    const actual_fee = effective_gas * total_fee_per_gas;
+                    const actual_base_fee = effective_gas * baseFee;
+                    const already_paid = fee;
+
+                    if (already_paid < actual_base_fee) {
+                      return 0n;
                     }
-                    return BigInt(priorityPerGas) * BigInt(receipt!.gasUsed);
+
+                    return actual_fee - actual_base_fee;
                   })()
                 : 0n;
-              const fee = extractFee(result?.events)!.amount.toBigInt();
               const feeWithoutTip = fee - tipPaid;
 
               expect(

@@ -342,20 +342,21 @@ macro_rules! impl_runtime_apis_plus_common {
 
 							// Estimated encoded transaction size must be based on the heaviest transaction
 							// type (EIP1559Transaction) to be compatible with all transaction types.
+							// TODO: remove, since we will get rid of base_cost
 							let mut estimated_transaction_len = data.len() +
-							// pallet ethereum index: 1
-							// transact call index: 1
-							// Transaction enum variant: 1
-							// chain_id 8 bytes
-							// nonce: 32
-							// max_priority_fee_per_gas: 32
-							// max_fee_per_gas: 32
-							// gas_limit: 32
-							// action: 21 (enum varianrt + call address)
-							// value: 32
-							// access_list: 1 (empty vec size)
-							// 65 bytes signature
-							258;
+								// pallet ethereum index: 1
+								// transact call index: 1
+								// Transaction enum variant: 1
+								// chain_id 8 bytes
+								// nonce: 32
+								// max_priority_fee_per_gas: 32
+								// max_fee_per_gas: 32
+								// gas_limit: 32
+								// action: 21 (enum varianrt + call address)
+								// value: 32
+								// access_list: 1 (empty vec size)
+								// 65 bytes signature
+								258;
 
 							if access_list.is_some() {
 								estimated_transaction_len += access_list.encoded_size();
@@ -474,8 +475,9 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					// Estimated encoded transaction size must be based on the heaviest transaction
-					// type (EIP1559Transaction) to be compatible with all transaction types.
+							// Estimated encoded transaction size must be based on the heaviest transaction
+							// type (EIP1559Transaction) to be compatible with all transaction types.
+					// TODO: remove, since we will get rid of base_cost
 					let mut estimated_transaction_len = data.len() +
 						// pallet ethereum index: 1
 						// transact call index: 1
