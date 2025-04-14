@@ -1455,8 +1455,8 @@ construct_runtime! {
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event<T>} = 109,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
-		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 114,
-		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 115,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>, Config<T>} = 114,
+		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>, Config<T>} = 115,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 116,
 
 		// Utils
@@ -1471,7 +1471,7 @@ construct_runtime! {
 		BridgePolkadotParachains: pallet_bridge_parachains::<Instance1> = 131,
 		BridgePolkadotMessages: pallet_bridge_messages::<Instance1> = 132,
 		BridgeXcmOverMoonbeam: pallet_xcm_bridge::<Instance1> = 133,
-		ToPolkadotXcmRouter: pallet_xcm_bridge_router::<Instance1> = 134,
+		ToPolkadotXcmRouter: pallet_xcm_bridge_router::<Instance1> = 134
 	}
 }
 
