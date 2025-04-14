@@ -281,7 +281,7 @@ pub struct RunCmd {
 	#[arg(long, default_value = "4")]
 	pub frontier_sql_backend_thread_count: u32,
 
-	/// Sets the SQL backend's query timeout in number of VM ops.
+	/// Sets the SQL backend's cache size in bytes.
 	/// Default value is 200MB.
 	#[arg(long, default_value = "209715200")]
 	pub frontier_sql_backend_cache_size: u64,
