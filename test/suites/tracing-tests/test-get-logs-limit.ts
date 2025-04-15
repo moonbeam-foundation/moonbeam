@@ -6,7 +6,10 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     beforeAll(async () => {
-      for (let blocksToCreate = 1024; blocksToCreate > 0; blocksToCreate--) {
+      // This variable needs to be modified if `--max-blocks-range` CLI parameter is changed
+      // Using the default of 1024
+      let blocksToCreate = 1025;
+      for (; blocksToCreate > 0; blocksToCreate--) {
         await context.createBlock();
       }
     });
@@ -15,13 +18,16 @@ describeSuite({
       id: "T01",
       title: "Validate eth_getLogs block range limit",
       test: async function () {
-        const result = await customDevRpcRequest("eth_getLogs", [
-          {
-            fromBlock: "0x0",
-            toBlock: "latest",
-            topics: [],
-          },
-        ]);
+        expect(
+          async () =>
+            await customDevRpcRequest("eth_getLogs", [
+              {
+                fromBlock: "0x0",
+                toBlock: "latest",
+                topics: [],
+              },
+            ])
+        ).rejects.toThrowError("block range is too wide (maximum 1024)");
       },
     });
   },
