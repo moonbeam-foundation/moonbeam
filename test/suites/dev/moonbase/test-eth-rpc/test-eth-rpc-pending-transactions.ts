@@ -1,5 +1,11 @@
 import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
-import { createRawTransfer, BALTATHAR_ADDRESS, BALTATHAR_PRIVATE_KEY, CHARLETH_ADDRESS, CHARLETH_PRIVATE_KEY } from "@moonwall/util";
+import {
+  createRawTransfer,
+  BALTATHAR_ADDRESS,
+  BALTATHAR_PRIVATE_KEY,
+  CHARLETH_ADDRESS,
+  CHARLETH_PRIVATE_KEY,
+} from "@moonwall/util";
 import { parseGwei } from "viem";
 
 describeSuite({
@@ -16,23 +22,25 @@ describeSuite({
 
     // Helper function to identify future transactions (nonce > current account nonce)
     async function getFutureTransactions(accountAddress: `0x${string}`) {
-      const currentNonce = BigInt(await context.viem().getTransactionCount({
-        address: accountAddress,
-      }));
+      const currentNonce = BigInt(
+        await context.viem().getTransactionCount({
+          address: accountAddress,
+        })
+      );
 
       const pendingTxs = await getPendingTransactions();
-      return pendingTxs.filter(tx =>
-        tx.from.toLowerCase() === accountAddress.toLowerCase() &&
-        BigInt(tx.nonce) > currentNonce
+      return pendingTxs.filter(
+        (tx) =>
+          tx.from.toLowerCase() === accountAddress.toLowerCase() && BigInt(tx.nonce) > currentNonce
       );
     }
 
     // Helper function to wait for a condition with retries
     async function waitForCondition(params: {
-      checkFn: () => Promise<boolean>,
-      maxRetries?: number,
-      interval?: number,
-      errorMsg: string
+      checkFn: () => Promise<boolean>;
+      maxRetries?: number;
+      interval?: number;
+      errorMsg: string;
     }): Promise<void> {
       const { checkFn, maxRetries = 5, interval = 1000, errorMsg } = params;
       let lastError: Error | null = null;
@@ -47,11 +55,11 @@ describeSuite({
         }
 
         if (i < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, interval));
+          await new Promise((resolve) => setTimeout(resolve, interval));
         }
       }
 
-      throw new Error(`${errorMsg}${lastError ? `: ${lastError.message}` : ''}`);
+      throw new Error(`${errorMsg}${lastError ? `: ${lastError.message}` : ""}`);
     }
 
     it({
@@ -64,7 +72,7 @@ describeSuite({
         // Wait for transaction pool to be empty
         await waitForCondition({
           checkFn: async () => (await getPendingTransactions()).length === 0,
-          errorMsg: "Transaction pool was not empty after block creation"
+          errorMsg: "Transaction pool was not empty after block creation",
         });
 
         const pendingTransactions = await getPendingTransactions();
@@ -82,12 +90,14 @@ describeSuite({
         // Ensure transaction pool is empty before starting test
         await waitForCondition({
           checkFn: async () => (await getPendingTransactions()).length === 0,
-          errorMsg: "Transaction pool was not empty at the start of test"
+          errorMsg: "Transaction pool was not empty at the start of test",
         });
 
-        const initialNonce = BigInt(await context.viem().getTransactionCount({
-          address: BALTATHAR_ADDRESS,
-        }));
+        const initialNonce = BigInt(
+          await context.viem().getTransactionCount({
+            address: BALTATHAR_ADDRESS,
+          })
+        );
 
         const readyTransactionCount = 3;
         const futureTransactionCount = 2;
@@ -126,10 +136,12 @@ describeSuite({
         await waitForCondition({
           checkFn: async () => {
             const pendingTxs = await getPendingTransactions();
-            return pendingTxs.length === expectedPoolSize &&
-              allTxHashes.every(hash => pendingTxs.some(tx => tx.hash === hash));
+            return (
+              pendingTxs.length === expectedPoolSize &&
+              allTxHashes.every((hash) => pendingTxs.some((tx) => tx.hash === hash))
+            );
           },
-          errorMsg: "Not all transactions appeared in the pending pool"
+          errorMsg: "Not all transactions appeared in the pending pool",
         });
 
         // Create a block which should process ready transactions
@@ -141,7 +153,7 @@ describeSuite({
             const futureTxs = await getFutureTransactions(BALTATHAR_ADDRESS);
             return futureTxs.length === futureTransactionCount;
           },
-          errorMsg: "Future transactions count doesn't match expected count after block creation"
+          errorMsg: "Future transactions count doesn't match expected count after block creation",
         });
 
         // Get future transactions after block creation
@@ -149,16 +161,18 @@ describeSuite({
         expect(expectedFutureTxs.length).toBe(futureTransactionCount);
 
         // Submit a transaction that is now ready (with current nonce)
-        const nonceAfterBlock1 = BigInt(await context.viem().getTransactionCount({
-          address: BALTATHAR_ADDRESS,
-        }));
+        const nonceAfterBlock1 = BigInt(
+          await context.viem().getTransactionCount({
+            address: BALTATHAR_ADDRESS,
+          })
+        );
 
         const nextReadyTx = await createRawTransfer(context, TEST_ACCOUNT, 1, {
           nonce: Number(nonceAfterBlock1),
           privateKey: BALTATHAR_PRIVATE_KEY,
         });
         const nextReadyTxHash = await context.viem().sendRawTransaction({
-          serializedTransaction: nextReadyTx
+          serializedTransaction: nextReadyTx,
         });
 
         // Verify pool contains the new ready tx + previous future txs
@@ -167,10 +181,13 @@ describeSuite({
             const pendingTxs = await getPendingTransactions();
             const futureTxs = await getFutureTransactions(BALTATHAR_ADDRESS);
 
-            return pendingTxs.length === futureTxs.length + 1 && // +1 for the ready tx
-              pendingTxs.some(tx => tx.hash === nextReadyTxHash);
+            return (
+              pendingTxs.length === futureTxs.length + 1 && // +1 for the ready tx
+              pendingTxs.some((tx) => tx.hash === nextReadyTxHash)
+            );
           },
-          errorMsg: "Transaction pool doesn't contain expected transactions after adding next ready transaction"
+          errorMsg:
+            "Transaction pool doesn't contain expected transactions after adding next ready transaction",
         });
 
         // Create another block which should process the ready transaction
@@ -185,18 +202,20 @@ describeSuite({
 
         // The current account nonce has increased, so some previously "future" transactions
         // may now be eligible for processing. We need to check the actual count.
-        const currentAccountNonce = BigInt(await context.viem().getTransactionCount({
-          address: BALTATHAR_ADDRESS,
-        }));
-        const expectedRemainingCount = futureNonces.filter(nonce =>
-          nonce > currentAccountNonce
+        const currentAccountNonce = BigInt(
+          await context.viem().getTransactionCount({
+            address: BALTATHAR_ADDRESS,
+          })
+        );
+        const expectedRemainingCount = futureNonces.filter(
+          (nonce) => nonce > currentAccountNonce
         ).length;
 
         expect(finalFutureTxs).toHaveLength(expectedRemainingCount);
-        expect(finalFutureTxs.some(tx => tx.hash === nextReadyTxHash)).toBe(false);
+        expect(finalFutureTxs.some((tx) => tx.hash === nextReadyTxHash)).toBe(false);
 
         // Verify nonces of remaining future transactions
-        finalFutureTxs.forEach(tx => {
+        finalFutureTxs.forEach((tx) => {
           const txNonce = BigInt(tx.nonce);
           expect(txNonce).toBeGreaterThan(currentAccountNonce);
           expect(futureNonces).toContain(txNonce);
@@ -231,9 +250,9 @@ describeSuite({
         await waitForCondition({
           checkFn: async () => {
             const pendingTxs = await getPendingTransactions();
-            return pendingTxs.some(tx => tx.hash === hash);
+            return pendingTxs.some((tx) => tx.hash === hash);
           },
-          errorMsg: "Transaction did not appear in the pending pool"
+          errorMsg: "Transaction did not appear in the pending pool",
         });
 
         // Get pending transactions
