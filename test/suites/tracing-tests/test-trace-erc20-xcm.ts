@@ -17,6 +17,7 @@ describeSuite({
   testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
     let transactionHash: string;
+    let failedTransactionHash: string;
 
     beforeAll(async () => {
       const { contractAddress, status } = await context.deployContract!("ERC20WithInitialSupply", {
@@ -123,6 +124,56 @@ describeSuite({
           args: [CHARLETH_ADDRESS],
         })
       ).equals(amountTransferred);
+
+      // Now create a failed XCM transaction by trying to transfer more than available
+      const failedConfig: XcmFragmentConfig = {
+        assets: [
+          {
+            multilocation: {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: Number(balancesPalletIndex) },
+              },
+            },
+            fungible: 1_700_000_000_000_000n,
+          },
+          {
+            multilocation: {
+              parents: 0,
+              interior: {
+                X2: [
+                  {
+                    PalletInstance: erc20XcmPalletIndex,
+                  },
+                  {
+                    AccountKey20: {
+                      network: null,
+                      key: erc20ContractAddress,
+                    },
+                  },
+                ],
+              },
+            },
+            fungible: amountTransferred * 2n, // Try to transfer twice the available amount
+          },
+        ],
+        beneficiary: CHARLETH_ADDRESS,
+      };
+
+      const failedXcmMessage = new XcmFragment(failedConfig)
+        .withdraw_asset()
+        .clear_origin()
+        .buy_execution()
+        .deposit_asset(2n)
+        .as_v3();
+
+      // Mock the reception of the failed xcm message
+      await injectHrmpMessageAndSeal(context, paraId, {
+        type: "XcmVersionedXcm",
+        payload: failedXcmMessage,
+      });
+
+      failedTransactionHash = (await context.viem().getBlock()).transactions[0];
     });
 
     it({
@@ -139,6 +190,33 @@ describeSuite({
         // We traced the transaction, and the traced gas used should be greater* than or equal
         // to the one recorded in the ethereum transaction receipt.
         // *gasUsed on tracing does not take into account gas refund.
+        expect(hexToNumber(trace.gasUsed)).gte(Number(receipt.gasUsed));
+      },
+    });
+
+    it({
+      id: "T02",
+      title: "should trace ERC20 xcm transaction even if it fail",
+      test: async function () {
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: failedTransactionHash as `0x${string}` });
+        
+        // Verify the transaction failed
+        expect(receipt.status).toBe("reverted");
+
+        // Attempt to trace the failed transaction
+        const trace = await customDevRpcRequest("debug_traceTransaction", [
+          failedTransactionHash,
+          { tracer: "callTracer" },
+        ]);
+
+        // Verify we got a trace back
+        expect(trace).toBeDefined();
+        expect(trace.gasUsed).toBeDefined();
+        
+        // The traced gas used should be greater than or equal to the one in the receipt
+        // since tracing doesn't account for gas refunds
         expect(hexToNumber(trace.gasUsed)).gte(Number(receipt.gasUsed));
       },
     });
