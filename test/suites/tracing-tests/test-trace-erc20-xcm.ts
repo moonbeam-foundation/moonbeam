@@ -173,6 +173,25 @@ describeSuite({
         payload: failedXcmMessage,
       });
 
+      // Get the latest block events
+      const block = await context.polkadotJs().rpc.chain.getBlock();
+      const allRecords = await context.polkadotJs().query.system.events.at(block.block.header.hash);
+
+      // Compute XCM message ID
+      const messageHash = context.polkadotJs().createType("XcmVersionedXcm", failedXcmMessage).hash;
+
+      console.log("messageHash", messageHash);
+
+      // Find messageQueue.Processed event with matching message ID
+      const processedEvent = allRecords.find(
+        ({ event }) =>
+          event.section === "messageQueue" &&
+          event.method === "Processed" &&
+          event.data[0].toString() === messageHash.toHex()
+      );
+
+      expect(processedEvent).to.not.be.undefined;
+
       failedTransactionHash = (await context.viem().getBlock()).transactions[0];
     });
 
