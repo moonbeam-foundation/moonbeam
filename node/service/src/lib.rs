@@ -790,6 +790,7 @@ where
 		let backend = backend.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
+		let max_block_range = rpc_config.max_block_range;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
@@ -831,6 +832,7 @@ where
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				max_block_range,
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
@@ -1538,6 +1540,7 @@ where
 		let sync = sync_service.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
+		let max_block_range = rpc_config.max_block_range;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
@@ -1559,6 +1562,7 @@ where
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				max_block_range,
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
