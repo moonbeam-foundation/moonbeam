@@ -444,6 +444,11 @@
 <a href="#442" id="442">442</a>
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -741,6 +746,10 @@
 	</span><span class="attr">#[clap(long, default_value = <span class="string">"10000"</span>)]
 	</span><span class="kw">pub </span>max_past_logs: u32,
 
+	<span class="doccomment">/// Maximum block range to query logs from.
+	</span><span class="attr">#[clap(long, default_value = <span class="string">"1024"</span>)]
+	</span><span class="kw">pub </span>max_block_range: u32,
+
 	<span class="doccomment">/// Force using Moonbase native runtime.
 	</span><span class="attr">#[clap(long = <span class="string">"force-moonbase"</span>)]
 	</span><span class="kw">pub </span>force_moonbase: bool,
@@ -797,6 +806,7 @@
 			eth_statuses_cache: <span class="self">self</span>.eth_statuses_cache,
 			fee_history_limit: <span class="self">self</span>.fee_history_limit,
 			max_past_logs: <span class="self">self</span>.max_past_logs,
+			max_block_range: <span class="self">self</span>.max_block_range,
 			relay_chain_rpc_urls: <span class="self">self</span>.base.relay_chain_rpc_urls.clone(),
 			tracing_raw_max_memory_usage: <span class="self">self</span>.tracing_raw_max_memory_usage,
 			frontier_backend_config: <span class="kw">match </span><span class="self">self</span>.frontier_backend_type {

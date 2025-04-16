@@ -1963,6 +1963,10 @@
 <a href="#1961" id="1961">1961</a>
 <a href="#1962" id="1962">1962</a>
 <a href="#1963" id="1963">1963</a>
+<a href="#1964" id="1964">1964</a>
+<a href="#1965" id="1965">1965</a>
+<a href="#1966" id="1966">1966</a>
+<a href="#1967" id="1967">1967</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2755,6 +2759,7 @@
 		<span class="kw">let </span>backend = backend.clone();
 		<span class="kw">let </span>ethapi_cmd = ethapi_cmd.clone();
 		<span class="kw">let </span>max_past_logs = rpc_config.max_past_logs;
+		<span class="kw">let </span>max_block_range = rpc_config.max_block_range;
 		<span class="kw">let </span>overrides = overrides.clone();
 		<span class="kw">let </span>fee_history_cache = fee_history_cache.clone();
 		<span class="kw">let </span>block_data_cache = block_data_cache.clone();
@@ -2796,6 +2801,7 @@
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				max_block_range,
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
@@ -3503,6 +3509,7 @@
 		<span class="kw">let </span>sync = sync_service.clone();
 		<span class="kw">let </span>ethapi_cmd = ethapi_cmd.clone();
 		<span class="kw">let </span>max_past_logs = rpc_config.max_past_logs;
+		<span class="kw">let </span>max_block_range = rpc_config.max_block_range;
 		<span class="kw">let </span>overrides = overrides.clone();
 		<span class="kw">let </span>fee_history_cache = fee_history_cache.clone();
 		<span class="kw">let </span>block_data_cache = block_data_cache.clone();
@@ -3524,6 +3531,7 @@
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				max_block_range,
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),

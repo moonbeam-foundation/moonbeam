@@ -858,6 +858,8 @@
 <a href="#856" id="856">856</a>
 <a href="#857" id="857">857</a>
 <a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -1621,6 +1623,7 @@
 		<span class="kw">let </span>sync = sync_service.clone();
 		<span class="kw">let </span>ethapi_cmd = ethapi_cmd.clone();
 		<span class="kw">let </span>max_past_logs = rpc_config.max_past_logs;
+		<span class="kw">let </span>max_block_range = rpc_config.max_block_range;
 		<span class="kw">let </span>overrides = overrides.clone();
 		<span class="kw">let </span>fee_history_cache = fee_history_cache.clone();
 		<span class="kw">let </span>block_data_cache = block_data_cache.clone();
@@ -1643,6 +1646,7 @@
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				max_block_range,
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
