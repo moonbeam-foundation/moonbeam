@@ -321,11 +321,12 @@ impl<T: Config> Pallet<T> {
 			let tx_hash = transaction.hash();
 			let transaction_data: TransactionData = (&transaction).into();
 
-			let weight_limit= <T as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
+			let weight_limit = <T as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
 				transaction_data.gas_limit.unique_saturated_into(),
 				true,
 			);
-			let proof_size_pre_execution = cumulus_primitives_storage_weight_reclaim::get_proof_size();
+			let proof_size_pre_execution =
+				cumulus_primitives_storage_weight_reclaim::get_proof_size();
 
 			let _ = CheckEvmTransaction::<T::InvalidEvmTransactionError>::new(
 				CheckEvmTransactionConfig {
