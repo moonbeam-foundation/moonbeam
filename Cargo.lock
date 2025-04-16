@@ -1019,7 +1019,7 @@ dependencies = [
 [[package]]
 name = "bp-bridge-hub-cumulus"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-messages",
  "bp-polkadot-core",
@@ -1034,7 +1034,7 @@ dependencies = [
 [[package]]
 name = "bp-header-chain"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-runtime",
  "finality-grandpa",
@@ -1051,7 +1051,7 @@ dependencies = [
 [[package]]
 name = "bp-kusama"
 version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-polkadot-core",
@@ -1064,7 +1064,7 @@ dependencies = [
 [[package]]
 name = "bp-messages"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-runtime",
@@ -1124,7 +1124,7 @@ dependencies = [
 [[package]]
 name = "bp-parachains"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-polkadot-core",
@@ -1141,7 +1141,7 @@ dependencies = [
 [[package]]
 name = "bp-polkadot"
 version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-polkadot-core",
@@ -1154,7 +1154,7 @@ dependencies = [
 [[package]]
 name = "bp-polkadot-core"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-messages",
  "bp-runtime",
@@ -1172,7 +1172,7 @@ dependencies = [
 [[package]]
 name = "bp-relayers"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-messages",
@@ -1190,7 +1190,7 @@ dependencies = [
 [[package]]
 name = "bp-runtime"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -1213,7 +1213,7 @@ dependencies = [
 [[package]]
 name = "bp-test-utils"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-parachains",
@@ -1250,7 +1250,7 @@ dependencies = [
 [[package]]
 name = "bp-xcm-bridge-hub"
 version = "0.4.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-messages",
  "bp-runtime",
@@ -1290,7 +1290,7 @@ dependencies = [
 [[package]]
 name = "bridge-hub-common"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -1307,7 +1307,7 @@ dependencies = [
 [[package]]
 name = "bridge-runtime-common"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-messages",
@@ -8681,7 +8681,7 @@ dependencies = [
 [[package]]
 name = "pallet-bridge-grandpa"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-runtime",
@@ -8700,7 +8700,7 @@ dependencies = [
 [[package]]
 name = "pallet-bridge-messages"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-messages",
@@ -8719,7 +8719,7 @@ dependencies = [
 [[package]]
 name = "pallet-bridge-parachains"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-parachains",
@@ -8739,7 +8739,7 @@ dependencies = [
 [[package]]
 name = "pallet-bridge-relayers"
 version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "bp-header-chain",
  "bp-messages",
@@ -10022,6 +10022,7 @@ dependencies = [
  "precompile-utils",
  "precompile-utils-macro",
  "scale-info",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -10824,6 +10825,7 @@ dependencies = [
  "pallet-balances",
  "parity-scale-codec",
  "scale-info",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -10871,8 +10873,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -15701,7 +15703,7 @@ dependencies = [
 [[package]]
 name = "snowbridge-beacon-primitives"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "byte-slice-cast",
  "frame-support",
@@ -15723,7 +15725,7 @@ dependencies = [
 [[package]]
 name = "snowbridge-core"
 version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "ethabi-decode",
  "frame-support",
@@ -15746,7 +15748,7 @@ dependencies = [
 [[package]]
 name = "snowbridge-ethereum"
 version = "0.9.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#9e5865c27d4cff1a792789bc1974c75c45f74ac8"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
 dependencies = [
  "ethabi-decode",
  "ethbloom",
@@ -17923,7 +17925,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
