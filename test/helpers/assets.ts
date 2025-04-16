@@ -96,98 +96,6 @@ export const patchLocationV4recursively = (value: any) => {
   return result;
 };
 
-const runtimeApi = {
-  runtime: {
-    XcmPaymentApi: [
-      {
-        methods: {
-          query_acceptable_payment_assets: {
-            description: "The API to query acceptable payment assets",
-            params: [
-              {
-                name: "version",
-                type: "u32",
-              },
-            ],
-            type: "Result<Vec<XcmVersionedAssetId>, XcmPaymentApiError>",
-          },
-          query_weight_to_asset_fee: {
-            description: "",
-            params: [
-              {
-                name: "weight",
-                type: "WeightV2",
-              },
-              {
-                name: "asset",
-                type: "XcmVersionedAssetId",
-              },
-            ],
-            type: "Result<u128, XcmPaymentApiError>",
-          },
-          query_xcm_weight: {
-            description: "",
-            params: [
-              {
-                name: "message",
-                type: "XcmVersionedXcm",
-              },
-            ],
-            type: "Result<WeightV2, XcmPaymentApiError>",
-          },
-          query_delivery_fees: {
-            description: "",
-            params: [
-              {
-                name: "destination",
-                type: "XcmVersionedLocation",
-              },
-              {
-                name: "message",
-                type: "XcmVersionedXcm",
-              },
-            ],
-            type: "Result<XcmVersionedAssets, XcmPaymentApiError>",
-          },
-        },
-        version: 1,
-      },
-    ],
-    XcmWeightTrader: [
-      {
-        methods: {
-          add_asset: {
-            description: "Add an asset to the supported assets",
-            params: [
-              {
-                name: "asset",
-                type: "XcmVersionedAssetId",
-              },
-              {
-                name: "relative_price",
-                type: "u128",
-              },
-            ],
-            type: "Result<(), XcmPaymentApiError>",
-          },
-        },
-        version: 1,
-      },
-    ],
-  },
-  types: {
-    XcmPaymentApiError: {
-      _enum: {
-        Unimplemented: "Null",
-        VersionedConversionFailed: "Null",
-        WeightNotComputable: "Null",
-        UnhandledXcmVersion: "Null",
-        AssetNotFound: "Null",
-      },
-    },
-  },
-};
-
 export async function calculateRelativePrice(
   context: any,
   unitsPerSecond: number
@@ -295,11 +203,6 @@ export async function registerOldForeignAsset(
         context.polkadotJs().tx.assetManager.registerForeignAsset(asset, metadata, new BN(1), true)
       )
   );
-
-  const polkadotJs = await ApiPromise.create({
-    provider: new WsProvider(`ws://localhost:${process.env.MOONWALL_RPC_PORT}/`),
-    ...runtimeApi,
-  });
 
   const WEIGHT_REF_TIME_PER_SECOND = 1_000_000_000_000;
   const weight = {
