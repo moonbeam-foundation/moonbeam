@@ -2753,7 +2753,6 @@ mod bridge_tests {
 	use pallet_xcm_bridge::XcmBlobMessageDispatchResult::Dispatched;
 	use parity_scale_codec::Encode;
 	use sp_core::{hex2array, H256};
-	use sp_runtime::{Percent, Saturating};
 	use sp_weights::Weight;
 	use xcm::latest::Junctions::X1;
 	use xcm::latest::{
@@ -2761,8 +2760,8 @@ mod bridge_tests {
 	};
 	use xcm::prelude::{
 		AccountKey20, BuyExecution, ClearOrigin, DepositAsset, DescendOrigin, Fungible,
-		GlobalConsensus, PalletInstance, Parachain, ReserveAssetDeposited, SetTopic,
-		UniversalOrigin, XCM_VERSION,
+		GlobalConsensus, PalletInstance, Parachain, ReserveAssetDeposited, UniversalOrigin,
+		XCM_VERSION,
 	};
 	use xcm::{VersionedAssets, VersionedInteriorLocation, VersionedLocation, VersionedXcm};
 	use xcm_builder::BridgeMessage;
