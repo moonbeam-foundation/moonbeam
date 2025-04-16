@@ -8572,6 +8572,7 @@ dependencies = [
 name = "pallet-ethereum-xcm"
 version = "1.0.0-dev"
 dependencies = [
+ "cumulus-primitives-storage-weight-reclaim",
  "environmental",
  "ethereum",
  "ethereum-types",
