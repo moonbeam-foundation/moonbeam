@@ -317,7 +317,7 @@ export class XcmFragment {
         // Ticket seems to indicate the version of the assets
         ticket: {
           parents: 0,
-          interior: { X1: { GeneralIndex: 4 } },
+          interior: { X1: { GeneralIndex: 5 } },
         },
       },
     });
