@@ -7,7 +7,7 @@ describeSuite({
   testCases: ({ context, it }) => {
     // This variable needs to be modified if `--max-blocks-range` CLI parameter is changed
     // Using the default of 1024
-    let BLOCKS_TO_CREATE = 1025;
+    const BLOCKS_TO_CREATE = 1025;
     beforeAll(async () => {
       let blocksToCreate = BLOCKS_TO_CREATE;
       for (; blocksToCreate > 0; blocksToCreate--) {

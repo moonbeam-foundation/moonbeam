@@ -6,6 +6,9 @@ on:
     branches:
       - master
 
+concurrency:  
+  group: ${{ github.ref }}
+  
 jobs:
   deploy-docs:
     name: Deploy docs

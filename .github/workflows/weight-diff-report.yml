@@ -10,6 +10,9 @@ on:
         - 'runtime/moonbeam/src/weights/**/*.rs'
         - 'runtime/moonbeam/src/weights/*.rs'
 
+concurrency:  
+  group: ${{ github.ref }}
+
 jobs:
     weight-diff:
         runs-on: ubuntu-latest

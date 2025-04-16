@@ -17,10 +17,8 @@ on:
         description: set to pull_request number to execute on external pr
         required: false
 
-# https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs#example-using-concurrency-to-cancel-any-in-progress-job-or-run
-concurrency:
+concurrency:  
   group: ${{ github.ref }}
-  cancel-in-progress: true
 
 env:
   NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation"

@@ -11,6 +11,9 @@ on:
     branches:
       - master
 
+concurrency:  
+  group: ${{ github.ref }}
+
 env:
   NODE_OPTIONS: "--max-old-space-size=12288"
   GRCOV_VERSION: 0.8.18
