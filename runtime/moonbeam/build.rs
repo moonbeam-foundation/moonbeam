@@ -14,23 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use substrate_wasm_builder::WasmBuilder;
-
-#[cfg(not(feature = "metadata-hash"))]
+#[cfg(all(feature = "std", not(feature = "metadata-hash")))]
 fn main() {
-	WasmBuilder::new()
-		.with_current_project()
-		.export_heap_base()
-		.import_memory()
-		.build()
+	substrate_wasm_builder::WasmBuilder::build_using_defaults()
 }
 
-#[cfg(feature = "metadata-hash")]
+#[cfg(all(feature = "std", feature = "metadata-hash"))]
 fn main() {
-	WasmBuilder::new()
-		.with_current_project()
-		.export_heap_base()
-		.import_memory()
+	substrate_wasm_builder::WasmBuilder::init_with_defaults()
 		.enable_metadata_hash("GLMR", 18)
+		// Genesis presets increase the runtime side, we only want it enabled in the client
+		.enable_feature("disable-genesis-builder")
 		.build()
 }
+
+#[cfg(not(feature = "std"))]
+fn main() {}
