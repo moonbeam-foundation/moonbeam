@@ -180,8 +180,6 @@ describeSuite({
       // Compute XCM message ID
       const messageHash = context.polkadotJs().createType("XcmVersionedXcm", failedXcmMessage).hash;
 
-      console.log("messageHash", messageHash);
-
       // Find messageQueue.Processed event with matching message ID
       const processedEvent = allRecords.find(
         ({ event }) =>
