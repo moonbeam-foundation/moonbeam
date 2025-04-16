@@ -522,6 +522,7 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = RelayTimestamp;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 	type WeightInfo = moonriver_weights::pallet_evm::WeightInfo<Runtime>;
+	type RandomnessProvider = Randomness;
 }
 
 parameter_types! {

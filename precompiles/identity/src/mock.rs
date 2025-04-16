@@ -21,7 +21,7 @@ use frame_support::{
 	traits::{EitherOfDiverse, Everything, SortedMembers},
 	weights::Weight,
 };
-use frame_system::{EnsureRoot, EnsureSignedBy};
+use frame_system::{pallet_prelude::BlockNumberFor, EnsureRoot, EnsureSignedBy};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use pallet_identity::legacy::IdentityInfo;
 use precompile_utils::mock_account;
@@ -133,6 +133,25 @@ pub type Precompiles<R> = PrecompileSetBuilder<
 
 pub type PCall = IdentityPrecompileCall<Runtime, MaxAdditionalFields>;
 
+pub struct RandomnessProvider;
+impl
+	frame_support::traits::Randomness<
+		<Runtime as frame_system::Config>::Hash,
+		BlockNumberFor<Runtime>,
+	> for RandomnessProvider
+{
+	fn random(
+		subject: &[u8],
+	) -> (
+		<Runtime as frame_system::Config>::Hash,
+		BlockNumberFor<Runtime>,
+	) {
+		let output = <Runtime as frame_system::Config>::Hashing::hash(subject);
+		let block_number = frame_system::Pallet::<Runtime>::block_number();
+		(output, block_number)
+	}
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
@@ -157,6 +176,7 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type RandomnessProvider = RandomnessProvider;
 }
 
 parameter_types! {
