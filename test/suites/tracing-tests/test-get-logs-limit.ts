@@ -5,10 +5,11 @@ describeSuite({
   title: "Test eth_getLogs RPC",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
+    // This variable needs to be modified if `--max-blocks-range` CLI parameter is changed
+    // Using the default of 1024
+    let BLOCKS_TO_CREATE = 1025;
     beforeAll(async () => {
-      // This variable needs to be modified if `--max-blocks-range` CLI parameter is changed
-      // Using the default of 1024
-      let blocksToCreate = 1025;
+      let blocksToCreate = BLOCKS_TO_CREATE;
       for (; blocksToCreate > 0; blocksToCreate--) {
         await context.createBlock();
       }
@@ -18,7 +19,7 @@ describeSuite({
       id: "T01",
       title: "Validate eth_getLogs block range limit",
       test: async function () {
-        expect(
+        await expect(
           async () =>
             await customDevRpcRequest("eth_getLogs", [
               {
