@@ -381,12 +381,12 @@ impl<T: Config> Pallet<T> {
 			match execution_info {
 				fp_evm::CallOrCreateInfo::Call(info) => {
 					if let fp_evm::ExitReason::Revert(_) = info.exit_reason {
-						XcmEthTransactionalProcessor::put_evm_revert();
+						XcmEthTransactionalProcessor::signal_evm_revert();
 					}
 				}
 				fp_evm::CallOrCreateInfo::Create(info) => {
 					if let fp_evm::ExitReason::Revert(_) = info.exit_reason {
-						XcmEthTransactionalProcessor::put_evm_revert();
+						XcmEthTransactionalProcessor::signal_evm_revert();
 					}
 				}
 			}

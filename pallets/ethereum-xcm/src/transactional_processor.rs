@@ -29,7 +29,7 @@ environmental::environmental!(IS_EVM_REVERT: bool);
 pub struct XcmEthTransactionalProcessor;
 
 impl XcmEthTransactionalProcessor {
-	pub fn put_evm_revert() {
+	pub fn signal_evm_revert() {
 		IS_EVM_REVERT::with(|is_evm_revert| *is_evm_revert = true);
 	}
 }
