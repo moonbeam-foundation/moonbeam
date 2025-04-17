@@ -2,7 +2,7 @@
 
 # Information
 
-![Tests](https://github.com/moonbeam-foundation/moonbeam/workflows/Build/badge.svg)
+[![Tests](https://github.com/moonbeam-foundation/moonbeam/workflows/Build/badge.svg)](https://github.com/moonbeam-foundation/moonbeam/actions)
 
 **An Ethereum compatible [Parachain](https://polkadot.network/technology/) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
 
