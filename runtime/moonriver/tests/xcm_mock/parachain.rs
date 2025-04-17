@@ -877,7 +877,7 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
-	type RandomnessProvider = moonriver_runtime::Randomness;
+	type RandomnessProvider = RandomnessProvider;
 }
 
 pub struct NormalFilter;
