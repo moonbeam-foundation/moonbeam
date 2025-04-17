@@ -493,3 +493,48 @@ debug = 1               # debug symbols are useful for profilers
 debug-assertions = true # Enable debug-assert! for non-production profiles
 inherits = "release"
 overflow-checks = true
+
+[patch."https://github.com/moonbeam-foundation/frontier"]
+pallet-base-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fp-evm = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-dynamic-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fp-dynamic-fee = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-ethereum = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fp-consensus = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fp-ethereum = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fp-rpc = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fp-storage = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fp-account = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-simple = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-test-vector-support = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fp-self-contained = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-sha3fips = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-modexp = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-ed25519 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-bn128 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-blake2 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-bw6761 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-bls12377 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-bls12381 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-dispatch = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-curve25519 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-precompile-storage-cleaner = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+precompile-utils = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+precompile-utils-macro = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-evm-chain-id = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+pallet-hotfix-sufficients = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-api = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-consensus = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-rpc-core = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-rpc = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-mapping-sync = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-db = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-storage = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+frontier-template-runtime = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-rpc-v2 = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-rpc-v2-api = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-rpc-v2-types = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+frontier-template-node = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+fc-cli = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }
+precompile-utils-tests-external = { git = "https://www.github.com/moonbeam-foundation/frontier" , branch = "tarekkma/remove-base-cost" }

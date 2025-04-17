@@ -37,6 +37,9 @@ fp-self-contained = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 xcm-primitives = { workspace = true }
 
+# Cumulus
+cumulus-primitives-storage-weight-reclaim = { workspace = true }
+
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
 
@@ -81,6 +84,8 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-primitives/std",
+	# Cumulus
+	"cumulus-primitives-storage-weight-reclaim/std",
 ]
 runtime-benchmarks = [ 
 	"frame-benchmarking", 
