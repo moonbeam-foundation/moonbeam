@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo 'Make sure you have built moonbeam-types-bundle and run "npm install" in the test/ folder.'
+pnpm i
 
 BUILD_LAST_TRACING_RUNTIME="no"
 
@@ -20,15 +20,7 @@ else
   echo "The tracing runtime is not rebuilt, if you want to rebuild it, use the option '-f'."
 fi
 
-echo "Preparing tests dependencies…"
-cd moonbeam-types-bundle
-pnpm i
-pnpm build
-
-cd ../test
-pnpm typegen
-
 echo "Run tracing tests…"
-pnpm compile-solidity
+cd test || exit
 pnpm moonwall test dev_moonbase_tracing
 cd ..
