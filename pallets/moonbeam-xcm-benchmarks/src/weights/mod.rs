@@ -19,7 +19,7 @@ pub mod generic;
 
 pub use crate::weights::generic::WeightInfo;
 use core::cmp::min;
-use frame_support::weights::Weight;
+use frame_support::{pallet_prelude::Encode, weights::Weight};
 use fungible::WeightInfo as XcmFungibleWeight;
 use generic::SubstrateWeight as XcmGeneric;
 use sp_std::prelude::*;
@@ -212,10 +212,11 @@ where
 		XcmGeneric::<Runtime>::clear_transact_status()
 	}
 	fn universal_origin(_: &Junction) -> Weight {
-		Weight::MAX
+		XcmGeneric::<Runtime>::universal_origin()
 	}
-	fn export_message(_: &NetworkId, _: &Junctions, _: &Xcm<()>) -> Weight {
-		Weight::MAX
+	fn export_message(_: &NetworkId, _: &Junctions, inner: &Xcm<()>) -> Weight {
+		let inner_encoded_len = inner.encode().len() as u32;
+		XcmGeneric::<Runtime>::export_message(inner_encoded_len)
 	}
 	fn lock_asset(_: &Asset, _: &Location) -> Weight {
 		Weight::MAX
