@@ -24,8 +24,8 @@ environmental::environmental!(IS_EVM_REVERT: bool);
 /// Transactional processor implementation used by the XCM executor
 /// to execute each XCM instruction in a transactional way.
 ///
-/// If an EthereumXCM transaction revert, the transaction should still
-/// be included in the "ethereum block storage".
+/// Behave like FrameTransactionalProcessor except if the XCM instruction call the EVM AND the EVM Revert has occurred.
+/// In this case, the storage changes should be committed to include the eth-xcm transaction in the "ethereum block storage".
 pub struct XcmEthTransactionalProcessor;
 
 impl XcmEthTransactionalProcessor {
@@ -52,6 +52,8 @@ impl ProcessTransaction for XcmEthTransactionalProcessor {
 						if let Some(true) = IS_EVM_REVERT::with(|is_evm_revert| *is_evm_revert) {
 							TransactionOutcome::Commit(Ok(output))
 						} else {
+							// Otherwise, we should rollback storage changes
+							// to be consistent with FrameTransactionalProcessor
 							TransactionOutcome::Rollback(Ok(Err(*xcm_error)))
 						}
 					}
