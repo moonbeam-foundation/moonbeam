@@ -108,7 +108,10 @@ describeSuite({
               originKind: "SovereignAccount",
               requireWeightAtMost: transactWeightAtMost,
               call: {
-                encoded: "0x",
+                encoded: polkadotJs.tx.balances.transferAllowDeath(
+                  "0x0000000000000000000000000000000000000000",
+                  1000000000n
+                ).method.toHex(),
               },
             },
           })
@@ -120,7 +123,7 @@ describeSuite({
         expect(weightMessage.asOk.proofSize.toBigInt() > transactWeightAtMost.proofSize).to.be.true;
 
         const dest = {
-          V2: {
+          V3: {
             parents: 1,
             interior: "Here",
           },
