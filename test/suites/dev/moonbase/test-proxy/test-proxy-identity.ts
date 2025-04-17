@@ -53,7 +53,7 @@ describeSuite({
       });
 
       const identityOf = await context.polkadotJs().query.identity.identityOf(signer.address);
-      expect(identityOf.unwrap()[0].info.hash.toHex(), "Identity hash should match").to.equal(
+      expect(identityOf.unwrap().info.hash.toHex(), "Identity hash should match").to.equal(
         identityHash
       );
     });

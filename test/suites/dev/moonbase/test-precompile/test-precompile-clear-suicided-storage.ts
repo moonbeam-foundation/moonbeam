@@ -46,9 +46,11 @@ describeSuite({
       await context.createBlock();
     });
 
+    // StorageCleaner precompile address was removed during 2412 upgrade
     it({
       id: "T01",
       title: "Should not be able to clear storage entries of a contract that is not suicided.",
+      modifier: "skip",
       test: async function () {
         const rawTxn = await createEthersTransaction(context, {
           to: precompileAddress,
@@ -67,9 +69,11 @@ describeSuite({
       },
     });
 
+    // StorageCleaner precompile address was removed during 2412 upgrade
     it({
       id: "T02",
       title: "Should clear storage entries of a suicided contract.",
+      modifier: "skip",
       test: async function () {
         // Add contract to the suicided list
         await context.createBlock(

@@ -19,15 +19,10 @@ import type {
   u32,
   u64
 } from "@polkadot/types-codec";
-import type { AnyNumber, IMethod, ITuple } from "@polkadot/types-codec/types";
+import type { AnyNumber, ITuple } from "@polkadot/types-codec/types";
 import type { CheckInherentsResult, InherentData } from "@polkadot/types/interfaces/blockbuilder";
 import type { BlockHash } from "@polkadot/types/interfaces/chain";
 import type { CollationInfo } from "@polkadot/types/interfaces/cumulus";
-import type {
-  CallDryRunEffects,
-  XcmDryRunApiError,
-  XcmDryRunEffects
-} from "@polkadot/types/interfaces/dryRunApi";
 import type {
   BlockV2,
   EthReceiptV3,
@@ -49,16 +44,13 @@ import type {
   Header,
   Index,
   KeyTypeId,
-  OriginCaller,
   Permill,
-  RuntimeCall,
   Weight,
   WeightV2
 } from "@polkadot/types/interfaces/runtime";
 import type { RuntimeVersion } from "@polkadot/types/interfaces/state";
 import type { ApplyExtrinsicResult, DispatchError } from "@polkadot/types/interfaces/system";
 import type { TransactionSource, TransactionValidity } from "@polkadot/types/interfaces/txqueue";
-import type { VersionedMultiLocation, VersionedXcm } from "@polkadot/types/interfaces/xcm";
 import type { XcmPaymentApiError } from "@polkadot/types/interfaces/xcmPaymentApi";
 import type { Error } from "@polkadot/types/interfaces/xcmRuntimeApi";
 import type {
@@ -208,49 +200,6 @@ declare module "@polkadot/api-base/types/calls" {
        * Returns the version of the runtime.
        **/
       version: AugmentedCall<ApiType, () => Observable<RuntimeVersion>>;
-      /**
-       * Generic call
-       **/
-      [key: string]: DecoratedCallBase<ApiType>;
-    };
-    /** 0x91b1c8b16328eb92/1 */
-    dryRunApi: {
-      /**
-       * Dry run call
-       **/
-      dryRunCall: AugmentedCall<
-        ApiType,
-        (
-          origin: OriginCaller | { System: any } | string | Uint8Array,
-          call: RuntimeCall | IMethod | string | Uint8Array
-        ) => Observable<Result<CallDryRunEffects, XcmDryRunApiError>>
-      >;
-      /**
-       * Dry run XCM program
-       **/
-      dryRunXcm: AugmentedCall<
-        ApiType,
-        (
-          originLocation:
-            | VersionedMultiLocation
-            | { V0: any }
-            | { V1: any }
-            | { V2: any }
-            | { V3: any }
-            | { V4: any }
-            | string
-            | Uint8Array,
-          xcm:
-            | VersionedXcm
-            | { V0: any }
-            | { V1: any }
-            | { V2: any }
-            | { V3: any }
-            | { V4: any }
-            | string
-            | Uint8Array
-        ) => Observable<Result<XcmDryRunEffects, XcmDryRunApiError>>
-      >;
       /**
        * Generic call
        **/
@@ -409,9 +358,9 @@ declare module "@polkadot/api-base/types/calls" {
         (
           location:
             | XcmVersionedLocation
-            | { V2: any }
             | { V3: any }
             | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array
         ) => Observable<Result<AccountId, Error>>
@@ -599,7 +548,7 @@ declare module "@polkadot/api-base/types/calls" {
         ApiType,
         (
           weight: WeightV2 | { refTime?: any; proofSize?: any } | string | Uint8Array,
-          asset: XcmVersionedAssetId | { V3: any } | { V4: any } | string | Uint8Array
+          asset: XcmVersionedAssetId | { V3: any } | { V4: any } | { V5: any } | string | Uint8Array
         ) => Observable<Result<u128, XcmPaymentApiError>>
       >;
       /**
@@ -608,7 +557,7 @@ declare module "@polkadot/api-base/types/calls" {
       queryXcmWeight: AugmentedCall<
         ApiType,
         (
-          message: XcmVersionedXcm | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array
+          message: XcmVersionedXcm | { V3: any } | { V4: any } | { V5: any } | string | Uint8Array
         ) => Observable<Result<WeightV2, XcmPaymentApiError>>
       >;
       /**

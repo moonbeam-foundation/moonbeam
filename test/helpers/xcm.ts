@@ -317,7 +317,7 @@ export class XcmFragment {
         // Ticket seems to indicate the version of the assets
         ticket: {
           parents: 0,
-          interior: { X1: { GeneralIndex: 4 } },
+          interior: { X1: { GeneralIndex: 5 } },
         },
       },
     });
@@ -986,7 +986,7 @@ export const sendCallAsPara = async (
   let didSucceed = false;
   let errorName: string | null = null;
 
-  const transactStatusQuery = transactStatusDecoded.asV4[0].asQueryResponse;
+  const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
   expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
   const dispatch = transactStatusQuery.response.asDispatchResult;
   if (dispatch.isSuccess) {
@@ -1106,13 +1106,13 @@ export const sendCallAsDescendedOrigin = async (
   let didSucceed = false;
   let errorName: string | null = null;
 
-  if (transactStatusDecoded.asV4[0].isSubscribeVersion) {
+  if (transactStatusDecoded.asV5[0].isSubscribeVersion) {
     // Successful executions don't generate response messages in the same block
     // instead, they send a subscription message to the destination parachain
     // We assume that the call was successful if we receive a subscription message
     didSucceed = true;
   } else {
-    const transactStatusQuery = transactStatusDecoded.asV4[0].asQueryResponse;
+    const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
     expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
     const dispatch = transactStatusQuery.response.asDispatchResult;
     if (dispatch.isSuccess) {

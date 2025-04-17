@@ -15,7 +15,7 @@ parity-scale-codec = { workspace = true }
 sp-runtime-interface = { workspace = true }
 
 # Ethereum
-ethereum = { workspace = true, features = [ "with-codec" ] }
+ethereum = { workspace = true, features = [ "with-scale" ] }
 ethereum-types = { workspace = true }
 evm = { workspace = true, features = [ "with-codec" ] }
 evm-gasometer = { workspace = true }
