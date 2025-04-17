@@ -29,7 +29,7 @@ use precompile_utils::{
 	precompile_set::*,
 	testing::{MockAccount, MockSignature},
 };
-use sp_core::{H256, U256};
+use sp_core::{H256, U256, Hasher};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,

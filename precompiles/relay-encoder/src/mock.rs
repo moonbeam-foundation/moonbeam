@@ -30,7 +30,7 @@ use pallet_evm::{
 use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
-use sp_core::{H160, H256};
+use sp_core::{H160, H256, Hasher};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,

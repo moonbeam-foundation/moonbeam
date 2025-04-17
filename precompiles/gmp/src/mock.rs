@@ -26,7 +26,7 @@ use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvid
 use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
-use sp_core::H256;
+use sp_core::{H256, Hasher};
 use sp_runtime::BuildStorage;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},

@@ -31,7 +31,7 @@ use pallet_evm::{
 };
 use parity_scale_codec::Decode;
 use precompile_utils::{precompile_set::*, testing::MockAccount};
-use sp_core::{Get, U256};
+use sp_core::{Get, Hasher, U256};
 use sp_runtime::{traits::BlakeTwo256, BuildStorage};
 
 // Configure a mock runtime to test the pallet.

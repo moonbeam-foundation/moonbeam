@@ -33,7 +33,7 @@ use precompile_utils::{
 	testing::MockAccount,
 };
 use scale_info::TypeInfo;
-use sp_core::{ConstU32, H160, H256, U256};
+use sp_core::{ConstU32, Hasher, H160, H256, U256};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::{

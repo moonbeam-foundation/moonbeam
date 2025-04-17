@@ -23,7 +23,7 @@ use frame_system::{EnsureRoot, Origin};
 use pallet_ethereum::{IntermediateStateRoot, PostLogContent};
 use pallet_evm::{FrameSystemAccountProvider, SubstrateBlockHashMapping};
 use precompile_utils::testing::MockAccount;
-use sp_core::{H256, U256};
+use sp_core::{H256, U256, Hasher};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
 use xcm::latest::{Junction, Location};

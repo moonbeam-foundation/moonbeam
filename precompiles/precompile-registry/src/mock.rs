@@ -22,7 +22,7 @@ use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
-use sp_core::H256;
+use sp_core::{H256, Hasher};
 use sp_runtime::BuildStorage;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},

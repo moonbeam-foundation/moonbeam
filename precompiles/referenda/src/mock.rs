@@ -27,7 +27,7 @@ use pallet_referenda::{impl_tracksinfo_get, Curve, TrackInfo};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use precompile_utils::{precompile_set::*, testing::*};
 use scale_info::TypeInfo;
-use sp_core::H256;
+use sp_core::{Hasher, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,

@@ -24,7 +24,7 @@ use frame_support::{
 use pallet_conviction_voting::TallyOf;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
-use sp_core::{H256, U256};
+use sp_core::{Hasher, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, ConstU32, ConstU64, IdentityLookup},
 	BuildStorage, DispatchError, Perbill,

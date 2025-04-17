@@ -29,7 +29,7 @@ use precompile_utils::{
 	testing::{Alice, MockAccount},
 };
 use sp_consensus_slots::Slot;
-use sp_core::{H256, U256};
+use sp_core::{Hasher, H256, U256};
 use sp_io;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},

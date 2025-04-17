@@ -28,7 +28,7 @@ use pallet_evm::{
 	AddressMapping, EnsureAddressTruncated, FeeCalculator, FrameSystemAccountProvider,
 };
 use rlp::RlpStream;
-use sp_core::{hashing::keccak_256, H160, H256, U256};
+use sp_core::{hashing::keccak_256, H160, H256, U256, Hasher};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	AccountId32, BuildStorage,

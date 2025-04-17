@@ -30,7 +30,7 @@ use precompile_utils::{
 	testing::{AddressInPrefixedSet, MockAccount},
 };
 use scale_info::TypeInfo;
-use sp_core::H256;
+use sp_core::{H256, Hasher};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;

@@ -23,7 +23,7 @@ use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{
 	AddressMapping, EnsureAddressTruncated, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
-use sp_core::{H160, H256, U256};
+use sp_core::{H160, H256, U256, Hasher};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::AccountId32;
 

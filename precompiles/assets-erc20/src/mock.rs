@@ -31,7 +31,7 @@ use precompile_utils::{
 	precompile_set::*,
 	testing::{AddressInPrefixedSet, MockAccount},
 };
-use sp_core::H256;
+use sp_core::{Hasher, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, ConstU32, IdentityLookup},
 	BuildStorage,

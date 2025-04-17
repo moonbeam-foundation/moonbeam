@@ -21,7 +21,7 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use session_keys_primitives::VrfId;
-use sp_core::H256;
+use sp_core::{Hasher, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,

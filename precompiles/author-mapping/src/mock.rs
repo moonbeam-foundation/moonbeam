@@ -26,7 +26,7 @@ use pallet_evm::{
 	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
-use sp_core::{H256, U256};
+use sp_core::{Hasher, H256, U256};
 use sp_io;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
