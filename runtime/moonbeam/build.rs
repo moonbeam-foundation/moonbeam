@@ -16,7 +16,10 @@
 
 #[cfg(all(feature = "std", not(feature = "metadata-hash")))]
 fn main() {
-	substrate_wasm_builder::WasmBuilder::build_using_defaults()
+	substrate_wasm_builder::WasmBuilder::init_with_defaults()
+		// Genesis presets increase the runtime side, we only want it enabled in the client
+		.enable_feature("disable-genesis-builder")
+		.build()
 }
 
 #[cfg(all(feature = "std", feature = "metadata-hash"))]
