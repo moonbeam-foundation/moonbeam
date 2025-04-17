@@ -19,10 +19,11 @@ use crate as erc20_xcm_bridge;
 
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
+use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{
 	AddressMapping, EnsureAddressTruncated, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
-use sp_core::{H160, H256, U256};
+use sp_core::{H160, H256, U256, Hasher};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::AccountId32;
 
@@ -134,6 +135,17 @@ impl AddressMapping<AccountId32> for HashedAddressMapping {
 	}
 }
 
+pub struct RandomnessProvider;
+impl frame_support::traits::Randomness<<Test as frame_system::Config>::Hash, BlockNumberFor<Test>>
+	for RandomnessProvider
+{
+	fn random(subject: &[u8]) -> (<Test as frame_system::Config>::Hash, BlockNumberFor<Test>) {
+		let output = <Test as frame_system::Config>::Hashing::hash(subject);
+		let block_number = frame_system::Pallet::<Test>::block_number();
+		(output, block_number)
+	}
+}
+
 impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
@@ -158,6 +170,7 @@ impl pallet_evm::Config for Test {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
 	type AccountProvider = FrameSystemAccountProvider<Test>;
+	type RandomnessProvider = RandomnessProvider;
 }
 
 parameter_types! {
