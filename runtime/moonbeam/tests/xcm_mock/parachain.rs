@@ -815,10 +815,6 @@ impl pallet_timestamp::Config for Runtime {
 
 use sp_core::U256;
 
-const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
-/// Block storage limit in bytes. Set to 160 KB.
-const BLOCK_STORAGE_LIMIT: u64 = 160 * 1024;
-
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
 	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
@@ -1074,7 +1070,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
-use moonbeam_runtime::EvmForeignAssets;
+use moonbeam_runtime::{EvmForeignAssets, BLOCK_STORAGE_LIMIT};
 use pallet_evm::FrameSystemAccountProvider;
 use sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use xcm_primitives::AsAssetType;
