@@ -60,40 +60,47 @@ describeSuite({
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
 
-        const transactionHash = await paraApi.tx.system
-          .applyAuthorizedUpgrade(rtHex)
-          .signAndSend(alith, async ({ status, dispatchError }) => {
-            if (dispatchError) {
-              if (dispatchError.isModule) {
-                // for module errors, we have the section indexed, lookup
-                const decoded = paraApi.registry.findMetaError(dispatchError.asModule);
-                const { docs, name, section } = decoded;
+        await new Promise<void>(async (resolve, reject) => {
+          // Fail if it takes more than 60 seconds
+          setTimeout(() => reject("timeout"), 60_000);
 
-                expect.fail(`${section}.${name}: ${docs.join(" ")}`);
-              } else {
-                // Other, CannotLookup, BadOrigin, no extra info
-                expect.fail(dispatchError.toString());
-              }
-            } else if (status.isInBlock) {
-              const rtafter = paraApi.consts.system.version.specVersion.toNumber();
-              expect(rtafter).to.be.greaterThan(rtBefore);
-
-              log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
-
-              const blockNumberAfter = (
-                await paraApi.rpc.chain.getBlock()
-              ).block.header.number.toNumber();
-              log(`Before: #${blockNumberBefore}, After: #${blockNumberAfter}`);
-              expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
-                blockNumberBefore
-              );
-            } else {
+          await paraApi.tx.system
+            .applyAuthorizedUpgrade(rtHex)
+            .signAndSend(alith, async ({ status, dispatchError }) => {
               const blockNumberAfter = (
                 await paraApi.rpc.chain.getBlock()
               ).block.header.number.toNumber();
               console.debug(`Block number: ${blockNumberAfter}, Status: ${status}`);
-            }
-          });
+
+              if (dispatchError) {
+                if (dispatchError.isModule) {
+                  // for module errors, we have the section indexed, lookup
+                  const decoded = paraApi.registry.findMetaError(dispatchError.asModule);
+                  const { docs, name, section } = decoded;
+
+                  reject(`${section}.${name}: ${docs.join(" ")}`);
+                } else {
+                  // Other, CannotLookup, BadOrigin, no extra info
+                  reject(dispatchError.toString());
+                }
+              } else if (status.isInBlock) {
+                const rtafter = paraApi.consts.system.version.specVersion.toNumber();
+                expect(rtafter).to.be.greaterThan(rtBefore);
+
+                log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
+
+                const blockNumberAfter = (
+                  await paraApi.rpc.chain.getBlock()
+                ).block.header.number.toNumber();
+                log(`Before: #${blockNumberBefore}, After: #${blockNumberAfter}`);
+                expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
+                  blockNumberBefore
+                );
+
+                resolve();
+              }
+            });
+        });
       },
     });
 
