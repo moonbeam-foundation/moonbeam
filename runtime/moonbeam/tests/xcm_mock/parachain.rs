@@ -820,7 +820,7 @@ parameter_types! {
 	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
 	pub GasLimitPovSizeRatio: u64 = {
 		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
-		block_gas_limit.saturating_div(MAX_POV_SIZE)
+		block_gas_limit.saturating_div(MAX_POV_SIZE as u64)
 	};
 	pub GasLimitStorageGrowthRatio: u64 =
 		BlockGasLimit::get().min(u64::MAX.into()).low_u64().saturating_div(BLOCK_STORAGE_LIMIT);
@@ -1070,7 +1070,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
-use moonbeam_runtime::{EvmForeignAssets, BLOCK_STORAGE_LIMIT};
+use moonbeam_runtime::{EvmForeignAssets, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
 use pallet_evm::FrameSystemAccountProvider;
 use sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use xcm_primitives::AsAssetType;
