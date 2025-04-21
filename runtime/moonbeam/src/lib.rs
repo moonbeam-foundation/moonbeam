@@ -965,7 +965,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 					// In the future, we may create a dynamic whitelist to authorize some audited
 					// smart contracts through governance.
 					None => {
-						// If the address is not recognized, allow only evm transfert to "simple"
+						// If the address is not recognized, allow only evm transfer to "simple"
 						// accounts (no code nor precompile).
 						// Note: Checking the presence of the code is not enough because some
 						// precompiles have no code.
