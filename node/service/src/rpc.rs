@@ -122,6 +122,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 	/// Maximum number of logs in a query.
 	pub max_past_logs: u32,
+	/// Maximum block range in a query.
+	pub max_block_range: u32,
 	/// Maximum fee history cache size.
 	pub fee_history_limit: u64,
 	/// Fee history cache.
@@ -195,6 +197,7 @@ where
 		frontier_backend,
 		backend: _,
 		max_past_logs,
+		max_block_range,
 		fee_history_limit,
 		fee_history_cache,
 		dev_rpc_data,
@@ -275,6 +278,7 @@ where
 				filter_pool,
 				500_usize, // max stored filters
 				max_past_logs,
+				max_block_range,
 				block_data_cache,
 			)
 			.into_rpc(),
