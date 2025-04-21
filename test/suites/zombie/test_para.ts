@@ -4,18 +4,17 @@ import { BALTATHAR_ADDRESS, alith, charleth } from "@moonwall/util";
 import type { ApiPromise } from "@polkadot/api";
 import { ethers } from "ethers";
 import fs from "node:fs";
+import { aw } from "vitest/dist/chunks/reporters.D7Jzd9GS";
 
 describeSuite({
   id: "Z01",
-  title: "Zombie AlphaNet Upgrade Test",
+  title: "Zombienet Runtime Upgrade Test",
   foundationMethods: "zombie",
   testCases: ({ it, context, log }) => {
     let paraApi: ApiPromise;
-    let relayApi: ApiPromise;
 
     beforeAll(async () => {
       paraApi = context.polkadotJs("parachain");
-      relayApi = context.polkadotJs("relaychain");
 
       const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
       expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);
@@ -61,22 +60,40 @@ describeSuite({
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
 
-        await paraApi.tx.system.applyAuthorizedUpgrade(rtHex).signAndSend(alith);
+        const transactionHash = await paraApi.tx.system
+          .applyAuthorizedUpgrade(rtHex)
+          .signAndSend(alith, async ({ status, dispatchError }) => {
+            if (dispatchError) {
+              if (dispatchError.isModule) {
+                // for module errors, we have the section indexed, lookup
+                const decoded = paraApi.registry.findMetaError(dispatchError.asModule);
+                const { docs, name, section } = decoded;
 
-        await context.waitBlock(15);
+                expect.fail(`${section}.${name}: ${docs.join(" ")}`);
+              } else {
+                // Other, CannotLookup, BadOrigin, no extra info
+                expect.fail(dispatchError.toString());
+              }
+            } else if (status.isInBlock) {
+              const rtafter = paraApi.consts.system.version.specVersion.toNumber();
+              expect(rtafter).to.be.greaterThan(rtBefore);
 
-        const rtafter = paraApi.consts.system.version.specVersion.toNumber();
-        expect(rtafter).to.be.greaterThan(rtBefore);
+              log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
 
-        log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
-
-        const blockNumberAfter = (
-          await paraApi.rpc.chain.getBlock()
-        ).block.header.number.toNumber();
-        log(`Before: #${blockNumberBefore}, After: #${blockNumberAfter}`);
-        expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
-          blockNumberBefore
-        );
+              const blockNumberAfter = (
+                await paraApi.rpc.chain.getBlock()
+              ).block.header.number.toNumber();
+              log(`Before: #${blockNumberBefore}, After: #${blockNumberAfter}`);
+              expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
+                blockNumberBefore
+              );
+            } else {
+              const blockNumberAfter = (
+                await paraApi.rpc.chain.getBlock()
+              ).block.header.number.toNumber();
+              console.debug(`Block number: ${blockNumberAfter}, Status: ${status}`);
+            }
+          });
       },
     });
 
