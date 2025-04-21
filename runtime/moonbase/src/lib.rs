@@ -1000,7 +1000,7 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 						// Note: Checking the presence of the code is not enough because some
 						// precompiles have no code.
 						!recipient_has_code
-							&& precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
+							&& !precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
 								call.to.0, gas,
 							)?
 					}
