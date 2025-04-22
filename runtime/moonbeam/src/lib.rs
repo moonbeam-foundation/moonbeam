@@ -46,9 +46,8 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		fungible::{
-			Balanced, Credit, HoldConsideration, Inspect, NativeFromLeft, NativeOrWithId, UnionOf,
+			Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId,
 		},
-		tokens::pay::PayAssetFromAccount,
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
 		EitherOfDiverse, EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice, OnFinalize,
 		OnUnbalanced,

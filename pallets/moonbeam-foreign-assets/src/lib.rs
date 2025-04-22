@@ -55,7 +55,7 @@ use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::{
-	fungibles::{Create, Inspect, Mutate, Unbalanced},
+	fungibles::Inspect,
 	Contains,
 };
 
