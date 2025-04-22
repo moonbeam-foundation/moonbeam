@@ -1,6 +1,7 @@
 use frame_support::traits::{
-	fungible::{self, NativeOrWithId},
+	fungible::{self, NativeOrWithId, Mutate},
 	tokens::Pay,
+    
 };
 use moonbeam_core_primitives::{AssetId, Balance};
 use pallet_moonbeam_foreign_assets::AssetsById;
