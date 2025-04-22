@@ -4,7 +4,6 @@ import { BALTATHAR_ADDRESS, alith, charleth } from "@moonwall/util";
 import type { ApiPromise } from "@polkadot/api";
 import { ethers } from "ethers";
 import fs from "node:fs";
-import { aw } from "vitest/dist/chunks/reporters.D7Jzd9GS";
 
 describeSuite({
   id: "Z01",
@@ -83,7 +82,7 @@ describeSuite({
                   // Other, CannotLookup, BadOrigin, no extra info
                   reject(dispatchError.toString());
                 }
-              } else if (status.isInBlock) {
+              } else if (status.isFinalized) {
                 const rtafter = paraApi.consts.system.version.specVersion.toNumber();
                 expect(rtafter).to.be.greaterThan(rtBefore);
 
