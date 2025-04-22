@@ -20,6 +20,8 @@ members = [
     "pallets/proxy-genesis-companion",
     "pallets/xcm-transactor",
     "pallets/xcm-weight-trader",
+    "pallets/xcm-bridge-router",
+    "pallets/xcm-bridge",
     "precompiles/balances-erc20",
     "precompiles/batch",
     "precompiles/call-permit",
@@ -50,6 +52,7 @@ resolver = "2"
 
 [workspace.package]
 authors = ["PureStake"]
+edition = "2021"
 repository = "https://github.com/PureStake/moonbeam"
 
 [workspace.dependencies]
@@ -113,6 +116,12 @@ precompile-foreign-asset-migrator = { path = "precompiles/foreign-asset-migrator
 xcm-primitives = { path = "primitives/xcm", default-features = false }
 
 pallet-crowdloan-rewards = { git = "https://github.com/moonbeam-foundation/crowdloan-rewards", branch = "moonbeam-polkadot-stable2409", default-features = false }
+
+# Local bridge crates
+bp-xcm-bridge = { path = "primitives/bridge/xcm-bridge", default-features = false }
+bp-xcm-bridge-router = { path = "primitives/bridge/xcm-bridge-router", default-features = false }
+pallet-xcm-bridge-router = { path = "pallets/xcm-bridge-router", default-features = false }
+pallet-xcm-bridge = { path = "pallets/xcm-bridge", default-features = false }
 
 # Moonbeam (client)
 moonbeam-cli = { path = "node/cli", default-features = false }
@@ -331,6 +340,12 @@ polkadot-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk"
 rococo-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409" }
 westend-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409" }
 xcm-simulator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409" }
+
+# Bridge dependencies
+bp-header-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
+bp-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
+bp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
+pallet-bridge-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
 
 # Moonkit (wasm)
 async-backing-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-stable2409", default-features = false }
