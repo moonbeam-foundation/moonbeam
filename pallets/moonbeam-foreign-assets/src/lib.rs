@@ -54,10 +54,7 @@ use self::evm::EvmCaller;
 use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
-use frame_support::traits::{
-	fungibles::Inspect,
-	Contains,
-};
+use frame_support::traits::{fungibles::Inspect, Contains};
 
 use frame_system::pallet_prelude::*;
 use xcm::latest::{

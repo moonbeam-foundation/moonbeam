@@ -65,9 +65,7 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
-		fungible::{
-			Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId,
-		},
+		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
 		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
 		OnFinalize, OnUnbalanced,

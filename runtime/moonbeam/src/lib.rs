@@ -45,9 +45,7 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
-		fungible::{
-			Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId,
-		},
+		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
 		EitherOfDiverse, EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice, OnFinalize,
 		OnUnbalanced,
@@ -64,7 +62,10 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::{impl_multiasset_paymaster::MultiAssetPaymaster, timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp}};
+use moonbeam_runtime_common::{
+	impl_multiasset_paymaster::MultiAssetPaymaster,
+	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+};
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
