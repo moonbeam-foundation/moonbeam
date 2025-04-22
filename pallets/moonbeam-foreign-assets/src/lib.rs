@@ -58,6 +58,7 @@ use frame_support::traits::{
 	fungibles::{Create, Inspect, Mutate, Unbalanced},
 	Contains,
 };
+
 use frame_system::pallet_prelude::*;
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
@@ -365,6 +366,24 @@ pub mod pallet {
 				EvmCaller::<T>::erc20_mint_into(
 					Self::contract_address_from_asset_id(asset_id),
 					T::AccountIdToH160::convert(beneficiary),
+					amount,
+				)
+			})
+			.map_err(Into::into)
+		}
+
+		/// Transfer an asset from an account to another one
+		pub fn transfer(
+			asset_id: AssetId,
+			from: T::AccountId,
+			to: T::AccountId,
+			amount: U256,
+		) -> Result<(), evm::EvmError> {
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_transfer(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(from),
+					T::AccountIdToH160::convert(to),
 					amount,
 				)
 			})
