@@ -281,7 +281,7 @@ pub struct RunCmd {
 	#[arg(long, default_value = "4")]
 	pub frontier_sql_backend_thread_count: u32,
 
-	/// Sets the SQL backend's query timeout in number of VM ops.
+	/// Sets the SQL backend's cache size in bytes.
 	/// Default value is 200MB.
 	#[arg(long, default_value = "209715200")]
 	pub frontier_sql_backend_cache_size: u64,
@@ -294,6 +294,10 @@ pub struct RunCmd {
 	/// Maximum number of logs in a query.
 	#[clap(long, default_value = "10000")]
 	pub max_past_logs: u32,
+
+	/// Maximum block range to query logs from.
+	#[clap(long, default_value = "1024")]
+	pub max_block_range: u32,
 
 	/// Force using Moonbase native runtime.
 	#[clap(long = "force-moonbase")]
@@ -351,6 +355,7 @@ impl RunCmd {
 			eth_statuses_cache: self.eth_statuses_cache,
 			fee_history_limit: self.fee_history_limit,
 			max_past_logs: self.max_past_logs,
+			max_block_range: self.max_block_range,
 			relay_chain_rpc_urls: self.base.relay_chain_rpc_urls.clone(),
 			tracing_raw_max_memory_usage: self.tracing_raw_max_memory_usage,
 			frontier_backend_config: match self.frontier_backend_type {
