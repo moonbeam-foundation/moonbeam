@@ -381,9 +381,8 @@ where
 		// Read subcall recipient code
 		// AccountCodesMetadata: 16 (hash) + 20 (key) + 40 (CodeMetadata).
 		handle.record_db_read::<Runtime>(ACCOUNT_CODES_METADATA_PROOF_SIZE.saturated_into())?;
-		let recipient_has_code = pallet_evm::AccountCodesMetadata::<Runtime>::get(evm_subcall.to.0)
-			.unwrap_or_default()
-			.size > 0;
+		let recipient_has_code =
+			pallet_evm::AccountCodesMetadata::<Runtime>::get(evm_subcall.to.0).is_some();
 
 		// Apply proxy type filter
 		frame_support::ensure!(
