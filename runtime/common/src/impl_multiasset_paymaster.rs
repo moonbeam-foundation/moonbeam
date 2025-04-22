@@ -1,5 +1,5 @@
 use frame_support::traits::{
-	fungible::{self, NativeOrWithId, Mutate},
+	fungible::{self, NativeOrWithId},
 	tokens::Pay,
     
 };
@@ -66,6 +66,7 @@ where
 	fn ensure_successful(_: &Self::Beneficiary, asset: Self::AssetKind, amount: Self::Balance) {
 		use xcm::opaque::v4::Junction::Parachain;
 		use xcm::v4::Location;
+        use fungible::Mutate;
 		let treasury = pallet_treasury::Pallet::<R>::account_id();
 		match asset {
 			Self::AssetKind::Native => {
