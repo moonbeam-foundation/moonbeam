@@ -34,11 +34,7 @@ impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 	}
 
 	fn total_balance(asset: Self::AssetId, who: &T::AccountId) -> Self::Balance {
-		let balance =
-			EvmCaller::<T>::erc20_balance_of(asset, T::AccountIdToH160::convert(who.clone()))
-				.unwrap_or(U256::zero());
-		let as_u128 = balance.saturated_into::<u128>();
-		Self::Balance::from(as_u128)
+		Self::balance(asset, who)
 	}
 
 	fn balance(asset: Self::AssetId, who: &T::AccountId) -> Self::Balance {
@@ -55,11 +51,7 @@ impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 		_preservation: frame_support::traits::tokens::Preservation,
 		_force: frame_support::traits::tokens::Fortitude,
 	) -> Self::Balance {
-		let balance =
-			EvmCaller::<T>::erc20_balance_of(asset, T::AccountIdToH160::convert(who.clone()))
-				.unwrap_or(U256::zero());
-		let as_u128 = balance.saturated_into::<u128>();
-		Self::Balance::from(as_u128)
+		Self::balance(asset, who)
 	}
 
 	fn can_deposit(
