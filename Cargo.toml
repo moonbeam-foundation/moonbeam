@@ -250,7 +250,7 @@ substrate-rpc-client = { git = "https://github.com/moonbeam-foundation/polkadot-
 
 ethereum = { git = "https://github.com/rust-ethereum/ethereum.git", rev = "3be0d8fd4c2ad1ba216b69ef65b9382612efc8ba", default-features = false, features = [
     "with-scale",
-]}
+] }
 ethereum-types = { version = "0.15.1", default-features = false }
 evm = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-stable2412", default-features = false }
 evm-gasometer = { git = "https://github.com/moonbeam-foundation/evm", branch = "moonbeam-polkadot-stable2412", default-features = false }
@@ -342,10 +342,10 @@ westend-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk",
 xcm-simulator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
 
 # Bridge dependencies
-bp-header-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
-bp-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
-bp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
-pallet-bridge-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2409", default-features = false }
+bp-header-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+bp-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+bp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-bridge-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 
 # Moonkit (wasm)
 async-backing-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-stable2412", default-features = false }

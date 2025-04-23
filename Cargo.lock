@@ -1067,8 +1067,8 @@ dependencies = [
 
 [[package]]
 name = "bp-header-chain"
-version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#9eb107c313cb8b75639cd1afefe824ec71a076d6"
 dependencies = [
  "bp-runtime",
  "finality-grandpa",
@@ -1084,8 +1084,8 @@ dependencies = [
 
 [[package]]
 name = "bp-messages"
-version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#9eb107c313cb8b75639cd1afefe824ec71a076d6"
 dependencies = [
  "bp-header-chain",
  "bp-runtime",
@@ -1100,8 +1100,8 @@ dependencies = [
 
 [[package]]
 name = "bp-runtime"
-version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#9eb107c313cb8b75639cd1afefe824ec71a076d6"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8998,8 +8998,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-bridge-messages"
-version = "0.18.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2409#0159b9ca1944e806117f1011815cae4915b1cbed"
+version = "0.19.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#9eb107c313cb8b75639cd1afefe824ec71a076d6"
 dependencies = [
  "bp-header-chain",
  "bp-messages",
