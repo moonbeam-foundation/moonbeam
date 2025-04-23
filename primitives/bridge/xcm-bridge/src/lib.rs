@@ -33,9 +33,8 @@ use sp_core::H256;
 use sp_io::hashing::blake2_256;
 use sp_std::boxed::Box;
 use xcm::{
-	latest::{prelude::*, ROCOCO_GENESIS_HASH},
-	prelude::XcmVersion,
-	IntoVersion, VersionedInteriorLocation, VersionedLocation,
+	latest::prelude::*, prelude::XcmVersion, IntoVersion, VersionedInteriorLocation,
+	VersionedLocation,
 };
 
 mod call_info;
