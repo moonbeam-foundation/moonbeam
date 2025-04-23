@@ -23,7 +23,7 @@ use frame_support::{
 	traits::{
 		fungible::{NativeFromLeft, NativeOrWithId, UnionOf},
 		tokens::pay::PayAssetFromAccount,
-		AsEnsureOriginWithArg, ConstU32, Everything, Get, InstanceFilter, Nothing,
+		AsEnsureOriginWithArg, ConstU32, EitherOf, Everything, Get, InstanceFilter, Nothing,
 		PalletInfoAccess,
 	},
 	weights::Weight,
@@ -31,10 +31,13 @@ use frame_support::{
 };
 
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
-use moonbeam_runtime_common::impl_multiasset_paymaster::MultiAssetPaymaster;
-use pallet_xcm::migration::v1::VersionUncheckedMigrateToV1;
+use moonbeam_runtime_common::{
+	impl_multiasset_paymaster::MultiAssetPaymaster, xcm_origins::AllowSiblingParachains,
+};
+use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
+use pallet_xcm::{migration::v1::VersionUncheckedMigrateToV1, EnsureXcm};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use sp_core::H256;
+use sp_core::{H160, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup, MaybeEquivalence, Zero},
 	Permill,
@@ -768,6 +771,69 @@ impl pallet_asset_manager::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub struct AccountIdToH160;
+impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
+	fn convert(account_id: AccountId) -> H160 {
+		account_id.into()
+	}
+}
+
+pub struct EvmForeignAssetIdFilter;
+impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
+	fn contains(asset_id: &AssetId) -> bool {
+		use xcm_primitives::AssetTypeGetter as _;
+		// We should return true only if the AssetId doesn't exist in AssetManager
+		AssetManager::get_asset_type(*asset_id).is_none()
+	}
+}
+
+pub type ForeignAssetManagerOrigin = EitherOf<
+	MapSuccessToXcm<EnsureXcm<AllowSiblingParachains>>,
+	MapSuccessToGovernance<
+		EitherOf<
+			EnsureRoot<AccountId>,
+			EitherOf<
+				pallet_collective::EnsureProportionMoreThan<
+					AccountId,
+					OpenTechCommitteeInstance,
+					5,
+					9,
+				>,
+				EitherOf<
+					governance::custom_origins::FastGeneralAdmin,
+					governance::custom_origins::GeneralAdmin,
+				>,
+			>,
+		>,
+	>,
+>;
+
+moonbeam_runtime_common::impl_evm_runner_precompile_or_eth_xcm!();
+
+parameter_types! {
+	pub ForeignAssetCreationDeposit: u128 = 100 * currency::UNIT;
+}
+
+impl pallet_moonbeam_foreign_assets::Config for Runtime {
+	type AccountIdToH160 = AccountIdToH160;
+	type AssetIdFilter = EvmForeignAssetIdFilter;
+	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type ConvertLocation =
+		SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>;
+	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
+	type OnForeignAssetCreated = ();
+	type MaxForeignAssets = ConstU32<256>;
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	type XcmLocationToH160 = LocationToH160;
+	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
+	type Balance = Balance;
+	type Currency = Balances;
+}
+
 // 1 ROC/WND should be enough
 parameter_types! {
 	pub MaxHrmpRelayFee: Asset = (Location::parent(), 1_000_000_000_000u128).into();
@@ -1089,7 +1155,12 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 }
 
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
-use moonbase_runtime::{EvmForeignAssets, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
+use moonbase_runtime::{
+	currency,
+	governance::{self, councils::OpenTechCommitteeInstance},
+	xcm_config::{EvmRunnerPrecompileOrEthXcm, LocationToH160},
+	EvmForeignAssets, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE,
+};
 use pallet_evm::FrameSystemAccountProvider;
 use xcm_primitives::AsAssetType;
 
