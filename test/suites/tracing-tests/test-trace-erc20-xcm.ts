@@ -6,6 +6,7 @@ import {
   XcmFragment,
   type XcmFragmentConfig,
   expectEVMResult,
+  injectHrmpMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../helpers";
@@ -168,10 +169,19 @@ describeSuite({
         .as_v3();
 
       // Mock the reception of the failed xcm message
-      await injectHrmpMessageAndSeal(context, paraId, {
+      await injectHrmpMessage(context, paraId, {
         type: "XcmVersionedXcm",
         payload: failedXcmMessage,
       });
+
+      // By calling deployContract() a new block will be created,
+      // including the ethereum xcm transaction + regular ethereum transaction
+      const { contractAddress: eventEmitterAddress } = await context.deployContract!(
+        "EventEmitter",
+        {
+          from: alith.address,
+        } as any
+      );
 
       //failedTransactionHash = (await context.viem().getBlock()).transactions[0];
     });
@@ -225,7 +235,7 @@ describeSuite({
                   number.toString(),
                   { tracer: "callTracer" },
                 ]);
-                expect(trace.length).to.eq(1);
+                expect(trace.length).to.eq(2);
       },
     });
   },
