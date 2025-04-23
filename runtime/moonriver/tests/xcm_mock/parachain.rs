@@ -30,6 +30,7 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
+use moonbeam_runtime_common::impl_multiasset_paymaster::MultiAssetPaymaster;
 use pallet_xcm::migration::v1::VersionUncheckedMigrateToV1;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use sp_core::H256;
@@ -429,9 +430,6 @@ parameter_types! {
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
-type NativeAndAssets =
-	UnionOf<Balances, EvmForeignAssets, NativeFromLeft, NativeOrWithId<AssetId>, AccountId>;
-
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryId;
 	type Currency = Balances;
@@ -447,7 +445,7 @@ impl pallet_treasury::Config for Runtime {
 	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayAssetFromAccount<NativeAndAssets, TreasuryAccount>;
+	type Paymaster = MultiAssetPaymaster<Runtime>;
 	type BalanceConverter = XcmWeightTrader;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
