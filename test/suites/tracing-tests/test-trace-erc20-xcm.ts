@@ -6,6 +6,7 @@ import {
   XcmFragment,
   type XcmFragmentConfig,
   expectEVMResult,
+  injectHrmpMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../helpers";
@@ -17,7 +18,7 @@ describeSuite({
   testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
     let transactionHash: string;
-    let failedTransactionHash: string;
+    let eventEmitterAddress: `0x${string}`;
 
     beforeAll(async () => {
       const { contractAddress, status } = await context.deployContract!("ERC20WithInitialSupply", {
@@ -168,10 +169,20 @@ describeSuite({
         .as_v3();
 
       // Mock the reception of the failed xcm message
-      await injectHrmpMessageAndSeal(context, paraId, {
+      await injectHrmpMessage(context, paraId, {
         type: "XcmVersionedXcm",
         payload: failedXcmMessage,
       });
+
+      // By calling deployContract() a new block will be created,
+      // including the ethereum xcm transaction + regular ethereum transaction
+      const { contractAddress: eventEmitterAddress_ } = await context.deployContract!(
+        "EventEmitter",
+        {
+          from: alith.address,
+        } as any
+      );
+      eventEmitterAddress = eventEmitterAddress_;
 
       // Get the latest block events
       const block = await context.polkadotJs().rpc.chain.getBlock();
@@ -189,8 +200,6 @@ describeSuite({
       );
 
       expect(processedEvent).to.not.be.undefined;
-
-      failedTransactionHash = (await context.viem().getBlock()).transactions[0];
     });
 
     it({
@@ -213,28 +222,24 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "should trace ERC20 xcm transaction even if it fail",
+      title: "should doesn't include the failed ERC20 xcm transaction in block trace",
       test: async function () {
-        const receipt = await context
-          .viem()
-          .getTransactionReceipt({ hash: failedTransactionHash as `0x${string}` });
-        
-        // Verify the transaction failed
-        expect(receipt.status).toBe("reverted");
-
-        // Attempt to trace the failed transaction
-        const trace = await customDevRpcRequest("debug_traceTransaction", [
-          failedTransactionHash,
+        const number = await context.viem().getBlockNumber();
+        const trace = await customDevRpcRequest("debug_traceBlockByNumber", [
+          number.toString(),
           { tracer: "callTracer" },
         ]);
-
-        // Verify we got a trace back
-        expect(trace).toBeDefined();
-        expect(trace.gasUsed).toBeDefined();
         
-        // The traced gas used should be greater than or equal to the one in the receipt
-        // since tracing doesn't account for gas refunds
-        expect(hexToNumber(trace.gasUsed)).gte(Number(receipt.gasUsed));
+        // Verify that only the regular eth transaction is included in the block trace.
+        expect(trace.length).to.eq(1);
+
+        // 1st traced transaction is regular ethereum transaction.
+        // - `From` is Alith's adddress.
+        // - `To` is the ethereum contract address.
+        const call = trace[0].result;
+        expect(call.from).to.eq(alith.address.toLowerCase());
+        expect(call.to).to.eq(eventEmitterAddress.toLowerCase());
+        expect(call.type).be.eq("CREATE");
       },
     });
   },
