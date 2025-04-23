@@ -33,8 +33,9 @@ use sp_core::H256;
 use sp_io::hashing::blake2_256;
 use sp_std::boxed::Box;
 use xcm::{
-	latest::prelude::*, prelude::XcmVersion, IntoVersion, VersionedInteriorLocation,
-	VersionedLocation,
+	latest::{prelude::*, ROCOCO_GENESIS_HASH},
+	prelude::XcmVersion,
+	IntoVersion, VersionedInteriorLocation, VersionedLocation,
 };
 
 mod call_info;
@@ -437,7 +438,7 @@ mod tests {
 
 	const LOCAL_NETWORK: NetworkId = Kusama;
 	const REMOTE_NETWORK: NetworkId = Polkadot;
-	const UNREACHABLE_NETWORK: NetworkId = NetworkId::Rococo;
+	const UNREACHABLE_NETWORK: NetworkId = NetworkId::ByGenesis(ROCOCO_GENESIS_HASH);
 	const SIBLING_PARACHAIN: u32 = 1000;
 	const LOCAL_BRIDGE_HUB: u32 = 1001;
 	const REMOTE_PARACHAIN: u32 = 2000;

@@ -42,7 +42,10 @@ use sp_runtime::{
 	AccountId32, BuildStorage, StateVersion,
 };
 use sp_std::{cell::RefCell, marker::PhantomData};
-use xcm::latest::SendError::{MissingArgument, NotApplicable};
+use xcm::latest::{
+	SendError::{MissingArgument, NotApplicable},
+	ROCOCO_GENESIS_HASH,
+};
 use xcm::prelude::*;
 use xcm_builder::{
 	ensure_is_remote, AllowUnpaidExecutionFrom, DispatchBlob, DispatchBlobError, FixedWeightBounds,
@@ -171,7 +174,7 @@ parameter_types! {
 	pub BridgedRelayNetworkLocation: Location = (Parent, GlobalConsensus(BridgedRelayNetwork::get())).into();
 	pub BridgedRelativeDestination: InteriorLocation = [Parachain(BRIDGED_ASSET_HUB_ID)].into();
 	pub BridgedUniversalDestination: InteriorLocation = [GlobalConsensus(BridgedRelayNetwork::get()), Parachain(BRIDGED_ASSET_HUB_ID)].into();
-	pub const NonBridgedRelayNetwork: NetworkId = NetworkId::Rococo;
+	pub const NonBridgedRelayNetwork: NetworkId = NetworkId::ByGenesis(ROCOCO_GENESIS_HASH);
 
 	pub const BridgeDeposit: Balance = 100_000;
 
@@ -626,7 +629,7 @@ impl Convert<Vec<u8>, Xcm<()>> for UpdateBridgeStatusXcmProvider {
 			},
 			Transact {
 				origin_kind: OriginKind::Xcm,
-				require_weight_at_most: Weight::from_parts(200_000_000, 6144),
+				fallback_max_weight: Some(Weight::from_parts(200_000_000, 6144)),
 				call: encoded_call.into(),
 			},
 			ExpectTransactStatus(MaybeErrorCode::Success),
