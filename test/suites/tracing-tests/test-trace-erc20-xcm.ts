@@ -6,6 +6,7 @@ import {
   XcmFragment,
   type XcmFragmentConfig,
   expectEVMResult,
+  injectHrmpMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../helpers";
@@ -17,6 +18,7 @@ describeSuite({
   testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
     let transactionHash: string;
+    let eventEmitterAddress: `0x${string}`;
 
     beforeAll(async () => {
       const { contractAddress, status } = await context.deployContract!("ERC20WithInitialSupply", {
@@ -123,6 +125,81 @@ describeSuite({
           args: [CHARLETH_ADDRESS],
         })
       ).equals(amountTransferred);
+
+      // Now create a failed XCM transaction by trying to transfer more than available
+      const failedConfig: XcmFragmentConfig = {
+        assets: [
+          {
+            multilocation: {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: Number(balancesPalletIndex) },
+              },
+            },
+            fungible: 1_700_000_000_000_000n,
+          },
+          {
+            multilocation: {
+              parents: 0,
+              interior: {
+                X2: [
+                  {
+                    PalletInstance: erc20XcmPalletIndex,
+                  },
+                  {
+                    AccountKey20: {
+                      network: null,
+                      key: erc20ContractAddress,
+                    },
+                  },
+                ],
+              },
+            },
+            fungible: amountTransferred * 2n, // Try to transfer twice the available amount
+          },
+        ],
+        beneficiary: CHARLETH_ADDRESS,
+      };
+
+      const failedXcmMessage = new XcmFragment(failedConfig)
+        .withdraw_asset()
+        .clear_origin()
+        .buy_execution()
+        .deposit_asset(2n)
+        .as_v3();
+
+      // Mock the reception of the failed xcm message
+      await injectHrmpMessage(context, paraId, {
+        type: "XcmVersionedXcm",
+        payload: failedXcmMessage,
+      });
+
+      // By calling deployContract() a new block will be created,
+      // including the ethereum xcm transaction + regular ethereum transaction
+      const { contractAddress: eventEmitterAddress_ } = await context.deployContract!(
+        "EventEmitter",
+        {
+          from: alith.address,
+        } as any
+      );
+      eventEmitterAddress = eventEmitterAddress_;
+
+      // Get the latest block events
+      const block = await context.polkadotJs().rpc.chain.getBlock();
+      const allRecords = await context.polkadotJs().query.system.events.at(block.block.header.hash);
+
+      // Compute XCM message ID
+      const messageHash = context.polkadotJs().createType("XcmVersionedXcm", failedXcmMessage).hash;
+
+      // Find messageQueue.Processed event with matching message ID
+      const processedEvent = allRecords.find(
+        ({ event }) =>
+          event.section === "messageQueue" &&
+          event.method === "Processed" &&
+          event.data[0].toString() === messageHash.toHex()
+      );
+
+      expect(processedEvent).to.not.be.undefined;
     });
 
     it({
@@ -140,6 +217,30 @@ describeSuite({
         // to the one recorded in the ethereum transaction receipt.
         // *gasUsed on tracing does not take into account gas refund.
         expect(hexToNumber(trace.gasUsed)).gte(Number(receipt.gasUsed));
+      },
+    });
+
+    // IMPORTANT: this test will fail once we will merge https://github.com/moonbeam-foundation/moonbeam/pull/3258
+    it({
+      id: "T02",
+      title: "should doesn't include the failed ERC20 xcm transaction in block trace",
+      test: async function () {
+        const number = await context.viem().getBlockNumber();
+        const trace = await customDevRpcRequest("debug_traceBlockByNumber", [
+          number.toString(),
+          { tracer: "callTracer" },
+        ]);
+        
+        // Verify that only the regular eth transaction is included in the block trace.
+        expect(trace.length).to.eq(1);
+
+        // 1st traced transaction is regular ethereum transaction.
+        // - `From` is Alith's adddress.
+        // - `To` is the ethereum contract address.
+        const call = trace[0].result;
+        expect(call.from).to.eq(alith.address.toLowerCase());
+        expect(call.to).to.eq(eventEmitterAddress.toLowerCase());
+        expect(call.type).be.eq("CREATE");
       },
     });
   },
