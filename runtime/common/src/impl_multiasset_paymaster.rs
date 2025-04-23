@@ -1,7 +1,6 @@
 use frame_support::traits::{
 	fungible::{self, NativeOrWithId},
 	tokens::Pay,
-    
 };
 use moonbeam_core_primitives::{AssetId, Balance};
 use pallet_moonbeam_foreign_assets::AssetsById;
@@ -64,9 +63,9 @@ where
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn ensure_successful(_: &Self::Beneficiary, asset: Self::AssetKind, amount: Self::Balance) {
+		use fungible::Mutate;
 		use xcm::opaque::v4::Junction::Parachain;
 		use xcm::v4::Location;
-        use fungible::Mutate;
 		let treasury = pallet_treasury::Pallet::<R>::account_id();
 		match asset {
 			Self::AssetKind::Native => {
@@ -75,7 +74,8 @@ where
 					<R as pallet_balances::Config>::Balance::try_from(amount)
 						.map_err(|_| pallet_treasury::Error::<R>::PayoutError)
 						.unwrap(),
-				);
+				)
+				.expect("failed to mint the native asset into the treasury account");
 			}
 			Self::AssetKind::WithId(id) => {
 				// Check if asset exists & create if required
