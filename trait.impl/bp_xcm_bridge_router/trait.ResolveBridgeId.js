@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"bp_xcm_bridge_router":[],
+"pallet_xcm_bridge_router":[["impl&lt;UniversalLocation: Get&lt;InteriorLocation&gt;&gt; <a class=\"trait\" href=\"pallet_xcm_bridge_router/trait.ResolveBridgeId.html\" title=\"trait pallet_xcm_bridge_router::ResolveBridgeId\">ResolveBridgeId</a> for <a class=\"struct\" href=\"pallet_xcm_bridge_router/impls/struct.EnsureIsRemoteBridgeIdResolver.html\" title=\"struct pallet_xcm_bridge_router::impls::EnsureIsRemoteBridgeIdResolver\">EnsureIsRemoteBridgeIdResolver</a>&lt;UniversalLocation&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

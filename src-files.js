@@ -1,5 +1,7 @@
 var srcIndex = new Map(JSON.parse('[\
 ["account",["",[],["lib.rs"]]],\
+["bp_xcm_bridge",["",[],["call_info.rs","lib.rs"]]],\
+["bp_xcm_bridge_router",["",[],["lib.rs"]]],\
 ["evm_tracing_events",["",[],["evm.rs","gasometer.rs","lib.rs","runtime.rs"]]],\
 ["moonbase_runtime",["",[["governance",[],["councils.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]],["weights",[["db",[],["mod.rs","rocksdb.rs"]]],["cumulus_pallet_parachain_system.rs","cumulus_pallet_xcmp_queue.rs","frame_system.rs","mod.rs","pallet_asset_manager.rs","pallet_assets.rs","pallet_author_inherent.rs","pallet_author_mapping.rs","pallet_author_slot_filter.rs","pallet_balances.rs","pallet_collective_open_tech_committee.rs","pallet_collective_treasury_council.rs","pallet_conviction_voting.rs","pallet_crowdloan_rewards.rs","pallet_evm.rs","pallet_identity.rs","pallet_message_queue.rs","pallet_moonbeam_foreign_assets.rs","pallet_moonbeam_lazy_migrations.rs","pallet_moonbeam_orbiters.rs","pallet_multisig.rs","pallet_parachain_staking.rs","pallet_parameters.rs","pallet_precompile_benchmarks.rs","pallet_preimage.rs","pallet_proxy.rs","pallet_randomness.rs","pallet_referenda.rs","pallet_relay_storage_roots.rs","pallet_scheduler.rs","pallet_sudo.rs","pallet_timestamp.rs","pallet_treasury.rs","pallet_utility.rs","pallet_whitelist.rs","pallet_xcm.rs","pallet_xcm_transactor.rs","pallet_xcm_weight_trader.rs"]]],["asset_config.rs","genesis_config_preset.rs","lib.rs","migrations.rs","precompiles.rs","runtime_params.rs","xcm_config.rs"]]],\
 ["moonbeam",["",[],["main.rs"]]],\
@@ -57,6 +59,8 @@ var srcIndex = new Map(JSON.parse('[\
 ["pallet_parachain_staking",["",[],["auto_compound.rs","delegation_requests.rs","inflation.rs","lib.rs","migrations.rs","set.rs","traits.rs","types.rs","weights.rs"]]],\
 ["pallet_precompile_benchmarks",["",[],["lib.rs","weights.rs"]]],\
 ["pallet_proxy_genesis_companion",["",[],["lib.rs"]]],\
+["pallet_xcm_bridge",["",[],["congestion.rs","dispatcher.rs","exporter.rs","lib.rs","migration.rs","weights.rs"]]],\
+["pallet_xcm_bridge_router",["",[],["impls.rs","lib.rs","weights.rs"]]],\
 ["pallet_xcm_transactor",["",[],["encode.rs","lib.rs","migrations.rs","relay_indices.rs","weights.rs"]]],\
 ["pallet_xcm_weight_trader",["",[],["lib.rs","weights.rs"]]],\
 ["precompile_foreign_asset_migrator",["",[],["lib.rs"]]],\

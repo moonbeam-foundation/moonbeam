@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["XcmBridgeHubCall"],"struct":["BridgeState"],"trait":["ResolveBridgeId"]};
