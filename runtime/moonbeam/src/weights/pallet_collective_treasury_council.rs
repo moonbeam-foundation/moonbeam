@@ -298,10 +298,39 @@ impl<T: frame_system::Config> pallet_collective_treasury_council::WeightInfo for
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(p.into()))
 	}
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::CostOf` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::CostOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Voting` (r:0 w:1)
+	/// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// The range of component `d` is `[0, 1]`.
+	/// The range of component `p` is `[1, 20]`.
 	fn kill(d: u32, p: u32, ) -> Weight {
-	    todo!()
+		// Proof Size summary in bytes:
+		//  Measured:  `1380 + p * (55 ±0)`
+		//  Estimated: `4847 + d * (5 ±1) + p * (55 ±0)`
+		// Minimum execution time: 17_000_000 picoseconds.
+		Weight::from_parts(19_248_355, 4847)
+			// Standard Error: 3_915
+			.saturating_add(Weight::from_parts(197_582, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(Weight::from_parts(0, 5).saturating_mul(d.into()))
+			.saturating_add(Weight::from_parts(0, 55).saturating_mul(p.into()))
 	}
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::CostOf` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::CostOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	fn release_proposal_cost() -> Weight {
-	    todo!()
+		// Proof Size summary in bytes:
+		//  Measured:  `813`
+		//  Estimated: `4278`
+		// Minimum execution time: 10_000_000 picoseconds.
+		Weight::from_parts(11_000_000, 4278)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
 	}
 }
