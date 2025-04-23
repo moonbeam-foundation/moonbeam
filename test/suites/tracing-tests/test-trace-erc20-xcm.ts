@@ -19,7 +19,7 @@ describeSuite({
     let erc20ContractAddress: string;
     let transactionHash: string;
     let eventEmitterAddress: `0x${string}`;
-
+    let createTransactionHash: string;
     beforeAll(async () => {
       const { contractAddress, status } = await context.deployContract!("ERC20WithInitialSupply", {
         args: ["ERC20", "20S", ALITH_ADDRESS, ERC20_TOTAL_SUPPLY],
@@ -184,6 +184,8 @@ describeSuite({
       );
       eventEmitterAddress = eventEmitterAddress_;
 
+      createTransactionHash = (await context.viem().getBlock()).transactions[0];
+
       // Get the latest block events
       const block = await context.polkadotJs().rpc.chain.getBlock();
       const allRecords = await context.polkadotJs().query.system.events.at(block.block.header.hash);
@@ -237,6 +239,8 @@ describeSuite({
         // 1st traced transaction is regular ethereum transaction.
         // - `From` is Alith's adddress.
         // - `To` is the ethereum contract address.
+        const txHash = trace[0].txHash;
+        expect(txHash).to.eq(createTransactionHash);
         const call = trace[0].result;
         expect(call.from).to.eq(alith.address.toLowerCase());
         expect(call.to).to.eq(eventEmitterAddress.toLowerCase());
