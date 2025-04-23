@@ -305,7 +305,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
-	type TransactionalProcessor = pallet_ethereum_xcm::XcmEthTransactionalProcessor;
+	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();

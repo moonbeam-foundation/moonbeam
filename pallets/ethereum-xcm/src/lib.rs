@@ -26,7 +26,6 @@
 mod mock;
 #[cfg(all(feature = "std", test))]
 mod tests;
-mod transactional_processor;
 
 use ethereum_types::{H160, H256, U256};
 use fp_ethereum::{TransactionData, ValidatedTransaction};
@@ -43,7 +42,6 @@ use scale_info::TypeInfo;
 use sp_runtime::{traits::UniqueSaturatedInto, DispatchErrorWithPostInfo, RuntimeDebug};
 use sp_std::{marker::PhantomData, prelude::*};
 
-pub use self::transactional_processor::XcmEthTransactionalProcessor;
 pub use ethereum::{
 	AccessListItem, BlockV2 as Block, LegacyTransactionMessage, Log, ReceiptV3 as Receipt,
 	TransactionAction, TransactionV2 as Transaction,
@@ -374,22 +372,8 @@ impl<T: Config> Pallet<T> {
 			// transaction on chain - we increase the global nonce.
 			<Nonce<T>>::put(current_nonce.saturating_add(U256::one()));
 
-			let (dispatch_info, execution_info) =
+			let (dispatch_info, _) =
 				T::ValidatedTransaction::apply(source, transaction, maybe_force_create_address)?;
-
-			// If the transaction reverted, signal it to XCM Transactional Processor
-			match execution_info {
-				fp_evm::CallOrCreateInfo::Call(info) => {
-					if let fp_evm::ExitReason::Revert(_) = info.exit_reason {
-						XcmEthTransactionalProcessor::signal_evm_revert();
-					}
-				}
-				fp_evm::CallOrCreateInfo::Create(info) => {
-					if let fp_evm::ExitReason::Revert(_) = info.exit_reason {
-						XcmEthTransactionalProcessor::signal_evm_revert();
-					}
-				}
-			}
 
 			XCM_MESSAGE_HASH::with(|xcm_msg_hash| {
 				Self::deposit_event(Event::ExecutedFromXcm {
