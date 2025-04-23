@@ -522,7 +522,7 @@ where
 								.into_iter()
 								.filter_map(|mut trace| {
 									if let Some(transaction_hash) = eth_transactions_by_index
-										.get(&(trace.tx_position + tx_position_offset))
+										.get(&(trace.tx_position - tx_position_offset))
 									{
 										trace.tx_hash = *transaction_hash;
 										Some(trace)
