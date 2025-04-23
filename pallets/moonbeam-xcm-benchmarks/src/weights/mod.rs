@@ -247,7 +247,7 @@ where
 		XcmGeneric::<Runtime>::unpaid_execution()
 	}
 	fn pay_fees(_: &v5::Asset) -> Weight {
-		todo!()
+		XcmGeneric::<Runtime>::pay_fees()
 	}
 	fn initiate_transfer(
 		_: &v5::Location,
@@ -256,12 +256,12 @@ where
 		_: &BoundedVec<AssetTransferFilter, MaxAssetTransferFilters>,
 		_: &v5::Xcm<()>,
 	) -> Weight {
-		todo!()
+		XcmGeneric::<Runtime>::initiate_transfer()
 	}
 	fn execute_with_origin(_: &Option<v5::Junctions>, _: &v5::Xcm<Call>) -> Weight {
-		todo!()
+		XcmGeneric::<Runtime>::execute_with_origin()
 	}
 	fn set_hints(_: &BoundedVec<Hint, HintNumVariants>) -> Weight {
-		todo!()
+		XcmGeneric::<Runtime>::set_hints()
 	}
 }
