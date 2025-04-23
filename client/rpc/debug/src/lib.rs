@@ -504,6 +504,9 @@ where
 			Ok(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 
+		// Offset to account for old buggy transactions that are in trace not in the ethereum block
+		let mut tx_position_offset = 0;
+
 		return match trace_type {
 			single::TraceType::CallList => {
 				let mut proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
@@ -517,13 +520,18 @@ where
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))?
 								.into_iter()
-								.map(|mut trace| {
-									if let Some(transaction_hash) =
-										eth_transactions_by_index.get(&trace.tx_position)
+								.filter_map(|mut trace| {
+									if let Some(transaction_hash) = eth_transactions_by_index
+										.get(&(trace.tx_position + tx_position_offset))
 									{
 										trace.tx_hash = *transaction_hash;
+										Some(trace)
+									} else {
+										// If the transaction is not in the ethereum block
+										// it should not appear in the block trace
+										tx_position_offset += 1;
+										None
 									}
-									trace
 								})
 								.collect::<Vec<BlockTransactionTrace>>();
 
