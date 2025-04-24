@@ -78,7 +78,7 @@ where
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn ensure_successful(_: &Self::Beneficiary, asset: Self::AssetKind, amount: Self::Balance) {
-		use fungible::Mutate;
+		use frame_support::traits::fungible::Mutate;
 		use xcm::opaque::v4::Junction::Parachain;
 		use xcm::v4::Location;
 		let treasury = pallet_treasury::Pallet::<R>::account_id();
