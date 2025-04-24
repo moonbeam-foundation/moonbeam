@@ -33,8 +33,8 @@ use sp_core::H256;
 use sp_io::hashing::blake2_256;
 use sp_std::boxed::Box;
 use xcm::{
-	latest::prelude::*, latest::ROCOCO_GENESIS_HASH, prelude::XcmVersion, IntoVersion,
-	VersionedInteriorLocation, VersionedLocation,
+	latest::prelude::*, prelude::XcmVersion, IntoVersion, VersionedInteriorLocation,
+	VersionedLocation,
 };
 
 mod call_info;
@@ -434,6 +434,7 @@ impl BridgeLocations {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use xcm::latest::ROCOCO_GENESIS_HASH;
 
 	const LOCAL_NETWORK: NetworkId = Kusama;
 	const REMOTE_NETWORK: NetworkId = Polkadot;
