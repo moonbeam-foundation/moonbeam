@@ -31,6 +31,7 @@ LICENSES=(
     "MIT"
     "MPL-2.0"
     "Zlib"
+    "Unicode-3.0"
 )
 AUTHORS=(
     "PureStake"
