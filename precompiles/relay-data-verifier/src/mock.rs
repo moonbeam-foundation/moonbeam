@@ -126,11 +126,6 @@ impl RelaychainStateProvider for PersistedValidationDataGetter {
 	fn current_relay_chain_state() -> RelayChainState {
 		frame_support::storage::unhashed::get(b"MOCK_PERSISTED_VALIDATION_DATA").unwrap()
 	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	fn set_current_relay_chain_state(state: RelayChainState) {
-		frame_support::storage::unhashed::put(b"MOCK_PERSISTED_VALIDATION_DATA", &state);
-	}
 }
 
 pub fn set_current_relay_chain_state(block_number: u32, state_root: H256) {
