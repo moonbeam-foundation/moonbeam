@@ -1627,6 +1627,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	}
 }
 
+#[allow(dead_code)]
 struct CheckInherents;
 
 // Parity has decided to depreciate this trait, but does not offer a satisfactory replacement,
