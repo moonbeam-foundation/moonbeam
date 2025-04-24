@@ -20,9 +20,14 @@ jobs:
         with:
           ref: ${{ github.event.inputs.tag }}
           fetch-depth: 0
+      - name: Get Sha
+        id: get-sha
+        run: |
+          echo "sha=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
       - name: Cargo build
         uses: ./.github/workflow-templates/build-prod-binary
         with:
+          sha: ${{ steps.get-sha.outputs.sha }}
           target: "x86-64"
 
   publish-docker:

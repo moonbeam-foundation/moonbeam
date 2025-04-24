@@ -3,6 +3,9 @@ description: |
   Builds production a moonbeam binary for a given CPU target
 
 inputs:
+  sha:
+    description: full sha to build the binary from
+    required: true
   target:
     description: The CPU target for the binary
     required: true
@@ -10,6 +13,11 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.sha }}
+        fetch-depth: 0
     - name: Build production moonbeam
       shell: bash
       run: |
@@ -17,7 +25,7 @@ runs:
         # (we don't use volumes because of ownership/permissions issues)
         docker build \
           --tag prod --no-cache \
-          --build-arg="COMMIT=${{ github.event.inputs.sha }}" \
+          --build-arg="COMMIT=${{ inputs.sha }}" \
           --build-arg="RUSTFLAGS=-C target-cpu=${{ inputs.target }}" \
           - < docker/moonbeam-production.Dockerfile
 
