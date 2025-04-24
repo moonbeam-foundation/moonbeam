@@ -789,23 +789,7 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 
 pub type ForeignAssetManagerOrigin = EitherOf<
 	MapSuccessToXcm<EnsureXcm<AllowSiblingParachains>>,
-	MapSuccessToGovernance<
-		EitherOf<
-			EnsureRoot<AccountId>,
-			EitherOf<
-				pallet_collective::EnsureProportionMoreThan<
-					AccountId,
-					OpenTechCommitteeInstance,
-					5,
-					9,
-				>,
-				EitherOf<
-					governance::custom_origins::FastGeneralAdmin,
-					governance::custom_origins::GeneralAdmin,
-				>,
-			>,
-		>,
-	>,
+	MapSuccessToGovernance<EnsureRoot<AccountId>>,
 >;
 
 moonbeam_runtime_common::impl_evm_runner_precompile_or_eth_xcm!();
@@ -1143,6 +1127,7 @@ construct_runtime!(
 		EVM: pallet_evm,
 		Ethereum: pallet_ethereum,
 		EthereumXcm: pallet_ethereum_xcm,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets,
 	}
 );
 
@@ -1155,12 +1140,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 }
 
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
-use moonbase_runtime::{
-	currency,
-	governance::{self, councils::OpenTechCommitteeInstance},
-	xcm_config::{EvmRunnerPrecompileOrEthXcm, LocationToH160},
-	EvmForeignAssets, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE,
-};
+use moonbase_runtime::{currency, xcm_config::LocationToH160, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
 use pallet_evm::FrameSystemAccountProvider;
 use xcm_primitives::AsAssetType;
 

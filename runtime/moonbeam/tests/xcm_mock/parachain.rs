@@ -31,6 +31,8 @@ use frame_support::{
 };
 pub use moonbeam_runtime::xcm_config::AssetType;
 
+use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
+
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
 use moonbeam_runtime_common::{
 	impl_multiasset_paymaster::MultiAssetPaymaster, xcm_origins::AllowSiblingParachains,
@@ -43,7 +45,10 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup, MaybeEquivalence, Zero},
 	Permill,
 };
-use sp_std::{convert::TryFrom, prelude::*};
+use sp_std::{
+	convert::{From, Into, TryFrom},
+	prelude::*,
+};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
@@ -775,23 +780,7 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 
 pub type ForeignAssetManagerOrigin = EitherOf<
 	MapSuccessToXcm<EnsureXcm<AllowSiblingParachains>>,
-	MapSuccessToGovernance<
-		EitherOf<
-			EnsureRoot<AccountId>,
-			EitherOf<
-				pallet_collective::EnsureProportionMoreThan<
-					AccountId,
-					OpenTechCommitteeInstance,
-					5,
-					9,
-				>,
-				EitherOf<
-					governance::custom_origins::FastGeneralAdmin,
-					governance::custom_origins::GeneralAdmin,
-				>,
-			>,
-		>,
-	>,
+	MapSuccessToGovernance<EnsureRoot<AccountId>>,
 >;
 
 moonbeam_runtime_common::impl_evm_runner_precompile_or_eth_xcm!();
@@ -1133,6 +1122,7 @@ construct_runtime!(
 		EVM: pallet_evm,
 		Ethereum: pallet_ethereum,
 		EthereumXcm: pallet_ethereum_xcm,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets,
 	}
 );
 
@@ -1145,12 +1135,8 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 }
 
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
-use moonbeam_runtime::{
-	currency,
-	governance::{self, councils::OpenTechCommitteeInstance},
-	xcm_config::LocationToH160,
-	EvmForeignAssets,
-};
+use moonbeam_runtime::{currency, xcm_config::LocationToH160};
+
 use pallet_evm::FrameSystemAccountProvider;
 use sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use xcm_primitives::AsAssetType;
