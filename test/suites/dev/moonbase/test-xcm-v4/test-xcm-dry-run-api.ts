@@ -1,6 +1,6 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { alith, generateKeyringPair } from "@moonwall/util";
-import { ApiPromise, WsProvider } from "@polkadot/api";
+import { type ApiPromise, WsProvider } from "@polkadot/api";
 import { u8aToHex } from "@polkadot/util";
 import { XcmFragment } from "../../../../helpers";
 

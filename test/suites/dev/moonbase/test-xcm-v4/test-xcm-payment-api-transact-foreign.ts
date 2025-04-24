@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ApiPromise, WsProvider } from "@polkadot/api";
+import { type ApiPromise, WsProvider } from "@polkadot/api";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import type { u128 } from "@polkadot/types";
 import { hexToBigInt } from "@polkadot/util";

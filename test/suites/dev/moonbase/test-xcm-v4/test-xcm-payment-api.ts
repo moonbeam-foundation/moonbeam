@@ -1,5 +1,5 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ApiPromise, WsProvider } from "@polkadot/api";
+import { type ApiPromise, WsProvider } from "@polkadot/api";
 import {
   XcmFragment,
   registerOldForeignAsset,
@@ -108,10 +108,9 @@ describeSuite({
               originKind: "SovereignAccount",
               requireWeightAtMost: transactWeightAtMost,
               call: {
-                encoded: polkadotJs.tx.balances.transferAllowDeath(
-                  "0x0000000000000000000000000000000000000000",
-                  1000000000n
-                ).method.toHex(),
+                encoded: polkadotJs.tx.balances
+                  .transferAllowDeath("0x0000000000000000000000000000000000000000", 1000000000n)
+                  .method.toHex(),
               },
             },
           })
