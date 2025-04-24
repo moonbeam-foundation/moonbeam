@@ -21,6 +21,7 @@ use precompile_utils::prelude::PrecompileHandle;
 use sp_core::{H160, H256};
 use sp_std::{boxed::Box, vec, vec::Vec};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Subcall {
 	pub address: H160,
