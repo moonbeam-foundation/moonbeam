@@ -24,9 +24,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.sha }}
+          fetch-depth: 0
       - name: Cargo build
         uses: ./.github/workflow-templates/build-prod-binary
         with:
+          sha: ${{ github.event.inputs.sha }}
           target: ${{ matrix.cpu }}
 
   ####### Prepare the release draft #######
