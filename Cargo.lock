@@ -2349,7 +2349,7 @@ dependencies = [
  "async-trait",
  "cumulus-primitives-core",
  "futures 0.3.31",
- "jsonrpsee-core 0.24.7",
+ "jsonrpsee-core 0.24.9",
  "parity-scale-codec",
  "polkadot-overseer",
  "sc-client-api",
@@ -2406,7 +2406,7 @@ dependencies = [
  "either",
  "futures 0.3.31",
  "futures-timer",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "parity-scale-codec",
  "pin-project",
  "polkadot-overseer",
@@ -3452,7 +3452,7 @@ dependencies = [
  "fp-storage",
  "futures 0.3.31",
  "hex",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "libsecp256k1",
  "log",
  "pallet-evm",
@@ -3497,7 +3497,7 @@ source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-po
 dependencies = [
  "ethereum",
  "ethereum-types",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "rlp",
  "rustc-hex",
  "serde",
@@ -4834,7 +4834,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.5.8",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -4889,7 +4889,7 @@ dependencies = [
  "hyper 1.4.1",
  "hyper-util",
  "log",
- "rustls 0.23.24",
+ "rustls 0.23.26",
  "rustls-native-certs 0.8.1",
  "rustls-pki-types",
  "tokio",
@@ -5403,6 +5403,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "jni"
+version = "0.21.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a87aa2bb7d2af34197c04845522473242e1aa17c12f4935d5856491a7fb8c97"
+dependencies = [
+ "cesu8",
+ "cfg-if",
+ "combine",
+ "jni-sys",
+ "log",
+ "thiserror 1.0.69",
+ "walkdir",
+ "windows-sys 0.45.0",
+]
+
+[[package]]
 name = "jni-sys"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5451,16 +5467,16 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee"
-version = "0.24.7"
+version = "0.24.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5c71d8c1a731cc4227c2f698d377e7848ca12c8a48866fc5e6951c43a4db843"
+checksum = "37b26c20e2178756451cfeb0661fb74c47dd5988cb7e3939de7e9241fd604d42"
 dependencies = [
- "jsonrpsee-core 0.24.7",
- "jsonrpsee-http-client 0.24.7",
+ "jsonrpsee-core 0.24.9",
+ "jsonrpsee-http-client 0.24.9",
  "jsonrpsee-proc-macros",
  "jsonrpsee-server",
- "jsonrpsee-types 0.24.7",
- "jsonrpsee-ws-client 0.24.7",
+ "jsonrpsee-types 0.24.9",
+ "jsonrpsee-ws-client 0.24.9",
  "tokio",
  "tracing",
 ]
@@ -5497,9 +5513,9 @@ dependencies = [
  "http 1.1.0",
  "jsonrpsee-core 0.23.2",
  "pin-project",
- "rustls 0.23.24",
+ "rustls 0.23.26",
  "rustls-pki-types",
- "rustls-platform-verifier",
+ "rustls-platform-verifier 0.3.4",
  "soketto 0.8.0",
  "thiserror 1.0.69",
  "tokio",
@@ -5511,18 +5527,18 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-client-transport"
-version = "0.24.7"
+version = "0.24.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "548125b159ba1314104f5bb5f38519e03a41862786aa3925cf349aae9cdd546e"
+checksum = "bacb85abf4117092455e1573625e21b8f8ef4dec8aff13361140b2dc266cdff2"
 dependencies = [
  "base64 0.22.1",
  "futures-util",
  "http 1.1.0",
- "jsonrpsee-core 0.24.7",
+ "jsonrpsee-core 0.24.9",
  "pin-project",
- "rustls 0.23.24",
+ "rustls 0.23.26",
  "rustls-pki-types",
- "rustls-platform-verifier",
+ "rustls-platform-verifier 0.5.1",
  "soketto 0.8.0",
  "thiserror 1.0.69",
  "tokio",
@@ -5579,9 +5595,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-core"
-version = "0.24.7"
+version = "0.24.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2882f6f8acb9fdaec7cefc4fd607119a9bd709831df7d7672a1d3b644628280"
+checksum = "456196007ca3a14db478346f58c7238028d55ee15c1df15115596e411ff27925"
 dependencies = [
  "async-trait",
  "bytes",
@@ -5590,7 +5606,7 @@ dependencies = [
  "http 1.1.0",
  "http-body 1.0.1",
  "http-body-util",
- "jsonrpsee-types 0.24.7",
+ "jsonrpsee-types 0.24.9",
  "parking_lot 0.12.3",
  "pin-project",
  "rand 0.8.5",
@@ -5625,9 +5641,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-http-client"
-version = "0.24.7"
+version = "0.24.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3638bc4617f96675973253b3a45006933bde93c2fd8a6170b33c777cc389e5b"
+checksum = "c872b6c9961a4ccc543e321bb5b89f6b2d2c7fe8b61906918273a3333c95400c"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5635,10 +5651,10 @@ dependencies = [
  "hyper 1.4.1",
  "hyper-rustls 0.27.3",
  "hyper-util",
- "jsonrpsee-core 0.24.7",
- "jsonrpsee-types 0.24.7",
- "rustls 0.23.24",
- "rustls-platform-verifier",
+ "jsonrpsee-core 0.24.9",
+ "jsonrpsee-types 0.24.9",
+ "rustls 0.23.26",
+ "rustls-platform-verifier 0.5.1",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
@@ -5650,9 +5666,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-proc-macros"
-version = "0.24.7"
+version = "0.24.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c06c01ae0007548e73412c08e2285ffe5d723195bf268bce67b1b77c3bb2a14d"
+checksum = "5e65763c942dfc9358146571911b0cd1c361c2d63e2d2305622d40d36376ca80"
 dependencies = [
  "heck 0.5.0",
  "proc-macro-crate 3.2.0",
@@ -5663,9 +5679,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-server"
-version = "0.24.7"
+version = "0.24.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82ad8ddc14be1d4290cd68046e7d1d37acd408efed6d3ca08aefcc3ad6da069c"
+checksum = "55e363146da18e50ad2b51a0a7925fc423137a0b1371af8235b1c231a0647328"
 dependencies = [
  "futures-util",
  "http 1.1.0",
@@ -5673,8 +5689,8 @@ dependencies = [
  "http-body-util",
  "hyper 1.4.1",
  "hyper-util",
- "jsonrpsee-core 0.24.7",
- "jsonrpsee-types 0.24.7",
+ "jsonrpsee-core 0.24.9",
+ "jsonrpsee-types 0.24.9",
  "pin-project",
  "route-recognizer",
  "serde",
@@ -5716,9 +5732,9 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-types"
-version = "0.24.7"
+version = "0.24.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a178c60086f24cc35bb82f57c651d0d25d99c4742b4d335de04e97fa1f08a8a1"
+checksum = "08a8e70baf945b6b5752fc8eb38c918a48f1234daf11355e07106d963f860089"
 dependencies = [
  "http 1.1.0",
  "serde",
@@ -5741,14 +5757,14 @@ dependencies = [
 
 [[package]]
 name = "jsonrpsee-ws-client"
-version = "0.24.7"
+version = "0.24.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fe322e0896d0955a3ebdd5bf813571c53fea29edd713bc315b76620b327e86d"
+checksum = "01b3323d890aa384f12148e8d2a1fd18eb66e9e7e825f9de4fa53bcc19b93eef"
 dependencies = [
  "http 1.1.0",
- "jsonrpsee-client-transport 0.24.7",
- "jsonrpsee-core 0.24.7",
- "jsonrpsee-types 0.24.7",
+ "jsonrpsee-client-transport 0.24.9",
+ "jsonrpsee-core 0.24.9",
+ "jsonrpsee-types 0.24.9",
  "url",
 ]
 
@@ -6828,7 +6844,7 @@ name = "mmr-rpc"
 version = "39.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#f1f370819fc24d8d0b60016bc36e0859667a1f38"
 dependencies = [
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "parity-scale-codec",
  "serde",
  "sp-api",
@@ -7159,7 +7175,7 @@ dependencies = [
  "flume 0.10.14",
  "futures 0.3.31",
  "hex-literal 0.4.1",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "parity-scale-codec",
  "staging-xcm",
  "tokio",
@@ -7193,7 +7209,7 @@ dependencies = [
  "fc-api",
  "fc-db",
  "fc-rpc",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "parity-scale-codec",
  "sp-api",
  "sp-blockchain",
@@ -7248,7 +7264,7 @@ dependencies = [
  "ethereum-types",
  "fc-rpc-core",
  "futures 0.3.31",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-types",
  "serde",
@@ -7262,7 +7278,7 @@ version = "0.6.0"
 dependencies = [
  "ethereum-types",
  "futures 0.3.31",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-types",
  "serde",
@@ -7293,7 +7309,7 @@ dependencies = [
  "fp-rpc",
  "futures 0.3.31",
  "hex-literal 0.4.1",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-debug",
@@ -7353,7 +7369,7 @@ dependencies = [
  "fc-storage",
  "fp-rpc",
  "futures 0.3.31",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-trace",
@@ -7654,7 +7670,7 @@ dependencies = [
  "futures 0.3.31",
  "hex",
  "hex-literal 0.4.1",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "libsecp256k1",
  "log",
  "maplit",
@@ -8514,7 +8530,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af1844ef2428cc3e1cb900be36181049ef3d3193c63e43026cfe202983b27a56"
 dependencies = [
- "proc-macro-crate 3.2.0",
+ "proc-macro-crate 1.1.3",
  "proc-macro2",
  "quote",
  "syn 2.0.100",
@@ -10867,7 +10883,7 @@ name = "pallet-transaction-payment-rpc"
 version = "42.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#f1f370819fc24d8d0b60016bc36e0859667a1f38"
 dependencies = [
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
  "sp-api",
@@ -11124,8 +11140,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -12215,7 +12231,7 @@ name = "polkadot-rpc"
 version = "22.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#f1f370819fc24d8d0b60016bc36e0859667a1f38"
 dependencies = [
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "mmr-rpc",
  "pallet-transaction-payment-rpc",
  "polkadot-primitives",
@@ -13027,7 +13043,7 @@ version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
- "heck 0.5.0",
+ "heck 0.4.1",
  "itertools 0.12.1",
  "log",
  "multimap",
@@ -13886,9 +13902,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.24"
+version = "0.23.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96bf61953b1bc045820a2b947e6e9771c58c8c4b15242425b03f783ede1b34fe"
+checksum = "df51b5869f3a441595eac5e8ff14d486ff285f7b8c0df8770e49c3b56351f0f0"
 dependencies = [
  "log",
  "once_cell",
@@ -13969,10 +13985,10 @@ checksum = "afbb878bdfdf63a336a5e63561b1835e7a8c91524f51621db870169eac84b490"
 dependencies = [
  "core-foundation 0.9.4",
  "core-foundation-sys",
- "jni",
+ "jni 0.19.0",
  "log",
  "once_cell",
- "rustls 0.23.24",
+ "rustls 0.23.26",
  "rustls-native-certs 0.7.3",
  "rustls-platform-verifier-android",
  "rustls-webpki 0.102.8",
@@ -13980,6 +13996,27 @@ dependencies = [
  "security-framework-sys",
  "webpki-roots 0.26.5",
  "winapi",
+]
+
+[[package]]
+name = "rustls-platform-verifier"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a5467026f437b4cb2a533865eaa73eb840019a0916f4b9ec563c6e617e086c9"
+dependencies = [
+ "core-foundation 0.10.0",
+ "core-foundation-sys",
+ "jni 0.21.1",
+ "log",
+ "once_cell",
+ "rustls 0.23.26",
+ "rustls-native-certs 0.8.1",
+ "rustls-platform-verifier-android",
+ "rustls-webpki 0.103.0",
+ "security-framework 3.2.0",
+ "security-framework-sys",
+ "webpki-root-certs",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -14392,7 +14429,7 @@ version = "0.48.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#f1f370819fc24d8d0b60016bc36e0859667a1f38"
 dependencies = [
  "futures 0.3.31",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "sc-consensus-babe",
  "sc-consensus-epochs",
  "sc-rpc-api",
@@ -14450,7 +14487,7 @@ version = "27.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#f1f370819fc24d8d0b60016bc36e0859667a1f38"
 dependencies = [
  "futures 0.3.31",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "parity-scale-codec",
  "parking_lot 0.12.3",
@@ -14528,7 +14565,7 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "finality-grandpa",
  "futures 0.3.31",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "parity-scale-codec",
  "sc-client-api",
@@ -14550,7 +14587,7 @@ dependencies = [
  "async-trait",
  "futures 0.3.31",
  "futures-timer",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "parity-scale-codec",
  "sc-client-api",
@@ -14928,7 +14965,7 @@ dependencies = [
  "parity-scale-codec",
  "parking_lot 0.12.3",
  "rand 0.8.5",
- "rustls 0.23.24",
+ "rustls 0.23.26",
  "sc-client-api",
  "sc-network",
  "sc-network-common",
@@ -14960,7 +14997,7 @@ version = "43.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#f1f370819fc24d8d0b60016bc36e0859667a1f38"
 dependencies = [
  "futures 0.3.31",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "parity-scale-codec",
  "parking_lot 0.12.3",
@@ -14991,7 +15028,7 @@ name = "sc-rpc-api"
 version = "0.47.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#f1f370819fc24d8d0b60016bc36e0859667a1f38"
 dependencies = [
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "parity-scale-codec",
  "sc-chain-spec",
  "sc-mixnet",
@@ -15019,7 +15056,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.4.1",
  "ip_network",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "sc-rpc-api",
  "serde",
@@ -15040,7 +15077,7 @@ dependencies = [
  "futures-util",
  "hex",
  "itertools 0.11.0",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "parity-scale-codec",
  "parking_lot 0.12.3",
@@ -15072,7 +15109,7 @@ dependencies = [
  "exit-future",
  "futures 0.3.31",
  "futures-timer",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "parity-scale-codec",
  "parking_lot 0.12.3",
@@ -15155,7 +15192,7 @@ name = "sc-sync-state-rpc"
 version = "0.48.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#f1f370819fc24d8d0b60016bc36e0859667a1f38"
 dependencies = [
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "parity-scale-codec",
  "sc-chain-spec",
  "sc-client-api",
@@ -17362,7 +17399,7 @@ dependencies = [
  "docify",
  "frame-system-rpc-runtime-api",
  "futures 0.3.31",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "parity-scale-codec",
  "sc-rpc-api",
@@ -17394,7 +17431,7 @@ version = "0.47.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#f1f370819fc24d8d0b60016bc36e0859667a1f38"
 dependencies = [
  "async-trait",
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "log",
  "sc-rpc-api",
  "serde",
@@ -17406,7 +17443,7 @@ name = "substrate-state-trie-migration-rpc"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#f1f370819fc24d8d0b60016bc36e0859667a1f38"
 dependencies = [
- "jsonrpsee 0.24.7",
+ "jsonrpsee 0.24.9",
  "parity-scale-codec",
  "sc-client-api",
  "sc-rpc-api",
@@ -18103,7 +18140,7 @@ version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c7bc40d0e5a97695bb96e27995cd3a08538541b0a846f65bba7a359f36700d4"
 dependencies = [
- "rustls 0.23.24",
+ "rustls 0.23.26",
  "rustls-pki-types",
  "tokio",
 ]
@@ -18128,7 +18165,7 @@ checksum = "7a9daff607c6d2bf6c16fd681ccb7eecc83e4e2cdc1ca067ffaadfca5de7f084"
 dependencies = [
  "futures-util",
  "log",
- "rustls 0.23.24",
+ "rustls 0.23.26",
  "rustls-native-certs 0.8.1",
  "rustls-pki-types",
  "tokio",
@@ -18451,7 +18488,7 @@ dependencies = [
  "httparse",
  "log",
  "rand 0.9.0",
- "rustls 0.23.24",
+ "rustls 0.23.26",
  "rustls-pki-types",
  "sha1",
  "thiserror 2.0.12",
@@ -18473,7 +18510,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
@@ -19165,6 +19202,15 @@ checksum = "ed63aea5ce73d0ff405984102c42de94fc55a6b75765d621c65262469b3c9b53"
 dependencies = [
  "ring 0.17.8",
  "untrusted 0.9.0",
+]
+
+[[package]]
+name = "webpki-root-certs"
+version = "0.26.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09aed61f5e8d2c18344b3faa33a4c837855fe56642757754775548fee21386c4"
+dependencies = [
+ "rustls-pki-types",
 ]
 
 [[package]]
