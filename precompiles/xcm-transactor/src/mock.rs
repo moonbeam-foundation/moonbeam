@@ -20,7 +20,7 @@ use crate::v2::{XcmTransactorPrecompileV2, XcmTransactorPrecompileV2Call};
 use crate::v3::{XcmTransactorPrecompileV3, XcmTransactorPrecompileV3Call};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
+	traits::{Everything, PalletInfo as PalletInfoTrait},
 	weights::{RuntimeDbWeight, Weight},
 };
 use pallet_evm::{
