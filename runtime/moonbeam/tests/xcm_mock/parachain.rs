@@ -1131,7 +1131,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 }
 
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
-use moonbeam_runtime::{currency, xcm_config::LocationToH160, , BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
+use moonbeam_runtime::{currency, xcm_config::LocationToH160, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
 use pallet_evm::FrameSystemAccountProvider;
 use sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use xcm_primitives::AsAssetType;
