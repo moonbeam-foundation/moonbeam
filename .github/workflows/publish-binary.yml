@@ -13,7 +13,6 @@ on:
 
 jobs:
   build-binary:
-    needs: ["setup-scripts"]
     runs-on: moonbeam-release-medium
     permissions:
       contents: read
