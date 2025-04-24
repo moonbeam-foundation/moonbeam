@@ -351,7 +351,7 @@ impl<T: frame_system::Config> pallet_identity::WeightInfo for WeightInfo<T> {
 	/// Proof: `Identity::PendingUsernames` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
 	/// Storage: `Identity::IdentityOf` (r:1 w:1)
 	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7560), added: 10035, mode: `MaxEncodedLen`)
-	fn set_username_for(s: u32) -> Weight {
+	fn set_username_for(_s: u32) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `67`
 		//  Estimated: `11025`
