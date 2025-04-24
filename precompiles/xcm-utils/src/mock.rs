@@ -123,20 +123,6 @@ pub type LocationToAccountId = (
 	xcm_builder::AccountKey20Aliases<LocalNetworkId, AccountId>,
 );
 
-pub struct AccountIdToLocation;
-impl sp_runtime::traits::Convert<AccountId, Location> for AccountIdToLocation {
-	fn convert(account: AccountId) -> Location {
-		let as_h160: H160 = account.into();
-		Location::new(
-			0,
-			[AccountKey20 {
-				network: None,
-				key: as_h160.as_fixed_bytes().clone(),
-			}],
-		)
-	}
-}
-
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
 	pub LocalNetworkId: Option<NetworkId> = None;
@@ -312,20 +298,6 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
-
-pub struct ConvertOriginToLocal;
-impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
-	type Success = Location;
-
-	fn try_origin(_: Origin) -> Result<Location, Origin> {
-		Ok(Location::here())
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	fn try_successful_origin() -> Result<Origin, ()> {
-		Ok(Origin::root())
-	}
-}
 
 use sp_std::cell::RefCell;
 use xcm::latest::opaque;
