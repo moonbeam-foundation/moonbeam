@@ -2,6 +2,7 @@
 
 # Information
 
+[![Release](https://img.shields.io/github/v/release/moonbeam-foundation/moonbeam.svg)](https://github.com/moonbeam-foundation/moonbeam/releases/)
 [![Tests](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml?query=branch:master)
 
 **An Ethereum compatible [Parachain](https://polkadot.com/parachains/) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
