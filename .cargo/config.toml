@@ -20,7 +20,7 @@ rustflags = [
   "-Dclippy::complexity",
   "-Dclippy::unwrap_used",
   "-Aclippy::if-same-then-else",
-  "-Aclippy::suspicious_double_ref_op",
+  "-Asuspicious_double_ref_op",
   "-Aclippy::clone_on_copy",             # Too common
   "-Aclippy::needless_lifetimes",        # Backward compat?
   "-Aclippy::zero-prefixed-literal",     # 00_1000_000
