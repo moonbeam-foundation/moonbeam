@@ -14,18 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::traits::{
-	fungible::{self, NativeOrWithId},
-	tokens::Pay,
-};
+use frame_support::traits::OriginTrait;
+use frame_support::traits::{fungible::NativeOrWithId, tokens::Pay};
 use moonbeam_core_primitives::{AssetId, Balance};
-use pallet_asset_manager::mock::RuntimeOrigin;
 use pallet_moonbeam_foreign_assets::AssetsById;
 use sp_core::U256;
-use sp_runtime::{
-	traits::{AccountIdLookup, StaticLookup},
-	DispatchError,
-};
+use sp_runtime::{traits::StaticLookup, DispatchError};
 
 pub struct MultiAssetPaymaster<R>(sp_std::marker::PhantomData<R>);
 impl<R> Pay for MultiAssetPaymaster<R>
@@ -50,11 +44,13 @@ where
 		match asset_kind {
 			Self::AssetKind::Native => {
 				let dest = R::Lookup::unlookup(who.clone());
+				let value = <R as pallet_balances::Config>::Balance::try_from(amount)
+					.map_err(|_| pallet_treasury::Error::<R>::PayoutError)?;
 				// Pay account with native balance
 				pallet_balances::Pallet::<R>::transfer_keep_alive(
-					RuntimeOrigin::signed(pallet_treasury::Pallet::<R>::account_id()),
+					R::RuntimeOrigin::signed(pallet_treasury::Pallet::<R>::account_id()),
 					dest,
-					<R as pallet_balances::Config>::Balance::from(amount.into()),
+					value,
 				)?;
 				Ok(())
 			}
