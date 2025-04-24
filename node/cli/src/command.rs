@@ -67,7 +67,7 @@ fn load_spec(
 		"moonbase-dev" | "dev" | "development" => {
 			Box::new(chain_spec::moonbase::development_chain_spec(None, None))
 		}
-		#[cfg(all(feature = "test-spec", feature = "moonbeam-native"))]
+		#[cfg(feature = "moonbeam-native")]
 		"staking" => Box::new(chain_spec::test_spec::staking_spec(para_id)),
 		// Moonriver networks
 		"moonriver" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
