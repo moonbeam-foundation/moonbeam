@@ -21,17 +21,13 @@ use frame_support::{
 	dispatch::GetDispatchInfo,
 	ensure, parameter_types,
 	traits::{
-		fungible::{NativeFromLeft, NativeOrWithId, UnionOf},
-		tokens::pay::PayAssetFromAccount,
-		AsEnsureOriginWithArg, ConstU32, EitherOf, Everything, Get, InstanceFilter, Nothing,
-		PalletInfoAccess,
+		fungible::NativeOrWithId, AsEnsureOriginWithArg, ConstU32, EitherOf, Everything, Get,
+		InstanceFilter, Nothing, PalletInfoAccess,
 	},
 	weights::Weight,
 	PalletId,
 };
 pub use moonbeam_runtime::xcm_config::AssetType;
-
-use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
 use moonbeam_runtime_common::{
@@ -873,8 +869,6 @@ impl pallet_timestamp::Config for Runtime {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
-
-use sp_core::U256;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
