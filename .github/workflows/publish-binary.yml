@@ -25,14 +25,9 @@ jobs:
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
-      - name: Get Sha
-        id: get-sha
-        run: |
-          echo "sha=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
       - name: Cargo build
         uses: ./.github/workflow-templates/build-prod-binary
         with:
-          sha: ${{ steps.get-sha.outputs.sha }}
           target: ${{ matrix.cpu }}
 
   ####### Prepare the release draft #######

@@ -30,7 +30,6 @@ jobs:
       - name: Cargo build
         uses: ./.github/workflow-templates/build-prod-binary
         with:
-          sha: ${{ github.event.inputs.sha }}
           target: ${{ matrix.cpu }}
 
   ####### Prepare the release draft #######
