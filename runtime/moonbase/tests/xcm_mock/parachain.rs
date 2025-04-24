@@ -21,10 +21,8 @@ use frame_support::{
 	dispatch::GetDispatchInfo,
 	ensure, parameter_types,
 	traits::{
-		fungible::{NativeFromLeft, NativeOrWithId, UnionOf},
-		tokens::pay::PayAssetFromAccount,
-		AsEnsureOriginWithArg, ConstU32, EitherOf, Everything, Get, InstanceFilter, Nothing,
-		PalletInfoAccess,
+		fungible::NativeOrWithId, AsEnsureOriginWithArg, ConstU32, EitherOf, Everything, Get,
+		InstanceFilter, Nothing, PalletInfoAccess,
 	},
 	weights::Weight,
 	PalletId,
@@ -882,8 +880,6 @@ impl pallet_timestamp::Config for Runtime {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
-
-use sp_core::U256;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
