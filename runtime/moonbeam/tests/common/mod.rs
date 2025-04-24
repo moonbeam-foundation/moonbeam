@@ -38,7 +38,6 @@ use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
 use moonbeam_runtime::EvmForeignAssets;
-use sp_runtime::traits::MaybeEquivalence;
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()

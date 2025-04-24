@@ -30,7 +30,7 @@ use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
 };
 use sp_core::ConstU32;
-use sp_runtime::traits::{Convert, MaybeEquivalence};
+use sp_runtime::traits::Convert;
 use xcm::{
 	latest::{
 		prelude::{

@@ -28,7 +28,7 @@ use moonbase_runtime::xcm_config::AssetType;
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
 };
-use sp_runtime::traits::{Convert, MaybeEquivalence};
+use sp_runtime::traits::Convert;
 use sp_std::boxed::Box;
 use xcm::{
 	latest::prelude::{

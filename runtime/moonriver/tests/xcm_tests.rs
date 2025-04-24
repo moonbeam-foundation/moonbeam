@@ -25,7 +25,7 @@ use frame_support::{
 };
 use moonriver_runtime::xcm_config::AssetType;
 use sp_core::ConstU32;
-use sp_runtime::traits::{Convert, MaybeEquivalence};
+use sp_runtime::traits::Convert;
 use xcm::{
 	latest::prelude::{
 		AccountId32, AccountKey20, All, Asset, AssetId, Assets as XcmAssets, BuyExecution,

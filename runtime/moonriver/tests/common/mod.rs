@@ -39,7 +39,6 @@ use std::collections::BTreeMap;
 use fp_rpc::ConvertTransaction;
 use moonriver_runtime::{Assets, EvmForeignAssets};
 use pallet_transaction_payment::Multiplier;
-use sp_runtime::traits::MaybeEquivalence;
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
