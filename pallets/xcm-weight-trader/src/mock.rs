@@ -155,8 +155,8 @@ impl TransactAsset for MockAssetTransactor {
 	}
 }
 
-pub struct MockAssetIndentifier;
-impl MaybeEquivalence<Location, u128> for MockAssetIndentifier {
+pub struct MockAssetIdentifier;
+impl MaybeEquivalence<Location, u128> for MockAssetIdentifier {
 	fn convert(location: &Location) -> Option<u128> {
 		match location {
 			Location {
