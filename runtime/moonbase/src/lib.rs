@@ -29,6 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod asset_config;
+mod bridge_config;
 #[cfg(not(feature = "disable-genesis-builder"))]
 pub mod genesis_config_preset;
 pub mod governance;
@@ -140,6 +141,7 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
 mod weights;
+mod stagenet_bridge_config;
 
 pub(crate) use weights as moonbase_weights;
 
@@ -1510,7 +1512,25 @@ construct_runtime! {
 		Parameters: pallet_parameters = 57,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 58,
 		MultiBlockMigrations: pallet_multiblock_migrations = 117,
+
+		// Bridge pallets (reserved indexes from 130 to 140)
+		BridgeGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
+		BridgeParachains: pallet_bridge_parachains::<Instance1>::{Pallet, Call, Storage, Event<T>} = 131,
+		BridgeMessages: pallet_bridge_messages::<Instance1>::{Pallet, Call, Storage, Event<T>} = 132,
+		BridgeXcmOver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason} = 133,
+		BridgeXcmRouter: pallet_xcm_bridge_router::<Instance1>::{Pallet, Call, Storage, Event<T>} = 134
 	}
+}
+
+use parity_scale_codec as codec;
+bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
+	RuntimeCall, AccountId,
+	// Grandpa
+	BridgeGrandpa,
+	// Parachains
+	BridgeParachains,
+	// Messages
+	BridgeMessages
 }
 
 /// Block type as expected by this runtime.
@@ -1530,6 +1550,7 @@ pub type SignedExtra = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	BridgeRejectObsoleteHeadersAndMessages,
 	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
 	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 );
@@ -1694,6 +1715,58 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			slot: async_backing_primitives::Slot,
 		) -> bool {
 			ConsensusHook::can_build_upon(included_hash, slot)
+		}
+	}
+
+	impl bp_westend::WestendFinalityApi<Block> for Runtime {
+		fn best_finalized() -> Option<bp_runtime::HeaderId<bp_westend::Hash, bp_westend::BlockNumber>> {
+			BridgeGrandpa::best_finalized()
+		}
+		fn free_headers_interval() -> Option<bp_westend::BlockNumber> {
+			<Runtime as pallet_bridge_grandpa::Config<
+				bridge_config::BridgeGrandpaInstance
+			>>::FreeHeadersInterval::get()
+		}
+		fn synced_headers_grandpa_info(
+		) -> Vec<bp_header_chain::StoredHeaderGrandpaInfo<bp_westend::Header>> {
+			BridgeGrandpa::synced_headers_grandpa_info()
+		}
+	}
+
+	impl bp_moonbase::MoonbaseWestendFinalityApi<Block> for Runtime {
+		fn best_finalized() -> Option<bp_runtime::HeaderId<bp_moonbase::Hash, bp_moonbase::BlockNumber>> {
+			BridgeParachains::best_parachain_head_id::<
+				bp_moonbase::stagenet::Stagenet
+			>().unwrap_or(None)
+		}
+		fn free_headers_interval() -> Option<bp_moonbase::BlockNumber> {
+			// "free interval" is not currently used for parachains
+			None
+		}
+	}
+
+	impl bp_moonbase::ToMoonbaseWestendOutboundLaneApi<Block> for Runtime {
+		fn message_details(
+			lane: bp_moonbase::LaneId,
+			begin: bp_messages::MessageNonce,
+			end: bp_messages::MessageNonce,
+		) -> Vec<bp_messages::OutboundMessageDetails> {
+			bridge_runtime_common::messages_api::outbound_message_details::<
+				Runtime,
+				bridge_config::WithMessagesInstance,
+			>(lane, begin, end)
+		}
+	}
+
+	impl bp_moonbase::FromMoonbaseWestendInboundLaneApi<Block> for Runtime {
+		fn message_details(
+			lane: bp_moonbase::LaneId,
+			messages: Vec<(bp_messages::MessagePayload, bp_messages::OutboundMessageDetails)>,
+		) -> Vec<bp_messages::InboundMessageDetails> {
+			bridge_runtime_common::messages_api::inbound_message_details::<
+				Runtime,
+				bridge_config::WithMessagesInstance,
+			>(lane, messages)
 		}
 	}
 }

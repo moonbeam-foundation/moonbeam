@@ -1063,6 +1063,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bp-bridge-hub-cumulus"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "bp-messages",
+ "bp-polkadot-core",
+ "bp-runtime",
+ "frame-support",
+ "frame-system",
+ "polkadot-primitives",
+ "sp-api",
+ "sp-std",
+]
+
+[[package]]
 name = "bp-header-chain"
 version = "0.19.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
@@ -1096,6 +1111,73 @@ dependencies = [
 ]
 
 [[package]]
+name = "bp-moonbase"
+version = "0.0.1"
+dependencies = [
+ "bp-bridge-hub-cumulus",
+ "bp-messages",
+ "bp-runtime",
+ "frame-support",
+ "frame-system",
+ "moonbeam-core-primitives",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "bp-parachains"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "bp-header-chain",
+ "bp-polkadot-core",
+ "bp-runtime",
+ "frame-support",
+ "impl-trait-for-tuples",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "bp-polkadot-core"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "bp-messages",
+ "bp-runtime",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "bp-relayers"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "bp-header-chain",
+ "bp-messages",
+ "bp-parachains",
+ "bp-runtime",
+ "frame-support",
+ "frame-system",
+ "pallet-utility",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "bp-runtime"
 version = "0.19.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
@@ -1116,6 +1198,39 @@ dependencies = [
  "sp-std",
  "sp-trie",
  "trie-db",
+]
+
+[[package]]
+name = "bp-test-utils"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "bp-header-chain",
+ "bp-parachains",
+ "bp-polkadot-core",
+ "bp-runtime",
+ "ed25519-dalek",
+ "finality-grandpa",
+ "parity-scale-codec",
+ "sp-application-crypto",
+ "sp-consensus-grandpa",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
+]
+
+[[package]]
+name = "bp-westend"
+version = "0.15.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "bp-header-chain",
+ "bp-polkadot-core",
+ "bp-runtime",
+ "frame-support",
+ "sp-api",
+ "sp-std",
 ]
 
 [[package]]
@@ -1156,6 +1271,54 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "staging-xcm",
+]
+
+[[package]]
+name = "bridge-hub-common"
+version = "0.12.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "pallet-message-queue",
+ "parity-scale-codec",
+ "scale-info",
+ "snowbridge-core",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+]
+
+[[package]]
+name = "bridge-runtime-common"
+version = "0.19.2"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "bp-header-chain",
+ "bp-messages",
+ "bp-parachains",
+ "bp-polkadot-core",
+ "bp-relayers",
+ "bp-runtime",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-bridge-grandpa",
+ "pallet-bridge-messages",
+ "pallet-bridge-parachains",
+ "pallet-bridge-relayers",
+ "pallet-transaction-payment",
+ "pallet-utility",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
+ "sp-weights",
+ "staging-xcm",
+ "tuplex",
 ]
 
 [[package]]
@@ -3131,6 +3294,16 @@ checksum = "976dd42dc7e85965fe702eb8164f21f450704bdde31faefd6471dba214cb594e"
 dependencies = [
  "libc",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "ethabi-decode"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52029c4087f9f01108f851d0d02df9c21feb5660a19713466724b7f95bd2d773"
+dependencies = [
+ "ethereum-types",
+ "tiny-keccak",
 ]
 
 [[package]]
@@ -6953,6 +7126,16 @@ version = "0.8.4"
 dependencies = [
  "account",
  "async-backing-primitives",
+ "bp-header-chain",
+ "bp-messages",
+ "bp-moonbase",
+ "bp-parachains",
+ "bp-polkadot-core",
+ "bp-runtime",
+ "bp-westend",
+ "bp-xcm-bridge",
+ "bridge-hub-common",
+ "bridge-runtime-common",
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
@@ -6996,6 +7179,9 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
+ "pallet-bridge-grandpa",
+ "pallet-bridge-messages",
+ "pallet-bridge-parachains",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -7064,6 +7250,8 @@ dependencies = [
  "pallet-whitelist",
  "pallet-xcm",
  "pallet-xcm-benchmarks",
+ "pallet-xcm-bridge",
+ "pallet-xcm-bridge-router",
  "pallet-xcm-transactor",
  "pallet-xcm-weight-trader",
  "parachains-common",
@@ -9025,6 +9213,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-bridge-grandpa"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "bp-header-chain",
+ "bp-runtime",
+ "bp-test-utils",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-consensus-grandpa",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-bridge-messages"
 version = "0.19.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
@@ -9041,6 +9248,50 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "sp-trie",
+]
+
+[[package]]
+name = "pallet-bridge-parachains"
+version = "0.19.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "bp-header-chain",
+ "bp-parachains",
+ "bp-polkadot-core",
+ "bp-runtime",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-bridge-grandpa",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-bridge-relayers"
+version = "0.19.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "bp-header-chain",
+ "bp-messages",
+ "bp-relayers",
+ "bp-runtime",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-bridge-grandpa",
+ "pallet-bridge-messages",
+ "pallet-bridge-parachains",
+ "pallet-transaction-payment",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -11159,6 +11410,12 @@ dependencies = [
  "serde",
  "unicode-normalization",
 ]
+
+[[package]]
+name = "parity-bytes"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "16b56e3a2420138bdb970f84dfb9c774aea80fa0e7371549eedec0d80c209c67"
 
 [[package]]
 name = "parity-db"
@@ -15721,6 +15978,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde-big-array"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cd31f59f6fe2b0c055371bb2f16d7f0aa7d8881676c04a55b1596d1a17cd10a4"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "serde_bytes"
 version = "0.11.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -16232,6 +16498,96 @@ dependencies = [
  "rustc_version",
  "sha2 0.10.9",
  "subtle 2.6.1",
+]
+
+[[package]]
+name = "snowbridge-amcl"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "460a9ed63cdf03c1b9847e8a12a5f5ba19c4efd5869e4a737e05be25d7c427e5"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+]
+
+[[package]]
+name = "snowbridge-beacon-primitives"
+version = "0.12.1"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "byte-slice-cast",
+ "frame-support",
+ "hex",
+ "parity-scale-codec",
+ "rlp",
+ "scale-info",
+ "serde",
+ "snowbridge-ethereum",
+ "snowbridge-milagro-bls",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "ssz_rs",
+ "ssz_rs_derive",
+]
+
+[[package]]
+name = "snowbridge-core"
+version = "0.12.2"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "ethabi-decode",
+ "frame-support",
+ "frame-system",
+ "hex-literal 0.4.1",
+ "parity-scale-codec",
+ "polkadot-parachain-primitives",
+ "scale-info",
+ "serde",
+ "snowbridge-beacon-primitives",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+ "staging-xcm-builder",
+]
+
+[[package]]
+name = "snowbridge-ethereum"
+version = "0.11.0"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#e433739778ca6197fcf47caf9d09b7f23f6b5e24"
+dependencies = [
+ "ethabi-decode",
+ "ethbloom",
+ "ethereum-types",
+ "hex-literal 0.4.1",
+ "parity-bytes",
+ "parity-scale-codec",
+ "rlp",
+ "scale-info",
+ "serde",
+ "serde-big-array",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "snowbridge-milagro-bls"
+version = "1.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "026aa8638f690a53e3f7676024b9e913b1cab0111d1b7b92669d40a188f9d7e6"
+dependencies = [
+ "hex",
+ "lazy_static",
+ "parity-scale-codec",
+ "rand 0.8.5",
+ "scale-info",
+ "snowbridge-amcl",
+ "zeroize",
 ]
 
 [[package]]
@@ -17197,6 +17553,29 @@ dependencies = [
  "serde",
  "serde_json",
  "unicode-xid",
+]
+
+[[package]]
+name = "ssz_rs"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "057291e5631f280978fa9c8009390663ca4613359fc1318e36a8c24c392f6d1f"
+dependencies = [
+ "bitvec",
+ "num-bigint",
+ "sha2 0.9.9",
+ "ssz_rs_derive",
+]
+
+[[package]]
+name = "ssz_rs_derive"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f07d54c4d01a1713eb363b55ba51595da15f6f1211435b71466460da022aa140"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]

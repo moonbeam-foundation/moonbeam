@@ -17,7 +17,7 @@
 //! XCM configuration for Moonbase.
 //!
 
-use super::moonbase_weights;
+use super::{moonbase_weights, BridgeXcmOver, BridgeXcmRouter};
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
 	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
@@ -39,14 +39,7 @@ use frame_support::{
 use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
 use sp_weights::Weight;
-use xcm_builder::{
-	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
-	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
-	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, TrailingSetTopicAsId, WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
-};
+use xcm_builder::{AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, GlobalConsensusParachainConvertsFor, HashedDescription, NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, WeightInfoBounds, WithComputedOrigin, WithUniqueTopic};
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
@@ -116,8 +109,11 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
 	// If we receive a Location of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
-	// Generate remote accounts according to polkadot standards
+	// Foreign locations alias into accounts according to a hash of their standard description.
 	HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
+	// Different global consensus parachain sovereign account.
+	// (Used for over-bridge transfers and reserve processing)
+	GlobalConsensusParachainConvertsFor<UniversalLocation, AccountId>,
 );
 
 /// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
@@ -239,7 +235,7 @@ parameter_types! {
 }
 
 // Our implementation of the Moonbeam Call
-// Attachs the right origin in case the call is made to pallet-ethereum-xcm
+// Attaches the right origin in case the call is made to pallet-ethereum-xcm
 #[cfg(not(feature = "evm-tracing"))]
 moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 #[cfg(feature = "evm-tracing")]
@@ -271,9 +267,16 @@ parameter_types! {
 	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
 
-type Reserves = (
-	// Assets bridged from different consensus systems held in reserve on Asset Hub.
+type BridgedReserves = (
+	// Assets held in reserve on Asset Hub.
 	IsBridgedConcreteAssetFrom<AssetHubLocation>,
+	// Assets bridged from Moonbase-Beta
+	IsBridgedConcreteAssetFrom<crate::bridge_config::BridgeBetanetLocation>,
+);
+
+type Reserves = (
+	// Assets bridged from different consensus systems
+	BridgedReserves,
 	// Relaychain (DOT) from Asset Hub
 	Case<RelayChainNativeAssetFromAssetHub>,
 	// Assets which the reserve is the same as the origin.
@@ -310,8 +313,8 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetLocker = ();
 	type AssetExchanger = ();
 	type FeeManager = ();
-	type MessageExporter = ();
-	type UniversalAliases = Nothing;
+	type MessageExporter = BridgeXcmOver;
+	type UniversalAliases = crate::bridge_config::UniversalAliases;
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
@@ -324,13 +327,22 @@ impl xcm_executor::Config for XcmExecutorConfig {
 // Converts a Signed Local Origin into a Location
 pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
 
-/// The means for routing XCM messages which are not for local execution into the right message
-/// queues.
-pub type XcmRouter = WithUniqueTopic<(
+/// For routing XCM messages which do not cross local consensus boundary.
+pub type LocalXcmRouter = (
 	// Two routers - use UMP to communicate with the relay chain:
 	cumulus_primitives_utility::ParentAsUmp<ParachainSystem, PolkadotXcm, ()>,
 	// ..and XCMP to communicate with the sibling chains.
 	XcmpQueue,
+);
+
+/// The means for routing XCM messages which are not for local execution into the right message
+/// queues.
+pub type XcmRouter = WithUniqueTopic<(
+	// The means for routing XCM messages which are not for local execution into the right message
+	// queues.
+	LocalXcmRouter,
+	// Router that exports messages to be delivered to the Kusama GlobalConsensus
+	BridgeXcmRouter,
 )>;
 
 type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
