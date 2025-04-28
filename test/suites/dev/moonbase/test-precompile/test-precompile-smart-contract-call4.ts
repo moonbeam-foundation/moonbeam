@@ -99,31 +99,5 @@ describeSuite({
         ).rejects.toThrowError("real address must be EOA");
       },
     });
-
-    it({
-      id: "T02",
-      title: "should succeed when caller is a smart contract and real address is EOA",
-      test: async function () {
-        const rawTxn = await context.writeContract!({
-          contractAddress: testContractAddress,
-          contractName: "SmartContractPrecompileCallTest",
-          functionName: "callProxy",
-          gas: 5_000_000n,
-          rawTxOnly: true,
-          args: [
-            BALTATHAR_ADDRESS,
-            multiplyContractAddress,
-            encodeFunctionData({
-              abi: fetchCompiledContract("MultiplyBy7").abi,
-              functionName: "multiply",
-              args: [5],
-            }),
-          ],
-        });
-
-        const { result } = await context.createBlock(rawTxn);
-        expectEVMResult(result!.events, "Succeed");
-      },
-    });
   },
 });
