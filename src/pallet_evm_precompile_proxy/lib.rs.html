@@ -459,6 +459,8 @@
 <a href="#457" id="457">457</a>
 <a href="#458" id="458">458</a>
 <a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -479,7 +481,9 @@
 
 </span><span class="kw">use </span>account::SYSTEM_ACCOUNT_SIZE;
 <span class="kw">use </span>evm::ExitReason;
-<span class="kw">use </span>fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
+<span class="kw">use </span>fp_evm::{
+	Context, PrecompileFailure, PrecompileHandle, Transfer, ACCOUNT_CODES_METADATA_PROOF_SIZE,
+};
 <span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 <span class="kw">use </span>pallet_balances::Call <span class="kw">as </span>BalancesCall;
 <span class="kw">use </span>pallet_evm::AddressMapping;
@@ -491,6 +495,7 @@
 <span class="kw">use </span>sp_runtime::{
 	codec::Decode,
 	traits::{ConstU32, Dispatchable, StaticLookup, Zero},
+	SaturatedConversion,
 };
 <span class="kw">use </span>sp_std::marker::PhantomData;
 
@@ -837,11 +842,10 @@
 		<span class="macro">frame_support::ensure!</span>(def.delay.is_zero(), revert(<span class="string">"Unannounced"</span>));
 
 		<span class="comment">// Read subcall recipient code
-		// AccountCodes: Blake2128(16) + H160(20) + Vec(5)
-		// decode_len reads the first 5 bytes to find the payload len under this key
-		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">41</span>)<span class="question-mark">?</span>;
+		// AccountCodesMetadata: 16 (hash) + 20 (key) + 40 (CodeMetadata).
+		</span>handle.record_db_read::&lt;Runtime&gt;(ACCOUNT_CODES_METADATA_PROOF_SIZE.saturated_into())<span class="question-mark">?</span>;
 		<span class="kw">let </span>recipient_has_code =
-			pallet_evm::AccountCodes::&lt;Runtime&gt;::decode_len(evm_subcall.to.<span class="number">0</span>).unwrap_or(<span class="number">0</span>) &gt; <span class="number">0</span>;
+			pallet_evm::AccountCodesMetadata::&lt;Runtime&gt;::get(evm_subcall.to.<span class="number">0</span>).is_some();
 
 		<span class="comment">// Apply proxy type filter
 		</span><span class="macro">frame_support::ensure!</span>(

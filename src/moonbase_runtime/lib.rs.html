@@ -1836,6 +1836,34 @@
 <a href="#1834" id="1834">1834</a>
 <a href="#1835" id="1835">1835</a>
 <a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
+<a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2815,7 +2843,35 @@
 		gas: u64,
 	) -&gt; precompile_utils::EvmResult&lt;bool&gt; {
 		<span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="self">self </span>{
-			ProxyType::Any =&gt; <span class="bool-val">true</span>,
+			ProxyType::Any =&gt; {
+				<span class="kw">match </span>PrecompileName::from_address(call.to.<span class="number">0</span>) {
+					<span class="comment">// Any precompile that can execute a subcall should be forbidden here,
+					// to ensure that unauthorized smart contract can't be called
+					// indirectly.
+					// To be safe, we only allow the precompiles we need.
+					</span><span class="prelude-val">Some</span>(
+						PrecompileName::AuthorMappingPrecompile
+						| PrecompileName::ParachainStakingPrecompile,
+					) =&gt; <span class="bool-val">true</span>,
+					<span class="prelude-val">Some</span>(<span class="kw-2">ref </span>precompile) <span class="kw">if </span>is_governance_precompile(precompile) =&gt; <span class="bool-val">true</span>,
+					<span class="comment">// All non-whitelisted precompiles are forbidden
+					</span><span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+					<span class="comment">// Allow evm transfer to "simple" account (no code nor precompile)
+					// For the moment, no smart contract other than precompiles is allowed.
+					// In the future, we may create a dynamic whitelist to authorize some audited
+					// smart contracts through governance.
+					</span><span class="prelude-val">None </span>=&gt; {
+						<span class="comment">// If the address is not recognized, allow only evm transfer to "simple"
+						// accounts (no code nor precompile).
+						// Note: Checking the presence of the code is not enough because some
+						// precompiles have no code.
+						</span>!recipient_has_code
+							&amp;&amp; !precompile_utils::precompile_set::is_precompile_or_fail::&lt;Runtime&gt;(
+								call.to.<span class="number">0</span>, gas,
+							)<span class="question-mark">?
+					</span>}
+				}
+			}
 			ProxyType::NonTransfer =&gt; {
 				call.value == U256::zero()
 					&amp;&amp; <span class="kw">match </span>PrecompileName::from_address(call.to.<span class="number">0</span>) {

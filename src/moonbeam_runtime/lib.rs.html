@@ -2820,12 +2820,12 @@
 					// In the future, we may create a dynamic whitelist to authorize some audited
 					// smart contracts through governance.
 					</span><span class="prelude-val">None </span>=&gt; {
-						<span class="comment">// If the address is not recognized, allow only evm transfert to "simple"
+						<span class="comment">// If the address is not recognized, allow only evm transfer to "simple"
 						// accounts (no code nor precompile).
 						// Note: Checking the presence of the code is not enough because some
 						// precompiles have no code.
 						</span>!recipient_has_code
-							&amp;&amp; precompile_utils::precompile_set::is_precompile_or_fail::&lt;Runtime&gt;(
+							&amp;&amp; !precompile_utils::precompile_set::is_precompile_or_fail::&lt;Runtime&gt;(
 								call.to.<span class="number">0</span>, gas,
 							)<span class="question-mark">?
 					</span>}
