@@ -862,7 +862,9 @@ impl pallet_evm::Config for Runtime {
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 }
 
+#[allow(dead_code)]
 pub struct NormalFilter;
+
 impl frame_support::traits::Contains<RuntimeCall> for NormalFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
