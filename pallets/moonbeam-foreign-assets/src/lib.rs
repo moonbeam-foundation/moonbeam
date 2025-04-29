@@ -54,7 +54,7 @@ use self::evm::EvmCaller;
 use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
-use frame_support::traits::{fungibles::Inspect, Contains};
+use frame_support::traits::Contains;
 
 use frame_system::pallet_prelude::*;
 use xcm::latest::{
@@ -64,8 +64,6 @@ use xcm::latest::{
 use xcm::prelude::Parachain;
 use xcm_executor::traits::ConvertLocation;
 use xcm_executor::traits::Error as MatchError;
-
-mod impl_fungibles;
 
 const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
 
