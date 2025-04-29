@@ -29,8 +29,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
-		EnsureOrigin, OnInitialize, PalletInfo, StorageInfo, StorageInfoTrait,
+		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo,
+		StorageInfo, StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
@@ -2745,6 +2745,11 @@ mod treasury_tests {
 		Treasury::on_initialize(System::block_number());
 	}
 
+	fn get_asset_balance(id: &u128, account: &AccountId) -> U256 {
+		pallet_moonbeam_foreign_assets::Pallet::<Runtime>::balance(id.clone(), account.clone())
+			.expect("failed to get account balance")
+	}
+
 	#[test]
 	fn test_treasury_spend_local_with_council_origin() {
 		let initial_treasury_balance = 1_000 * MOVR;
@@ -2864,11 +2869,8 @@ mod treasury_tests {
 				));
 
 				assert_eq!(
-					<EvmForeignAssets as FungiblesInspect<AccountId>>::balance(
-						asset_id,
-						&Treasury::account_id()
-					),
-					initial_treasury_balance,
+					get_asset_balance(&asset_id, &Treasury::account_id()),
+					initial_treasury_balance.into(),
 					"Treasury balance not updated"
 				);
 
@@ -2923,20 +2925,14 @@ mod treasury_tests {
 				})]);
 
 				assert_eq!(
-					<EvmForeignAssets as FungiblesInspect<AccountId>>::balance(
-						asset_id,
-						&Treasury::account_id()
-					),
-					initial_treasury_balance - spend_amount,
+					get_asset_balance(&asset_id, &Treasury::account_id()),
+					(initial_treasury_balance - spend_amount).into(),
 					"Treasury balance not updated"
 				);
 
 				assert_eq!(
-					<EvmForeignAssets as FungiblesInspect<AccountId>>::balance(
-						asset_id,
-						&spend_beneficiary
-					),
-					spend_amount,
+					get_asset_balance(&asset_id, &spend_beneficiary),
+					spend_amount.into(),
 					"Treasury payout failed"
 				);
 			});
