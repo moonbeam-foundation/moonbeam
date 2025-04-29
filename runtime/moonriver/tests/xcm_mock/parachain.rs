@@ -929,7 +929,9 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 	}
 }
 
+#[allow(dead_code)]
 pub struct MockHrmpEncoder;
+
 impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
 	fn hrmp_encode_call(
 		call: xcm_primitives::HrmpAvailableCalls,

@@ -861,7 +861,9 @@ impl pallet_evm::Config for Runtime {
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 }
 
+#[allow(dead_code)]
 pub struct NormalFilter;
+
 impl frame_support::traits::Contains<RuntimeCall> for NormalFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
@@ -928,7 +930,9 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 	}
 }
 
+#[allow(dead_code)]
 pub struct MockHrmpEncoder;
+
 impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
 	fn hrmp_encode_call(
 		call: xcm_primitives::HrmpAvailableCalls,
