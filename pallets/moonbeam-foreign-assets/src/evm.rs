@@ -40,10 +40,12 @@ const ERC20_PAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 150_500
 pub(crate) const ERC20_TRANSFER_GAS_LIMIT: u64 = 160_000; // highest failure: 154_000
 pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 160_000; // highest failure: 153_000
 const ERC20_UNPAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 149_500
+pub(crate) const ERC20_BALANCE_OF_GAS_LIMIT: u64 = 160_000; // Calculated effective gas: max(used: 24276, pov: 150736, storage: 0) = 150736
 
 #[derive(Debug)]
 pub enum EvmError {
 	BurnFromFail(String),
+	BalanceOfFail(String),
 	ContractReturnInvalidValue,
 	DispatchError(DispatchError),
 	EvmCallFail(String),
@@ -63,6 +65,10 @@ impl From<EvmError> for XcmError {
 			EvmError::BurnFromFail(err) => {
 				log::debug!("BurnFromFail error: {:?}", err);
 				XcmError::FailedToTransactAsset("Erc20 contract call burnFrom fail")
+			}
+			EvmError::BalanceOfFail(err) => {
+				log::debug!("BalanceOfFail error: {:?}", err);
+				XcmError::FailedToTransactAsset("Erc20 contract call balanceOf fail")
 			}
 			EvmError::ContractReturnInvalidValue => {
 				XcmError::FailedToTransactAsset("Erc20 contract return invalid value")
@@ -447,6 +453,47 @@ impl<T: crate::Config> EvmCaller<T> {
 		);
 
 		Ok(())
+	}
+
+	// Call contract selector "balanceOf"
+	pub(crate) fn erc20_balance_of(asset_id: AssetId, account: H160) -> Result<U256, EvmError> {
+		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
+		// Selector
+		input.extend_from_slice(&keccak256!("balanceOf(address)")[..4]);
+		// append account address
+		input.extend_from_slice(H256::from(account).as_bytes());
+
+		let exec_info = T::EvmRunner::call(
+			Pallet::<T>::account_id(),
+			Pallet::<T>::contract_address_from_asset_id(asset_id),
+			input,
+			U256::default(),
+			ERC20_BALANCE_OF_GAS_LIMIT,
+			None,
+			None,
+			None,
+			Default::default(),
+			false,
+			false,
+			None,
+			None,
+			&<T as pallet_evm::Config>::config(),
+		)
+		.map_err(|err| EvmError::EvmCallFail(format!("{:?}", err.error.into())))?;
+
+		ensure!(
+			matches!(
+				exec_info.exit_reason,
+				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
+			),
+			{
+				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
+				EvmError::BalanceOfFail(err)
+			}
+		);
+
+		let balance = U256::from_big_endian(&exec_info.value);
+		Ok(balance)
 	}
 }
 

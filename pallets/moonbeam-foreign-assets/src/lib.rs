@@ -249,7 +249,6 @@ pub mod pallet {
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
 		EvmCallBalanceOfFail,
-		EvmCallTotalSupplyFail,
 		EvmInternalError,
 		/// Account has insufficient balance for locking
 		InsufficientBalance,
@@ -381,6 +380,11 @@ pub mod pallet {
 				amount,
 			)
 			.map_err(Into::into)
+		}
+
+		pub fn balance(asset_id: AssetId, who: T::AccountId) -> Result<U256, evm::EvmError> {
+			EvmCaller::<T>::erc20_balance_of(asset_id, T::AccountIdToH160::convert(who))
+				.map_err(Into::into)
 		}
 
 		/// Aprrove a spender to spend a certain amount of tokens from the owner account
