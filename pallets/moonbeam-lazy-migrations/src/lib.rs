@@ -63,8 +63,6 @@ pub mod pallet {
 	pub(crate) type ApprovedForeignAssets<T: Config> =
 		StorageMap<_, Twox64Concat, u128, (), OptionQuery>;
 
-	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<1_024>>;
-
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config:
