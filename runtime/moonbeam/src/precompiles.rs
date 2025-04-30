@@ -156,7 +156,7 @@ type MoonbeamPrecompilesAt<R> = (
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<
-		AddressU64<2050>,
+		AddressU64<ERC20_BALANCES_PRECOMPILE>,
 		Erc20BalancesPrecompile<R, NativeErc20Metadata>,
 		(CallableByContract, CallableByPrecompile),
 	>,

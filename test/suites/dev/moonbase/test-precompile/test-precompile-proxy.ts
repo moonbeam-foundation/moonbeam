@@ -496,7 +496,7 @@ describeSuite({
 
     it({
       id: "T15",
-      title: "should transfer using balances precompile",
+      title: "should not be able to transfer using balances precompile",
       test: async () => {
         // The account cannot be random otherwise the calldata might contain more
         // zero bytes and have a different gas cost
@@ -512,38 +512,25 @@ describeSuite({
         const { result } = await context.createBlock(rawTxn);
         expectEVMResult(result!.events, "Succeed");
 
-        const balBefore = await context.viem().getBalance({ address: FAITH_ADDRESS });
         const { abi: ierc20Abi } = fetchCompiledContract("IERC20");
-
-        const rawTxn2 = await context.writePrecompile!({
-          precompileName: "Proxy",
-          functionName: "proxy",
-          args: [
-            FAITH_ADDRESS,
-            PRECOMPILE_NATIVE_ERC20_ADDRESS,
-            encodeFunctionData({
-              abi: ierc20Abi,
-              functionName: "transfer",
-              args: [randomAccount, parseEther("5")],
-            }),
-          ],
-          privateKey: BALTATHAR_PRIVATE_KEY,
-          rawTxOnly: true,
-        });
-
-        const { result: result2 } = await context.createBlock(rawTxn2);
-        expectEVMResult(result2!.events, "Succeed");
-
-        const { gasUsed } = await context
-          .viem()
-          .getTransactionReceipt({ hash: result2!.hash as `0x${string}` });
-
-        expect(gasUsed).toMatchInlineSnapshot(`54168n`);
-
-        expect(await context.viem().getBalance({ address: randomAccount })).toBe(parseEther("5"));
-
-        const balAfter = await context.viem().getBalance({ address: FAITH_ADDRESS });
-        expect(balBefore - balAfter).to.equal(parseEther("5"));
+        expect(
+          async () =>
+            await context.writePrecompile!({
+              precompileName: "Proxy",
+              functionName: "proxy",
+              args: [
+                FAITH_ADDRESS,
+                PRECOMPILE_NATIVE_ERC20_ADDRESS,
+                encodeFunctionData({
+                  abi: ierc20Abi,
+                  functionName: "transfer",
+                  args: [randomAccount, parseEther("5")],
+                }),
+              ],
+              privateKey: BALTATHAR_PRIVATE_KEY,
+              rawTxOnly: true,
+            })
+        ).rejects.toThrowError("VM Exception while processing transaction: revert CallFiltered");
       },
     });
   },
