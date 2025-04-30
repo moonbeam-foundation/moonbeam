@@ -26,8 +26,10 @@ use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
 use fc_storage::StorageOverride;
 use fp_rpc::EthereumRuntimeRPCApi;
+use moonbeam_client_evm_tracing::formatters::call_tracer::CallTracerInner;
 use moonbeam_client_evm_tracing::types::block;
 use moonbeam_client_evm_tracing::types::block::BlockTransactionTrace;
+use moonbeam_client_evm_tracing::types::single::TransactionTrace;
 use moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
@@ -38,6 +40,7 @@ use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
+use sp_core::H160;
 use sp_runtime::{
 	generic::BlockId,
 	traits::{BlakeTwo256, Block as BlockT, Header as HeaderT, UniqueSaturatedInto},
@@ -422,13 +425,32 @@ where
 			.current_transaction_statuses(hash)
 			.unwrap_or_default();
 
+		// Partial ethereum transaction data to check if a trace match an ethereum transaction
+		struct EthTxPartial {
+			transaction_hash: H256,
+			from: H160,
+			to: Option<H160>,
+		}
+
 		// Known ethereum transaction hashes.
-		let eth_transactions_by_index: BTreeMap<u32, H256> = statuses
+		let eth_transactions_by_index: BTreeMap<u32, EthTxPartial> = statuses
 			.iter()
-			.map(|t| (t.transaction_index, t.transaction_hash))
+			.map(|status| {
+				(
+					status.transaction_index,
+					EthTxPartial {
+						transaction_hash: status.transaction_hash,
+						from: status.from,
+						to: status.to,
+					},
+				)
+			})
 			.collect();
 
-		let eth_tx_hashes: Vec<_> = eth_transactions_by_index.values().cloned().collect();
+		let eth_tx_hashes: Vec<_> = eth_transactions_by_index
+			.values()
+			.map(|tx| tx.transaction_hash)
+			.collect();
 
 		// If there are no ethereum transactions in the block return empty trace right away.
 		if eth_tx_hashes.is_empty() {
@@ -520,12 +542,52 @@ where
 								.ok_or("Trace result is empty.")
 								.map_err(|e| internal_err(format!("{:?}", e)))?
 								.into_iter()
-								.filter_map(|mut trace| {
-									if let Some(transaction_hash) = eth_transactions_by_index
+								.filter_map(|mut trace: BlockTransactionTrace| {
+									if let Some(EthTxPartial {
+										transaction_hash,
+										from,
+										to,
+									}) = eth_transactions_by_index
 										.get(&(trace.tx_position - tx_position_offset))
 									{
-										trace.tx_hash = *transaction_hash;
-										Some(trace)
+										// verify that the trace matches the ethereum transaction
+										let (trace_from, trace_to) = match trace.result {
+											TransactionTrace::Raw { .. } => {
+												(Default::default(), None)
+											}
+											TransactionTrace::CallList(_) => {
+												(Default::default(), None)
+											}
+											TransactionTrace::CallListNested(ref call) => {
+												match call {
+													single::Call::Blockscout(_) => {
+														(Default::default(), None)
+													}
+													single::Call::CallTracer(call) => (
+														call.from,
+														match call.inner {
+															CallTracerInner::Call {
+																to, ..
+															} => Some(to),
+															CallTracerInner::Create { .. } => None,
+															CallTracerInner::SelfDestruct {
+																..
+															} => None,
+														},
+													),
+												}
+											}
+										};
+										if trace_from == *from && trace_to == *to {
+											trace.tx_hash = *transaction_hash;
+											Some(trace)
+										} else {
+											// if the trace does not match the ethereum transaction
+											// it means that the trace is about a buggy transaction that is not in the block
+											// we need to offset the tx_position
+											tx_position_offset += 1;
+											None
+										}
 									} else {
 										// If the transaction is not in the ethereum block
 										// it should not appear in the block trace
