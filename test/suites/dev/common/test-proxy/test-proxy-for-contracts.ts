@@ -16,6 +16,11 @@ describeSuite({
         "ProxyForContractsDemo",
         { value: 1000n * GLMR }
       );
+      const ethEvent = (await context.polkadotJs().query.system.events()).find(({ event }) =>
+        context.polkadotJs().events.ethereum.Executed.is(event)
+      );
+      expect((ethEvent.toHuman() as any).event["data"]["exitReason"]["Succeed"]).equals("Returned");
+
       contractAddress = deployedAddr;
     });
 
