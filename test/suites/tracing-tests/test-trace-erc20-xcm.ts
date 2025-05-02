@@ -218,7 +218,7 @@ describeSuite({
         const receipt = await context
           .viem()
           .getTransactionReceipt({ hash: failedTransactionHash as `0x${string}` });
-        
+
         // Verify the transaction failed
         expect(receipt.status).toBe("reverted");
 
@@ -231,7 +231,7 @@ describeSuite({
         // Verify we got a trace back
         expect(trace).toBeDefined();
         expect(trace.gasUsed).toBeDefined();
-        
+
         // The traced gas used should be greater than or equal to the one in the receipt
         // since tracing doesn't account for gas refunds
         expect(hexToNumber(trace.gasUsed)).gte(Number(receipt.gasUsed));
