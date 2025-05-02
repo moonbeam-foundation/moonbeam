@@ -297,7 +297,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
-	type ExtensionsWeightInfo = ();
+	type ExtensionsWeightInfo = moonbeam_weights::frame_system_extensions::WeightInfo<Runtime>;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -1496,6 +1496,7 @@ mod benches {
 
 	frame_benchmarking::define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
+		[frame_system_extensions, frame_system_benchmarking::extensions::Pallet::<Runtime>]
 		[pallet_utility, Utility]
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
