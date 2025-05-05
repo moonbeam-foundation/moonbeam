@@ -125,7 +125,7 @@ fn take_index_for_account() {
 			// Expected result is zero
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
-				.expect_cost(1)
+				.expect_cost(2)
 				.expect_no_logs()
 				.execute_returns(Address(H160::from(Alice)));
 		});
@@ -165,7 +165,7 @@ fn take_transact_info() {
 
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
-				.expect_cost(2)
+				.expect_cost(3)
 				.expect_no_logs()
 				.execute_returns((0u64, 1u128, 10000u64));
 		});
@@ -204,7 +204,7 @@ fn take_transact_info_with_signed() {
 
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
-				.expect_cost(1)
+				.expect_cost(2)
 				.expect_no_logs()
 				.execute_returns((0u64, 1u128, 10_000u64));
 		});
@@ -234,7 +234,7 @@ fn take_fee_per_second() {
 			));
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
-				.expect_cost(1)
+				.expect_cost(2)
 				.expect_no_logs()
 				.execute_returns(1u64);
 		});
@@ -274,7 +274,7 @@ fn test_transact_derivative_multilocation_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(188253000)
+				.expect_cost(188253001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -317,7 +317,7 @@ fn test_transact_derivative_multilocation_v3() {
 						refund: false,
 					},
 				)
-				.expect_cost(188253000)
+				.expect_cost(188253001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -361,7 +361,7 @@ fn take_transact_info_with_signed_v3() {
 
 			precompiles()
 				.prepare_test(Alice, TransactorV3, input)
-				.expect_cost(1)
+				.expect_cost(2)
 				.expect_no_logs()
 				.execute_returns((
 					expected_transact_extra_weight,
@@ -418,7 +418,7 @@ fn test_transact_derivative_multilocation() {
 						inner_call: bytes.into(),
 					},
 				)
-				.expect_cost(188253000)
+				.expect_cost(188253001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -468,7 +468,7 @@ fn test_transact_derivative() {
 						inner_call: bytes.into(),
 					},
 				)
-				.expect_cost(188254000)
+				.expect_cost(188254001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -506,7 +506,7 @@ fn test_transact_derivative_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(188254000)
+				.expect_cost(188254001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -547,7 +547,7 @@ fn test_transact_derivative_v3() {
 						refund: false,
 					},
 				)
-				.expect_cost(188254000)
+				.expect_cost(188254001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -592,7 +592,7 @@ fn test_transact_signed() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(468449000)
+				.expect_cost(468449001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -625,7 +625,7 @@ fn test_transact_signed_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(468449000)
+				.expect_cost(468449001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -663,7 +663,7 @@ fn test_transact_signed_v3() {
 						refund: false,
 					},
 				)
-				.expect_cost(468449000)
+				.expect_cost(468449001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -710,7 +710,7 @@ fn test_transact_signed_multilocation() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(468448000)
+				.expect_cost(468448001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -745,7 +745,7 @@ fn test_transact_signed_multilocation_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(468448000)
+				.expect_cost(468448001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -786,7 +786,7 @@ fn test_transact_through_signed_multilocation_v3() {
 						refund: false,
 					},
 				)
-				.expect_cost(468448000)
+				.expect_cost(468448001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
