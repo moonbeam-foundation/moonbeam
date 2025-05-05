@@ -29,7 +29,8 @@ where
 		+ pallet_balances::Config
 		+ pallet_asset_manager::Config
 		+ pallet_assets::Config
-		+ pallet_moonbeam_foreign_assets::Config,
+		+ pallet_moonbeam_foreign_assets::Config
+		+ pallet_xcm_weight_trader::Config,
 {
 	type Balance = Balance;
 	type Beneficiary = R::AccountId;
@@ -113,6 +114,13 @@ where
 					U256::from(amount as u128),
 				)
 				.expect("failed to mint asset into treasury account");
+
+				pallet_xcm_weight_trader::Pallet::<R>::add_asset(
+					R::RuntimeOrigin::root(),
+					Location::new(1, [Parachain(1000)]),
+					1,
+				)
+				.expect("failed to register asset relative price in xcm weight trader");
 			}
 		}
 	}
