@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"pallet_ethereum_xcm":[["impl ProcessTransaction for <a class=\"struct\" href=\"pallet_ethereum_xcm/struct.XcmEthTransactionalProcessor.html\" title=\"struct pallet_ethereum_xcm::XcmEthTransactionalProcessor\">XcmEthTransactionalProcessor</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
