@@ -1,4 +1,4 @@
-import type { DevModeContext } from "@moonwall/cli";
+import { type DevModeContext, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
 
 export interface HeavyContract {
@@ -66,3 +66,10 @@ export const deployHeavyContracts = async (context: DevModeContext, first = 6000
   }
   return contracts as HeavyContract[];
 };
+
+export async function deployedContractsInLatestBlock(context: DevModeContext): Promise<string[]> {
+  return (await context.polkadotJs().query.system.events())
+    .filter(({ event }) => context.polkadotJs().events.ethereum.Executed.is(event))
+    .filter(({ event }) => (event.toHuman() as any)["data"]["exitReason"]["Succeed"] === "Returned")
+    .map(({ event }) => (event.toHuman() as any)["data"]["to"]);
+}

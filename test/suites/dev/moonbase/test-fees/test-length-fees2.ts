@@ -60,8 +60,14 @@ describeSuite({
         const non_zero_byte_fee = 3n * 16n;
         const zero_byte_fee = 3165n * 4n;
         const base_ethereum_fee = 21000n;
+        const is_precompile_check_gas = 1669n;
         const modexp_min_cost = 200n * 20n; // see MIN_GAS_COST in frontier's modexp precompile
-        const entire_fee = non_zero_byte_fee + zero_byte_fee + base_ethereum_fee + modexp_min_cost;
+        const entire_fee =
+          non_zero_byte_fee +
+          zero_byte_fee +
+          base_ethereum_fee +
+          modexp_min_cost +
+          is_precompile_check_gas;
         // the gas used should be the maximum of the legacy gas and the pov gas
         const expected = BigInt(
           Math.max(

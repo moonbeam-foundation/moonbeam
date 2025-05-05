@@ -109,6 +109,8 @@ export const RUNTIME_CONSTANTS = {
     STORAGE_READ_COST: 41_742_000n,
     // Weight to gas conversion ratio
     WEIGHT_TO_GAS_RATIO: 25_000n,
+
+    SUPPLY_FACTOR: MOONBASE_CONSTANTS.SUPPLY_FACTOR,
   },
   MOONRIVER: {
     ...MOONRIVER_CONSTANTS,
@@ -149,6 +151,12 @@ export const RUNTIME_CONSTANTS = {
     // Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
     // MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES
     MAX_ETH_POV_PER_TX: new RuntimeConstant({ 0: 3_250_000n }),
+    // Storage read/write costs
+    STORAGE_READ_COST: 41_742_000n,
+    // Weight to gas conversion ratio
+    WEIGHT_TO_GAS_RATIO: 25_000n,
+
+    SUPPLY_FACTOR: MOONRIVER_CONSTANTS.SUPPLY_FACTOR,
   },
   MOONBEAM: {
     ...MOONBEAM_CONSTANTS,
@@ -189,6 +197,12 @@ export const RUNTIME_CONSTANTS = {
     // Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
     // MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES
     MAX_ETH_POV_PER_TX: new RuntimeConstant({ 0: 3_250_000n }),
+    // Storage read/write costs
+    STORAGE_READ_COST: 41_742_000n,
+    // Weight to gas conversion ratio
+    WEIGHT_TO_GAS_RATIO: 25_000n,
+
+    SUPPLY_FACTOR: MOONBEAM_CONSTANTS.SUPPLY_FACTOR,
   },
 } as const;
 
