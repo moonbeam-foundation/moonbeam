@@ -76,7 +76,6 @@ import type {
   PalletMoonbeamForeignAssetsAssetDepositDetails,
   PalletMoonbeamForeignAssetsAssetStatus,
   PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus,
-  PalletMoonbeamLazyMigrationsStateMigrationStatus,
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletMultisigMultisig,
   PalletParachainStakingAutoCompoundAutoCompoundConfig,
@@ -836,12 +835,6 @@ declare module "@polkadot/api-base/types/storage" {
       foreignAssetMigrationStatusValue: AugmentedQuery<
         ApiType,
         () => Observable<PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus>,
-        []
-      > &
-        QueryableStorageEntry<ApiType, []>;
-      stateMigrationStatusValue: AugmentedQuery<
-        ApiType,
-        () => Observable<ITuple<[PalletMoonbeamLazyMigrationsStateMigrationStatus, u64]>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
