@@ -23,7 +23,7 @@ describeSuite({
       id: "T01",
       title: `Validate "CallableByContract" by calling precompile from smart-contract constructor`,
       test: async function () {
-        const contract = await context.deployContract!("CallBatchPrecompileFromConstructor", {
+        await context.deployContract!("CallBatchPrecompileFromConstructor", {
           gas: 5_000_000n,
           rawTxOnly: true,
           args: [
@@ -60,30 +60,24 @@ describeSuite({
         );
         expect(await deployedContractsInLatestBlock(context)).contains(contract.contractAddress);
 
-        const rawTx = await context.writeContract({
-          contractName: "CallBatchPrecompileFromConstructorInSubCall",
-          contractAddress: contract.contractAddress,
-          functionName: "simple",
-          args: [
-            multiplyBy7Contract.contractAddress,
-            [
-              encodeFunctionData({
-                abi: multiplyBy7Contract.abi,
-                functionName: "multiply",
-                args: [5],
-              }),
-            ],
-          ],
-          gas: 5_000_000n,
-        });
-        await context.createBlock(rawTx, { allowFailures: false });
-
-        const ethEvent2 = (await context.polkadotJs().query.system.events()).find(({ event }) =>
-          context.polkadotJs().events.ethereum.Executed.is(event)
-        );
-        expect((ethEvent2.toHuman() as any).event["data"]["exitReason"]["Revert"]).equals(
-          "Reverted"
-        );
+        await expect(
+          async () =>
+            await context.writeContract({
+              contractName: "CallBatchPrecompileFromConstructorInSubCall",
+              contractAddress: contract.contractAddress,
+              functionName: "simple",
+              args: [
+                multiplyBy7Contract.contractAddress,
+                [
+                  encodeFunctionData({
+                    abi: multiplyBy7Contract.abi,
+                    functionName: "multiply",
+                    args: [5],
+                  }),
+                ],
+              ],
+            })
+        ).rejects.toThrowError("Function not callable by smart contracts");
       },
     });
   },
