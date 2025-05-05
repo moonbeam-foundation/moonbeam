@@ -6677,18 +6677,7 @@ export default {
     ]
   },
   /**
-   * Lookup694: pallet_moonbeam_lazy_migrations::pallet::StateMigrationStatus
-   **/
-  PalletMoonbeamLazyMigrationsStateMigrationStatus: {
-    _enum: {
-      NotStarted: "Null",
-      Started: "Bytes",
-      Error: "Bytes",
-      Complete: "Null"
-    }
-  },
-  /**
-   * Lookup696: pallet_moonbeam_lazy_migrations::foreign_asset::ForeignAssetMigrationStatus
+   * Lookup693: pallet_moonbeam_lazy_migrations::foreign_asset::ForeignAssetMigrationStatus
    **/
   PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus: {
     _enum: {
@@ -6697,7 +6686,7 @@ export default {
     }
   },
   /**
-   * Lookup697: pallet_moonbeam_lazy_migrations::foreign_asset::ForeignAssetMigrationInfo
+   * Lookup694: pallet_moonbeam_lazy_migrations::foreign_asset::ForeignAssetMigrationInfo
    **/
   PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo: {
     assetId: "u128",
@@ -6705,7 +6694,7 @@ export default {
     remainingApprovals: "u32"
   },
   /**
-   * Lookup698: pallet_moonbeam_lazy_migrations::pallet::Error<T>
+   * Lookup695: pallet_moonbeam_lazy_migrations::pallet::Error<T>
    **/
   PalletMoonbeamLazyMigrationsError: {
     _enum: [
@@ -6724,13 +6713,13 @@ export default {
     ]
   },
   /**
-   * Lookup700: pallet_precompile_benchmarks::pallet::Error<T>
+   * Lookup697: pallet_precompile_benchmarks::pallet::Error<T>
    **/
   PalletPrecompileBenchmarksError: {
     _enum: ["BenchmarkError"]
   },
   /**
-   * Lookup701: pallet_message_queue::BookState<cumulus_primitives_core::AggregateMessageOrigin>
+   * Lookup698: pallet_message_queue::BookState<cumulus_primitives_core::AggregateMessageOrigin>
    **/
   PalletMessageQueueBookState: {
     _alias: {
@@ -6744,14 +6733,14 @@ export default {
     size_: "u64"
   },
   /**
-   * Lookup703: pallet_message_queue::Neighbours<cumulus_primitives_core::AggregateMessageOrigin>
+   * Lookup700: pallet_message_queue::Neighbours<cumulus_primitives_core::AggregateMessageOrigin>
    **/
   PalletMessageQueueNeighbours: {
     prev: "CumulusPrimitivesCoreAggregateMessageOrigin",
     next: "CumulusPrimitivesCoreAggregateMessageOrigin"
   },
   /**
-   * Lookup705: pallet_message_queue::Page<Size, HeapSize>
+   * Lookup702: pallet_message_queue::Page<Size, HeapSize>
    **/
   PalletMessageQueuePage: {
     remaining: "u32",
@@ -6762,7 +6751,7 @@ export default {
     heap: "Bytes"
   },
   /**
-   * Lookup707: pallet_message_queue::pallet::Error<T>
+   * Lookup704: pallet_message_queue::pallet::Error<T>
    **/
   PalletMessageQueueError: {
     _enum: [
@@ -6778,36 +6767,36 @@ export default {
     ]
   },
   /**
-   * Lookup708: pallet_emergency_para_xcm::XcmMode
+   * Lookup705: pallet_emergency_para_xcm::XcmMode
    **/
   PalletEmergencyParaXcmXcmMode: {
     _enum: ["Normal", "Paused"]
   },
   /**
-   * Lookup709: pallet_emergency_para_xcm::pallet::Error<T>
+   * Lookup706: pallet_emergency_para_xcm::pallet::Error<T>
    **/
   PalletEmergencyParaXcmError: {
     _enum: ["NotInPausedMode"]
   },
   /**
-   * Lookup711: pallet_moonbeam_foreign_assets::AssetStatus
+   * Lookup708: pallet_moonbeam_foreign_assets::AssetStatus
    **/
   PalletMoonbeamForeignAssetsAssetStatus: {
     _enum: ["Active", "FrozenXcmDepositAllowed", "FrozenXcmDepositForbidden"]
   },
   /**
-   * Lookup712: pallet_moonbeam_foreign_assets::pallet::AssetDepositDetails<moonbase_runtime::Runtime>
+   * Lookup709: pallet_moonbeam_foreign_assets::pallet::AssetDepositDetails<moonbase_runtime::Runtime>
    **/
   PalletMoonbeamForeignAssetsAssetDepositDetails: {
     depositAccount: "AccountId20",
     deposit: "u128"
   },
   /**
-   * Lookup713: moonbase_runtime::Runtime
+   * Lookup710: moonbase_runtime::Runtime
    **/
   MoonbaseRuntimeRuntime: "Null",
   /**
-   * Lookup714: pallet_moonbeam_foreign_assets::pallet::Error<T>
+   * Lookup711: pallet_moonbeam_foreign_assets::pallet::Error<T>
    **/
   PalletMoonbeamForeignAssetsError: {
     _enum: [
@@ -6832,7 +6821,7 @@ export default {
     ]
   },
   /**
-   * Lookup716: pallet_xcm_weight_trader::pallet::Error<T>
+   * Lookup713: pallet_xcm_weight_trader::pallet::Error<T>
    **/
   PalletXcmWeightTraderError: {
     _enum: [
@@ -6845,47 +6834,47 @@ export default {
     ]
   },
   /**
-   * Lookup719: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T>
+   * Lookup716: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T>
    **/
   FrameSystemExtensionsCheckNonZeroSender: "Null",
   /**
-   * Lookup720: frame_system::extensions::check_spec_version::CheckSpecVersion<T>
+   * Lookup717: frame_system::extensions::check_spec_version::CheckSpecVersion<T>
    **/
   FrameSystemExtensionsCheckSpecVersion: "Null",
   /**
-   * Lookup721: frame_system::extensions::check_tx_version::CheckTxVersion<T>
+   * Lookup718: frame_system::extensions::check_tx_version::CheckTxVersion<T>
    **/
   FrameSystemExtensionsCheckTxVersion: "Null",
   /**
-   * Lookup722: frame_system::extensions::check_genesis::CheckGenesis<T>
+   * Lookup719: frame_system::extensions::check_genesis::CheckGenesis<T>
    **/
   FrameSystemExtensionsCheckGenesis: "Null",
   /**
-   * Lookup725: frame_system::extensions::check_nonce::CheckNonce<T>
+   * Lookup722: frame_system::extensions::check_nonce::CheckNonce<T>
    **/
   FrameSystemExtensionsCheckNonce: "Compact<u32>",
   /**
-   * Lookup726: frame_system::extensions::check_weight::CheckWeight<T>
+   * Lookup723: frame_system::extensions::check_weight::CheckWeight<T>
    **/
   FrameSystemExtensionsCheckWeight: "Null",
   /**
-   * Lookup727: pallet_transaction_payment::ChargeTransactionPayment<T>
+   * Lookup724: pallet_transaction_payment::ChargeTransactionPayment<T>
    **/
   PalletTransactionPaymentChargeTransactionPayment: "Compact<u128>",
   /**
-   * Lookup728: frame_metadata_hash_extension::CheckMetadataHash<T>
+   * Lookup725: frame_metadata_hash_extension::CheckMetadataHash<T>
    **/
   FrameMetadataHashExtensionCheckMetadataHash: {
     mode: "FrameMetadataHashExtensionMode"
   },
   /**
-   * Lookup729: frame_metadata_hash_extension::Mode
+   * Lookup726: frame_metadata_hash_extension::Mode
    **/
   FrameMetadataHashExtensionMode: {
     _enum: ["Disabled", "Enabled"]
   },
   /**
-   * Lookup730: cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<T>
+   * Lookup727: cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<T>
    **/
   CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim: "Null"
 };
