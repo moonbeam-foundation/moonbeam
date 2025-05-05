@@ -162,7 +162,8 @@ pub mod currency {
 }
 
 /// Maximum PoV size we support right now.
-pub const MAX_POV_SIZE: u32 = relay_chain::MAX_POV_SIZE;
+// Reference: https://github.com/polkadot-fellows/runtimes/pull/553
+pub const MAX_POV_SIZE: u32 = 10 * 1024 * 1024;
 
 /// Maximum weight per block
 pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
@@ -419,13 +420,13 @@ parameter_types! {
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonbeamPrecompiles<Runtime> = MoonbeamPrecompiles::<_>::new();
 	pub WeightPerGas: Weight = Weight::from_parts(WEIGHT_PER_GAS, 0);
-	/// The amount of gas per pov. A ratio of 4 if we convert ref_time to gas and we compare
+	/// The amount of gas per pov. A ratio of 8 if we convert ref_time to gas and we compare
 	/// it with the pov_size for a block. E.g.
 	/// ceil(
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	/// We should re-check `xcm_config::Erc20XcmBridgeTransferGasLimit` when changing this value
-	pub const GasLimitPovSizeRatio: u64 = 16;
+	pub const GasLimitPovSizeRatio: u64 = 8;
 	/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
 	/// The current definition of BLOCK_STORAGE_LIMIT is 160 KB, resulting in a value of 366.
 	pub GasLimitStorageGrowthRatio: u64 = 366;
@@ -977,12 +978,12 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 					// In the future, we may create a dynamic whitelist to authorize some audited
 					// smart contracts through governance.
 					None => {
-						// If the address is not recognized, allow only evm transfert to "simple"
+						// If the address is not recognized, allow only evm transfer to "simple"
 						// accounts (no code nor precompile).
 						// Note: Checking the presence of the code is not enough because some
 						// precompiles have no code.
 						!recipient_has_code
-							&& precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
+							&& !precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
 								call.to.0, gas,
 							)?
 					}

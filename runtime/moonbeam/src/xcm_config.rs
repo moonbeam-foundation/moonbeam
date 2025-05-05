@@ -300,7 +300,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
-	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
+	type TransactionalProcessor = pallet_ethereum_xcm::XcmEthTransactionalProcessor;
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
@@ -673,7 +673,7 @@ parameter_types! {
 
 	// To be able to support almost all erc20 implementations,
 	// we provide a sufficiently hight gas limit.
-	pub Erc20XcmBridgeTransferGasLimit: u64 = 800_000;
+	pub Erc20XcmBridgeTransferGasLimit: u64 = 400_000;
 }
 
 impl pallet_erc20_xcm_bridge::Config for Runtime {

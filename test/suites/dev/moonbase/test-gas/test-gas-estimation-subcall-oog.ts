@@ -77,7 +77,7 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "gas estimation should make pov-consuming subcall suceed",
+      title: "gas estimation should make pov-consuming subcall succeed",
       test: async function () {
         const estimatedGas = await context.viem().estimateContractGas({
           account: ALITH_ADDRESS,
