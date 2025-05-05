@@ -799,12 +799,6 @@ where
 		let keystore = keystore_container.keystore();
 		let command_sink_for_task = command_sink.clone();
 		move |subscription_task_executor| {
-			let graph_pool = pool.0.as_any()
-                .downcast_ref::<sc_transaction_pool::BasicPool<
-                    sc_transaction_pool::FullChainApi<LazyLoadingClient<RuntimeApi>, Block>
-                    , Block
-                >>().expect("Frontier container chain template supports only single state transaction pool! Use --pool-type=single-state");
-
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -815,7 +809,7 @@ where
 					fc_db::Backend::KeyValue(ref b) => b.clone(),
 					fc_db::Backend::Sql(ref b) => b.clone(),
 				},
-				graph: graph_pool.pool().clone(),
+				graph: pool.clone(),
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,

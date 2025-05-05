@@ -823,12 +823,6 @@ where
 			#[cfg(not(feature = "moonbase-native"))]
 			let forced_parent_hashes = None;
 
-			let graph_pool = pool.0.as_any()
-                .downcast_ref::<sc_transaction_pool::BasicPool<
-                    sc_transaction_pool::FullChainApi<FullClient<RuntimeApi>, Block>
-                    , Block
-                >>().expect("Frontier container chain template supports only single state transaction pool! Use --pool-type=single-state");
-
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -839,7 +833,7 @@ where
 					fc_db::Backend::KeyValue(b) => b.clone(),
 					fc_db::Backend::Sql(b) => b.clone(),
 				},
-				graph: graph_pool.pool().clone(),
+				graph: pool.clone(),
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
@@ -1594,12 +1588,6 @@ where
 
 		let keystore = keystore_container.keystore();
 		move |subscription_task_executor| {
-			let graph_pool = pool.0.as_any()
-                .downcast_ref::<sc_transaction_pool::BasicPool<
-                    sc_transaction_pool::FullChainApi<FullClient<RuntimeApi>, Block>
-                    , Block
-                >>().expect("Frontier container chain template supports only single state transaction pool! Use --pool-type=single-state");
-
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
@@ -1610,7 +1598,7 @@ where
 					fc_db::Backend::KeyValue(b) => b.clone(),
 					fc_db::Backend::Sql(b) => b.clone(),
 				},
-				graph: graph_pool.pool().clone(),
+				graph: pool.clone(),
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
