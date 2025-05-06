@@ -322,7 +322,7 @@ jobs:
           rustup override unset
           rustup show
       - name: Download Twiggy
-        run: cargo install twiggy
+        run: cargo install twiggy --locked
       - name: Lookup for latest target branch build
         id: latest-target-build
         run: |
