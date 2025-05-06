@@ -537,7 +537,7 @@ impl pallet_evm::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
+	pub MaxServiceWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
 	pub const NoPreimagePostponement: Option<u32> = Some(10);
 }
 
@@ -546,7 +546,7 @@ impl pallet_scheduler::Config for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
-	type MaximumWeight = MaximumSchedulerWeight;
+	type MaximumWeight = MaxServiceWeight;
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = ConstU32<50>;
 	type WeightInfo = moonbase_weights::pallet_scheduler::WeightInfo<Runtime>;
@@ -1406,10 +1406,6 @@ impl pallet_parameters::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
-parameter_types! {
-	pub MbmServiceWeight: Weight = Perbill::from_percent(80) * RuntimeBlockWeights::get().max_block;
-}
-
 impl pallet_multiblock_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	#[cfg(not(feature = "runtime-benchmarks"))]
@@ -1421,7 +1417,7 @@ impl pallet_multiblock_migrations::Config for Runtime {
 	type IdentifierMaxLen = ConstU32<256>;
 	type MigrationStatusHandler = ();
 	type FailedMigrationHandler = frame_support::migrations::FreezeChainOnFailedMigration;
-	type MaxServiceWeight = MbmServiceWeight;
+	type MaxServiceWeight = MaxServiceWeight;
 	type WeightInfo = weights::pallet_multiblock_migrations::WeightInfo<Runtime>;
 }
 
