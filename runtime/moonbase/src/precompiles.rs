@@ -60,7 +60,6 @@ use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
 use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_precompile_benchmarks::WeightInfo;
-use precompile_foreign_asset_migrator::ForeignAssetMigratorPrecompile;
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
 use xcm_primitives::AsAssetType;
@@ -291,7 +290,6 @@ type MoonbasePrecompilesAt<R> = (
 			SubcallWithMaxNesting<1>,
 		),
 	>,
-	PrecompileAt<AddressU64<2075>, ForeignAssetMigratorPrecompile<R>, ()>,
 );
 
 pub struct DisabledLocalAssets<Runtime>(sp_std::marker::PhantomData<Runtime>);
