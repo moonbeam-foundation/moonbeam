@@ -136,10 +136,7 @@ jobs:
           echo "LLVM_PROFILE_FILE=$(pwd)/proffiles/default_%m_%p.profraw" >> $GITHUB_ENV
       - name: Unit tests
         run: |
-          # curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-          curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
-          # echo $PATH
-          cargo nextest run --release --workspace --features=evm-tracing
+          cargo test --profile release --workspace --features=evm-tracing
       - name: "Run Moonwall Dev Tests"
         uses: ./.github/workflow-templates/dev-tests
         with:
