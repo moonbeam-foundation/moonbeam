@@ -37,6 +37,7 @@ pub mod pallet_message_queue;
 pub mod pallet_moonbeam_foreign_assets;
 pub mod pallet_moonbeam_lazy_migrations;
 pub mod pallet_moonbeam_orbiters;
+pub mod pallet_multiblock_migrations;
 pub mod pallet_multisig;
 pub mod pallet_parachain_staking;
 pub mod pallet_parameters;
