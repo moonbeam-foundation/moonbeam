@@ -19,7 +19,7 @@ pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
-pallet-ethereum = { workspace = true }
+pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
