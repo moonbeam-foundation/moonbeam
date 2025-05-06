@@ -6936,6 +6936,7 @@ dependencies = [
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
+ "pallet-ethereum",
  "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-evm-chain-id",
