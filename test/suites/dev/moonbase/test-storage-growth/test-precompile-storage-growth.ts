@@ -1,14 +1,11 @@
 import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
-  BALTATHAR_PRIVATE_KEY,
   CONTRACT_PROXY_TYPE_ANY,
   FAITH_ADDRESS,
   FAITH_PRIVATE_KEY,
-  PRECOMPILE_NATIVE_ERC20_ADDRESS,
   PRECOMPILE_PROXY_ADDRESS,
 } from "@moonwall/util";
-import { parseEther } from "ethers";
 import { expectEVMResult } from "helpers/eth-transactions";
 import { encodeFunctionData } from "viem";
 
@@ -34,7 +31,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`50423n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`52555n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -54,7 +51,6 @@ describeSuite({
       id: "T02",
       title: "should addProxy correctly with the required gas to cover the storage growth",
       test: async () => {
-        const balBefore = await context.viem().getBalance({ address: FAITH_ADDRESS });
         const { abi: proxyAbi } = fetchCompiledContract("Proxy");
 
         const estimatedGas = await context.viem().estimateGas({
