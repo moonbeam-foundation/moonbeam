@@ -1,4 +1,4 @@
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import {beforeAll, describeSuite, expect, fetchCompiledContract} from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   CONTRACT_PROXY_TYPE_ANY,
@@ -14,6 +14,11 @@ describeSuite({
   title: "Storage growth limit - Precompiles",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+
+    beforeAll(async () => {
+      await context.createBlock();
+    });
+
     it({
       id: "T01",
       title: "should fail to addProxy due to insufficient gas required to cover the storage growth",
@@ -31,7 +36,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`52555n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`49656n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -64,7 +69,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`50423n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`51118n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
