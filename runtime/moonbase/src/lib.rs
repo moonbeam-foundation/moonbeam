@@ -374,6 +374,7 @@ impl WeightToFeePolynomial for LengthToFee {
 	}
 }
 
+#[cfg(not(feature = "runtime-benchmarks"))]
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnChargeTransaction = FungibleAdapter<
@@ -386,6 +387,20 @@ impl pallet_transaction_payment::Config for Runtime {
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
 	type LengthToFee = LengthToFee;
+	type FeeMultiplierUpdate = FastAdjustingFeeUpdate<Runtime>;
+	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Runtime>;
+}
+
+/// For the benchmark to succeed the following invariant must hold:
+/// ((100 * WeightToFee) + LengthToFee) * 5 <= 999 * ExistentialDeposit
+/// NOTE: In benchmarks ExistentialDeposit = 1, thus we have little margin.
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_transaction_payment::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type OnChargeTransaction = FungibleAdapter<Balances, ()>;
+	type OperationalFeeMultiplier = ConstU8<5>;
+	type WeightToFee = ConstantMultiplier<Balance, ConstU128<0>>;
+	type LengthToFee = ConstantMultiplier<Balance, ConstU128<0>>;
 	type FeeMultiplierUpdate = FastAdjustingFeeUpdate<Runtime>;
 	type WeightInfo = ();
 }
@@ -1559,6 +1574,7 @@ mod benches {
 		[pallet_crowdloan_rewards, CrowdloanRewards]
 		[pallet_author_mapping, AuthorMapping]
 		[pallet_proxy, Proxy]
+		[pallet_transaction_payment, TransactionPayment]
 		[pallet_identity, Identity]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
