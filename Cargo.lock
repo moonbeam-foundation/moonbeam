@@ -10473,6 +10473,7 @@ dependencies = [
  "log",
  "moonbeam-core-primitives",
  "pallet-balances",
+ "pallet-moonbeam-foreign-assets",
  "parity-scale-codec",
  "scale-info",
  "sp-core",

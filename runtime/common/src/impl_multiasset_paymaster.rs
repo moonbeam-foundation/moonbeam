@@ -59,6 +59,12 @@ where
 				// Check in the foreign assets first
 				if let Some(_asset_loc) = AssetsById::<R>::get(id) {
 					// Pay if asset found
+					let balance = pallet_moonbeam_foreign_assets::Pallet::<R>::balance(
+						id,
+						pallet_treasury::Pallet::<R>::account_id(),
+					)
+					.expect("failed to get treasury balance");
+
 					pallet_moonbeam_foreign_assets::Pallet::<R>::transfer(
 						id,
 						pallet_treasury::Pallet::<R>::account_id(),
@@ -78,8 +84,13 @@ where
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	fn ensure_successful(_: &Self::Beneficiary, asset: Self::AssetKind, amount: Self::Balance) {
+	fn ensure_successful(
+		beneficiary: &Self::Beneficiary,
+		asset: Self::AssetKind,
+		amount: Self::Balance,
+	) {
 		use frame_support::traits::fungible::Mutate;
+		use pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS;
 		use xcm::opaque::v4::Junction::Parachain;
 		use xcm::v4::Location;
 		let treasury = pallet_treasury::Pallet::<R>::account_id();
@@ -94,19 +105,6 @@ where
 				.expect("failed to mint the native asset into the treasury account");
 			}
 			Self::AssetKind::WithId(id) => {
-				// Check if asset exists & create if required
-				if let None = AssetsById::<R>::get(id) {
-					let location = Location::new(1, [Parachain(1000)]);
-					pallet_moonbeam_foreign_assets::Pallet::<R>::do_create_asset(
-						id,
-						location,
-						18,
-						"DEV".as_bytes().to_vec().try_into().expect("too long"),
-						"DEV".as_bytes().to_vec().try_into().expect("too long"),
-						None,
-					)
-					.expect("failed to create asset");
-				}
 				// Fund treasury account
 				pallet_moonbeam_foreign_assets::Pallet::<R>::mint_into(
 					id,
@@ -114,13 +112,6 @@ where
 					U256::from(amount as u128),
 				)
 				.expect("failed to mint asset into treasury account");
-
-				pallet_xcm_weight_trader::Pallet::<R>::add_asset(
-					R::RuntimeOrigin::root(),
-					Location::new(1, [Parachain(1000)]),
-					1,
-				)
-				.expect("failed to register asset relative price in xcm weight trader");
 			}
 		}
 	}

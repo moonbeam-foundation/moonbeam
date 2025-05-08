@@ -22,8 +22,8 @@ use pallet_treasury::ArgumentsFactory;
 pub struct BenchmarkHelper;
 
 impl ArgumentsFactory<NativeOrWithId<AssetId>, AccountId20> for BenchmarkHelper {
-	fn create_asset_kind(_seed: u32) -> NativeOrWithId<AssetId> {
-		NativeOrWithId::WithId(1)
+	fn create_asset_kind(seed: u32) -> NativeOrWithId<AssetId> {
+		NativeOrWithId::WithId(seed.into())
 	}
 
 	fn create_beneficiary(seed: [u8; 32]) -> AccountId20 {

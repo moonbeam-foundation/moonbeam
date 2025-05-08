@@ -59,7 +59,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + pallet_moonbeam_foreign_assets::Config {
 		/// Convert `T::AccountId` to `Location`.
 		type AccountIdToLocation: Convert<Self::AccountId, Location>;
 
@@ -104,7 +104,7 @@ pub mod pallet {
 		type WeightInfo: WeightInfo;
 
 		/// Convert a weight value into deductible native balance.
-		type WeightToFee: WeightToFee<Balance = Self::Balance>;
+		type WeightToFee: WeightToFee<Balance = <Self as pallet::Config>::Balance>;
 
 		/// Account that will receive xcm fees
 		type XcmFeesAccount: Get<Self::AccountId>;
@@ -163,7 +163,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
-		#[pallet::weight(T::WeightInfo::add_asset())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::add_asset())]
 		pub fn add_asset(
 			origin: OriginFor<T>,
 			location: Location,
@@ -192,7 +192,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(1)]
-		#[pallet::weight(T::WeightInfo::edit_asset())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::edit_asset())]
 		pub fn edit_asset(
 			origin: OriginFor<T>,
 			location: Location,
@@ -217,7 +217,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(2)]
-		#[pallet::weight(T::WeightInfo::pause_asset_support())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::pause_asset_support())]
 		pub fn pause_asset_support(origin: OriginFor<T>, location: Location) -> DispatchResult {
 			T::PauseSupportedAssetOrigin::ensure_origin(origin)?;
 
@@ -233,7 +233,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(3)]
-		#[pallet::weight(T::WeightInfo::resume_asset_support())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::resume_asset_support())]
 		pub fn resume_asset_support(origin: OriginFor<T>, location: Location) -> DispatchResult {
 			T::ResumeSupportedAssetOrigin::ensure_origin(origin)?;
 
@@ -249,7 +249,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(4)]
-		#[pallet::weight(T::WeightInfo::remove_asset())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::remove_asset())]
 		pub fn remove_asset(origin: OriginFor<T>, location: Location) -> DispatchResult {
 			T::RemoveSupportedAssetOrigin::ensure_origin(origin)?;
 
@@ -510,13 +510,30 @@ impl<T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Bal
 	/// Set a conversion rate to `1` for the `asset_id`.
 	#[cfg(feature = "runtime-benchmarks")]
 	fn ensure_successful(asset_id: NativeOrWithId<AssetId>) {
+		use frame_support::{assert_ok, traits::OriginTrait};
+		use pallet_moonbeam_foreign_assets::AssetsById;
+		use sp_std::vec;
+		use xcm::opaque::v4::Junction::Parachain;
 		match asset_id {
 			NativeOrWithId::Native => (),
 			NativeOrWithId::WithId(asset_id) => {
-				let location = T::AssetIdentifier::convert_back(&asset_id).unwrap();
-				let enabled = true;
-				let relative_price = 10u128.pow(RELATIVE_PRICE_DECIMALS);
-				pallet::SupportedAssets::<T>::insert(&location, (enabled, relative_price));
+				if let None = AssetsById::<T>::get(asset_id) {
+					let location = Location::new(1, [Parachain(1000)]);
+					let root = <T as frame_system::Config>::RuntimeOrigin::root();
+
+					assert_ok!(
+						pallet_moonbeam_foreign_assets::Pallet::<T>::create_foreign_asset(
+							root.clone(),
+							asset_id,
+							location.clone(),
+							12,
+							vec![b'M', b'T'].try_into().unwrap(),
+							vec![b'M', b'y', b'T', b'o', b'k'].try_into().unwrap(),
+						)
+					);
+
+					assert_ok!(Self::add_asset(root, location.clone(), 1u128,));
+				}
 			}
 		}
 	}
