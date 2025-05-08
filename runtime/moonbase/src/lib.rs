@@ -65,8 +65,7 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
-		fungible::{Balanced, Credit, HoldConsideration, Inspect},
-		tokens::{PayFromAccount, UnityAssetBalanceConversion},
+		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
 		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
 		OnFinalize, OnUnbalanced,
@@ -81,7 +80,10 @@ use frame_support::{
 use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
+use moonbeam_runtime_common::{
+	impl_multiasset_paymaster::MultiAssetPaymaster,
+	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+};
 use nimbus_primitives::CanAuthor;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
@@ -592,11 +594,11 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 	type SpendOrigin =
 		frame_system::EnsureWithSuccess<RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance>;
-	type AssetKind = ();
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
-	type BalanceConverter = UnityAssetBalanceConversion;
+	type Paymaster = MultiAssetPaymaster<Runtime>;
+	type BalanceConverter = XcmWeightTrader;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
