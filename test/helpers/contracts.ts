@@ -1,5 +1,9 @@
 import { type DevModeContext, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import { keccak256 } from "viem";
+import type { PalletEvmCodeMetadata } from "@polkadot/types/lookup";
+import { DUMMY_REVERT_BYTECODE } from "./assets.ts";
+import { u8aToHex } from "@polkadot/util";
 
 export interface HeavyContract {
   deployed: boolean;
@@ -33,18 +37,33 @@ export const deployHeavyContracts = async (context: DevModeContext, first = 6000
   }
 
   // Create the contract code (24kb of zeros)
-  const evmCode = `60006000fd${"0".repeat(24_000 * 2)}`;
+  const evmCode = `60006000fd${"00".repeat(24_000)}`;
+  const codeSize = evmCode.length / 2;
   const storageData = `${context
     .polkadotJs()
-    .registry.createType("Compact<u32>", `0x${BigInt((evmCode.length + 1) * 2).toString(16)}`)
+    .registry.createType("Compact<u32>", `0x${BigInt(codeSize).toString(16)}`)
     .toHex(true)}${evmCode}`;
+  const codeMetadataHash = keccak256(`0x${evmCode}`);
+  const mockPalletEvmCodeMetadata: PalletEvmCodeMetadata = context
+    .polkadotJs()
+    .createType("PalletEvmCodeMetadata", {
+      size: codeSize,
+      hash: codeMetadataHash,
+    });
 
-  // Create the batchs of contracts to deploy
-  const batchs = contracts
+  // Create the batches of contracts to deploy
+  const batches = contracts
     .reduce(
       (acc, value) => {
-        if (acc[acc.length - 1].length >= 30) acc.push([]);
-        if (!value.deployed) acc[acc.length - 1].push([value.key, storageData]);
+        if (acc[acc.length - 1].length >= 50) acc.push([]);
+        if (!value.deployed) {
+          acc[acc.length - 1].push([value.key, storageData]);
+          acc[acc.length - 1].push([
+            context.polkadotJs().query.evm.accountCodesMetadata.key(value.account),
+            u8aToHex(mockPalletEvmCodeMetadata.toU8a()),
+          ]);
+        }
+
         return acc;
       },
       [[]] as [string, string][][]
@@ -53,8 +72,8 @@ export const deployHeavyContracts = async (context: DevModeContext, first = 6000
 
   // Set the storage of the contracts
   let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
-  for (let i = 0; i < batchs.length; i++) {
-    const batch = batchs[i];
+  for (let i = 0; i < batches.length; i++) {
+    const batch = batches[i];
     await context.createBlock([
       context
         .polkadotJs()
