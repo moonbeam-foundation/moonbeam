@@ -29,7 +29,7 @@ use precompile_utils::{
 	precompile_set::*,
 	testing::{AddressInPrefixedSet, MockAccount},
 };
-use sp_core::{H256, U256};
+use sp_core::{H256, U256, Hasher};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup, TryConvert};
 use sp_runtime::BuildStorage;
@@ -68,7 +68,7 @@ mock_account!(
 	|v: SiblingParachainAccount| { AddressInPrefixedSet(0xffffffff, v.0 as u128).into() }
 );
 
-use frame_system::RawOrigin as SystemRawOrigin;
+use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin as SystemRawOrigin};
 use xcm::latest::Junction;
 pub struct MockAccountToAccountKey20<Origin, AccountId>(PhantomData<(Origin, AccountId)>);
 
@@ -275,6 +275,25 @@ impl GasWeightMapping for MockGasWeightMapping {
 	}
 }
 
+pub struct RandomnessProvider;
+impl
+	frame_support::traits::Randomness<
+		<Runtime as frame_system::Config>::Hash,
+		BlockNumberFor<Runtime>,
+	> for RandomnessProvider
+{
+	fn random(
+		subject: &[u8],
+	) -> (
+		<Runtime as frame_system::Config>::Hash,
+		BlockNumberFor<Runtime>,
+	) {
+		let output = <Runtime as frame_system::Config>::Hashing::hash(subject);
+		let block_number = frame_system::Pallet::<Runtime>::block_number();
+		(output, block_number)
+	}
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = MockGasWeightMapping;
@@ -299,6 +318,7 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type RandomnessProvider = RandomnessProvider;
 }
 
 parameter_types! {

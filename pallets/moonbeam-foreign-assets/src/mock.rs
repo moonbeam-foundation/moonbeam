@@ -23,7 +23,7 @@ use frame_system::{EnsureRoot, Origin};
 use pallet_ethereum::{IntermediateStateRoot, PostLogContent};
 use pallet_evm::{FrameSystemAccountProvider, SubstrateBlockHashMapping};
 use precompile_utils::testing::MockAccount;
-use sp_core::{H256, U256};
+use sp_core::{H256, U256, Hasher};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
 use xcm::latest::{Junction, Location};
@@ -123,6 +123,17 @@ parameter_types! {
 	pub GasLimitStorageGrowthRatio: u64 = 366;
 }
 
+pub struct RandomnessProvider;
+impl frame_support::traits::Randomness<<Test as frame_system::Config>::Hash, BlockNumberFor<Test>>
+	for RandomnessProvider
+{
+	fn random(subject: &[u8]) -> (<Test as frame_system::Config>::Hash, BlockNumberFor<Test>) {
+		let output = <Test as frame_system::Config>::Hashing::hash(subject);
+		let block_number = frame_system::Pallet::<Test>::block_number();
+		(output, block_number)
+	}
+}
+
 impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
@@ -147,6 +158,7 @@ impl pallet_evm::Config for Test {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
 	type AccountProvider = FrameSystemAccountProvider<Test>;
+	type RandomnessProvider = RandomnessProvider;
 }
 
 parameter_types! {

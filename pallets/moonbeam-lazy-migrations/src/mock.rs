@@ -131,6 +131,17 @@ parameter_types! {
 	pub SuicideQuickClearLimit: u32 = 0;
 }
 
+pub struct RandomnessProvider;
+impl frame_support::traits::Randomness<<Test as frame_system::Config>::Hash, BlockNumberFor<Test>>
+	for RandomnessProvider
+{
+	fn random(subject: &[u8]) -> (<Test as frame_system::Config>::Hash, BlockNumberFor<Test>) {
+		let output = <Test as frame_system::Config>::Hashing::hash(subject);
+		let block_number = frame_system::Pallet::<Test>::block_number();
+		(output, block_number)
+	}
+}
+
 impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
@@ -155,6 +166,7 @@ impl pallet_evm::Config for Test {
 	type WeightInfo = ();
 	type SuicideQuickClearLimit = SuicideQuickClearLimit;
 	type AccountProvider = FrameSystemAccountProvider<Test>;
+	type RandomnessProvider = RandomnessProvider;
 }
 
 parameter_types! {
