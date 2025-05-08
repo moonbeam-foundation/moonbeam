@@ -2,58 +2,37 @@ import "@moonbeam-network/api-augment";
 import {
   beforeAll,
   beforeEach,
-  customDevRpcRequest,
   describeSuite,
   expect,
   execOpenTechCommitteeProposal,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
-import { BN } from "@polkadot/util";
-import { addAssetToWeightTrader } from "../../../../helpers";
+import {
+  expectSystemEvent,
+  fundAccount,
+  getPalletIndex,
+  injectHrmpMessage,
+  type RawXcmMessage,
+  sovereignAccountOfSibling,
+  XcmFragment,
+} from "../../../../helpers";
 
 describeSuite({
   id: "D012003",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let assetId: string;
+    const assetId = 1;
     const foreignParaId = 2000;
+    const assetLocation = {
+      parents: 1,
+      interior: {
+        X3: [{ Parachain: foreignParaId }, { PalletInstance: 1 }, { GeneralIndex: 1 }],
+      },
+    };
 
     beforeAll(async () => {
-      const assetMetadata = {
-        name: "FOREIGN",
-        symbol: "FOREIGN",
-        decimals: new BN(12),
-        isFroze: false,
-      };
-
-      const sourceLocation = {
-        Xcm: { parents: 1, interior: { X1: { Parachain: foreignParaId } } },
-      };
-
-      // registerForeignAsset
-      const { result } = await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.sudo.sudo(
-            context
-              .polkadotJs()
-              .tx.assetManager.registerForeignAsset(sourceLocation, assetMetadata, new BN(1), true)
-          )
-      );
-
-      const events = result?.events.find(
-        ({ event: { section } }) => section.toString() === "assetManager"
-      );
-
-      if (!events) {
-        throw new Error("Events Not Found!");
-      }
-
-      assetId = events.event.data[0].toHex().replace(/,/g, "");
-
-      // set relative price in xcmWeightTrader
-      await addAssetToWeightTrader(sourceLocation, 0n, context);
+      const paraAddress = sovereignAccountOfSibling(context, foreignParaId) as `0x${string}`;
+      await fundAccount(paraAddress, 1_000_000_000_000_000_000_000n, context);
     });
 
     beforeEach(async () => {
@@ -67,36 +46,83 @@ describeSuite({
       id: "T01",
       title: "should queue XCM messages until resuming operations",
       test: async () => {
-        // Send RPC call to inject XCMP message
-        // You can provide a message, but if you don't a downward transfer is the default
-        await customDevRpcRequest("xcm_injectHrmpMessage", [foreignParaId, []]);
-
-        // Create a block in which the XCM should be executed
-        await context.createBlock();
-
-        // Make sure the state does not have ALITH's foreign asset tokens
-        let alithBalance = (await context
+        const createForeignAssetCall = context
           .polkadotJs()
-          .query.assets.account(assetId, ALITH_ADDRESS)) as any;
-        // Alith balance is 0
-        expect(alithBalance.isNone).to.eq(true);
+          .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
 
-        // turn maintenance off
+        const { blockRes } = await sendCallAsParaUnchecked(
+          createForeignAssetCall,
+          foreignParaId,
+          context,
+          1_000_000_000_000_000_000n
+        );
+
+        // Check asset has not been created yet
+        const assetInfo = await context.polkadotJs().query.evmForeignAssets.assetsById(assetId);
+        expect(assetInfo.isNone).to.eq(true);
+
+        // Turn maintenance off
         await execOpenTechCommitteeProposal(
           context,
           context.polkadotJs().tx.maintenanceMode.resumeNormalOperation()
         );
 
-        // Create a block in which the XCM will be executed
-        await context.createBlock();
-
-        // Make sure the state has ALITH's to foreign assets tokens
-        alithBalance = (
-          await context.polkadotJs().query.assets.account(assetId, ALITH_ADDRESS)
-        ).unwrap();
-
-        expect(alithBalance.balance.toBigInt()).to.eq(10000000000000n);
+        // Expect the asset to be created
+        const currentBlock = await context.polkadotJs().rpc.chain.getBlock();
+        await expectSystemEvent(
+          currentBlock.block.hash.toString(),
+          "evmForeignAssets",
+          "ForeignAssetCreated",
+          context
+        );
       },
     });
   },
 });
+
+const sendCallAsParaUnchecked = async (call, paraId, context, fungible) => {
+  const encodedCall = call.method.toHex();
+  const balancesPalletIndex = await getPalletIndex("Balances", context);
+
+  const xcmMessage = new XcmFragment({
+    assets: [
+      {
+        multilocation: {
+          parents: 0,
+          interior: {
+            X1: { PalletInstance: balancesPalletIndex },
+          },
+        },
+        fungible: fungible,
+      },
+    ],
+    weight_limit: {
+      refTime: 40_000_000_000n,
+      proofSize: 150_000n,
+    },
+  })
+    .withdraw_asset()
+    .buy_execution()
+    .push_any({
+      Transact: {
+        originKind: "Xcm",
+        requireWeightAtMost: {
+          refTime: 20_089_165_000n,
+          proofSize: 80_000n,
+        },
+        call: {
+          encoded: encodedCall,
+        },
+      },
+    })
+    .as_v4();
+
+  await injectHrmpMessage(context, paraId, {
+    type: "XcmVersionedXcm",
+    payload: xcmMessage,
+  } as RawXcmMessage);
+
+  const blockRes = await context.createBlock();
+
+  return { blockRes };
+};
