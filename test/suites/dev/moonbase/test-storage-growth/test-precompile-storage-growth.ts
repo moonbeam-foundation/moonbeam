@@ -1,4 +1,4 @@
-import {beforeAll, describeSuite, expect, fetchCompiledContract} from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   CONTRACT_PROXY_TYPE_ANY,
@@ -14,7 +14,6 @@ describeSuite({
   title: "Storage growth limit - Precompiles",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-
     beforeAll(async () => {
       await context.createBlock();
     });
