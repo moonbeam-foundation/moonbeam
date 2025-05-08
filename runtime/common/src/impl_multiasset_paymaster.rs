@@ -27,8 +27,6 @@ where
 	R: frame_system::Config
 		+ pallet_treasury::Config
 		+ pallet_balances::Config
-		+ pallet_asset_manager::Config
-		+ pallet_assets::Config
 		+ pallet_moonbeam_foreign_assets::Config
 		+ pallet_xcm_weight_trader::Config,
 {
@@ -59,12 +57,6 @@ where
 				// Check in the foreign assets first
 				if let Some(_asset_loc) = AssetsById::<R>::get(id) {
 					// Pay if asset found
-					let balance = pallet_moonbeam_foreign_assets::Pallet::<R>::balance(
-						id,
-						pallet_treasury::Pallet::<R>::account_id(),
-					)
-					.expect("failed to get treasury balance");
-
 					pallet_moonbeam_foreign_assets::Pallet::<R>::transfer(
 						id,
 						pallet_treasury::Pallet::<R>::account_id(),
