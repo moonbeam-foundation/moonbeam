@@ -3145,3 +3145,40 @@ mod fee_tests {
 		});
 	}
 }
+
+#[cfg(test)]
+mod balance_tests {
+	use crate::common::{ExtBuilder, ALICE, BOB};
+	use frame_support::__private::sp_tracing::{tracing, tracing_subscriber};
+	use frame_support::assert_ok;
+	use frame_support::traits::fungible::Inspect;
+	use frame_support::traits::tokens::{Fortitude, Preservation};
+	use frame_support::traits::ReservableCurrency;
+	use moonbeam_core_primitives::AccountId;
+	use moonbeam_runtime::currency::GLMR;
+	use moonbeam_runtime::{Balances, ParachainStaking, Proxy, ProxyType, Runtime, System};
+
+	#[test]
+	fn test_usable_balance() {
+		frame_support::__private::sp_tracing::init_for_tests();
+
+		let alice = AccountId::from(ALICE);
+		let bob = AccountId::from(BOB);
+
+		ExtBuilder::default()
+			.with_balances(vec![(alice, 2_000_000 * GLMR)])
+			.with_collators(vec![(alice, 1_000_000 * GLMR)])
+			.build()
+			.execute_with(|| {
+				assert_ok!(Balances::reserve(&alice, 1_000_000 * GLMR));
+
+				// Check usable balance
+				// usable_balance = free - max(frozen - reserved, ExistentialDeposit)
+				let usable_balance = Balances::usable_balance(alice);
+				assert_eq!(usable_balance, 1_000_000 * GLMR);
+
+				// Should be possible to reserve balance
+				assert_ok!(Balances::reserve(&alice, 1 * GLMR));
+			});
+	}
+}
