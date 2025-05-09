@@ -62,7 +62,7 @@ where
 
 		// Convert v3 Location to v5 Location
 		let versioned = xcm::VersionedLocation::V3(v3_location);
-		match versioned.into_version(5) {
+		match versioned.into_version(xcm::latest::VERSION) {
 			Ok(xcm::VersionedLocation::V5(loc)) => Some(loc),
 			_ => None,
 		}
