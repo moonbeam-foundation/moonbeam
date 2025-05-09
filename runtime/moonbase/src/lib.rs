@@ -1480,7 +1480,6 @@ construct_runtime! {
 		// Previously 30: XTokens
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
-		MultiBlockMigrations: pallet_multiblock_migrations = 117,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		// Previously 35: BaseFee
@@ -1509,6 +1508,7 @@ construct_runtime! {
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
 		Parameters: pallet_parameters = 57,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 58,
+		MultiBlockMigrations: pallet_multiblock_migrations = 117,
 	}
 }
 

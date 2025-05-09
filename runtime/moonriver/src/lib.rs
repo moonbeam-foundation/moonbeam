@@ -1459,7 +1459,6 @@ construct_runtime! {
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config<T>, Storage, Event} = 32,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
 		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 34,
-		MultiBlockMigrations: pallet_multiblock_migrations = 117,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 37,
@@ -1511,6 +1510,7 @@ construct_runtime! {
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 114,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 115,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 116,
+		MultiBlockMigrations: pallet_multiblock_migrations = 117,
 
 		// Utils
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,
