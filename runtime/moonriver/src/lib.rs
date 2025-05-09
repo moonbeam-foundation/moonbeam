@@ -1658,7 +1658,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 					// Calculate how much gas this effectively uses according to the existing mapping
 					let effective_gas =
 						<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-							dispatch_info.call_weight
+							dispatch_info.total_weight()
 						);
 
 					// Here we calculate an ethereum-style effective gas price using the

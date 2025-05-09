@@ -158,7 +158,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			},
 		)
 		.get_dispatch_info()
-		.call_weight
+		.total_weight()
 	}
 }
 
