@@ -1386,6 +1386,7 @@ impl pallet_parameters::Config for Runtime {
 
 impl pallet_multiblock_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	// TODO fully replace pallet_migrations with multiblock migrations.
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Migrations = pallet_identity::migration::v2::LazyMigrationV1ToV2<Runtime>;
 	// Benchmarks need mocked migrations to guarantee that they succeed.
