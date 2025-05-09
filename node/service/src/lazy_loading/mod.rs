@@ -642,6 +642,12 @@ where
 								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
 								Slot::from(u64::from(current_para_block)).encode(),
 							),
+							(
+								relay_chain::well_known_keys::upgrade_restriction_signal(
+									ParaId::new(parachain_id),
+								),
+								None::<UpgradeRestriction>.encode(),
+							),
 						];
 
 						let current_para_head = client_for_xcm
