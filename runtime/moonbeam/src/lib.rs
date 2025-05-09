@@ -636,8 +636,8 @@ impl pallet_identity::Config for Runtime {
 	type MaxSuffixLength = MaxSuffixLength;
 	type MaxUsernameLength = MaxUsernameLength;
 	type WeightInfo = moonbeam_weights::pallet_identity::WeightInfo<Runtime>;
-	type UsernameDeposit = ();
-	type UsernameGracePeriod = ();
+	type UsernameDeposit = ConstU128<{ currency::deposit(0, MaxUsernameLength::get()) }>;
+	type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
 }
 
 pub struct TransactionConverter;
