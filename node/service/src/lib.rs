@@ -75,7 +75,7 @@ use session_keys_primitives::VrfApi;
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_consensus::SyncOracle;
-use sp_core::{twox_128, ByteArray, Encode, H256};
+use sp_core::{ByteArray, Encode, H256};
 use sp_keystore::{Keystore, KeystorePtr};
 use std::str::FromStr;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -1414,7 +1414,7 @@ where
 						// Calculate mocked slot number (should be consecutively 1, 2, ...)
 						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
-						let mut additional_key_values = vec![
+						let additional_key_values = vec![
 							(
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
@@ -1441,23 +1441,6 @@ where
 								.encode(),
 							),
 						];
-
-						let storage_key = [
-							twox_128(b"ParachainSystem"),
-							twox_128(b"PendingValidationCode"),
-						]
-						.concat();
-						let has_pending_upgrade = client_for_xcm
-							.storage(block, &sp_storage::StorageKey(storage_key))
-							.map_or(false, |ok| ok.map_or(false, |some| !some.0.is_empty()));
-						if has_pending_upgrade {
-							additional_key_values.push((
-								relay_chain::well_known_keys::upgrade_go_ahead_signal(ParaId::new(
-									para_id.expect("para ID should be specified for dev service"),
-								)),
-								Some(relay_chain::UpgradeGoAhead::GoAhead).encode(),
-							));
-						}
 
 						let current_para_head = client_for_xcm
 							.header(block)

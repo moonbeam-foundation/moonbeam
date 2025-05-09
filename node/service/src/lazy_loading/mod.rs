@@ -33,10 +33,9 @@ use nimbus_primitives::NimbusId;
 use parity_scale_codec::Encode;
 use polkadot_primitives::{
 	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
-	UpgradeRestriction,
 };
 use sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
-use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks, StorageProvider};
+use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks};
 use sc_executor::{HeapAllocStrategy, RuntimeVersionOf, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::config::FullNetworkConfiguration;
 use sc_network::NetworkBackend;
@@ -50,9 +49,8 @@ use sc_transaction_pool_api::{OffchainTransactionPoolFactory, TransactionPool};
 use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
 use sp_core::traits::CodeExecutor;
-use sp_core::{twox_128, H256};
+use sp_core::H256;
 use sp_runtime::traits::NumberFor;
-use sp_storage::StorageKey;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
@@ -614,7 +612,7 @@ where
 							maybe_current_para_head?.encode(),
 						));
 
-						let mut additional_key_values = vec![
+						let additional_key_values = vec![
 							(
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
@@ -645,32 +643,6 @@ where
 								Slot::from(u64::from(current_para_block)).encode(),
 							),
 						];
-
-						// If there is a pending upgrade, lets mimic a GoAhead
-						// signal from the relay
-
-						let storage_key = [
-							twox_128(b"ParachainSystem"),
-							twox_128(b"PendingValidationCode"),
-						]
-						.concat();
-						let has_pending_upgrade = client_for_xcm
-							.storage(block, &StorageKey(storage_key))
-							.map_or(false, |ok| ok.map_or(false, |some| !some.0.is_empty()));
-						if has_pending_upgrade {
-							additional_key_values.push((
-								relay_chain::well_known_keys::upgrade_go_ahead_signal(ParaId::new(
-									parachain_id,
-								)),
-								Some(UpgradeGoAhead::GoAhead).encode(),
-							));
-							additional_key_values.push((
-								relay_chain::well_known_keys::upgrade_restriction_signal(
-									ParaId::new(parachain_id),
-								),
-								None::<UpgradeRestriction>.encode(),
-							));
-						}
 
 						let current_para_head = client_for_xcm
 							.header(block)
