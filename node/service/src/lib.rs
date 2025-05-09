@@ -1440,12 +1440,6 @@ where
 								}
 								.encode(),
 							),
-							(
-								relay_chain::well_known_keys::upgrade_restriction_signal(
-									ParaId::new(parachain_id),
-								),
-								None::<UpgradeRestriction>.encode(),
-							),
 						];
 
 						let current_para_head = client_for_xcm

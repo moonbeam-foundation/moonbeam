@@ -33,6 +33,7 @@ use nimbus_primitives::NimbusId;
 use parity_scale_codec::Encode;
 use polkadot_primitives::{
 	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
+	UpgradeRestriction,
 };
 use sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
 use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks};
