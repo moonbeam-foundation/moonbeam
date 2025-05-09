@@ -265,10 +265,6 @@ pub mod pallet {
 		pub fn query_acceptable_payment_assets(
 			xcm_version: xcm::Version,
 		) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
-			if !matches!(xcm_version, 3 | 5) {
-				return Err(XcmPaymentApiError::UnhandledXcmVersion);
-			}
-
 			let v5_assets = [VersionedAssetId::from(XcmAssetId::from(
 				T::NativeLocation::get(),
 			))]
@@ -280,14 +276,19 @@ pub mod pallet {
 			)
 			.collect::<Vec<_>>();
 
-			if xcm_version == 3 {
-				v5_assets
+			match xcm_version {
+				xcm::v3::VERSION => v5_assets
 					.into_iter()
 					.map(|v5_asset| v5_asset.into_version(xcm::v3::VERSION))
 					.collect::<Result<_, _>>()
-					.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)
-			} else {
-				Ok(v5_assets)
+					.map_err(|_| XcmPaymentApiError::VersionedConversionFailed),
+				xcm::v4::VERSION => v5_assets
+					.into_iter()
+					.map(|v5_asset| v5_asset.into_version(xcm::v4::VERSION))
+					.collect::<Result<_, _>>()
+					.map_err(|_| XcmPaymentApiError::VersionedConversionFailed),
+				xcm::v5::VERSION => Ok(v5_assets),
+				_ => Err(XcmPaymentApiError::UnhandledXcmVersion),
 			}
 		}
 		pub fn query_weight_to_asset_fee(
