@@ -577,7 +577,7 @@ fn test_query_acceptable_payment_assets() {
 			Ok(vec![VersionedAssetId::from(XcmAssetId(
 				<Test as crate::Config>::NativeLocation::get()
 			))
-			.into_version(3)
+			.into_version(xcm::v3::VERSION)
 			.expect("native location should be convertible to v3")])
 		);
 

@@ -53,7 +53,7 @@ use parachain::PolkadotXcm;
 fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128) -> Result<(), ()> {
 	let parachain::AssetType::Xcm(location_v3) = asset_type;
 	let VersionedLocation::V5(location_v5) = VersionedLocation::V3(location_v3)
-		.into_version(5)
+		.into_version(xcm::latest::VERSION)
 		.map_err(|_| ())?
 	else {
 		return Err(());

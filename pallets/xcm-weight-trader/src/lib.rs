@@ -296,7 +296,7 @@ pub mod pallet {
 			asset: VersionedAssetId,
 		) -> Result<u128, XcmPaymentApiError> {
 			if let VersionedAssetId::V5(XcmAssetId(asset_location)) = asset
-				.into_version(5)
+				.into_version(xcm::latest::VERSION)
 				.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?
 			{
 				Trader::<T>::compute_amount_to_charge(&weight, &asset_location).map_err(|e| match e
