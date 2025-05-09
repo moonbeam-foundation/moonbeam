@@ -283,7 +283,7 @@ pub mod pallet {
 			if xcm_version == 3 {
 				v5_assets
 					.into_iter()
-					.map(|v5_asset| v5_asset.into_version(3))
+					.map(|v5_asset| v5_asset.into_version(xcm::v3::VERSION))
 					.collect::<Result<_, _>>()
 					.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)
 			} else {

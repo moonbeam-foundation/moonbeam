@@ -49,7 +49,7 @@ where
 	AssetIdInfoGetter: AssetTypeGetter<AssetId, AssetType>,
 {
 	fn convert(id: &xcm::v5::Location) -> Option<AssetId> {
-		match xcm::VersionedLocation::V5(id.clone()).into_version(3) {
+		match xcm::VersionedLocation::V5(id.clone()).into_version(xcm::v3::VERSION) {
 			Ok(xcm::VersionedLocation::V3(loc)) => AssetIdInfoGetter::get_asset_id(loc.into()),
 			// Any other version or conversion error returns an error
 			_ => None,
