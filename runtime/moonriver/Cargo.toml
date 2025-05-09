@@ -41,6 +41,7 @@ pallet-ethereum-xcm = { workspace = true }
 pallet-evm-chain-id = { workspace = true }
 pallet-maintenance-mode = { workspace = true, features = ["xcm-support"] }
 pallet-migrations = { workspace = true }
+pallet-multiblock-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
@@ -119,6 +120,7 @@ sp-core = { workspace = true }
 sp-debug-derive = { workspace = true }
 sp-inherents = { workspace = true }
 sp-io = { workspace = true, features = ["improved_panic_error_reporting"] }
+sp-keyring = { workspace = true }
 sp-offchain = { workspace = true }
 sp-runtime = { workspace = true }
 sp-session = { workspace = true }
@@ -267,6 +269,7 @@ std = [
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
+	"pallet-multiblock-migrations/std",
 	"pallet-moonbeam-foreign-assets/std",
 	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-moonbeam-orbiters/std",
@@ -372,6 +375,7 @@ runtime-benchmarks = [
 	"pallet-evm/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
+	"pallet-multiblock-migrations/runtime-benchmarks",
 	"pallet-moonbeam-foreign-assets/runtime-benchmarks",
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
@@ -387,6 +391,7 @@ runtime-benchmarks = [
 	"pallet-scheduler/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
+	"pallet-transaction-payment/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
 	"pallet-utility/runtime-benchmarks",
 	"pallet-whitelist/runtime-benchmarks",
@@ -417,6 +422,7 @@ try-runtime = [
 	"pallet-conviction-voting/try-runtime",
 	"pallet-maintenance-mode/try-runtime",
 	"pallet-migrations/try-runtime",
+	"pallet-multiblock-migrations/try-runtime",
 	"pallet-moonbeam-lazy-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
 	"pallet-precompile-benchmarks/try-runtime",

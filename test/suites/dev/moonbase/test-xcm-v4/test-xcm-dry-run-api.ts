@@ -1,82 +1,8 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { alith, generateKeyringPair } from "@moonwall/util";
-import { ApiPromise, WsProvider } from "@polkadot/api";
+import { type ApiPromise, WsProvider } from "@polkadot/api";
 import { u8aToHex } from "@polkadot/util";
 import { XcmFragment } from "../../../../helpers";
-
-// TODO: remove once the api is present in @polkadot/api
-const runtimeApi = {
-  runtime: {
-    DryRunApi: [
-      {
-        methods: {
-          dry_run_call: {
-            description: "Dry run call",
-            params: [
-              {
-                name: "origin",
-                type: "OriginCaller",
-              },
-              {
-                name: "call",
-                type: "Call",
-              },
-            ],
-            type: "Result<CallDryRunEffects<Event>, XcmDryRunError>",
-          },
-          dry_run_xcm: {
-            description: "Dry run XCM program",
-            params: [
-              {
-                name: "origin_location",
-                type: "XcmVersionedLocation",
-              },
-              {
-                name: "xcm",
-                type: "XcmVersionedXcm",
-              },
-            ],
-            type: "Result<XcmDryRunEffects, XcmDryRunError>",
-          },
-        },
-        version: 1,
-      },
-    ],
-  },
-  types: {
-    CallDryRunEffects: {
-      ExecutionResult: "DispatchResultWithPostInfo",
-      EmittedEvents: "Vec<Event>",
-      LocalXcm: "Option<XcmVersionedXcm>",
-      ForwardedXcms: "Vec<(XcmVersionedLocation, Vec<XcmVersionedXcm>)>",
-    },
-    DispatchErrorWithPostInfoTPostDispatchInfo: {
-      postInfo: "PostDispatchInfo",
-      error: "DispatchError",
-    },
-    DispatchResultWithPostInfo: {
-      _enum: {
-        Ok: "PostDispatchInfo",
-        Err: "DispatchErrorWithPostInfoTPostDispatchInfo",
-      },
-    },
-    PostDispatchInfo: {
-      actualWeight: "Option<Weight>",
-      paysFee: "Pays",
-    },
-    XcmDryRunEffects: {
-      ExecutionResult: "StagingXcmV4TraitsOutcome",
-      EmittedEvents: "Vec<Event>",
-      ForwardedXcms: "Vec<(XcmVersionedLocation, Vec<XcmVersionedXcm>)>",
-    },
-    XcmDryRunError: {
-      _enum: {
-        Unimplemented: "Null",
-        VersionedConversionFailed: "Null",
-      },
-    },
-  },
-};
 
 describeSuite({
   id: "D014135",
@@ -86,12 +12,8 @@ describeSuite({
     let polkadotJs: ApiPromise;
 
     beforeAll(async function () {
-      polkadotJs = await ApiPromise.create({
-        provider: new WsProvider(`ws://localhost:${process.env.MOONWALL_RPC_PORT}/`),
-        ...runtimeApi,
-      });
+      polkadotJs = context.polkadotJs();
     });
-
     it({
       id: "T01",
       title: "Should succeed calling DryRunApi::dryRunCall",
@@ -151,9 +73,11 @@ describeSuite({
           "Unlimited"
         );
 
+        const XCM_VERSION = 3;
         const dryRunCall = await polkadotJs.call.dryRunApi.dryRunCall(
           { System: { signed: alith.address } },
-          polkadotXcmTx
+          polkadotXcmTx,
+          XCM_VERSION
         );
 
         expect(dryRunCall.isOk).to.be.true;

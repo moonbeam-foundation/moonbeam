@@ -3,8 +3,10 @@
 cargo license --json > licenses.json
 LICENSES=(
     "(MIT OR Apache-2.0) AND Unicode-DFS-2016"
+    "(MIT OR Apache-2.0) AND Unicode-3.0"
     "0BSD OR Apache-2.0 OR MIT"
     "Apache-2.0 AND MIT"
+    "Apache-2.0 OR LGPL-2.1-or-later OR MIT"
     "Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT"
     "Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR CC0-1.0"
     "Apache-2.0 OR BSD-1-Clause OR MIT"
@@ -31,6 +33,7 @@ LICENSES=(
     "MIT"
     "MPL-2.0"
     "Zlib"
+    "Unicode-3.0"
 )
 AUTHORS=(
     "PureStake"
@@ -41,6 +44,8 @@ AUTHORS=(
 )
 NAMES=(
     "webpki"
+    "webpki-roots"
+    "webpki-root-certs"
     "rustls-webpki"
     "ring"
     "nimbus-consensus"

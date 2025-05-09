@@ -236,8 +236,8 @@ mod serde_hex {
 	use serde::{Deserialize, Deserializer};
 
 	fn sanitize(data: &str) -> &str {
-		if data.starts_with("0x") {
-			&data[2..]
+		if let Some(stripped_data) = data.strip_prefix("0x") {
+			stripped_data
 		} else {
 			data
 		}

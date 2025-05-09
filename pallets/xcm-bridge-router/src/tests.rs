@@ -144,9 +144,10 @@ fn returns_proper_delivery_price() {
 			}),
 		);
 
-		let expected_fee =
-			(FixedU128::saturating_from_integer(base_cost_formula()) * factor).into_inner()
-				/ FixedU128::DIV + HRMP_FEE;
+		let expected_fee = (FixedU128::saturating_from_integer(base_cost_formula()) * factor)
+			.into_inner()
+			/ FixedU128::DIV
+			+ HRMP_FEE;
 		assert_eq!(
 			XcmBridgeHubRouter::validate(&mut Some(dest), &mut Some(xcm))
 				.unwrap()

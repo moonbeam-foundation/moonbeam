@@ -20,7 +20,7 @@ use crate::v2::{XcmTransactorPrecompileV2, XcmTransactorPrecompileV2Call};
 use crate::v3::{XcmTransactorPrecompileV3, XcmTransactorPrecompileV3Call};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
+	traits::{Everything, PalletInfo as PalletInfoTrait},
 	weights::{RuntimeDbWeight, Weight},
 };
 use pallet_evm::{
@@ -33,7 +33,7 @@ use precompile_utils::{
 	testing::{AddressInPrefixedSet, MockAccount},
 };
 use scale_info::TypeInfo;
-use sp_core::{ConstU32, H160, H256, U256};
+use sp_core::{H160, H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
 use xcm::latest::{prelude::*, Error as XcmError};
@@ -119,6 +119,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -137,6 +138,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 // These parameters dont matter much as this will only be called by root with the forced arguments
@@ -219,7 +221,6 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
@@ -234,19 +235,6 @@ impl pallet_timestamp::Config for Runtime {
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
-}
-pub struct ConvertOriginToLocal;
-impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
-	type Success = Location;
-
-	fn try_origin(_: Origin) -> Result<Location, Origin> {
-		Ok(Location::here())
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	fn try_successful_origin() -> Result<Origin, ()> {
-		Ok(Origin::root())
-	}
 }
 
 pub struct DoNothingRouter;

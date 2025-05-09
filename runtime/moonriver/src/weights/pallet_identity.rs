@@ -351,7 +351,7 @@ impl<T: frame_system::Config> pallet_identity::WeightInfo for WeightInfo<T> {
 	/// Proof: `Identity::PendingUsernames` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
 	/// Storage: `Identity::IdentityOf` (r:1 w:1)
 	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7560), added: 10035, mode: `MaxEncodedLen`)
-	fn set_username_for() -> Weight {
+	fn set_username_for(_: u32) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `67`
 		//  Estimated: `11025`
@@ -377,7 +377,7 @@ impl<T: frame_system::Config> pallet_identity::WeightInfo for WeightInfo<T> {
 	}
 	/// Storage: `Identity::PendingUsernames` (r:1 w:1)
 	/// Proof: `Identity::PendingUsernames` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
-	fn remove_expired_approval() -> Weight {
+	fn remove_expired_approval(_: u32) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `101`
 		//  Estimated: `3538`
@@ -399,17 +399,130 @@ impl<T: frame_system::Config> pallet_identity::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	/// Storage: `Identity::AccountOfUsername` (r:1 w:1)
-	/// Proof: `Identity::AccountOfUsername` (`max_values`: None, `max_size`: Some(69), added: 2544, mode: `MaxEncodedLen`)
-	/// Storage: `Identity::IdentityOf` (r:1 w:0)
-	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7560), added: 10035, mode: `MaxEncodedLen`)
-	fn remove_dangling_username() -> Weight {
+	/// Storage: `Identity::UsernameInfoOf` (r:1 w:0)
+	/// Proof: `Identity::UsernameInfoOf` (`max_values`: None, `max_size`: Some(86), added: 2561, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::AuthorityOf` (r:1 w:0)
+	/// Proof: `Identity::AuthorityOf` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UnbindingUsernames` (r:1 w:1)
+	/// Proof: `Identity::UnbindingUsernames` (`max_values`: None, `max_size`: Some(53), added: 2528, mode: `MaxEncodedLen`)
+	fn unbind_username() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `86`
-		//  Estimated: `11025`
-		// Minimum execution time: 13_272_000 picoseconds.
-		Weight::from_parts(13_658_000, 11025)
+		//  Measured:  `210`
+		//  Estimated: `3551`
+		// Minimum execution time: 14_000_000 picoseconds.
+		Weight::from_parts(15_000_000, 3551)
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+	/// Storage: `Identity::UnbindingUsernames` (r:1 w:1)
+	/// Proof: `Identity::UnbindingUsernames` (`max_values`: None, `max_size`: Some(53), added: 2528, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UsernameInfoOf` (r:1 w:1)
+	/// Proof: `Identity::UsernameInfoOf` (`max_values`: None, `max_size`: Some(86), added: 2561, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UsernameOf` (r:1 w:1)
+	/// Proof: `Identity::UsernameOf` (`max_values`: None, `max_size`: Some(61), added: 2536, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::AuthorityOf` (r:1 w:0)
+	/// Proof: `Identity::AuthorityOf` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
+	fn remove_username() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `273`
+		//  Estimated: `3551`
+		// Minimum execution time: 18_000_000 picoseconds.
+		Weight::from_parts(19_000_000, 3551)
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+	}
+	/// Storage: `Identity::UsernameInfoOf` (r:1 w:1)
+	/// Proof: `Identity::UsernameInfoOf` (`max_values`: None, `max_size`: Some(86), added: 2561, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UsernameOf` (r:1 w:1)
+	/// Proof: `Identity::UsernameOf` (`max_values`: None, `max_size`: Some(61), added: 2536, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UnbindingUsernames` (r:1 w:1)
+	/// Proof: `Identity::UnbindingUsernames` (`max_values`: None, `max_size`: Some(53), added: 2528, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::AuthorityOf` (r:1 w:0)
+	/// Proof: `Identity::AuthorityOf` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
+	/// The range of component `p` is `[0, 1]`.
+	fn kill_username(_p: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `330`
+		//  Estimated: `3551`
+		// Minimum execution time: 15_000_000 picoseconds.
+		Weight::from_parts(20_300_000, 3551)
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+	}
+	/// Storage: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f99622d1423cdd16f5c33e2b531c34a53d` (r:2 w:0)
+	/// Proof: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f99622d1423cdd16f5c33e2b531c34a53d` (r:2 w:0)
+	/// Storage: `Identity::AuthorityOf` (r:0 w:1)
+	/// Proof: `Identity::AuthorityOf` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
+	fn migration_v2_authority_step() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `134`
+		//  Estimated: `6074`
+		// Minimum execution time: 7_000_000 picoseconds.
+		Weight::from_parts(7_000_000, 6074)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+	/// Storage: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f97c182fead9255863460affdd63116be3` (r:2 w:0)
+	/// Proof: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f97c182fead9255863460affdd63116be3` (r:2 w:0)
+	/// Storage: `Identity::UsernameInfoOf` (r:0 w:1)
+	/// Proof: `Identity::UsernameInfoOf` (`max_values`: None, `max_size`: Some(86), added: 2561, mode: `MaxEncodedLen`)
+	fn migration_v2_username_step() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `147`
+		//  Estimated: `6087`
+		// Minimum execution time: 7_000_000 picoseconds.
+		Weight::from_parts(8_000_000, 6087)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+	/// Storage: `Identity::IdentityOf` (r:2 w:1)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UsernameOf` (r:0 w:1)
+	/// Proof: `Identity::UsernameOf` (`max_values`: None, `max_size`: Some(61), added: 2536, mode: `MaxEncodedLen`)
+	fn migration_v2_identity_step() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `7050`
+		//  Estimated: `20992`
+		// Minimum execution time: 56_000_000 picoseconds.
+		Weight::from_parts(58_000_000, 20992)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
+	}
+	/// Storage: `Identity::PendingUsernames` (r:2 w:1)
+	/// Proof: `Identity::PendingUsernames` (`max_values`: None, `max_size`: Some(90), added: 2565, mode: `MaxEncodedLen`)
+	fn migration_v2_pending_username_step() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `188`
+		//  Estimated: `6120`
+		// Minimum execution time: 6_000_000 picoseconds.
+		Weight::from_parts(7_000_000, 6120)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+	/// Storage: `Identity::AuthorityOf` (r:2 w:0)
+	/// Proof: `Identity::AuthorityOf` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
+	/// Storage: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f99622d1423cdd16f5c33e2b531c34a53d` (r:1 w:1)
+	/// Proof: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f99622d1423cdd16f5c33e2b531c34a53d` (r:1 w:1)
+	fn migration_v2_cleanup_authority_step() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `261`
+		//  Estimated: `6020`
+		// Minimum execution time: 9_000_000 picoseconds.
+		Weight::from_parts(9_000_000, 6020)
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+	/// Storage: `Identity::UsernameInfoOf` (r:2 w:0)
+	/// Proof: `Identity::UsernameInfoOf` (`max_values`: None, `max_size`: Some(86), added: 2561, mode: `MaxEncodedLen`)
+	/// Storage: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f97c182fead9255863460affdd63116be3` (r:1 w:1)
+	/// Proof: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f97c182fead9255863460affdd63116be3` (r:1 w:1)
+	fn migration_v2_cleanup_username_step() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `265`
+		//  Estimated: `6112`
+		// Minimum execution time: 8_000_000 picoseconds.
+		Weight::from_parts(9_000_000, 6112)
+			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 }
