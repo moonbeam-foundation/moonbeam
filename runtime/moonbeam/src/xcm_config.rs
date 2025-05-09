@@ -462,7 +462,7 @@ impl TryFrom<Location> for AssetType {
 
 	fn try_from(location: Location) -> Result<Self, Self::Error> {
 		// Convert the V5 location to a V3 location
-		match xcm::VersionedLocation::V5(location).into_version(3) {
+		match xcm::VersionedLocation::V5(location).into_version(xcm::v3::VERSION) {
 			Ok(xcm::VersionedLocation::V3(loc)) => Ok(AssetType::Xcm(loc.into())),
 			// Any other version or conversion error returns an error
 			_ => Err(()),
@@ -483,7 +483,7 @@ impl Into<Option<Location>> for AssetType {
 		match self {
 			Self::Xcm(location) => {
 				let versioned = xcm::VersionedLocation::V3(location);
-				match versioned.into_version(5) {
+				match versioned.into_version(xcm::latest::VERSION) {
 					Ok(xcm::VersionedLocation::V5(loc)) => Some(loc),
 					_ => None,
 				}
