@@ -232,7 +232,7 @@ describeSuite({
           number.toString(),
           { tracer: "callTracer" },
         ]);
-        
+
         // Verify that only the regular eth transaction is included in the block trace.
         expect(trace.length).to.eq(1);
 

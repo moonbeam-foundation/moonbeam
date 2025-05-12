@@ -111,7 +111,7 @@ describeSuite({
 
       // Mock the reception of the failed xcm message N times
       // N should be high enough to fill IdleMaxServiceWeigh
-      // The goal is to have at least one XCM message queud for next block on_initialize 
+      // The goal is to have at least one XCM message queud for next block on_initialize
       for (let i = 0; i < 20; i++) {
         await injectHrmpMessage(context, paraId, {
           type: "XcmVersionedXcm",
