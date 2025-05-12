@@ -249,6 +249,7 @@ pub mod pallet {
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
 		EvmCallBalanceOfFail,
+		EvmCallTransferFail,
 		EvmInternalError,
 		/// Account has insufficient balance for locking
 		InsufficientBalance,
@@ -777,4 +778,88 @@ pub mod pallet {
 			AssetsById::<T>::get(asset_id)
 		}
 	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	impl <T: Config> SimpleCreate for Pallet<T> {
+		fn create_asset(
+			id: u128,
+			xcm_location: Location
+		) -> DispatchResult {
+			use frame_support::traits::OriginTrait;
+			use sp_std::vec;
+			Pallet::<T>::create_foreign_asset(
+				<T as frame_system::Config>::RuntimeOrigin::root(),
+				id,
+				xcm_location,
+				12,
+				vec![b'M', b'T'].try_into().unwrap(),
+				vec![b'M', b'y', b'T', b'o', b'k'].try_into().unwrap(),
+			)
+		}
+	}
+
+	impl <T: Config> SimpleMutate<T> for Pallet<T> {
+		fn transfer_asset(
+			id: u128,
+			from: T::AccountId,
+			to: T::AccountId,
+			amount: U256
+		) -> DispatchResult {
+			Pallet::<T>::transfer(
+				id,
+				from,
+				to,
+				amount,
+			).map_err(|_| Error::<T>::EvmCallTransferFail)?;
+			Ok(())
+		}
+
+		#[cfg(feature = "runtime-benchmarks")]
+		fn mint_asset(
+			id: u128,
+			account: T::AccountId,
+			amount: U256
+		) -> DispatchResult {
+			Pallet::<T>::mint_into(
+				id,
+				account,
+				amount
+			);
+			Ok(())
+		}
+
+	}
+
+	impl <T: Config> SimpleAssetExists for Pallet<T> {
+		fn asset_exists(id: u128) -> bool {
+			AssetsById::<T>::contains_key(&id)
+		}
+	}
+}
+
+pub trait SimpleCreate {
+	fn create_asset(
+		id: u128,
+		xcm_location: Location,
+	) -> DispatchResult;
+}
+
+pub trait SimpleMutate<R: frame_system::Config> {
+	fn transfer_asset(
+		id: u128,
+		from: R::AccountId,
+		to: R::AccountId,
+		amount: U256
+	) -> DispatchResult;
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn mint_asset(
+		id: u128,
+		account: R::AccountId,
+		amount: U256
+	) -> DispatchResult;
+}
+
+pub trait SimpleAssetExists {
+	fn asset_exists(id: u128) -> bool;
 }
