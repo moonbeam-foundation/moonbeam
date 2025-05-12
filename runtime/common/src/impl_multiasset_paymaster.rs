@@ -14,21 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::traits::OriginTrait;
-use frame_support::traits::{fungible::NativeOrWithId, tokens::Pay};
+use frame_support::traits::fungible;
+use frame_support::traits::{fungible::NativeOrWithId, tokens::{Pay, Preservation::Expendable}};
 use moonbeam_core_primitives::{AssetId, Balance};
 use pallet_moonbeam_foreign_assets::AssetsById;
 use sp_core::U256;
-use sp_runtime::{traits::StaticLookup, DispatchError};
+use sp_runtime::DispatchError;
 
-pub struct MultiAssetPaymaster<R>(sp_std::marker::PhantomData<R>);
-impl<R> Pay for MultiAssetPaymaster<R>
+pub struct MultiAssetPaymaster<R, FungibleNative>(sp_std::marker::PhantomData<(R, FungibleNative)>);
+impl<R, FungibleNative> Pay for MultiAssetPaymaster<R, FungibleNative>
 where
 	R: frame_system::Config
 		+ pallet_treasury::Config
-		+ pallet_balances::Config
 		+ pallet_moonbeam_foreign_assets::Config
 		+ pallet_xcm_weight_trader::Config,
+	FungibleNative: fungible::Mutate<R::AccountId>,
 {
 	type Balance = Balance;
 	type Beneficiary = R::AccountId;
@@ -42,15 +42,11 @@ where
 	) -> Result<Self::Id, Self::Error> {
 		match asset_kind {
 			Self::AssetKind::Native => {
-				let dest = R::Lookup::unlookup(who.clone());
-				let value = <R as pallet_balances::Config>::Balance::try_from(amount)
-					.map_err(|_| pallet_treasury::Error::<R>::PayoutError)?;
-				// Pay account with native balance
-				pallet_balances::Pallet::<R>::transfer_keep_alive(
-					R::RuntimeOrigin::signed(pallet_treasury::Pallet::<R>::account_id()),
-					dest,
-					value,
-				)?;
+				<FungibleNative as fungible::Mutate<_>>::transfer(
+					&pallet_treasury::Pallet::<R>::account_id(),
+					who,
+					amount.try_into().map_err(|_| pallet_treasury::Error::<R>::PayoutError)?,
+					Expendable)?;
 				Ok(())
 			}
 			Self::AssetKind::WithId(id) => {
@@ -88,13 +84,11 @@ where
 		let treasury = pallet_treasury::Pallet::<R>::account_id();
 		match asset {
 			Self::AssetKind::Native => {
-				pallet_balances::Pallet::<R>::mint_into(
+				<FungibleNative as fungible::Mutate<_>>::mint_into(
 					&treasury,
-					<R as pallet_balances::Config>::Balance::try_from(amount)
-						.map_err(|_| pallet_treasury::Error::<R>::PayoutError)
-						.unwrap(),
-				)
-				.expect("failed to mint the native asset into the treasury account");
+					amount.try_into().map_err(|_| pallet_treasury::Error::<R>::PayoutError)
+						.expect("failed to convert amount type")
+				);
 			}
 			Self::AssetKind::WithId(id) => {
 				// Fund treasury account
