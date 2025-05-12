@@ -80,7 +80,7 @@ pub mod pallet {
 		/// between locations (which are stored in this pallet)
 		/// and asset ids (which are not). This type is responsible
 		/// for providing the required mapping.
-		type AssetIdentifier: MaybeEquivalence<Location, u128>;
+		type AssetIdentifier: MaybeEquivalence<Location, AssetId>;
 
 		/// Asset kind to use in the conversion
 		type AssetKind: Parameter + MaxEncodedLen;
