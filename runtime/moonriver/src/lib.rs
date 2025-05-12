@@ -1410,9 +1410,7 @@ impl pallet_multiblock_migrations::Config for Runtime {
 
 /// A `FailedMigrationHandler` that enables maintenance mode.
 pub struct EnterMaintenanceModeOnFailedMigration;
-impl frame_support::migrations::FailedMigrationHandler
-	for EnterMaintenanceModeOnFailedMigration
-{
+impl frame_support::migrations::FailedMigrationHandler for EnterMaintenanceModeOnFailedMigration {
 	fn failed(migration: Option<u32>) -> frame_support::migrations::FailedMigrationHandling {
 		// Log information about the failed migration
 		log::error!(
