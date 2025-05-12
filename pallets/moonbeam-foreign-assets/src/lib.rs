@@ -809,7 +809,7 @@ pub mod pallet {
 
 		#[cfg(feature = "runtime-benchmarks")]
 		fn mint_asset(id: u128, account: T::AccountId, amount: U256) -> DispatchResult {
-			Pallet::<T>::mint_into(id, account, amount);
+			Pallet::<T>::mint_into(id, account, amount)?;
 			Ok(())
 		}
 	}
