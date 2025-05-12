@@ -780,11 +780,8 @@ pub mod pallet {
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	impl <T: Config> SimpleCreate for Pallet<T> {
-		fn create_asset(
-			id: u128,
-			xcm_location: Location
-		) -> DispatchResult {
+	impl<T: Config> SimpleCreate for Pallet<T> {
+		fn create_asset(id: u128, xcm_location: Location) -> DispatchResult {
 			use frame_support::traits::OriginTrait;
 			use sp_std::vec;
 			Pallet::<T>::create_foreign_asset(
@@ -798,39 +795,26 @@ pub mod pallet {
 		}
 	}
 
-	impl <T: Config> SimpleMutate<T> for Pallet<T> {
+	impl<T: Config> SimpleMutate<T> for Pallet<T> {
 		fn transfer_asset(
 			id: u128,
 			from: T::AccountId,
 			to: T::AccountId,
-			amount: U256
+			amount: U256,
 		) -> DispatchResult {
-			Pallet::<T>::transfer(
-				id,
-				from,
-				to,
-				amount,
-			).map_err(|_| Error::<T>::EvmCallTransferFail)?;
+			Pallet::<T>::transfer(id, from, to, amount)
+				.map_err(|_| Error::<T>::EvmCallTransferFail)?;
 			Ok(())
 		}
 
 		#[cfg(feature = "runtime-benchmarks")]
-		fn mint_asset(
-			id: u128,
-			account: T::AccountId,
-			amount: U256
-		) -> DispatchResult {
-			Pallet::<T>::mint_into(
-				id,
-				account,
-				amount
-			);
+		fn mint_asset(id: u128, account: T::AccountId, amount: U256) -> DispatchResult {
+			Pallet::<T>::mint_into(id, account, amount);
 			Ok(())
 		}
-
 	}
 
-	impl <T: Config> SimpleAssetExists for Pallet<T> {
+	impl<T: Config> SimpleAssetExists for Pallet<T> {
 		fn asset_exists(id: u128) -> bool {
 			AssetsById::<T>::contains_key(&id)
 		}
@@ -838,10 +822,7 @@ pub mod pallet {
 }
 
 pub trait SimpleCreate {
-	fn create_asset(
-		id: u128,
-		xcm_location: Location,
-	) -> DispatchResult;
+	fn create_asset(id: u128, xcm_location: Location) -> DispatchResult;
 }
 
 pub trait SimpleMutate<R: frame_system::Config> {
@@ -849,15 +830,11 @@ pub trait SimpleMutate<R: frame_system::Config> {
 		id: u128,
 		from: R::AccountId,
 		to: R::AccountId,
-		amount: U256
+		amount: U256,
 	) -> DispatchResult;
 
 	#[cfg(feature = "runtime-benchmarks")]
-	fn mint_asset(
-		id: u128,
-		account: R::AccountId,
-		amount: U256
-	) -> DispatchResult;
+	fn mint_asset(id: u128, account: R::AccountId, amount: U256) -> DispatchResult;
 }
 
 pub trait SimpleAssetExists {
