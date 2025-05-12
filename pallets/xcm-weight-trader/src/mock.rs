@@ -25,7 +25,7 @@ use frame_support::{
 };
 use frame_system::EnsureSignedBy;
 use pallet_moonbeam_foreign_assets::SimpleCreate;
-use sp_core::{crypto::Dummy, H256};
+use sp_core::H256;
 use sp_runtime::traits::MaybeEquivalence;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
