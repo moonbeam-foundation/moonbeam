@@ -74,6 +74,12 @@ pub mod pallet {
 		type AssetTransactor: TransactAsset;
 
 		/// How to get an asset location from an asset id.
+		///
+		/// For XcmWeightTrader to convert between native
+		/// and other assets' balances, it needs a way to map
+		/// between locations (which are stored in this pallet)
+		/// and asset ids (which are not). This type is responsible
+		/// for providing the required mapping.
 		type AssetIdentifier: MaybeEquivalence<Location, u128>;
 
 		/// Asset kind to use in the conversion
@@ -113,7 +119,9 @@ pub mod pallet {
 		#[cfg(feature = "runtime-benchmarks")]
 		type NotFilteredLocation: Get<Location>;
 
-		/// The benchmarks need a location that pass the filter AssetLocationFilter
+		/// The benchmarks need a way to create and add an asset
+		/// to the supported assets list in order to ensure
+		/// a conversion will be successful.
 		#[cfg(feature = "runtime-benchmarks")]
 		type AssetCreator: pallet_moonbeam_foreign_assets::SimpleCreate;
 	}
