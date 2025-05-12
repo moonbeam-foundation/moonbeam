@@ -305,7 +305,8 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
-	type TransactionalProcessor = pallet_ethereum_xcm::XcmEthTransactionalProcessor;
+	// XCM must not be transactional to commit EVM reverts
+	type TransactionalProcessor = ();
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
