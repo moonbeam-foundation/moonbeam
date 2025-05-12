@@ -1,0 +1,123 @@
+[[bin]]
+edition = "2021"
+name = "moonbase-runtime-fuzz"
+path = "src/main.rs"
+required-features = []
+
+# New Moonbeam Fuzz Cargotoml
+[dependencies]
+regex = "1"
+stats_alloc = "0.1.1"
+
+parachains-common = { workspace = true}
+pallet-author-mapping = { workspace = true }                                                         
+pallet-author-inherent = { workspace = true }                                                         
+                       
+pallet-maintenance-mode = { workspace = true, features = [ "xcm-support" ] }                         
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+nimbus-primitives = { workspace = true }
+session-keys-primitives = { workspace = true }
+sp-std = { workspace = true }
+hex = { workspace = true }
+pallet-randomness = { workspace = true }
+
+[dependencies.codec]
+default-features = false
+features = ["derive", "max-encoded-len", "chain-error"]
+package = "parity-scale-codec"
+version = "3.2.2"
+
+[dependencies.cumulus-pallet-parachain-system]
+branch = "moonbeam-polkadot-v1.7.2"
+default-features = false
+features = []
+git = "https://github.com/moonbeam-foundation/polkadot-sdk"
+optional = true
+
+[dependencies.cumulus-primitives-core]
+branch = "moonbeam-polkadot-v1.7.2"
+features = []
+git = "https://github.com/moonbeam-foundation/polkadot-sdk"
+optional = true
+
+[dependencies.cumulus-primitives-parachain-inherent]
+branch = "moonbeam-polkadot-v1.7.2"
+features = []
+git = "https://github.com/moonbeam-foundation/polkadot-sdk"
+optional = true
+
+[dependencies.cumulus-test-relay-sproof-builder]
+branch = "moonbeam-polkadot-v1.7.2"
+features = []
+git = "https://github.com/moonbeam-foundation/polkadot-sdk"
+optional = true
+
+[dependencies.frame-benchmarking]
+workspace = true
+
+[dependencies.sp-consensus-aura]
+branch = "moonbeam-polkadot-v1.7.2"
+git = "https://github.com/moonbeam-foundation/polkadot-sdk"
+
+[dependencies.frame-support]
+workspace = true
+
+[dependencies.frame-system]
+workspace = true
+
+[dependencies.fuzzed-runtime]
+features = ["std"]
+package = "moonbase-runtime"
+path = ".."
+
+[dependencies.pallet-balances]
+workspace = true
+
+[dependencies.pallet-timestamp]
+workspace = true
+
+[dependencies.pallet-transaction-payment]
+workspace = true
+
+[dependencies.sp-core]
+workspace = true
+
+[dependencies.sp-io]
+workspace = true
+[dependencies.sp-runtime]
+workspace = true
+
+[dependencies.sp-state-machine]
+workspace = true
+
+[dependencies.ziggy]
+default-features = false
+features = []
+version = "*"
+
+
+[features]
+coverage = []
+default = ["std", "parachain", "try-runtime"]
+deprecated-substrate = []
+parachain = ["cumulus-primitives-core", "cumulus-primitives-parachain-inherent", "cumulus-test-relay-sproof-builder", "cumulus-pallet-parachain-system"]
+std = [
+    	"fuzzed-runtime/std",
+	"codec/std",
+	"sp-runtime/std",
+	"frame-support/std",
+	"pallet-timestamp/std",
+	"sp-consensus-aura/std",
+]
+try-runtime = [
+    	"fuzzed-runtime/try-runtime",
+	"frame-support/try-runtime",
+	"frame-system/try-runtime",
+	"sp-runtime/try-runtime",
+	"pallet-timestamp/try-runtime",
+]
+
+[package]
+edition = "2021"
+name = "moonbase-runtime-fuzz"
+version = "0.2.0"

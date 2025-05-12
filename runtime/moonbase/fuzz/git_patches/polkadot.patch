@@ -1,0 +1,71 @@
+diff --git a/cumulus/pallets/parachain-system/src/lib.rs b/cumulus/pallets/parachain-system/src/lib.rs
+index d774089ef9..885c9d66ba 100644
+--- a/cumulus/pallets/parachain-system/src/lib.rs
++++ b/cumulus/pallets/parachain-system/src/lib.rs
+@@ -131,7 +131,7 @@ impl CheckAssociatedRelayNumber for RelayNumberStrictlyIncreases {
+ 		previous: RelayChainBlockNumber,
+ 	) {
+ 		if current <= previous {
+-			panic!("Relay chain block number needs to strictly increase between Parachain blocks!")
++			// panic!("Relay chain block number needs to strictly increase between Parachain blocks!")
+ 		}
+ 	}
+ }
+@@ -158,7 +158,7 @@ impl CheckAssociatedRelayNumber for RelayNumberMonotonicallyIncreases {
+ 		previous: RelayChainBlockNumber,
+ 	) {
+ 		if current < previous {
+-			panic!("Relay chain block number needs to monotonically increase between Parachain blocks!")
++			// panic!("Relay chain block number needs to monotonically increase between Parachain blocks!")
+ 		}
+ 	}
+ }
+diff --git a/polkadot/xcm/src/v3/multiasset.rs b/polkadot/xcm/src/v3/multiasset.rs
+index 188555318c..ae5e70402d 100644
+--- a/polkadot/xcm/src/v3/multiasset.rs
++++ b/polkadot/xcm/src/v3/multiasset.rs
+@@ -277,14 +277,14 @@ impl Fungibility {
+ 
+ impl From<i32> for Fungibility {
+ 	fn from(amount: i32) -> Fungibility {
+-		debug_assert_ne!(amount, 0);
++		// debug_assert_ne!(amount, 0);
+ 		Fungibility::Fungible(amount as u128)
+ 	}
+ }
+ 
+ impl From<u128> for Fungibility {
+ 	fn from(amount: u128) -> Fungibility {
+-		debug_assert_ne!(amount, 0);
++		// debug_assert_ne!(amount, 0);
+ 		Fungibility::Fungible(amount)
+ 	}
+ }
+diff --git a/substrate/frame/referenda/src/lib.rs b/substrate/frame/referenda/src/lib.rs
+index d4dbbf8a3c..6611ffe39c 100644
+--- a/substrate/frame/referenda/src/lib.rs
++++ b/substrate/frame/referenda/src/lib.rs
+@@ -884,6 +884,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
+ 		call: BoundedCallOf<T, I>,
+ 		when: BlockNumberFor<T>,
+ 	) -> Option<(BlockNumberFor<T>, ScheduleAddressOf<T, I>)> {
++        return None;
+ 		let alarm_interval = T::AlarmInterval::get().max(One::one());
+ 		// Alarm must go off no earlier than `when`.
+ 		// This rounds `when` upwards to the next multiple of `alarm_interval`.
+@@ -897,6 +898,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
+ 			frame_system::RawOrigin::Root.into(),
+ 			call,
+ 		);
++        /*
+ 		debug_assert!(
+ 			result.is_ok(),
+ 			"Unable to schedule a new alarm at #{:?} (now: #{:?}), scheduler error: `{:?}`",
+@@ -904,6 +906,7 @@ impl<T: Config<I>, I: 'static> Pallet<T, I> {
+ 			frame_system::Pallet::<T>::block_number(),
+ 			result.unwrap_err(),
+ 		);
++        */
+ 		result.ok().map(|x| (when, x))
+ 	}
+ 

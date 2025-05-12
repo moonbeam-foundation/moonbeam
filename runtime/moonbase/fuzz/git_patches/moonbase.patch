@@ -1,0 +1,62 @@
+diff --git a/runtime/moonbase/src/lib.rs b/runtime/moonbase/src/lib.rs
+index 5060217..4f360b3 100644
+--- a/runtime/moonbase/src/lib.rs
++++ b/runtime/moonbase/src/lib.rs
+@@ -34,6 +34,25 @@ use fp_rpc::TransactionStatus;
+ 
+ use account::AccountId20;
+ 
++use frame_system::RawOrigin;
++use pallet_evm::EnsureAddressOrigin;
++pub struct EnsureAddressSameCustom;
++impl<OuterOrigin> EnsureAddressOrigin<OuterOrigin> for EnsureAddressSameCustom 
++where
++       OuterOrigin: Into<Result<RawOrigin<AccountId20>, OuterOrigin>> + From<RawOrigin<AccountId20>> + std::fmt::Debug + std::clone::Clone, {
++       type Success = AccountId20;
++
++       fn try_address_origin(address: &H160, origin: OuterOrigin) -> Result<AccountId20, OuterOrigin> {
++               // #[cfg(feature = "std")]
++               // println!("### sz debug:: origin: {:?}", origin.clone().into());
++
++               origin.into().and_then(|o| match o {
++                       RawOrigin::Signed(who) if who.0[0..20] == address[0..20] => Ok(who),
++                       r => Err(OuterOrigin::from(r)),
++               })
++       }
++}
++
+ // Re-export required by get! macro.
+ pub use frame_support::traits::Get;
+ use frame_support::{
+@@ -492,7 +511,8 @@ impl pallet_evm::Config for Runtime {
+ 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+ 	type WeightPerGas = WeightPerGas;
+ 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
+-	type CallOrigin = EnsureAddressRoot<AccountId>;
++	//type CallOrigin = EnsureAddressRoot<AccountId>;
++	type CallOrigin = EnsureAddressSameCustom;
+ 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
+ 	type AddressMapping = IdentityAddressMapping;
+ 	type Currency = Balances;
+@@ -1122,6 +1142,12 @@ impl Contains<RuntimeCall> for NormalFilter {
+ 				pallet_assets::Call::finish_destroy { .. } => true,
+ 				_ => false,
+ 			},
++
++            RuntimeCall::AuthorMapping(method) => match method {
++                pallet_author_mapping::Call::remove_keys { .. } => false,
++                _ => true,
++            },
++
+ 			// We want to disable create, as we dont want users to be choosing the
+ 			// assetId of their choice
+ 			// We also disable destroy, as we want to route destroy through the
+@@ -1144,7 +1170,7 @@ impl Contains<RuntimeCall> for NormalFilter {
+ 			// See https://github.com/PureStake/sr-moonbeam/issues/30
+ 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
+ 			// this can be seen as an additional security
+-			RuntimeCall::EVM(_) => false,
++			//RuntimeCall::EVM(_) => false,
+ 			_ => true,
+ 		}
+ 	}

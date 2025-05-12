@@ -71,7 +71,7 @@ use xcm_primitives::{
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 use crate::runtime_params::dynamic_params;
 use moonbeam_runtime_common::xcm_origins::AllowSiblingParachains;
-use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm, SimpleCreate};
+use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_core::Get;
