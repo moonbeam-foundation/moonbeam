@@ -18,7 +18,7 @@ describeSuite({
   testCases: ({ context, log, it }) => {
     let contracts: HeavyContract[];
     const MAX_CONTRACTS = 50;
-    const EXPECTED_POV_ROUGH = 20_000; // bytes
+    const EXPECTED_POV_ROUGH = 55_000; // bytes
     let batchAbi: Abi;
     let proxyAbi: Abi;
     let proxyAddress: `0x${string}`;
@@ -63,7 +63,7 @@ describeSuite({
         const rawSigned = await createEthersTransaction(context, {
           to: PRECOMPILE_BATCH_ADDRESS,
           data: callData,
-          gasLimit: 100_000,
+          gasLimit: 1_000_000,
           txnType: "eip1559",
         });
 
@@ -72,8 +72,8 @@ describeSuite({
         // With 1M gas we are allowed to use ~62kb of POV, so verify the range.
         // The tx is still included in the block because it contains the failed tx,
         // so POV is included in the block as well.
-        expect(block.proofSize).to.be.at.least(14_000);
-        expect(block.proofSize).to.be.at.most(30_000);
+        expect(block.proofSize).to.be.at.least(35_000);
+        expect(block.proofSize).to.be.at.most(70_000);
         expect(result?.successful).to.equal(true);
         expectEVMResult(result!.events, "Error", "OutOfGas");
       },

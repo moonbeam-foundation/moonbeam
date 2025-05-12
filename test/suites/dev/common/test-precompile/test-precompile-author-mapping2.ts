@@ -10,6 +10,7 @@ import {
 } from "@moonwall/util";
 import { u8aToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D012819",
@@ -32,7 +33,9 @@ describeSuite({
         .polkadotJs()
         .query.authorMapping.mappingWithDeposit(u8aToHex(firstMappingAccount.publicKey));
       expect(mapping.unwrap().account.toString()).to.eq(ALITH_ADDRESS);
-      expect(mapping.unwrap().deposit.toBigInt()).to.eq(DEFAULT_GENESIS_MAPPING);
+      expect(mapping.unwrap().deposit.toBigInt()).to.eq(
+        DEFAULT_GENESIS_MAPPING * ConstantStore(context).SUPPLY_FACTOR
+      );
     });
 
     it({
@@ -64,7 +67,9 @@ describeSuite({
           .polkadotJs()
           .query.authorMapping.mappingWithDeposit(u8aToHex(secondMappingAccount.publicKey));
         expect(mapping.unwrap().account.toString()).to.eq(ALITH_ADDRESS);
-        expect(mapping.unwrap().deposit.toBigInt()).to.eq(DEFAULT_GENESIS_MAPPING);
+        expect(mapping.unwrap().deposit.toBigInt()).to.eq(
+          DEFAULT_GENESIS_MAPPING * ConstantStore(context).SUPPLY_FACTOR
+        );
         expect(
           (
             await context

@@ -138,7 +138,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`56099n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`60798n`);
 
         // this time we call directly from Baltathar the ERC20 contract
         const directBlock = await context.createBlock(
