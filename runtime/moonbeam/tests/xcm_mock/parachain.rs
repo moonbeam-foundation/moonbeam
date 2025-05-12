@@ -444,7 +444,7 @@ impl pallet_treasury::Config for Runtime {
 	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = MultiAssetPaymaster<Runtime>;
+	type Paymaster = MultiAssetPaymaster<Runtime, Balances, EvmForeignAssets>;
 	type BalanceConverter = XcmWeightTrader;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
@@ -858,6 +858,8 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
 	type NotFilteredLocation = RelayLocation;
+	#[cfg(feature = "runtime-benchmarks")]
+	type AssetCreator = EvmForeignAssets;
 }
 
 parameter_types! {

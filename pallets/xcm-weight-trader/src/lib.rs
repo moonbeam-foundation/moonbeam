@@ -59,7 +59,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_moonbeam_foreign_assets::Config {
+	pub trait Config: frame_system::Config {
 		/// Convert `T::AccountId` to `Location`.
 		type AccountIdToLocation: Convert<Self::AccountId, Location>;
 
@@ -112,6 +112,10 @@ pub mod pallet {
 		/// The benchmarks need a location that pass the filter AssetLocationFilter
 		#[cfg(feature = "runtime-benchmarks")]
 		type NotFilteredLocation: Get<Location>;
+
+		/// The benchmarks need a location that pass the filter AssetLocationFilter
+		#[cfg(feature = "runtime-benchmarks")]
+		type AssetCreator: pallet_moonbeam_foreign_assets::SimpleCreate;
 	}
 
 	/// Stores all supported assets per XCM Location.
@@ -512,25 +516,17 @@ impl<T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Bal
 	fn ensure_successful(asset_id: NativeOrWithId<AssetId>) {
 		use frame_support::{assert_ok, traits::OriginTrait};
 		use pallet_moonbeam_foreign_assets::AssetsById;
+		use pallet_moonbeam_foreign_assets::SimpleCreate;
 		use sp_std::vec;
 		use xcm::opaque::v4::Junction::Parachain;
 		match asset_id {
 			NativeOrWithId::Native => (),
 			NativeOrWithId::WithId(asset_id) => {
-				if let None = AssetsById::<T>::get(asset_id) {
+				if let None = T::AssetIdentifier::convert_back(&asset_id) {
 					let location = Location::new(1, [Parachain(1000)]);
 					let root = <T as frame_system::Config>::RuntimeOrigin::root();
 
-					assert_ok!(
-						pallet_moonbeam_foreign_assets::Pallet::<T>::create_foreign_asset(
-							root.clone(),
-							asset_id,
-							location.clone(),
-							12,
-							vec![b'M', b'T'].try_into().unwrap(),
-							vec![b'M', b'y', b'T', b'o', b'k'].try_into().unwrap(),
-						)
-					);
+					assert_ok!(T::AssetCreator::create_asset(asset_id, location.clone()));
 
 					assert_ok!(Self::add_asset(root, location.clone(), 1u128,));
 				}

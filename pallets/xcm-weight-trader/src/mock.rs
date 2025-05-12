@@ -24,7 +24,8 @@ use frame_support::{
 	weights::{constants::RocksDbWeight, IdentityFee},
 };
 use frame_system::EnsureSignedBy;
-use sp_core::H256;
+use pallet_moonbeam_foreign_assets::SimpleCreate;
+use sp_core::{crypto::Dummy, H256};
 use sp_runtime::traits::MaybeEquivalence;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -193,6 +194,13 @@ parameter_types! {
 	pub NotFilteredLocation: Location = Location::parent();
 }
 
+pub struct DummyAssetCreator;
+impl SimpleCreate for DummyAssetCreator {
+	fn create_asset(_id: u128, _xcm_location: Location) -> DispatchResult {
+		Ok(())
+	}
+}
+
 impl Config for Test {
 	type AccountIdToLocation = AccountIdToLocation;
 	type AddSupportedAssetOrigin = EnsureSignedBy<AddAccount, AccountId>;
@@ -212,6 +220,8 @@ impl Config for Test {
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
 	type NotFilteredLocation = NotFilteredLocation;
+	#[cfg(feature = "runtime-benchmarks")]
+	type AssetCreator = DummyAssetCreator;
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {

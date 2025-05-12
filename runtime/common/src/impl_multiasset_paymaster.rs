@@ -15,20 +15,23 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use frame_support::traits::fungible;
-use frame_support::traits::{fungible::NativeOrWithId, tokens::{Pay, Preservation::Expendable}};
+use frame_support::traits::{
+	fungible::NativeOrWithId,
+	tokens::{Pay, Preservation::Expendable},
+};
 use moonbeam_core_primitives::{AssetId, Balance};
-use pallet_moonbeam_foreign_assets::AssetsById;
 use sp_core::U256;
 use sp_runtime::DispatchError;
 
-pub struct MultiAssetPaymaster<R, FungibleNative>(sp_std::marker::PhantomData<(R, FungibleNative)>);
-impl<R, FungibleNative> Pay for MultiAssetPaymaster<R, FungibleNative>
+pub struct MultiAssetPaymaster<R, FungibleNative, Assets>(
+	sp_std::marker::PhantomData<(R, FungibleNative, Assets)>,
+);
+impl<R, FungibleNative, Assets> Pay for MultiAssetPaymaster<R, FungibleNative, Assets>
 where
-	R: frame_system::Config
-		+ pallet_treasury::Config
-		+ pallet_moonbeam_foreign_assets::Config
-		+ pallet_xcm_weight_trader::Config,
+	R: frame_system::Config + pallet_treasury::Config,
 	FungibleNative: fungible::Mutate<R::AccountId>,
+	Assets: pallet_moonbeam_foreign_assets::SimpleMutate<R>
+		+ pallet_moonbeam_foreign_assets::SimpleAssetExists,
 {
 	type Balance = Balance;
 	type Beneficiary = R::AccountId;
@@ -45,15 +48,18 @@ where
 				<FungibleNative as fungible::Mutate<_>>::transfer(
 					&pallet_treasury::Pallet::<R>::account_id(),
 					who,
-					amount.try_into().map_err(|_| pallet_treasury::Error::<R>::PayoutError)?,
-					Expendable)?;
+					amount
+						.try_into()
+						.map_err(|_| pallet_treasury::Error::<R>::PayoutError)?,
+					Expendable,
+				)?;
 				Ok(())
 			}
 			Self::AssetKind::WithId(id) => {
 				// Check in the foreign assets first
-				if let Some(_asset_loc) = AssetsById::<R>::get(id) {
+				if Assets::asset_exists(id) {
 					// Pay if asset found
-					pallet_moonbeam_foreign_assets::Pallet::<R>::transfer(
+					Assets::transfer_asset(
 						id,
 						pallet_treasury::Pallet::<R>::account_id(),
 						who.clone(),
@@ -62,7 +68,7 @@ where
 					.map_err(|_| pallet_treasury::Error::<R>::PayoutError)?;
 					return Ok(());
 				}
-				Err(pallet_moonbeam_foreign_assets::Error::<R>::AssetDoesNotExist.into())
+				Err(pallet_treasury::Error::<R>::PayoutError.into())
 			}
 		}
 	}
@@ -86,18 +92,16 @@ where
 			Self::AssetKind::Native => {
 				<FungibleNative as fungible::Mutate<_>>::mint_into(
 					&treasury,
-					amount.try_into().map_err(|_| pallet_treasury::Error::<R>::PayoutError)
-						.expect("failed to convert amount type")
+					amount
+						.try_into()
+						.map_err(|_| pallet_treasury::Error::<R>::PayoutError)
+						.expect("failed to convert amount type"),
 				);
 			}
 			Self::AssetKind::WithId(id) => {
 				// Fund treasury account
-				pallet_moonbeam_foreign_assets::Pallet::<R>::mint_into(
-					id,
-					treasury,
-					U256::from(amount as u128),
-				)
-				.expect("failed to mint asset into treasury account");
+				Assets::mint_asset(id, treasury, U256::from(amount as u128))
+					.expect("failed to mint asset into treasury account");
 			}
 		}
 	}

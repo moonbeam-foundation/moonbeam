@@ -773,6 +773,8 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
 	type NotFilteredLocation = RelayLocation;
+	#[cfg(feature = "runtime-benchmarks")]
+	type AssetCreator = EvmForeignAssets;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
