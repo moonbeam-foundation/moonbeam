@@ -20,15 +20,17 @@ use frame_support::traits::{
 	tokens::{Pay, Preservation::Expendable},
 };
 use moonbeam_core_primitives::{AssetId, Balance};
-use sp_core::U256;
+use sp_core::{Get, U256};
 use sp_runtime::DispatchError;
 
-pub struct MultiAssetPaymaster<R, FungibleNative, Assets>(
-	sp_std::marker::PhantomData<(R, FungibleNative, Assets)>,
+pub struct MultiAssetPaymaster<R, TreasuryAccount, FungibleNative, Assets>(
+	sp_std::marker::PhantomData<(R, TreasuryAccount, FungibleNative, Assets)>,
 );
-impl<R, FungibleNative, Assets> Pay for MultiAssetPaymaster<R, FungibleNative, Assets>
+impl<R, TreasuryAccount, FungibleNative, Assets> Pay
+	for MultiAssetPaymaster<R, TreasuryAccount, FungibleNative, Assets>
 where
-	R: frame_system::Config + pallet_treasury::Config,
+	R: frame_system::Config,
+	TreasuryAccount: Get<R::AccountId>,
 	FungibleNative: fungible::Mutate<R::AccountId>,
 	Assets: pallet_moonbeam_foreign_assets::SimpleMutate<R>
 		+ pallet_moonbeam_foreign_assets::SimpleAssetExists,
@@ -46,11 +48,11 @@ where
 		match asset_kind {
 			Self::AssetKind::Native => {
 				<FungibleNative as fungible::Mutate<_>>::transfer(
-					&pallet_treasury::Pallet::<R>::account_id(),
+					&TreasuryAccount::get(),
 					who,
 					amount
 						.try_into()
-						.map_err(|_| pallet_treasury::Error::<R>::PayoutError)?,
+						.map_err(|_| DispatchError::Other("failed to convert amount"))?,
 					Expendable,
 				)?;
 				Ok(())
@@ -61,14 +63,13 @@ where
 					// Pay if asset found
 					Assets::transfer_asset(
 						id,
-						pallet_treasury::Pallet::<R>::account_id(),
+						TreasuryAccount::get(),
 						who.clone(),
 						U256::from(amount as u128),
-					)
-					.map_err(|_| pallet_treasury::Error::<R>::PayoutError)?;
+					)?;
 					return Ok(());
 				}
-				Err(pallet_treasury::Error::<R>::PayoutError.into())
+				Err(DispatchError::Other("asset not found"))
 			}
 		}
 	}
