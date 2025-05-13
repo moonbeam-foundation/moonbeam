@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{ConstU32, EnsureOrigin, Everything, Nothing, OriginTrait, PalletInfo as _},
+	traits::{ConstU32, Everything, Nothing, OriginTrait, PalletInfo as _},
 	weights::{RuntimeDbWeight, Weight},
 };
 use pallet_evm::{
@@ -123,20 +123,6 @@ pub type LocationToAccountId = (
 	xcm_builder::AccountKey20Aliases<LocalNetworkId, AccountId>,
 );
 
-pub struct AccountIdToLocation;
-impl sp_runtime::traits::Convert<AccountId, Location> for AccountIdToLocation {
-	fn convert(account: AccountId) -> Location {
-		let as_h160: H160 = account.into();
-		Location::new(
-			0,
-			[AccountKey20 {
-				network: None,
-				key: as_h160.as_fixed_bytes().clone(),
-			}],
-		)
-	}
-}
-
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
 	pub LocalNetworkId: Option<NetworkId> = None;
@@ -181,6 +167,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -199,6 +186,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {
@@ -294,7 +282,6 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
@@ -311,20 +298,6 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
-
-pub struct ConvertOriginToLocal;
-impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
-	type Success = Location;
-
-	fn try_origin(_: Origin) -> Result<Location, Origin> {
-		Ok(Location::here())
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	fn try_successful_origin() -> Result<Origin, ()> {
-		Ok(Origin::root())
-	}
-}
 
 use sp_std::cell::RefCell;
 use xcm::latest::opaque;

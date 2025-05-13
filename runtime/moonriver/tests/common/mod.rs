@@ -39,7 +39,6 @@ use std::collections::BTreeMap;
 use fp_rpc::ConvertTransaction;
 use moonriver_runtime::{Assets, EvmForeignAssets};
 use pallet_transaction_payment::Multiplier;
-use sp_runtime::traits::MaybeEquivalence;
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
@@ -315,7 +314,7 @@ impl ExtBuilder {
 					let metadata = xcm_asset_initialization.metadata.clone();
 					EvmForeignAssets::register_foreign_asset(
 						asset_id,
-						xcm_builder::WithLatestLocationConverter::convert_back(&location).unwrap(),
+						xcm::VersionedLocation::from(location).try_into().unwrap(),
 						metadata.decimals,
 						metadata.symbol.try_into().unwrap(),
 						metadata.name.try_into().unwrap(),

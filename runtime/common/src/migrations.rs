@@ -30,7 +30,7 @@ where
 	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>: OnRuntimeUpgrade,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_MigrateToLatestXcmVersion"
+		"MM_MigrateToV5XcmVersion"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {

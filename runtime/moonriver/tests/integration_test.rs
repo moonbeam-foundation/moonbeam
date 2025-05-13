@@ -1302,7 +1302,7 @@ fn length_fee_is_sensible() {
 	// tests that length fee is sensible for a few hypothetical transactions
 	ExtBuilder::default().build().execute_with(|| {
 		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
-		let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
+		let uxt: TestXt<_, ()> = TestXt::new_signed(RuntimeCall::System(call), 1u64, (), ());
 
 		let calc_fee = |len: u32| -> Balance {
 			moonriver_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
@@ -1664,9 +1664,9 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(xcm::VersionedLocation::V4(chain_part.clone())),
-					Box::new(xcm::VersionedLocation::V4(beneficiary.clone())),
-					Box::new(VersionedAssets::V4(asset.clone().into())),
+					Box::new(xcm::VersionedLocation::from(chain_part.clone())),
+					Box::new(xcm::VersionedLocation::from(beneficiary.clone())),
+					Box::new(VersionedAssets::from(asset.clone())),
 					0,
 					WeightLimit::Limited(4000000000.into())
 				),
@@ -1682,9 +1682,9 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(xcm::VersionedLocation::V4(chain_part)),
-				Box::new(xcm::VersionedLocation::V4(beneficiary)),
-				Box::new(VersionedAssets::V4(asset.clone().into())),
+				Box::new(xcm::VersionedLocation::from(chain_part)),
+				Box::new(xcm::VersionedLocation::from(beneficiary)),
+				Box::new(VersionedAssets::from(asset.clone())),
 				0,
 				WeightLimit::Limited(4000000000.into())
 			));
@@ -2119,9 +2119,9 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedLocation::V4(dest.clone())),
-					beneficiary: Box::new(VersionedLocation::V4(dest)),
-					assets: Box::new(VersionedAssets::V4(assets)),
+					dest: Box::new(VersionedLocation::from(dest.clone())),
+					beneficiary: Box::new(VersionedLocation::from(dest)),
+					assets: Box::new(VersionedAssets::from(assets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2163,7 +2163,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				20000.into(),
@@ -2173,7 +2173,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -2183,9 +2183,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
-							Location::parent()
-						))),
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedLocation::from(Location::parent())
+						)),
 						fee_amount: None
 					},
 					vec![],
@@ -2346,9 +2346,9 @@ fn call_xtokens_with_fee() {
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(chain_part)),
-				Box::new(VersionedLocation::V4(beneficiary)),
-				Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+				Box::new(VersionedLocation::from(chain_part)),
+				Box::new(VersionedLocation::from(beneficiary)),
+				Box::new(VersionedAssets::from(vec![asset_fee, asset])),
 				0,
 				WeightLimit::Limited(4000000000.into()),
 			),);
@@ -2440,7 +2440,7 @@ fn test_xcm_utils_weight_message() {
 		let expected_weight =
 			XcmWeight::<moonriver_runtime::Runtime, RuntimeCall>::clear_origin().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),
@@ -2540,7 +2540,7 @@ fn precompile_existence() {
 fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
-		let removed_precompiles = [1025, 2051, 2062, 2063];
+		let removed_precompiles = [1025, 1027, 2051, 2062, 2063];
 
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);
@@ -2903,7 +2903,8 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: extrinsic_weight,
+					call_weight: extrinsic_weight,
+					extension_weight: Weight::zero(),
 				},
 				tip,
 			);
