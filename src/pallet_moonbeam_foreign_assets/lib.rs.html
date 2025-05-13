@@ -737,6 +737,24 @@
 <a href="#737" id="737">737</a>
 <a href="#738" id="738">738</a>
 <a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
@@ -1091,11 +1109,15 @@
 			beneficiary: T::AccountId,
 			amount: U256,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), evm::EvmError&gt; {
-			EvmCaller::&lt;T&gt;::erc20_mint_into(
-				<span class="self">Self</span>::contract_address_from_asset_id(asset_id),
-				T::AccountIdToH160::convert(beneficiary),
-				amount,
-			)
+			<span class="comment">// We perform the evm call in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			</span>frame_support::storage::with_storage_layer(|| {
+				EvmCaller::&lt;T&gt;::erc20_mint_into(
+					<span class="self">Self</span>::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(beneficiary),
+					amount,
+				)
+			})
 			.map_err(Into::into)
 		}
 
@@ -1106,7 +1128,9 @@
 			spender: T::AccountId,
 			amount: U256,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), evm::EvmError&gt; {
-			EvmCaller::&lt;T&gt;::erc20_approve(
+			<span class="comment">// We perform the evm call in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			</span>EvmCaller::&lt;T&gt;::erc20_approve(
 				<span class="self">Self</span>::contract_address_from_asset_id(asset_id),
 				T::AccountIdToH160::convert(owner),
 				T::AccountIdToH160::convert(spender),
@@ -1407,7 +1431,11 @@
 			<span class="kw">let </span>beneficiary = T::XcmLocationToH160::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
 
-			EvmCaller::&lt;T&gt;::erc20_mint_into(contract_address, beneficiary, amount)<span class="question-mark">?</span>;
+			<span class="comment">// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			</span>frame_support::storage::with_storage_layer(|| {
+				EvmCaller::&lt;T&gt;::erc20_mint_into(contract_address, beneficiary, amount)
+			})<span class="question-mark">?</span>;
 
 			<span class="prelude-val">Ok</span>(())
 		}
@@ -1433,7 +1461,11 @@
 			<span class="kw">let </span>to = T::XcmLocationToH160::convert_location(to)
 				.ok_or(MatchError::AccountIdConversionFailed)<span class="question-mark">?</span>;
 
-			EvmCaller::&lt;T&gt;::erc20_transfer(contract_address, from, to, amount)<span class="question-mark">?</span>;
+			<span class="comment">// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			</span>frame_support::storage::with_storage_layer(|| {
+				EvmCaller::&lt;T&gt;::erc20_transfer(contract_address, from, to, amount)
+			})<span class="question-mark">?</span>;
 
 			<span class="prelude-val">Ok</span>(asset.clone().into())
 		}
@@ -1461,7 +1493,11 @@
 				<span class="kw">return </span><span class="prelude-val">Err</span>(MatchError::AssetNotHandled.into());
 			}
 
-			EvmCaller::&lt;T&gt;::erc20_burn_from(contract_address, who, amount)<span class="question-mark">?</span>;
+			<span class="comment">// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			</span>frame_support::storage::with_storage_layer(|| {
+				EvmCaller::&lt;T&gt;::erc20_burn_from(contract_address, who, amount)
+			})<span class="question-mark">?</span>;
 
 			<span class="prelude-val">Ok</span>(what.clone().into())
 		}

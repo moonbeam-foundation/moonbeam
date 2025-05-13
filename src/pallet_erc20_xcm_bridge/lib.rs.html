@@ -246,6 +246,12 @@
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -418,18 +424,20 @@
 				<span class="kw">match </span>erc20s_origins.drain(contract_address, amount) {
 					<span class="comment">// We perform the evm transfers in a storage transaction to ensure that if one
 					// of them fails all the changes of the previous evm calls are rolled back.
-					</span><span class="prelude-val">Ok</span>(tokens_to_transfer) =&gt; tokens_to_transfer
-						.into_iter()
-						.try_for_each(|(from, subamount)| {
-							<span class="self">Self</span>::erc20_transfer(
-								contract_address,
-								from,
-								beneficiary,
-								subamount,
-								gas_limit,
-							)
-						})
-						.map_err(Into::into),
+					</span><span class="prelude-val">Ok</span>(tokens_to_transfer) =&gt; frame_support::storage::with_storage_layer(|| {
+						tokens_to_transfer
+							.into_iter()
+							.try_for_each(|(from, subamount)| {
+								<span class="self">Self</span>::erc20_transfer(
+									contract_address,
+									from,
+									beneficiary,
+									subamount,
+									gas_limit,
+								)
+							})
+					})
+					.map_err(Into::into),
 					<span class="prelude-val">Err</span>(DrainError::AssetNotFound) =&gt; <span class="prelude-val">Err</span>(XcmError::AssetNotFound),
 					<span class="prelude-val">Err</span>(DrainError::NotEnoughFounds) =&gt; <span class="prelude-val">Err</span>(XcmError::FailedToTransactAsset(
 						<span class="string">"not enough founds in xcm holding"</span>,
@@ -461,7 +469,11 @@
 
 			<span class="kw">let </span>gas_limit = <span class="self">Self</span>::gas_limit_of_erc20_transfer(<span class="kw-2">&amp;</span>asset.id);
 
-			<span class="self">Self</span>::erc20_transfer(contract_address, from, to, amount, gas_limit)<span class="question-mark">?</span>;
+			<span class="comment">// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			</span>frame_support::storage::with_storage_layer(|| {
+				<span class="self">Self</span>::erc20_transfer(contract_address, from, to, amount, gas_limit)
+			})<span class="question-mark">?</span>;
 
 			<span class="prelude-val">Ok</span>(asset.clone().into())
 		}

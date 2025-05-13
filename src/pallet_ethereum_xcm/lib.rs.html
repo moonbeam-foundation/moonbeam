@@ -394,22 +394,6 @@
 <a href="#394" id="394">394</a>
 <a href="#395" id="395">395</a>
 <a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
-<a href="#410" id="410">410</a>
-<a href="#411" id="411">411</a>
-<a href="#412" id="412">412</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -438,7 +422,6 @@
 </span><span class="kw">mod </span>mock;
 <span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, test))]
 </span><span class="kw">mod </span>tests;
-<span class="kw">mod </span>transactional_processor;
 
 <span class="kw">use </span>ethereum_types::{H160, H256, U256};
 <span class="kw">use </span>fp_ethereum::{TransactionData, ValidatedTransaction};
@@ -455,7 +438,6 @@
 <span class="kw">use </span>sp_runtime::{traits::UniqueSaturatedInto, DispatchErrorWithPostInfo, RuntimeDebug};
 <span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>};
 
-<span class="kw">pub use </span><span class="self">self</span>::transactional_processor::XcmEthTransactionalProcessor;
 <span class="kw">pub use </span>ethereum::{
 	AccessListItem, BlockV2 <span class="kw">as </span>Block, LegacyTransactionMessage, Log, ReceiptV3 <span class="kw">as </span>Receipt,
 	TransactionAction, TransactionV2 <span class="kw">as </span>Transaction,
@@ -786,22 +768,8 @@
 			// transaction on chain - we increase the global nonce.
 			</span>&lt;Nonce&lt;T&gt;&gt;::put(current_nonce.saturating_add(U256::one()));
 
-			<span class="kw">let </span>(dispatch_info, execution_info) =
+			<span class="kw">let </span>(dispatch_info, <span class="kw">_</span>) =
 				T::ValidatedTransaction::apply(source, transaction, maybe_force_create_address)<span class="question-mark">?</span>;
-
-			<span class="comment">// If the transaction reverted, signal it to XCM Transactional Processor
-			</span><span class="kw">match </span>execution_info {
-				fp_evm::CallOrCreateInfo::Call(info) =&gt; {
-					<span class="kw">if let </span>fp_evm::ExitReason::Revert(<span class="kw">_</span>) = info.exit_reason {
-						XcmEthTransactionalProcessor::signal_evm_revert();
-					}
-				}
-				fp_evm::CallOrCreateInfo::Create(info) =&gt; {
-					<span class="kw">if let </span>fp_evm::ExitReason::Revert(<span class="kw">_</span>) = info.exit_reason {
-						XcmEthTransactionalProcessor::signal_evm_revert();
-					}
-				}
-			}
 
 			XCM_MESSAGE_HASH::with(|xcm_msg_hash| {
 				<span class="self">Self</span>::deposit_event(Event::ExecutedFromXcm {
