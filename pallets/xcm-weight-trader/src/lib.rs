@@ -33,13 +33,9 @@ pub use weights::WeightInfo;
 
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
-use frame_support::traits::fungible::NativeOrWithId;
-use frame_support::traits::tokens::ConversionFromAssetBalance;
 use frame_support::traits::Contains;
 use frame_support::weights::WeightToFee;
 use frame_system::pallet_prelude::*;
-use moonbeam_core_primitives::{AssetId, Balance};
-use sp_runtime::traits::MaybeEquivalence;
 use sp_runtime::traits::{Convert, Zero};
 use sp_std::vec::Vec;
 use xcm::v5::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
@@ -72,15 +68,6 @@ pub mod pallet {
 
 		/// How to withdraw and deposit an asset.
 		type AssetTransactor: TransactAsset;
-
-		/// How to get an asset location from an asset id.
-		///
-		/// For XcmWeightTrader to convert between native
-		/// and other assets' balances, it needs a way to map
-		/// between locations (which are stored in this pallet)
-		/// and asset ids (which are not). This type is responsible
-		/// for providing the required mapping.
-		type AssetIdentifier: MaybeEquivalence<Location, AssetId>;
 
 		/// The native balance type.
 		type Balance: TryInto<u128>;
@@ -115,12 +102,6 @@ pub mod pallet {
 		/// The benchmarks need a location that pass the filter AssetLocationFilter
 		#[cfg(feature = "runtime-benchmarks")]
 		type NotFilteredLocation: Get<Location>;
-
-		/// The benchmarks need a way to create and add an asset
-		/// to the supported assets list in order to ensure
-		/// a conversion will be successful.
-		#[cfg(feature = "runtime-benchmarks")]
-		type AssetCreator: pallet_moonbeam_foreign_assets::AssetCreate;
 	}
 
 	/// Stores all supported assets per XCM Location.
@@ -489,52 +470,6 @@ impl<T: crate::Config> Drop for Trader<T> {
 				None,
 			);
 			debug_assert!(res.is_ok());
-		}
-	}
-}
-
-impl<T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Balance>
-	for Pallet<T>
-{
-	type Error = Error<T>;
-	fn from_asset_balance(
-		asset_balance: Balance,
-		asset_kind: NativeOrWithId<AssetId>,
-	) -> Result<Balance, Error<T>> {
-		match asset_kind {
-			NativeOrWithId::Native => Ok(asset_balance),
-			NativeOrWithId::WithId(asset_id) => {
-				let location =
-					T::AssetIdentifier::convert_back(&asset_id).ok_or(Error::<T>::AssetNotFound)?;
-				let relative_price = Pallet::<T>::get_asset_relative_price(&location)
-					.ok_or(Error::<T>::AssetNotFound)?;
-				Ok(asset_balance
-					.checked_mul(relative_price)
-					.ok_or(Error::<T>::PriceOverflow)?
-					.checked_div(10u128.pow(RELATIVE_PRICE_DECIMALS))
-					.ok_or(Error::<T>::PriceOverflow)?)
-			}
-		}
-	}
-
-	/// Set a conversion rate to `1` for the `asset_id`.
-	#[cfg(feature = "runtime-benchmarks")]
-	fn ensure_successful(asset_id: NativeOrWithId<AssetId>) {
-		use frame_support::{assert_ok, traits::OriginTrait};
-		use pallet_moonbeam_foreign_assets::AssetCreate;
-		use xcm::opaque::v5::Junction::Parachain;
-		match asset_id {
-			NativeOrWithId::Native => (),
-			NativeOrWithId::WithId(asset_id) => {
-				if let None = T::AssetIdentifier::convert_back(&asset_id) {
-					let location = Location::new(1, [Parachain(1000)]);
-					let root = <T as frame_system::Config>::RuntimeOrigin::root();
-
-					assert_ok!(T::AssetCreator::create_asset(asset_id, location.clone()));
-
-					assert_ok!(Self::add_asset(root, location.clone(), 1u128,));
-				}
-			}
 		}
 	}
 }
