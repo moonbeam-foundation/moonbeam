@@ -35,18 +35,15 @@ fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
 fp-self-contained = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
-pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 xcm-primitives = { workspace = true }
-
-# Polkadot
-xcm = { workspace = true }
-xcm-executor = { workspace = true }
 
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
 pallet-evm-precompile-proxy = { workspace = true, features = [ "std" ] }
+
+pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
 pallet-proxy = { workspace = true, features = [ "std" ] }
 
@@ -71,7 +68,6 @@ std = [
 	# Substrate FRAME
 	"frame-support/std",
 	"frame-system/std",
-	"pallet-ethereum/std",
 	"pallet-evm/std",
 	"pallet-timestamp/std",
 	# Parity
@@ -85,9 +81,6 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-primitives/std",
-	# Polkadot
-	"xcm/std",
-	"xcm-executor/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
@@ -95,7 +88,7 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"pallet-evm/runtime-benchmarks", 
-	"pallet-ethereum/runtime-benchmarks",
 	"xcm-primitives/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks"
 ]
 try-runtime = [ "frame-support/try-runtime" ]
