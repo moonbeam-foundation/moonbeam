@@ -120,7 +120,7 @@ pub mod pallet {
 		/// to the supported assets list in order to ensure
 		/// a conversion will be successful.
 		#[cfg(feature = "runtime-benchmarks")]
-		type AssetCreator: pallet_moonbeam_foreign_assets::SimpleCreate;
+		type AssetCreator: pallet_moonbeam_foreign_assets::AssetCreate;
 	}
 
 	/// Stores all supported assets per XCM Location.
@@ -520,8 +520,8 @@ impl<T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Bal
 	#[cfg(feature = "runtime-benchmarks")]
 	fn ensure_successful(asset_id: NativeOrWithId<AssetId>) {
 		use frame_support::{assert_ok, traits::OriginTrait};
+		use pallet_moonbeam_foreign_assets::AssetCreate;
 		use pallet_moonbeam_foreign_assets::AssetsById;
-		use pallet_moonbeam_foreign_assets::SimpleCreate;
 		use sp_std::vec;
 		use xcm::opaque::v4::Junction::Parachain;
 		match asset_id {

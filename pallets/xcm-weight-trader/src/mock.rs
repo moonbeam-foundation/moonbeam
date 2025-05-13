@@ -24,7 +24,7 @@ use frame_support::{
 	weights::{constants::RocksDbWeight, IdentityFee},
 };
 use frame_system::EnsureSignedBy;
-use pallet_moonbeam_foreign_assets::SimpleCreate;
+use pallet_moonbeam_foreign_assets::AssetCreate;
 use sp_core::H256;
 use sp_runtime::traits::MaybeEquivalence;
 use sp_runtime::{
@@ -195,7 +195,7 @@ parameter_types! {
 }
 
 pub struct DummyAssetCreator;
-impl SimpleCreate for DummyAssetCreator {
+impl AssetCreate for DummyAssetCreator {
 	fn create_asset(_id: u128, _xcm_location: Location) -> DispatchResult {
 		Ok(())
 	}

@@ -781,7 +781,7 @@ pub mod pallet {
 	}
 
 	#[cfg(feature = "runtime-benchmarks")]
-	impl<T: Config> SimpleCreate for Pallet<T> {
+	impl<T: Config> AssetCreate for Pallet<T> {
 		fn create_asset(id: u128, xcm_location: Location) -> DispatchResult {
 			use frame_support::traits::OriginTrait;
 			use sp_std::vec;
@@ -796,7 +796,7 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> SimpleMutate<T> for Pallet<T> {
+	impl<T: Config> AssetMutate<T> for Pallet<T> {
 		fn transfer_asset(
 			id: u128,
 			from: T::AccountId,
@@ -816,18 +816,18 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> SimpleAssetExists for Pallet<T> {
+	impl<T: Config> AssetInspect for Pallet<T> {
 		fn asset_exists(id: u128) -> bool {
 			AssetsById::<T>::contains_key(&id)
 		}
 	}
 }
 
-pub trait SimpleCreate {
+pub trait AssetCreate {
 	fn create_asset(id: u128, xcm_location: Location) -> DispatchResult;
 }
 
-pub trait SimpleMutate<R: frame_system::Config> {
+pub trait AssetMutate<R: frame_system::Config> {
 	fn transfer_asset(
 		id: u128,
 		from: R::AccountId,
@@ -839,6 +839,6 @@ pub trait SimpleMutate<R: frame_system::Config> {
 	fn mint_asset(id: u128, account: R::AccountId, amount: U256) -> DispatchResult;
 }
 
-pub trait SimpleAssetExists {
+pub trait AssetInspect {
 	fn asset_exists(id: u128) -> bool;
 }
