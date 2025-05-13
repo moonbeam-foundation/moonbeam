@@ -1,0 +1,39 @@
+[settings]
+provider = "native"
+
+[relaychain]
+default_command = "polkadot"
+default_args = [
+    "-l=debug"
+]
+chain_spec_path = "zombienet/specs/polkadot-local.json"
+
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+rpc_port = 9900
+
+[[relaychain.nodes]]
+name = "bob"
+validator = true
+
+[[parachains]]
+id = 2_004
+chain = "moonbeam-local"
+cumulus_based = true
+
+[[parachains.collators]]
+name = "alith"
+command = "moonbeam"
+rpc_port = 8800
+args = [
+    "--no-hardware-benchmarks",
+    "--no-telemetry",
+    "--force-authoring",
+    "-l=debug"
+]
+
+[types.Header]
+number = "u64"
+parent_hash = "Hash"
+post_state = "Hash"

@@ -36,10 +36,13 @@ use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill
 
 use std::collections::BTreeMap;
 
+use bp_xcm_bridge::Receiver;
 use fp_rpc::ConvertTransaction;
-use moonriver_runtime::{Assets, EvmForeignAssets};
+use moonriver_runtime::bridge_config::XcmOverPolkadotInstance;
+use moonriver_runtime::{Assets, EvmForeignAssets, XcmWeightTrader};
 use pallet_transaction_payment::Multiplier;
 use sp_runtime::traits::MaybeEquivalence;
+use xcm::latest::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
@@ -147,6 +150,12 @@ pub struct ExtBuilder {
 	xcm_assets: Vec<XcmAssetInitialization>,
 	evm_native_foreign_assets: bool,
 	safe_xcm_version: Option<u32>,
+	opened_bridges: Vec<(
+		Location,
+		InteriorLocation,
+		Option<bp_moonbeam::LaneId>,
+		Option<Receiver>,
+	)>,
 }
 
 impl Default for ExtBuilder {
@@ -181,6 +190,7 @@ impl Default for ExtBuilder {
 			xcm_assets: vec![],
 			evm_native_foreign_assets: false,
 			safe_xcm_version: None,
+			opened_bridges: vec![],
 		}
 	}
 }
@@ -240,10 +250,30 @@ impl ExtBuilder {
 		self
 	}
 
+	pub fn with_open_bridges(
+		mut self,
+		opened_bridges: Vec<(
+			Location,
+			InteriorLocation,
+			Option<bp_moonbeam::LaneId>,
+			Option<Receiver>,
+		)>,
+	) -> Self {
+		self.opened_bridges = opened_bridges;
+		self
+	}
+
 	pub fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::<Runtime>::default()
 			.build_storage()
 			.unwrap();
+
+		parachain_info::GenesisConfig::<Runtime> {
+			parachain_id: <bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID.into(),
+			_config: Default::default(),
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
@@ -304,6 +334,12 @@ impl ExtBuilder {
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
+		let genesis_config = pallet_xcm_bridge::GenesisConfig::<Runtime, XcmOverPolkadotInstance> {
+			opened_bridges: self.opened_bridges,
+			_phantom: Default::default(),
+		};
+		genesis_config.assimilate_storage(&mut t).unwrap();
+
 		let mut ext = sp_io::TestExternalities::new(t);
 		let xcm_assets = self.xcm_assets.clone();
 		ext.execute_with(|| {
@@ -321,6 +357,16 @@ impl ExtBuilder {
 						metadata.name.try_into().unwrap(),
 					)
 					.expect("register evm native foreign asset");
+
+					if xcm_asset_initialization.is_sufficient {
+						XcmWeightTrader::add_asset(
+							root_origin(),
+							xcm_builder::WithLatestLocationConverter::convert_back(&location)
+								.unwrap(),
+							MOVR, // 1 to 1 ratio
+						)
+						.expect("register evm native foreign asset as sufficient");
+					}
 
 					for (account, balance) in xcm_asset_initialization.balances {
 						EvmForeignAssets::mint_into(asset_id.into(), account, balance.into())

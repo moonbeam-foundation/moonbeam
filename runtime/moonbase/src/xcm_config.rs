@@ -233,7 +233,7 @@ parameter_types! {
 }
 
 // Our implementation of the Moonbeam Call
-// Attachs the right origin in case the call is made to pallet-ethereum-xcm
+// Attaches the right origin in case the call is made to pallet-ethereum-xcm
 #[cfg(not(feature = "evm-tracing"))]
 moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 #[cfg(feature = "evm-tracing")]

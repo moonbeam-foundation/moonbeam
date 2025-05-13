@@ -31,17 +31,23 @@ pub mod weights;
 pub use pallet::*;
 pub use weights::WeightInfo;
 
-use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::Contains;
 use frame_support::weights::WeightToFee;
+use frame_support::{pallet, Deserialize, Serialize};
 use frame_system::pallet_prelude::*;
 use sp_runtime::traits::{Convert, Zero};
-use sp_std::vec::Vec;
+use sp_std::{vec, vec::Vec};
 use xcm::v4::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
 use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct XcmWeightTraderAssetInfo {
+	pub location: Location,
+	pub relative_price: u128,
+}
 
 pub const RELATIVE_PRICE_DECIMALS: u32 = 18;
 
@@ -148,6 +154,31 @@ pub mod pallet {
 		SupportedAssetRemoved { location: Location },
 	}
 
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T: Config> {
+		pub assets: Vec<XcmWeightTraderAssetInfo>,
+		pub _phantom: PhantomData<T>,
+	}
+
+	impl<T: Config> Default for GenesisConfig<T> {
+		fn default() -> Self {
+			Self {
+				assets: vec![],
+				_phantom: Default::default(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
+		fn build(&self) {
+			for asset in self.assets.clone() {
+				Pallet::<T>::do_add_asset(asset.location, asset.relative_price)
+					.expect("couldn't add asset");
+			}
+		}
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
@@ -159,24 +190,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::AddSupportedAssetOrigin::ensure_origin(origin)?;
 
-			ensure!(relative_price != 0, Error::<T>::PriceCannotBeZero);
-			ensure!(
-				!SupportedAssets::<T>::contains_key(&location),
-				Error::<T>::AssetAlreadyAdded
-			);
-			ensure!(
-				T::AssetLocationFilter::contains(&location),
-				Error::<T>::XcmLocationFiltered
-			);
-
-			SupportedAssets::<T>::insert(&location, (true, relative_price));
-
-			Self::deposit_event(Event::SupportedAssetAdded {
-				location,
-				relative_price,
-			});
-
-			Ok(())
+			Self::do_add_asset(location, relative_price)
 		}
 
 		#[pallet::call_index(1)]
@@ -255,6 +269,27 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		fn do_add_asset(location: Location, relative_price: u128) -> DispatchResult {
+			ensure!(relative_price != 0, Error::<T>::PriceCannotBeZero);
+			ensure!(
+				!SupportedAssets::<T>::contains_key(&location),
+				Error::<T>::AssetAlreadyAdded
+			);
+			ensure!(
+				T::AssetLocationFilter::contains(&location),
+				Error::<T>::XcmLocationFiltered
+			);
+
+			SupportedAssets::<T>::insert(&location, (true, relative_price));
+
+			Self::deposit_event(Event::SupportedAssetAdded {
+				location,
+				relative_price,
+			});
+
+			Ok(())
+		}
+
 		pub fn get_asset_relative_price(location: &Location) -> Option<u128> {
 			if let Some((true, ratio)) = SupportedAssets::<T>::get(location) {
 				Some(ratio)
