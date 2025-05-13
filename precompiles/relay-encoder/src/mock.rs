@@ -23,13 +23,14 @@ use frame_support::{
 	traits::{Everything, PalletInfo as PalletInfoTrait},
 	weights::Weight,
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_evm::{
 	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
 use parity_scale_codec::{Decode, Encode};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
-use sp_core::{H160, H256};
+use sp_core::{H160, H256, Hasher};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,
@@ -351,6 +352,25 @@ parameter_types! {
 	};
 }
 
+pub struct RandomnessProvider;
+impl
+	frame_support::traits::Randomness<
+		<Runtime as frame_system::Config>::Hash,
+		BlockNumberFor<Runtime>,
+	> for RandomnessProvider
+{
+	fn random(
+		subject: &[u8],
+	) -> (
+		<Runtime as frame_system::Config>::Hash,
+		BlockNumberFor<Runtime>,
+	) {
+		let output = <Runtime as frame_system::Config>::Hashing::hash(subject);
+		let block_number = frame_system::Pallet::<Runtime>::block_number();
+		(output, block_number)
+	}
+}
+
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
@@ -375,6 +395,7 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type RandomnessProvider = RandomnessProvider;
 }
 
 parameter_types! {

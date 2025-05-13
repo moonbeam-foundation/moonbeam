@@ -524,8 +524,8 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = RelayTimestamp;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
-
 	type WeightInfo = moonbase_weights::pallet_evm::WeightInfo<Runtime>;
+	type RandomnessProvider = Randomness;
 }
 
 parameter_types! {
