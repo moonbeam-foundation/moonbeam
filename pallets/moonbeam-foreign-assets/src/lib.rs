@@ -375,12 +375,14 @@ pub mod pallet {
 			to: T::AccountId,
 			amount: U256,
 		) -> Result<(), evm::EvmError> {
-			EvmCaller::<T>::erc20_transfer(
-				Self::contract_address_from_asset_id(asset_id),
-				T::AccountIdToH160::convert(from),
-				T::AccountIdToH160::convert(to),
-				amount,
-			)
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_transfer(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(from),
+					T::AccountIdToH160::convert(to),
+					amount,
+				)
+			})
 			.map_err(Into::into)
 		}
 
