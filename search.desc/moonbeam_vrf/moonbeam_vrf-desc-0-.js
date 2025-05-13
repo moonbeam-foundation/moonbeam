@@ -1,0 +1,1 @@
+searchState.loadedDescShard("moonbeam_vrf", 0, "VRF client primitives for client-side verification\nReturns the argument unchanged.\nGet a mutable reference to the inner from the outer.\nGet a reference to the inner from the outer.\nCalls <code>U::from(self)</code>.\nUses the runtime API to get the VRF inputs and sign them …")

@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/lib.rs`."><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_service" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../moonbeam_service/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_service" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1967,6 +1965,29 @@
 <a href="#1965" id="1965">1965</a>
 <a href="#1966" id="1966">1966</a>
 <a href="#1967" id="1967">1967</a>
+<a href="#1968" id="1968">1968</a>
+<a href="#1969" id="1969">1969</a>
+<a href="#1970" id="1970">1970</a>
+<a href="#1971" id="1971">1971</a>
+<a href="#1972" id="1972">1972</a>
+<a href="#1973" id="1973">1973</a>
+<a href="#1974" id="1974">1974</a>
+<a href="#1975" id="1975">1975</a>
+<a href="#1976" id="1976">1976</a>
+<a href="#1977" id="1977">1977</a>
+<a href="#1978" id="1978">1978</a>
+<a href="#1979" id="1979">1979</a>
+<a href="#1980" id="1980">1980</a>
+<a href="#1981" id="1981">1981</a>
+<a href="#1982" id="1982">1982</a>
+<a href="#1983" id="1983">1983</a>
+<a href="#1984" id="1984">1984</a>
+<a href="#1985" id="1985">1985</a>
+<a href="#1986" id="1986">1986</a>
+<a href="#1987" id="1987">1987</a>
+<a href="#1988" id="1988">1988</a>
+<a href="#1989" id="1989">1989</a>
+<a href="#1990" id="1990">1990</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2003,9 +2024,8 @@
 	ParachainHostFunctions, StartRelayChainTasksParams,
 };
 <span class="kw">use </span>cumulus_primitives_core::{
-	relay_chain,
-	relay_chain::{well_known_keys, CollatorPair},
-	ParaId,
+	relay_chain::{<span class="self">self</span>, well_known_keys, CollatorPair},
+	CollectCollationInfo, ParaId,
 };
 <span class="kw">use </span>cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 <span class="kw">use </span>cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayChainResult};
@@ -2026,7 +2046,7 @@
 </span><span class="kw">pub use </span>moonriver_runtime;
 <span class="kw">use </span>nimbus_consensus::NimbusManualSealConsensusDataProvider;
 <span class="kw">use </span>nimbus_primitives::{DigestsProvider, NimbusId};
-<span class="kw">use </span>polkadot_primitives::{AbridgedHostConfiguration, AsyncBackingParams, Slot};
+<span class="kw">use </span>polkadot_primitives::{AbridgedHostConfiguration, AsyncBackingParams, Slot, UpgradeGoAhead};
 <span class="kw">use </span>sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -2040,12 +2060,12 @@
 	TFullClient, TaskManager,
 };
 <span class="kw">use </span>sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
-<span class="kw">use </span>sc_transaction_pool_api::OffchainTransactionPoolFactory;
+<span class="kw">use </span>sc_transaction_pool_api::{OffchainTransactionPoolFactory, TransactionPool};
 <span class="kw">use </span>session_keys_primitives::VrfApi;
 <span class="kw">use </span>sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 <span class="kw">use </span>sp_blockchain::{Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata};
 <span class="kw">use </span>sp_consensus::SyncOracle;
-<span class="kw">use </span>sp_core::{twox_128, ByteArray, Encode, H256};
+<span class="kw">use </span>sp_core::{ByteArray, Encode, H256};
 <span class="kw">use </span>sp_keystore::{Keystore, KeystorePtr};
 <span class="kw">use </span>std::str::FromStr;
 <span class="kw">use </span>std::sync::atomic::{AtomicU64, Ordering};
@@ -2072,7 +2092,7 @@
 		Backend,
 		MaybeSelectChain&lt;Backend&gt;,
 		sc_consensus::DefaultImportQueue&lt;Block&gt;,
-		sc_transaction_pool::FullPool&lt;Block, Client&gt;,
+		sc_transaction_pool::TransactionPoolHandle&lt;Block, Client&gt;,
 		(
 			BlockImportPipeline&lt;FrontierBlockImport&lt;Client&gt;, ParachainBlockImport&lt;Client, Backend&gt;&gt;,
 			<span class="prelude-ty">Option</span>&lt;FilterPool&gt;,
@@ -2410,7 +2430,7 @@
 	skip_prefix: bool,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), ServiceError&gt; {
 	<span class="kw">if let </span><span class="prelude-val">Some</span>(PrometheusConfig { registry, .. }) = config.prometheus_config.as_mut() {
-		<span class="kw">let </span>labels = <span class="macro">hashmap! </span>{
+		<span class="kw">let </span>labels = <span class="macro">hashmap!</span> {
 			<span class="string">"chain"</span>.into() =&gt; config.chain_spec.id().into(),
 		};
 		<span class="kw">let </span>prefix = <span class="kw">if </span>skip_prefix {
@@ -2511,13 +2531,14 @@
 		<span class="prelude-val">None
 	</span>};
 
-	<span class="kw">let </span>transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
-		config.role.is_authority().into(),
-		config.prometheus_registry(),
+	<span class="kw">let </span>transaction_pool = sc_transaction_pool::Builder::new(
 		task_manager.spawn_essential_handle(),
 		client.clone(),
-	);
+		config.role.is_authority().into(),
+	)
+	.with_options(config.transaction_pool.clone())
+	.with_prometheus(config.prometheus_registry())
+	.build();
 
 	<span class="kw">let </span>filter_pool: <span class="prelude-ty">Option</span>&lt;FilterPool&gt; = <span class="prelude-val">Some</span>(Arc::new(Mutex::new(BTreeMap::new())));
 	<span class="kw">let </span>fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
@@ -2570,7 +2591,7 @@
 		import_queue,
 		keystore_container,
 		task_manager,
-		transaction_pool,
+		transaction_pool: transaction_pool.into(),
 		select_chain: maybe_select_chain,
 		other: (
 			block_import,
@@ -2597,8 +2618,13 @@
 	<span class="kw">if let </span>cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
 		collator_options.relay_chain_mode
 	{
-		build_minimal_relay_chain_node_with_rpc(polkadot_config, task_manager, rpc_target_urls)
-			.<span class="kw">await
+		build_minimal_relay_chain_node_with_rpc(
+			polkadot_config,
+			parachain_config.prometheus_registry(),
+			task_manager,
+			rpc_target_urls,
+		)
+		.<span class="kw">await
 	</span>} <span class="kw">else </span>{
 		build_inprocess_relay_chain(
 			polkadot_config,
@@ -2797,7 +2823,7 @@
 					fc_db::Backend::KeyValue(b) =&gt; b.clone(),
 					fc_db::Backend::Sql(b) =&gt; b.clone(),
 				},
-				graph: pool.pool().clone(),
+				graph: pool.clone(),
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
@@ -2975,7 +3001,9 @@
 	telemetry: <span class="prelude-ty">Option</span>&lt;TelemetryHandle&gt;,
 	task_manager: <span class="kw-2">&amp;</span>TaskManager,
 	relay_chain_interface: Arc&lt;<span class="kw">dyn </span>RelayChainInterface&gt;,
-	transaction_pool: Arc&lt;sc_transaction_pool::FullPool&lt;Block, FullClient&lt;RuntimeApi&gt;&gt;&gt;,
+	transaction_pool: Arc&lt;
+		sc_transaction_pool::TransactionPoolHandle&lt;Block, FullClient&lt;RuntimeApi&gt;&gt;,
+	&gt;,
 	keystore: KeystorePtr,
 	para_id: ParaId,
 	collator_key: CollatorPair,
@@ -3236,8 +3264,8 @@
 				is_validator: config.role.is_authority(),
 				enable_http_requests: <span class="bool-val">true</span>,
 				custom_extensions: <span class="kw">move </span>|<span class="kw">_</span>| <span class="macro">vec!</span>[],
-			})
-			.run(client.clone(), task_manager.spawn_handle())
+			})<span class="question-mark">?
+			</span>.run(client.clone(), task_manager.spawn_handle())
 			.boxed(),
 		);
 	}
@@ -3271,16 +3299,14 @@
 				moonbeam_cli_opt::Sealing::Instant =&gt; {
 					Box::new(
 						<span class="comment">// This bit cribbed from the implementation of instant seal.
-						</span>transaction_pool
-							.pool()
-							.validated_pool()
-							.import_notification_stream()
-							.map(|<span class="kw">_</span>| EngineCommand::SealNewBlock {
+						</span>transaction_pool.import_notification_stream().map(|<span class="kw">_</span>| {
+							EngineCommand::SealNewBlock {
 								create_empty: <span class="bool-val">false</span>,
 								finalize: <span class="bool-val">false</span>,
 								parent_hash: <span class="prelude-val">None</span>,
 								sender: <span class="prelude-val">None</span>,
-							}),
+							}
+						}),
 					)
 				}
 				moonbeam_cli_opt::Sealing::Manual =&gt; {
@@ -3306,8 +3332,6 @@
 				Therefore, a `LongestChainRule` is present. qed."</span>,
 		);
 
-		<span class="kw">let </span>client_set_aside_for_cidp = client.clone();
-
 		<span class="comment">// Create channels for mocked XCM messages.
 		</span><span class="kw">let </span>(downward_xcm_sender, downward_xcm_receiver) = flume::bounded::&lt;Vec&lt;u8&gt;&gt;(<span class="number">100</span>);
 		<span class="kw">let </span>(hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::&lt;(ParaId, Vec&lt;u8&gt;)&gt;(<span class="number">100</span>);
@@ -3318,17 +3342,24 @@
 			additional_relay_offset.clone(),
 		));
 
-		<span class="kw">let </span>client_clone = client.clone();
+		<span class="comment">// Need to clone it and store here to avoid moving of `client`
+		// variable in closure below.
+		</span><span class="kw">let </span>client_vrf = client.clone();
+
 		<span class="kw">let </span>keystore_clone = keystore_container.keystore().clone();
 		<span class="kw">let </span>maybe_provide_vrf_digest =
 			<span class="kw">move </span>|nimbus_id: NimbusId, parent: Hash| -&gt; <span class="prelude-ty">Option</span>&lt;sp_runtime::generic::DigestItem&gt; {
 				moonbeam_vrf::vrf_pre_digest::&lt;Block, FullClient&lt;RuntimeApi&gt;&gt;(
-					<span class="kw-2">&amp;</span>client_clone,
+					<span class="kw-2">&amp;</span>client_vrf,
 					<span class="kw-2">&amp;</span>keystore_clone,
 					nimbus_id,
 					parent,
 				)
 			};
+
+		<span class="comment">// Need to clone it and store here to avoid moving of `client`
+		// variable in closure below.
+		</span><span class="kw">let </span>client_for_cidp = client.clone();
 
 		task_manager.spawn_essential_handle().spawn_blocking(
 			<span class="string">"authorship_task"</span>,
@@ -3347,14 +3378,17 @@
 					_phantom: Default::default(),
 				})),
 				create_inherent_data_providers: <span class="kw">move </span>|block: H256, ()| {
-					<span class="kw">let </span>maybe_current_para_block = client_set_aside_for_cidp.number(block);
-					<span class="kw">let </span>maybe_current_para_head = client_set_aside_for_cidp.expect_header(block);
+					<span class="kw">let </span>maybe_current_para_block = client_for_cidp.number(block);
+					<span class="kw">let </span>maybe_current_para_head = client_for_cidp.expect_header(block);
 					<span class="kw">let </span>downward_xcm_receiver = downward_xcm_receiver.clone();
 					<span class="kw">let </span>hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
 					<span class="kw">let </span>additional_relay_offset = additional_relay_offset.clone();
 					<span class="kw">let </span>relay_slot_key = well_known_keys::CURRENT_SLOT.to_vec();
 
-					<span class="kw">let </span>client_for_xcm = client_set_aside_for_cidp.clone();
+					<span class="comment">// Need to clone it and store here to avoid moving of `client`
+					// variable in closure below.
+					</span><span class="kw">let </span>client_for_xcm = client_for_cidp.clone();
+
 					<span class="kw">async move </span>{
 						<span class="kw">let </span>time = MockTimestampInherentDataProvider;
 
@@ -3370,7 +3404,7 @@
 						<span class="comment">// Calculate mocked slot number (should be consecutively 1, 2, ...)
 						</span><span class="kw">let </span>slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
-						<span class="kw">let </span><span class="kw-2">mut </span>additional_key_values = <span class="macro">vec!</span>[
+						<span class="kw">let </span>additional_key_values = <span class="macro">vec!</span>[
 							(
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
@@ -3398,26 +3432,36 @@
 							),
 						];
 
-						<span class="kw">let </span>storage_key = [
-							twox_128(<span class="string">b"ParachainSystem"</span>),
-							twox_128(<span class="string">b"PendingValidationCode"</span>),
-						]
-						.concat();
-						<span class="kw">let </span>has_pending_upgrade = client_for_xcm
-							.storage(block, <span class="kw-2">&amp;</span>sp_storage::StorageKey(storage_key))
-							.map_or(<span class="bool-val">false</span>, |ok| ok.map_or(<span class="bool-val">false</span>, |some| !some.<span class="number">0</span>.is_empty()));
-						<span class="kw">if </span>has_pending_upgrade {
-							additional_key_values.push((
-								relay_chain::well_known_keys::upgrade_go_ahead_signal(ParaId::new(
-									para_id.unwrap(),
-								)),
-								<span class="prelude-val">Some</span>(relay_chain::UpgradeGoAhead::GoAhead).encode(),
-							));
-						}
+						<span class="kw">let </span>current_para_head = client_for_xcm
+							.header(block)
+							.expect(<span class="string">"Header lookup should succeed"</span>)
+							.expect(<span class="string">"Header passed in as parent should be present in backend."</span>);
+
+						<span class="kw">let </span>should_send_go_ahead = <span class="kw">match </span>client_for_xcm
+							.runtime_api()
+							.collect_collation_info(block, <span class="kw-2">&amp;</span>current_para_head)
+						{
+							<span class="prelude-val">Ok</span>(info) =&gt; info.new_validation_code.is_some(),
+
+							<span class="prelude-val">Err</span>(e) =&gt; {
+								<span class="macro">log::error!</span>(<span class="string">"Failed to collect collation info: {:?}"</span>, e);
+
+								<span class="bool-val">false
+							</span>}
+						};
 
 						<span class="kw">let </span>mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
-							para_id: para_id.unwrap().into(),
+							para_id: para_id
+								.expect(<span class="string">"para ID should be specified for dev service"</span>)
+								.into(),
+							upgrade_go_ahead: should_send_go_ahead.then(|| {
+								<span class="macro">log::info!</span>(
+									<span class="string">"Detected pending validation code, sending go-ahead signal."
+								</span>);
+
+								UpgradeGoAhead::GoAhead
+							}),
 							current_para_block_head,
 							relay_offset: <span class="number">1000
 								</span>+ additional_relay_offset.load(std::sync::atomic::Ordering::SeqCst),
@@ -3527,7 +3571,7 @@
 					fc_db::Backend::KeyValue(b) =&gt; b.clone(),
 					fc_db::Backend::Sql(b) =&gt; b.clone(),
 				},
-				graph: pool.pool().clone(),
+				graph: pool.clone(),
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,

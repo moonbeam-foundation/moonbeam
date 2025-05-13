@@ -1,0 +1,1 @@
+searchState.loadedDescShard("pallet_evm_precompile_p256verify", 0, "Returns the argument unchanged.\nGet a mutable reference to the inner from the outer.\nGet a reference to the inner from the outer.\nCalls <code>U::from(self)</code>.")

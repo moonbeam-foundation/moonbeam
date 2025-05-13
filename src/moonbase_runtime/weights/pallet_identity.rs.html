@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbase/src/weights/pallet_identity.rs`."><title>pallet_identity.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbase_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../moonbase_runtime/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbase/src/weights/pallet_identity.rs`."><title>pallet_identity.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbase_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -415,6 +413,119 @@
 <a href="#413" id="413">413</a>
 <a href="#414" id="414">414</a>
 <a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -768,7 +879,7 @@
 	/// Proof: `Identity::PendingUsernames` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
 	/// Storage: `Identity::IdentityOf` (r:1 w:1)
 	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7560), added: 10035, mode: `MaxEncodedLen`)
-	</span><span class="kw">fn </span>set_username_for() -&gt; Weight {
+	</span><span class="kw">fn </span>set_username_for(_p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `67`
 		//  Estimated: `11025`
@@ -794,7 +905,7 @@
 	}
 	<span class="doccomment">/// Storage: `Identity::PendingUsernames` (r:1 w:1)
 	/// Proof: `Identity::PendingUsernames` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
-	</span><span class="kw">fn </span>remove_expired_approval() -&gt; Weight {
+	</span><span class="kw">fn </span>remove_expired_approval(_p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `101`
 		//  Estimated: `3538`
@@ -816,17 +927,130 @@
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
 	}
-	<span class="doccomment">/// Storage: `Identity::AccountOfUsername` (r:1 w:1)
-	/// Proof: `Identity::AccountOfUsername` (`max_values`: None, `max_size`: Some(69), added: 2544, mode: `MaxEncodedLen`)
-	/// Storage: `Identity::IdentityOf` (r:1 w:0)
-	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7560), added: 10035, mode: `MaxEncodedLen`)
-	</span><span class="kw">fn </span>remove_dangling_username() -&gt; Weight {
+	<span class="doccomment">/// Storage: `Identity::UsernameInfoOf` (r:1 w:0)
+	/// Proof: `Identity::UsernameInfoOf` (`max_values`: None, `max_size`: Some(86), added: 2561, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::AuthorityOf` (r:1 w:0)
+	/// Proof: `Identity::AuthorityOf` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UnbindingUsernames` (r:1 w:1)
+	/// Proof: `Identity::UnbindingUsernames` (`max_values`: None, `max_size`: Some(53), added: 2528, mode: `MaxEncodedLen`)
+	</span><span class="kw">fn </span>unbind_username() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `86`
-		//  Estimated: `11025`
-		// Minimum execution time: 13_025_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">13_398_000</span>, <span class="number">11025</span>)
+		//  Measured:  `210`
+		//  Estimated: `3551`
+		// Minimum execution time: 14_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">14_000_000</span>, <span class="number">3551</span>)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+	}
+	<span class="doccomment">/// Storage: `Identity::UnbindingUsernames` (r:1 w:1)
+	/// Proof: `Identity::UnbindingUsernames` (`max_values`: None, `max_size`: Some(53), added: 2528, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UsernameInfoOf` (r:1 w:1)
+	/// Proof: `Identity::UsernameInfoOf` (`max_values`: None, `max_size`: Some(86), added: 2561, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UsernameOf` (r:1 w:1)
+	/// Proof: `Identity::UsernameOf` (`max_values`: None, `max_size`: Some(61), added: 2536, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::AuthorityOf` (r:1 w:0)
+	/// Proof: `Identity::AuthorityOf` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
+	</span><span class="kw">fn </span>remove_username() -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `273`
+		//  Estimated: `3551`
+		// Minimum execution time: 18_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">19_000_000</span>, <span class="number">3551</span>)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">4_u64</span>))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
+	}
+	<span class="doccomment">/// Storage: `Identity::UsernameInfoOf` (r:1 w:1)
+	/// Proof: `Identity::UsernameInfoOf` (`max_values`: None, `max_size`: Some(86), added: 2561, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UsernameOf` (r:1 w:1)
+	/// Proof: `Identity::UsernameOf` (`max_values`: None, `max_size`: Some(61), added: 2536, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UnbindingUsernames` (r:1 w:1)
+	/// Proof: `Identity::UnbindingUsernames` (`max_values`: None, `max_size`: Some(53), added: 2528, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::AuthorityOf` (r:1 w:0)
+	/// Proof: `Identity::AuthorityOf` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
+	/// The range of component `p` is `[0, 1]`.
+	</span><span class="kw">fn </span>kill_username(_p: u32, ) -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `330`
+		//  Estimated: `3551`
+		// Minimum execution time: 14_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">18_504_081</span>, <span class="number">3551</span>)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">4_u64</span>))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
+	}
+	<span class="doccomment">/// Storage: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f99622d1423cdd16f5c33e2b531c34a53d` (r:2 w:0)
+	/// Proof: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f99622d1423cdd16f5c33e2b531c34a53d` (r:2 w:0)
+	/// Storage: `Identity::AuthorityOf` (r:0 w:1)
+	/// Proof: `Identity::AuthorityOf` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
+	</span><span class="kw">fn </span>migration_v2_authority_step() -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `134`
+		//  Estimated: `6074`
+		// Minimum execution time: 7_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">7_000_000</span>, <span class="number">6074</span>)
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+	}
+	<span class="doccomment">/// Storage: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f97c182fead9255863460affdd63116be3` (r:2 w:0)
+	/// Proof: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f97c182fead9255863460affdd63116be3` (r:2 w:0)
+	/// Storage: `Identity::UsernameInfoOf` (r:0 w:1)
+	/// Proof: `Identity::UsernameInfoOf` (`max_values`: None, `max_size`: Some(86), added: 2561, mode: `MaxEncodedLen`)
+	</span><span class="kw">fn </span>migration_v2_username_step() -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `147`
+		//  Estimated: `6087`
+		// Minimum execution time: 7_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">7_000_000</span>, <span class="number">6087</span>)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+	}
+	<span class="doccomment">/// Storage: `Identity::IdentityOf` (r:2 w:1)
+	/// Proof: `Identity::IdentityOf` (`max_values`: None, `max_size`: Some(7526), added: 10001, mode: `MaxEncodedLen`)
+	/// Storage: `Identity::UsernameOf` (r:0 w:1)
+	/// Proof: `Identity::UsernameOf` (`max_values`: None, `max_size`: Some(61), added: 2536, mode: `MaxEncodedLen`)
+	</span><span class="kw">fn </span>migration_v2_identity_step() -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `7050`
+		//  Estimated: `20992`
+		// Minimum execution time: 53_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">57_000_000</span>, <span class="number">20992</span>)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
+	}
+	<span class="doccomment">/// Storage: `Identity::PendingUsernames` (r:2 w:1)
+	/// Proof: `Identity::PendingUsernames` (`max_values`: None, `max_size`: Some(90), added: 2565, mode: `MaxEncodedLen`)
+	</span><span class="kw">fn </span>migration_v2_pending_username_step() -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `188`
+		//  Estimated: `6120`
+		// Minimum execution time: 6_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">7_000_000</span>, <span class="number">6120</span>)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+	}
+	<span class="doccomment">/// Storage: `Identity::AuthorityOf` (r:2 w:0)
+	/// Proof: `Identity::AuthorityOf` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
+	/// Storage: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f99622d1423cdd16f5c33e2b531c34a53d` (r:1 w:1)
+	/// Proof: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f99622d1423cdd16f5c33e2b531c34a53d` (r:1 w:1)
+	</span><span class="kw">fn </span>migration_v2_cleanup_authority_step() -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `261`
+		//  Estimated: `6020`
+		// Minimum execution time: 8_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">9_000_000</span>, <span class="number">6020</span>)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+	}
+	<span class="doccomment">/// Storage: `Identity::UsernameInfoOf` (r:2 w:0)
+	/// Proof: `Identity::UsernameInfoOf` (`max_values`: None, `max_size`: Some(86), added: 2561, mode: `MaxEncodedLen`)
+	/// Storage: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f97c182fead9255863460affdd63116be3` (r:1 w:1)
+	/// Proof: UNKNOWN KEY `0x2aeddc77fe58c98d50bd37f1b90840f97c182fead9255863460affdd63116be3` (r:1 w:1)
+	</span><span class="kw">fn </span>migration_v2_cleanup_username_step() -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `265`
+		//  Estimated: `6112`
+		// Minimum execution time: 8_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">8_000_000</span>, <span class="number">6112</span>)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
 	}
 }

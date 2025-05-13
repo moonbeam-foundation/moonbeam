@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/lazy_loading/backend.rs`."><title>backend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-5bc39a1768837dd0.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_service" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0 (aedd173a2 2024-03-17)" data-channel="1.77.0" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-4c98445ec4002617.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-48f368f3872407c8.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../../moonbeam_service/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/lazy_loading/backend.rs`."><title>backend.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_service" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1774,6 +1772,10 @@
 <a href="#1772" id="1772">1772</a>
 <a href="#1773" id="1773">1773</a>
 <a href="#1774" id="1774">1774</a>
+<a href="#1775" id="1775">1775</a>
+<a href="#1776" id="1776">1776</a>
+<a href="#1777" id="1777">1777</a>
+<a href="#1778" id="1778">1778</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -2475,6 +2477,11 @@
 	) -&gt; sp_blockchain::Result&lt;()&gt; {
 		<span class="prelude-val">Ok</span>(())
 	}
+
+	<span class="kw">fn </span>set_create_gap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _create_gap: bool) {
+		<span class="comment">// This implementation can be left empty or implemented as needed
+		// For now, we're just implementing the trait method with no functionality
+	</span>}
 }
 
 <span class="doccomment">/// DB-backed patricia trie state, transaction type is an overlay of changes to commit.
@@ -2542,8 +2549,8 @@
 			remote_fetch(prefix, start_key, backend.block_hash)
 		} <span class="kw">else </span>{
 			<span class="kw">let </span><span class="kw-2">mut </span>iter_args = sp_state_machine::backend::IterArgs::default();
-			iter_args.prefix = <span class="self">self</span>.args.prefix.as_ref().map(|b| b.as_slice());
-			iter_args.start_at = <span class="self">self</span>.args.start_at.as_ref().map(|b| b.as_slice());
+			iter_args.prefix = <span class="self">self</span>.args.prefix.as_deref();
+			iter_args.start_at = <span class="self">self</span>.args.start_at.as_deref();
 			iter_args.start_at_exclusive = <span class="bool-val">true</span>;
 			iter_args.stop_on_incomplete_database = <span class="bool-val">true</span>;
 
@@ -2551,7 +2558,7 @@
 			<span class="kw">let </span>next_storage_key = readable_db
 				.raw_iter(iter_args)
 				.map(|<span class="kw-2">mut </span>iter| iter.next_key(<span class="kw-2">&amp;</span>readable_db))
-				.map(|op| op.map(|result| result.ok()).flatten())
+				.map(|op| op.and_then(|result| result.ok()))
 				.ok()
 				.flatten();
 
@@ -2636,8 +2643,8 @@
 			remote_fetch(prefix, start_key, backend.block_hash)
 		} <span class="kw">else </span>{
 			<span class="kw">let </span><span class="kw-2">mut </span>iter_args = sp_state_machine::backend::IterArgs::default();
-			iter_args.prefix = <span class="self">self</span>.args.prefix.as_ref().map(|b| b.as_slice());
-			iter_args.start_at = <span class="self">self</span>.args.start_at.as_ref().map(|b| b.as_slice());
+			iter_args.prefix = <span class="self">self</span>.args.prefix.as_deref();
+			iter_args.start_at = <span class="self">self</span>.args.start_at.as_deref();
 			iter_args.start_at_exclusive = <span class="bool-val">true</span>;
 			iter_args.stop_on_incomplete_database = <span class="bool-val">true</span>;
 
@@ -2645,7 +2652,7 @@
 			<span class="kw">let </span>next_storage_key = readable_db
 				.raw_iter(iter_args)
 				.map(|<span class="kw-2">mut </span>iter| iter.next_key(<span class="kw-2">&amp;</span>readable_db))
-				.map(|op| op.map(|result| result.ok()).flatten())
+				.map(|op| op.and_then(|result| result.ok()))
 				.ok()
 				.flatten();
 
@@ -2678,8 +2685,7 @@
 
 		<span class="kw">let </span>maybe_value = maybe_next_key
 			.clone()
-			.map(|key| (<span class="kw-2">*</span>backend).storage(key.as_slice()).ok())
-			.flatten()
+			.and_then(|key| (<span class="kw-2">*</span>backend).storage(key.as_slice()).ok())
 			.flatten();
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(next_key) = maybe_next_key {

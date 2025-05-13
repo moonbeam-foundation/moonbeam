@@ -1,0 +1,1 @@
+searchState.loadedDescShard("moonbeam", 0, "Moonbase parachain collator")
