@@ -66,12 +66,15 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
 use moonbeam_runtime_common::{
 	deal_with_fees::{
 		DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
 	},
 	impl_multiasset_paymaster::MultiAssetPaymaster,
+};
+use moonbeam_runtime_common::{
+	impl_asset_conversion::AssetRateConverter,
+	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
 };
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_ethereum::Call::transact;
@@ -601,7 +604,7 @@ impl pallet_treasury::Config for Runtime {
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
 	type Paymaster = MultiAssetPaymaster<Runtime, TreasuryAccount, Balances, EvmForeignAssets>;
-	type BalanceConverter = XcmWeightTrader;
+	type BalanceConverter = AssetRateConverter<Runtime, Balances, EvmForeignAssets>;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;

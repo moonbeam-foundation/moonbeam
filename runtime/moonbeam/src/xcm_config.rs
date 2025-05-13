@@ -769,7 +769,6 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type AddSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type AssetLocationFilter = AssetFeesFilter;
 	type AssetTransactor = AssetTransactors;
-	type AssetIdentifier = EvmForeignAssets;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type NativeLocation = SelfReserve;
@@ -782,8 +781,6 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
 	type NotFilteredLocation = RelayLocation;
-	#[cfg(feature = "runtime-benchmarks")]
-	type AssetCreator = EvmForeignAssets;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

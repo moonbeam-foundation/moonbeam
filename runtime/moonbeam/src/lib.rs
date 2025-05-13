@@ -66,6 +66,7 @@ pub use moonbeam_core_primitives::{
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::{
+	impl_asset_conversion::AssetRateConverter,
 	impl_multiasset_paymaster::MultiAssetPaymaster,
 	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
 };
@@ -595,7 +596,7 @@ impl pallet_treasury::Config for Runtime {
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
 	type Paymaster = MultiAssetPaymaster<Runtime, TreasuryAccount, Balances, EvmForeignAssets>;
-	type BalanceConverter = XcmWeightTrader;
+	type BalanceConverter = AssetRateConverter<Runtime, Balances, EvmForeignAssets>;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;

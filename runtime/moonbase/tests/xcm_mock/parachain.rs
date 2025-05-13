@@ -30,7 +30,8 @@ use frame_support::{
 
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
 use moonbeam_runtime_common::{
-	impl_multiasset_paymaster::MultiAssetPaymaster, xcm_origins::AllowSiblingParachains,
+	impl_asset_conversion::AssetRateConverter, impl_multiasset_paymaster::MultiAssetPaymaster,
+	xcm_origins::AllowSiblingParachains,
 };
 use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use pallet_xcm::{migration::v1::VersionUncheckedMigrateToV1, EnsureXcm};
@@ -458,7 +459,7 @@ impl pallet_treasury::Config for Runtime {
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
 	type Paymaster = MultiAssetPaymaster<Runtime, TreasuryAccount, Balances, EvmForeignAssets>;
-	type BalanceConverter = XcmWeightTrader;
+	type BalanceConverter = AssetRateConverter<Runtime, Balances, EvmForeignAssets>;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ArgumentsBenchmarkHelper;
@@ -856,7 +857,6 @@ parameter_types! {
 impl pallet_xcm_weight_trader::Config for Runtime {
 	type AccountIdToLocation = xcm_primitives::AccountIdToLocation<AccountId>;
 	type AddSupportedAssetOrigin = EnsureRoot<AccountId>;
-	type AssetIdentifier = AsAssetType<AssetId, AssetType, AssetManager>;
 	type AssetLocationFilter = Everything;
 	type AssetTransactor = AssetTransactors;
 	type Balance = Balance;
@@ -871,8 +871,6 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
 	type NotFilteredLocation = RelayLocation;
-	#[cfg(feature = "runtime-benchmarks")]
-	type AssetCreator = EvmForeignAssets;
 }
 
 parameter_types! {
