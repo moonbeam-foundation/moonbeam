@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -71,11 +71,13 @@ fn create_funded_delegator<T: Config>(
 	} else {
 		total
 	};
-	Pallet::<T>::delegate(
+	Pallet::<T>::delegate_with_auto_compound(
 		RawOrigin::Signed(user.clone()).into(),
 		collator,
 		bond,
+		Percent::zero(),
 		collator_delegator_count,
+		0u32,
 		0u32, // first delegation for all calls
 	)?;
 	Ok(user)
@@ -518,11 +520,13 @@ benchmarks! {
 				)?;
 				col_del_ac_count += 1;
 			} else {
-				Pallet::<T>::delegate(
+				Pallet::<T>::delegate_with_auto_compound(
 					RawOrigin::Signed(delegator.clone()).into(),
 					second_candidate.clone(),
 					min_delegator_stk::<T>(),
+					Percent::zero(),
 					col_del_count,
+					0u32,
 					1u32,
 				)?;
 			}
@@ -801,66 +805,6 @@ benchmarks! {
 		assert!(
 			Pallet::<T>::candidate_info(&caller).expect("must exist").request.is_none()
 		);
-	}
-
-	delegate {
-		let x in 3..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
-		let y in 2..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
-		// Worst Case is full of delegations before calling `delegate`
-		let mut collators: Vec<T::AccountId> = Vec::new();
-		// Initialize MaxDelegationsPerDelegator collator candidates
-		for i in 2..x {
-			let seed = USER_SEED - i;
-			let collator = create_funded_collator::<T>(
-				"collator",
-				seed,
-				0u32.into(),
-				true,
-				collators.len() as u32 + 1u32,
-			)?;
-			collators.push(collator.clone());
-		}
-		let bond = <<T as Config>::MinDelegation as Get<BalanceOf<T>>>::get();
-		let extra = if (bond * (collators.len() as u32 + 1u32).into()) > min_candidate_stk::<T>() {
-			(bond * (collators.len() as u32 + 1u32).into()) - min_candidate_stk::<T>()
-		} else {
-			0u32.into()
-		};
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, extra.into());
-		// Delegation count
-		let mut del_del_count = 0u32;
-		// Nominate MaxDelegationsPerDelegators collator candidates
-		for col in collators.clone() {
-			Pallet::<T>::delegate(
-				RawOrigin::Signed(caller.clone()).into(), col, bond, 0u32, del_del_count
-			)?;
-			del_del_count += 1u32;
-		}
-		// Last collator to be delegated
-		let collator: T::AccountId = create_funded_collator::<T>(
-			"collator",
-			USER_SEED,
-			0u32.into(),
-			true,
-			collators.len() as u32 + 1u32,
-		)?;
-		// Worst Case Complexity is insertion into an almost full collator
-		let mut col_del_count = 0u32;
-		for i in 1..y {
-			let seed = USER_SEED + i;
-			let _ = create_funded_delegator::<T>(
-				"delegator",
-				seed,
-				0u32.into(),
-				collator.clone(),
-				true,
-				col_del_count,
-			)?;
-			col_del_count += 1u32;
-		}
-	}: _(RawOrigin::Signed(caller.clone()), collator, bond, col_del_count, del_del_count)
-	verify {
-		assert!(Pallet::<T>::is_delegator(&caller));
 	}
 
 	schedule_revoke_delegation {
@@ -1212,12 +1156,14 @@ benchmarks! {
 		)?;
 		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		let bond = <<T as Config>::MinDelegation as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate(RawOrigin::Signed(
+		Pallet::<T>::delegate_with_auto_compound(RawOrigin::Signed(
 			caller.clone()).into(),
 			collator.clone(),
 			bond,
+			Percent::zero(),
 			0u32,
-			0u32
+			0u32,
+			0u32,
 		)?;
 		Pallet::<T>::schedule_revoke_delegation(RawOrigin::Signed(
 			caller.clone()).into(),
@@ -1984,11 +1930,13 @@ benchmarks! {
 				true,
 				i+1,
 			)?;
-			Pallet::<T>::delegate(
+			Pallet::<T>::delegate_with_auto_compound(
 				RawOrigin::Signed(prime_delegator.clone()).into(),
 				collator,
 				min_delegator_stake,
-				0,
+				Percent::zero(),
+				0u32,
+				0u32,
 				i,
 			)?;
 		}
@@ -2075,11 +2023,13 @@ benchmarks! {
 				true,
 				i+1,
 			)?;
-			Pallet::<T>::delegate(
+			Pallet::<T>::delegate_with_auto_compound(
 				RawOrigin::Signed(prime_delegator.clone()).into(),
 				collator,
 				min_delegator_stake,
-				0,
+				Percent::zero(),
+				0u32,
+				0u32,
 				i,
 			)?;
 		}
@@ -2514,13 +2464,6 @@ mod tests {
 	fn bench_cancel_candidate_bond_less() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_cancel_candidate_bond_less());
-		});
-	}
-
-	#[test]
-	fn bench_delegate() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_delegate());
 		});
 	}
 

@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -173,6 +173,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						for ext in extrinsics.into_iter() {
 							let _ = match &ext.0.function {
 								RuntimeCall::Ethereum(transact { transaction }) => {
+
+									// Reset the previously consumed weight when tracing ethereum transactions.
+									// This is necessary because EVM tracing introduces additional
+									// (ref_time) overhead, which differs from the production runtime behavior.
+									// Without resetting the block weight, the extra tracing overhead could
+									// leading to some transactions to incorrectly fail during tracing.
+									frame_system::BlockWeight::<Runtime>::kill();
+
 									if transaction == traced_transaction {
 										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 										return Ok(());
@@ -249,16 +257,47 @@ macro_rules! impl_runtime_apis_plus_common {
 						for ext in extrinsics.into_iter() {
 							match &ext.0.function {
 								RuntimeCall::Ethereum(transact { transaction }) => {
-									if known_transactions.contains(&transaction.hash()) {
+
+									// Reset the previously consumed weight when tracing multiple transactions.
+									// This is necessary because EVM tracing introduces additional
+									// (ref_time) overhead, which differs from the production runtime behavior.
+									// Without resetting the block weight, the extra tracing overhead could
+									// leading to some transactions to incorrectly fail during tracing.
+									frame_system::BlockWeight::<Runtime>::kill();
+
+									let tx_hash = &transaction.hash();
+									if known_transactions.contains(&tx_hash) {
 										// Each known extrinsic is a new call stack.
 										EvmTracer::emit_new();
-										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+										EvmTracer::new().trace(|| {
+											if let Err(err) = Executive::apply_extrinsic(ext) {
+												log::debug!(
+													target: "tracing",
+													"Could not trace eth transaction (hash: {}): {:?}",
+													&tx_hash,
+													err
+												);
+											}
+										});
 									} else {
-										let _ = Executive::apply_extrinsic(ext);
+										if let Err(err) = Executive::apply_extrinsic(ext) {
+											log::debug!(
+												target: "tracing",
+												"Failed to apply eth extrinsic (hash: {}): {:?}",
+												&tx_hash,
+												err
+											);
+										}
 									}
 								}
 								_ => {
-									let _ = Executive::apply_extrinsic(ext);
+									if let Err(err) = Executive::apply_extrinsic(ext) {
+										log::debug!(
+											target: "tracing",
+											"Failed to apply non-eth extrinsic: {:?}",
+											err
+										);
+									}
 								}
 							};
 						}
@@ -298,42 +337,23 @@ macro_rules! impl_runtime_apis_plus_common {
 						EvmTracer::new().trace(|| {
 							let is_transactional = false;
 							let validate = true;
-							let without_base_extrinsic_weight = true;
 
-
-							// Estimated encoded transaction size must be based on the heaviest transaction
-							// type (EIP1559Transaction) to be compatible with all transaction types.
-							let mut estimated_transaction_len = data.len() +
-							// pallet ethereum index: 1
-							// transact call index: 1
-							// Transaction enum variant: 1
-							// chain_id 8 bytes
-							// nonce: 32
-							// max_priority_fee_per_gas: 32
-							// max_fee_per_gas: 32
-							// gas_limit: 32
-							// action: 21 (enum varianrt + call address)
-							// value: 32
-							// access_list: 1 (empty vec size)
-							// 65 bytes signature
-							258;
-
-							if access_list.is_some() {
-								estimated_transaction_len += access_list.encoded_size();
-							}
+							let transaction_data = pallet_ethereum::TransactionData::new(
+								pallet_ethereum::TransactionAction::Call(to),
+								data.clone(),
+								nonce.unwrap_or_default(),
+								gas_limit,
+								None,
+								max_fee_per_gas.or(Some(U256::default())),
+								max_priority_fee_per_gas.or(Some(U256::default())),
+								value,
+								Some(<Runtime as pallet_evm::Config>::ChainId::get()),
+								access_list.clone().unwrap_or_default(),
+							);
 
 							let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
 
-							let (weight_limit, proof_size_base_cost) =
-								match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-									gas_limit,
-									without_base_extrinsic_weight
-								) {
-									weight_limit if weight_limit.proof_size() > 0 => {
-										(Some(weight_limit), Some(estimated_transaction_len as u64))
-									}
-									_ => (None, None),
-								};
+							let (weight_limit, proof_size_base_cost) = pallet_ethereum::Pallet::<Runtime>::transaction_weight(&transaction_data);
 
 							let _ = <Runtime as pallet_evm::Config>::Runner::call(
 								from,
@@ -436,40 +456,22 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					// Estimated encoded transaction size must be based on the heaviest transaction
-					// type (EIP1559Transaction) to be compatible with all transaction types.
-					let mut estimated_transaction_len = data.len() +
-						// pallet ethereum index: 1
-						// transact call index: 1
-						// Transaction enum variant: 1
-						// chain_id 8 bytes
-						// nonce: 32
-						// max_priority_fee_per_gas: 32
-						// max_fee_per_gas: 32
-						// gas_limit: 32
-						// action: 21 (enum varianrt + call address)
-						// value: 32
-						// access_list: 1 (empty vec size)
-						// 65 bytes signature
-						258;
-
-					if access_list.is_some() {
-						estimated_transaction_len += access_list.encoded_size();
-					}
+					let transaction_data = pallet_ethereum::TransactionData::new(
+						pallet_ethereum::TransactionAction::Call(to),
+						data.clone(),
+						nonce.unwrap_or_default(),
+						gas_limit,
+						None,
+						max_fee_per_gas.or(Some(U256::default())),
+						max_priority_fee_per_gas.or(Some(U256::default())),
+						value,
+						Some(<Runtime as pallet_evm::Config>::ChainId::get()),
+						access_list.clone().unwrap_or_default(),
+					);
 
 					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
-					let without_base_extrinsic_weight = true;
 
-					let (weight_limit, proof_size_base_cost) =
-						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-							gas_limit,
-							without_base_extrinsic_weight
-						) {
-							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), Some(estimated_transaction_len as u64))
-							}
-							_ => (None, None),
-						};
+					let (weight_limit, proof_size_base_cost) = pallet_ethereum::Pallet::<Runtime>::transaction_weight(&transaction_data);
 
 					<Runtime as pallet_evm::Config>::Runner::call(
 						from,
@@ -510,43 +512,22 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					let mut estimated_transaction_len = data.len() +
-						// from: 20
-						// value: 32
-						// gas_limit: 32
-						// nonce: 32
-						// 1 byte transaction action variant
-						// chain id 8 bytes
-						// 65 bytes signature
-						190;
+					let transaction_data = pallet_ethereum::TransactionData::new(
+						pallet_ethereum::TransactionAction::Create,
+						data.clone(),
+						nonce.unwrap_or_default(),
+						gas_limit,
+						None,
+						max_fee_per_gas.or(Some(U256::default())),
+						max_priority_fee_per_gas.or(Some(U256::default())),
+						value,
+						Some(<Runtime as pallet_evm::Config>::ChainId::get()),
+						access_list.clone().unwrap_or_default(),
+					);
 
-					if max_fee_per_gas.is_some() {
-						estimated_transaction_len += 32;
-					}
-					if max_priority_fee_per_gas.is_some() {
-						estimated_transaction_len += 32;
-					}
-					if access_list.is_some() {
-						estimated_transaction_len += access_list.encoded_size();
-					}
+					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
 
-					let gas_limit = if gas_limit > U256::from(u64::MAX) {
-						u64::MAX
-					} else {
-						gas_limit.low_u64()
-					};
-					let without_base_extrinsic_weight = true;
-
-					let (weight_limit, proof_size_base_cost) =
-						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-							gas_limit,
-							without_base_extrinsic_weight
-						) {
-							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), Some(estimated_transaction_len as u64))
-							}
-							_ => (None, None),
-						};
+					let (weight_limit, proof_size_base_cost) = pallet_ethereum::Pallet::<Runtime>::transaction_weight(&transaction_data);
 
 					#[allow(clippy::or_fun_call)] // suggestion not helpful here
 					<Runtime as pallet_evm::Config>::Runner::create(
@@ -811,6 +792,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					Vec<frame_support::traits::StorageInfo>,
 				) {
 					use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
+					use frame_system_benchmarking::Pallet as SystemBench;
 					use moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks;
 					use frame_support::traits::StorageInfoTrait;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
@@ -840,7 +822,18 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_benchmarking::BenchmarkError;
 
 					use frame_system_benchmarking::Pallet as SystemBench;
-					impl frame_system_benchmarking::Config for Runtime {}
+					// Needed to run `set_code` and `apply_authorized_upgrade` frame_system benchmarks
+					// https://github.com/paritytech/cumulus/pull/2766
+					impl frame_system_benchmarking::Config for Runtime {
+						fn setup_set_code_requirements(code: &Vec<u8>) -> Result<(), BenchmarkError> {
+							ParachainSystem::initialize_for_set_code_benchmark(code.len() as u32);
+							Ok(())
+						}
+
+						fn verify_set_code() {
+							System::assert_last_event(cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into());
+						}
+					}
 
 					impl moonbeam_xcm_benchmarks::Config for Runtime {}
 					impl moonbeam_xcm_benchmarks::generic::Config for Runtime {}

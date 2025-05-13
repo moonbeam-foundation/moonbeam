@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -161,10 +161,16 @@ pub mod currency {
 	}
 }
 
+/// Maximum PoV size we support right now.
+// Kusama relay already supports 10Mb maximum PoV
+// Reference: https://github.com/polkadot-fellows/runtimes/pull/553
+pub const MAX_POV_SIZE: u32 = 10 * 1024 * 1024;
+
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
-	.saturating_mul(2)
-	.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+	WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
+	MAX_POV_SIZE as u64,
+);
 
 pub const MILLISECS_PER_BLOCK: u64 = 6_000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -198,7 +204,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 3500,
+	spec_version: 3700,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -282,7 +288,7 @@ impl frame_system::Config for Runtime {
 	type OnKilledAccount = ();
 	type DbWeight = moonriver_weights::db::rocksdb::constants::RocksDbWeight;
 	type BaseCallFilter = MaintenanceMode;
-	type SystemWeightInfo = ();
+	type SystemWeightInfo = moonriver_weights::frame_system::WeightInfo<Runtime>;
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = ConstU16<1285>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
@@ -386,6 +392,11 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 pub const WEIGHT_PER_GAS: u64 = WEIGHT_REF_TIME_PER_SECOND / GAS_PER_SECOND;
 
+/// The highest amount of new storage that can be created in a block (160KB).
+/// Originally 40KB, then multiplied by 4 when the block deadline was increased from 500ms to 2000ms.
+/// Reference: https://github.com/moonbeam-foundation/moonbeam/blob/master/MBIPS/MBIP-5.md#specification
+pub const BLOCK_STORAGE_LIMIT: u64 = 160 * 1024;
+
 parameter_types! {
 	pub BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
@@ -406,13 +417,13 @@ parameter_types! {
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonriverPrecompiles<Runtime> = MoonriverPrecompiles::<_>::new();
 	pub WeightPerGas: Weight = Weight::from_parts(WEIGHT_PER_GAS, 0);
-	/// The amount of gas per pov. A ratio of 16 if we convert ref_time to gas and we compare
+	/// The amount of gas per pov. A ratio of 8 if we convert ref_time to gas and we compare
 	/// it with the pov_size for a block. E.g.
 	/// ceil(
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	/// We should re-check `xcm_config::Erc20XcmBridgeTransferGasLimit` when changing this value
-	pub const GasLimitPovSizeRatio: u64 = 16;
+	pub const GasLimitPovSizeRatio: u64 = 8;
 	/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
 	/// The current definition of BLOCK_STORAGE_LIMIT is 160 KB, resulting in a value of 366.
 	pub GasLimitStorageGrowthRatio: u64 = 366;
@@ -689,6 +700,7 @@ impl pallet_ethereum_xcm::Config for Runtime {
 }
 
 parameter_types! {
+	// Reserved weight is 1/4 of MAXIMUM_BLOCK_WEIGHT
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
@@ -1458,11 +1470,18 @@ construct_runtime! {
 use moonbeam_runtime_common::benchmarking::BenchmarkHelper;
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
+	// TODO: Temporary workaround before upgrading to latest polkadot-sdk - fix https://github.com/paritytech/polkadot-sdk/pull/6435
+	#[allow(unused_imports)]
+	use pallet_collective as pallet_collective_treasury_council;
+	#[allow(unused_imports)]
+	use pallet_collective as pallet_collective_open_tech_committee;
+
 	frame_support::parameter_types! {
 		pub const MaxBalance: crate::Balance = crate::Balance::max_value();
 	}
 
 	frame_benchmarking::define_benchmarks!(
+		[frame_system, SystemBench::<Runtime>]
 		[pallet_utility, Utility]
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
@@ -1496,6 +1515,8 @@ mod benches {
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]
+		[pallet_collective_treasury_council, TreasuryCouncilCollective]
+		[pallet_collective_open_tech_committee, OpenTechCommitteeCollective]
 	);
 }
 

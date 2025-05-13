@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -131,6 +131,7 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
 mod weights;
+
 pub(crate) use weights as moonbase_weights;
 
 /// UNIT, the native token, uses 18 decimals of precision.
@@ -158,10 +159,15 @@ pub mod currency {
 	}
 }
 
+/// Maximum PoV size we support right now.
+// Reference: https://github.com/polkadot-fellows/runtimes/pull/553
+pub const MAX_POV_SIZE: u32 = 10 * 1024 * 1024;
+
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, u64::MAX)
-	.saturating_mul(2)
-	.set_proof_size(relay_chain::MAX_POV_SIZE as u64);
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
+	WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
+	MAX_POV_SIZE as u64,
+);
 
 pub const MILLISECS_PER_BLOCK: u64 = 6_000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -195,7 +201,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 3500,
+	spec_version: 3700,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -283,7 +289,7 @@ impl frame_system::Config for Runtime {
 	type OnKilledAccount = ();
 	type DbWeight = moonbase_weights::db::rocksdb::constants::RocksDbWeight;
 	type BaseCallFilter = MaintenanceMode;
-	type SystemWeightInfo = ();
+	type SystemWeightInfo = moonbase_weights::frame_system::WeightInfo<Runtime>;
 	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
 	type SS58Prefix = ConstU16<1287>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
@@ -392,8 +398,12 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 pub const WEIGHT_PER_GAS: u64 = WEIGHT_REF_TIME_PER_SECOND / GAS_PER_SECOND;
+
 /// The highest amount of new storage that can be created in a block (160KB).
+/// Originally 40KB, then multiplied by 4 when the block deadline was increased from 500ms to 2000ms.
+/// Reference: https://github.com/moonbeam-foundation/moonbeam/blob/master/MBIPS/MBIP-5.md#specification
 pub const BLOCK_STORAGE_LIMIT: u64 = 160 * 1024;
+
 parameter_types! {
 	pub BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
@@ -413,13 +423,13 @@ parameter_types! {
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonbasePrecompiles<Runtime> = MoonbasePrecompiles::<_>::new();
 	pub WeightPerGas: Weight = Weight::from_parts(WEIGHT_PER_GAS, 0);
-	/// The amount of gas per pov. A ratio of 16 if we convert ref_time to gas and we compare
+	/// The amount of gas per pov. A ratio of 8 if we convert ref_time to gas and we compare
 	/// it with the pov_size for a block. E.g.
 	/// ceil(
 	///     (max_extrinsic.ref_time() / max_extrinsic.proof_size()) / WEIGHT_PER_GAS
 	/// )
 	/// We should re-check `xcm_config::Erc20XcmBridgeTransferGasLimit` when changing this value
-	pub const GasLimitPovSizeRatio: u64 = 16;
+	pub const GasLimitPovSizeRatio: u64 = 8;
 	/// The amount of gas per storage (in bytes): BLOCK_GAS_LIMIT / BLOCK_STORAGE_LIMIT
 	/// (60_000_000 / 160 kb)
 	pub GasLimitStorageGrowthRatio: u64 = 366;
@@ -695,6 +705,7 @@ impl pallet_ethereum_xcm::Config for Runtime {
 }
 
 parameter_types! {
+	// Reserved weight is 1/4 of MAXIMUM_BLOCK_WEIGHT
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
@@ -966,7 +977,35 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 		gas: u64,
 	) -> precompile_utils::EvmResult<bool> {
 		Ok(match self {
-			ProxyType::Any => true,
+			ProxyType::Any => {
+				match PrecompileName::from_address(call.to.0) {
+					// Any precompile that can execute a subcall should be forbidden here,
+					// to ensure that unauthorized smart contract can't be called
+					// indirectly.
+					// To be safe, we only allow the precompiles we need.
+					Some(
+						PrecompileName::AuthorMappingPrecompile
+						| PrecompileName::ParachainStakingPrecompile,
+					) => true,
+					Some(ref precompile) if is_governance_precompile(precompile) => true,
+					// All non-whitelisted precompiles are forbidden
+					Some(_) => false,
+					// Allow evm transfer to "simple" account (no code nor precompile)
+					// For the moment, no smart contract other than precompiles is allowed.
+					// In the future, we may create a dynamic whitelist to authorize some audited
+					// smart contracts through governance.
+					None => {
+						// If the address is not recognized, allow only evm transfer to "simple"
+						// accounts (no code nor precompile).
+						// Note: Checking the presence of the code is not enough because some
+						// precompiles have no code.
+						!recipient_has_code
+							&& !precompile_utils::precompile_set::is_precompile_or_fail::<Runtime>(
+								call.to.0, gas,
+							)?
+					}
+				}
+			}
 			ProxyType::NonTransfer => {
 				call.value == U256::zero()
 					&& match PrecompileName::from_address(call.to.0) {
@@ -1461,11 +1500,18 @@ use moonbeam_runtime_common::deal_with_fees::{
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
+	// TODO: Temporary workaround before upgrading to latest polkadot-sdk - fix https://github.com/paritytech/polkadot-sdk/pull/6435
+	#[allow(unused_imports)]
+	use pallet_collective as pallet_collective_treasury_council;
+	#[allow(unused_imports)]
+	use pallet_collective as pallet_collective_open_tech_committee;
+
 	frame_support::parameter_types! {
 		pub const MaxBalance: crate::Balance = crate::Balance::max_value();
 	}
 
 	frame_benchmarking::define_benchmarks!(
+		[frame_system, SystemBench::<Runtime>]
 		[pallet_utility, Utility]
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
@@ -1500,6 +1546,8 @@ mod benches {
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]
+		[pallet_collective_treasury_council, TreasuryCouncilCollective]
+		[pallet_collective_open_tech_committee, OpenTechCommitteeCollective]
 	);
 }
 

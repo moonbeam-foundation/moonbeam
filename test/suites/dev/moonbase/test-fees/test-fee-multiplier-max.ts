@@ -84,7 +84,7 @@ describeSuite({
         // ~/4 to compensate for the ref time XCM fee changes
         // Previous value: 449_284_776_265_723_667_008n
         // Previous value: 119_241_298_837_127_813_277n
-        expect(initialBalance - afterBalance).to.equal(119_241_297_050_552_813_277n);
+        expect(initialBalance - afterBalance).to.equal(146_015_659_550_552_813_277n);
       },
     });
 

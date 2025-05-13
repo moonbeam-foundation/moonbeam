@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -30,12 +30,18 @@ impl super::ResponseFormatter for Formatter {
 	type Listener = Listener;
 	type Response = Vec<TransactionTrace>;
 
-	fn format(mut listener: Listener) -> Option<Vec<TransactionTrace>> {
-		// Remove empty BTreeMaps pushed to `entries`.
-		// I.e. InvalidNonce or other pallet_evm::runner exits
-		listener.entries.retain(|x| !x.is_empty());
+	fn format(listener: Listener) -> Option<Vec<TransactionTrace>> {
 		let mut traces = Vec::new();
 		for (eth_tx_index, entry) in listener.entries.iter().enumerate() {
+			// Skip empty BTreeMaps pushed to `entries`.
+			// I.e. InvalidNonce or other pallet_evm::runner exits
+			if entry.is_empty() {
+				log::debug!(
+					target: "tracing",
+					"Empty trace entry with transaction index {}, skipping...", eth_tx_index
+				);
+				continue;
+			}
 			let mut tx_traces: Vec<_> = entry
 				.into_iter()
 				.map(|(_, trace)| match trace.inner.clone() {

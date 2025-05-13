@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -154,10 +154,14 @@ pub struct RunCmd {
 	#[clap(long)]
 	pub dev_service: bool,
 
-	/// Enable the new block import strategy
-	/// Deprecated in: https://github.com/Moonsong-Labs/moonkit/pull/43
+	/// No-op
+	/// Deprecated in: https://github.com/moonbeam-foundation/moonbeam/pull/3204
 	#[clap(long)]
 	pub experimental_block_import_strategy: bool,
+
+	/// Enable the legacy block import strategy
+	#[clap(long)]
+	pub legacy_block_import_strategy: bool,
 
 	/// Specifies the URL used to fetch chain data via RPC.
 	///
@@ -277,7 +281,7 @@ pub struct RunCmd {
 	#[arg(long, default_value = "4")]
 	pub frontier_sql_backend_thread_count: u32,
 
-	/// Sets the SQL backend's query timeout in number of VM ops.
+	/// Sets the SQL backend's cache size in bytes.
 	/// Default value is 200MB.
 	#[arg(long, default_value = "209715200")]
 	pub frontier_sql_backend_cache_size: u64,
@@ -290,6 +294,10 @@ pub struct RunCmd {
 	/// Maximum number of logs in a query.
 	#[clap(long, default_value = "10000")]
 	pub max_past_logs: u32,
+
+	/// Maximum block range to query logs from.
+	#[clap(long, default_value = "1024")]
+	pub max_block_range: u32,
 
 	/// Force using Moonbase native runtime.
 	#[clap(long = "force-moonbase")]
@@ -324,6 +332,10 @@ pub struct RunCmd {
 	/// Maximum duration in milliseconds to produce a block
 	#[clap(long, default_value = "2000", value_parser=block_authoring_duration_parser)]
 	pub block_authoring_duration: Duration,
+
+	/// Enable full proof-of-validation mode for Nimbus
+	#[clap(long)]
+	pub nimbus_full_pov: bool,
 }
 
 fn block_authoring_duration_parser(s: &str) -> Result<Duration, String> {
@@ -343,6 +355,7 @@ impl RunCmd {
 			eth_statuses_cache: self.eth_statuses_cache,
 			fee_history_limit: self.fee_history_limit,
 			max_past_logs: self.max_past_logs,
+			max_block_range: self.max_block_range,
 			relay_chain_rpc_urls: self.base.relay_chain_rpc_urls.clone(),
 			tracing_raw_max_memory_usage: self.tracing_raw_max_memory_usage,
 			frontier_backend_config: match self.frontier_backend_type {

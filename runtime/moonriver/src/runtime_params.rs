@@ -1,4 +1,4 @@
-// Copyright 2024 Moonbeam Foundation.
+// Copyright 2025 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -41,6 +41,13 @@ pub mod dynamic_params {
 			{ 1 * currency::MOVR * currency::SUPPLY_FACTOR },
 			{ 1_000 * currency::MOVR * currency::SUPPLY_FACTOR },
 		> = BoundedU128::const_new::<{ 1 * currency::MOVR * currency::SUPPLY_FACTOR }>();
+	}
+
+	#[dynamic_pallet_params]
+	#[codec(index = 2)]
+	pub mod xcm_config {
+		#[codec(index = 0)]
+		pub static ForeignAssetCreationDeposit: u128 = 100 * currency::MOVR;
 	}
 }
 

@@ -768,8 +768,10 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = xcm_primitives::AccountIdToLocation<AccountId>;
-	type CurrencyIdToLocation =
-		CurrencyIdToLocation<xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>>;
+	type CurrencyIdToLocation = CurrencyIdToLocation<(
+		EvmForeignAssets,
+		AsAssetType<moonbeam_core_primitives::AssetId, AssetType, AssetManager>,
+	)>;
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type UniversalLocation = UniversalLocation;
@@ -818,16 +820,12 @@ impl pallet_timestamp::Config for Runtime {
 
 use sp_core::U256;
 
-const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
-/// Block storage limit in bytes. Set to 160 KB.
-const BLOCK_STORAGE_LIMIT: u64 = 160 * 1024;
-
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
 	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
 	pub GasLimitPovSizeRatio: u64 = {
 		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
-		block_gas_limit.saturating_div(MAX_POV_SIZE)
+		block_gas_limit.saturating_div(MAX_POV_SIZE as u64)
 	};
 	pub GasLimitStorageGrowthRatio: u64 =
 		BlockGasLimit::get().min(u64::MAX.into()).low_u64().saturating_div(BLOCK_STORAGE_LIMIT);
@@ -1078,7 +1076,9 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 
 use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
+use moonriver_runtime::{EvmForeignAssets, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
 use pallet_evm::FrameSystemAccountProvider;
+use xcm_primitives::AsAssetType;
 
 pub(crate) fn on_runtime_upgrade() {
 	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();

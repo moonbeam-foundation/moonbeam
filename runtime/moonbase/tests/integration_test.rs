@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -37,30 +37,11 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	//asset_config::ForeignAssetInstance,
-	xcm_config::SelfReserve,
-	AccountId,
-	AssetId,
-	Balances,
-	CrowdloanRewards,
-	EvmForeignAssets,
-	Executive,
-	OpenTechCommitteeCollective,
-	ParachainStaking,
-	PolkadotXcm,
-	Precompiles,
-	Runtime,
-	RuntimeBlockWeights,
-	RuntimeCall,
-	RuntimeEvent,
-	System,
-	TransactionPayment,
-	TransactionPaymentAsGasPrice,
-	Treasury,
-	TreasuryCouncilCollective,
-	XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	WEEKS,
+	xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards, EvmForeignAssets,
+	Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
+	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -73,12 +54,12 @@ use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
 
 use moonbase_runtime::currency::{GIGAWEI, WEI};
+use moonbase_runtime::runtime_params::dynamic_params;
+use moonbase_runtime::xcm_config::LocationToAccountId;
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-//use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
-use moonbase_runtime::runtime_params::dynamic_params;
 use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
@@ -1090,7 +1071,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1103,7 +1084,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1174,7 +1155,7 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1267,7 +1248,7 @@ fn update_reward_address_via_precompile() {
 }
 
 #[test]
-fn create_and_manipulate_foreign_asset() {
+fn create_and_manipulate_foreign_asset_using_root() {
 	ExtBuilder::default().build().execute_with(|| {
 		let source_location = xcm::v4::Location::parent();
 
@@ -1307,6 +1288,62 @@ fn create_and_manipulate_foreign_asset() {
 		));
 		assert_eq!(
 			EvmForeignAssets::assets_by_location(&source_location),
+			Some((1, AssetStatus::Active))
+		);
+	});
+}
+
+#[test]
+fn create_and_manipulate_foreign_asset_using_sibling() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_location: Location = (Parent, Parachain(1), PalletInstance(3)).into();
+		let para_location = asset_location.chain_location();
+		let para_account =
+			LocationToAccountId::convert_location(&para_location).expect("Cannot convert location");
+
+		let deposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
+		Balances::make_free_balance_be(&para_account, deposit * 2);
+
+		// Create foreign asset
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			pallet_xcm::Origin::Xcm(para_location.clone()).into(),
+			1,
+			asset_location.clone(),
+			12,
+			bounded_vec![b'M', b'T'],
+			bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+		));
+
+		// deposit is taken from the account
+		assert_eq!(Balances::free_balance(&para_account), deposit);
+
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(1),
+			Some(asset_location.clone())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
+			Some((1, AssetStatus::Active))
+		);
+
+		// Freeze foreign asset
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			pallet_xcm::Origin::Xcm(para_location.clone()).into(),
+			1,
+			true
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+
+		// Unfreeze foreign asset
+		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+			pallet_xcm::Origin::Xcm(para_location.clone()).into(),
+			1,
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
 			Some((1, AssetStatus::Active))
 		);
 	});
@@ -1566,7 +1603,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(176190)
+				.expect_cost(178322)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1657,7 +1694,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(176190)
+				.expect_cost(178322)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1741,7 +1778,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24590)
+				.expect_cost(26722)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2312,7 +2349,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(23248)
+				.expect_cost(25391)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2352,7 +2389,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23248)
+				.expect_cost(25391)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2434,7 +2471,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(14217)
+				.expect_cost(16085)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2456,7 +2493,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(13783)
+				.expect_cost(15585)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2477,7 +2514,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14248)
+				.expect_cost(16112)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2520,7 +2557,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16012)
+				.expect_cost(17897)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2545,7 +2582,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16012)
+				.expect_cost(17897)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2576,7 +2613,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2596,7 +2633,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2626,7 +2663,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2647,7 +2684,7 @@ fn test_xcm_utils_weight_message() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(0)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(expected_weight);
 	});
@@ -2666,7 +2703,7 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});

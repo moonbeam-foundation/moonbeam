@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -122,6 +122,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 	/// Maximum number of logs in a query.
 	pub max_past_logs: u32,
+	/// Maximum block range in a query.
+	pub max_block_range: u32,
 	/// Maximum fee history cache size.
 	pub fee_history_limit: u64,
 	/// Fee history cache.
@@ -172,13 +174,12 @@ where
 {
 	use fc_rpc::{
 		Eth, EthApiServer, EthFilter, EthFilterApiServer, EthPubSub, EthPubSubApiServer, Net,
-		NetApiServer, Web3, Web3ApiServer,
+		NetApiServer, TxPool, TxPoolApiServer, Web3, Web3ApiServer,
 	};
 	use moonbeam_dev_rpc::{DevApiServer, DevRpc};
 	use moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApiServer};
 	use moonbeam_rpc_debug::{Debug, DebugServer};
 	use moonbeam_rpc_trace::{Trace, TraceServer};
-	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
@@ -196,6 +197,7 @@ where
 		frontier_backend,
 		backend: _,
 		max_past_logs,
+		max_block_range,
 		fee_history_limit,
 		fee_history_cache,
 		dev_rpc_data,
@@ -276,6 +278,7 @@ where
 				filter_pool,
 				500_usize, // max stored filters
 				max_past_logs,
+				max_block_range,
 				block_data_cache,
 			)
 			.into_rpc(),
@@ -304,6 +307,7 @@ where
 		)
 		.into_rpc(),
 	)?;
+
 	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
 		io.merge(TxPool::new(Arc::clone(&client), graph).into_rpc())?;
 	}

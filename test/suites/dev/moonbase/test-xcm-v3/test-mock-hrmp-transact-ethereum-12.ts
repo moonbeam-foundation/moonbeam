@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { GAS_LIMIT_POV_RATIO, generateKeyringPair } from "@moonwall/util";
+import { generateKeyringPair } from "@moonwall/util";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import {
   XcmFragment,
@@ -21,9 +21,13 @@ describeSuite({
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
     let STORAGE_READ_COST;
+    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
-      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+      STORAGE_READ_COST = constants.STORAGE_READ_COST;
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
@@ -56,7 +60,7 @@ describeSuite({
 
         const amountToTransfer = transferredBalance / 10n;
 
-        const GAS_LIMIT = 500_000;
+        const GAS_LIMIT = 500_000n;
 
         // We will put a very high gas limit. However, the weight accounted
         // for the block should only
@@ -82,13 +86,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        // Just to make sure lazy state trie migration is done
-        // probably not needed after migration is done
-        for (let i = 0; i < 10; i++) {
-          await context.createBlock();
-        }
-
-        const targetXcmWeight = 500_000n * 25000n + STORAGE_READ_COST + 4_250_000_000n;
+        const targetXcmWeight = GAS_LIMIT * 25000n + STORAGE_READ_COST + 4_750_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
@@ -114,7 +112,7 @@ describeSuite({
             ],
             weight_limit: {
               refTime: targetXcmWeight,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 2,
+              proofSize: (Number(GAS_LIMIT) / GAS_LIMIT_POV_RATIO) * 2,
             } as any,
             descend_origin: sendingAddress,
           })
@@ -126,8 +124,8 @@ describeSuite({
                 originKind: "SovereignAccount",
                 // 500_000 gas limit + db read (41_742_000)
                 requireWeightAtMost: {
-                  refTime: 12_525_000_000n + STORAGE_READ_COST,
-                  proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+                  refTime: 12_500_000_000n + STORAGE_READ_COST,
+                  proofSize: Number(GAS_LIMIT) / GAS_LIMIT_POV_RATIO,
                 },
                 call: {
                   encoded: transferCallEncoded,
@@ -149,7 +147,7 @@ describeSuite({
           expect(testAccountBalance).to.eq(expectedTransferredAmount);
 
           // Make sure ALITH has been deducted fees once (in xcm-executor) and balance has been
-          // transfered through evm.
+          // transferred through evm.
           const alithAccountBalance = await context.viem().getBalance({ address: descendAddress });
           expect(BigInt(alithAccountBalance)).to.eq(
             transferredBalance - expectedTransferredAmountPlusFees

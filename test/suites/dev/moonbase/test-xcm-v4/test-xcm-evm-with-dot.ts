@@ -85,7 +85,7 @@ describeSuite({
       id: "T01",
       title: "should execute EVM remote call through XCM paying fees in DOT",
       test: async function () {
-        // Since we cannot infer the actual weitght of the inner message,
+        // Since we cannot infer the actual weight of the inner message,
         // we are using big enough gas limits to be able to execute the whole xcm transaction.
         const xcmTransaction = {
           V1: {
@@ -123,7 +123,7 @@ describeSuite({
           ],
           weight_limit: {
             refTime: 120_000_000_000,
-            proofSize: 90_000,
+            proofSize: 90_583,
           } as any,
           descend_origin: sendingAddress,
           beneficiary: sendingAddress,
@@ -145,7 +145,7 @@ describeSuite({
                 proofSize: 50_000,
               },
               call: {
-                Call: transferCallEncoded,
+                encoded: transferCallEncoded,
               },
             },
           })

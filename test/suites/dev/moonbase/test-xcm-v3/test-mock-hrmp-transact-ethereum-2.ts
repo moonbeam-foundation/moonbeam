@@ -8,8 +8,7 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
-
-import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D014024",
@@ -20,8 +19,13 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
+    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
       contractDeployed = contractAddress;
       contractABI = abi;

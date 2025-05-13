@@ -4,7 +4,7 @@ authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.43.0"
+version = "0.45.0"
 
 [dependencies]
 async-io = { workspace = true }
@@ -44,7 +44,6 @@ moonbeam-rpc-debug = { workspace = true }
 moonbeam-rpc-primitives-debug = { workspace = true }
 moonbeam-rpc-primitives-txpool = { workspace = true }
 moonbeam-rpc-trace = { workspace = true }
-moonbeam-rpc-txpool = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
 moonbeam-vrf = { workspace = true }
 pallet-parachain-staking = { workspace = true }

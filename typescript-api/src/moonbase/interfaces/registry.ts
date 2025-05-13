@@ -94,6 +94,10 @@ import type {
   MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters,
   MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey,
   MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue,
+  MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit,
+  MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParameters,
+  MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey,
+  MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue,
   MoonbaseRuntimeRuntimeParamsRuntimeParameters,
   MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
   MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
@@ -185,6 +189,7 @@ import type {
   PalletMessageQueuePage,
   PalletMigrationsError,
   PalletMigrationsEvent,
+  PalletMoonbeamForeignAssetsAssetDepositDetails,
   PalletMoonbeamForeignAssetsAssetStatus,
   PalletMoonbeamForeignAssetsCall,
   PalletMoonbeamForeignAssetsError,
@@ -193,7 +198,6 @@ import type {
   PalletMoonbeamLazyMigrationsError,
   PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo,
   PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus,
-  PalletMoonbeamLazyMigrationsStateMigrationStatus,
   PalletMoonbeamOrbitersCall,
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletMoonbeamOrbitersCurrentOrbiter,
@@ -497,6 +501,10 @@ declare module "@polkadot/types/types/registry" {
     MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParameters;
     MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersKey;
     MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue: MoonbaseRuntimeRuntimeParamsDynamicParamsRuntimeConfigParametersValue;
+    MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit: MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigForeignAssetCreationDeposit;
+    MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParameters: MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParameters;
+    MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey: MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersKey;
+    MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue: MoonbaseRuntimeRuntimeParamsDynamicParamsXcmConfigParametersValue;
     MoonbaseRuntimeRuntimeParamsRuntimeParameters: MoonbaseRuntimeRuntimeParamsRuntimeParameters;
     MoonbaseRuntimeRuntimeParamsRuntimeParametersKey: MoonbaseRuntimeRuntimeParamsRuntimeParametersKey;
     MoonbaseRuntimeRuntimeParamsRuntimeParametersValue: MoonbaseRuntimeRuntimeParamsRuntimeParametersValue;
@@ -588,6 +596,7 @@ declare module "@polkadot/types/types/registry" {
     PalletMessageQueuePage: PalletMessageQueuePage;
     PalletMigrationsError: PalletMigrationsError;
     PalletMigrationsEvent: PalletMigrationsEvent;
+    PalletMoonbeamForeignAssetsAssetDepositDetails: PalletMoonbeamForeignAssetsAssetDepositDetails;
     PalletMoonbeamForeignAssetsAssetStatus: PalletMoonbeamForeignAssetsAssetStatus;
     PalletMoonbeamForeignAssetsCall: PalletMoonbeamForeignAssetsCall;
     PalletMoonbeamForeignAssetsError: PalletMoonbeamForeignAssetsError;
@@ -596,7 +605,6 @@ declare module "@polkadot/types/types/registry" {
     PalletMoonbeamLazyMigrationsError: PalletMoonbeamLazyMigrationsError;
     PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo: PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo;
     PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus: PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus;
-    PalletMoonbeamLazyMigrationsStateMigrationStatus: PalletMoonbeamLazyMigrationsStateMigrationStatus;
     PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
     PalletMoonbeamOrbitersCollatorPoolInfo: PalletMoonbeamOrbitersCollatorPoolInfo;
     PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;

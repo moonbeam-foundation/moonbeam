@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -57,22 +57,24 @@ use xcm::latest::prelude::{
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
+use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
 	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
 	UtilityEncodeCall, XcmTransact,
 };
 
+use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
+use crate::runtime_params::dynamic_params;
+use moonbeam_runtime_common::xcm_origins::AllowSiblingParachains;
+use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
-
 use sp_core::Get;
 use sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::*,
 };
-
-use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
 
 parameter_types! {
 	// The network Id of the relay
@@ -295,7 +297,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
-	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
+	type TransactionalProcessor = pallet_ethereum_xcm::XcmEthTransactionalProcessor;
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
@@ -628,7 +630,10 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = AccountIdToLocation<AccountId>;
-	type CurrencyIdToLocation = CurrencyIdToLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
+	type CurrencyIdToLocation = CurrencyIdToLocation<(
+		EvmForeignAssets,
+		AsAssetType<AssetId, AssetType, AssetManager>,
+	)>;
 	type XcmSender = XcmRouter;
 	type SelfLocation = SelfLocation;
 	type Weigher = XcmWeigher;
@@ -655,7 +660,7 @@ parameter_types! {
 
 	// To be able to support almost all erc20 implementations,
 	// we provide a sufficiently hight gas limit.
-	pub Erc20XcmBridgeTransferGasLimit: u64 = 800_000;
+	pub Erc20XcmBridgeTransferGasLimit: u64 = 400_000;
 }
 
 impl pallet_erc20_xcm_bridge::Config for Runtime {
@@ -681,13 +686,23 @@ impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
 	}
 }
 
-pub type ForeignAssetManagerOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
+pub type ForeignAssetManagerOrigin = EitherOf<
+	MapSuccessToXcm<EnsureXcm<AllowSiblingParachains>>,
+	MapSuccessToGovernance<
 		EitherOf<
-			governance::custom_origins::GeneralAdmin,
-			governance::custom_origins::FastGeneralAdmin,
+			EnsureRoot<AccountId>,
+			EitherOf<
+				pallet_collective::EnsureProportionMoreThan<
+					AccountId,
+					OpenTechCommitteeInstance,
+					5,
+					9,
+				>,
+				EitherOf<
+					governance::custom_origins::FastGeneralAdmin,
+					governance::custom_origins::GeneralAdmin,
+				>,
+			>,
 		>,
 	>,
 >;
@@ -696,6 +711,8 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
 	type AssetIdFilter = EvmForeignAssetIdFilter;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type ConvertLocation =
+		SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>;
 	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
 	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
@@ -705,6 +722,9 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
+	type ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
+	type Balance = Balance;
+	type Currency = Balances;
 }
 
 pub struct AssetFeesFilter;

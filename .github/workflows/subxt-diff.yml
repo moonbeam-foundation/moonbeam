@@ -32,21 +32,35 @@ jobs:
           cargo install subxt-cli@0.37.0 --locked
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Lookup previous runtime release build
+        id: previous-runtime
         run: |
-          COMMIT=`git rev-list -n 1 'runtim-${{ github.event.inputs.last_spec_version }}'`
-          PREVIOUS_RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
-          echo "Latest build for runtim-${{ github.event.inputs.last_spec_version }}: $PREVIOUS_RUNTIME_BUILD"
+          COMMIT=`git rev-list -n 1 'runtime-${{ github.event.inputs.last_spec_version }}'`
+          PREVIOUS_RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=500 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\") | .databaseId" | head -1)
+          echo "Latest build for runtime-${{ github.event.inputs.last_spec_version }}: $PREVIOUS_RUNTIME_BUILD"
           echo "PREVIOUS_RUNTIME_BUILD=$PREVIOUS_RUNTIME_BUILD" >> $GITHUB_OUTPUT
-      - name: Lookup previous runtime release build
+      - name: Lookup next runtime release build
+        id: next-runtime
         run: |
-          COMMIT=`git rev-list -n 1 'runtim-${{ github.event.inputs.spec_version }}'`
-          RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
-          echo "Latest build for runtim-${{ github.event.inputs.spec_version }}: $RUNTIME_BUILD"
+          COMMIT=`git rev-list -n 1 'runtime-${{ github.event.inputs.spec_version }}'`
+          RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\") | .databaseId" | head -1)
+          echo "Latest build for runtime-${{ github.event.inputs.spec_version }}: $RUNTIME_BUILD"
           echo "NEXT_RUNTIME_BUILD=$RUNTIME_BUILD" >> $GITHUB_OUTPUT
-      - name: Download binaries for each runtime
-        run: |
-          gh run -R moonbeam-foundation/moonbeam download $PREVIOUS_RUNTIME_BUILD -n moonbeam --dir previous-runtime-release
-          gh run -R moonbeam-foundation/moonbeam download $NEXT_RUNTIME_BUILD -n moonbeam --dir next-runtime-release
+      - name: "Download previous runtime release binary"
+        uses: actions/download-artifact@v4
+        with:
+          name: moonbeam
+          path: previous-runtime-release
+          merge-multiple: true
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.previous-runtime.outputs.PREVIOUS_RUNTIME_BUILD }}
+      - name: "Download next runtime release binary"
+        uses: actions/download-artifact@v4
+        with:
+          name: moonbeam
+          path: next-runtime-release
+          merge-multiple: true
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.next-runtime.outputs.NEXT_RUNTIME_BUILD }}
       - name: Run previous runtime
         run: |
           chmod +x previous-runtime-release/moonbeam
@@ -64,7 +78,7 @@ jobs:
           --alice \
           --rpc-port=9911 \
           --unsafe-force-node-key-generation \
-          --tmp & sleep 2' &
+          --tmp' > 9911.out &
       - name: Run current runtime
         run: |
           chmod +x next-runtime-release/moonbeam
@@ -82,12 +96,17 @@ jobs:
           --alice \
           --rpc-port=9977 \
           --unsafe-force-node-key-generation \
-          --tmp & sleep 2' &
-
+          --tmp' > 9977.out &
       - name: Run Diffs
         run: |
+          sleep 20; # Wait for nodes to be ready
           mkdir -p runtime-diffs/${{ matrix.runtime }}
           subxt diff -a ws://127.0.0.1:9911 ws://127.0.0.1:9977 | sed 's/\x1b\[[0-9;]*m//g' > runtime-diffs/${{ matrix.runtime }}/${{ github.event.inputs.spec_version }}.txt
+          if [ $? -ne 0 ]; then
+            cat 9911.out
+            cat 9977.out
+            exit 1;
+          fi
       - name: Stop Node Services
         if: always()
         run: |

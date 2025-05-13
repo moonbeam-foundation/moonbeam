@@ -1,4 +1,4 @@
-// Copyright 2024 Moonbeam Foundation.
+// Copyright 2025 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 use crate::{AssetStatus, Call, Config, Pallet};
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::v2::*;
 use frame_support::pallet_prelude::*;
 use frame_system::RawOrigin;
 use sp_runtime::traits::ConstU32;
@@ -32,84 +32,141 @@ fn str_to_bv(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 	str_.as_bytes().to_vec().try_into().expect("too long")
 }
 
-benchmarks! {
-	// Worst case scenario: MaxForeignAssets minus one already exists
-	create_foreign_asset {
-		let asset_id = T::MaxForeignAssets::get() as u128;
-	}: _(RawOrigin::Root, asset_id, Location::parent(), 18, str_to_bv("MT"), str_to_bv("Mytoken"))
-	verify {
+#[benchmarks(
+	where T: Config + pallet_ethereum::Config
+)]
+mod benchmarks {
+	use super::*;
+
+	#[benchmark]
+	fn create_foreign_asset() -> Result<(), BenchmarkError> {
+		let max_assets = T::MaxForeignAssets::get() as u128;
+
+		for i in 1..max_assets {
+			let symbol = sp_runtime::format!("MT{}", i);
+			let name = sp_runtime::format!("Mytoken{}", i);
+			Pallet::<T>::create_foreign_asset(
+				RawOrigin::Root.into(),
+				i,
+				location_of(i),
+				18,
+				str_to_bv(&symbol),
+				str_to_bv(&name),
+			)?;
+		}
+
+		let asset_id = max_assets;
+		let symbol = sp_runtime::format!("MT{}", asset_id);
+		let name = sp_runtime::format!("Mytoken{}", asset_id);
+
+		#[extrinsic_call]
+		_(
+			RawOrigin::Root,
+			asset_id,
+			Location::parent(),
+			18,
+			str_to_bv(&symbol),
+			str_to_bv(&name),
+		);
+
 		assert_eq!(
 			Pallet::<T>::assets_by_id(asset_id),
 			Some(Location::parent())
 		);
+
+		Ok(())
 	}
 
-	// Worst case scenario: MaxForeignAssets already exists
-	change_xcm_location {
-		let asset_id = T::MaxForeignAssets::get() as u128;
-		Pallet::<T>::create_foreign_asset(
-			RawOrigin::Root.into(),
-			asset_id,
-			location_of(asset_id),
-			18,
-			str_to_bv("MT"),
-			str_to_bv("Mytoken"),
-		)?;
-	}: _(RawOrigin::Root, asset_id, Location::here())
-	verify {
-		assert_eq!(
-			Pallet::<T>::assets_by_id(asset_id),
-			Some(Location::here())
-		);
+	#[benchmark]
+	fn change_xcm_location() -> Result<(), BenchmarkError> {
+		let max_assets = T::MaxForeignAssets::get() as u128;
+		for i in 1..=max_assets {
+			let symbol = sp_runtime::format!("MT{}", i);
+			let name = sp_runtime::format!("Mytoken{}", i);
+			Pallet::<T>::create_foreign_asset(
+				RawOrigin::Root.into(),
+				i,
+				location_of(i),
+				18,
+				str_to_bv(&symbol),
+				str_to_bv(&name),
+			)?;
+		}
+
+		let asset_id = max_assets;
+
+		#[extrinsic_call]
+		_(RawOrigin::Root, asset_id, Location::here());
+
+		assert_eq!(Pallet::<T>::assets_by_id(asset_id), Some(Location::here()));
+
+		Ok(())
 	}
 
-	// Worst case scenario: MaxForeignAssets already exists
-	freeze_foreign_asset {
-		let asset_id = T::MaxForeignAssets::get() as u128;
-		Pallet::<T>::create_foreign_asset(
-			RawOrigin::Root.into(),
-			asset_id,
-			location_of(asset_id),
-			18,
-			str_to_bv("MT"),
-			str_to_bv("Mytoken"),
-		)?;
-	}: _(RawOrigin::Root, asset_id, true)
-	verify {
+	#[benchmark]
+	fn freeze_foreign_asset() -> Result<(), BenchmarkError> {
+		let max_assets = T::MaxForeignAssets::get() as u128;
+		for i in 1..=max_assets {
+			let symbol = sp_runtime::format!("MT{}", i);
+			let name = sp_runtime::format!("Mytoken{}", i);
+			Pallet::<T>::create_foreign_asset(
+				RawOrigin::Root.into(),
+				i,
+				location_of(i),
+				18,
+				str_to_bv(&symbol),
+				str_to_bv(&name),
+			)?;
+		}
+
+		let asset_id = max_assets;
+
+		#[extrinsic_call]
+		_(RawOrigin::Root, asset_id, true);
+
 		assert_eq!(
 			Pallet::<T>::assets_by_location(location_of(asset_id)),
 			Some((asset_id, AssetStatus::FrozenXcmDepositAllowed))
 		);
+
+		Ok(())
 	}
 
-	// Worst case scenario:
-	// - MaxForeignAssets already exists
-	// - The asset to unfreeze is already frozen (to avoid early error)
-	unfreeze_foreign_asset {
-		let asset_id = T::MaxForeignAssets::get() as u128;
-		Pallet::<T>::create_foreign_asset(
-			RawOrigin::Root.into(),
-			asset_id,
-			location_of(asset_id),
-			18,
-			str_to_bv("MT"),
-			str_to_bv("Mytoken"),
-		)?;
-		Pallet::<T>::freeze_foreign_asset(
-			RawOrigin::Root.into(),
-			asset_id,
-			true
-		)?;
+	#[benchmark]
+	fn unfreeze_foreign_asset() -> Result<(), BenchmarkError> {
+		let max_assets = T::MaxForeignAssets::get() as u128;
+		for i in 1..=max_assets {
+			let symbol = sp_runtime::format!("MT{}", i);
+			let name = sp_runtime::format!("Mytoken{}", i);
+			Pallet::<T>::create_foreign_asset(
+				RawOrigin::Root.into(),
+				i,
+				location_of(i),
+				18,
+				str_to_bv(&symbol),
+				str_to_bv(&name),
+			)?;
+
+			let _ = Pallet::<T>::freeze_foreign_asset(RawOrigin::Root.into(), i, true);
+		}
+
+		let asset_id = max_assets;
+
+		#[extrinsic_call]
+		_(RawOrigin::Root, asset_id);
+
 		assert_eq!(
 			Pallet::<T>::assets_by_location(location_of(asset_id)),
-			Some((asset_id, AssetStatus::FrozenXcmDepositAllowed))
+			Some((asset_id, AssetStatus::Active))
 		);
-	}: _(RawOrigin::Root, asset_id)
-	verify {
-		assert_eq!(
-			Pallet::<T>::assets_by_location(location_of(asset_id)),
-			Some((asset_id.into(), AssetStatus::Active))
-		);
+
+		Ok(())
+	}
+
+	impl_benchmark_test_suite! {
+		Pallet,
+		crate::benchmarks::tests::new_test_ext(),
+		crate::mock::Test
 	}
 }
 
@@ -126,9 +183,3 @@ mod tests {
 		TestExternalities::new(t)
 	}
 }
-
-impl_benchmark_test_suite!(
-	Pallet,
-	crate::benchmarks::tests::new_test_ext(),
-	crate::mock::Test
-);

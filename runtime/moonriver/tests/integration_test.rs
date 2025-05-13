@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -19,7 +19,10 @@
 #![cfg(test)]
 
 mod common;
+
 use common::*;
+use std::cell::Cell;
+use std::rc::Rc;
 
 use fp_evm::{Context, IsPrecompileResult};
 use frame_support::traits::fungible::Inspect;
@@ -40,9 +43,10 @@ use moonriver_runtime::runtime_params::dynamic_params;
 use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
-	AssetId, Balances, CrowdloanRewards, Executive, OpenTechCommitteeCollective, PolkadotXcm,
-	Precompiles, RuntimeBlockWeights, TransactionPayment, TransactionPaymentAsGasPrice, Treasury,
-	TreasuryCouncilCollective, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	AssetId, Balances, CrowdloanRewards, EvmForeignAssets, Executive, OpenTechCommitteeCollective,
+	PolkadotXcm, Precompiles, RuntimeBlockWeights, TransactionPayment,
+	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -1098,7 +1102,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(AccountId::from(BOB).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1111,7 +1115,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1183,7 +1187,7 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1751,7 +1755,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					ForeignAssetsPCall::total_supply {},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * MOVR));
 
@@ -1764,7 +1768,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * MOVR));
 		});
@@ -1809,7 +1813,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(24801)
+				.expect_cost(26695)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1828,7 +1832,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * MOVR));
 		});
@@ -1873,7 +1877,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(15589)
+				.expect_cost(17338)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1894,7 +1898,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(30061)
+				.expect_cost(31998)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1913,7 +1917,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * MOVR));
 		});
@@ -1921,62 +1925,116 @@ fn xcm_asset_erc20_precompiles_approve() {
 
 #[test]
 fn xtokens_precompiles_transfer() {
-	ExtBuilder::default()
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_safe_xcm_version(3)
-		.build()
-		.execute_with(|| {
-			let xtokens_precompile_address = H160::from_low_u64_be(2052);
+	fn run_test_variant(evm_native: bool) {
+		let mut builder = ExtBuilder::default();
 
-			// We have the assetId that corresponds to the relay chain registered
-			let relay_asset_id: moonriver_runtime::AssetId =
-				AssetType::Xcm(xcm::v3::Location::parent()).into();
+		if evm_native {
+			builder = builder.with_evm_native_foreign_assets();
+		}
 
-			// Its address is
-			let asset_precompile_address = Runtime::asset_id_to_account(
-				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-				relay_asset_id,
-			);
+		let asset_type = AssetType::Xcm(xcm::v3::Location::parent());
+		builder
+			.with_xcm_assets(vec![XcmAssetInitialization {
+				asset_type: asset_type.clone(),
+				metadata: AssetRegistrarMetadata {
+					name: b"RelayToken".to_vec(),
+					symbol: b"Relay".to_vec(),
+					decimals: 12,
+					is_frozen: false,
+				},
+				balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+				is_sufficient: true,
+			}])
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * MOVR),
+				(AccountId::from(BOB), 1_000 * MOVR),
+			])
+			.with_safe_xcm_version(3)
+			.build()
+			.execute_with(|| {
+				let xtokens_precompile_address = H160::from_low_u64_be(2052);
 
-			// Alice has 1000 tokens. She should be able to send through precompile
-			let destination = Location::new(
-				1,
-				[Junction::AccountId32 {
-					network: None,
-					id: [1u8; 32],
-				}],
-			);
+				// We have the assetId that corresponds to the relay chain registered
+				let relay_asset_id: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
 
-			// We use the address of the asset as an identifier of the asset we want to transferS
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					xtokens_precompile_address,
-					XtokensPCall::transfer {
-						currency_address: Address(asset_precompile_address.into()),
-						amount: 500_000_000_000_000u128.into(),
-						destination,
-						weight: 4_000_000,
-					},
-				)
-				.expect_cost(24692)
-				.expect_no_logs()
-				.execute_returns(())
-		})
+				// Its address is
+				let asset_precompile_address = Runtime::asset_id_to_account(
+					FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+					relay_asset_id,
+				);
+
+				// Alice has 1000 tokens. She should be able to send through precompile
+				let destination = Location::new(
+					1,
+					[Junction::AccountId32 {
+						network: None,
+						id: [1u8; 32],
+					}],
+				);
+
+				let inside = Rc::new(Cell::new(false));
+				let inside2 = inside.clone();
+
+				// We use the address of the asset as an identifier of the asset we want to transfer
+				Precompiles::new()
+					.prepare_test(
+						ALICE,
+						xtokens_precompile_address,
+						XtokensPCall::transfer {
+							currency_address: Address(asset_precompile_address.into()),
+							amount: 500_000_000_000_000u128.into(),
+							destination,
+							weight: 4_000_000,
+						},
+					)
+					.expect_cost(if evm_native { 178506 } else { 26906 })
+					.expect_no_logs()
+					// We expect an evm subcall ERC20.burnFrom
+					.with_subcall_handle(move |subcall| {
+						let Subcall {
+							address,
+							transfer,
+							input,
+							target_gas: _,
+							is_static,
+							context,
+						} = subcall;
+
+						assert_eq!(context.caller, EvmForeignAssets::account_id().into());
+
+						let asset_id: u128 = asset_type.clone().into();
+						let expected_address: H160 = Runtime::asset_id_to_account(
+							FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+							asset_id,
+						)
+						.into();
+						assert_eq!(address, expected_address);
+						assert_eq!(is_static, false);
+
+						assert!(transfer.is_none());
+
+						assert_eq!(context.address, expected_address);
+						assert_eq!(context.apparent_value, 0u8.into());
+
+						assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
+						assert_eq!(&input[4..16], &[0u8; 12]);
+						assert_eq!(&input[16..36], ALICE);
+
+						inside2.set(true);
+
+						SubcallOutput {
+							output: Default::default(),
+							cost: 149_000,
+							logs: vec![],
+							..SubcallOutput::succeed()
+						}
+					})
+					.execute_returns(())
+			})
+	}
+
+	run_test_variant(false);
+	run_test_variant(true);
 }
 
 #[test]
@@ -2025,7 +2083,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24692)
+				.expect_cost(26906)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2196,7 +2254,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(21465)
+				.expect_cost(25411)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2319,7 +2377,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2339,7 +2397,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2369,7 +2427,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_location,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2390,7 +2448,7 @@ fn test_xcm_utils_weight_message() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(0)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(expected_weight);
 	});
@@ -2409,7 +2467,7 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});

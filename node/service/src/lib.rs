@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -362,7 +362,7 @@ pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 pub fn new_chain_ops(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
-	experimental_block_import_strategy: bool,
+	legacy_block_import_strategy: bool,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -377,17 +377,17 @@ pub fn new_chain_ops(
 		spec if spec.is_moonriver() => new_chain_ops_inner::<
 			moonriver_runtime::RuntimeApi,
 			MoonriverCustomizations,
-		>(config, rpc_config, experimental_block_import_strategy),
+		>(config, rpc_config, legacy_block_import_strategy),
 		#[cfg(feature = "moonbeam-native")]
 		spec if spec.is_moonbeam() => new_chain_ops_inner::<
 			moonbeam_runtime::RuntimeApi,
 			MoonbeamCustomizations,
-		>(config, rpc_config, experimental_block_import_strategy),
+		>(config, rpc_config, legacy_block_import_strategy),
 		#[cfg(feature = "moonbase-native")]
 		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseCustomizations>(
 			config,
 			rpc_config,
-			experimental_block_import_strategy,
+			legacy_block_import_strategy,
 		),
 		#[cfg(not(feature = "moonbase-native"))]
 		_ => panic!("invalid chain spec"),
@@ -398,7 +398,7 @@ pub fn new_chain_ops(
 fn new_chain_ops_inner<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
-	experimental_block_import_strategy: bool,
+	legacy_block_import_strategy: bool,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -425,7 +425,7 @@ where
 		config,
 		rpc_config,
 		config.chain_spec.is_dev(),
-		experimental_block_import_strategy,
+		legacy_block_import_strategy,
 	)?;
 	Ok((
 		Arc::new(Client::from(client)),
@@ -465,7 +465,7 @@ pub fn new_partial<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
 	dev_service: bool,
-	experimental_block_import_strategy: bool,
+	legacy_block_import_strategy: bool,
 ) -> PartialComponentsResult<FullClient<RuntimeApi>, FullBackend>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
@@ -569,18 +569,18 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				!experimental_block_import_strategy,
+				legacy_block_import_strategy,
 			)?,
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
 	} else {
-		let parachain_block_import = if experimental_block_import_strategy {
-			ParachainBlockImport::new(frontier_block_import, backend.clone())
-		} else {
+		let parachain_block_import = if legacy_block_import_strategy {
 			ParachainBlockImport::new_with_delayed_best_block(
 				frontier_block_import,
 				backend.clone(),
 			)
+		} else {
+			ParachainBlockImport::new(frontier_block_import, backend.clone())
 		};
 		(
 			nimbus_consensus::import_queue(
@@ -589,7 +589,7 @@ where
 				create_inherent_data_providers,
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
-				!experimental_block_import_strategy,
+				legacy_block_import_strategy,
 			)?,
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)
@@ -654,7 +654,8 @@ async fn start_node_impl<RuntimeApi, Customizations, Net>(
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
-	experimental_block_import_strategy: bool,
+	legacy_block_import_strategy: bool,
+	nimbus_full_pov: bool,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
@@ -668,7 +669,7 @@ where
 		&mut parachain_config,
 		&rpc_config,
 		false,
-		experimental_block_import_strategy,
+		legacy_block_import_strategy,
 	)?;
 	let (
 		block_import,
@@ -789,6 +790,7 @@ where
 		let backend = backend.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
+		let max_block_range = rpc_config.max_block_range;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
@@ -830,6 +832,7 @@ where
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				max_block_range,
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
@@ -949,6 +952,7 @@ where
 			relay_chain_slot_duration,
 			block_authoring_duration,
 			sync_service.clone(),
+			nimbus_full_pov,
 		)?;
 		/*let parachain_consensus = build_consensus(
 			client.clone(),
@@ -1012,6 +1016,7 @@ fn start_consensus<RuntimeApi, SO>(
 	relay_chain_slot_duration: Duration,
 	block_authoring_duration: Duration,
 	sync_oracle: SO,
+	nimbus_full_pov: bool,
 ) -> Result<(), sc_service::Error>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
@@ -1106,6 +1111,7 @@ where
 				slot_duration: None,
 				sync_oracle,
 				reinitialize: false,
+				full_pov_size: nimbus_full_pov,
 			}),
 		);
 	} else {
@@ -1131,6 +1137,7 @@ where
 					para_client: client,
 					proposer,
 					relay_client: relay_chain_interface,
+					full_pov_size: nimbus_full_pov,
 				},
 			),
 		);
@@ -1151,7 +1158,8 @@ pub async fn start_node<RuntimeApi, Customizations>(
 	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
-	experimental_block_import_strategy: bool
+	legacy_block_import_strategy: bool,
+	nimbus_full_pov: bool,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi:
@@ -1169,7 +1177,8 @@ where
 		async_backing,
 		block_authoring_duration,
 		hwbench,
-		experimental_block_import_strategy
+		legacy_block_import_strategy,
+		nimbus_full_pov,
 	)
 	.await
 }
@@ -1531,6 +1540,7 @@ where
 		let sync = sync_service.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
+		let max_block_range = rpc_config.max_block_range;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
@@ -1552,6 +1562,7 @@ where
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				max_block_range,
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),

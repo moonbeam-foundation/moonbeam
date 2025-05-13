@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -156,7 +156,7 @@ type MoonbeamPrecompilesAt<R> = (
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<
-		AddressU64<2050>,
+		AddressU64<ERC20_BALANCES_PRECOMPILE>,
 		Erc20BalancesPrecompile<R, NativeErc20Metadata>,
 		(CallableByContract, CallableByPrecompile),
 	>,

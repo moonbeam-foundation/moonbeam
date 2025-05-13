@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -19,13 +19,15 @@
 pub mod cumulus_pallet_parachain_system;
 pub mod cumulus_pallet_xcmp_queue;
 pub mod db;
+pub mod frame_system;
 pub mod pallet_asset_manager;
 pub mod pallet_assets;
 pub mod pallet_author_inherent;
 pub mod pallet_author_mapping;
 pub mod pallet_author_slot_filter;
 pub mod pallet_balances;
-pub mod pallet_collective;
+pub mod pallet_collective_open_tech_committee;
+pub mod pallet_collective_treasury_council;
 pub mod pallet_conviction_voting;
 pub mod pallet_crowdloan_rewards;
 pub mod pallet_evm;
