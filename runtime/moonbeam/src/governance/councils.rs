@@ -17,6 +17,7 @@
 //! Councils for Gov1 and Gov2
 
 use super::*;
+use crate::governance::referenda::FastGeneralAdminOrRoot;
 
 pub type TreasuryCouncilInstance = pallet_collective::Instance3;
 pub type OpenTechCommitteeInstance = pallet_collective::Instance4;
@@ -41,8 +42,8 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_collective_treasury_council::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
-	type KillOrigin = EnsureRoot<AccountId>;
-	type DisapproveOrigin = EnsureRoot<AccountId>;
+	type KillOrigin = FastGeneralAdminOrRoot;
+	type DisapproveOrigin = FastGeneralAdminOrRoot;
 	type Consideration = ();
 }
 
@@ -61,7 +62,7 @@ impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_collective_open_tech_committee::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
-	type KillOrigin = EnsureRoot<AccountId>;
-	type DisapproveOrigin = EnsureRoot<AccountId>;
+	type KillOrigin = FastGeneralAdminOrRoot;
+	type DisapproveOrigin = FastGeneralAdminOrRoot;
 	type Consideration = ();
 }
