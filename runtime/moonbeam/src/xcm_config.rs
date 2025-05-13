@@ -27,10 +27,7 @@ use super::{
 use super::moonbeam_weights;
 use frame_support::{
 	parameter_types,
-	traits::{
-		fungible::NativeOrWithId, EitherOf, EitherOfDiverse, Everything, Nothing, PalletInfoAccess,
-		TransformOrigin,
-	},
+	traits::{EitherOf, EitherOfDiverse, Everything, Nothing, PalletInfoAccess, TransformOrigin},
 };
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
