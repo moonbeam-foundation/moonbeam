@@ -19,6 +19,7 @@ pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
+pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
@@ -105,6 +106,7 @@ std = [
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-ethereum-xcm/std",
+	"pallet-ethereum/std",
 	"pallet-evm/std",
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",
@@ -147,6 +149,7 @@ runtime-benchmarks = [
 	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"pallet-ethereum-xcm/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks",
 	"pallet-evm/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
