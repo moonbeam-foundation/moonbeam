@@ -80,17 +80,17 @@ where
 
 	#[cfg(feature = "runtime-benchmarks")]
 	fn ensure_successful(
-		beneficiary: &Self::Beneficiary,
+		_beneficiary: &Self::Beneficiary,
 		asset: Self::AssetKind,
 		amount: Self::Balance,
 	) {
-		use pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS;
-		use xcm::opaque::v4::Junction::Parachain;
-		use xcm::v4::Location;
 		let treasury = TreasuryAccount::get();
 		match asset {
 			Self::AssetKind::Native => {
-				<NativeAsset as fungible::Mutate<_>>::mint_into(&treasury, (amount as u32).into());
+				let _ = <NativeAsset as fungible::Mutate<_>>::mint_into(
+					&treasury,
+					(amount as u32).into(),
+				);
 			}
 			Self::AssetKind::WithId(id) => {
 				// Fund treasury account
