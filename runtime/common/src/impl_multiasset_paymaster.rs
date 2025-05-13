@@ -32,8 +32,8 @@ where
 	R: frame_system::Config,
 	TreasuryAccount: Get<R::AccountId>,
 	NativeAsset: fungible::Mutate<R::AccountId> + fungible::Inspect<R::AccountId>,
-	ForeignAssets: pallet_moonbeam_foreign_assets::SimpleMutate<R>
-		+ pallet_moonbeam_foreign_assets::SimpleAssetExists,
+	ForeignAssets: pallet_moonbeam_foreign_assets::AssetMutate<R>
+		+ pallet_moonbeam_foreign_assets::AssetInspect,
 {
 	type Balance = Balance;
 	type Beneficiary = R::AccountId;
