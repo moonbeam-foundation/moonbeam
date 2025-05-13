@@ -157,30 +157,6 @@ impl TransactAsset for MockAssetTransactor {
 	}
 }
 
-pub struct MockAssetIdentifier;
-impl MaybeEquivalence<Location, u128> for MockAssetIdentifier {
-	fn convert(location: &Location) -> Option<u128> {
-		match location {
-			Location {
-				parents: 0,
-				interior: Junctions::Here,
-			} => Some(0),
-			Location {
-				parents: 1,
-				interior: Junctions::Here,
-			} => Some(1),
-			_ => None,
-		}
-	}
-	fn convert_back(asset_id: &u128) -> Option<Location> {
-		match asset_id {
-			0 => Some(Location::here()),
-			1 => Some(Location::parent()),
-			_ => None,
-		}
-	}
-}
-
 ord_parameter_types! {
 	pub const AddAccount: u64 = 1;
 	pub const EditAccount: u64 = 2;
@@ -193,13 +169,6 @@ parameter_types! {
 	pub NativeLocation: Location = Location::here();
 	pub XcmFeesAccount: AccountId = 101;
 	pub NotFilteredLocation: Location = Location::parent();
-}
-
-pub struct DummyAssetCreator;
-impl AssetCreate for DummyAssetCreator {
-	fn create_asset(_id: u128, _xcm_location: Location) -> DispatchResult {
-		Ok(())
-	}
 }
 
 impl Config for Test {
