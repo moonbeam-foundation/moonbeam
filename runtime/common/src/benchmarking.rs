@@ -27,6 +27,11 @@ impl ArgumentsFactory<NativeOrWithId<AssetId>, AccountId20> for BenchmarkHelper 
 	}
 
 	fn create_beneficiary(seed: [u8; 32]) -> AccountId20 {
-		AccountId20::from(seed)
+		// Avoid generating a zero address
+		let invalid = [0, 32];
+		match seed {
+			invalid => AccountId20::from([1; 32]),
+			_ => AccountId20::from(seed),
+		}
 	}
 }
