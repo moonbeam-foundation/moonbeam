@@ -1071,7 +1071,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1084,7 +1084,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1155,7 +1155,7 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1250,7 +1250,7 @@ fn update_reward_address_via_precompile() {
 #[test]
 fn create_and_manipulate_foreign_asset_using_root() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = xcm::v4::Location::parent();
+		let source_location = xcm::v5::Location::parent();
 
 		// Create foreign asset
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
@@ -1357,7 +1357,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1412,7 +1412,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1473,7 +1473,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1555,7 +1555,7 @@ fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1603,7 +1603,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(176653)
+				.expect_cost(178322)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1653,7 +1653,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1694,7 +1694,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(176653)
+				.expect_cost(178322)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1778,7 +1778,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(25053)
+				.expect_cost(26722)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -1806,7 +1806,7 @@ fn length_fee_is_sensible() {
 	// tests that length fee is sensible for a few hypothetical transactions
 	ExtBuilder::default().build().execute_with(|| {
 		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
-		let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
+		let uxt: TestXt<_, ()> = TestXt::new_signed(RuntimeCall::System(call), 1u64, (), ());
 
 		let calc_fee = |len: u32| -> Balance {
 			moonbase_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
@@ -2119,7 +2119,7 @@ fn root_can_change_default_xcm_vers() {
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -2143,8 +2143,8 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::V4(Location::parent())),
-					Box::new(VersionedLocation::V4(Location {
+					Box::new(VersionedLocation::from(Location::parent())),
+					Box::new(VersionedLocation::from(Location {
 						parents: 0,
 						interior: [AccountId32 {
 							network: None,
@@ -2152,7 +2152,7 @@ fn root_can_change_default_xcm_vers() {
 						}]
 						.into(),
 					})),
-					Box::new(VersionedAssets::V4(asset.clone().into())),
+					Box::new(VersionedAssets::from(asset.clone())),
 					0,
 					WeightLimit::Unlimited
 				),
@@ -2162,14 +2162,14 @@ fn root_can_change_default_xcm_vers() {
 			// Root sets the defaultXcm
 			assert_ok!(PolkadotXcm::force_default_xcm_version(
 				root_origin(),
-				Some(4)
+				Some(5)
 			));
 
 			// Now transferring does not fail
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(Location::parent())),
-				Box::new(VersionedLocation::V4(Location {
+				Box::new(VersionedLocation::from(Location::parent())),
+				Box::new(VersionedLocation::from(Location {
 					parents: 0,
 					interior: [AccountId32 {
 						network: None,
@@ -2177,7 +2177,7 @@ fn root_can_change_default_xcm_vers() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::V4(asset.into())),
+				Box::new(VersionedAssets::from(asset)),
 				0,
 				WeightLimit::Unlimited
 			));
@@ -2193,7 +2193,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -2211,7 +2211,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				20000.into(),
@@ -2220,7 +2220,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1,
 			));
 
@@ -2230,9 +2230,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
-							Location::parent()
-						))),
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedLocation::from(Location::parent())
+						)),
 						fee_amount: None
 					},
 					vec![],
@@ -2287,9 +2287,9 @@ fn root_can_use_hrmp_manage() {
 						para_id: 2000u32.into()
 					},
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
-							Location::parent()
-						))),
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedLocation::from(Location::parent())
+						)),
 						fee_amount: Some(10000)
 					},
 					// 20000 is the max
@@ -2325,7 +2325,7 @@ fn transact_through_signed_precompile_works_v1() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				Weight::from_parts(200_000, (xcm_primitives::DEFAULT_PROOF_SIZE) + 4000),
@@ -2334,7 +2334,7 @@ fn transact_through_signed_precompile_works_v1() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1,
 			));
 
@@ -2349,7 +2349,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(23722)
+				.expect_cost(25391)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2389,7 +2389,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23722)
+				.expect_cost(25391)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2471,7 +2471,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(14416)
+				.expect_cost(16085)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2493,7 +2493,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(13916)
+				.expect_cost(15585)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2514,7 +2514,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14443)
+				.expect_cost(16112)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2557,7 +2557,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16228)
+				.expect_cost(17897)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2582,7 +2582,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16228)
+				.expect_cost(17897)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2613,7 +2613,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2633,7 +2633,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2663,7 +2663,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2676,7 +2676,7 @@ fn test_xcm_utils_weight_message() {
 		let expected_weight =
 			XcmWeight::<moonbase_runtime::Runtime, RuntimeCall>::clear_origin().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),
@@ -2684,7 +2684,7 @@ fn test_xcm_utils_weight_message() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(0)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(expected_weight);
 	});
@@ -2703,7 +2703,7 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});
@@ -2776,7 +2776,7 @@ fn precompile_existence() {
 fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
-		let removed_precompiles = [1025, 2051, 2062, 2063];
+		let removed_precompiles = [1025, 1027, 2051, 2062, 2063];
 
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);
@@ -2820,9 +2820,10 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 		let size_bytes = 0;
 		let tip = 0;
 		let dispatch_info = DispatchInfo {
-			weight: Weight::zero(),
 			class: DispatchClass::Normal,
 			pays_fee: Pays::Yes,
+			call_weight: Weight::zero(),
+			extension_weight: Weight::zero(),
 		};
 
 		assert_eq!(
@@ -2989,7 +2990,7 @@ fn validate_transaction_fails_on_filtered_call() {
 	use sp_transaction_pool::runtime_api::runtime_decl_for_tagged_transaction_queue::TaggedTransactionQueueV3; // editorconfig-checker-disable-line
 
 	ExtBuilder::default().build().execute_with(|| {
-		let xt = UncheckedExtrinsic::new_unsigned(
+		let xt = UncheckedExtrinsic::new_bare(
 			pallet_evm::Call::<Runtime>::call {
 				source: Default::default(),
 				target: H160::default(),
@@ -3463,7 +3464,8 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: Weight::from_parts(extrinsic_weight, 1),
+					call_weight: Weight::from_parts(extrinsic_weight, 1),
+					extension_weight: Weight::zero(),
 				},
 				tip,
 			);

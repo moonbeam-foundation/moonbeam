@@ -57,7 +57,7 @@ fn test_get_account_parent() {
 
 		precompiles()
 			.prepare_test(Alice, Precompile1, input)
-			.expect_cost(1)
+			.expect_cost(2)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address));
 	});
@@ -78,7 +78,7 @@ fn test_get_account_sibling() {
 
 		precompiles()
 			.prepare_test(Alice, Precompile1, input)
-			.expect_cost(1)
+			.expect_cost(2)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address));
 	});
@@ -87,7 +87,7 @@ fn test_get_account_sibling() {
 #[test]
 fn test_weight_message() {
 	ExtBuilder::default().build().execute_with(|| {
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 		let input = PCall::weight_message {
 			message: message.into(),
@@ -95,7 +95,7 @@ fn test_weight_message() {
 
 		precompiles()
 			.prepare_test(Alice, Precompile1, input)
-			.expect_cost(0)
+			.expect_cost(1)
 			.expect_no_logs()
 			.execute_returns(1000u64);
 	});
@@ -110,7 +110,7 @@ fn test_get_units_per_second() {
 
 		precompiles()
 			.prepare_test(Alice, Precompile1, input)
-			.expect_cost(1)
+			.expect_cost(2)
 			.expect_no_logs()
 			.execute_returns(U256::from(1_000_000_000_000u128));
 	});
@@ -119,7 +119,7 @@ fn test_get_units_per_second() {
 #[test]
 fn test_executor_clear_origin() {
 	ExtBuilder::default().build().execute_with(|| {
-		let xcm_to_execute = VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+		let xcm_to_execute = VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 		let input = PCall::xcm_execute {
 			message: xcm_to_execute.into(),
@@ -138,7 +138,7 @@ fn test_executor_clear_origin() {
 fn test_executor_send() {
 	ExtBuilder::default().build().execute_with(|| {
 		let withdrawn_asset: Asset = (Location::parent(), 1u128).into();
-		let xcm_to_execute = VersionedXcm::<()>::V4(Xcm(vec![
+		let xcm_to_execute = VersionedXcm::<()>::V5(Xcm(vec![
 			WithdrawAsset(vec![withdrawn_asset].into()),
 			InitiateReserveWithdraw {
 				assets: AssetFilter::Wild(All),
@@ -185,9 +185,9 @@ fn test_executor_transact() {
 			}
 			.encode();
 			encoded.append(&mut call_bytes);
-			let xcm_to_execute = VersionedXcm::<()>::V4(Xcm(vec![Transact {
+			let xcm_to_execute = VersionedXcm::<()>::V5(Xcm(vec![Transact {
 				origin_kind: OriginKind::SovereignAccount,
-				require_weight_at_most: Weight::from_parts(1_000_000_000u64, 5206u64),
+				fallback_max_weight: Some(Weight::from_parts(1_000_000_000u64, 5206u64)),
 				call: encoded.into(),
 			}]))
 			.encode();
@@ -199,7 +199,7 @@ fn test_executor_transact() {
 
 			precompiles()
 				.prepare_test(CryptoAlith, Precompile1, input)
-				.expect_cost(1100001001)
+				.expect_cost(276106001)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -212,7 +212,7 @@ fn test_executor_transact() {
 #[test]
 fn test_send_clear_origin() {
 	ExtBuilder::default().build().execute_with(|| {
-		let xcm_to_send = VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+		let xcm_to_send = VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 		let input = PCall::xcm_send {
 			dest: Location::parent(),
@@ -222,7 +222,7 @@ fn test_send_clear_origin() {
 		precompiles()
 			.prepare_test(CryptoAlith, Precompile1, input)
 			// Only the cost of TestWeightInfo
-			.expect_cost(100000000)
+			.expect_cost(100000001)
 			.expect_no_logs()
 			.execute_returns(());
 
@@ -252,7 +252,7 @@ fn execute_fails_if_called_by_smart_contract() {
 				},
 			);
 
-			let xcm_to_execute = VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+			let xcm_to_execute = VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 			let input = PCall::xcm_execute {
 				message: xcm_to_execute.into(),

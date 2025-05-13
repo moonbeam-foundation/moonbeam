@@ -42,7 +42,7 @@ use moonbeam_core_primitives::{AssetId, Balance};
 use sp_runtime::traits::MaybeEquivalence;
 use sp_runtime::traits::{Convert, Zero};
 use sp_std::vec::Vec;
-use xcm::v4::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
+use xcm::v5::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
 use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
@@ -286,37 +286,38 @@ pub mod pallet {
 		pub fn query_acceptable_payment_assets(
 			xcm_version: xcm::Version,
 		) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
-			if !matches!(xcm_version, 3 | 4) {
-				return Err(XcmPaymentApiError::UnhandledXcmVersion);
-			}
-
-			let v4_assets = [VersionedAssetId::V4(XcmAssetId::from(
+			let v5_assets = [VersionedAssetId::from(XcmAssetId::from(
 				T::NativeLocation::get(),
 			))]
 			.into_iter()
 			.chain(
 				SupportedAssets::<T>::iter().filter_map(|(asset_location, (enabled, _))| {
-					enabled.then(|| VersionedAssetId::V4(XcmAssetId(asset_location)))
+					enabled.then(|| VersionedAssetId::from(XcmAssetId(asset_location)))
 				}),
 			)
 			.collect::<Vec<_>>();
 
-			if xcm_version == 3 {
-				v4_assets
+			match xcm_version {
+				xcm::v3::VERSION => v5_assets
 					.into_iter()
-					.map(|v4_asset| v4_asset.into_version(3))
+					.map(|v5_asset| v5_asset.into_version(xcm::v3::VERSION))
 					.collect::<Result<_, _>>()
-					.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)
-			} else {
-				Ok(v4_assets)
+					.map_err(|_| XcmPaymentApiError::VersionedConversionFailed),
+				xcm::v4::VERSION => v5_assets
+					.into_iter()
+					.map(|v5_asset| v5_asset.into_version(xcm::v4::VERSION))
+					.collect::<Result<_, _>>()
+					.map_err(|_| XcmPaymentApiError::VersionedConversionFailed),
+				xcm::v5::VERSION => Ok(v5_assets),
+				_ => Err(XcmPaymentApiError::UnhandledXcmVersion),
 			}
 		}
 		pub fn query_weight_to_asset_fee(
 			weight: Weight,
 			asset: VersionedAssetId,
 		) -> Result<u128, XcmPaymentApiError> {
-			if let VersionedAssetId::V4(XcmAssetId(asset_location)) = asset
-				.into_version(4)
+			if let VersionedAssetId::V5(XcmAssetId(asset_location)) = asset
+				.into_version(xcm::latest::VERSION)
 				.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?
 			{
 				Trader::<T>::compute_amount_to_charge(&weight, &asset_location).map_err(|e| match e

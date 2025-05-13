@@ -1113,7 +1113,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(AccountId::from(BOB).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1126,7 +1126,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1198,7 +1198,7 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1313,7 +1313,7 @@ fn length_fee_is_sensible() {
 	// tests that length fee is sensible for a few hypothetical transactions
 	ExtBuilder::default().build().execute_with(|| {
 		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
-		let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
+		let uxt: TestXt<_, ()> = TestXt::new_signed(RuntimeCall::System(call), 1u64, (), ());
 
 		let calc_fee = |len: u32| -> Balance {
 			moonbeam_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
@@ -1668,8 +1668,8 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::V4(Location::parent())),
-					Box::new(VersionedLocation::V4(Location {
+					Box::new(VersionedLocation::from(Location::parent())),
+					Box::new(VersionedLocation::from(Location {
 						parents: 0,
 						interior: [AccountId32 {
 							network: None,
@@ -1677,7 +1677,7 @@ fn root_can_change_default_xcm_vers() {
 						}]
 						.into(),
 					})),
-					Box::new(VersionedAssets::V4(asset.clone().into())),
+					Box::new(VersionedAssets::from(asset.clone())),
 					0,
 					WeightLimit::Unlimited
 				),
@@ -1693,8 +1693,8 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(Location::parent())),
-				Box::new(VersionedLocation::V4(Location {
+				Box::new(VersionedLocation::from(Location::parent())),
+				Box::new(VersionedLocation::from(Location {
 					parents: 0,
 					interior: [AccountId32 {
 						network: None,
@@ -1702,7 +1702,7 @@ fn root_can_change_default_xcm_vers() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::V4(asset.clone().into())),
+				Box::new(VersionedAssets::from(asset.clone())),
 				0,
 				WeightLimit::Unlimited
 			));
@@ -1774,7 +1774,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					ForeignAssetsPCall::total_supply {},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * GLMR));
 
@@ -1787,7 +1787,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * GLMR));
 		});
@@ -1833,7 +1833,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(25036)
+				.expect_cost(26705)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1852,7 +1852,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * GLMR));
 		});
@@ -1898,7 +1898,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(15662)
+				.expect_cost(17331)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1919,7 +1919,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * GLMR }.into(),
 					},
 				)
-				.expect_cost(30290)
+				.expect_cost(31959)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1938,7 +1938,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * GLMR));
 		});
@@ -2009,7 +2009,7 @@ fn xtokens_precompile_transfer() {
 							weight: 4_000_000,
 						},
 					)
-					.expect_cost(if evm_native { 176912 } else { 25312 })
+					.expect_cost(if evm_native { 178581 } else { 26981 })
 					.expect_no_logs()
 					// We expect an evm subcall ERC20.burnFrom
 					.with_subcall_handle(move |subcall| {
@@ -2105,7 +2105,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(25312)
+				.expect_cost(26981)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2128,8 +2128,8 @@ fn make_sure_glmr_can_be_transferred_precompile() {
 		.execute_with(|| {
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(Location::parent())),
-				Box::new(VersionedLocation::V4(Location {
+				Box::new(VersionedLocation::from(Location::parent())),
+				Box::new(VersionedLocation::from(Location {
 					parents: 0,
 					interior: [AccountId32 {
 						network: None,
@@ -2137,13 +2137,10 @@ fn make_sure_glmr_can_be_transferred_precompile() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::V4(
-					Asset {
-						id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
-						fun: Fungible(1000)
-					}
-					.into()
-				)),
+				Box::new(VersionedAssets::from(Asset {
+					id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
+					fun: Fungible(1000)
+				})),
 				0,
 				WeightLimit::Limited(40000.into())
 			));
@@ -2175,15 +2172,12 @@ fn make_sure_glmr_can_be_transferred() {
 			};
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(Location::parent())),
-				Box::new(VersionedLocation::V4(dest)),
-				Box::new(VersionedAssets::V4(
-					Asset {
-						id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
-						fun: Fungible(100)
-					}
-					.into()
-				)),
+				Box::new(VersionedLocation::from(Location::parent())),
+				Box::new(VersionedLocation::from(dest)),
+				Box::new(VersionedAssets::from(Asset {
+					id: AssetId(moonbeam_runtime::xcm_config::SelfReserve::get()),
+					fun: Fungible(100)
+				})),
 				0,
 				WeightLimit::Limited(40000.into())
 			));
@@ -2220,9 +2214,9 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedLocation::V4(dest.clone())),
-					beneficiary: Box::new(VersionedLocation::V4(dest)),
-					assets: Box::new(VersionedAssets::V4(assets)),
+					dest: Box::new(VersionedLocation::from(dest.clone())),
+					beneficiary: Box::new(VersionedLocation::from(dest)),
+					assets: Box::new(VersionedAssets::from(assets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2267,7 +2261,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23751)
+				.expect_cost(25420)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2347,7 +2341,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				20000.into(),
@@ -2357,7 +2351,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1,
 			));
 
@@ -2367,9 +2361,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbeam_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
-							Location::parent()
-						))),
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedLocation::from(Location::parent())
+						)),
 						fee_amount: None
 					},
 					vec![],
@@ -2445,9 +2439,9 @@ fn call_xtokens_with_fee() {
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(chain_part)),
-				Box::new(VersionedLocation::V4(beneficiary)),
-				Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+				Box::new(VersionedLocation::from(chain_part)),
+				Box::new(VersionedLocation::from(beneficiary)),
+				Box::new(VersionedAssets::from(vec![asset_fee, asset])),
 				0,
 				WeightLimit::Limited(4000000000.into())
 			));
@@ -2476,7 +2470,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2496,7 +2490,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_location,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2526,7 +2520,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_location,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2539,7 +2533,7 @@ fn test_xcm_utils_weight_message() {
 		let expected_weight =
 			XcmWeight::<moonbeam_runtime::Runtime, RuntimeCall>::clear_origin().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),
@@ -2547,7 +2541,7 @@ fn test_xcm_utils_weight_message() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(0)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(expected_weight);
 	});
@@ -2566,7 +2560,7 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});
@@ -2639,7 +2633,7 @@ fn precompile_existence() {
 fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
-		let removed_precompiles = [1025, 2051, 2062, 2063];
+		let removed_precompiles = [1025, 1027, 2051, 2062, 2063];
 
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);
@@ -3121,7 +3115,8 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: Weight::from_parts(extrinsic_weight, 1),
+					call_weight: Weight::from_parts(extrinsic_weight, 1),
+					extension_weight: Weight::zero(),
 				},
 				tip,
 			);

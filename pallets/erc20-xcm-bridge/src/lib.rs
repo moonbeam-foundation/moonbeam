@@ -140,8 +140,7 @@ pub mod pallet {
 			);
 
 			// return value is true.
-			let mut bytes = [0u8; 32];
-			U256::from(1).to_big_endian(&mut bytes);
+			let bytes: [u8; 32] = U256::from(1).to_big_endian();
 
 			// Check return value to make sure not calling on empty contracts.
 			ensure!(
@@ -171,20 +170,18 @@ pub mod pallet {
 				match erc20s_origins.drain(contract_address, amount) {
 					// We perform the evm transfers in a storage transaction to ensure that if one
 					// of them fails all the changes of the previous evm calls are rolled back.
-					Ok(tokens_to_transfer) => frame_support::storage::with_storage_layer(|| {
-						tokens_to_transfer
-							.into_iter()
-							.try_for_each(|(from, subamount)| {
-								Self::erc20_transfer(
-									contract_address,
-									from,
-									beneficiary,
-									subamount,
-									gas_limit,
-								)
-							})
-					})
-					.map_err(Into::into),
+					Ok(tokens_to_transfer) => tokens_to_transfer
+						.into_iter()
+						.try_for_each(|(from, subamount)| {
+							Self::erc20_transfer(
+								contract_address,
+								from,
+								beneficiary,
+								subamount,
+								gas_limit,
+							)
+						})
+						.map_err(Into::into),
 					Err(DrainError::AssetNotFound) => Err(XcmError::AssetNotFound),
 					Err(DrainError::NotEnoughFounds) => Err(XcmError::FailedToTransactAsset(
 						"not enough founds in xcm holding",
@@ -216,11 +213,7 @@ pub mod pallet {
 
 			let gas_limit = Self::gas_limit_of_erc20_transfer(&asset.id);
 
-			// We perform the evm transfers in a storage transaction to ensure that if it fail
-			// any contract storage changes are rolled back.
-			frame_support::storage::with_storage_layer(|| {
-				Self::erc20_transfer(contract_address, from, to, amount, gas_limit)
-			})?;
+			Self::erc20_transfer(contract_address, from, to, amount, gas_limit)?;
 
 			Ok(asset.clone().into())
 		}

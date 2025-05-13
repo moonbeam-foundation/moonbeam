@@ -51,7 +51,9 @@ impl xcm_executor::traits::OnResponse for DevNull {
 	}
 }
 
+#[allow(dead_code)]
 pub struct AccountIdConverter;
+
 impl ConvertLocation<u64> for AccountIdConverter {
 	fn convert_location(ml: &Location) -> Option<u64> {
 		match ml.unpack() {
@@ -69,7 +71,9 @@ parameter_types! {
 	pub WeightPrice: (AssetId, u128, u128) = (AssetId(Location::parent()), 1_000_000, 1024);
 }
 
+#[allow(dead_code)]
 pub struct AllAssetLocationsPass;
+
 impl ContainsPair<Asset, Location> for AllAssetLocationsPass {
 	fn contains(_: &Asset, _: &Location) -> bool {
 		true

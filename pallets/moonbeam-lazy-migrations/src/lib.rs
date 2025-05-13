@@ -55,10 +55,6 @@ pub mod pallet {
 	pub struct Pallet<T>(PhantomData<T>);
 
 	#[pallet::storage]
-	pub(crate) type StateMigrationStatusValue<T: Config> =
-		StorageValue<_, (StateMigrationStatus, u64), ValueQuery>;
-
-	#[pallet::storage]
 	pub(crate) type ForeignAssetMigrationStatusValue<T: Config> =
 		StorageValue<_, ForeignAssetMigrationStatus, ValueQuery>;
 
@@ -67,21 +63,6 @@ pub mod pallet {
 	pub(crate) type ApprovedForeignAssets<T: Config> =
 		StorageMap<_, Twox64Concat, u128, (), OptionQuery>;
 
-	pub(crate) type StorageKey = BoundedVec<u8, ConstU32<1_024>>;
-
-	#[derive(Clone, Encode, Decode, scale_info::TypeInfo, PartialEq, Eq, MaxEncodedLen, Debug)]
-	pub enum StateMigrationStatus {
-		NotStarted,
-		Started(StorageKey),
-		Error(BoundedVec<u8, ConstU32<1024>>),
-		Complete,
-	}
-
-	impl Default for StateMigrationStatus {
-		fn default() -> Self {
-			StateMigrationStatus::NotStarted
-		}
-	}
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config:
