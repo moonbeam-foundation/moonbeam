@@ -522,7 +522,7 @@ impl<T: Config> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Bal
 	fn ensure_successful(asset_id: NativeOrWithId<AssetId>) {
 		use frame_support::{assert_ok, traits::OriginTrait};
 		use pallet_moonbeam_foreign_assets::AssetCreate;
-		use xcm::opaque::v4::Junction::Parachain;
+		use xcm::opaque::v5::Junction::Parachain;
 		match asset_id {
 			NativeOrWithId::Native => (),
 			NativeOrWithId::WithId(asset_id) => {
