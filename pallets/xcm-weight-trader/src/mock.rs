@@ -31,8 +31,8 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
 };
-use xcm::v5::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
 use xcm::opaque::latest::Junctions;
+use xcm::v5::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
 
 type AccountId = u64;
 type Balance = u128;
