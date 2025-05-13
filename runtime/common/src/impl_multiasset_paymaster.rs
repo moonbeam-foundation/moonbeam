@@ -31,7 +31,7 @@ impl<R, TreasuryAccount, FungibleNative, Assets> Pay
 where
 	R: frame_system::Config,
 	TreasuryAccount: Get<R::AccountId>,
-	FungibleNative: fungible::Mutate<R::AccountId>,
+	FungibleNative: fungible::Mutate<R::AccountId> + fungible::Inspect<R::AccountId>,
 	Assets: pallet_moonbeam_foreign_assets::SimpleMutate<R>
 		+ pallet_moonbeam_foreign_assets::SimpleAssetExists,
 {
@@ -84,19 +84,16 @@ where
 		asset: Self::AssetKind,
 		amount: Self::Balance,
 	) {
-		use frame_support::traits::fungible::Mutate;
 		use pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS;
 		use xcm::opaque::v4::Junction::Parachain;
 		use xcm::v4::Location;
-		let treasury = pallet_treasury::Pallet::<R>::account_id();
+		let treasury = TreasuryAccount::get();
 		match asset {
 			Self::AssetKind::Native => {
 				<FungibleNative as fungible::Mutate<_>>::mint_into(
 					&treasury,
-					amount
-						.try_into()
-						.map_err(|_| pallet_treasury::Error::<R>::PayoutError)
-						.expect("failed to convert amount type"),
+					(amount as u32).into(), // .try_into()
+					                        // .map_err(|_| DispatchError::Other("failed to convert amount")),
 				);
 			}
 			Self::AssetKind::WithId(id) => {
