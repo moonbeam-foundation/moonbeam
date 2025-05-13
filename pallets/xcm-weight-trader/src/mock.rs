@@ -24,14 +24,11 @@ use frame_support::{
 	weights::{constants::RocksDbWeight, IdentityFee},
 };
 use frame_system::EnsureSignedBy;
-use pallet_moonbeam_foreign_assets::AssetCreate;
 use sp_core::H256;
-use sp_runtime::traits::MaybeEquivalence;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
 };
-use xcm::opaque::latest::Junctions;
 use xcm::v5::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
 
 type AccountId = u64;
