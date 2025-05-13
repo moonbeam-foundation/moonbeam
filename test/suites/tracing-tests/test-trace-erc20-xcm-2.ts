@@ -6,20 +6,21 @@ import {
   XcmFragment,
   type XcmFragmentConfig,
   expectEVMResult,
+  injectEncodedHrmpMessageAndSeal,
   injectHrmpMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../helpers";
 
 describeSuite({
-  id: "T09",
-  title: "Trace ERC20 xcm",
+  id: "T21",
+  title: "Trace ERC20 xcm #2",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
-    let transactionHash: string;
     let eventEmitterAddress: `0x${string}`;
-    let createTransactionHash: string;
+    let ethXcmTxHash: string;
+    let regularEthTxHash: string;
     beforeAll(async () => {
       const { contractAddress, status } = await context.deployContract!("ERC20WithInitialSupply", {
         args: ["ERC20", "20S", ALITH_ADDRESS, ERC20_TOTAL_SUPPLY],
@@ -66,67 +67,7 @@ describeSuite({
         })
       ).equals(amountTransferred);
 
-      // Create the incoming xcm message
-      const config: XcmFragmentConfig = {
-        assets: [
-          {
-            multilocation: {
-              parents: 0,
-              interior: {
-                X1: { PalletInstance: Number(balancesPalletIndex) },
-              },
-            },
-            fungible: 1_700_000_000_000_000n,
-          },
-          {
-            multilocation: {
-              parents: 0,
-              interior: {
-                X2: [
-                  {
-                    PalletInstance: erc20XcmPalletIndex,
-                  },
-                  {
-                    AccountKey20: {
-                      network: null,
-                      key: erc20ContractAddress,
-                    },
-                  },
-                ],
-              },
-            },
-            fungible: amountTransferred,
-          },
-        ],
-        beneficiary: CHARLETH_ADDRESS,
-      };
-
-      const xcmMessage = new XcmFragment(config)
-        .withdraw_asset()
-        .clear_origin()
-        .buy_execution()
-        .deposit_asset(2n)
-        .as_v3();
-
-      // Mock the reception of the xcm message
-      await injectHrmpMessageAndSeal(context, paraId, {
-        type: "XcmVersionedXcm",
-        payload: xcmMessage,
-      });
-
-      transactionHash = (await context.viem().getBlock()).transactions[0];
-
-      // Erc20 tokens should have been received
-      expect(
-        await context.readContract!({
-          contractName: "ERC20WithInitialSupply",
-          contractAddress: erc20ContractAddress as `0x${string}`,
-          functionName: "balanceOf",
-          args: [CHARLETH_ADDRESS],
-        })
-      ).equals(amountTransferred);
-
-      // Now create a failed XCM transaction by trying to transfer more than available
+      // Create an XCM  message that try to transfer more than available
       const failedConfig: XcmFragmentConfig = {
         assets: [
           {
@@ -168,14 +109,19 @@ describeSuite({
         .deposit_asset(2n)
         .as_v3();
 
-      // Mock the reception of the failed xcm message
-      await injectHrmpMessage(context, paraId, {
-        type: "XcmVersionedXcm",
-        payload: failedXcmMessage,
-      });
+      // Mock the reception of the failed xcm message N times
+      // N should be high enough to fill IdleMaxServiceWeigh
+      // The goal is to have at least one XCM message queud for next block on_initialize
+      for (let i = 0; i < 20; i++) {
+        await injectHrmpMessage(context, paraId, {
+          type: "XcmVersionedXcm",
+          payload: failedXcmMessage,
+        });
+      }
+      await context.createBlock();
 
       // By calling deployContract() a new block will be created,
-      // including the ethereum xcm transaction + regular ethereum transaction
+      // including the ethereum-xcm transaction (on_initialize) + regular ethereum transaction
       const { contractAddress: eventEmitterAddress_ } = await context.deployContract!(
         "EventEmitter",
         {
@@ -184,7 +130,8 @@ describeSuite({
       );
       eventEmitterAddress = eventEmitterAddress_;
 
-      createTransactionHash = (await context.viem().getBlock()).transactions[0];
+      // The old buggy runtime rollback the eth-xcm tx because XCM executor rollback evm reverts
+      regularEthTxHash = (await context.viem().getBlock()).transactions[0];
 
       // Get the latest block events
       const block = await context.polkadotJs().rpc.chain.getBlock();
@@ -204,27 +151,9 @@ describeSuite({
       expect(processedEvent).to.not.be.undefined;
     });
 
-    it({
-      id: "T01",
-      title: "should trace ERC20 xcm transaction with debug_traceTransaction",
-      test: async function () {
-        const receipt = await context
-          .viem()
-          .getTransactionReceipt({ hash: transactionHash as `0x${string}` });
-        const trace = await customDevRpcRequest("debug_traceTransaction", [
-          transactionHash,
-          { tracer: "callTracer" },
-        ]);
-        // We traced the transaction, and the traced gas used should be greater* than or equal
-        // to the one recorded in the ethereum transaction receipt.
-        // *gasUsed on tracing does not take into account gas refund.
-        expect(hexToNumber(trace.gasUsed)).gte(Number(receipt.gasUsed));
-      },
-    });
-
     // IMPORTANT: this test will fail once we will merge https://github.com/moonbeam-foundation/moonbeam/pull/3258
     it({
-      id: "T02",
+      id: "T01",
       title: "should doesn't include the failed ERC20 xcm transaction in block trace",
       test: async function () {
         const number = await context.viem().getBlockNumber();
@@ -240,7 +169,7 @@ describeSuite({
         // - `From` is Alith's adddress.
         // - `To` is the ethereum contract address.
         const txHash = trace[0].txHash;
-        expect(txHash).to.eq(createTransactionHash);
+        expect(txHash).to.eq(regularEthTxHash);
         const call = trace[0].result;
         expect(call.from).to.eq(alith.address.toLowerCase());
         expect(call.to).to.eq(eventEmitterAddress.toLowerCase());

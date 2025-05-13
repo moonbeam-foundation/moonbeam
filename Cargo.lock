@@ -9336,8 +9336,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "staging-xcm",
- "staging-xcm-executor",
  "xcm-primitives 0.1.1",
 ]
 
