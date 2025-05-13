@@ -207,7 +207,6 @@ impl Config for Test {
 	type AddSupportedAssetOrigin = EnsureSignedBy<AddAccount, AccountId>;
 	type AssetLocationFilter = AssetLocationFilter;
 	type AssetTransactor = MockAssetTransactor;
-	type AssetIdentifier = MockAssetIdentifier;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = EnsureSignedBy<EditAccount, AccountId>;
 	type NativeLocation = NativeLocation;
@@ -220,8 +219,6 @@ impl Config for Test {
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
 	type NotFilteredLocation = NotFilteredLocation;
-	#[cfg(feature = "runtime-benchmarks")]
-	type AssetCreator = DummyAssetCreator;
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
