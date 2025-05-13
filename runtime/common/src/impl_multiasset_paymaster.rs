@@ -23,16 +23,16 @@ use moonbeam_core_primitives::{AssetId, Balance};
 use sp_core::{Get, U256};
 use sp_runtime::DispatchError;
 
-pub struct MultiAssetPaymaster<R, TreasuryAccount, FungibleNative, Assets>(
-	sp_std::marker::PhantomData<(R, TreasuryAccount, FungibleNative, Assets)>,
+pub struct MultiAssetPaymaster<R, TreasuryAccount, NativeAsset, ForeignAssets>(
+	sp_std::marker::PhantomData<(R, TreasuryAccount, NativeAsset, ForeignAssets)>,
 );
-impl<R, TreasuryAccount, FungibleNative, Assets> Pay
-	for MultiAssetPaymaster<R, TreasuryAccount, FungibleNative, Assets>
+impl<R, TreasuryAccount, NativeAsset, ForeignAssets> Pay
+	for MultiAssetPaymaster<R, TreasuryAccount, NativeAsset, ForeignAssets>
 where
 	R: frame_system::Config,
 	TreasuryAccount: Get<R::AccountId>,
-	FungibleNative: fungible::Mutate<R::AccountId> + fungible::Inspect<R::AccountId>,
-	Assets: pallet_moonbeam_foreign_assets::SimpleMutate<R>
+	NativeAsset: fungible::Mutate<R::AccountId> + fungible::Inspect<R::AccountId>,
+	ForeignAssets: pallet_moonbeam_foreign_assets::SimpleMutate<R>
 		+ pallet_moonbeam_foreign_assets::SimpleAssetExists,
 {
 	type Balance = Balance;
@@ -47,7 +47,7 @@ where
 	) -> Result<Self::Id, Self::Error> {
 		match asset_kind {
 			Self::AssetKind::Native => {
-				<FungibleNative as fungible::Mutate<_>>::transfer(
+				<NativeAsset as fungible::Mutate<_>>::transfer(
 					&TreasuryAccount::get(),
 					who,
 					amount
@@ -59,9 +59,9 @@ where
 			}
 			Self::AssetKind::WithId(id) => {
 				// Check in the foreign assets first
-				if Assets::asset_exists(id) {
+				if ForeignAssets::asset_exists(id) {
 					// Pay if asset found
-					Assets::transfer_asset(
+					ForeignAssets::transfer_asset(
 						id,
 						TreasuryAccount::get(),
 						who.clone(),
@@ -90,15 +90,11 @@ where
 		let treasury = TreasuryAccount::get();
 		match asset {
 			Self::AssetKind::Native => {
-				<FungibleNative as fungible::Mutate<_>>::mint_into(
-					&treasury,
-					(amount as u32).into(), // .try_into()
-					                        // .map_err(|_| DispatchError::Other("failed to convert amount")),
-				);
+				<NativeAsset as fungible::Mutate<_>>::mint_into(&treasury, (amount as u32).into());
 			}
 			Self::AssetKind::WithId(id) => {
 				// Fund treasury account
-				Assets::mint_asset(id, treasury, U256::from(amount as u128))
+				ForeignAssets::mint_asset(id, treasury, U256::from(amount as u128))
 					.expect("failed to mint asset into treasury account");
 			}
 		}
