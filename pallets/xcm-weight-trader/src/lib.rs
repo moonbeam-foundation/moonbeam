@@ -94,7 +94,7 @@ pub mod pallet {
 		type WeightInfo: WeightInfo;
 
 		/// Convert a weight value into deductible native balance.
-		type WeightToFee: WeightToFee<Balance = <Self as pallet::Config>::Balance>;
+		type WeightToFee: WeightToFee<Balance = Self::Balance>;
 
 		/// Account that will receive xcm fees
 		type XcmFeesAccount: Get<Self::AccountId>;
@@ -153,7 +153,7 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
-		#[pallet::weight(<T as pallet::Config>::WeightInfo::add_asset())]
+		#[pallet::weight(T::WeightInfo::add_asset())]
 		pub fn add_asset(
 			origin: OriginFor<T>,
 			location: Location,
