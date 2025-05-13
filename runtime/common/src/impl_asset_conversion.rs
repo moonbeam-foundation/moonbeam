@@ -32,7 +32,8 @@ pub struct AssetRateConverter<T, NativeAsset, ForeignAssets>(
 impl<
 		T: frame_system::Config + pallet_xcm_weight_trader::Config,
 		NativeAsset: fungible::Mutate<T::AccountId> + fungible::Inspect<T::AccountId>,
-		ForeignAssets: pallet_moonbeam_foreign_assets::AssetInspect
+		#[cfg(not(feature = "runtime-benchmarks"))] ForeignAssets: pallet_moonbeam_foreign_assets::AssetInspect + MaybeEquivalence<Location, AssetId>,
+		#[cfg(feature = "runtime-benchmarks")] ForeignAssets: pallet_moonbeam_foreign_assets::AssetInspect
 			+ MaybeEquivalence<Location, AssetId>
 			+ AssetCreate,
 	> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Balance>
