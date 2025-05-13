@@ -774,8 +774,8 @@ pub mod pallet {
 				id,
 				xcm_location,
 				12,
-				vec![b'M', b'T'].try_into().unwrap(),
-				vec![b'M', b'y', b'T', b'o', b'k'].try_into().unwrap(),
+				vec![b'M', b'T'].try_into().expect("invalid ticker"),
+				vec![b'M', b'y', b'T', b'o', b'k'].try_into().expect("invalid name"),
 			)
 		}
 	}

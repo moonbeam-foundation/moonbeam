@@ -32,6 +32,7 @@ use sp_runtime::{
 	BuildStorage,
 };
 use xcm::v5::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
+use xcm::opaque::latest::Junctions;
 
 type AccountId = u64;
 type Balance = u128;
