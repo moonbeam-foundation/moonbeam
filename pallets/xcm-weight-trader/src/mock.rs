@@ -207,7 +207,6 @@ impl Config for Test {
 	type AssetLocationFilter = AssetLocationFilter;
 	type AssetTransactor = MockAssetTransactor;
 	type AssetIdentifier = MockAssetIdentifier;
-	type AssetKind = NativeOrWithId<AssetId>;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = EnsureSignedBy<EditAccount, AccountId>;
 	type NativeLocation = NativeLocation;

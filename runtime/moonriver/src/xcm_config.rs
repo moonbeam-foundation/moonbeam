@@ -772,7 +772,6 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type AssetLocationFilter = AssetFeesFilter;
 	type AssetTransactor = AssetTransactors;
 	type AssetIdentifier = EvmForeignAssets;
-	type AssetKind = NativeOrWithId<AssetId>;
 	type Balance = Balance;
 	type EditSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type NativeLocation = SelfReserve;

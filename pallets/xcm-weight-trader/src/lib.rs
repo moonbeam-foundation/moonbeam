@@ -82,9 +82,6 @@ pub mod pallet {
 		/// for providing the required mapping.
 		type AssetIdentifier: MaybeEquivalence<Location, AssetId>;
 
-		/// Asset kind to use in the conversion
-		type AssetKind: Parameter + MaxEncodedLen;
-
 		/// The native balance type.
 		type Balance: TryInto<u128>;
 
