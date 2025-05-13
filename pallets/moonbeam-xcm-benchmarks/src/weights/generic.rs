@@ -88,6 +88,10 @@ pub trait WeightInfo {
 	fn note_unlockable() -> Weight;
 	fn request_unlock() -> Weight;
 	fn unpaid_execution() -> Weight;
+	fn pay_fees() -> Weight;
+	fn initiate_transfer() -> Weight;
+	fn execute_with_origin() -> Weight;
+	fn set_hints() -> Weight;
 }
 
 /// Weights for moonbeam_xcm_benchmarks_generic using the Substrate node and recommended hardware.
@@ -456,6 +460,34 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		// Minimum execution time: 5_249_000 picoseconds.
 		Weight::from_parts(5_371_000, 0)
 	}
+	fn pay_fees() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 2_000_000_000_000 picoseconds.
+		Weight::from_parts(2_000_000_000_000, 0)
+	}
+	fn initiate_transfer() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 2_000_000_000_000 picoseconds.
+		Weight::from_parts(2_000_000_000_000, 0)
+	}
+	fn execute_with_origin() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 2_000_000_000_000 picoseconds.
+		Weight::from_parts(2_000_000_000_000, 0)
+	}
+	fn set_hints() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 2_000_000_000_000 picoseconds.
+		Weight::from_parts(2_000_000_000_000, 0)
+	}
 }
 
 // For backwards compatibility and tests
@@ -822,5 +854,33 @@ impl WeightInfo for () {
 		//  Estimated: `0`
 		// Minimum execution time: 5_249_000 picoseconds.
 		Weight::from_parts(5_371_000, 0)
+	}
+	fn pay_fees() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 2_000_000_000_000 picoseconds.
+		Weight::from_parts(2_000_000_000_000, 0)
+	}
+	fn initiate_transfer() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 2_000_000_000_000 picoseconds.
+		Weight::from_parts(2_000_000_000_000, 0)
+	}
+	fn execute_with_origin() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 2_000_000_000_000 picoseconds.
+		Weight::from_parts(2_000_000_000_000, 0)
+	}
+	fn set_hints() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 2_000_000_000_000 picoseconds.
+		Weight::from_parts(2_000_000_000_000, 0)
 	}
 }

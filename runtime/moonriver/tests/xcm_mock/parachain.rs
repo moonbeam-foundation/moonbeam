@@ -104,6 +104,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 parameter_types! {
@@ -126,6 +127,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 pub type ForeignAssetInstance = ();
@@ -446,6 +448,7 @@ impl pallet_treasury::Config for Runtime {
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ArgumentsBenchmarkHelper;
+	type BlockNumberProvider = System;
 }
 
 #[frame_support::pallet]
@@ -733,7 +736,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			},
 		)
 		.get_dispatch_info()
-		.weight
+		.total_weight()
 	}
 }
 
@@ -853,14 +856,15 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 }
 
+#[allow(dead_code)]
 pub struct NormalFilter;
+
 impl frame_support::traits::Contains<RuntimeCall> for NormalFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
@@ -927,7 +931,9 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 	}
 }
 
+#[allow(dead_code)]
 pub struct MockHrmpEncoder;
+
 impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
 	fn hrmp_encode_call(
 		call: xcm_primitives::HrmpAvailableCalls,

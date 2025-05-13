@@ -429,8 +429,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn storage_at(address: H160, index: U256) -> H256 {
-					let mut tmp = [0u8; 32];
-					index.to_big_endian(&mut tmp);
+					let tmp: [u8; 32] = index.to_big_endian();
 					pallet_evm::AccountStorages::<Runtime>::get(address, H256::from_slice(&tmp[..]))
 				}
 
@@ -614,7 +613,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn convert_transaction(
 					transaction: pallet_ethereum::Transaction
 				) -> <Block as BlockT>::Extrinsic {
-					UncheckedExtrinsic::new_unsigned(
+					UncheckedExtrinsic::new_bare(
 						pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 					)
 				}
@@ -751,13 +750,14 @@ macro_rules! impl_runtime_apis_plus_common {
 				for Runtime {
 					fn dry_run_call(
 						origin: OriginCaller,
-						call: RuntimeCall
+						call: RuntimeCall,
+						result_xcms_version: XcmVersion
 					) -> Result<CallDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
 						PolkadotXcm::dry_run_call::<
 							Runtime,
 							xcm_config::XcmRouter,
 							OriginCaller,
-							RuntimeCall>(origin, call)
+							RuntimeCall>(origin, call, result_xcms_version)
 					}
 
 					fn dry_run_xcm(
@@ -798,6 +798,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
+					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
 
 					let mut list = Vec::<BenchmarkList>::new();
 					list_benchmarks!(list, extra);
@@ -809,7 +810,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
-				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
+				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
 					use frame_benchmarking::{add_benchmark, BenchmarkBatch, Benchmarking};
 					use frame_support::traits::TrackedStorageKey;
 					use cumulus_primitives_core::ParaId;
@@ -864,6 +865,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 					}
 
+					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
+					impl pallet_transaction_payment::benchmarking::Config for Runtime {
+						fn setup_benchmark_environment() {
+							let alice = AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
+							pallet_author_inherent::Author::<Runtime>::put(&alice);
+						}
+					}
+
 					impl pallet_xcm::benchmarking::Config for Runtime {
 				        type DeliveryHelper = TestDeliveryHelper;
 
@@ -904,7 +913,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						) -> Option<(XcmAssets, u32, Location, Box<dyn FnOnce()>)> {
 							use xcm_config::SelfReserve;
 
-							let destination: xcm::v4::Location = Parent.into();
+							let destination: xcm::v5::Location = Parent.into();
 
 							let fee_amount: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
 							let fee_asset: Asset = (SelfReserve::get(), fee_amount).into();

@@ -18,6 +18,7 @@
 
 use super::moonbase_weights;
 use super::*;
+use crate::governance::referenda::FastGeneralAdminOrRoot;
 
 pub type TreasuryCouncilInstance = pallet_collective::Instance3;
 pub type OpenTechCommitteeInstance = pallet_collective::Instance4;
@@ -42,6 +43,9 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	type WeightInfo = moonbase_weights::pallet_collective_treasury_council::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
+	type DisapproveOrigin = FastGeneralAdminOrRoot;
+	type KillOrigin = FastGeneralAdminOrRoot;
+	type Consideration = ();
 }
 
 impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
@@ -59,4 +63,7 @@ impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
 	type WeightInfo = moonbase_weights::pallet_collective_open_tech_committee::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
+	type DisapproveOrigin = FastGeneralAdminOrRoot;
+	type KillOrigin = FastGeneralAdminOrRoot;
+	type Consideration = ();
 }

@@ -29,8 +29,8 @@ use cumulus_primitives_core::ParaId;
 use fp_evm::GenesisAccount;
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
-use parachains_common::genesis_config_helpers::get_from_seed;
 use sp_genesis_builder::PresetId;
+use sp_keyring::Sr25519Keyring;
 use sp_runtime::{Perbill, Percent};
 
 const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
@@ -202,7 +202,7 @@ pub fn development() -> serde_json::Value {
 			AccountId::from(sp_core::hex2array!(
 				"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
 			)),
-			get_from_seed::<NimbusId>("Alice"),
+			NimbusId::from(Sr25519Keyring::Alice.public()),
 			20_000 * GLMR * SUPPLY_FACTOR,
 		)],
 		// Delegations
@@ -229,8 +229,8 @@ pub fn development() -> serde_json::Value {
 
 /// Provides the JSON representation of predefined genesis config for given `id`.
 pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
-	let patch = match id.try_into() {
-		Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => development(),
+	let patch = match id.as_str() {
+		sp_genesis_builder::DEV_RUNTIME_PRESET => development(),
 		_ => return None,
 	};
 	Some(

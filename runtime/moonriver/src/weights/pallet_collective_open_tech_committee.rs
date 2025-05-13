@@ -302,4 +302,41 @@ impl<T: frame_system::Config> pallet_collective_open_tech_committee::WeightInfo 
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(p.into()))
 	}
+	/// Storage: `OpenTechCommitteeCollective::ProposalOf` (r:1 w:1)
+	/// Proof: `OpenTechCommitteeCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `OpenTechCommitteeCollective::CostOf` (r:1 w:0)
+	/// Proof: `OpenTechCommitteeCollective::CostOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `OpenTechCommitteeCollective::Proposals` (r:1 w:1)
+	/// Proof: `OpenTechCommitteeCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `OpenTechCommitteeCollective::Voting` (r:0 w:1)
+	/// Proof: `OpenTechCommitteeCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// The range of component `d` is `[0, 1]`.
+	/// The range of component `p` is `[1, 100]`.
+	fn kill(d: u32, p: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `1531 + p * (36 ±0)`
+		//  Estimated: `4930 + d * (123 ±6) + p * (37 ±0)`
+		// Minimum execution time: 19_000_000 picoseconds.
+		Weight::from_parts(17_106_099, 4930)
+			// Standard Error: 155_571
+			.saturating_add(Weight::from_parts(2_760_317, 0).saturating_mul(d.into()))
+			// Standard Error: 2_409
+			.saturating_add(Weight::from_parts(169_285, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(Weight::from_parts(0, 123).saturating_mul(d.into()))
+			.saturating_add(Weight::from_parts(0, 37).saturating_mul(p.into()))
+	}
+	/// Storage: `OpenTechCommitteeCollective::ProposalOf` (r:1 w:0)
+	/// Proof: `OpenTechCommitteeCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `OpenTechCommitteeCollective::CostOf` (r:1 w:0)
+	/// Proof: `OpenTechCommitteeCollective::CostOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn release_proposal_cost() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `945`
+		//  Estimated: `4410`
+		// Minimum execution time: 12_000_000 picoseconds.
+		Weight::from_parts(13_000_000, 4410)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
+	}
 }

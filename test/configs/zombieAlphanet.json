@@ -54,7 +54,8 @@
           "--no-hardware-benchmarks",
           "--force-authoring",
           "-lparachain=debug",
-          "--database=paritydb"
+          "--database=paritydb",
+          "--pool-type=fork-aware"
         ]
       }
     }

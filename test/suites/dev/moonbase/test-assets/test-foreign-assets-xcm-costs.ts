@@ -13,7 +13,7 @@ describeSuite({
     const paraId = 4444;
     let paraSovereignAccount;
 
-    const feeAmount = 355_233_387_500_000n; // 1000 tokens
+    const feeAmount = 139_608_625_000_000n;
     const depositAmount = 100_000_000_000_000_000_000n; // 100 tokens
     const fundAmount = feeAmount + depositAmount;
 
@@ -35,7 +35,7 @@ describeSuite({
       title: "Cannot create if location already exists",
       test: async function () {
         const balanceBefore = await getFreeBalance(paraSovereignAccount, context);
-        expect(balanceBefore).toMatchInlineSnapshot(`100000355233387500000n`);
+        expect(balanceBefore).toMatchInlineSnapshot(`100000139608625000000n`);
         const createForeignAssetCall = context
           .polkadotJs()
           .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");

@@ -1,6 +1,6 @@
 {
   "name": "@moonbeam-network/api-augment",
-  "version": "0.3600.0",
+  "version": "0.3700.0",
   "type": "module",
   "description": "Moonbeam types augment for @polkadot/api",
   "author": "Moonsong Labs",
@@ -17,7 +17,7 @@
   "scripts": {
     "clean": "rm -rf node_modules && rm -rf dist",
     "scrape": "pnpm tsx scripts/scrapeMetadata.ts",
-    "generate": "pnpm generate:defs && pnpm generate:meta",
+    "generate": "pnpm generate:defs && pnpm generate:meta && pnpm tsx scripts/utils/xcm-v5-hack.ts",
     "postgenerate": "pnpm build && pnpm fmt:fix",
     "load:meta": "pnpm load:meta:moonbase && pnpm load:meta:moonriver && pnpm load:meta:moonbeam",
     "load:meta:local": "curl -s -H \"Content-Type: application/json\" -d '{\"id\":\"1\", \"jsonrpc\":\"2.0\", \"method\": \"state_getMetadata\", \"params\":[]}' http://localhost:9933 > metadata-moonbase.json",
@@ -86,6 +86,7 @@
   ],
   "dependencies": {
     "@biomejs/biome": "*",
+    "@moonbeam-network/types-bundle": "workspace:*",
     "@polkadot/api": "*",
     "@polkadot/api-base": "*",
     "@polkadot/rpc-core": "*",
@@ -93,7 +94,9 @@
     "@polkadot/types": "*",
     "@polkadot/types-codec": "*",
     "@types/node": "*",
-    "@moonbeam-network/types-bundle": "workspace:*",
+    "axios": "*",
+    "chalk": "*",
+    "node-fetch": "^3.3.2",
     "tsup": "*",
     "tsx": "*",
     "typescript": "*"

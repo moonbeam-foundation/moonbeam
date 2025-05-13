@@ -139,7 +139,9 @@ jobs:
           # curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
           curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
           # echo $PATH
-          cargo nextest run --release --workspace --features=evm-tracing
+          # TODO: remove the --exclude once the following issue is solved (possibly in rustc 1.86)
+          # - https://github.com/rust-lang/rust/issues/125353
+          cargo nextest run --release --workspace --features=evm-tracing --exclude moonbeam-service
       - name: "Run Moonwall Dev Tests"
         uses: ./.github/workflow-templates/dev-tests
         with:
