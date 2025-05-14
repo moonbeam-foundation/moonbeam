@@ -15,7 +15,6 @@ import type { Data } from "@polkadot/types";
 import type {
   Bytes,
   Compact,
-  Null,
   Option,
   Struct,
   U256,
@@ -44,6 +43,7 @@ import type {
   EthereumTransactionTransactionV2,
   FrameSupportPreimagesBounded,
   FrameSupportScheduleDispatchTime,
+  FrameSupportTokensFungibleUnionOfNativeOrWithId,
   MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbaseRuntimeOriginCaller,
   MoonbaseRuntimeProxyType,
@@ -56,6 +56,8 @@ import type {
   PalletConvictionVotingVoteAccountVote,
   PalletIdentityJudgement,
   PalletIdentityLegacyIdentityInfo,
+  PalletMigrationsHistoricCleanupSelector,
+  PalletMigrationsMigrationCursor,
   PalletMultisigTimepoint,
   PalletParachainStakingInflationDistributionConfig,
   PalletXcmTransactorCurrencyPayment,
@@ -2216,6 +2218,73 @@ declare module "@polkadot/api-base/types/submittable" {
       removeCollator: AugmentedSubmittable<
         (collator: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [AccountId20]
+      >;
+      /**
+       * Generic tx
+       **/
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    multiBlockMigrations: {
+      /**
+       * Clears the `Historic` set.
+       *
+       * `map_cursor` must be set to the last value that was returned by the
+       * `HistoricCleared` event. The first time `None` can be used. `limit` must be chosen in a
+       * way that will result in a sensible weight.
+       **/
+      clearHistoric: AugmentedSubmittable<
+        (
+          selector:
+            | PalletMigrationsHistoricCleanupSelector
+            | { Specific: any }
+            | { Wildcard: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [PalletMigrationsHistoricCleanupSelector]
+      >;
+      /**
+       * Forces the onboarding of the migrations.
+       *
+       * This process happens automatically on a runtime upgrade. It is in place as an emergency
+       * measurement. The cursor needs to be `None` for this to succeed.
+       **/
+      forceOnboardMbms: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /**
+       * Allows root to set an active cursor to forcefully start/forward the migration process.
+       *
+       * This is an edge-case version of [`Self::force_set_cursor`] that allows to set the
+       * `started_at` value to the next block number. Otherwise this would not be possible, since
+       * `force_set_cursor` takes an absolute block number. Setting `started_at` to `None`
+       * indicates that the current block number plus one should be used.
+       **/
+      forceSetActiveCursor: AugmentedSubmittable<
+        (
+          index: u32 | AnyNumber | Uint8Array,
+          innerCursor: Option<Bytes> | null | Uint8Array | Bytes | string,
+          startedAt: Option<u32> | null | Uint8Array | u32 | AnyNumber
+        ) => SubmittableExtrinsic<ApiType>,
+        [u32, Option<Bytes>, Option<u32>]
+      >;
+      /**
+       * Allows root to set a cursor to forcefully start, stop or forward the migration process.
+       *
+       * Should normally not be needed and is only in place as emergency measure. Note that
+       * restarting the migration process in this manner will not call the
+       * [`MigrationStatusHandler::started`] hook or emit an `UpgradeStarted` event.
+       **/
+      forceSetCursor: AugmentedSubmittable<
+        (
+          cursor:
+            | Option<PalletMigrationsMigrationCursor>
+            | null
+            | Uint8Array
+            | PalletMigrationsMigrationCursor
+            | { Active: any }
+            | { Stuck: any }
+            | string
+        ) => SubmittableExtrinsic<ApiType>,
+        [Option<PalletMigrationsMigrationCursor>]
       >;
       /**
        * Generic tx
@@ -4451,12 +4520,17 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       spend: AugmentedSubmittable<
         (
-          assetKind: Null | null,
+          assetKind:
+            | FrameSupportTokensFungibleUnionOfNativeOrWithId
+            | { Native: any }
+            | { WithId: any }
+            | string
+            | Uint8Array,
           amount: Compact<u128> | AnyNumber | Uint8Array,
           beneficiary: AccountId20 | string | Uint8Array,
           validFrom: Option<u32> | null | Uint8Array | u32 | AnyNumber
         ) => SubmittableExtrinsic<ApiType>,
-        [Null, Compact<u128>, AccountId20, Option<u32>]
+        [FrameSupportTokensFungibleUnionOfNativeOrWithId, Compact<u128>, AccountId20, Option<u32>]
       >;
       /**
        * Propose and approve a spend of treasury funds.

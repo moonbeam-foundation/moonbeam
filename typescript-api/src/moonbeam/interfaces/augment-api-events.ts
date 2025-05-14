@@ -29,6 +29,7 @@ import type {
   FrameSupportDispatchPostDispatchInfo,
   FrameSupportMessagesProcessMessageError,
   FrameSupportPreimagesBounded,
+  FrameSupportTokensFungibleUnionOfNativeOrWithId,
   FrameSupportTokensMiscBalanceStatus,
   FrameSystemDispatchEventInfo,
   MoonbeamRuntimeAssetConfigAssetRegistrarMetadata,
@@ -1141,6 +1142,64 @@ declare module "@polkadot/api-base/types/events" {
         [account: AccountId20],
         { account: AccountId20 }
       >;
+      /**
+       * Generic event
+       **/
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    multiBlockMigrations: {
+      /**
+       * The set of historical migrations has been cleared.
+       **/
+      HistoricCleared: AugmentedEvent<
+        ApiType,
+        [nextCursor: Option<Bytes>],
+        { nextCursor: Option<Bytes> }
+      >;
+      /**
+       * A migration progressed.
+       **/
+      MigrationAdvanced: AugmentedEvent<
+        ApiType,
+        [index: u32, took: u32],
+        { index: u32; took: u32 }
+      >;
+      /**
+       * A Migration completed.
+       **/
+      MigrationCompleted: AugmentedEvent<
+        ApiType,
+        [index: u32, took: u32],
+        { index: u32; took: u32 }
+      >;
+      /**
+       * A Migration failed.
+       *
+       * This implies that the whole upgrade failed and governance intervention is required.
+       **/
+      MigrationFailed: AugmentedEvent<ApiType, [index: u32, took: u32], { index: u32; took: u32 }>;
+      /**
+       * A migration was skipped since it was already executed in the past.
+       **/
+      MigrationSkipped: AugmentedEvent<ApiType, [index: u32], { index: u32 }>;
+      /**
+       * The current runtime upgrade completed.
+       *
+       * This implies that all of its migrations completed successfully as well.
+       **/
+      UpgradeCompleted: AugmentedEvent<ApiType, []>;
+      /**
+       * Runtime upgrade failed.
+       *
+       * This is very bad and will require governance intervention.
+       **/
+      UpgradeFailed: AugmentedEvent<ApiType, []>;
+      /**
+       * A Runtime upgrade started.
+       *
+       * Its end is indicated by `UpgradeCompleted` or `UpgradeFailed`.
+       **/
+      UpgradeStarted: AugmentedEvent<ApiType, [migrations: u32], { migrations: u32 }>;
       /**
        * Generic event
        **/
@@ -2404,7 +2463,7 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [
           index: u32,
-          assetKind: Null,
+          assetKind: FrameSupportTokensFungibleUnionOfNativeOrWithId,
           amount: u128,
           beneficiary: AccountId20,
           validFrom: u32,
@@ -2412,7 +2471,7 @@ declare module "@polkadot/api-base/types/events" {
         ],
         {
           index: u32;
-          assetKind: Null;
+          assetKind: FrameSupportTokensFungibleUnionOfNativeOrWithId;
           amount: u128;
           beneficiary: AccountId20;
           validFrom: u32;

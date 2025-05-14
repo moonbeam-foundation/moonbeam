@@ -256,6 +256,26 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       [key: string]: Codec;
     };
+    multiBlockMigrations: {
+      /**
+       * The maximal length of an encoded cursor.
+       *
+       * A good default needs to selected such that no migration will ever have a cursor with MEL
+       * above this limit. This is statically checked in `integrity_test`.
+       **/
+      cursorMaxLen: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximal length of an encoded identifier.
+       *
+       * A good default needs to selected such that no migration will ever have an identifier
+       * with MEL above this limit. This is statically checked in `integrity_test`.
+       **/
+      identifierMaxLen: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
     multisig: {
       /**
        * The base amount of currency needed to reserve for creating a multisig execution or to
