@@ -1603,7 +1603,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(178322)
+				.expect_cost(178327)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1694,7 +1694,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(178322)
+				.expect_cost(178327)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1778,7 +1778,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(26722)
+				.expect_cost(26727)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2349,7 +2349,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(25391)
+				.expect_cost(25395)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2389,7 +2389,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(25391)
+				.expect_cost(25395)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2471,7 +2471,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(16085)
+				.expect_cost(16078)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2493,7 +2493,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15585)
+				.expect_cost(15572)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2514,7 +2514,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(16112)
+				.expect_cost(16091)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2557,7 +2557,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(17897)
+				.expect_cost(17892)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2582,7 +2582,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(17897)
+				.expect_cost(17892)
 				.expect_no_logs()
 				.execute_returns(());
 
