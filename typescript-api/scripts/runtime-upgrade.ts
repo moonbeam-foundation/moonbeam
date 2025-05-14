@@ -1,7 +1,6 @@
 import { spawn, execSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import axios from "axios";
-import { hackXcmV5Support } from "./utils/xcm-v5-hack";
 
 const CHAINS = ["moonbase", "moonriver", "moonbeam"];
 
@@ -115,9 +114,6 @@ async function main() {
   // Generate typescript api code
   console.log("Generating typescript api code...");
   execSync("pnpm generate:defs && pnpm generate:meta");
-
-  // Hack: polkadot-js does not support XCM v5 yet, we need to manually change some types
-  hackXcmV5Support();
 
   // Build the package
   console.log("Building package...");
