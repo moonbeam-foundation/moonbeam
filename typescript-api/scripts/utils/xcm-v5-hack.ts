@@ -6,7 +6,7 @@ import chalk from "chalk";
 export function hackXcmV5Support() {
   let network = "moonbase";
   let interfacesPath = `src/${network}/interfaces`;
-  hackTypeReplacement(`${interfacesPath}/types-lookup.ts`, "Lookup88", "StagingXcmV5Junction", 8);
+  hackTypeReplacement(`${interfacesPath}/types-lookup.ts`, "Lookup89", "StagingXcmV5Junction", 8);
 
   network = "moonbeam";
   interfacesPath = `src/${network}/interfaces`;
