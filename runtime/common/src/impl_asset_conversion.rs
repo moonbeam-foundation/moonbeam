@@ -59,8 +59,8 @@ impl<
 	/// Set a conversion rate to `1` for the `asset_id`.
 	#[cfg(feature = "runtime-benchmarks")]
 	fn ensure_successful(asset_id: NativeOrWithId<AssetId>) {
-		use frame_support::{traits::OriginTrait};
-		use xcm::latest::{Location, Junction::Parachain};
+		use frame_support::traits::OriginTrait;
+		use xcm::latest::{Junction::Parachain, Location};
 		match asset_id {
 			NativeOrWithId::Native => (),
 			NativeOrWithId::WithId(asset_id) => {
