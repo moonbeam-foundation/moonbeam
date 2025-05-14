@@ -125,6 +125,8 @@ pub mod pallet {
 		XcmLocationFiltered,
 		/// The relative price cannot be zero
 		PriceCannotBeZero,
+		/// The relative price calculation overflowed
+		PriceOverflow,
 	}
 
 	#[pallet::event]
@@ -180,7 +182,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(1)]
-		#[pallet::weight(T::WeightInfo::edit_asset())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::edit_asset())]
 		pub fn edit_asset(
 			origin: OriginFor<T>,
 			location: Location,
@@ -205,7 +207,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(2)]
-		#[pallet::weight(T::WeightInfo::pause_asset_support())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::pause_asset_support())]
 		pub fn pause_asset_support(origin: OriginFor<T>, location: Location) -> DispatchResult {
 			T::PauseSupportedAssetOrigin::ensure_origin(origin)?;
 
@@ -221,7 +223,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(3)]
-		#[pallet::weight(T::WeightInfo::resume_asset_support())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::resume_asset_support())]
 		pub fn resume_asset_support(origin: OriginFor<T>, location: Location) -> DispatchResult {
 			T::ResumeSupportedAssetOrigin::ensure_origin(origin)?;
 
@@ -237,7 +239,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(4)]
-		#[pallet::weight(T::WeightInfo::remove_asset())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::remove_asset())]
 		pub fn remove_asset(origin: OriginFor<T>, location: Location) -> DispatchResult {
 			T::RemoveSupportedAssetOrigin::ensure_origin(origin)?;
 

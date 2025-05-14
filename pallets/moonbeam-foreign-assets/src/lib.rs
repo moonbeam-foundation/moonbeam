@@ -55,6 +55,7 @@ use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::Contains;
+
 use frame_system::pallet_prelude::*;
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
@@ -247,6 +248,8 @@ pub mod pallet {
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
+		EvmCallMintIntoFail,
+		EvmCallTransferFail,
 		EvmInternalError,
 		/// Account has insufficient balance for locking
 		InsufficientBalance,
@@ -362,6 +365,29 @@ pub mod pallet {
 				)
 			})
 			.map_err(Into::into)
+		}
+
+		/// Transfer an asset from an account to another one
+		pub fn transfer(
+			asset_id: AssetId,
+			from: T::AccountId,
+			to: T::AccountId,
+			amount: U256,
+		) -> Result<(), evm::EvmError> {
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_transfer(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(from),
+					T::AccountIdToH160::convert(to),
+					amount,
+				)
+			})
+			.map_err(Into::into)
+		}
+
+		pub fn balance(asset_id: AssetId, who: T::AccountId) -> Result<U256, evm::EvmError> {
+			EvmCaller::<T>::erc20_balance_of(asset_id, T::AccountIdToH160::convert(who))
+				.map_err(Into::into)
 		}
 
 		/// Aprrove a spender to spend a certain amount of tokens from the owner account
@@ -754,4 +780,68 @@ pub mod pallet {
 			AssetsById::<T>::get(asset_id)
 		}
 	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	impl<T: Config> AssetCreate for Pallet<T> {
+		fn create_asset(id: u128, xcm_location: Location) -> DispatchResult {
+			use frame_support::traits::OriginTrait;
+			use sp_std::vec;
+			Pallet::<T>::create_foreign_asset(
+				<T as frame_system::Config>::RuntimeOrigin::root(),
+				id,
+				xcm_location,
+				12,
+				vec![b'M', b'T'].try_into().expect("invalid ticker"),
+				vec![b'M', b'y', b'T', b'o', b'k']
+					.try_into()
+					.expect("invalid name"),
+			)
+		}
+	}
+
+	impl<T: Config> AssetMutate<T> for Pallet<T> {
+		fn transfer_asset(
+			id: u128,
+			from: T::AccountId,
+			to: T::AccountId,
+			amount: U256,
+		) -> DispatchResult {
+			Pallet::<T>::transfer(id, from, to, amount)
+				.map_err(|_| Error::<T>::EvmCallTransferFail)?;
+			Ok(())
+		}
+
+		#[cfg(feature = "runtime-benchmarks")]
+		fn mint_asset(id: u128, account: T::AccountId, amount: U256) -> DispatchResult {
+			Pallet::<T>::mint_into(id, account, amount)
+				.map_err(|_| Error::<T>::EvmCallMintIntoFail)?;
+			Ok(())
+		}
+	}
+
+	impl<T: Config> AssetInspect for Pallet<T> {
+		fn asset_exists(id: u128) -> bool {
+			AssetsById::<T>::contains_key(&id)
+		}
+	}
+}
+
+pub trait AssetCreate {
+	fn create_asset(id: u128, xcm_location: Location) -> DispatchResult;
+}
+
+pub trait AssetMutate<R: frame_system::Config> {
+	fn transfer_asset(
+		id: u128,
+		from: R::AccountId,
+		to: R::AccountId,
+		amount: U256,
+	) -> DispatchResult;
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn mint_asset(id: u128, account: R::AccountId, amount: U256) -> DispatchResult;
+}
+
+pub trait AssetInspect {
+	fn asset_exists(id: u128) -> bool;
 }

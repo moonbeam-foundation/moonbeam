@@ -21,7 +21,8 @@ use frame_support::{
 	dispatch::GetDispatchInfo,
 	ensure, parameter_types,
 	traits::{
-		AsEnsureOriginWithArg, ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess,
+		fungible::NativeOrWithId, AsEnsureOriginWithArg, ConstU32, EitherOf, Everything, Get,
+		InstanceFilter, Nothing, PalletInfoAccess,
 	},
 	weights::Weight,
 	PalletId,
@@ -29,14 +30,22 @@ use frame_support::{
 pub use moonbeam_runtime::xcm_config::AssetType;
 
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
-use pallet_xcm::migration::v1::VersionUncheckedMigrateToV1;
+use moonbeam_runtime_common::{
+	impl_asset_conversion::AssetRateConverter, impl_multiasset_paymaster::MultiAssetPaymaster,
+	xcm_origins::AllowSiblingParachains,
+};
+use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
+use pallet_xcm::{migration::v1::VersionUncheckedMigrateToV1, EnsureXcm};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use sp_core::H256;
+use sp_core::{H160, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup, MaybeEquivalence, Zero},
 	Permill,
 };
-use sp_std::{convert::TryFrom, prelude::*};
+use sp_std::{
+	convert::{From, Into, TryFrom},
+	prelude::*,
+};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
@@ -435,11 +444,11 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = ();
 	type SpendFunds = ();
 	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
-	type AssetKind = ();
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
-	type BalanceConverter = UnityAssetBalanceConversion;
+	type Paymaster = MultiAssetPaymaster<Runtime, TreasuryAccount, Balances, EvmForeignAssets>;
+	type BalanceConverter = AssetRateConverter<Runtime, Balances, EvmForeignAssets>;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ArgumentsBenchmarkHelper;
@@ -753,6 +762,53 @@ impl pallet_asset_manager::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub struct AccountIdToH160;
+impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
+	fn convert(account_id: AccountId) -> H160 {
+		account_id.into()
+	}
+}
+
+pub struct EvmForeignAssetIdFilter;
+impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
+	fn contains(asset_id: &AssetId) -> bool {
+		use xcm_primitives::AssetTypeGetter as _;
+		// We should return true only if the AssetId doesn't exist in AssetManager
+		AssetManager::get_asset_type(*asset_id).is_none()
+	}
+}
+
+pub type ForeignAssetManagerOrigin = EitherOf<
+	MapSuccessToXcm<EnsureXcm<AllowSiblingParachains>>,
+	MapSuccessToGovernance<EnsureRoot<AccountId>>,
+>;
+
+moonbeam_runtime_common::impl_evm_runner_precompile_or_eth_xcm!();
+
+parameter_types! {
+	pub ForeignAssetCreationDeposit: u128 = 100 * currency::GLMR;
+}
+
+impl pallet_moonbeam_foreign_assets::Config for Runtime {
+	type AccountIdToH160 = AccountIdToH160;
+	type AssetIdFilter = EvmForeignAssetIdFilter;
+	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
+	type ConvertLocation =
+		SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>;
+	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
+	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
+	type OnForeignAssetCreated = ();
+	type MaxForeignAssets = ConstU32<256>;
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	type XcmLocationToH160 = LocationToH160;
+	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
+	type Balance = Balance;
+	type Currency = Balances;
+}
+
 // 1 DOT should be enough
 parameter_types! {
 	pub MaxHrmpRelayFee: Asset = (Location::parent(), 1_000_000_000_000u128).into();
@@ -815,8 +871,6 @@ impl pallet_timestamp::Config for Runtime {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
-
-use sp_core::U256;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
@@ -1063,6 +1117,7 @@ construct_runtime!(
 		EVM: pallet_evm,
 		Ethereum: pallet_ethereum,
 		EthereumXcm: pallet_ethereum_xcm,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets,
 	}
 );
 
@@ -1074,9 +1129,8 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
-use moonbeam_runtime::{EvmForeignAssets, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
+use moonbeam_runtime::{currency, xcm_config::LocationToH160, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
 use pallet_evm::FrameSystemAccountProvider;
 use sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use xcm_primitives::AsAssetType;
