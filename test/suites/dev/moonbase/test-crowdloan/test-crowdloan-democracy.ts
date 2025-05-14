@@ -4,15 +4,9 @@ import {
   expect,
   fastFowardToNextEvent,
   maximizeConvictionVotingOf,
-  whiteListTrackNoSend
+  whiteListTrackNoSend,
 } from "@moonwall/cli";
-import {
-  baltathar,
-  DEFAULT_GENESIS_BALANCE,
-  ethan,
-  GLMR,
-  GOLIATH_ADDRESS
-} from "@moonwall/util";
+import { baltathar, DEFAULT_GENESIS_BALANCE, ethan, GLMR, GOLIATH_ADDRESS } from "@moonwall/util";
 import {
   getAccountPayable,
   RELAYCHAIN_ARBITRARY_ADDRESS_1,
@@ -30,14 +24,14 @@ describeSuite({
       title: "should be able to initialize through democracy",
       test: async () => {
         const initializeRewardVec = context.polkadotJs().tx.crowdloanRewards.initializeRewardVec([
-            [RELAYCHAIN_ARBITRARY_ADDRESS_1, GOLIATH_ADDRESS, 1_500_000n * GLMR],
-            [RELAYCHAIN_ARBITRARY_ADDRESS_2, null, 1_500_000n * GLMR],
+          [RELAYCHAIN_ARBITRARY_ADDRESS_1, GOLIATH_ADDRESS, 1_500_000n * GLMR],
+          [RELAYCHAIN_ARBITRARY_ADDRESS_2, null, 1_500_000n * GLMR],
         ]);
 
         const initBlock = await context.polkadotJs().query.crowdloanRewards.initRelayBlock();
         const completeInitialization = context
-            .polkadotJs()
-            .tx.crowdloanRewards.completeInitialization(initBlock.toBigInt() + VESTING_PERIOD);
+          .polkadotJs()
+          .tx.crowdloanRewards.completeInitialization(initBlock.toBigInt() + VESTING_PERIOD);
 
         await whiteListTrackNoSend(context, initializeRewardVec);
         await whiteListTrackNoSend(context, completeInitialization);
