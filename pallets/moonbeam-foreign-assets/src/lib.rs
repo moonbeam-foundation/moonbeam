@@ -248,7 +248,6 @@ pub mod pallet {
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
-		EvmCallBalanceOfFail,
 		EvmCallMintIntoFail,
 		EvmCallTransferFail,
 		EvmInternalError,
