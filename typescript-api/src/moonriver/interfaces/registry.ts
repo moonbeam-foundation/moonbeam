@@ -188,8 +188,12 @@ import type {
   PalletMessageQueueEvent,
   PalletMessageQueueNeighbours,
   PalletMessageQueuePage,
+  PalletMigrationsActiveCursor,
+  PalletMigrationsCall,
   PalletMigrationsError,
   PalletMigrationsEvent,
+  PalletMigrationsHistoricCleanupSelector,
+  PalletMigrationsMigrationCursor,
   PalletMoonbeamForeignAssetsAssetDepositDetails,
   PalletMoonbeamForeignAssetsAssetStatus,
   PalletMoonbeamForeignAssetsCall,
@@ -593,8 +597,12 @@ declare module "@polkadot/types/types/registry" {
     PalletMessageQueueEvent: PalletMessageQueueEvent;
     PalletMessageQueueNeighbours: PalletMessageQueueNeighbours;
     PalletMessageQueuePage: PalletMessageQueuePage;
+    PalletMigrationsActiveCursor: PalletMigrationsActiveCursor;
+    PalletMigrationsCall: PalletMigrationsCall;
     PalletMigrationsError: PalletMigrationsError;
     PalletMigrationsEvent: PalletMigrationsEvent;
+    PalletMigrationsHistoricCleanupSelector: PalletMigrationsHistoricCleanupSelector;
+    PalletMigrationsMigrationCursor: PalletMigrationsMigrationCursor;
     PalletMoonbeamForeignAssetsAssetDepositDetails: PalletMoonbeamForeignAssetsAssetDepositDetails;
     PalletMoonbeamForeignAssetsAssetStatus: PalletMoonbeamForeignAssetsAssetStatus;
     PalletMoonbeamForeignAssetsCall: PalletMoonbeamForeignAssetsCall;

@@ -781,6 +781,16 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       [key: string]: AugmentedError<ApiType>;
     };
+    multiBlockMigrations: {
+      /**
+       * The operation cannot complete since some MBMs are ongoing.
+       **/
+      Ongoing: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       **/
+      [key: string]: AugmentedError<ApiType>;
+    };
     multisig: {
       /**
        * Call is already approved by this signatory.
