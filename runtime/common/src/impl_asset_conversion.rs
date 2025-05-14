@@ -23,7 +23,6 @@ use frame_support::traits::{
 use moonbeam_core_primitives::{AssetId, Balance};
 use pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS;
 use sp_runtime::traits::MaybeEquivalence;
-use xcm::v5::Location;
 
 pub struct AssetRateConverter<T, NativeAsset>(PhantomData<(T, NativeAsset)>);
 impl<
@@ -60,8 +59,8 @@ impl<
 	/// Set a conversion rate to `1` for the `asset_id`.
 	#[cfg(feature = "runtime-benchmarks")]
 	fn ensure_successful(asset_id: NativeOrWithId<AssetId>) {
-		use frame_support::{assert_ok, traits::OriginTrait};
-		use xcm::opaque::v5::Junction::Parachain;
+		use frame_support::{traits::OriginTrait};
+		use xcm::latest::{Location, Junction::Parachain};
 		match asset_id {
 			NativeOrWithId::Native => (),
 			NativeOrWithId::WithId(asset_id) => {
