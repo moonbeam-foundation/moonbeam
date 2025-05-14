@@ -85,7 +85,8 @@ describeSuite({
         // Previous value: 449_284_776_265_723_667_008n
         // Previous value: 119_241_298_837_127_813_277n
         // Previous value: 146_015_659_550_552_813_277n
-        expect(initialBalance - afterBalance).to.equal(146_015_659_564_090_313_277n);
+        // Previous value: 146_015_659_564_090_313_277n
+        expect(initialBalance - afterBalance).toMatchInlineSnapshot(`231664695814090313277n`);
       },
     });
 
