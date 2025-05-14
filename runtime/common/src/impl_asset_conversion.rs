@@ -21,6 +21,7 @@ use frame_support::traits::{
 	tokens::ConversionFromAssetBalance,
 };
 use moonbeam_core_primitives::{AssetId, Balance};
+#[cfg(feature = "runtime-benchmarks")]
 use pallet_moonbeam_foreign_assets::AssetCreate;
 use pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS;
 use sp_runtime::traits::MaybeEquivalence;
