@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"moonbeam_runtime_common":[["impl&lt;R, TreasuryAccount, NativeAsset, ForeignAssets&gt; Pay for <a class=\"struct\" href=\"moonbeam_runtime_common/impl_multiasset_paymaster/struct.MultiAssetPaymaster.html\" title=\"struct moonbeam_runtime_common::impl_multiasset_paymaster::MultiAssetPaymaster\">MultiAssetPaymaster</a>&lt;R, TreasuryAccount, NativeAsset, ForeignAssets&gt;<div class=\"where\">where\n    R: Config,\n    TreasuryAccount: Get&lt;R::AccountId&gt;,\n    NativeAsset: Mutate&lt;R::AccountId&gt; + Inspect&lt;R::AccountId&gt;,\n    ForeignAssets: AssetMutate&lt;R&gt; + AssetInspect,</div>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

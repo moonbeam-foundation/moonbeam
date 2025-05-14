@@ -612,7 +612,7 @@
 					s: rs_id(),
 				}))
 			}
-			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 		}
 	}
 }
@@ -631,7 +631,7 @@
 		<span class="kw">let </span>from_tuple_to_access_list = |t: <span class="kw-2">&amp;</span>Vec&lt;(H160, Vec&lt;H256&gt;)&gt;| -&gt; AccessList {
 			t.iter()
 				.map(|item| AccessListItem {
-					address: item.<span class="number">0</span>.clone(),
+					address: item.<span class="number">0</span>,
 					storage_keys: item.<span class="number">1</span>.clone(),
 				})
 				.collect::&lt;Vec&lt;AccessListItem&gt;&gt;()

@@ -471,6 +471,8 @@
 <a href="#471" id="471">471</a>
 <a href="#472" id="472">472</a>
 <a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -598,6 +600,8 @@
 		</span>XcmLocationFiltered,
 		<span class="doccomment">/// The relative price cannot be zero
 		</span>PriceCannotBeZero,
+		<span class="doccomment">/// The relative price calculation overflowed
+		</span>PriceOverflow,
 	}
 
 	<span class="attr">#[pallet::event]
@@ -653,7 +657,7 @@
 		}
 
 		<span class="attr">#[pallet::call_index(<span class="number">1</span>)]
-		#[pallet::weight(T::WeightInfo::edit_asset())]
+		#[pallet::weight(&lt;T <span class="kw">as </span>pallet::Config&gt;::WeightInfo::edit_asset())]
 		</span><span class="kw">pub fn </span>edit_asset(
 			origin: OriginFor&lt;T&gt;,
 			location: Location,
@@ -678,7 +682,7 @@
 		}
 
 		<span class="attr">#[pallet::call_index(<span class="number">2</span>)]
-		#[pallet::weight(T::WeightInfo::pause_asset_support())]
+		#[pallet::weight(&lt;T <span class="kw">as </span>pallet::Config&gt;::WeightInfo::pause_asset_support())]
 		</span><span class="kw">pub fn </span>pause_asset_support(origin: OriginFor&lt;T&gt;, location: Location) -&gt; DispatchResult {
 			T::PauseSupportedAssetOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 
@@ -694,7 +698,7 @@
 		}
 
 		<span class="attr">#[pallet::call_index(<span class="number">3</span>)]
-		#[pallet::weight(T::WeightInfo::resume_asset_support())]
+		#[pallet::weight(&lt;T <span class="kw">as </span>pallet::Config&gt;::WeightInfo::resume_asset_support())]
 		</span><span class="kw">pub fn </span>resume_asset_support(origin: OriginFor&lt;T&gt;, location: Location) -&gt; DispatchResult {
 			T::ResumeSupportedAssetOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 
@@ -710,7 +714,7 @@
 		}
 
 		<span class="attr">#[pallet::call_index(<span class="number">4</span>)]
-		#[pallet::weight(T::WeightInfo::remove_asset())]
+		#[pallet::weight(&lt;T <span class="kw">as </span>pallet::Config&gt;::WeightInfo::remove_asset())]
 		</span><span class="kw">pub fn </span>remove_asset(origin: OriginFor&lt;T&gt;, location: Location) -&gt; DispatchResult {
 			T::RemoveSupportedAssetOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 

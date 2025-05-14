@@ -1218,7 +1218,7 @@
 		<span class="self">self</span>.clone()
 			.filter(filter)
 			.<span class="kw">await
-			</span>.map_err(|e| fc_rpc::internal_err(e))
+			</span>.map_err(fc_rpc::internal_err)
 	}
 }
 
@@ -1683,7 +1683,7 @@
 					<span class="macro">tracing::trace!</span>(<span class="string">"Pooled block {} is no longer requested."</span>, block);
 					<span class="comment">// Remove block from the cache. Drops the value,
 					// closing all the channels contained in it.
-					</span><span class="kw">let _ </span>= <span class="self">self</span>.cached_blocks.remove(<span class="kw-2">&amp;</span>block);
+					</span><span class="kw">let _ </span>= <span class="self">self</span>.cached_blocks.remove(block);
 				}
 			}
 		}
