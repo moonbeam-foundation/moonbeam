@@ -58,18 +58,13 @@ where
 				Ok(())
 			}
 			Self::AssetKind::WithId(id) => {
-				// Check in the foreign assets first
-				if ForeignAssets::asset_exists(id) {
-					// Pay if asset found
-					ForeignAssets::transfer_asset(
-						id,
-						TreasuryAccount::get(),
-						who.clone(),
-						U256::from(amount as u128),
-					)?;
-					return Ok(());
-				}
-				Err(DispatchError::Other("asset not found"))
+				ForeignAssets::transfer_asset(
+					id,
+					TreasuryAccount::get(),
+					who.clone(),
+					U256::from(amount as u128),
+				)?;
+				return Ok(());
 			}
 		}
 	}
