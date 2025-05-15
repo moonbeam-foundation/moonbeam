@@ -309,8 +309,14 @@ describeSuite({
           .entries()
           .then((identities) => {
             identities.forEach((identity) => {
-              const storageValue =
-                specVersion >= 2900 ? identity[1].unwrap()[0] : identity[1].unwrap();
+              const storageValue = (() => {
+                if (specVersion < 2900) {
+                  return identity[1].unwrap();
+                } else if (specVersion < 3700) {
+                  return identity[1].unwrap()[0];
+                }
+                return identity[1].unwrap();
+              })();
               updateReserveMap(identity[0].toHex().slice(-40), {
                 [ReserveType.Identity]: storageValue.deposit.toBigInt(),
               });
