@@ -259,7 +259,8 @@ impl pallet_bridge_parachains::Config<BridgeParachainsInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type BridgesGrandpaPalletInstance = BridgeGrandpaInstance;
 	type ParasPalletName = ParasPalletName;
-	type ParaStoredHeaderDataBuilder = SingleParaStoredHeaderDataBuilder<bp_moonbase::betanet::Betanet>;
+	type ParaStoredHeaderDataBuilder =
+		SingleParaStoredHeaderDataBuilder<bp_moonbase::betanet::Betanet>;
 	type HeadsToKeep = ParachainHeadsToKeep;
 	type MaxParaHeadDataSize = MaxKusamaParaHeadDataSize;
 	type WeightInfo = moonbase_weights::pallet_bridge_parachains::WeightInfo<Runtime>;

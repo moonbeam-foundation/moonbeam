@@ -17,13 +17,13 @@
 //! XCM configuration for Moonbase.
 //!
 
-use super::{moonbase_weights, BridgeXcmOver, BridgeXcmRouter};
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
 	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
 	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
 	RuntimeOrigin, Treasury, XcmpQueue,
 };
+use super::{moonbase_weights, BridgeXcmOver, BridgeXcmRouter};
 use crate::OpenTechCommitteeInstance;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
@@ -39,7 +39,15 @@ use frame_support::{
 use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{ConstU32, H160, H256};
 use sp_weights::Weight;
-use xcm_builder::{AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, GlobalConsensusParachainConvertsFor, HashedDescription, NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, WeightInfoBounds, WithComputedOrigin, WithUniqueTopic};
+use xcm_builder::{
+	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
+	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
+	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter,
+	GlobalConsensusParachainConvertsFor, HashedDescription, NoChecking, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
+	WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
+};
 
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
