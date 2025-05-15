@@ -312,9 +312,11 @@ describeSuite({
               const storageValue = (() => {
                 if (specVersion < 2900) {
                   return identity[1].unwrap();
-                } else if (specVersion < 3700) {
+                }
+                if (specVersion < 3700) {
                   return identity[1].unwrap()[0];
                 }
+
                 return identity[1].unwrap();
               })();
               updateReserveMap(identity[0].toHex().slice(-40), {
