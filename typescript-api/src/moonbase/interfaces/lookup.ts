@@ -1307,6 +1307,9 @@ export default {
       },
       Polkadot: "Null",
       Kusama: "Null",
+      __Unused4: "Null",
+      __Unused5: "Null",
+      __Unused6: "Null",
       Ethereum: {
         chainId: "Compact<u64>"
       },
