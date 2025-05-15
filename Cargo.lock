@@ -7644,7 +7644,6 @@ dependencies = [
  "pallet-referenda",
  "pallet-relay-storage-roots",
  "pallet-scheduler",
- "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-treasury",
