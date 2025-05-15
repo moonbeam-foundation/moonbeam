@@ -355,15 +355,11 @@ pub mod pallet {
 			beneficiary: T::AccountId,
 			amount: U256,
 		) -> Result<(), evm::EvmError> {
-			// We perform the evm call in a storage transaction to ensure that if it fail
-			// any contract storage changes are rolled back.
-			frame_support::storage::with_storage_layer(|| {
-				EvmCaller::<T>::erc20_mint_into(
-					Self::contract_address_from_asset_id(asset_id),
-					T::AccountIdToH160::convert(beneficiary),
-					amount,
-				)
-			})
+			EvmCaller::<T>::erc20_mint_into(
+				Self::contract_address_from_asset_id(asset_id),
+				T::AccountIdToH160::convert(beneficiary),
+				amount,
+			)
 			.map_err(Into::into)
 		}
 
@@ -397,8 +393,6 @@ pub mod pallet {
 			spender: T::AccountId,
 			amount: U256,
 		) -> Result<(), evm::EvmError> {
-			// We perform the evm call in a storage transaction to ensure that if it fail
-			// any contract storage changes are rolled back.
 			EvmCaller::<T>::erc20_approve(
 				Self::contract_address_from_asset_id(asset_id),
 				T::AccountIdToH160::convert(owner),
@@ -700,11 +694,7 @@ pub mod pallet {
 			let beneficiary = T::XcmLocationToH160::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
-			// We perform the evm transfers in a storage transaction to ensure that if it fail
-			// any contract storage changes are rolled back.
-			frame_support::storage::with_storage_layer(|| {
-				EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
-			})?;
+			EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)?;
 
 			Ok(())
 		}
@@ -730,11 +720,7 @@ pub mod pallet {
 			let to = T::XcmLocationToH160::convert_location(to)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
-			// We perform the evm transfers in a storage transaction to ensure that if it fail
-			// any contract storage changes are rolled back.
-			frame_support::storage::with_storage_layer(|| {
-				EvmCaller::<T>::erc20_transfer(contract_address, from, to, amount)
-			})?;
+			EvmCaller::<T>::erc20_transfer(contract_address, from, to, amount)?;
 
 			Ok(asset.clone().into())
 		}
@@ -762,11 +748,7 @@ pub mod pallet {
 				return Err(MatchError::AssetNotHandled.into());
 			}
 
-			// We perform the evm transfers in a storage transaction to ensure that if it fail
-			// any contract storage changes are rolled back.
-			frame_support::storage::with_storage_layer(|| {
-				EvmCaller::<T>::erc20_burn_from(contract_address, who, amount)
-			})?;
+			EvmCaller::<T>::erc20_burn_from(contract_address, who, amount)?;
 
 			Ok(what.clone().into())
 		}
