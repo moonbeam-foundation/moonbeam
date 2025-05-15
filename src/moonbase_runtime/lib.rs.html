@@ -2531,8 +2531,8 @@
 	<span class="kw">type </span>AssetKind = NativeOrWithId&lt;AssetId&gt;;
 	<span class="kw">type </span>Beneficiary = AccountId;
 	<span class="kw">type </span>BeneficiaryLookup = IdentityLookup&lt;AccountId&gt;;
-	<span class="kw">type </span>Paymaster = MultiAssetPaymaster&lt;Runtime, TreasuryAccount, Balances, EvmForeignAssets&gt;;
-	<span class="kw">type </span>BalanceConverter = AssetRateConverter&lt;Runtime, Balances, EvmForeignAssets&gt;;
+	<span class="kw">type </span>Paymaster = MultiAssetPaymaster&lt;Runtime, TreasuryAccount, Balances&gt;;
+	<span class="kw">type </span>BalanceConverter = AssetRateConverter&lt;Runtime, Balances&gt;;
 	<span class="kw">type </span>PayoutPeriod = ConstU32&lt;{ <span class="number">30 </span>* DAYS }&gt;;
 	<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 	</span><span class="kw">type </span>BenchmarkHelper = BenchmarkHelper;
