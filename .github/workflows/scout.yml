@@ -1,0 +1,73 @@
+name: Scout Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *" # Runs every day at 12 AM UTC
+
+jobs:
+  scout-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install required dependencies
+        run: |
+          sudo apt-get install -y libprotobuf-dev protobuf-compiler
+          cargo install cargo-scout-audit
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run scout audit
+        id: run-scout
+        shell: bash
+        run: |
+          # Running scout analysis
+          
+          log() {
+            echo "[INFO] $1"
+          }
+          
+          section() {
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "🚀 $1"
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          }
+          
+          # Configuration
+          WORKSPACE="${{ github.workspace }}"
+          REPORT_DIR="$WORKSPACE/scout-report"
+          REPORT_PATH="$REPORT_DIR/report.md"
+          
+          section "Building Scout Environment"
+          
+          section "Preparing Analysis"
+          log "Creating report directory..."
+          mkdir -p "$REPORT_DIR"
+
+          section "Running Security Analysis"
+          cargo scout-audit --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
+          
+          if [ ! -f "$REPORT_PATH" ]; then
+            echo "[ERROR] Scout analysis failed!"
+            exit 1
+          fi
+          
+          echo "report=$REPORT_PATH" >> $GITHUB_OUTPUT
+          echo "report_dir=$REPORT_DIR" >> $GITHUB_OUTPUT
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: scout_audit_report.md
+          path: ${{ steps.run-scout.outputs.report }}
+
+      - name: Check for failures
+        shell: bash
+        run: |
+          if [ -f "${{ steps.run-scout.outputs.report_dir }}/FAIL" ]; then
+            echo "[ERROR] Scout analysis failed! Please check the report for details."
+            exit 1
+          fi
+          echo "✅ Scout analysis completed successfully!"
