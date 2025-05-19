@@ -3383,7 +3383,7 @@ mod treasury_tests {
 	}
 }
 
-#[cfg(test)]
+#[cfg(all(feature = "bridge-betanet", test))]
 mod bridge_tests {
 	use crate::common::{origin_of, root_origin, ExtBuilder, XcmAssetInitialization, ALICE, BOB};
 	use bp_messages::target_chain::DispatchMessageData;

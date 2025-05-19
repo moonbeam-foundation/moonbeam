@@ -37,11 +37,6 @@ use std::collections::BTreeMap;
 
 use bp_xcm_bridge::Receiver;
 use fp_rpc::ConvertTransaction;
-use moonbase_runtime::asset_config::AssetRegistrarMetadata;
-use moonbase_runtime::bridge_config::{ThisChain, XcmOverInstance};
-use moonbase_runtime::xcm_config::AssetType;
-use moonbase_runtime::AssetManager;
-use moonbeam_core_primitives::AssetId;
 use pallet_transaction_payment::Multiplier;
 use xcm::prelude::{InteriorLocation, Location};
 
@@ -253,8 +248,11 @@ impl ExtBuilder {
 			.build_storage()
 			.unwrap();
 
+		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 		parachain_info::GenesisConfig::<Runtime> {
-			parachain_id: <ThisChain as bp_runtime::Parachain>::PARACHAIN_ID.into(),
+			parachain_id:
+				<moonbase_runtime::bridge_config::ThisChain as bp_runtime::Parachain>::PARACHAIN_ID
+					.into(),
 			_config: Default::default(),
 		}
 		.assimilate_storage(&mut t)
@@ -290,11 +288,16 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		let genesis_config = pallet_xcm_bridge::GenesisConfig::<Runtime, XcmOverInstance> {
+		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+		pallet_xcm_bridge::GenesisConfig::<
+			Runtime,
+			moonbase_runtime::bridge_config::XcmOverInstance,
+		> {
 			opened_bridges: self.opened_bridges,
 			_phantom: Default::default(),
-		};
-		genesis_config.assimilate_storage(&mut t).unwrap();
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
 
 		let genesis_config = pallet_evm_chain_id::GenesisConfig::<Runtime> {
 			chain_id: self.chain_id,

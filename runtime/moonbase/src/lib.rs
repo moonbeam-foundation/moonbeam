@@ -142,7 +142,6 @@ pub use sp_runtime::BuildStorage;
 
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
-mod stagenet_bridge_config;
 mod weights;
 
 pub(crate) use weights as moonbase_weights;
