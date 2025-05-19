@@ -21,24 +21,17 @@ use frame_support::traits::{
 	tokens::ConversionFromAssetBalance,
 };
 use moonbeam_core_primitives::{AssetId, Balance};
-#[cfg(feature = "runtime-benchmarks")]
-use pallet_moonbeam_foreign_assets::AssetCreate;
 use pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS;
 use sp_runtime::traits::MaybeEquivalence;
-use xcm::v5::Location;
 
-pub struct AssetRateConverter<T, NativeAsset, ForeignAssets>(
-	PhantomData<(T, NativeAsset, ForeignAssets)>,
-);
+pub struct AssetRateConverter<T, NativeAsset>(PhantomData<(T, NativeAsset)>);
 impl<
-		T: frame_system::Config + pallet_xcm_weight_trader::Config,
+		T: frame_system::Config
+			+ pallet_xcm_weight_trader::Config
+			+ pallet_moonbeam_foreign_assets::Config,
 		NativeAsset: fungible::Mutate<T::AccountId> + fungible::Inspect<T::AccountId>,
-		#[cfg(not(feature = "runtime-benchmarks"))] ForeignAssets: pallet_moonbeam_foreign_assets::AssetInspect + MaybeEquivalence<Location, AssetId>,
-		#[cfg(feature = "runtime-benchmarks")] ForeignAssets: pallet_moonbeam_foreign_assets::AssetInspect
-			+ MaybeEquivalence<Location, AssetId>
-			+ AssetCreate,
 	> ConversionFromAssetBalance<Balance, NativeOrWithId<AssetId>, Balance>
-	for AssetRateConverter<T, NativeAsset, ForeignAssets>
+	for AssetRateConverter<T, NativeAsset>
 {
 	type Error = pallet_xcm_weight_trader::Error<T>;
 
@@ -49,7 +42,7 @@ impl<
 		match asset_kind {
 			NativeOrWithId::Native => Ok(balance),
 			NativeOrWithId::WithId(asset_id) => {
-				let location = ForeignAssets::convert_back(&asset_id)
+				let location = pallet_moonbeam_foreign_assets::Pallet::<T>::convert_back(&asset_id)
 					.ok_or(pallet_xcm_weight_trader::Error::<T>::AssetNotFound)?;
 				let relative_price =
 					pallet_xcm_weight_trader::Pallet::<T>::get_asset_relative_price(&location)
@@ -66,22 +59,30 @@ impl<
 	/// Set a conversion rate to `1` for the `asset_id`.
 	#[cfg(feature = "runtime-benchmarks")]
 	fn ensure_successful(asset_id: NativeOrWithId<AssetId>) {
-		use frame_support::{assert_ok, traits::OriginTrait};
-		use xcm::opaque::v5::Junction::Parachain;
+		use frame_support::traits::OriginTrait;
+		use xcm::latest::{Junction::Parachain, Location};
 		match asset_id {
 			NativeOrWithId::Native => (),
 			NativeOrWithId::WithId(asset_id) => {
-				if let None = ForeignAssets::convert_back(&asset_id) {
+				if let None = pallet_moonbeam_foreign_assets::Pallet::<T>::convert_back(&asset_id) {
 					let location = Location::new(1, [Parachain(1000)]);
 					let root = <T as frame_system::Config>::RuntimeOrigin::root();
 
-					assert_ok!(ForeignAssets::create_asset(asset_id, location.clone()));
-
-					assert_ok!(pallet_xcm_weight_trader::Pallet::<T>::add_asset(
-						root,
+					use sp_std::vec;
+					pallet_moonbeam_foreign_assets::Pallet::<T>::do_create_asset(
+						asset_id,
 						location.clone(),
-						1u128,
-					));
+						12,
+						vec![b'M', b'T'].try_into().expect("invalid ticker"),
+						vec![b'M', b'y', b'T', b'o', b'k']
+							.try_into()
+							.expect("invalid name"),
+						None,
+					)
+					.expect("Failed to create foreign asset");
+
+					pallet_xcm_weight_trader::Pallet::<T>::add_asset(root, location.clone(), 1u128)
+						.expect("Could not add asset");
 				}
 			}
 		}

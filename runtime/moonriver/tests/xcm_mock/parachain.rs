@@ -449,8 +449,8 @@ impl pallet_treasury::Config for Runtime {
 	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = MultiAssetPaymaster<Runtime, TreasuryAccount, Balances, EvmForeignAssets>;
-	type BalanceConverter = AssetRateConverter<Runtime, Balances, EvmForeignAssets>;
+	type Paymaster = MultiAssetPaymaster<Runtime, TreasuryAccount, Balances>;
+	type BalanceConverter = AssetRateConverter<Runtime, Balances>;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ArgumentsBenchmarkHelper;

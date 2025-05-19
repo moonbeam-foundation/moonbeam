@@ -23,17 +23,14 @@ use moonbeam_core_primitives::{AssetId, Balance};
 use sp_core::{Get, U256};
 use sp_runtime::DispatchError;
 
-pub struct MultiAssetPaymaster<R, TreasuryAccount, NativeAsset, ForeignAssets>(
-	sp_std::marker::PhantomData<(R, TreasuryAccount, NativeAsset, ForeignAssets)>,
+pub struct MultiAssetPaymaster<R, TreasuryAccount, NativeAsset>(
+	sp_std::marker::PhantomData<(R, TreasuryAccount, NativeAsset)>,
 );
-impl<R, TreasuryAccount, NativeAsset, ForeignAssets> Pay
-	for MultiAssetPaymaster<R, TreasuryAccount, NativeAsset, ForeignAssets>
+impl<R, TreasuryAccount, NativeAsset> Pay for MultiAssetPaymaster<R, TreasuryAccount, NativeAsset>
 where
-	R: frame_system::Config,
+	R: frame_system::Config + pallet_moonbeam_foreign_assets::Config,
 	TreasuryAccount: Get<R::AccountId>,
 	NativeAsset: fungible::Mutate<R::AccountId> + fungible::Inspect<R::AccountId>,
-	ForeignAssets: pallet_moonbeam_foreign_assets::AssetMutate<R>
-		+ pallet_moonbeam_foreign_assets::AssetInspect,
 {
 	type Balance = Balance;
 	type Beneficiary = R::AccountId;
@@ -57,15 +54,13 @@ where
 				)?;
 				Ok(())
 			}
-			Self::AssetKind::WithId(id) => {
-				ForeignAssets::transfer_asset(
-					id,
-					TreasuryAccount::get(),
-					who.clone(),
-					U256::from(amount as u128),
-				)?;
-				return Ok(());
-			}
+			Self::AssetKind::WithId(id) => pallet_moonbeam_foreign_assets::Pallet::<R>::transfer(
+				id,
+				TreasuryAccount::get(),
+				who.clone(),
+				U256::from(amount as u128),
+			)
+			.map_err(|_| Self::Error::Other("failed to transfer amount")),
 		}
 	}
 
@@ -89,8 +84,12 @@ where
 			}
 			Self::AssetKind::WithId(id) => {
 				// Fund treasury account
-				ForeignAssets::mint_asset(id, treasury, U256::from(amount as u128))
-					.expect("failed to mint asset into treasury account");
+				pallet_moonbeam_foreign_assets::Pallet::<R>::mint_into(
+					id,
+					treasury,
+					U256::from(amount as u128),
+				)
+				.expect("failed to mint asset into treasury account");
 			}
 		}
 	}
