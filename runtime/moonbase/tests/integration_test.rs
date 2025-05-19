@@ -3384,6 +3384,267 @@ mod treasury_tests {
 }
 
 #[cfg(test)]
+mod bridge_tests {
+	use crate::common::{origin_of, root_origin, ExtBuilder, XcmAssetInitialization, ALICE, BOB};
+	use bp_messages::target_chain::DispatchMessageData;
+	use bp_messages::ReceptionResult;
+	use bp_runtime::messages::MessageDispatchResult;
+	use cumulus_primitives_core::AggregateMessageOrigin;
+	use frame_support::assert_ok;
+	use frame_support::pallet_prelude::{Hooks, PalletInfoAccess};
+	use moonbase_runtime::asset_config::AssetRegistrarMetadata;
+	use moonbase_runtime::bridge_config::{
+		SourceGlobalConsensusNetwork, SourceParachain, TargetBridgeLocation,
+		TargetGlobalConsensusNetwork, TargetParachain, WithMessagesInstance,
+	};
+	use moonbase_runtime::currency::{KILOWEI, UNIT};
+	use moonbase_runtime::xcm_config::{AssetType, CurrencyId};
+	use moonbase_runtime::{
+		Balances, BridgeMessages, BridgeXcmOver, MessageQueue, PolkadotXcm, Runtime, RuntimeEvent,
+		System,
+	};
+	use moonbeam_core_primitives::AccountId;
+	use pallet_bridge_messages::LanesManager;
+	use pallet_xcm_bridge::XcmBlobMessageDispatchResult::Dispatched;
+	use parity_scale_codec::Encode;
+	use sp_core::{hex2array, H256};
+	use sp_runtime::traits::Convert;
+	use sp_weights::Weight;
+	use xcm::latest::Junctions::X1;
+	use xcm::latest::{
+		Asset, AssetFilter, AssetId, Fungibility, Junctions, Location, NetworkId, WeightLimit,
+		WildAsset, Xcm,
+	};
+	use xcm::prelude::{
+		AccountKey20, BuyExecution, ClearOrigin, DepositAsset, DescendOrigin, Fungible,
+		GlobalConsensus, PalletInstance, Parachain, ReserveAssetDeposited, SetTopic,
+		UniversalOrigin, XCM_VERSION,
+	};
+	use xcm::{VersionedAssets, VersionedInteriorLocation, VersionedLocation, VersionedXcm};
+	use xcm_builder::BridgeMessage;
+
+	fn currency_to_asset(currency_id: CurrencyId, amount: u128) -> Asset {
+		Asset {
+			id: AssetId(
+				<moonbase_runtime::Runtime as pallet_xcm_transactor::Config>::CurrencyIdToLocation::convert(
+					currency_id,
+				)
+					.unwrap(),
+			),
+			fun: Fungibility::Fungible(amount),
+		}
+	}
+
+	fn expect_events(events: Vec<RuntimeEvent>) {
+		let block_events: Vec<RuntimeEvent> =
+			System::events().into_iter().map(|r| r.event).collect();
+
+		log::debug!("Block events: {block_events:?}");
+
+		assert!(events.iter().all(|evt| block_events.contains(evt)))
+	}
+
+	fn next_block() {
+		System::reset_events();
+
+		let next_block = System::block_number() + 1u32;
+
+		System::set_block_number(next_block);
+		System::on_initialize(next_block);
+		MessageQueue::on_initialize(next_block);
+	}
+
+	#[test]
+	fn transfer_asset_betanet_to_stagenet() {
+		frame_support::__private::sp_tracing::init_for_tests();
+
+		ExtBuilder::default()
+			.with_balances(vec![(AccountId::from(ALICE), 2_000 * UNIT)])
+			.with_safe_xcm_version(XCM_VERSION)
+			.with_open_bridges(vec![(
+				Location::new(1, [SourceParachain::get()]),
+				Junctions::from([
+					TargetGlobalConsensusNetwork::get().into(),
+					TargetParachain::get(),
+				]),
+				Some(Default::default()),
+				None,
+			)])
+			.build()
+			.execute_with(|| {
+				assert_ok!(PolkadotXcm::force_xcm_version(
+					root_origin(),
+					Box::new(TargetBridgeLocation::get()),
+					XCM_VERSION
+				));
+
+				let asset = currency_to_asset(CurrencyId::SelfReserve, KILOWEI);
+
+				let message_data = BridgeMessages::outbound_message_data(Default::default(), 1u64);
+				assert!(message_data.is_none());
+
+				assert_ok!(PolkadotXcm::transfer_assets(
+					origin_of(AccountId::from(ALICE)),
+					Box::new(VersionedLocation::V5(TargetBridgeLocation::get())),
+					Box::new(VersionedLocation::V5(Location {
+						parents: 0,
+						interior: [AccountKey20 {
+							network: None,
+							key: ALICE,
+						}]
+						.into(),
+					})),
+					Box::new(VersionedAssets::V5(asset.into())),
+					0,
+					WeightLimit::Unlimited
+				));
+
+				let message_data = BridgeMessages::outbound_message_data(Default::default(), 1u64);
+				assert!(message_data.is_some());
+			})
+	}
+
+	#[test]
+	fn receive_message_from_stagenet() {
+		frame_support::__private::sp_tracing::init_for_tests();
+
+		ExtBuilder::default()
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * UNIT),
+				(AccountId::from(BOB), 1_000 * UNIT),
+			])
+			.with_xcm_assets(vec![XcmAssetInitialization {
+				asset_id: 1,
+				xcm_location: Location::new(
+					2,
+					[
+						GlobalConsensus(TargetGlobalConsensusNetwork::get()),
+						TargetParachain::get(),
+						PalletInstance(<Balances as PalletInfoAccess>::index() as u8),
+					],
+				),
+				name: "xcToken",
+				symbol: "xcToken",
+				decimals: 18,
+				balances: vec![(AccountId::from(ALICE), 1_000 * UNIT)],
+			}])
+			.with_safe_xcm_version(XCM_VERSION)
+			.with_open_bridges(vec![(
+				Location::new(1, [SourceParachain::get()]),
+				Junctions::from([
+					TargetGlobalConsensusNetwork::get().into(),
+					TargetParachain::get(),
+				]),
+				Some(Default::default()),
+				None,
+			)])
+			.build()
+			.execute_with(|| {
+				assert_ok!(PolkadotXcm::force_xcm_version(
+					root_origin(),
+					Box::new(TargetBridgeLocation::get()),
+					XCM_VERSION
+				));
+
+				let bridge_message: BridgeMessage = BridgeMessage {
+					universal_dest: VersionedInteriorLocation::V5(
+						[
+							GlobalConsensus(SourceGlobalConsensusNetwork::get()),
+							SourceParachain::get(),
+						]
+						.into(),
+					),
+					message: VersionedXcm::V5(Xcm([
+						UniversalOrigin(GlobalConsensus(TargetGlobalConsensusNetwork::get())),
+						DescendOrigin(X1([TargetParachain::get()].into())),
+						ReserveAssetDeposited(
+							vec![Asset {
+								id: AssetId(Location::new(
+									2,
+									[
+										GlobalConsensus(TargetGlobalConsensusNetwork::get()),
+										TargetParachain::get(),
+										PalletInstance(
+											<Balances as PalletInfoAccess>::index() as u8
+										),
+									],
+								)),
+								fun: Fungible(UNIT * 2),
+							}]
+							.into(),
+						),
+						ClearOrigin,
+						BuyExecution {
+							fees: Asset {
+								id: AssetId(Location::new(
+									2,
+									[
+										GlobalConsensus(TargetGlobalConsensusNetwork::get()),
+										TargetParachain::get(),
+										PalletInstance(
+											<Balances as PalletInfoAccess>::index() as u8
+										),
+									],
+								)),
+								fun: Fungible(UNIT / 2),
+							},
+							weight_limit: WeightLimit::Unlimited,
+						},
+						DepositAsset {
+							assets: AssetFilter::Wild(WildAsset::AllCounted(1)),
+							beneficiary: Location::new(
+								0,
+								[AccountKey20 {
+									network: None,
+									key: ALICE,
+								}],
+							),
+						},
+						SetTopic([
+							24, 73, 92, 41, 231, 15, 196, 44, 136, 120, 145, 143, 224, 187, 112,
+							187, 47, 89, 154, 44, 193, 175, 174, 249, 30, 194, 97, 183, 171, 39,
+							87, 147,
+						]),
+					]
+					.into())),
+				};
+
+				let mut inbound_lane = LanesManager::<Runtime, WithMessagesInstance>::new()
+					.active_inbound_lane(Default::default())
+					.unwrap();
+
+				let msg = DispatchMessageData {
+					payload: Ok(bridge_message.encode()),
+				};
+				let result =
+					inbound_lane.receive_message::<BridgeXcmOver>(&AccountId::from(ALICE), 1, msg);
+
+				assert_eq!(
+					result,
+					ReceptionResult::Dispatched(MessageDispatchResult {
+						unspent_weight: Default::default(),
+						dispatch_level_result: Dispatched
+					})
+				);
+
+				// Produce next block
+				next_block();
+				// Confirm that the xcm message was successfully processed
+				expect_events(vec![RuntimeEvent::MessageQueue(
+					pallet_message_queue::Event::Processed {
+						id: H256::from(hex2array!(
+							"18495c29e70fc42c8878918fe0bb70bb2f599a2cc1afaef91ec261b7ab275793"
+						)),
+						origin: AggregateMessageOrigin::Here,
+						weight_used: Weight::from_parts(4358896000, 30545),
+						success: true,
+					},
+				)]);
+			});
+	}
+}
+
+#[cfg(test)]
 mod fee_tests {
 	use super::*;
 	use fp_evm::FeeCalculator;

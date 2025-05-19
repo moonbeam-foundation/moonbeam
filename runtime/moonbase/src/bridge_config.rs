@@ -178,33 +178,6 @@ impl Convert<Vec<u8>, Xcm<()>> for UpdateBridgeStatusXcmProvider {
 parameter_types! {
 	pub MessagesPalletInstance: InteriorLocation = [PalletInstance(<BridgeMessages as PalletInfoAccess>::index() as u8)].into();
 
-	pub StagenetGlobalConsensusNetwork: NetworkId = NetworkId::ByGenesis(hex2array!("64d25a5d58d8d330b8804103e6452be6258ebfd7c4f4c1294835130e75628401"));
-	pub BetanetGlobalConsensusNetwork: NetworkId = NetworkId::ByGenesis(hex2array!("e1ea3ab1d46ba8f4898b6b4b9c54ffc05282d299f89e84bd0fd08067758c9443"));
-
-	pub StagenetGlobalConsensusNetworkLocation: Location = Location::new(
-		2,
-		[GlobalConsensus(StagenetGlobalConsensusNetwork::get())]
-	);
-	pub BetanetGlobalConsensusNetworkLocation: Location = Location::new(
-		2,
-		[GlobalConsensus(BetanetGlobalConsensusNetwork::get())]
-	);
-
-	pub BridgeStagenetLocation: Location = Location::new(
-		2,
-		[
-			GlobalConsensus(StagenetGlobalConsensusNetwork::get()),
-			Parachain(bp_moonbase::stagenet::PARACHAIN_ID)
-		]
-	);
-	pub BridgeBetanetLocation: Location = Location::new(
-		2,
-		[
-			GlobalConsensus(BetanetGlobalConsensusNetwork::get()),
-			Parachain(bp_moonbase::betanet::PARACHAIN_ID)
-		]
-	);
-
 	/// Price of every byte of the Betanet -> Stagenet message.
 	pub XcmMoonbeamRouterByteFee: Balance = 1u128;
 
@@ -222,19 +195,74 @@ parameter_types! {
 	pub const ParachainHeadsToKeep: u32 = 64;
 
 	pub const ParasPalletName: &'static str = bp_westend::PARAS_PALLET_NAME;
-	pub const MaxKusamaParaHeadDataSize: u32 = bp_westend::MAX_NESTED_PARACHAIN_HEAD_DATA_SIZE;
+	pub const MaxParaHeadDataSize: u32 = bp_westend::MAX_NESTED_PARACHAIN_HEAD_DATA_SIZE;
 
 	// see the `FEE_BOOST_PER_RELAY_HEADER` constant get the meaning of this value
 	pub PriorityBoostPerRelayHeader: u64 = 32_007_814_407_814;
 
-	/// Universal aliases
-	pub UniversalAliases: BTreeSet<(Location, Junction)> = BTreeSet::from_iter(
-		alloc::vec![
-			(SelfLocation::get(), GlobalConsensus(StagenetGlobalConsensusNetwork::get()))
+	pub storage BridgeDeposit: Balance = 0;
+}
+
+#[cfg(feature = "bridge-stagenet")]
+pub type ThisChain = bp_moonbase::stagenet::Stagenet;
+#[cfg(feature = "bridge-stagenet")]
+pub type BridgedChain = bp_moonbase::betanet::Betanet;
+#[cfg(not(feature = "bridge-stagenet"))]
+pub type ThisChain = bp_moonbase::betanet::Betanet;
+#[cfg(not(feature = "bridge-stagenet"))]
+pub type BridgedChain = bp_moonbase::stagenet::Stagenet;
+
+#[cfg(feature = "bridge-stagenet")]
+parameter_types! {
+	pub SourceParachain: Junction = Parachain(bp_moonbase::stagenet::PARACHAIN_ID);
+	pub TargetParachain: Junction = Parachain(bp_moonbase::betanet::PARACHAIN_ID);
+	pub SourceGlobalConsensusNetwork: NetworkId = NetworkId::ByGenesis(hex2array!("64d25a5d58d8d330b8804103e6452be6258ebfd7c4f4c1294835130e75628401"));
+	pub TargetGlobalConsensusNetwork: NetworkId = NetworkId::ByGenesis(hex2array!("e1ea3ab1d46ba8f4898b6b4b9c54ffc05282d299f89e84bd0fd08067758c9443"));
+
+	pub TargetGlobalConsensusNetworkLocation: Location = Location::new(
+		2,
+		[GlobalConsensus(TargetGlobalConsensusNetwork::get())]
+	);
+
+	pub TargetBridgeLocation: Location = Location::new(
+		2,
+		[
+			GlobalConsensus(TargetGlobalConsensusNetwork::get()),
+			TargetParachain::get()
 		]
 	);
 
-	pub storage BridgeDeposit: Balance = 0;
+	pub UniversalAliases: BTreeSet<(Location, Junction)> = BTreeSet::from_iter(
+		alloc::vec![
+			(SelfLocation::get(), GlobalConsensus(TargetGlobalConsensusNetwork::get()))
+		]
+	);
+}
+
+#[cfg(not(feature = "bridge-stagenet"))]
+parameter_types! {
+	pub SourceParachain: Junction = Parachain(bp_moonbase::betanet::PARACHAIN_ID);
+	pub TargetParachain: Junction = Parachain(bp_moonbase::stagenet::PARACHAIN_ID);
+	pub SourceGlobalConsensusNetwork: NetworkId = NetworkId::ByGenesis(hex2array!("e1ea3ab1d46ba8f4898b6b4b9c54ffc05282d299f89e84bd0fd08067758c9443"));
+	pub TargetGlobalConsensusNetwork: NetworkId = NetworkId::ByGenesis(hex2array!("64d25a5d58d8d330b8804103e6452be6258ebfd7c4f4c1294835130e75628401"));
+	pub TargetGlobalConsensusNetworkLocation: Location = Location::new(
+		2,
+		[GlobalConsensus(TargetGlobalConsensusNetwork::get())]
+	);
+
+	pub TargetBridgeLocation: Location = Location::new(
+		2,
+		[
+			GlobalConsensus(TargetGlobalConsensusNetwork::get()),
+			TargetParachain::get()
+		]
+	);
+
+	pub UniversalAliases: BTreeSet<(Location, Junction)> = BTreeSet::from_iter(
+		alloc::vec![
+			(SelfLocation::get(), GlobalConsensus(TargetGlobalConsensusNetwork::get()))
+		]
+	);
 }
 
 impl Contains<(Location, Junction)> for UniversalAliases {
@@ -259,10 +287,9 @@ impl pallet_bridge_parachains::Config<BridgeParachainsInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type BridgesGrandpaPalletInstance = BridgeGrandpaInstance;
 	type ParasPalletName = ParasPalletName;
-	type ParaStoredHeaderDataBuilder =
-		SingleParaStoredHeaderDataBuilder<bp_moonbase::betanet::Betanet>;
+	type ParaStoredHeaderDataBuilder = SingleParaStoredHeaderDataBuilder<BridgedChain>;
 	type HeadsToKeep = ParachainHeadsToKeep;
-	type MaxParaHeadDataSize = MaxKusamaParaHeadDataSize;
+	type MaxParaHeadDataSize = MaxParaHeadDataSize;
 	type WeightInfo = moonbase_weights::pallet_bridge_parachains::WeightInfo<Runtime>;
 }
 
@@ -270,14 +297,10 @@ impl pallet_bridge_parachains::Config<BridgeParachainsInstance> for Runtime {
 pub type WithMessagesInstance = pallet_bridge_messages::Instance1;
 impl pallet_bridge_messages::Config<WithMessagesInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-
-	type ThisChain = bp_moonbase::betanet::Betanet;
-	type BridgedChain = bp_moonbase::stagenet::Stagenet;
-	type BridgedHeaderChain = pallet_bridge_parachains::ParachainHeaders<
-		Runtime,
-		BridgeParachainsInstance,
-		bp_moonbase::stagenet::Stagenet,
-	>;
+	type ThisChain = ThisChain;
+	type BridgedChain = BridgedChain;
+	type BridgedHeaderChain =
+		pallet_bridge_parachains::ParachainHeaders<Runtime, BridgeParachainsInstance, BridgedChain>;
 
 	type OutboundPayload = XcmAsPlainPayload;
 	type InboundPayload = XcmAsPlainPayload;
@@ -299,11 +322,11 @@ impl pallet_xcm_bridge::Config<XcmOverInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 
 	type UniversalLocation = UniversalLocation;
-	type BridgedNetwork = StagenetGlobalConsensusNetworkLocation;
+	type BridgedNetwork = TargetGlobalConsensusNetworkLocation;
 	type BridgeMessagesPalletInstance = WithMessagesInstance;
 
 	type MessageExportPrice = ();
-	type DestinationVersion = XcmVersionOfDestAndRemoteBridge<PolkadotXcm, BridgeStagenetLocation>;
+	type DestinationVersion = XcmVersionOfDestAndRemoteBridge<PolkadotXcm, TargetBridgeLocation>;
 
 	type ForceOrigin = EnsureRoot<AccountId>;
 	// We don't want to allow creating bridges.

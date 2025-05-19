@@ -29,7 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 pub mod asset_config;
-mod bridge_config;
+pub mod bridge_config;
 #[cfg(not(feature = "disable-genesis-builder"))]
 pub mod genesis_config_preset;
 pub mod governance;
@@ -1514,10 +1514,10 @@ construct_runtime! {
 		MultiBlockMigrations: pallet_multiblock_migrations = 117,
 
 		// Bridge pallets (reserved indexes from 130 to 140)
-		BridgeGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
+		BridgeWestendGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>, Config<T>} = 130,
 		BridgeParachains: pallet_bridge_parachains::<Instance1>::{Pallet, Call, Storage, Event<T>} = 131,
-		BridgeMessages: pallet_bridge_messages::<Instance1>::{Pallet, Call, Storage, Event<T>} = 132,
-		BridgeXcmOver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason} = 133,
+		BridgeMessages: pallet_bridge_messages::<Instance1>::{Pallet, Call, Storage, Event<T>, Config<T>} = 132,
+		BridgeXcmOver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason, Config<T>} = 133,
 		BridgeXcmRouter: pallet_xcm_bridge_router::<Instance1>::{Pallet, Call, Storage, Event<T>} = 134
 	}
 }
@@ -1526,7 +1526,7 @@ use parity_scale_codec as codec;
 bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
 	RuntimeCall, AccountId,
 	// Grandpa
-	BridgeGrandpa,
+	BridgeWestendGrandpa,
 	// Parachains
 	BridgeParachains,
 	// Messages
@@ -1720,7 +1720,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 
 	impl bp_westend::WestendFinalityApi<Block> for Runtime {
 		fn best_finalized() -> Option<bp_runtime::HeaderId<bp_westend::Hash, bp_westend::BlockNumber>> {
-			BridgeGrandpa::best_finalized()
+			BridgeWestendGrandpa::best_finalized()
 		}
 		fn free_headers_interval() -> Option<bp_westend::BlockNumber> {
 			<Runtime as pallet_bridge_grandpa::Config<
@@ -1729,15 +1729,24 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 		}
 		fn synced_headers_grandpa_info(
 		) -> Vec<bp_header_chain::StoredHeaderGrandpaInfo<bp_westend::Header>> {
-			BridgeGrandpa::synced_headers_grandpa_info()
+			BridgeWestendGrandpa::synced_headers_grandpa_info()
 		}
 	}
 
 	impl bp_moonbase::MoonbaseWestendFinalityApi<Block> for Runtime {
 		fn best_finalized() -> Option<bp_runtime::HeaderId<bp_moonbase::Hash, bp_moonbase::BlockNumber>> {
-			BridgeParachains::best_parachain_head_id::<
-				bp_moonbase::stagenet::Stagenet
-			>().unwrap_or(None)
+			if cfg!(feature = "bridge-stagenet") {
+				BridgeParachains::best_parachain_head_id::<
+					bp_moonbase::betanet::Betanet
+				>().unwrap_or(None)
+			} else if cfg!(feature = "bridge-betanet") {
+				BridgeParachains::best_parachain_head_id::<
+					bp_moonbase::stagenet::Stagenet
+				>().unwrap_or(None)
+			} else {
+				None
+			}
+
 		}
 		fn free_headers_interval() -> Option<bp_moonbase::BlockNumber> {
 			// "free interval" is not currently used for parachains

@@ -359,6 +359,9 @@ std = [
 	"bridge-runtime-common/std",
 ]
 
+bridge-stagenet = []
+bridge-betanet = []
+
 # Must be enabled for tracing runtimes only
 evm-tracing = ["evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3"]
 

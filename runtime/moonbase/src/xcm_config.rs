@@ -52,12 +52,9 @@ use xcm_builder::{
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 
 use xcm::{
-	latest::{
-		prelude::{
-			AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location,
-			NetworkId, PalletInstance, Parachain, Wild, WildFungible,
-		},
-		WESTEND_GENESIS_HASH,
+	latest::prelude::{
+		AllOf, Asset, AssetFilter, GlobalConsensus, InteriorLocation, Junction, Location,
+		NetworkId, PalletInstance, Parachain, Wild, WildFungible,
 	},
 	IntoVersion,
 };
@@ -84,9 +81,19 @@ use sp_std::{
 	prelude::*,
 };
 
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 parameter_types! {
 	// The network Id of the relay
-	pub const RelayNetwork: NetworkId = NetworkId::ByGenesis(WESTEND_GENESIS_HASH);
+	pub RelayNetwork: NetworkId = crate::bridge_config::SourceGlobalConsensusNetwork::get();
+}
+
+#[cfg(not(all(feature = "bridge-stagenet", feature = "bridge-betanet")))]
+parameter_types! {
+	// The network Id of the relay
+	pub RelayNetwork: NetworkId = NetworkId::ByGenesis(xcm::v5::WESTEND_GENESIS_HASH);
+}
+
+parameter_types! {
 	// The relay chain Origin type
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	// The universal location within the global consensus system
@@ -278,8 +285,8 @@ parameter_types! {
 type BridgedReserves = (
 	// Assets held in reserve on Asset Hub.
 	IsBridgedConcreteAssetFrom<AssetHubLocation>,
-	// Assets bridged from Moonbase-Beta
-	IsBridgedConcreteAssetFrom<crate::bridge_config::BridgeBetanetLocation>,
+	// Assets bridged from TargetBridgeLocation
+	IsBridgedConcreteAssetFrom<crate::bridge_config::TargetBridgeLocation>,
 );
 
 type Reserves = (
