@@ -18,12 +18,11 @@ extern crate alloc;
 
 use crate::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	BridgeMessagesConfig, BridgeWestendGrandpaConfig, BridgeXcmOverConfig, CrowdloanRewardsConfig,
-	EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig, InflationInfo,
-	MaintenanceModeConfig, MoonbeamOrbitersConfig, OpenTechCommitteeCollectiveConfig,
-	ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range,
-	RuntimeGenesisConfig, SudoConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
-	XcmTransactorConfig, HOURS,
+	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
+	InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
+	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
+	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig,
+	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
 };
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
@@ -178,15 +177,6 @@ pub fn testnet_genesis(
 		},
 		xcm_transactor: XcmTransactorConfig {
 			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
-			..Default::default()
-		},
-		bridge_westend_grandpa: BridgeWestendGrandpaConfig {
-			..Default::default()
-		},
-		bridge_messages: BridgeMessagesConfig {
-			..Default::default()
-		},
-		bridge_xcm_over: BridgeXcmOverConfig {
 			..Default::default()
 		},
 	};

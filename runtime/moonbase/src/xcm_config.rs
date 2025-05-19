@@ -17,13 +17,13 @@
 //! XCM configuration for Moonbase.
 //!
 
+use super::moonbase_weights;
 use super::{
 	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
 	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo,
 	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
 	RuntimeOrigin, Treasury, XcmpQueue,
 };
-use super::{moonbase_weights, BridgeXcmOver, BridgeXcmRouter};
 use crate::OpenTechCommitteeInstance;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use sp_runtime::{
@@ -87,7 +87,7 @@ parameter_types! {
 	pub RelayNetwork: NetworkId = crate::bridge_config::SourceGlobalConsensusNetwork::get();
 }
 
-#[cfg(not(all(feature = "bridge-stagenet", feature = "bridge-betanet")))]
+#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
 parameter_types! {
 	// The network Id of the relay
 	pub RelayNetwork: NetworkId = NetworkId::ByGenesis(xcm::v5::WESTEND_GENESIS_HASH);
@@ -282,11 +282,17 @@ parameter_types! {
 	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
 
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 type BridgedReserves = (
 	// Assets held in reserve on Asset Hub.
 	IsBridgedConcreteAssetFrom<AssetHubLocation>,
 	// Assets bridged from TargetBridgeLocation
 	IsBridgedConcreteAssetFrom<crate::bridge_config::TargetBridgeLocation>,
+);
+#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
+type BridgedReserves = (
+	// Assets held in reserve on Asset Hub.
+	IsBridgedConcreteAssetFrom<AssetHubLocation>,
 );
 
 type Reserves = (
@@ -328,8 +334,15 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetLocker = ();
 	type AssetExchanger = ();
 	type FeeManager = ();
-	type MessageExporter = BridgeXcmOver;
+
+	#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+	type MessageExporter = super::BridgeXcmOver;
+	#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
+	type MessageExporter = ();
+	#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 	type UniversalAliases = crate::bridge_config::UniversalAliases;
+	#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
+	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
@@ -352,13 +365,19 @@ pub type LocalXcmRouter = (
 
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 pub type XcmRouter = WithUniqueTopic<(
 	// The means for routing XCM messages which are not for local execution into the right message
 	// queues.
 	LocalXcmRouter,
 	// Router that exports messages to be delivered to the Kusama GlobalConsensus
-	BridgeXcmRouter,
+	super::BridgeXcmRouter,
 )>;
+
+/// The means for routing XCM messages which are not for local execution into the right message
+/// queues.
+#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
+pub type XcmRouter = WithUniqueTopic<LocalXcmRouter>;
 
 type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
 	XcmExecutorConfig,
