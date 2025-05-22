@@ -119,9 +119,13 @@ describeSuite({
           )
         );
 
+        expect((await api.query.xcmpQueue.queueSuspended()).toPrimitive()).to.be.false;
+
         await expectOk(
           context.createBlock(api.tx.moonbeamLazyMigrations.startForeignAssetsMigration(assetId))
         );
+
+        expect((await api.query.xcmpQueue.queueSuspended()).toPrimitive()).to.be.true;
 
         // Asset should be frozen
         const assetDetails = await api.query.assets.asset(assetId);
@@ -168,20 +172,28 @@ describeSuite({
           context.createBlock(api.tx.moonbeamLazyMigrations.migrateForeignAssetBalances(3))
         );
 
+        expect((await api.query.xcmpQueue.queueSuspended()).toPrimitive()).to.be.true;
+
         // Check that migration is not finished
         const { result } = await context.createBlock(
           api.tx.moonbeamLazyMigrations.finishForeignAssetsMigration()
         );
         expect(result?.error?.name).to.equal("MigrationNotFinished");
 
+        expect((await api.query.xcmpQueue.queueSuspended()).toPrimitive()).to.be.true;
+
         // Migrate approvals
         await expectOk(
           context.createBlock(api.tx.moonbeamLazyMigrations.migrateForeignAssetApprovals(3))
         );
 
+        expect((await api.query.xcmpQueue.queueSuspended()).toPrimitive()).to.be.true;
+
         await expectOk(
           context.createBlock(api.tx.moonbeamLazyMigrations.finishForeignAssetsMigration())
         );
+
+        expect((await api.query.xcmpQueue.queueSuspended()).toPrimitive()).to.be.false;
 
         // 3. Verify migration success
         expect((await api.query.assets.asset(assetId)).isNone).to.be.true;
