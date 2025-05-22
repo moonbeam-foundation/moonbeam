@@ -1,11 +1,5 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  alith,
-  ZERO_ADDRESS,
-  BALTATHAR_ADDRESS,
-  baltathar
-} from "@moonwall/util";
+import { ALITH_ADDRESS, alith, ZERO_ADDRESS, BALTATHAR_ADDRESS, baltathar } from "@moonwall/util";
 import {
   ERC20_TOTAL_SUPPLY,
   XcmFragment,
@@ -35,19 +29,22 @@ describeSuite({
       paraSovereign = sovereignAccountOfSibling(context, paraId);
 
       // Drain account
-      await context.createBlock(context
-        .polkadotJs()
-        .tx.balances.transferAll(ZERO_ADDRESS, false)
-        .signAsync(baltathar), { allowFailures: false })
+      await context.createBlock(
+        context.polkadotJs().tx.balances.transferAll(ZERO_ADDRESS, false).signAsync(baltathar),
+        { allowFailures: false }
+      );
 
       const initialBaltatharBalance = await getFreeBalance(BALTATHAR_ADDRESS, context);
       expect(initialBaltatharBalance).eq(0n);
 
       // Send some native tokens to the sovereign account of paraId
-      await context.createBlock(context
-        .polkadotJs()
-        .tx.balances.transferAllowDeath(paraSovereign, DEPOSIT)
-        .signAsync(alith), { allowFailures: false })
+      await context.createBlock(
+        context
+          .polkadotJs()
+          .tx.balances.transferAllowDeath(paraSovereign, DEPOSIT)
+          .signAsync(alith),
+        { allowFailures: false }
+      );
 
       initialParaSovereignBalance = await getFreeBalance(paraSovereign as any, context);
 
@@ -72,7 +69,6 @@ describeSuite({
       id: "T01",
       title: "Assert balances after XCM message",
       test: async function () {
-
         const xcmMessage = new XcmFragment(null)
           .push_any({
             WithdrawAsset: [
@@ -195,7 +191,8 @@ describeSuite({
                 interior: { X1: { AccountKey20: { network: null, key: BALTATHAR_ADDRESS } } },
               },
             },
-          }).as_v3();
+          })
+          .as_v3();
 
         await injectHrmpMessageAndSeal(context, paraId, {
           type: "XcmVersionedXcm",
@@ -203,9 +200,10 @@ describeSuite({
         });
 
         const events = await context.polkadotJs().query.system.events();
-        let mints = events.filter((evt) => context.polkadotJs().events.balances.Minted.is(evt.event))
+        const mints = events
+          .filter((evt) => context.polkadotJs().events.balances.Minted.is(evt.event))
           .map((evt) => evt.event.toJSON().data);
-        let totalMinted = mints.reduce((prev, cur) => prev + BigInt(cur[1]), 0n);
+        const totalMinted = mints.reduce((prev, cur) => prev + BigInt(cur[1]), 0n);
         const executionCost = BigInt(mints[1][1]);
 
         expect(mints.length).toBe(2);
