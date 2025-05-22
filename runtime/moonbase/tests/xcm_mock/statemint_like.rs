@@ -85,6 +85,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 parameter_types! {
@@ -107,6 +108,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 // Required for runtime benchmarks

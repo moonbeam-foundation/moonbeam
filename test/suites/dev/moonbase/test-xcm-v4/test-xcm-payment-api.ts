@@ -1,83 +1,11 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ApiPromise, WsProvider } from "@polkadot/api";
+import { type ApiPromise, WsProvider } from "@polkadot/api";
 import {
   XcmFragment,
   registerOldForeignAsset,
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION,
 } from "../../../../helpers";
-
-// TODO: remove once we upgrade @polkadot/api to v12.1.1
-const runtimeApi = {
-  runtime: {
-    XcmPaymentApi: [
-      {
-        methods: {
-          query_acceptable_payment_assets: {
-            description: "The API to query acceptable payment assets",
-            params: [
-              {
-                name: "version",
-                type: "u32",
-              },
-            ],
-            type: "Result<Vec<XcmVersionedAssetId>, XcmPaymentApiError>",
-          },
-          query_weight_to_asset_fee: {
-            description: "",
-            params: [
-              {
-                name: "weight",
-                type: "WeightV2",
-              },
-              {
-                name: "asset",
-                type: "XcmVersionedAssetId",
-              },
-            ],
-            type: "Result<u128, XcmPaymentApiError>",
-          },
-          query_xcm_weight: {
-            description: "",
-            params: [
-              {
-                name: "message",
-                type: "XcmVersionedXcm",
-              },
-            ],
-            type: "Result<WeightV2, XcmPaymentApiError>",
-          },
-          query_delivery_fees: {
-            description: "",
-            params: [
-              {
-                name: "destination",
-                type: "XcmVersionedLocation",
-              },
-              {
-                name: "message",
-                type: "XcmVersionedXcm",
-              },
-            ],
-            type: "Result<XcmVersionedAssets, XcmPaymentApiError>",
-          },
-        },
-        version: 1,
-      },
-    ],
-  },
-  types: {
-    XcmPaymentApiError: {
-      _enum: {
-        Unimplemented: "Null",
-        VersionedConversionFailed: "Null",
-        WeightNotComputable: "Null",
-        UnhandledXcmVersion: "Null",
-        AssetNotFound: "Null",
-      },
-    },
-  },
-};
 
 describeSuite({
   id: "D014131",
@@ -87,11 +15,7 @@ describeSuite({
     let polkadotJs: ApiPromise;
 
     beforeAll(async function () {
-      // TODO: this won't be needed after we upgrade @polkadot/api to v12.1.1
-      polkadotJs = await ApiPromise.create({
-        provider: new WsProvider(`ws://localhost:${process.env.MOONWALL_RPC_PORT}/`),
-        ...runtimeApi,
-      });
+      polkadotJs = context.polkadotJs();
 
       await registerOldForeignAsset(
         context,
@@ -184,7 +108,9 @@ describeSuite({
               originKind: "SovereignAccount",
               requireWeightAtMost: transactWeightAtMost,
               call: {
-                encoded: "0x",
+                encoded: polkadotJs.tx.balances
+                  .transferAllowDeath("0x0000000000000000000000000000000000000000", 1000000000n)
+                  .method.toHex(),
               },
             },
           })
@@ -196,7 +122,7 @@ describeSuite({
         expect(weightMessage.asOk.proofSize.toBigInt() > transactWeightAtMost.proofSize).to.be.true;
 
         const dest = {
-          V2: {
+          V3: {
             parents: 1,
             interior: "Here",
           },

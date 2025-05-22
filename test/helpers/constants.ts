@@ -150,7 +150,7 @@ export const RUNTIME_CONSTANTS = {
     GAS_PER_POV_BYTES: new RuntimeConstant({ 3100: 16n, 3000: 8n, 0: 4n }),
     // Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
     // MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES
-    MAX_ETH_POV_PER_TX: new RuntimeConstant({ 0: 3_250_000n }),
+    MAX_ETH_POV_PER_TX: new RuntimeConstant({ 3600: 6_500_000n, 0: 3_250_000n }),
     // Storage read/write costs
     STORAGE_READ_COST: 41_742_000n,
     // Weight to gas conversion ratio
@@ -196,7 +196,7 @@ export const RUNTIME_CONSTANTS = {
     GAS_PER_POV_BYTES: new RuntimeConstant({ 3200: 16n, 3100: 8n, 0: 4n }),
     // Maximum PoV size in bytes allowed by the gasometer for one ethereum transaction
     // MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES
-    MAX_ETH_POV_PER_TX: new RuntimeConstant({ 0: 3_250_000n }),
+    MAX_ETH_POV_PER_TX: new RuntimeConstant({ 3700: 6_500_000n, 0: 3_250_000n }),
     // Storage read/write costs
     STORAGE_READ_COST: 41_742_000n,
     // Weight to gas conversion ratio

@@ -337,43 +337,23 @@ macro_rules! impl_runtime_apis_plus_common {
 						EvmTracer::new().trace(|| {
 							let is_transactional = false;
 							let validate = true;
-							let without_base_extrinsic_weight = true;
 
-
-							// Estimated encoded transaction size must be based on the heaviest transaction
-							// type (EIP1559Transaction) to be compatible with all transaction types.
-							// TODO: remove, since we will get rid of base_cost
-							let mut estimated_transaction_len = data.len() +
-								// pallet ethereum index: 1
-								// transact call index: 1
-								// Transaction enum variant: 1
-								// chain_id 8 bytes
-								// nonce: 32
-								// max_priority_fee_per_gas: 32
-								// max_fee_per_gas: 32
-								// gas_limit: 32
-								// action: 21 (enum varianrt + call address)
-								// value: 32
-								// access_list: 1 (empty vec size)
-								// 65 bytes signature
-								258;
-
-							if access_list.is_some() {
-								estimated_transaction_len += access_list.encoded_size();
-							}
+							let transaction_data = pallet_ethereum::TransactionData::new(
+								pallet_ethereum::TransactionAction::Call(to),
+								data.clone(),
+								nonce.unwrap_or_default(),
+								gas_limit,
+								None,
+								max_fee_per_gas.or(Some(U256::default())),
+								max_priority_fee_per_gas.or(Some(U256::default())),
+								value,
+								Some(<Runtime as pallet_evm::Config>::ChainId::get()),
+								access_list.clone().unwrap_or_default(),
+							);
 
 							let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
 
-							let (weight_limit, proof_size_base_cost) =
-								match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-									gas_limit,
-									without_base_extrinsic_weight
-								) {
-									weight_limit if weight_limit.proof_size() > 0 => {
-										(Some(weight_limit), Some(estimated_transaction_len as u64))
-									}
-									_ => (None, None),
-								};
+							let (weight_limit, proof_size_base_cost) = pallet_ethereum::Pallet::<Runtime>::transaction_weight(&transaction_data);
 
 							let _ = <Runtime as pallet_evm::Config>::Runner::call(
 								from,
@@ -449,8 +429,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn storage_at(address: H160, index: U256) -> H256 {
-					let mut tmp = [0u8; 32];
-					index.to_big_endian(&mut tmp);
+					let tmp: [u8; 32] = index.to_big_endian();
 					pallet_evm::AccountStorages::<Runtime>::get(address, H256::from_slice(&tmp[..]))
 				}
 
@@ -476,41 +455,22 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-							// Estimated encoded transaction size must be based on the heaviest transaction
-							// type (EIP1559Transaction) to be compatible with all transaction types.
-					// TODO: remove, since we will get rid of base_cost
-					let mut estimated_transaction_len = data.len() +
-						// pallet ethereum index: 1
-						// transact call index: 1
-						// Transaction enum variant: 1
-						// chain_id 8 bytes
-						// nonce: 32
-						// max_priority_fee_per_gas: 32
-						// max_fee_per_gas: 32
-						// gas_limit: 32
-						// action: 21 (enum varianrt + call address)
-						// value: 32
-						// access_list: 1 (empty vec size)
-						// 65 bytes signature
-						258;
-
-					if access_list.is_some() {
-						estimated_transaction_len += access_list.encoded_size();
-					}
+					let transaction_data = pallet_ethereum::TransactionData::new(
+						pallet_ethereum::TransactionAction::Call(to),
+						data.clone(),
+						nonce.unwrap_or_default(),
+						gas_limit,
+						None,
+						max_fee_per_gas.or(Some(U256::default())),
+						max_priority_fee_per_gas.or(Some(U256::default())),
+						value,
+						Some(<Runtime as pallet_evm::Config>::ChainId::get()),
+						access_list.clone().unwrap_or_default(),
+					);
 
 					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
-					let without_base_extrinsic_weight = true;
 
-					let (weight_limit, proof_size_base_cost) =
-						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-							gas_limit,
-							without_base_extrinsic_weight
-						) {
-							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), Some(estimated_transaction_len as u64))
-							}
-							_ => (None, None),
-						};
+					let (weight_limit, proof_size_base_cost) = pallet_ethereum::Pallet::<Runtime>::transaction_weight(&transaction_data);
 
 					<Runtime as pallet_evm::Config>::Runner::call(
 						from,
@@ -551,43 +511,22 @@ macro_rules! impl_runtime_apis_plus_common {
 					let is_transactional = false;
 					let validate = true;
 
-					let mut estimated_transaction_len = data.len() +
-						// from: 20
-						// value: 32
-						// gas_limit: 32
-						// nonce: 32
-						// 1 byte transaction action variant
-						// chain id 8 bytes
-						// 65 bytes signature
-						190;
+					let transaction_data = pallet_ethereum::TransactionData::new(
+						pallet_ethereum::TransactionAction::Create,
+						data.clone(),
+						nonce.unwrap_or_default(),
+						gas_limit,
+						None,
+						max_fee_per_gas.or(Some(U256::default())),
+						max_priority_fee_per_gas.or(Some(U256::default())),
+						value,
+						Some(<Runtime as pallet_evm::Config>::ChainId::get()),
+						access_list.clone().unwrap_or_default(),
+					);
 
-					if max_fee_per_gas.is_some() {
-						estimated_transaction_len += 32;
-					}
-					if max_priority_fee_per_gas.is_some() {
-						estimated_transaction_len += 32;
-					}
-					if access_list.is_some() {
-						estimated_transaction_len += access_list.encoded_size();
-					}
+					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
 
-					let gas_limit = if gas_limit > U256::from(u64::MAX) {
-						u64::MAX
-					} else {
-						gas_limit.low_u64()
-					};
-					let without_base_extrinsic_weight = true;
-
-					let (weight_limit, proof_size_base_cost) =
-						match <Runtime as pallet_evm::Config>::GasWeightMapping::gas_to_weight(
-							gas_limit,
-							without_base_extrinsic_weight
-						) {
-							weight_limit if weight_limit.proof_size() > 0 => {
-								(Some(weight_limit), Some(estimated_transaction_len as u64))
-							}
-							_ => (None, None),
-						};
+					let (weight_limit, proof_size_base_cost) = pallet_ethereum::Pallet::<Runtime>::transaction_weight(&transaction_data);
 
 					#[allow(clippy::or_fun_call)] // suggestion not helpful here
 					<Runtime as pallet_evm::Config>::Runner::create(
@@ -674,7 +613,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				fn convert_transaction(
 					transaction: pallet_ethereum::Transaction
 				) -> <Block as BlockT>::Extrinsic {
-					UncheckedExtrinsic::new_unsigned(
+					UncheckedExtrinsic::new_bare(
 						pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 					)
 				}
@@ -811,13 +750,14 @@ macro_rules! impl_runtime_apis_plus_common {
 				for Runtime {
 					fn dry_run_call(
 						origin: OriginCaller,
-						call: RuntimeCall
+						call: RuntimeCall,
+						result_xcms_version: XcmVersion
 					) -> Result<CallDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
 						PolkadotXcm::dry_run_call::<
 							Runtime,
 							xcm_config::XcmRouter,
 							OriginCaller,
-							RuntimeCall>(origin, call)
+							RuntimeCall>(origin, call, result_xcms_version)
 					}
 
 					fn dry_run_xcm(
@@ -858,6 +798,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
+					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
 
 					let mut list = Vec::<BenchmarkList>::new();
 					list_benchmarks!(list, extra);
@@ -869,7 +810,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
-				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
+				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
 					use frame_benchmarking::{add_benchmark, BenchmarkBatch, Benchmarking};
 					use frame_support::traits::TrackedStorageKey;
 					use cumulus_primitives_core::ParaId;
@@ -924,6 +865,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 					}
 
+					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
+					impl pallet_transaction_payment::benchmarking::Config for Runtime {
+						fn setup_benchmark_environment() {
+							let alice = AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
+							pallet_author_inherent::Author::<Runtime>::put(&alice);
+						}
+					}
+
 					impl pallet_xcm::benchmarking::Config for Runtime {
 				        type DeliveryHelper = TestDeliveryHelper;
 
@@ -964,7 +913,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						) -> Option<(XcmAssets, u32, Location, Box<dyn FnOnce()>)> {
 							use xcm_config::SelfReserve;
 
-							let destination: xcm::v4::Location = Parent.into();
+							let destination: xcm::v5::Location = Parent.into();
 
 							let fee_amount: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
 							let fee_asset: Asset = (SelfReserve::get(), fee_amount).into();

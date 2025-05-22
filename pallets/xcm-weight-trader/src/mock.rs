@@ -29,7 +29,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
 };
-use xcm::v4::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
+use xcm::v5::{Asset, Error as XcmError, Junction, Location, Result as XcmResult, XcmContext};
 
 type AccountId = u64;
 type Balance = u128;
@@ -79,6 +79,7 @@ impl frame_system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 parameter_types! {
@@ -98,6 +99,7 @@ impl pallet_balances::Config for Test {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 pub struct AccountIdToLocation;

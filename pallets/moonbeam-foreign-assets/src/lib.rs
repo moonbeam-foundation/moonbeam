@@ -55,6 +55,7 @@ use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::Contains;
+
 use frame_system::pallet_prelude::*;
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
@@ -247,6 +248,8 @@ pub mod pallet {
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
+		EvmCallMintIntoFail,
+		EvmCallTransferFail,
 		EvmInternalError,
 		/// Account has insufficient balance for locking
 		InsufficientBalance,
@@ -352,12 +355,39 @@ pub mod pallet {
 			beneficiary: T::AccountId,
 			amount: U256,
 		) -> Result<(), evm::EvmError> {
-			EvmCaller::<T>::erc20_mint_into(
-				Self::contract_address_from_asset_id(asset_id),
-				T::AccountIdToH160::convert(beneficiary),
-				amount,
-			)
+			// We perform the evm call in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_mint_into(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(beneficiary),
+					amount,
+				)
+			})
 			.map_err(Into::into)
+		}
+
+		/// Transfer an asset from an account to another one
+		pub fn transfer(
+			asset_id: AssetId,
+			from: T::AccountId,
+			to: T::AccountId,
+			amount: U256,
+		) -> Result<(), evm::EvmError> {
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_transfer(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(from),
+					T::AccountIdToH160::convert(to),
+					amount,
+				)
+			})
+			.map_err(Into::into)
+		}
+
+		pub fn balance(asset_id: AssetId, who: T::AccountId) -> Result<U256, evm::EvmError> {
+			EvmCaller::<T>::erc20_balance_of(asset_id, T::AccountIdToH160::convert(who))
+				.map_err(Into::into)
 		}
 
 		/// Aprrove a spender to spend a certain amount of tokens from the owner account
@@ -367,6 +397,8 @@ pub mod pallet {
 			spender: T::AccountId,
 			amount: U256,
 		) -> Result<(), evm::EvmError> {
+			// We perform the evm call in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
 			EvmCaller::<T>::erc20_approve(
 				Self::contract_address_from_asset_id(asset_id),
 				T::AccountIdToH160::convert(owner),
@@ -668,7 +700,11 @@ pub mod pallet {
 			let beneficiary = T::XcmLocationToH160::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
-			EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)?;
+			// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
+			})?;
 
 			Ok(())
 		}
@@ -694,7 +730,11 @@ pub mod pallet {
 			let to = T::XcmLocationToH160::convert_location(to)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
-			EvmCaller::<T>::erc20_transfer(contract_address, from, to, amount)?;
+			// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_transfer(contract_address, from, to, amount)
+			})?;
 
 			Ok(asset.clone().into())
 		}
@@ -722,7 +762,11 @@ pub mod pallet {
 				return Err(MatchError::AssetNotHandled.into());
 			}
 
-			EvmCaller::<T>::erc20_burn_from(contract_address, who, amount)?;
+			// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_burn_from(contract_address, who, amount)
+			})?;
 
 			Ok(what.clone().into())
 		}

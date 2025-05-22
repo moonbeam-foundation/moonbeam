@@ -1,14 +1,11 @@
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
-  BALTATHAR_PRIVATE_KEY,
   CONTRACT_PROXY_TYPE_ANY,
   FAITH_ADDRESS,
   FAITH_PRIVATE_KEY,
-  PRECOMPILE_NATIVE_ERC20_ADDRESS,
   PRECOMPILE_PROXY_ADDRESS,
 } from "@moonwall/util";
-import { parseEther } from "ethers";
 import { expectEVMResult } from "helpers/eth-transactions";
 import { encodeFunctionData } from "viem";
 
@@ -17,6 +14,10 @@ describeSuite({
   title: "Storage growth limit - Precompiles",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    beforeAll(async () => {
+      await context.createBlock();
+    });
+
     it({
       id: "T01",
       title: "should fail to addProxy due to insufficient gas required to cover the storage growth",
@@ -34,7 +35,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`51888n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`49656n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -54,7 +55,6 @@ describeSuite({
       id: "T02",
       title: "should addProxy correctly with the required gas to cover the storage growth",
       test: async () => {
-        const balBefore = await context.viem().getBalance({ address: FAITH_ADDRESS });
         const { abi: proxyAbi } = fetchCompiledContract("Proxy");
 
         const estimatedGas = await context.viem().estimateGas({
@@ -68,7 +68,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`49856n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`51118n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -89,7 +89,7 @@ describeSuite({
 
         // The tx can create an account, so record 148 bytes of storage growth
         // Storage growth ratio is 366
-        expect(gasUsed).toMatchInlineSnapshot(`31042n`);
+        expect(gasUsed).toMatchInlineSnapshot(`31036n`);
       },
     });
   },

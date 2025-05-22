@@ -456,7 +456,9 @@ declare module "@polkadot/api-base/types/errors" {
       CannotConvertLocationToAccount: AugmentedError<ApiType>;
       CorruptedStorageOrphanLocation: AugmentedError<ApiType>;
       Erc20ContractCreationFail: AugmentedError<ApiType>;
+      EvmCallMintIntoFail: AugmentedError<ApiType>;
       EvmCallPauseFail: AugmentedError<ApiType>;
+      EvmCallTransferFail: AugmentedError<ApiType>;
       EvmCallUnpauseFail: AugmentedError<ApiType>;
       EvmInternalError: AugmentedError<ApiType>;
       /**
@@ -479,6 +481,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       AlreadyClaimed: AugmentedError<ApiType>;
       /**
+       * The username cannot be unbound because it is already unbinding.
+       **/
+      AlreadyUnbinding: AugmentedError<ApiType>;
+      /**
        * Empty index.
        **/
       EmptyIndex: AugmentedError<ApiType>;
@@ -486,6 +492,11 @@ declare module "@polkadot/api-base/types/errors" {
        * Fee is changed.
        **/
       FeeChanged: AugmentedError<ApiType>;
+      /**
+       * The action cannot be performed because of insufficient privileges (e.g. authority
+       * trying to unbind a username provided by the system).
+       **/
+      InsufficientPrivileges: AugmentedError<ApiType>;
       /**
        * The index is invalid.
        **/
@@ -551,6 +562,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       NotSub: AugmentedError<ApiType>;
       /**
+       * The username cannot be removed because it is not unbinding.
+       **/
+      NotUnbinding: AugmentedError<ApiType>;
+      /**
        * The sender does not have permission to issue a username.
        **/
       NotUsernameAuthority: AugmentedError<ApiType>;
@@ -566,6 +581,10 @@ declare module "@polkadot/api-base/types/errors" {
        * Sticky judgement.
        **/
       StickyJudgement: AugmentedError<ApiType>;
+      /**
+       * The username cannot be removed because it's still in the grace period.
+       **/
+      TooEarly: AugmentedError<ApiType>;
       /**
        * Maximum amount of registrars reached. Cannot add any more.
        **/
@@ -764,6 +783,16 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       [key: string]: AugmentedError<ApiType>;
     };
+    multiBlockMigrations: {
+      /**
+       * The operation cannot complete since some MBMs are ongoing.
+       **/
+      Ongoing: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       **/
+      [key: string]: AugmentedError<ApiType>;
+    };
     multisig: {
       /**
        * Call is already approved by this signatory.
@@ -847,6 +876,10 @@ declare module "@polkadot/api-base/types/errors" {
        * Prime account is not a member
        **/
       PrimeAccountNotMember: AugmentedError<ApiType>;
+      /**
+       * Proposal is still active.
+       **/
+      ProposalActive: AugmentedError<ApiType>;
       /**
        * Proposal must exist
        **/
@@ -1399,6 +1432,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       PrimeAccountNotMember: AugmentedError<ApiType>;
       /**
+       * Proposal is still active.
+       **/
+      ProposalActive: AugmentedError<ApiType>;
+      /**
        * Proposal must exist
        **/
       ProposalMissing: AugmentedError<ApiType>;
@@ -1543,6 +1580,10 @@ declare module "@polkadot/api-base/types/errors" {
        * The relative price cannot be zero
        **/
       PriceCannotBeZero: AugmentedError<ApiType>;
+      /**
+       * The relative price calculation overflowed
+       **/
+      PriceOverflow: AugmentedError<ApiType>;
       /**
        * XCM location filtered
        **/

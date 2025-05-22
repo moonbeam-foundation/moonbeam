@@ -28,7 +28,10 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+extern crate alloc;
+
 use account::AccountId20;
+use alloc::borrow::Cow;
 use cumulus_pallet_parachain_system::{
 	RelayChainStateProof, RelayStateProof, RelaychainDataProvider, ValidationData,
 };
@@ -46,8 +49,7 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
-		fungible::{Balanced, Credit, HoldConsideration, Inspect},
-		tokens::{PayFromAccount, UnityAssetBalanceConversion},
+		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
 		EitherOfDiverse, EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice, OnFinalize,
 		OnUnbalanced,
@@ -64,10 +66,16 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
-use moonbeam_runtime_common::deal_with_fees::{
-	DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
+use moonbeam_runtime_common::{
+	deal_with_fees::{
+		DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
+	},
+	impl_multiasset_paymaster::MultiAssetPaymaster,
 };
-use moonbeam_runtime_common::timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp};
+use moonbeam_runtime_common::{
+	impl_asset_conversion::AssetRateConverter,
+	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+};
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_ethereum::Call::transact;
 use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
@@ -83,8 +91,9 @@ use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
 use sp_core::{OpaqueMetadata, H160, H256, U256};
+use sp_runtime::generic::Preamble;
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	generic, impl_opaque_keys,
 	serde::{Deserialize, Serialize},
 	traits::{
 		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
@@ -97,7 +106,9 @@ use sp_runtime::{
 	Perquintill, SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
-use xcm::{VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
+use xcm::{
+	Version as XcmVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm,
+};
 use xcm_runtime_apis::{
 	dry_run::{CallDryRunEffects, Error as XcmDryRunApiError, XcmDryRunEffects},
 	fees::Error as XcmPaymentApiError,
@@ -201,14 +212,14 @@ pub mod opaque {
 /// changes which can be skipped.
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("moonriver"),
-	impl_name: create_runtime_str!("moonriver"),
+	spec_name: Cow::Borrowed("moonriver"),
+	impl_name: Cow::Borrowed("moonriver"),
 	authoring_version: 3,
-	spec_version: 3700,
+	spec_version: 3800,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
-	state_version: 1,
+	system_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -294,10 +305,11 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 	type SingleBlockMigrations = ();
-	type MultiBlockMigrator = ();
+	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = moonriver_weights::frame_system_extensions::WeightInfo<Runtime>;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -341,6 +353,7 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type WeightInfo = moonriver_weights::pallet_balances::WeightInfo<Runtime>;
+	type DoneSlashHandler = ();
 }
 
 pub struct LengthToFee;
@@ -378,6 +391,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
 	type LengthToFee = LengthToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
+	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Runtime>;
 }
 
 impl pallet_evm_chain_id::Config for Runtime {}
@@ -517,7 +531,6 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = RelayTimestamp;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
@@ -525,7 +538,7 @@ impl pallet_evm::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
+	pub MaxServiceWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
 }
 
 impl pallet_scheduler::Config for Runtime {
@@ -533,7 +546,7 @@ impl pallet_scheduler::Config for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
-	type MaximumWeight = MaximumSchedulerWeight;
+	type MaximumWeight = MaxServiceWeight;
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = ConstU32<50>;
 	type WeightInfo = moonriver_weights::pallet_scheduler::WeightInfo<Runtime>;
@@ -587,14 +600,15 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 	type SpendOrigin =
 		frame_system::EnsureWithSuccess<RootOrTreasuryCouncilOrigin, AccountId, MaxSpendBalance>;
-	type AssetKind = ();
+	type AssetKind = NativeOrWithId<AssetId>;
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
-	type BalanceConverter = UnityAssetBalanceConversion;
+	type Paymaster = MultiAssetPaymaster<Runtime, TreasuryAccount, Balances>;
+	type BalanceConverter = AssetRateConverter<Runtime, Balances>;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = BenchmarkHelper;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -633,13 +647,15 @@ impl pallet_identity::Config for Runtime {
 	type MaxSuffixLength = MaxSuffixLength;
 	type MaxUsernameLength = MaxUsernameLength;
 	type WeightInfo = moonriver_weights::pallet_identity::WeightInfo<Runtime>;
+	type UsernameDeposit = ConstU128<{ currency::deposit(0, MaxUsernameLength::get()) }>;
+	type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
 }
 
 pub struct TransactionConverter;
 
 impl fp_rpc::ConvertTransaction<UncheckedExtrinsic> for TransactionConverter {
 	fn convert_transaction(&self, transaction: pallet_ethereum::Transaction) -> UncheckedExtrinsic {
-		UncheckedExtrinsic::new_unsigned(
+		UncheckedExtrinsic::new_bare(
 			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 		)
 	}
@@ -650,7 +666,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 		&self,
 		transaction: pallet_ethereum::Transaction,
 	) -> opaque::UncheckedExtrinsic {
-		let extrinsic = UncheckedExtrinsic::new_unsigned(
+		let extrinsic = UncheckedExtrinsic::new_bare(
 			pallet_ethereum::Call::<Runtime>::transact { transaction }.into(),
 		);
 		let encoded = extrinsic.encode();
@@ -731,6 +747,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = moonriver_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
+	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -1052,13 +1069,17 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 						call,
 						RuntimeCall::System(..)
 							| RuntimeCall::ParachainSystem(..)
-							| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
-							| RuntimeCall::Referenda(..) | RuntimeCall::Preimage(..)
+							| RuntimeCall::Timestamp(..)
+							| RuntimeCall::ParachainStaking(..)
+							| RuntimeCall::Referenda(..)
+							| RuntimeCall::Preimage(..)
 							| RuntimeCall::ConvictionVoting(..)
 							| RuntimeCall::TreasuryCouncilCollective(..)
 							| RuntimeCall::OpenTechCommitteeCollective(..)
-							| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
-							| RuntimeCall::Identity(..) | RuntimeCall::AuthorMapping(..)
+							| RuntimeCall::Utility(..)
+							| RuntimeCall::Proxy(..)
+							| RuntimeCall::Identity(..)
+							| RuntimeCall::AuthorMapping(..)
 							| RuntimeCall::CrowdloanRewards(
 								pallet_crowdloan_rewards::Call::claim { .. }
 							)
@@ -1376,6 +1397,42 @@ impl pallet_parameters::Config for Runtime {
 	type WeightInfo = moonriver_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
+impl pallet_multiblock_migrations::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	// TODO fully replace pallet_migrations with multiblock migrations.
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Migrations = pallet_identity::migration::v2::LazyMigrationV1ToV2<Runtime>;
+	// Benchmarks need mocked migrations to guarantee that they succeed.
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
+	type CursorMaxLen = ConstU32<65_536>;
+	type IdentifierMaxLen = ConstU32<256>;
+	type MigrationStatusHandler = ();
+	type FailedMigrationHandler = EnterMaintenanceModeOnFailedMigration;
+	type MaxServiceWeight = MaxServiceWeight;
+	type WeightInfo = weights::pallet_multiblock_migrations::WeightInfo<Runtime>;
+}
+
+/// A `FailedMigrationHandler` that enables maintenance mode.
+pub struct EnterMaintenanceModeOnFailedMigration;
+impl frame_support::migrations::FailedMigrationHandler for EnterMaintenanceModeOnFailedMigration {
+	fn failed(migration: Option<u32>) -> frame_support::migrations::FailedMigrationHandling {
+		// Log information about the failed migration
+		log::error!(
+			target: "runtime::migrations",
+			"Migration {:?} failed - activating maintenance mode and continuing",
+			migration
+		);
+
+		// Enable maintenance mode using the internal function.
+		MaintenanceMode::force_enter_maintenance_mode();
+
+		// We choose to ignore the failed migration, allowing the chain to continue operating
+		// in maintenance mode rather than completely halting execution
+		frame_support::migrations::FailedMigrationHandling::Ignore
+	}
+}
+
 construct_runtime! {
 	pub enum Runtime
 	{
@@ -1456,6 +1513,7 @@ construct_runtime! {
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 114,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 115,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 116,
+		MultiBlockMigrations: pallet_multiblock_migrations = 117,
 
 		// Utils
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,
@@ -1482,6 +1540,7 @@ mod benches {
 
 	frame_benchmarking::define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
+		[frame_system_extensions, frame_system_benchmarking::extensions::Pallet::<Runtime>]
 		[pallet_utility, Utility]
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
@@ -1495,6 +1554,7 @@ mod benches {
 		[pallet_crowdloan_rewards, CrowdloanRewards]
 		[pallet_author_mapping, AuthorMapping]
 		[pallet_proxy, Proxy]
+		[pallet_transaction_payment, PalletTransactionPaymentBenchmark::<Runtime>]
 		[pallet_identity, Identity]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
@@ -1510,6 +1570,7 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
+		[pallet_multiblock_migrations, MultiBlockMigrations]
 		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
@@ -1603,13 +1664,15 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 				RuntimeCall::Ethereum(transact { .. }) => intermediate_valid,
 				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
 				_ => {
-					let tip = match xt.0.signature {
-						None => 0,
-						Some((_, _, ref signed_extra)) => {
-							// Yuck, this depends on the index of charge transaction in Signed Extra
-							let charge_transaction = &signed_extra.7;
-							charge_transaction.tip()
-						}
+					let tip = match &xt.0.preamble {
+						Preamble::Bare(_) => 0,
+						Preamble::Signed(_, _, signed_extra) => {
+							// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
+							// Get the 7th item from the tuple
+							let charge_transaction_payment = &signed_extra.7;
+							charge_transaction_payment.tip()
+						},
+						Preamble::General(_, _) => 0,
 					};
 
 					// Calculate the fee that will be taken by pallet transaction payment
@@ -1622,7 +1685,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 					// Calculate how much gas this effectively uses according to the existing mapping
 					let effective_gas =
 						<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-							dispatch_info.weight
+							dispatch_info.total_weight()
 						);
 
 					// Here we calculate an ethereum-style effective gas price using the
@@ -1653,6 +1716,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	}
 }
 
+#[allow(dead_code)]
 struct CheckInherents;
 
 // Parity has decided to depreciate this trait, but does not offer a satisfactory replacement,
