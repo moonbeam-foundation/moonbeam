@@ -11,7 +11,6 @@ log = { workspace = true }
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-pallet-scheduler = { workspace = true }
 pallet-assets = { workspace = true }
 pallet-asset-manager = { workspace = true }
 pallet-balances = { workspace = true }
@@ -23,7 +22,7 @@ sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 xcm = { workspace = true }
-xcm-primitives = { workspace = true }
+moonkit-xcm-primitives = { workspace = true }
 
 environmental = { workspace = true }
 
@@ -43,7 +42,6 @@ pallet-timestamp = { workspace = true, features = ["std"] }
 precompile-utils = { workspace = true, features = ["std"] }
 rlp = { workspace = true, features = ["std"] }
 sp-io = { workspace = true, features = ["std"] }
-xcm-executor = { workspace = true, features = ["std"] }
 
 [features]
 default = ["std"]
@@ -66,6 +64,6 @@ std = [
   "precompile-utils/std",
   "cumulus-primitives-storage-weight-reclaim/std",
   "rlp/std",
-  "xcm-primitives/std",
+  "moonkit-xcm-primitives/std",
 ]
 try-runtime = ["frame-support/try-runtime"]
