@@ -34,6 +34,7 @@ pub use weights::WeightInfo;
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_system::pallet_prelude::*;
+use moonkit_xcm_primitives::PauseXcmExecution;
 pub use pallet::*;
 use xcm::latest::Location;
 
@@ -94,6 +95,8 @@ pub mod pallet {
 	{
 		// Origin that is allowed to start foreign assets migration
 		type ForeignAssetMigratorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		/// Handler to suspend and resume XCM execution
+		type XcmExecutionManager: PauseXcmExecution;
 		type WeightInfo: WeightInfo;
 	}
 

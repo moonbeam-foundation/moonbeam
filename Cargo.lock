@@ -9591,7 +9591,6 @@ dependencies = [
  "pallet-balances",
  "pallet-evm",
  "pallet-moonbeam-foreign-assets",
- "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
@@ -9603,7 +9602,7 @@ dependencies = [
  "sp-std",
  "staging-xcm",
  "staging-xcm-executor",
- "xcm-primitives 0.1.1",
+ "xcm-primitives 0.1.0",
 ]
 
 [[package]]

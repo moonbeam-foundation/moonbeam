@@ -369,6 +369,7 @@ impl pallet_moonbeam_foreign_assets::Config for Test {
 impl Config for Test {
 	type WeightInfo = ();
 	type ForeignAssetMigratorOrigin = EnsureRoot<AccountId>;
+	type XcmExecutionManager = ();
 }
 
 // Constants for test accounts

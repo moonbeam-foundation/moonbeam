@@ -106,7 +106,9 @@ where
 					remaining_approvals: details.approvals,
 				});
 
-				Ok(())
+				// XCM processing should be paused during migration to avoid the assets
+				// getting trapped
+				T::XcmExecutionManager::suspend_xcm_execution()
 			})
 		})
 	}
@@ -240,7 +242,10 @@ where
 
 			ApprovedForeignAssets::<T>::remove(migration_info.asset_id);
 			*status = ForeignAssetMigrationStatus::Idle;
-			Ok(())
+
+			// XCM processing should be resumed after completing the migration of a given asset
+			// There is no parallel migration of assets
+			T::XcmExecutionManager::resume_xcm_execution()
 		})
 	}
 }
