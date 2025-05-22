@@ -63,7 +63,6 @@ var srcIndex = new Map(JSON.parse('[\
 ["pallet_xcm_bridge_router",["",[],["impls.rs","lib.rs","weights.rs"]]],\
 ["pallet_xcm_transactor",["",[],["encode.rs","lib.rs","migrations.rs","relay_indices.rs","weights.rs"]]],\
 ["pallet_xcm_weight_trader",["",[],["lib.rs","weights.rs"]]],\
-["precompile_foreign_asset_migrator",["",[],["lib.rs"]]],\
 ["storage_proof_primitives",["",[],["lib.rs"]]],\
 ["summarize_precompile_checks",["",[],["main.rs"]]],\
 ["xcm_primitives",["",[],["asset_id_conversions.rs","constants.rs","ethereum_xcm.rs","filter_asset_max_fee.rs","get_by_key.rs","lib.rs","origin_conversion.rs","transactor_traits.rs"]]]\
