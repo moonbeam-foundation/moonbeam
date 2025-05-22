@@ -7072,7 +7072,6 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
- "precompile-foreign-asset-migrator",
  "precompile-utils",
  "rlp",
  "scale-info",
@@ -12724,39 +12723,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy 0.8.25",
-]
-
-[[package]]
-name = "precompile-foreign-asset-migrator"
-version = "0.1.0"
-dependencies = [
- "account",
- "derive_more 0.99.20",
- "fp-evm",
- "frame-support",
- "frame-system",
- "hex-literal 0.4.1",
- "libsecp256k1",
- "log",
- "num_enum 0.5.11",
- "pallet-asset-manager",
- "pallet-assets",
- "pallet-balances",
- "pallet-evm",
- "pallet-moonbeam-foreign-assets",
- "pallet-timestamp",
- "parity-scale-codec",
- "paste",
- "precompile-utils",
- "scale-info",
- "serde",
- "sha3",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "staging-xcm",
- "xcm-primitives 0.1.0",
 ]
 
 [[package]]
