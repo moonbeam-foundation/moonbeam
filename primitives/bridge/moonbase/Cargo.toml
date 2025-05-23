@@ -1,0 +1,37 @@
+[package]
+name = "bp-moonbase"
+authors = { workspace = true }
+edition = "2021"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = { workspace = true }
+version = "0.0.1"
+
+[dependencies]
+
+moonbeam-core-primitives = { workspace = true }
+
+# Bridge Dependencies
+bp-bridge-hub-cumulus = { workspace = true }
+bp-messages = { workspace = true }
+bp-runtime = { workspace = true }
+
+# Substrate Based Dependencies
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+sp-api = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
+
+[features]
+default = ["std"]
+std = [
+    "bp-bridge-hub-cumulus/std",
+    "bp-messages/std",
+    "bp-runtime/std",
+    "frame-support/std",
+    "frame-system/std",
+    "sp-api/std",
+    "sp-runtime/std",
+    "sp-std/std",
+]
