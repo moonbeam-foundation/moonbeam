@@ -204,7 +204,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonriver"),
 	impl_name: create_runtime_str!("moonriver"),
 	authoring_version: 3,
-	spec_version: 3601,
+	spec_version: 3600,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -1589,6 +1589,18 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 			// a pallet that replaces pallet transaction payment, and allows users
 			// to directly specify a gas price rather than computing an effective one.
 			// #HopefullySomeday
+
+			use parity_scale_codec::DecodeLimit;
+			use frame_executive::MAX_EXTRINSIC_DEPTH;
+            use frame_support::pallet_prelude::{InvalidTransaction, TransactionValidityError};
+            use frame_support::traits::ExtrinsicCall;
+            let encoded = xt.call().encode();
+
+			let _ = RuntimeCall::decode_all_with_depth_limit(
+				MAX_EXTRINSIC_DEPTH,
+				&mut &encoded[..],
+			)
+			.expect("Decoding the encoded transaction works; qed");
 
 			// First we pass the transactions to the standard FRAME executive. This calculates all the
 			// necessary tags, longevity and other properties that we will leave unchanged.
