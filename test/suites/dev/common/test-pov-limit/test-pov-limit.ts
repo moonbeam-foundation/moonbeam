@@ -76,8 +76,8 @@ describeSuite({
         const res = await context.createBlock();
 
         const blockDetails = await getBlockDetails(context.polkadotJs(), res.block.hash);
-
-        console.log(`Number of added extrinsics: ${blockDetails.txWithEvents.length}`);
+        const txCount = blockDetails.txWithEvents.length;
+        console.log(`Number of added extrinsics: ${txCount}`);
 
         const blockWeight = await context.polkadotJs().query.system.blockWeight();
 
@@ -96,7 +96,10 @@ describeSuite({
 
         // 75% of 10MB
         const limit = 10 * 1024 * 1024 * 0.75;
-        expect(floatPov).toBeGreaterThanOrEqual(limit);
+        expect(
+          floatPov,
+          `Included ${txCount} extrinsics did not fit in the PoV limit`
+        ).toBeGreaterThanOrEqual(limit);
       },
     });
   },
