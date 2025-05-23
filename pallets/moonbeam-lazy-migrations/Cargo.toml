@@ -42,6 +42,7 @@ pallet-timestamp = { workspace = true, features = ["std"] }
 precompile-utils = { workspace = true, features = ["std"] }
 rlp = { workspace = true, features = ["std"] }
 sp-io = { workspace = true, features = ["std"] }
+xcm-executor = { workspace = true, features = ["std"] }
 
 [features]
 default = ["std"]
