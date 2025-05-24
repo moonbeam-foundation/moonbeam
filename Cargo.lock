@@ -19814,6 +19814,7 @@ name = "xcm-primitives"
 version = "0.1.1"
 dependencies = [
  "cumulus-primitives-core",
+ "environmental",
  "ethereum",
  "ethereum-types",
  "frame-benchmarking",

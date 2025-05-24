@@ -22,6 +22,7 @@ use ethereum_types::{H160, H256, U256};
 use frame_support::{traits::ConstU32, BoundedVec};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
+use sp_runtime::DispatchError;
 use sp_std::vec::Vec;
 
 // polkadot/blob/19f6665a6162e68cd2651f5fe3615d6676821f90/xcm/src/v3/mod.rs#L1193
@@ -249,11 +250,10 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 	}
 }
 
-/// The EthereumXcmTracingStatus storage key.
-pub const ETHEREUM_XCM_TRACING_STORAGE_KEY: &[u8] = b":ethereum_xcm_tracing";
+environmental::environmental!(ETHEREUM_TRACING_STATUS: EthereumXcmTracingStatus);
 
 /// The current EthereumXcmTransaction trace status.
-#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Encode, Decode, PartialEq, Eq)]
 pub enum EthereumXcmTracingStatus {
 	/// A full block trace.
 	Block,
@@ -261,6 +261,23 @@ pub enum EthereumXcmTracingStatus {
 	Transaction(H256),
 	/// Exit signal.
 	TransactionExited,
+}
+
+impl EthereumXcmTracingStatus {
+	pub fn wrap(
+		init: Self,
+		func: impl FnOnce() -> Result<(), DispatchError>,
+	) -> Result<(), DispatchError> {
+		ETHEREUM_TRACING_STATUS::using(&mut init.clone(), func)
+	}
+
+	pub fn state() -> Option<Self> {
+		ETHEREUM_TRACING_STATUS::with(|state| *state)
+	}
+
+	pub fn update(status: Self) {
+		ETHEREUM_TRACING_STATUS::with(|state| *state = status);
+	}
 }
 
 #[cfg(test)]

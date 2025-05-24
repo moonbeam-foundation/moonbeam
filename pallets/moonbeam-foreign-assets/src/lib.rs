@@ -390,7 +390,7 @@ pub mod pallet {
 				.map_err(Into::into)
 		}
 
-		/// Aprrove a spender to spend a certain amount of tokens from the owner account
+		/// Approve a spender to spend a certain amount of tokens from the owner account
 		pub fn approve(
 			asset_id: AssetId,
 			owner: T::AccountId,
@@ -399,12 +399,14 @@ pub mod pallet {
 		) -> Result<(), evm::EvmError> {
 			// We perform the evm call in a storage transaction to ensure that if it fail
 			// any contract storage changes are rolled back.
-			EvmCaller::<T>::erc20_approve(
-				Self::contract_address_from_asset_id(asset_id),
-				T::AccountIdToH160::convert(owner),
-				T::AccountIdToH160::convert(spender),
-				amount,
-			)
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_approve(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(owner),
+					T::AccountIdToH160::convert(spender),
+					amount,
+				)
+			})
 			.map_err(Into::into)
 		}
 
