@@ -249,20 +249,6 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 	}
 }
 
-/// The EthereumXcmTracingStatus storage key.
-pub const ETHEREUM_XCM_TRACING_STORAGE_KEY: &[u8] = b":ethereum_xcm_tracing";
-
-/// The current EthereumXcmTransaction trace status.
-#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
-pub enum EthereumXcmTracingStatus {
-	/// A full block trace.
-	Block,
-	/// A single transaction.
-	Transaction(H256),
-	/// Exit signal.
-	TransactionExited,
-}
-
 #[cfg(test)]
 mod tests {
 	use super::*;
