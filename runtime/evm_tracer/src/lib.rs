@@ -67,26 +67,38 @@ pub mod tracer {
 		}
 	}
 
-	pub struct EvmTracer {
-		step_event_filter: StepEventFilter,
-	}
+	pub struct EthereumTracer;
 
-	impl EvmTracer {
-		pub fn using_status(
-			init: EthereumTracingStatus,
+	impl EthereumTracer {
+		pub fn transaction(
+			tx_hash: H256,
 			func: impl FnOnce() -> Result<(), DispatchError>,
 		) -> Result<(), DispatchError> {
-			ETHEREUM_TRACING_STATUS::using(&mut init.clone(), func)
+			ETHEREUM_TRACING_STATUS::using(&mut EthereumTracingStatus::Transaction(tx_hash), func)
+		}
+
+		pub fn block(
+			func: impl FnOnce() -> Result<(), DispatchError>,
+		) -> Result<(), DispatchError> {
+			ETHEREUM_TRACING_STATUS::using(&mut EthereumTracingStatus::Block, func)
+		}
+
+		pub fn transaction_exited() {
+			ETHEREUM_TRACING_STATUS::with(|state| {
+				*state = EthereumTracingStatus::TransactionExited
+			});
 		}
 
 		pub fn status() -> Option<EthereumTracingStatus> {
 			ETHEREUM_TRACING_STATUS::with(|state| state.clone())
 		}
+	}
 
-		pub fn update_status(status: EthereumTracingStatus) {
-			ETHEREUM_TRACING_STATUS::with(|state| *state = status);
-		}
+	pub struct EvmTracer {
+		step_event_filter: StepEventFilter,
+	}
 
+	impl EvmTracer {
 		pub fn new() -> Self {
 			Self {
 				step_event_filter: moonbeam_primitives_ext::moonbeam_ext::step_event_filter(),

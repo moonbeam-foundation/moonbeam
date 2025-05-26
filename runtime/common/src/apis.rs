@@ -147,12 +147,16 @@ macro_rules! impl_runtime_apis_plus_common {
 				> {
 					#[cfg(feature = "evm-tracing")]
 					{
-						use moonbeam_evm_tracer::tracer::{EthereumTracingStatus, EvmTracer};
+						use moonbeam_evm_tracer::tracer::{
+							EthereumTracingStatus,
+							EvmTracer,
+							EthereumTracer
+						};
 						use frame_support::storage::unhashed;
 						use frame_system::pallet_prelude::BlockNumberFor;
 
 						// Tell the CallDispatcher we are tracing a specific Transaction.
-						EvmTracer::using_status(EthereumTracingStatus::Transaction(traced_transaction.hash()), || {
+						EthereumTracer::transaction(traced_transaction.hash(), || {
 							// Initialize block: calls the "on_initialize" hook on every pallet
 							// in AllPalletsWithSystem.
 							// After pallet message queue was introduced, this must be done only after
@@ -182,18 +186,18 @@ macro_rules! impl_runtime_apis_plus_common {
 									_ => Executive::apply_extrinsic(ext),
 								};
 
-								if let Some(EthereumTracingStatus::TransactionExited) = EvmTracer::status() {
+								if let Some(EthereumTracingStatus::TransactionExited) = EthereumTracer::status() {
 									return Ok(());
 								}
 							}
 
-							if let Some(EthereumTracingStatus::Transaction(_)) = EvmTracer::status() {
+							if let Some(EthereumTracingStatus::Transaction(_)) = EthereumTracer::status() {
 								// If the transaction was not found, it might be
 								// an eth-xcm transaction that was executed at on_idle
 								replay_on_idle();
 							}
 
-							if let Some(EthereumTracingStatus::TransactionExited) = EvmTracer::status() {
+							if let Some(EthereumTracingStatus::TransactionExited) = EthereumTracer::status() {
 								// The transaction was found
 								Ok(())
 							} else {
@@ -220,11 +224,15 @@ macro_rules! impl_runtime_apis_plus_common {
 				> {
 					#[cfg(feature = "evm-tracing")]
 					{
-						use moonbeam_evm_tracer::tracer::{EthereumTracingStatus, EvmTracer};
+						use moonbeam_evm_tracer::tracer::{
+							EthereumTracingStatus,
+							EvmTracer,
+							EthereumTracer
+						};
 						use frame_system::pallet_prelude::BlockNumberFor;
 
 						// Tell the CallDispatcher we are tracing a full Block.
-						EvmTracer::using_status(EthereumTracingStatus::Block, || {
+						EthereumTracer::block(|| {
 							let mut config = <Runtime as pallet_evm::Config>::config().clone();
 							config.estimate = true;
 

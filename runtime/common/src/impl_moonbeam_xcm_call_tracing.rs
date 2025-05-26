@@ -40,7 +40,11 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 							xcm_transaction, ..
 					 	}) => {
 							use crate::EthereumXcm;
-							use moonbeam_evm_tracer::tracer::{EvmTracer, EthereumTracingStatus};
+							use moonbeam_evm_tracer::tracer::{
+								EthereumTracer,
+								EvmTracer,
+								EthereumTracingStatus
+							};
 							use xcm_primitives::{
 								XcmToEthereum,
 							};
@@ -61,7 +65,7 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 								)
 							};
 
-							return match EvmTracer::status() {
+							return match EthereumTracer::status() {
 								// This runtime instance is used for tracing.
 								Some(tracing_status) => {
 									match tracing_status {
@@ -91,7 +95,7 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 													res = Some(dispatch_call());
 												});
 												// Tracing runtime work is done, just signal instance exit.
-												EvmTracer::update_status(EthereumTracingStatus::TransactionExited);
+												EthereumTracer::transaction_exited();
 												return res.expect("Invalid dispatch result");
 											}
 											dispatch_call()
