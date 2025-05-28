@@ -487,7 +487,7 @@ checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 [[package]]
 name = "async-backing-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "sp-api",
  "sp-consensus-slots",
@@ -7260,7 +7260,6 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
- "precompile-foreign-asset-migrator",
  "precompile-utils",
  "rlp",
  "scale-info",
@@ -8455,7 +8454,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "async-backing-primitives",
  "async-trait",
@@ -8495,7 +8494,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -8991,7 +8990,7 @@ dependencies = [
 [[package]]
 name = "pallet-async-backing"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -9011,7 +9010,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9030,7 +9029,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-mapping"
 version = "2.0.5"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9049,7 +9048,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9492,7 +9491,7 @@ dependencies = [
 [[package]]
 name = "pallet-emergency-para-xcm"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -10190,7 +10189,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-xcm"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "cumulus-primitives-core",
  "evm",
@@ -10439,7 +10438,7 @@ dependencies = [
 [[package]]
 name = "pallet-maintenance-mode"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -10490,7 +10489,7 @@ dependencies = [
 [[package]]
 name = "pallet-migrations"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10837,7 +10836,7 @@ dependencies = [
 [[package]]
 name = "pallet-randomness"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "environmental",
  "frame-benchmarking",
@@ -10912,7 +10911,7 @@ dependencies = [
 [[package]]
 name = "pallet-relay-storage-roots"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -12981,39 +12980,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy 0.8.25",
-]
-
-[[package]]
-name = "precompile-foreign-asset-migrator"
-version = "0.1.0"
-dependencies = [
- "account",
- "derive_more 0.99.20",
- "fp-evm",
- "frame-support",
- "frame-system",
- "hex-literal 0.4.1",
- "libsecp256k1",
- "log",
- "num_enum 0.5.11",
- "pallet-asset-manager",
- "pallet-assets",
- "pallet-balances",
- "pallet-evm",
- "pallet-moonbeam-foreign-assets",
- "pallet-timestamp",
- "parity-scale-codec",
- "paste",
- "precompile-utils",
- "scale-info",
- "serde",
- "sha3",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "staging-xcm",
- "xcm-primitives 0.1.0",
 ]
 
 [[package]]
@@ -16040,7 +16006,7 @@ dependencies = [
 [[package]]
 name = "session-keys-primitives"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -20209,7 +20175,7 @@ dependencies = [
 [[package]]
 name = "xcm-primitives"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#96d639f534f65462058b11669a5a9b90115d8bbe"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2412#078bdc0a3b1cf166ad9fed14c9f9acc33cc08955"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
