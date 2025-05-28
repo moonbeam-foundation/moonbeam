@@ -202,7 +202,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Holds".to_vec(),
 				prefix: prefix(b"Balances", b"Holds"),
 				max_values: None,
-				max_size: Some(55),
+				max_size: Some(91),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),

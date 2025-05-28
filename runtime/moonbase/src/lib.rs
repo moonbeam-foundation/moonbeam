@@ -1746,14 +1746,11 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 				BridgeParachains::best_parachain_head_id::<
 					bp_moonbase::betanet::Betanet
 				>().unwrap_or(None)
-			} else if cfg!(feature = "bridge-betanet") {
+			} else {
 				BridgeParachains::best_parachain_head_id::<
 					bp_moonbase::stagenet::Stagenet
 				>().unwrap_or(None)
-			} else {
-				None
 			}
-
 		}
 		fn free_headers_interval() -> Option<bp_moonbase::BlockNumber> {
 			// "free interval" is not currently used for parachains
