@@ -8,12 +8,11 @@ import {
   alith,
   generateKeyringPair,
 } from "@moonwall/util";
-import { fromBytes } from "viem";
-import { chunk } from "../../../../helpers";
+import { chunk, getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers";
 
 describeSuite({
   id: "D013482",
-  title: "Staking - Locks - max delegations",
+  title: "Staking - Freezes - max delegations",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const randomAccount = generateKeyringPair();
@@ -106,13 +105,14 @@ describeSuite({
           Number(maxDelegationsPerDelegator),
           "Missing delegation"
         );
-        // We should gave locked MIN_GLMR_DELEGATOR * maxDelegationsPerDelegator
-        const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(locks.length).to.be.equal(1, "Missing lock");
-        expect(locks[0].amount.toBigInt()).to.be.equal(
-          MIN_GLMR_DELEGATOR * maxDelegationsPerDelegator
+        // We should have frozen MIN_GLMR_DELEGATOR * maxDelegationsPerDelegator
+        const freeze_count = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        expect(freeze_count).to.be.equal(1, "Should have 1 freeze");
+        const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        expect(stakingFreeze).to.be.equal(
+          MIN_GLMR_DELEGATOR * maxDelegationsPerDelegator,
+          "Should have freeze for all delegations"
         );
-        expect(fromBytes(locks[0].id.toU8a(), "string")).to.be.equal("stkngdel");
       },
     });
   },

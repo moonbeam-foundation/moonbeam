@@ -7,11 +7,11 @@ import {
   createRawTransfer,
   generateKeyringPair,
 } from "@moonwall/util";
-import { createProposal } from "../../../../helpers";
+import { createProposal, getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
   id: "D011901",
-  title: "Locks - Voting and staking locks are not mutually exclusive",
+  title: "Locks - Voting and staking freezes are not mutually exclusive",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let proposalIndex: number;
@@ -56,9 +56,8 @@ describeSuite({
         );
 
         // check system balance
-        const frozenBalance = (
-          await context.polkadotJs().query.system.account(randomAddress)
-        ).data.frozen.toBigInt();
+        const accountData = await context.polkadotJs().query.system.account(randomAddress);
+        const frozenBalance = accountData.data.frozen.toBigInt();
 
         // BigInt doesn't have max()- we are testing frozenBalance === max(GLMR, MIN_GLMR_DELEGATOR)
         if (GLMR > MIN_GLMR_DELEGATOR) {
@@ -67,11 +66,8 @@ describeSuite({
           expect(frozenBalance).to.equal(MIN_GLMR_DELEGATOR);
         }
 
-        // check locked balances
-        const lockedBalances = await context.polkadotJs().query.balances.locks(randomAddress);
-        expect(lockedBalances.length).to.equal(2);
-        expect(lockedBalances[0].amount.toBigInt()).to.equal(GLMR);
-        expect(lockedBalances[1].amount.toBigInt()).to.equal(MIN_GLMR_DELEGATOR);
+        const delegatorFreeze = await getDelegatorStakingFreeze(randomAddress, context);
+        expect(delegatorFreeze).to.equal(MIN_GLMR_DELEGATOR);
       },
     });
   },

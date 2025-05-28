@@ -7,12 +7,11 @@ import {
   baltathar,
   generateKeyringPair,
 } from "@moonwall/util";
-import { fromBytes } from "viem";
-import { jumpRounds } from "../../../../helpers";
+import { jumpRounds, getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers";
 
 describeSuite({
   id: "D013481",
-  title: "Staking - Locks - multiple delegations single revoke",
+  title: "Staking - Freezes - multiple delegations single revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const randomAccount = generateKeyringPair();
@@ -70,9 +69,11 @@ describeSuite({
         { allowFailures: false }
       );
 
-      const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-      expect(locks.length).to.be.equal(1, "missing lock");
-      expect(locks[0].amount.toBigInt()).to.equal(2n * MIN_GLMR_DELEGATOR);
+      // With freezes, check for delegator freeze instead of lock
+      const freeze_count = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+      expect(freeze_count).to.be.equal(1, "Should have 1 freeze");
+      const freeze_amount = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+      expect(freeze_amount).to.be.equal(2n * MIN_GLMR_DELEGATOR);
 
       await jumpRounds(
         context,
@@ -97,11 +98,11 @@ describeSuite({
           .polkadotJs()
           .query.parachainStaking.delegatorState(randomAccount.address);
         expect(delegatorState.unwrap().delegations.length).to.be.equal(1, "Missing delegation");
-        // Only 1 over the 2 delegations has been revoked
-        const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(locks.length).to.be.equal(1, "Missing lock");
-        expect(locks[0].amount.toBigInt()).to.be.equal(MIN_GLMR_DELEGATOR);
-        expect(fromBytes(locks[0].id.toU8a(), "string")).to.be.equal("stkngdel");
+        // Only 1 over the 2 delegations has been revoked, so freeze should remain for the other
+        const freeze_count = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        expect(freeze_count).to.be.equal(1, "Should still have freeze for remaining delegation");
+        const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        expect(stakingFreeze).to.be.equal(MIN_GLMR_DELEGATOR, "Should still have freeze for remaining delegation");
       },
     });
   },

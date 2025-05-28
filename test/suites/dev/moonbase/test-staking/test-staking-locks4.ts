@@ -4,7 +4,7 @@ import { GLMR, MIN_GLMR_STAKING, alith, generateKeyringPair } from "@moonwall/ut
 
 describeSuite({
   id: "D013478",
-  title: "Staking - Locks - candidate balance is locked",
+  title: "Staking - Freezes - candidate balance is frozen",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const randomAccount = generateKeyringPair();

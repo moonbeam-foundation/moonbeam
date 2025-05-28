@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
-import { fromBytes } from "viem";
+import { getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
   id: "D013472",
-  title: "Staking - Locks - join delegators",
+  title: "Staking - Freezes - join delegators",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const randomAccount = generateKeyringPair();
@@ -21,7 +21,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: 'should set "stkngdel" when delegating',
+      title: "should set freeze when delegating",
       test: async function () {
         const { result } = await context.createBlock(
           context
@@ -36,11 +36,11 @@ describeSuite({
             )
             .signAsync(randomAccount)
         );
-        const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
         expect(result!.successful).to.be.true;
-        expect(locks.length).to.be.equal(1, "Missing lock");
-        expect(locks[0].amount.toBigInt()).to.be.equal(MIN_GLMR_DELEGATOR);
-        expect(fromBytes(locks[0].id.toU8a(), "string")).to.be.equal("stkngdel");
+
+        const delegatorFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        expect(delegatorFreeze > 0n, "Missing freeze").to.be.true;
+        expect(delegatorFreeze).to.be.equal(MIN_GLMR_DELEGATOR);
       },
     });
   },

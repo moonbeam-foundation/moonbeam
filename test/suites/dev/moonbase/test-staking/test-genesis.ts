@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { DEFAULT_GENESIS_STAKING, GLMR, alith } from "@moonwall/util";
+import { getCollatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
   id: "D013448",
@@ -9,19 +10,15 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     it({
       id: "T01",
-      title: "should match collator locked bond",
+      title: "should match collator frozen bond",
       test: async function () {
-        const locks = await context.polkadotJs().query.balances.locks(alith.address);
-        const expectedLocked = DEFAULT_GENESIS_STAKING;
+        const collatorFreeze = await getCollatorStakingFreeze(alith.address as `0x${string}`, context);
+        const expectedFrozen = DEFAULT_GENESIS_STAKING;
+
         expect(
-          locks
-            .filter((l) => l.id.toHuman() === "stkngcol")
-            .reduce((p, v) => p + v.amount.toBigInt(), 0n)
-            .toString(),
-          `Wrong locks: \n ${locks
-            .map((lock) => `${lock.id.toHuman()}: ${lock.amount}`)
-            .join("\n")}\n`
-        ).toBe(expectedLocked.toString());
+          collatorFreeze.toString(),
+          `Expected collator freeze amount to be ${expectedFrozen.toString()}, but got ${collatorFreeze.toString()}`
+        ).toBe(expectedFrozen.toString());
       },
     });
 

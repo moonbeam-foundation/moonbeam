@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
-import { fromBytes } from "viem";
+import { getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
   id: "D013479",
-  title: "Staking - Locks - schedule revoke",
+  title: "Staking - Freezes - schedule revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const randomAccount = generateKeyringPair();
@@ -36,7 +36,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should stay locked after requesting a delegation revoke",
+      title: "should stay frozen after requesting a delegation revoke",
       test: async function () {
         await context.createBlock(
           context
@@ -46,9 +46,8 @@ describeSuite({
           { allowFailures: false }
         );
 
-        // Additional check
-        const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(fromBytes(locks[0].id.toU8a(), "string")).to.be.equal("stkngdel");
+        const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        expect(stakingFreeze).to.be.equal(MIN_GLMR_DELEGATOR, "Funds should still be frozen after scheduling revoke");
       },
     });
   },

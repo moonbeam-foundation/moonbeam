@@ -50,9 +50,19 @@ describeSuite({
         );
         expect(result!.successful).to.be.true;
 
-        // Withdraw all Baltathar free founds
+        // Get current free balance after delegation
+        const accountInfo = await context.polkadotJs().query.system.account(baltathar.address);
+        const freeBalance = (accountInfo as any).data.free.toBigInt();
+
+        // Get the existential deposit from the runtime
+        const existentialDeposit = context.polkadotJs().consts.balances.existentialDeposit.toBigInt();
+
+        // The new freeze system requires maintaining ED in free balance when setting freezes
+        const transferAmount = freeBalance - existentialDeposit;
+
+        // Transfer all free balance except the existential deposit
         await context.createBlock(
-          context.polkadotJs().tx.balances.transferAll(alith.address, false).signAsync(baltathar)
+          context.polkadotJs().tx.balances.transferAllowDeath(alith.address, transferAmount).signAsync(baltathar)
         );
 
         // Move forward to rewardDelay rounds

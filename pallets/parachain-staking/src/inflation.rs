@@ -16,7 +16,7 @@
 
 //! Helper methods for computing issuance based on inflation
 use crate::pallet::{BalanceOf, Config, Pallet};
-use frame_support::traits::{Currency, Get};
+use frame_support::traits::{fungible::Inspect, Get};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};

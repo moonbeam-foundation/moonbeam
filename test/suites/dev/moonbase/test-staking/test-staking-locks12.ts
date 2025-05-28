@@ -8,12 +8,11 @@ import {
   alith,
   generateKeyringPair,
 } from "@moonwall/util";
-import { fromBytes } from "viem";
-import { chunk } from "../../../../helpers";
+import { chunk, getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
   id: "D013475",
-  title: "Staking - Locks - bottom and top delegations",
+  title: "Staking - Freezes - bottom and top delegations",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let bottomDelegators: KeyringPair[];
@@ -82,21 +81,21 @@ describeSuite({
         let numBlocksWaited = 0;
         while (numBlocksWaited < numBlocksToWait) {
           await context.createBlock();
-          const topLocks = await context
-            .polkadotJs()
-            .query.balances.locks.multi(topDelegators.map((delegator) => delegator.address));
-          const numDelegatorLocks = topLocks.filter((lockSet) =>
-            lockSet.find((lock) => fromBytes(lock.id.toU8a(), "string") === "stkngdel")
-          ).length;
+          // Check freezes instead of locks for top delegators
+          const freezesPromises = topDelegators.map((delegator) =>
+            getDelegatorStakingFreeze(delegator.address as `0x${string}`, context)
+          );
+          const topFreezes = await Promise.all(freezesPromises);
+          const numDelegatorFreezes = topFreezes.filter((freeze) => freeze > 0n).length;
 
-          if (numDelegatorLocks < topDelegators.length) {
+          if (numDelegatorFreezes < topDelegators.length) {
             numBlocksWaited += 1;
             expect(numBlocksWaited).to.be.lt(
               numBlocksToWait,
               "Top delegation extrinsics not included in time"
             );
           } else {
-            expect(numDelegatorLocks).to.eq(topDelegators.length, "More delegations than expected");
+            expect(numDelegatorFreezes).to.eq(topDelegators.length, "More delegations than expected");
             break;
           }
         }
@@ -127,14 +126,12 @@ describeSuite({
 
         // note that we don't need to wait for further blocks here because bottom delegations is
         // much smaller than top delegations, so all txns reliably fit within one block.
-        const bottomLocks = await context
-          .polkadotJs()
-          .query.balances.locks.multi(bottomDelegators.map((delegator) => delegator.address));
-        expect(
-          bottomLocks.filter((lockSet) =>
-            lockSet.find((lock) => fromBytes(lock.id.toU8a(), "string") === "stkngdel")
-          ).length
-        ).to.equal(
+        const bottomFreezesPromises = bottomDelegators.map((delegator) =>
+          getDelegatorStakingFreeze(delegator.address as `0x${string}`, context)
+        );
+        const bottomFreezes = await Promise.all(bottomFreezesPromises);
+        const numBottomDelegatorFreezes = bottomFreezes.filter((freeze) => freeze > 0n).length;
+        expect(numBottomDelegatorFreezes).to.equal(
           context.polkadotJs().consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber()
         );
       },

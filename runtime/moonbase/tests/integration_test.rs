@@ -209,7 +209,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Freezes".to_vec(),
 				prefix: prefix(b"Balances", b"Freezes"),
 				max_values: None,
-				max_size: Some(37),
+				max_size: Some(73),
 			},
 		]
 	);
