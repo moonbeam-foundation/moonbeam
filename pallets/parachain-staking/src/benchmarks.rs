@@ -25,6 +25,7 @@ use crate::{
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
+use frame_support::traits::tokens::fungible::{Mutate, Inspect};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
 use sp_runtime::{traits::Zero, Perbill, Percent};
 use sp_std::vec::Vec;
@@ -51,8 +52,8 @@ fn create_funded_user<T: Config>(
 	let user = account(string, n, SEED);
 	let min_candidate_stk = min_candidate_stk::<T>();
 	let total = min_candidate_stk + extra;
-	let _ = T::Currency::make_free_balance_be(&user, total);
-	let _ = T::Currency::issue(total);
+	// Use set_balance to set the user's balance directly
+	let _ = T::Currency::set_balance(&user, total);
 	(user, total)
 }
 
@@ -126,8 +127,8 @@ fn create_account<T: Config>(
 		AccountBalance::Value(v) => v,
 	};
 
-	let _ = T::Currency::make_free_balance_be(&acc, initial_balance);
-	let _ = T::Currency::issue(initial_balance);
+	// Use set_balance to set the account's balance directly
+	let _ = T::Currency::set_balance(&acc, initial_balance);
 
 	match action {
 		AccountAction::None => (),
@@ -1749,7 +1750,7 @@ benchmarks! {
 		} in &delegations
 		{
 			assert!(
-				T::Currency::free_balance(&owner) > initial_delegator_balance,
+				<T::Currency as Inspect<T::AccountId>>::balance(&owner) > initial_delegator_balance,
 				"delegator should have been paid in pay_one_collator_reward"
 			);
 		}
@@ -1836,13 +1837,13 @@ benchmarks! {
 	verify {
 		// collator should have been paid
 		assert!(
-			T::Currency::free_balance(&sole_collator) > initial_stake_amount,
+			<T::Currency as Inspect<T::AccountId>>::balance(&sole_collator) > initial_stake_amount,
 			"collator should have been paid in pay_one_collator_reward"
 		);
 		// nominators should have been paid
 		for delegator in &delegators {
 			assert!(
-				T::Currency::free_balance(&delegator) > initial_stake_amount,
+				<T::Currency as Inspect<T::AccountId>>::balance(&delegator) > initial_stake_amount,
 				"delegator should have been paid in pay_one_collator_reward"
 			);
 		}
