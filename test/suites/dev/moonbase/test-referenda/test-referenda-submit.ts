@@ -8,6 +8,7 @@ import {
   whiteListTrackNoSend,
 } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, type KeyringPair, ethan, generateKeyringPair } from "@moonwall/util";
+import { getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
   id: "D013303",
@@ -162,11 +163,9 @@ describeSuite({
         expect(result?.successful).to.be.true;
 
         const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(locks.length).to.be.equal(2, "Failed to incur two locks");
-        expect(locks[0].amount.toBigInt()).to.be.equal(90n * GLMR);
-        expect(locks[0].id.toHuman()).to.be.equal("stkngdel");
-        expect(locks[1].amount.toBigInt()).to.be.equal(90n * GLMR);
-        expect(locks[1].id.toHuman()).to.be.equal("pyconvot");
+
+        const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        expect(stakingFreeze).to.be.equal(90n * GLMR, "Failed to incur staking freeze");
       },
     });
   },

@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
-import { jumpRounds } from "../../../../helpers";
+import { jumpRounds, getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers";
 
 describeSuite({
   id: "D013480",
-  title: "Staking - Locks - execute revoke",
+  title: "Staking - Freezes - execute revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const randomAccount = generateKeyringPair();
@@ -38,11 +38,11 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should be unlocked only after executing revoke delegation",
+      title: "should be thawed only after executing revoke delegation",
       timeout: 60_000,
       test: async function () {
-        const lock = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(lock.length).to.be.equal(1, "Lock should have been added");
+        const freeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        expect(freeze).to.be.equal(MIN_GLMR_DELEGATOR, "Freeze should have been added");
 
         await context.createBlock(
           context
@@ -65,10 +65,10 @@ describeSuite({
           { allowFailures: false }
         );
 
-        const newLocks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(newLocks.length).to.be.equal(
+        const freeze_count = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        expect(freeze_count).to.be.equal(
           0,
-          "Lock should have been removed after executing revoke"
+          "Freeze should have been removed after executing revoke"
         );
       },
     });

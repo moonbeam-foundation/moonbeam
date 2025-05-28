@@ -20,12 +20,11 @@ use crate::{
 };
 use crate::{
 	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
-	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use block_author::BlockAuthor as BlockAuthorMap;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Get, LockIdentifier, OnFinalize, OnInitialize},
+	traits::{fungible::InspectFreeze, Everything, Get, OnFinalize, OnInitialize, VariantCountOf},
 	weights::{constants::RocksDbWeight, Weight},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -50,7 +49,7 @@ construct_runtime!(
 	{
 		System: frame_system,
 		Balances: pallet_balances,
-		ParachainStaking: pallet_parachain_staking,
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, FreezeReason},
 		BlockAuthor: block_author,
 	}
 );
@@ -108,9 +107,9 @@ impl pallet_balances::Config for Test {
 	type AccountStore = System;
 	type WeightInfo = ();
 	type RuntimeHoldReason = ();
-	type FreezeIdentifier = ();
-	type MaxFreezes = ();
-	type RuntimeFreezeReason = ();
+	type FreezeIdentifier = RuntimeFreezeReason;
+	type MaxFreezes = VariantCountOf<Self::RuntimeFreezeReason>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type DoneSlashHandler = ();
 }
 impl block_author::Config for Test {}
@@ -151,6 +150,7 @@ impl Get<Slot> for StakingRoundSlotProvider {
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
 	type MaxOfflineRounds = MaxOfflineRounds;
@@ -584,14 +584,9 @@ pub(crate) fn set_block_author(acc: u64) {
 	<BlockAuthorMap<Test>>::set(acc);
 }
 
-/// fn to query the lock amount
-pub(crate) fn query_lock_amount(account_id: u64, id: LockIdentifier) -> Option<Balance> {
-	for lock in Balances::locks(&account_id) {
-		if lock.id == id {
-			return Some(lock.amount);
-		}
-	}
-	None
+/// fn to query the freeze amount for a specific reason
+pub(crate) fn query_freeze_amount(account_id: u64, reason: &RuntimeFreezeReason) -> Balance {
+	Balances::balance_frozen(reason, &account_id)
 }
 
 #[test]
@@ -618,9 +613,13 @@ fn geneses() {
 				ParachainStaking::get_collator_stakable_free_balance(&1),
 				500
 			);
-			assert_eq!(query_lock_amount(1, COLLATOR_LOCK_ID), Some(500));
+			let collator_freeze_reason: RuntimeFreezeReason =
+				pallet_parachain_staking::pallet::FreezeReason::StakingCollator.into();
+			let delegator_freeze_reason: RuntimeFreezeReason =
+				pallet_parachain_staking::pallet::FreezeReason::StakingDelegator.into();
+			assert_eq!(query_freeze_amount(1, &collator_freeze_reason), 500);
 			assert!(ParachainStaking::is_candidate(&1));
-			assert_eq!(query_lock_amount(2, COLLATOR_LOCK_ID), Some(200));
+			assert_eq!(query_freeze_amount(2, &collator_freeze_reason), 200);
 			assert_eq!(
 				ParachainStaking::get_collator_stakable_free_balance(&2),
 				100
@@ -630,18 +629,18 @@ fn geneses() {
 			for x in 3..7 {
 				assert!(ParachainStaking::is_delegator(&x));
 				assert_eq!(ParachainStaking::get_delegator_stakable_balance(&x), 0);
-				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(100));
+				assert_eq!(query_freeze_amount(x, &delegator_freeze_reason), 100);
 			}
 			// uninvolved
 			for x in 7..10 {
 				assert!(!ParachainStaking::is_delegator(&x));
 			}
 			// no delegator staking locks
-			assert_eq!(query_lock_amount(7, DELEGATOR_LOCK_ID), None);
+			assert_eq!(query_freeze_amount(7, &delegator_freeze_reason), 0);
 			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&7), 100);
-			assert_eq!(query_lock_amount(8, DELEGATOR_LOCK_ID), None);
+			assert_eq!(query_freeze_amount(8, &delegator_freeze_reason), 0);
 			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&8), 9);
-			assert_eq!(query_lock_amount(9, DELEGATOR_LOCK_ID), None);
+			assert_eq!(query_freeze_amount(9, &delegator_freeze_reason), 0);
 			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&9), 4);
 			// no collator staking locks
 			assert_eq!(
@@ -674,20 +673,25 @@ fn geneses() {
 		])
 		.build()
 		.execute_with(|| {
+			// Define freeze reasons once
+			let collator_freeze_reason: RuntimeFreezeReason =
+				pallet_parachain_staking::pallet::FreezeReason::StakingCollator.into();
+			let delegator_freeze_reason: RuntimeFreezeReason =
+				pallet_parachain_staking::pallet::FreezeReason::StakingDelegator.into();
 			assert!(System::events().is_empty());
 			// collators
 			for x in 1..5 {
 				assert!(ParachainStaking::is_candidate(&x));
-				assert_eq!(query_lock_amount(x, COLLATOR_LOCK_ID), Some(20));
+				assert_eq!(query_freeze_amount(x, &collator_freeze_reason), 20);
 				assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&x), 80);
 			}
 			assert!(ParachainStaking::is_candidate(&5));
-			assert_eq!(query_lock_amount(5, COLLATOR_LOCK_ID), Some(10));
+			assert_eq!(query_freeze_amount(5, &collator_freeze_reason), 10);
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&5), 90);
 			// delegators
 			for x in 6..11 {
 				assert!(ParachainStaking::is_delegator(&x));
-				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(10));
+				assert_eq!(query_freeze_amount(x, &delegator_freeze_reason), 10);
 				assert_eq!(ParachainStaking::get_delegator_stakable_balance(&x), 90);
 			}
 		});

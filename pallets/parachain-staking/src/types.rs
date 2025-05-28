@@ -17,14 +17,11 @@
 //! Types for parachain-staking
 
 use crate::{
-	auto_compound::AutoCompoundDelegations, set::OrderedSet, BalanceOf, BottomDelegations,
-	CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Round, RoundIndex, TopDelegations,
-	Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	auto_compound::AutoCompoundDelegations, pallet::FreezeReason, set::OrderedSet, BalanceOf,
+	BottomDelegations, CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Round,
+	RoundIndex, TopDelegations, Total,
 };
-use frame_support::{
-	pallet_prelude::*,
-	traits::{tokens::WithdrawReasons, LockableCurrency},
-};
+use frame_support::{pallet_prelude::*, traits::fungible::MutateFreeze};
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::{
 	traits::{AtLeast32BitUnsigned, Saturating, Zero},
@@ -444,12 +441,15 @@ impl<
 		let new_total = <Total<T>>::get().saturating_add(more.into());
 		<Total<T>>::put(new_total);
 		self.bond = self.bond.saturating_add(more);
-		T::Currency::set_lock(
-			COLLATOR_LOCK_ID,
+
+		// Freeze the total new amount (current + additional)
+		T::Currency::set_freeze(
+			&FreezeReason::StakingCollator.into(),
 			&who.clone(),
 			self.bond.into(),
-			WithdrawReasons::all(),
-		);
+		)
+		.map_err(|_| DispatchError::from(Error::<T>::InsufficientBalance))?;
+
 		self.total_counted = self.total_counted.saturating_add(more);
 		<Pallet<T>>::deposit_event(Event::CandidateBondedMore {
 			candidate: who.clone(),
@@ -466,14 +466,15 @@ impl<
 		let new_total_staked = <Total<T>>::get().saturating_sub(amount.into());
 		<Total<T>>::put(new_total_staked);
 		self.bond = self.bond.saturating_sub(amount);
+
+		// Update the freeze to the new total amount
 		if self.bond.is_zero() {
-			T::Currency::remove_lock(COLLATOR_LOCK_ID, &who);
+			let _ = T::Currency::thaw(&FreezeReason::StakingCollator.into(), &who);
 		} else {
-			T::Currency::set_lock(
-				COLLATOR_LOCK_ID,
+			let _ = T::Currency::set_freeze(
+				&FreezeReason::StakingCollator.into(),
 				&who,
 				self.bond.into(),
-				WithdrawReasons::all(),
 			);
 		}
 		self.total_counted = self.total_counted.saturating_sub(amount);
@@ -1480,14 +1481,13 @@ impl<
 		Err(Error::<T>::DelegationDNE.into())
 	}
 
-	/// Updates the bond locks for this delegator.
+	/// Updates the bond freezes for this delegator.
 	///
-	/// This will take the current self.total and ensure that a lock of the same amount is applied
-	/// and when increasing the bond lock will also ensure that the account has enough free balance.
+	/// This will take the current self.total and ensure that a freeze of the same amount is applied.
+	/// When increasing the bond, it will also ensure that the account has enough free balance.
 	///
-	/// `additional_required_balance` should reflect the change to the amount that should be locked if
-	/// positive, 0 otherwise (e.g. `min(0, change_in_total_bond)`). This is necessary because it is
-	/// not possible to query the amount that is locked for a given lock id.
+	/// `additional_required_balance` should reflect the change to the amount that should be frozen if
+	/// positive, 0 otherwise (e.g. `min(0, change_in_total_bond)`).
 	pub fn adjust_bond_lock<T: Config>(
 		&mut self,
 		additional_required_balance: BondAdjust<Balance>,
@@ -1496,33 +1496,35 @@ impl<
 		BalanceOf<T>: From<Balance>,
 		T::AccountId: From<AccountId>,
 	{
+		let who: T::AccountId = self.id.clone().into();
+		let freeze_id = &FreezeReason::StakingDelegator.into();
+
 		match additional_required_balance {
 			BondAdjust::Increase(amount) => {
 				ensure!(
-					<Pallet<T>>::get_delegator_stakable_balance(&self.id.clone().into())
-						>= amount.into(),
+					<Pallet<T>>::get_delegator_stakable_balance(&who) >= amount.into(),
 					Error::<T>::InsufficientBalance,
 				);
 
-				// additional sanity check: shouldn't ever want to lock more than total
+				// additional sanity check: shouldn't ever want to freeze more than total
 				if amount > self.total {
-					log::warn!("LOGIC ERROR: request to reserve more than bond total");
+					log::warn!("LOGIC ERROR: request to freeze more than bond total");
 					return Err(DispatchError::Other("Invalid additional_required_balance"));
 				}
 			}
-			BondAdjust::Decrease => (), // do nothing on decrease
-		};
-
-		if self.total.is_zero() {
-			T::Currency::remove_lock(DELEGATOR_LOCK_ID, &self.id.clone().into());
-		} else {
-			T::Currency::set_lock(
-				DELEGATOR_LOCK_ID,
-				&self.id.clone().into(),
-				self.total.into(),
-				WithdrawReasons::all(),
-			);
+			BondAdjust::Decrease => {
+				// Nothing special to do for decrease with freezes
+			}
 		}
+
+		// Set the freeze to the total amount
+		if self.total > Balance::zero() {
+			T::Currency::set_freeze(freeze_id, &who, self.total.into())?;
+		} else {
+			// If total is zero, remove the freeze
+			let _ = T::Currency::thaw(freeze_id, &who);
+		}
+
 		Ok(())
 	}
 

@@ -7,11 +7,11 @@ import {
   alith,
   generateKeyringPair,
 } from "@moonwall/util";
-import { chunk } from "../../../../helpers";
+import { chunk, getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers";
 
 describeSuite({
   id: "D013474",
-  title: "Staking - Locks - bottom delegator removed",
+  title: "Staking - Freezes - bottom delegator removed",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const randomAccount = generateKeyringPair();
@@ -57,11 +57,8 @@ describeSuite({
         );
 
         // Additional check
-        const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(locks.length).to.be.equal(
-          1,
-          `Unexpected number of locks: ${locks.map((l) => l.id.toString()).join(` - `)}`
-        );
+        const freeze_count = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        expect(freeze_count).to.be.equal(1, "Should have 1 freeze");
 
         const txns = await [...additionalDelegators].map((account, i) =>
           context
@@ -87,13 +84,8 @@ describeSuite({
         ).unwrap();
         expect(alithCandidateInfo.delegationCount.toNumber()).to.equal(additionalDelegators.length);
 
-        const newLocks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(newLocks.length).to.be.equal(
-          0,
-          `Unexpected number of locks: ${newLocks
-            .map((l) => `${l.id.toString()}: ${l.amount.toHuman().toString()}`)
-            .join(` - `)}`
-        );
+        const freeze_count_after = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        expect(freeze_count_after).to.be.equal(0, "Freeze should be removed when delegator is bumped out");
       },
     });
   },
