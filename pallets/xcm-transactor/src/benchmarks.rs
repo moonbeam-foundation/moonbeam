@@ -340,6 +340,12 @@ mod benchmarks {
 
 		Ok(())
 	}
+
+	impl_benchmark_test_suite!(
+		Pallet,
+		crate::benchmarks::tests::new_test_ext(),
+		crate::mock::Test
+	);
 }
 
 #[cfg(test)]
@@ -355,9 +361,3 @@ mod tests {
 		TestExternalities::new(t)
 	}
 }
-
-impl_benchmark_test_suite!(
-	Pallet,
-	crate::benchmarks::tests::new_test_ext(),
-	crate::mock::Test
-);

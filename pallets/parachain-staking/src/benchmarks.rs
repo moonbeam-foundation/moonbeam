@@ -2489,13 +2489,17 @@ mod benchmarks {
 
 		Ok(())
 	}
+
+	impl_benchmark_test_suite!(
+		Pallet,
+		crate::benchmarks::tests::new_test_ext(),
+		crate::mock::Test
+	);
 }
 
 #[cfg(test)]
 mod tests {
-	use crate::benchmarks::*;
 	use crate::mock::Test;
-	use frame_support::assert_ok;
 	use sp_io::TestExternalities;
 	use sp_runtime::BuildStorage;
 
@@ -2505,185 +2509,4 @@ mod tests {
 			.unwrap();
 		TestExternalities::new(t)
 	}
-
-	#[test]
-	fn bench_set_staking_expectations() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_staking_expectations());
-		});
-	}
-
-	#[test]
-	fn bench_set_inflation() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_inflation());
-		});
-	}
-
-	#[test]
-	fn bench_set_parachain_bond_account() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_parachain_bond_account());
-		});
-	}
-
-	#[test]
-	fn bench_set_parachain_bond_reserve_percent() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_parachain_bond_reserve_percent());
-		});
-	}
-
-	#[test]
-	fn bench_set_inflation_distribution_config() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_inflation_distribution_config());
-		});
-	}
-
-	#[test]
-	fn bench_set_total_selected() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_total_selected());
-		});
-	}
-
-	#[test]
-	fn bench_set_collator_commission() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_collator_commission());
-		});
-	}
-
-	#[test]
-	fn bench_set_blocks_per_round() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_blocks_per_round());
-		});
-	}
-
-	#[test]
-	fn bench_join_candidates() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_join_candidates());
-		});
-	}
-
-	#[test]
-	fn bench_schedule_leave_candidates() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_schedule_leave_candidates());
-		});
-	}
-
-	#[test]
-	fn bench_execute_leave_candidates() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_execute_leave_candidates_worst_case());
-		});
-	}
-
-	#[test]
-	fn bench_cancel_leave_candidates() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_cancel_leave_candidates());
-		});
-	}
-
-	#[test]
-	fn bench_go_offline() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_go_offline());
-		});
-	}
-
-	#[test]
-	fn bench_go_online() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_go_online());
-		});
-	}
-
-	#[test]
-	fn bench_candidate_bond_more() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_candidate_bond_more());
-		});
-	}
-
-	#[test]
-	fn bench_schedule_candidate_bond_less() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_schedule_candidate_bond_less());
-		});
-	}
-
-	#[test]
-	fn bench_execute_candidate_bond_less() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_execute_candidate_bond_less());
-		});
-	}
-
-	#[test]
-	fn bench_set_candidate_bond_to_zero() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_set_candidate_bond_to_zero());
-		});
-	}
-
-	#[test]
-	fn bench_cancel_candidate_bond_less() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_cancel_candidate_bond_less());
-		});
-	}
-
-	#[test]
-	fn bench_schedule_revoke_delegation() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_schedule_revoke_delegation());
-		});
-	}
-
-	#[test]
-	fn bench_delegator_bond_more() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_delegator_bond_more());
-		});
-	}
-
-	#[test]
-	fn bench_schedule_delegator_bond_less() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_schedule_delegator_bond_less());
-		});
-	}
-
-	#[test]
-	fn bench_execute_revoke_delegation() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_execute_revoke_delegation());
-		});
-	}
-
-	#[test]
-	fn bench_execute_delegator_bond_less() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_execute_delegator_bond_less_worst());
-		});
-	}
-
-	#[test]
-	fn bench_base_on_initialize() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_base_on_initialize());
-		});
-	}
 }
-
-impl_benchmark_test_suite!(
-	Pallet,
-	crate::benchmarks::tests::new_test_ext(),
-	crate::mock::Test
-);

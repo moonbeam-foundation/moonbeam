@@ -332,7 +332,6 @@ mod benchmarks {
 mod tests {
 	use crate::benchmarks::*;
 	use crate::mock::Test;
-	use frame_support::assert_ok;
 	use parity_scale_codec::Encode;
 	use sp_io::TestExternalities;
 	use sp_runtime::BuildStorage;
@@ -348,75 +347,5 @@ mod tests {
 			(MIN_ORBITER_DEPOSIT as crate::mock::Balance).encode(),
 		);
 		TestExternalities::new(t)
-	}
-
-	#[test]
-	fn bench_collator_add_orbiter() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_collator_add_orbiter());
-		});
-	}
-
-	#[test]
-	fn bench_collator_remove_orbiter() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_collator_remove_orbiter());
-		});
-	}
-
-	#[test]
-	fn bench_orbiter_leave_collator_pool() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_orbiter_leave_collator_pool());
-		});
-	}
-
-	#[test]
-	fn bench_orbiter_register() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_orbiter_register());
-		});
-	}
-
-	#[test]
-	fn bench_orbiter_unregister() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_orbiter_unregister());
-		});
-	}
-
-	#[test]
-	fn bench_add_collator() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_add_collator());
-		});
-	}
-
-	#[test]
-	fn bench_remove_collator() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_remove_collator());
-		});
-	}
-
-	#[test]
-	fn bench_on_initialize() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_on_initialize());
-		});
-	}
-
-	#[test]
-	fn bench_distribute_rewards() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_distribute_rewards());
-		});
-	}
-
-	#[test]
-	fn bench_on_new_round() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_on_new_round());
-		});
 	}
 }
