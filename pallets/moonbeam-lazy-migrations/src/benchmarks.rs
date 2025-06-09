@@ -13,10 +13,11 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
 // #![cfg(feature = "runtime-benchmarks")]
 
 use crate::{foreign_asset::ForeignAssetMigrationStatus, Call, Config, Pallet};
-use frame_benchmarking::{account, benchmarks};
+use frame_benchmarking::v2::*;
 use frame_support::traits::Currency;
 use frame_support::BoundedVec;
 use frame_system::RawOrigin;
@@ -108,50 +109,68 @@ fn setup_foreign_asset<T: Config>(n_accounts: u32) -> T::AssetIdParameter {
 	asset_id.into()
 }
 
-benchmarks! {
-	where_clause {
-		where
-		<T as pallet_assets::Config>::Balance: Into<U256>,
-		T::ForeignAssetType: Into<Option<Location>>,
-		<T as frame_system::Config>::AccountId: Into<H160> + From<H160>,
-	}
-	approve_assets_to_migrate {
-		let n in 1 .. 100u32;
-		let assets: Vec<u128> = (0..n).map(|i| {
-			let metadata = T::AssetRegistrarMetadata::default();
-			let asset_id: u128 = i.into();
-			T::AssetRegistrar::create_foreign_asset(
-				asset_id,
-				1u32.into(),
-				metadata.clone(),
-				true,
-			).expect("creating foreign assets should succeed during benchmark preparation");
-			asset_id
-		}).collect();
-	}: _(RawOrigin::Root, BoundedVec::try_from(assets.clone()).expect("asset vector should fit within BoundedVec size limit during benchmark"))
-	verify {
+#[benchmarks(
+	where <T as pallet_assets::Config>::Balance: Into<U256>,
+	T::ForeignAssetType: Into<Option<Location>>,
+	<T as frame_system::Config>::AccountId: Into<H160> + From<H160>,
+)]
+mod benchmarks {
+	use super::*;
+
+	#[benchmark]
+	fn approve_assets_to_migrate(n: Linear<1, 100>) -> Result<(), BenchmarkError> {
+		let assets: Vec<u128> = (0..n)
+			.map(|i| {
+				let metadata = T::AssetRegistrarMetadata::default();
+				let asset_id: u128 = i.into();
+				T::AssetRegistrar::create_foreign_asset(
+					asset_id,
+					1u32.into(),
+					metadata.clone(),
+					true,
+				)
+				.expect("creating foreign assets should succeed during benchmark preparation");
+				asset_id
+			})
+			.collect();
+
+		#[extrinsic_call]
+		_(
+			RawOrigin::Root,
+			BoundedVec::try_from(assets.clone())
+				.expect("asset vector should fit within BoundedVec size limit during benchmark"),
+		);
+
 		for asset_id in assets {
-			assert!(crate::pallet::ApprovedForeignAssets::<T>::contains_key(asset_id));
+			assert!(crate::pallet::ApprovedForeignAssets::<T>::contains_key(
+				asset_id
+			));
 		}
+		Ok(())
 	}
 
-	start_foreign_assets_migration {
+	#[benchmark]
+	fn start_foreign_assets_migration() -> Result<(), BenchmarkError> {
 		let asset_id = setup_foreign_asset::<T>(1);
 
 		Pallet::<T>::approve_assets_to_migrate(
 			RawOrigin::Root.into(),
-			BoundedVec::try_from(vec![asset_id.clone().into()]).expect("single asset ID should fit within BoundedVec capacity during benchmark")
+			BoundedVec::try_from(vec![asset_id.clone().into()])
+				.expect("single asset ID should fit within BoundedVec capacity during benchmark"),
 		)?;
-	}: _(RawOrigin::Signed(account("caller", 0, 0)), asset_id.into())
-	verify {
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(account("caller", 0, 0)), asset_id.into());
+
 		assert!(matches!(
 			crate::pallet::ForeignAssetMigrationStatusValue::<T>::get(),
 			ForeignAssetMigrationStatus::Migrating(_)
 		));
+		Ok(())
 	}
 
-	migrate_foreign_asset_balances {
-		let n in 1 .. 1000u32;
+	#[benchmark]
+	fn migrate_foreign_asset_balances(n: Linear<1, 1000>) -> Result<(), BenchmarkError> {
 		let asset_id = setup_foreign_asset::<T>(n);
 
 		Pallet::<T>::approve_assets_to_migrate(
@@ -161,20 +180,23 @@ benchmarks! {
 
 		Pallet::<T>::start_foreign_assets_migration(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
-			asset_id.into()
+			asset_id.into(),
 		)?;
-	}: _(RawOrigin::Signed(account("caller", 0, 0)), n + 1)
-	verify {
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(account("caller", 0, 0)), n + 1);
+
 		match crate::pallet::ForeignAssetMigrationStatusValue::<T>::get() {
 			ForeignAssetMigrationStatus::Migrating(info) => {
 				assert_eq!(info.remaining_balances, 0);
-			},
+			}
 			_ => panic!("Expected Migrating status"),
 		}
+		Ok(())
 	}
 
-	migrate_foreign_asset_approvals {
-		let n in 1 .. 1000u32;
+	#[benchmark]
+	fn migrate_foreign_asset_approvals(n: Linear<1, 1000>) -> Result<(), BenchmarkError> {
 		let asset_id = setup_foreign_asset::<T>(n);
 
 		Pallet::<T>::approve_assets_to_migrate(
@@ -184,24 +206,28 @@ benchmarks! {
 
 		Pallet::<T>::start_foreign_assets_migration(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
-			asset_id.into()
+			asset_id.into(),
 		)?;
 
 		Pallet::<T>::migrate_foreign_asset_balances(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
-			n + 1
+			n + 1,
 		)?;
-	}: _(RawOrigin::Signed(account("caller", 0, 0)), n)
-	verify {
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(account("caller", 0, 0)), n);
+
 		match crate::pallet::ForeignAssetMigrationStatusValue::<T>::get() {
 			ForeignAssetMigrationStatus::Migrating(info) => {
 				assert_eq!(info.remaining_approvals, 0);
-			},
+			}
 			_ => panic!("Expected Migrating status"),
 		}
+		Ok(())
 	}
 
-	finish_foreign_assets_migration {
+	#[benchmark]
+	fn finish_foreign_assets_migration() -> Result<(), BenchmarkError> {
 		let n = 100u32;
 		let asset_id = setup_foreign_asset::<T>(n);
 
@@ -212,23 +238,26 @@ benchmarks! {
 
 		Pallet::<T>::start_foreign_assets_migration(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
-			asset_id.into()
+			asset_id.into(),
 		)?;
 
 		Pallet::<T>::migrate_foreign_asset_balances(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
-			n + 1
+			n + 1,
 		)?;
 
 		Pallet::<T>::migrate_foreign_asset_approvals(
 			RawOrigin::Signed(account("caller", 0, 0)).into(),
-			n + 1
+			n + 1,
 		)?;
-	}: _(RawOrigin::Signed(account("caller", 0, 0)))
-	verify {
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(account("caller", 0, 0)));
+
 		assert_eq!(
 			crate::pallet::ForeignAssetMigrationStatusValue::<T>::get(),
 			ForeignAssetMigrationStatus::Idle
 		);
+		Ok(())
 	}
 }

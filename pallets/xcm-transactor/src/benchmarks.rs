@@ -17,54 +17,77 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 use crate::{Call, Config, Currency, CurrencyPayment, HrmpOperation, Pallet, TransactWeights};
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::v2::*;
 use frame_support::weights::Weight;
 use frame_system::RawOrigin;
 use sp_std::boxed::Box;
 use sp_std::vec;
 use xcm::latest::prelude::*;
 
-benchmarks! {
-	where_clause { where T::Transactor: Default, T::CurrencyId: From<Location>}
-	register {
-		let user: T::AccountId  = account("account id", 0u32, 0u32);
+#[benchmarks(
+	where T::Transactor: Default, T::CurrencyId: From<Location>
+)]
+mod benchmarks {
+
+	use super::*;
+
+	#[benchmark]
+	fn register() -> Result<(), BenchmarkError> {
+		let user: T::AccountId = account("account id", 0u32, 0u32);
 
 		let index = 1u16;
-	}: _(RawOrigin::Root, user.clone(), index)
-	verify {
+
+		#[extrinsic_call]
+		_(RawOrigin::Root, user.clone(), index);
+
 		assert_eq!(Pallet::<T>::index_to_account(index), Some(user));
+
+		Ok(())
 	}
 
-	deregister {
-		let user: T::AccountId  = account("account id", 0u32, 0u32);
+	#[benchmark]
+	fn deregister() -> Result<(), BenchmarkError> {
+		let user: T::AccountId = account("account id", 0u32, 0u32);
 		let index = 1u16;
 		Pallet::<T>::register(RawOrigin::Root.into(), user, index).expect("must succeed");
-	}: _(RawOrigin::Root, index)
-	verify {
+
+		#[extrinsic_call]
+		_(RawOrigin::Root, index);
+
 		assert!(Pallet::<T>::index_to_account(index).is_none());
+
+		Ok(())
 	}
 
-	set_transact_info {
+	#[benchmark]
+	fn set_transact_info() -> Result<(), BenchmarkError> {
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
-		let fee_per_second = 1;
 		let max_weight: Weight = Weight::from_parts(20000000000u64, 0);
 		let location = Location::parent();
-	}: _(
-		RawOrigin::Root,
-		Box::new(xcm::VersionedLocation::from(location.clone())),
-		extra_weight,
-		max_weight,
-		None
-	)
-	verify {
-		assert_eq!(Pallet::<T>::transact_info(&location), Some(crate::RemoteTransactInfoWithMaxWeight {
-			transact_extra_weight: extra_weight.into(),
-			max_weight: max_weight.into(),
-			transact_extra_weight_signed: None
-		}));
+
+		#[extrinsic_call]
+		_(
+			RawOrigin::Root,
+			Box::new(xcm::VersionedLocation::from(location.clone())),
+			extra_weight,
+			max_weight,
+			None,
+		);
+
+		assert_eq!(
+			Pallet::<T>::transact_info(&location),
+			Some(crate::RemoteTransactInfoWithMaxWeight {
+				transact_extra_weight: extra_weight.into(),
+				max_weight: max_weight.into(),
+				transact_extra_weight_signed: None
+			})
+		);
+
+		Ok(())
 	}
 
-	remove_transact_info {
+	#[benchmark]
+	fn remove_transact_info() -> Result<(), BenchmarkError> {
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = Location::parent();
@@ -73,28 +96,45 @@ benchmarks! {
 			Box::new(xcm::VersionedLocation::from(location.clone())),
 			extra_weight,
 			max_weight,
-			None
-		).expect("must succeed");
-	}: _(RawOrigin::Root, Box::new(xcm::VersionedLocation::from(location.clone())))
-	verify {
+			None,
+		)
+		.expect("must succeed");
+
+		#[extrinsic_call]
+		_(
+			RawOrigin::Root,
+			Box::new(xcm::VersionedLocation::from(location.clone())),
+		);
+
 		assert!(Pallet::<T>::transact_info(&location).is_none());
+
+		Ok(())
 	}
 
-	set_fee_per_second {
+	#[benchmark]
+	fn set_fee_per_second() -> Result<(), BenchmarkError> {
 		let fee_per_second = 1;
 		let location = Location::parent();
-	}: _(
-		RawOrigin::Root,
-		Box::new(xcm::VersionedLocation::from(location.clone())),
-		fee_per_second
-	)
-	verify {
-		assert_eq!(Pallet::<T>::dest_asset_fee_per_second(&location), Some(fee_per_second));
+
+		#[extrinsic_call]
+		_(
+			RawOrigin::Root,
+			Box::new(xcm::VersionedLocation::from(location.clone())),
+			fee_per_second,
+		);
+
+		assert_eq!(
+			Pallet::<T>::dest_asset_fee_per_second(&location),
+			Some(fee_per_second)
+		);
+
+		Ok(())
 	}
 
 	// Worst Case: AsCurrencyId, as the translation could involve db reads
 	// Worst Case: transacInfo db reads
-	transact_through_derivative {
+	#[benchmark]
+	fn transact_through_derivative() -> Result<(), BenchmarkError> {
 		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
@@ -102,183 +142,210 @@ benchmarks! {
 		let call = vec![1u8];
 		let dest_weight: Weight = Weight::from_parts(100u64, 0);
 		let currency: T::CurrencyId = location.clone().into();
-		let user: T::AccountId  = account("account id", 0u32, 0u32);
+		let user: T::AccountId = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedLocation::from(location.clone())),
 			extra_weight,
 			max_weight,
-			Some(extra_weight)
-		).expect("must succeed");
+			Some(extra_weight),
+		)
+		.expect("must succeed");
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedLocation::from(location.clone())),
-			fee_per_second
-		).expect("must succeed");
-		Pallet::<T>::register(
-			RawOrigin::Root.into(),
-			user.clone(),
-			0
-		).expect("must succeed");
-	}: {
+			fee_per_second,
+		)
+		.expect("must succeed");
+		Pallet::<T>::register(RawOrigin::Root.into(), user.clone(), 0).expect("must succeed");
 
-		let result = Pallet::<T>::transact_through_derivative(
-			RawOrigin::Signed(user.clone()).into(),
-			T::Transactor::default(),
-			0,
+		#[block]
+		{
+			let result = Pallet::<T>::transact_through_derivative(
+				RawOrigin::Signed(user.clone()).into(),
+				T::Transactor::default(),
+				0,
+				CurrencyPayment {
+					// This might involve a db Read when translating, therefore worst case
+					currency: Currency::AsCurrencyId(currency),
+					// This involves a db Read, hence the None is worst case
+					fee_amount: None,
+				},
+				call,
+				TransactWeights {
+					transact_required_weight_at_most: dest_weight,
+					// This involves a db Read, hence the None is worst case
+					overall_weight: None,
+				},
+				false,
+			);
+
+			// It's expected that the error comes from the fact that the asset is not known
+			// The weight coming withdraw asset + send is accounted by charging for the instruction per se
+			if result.is_ok() {
+				assert_eq!(result, Ok(()))
+			} else {
+				assert_eq!(result, Err(crate::Error::<T>::UnableToWithdrawAsset.into()))
+			}
+		}
+		Ok(())
+	}
+
+	#[benchmark]
+	fn transact_through_sovereign() -> Result<(), BenchmarkError> {
+		let fee_per_second = 1;
+		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
+		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
+		let location = Location::parent();
+		let currency: T::CurrencyId = location.clone().into();
+		let call = vec![1u8];
+		let dest_weight: Weight = Weight::from_parts(100u64, 0);
+		let user: T::AccountId = account("account id", 0u32, 0u32);
+		Pallet::<T>::set_transact_info(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedLocation::from(location.clone())),
+			extra_weight,
+			max_weight,
+			Some(extra_weight),
+		)
+		.expect("must succeed");
+		Pallet::<T>::set_fee_per_second(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedLocation::from(location.clone())),
+			fee_per_second,
+		)
+		.expect("must succeed");
+
+		#[block]
+		{
+			let result = Pallet::<T>::transact_through_sovereign(
+				RawOrigin::Root.into(),
+				Box::new(xcm::VersionedLocation::from(location.clone())),
+				Some(user.clone()),
+				CurrencyPayment {
+					// This might involve a db Read when translating, therefore worst case
+					currency: Currency::AsCurrencyId(currency),
+					// This involves a db Read, hence the None is worst case
+					fee_amount: None,
+				},
+				call,
+				OriginKind::SovereignAccount,
+				TransactWeights {
+					transact_required_weight_at_most: dest_weight,
+					// This involves a db Read, hence the None is worst case
+					overall_weight: None,
+				},
+				false,
+			);
+
+			// It's expected that the error comes from the fact that the asset is not known
+			// The weight coming withdraw asset + send is accounted by charging for the instruction per se
+			if result.is_ok() {
+				assert_eq!(result, Ok(()))
+			} else {
+				assert_eq!(result, Err(crate::Error::<T>::UnableToWithdrawAsset.into()))
+			}
+		}
+		Ok(())
+	}
+
+	#[benchmark]
+	fn transact_through_signed() -> Result<(), BenchmarkError> {
+		let fee_per_second = 1;
+		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
+		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
+		let location = Location::parent();
+		let currency: T::CurrencyId = location.clone().into();
+		let call = vec![1u8];
+		let dest_weight: Weight = Weight::from_parts(100u64, 0);
+		let user: T::AccountId = account("account id", 0u32, 0u32);
+		Pallet::<T>::set_transact_info(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedLocation::from(location.clone())),
+			extra_weight,
+			max_weight,
+			Some(extra_weight),
+		)
+		.expect("must succeed");
+		Pallet::<T>::set_fee_per_second(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedLocation::from(location.clone())),
+			fee_per_second,
+		)
+		.expect("must succeed");
+
+		#[extrinsic_call]
+		_(
+			RawOrigin::Signed(user.clone()),
+			Box::new(xcm::VersionedLocation::from(location.clone())),
 			CurrencyPayment {
 				// This might involve a db Read when translating, therefore worst case
 				currency: Currency::AsCurrencyId(currency),
 				// This involves a db Read, hence the None is worst case
-				fee_amount: None
+				fee_amount: None,
 			},
 			call,
 			TransactWeights {
 				transact_required_weight_at_most: dest_weight,
 				// This involves a db Read, hence the None is worst case
-				overall_weight: None
+				overall_weight: None,
 			},
-			false
+			false,
 		);
 
-		// It's expected that the error comes from the fact that the asset is not known
-		// The weight coming withdraw asset + send is accounted by charging for the instruction per se
-		if result.is_ok() {
-			assert_eq!(result, Ok(()))
-		}
-		else {
-			assert_eq!(result, Err(crate::Error::<T>::UnableToWithdrawAsset.into()))
-		}
+		Ok(())
 	}
 
-	transact_through_sovereign {
+	#[benchmark]
+	fn hrmp_manage() -> Result<(), BenchmarkError> {
 		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = Location::parent();
 		let currency: T::CurrencyId = location.clone().into();
-		let call = vec![1u8];
 		let dest_weight: Weight = Weight::from_parts(100u64, 0);
-		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedLocation::from(location.clone())),
 			extra_weight,
 			max_weight,
-			Some(extra_weight)
-		).expect("must succeed");
+			Some(extra_weight),
+		)
+		.expect("must succeed");
 		Pallet::<T>::set_fee_per_second(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedLocation::from(location.clone())),
-			fee_per_second
-		).expect("must succeed");
-	}: {
+			fee_per_second,
+		)
+		.expect("must succeed");
 
-		let result = Pallet::<T>::transact_through_sovereign(
-			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedLocation::from(location.clone())),
-			Some(user.clone()),
+		#[extrinsic_call]
+		_(
+			RawOrigin::Root,
+			HrmpOperation::Accept {
+				para_id: 1000u32.into(),
+			},
 			CurrencyPayment {
 				// This might involve a db Read when translating, therefore worst case
 				currency: Currency::AsCurrencyId(currency),
 				// This involves a db Read, hence the None is worst case
-				fee_amount: None
+				fee_amount: None,
 			},
-			call,
-			OriginKind::SovereignAccount,
 			TransactWeights {
 				transact_required_weight_at_most: dest_weight,
 				// This involves a db Read, hence the None is worst case
-				overall_weight: None
+				overall_weight: None,
 			},
-			false
 		);
 
-		// It's expected that the error comes from the fact that the asset is not known
-		// The weight coming withdraw asset + send is accounted by charging for the instruction per se
-		if result.is_ok() {
-			assert_eq!(result, Ok(()))
-		}
-		else {
-			assert_eq!(result, Err(crate::Error::<T>::UnableToWithdrawAsset.into()))
-		}
+		Ok(())
 	}
 
-	transact_through_signed {
-		let fee_per_second = 1;
-		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
-		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
-		let location = Location::parent();
-		let currency: T::CurrencyId = location.clone().into();
-		let call = vec![1u8];
-		let dest_weight: Weight = Weight::from_parts(100u64, 0);
-		let user: T::AccountId  = account("account id", 0u32, 0u32);
-		Pallet::<T>::set_transact_info(
-			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedLocation::from(location.clone())),
-			extra_weight,
-			max_weight,
-			Some(extra_weight)
-		).expect("must succeed");
-		Pallet::<T>::set_fee_per_second(
-			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedLocation::from(location.clone())),
-			fee_per_second
-		).expect("must succeed");
-	}: _(
-		RawOrigin::Signed(user.clone()),
-		Box::new(xcm::VersionedLocation::from(location.clone())),
-		CurrencyPayment {
-			// This might involve a db Read when translating, therefore worst case
-			currency: Currency::AsCurrencyId(currency),
-			// This involves a db Read, hence the None is worst case
-			fee_amount: None
-		},
-		call,
-		TransactWeights {
-			transact_required_weight_at_most: dest_weight,
-			// This involves a db Read, hence the None is worst case
-			overall_weight: None
-		},
-		false
-	)
-
-	hrmp_manage {
-		let fee_per_second = 1;
-		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
-		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
-		let location = Location::parent();
-		let currency: T::CurrencyId = location.clone().into();
-		let call = vec![1u8];
-		let dest_weight: Weight = Weight::from_parts(100u64, 0);
-		let user: T::AccountId  = account("account id", 0u32, 0u32);
-		Pallet::<T>::set_transact_info(
-			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedLocation::from(location.clone())),
-			extra_weight,
-			max_weight,
-			Some(extra_weight)
-		).expect("must succeed");
-		Pallet::<T>::set_fee_per_second(
-			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedLocation::from(location.clone())),
-			fee_per_second
-		).expect("must succeed");
-	}: _(
-		RawOrigin::Root,
-		HrmpOperation::Accept{ para_id: 1000u32.into() },
-		CurrencyPayment {
-			// This might involve a db Read when translating, therefore worst case
-			currency: Currency::AsCurrencyId(currency),
-			// This involves a db Read, hence the None is worst case
-			fee_amount: None
-		},
-		TransactWeights {
-			transact_required_weight_at_most: dest_weight,
-			// This involves a db Read, hence the None is worst case
-			overall_weight: None
-		}
-	)
+	impl_benchmark_test_suite!(
+		Pallet,
+		crate::benchmarks::tests::new_test_ext(),
+		crate::mock::Test
+	);
 }
 
 #[cfg(test)]
@@ -294,9 +361,3 @@ mod tests {
 		TestExternalities::new(t)
 	}
 }
-
-impl_benchmark_test_suite!(
-	Pallet,
-	crate::benchmarks::tests::new_test_ext(),
-	crate::mock::Test
-);
