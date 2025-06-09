@@ -50,285 +50,285 @@ use sp_std::marker::PhantomData;
 /// Weights for `pallet_collective`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_collective::WeightInfo for WeightInfo<T> {
-    /// Storage: `TreasuryCouncilCollective::Members` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Voting` (r:20 w:20)
-    /// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Prime` (r:0 w:1)
-    /// Proof: `TreasuryCouncilCollective::Prime` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// The range of component `m` is `[0, 9]`.
-    /// The range of component `n` is `[0, 9]`.
-    /// The range of component `p` is `[0, 20]`.
-    fn set_members(m: u32, _n: u32, p: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `0 + m * (425 ±0) + p * (206 ±0)`
-        //  Estimated: `4150 + m * (266 ±3) + p * (2556 ±1)`
-        // Minimum execution time: 9_031_000 picoseconds.
-        Weight::from_parts(9_272_000, 4150)
-            // Standard Error: 108_687
-            .saturating_add(Weight::from_parts(3_471_502, 0).saturating_mul(m.into()))
-            // Standard Error: 49_657
-            .saturating_add(Weight::from_parts(4_259_120, 0).saturating_mul(p.into()))
-            .saturating_add(T::DbWeight::get().reads(2_u64))
-            .saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(p.into())))
-            .saturating_add(T::DbWeight::get().writes(2_u64))
-            .saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(p.into())))
-            .saturating_add(Weight::from_parts(0, 266).saturating_mul(m.into()))
-            .saturating_add(Weight::from_parts(0, 2556).saturating_mul(p.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
-    /// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// The range of component `b` is `[2, 1024]`.
-    /// The range of component `m` is `[1, 9]`.
-    fn execute(b: u32, m: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `210 + m * (20 ±0)`
-        //  Estimated: `1694 + m * (20 ±0)`
-        // Minimum execution time: 15_880_000 picoseconds.
-        Weight::from_parts(16_198_503, 1694)
-            // Standard Error: 33
-            .saturating_add(Weight::from_parts(1_478, 0).saturating_mul(b.into()))
-            // Standard Error: 3_934
-            .saturating_add(Weight::from_parts(44_530, 0).saturating_mul(m.into()))
-            .saturating_add(T::DbWeight::get().reads(2_u64))
-            .saturating_add(Weight::from_parts(0, 20).saturating_mul(m.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
-    /// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// The range of component `b` is `[2, 1024]`.
-    /// The range of component `m` is `[1, 9]`.
-    fn propose_execute(b: u32, m: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `210 + m * (20 ±0)`
-        //  Estimated: `3674 + m * (20 ±0)`
-        // Minimum execution time: 18_467_000 picoseconds.
-        Weight::from_parts(18_804_143, 3674)
-            // Standard Error: 35
-            .saturating_add(Weight::from_parts(1_504, 0).saturating_mul(b.into()))
-            // Standard Error: 4_212
-            .saturating_add(Weight::from_parts(54_301, 0).saturating_mul(m.into()))
-            .saturating_add(T::DbWeight::get().reads(3_u64))
-            .saturating_add(Weight::from_parts(0, 20).saturating_mul(m.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::ProposalCount` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::ProposalCount` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Voting` (r:0 w:1)
-    /// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// The range of component `b` is `[2, 1024]`.
-    /// The range of component `m` is `[2, 9]`.
-    /// The range of component `p` is `[1, 20]`.
-    fn propose_proposed(b: u32, m: u32, p: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `160 + m * (20 ±0) + p * (55 ±0)`
-        //  Estimated: `3581 + m * (27 ±0) + p * (54 ±0)`
-        // Minimum execution time: 21_083_000 picoseconds.
-        Weight::from_parts(19_334_720, 3581)
-            // Standard Error: 103
-            .saturating_add(Weight::from_parts(3_332, 0).saturating_mul(b.into()))
-            // Standard Error: 14_027
-            .saturating_add(Weight::from_parts(162_139, 0).saturating_mul(m.into()))
-            // Standard Error: 5_380
-            .saturating_add(Weight::from_parts(404_858, 0).saturating_mul(p.into()))
-            .saturating_add(T::DbWeight::get().reads(4_u64))
-            .saturating_add(T::DbWeight::get().writes(4_u64))
-            .saturating_add(Weight::from_parts(0, 27).saturating_mul(m.into()))
-            .saturating_add(Weight::from_parts(0, 54).saturating_mul(p.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Voting` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// The range of component `m` is `[5, 9]`.
-    fn vote(m: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `734 + m * (40 ±0)`
-        //  Estimated: `4199 + m * (40 ±0)`
-        // Minimum execution time: 24_513_000 picoseconds.
-        Weight::from_parts(24_980_634, 4199)
-            // Standard Error: 9_646
-            .saturating_add(Weight::from_parts(147_431, 0).saturating_mul(m.into()))
-            .saturating_add(T::DbWeight::get().reads(2_u64))
-            .saturating_add(T::DbWeight::get().writes(1_u64))
-            .saturating_add(Weight::from_parts(0, 40).saturating_mul(m.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::Voting` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::ProposalOf` (r:0 w:1)
-    /// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// The range of component `m` is `[4, 9]`.
-    /// The range of component `p` is `[1, 20]`.
-    fn close_early_disapproved(m: u32, p: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `267 + m * (40 ±0) + p * (55 ±0)`
-        //  Estimated: `3729 + m * (43 ±0) + p * (55 ±0)`
-        // Minimum execution time: 22_971_000 picoseconds.
-        Weight::from_parts(26_957_314, 3729)
-            // Standard Error: 19_980
-            .saturating_add(Weight::from_parts(25_302, 0).saturating_mul(m.into()))
-            // Standard Error: 5_668
-            .saturating_add(Weight::from_parts(361_586, 0).saturating_mul(p.into()))
-            .saturating_add(T::DbWeight::get().reads(3_u64))
-            .saturating_add(T::DbWeight::get().writes(3_u64))
-            .saturating_add(Weight::from_parts(0, 43).saturating_mul(m.into()))
-            .saturating_add(Weight::from_parts(0, 55).saturating_mul(p.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::Voting` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
-    /// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// The range of component `b` is `[2, 1024]`.
-    /// The range of component `m` is `[4, 9]`.
-    /// The range of component `p` is `[1, 20]`.
-    fn close_early_approved(b: u32, m: u32, p: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `254 + b * (1 ±0) + m * (40 ±0) + p * (78 ±0)`
-        //  Estimated: `3858 + b * (1 ±0) + m * (29 ±1) + p * (74 ±0)`
-        // Minimum execution time: 39_323_000 picoseconds.
-        Weight::from_parts(42_468_026, 3858)
-            // Standard Error: 110
-            .saturating_add(Weight::from_parts(2_356, 0).saturating_mul(b.into()))
-            // Standard Error: 5_784
-            .saturating_add(Weight::from_parts(513_271, 0).saturating_mul(p.into()))
-            .saturating_add(T::DbWeight::get().reads(5_u64))
-            .saturating_add(T::DbWeight::get().writes(3_u64))
-            .saturating_add(Weight::from_parts(0, 1).saturating_mul(b.into()))
-            .saturating_add(Weight::from_parts(0, 29).saturating_mul(m.into()))
-            .saturating_add(Weight::from_parts(0, 74).saturating_mul(p.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::Voting` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Prime` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Prime` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::ProposalOf` (r:0 w:1)
-    /// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// The range of component `m` is `[4, 9]`.
-    /// The range of component `p` is `[1, 20]`.
-    fn close_disapproved(m: u32, p: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `317 + m * (33 ±0) + p * (55 ±0)`
-        //  Estimated: `3780 + m * (34 ±0) + p * (56 ±0)`
-        // Minimum execution time: 28_890_000 picoseconds.
-        Weight::from_parts(30_457_302, 3780)
-            // Standard Error: 9_947
-            .saturating_add(Weight::from_parts(15_430, 0).saturating_mul(m.into()))
-            // Standard Error: 2_821
-            .saturating_add(Weight::from_parts(315_344, 0).saturating_mul(p.into()))
-            .saturating_add(T::DbWeight::get().reads(4_u64))
-            .saturating_add(T::DbWeight::get().writes(3_u64))
-            .saturating_add(Weight::from_parts(0, 34).saturating_mul(m.into()))
-            .saturating_add(Weight::from_parts(0, 56).saturating_mul(p.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::Voting` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Prime` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::Prime` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
-    /// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// The range of component `b` is `[2, 1024]`.
-    /// The range of component `m` is `[4, 9]`.
-    /// The range of component `p` is `[1, 20]`.
-    fn close_approved(b: u32, m: u32, p: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `274 + b * (1 ±0) + m * (40 ±0) + p * (78 ±0)`
-        //  Estimated: `3877 + b * (1 ±0) + m * (30 ±1) + p * (74 ±0)`
-        // Minimum execution time: 41_994_000 picoseconds.
-        Weight::from_parts(44_804_908, 3877)
-            // Standard Error: 113
-            .saturating_add(Weight::from_parts(2_601, 0).saturating_mul(b.into()))
-            // Standard Error: 5_908
-            .saturating_add(Weight::from_parts(530_928, 0).saturating_mul(p.into()))
-            .saturating_add(T::DbWeight::get().reads(6_u64))
-            .saturating_add(T::DbWeight::get().writes(3_u64))
-            .saturating_add(Weight::from_parts(0, 1).saturating_mul(b.into()))
-            .saturating_add(Weight::from_parts(0, 30).saturating_mul(m.into()))
-            .saturating_add(Weight::from_parts(0, 74).saturating_mul(p.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Voting` (r:0 w:1)
-    /// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::ProposalOf` (r:0 w:1)
-    /// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// The range of component `p` is `[1, 20]`.
-    fn disapprove_proposal(p: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `326 + p * (32 ±0)`
-        //  Estimated: `1811 + p * (32 ±0)`
-        // Minimum execution time: 14_024_000 picoseconds.
-        Weight::from_parts(14_762_315, 1811)
-            // Standard Error: 1_883
-            .saturating_add(Weight::from_parts(227_558, 0).saturating_mul(p.into()))
-            .saturating_add(T::DbWeight::get().reads(1_u64))
-            .saturating_add(T::DbWeight::get().writes(3_u64))
-            .saturating_add(Weight::from_parts(0, 32).saturating_mul(p.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::CostOf` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::CostOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
-    /// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::Voting` (r:0 w:1)
-    /// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// The range of component `d` is `[0, 1]`.
-    /// The range of component `p` is `[1, 20]`.
-    fn kill(d: u32, p: u32, ) -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `1380 + p * (55 ±0)`
-        //  Estimated: `4847 + d * (5 ±1) + p * (55 ±0)`
-        // Minimum execution time: 20_894_000 picoseconds.
-        Weight::from_parts(22_741_308, 4847)
-            // Standard Error: 9_928
-            .saturating_add(Weight::from_parts(526_479, 0).saturating_mul(p.into()))
-            .saturating_add(T::DbWeight::get().reads(3_u64))
-            .saturating_add(T::DbWeight::get().writes(3_u64))
-            .saturating_add(Weight::from_parts(0, 5).saturating_mul(d.into()))
-            .saturating_add(Weight::from_parts(0, 55).saturating_mul(p.into()))
-    }
-    /// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    /// Storage: `TreasuryCouncilCollective::CostOf` (r:1 w:0)
-    /// Proof: `TreasuryCouncilCollective::CostOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
-    fn release_proposal_cost() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `813`
-        //  Estimated: `4278`
-        // Minimum execution time: 13_927_000 picoseconds.
-        Weight::from_parts(14_290_000, 4278)
-            .saturating_add(T::DbWeight::get().reads(2_u64))
-    }
+	/// Storage: `TreasuryCouncilCollective::Members` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Voting` (r:20 w:20)
+	/// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Prime` (r:0 w:1)
+	/// Proof: `TreasuryCouncilCollective::Prime` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// The range of component `m` is `[0, 9]`.
+	/// The range of component `n` is `[0, 9]`.
+	/// The range of component `p` is `[0, 20]`.
+	fn set_members(m: u32, _n: u32, p: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0 + m * (425 ±0) + p * (206 ±0)`
+		//  Estimated: `4150 + m * (266 ±3) + p * (2556 ±1)`
+		// Minimum execution time: 9_031_000 picoseconds.
+		Weight::from_parts(9_272_000, 4150)
+			// Standard Error: 108_687
+			.saturating_add(Weight::from_parts(3_471_502, 0).saturating_mul(m.into()))
+			// Standard Error: 49_657
+			.saturating_add(Weight::from_parts(4_259_120, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(2_u64))
+			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(p.into())))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
+			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(p.into())))
+			.saturating_add(Weight::from_parts(0, 266).saturating_mul(m.into()))
+			.saturating_add(Weight::from_parts(0, 2556).saturating_mul(p.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// The range of component `b` is `[2, 1024]`.
+	/// The range of component `m` is `[1, 9]`.
+	fn execute(b: u32, m: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `210 + m * (20 ±0)`
+		//  Estimated: `1694 + m * (20 ±0)`
+		// Minimum execution time: 15_880_000 picoseconds.
+		Weight::from_parts(16_198_503, 1694)
+			// Standard Error: 33
+			.saturating_add(Weight::from_parts(1_478, 0).saturating_mul(b.into()))
+			// Standard Error: 3_934
+			.saturating_add(Weight::from_parts(44_530, 0).saturating_mul(m.into()))
+			.saturating_add(T::DbWeight::get().reads(2_u64))
+			.saturating_add(Weight::from_parts(0, 20).saturating_mul(m.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// The range of component `b` is `[2, 1024]`.
+	/// The range of component `m` is `[1, 9]`.
+	fn propose_execute(b: u32, m: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `210 + m * (20 ±0)`
+		//  Estimated: `3674 + m * (20 ±0)`
+		// Minimum execution time: 18_467_000 picoseconds.
+		Weight::from_parts(18_804_143, 3674)
+			// Standard Error: 35
+			.saturating_add(Weight::from_parts(1_504, 0).saturating_mul(b.into()))
+			// Standard Error: 4_212
+			.saturating_add(Weight::from_parts(54_301, 0).saturating_mul(m.into()))
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(Weight::from_parts(0, 20).saturating_mul(m.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::ProposalCount` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::ProposalCount` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Voting` (r:0 w:1)
+	/// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// The range of component `b` is `[2, 1024]`.
+	/// The range of component `m` is `[2, 9]`.
+	/// The range of component `p` is `[1, 20]`.
+	fn propose_proposed(b: u32, m: u32, p: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `160 + m * (20 ±0) + p * (55 ±0)`
+		//  Estimated: `3581 + m * (27 ±0) + p * (54 ±0)`
+		// Minimum execution time: 21_083_000 picoseconds.
+		Weight::from_parts(19_334_720, 3581)
+			// Standard Error: 103
+			.saturating_add(Weight::from_parts(3_332, 0).saturating_mul(b.into()))
+			// Standard Error: 14_027
+			.saturating_add(Weight::from_parts(162_139, 0).saturating_mul(m.into()))
+			// Standard Error: 5_380
+			.saturating_add(Weight::from_parts(404_858, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(4_u64))
+			.saturating_add(Weight::from_parts(0, 27).saturating_mul(m.into()))
+			.saturating_add(Weight::from_parts(0, 54).saturating_mul(p.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Voting` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// The range of component `m` is `[5, 9]`.
+	fn vote(m: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `734 + m * (40 ±0)`
+		//  Estimated: `4199 + m * (40 ±0)`
+		// Minimum execution time: 24_513_000 picoseconds.
+		Weight::from_parts(24_980_634, 4199)
+			// Standard Error: 9_646
+			.saturating_add(Weight::from_parts(147_431, 0).saturating_mul(m.into()))
+			.saturating_add(T::DbWeight::get().reads(2_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+			.saturating_add(Weight::from_parts(0, 40).saturating_mul(m.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::Voting` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:0 w:1)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// The range of component `m` is `[4, 9]`.
+	/// The range of component `p` is `[1, 20]`.
+	fn close_early_disapproved(m: u32, p: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `267 + m * (40 ±0) + p * (55 ±0)`
+		//  Estimated: `3729 + m * (43 ±0) + p * (55 ±0)`
+		// Minimum execution time: 22_971_000 picoseconds.
+		Weight::from_parts(26_957_314, 3729)
+			// Standard Error: 19_980
+			.saturating_add(Weight::from_parts(25_302, 0).saturating_mul(m.into()))
+			// Standard Error: 5_668
+			.saturating_add(Weight::from_parts(361_586, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(Weight::from_parts(0, 43).saturating_mul(m.into()))
+			.saturating_add(Weight::from_parts(0, 55).saturating_mul(p.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::Voting` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// The range of component `b` is `[2, 1024]`.
+	/// The range of component `m` is `[4, 9]`.
+	/// The range of component `p` is `[1, 20]`.
+	fn close_early_approved(b: u32, m: u32, p: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `254 + b * (1 ±0) + m * (40 ±0) + p * (78 ±0)`
+		//  Estimated: `3858 + b * (1 ±0) + m * (29 ±1) + p * (74 ±0)`
+		// Minimum execution time: 39_323_000 picoseconds.
+		Weight::from_parts(42_468_026, 3858)
+			// Standard Error: 110
+			.saturating_add(Weight::from_parts(2_356, 0).saturating_mul(b.into()))
+			// Standard Error: 5_784
+			.saturating_add(Weight::from_parts(513_271, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(5_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(Weight::from_parts(0, 1).saturating_mul(b.into()))
+			.saturating_add(Weight::from_parts(0, 29).saturating_mul(m.into()))
+			.saturating_add(Weight::from_parts(0, 74).saturating_mul(p.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::Voting` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Prime` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Prime` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:0 w:1)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// The range of component `m` is `[4, 9]`.
+	/// The range of component `p` is `[1, 20]`.
+	fn close_disapproved(m: u32, p: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `317 + m * (33 ±0) + p * (55 ±0)`
+		//  Estimated: `3780 + m * (34 ±0) + p * (56 ±0)`
+		// Minimum execution time: 28_890_000 picoseconds.
+		Weight::from_parts(30_457_302, 3780)
+			// Standard Error: 9_947
+			.saturating_add(Weight::from_parts(15_430, 0).saturating_mul(m.into()))
+			// Standard Error: 2_821
+			.saturating_add(Weight::from_parts(315_344, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(Weight::from_parts(0, 34).saturating_mul(m.into()))
+			.saturating_add(Weight::from_parts(0, 56).saturating_mul(p.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::Voting` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Members` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Prime` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::Prime` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// The range of component `b` is `[2, 1024]`.
+	/// The range of component `m` is `[4, 9]`.
+	/// The range of component `p` is `[1, 20]`.
+	fn close_approved(b: u32, m: u32, p: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `274 + b * (1 ±0) + m * (40 ±0) + p * (78 ±0)`
+		//  Estimated: `3877 + b * (1 ±0) + m * (30 ±1) + p * (74 ±0)`
+		// Minimum execution time: 41_994_000 picoseconds.
+		Weight::from_parts(44_804_908, 3877)
+			// Standard Error: 113
+			.saturating_add(Weight::from_parts(2_601, 0).saturating_mul(b.into()))
+			// Standard Error: 5_908
+			.saturating_add(Weight::from_parts(530_928, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(6_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(Weight::from_parts(0, 1).saturating_mul(b.into()))
+			.saturating_add(Weight::from_parts(0, 30).saturating_mul(m.into()))
+			.saturating_add(Weight::from_parts(0, 74).saturating_mul(p.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Voting` (r:0 w:1)
+	/// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:0 w:1)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// The range of component `p` is `[1, 20]`.
+	fn disapprove_proposal(p: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `326 + p * (32 ±0)`
+		//  Estimated: `1811 + p * (32 ±0)`
+		// Minimum execution time: 14_024_000 picoseconds.
+		Weight::from_parts(14_762_315, 1811)
+			// Standard Error: 1_883
+			.saturating_add(Weight::from_parts(227_558, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(Weight::from_parts(0, 32).saturating_mul(p.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::CostOf` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::CostOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Proposals` (r:1 w:1)
+	/// Proof: `TreasuryCouncilCollective::Proposals` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::Voting` (r:0 w:1)
+	/// Proof: `TreasuryCouncilCollective::Voting` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// The range of component `d` is `[0, 1]`.
+	/// The range of component `p` is `[1, 20]`.
+	fn kill(d: u32, p: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `1380 + p * (55 ±0)`
+		//  Estimated: `4847 + d * (5 ±1) + p * (55 ±0)`
+		// Minimum execution time: 20_894_000 picoseconds.
+		Weight::from_parts(22_741_308, 4847)
+			// Standard Error: 9_928
+			.saturating_add(Weight::from_parts(526_479, 0).saturating_mul(p.into()))
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+			.saturating_add(Weight::from_parts(0, 5).saturating_mul(d.into()))
+			.saturating_add(Weight::from_parts(0, 55).saturating_mul(p.into()))
+	}
+	/// Storage: `TreasuryCouncilCollective::ProposalOf` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::ProposalOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `TreasuryCouncilCollective::CostOf` (r:1 w:0)
+	/// Proof: `TreasuryCouncilCollective::CostOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn release_proposal_cost() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `813`
+		//  Estimated: `4278`
+		// Minimum execution time: 13_927_000 picoseconds.
+		Weight::from_parts(14_290_000, 4278)
+			.saturating_add(T::DbWeight::get().reads(2_u64))
+	}
 }
