@@ -62,7 +62,6 @@ mod benchmarks {
 	#[benchmark]
 	fn set_transact_info() -> Result<(), BenchmarkError> {
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
-		let fee_per_second = 1;
 		let max_weight: Weight = Weight::from_parts(20000000000u64, 0);
 		let location = Location::parent();
 
@@ -304,9 +303,7 @@ mod benchmarks {
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = Location::parent();
 		let currency: T::CurrencyId = location.clone().into();
-		let call = vec![1u8];
 		let dest_weight: Weight = Weight::from_parts(100u64, 0);
-		let user: T::AccountId = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
 			Box::new(xcm::VersionedLocation::from(location.clone())),
