@@ -393,7 +393,7 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let collator =
+			let _collator =
 				create_funded_collator::<T>("collator", seed, 0u32.into(), true, candidate_count)?;
 			candidate_count += 1u32;
 		}
@@ -420,7 +420,7 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let collator =
+			let _collator =
 				create_funded_collator::<T>("collator", seed, 0u32.into(), true, candidate_count)?;
 			candidate_count += 1u32;
 		}
@@ -598,7 +598,7 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let collator =
+			let _collator =
 				create_funded_collator::<T>("collator", seed, 0u32.into(), true, candidate_count)?;
 			candidate_count += 1u32;
 		}
@@ -625,7 +625,7 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let collator =
+			let _collator =
 				create_funded_collator::<T>("collator", seed, 0u32.into(), true, candidate_count)?;
 			candidate_count += 1;
 		}
@@ -649,7 +649,7 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let collator =
+			let _collator =
 				create_funded_collator::<T>("collator", seed, 0u32.into(), true, candidate_count)?;
 			candidate_count += 1;
 		}
@@ -678,7 +678,7 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let collator =
+			let _collator =
 				create_funded_collator::<T>("collator", seed, more, true, candidate_count)?;
 			candidate_count += 1;
 		}
@@ -730,7 +730,7 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let collator = create_funded_collator::<T>(
+			let _collator = create_funded_collator::<T>(
 				"collator",
 				seed,
 				min_candidate_stk,
@@ -780,7 +780,7 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let collator = create_funded_collator::<T>(
+			let _collator = create_funded_collator::<T>(
 				"collator",
 				seed,
 				min_candidate_stk,
@@ -868,7 +868,7 @@ mod benchmarks {
 		let mut decreasing_balance =
 			<DecreasingBalance<T>>::new(T::MinDelegation::get() * 2000u32.into(), 1u32.into());
 		let mut col_del_count = 0u32;
-		for i in 0..num_top {
+		for _ in 0..num_top {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -912,7 +912,7 @@ mod benchmarks {
 			0,
 		);
 
-		for i in 0..num_bottom {
+		for _ in 0..num_bottom {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -948,7 +948,7 @@ mod benchmarks {
 			)?;
 		}
 
-		let state =
+		let _state =
 			Pallet::<T>::delegator_state(&last_top_delegator).expect("delegator must exist");
 		let current_round = Pallet::<T>::round().current;
 		let delegator_delay = <<T as Config>::LeaveDelegatorsDelay>::get();
@@ -997,7 +997,7 @@ mod benchmarks {
 		let mut decreasing_balance =
 			<DecreasingBalance<T>>::new(T::MinDelegation::get() * 2000u32.into(), 1u32.into());
 		let mut col_del_count = 0u32;
-		for i in 0..num_top {
+		for _ in 0..num_top {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1041,7 +1041,7 @@ mod benchmarks {
 			0,
 		);
 
-		for i in 0..num_bottom {
+		for _ in 0..num_bottom {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1122,7 +1122,7 @@ mod benchmarks {
 		let mut decreasing_balance =
 			<DecreasingBalance<T>>::new(T::MinDelegation::get() * 2000u32.into(), 1u32.into());
 		let mut col_del_count = 0u32;
-		for i in 0..num_top {
+		for _ in 0..num_top {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1165,7 +1165,7 @@ mod benchmarks {
 			0,
 		);
 
-		for i in 0..num_bottom {
+		for _ in 0..num_bottom {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1204,7 +1204,7 @@ mod benchmarks {
 			)?;
 		}
 
-		let state = Pallet::<T>::delegator_state(&last_top_delegator)
+		let _state = Pallet::<T>::delegator_state(&last_top_delegator)
 			.expect("just request bonded less so exists");
 		let current_round = Pallet::<T>::round().current;
 		let delegator_delay = <<T as Config>::DelegationBondLessDelay>::get();
@@ -1275,7 +1275,7 @@ mod benchmarks {
 		let mut decreasing_balance =
 			<DecreasingBalance<T>>::new(T::MinDelegation::get() * 2000u32.into(), 1u32.into());
 		let mut col_del_count = 0u32;
-		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+		for _ in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1342,7 +1342,7 @@ mod benchmarks {
 			collator.clone(),
 			5u32.into(),
 		)?;
-		for i in 1..T::MaxBottomDelegationsPerCandidate::get() {
+		for _ in 1..T::MaxBottomDelegationsPerCandidate::get() {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1415,7 +1415,7 @@ mod benchmarks {
 		let mut decreasing_balance =
 			<DecreasingBalance<T>>::new(T::MinDelegation::get() * 2000u32.into(), 1u32.into());
 		let mut col_del_count = 0u32;
-		for i in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
+		for _ in 0..T::MaxTopDelegationsPerCandidate::get() - 1 {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1484,7 +1484,7 @@ mod benchmarks {
 			collator.clone(),
 			5u32.into(),
 		)?;
-		for i in 1..T::MaxBottomDelegationsPerCandidate::get() {
+		for _ in 1..T::MaxBottomDelegationsPerCandidate::get() {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1570,7 +1570,7 @@ mod benchmarks {
 		)?;
 
 		let mut col_del_count = 0u32;
-		for i in 0..x {
+		for _ in 0..x {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -1692,7 +1692,7 @@ mod benchmarks {
 		// create delegators
 		for i in 0..y {
 			let seed = USER_SEED + i + 1;
-			let delegator = create_funded_delegator::<T>(
+			let _delegator = create_funded_delegator::<T>(
 				"delegator",
 				seed,
 				min_candidate_stk::<T>() * 1_000_000u32.into(),
@@ -1748,7 +1748,7 @@ mod benchmarks {
 
 			// create delegators
 			for _ in 0..y {
-				let delegator = create_funded_delegator::<T>(
+				let _delegator = create_funded_delegator::<T>(
 					"delegator",
 					seed,
 					min_candidate_stk::<T>() * 1_000_000u32.into(),
@@ -1877,8 +1877,8 @@ mod benchmarks {
 		{
 			for BondWithAutoCompound {
 				owner,
-				amount,
 				auto_compound,
+				..
 			} in &delegations
 			{
 				<Pallet<T>>::mint_and_compound(
@@ -1890,12 +1890,7 @@ mod benchmarks {
 			}
 		}
 
-		for BondWithAutoCompound {
-			owner,
-			amount,
-			auto_compound,
-		} in &delegations
-		{
+		for BondWithAutoCompound { owner, .. } in &delegations {
 			assert!(
 				T::Currency::free_balance(&owner) > initial_delegator_balance,
 				"delegator should have been paid in pay_one_collator_reward"
@@ -1916,7 +1911,6 @@ mod benchmarks {
 			DelayedPayouts, Points,
 		};
 
-		let before_running_round_index = Pallet::<T>::round().current;
 		let initial_stake_amount = min_candidate_stk::<T>() * 1_000_000u32.into();
 
 		let mut total_staked = 0u32.into();
@@ -2238,7 +2232,7 @@ mod benchmarks {
 		let mut decreasing_balance =
 			<DecreasingBalance<T>>::new(T::MinDelegation::get() * 2000u32.into(), 1u32.into());
 		let mut col_del_count = 0u32;
-		for i in 0..T::MaxTopDelegationsPerCandidate::get() {
+		for _ in 0..T::MaxTopDelegationsPerCandidate::get() {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -2260,7 +2254,7 @@ mod benchmarks {
 			)?;
 		}
 
-		for i in 0..T::MaxBottomDelegationsPerCandidate::get() - 1 {
+		for _ in 0..T::MaxBottomDelegationsPerCandidate::get() - 1 {
 			let del = create_account::<T>(
 				"delegator",
 				seed.take(),
@@ -2404,7 +2398,7 @@ mod benchmarks {
 		// Create collators up to MaxCandidates
 		for i in 0..(T::MaxCandidates::get() - 3) {
 			seed += i;
-			let collator = create_funded_collator::<T>(
+			let _collator = create_funded_collator::<T>(
 				"collator",
 				seed,
 				min_candidate_stk::<T>() * 1_000_000u32.into(),
@@ -2484,7 +2478,7 @@ mod benchmarks {
 		#[block]
 		{
 			let cur = 2;
-			let inactive_info = Pallet::<T>::mark_collators_as_inactive(cur);
+			let _inactive_info = Pallet::<T>::mark_collators_as_inactive(cur);
 		}
 
 		Ok(())
