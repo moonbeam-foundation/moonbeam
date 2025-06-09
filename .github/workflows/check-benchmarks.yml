@@ -76,3 +76,4 @@ jobs:
             cat benchmarking_errors.txt
             exit 1
           fi
+          cargo build -r -p ${{ matrix.runtime }}-runtime
