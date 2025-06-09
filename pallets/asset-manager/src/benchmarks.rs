@@ -17,26 +17,33 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 use crate::{Call, Config, Pallet};
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 use xcm::v3::prelude::*;
 
-benchmarks! {
-	// This where clause allows us to create ForeignAssetTypes
-	where_clause { where T::ForeignAssetType: From<Location> }
-	register_foreign_asset {
+#[benchmarks(
+	where T::ForeignAssetType: From<Location>
+)]
+mod benchmarks {
+	use super::*;
+
+	#[benchmark]
+	fn register_foreign_asset() -> Result<(), BenchmarkError> {
 		// does not really matter what we register
 		let asset_type = T::ForeignAssetType::default();
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
 		let asset_id: T::AssetId = asset_type.clone().into();
 
-	}: _(RawOrigin::Root, asset_type.clone(), metadata, amount, true)
-	verify {
+		#[extrinsic_call]
+		_(RawOrigin::Root, asset_type.clone(), metadata, amount, true);
+
 		assert_eq!(Pallet::<T>::asset_id_type(asset_id), Some(asset_type));
+		Ok(())
 	}
 
-	change_existing_asset_type {
+	#[benchmark]
+	fn change_existing_asset_type() -> Result<(), BenchmarkError> {
 		let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(1 as u128))).into();
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
@@ -45,19 +52,34 @@ benchmarks! {
 			asset_type.clone(),
 			metadata,
 			amount,
-			true
+			true,
 		)?;
 
 		let new_asset_type = T::ForeignAssetType::default();
 		let asset_id_to_be_changed = asset_type.clone().into();
-	}: _(RawOrigin::Root, asset_id_to_be_changed, new_asset_type.clone(), 1)
-	verify {
-		assert_eq!(Pallet::<T>::asset_id_type(asset_id_to_be_changed), Some(new_asset_type.clone()));
-		assert_eq!(Pallet::<T>::asset_type_id(new_asset_type.clone()), Some(asset_id_to_be_changed));
+
+		#[extrinsic_call]
+		_(
+			RawOrigin::Root,
+			asset_id_to_be_changed,
+			new_asset_type.clone(),
+			1,
+		);
+
+		assert_eq!(
+			Pallet::<T>::asset_id_type(asset_id_to_be_changed),
+			Some(new_asset_type.clone())
+		);
+		assert_eq!(
+			Pallet::<T>::asset_type_id(new_asset_type.clone()),
+			Some(asset_id_to_be_changed)
+		);
 		assert!(Pallet::<T>::asset_type_id(asset_type).is_none());
+		Ok(())
 	}
 
-	remove_existing_asset_type {
+	#[benchmark]
+	fn remove_existing_asset_type() -> Result<(), BenchmarkError> {
 		let asset_type: T::ForeignAssetType = Location::new(0, X1(GeneralIndex(1 as u128))).into();
 		let metadata = T::AssetRegistrarMetadata::default();
 		let amount = 1u32.into();
@@ -66,14 +88,23 @@ benchmarks! {
 			asset_type.clone(),
 			metadata,
 			amount,
-			true
+			true,
 		)?;
 		let asset_id: T::AssetId = asset_type.clone().into();
-	}: _(RawOrigin::Root, asset_id, 1)
-	verify {
+
+		#[extrinsic_call]
+		_(RawOrigin::Root, asset_id, 1);
+
 		assert!(Pallet::<T>::asset_id_type(asset_id).is_none());
 		assert!(Pallet::<T>::asset_type_id(asset_type).is_none());
+		Ok(())
 	}
+
+	impl_benchmark_test_suite!(
+		Pallet,
+		crate::benchmarks::tests::new_test_ext(),
+		crate::mock::Test
+	);
 }
 
 #[cfg(test)]
@@ -89,9 +120,3 @@ mod tests {
 		TestExternalities::new(t)
 	}
 }
-
-impl_benchmark_test_suite!(
-	Pallet,
-	crate::benchmarks::tests::new_test_ext(),
-	crate::mock::Test
-);
