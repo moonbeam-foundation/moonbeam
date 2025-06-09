@@ -1408,29 +1408,9 @@ impl pallet_multiblock_migrations::Config for Runtime {
 	type CursorMaxLen = ConstU32<65_536>;
 	type IdentifierMaxLen = ConstU32<256>;
 	type MigrationStatusHandler = ();
-	type FailedMigrationHandler = EnterMaintenanceModeOnFailedMigration;
+	type FailedMigrationHandler = MaintenanceMode;
 	type MaxServiceWeight = MaxServiceWeight;
 	type WeightInfo = weights::pallet_multiblock_migrations::WeightInfo<Runtime>;
-}
-
-/// A `FailedMigrationHandler` that enables maintenance mode.
-pub struct EnterMaintenanceModeOnFailedMigration;
-impl frame_support::migrations::FailedMigrationHandler for EnterMaintenanceModeOnFailedMigration {
-	fn failed(migration: Option<u32>) -> frame_support::migrations::FailedMigrationHandling {
-		// Log information about the failed migration
-		log::error!(
-			target: "runtime::migrations",
-			"Migration {:?} failed - activating maintenance mode and continuing",
-			migration
-		);
-
-		// Enable maintenance mode using the internal function.
-		MaintenanceMode::force_enter_maintenance_mode();
-
-		// We choose to ignore the failed migration, allowing the chain to continue operating
-		// in maintenance mode rather than completely halting execution
-		frame_support::migrations::FailedMigrationHandling::Ignore
-	}
 }
 
 construct_runtime! {
