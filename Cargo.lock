@@ -10327,7 +10327,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
- "pallet-asset-manager",
  "pallet-assets",
  "pallet-balances",
  "pallet-evm",

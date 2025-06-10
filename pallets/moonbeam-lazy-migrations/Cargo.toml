@@ -13,7 +13,6 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-scheduler = { workspace = true }
 pallet-assets = { workspace = true }
-pallet-asset-manager = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 parity-scale-codec = { workspace = true }
@@ -62,7 +61,6 @@ std = [
   "pallet-timestamp/std",
   "pallet-assets/std",
   "pallet-moonbeam-foreign-assets/std",
-  "pallet-asset-manager/std", 
   "precompile-utils/std",
   "cumulus-primitives-storage-weight-reclaim/std",
   "rlp/std",
