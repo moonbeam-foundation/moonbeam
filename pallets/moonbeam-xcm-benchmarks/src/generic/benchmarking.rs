@@ -15,15 +15,18 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
-use frame_benchmarking::{benchmarks, BenchmarkError, BenchmarkResult};
+use frame_benchmarking::v2::*;
 use frame_support::{traits::TrackedStorageKey, weights::Weight};
 use pallet_xcm_benchmarks::{new_executor, XcmCallOf};
-use sp_std::vec;
-use sp_std::vec::Vec;
+use sp_std::{vec, vec::Vec};
 use xcm::latest::prelude::*;
 
-benchmarks! {
-	buy_execution {
+#[benchmarks]
+mod benchmarks {
+	use super::*;
+
+	#[benchmark]
+	fn buy_execution() -> Result<(), BenchmarkError> {
 		// TODO setting it to zero by now
 		let holding = T::worst_case_holding(0).into();
 
@@ -34,48 +37,104 @@ benchmarks! {
 
 		let instruction = Instruction::<XcmCallOf<T>>::BuyExecution {
 			fees: (fee_asset, 100_000_000u128).into(), // should be something inside of holding
-			weight_limit: WeightLimit::Limited(Weight::from_parts(1u64, xcm_primitives::DEFAULT_PROOF_SIZE)),
+			weight_limit: WeightLimit::Limited(Weight::from_parts(
+				1u64,
+				xcm_primitives::DEFAULT_PROOF_SIZE,
+			)),
 		};
 
 		let xcm = Xcm(vec![instruction]);
 
-	} : {
-		executor.bench_process(xcm)?;
+		#[block]
+		{
+			executor.bench_process(xcm)?;
+		}
+
+		Ok(())
 	}
 
-	exchange_asset {
-	} : {
-		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
+	#[benchmark]
+	fn exchange_asset() -> Result<(), BenchmarkError> {
+		#[block]
+		{
+			// This benchmark is not implemented yet
+		}
+
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(
+			Weight::MAX,
+		)))
 	}
 
-	export_message {
-	} : {
-		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
+	#[benchmark]
+	fn export_message() -> Result<(), BenchmarkError> {
+		#[block]
+		{
+			// This benchmark is not implemented yet
+		}
+
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(
+			Weight::MAX,
+		)))
 	}
 
-	lock_asset {
-	} : {
-		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
+	#[benchmark]
+	fn lock_asset() -> Result<(), BenchmarkError> {
+		#[block]
+		{
+			// This benchmark is not implemented yet
+		}
+
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(
+			Weight::MAX,
+		)))
 	}
 
-	unlock_asset {
-	} : {
-		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
+	#[benchmark]
+	fn unlock_asset() -> Result<(), BenchmarkError> {
+		#[block]
+		{
+			// This benchmark is not implemented yet
+		}
+
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(
+			Weight::MAX,
+		)))
 	}
 
-	note_unlockable {
-	} : {
-		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
+	#[benchmark]
+	fn note_unlockable() -> Result<(), BenchmarkError> {
+		#[block]
+		{
+			// This benchmark is not implemented yet
+		}
+
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(
+			Weight::MAX,
+		)))
 	}
 
-	request_unlock {
-	} : {
-		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
+	#[benchmark]
+	fn request_unlock() -> Result<(), BenchmarkError> {
+		#[block]
+		{
+			// This benchmark is not implemented yet
+		}
+
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(
+			Weight::MAX,
+		)))
 	}
 
-	universal_origin {
-	} : {
-		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?;
+	#[benchmark]
+	fn universal_origin() -> Result<(), BenchmarkError> {
+		#[block]
+		{
+			// This benchmark is not implemented yet
+		}
+
+		Err(BenchmarkError::Override(BenchmarkResult::from_weight(
+			Weight::MAX,
+		)))
 	}
 
 	impl_benchmark_test_suite!(
@@ -83,7 +142,6 @@ benchmarks! {
 		crate::generic::mock::new_test_ext(),
 		crate::generic::mock::Test
 	);
-
 }
 
 pub struct XcmGenericBenchmarks<T>(sp_std::marker::PhantomData<T>);
@@ -91,10 +149,11 @@ pub struct XcmGenericBenchmarks<T>(sp_std::marker::PhantomData<T>);
 // We only need to implement benchmarks for the runtime-benchmarks feature or testing.
 impl<T: Config> frame_benchmarking::Benchmarking for XcmGenericBenchmarks<T> {
 	fn benchmarks(extra: bool) -> Vec<frame_benchmarking::BenchmarkMetadata> {
-		// Assuming we are overwritting, we only need to return the generics
+		// Return the benchmarks from the upstream pallet
 		use pallet_xcm_benchmarks::generic::Pallet as PalletXcmGenericBench;
 		PalletXcmGenericBench::<T>::benchmarks(extra)
 	}
+
 	fn run_benchmark(
 		extrinsic: &[u8],
 		c: &[(frame_benchmarking::BenchmarkParameter, u32)],
@@ -104,11 +163,11 @@ impl<T: Config> frame_benchmarking::Benchmarking for XcmGenericBenchmarks<T> {
 	) -> Result<Vec<frame_benchmarking::BenchmarkResult>, frame_benchmarking::BenchmarkError> {
 		use pallet_xcm_benchmarks::generic::Pallet as PalletXcmGenericBench;
 
+		// First check if this is one of our custom benchmarks
 		use crate::generic::Pallet as MoonbeamXcmGenericBench;
-		if MoonbeamXcmGenericBench::<T>::benchmarks(true)
-			.iter()
-			.any(|x| x.name == extrinsic)
-		{
+		let our_benchmarks = MoonbeamXcmGenericBench::<T>::benchmarks(true);
+
+		if our_benchmarks.iter().any(|x| x.name == extrinsic) {
 			MoonbeamXcmGenericBench::<T>::run_benchmark(
 				extrinsic,
 				c,
@@ -117,6 +176,7 @@ impl<T: Config> frame_benchmarking::Benchmarking for XcmGenericBenchmarks<T> {
 				internal_repeats,
 			)
 		} else {
+			// Fall back to upstream benchmarks
 			PalletXcmGenericBench::<T>::run_benchmark(
 				extrinsic,
 				c,
