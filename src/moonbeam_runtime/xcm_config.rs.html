@@ -1120,7 +1120,7 @@
 	<span class="kw">type </span>XcmRecorder = PolkadotXcm;
 }
 
-<span class="kw">type </span>XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper&lt;
+<span class="kw">pub type </span>XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper&lt;
 	XcmExecutorConfig,
 	xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;,
 &gt;;
