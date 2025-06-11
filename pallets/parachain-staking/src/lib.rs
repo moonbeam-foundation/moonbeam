@@ -63,6 +63,8 @@ mod mock;
 mod set;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod test_lazy_migration;
 
 use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
