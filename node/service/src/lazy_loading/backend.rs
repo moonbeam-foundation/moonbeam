@@ -1096,23 +1096,22 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		};
 
 		let maybe_next_key = if self.before_fork {
+			// Before the fork checkpoint, always fetch remotely
 			remote_fetch(self.block_hash)
 		} else {
+			// Try to get the next storage key from the local DB
 			let next_storage_key = self.db.read().next_storage_key(key);
 			match next_storage_key {
-				Ok(Some(next_key)) => {
-					if key != next_key {
-						Some(next_key)
-					} else {
-						None
-					}
-				}
+				Ok(Some(next_key)) => Some(next_key),
+				// If not found locally and key is not marked as removed, fetch remotely
 				_ if !self.removed_keys.read().contains_key(key) => {
 					remote_fetch(Some(self.fork_block))
 				}
+				// Otherwise, there's no next key
 				_ => None,
 			}
-		};
+		}
+		.filter(|next_key| next_key != key);
 
 		log::trace!(
 			target: super::LAZY_LOADING_LOG_TARGET,
