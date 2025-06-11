@@ -333,7 +333,7 @@ pub type XcmRouter = WithUniqueTopic<(
 	XcmpQueue,
 )>;
 
-type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
+pub type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
 	XcmExecutorConfig,
 	xcm_executor::XcmExecutor<XcmExecutorConfig>,
 >;

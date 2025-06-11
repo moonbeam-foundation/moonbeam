@@ -39,6 +39,7 @@ use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::runtime_params::dynamic_params;
+use moonriver_runtime::xcm_config::XcmExecutor;
 use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
@@ -2429,6 +2430,43 @@ fn test_xcm_utils_ml_tp_account() {
 			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
+	});
+}
+
+#[test]
+fn test_nested_batch_calls_from_xcm_transact() {
+	ExtBuilder::default().build().execute_with(|| {
+		// This ensures we notice if MAX_XCM_DECODE_DEPTH changes
+		// in a future polkadot-sdk version
+		assert_eq!(xcm::MAX_XCM_DECODE_DEPTH, 8);
+
+		let mut valid_nested_calls =
+			RuntimeCall::System(frame_system::Call::remark { remark: vec![] });
+		for _ in 0..xcm::MAX_XCM_DECODE_DEPTH {
+			valid_nested_calls = RuntimeCall::Utility(pallet_utility::Call::batch {
+				calls: vec![valid_nested_calls],
+			});
+		}
+
+		let valid_message = Xcm(vec![Transact {
+			origin_kind: OriginKind::SovereignAccount,
+			fallback_max_weight: None,
+			call: valid_nested_calls.encode().into(),
+		}]);
+
+		assert!(XcmExecutor::prepare(valid_message).is_ok());
+
+		let excessive_nested_calls = RuntimeCall::Utility(pallet_utility::Call::batch {
+			calls: vec![valid_nested_calls],
+		});
+
+		let invalid_message = Xcm(vec![Transact {
+			origin_kind: OriginKind::SovereignAccount,
+			fallback_max_weight: None,
+			call: excessive_nested_calls.encode().into(),
+		}]);
+		// Expect to fail because we have too many nested calls
+		assert!(XcmExecutor::prepare(invalid_message).is_err());
 	});
 }
 
