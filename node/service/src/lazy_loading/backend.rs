@@ -1100,7 +1100,13 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		} else {
 			let next_storage_key = self.db.read().next_storage_key(key);
 			match next_storage_key {
-				Ok(Some(next_key)) if key != next_key => Some(next_key),
+				Ok(Some(next_key)) => {
+					if key != next_key {
+						Some(next_key)
+					} else {
+						None
+					}
+				}
 				_ if !self.removed_keys.read().contains_key(key) => {
 					remote_fetch(Some(self.fork_block))
 				}
