@@ -62,9 +62,9 @@ mod benchmarks;
 mod mock;
 mod set;
 #[cfg(test)]
-mod tests;
-#[cfg(test)]
 mod test_lazy_migration;
+#[cfg(test)]
+mod tests;
 
 use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
@@ -272,6 +272,7 @@ pub mod pallet {
 		CannotSetAboveMaxCandidates,
 		MarkingOfflineNotEnabled,
 		CurrentRoundTooLow,
+		MigrationBatchSizeExceedsLimit,
 	}
 
 	#[pallet::event]
@@ -707,13 +708,13 @@ pub mod pallet {
 	#[pallet::storage]
 	/// Temporary storage to track candidates that have been migrated from locks to freezes.
 	/// This storage should be removed after all accounts have been migrated.
-	pub(crate) type MigratedCandidates<T: Config> = 
+	pub(crate) type MigratedCandidates<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, (), OptionQuery>;
 
 	#[pallet::storage]
 	/// Temporary storage to track delegators that have been migrated from locks to freezes.
 	/// This storage should be removed after all accounts have been migrated.
-	pub(crate) type MigratedDelegators<T: Config> = 
+	pub(crate) type MigratedDelegators<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, (), OptionQuery>;
 
 	#[pallet::genesis_config]
@@ -1481,14 +1482,14 @@ pub mod pallet {
 		}
 
 		/// Batch migrate locks to freezes for a list of accounts.
-		/// 
+		///
 		/// This function allows migrating multiple accounts from the old lock-based
 		/// staking to the new freeze-based staking in a single transaction.
-		/// 
+		///
 		/// Parameters:
 		/// - `accounts`: List of account IDs to migrate
 		/// - `is_collator`: Whether the accounts are collators (true) or delegators (false)
-		/// 
+		///
 		/// The maximum number of accounts that can be migrated in one batch is 100.
 		#[pallet::call_index(33)]
 		#[pallet::weight(
@@ -1500,18 +1501,18 @@ pub mod pallet {
 			is_collator: bool,
 		) -> DispatchResult {
 			ensure_signed(origin)?;
-			
+
 			// Limit batch size to prevent excessive weight consumption
 			ensure!(
 				accounts.len() <= 100,
-				Error::<T>::TooLowCandidateCountWeightHintJoinCandidates // Reuse existing error
+				Error::<T>::MigrationBatchSizeExceedsLimit
 			);
-			
+
 			for account in accounts.iter() {
 				// Attempt migration, ignoring any errors to allow partial migration
 				Self::check_and_migrate_lock(account, is_collator)?;
 			}
-			
+
 			Ok(())
 		}
 	}
@@ -1531,15 +1532,13 @@ pub mod pallet {
 		/// Check if an account has been migrated from lock to freeze
 		/// If not migrated, perform the migration
 		/// Returns true if migration was performed, false if already migrated
-		/// 
+		///
 		/// `is_collator` determines whether the account is a collator or delegator
 		fn check_and_migrate_lock(
 			account: &T::AccountId,
 			is_collator: bool,
 		) -> Result<bool, DispatchError> {
-			use frame_support::traits::{
-				fungible::MutateFreeze, LockableCurrency,
-			};
+			use frame_support::traits::{fungible::MutateFreeze, LockableCurrency};
 
 			// Check if already migrated
 			if is_collator {
@@ -1592,7 +1591,7 @@ pub mod pallet {
 			} else {
 				<MigratedDelegators<T>>::insert(account, ());
 			}
-			
+
 			Ok(true)
 		}
 

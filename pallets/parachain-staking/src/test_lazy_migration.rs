@@ -98,11 +98,20 @@ fn get_freeze_reason(is_collator: bool) -> crate::mock::RuntimeFreezeReason {
 // Helper function to verify freeze amount and ensure no corresponding lock exists
 fn assert_freeze_amount_and_no_lock(account: AccountId, expected_amount: u128, is_collator: bool) {
 	let freeze_reason = get_freeze_reason(is_collator);
-	assert_eq!(query_freeze_amount(account, &freeze_reason), expected_amount);
-	
+	assert_eq!(
+		query_freeze_amount(account, &freeze_reason),
+		expected_amount
+	);
+
 	// Verify no corresponding lock remains
-	let lock_id = if is_collator { COLLATOR_LOCK_ID } else { DELEGATOR_LOCK_ID };
-	assert!(!Balances::locks(&account).iter().any(|lock| lock.id == lock_id));
+	let lock_id = if is_collator {
+		COLLATOR_LOCK_ID
+	} else {
+		DELEGATOR_LOCK_ID
+	};
+	assert!(!Balances::locks(&account)
+		.iter()
+		.any(|lock| lock.id == lock_id));
 }
 
 #[test]
@@ -207,7 +216,6 @@ fn migrate_locks_to_freezes_batch_basic() {
 		});
 }
 
-
 #[test]
 fn migrate_locks_to_freezes_batch_size_limit() {
 	ExtBuilder::default()
@@ -224,7 +232,7 @@ fn migrate_locks_to_freezes_batch_size_limit() {
 					accounts,
 					true,
 				),
-				Error::<Test>::TooLowCandidateCountWeightHintJoinCandidates
+				Error::<Test>::MigrationBatchSizeExceedsLimit
 			);
 		});
 }
@@ -383,7 +391,6 @@ fn schedule_candidate_bond_less_does_not_trigger_migration() {
 			assert_freeze_amount_and_no_lock(1, bond_amount - 100, true);
 		});
 }
-
 
 #[test]
 fn mixed_migrated_and_unmigrated_accounts() {

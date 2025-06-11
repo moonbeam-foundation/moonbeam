@@ -162,8 +162,6 @@ describeSuite({
         );
         expect(result?.successful).to.be.true;
 
-        const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-
         const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
         expect(stakingFreeze).to.be.equal(90n * GLMR, "Failed to incur staking freeze");
       },
