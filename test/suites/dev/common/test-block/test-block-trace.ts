@@ -23,12 +23,7 @@ describeSuite({
       title: "should trace block with substrate transactions",
       test: async function () {
         // Get the block trace
-        const trace = await context.polkadotJs().rpc.state.traceBlock(
-          blockHash,
-          null,
-          null,
-          null
-        );
+        const trace = await context.polkadotJs().rpc.state.traceBlock(blockHash, null, null, null);
 
         // Verify the trace was successful
         expect(trace).to.not.be.null;
@@ -36,4 +31,4 @@ describeSuite({
       },
     });
   },
-}); 
+});
