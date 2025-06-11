@@ -207,7 +207,7 @@ where
 					SyncMode::LightState { .. } | SyncMode::Warp { .. }
 				),
 				wasm_runtime_substitutes,
-				enable_import_proof_recording: false,
+				enable_import_proof_recording: true,
 			},
 		)?;
 
