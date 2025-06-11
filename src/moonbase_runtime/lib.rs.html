@@ -1897,12 +1897,6 @@
 <a href="#1897" id="1897">1897</a>
 <a href="#1898" id="1898">1898</a>
 <a href="#1899" id="1899">1899</a>
-<a href="#1900" id="1900">1900</a>
-<a href="#1901" id="1901">1901</a>
-<a href="#1902" id="1902">1902</a>
-<a href="#1903" id="1903">1903</a>
-<a href="#1904" id="1904">1904</a>
-<a href="#1905" id="1905">1905</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3441,12 +3435,6 @@
 
 <span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 </span><span class="kw">mod </span>benches {
-	<span class="comment">// TODO: Temporary workaround before upgrading to latest polkadot-sdk - fix https://github.com/paritytech/polkadot-sdk/pull/6435
-	</span><span class="attr">#[allow(unused_imports)]
-	</span><span class="kw">use </span>pallet_collective <span class="kw">as </span>pallet_collective_treasury_council;
-	<span class="attr">#[allow(unused_imports)]
-	</span><span class="kw">use </span>pallet_collective <span class="kw">as </span>pallet_collective_open_tech_committee;
-
 	<span class="macro">frame_support::parameter_types!</span> {
 		<span class="kw">pub const </span>MaxBalance: <span class="kw">crate</span>::Balance = <span class="kw">crate</span>::Balance::max_value();
 	}
@@ -3490,8 +3478,8 @@
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]
-		[pallet_collective_treasury_council, TreasuryCouncilCollective]
-		[pallet_collective_open_tech_committee, OpenTechCommitteeCollective]
+		[pallet_collective, TreasuryCouncilCollective]
+		[pallet_collective, OpenTechCommitteeCollective]
 	);
 }
 

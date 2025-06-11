@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbeam/src/weights/pallet_collective_open_tech_committee.rs`."><title>pallet_collective_open_tech_committee.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbeam_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbase/src/weights/pallet_collective_open_tech_committee_collective.rs`."><title>pallet_collective_open_tech_committee_collective.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="moonbase_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -338,8 +338,6 @@
 <a href="#338" id="338">338</a>
 <a href="#339" id="339">339</a>
 <a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -357,12 +355,12 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 
-</span><span class="doccomment">//! Autogenerated weights for `pallet_collective_open_tech_committee`
+</span><span class="doccomment">//! Autogenerated weights for `pallet_collective`
 //!
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 32.0.0
-//! DATE: 2025-05-14, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
+//! DATE: 2025-05-13, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
+//! HOSTNAME: `ip-10-0-0-198`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
 //! WASM-EXECUTION: Compiled, CHAIN: None, DB CACHE: 1024
 
 </span><span class="comment">// Executed Command:
@@ -370,17 +368,17 @@
 // v1
 // benchmark
 // pallet
-// --runtime=./target/production/wbuild/moonbeam-runtime/moonbeam_runtime.wasm
+// --runtime=./target/production/wbuild/moonbase-runtime/moonbase_runtime.wasm
 // --genesis-builder=runtime
 // --genesis-builder-preset=development
 // --steps=50
 // --repeat=20
-// --pallet=pallet_collective_open_tech_committee
+// --pallet=pallet_collective
 // --extrinsic=*
 // --wasm-execution=compiled
 // --header=./file_header.txt
 // --template=./benchmarking/frame-weight-template.hbs
-// --output=./runtime/moonbeam/src/weights
+// --output=./runtime/moonbase/src/weights
 
 </span><span class="attr">#![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -389,11 +387,9 @@
 </span><span class="kw">use </span>frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 <span class="kw">use </span>sp_std::marker::PhantomData;
 
-<span class="kw">use </span>pallet_collective <span class="kw">as </span>pallet_collective_open_tech_committee;
-
-<span class="doccomment">/// Weights for `pallet_collective_open_tech_committee`.
+<span class="doccomment">/// Weights for `pallet_collective`.
 </span><span class="kw">pub struct </span>WeightInfo&lt;T&gt;(PhantomData&lt;T&gt;);
-<span class="kw">impl</span>&lt;T: frame_system::Config&gt; pallet_collective_open_tech_committee::WeightInfo <span class="kw">for </span>WeightInfo&lt;T&gt; {
+<span class="kw">impl</span>&lt;T: frame_system::Config&gt; pallet_collective::WeightInfo <span class="kw">for </span>WeightInfo&lt;T&gt; {
 	<span class="doccomment">/// Storage: `OpenTechCommitteeCollective::Members` (r:1 w:1)
 	/// Proof: `OpenTechCommitteeCollective::Members` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `OpenTechCommitteeCollective::Proposals` (r:1 w:0)
@@ -408,13 +404,13 @@
 	</span><span class="kw">fn </span>set_members(m: u32, _n: u32, p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `0 + m * (2021 ±0) + p * (2026 ±0)`
-		//  Estimated: `12234 + m * (1231 ±15) + p * (3660 ±15)`
-		// Minimum execution time: 15_662_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">15_774_000</span>, <span class="number">12234</span>)
-			<span class="comment">// Standard Error: 59_141
-			</span>.saturating_add(Weight::from_parts(<span class="number">4_250_771</span>, <span class="number">0</span>).saturating_mul(m.into()))
-			<span class="comment">// Standard Error: 59_141
-			</span>.saturating_add(Weight::from_parts(<span class="number">9_064_448</span>, <span class="number">0</span>).saturating_mul(p.into()))
+		//  Estimated: `12267 + m * (1231 ±15) + p * (3660 ±15)`
+		// Minimum execution time: 15_323_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">15_662_000</span>, <span class="number">12267</span>)
+			<span class="comment">// Standard Error: 59_241
+			</span>.saturating_add(Weight::from_parts(<span class="number">4_200_820</span>, <span class="number">0</span>).saturating_mul(m.into()))
+			<span class="comment">// Standard Error: 59_241
+			</span>.saturating_add(Weight::from_parts(<span class="number">8_944_938</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().reads((<span class="number">1_u64</span>).saturating_mul(p.into())))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
@@ -430,14 +426,14 @@
 	/// The range of component `m` is `[1, 100]`.
 	</span><span class="kw">fn </span>execute(b: u32, m: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `145 + m * (20 ±0)`
-		//  Estimated: `1630 + m * (20 ±0)`
-		// Minimum execution time: 16_783_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">16_253_578</span>, <span class="number">1630</span>)
-			<span class="comment">// Standard Error: 38
-			</span>.saturating_add(Weight::from_parts(<span class="number">1_507</span>, <span class="number">0</span>).saturating_mul(b.into()))
-			<span class="comment">// Standard Error: 399
-			</span>.saturating_add(Weight::from_parts(<span class="number">13_192</span>, <span class="number">0</span>).saturating_mul(m.into()))
+		//  Measured:  `178 + m * (20 ±0)`
+		//  Estimated: `1663 + m * (20 ±0)`
+		// Minimum execution time: 16_654_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">16_381_700</span>, <span class="number">1663</span>)
+			<span class="comment">// Standard Error: 27
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_321</span>, <span class="number">0</span>).saturating_mul(b.into()))
+			<span class="comment">// Standard Error: 288
+			</span>.saturating_add(Weight::from_parts(<span class="number">12_206</span>, <span class="number">0</span>).saturating_mul(m.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">20</span>).saturating_mul(m.into()))
 	}
@@ -451,14 +447,14 @@
 	/// The range of component `m` is `[1, 100]`.
 	</span><span class="kw">fn </span>propose_execute(b: u32, m: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `145 + m * (20 ±0)`
-		//  Estimated: `3610 + m * (20 ±0)`
-		// Minimum execution time: 19_136_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">18_898_787</span>, <span class="number">3610</span>)
-			<span class="comment">// Standard Error: 36
-			</span>.saturating_add(Weight::from_parts(<span class="number">1_332</span>, <span class="number">0</span>).saturating_mul(b.into()))
-			<span class="comment">// Standard Error: 372
-			</span>.saturating_add(Weight::from_parts(<span class="number">20_501</span>, <span class="number">0</span>).saturating_mul(m.into()))
+		//  Measured:  `178 + m * (20 ±0)`
+		//  Estimated: `3643 + m * (20 ±0)`
+		// Minimum execution time: 19_344_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">18_991_452</span>, <span class="number">3643</span>)
+			<span class="comment">// Standard Error: 38
+			</span>.saturating_add(Weight::from_parts(<span class="number">1_468</span>, <span class="number">0</span>).saturating_mul(b.into()))
+			<span class="comment">// Standard Error: 398
+			</span>.saturating_add(Weight::from_parts(<span class="number">19_654</span>, <span class="number">0</span>).saturating_mul(m.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">20</span>).saturating_mul(m.into()))
 	}
@@ -477,16 +473,16 @@
 	/// The range of component `p` is `[1, 100]`.
 	</span><span class="kw">fn </span>propose_proposed(b: u32, m: u32, p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `391 + m * (20 ±0) + p * (36 ±0)`
-		//  Estimated: `3785 + m * (21 ±0) + p * (36 ±0)`
-		// Minimum execution time: 22_447_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">24_619_755</span>, <span class="number">3785</span>)
-			<span class="comment">// Standard Error: 154
-			</span>.saturating_add(Weight::from_parts(<span class="number">4_598</span>, <span class="number">0</span>).saturating_mul(b.into()))
-			<span class="comment">// Standard Error: 1_617
-			</span>.saturating_add(Weight::from_parts(<span class="number">19_387</span>, <span class="number">0</span>).saturating_mul(m.into()))
-			<span class="comment">// Standard Error: 1_596
-			</span>.saturating_add(Weight::from_parts(<span class="number">270_017</span>, <span class="number">0</span>).saturating_mul(p.into()))
+		//  Measured:  `424 + m * (20 ±0) + p * (36 ±0)`
+		//  Estimated: `3818 + m * (21 ±0) + p * (36 ±0)`
+		// Minimum execution time: 22_029_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">21_507_116</span>, <span class="number">3818</span>)
+			<span class="comment">// Standard Error: 308
+			</span>.saturating_add(Weight::from_parts(<span class="number">2_626</span>, <span class="number">0</span>).saturating_mul(b.into()))
+			<span class="comment">// Standard Error: 3_215
+			</span>.saturating_add(Weight::from_parts(<span class="number">38_647</span>, <span class="number">0</span>).saturating_mul(m.into()))
+			<span class="comment">// Standard Error: 3_174
+			</span>.saturating_add(Weight::from_parts(<span class="number">255_112</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">4_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">4_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">21</span>).saturating_mul(m.into()))
@@ -499,12 +495,12 @@
 	/// The range of component `m` is `[5, 100]`.
 	</span><span class="kw">fn </span>vote(m: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `866 + m * (40 ±0)`
-		//  Estimated: `4330 + m * (40 ±0)`
-		// Minimum execution time: 33_187_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">35_955_924</span>, <span class="number">4330</span>)
-			<span class="comment">// Standard Error: 1_383
-			</span>.saturating_add(Weight::from_parts(<span class="number">30_416</span>, <span class="number">0</span>).saturating_mul(m.into()))
+		//  Measured:  `899 + m * (40 ±0)`
+		//  Estimated: `4363 + m * (40 ±0)`
+		// Minimum execution time: 31_244_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">35_317_827</span>, <span class="number">4363</span>)
+			<span class="comment">// Standard Error: 2_629
+			</span>.saturating_add(Weight::from_parts(<span class="number">61_223</span>, <span class="number">0</span>).saturating_mul(m.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">40</span>).saturating_mul(m.into()))
@@ -521,14 +517,14 @@
 	/// The range of component `p` is `[1, 100]`.
 	</span><span class="kw">fn </span>close_early_disapproved(m: u32, p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `443 + m * (40 ±0) + p * (36 ±0)`
-		//  Estimated: `3888 + m * (41 ±0) + p * (36 ±0)`
-		// Minimum execution time: 29_666_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">26_374_210</span>, <span class="number">3888</span>)
-			<span class="comment">// Standard Error: 1_163
-			</span>.saturating_add(Weight::from_parts(<span class="number">52_088</span>, <span class="number">0</span>).saturating_mul(m.into()))
-			<span class="comment">// Standard Error: 1_134
-			</span>.saturating_add(Weight::from_parts(<span class="number">255_806</span>, <span class="number">0</span>).saturating_mul(p.into()))
+		//  Measured:  `476 + m * (40 ±0) + p * (36 ±0)`
+		//  Estimated: `3921 + m * (41 ±0) + p * (36 ±0)`
+		// Minimum execution time: 25_344_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">26_106_382</span>, <span class="number">3921</span>)
+			<span class="comment">// Standard Error: 2_216
+			</span>.saturating_add(Weight::from_parts(<span class="number">61_478</span>, <span class="number">0</span>).saturating_mul(m.into()))
+			<span class="comment">// Standard Error: 2_161
+			</span>.saturating_add(Weight::from_parts(<span class="number">255_821</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">41</span>).saturating_mul(m.into()))
@@ -549,16 +545,16 @@
 	/// The range of component `p` is `[1, 100]`.
 	</span><span class="kw">fn </span>close_early_approved(b: u32, m: u32, p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `787 + b * (1 ±0) + m * (40 ±0) + p * (40 ±0)`
-		//  Estimated: `4104 + b * (1 ±0) + m * (42 ±0) + p * (40 ±0)`
-		// Minimum execution time: 42_699_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">39_704_057</span>, <span class="number">4104</span>)
-			<span class="comment">// Standard Error: 221
-			</span>.saturating_add(Weight::from_parts(<span class="number">4_414</span>, <span class="number">0</span>).saturating_mul(b.into()))
-			<span class="comment">// Standard Error: 2_341
-			</span>.saturating_add(Weight::from_parts(<span class="number">32_667</span>, <span class="number">0</span>).saturating_mul(m.into()))
-			<span class="comment">// Standard Error: 2_282
-			</span>.saturating_add(Weight::from_parts(<span class="number">324_065</span>, <span class="number">0</span>).saturating_mul(p.into()))
+		//  Measured:  `820 + b * (1 ±0) + m * (40 ±0) + p * (40 ±0)`
+		//  Estimated: `4137 + b * (1 ±0) + m * (42 ±0) + p * (40 ±0)`
+		// Minimum execution time: 43_172_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">36_571_602</span>, <span class="number">4137</span>)
+			<span class="comment">// Standard Error: 306
+			</span>.saturating_add(Weight::from_parts(<span class="number">5_612</span>, <span class="number">0</span>).saturating_mul(b.into()))
+			<span class="comment">// Standard Error: 3_243
+			</span>.saturating_add(Weight::from_parts(<span class="number">55_417</span>, <span class="number">0</span>).saturating_mul(m.into()))
+			<span class="comment">// Standard Error: 3_161
+			</span>.saturating_add(Weight::from_parts(<span class="number">350_318</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">5_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">1</span>).saturating_mul(b.into()))
@@ -579,14 +575,14 @@
 	/// The range of component `p` is `[1, 100]`.
 	</span><span class="kw">fn </span>close_disapproved(m: u32, p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `512 + m * (30 ±0) + p * (36 ±0)`
-		//  Estimated: `3954 + m * (31 ±0) + p * (36 ±0)`
-		// Minimum execution time: 31_046_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">30_494_718</span>, <span class="number">3954</span>)
-			<span class="comment">// Standard Error: 1_827
-			</span>.saturating_add(Weight::from_parts(<span class="number">30_669</span>, <span class="number">0</span>).saturating_mul(m.into()))
-			<span class="comment">// Standard Error: 1_782
-			</span>.saturating_add(Weight::from_parts(<span class="number">253_241</span>, <span class="number">0</span>).saturating_mul(p.into()))
+		//  Measured:  `545 + m * (30 ±0) + p * (36 ±0)`
+		//  Estimated: `3987 + m * (31 ±0) + p * (36 ±0)`
+		// Minimum execution time: 30_919_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">30_057_750</span>, <span class="number">3987</span>)
+			<span class="comment">// Standard Error: 2_175
+			</span>.saturating_add(Weight::from_parts(<span class="number">36_717</span>, <span class="number">0</span>).saturating_mul(m.into()))
+			<span class="comment">// Standard Error: 2_121
+			</span>.saturating_add(Weight::from_parts(<span class="number">260_145</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">4_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">31</span>).saturating_mul(m.into()))
@@ -609,16 +605,16 @@
 	/// The range of component `p` is `[1, 100]`.
 	</span><span class="kw">fn </span>close_approved(b: u32, m: u32, p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `807 + b * (1 ±0) + m * (40 ±0) + p * (40 ±0)`
-		//  Estimated: `4124 + b * (1 ±0) + m * (42 ±0) + p * (40 ±0)`
-		// Minimum execution time: 45_690_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">39_117_049</span>, <span class="number">4124</span>)
-			<span class="comment">// Standard Error: 189
-			</span>.saturating_add(Weight::from_parts(<span class="number">5_742</span>, <span class="number">0</span>).saturating_mul(b.into()))
-			<span class="comment">// Standard Error: 1_997
-			</span>.saturating_add(Weight::from_parts(<span class="number">49_513</span>, <span class="number">0</span>).saturating_mul(m.into()))
-			<span class="comment">// Standard Error: 1_947
-			</span>.saturating_add(Weight::from_parts(<span class="number">325_993</span>, <span class="number">0</span>).saturating_mul(p.into()))
+		//  Measured:  `840 + b * (1 ±0) + m * (40 ±0) + p * (40 ±0)`
+		//  Estimated: `4157 + b * (1 ±0) + m * (42 ±0) + p * (40 ±0)`
+		// Minimum execution time: 44_648_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">42_517_762</span>, <span class="number">4157</span>)
+			<span class="comment">// Standard Error: 314
+			</span>.saturating_add(Weight::from_parts(<span class="number">4_372</span>, <span class="number">0</span>).saturating_mul(b.into()))
+			<span class="comment">// Standard Error: 3_320
+			</span>.saturating_add(Weight::from_parts(<span class="number">32_391</span>, <span class="number">0</span>).saturating_mul(m.into()))
+			<span class="comment">// Standard Error: 3_237
+			</span>.saturating_add(Weight::from_parts(<span class="number">348_722</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">6_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">1</span>).saturating_mul(b.into()))
@@ -634,12 +630,12 @@
 	/// The range of component `p` is `[1, 100]`.
 	</span><span class="kw">fn </span>disapprove_proposal(p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `260 + p * (32 ±0)`
-		//  Estimated: `1745 + p * (32 ±0)`
-		// Minimum execution time: 13_839_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">14_986_562</span>, <span class="number">1745</span>)
-			<span class="comment">// Standard Error: 732
-			</span>.saturating_add(Weight::from_parts(<span class="number">194_585</span>, <span class="number">0</span>).saturating_mul(p.into()))
+		//  Measured:  `293 + p * (32 ±0)`
+		//  Estimated: `1778 + p * (32 ±0)`
+		// Minimum execution time: 14_155_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">14_853_943</span>, <span class="number">1778</span>)
+			<span class="comment">// Standard Error: 1_568
+			</span>.saturating_add(Weight::from_parts(<span class="number">212_886</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">1_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">32</span>).saturating_mul(p.into()))
@@ -656,14 +652,14 @@
 	/// The range of component `p` is `[1, 100]`.
 	</span><span class="kw">fn </span>kill(d: u32, p: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `1531 + p * (36 ±0)`
-		//  Estimated: `4930 + d * (123 ±6) + p * (37 ±0)`
-		// Minimum execution time: 24_421_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">25_443_362</span>, <span class="number">4930</span>)
-			<span class="comment">// Standard Error: 84_050
-			</span>.saturating_add(Weight::from_parts(<span class="number">990_981</span>, <span class="number">0</span>).saturating_mul(d.into()))
-			<span class="comment">// Standard Error: 1_301
-			</span>.saturating_add(Weight::from_parts(<span class="number">268_862</span>, <span class="number">0</span>).saturating_mul(p.into()))
+		//  Measured:  `1564 + p * (36 ±0)`
+		//  Estimated: `4963 + d * (123 ±6) + p * (37 ±0)`
+		// Minimum execution time: 20_934_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">24_207_922</span>, <span class="number">4963</span>)
+			<span class="comment">// Standard Error: 155_447
+			</span>.saturating_add(Weight::from_parts(<span class="number">141_442</span>, <span class="number">0</span>).saturating_mul(d.into()))
+			<span class="comment">// Standard Error: 2_407
+			</span>.saturating_add(Weight::from_parts(<span class="number">304_063</span>, <span class="number">0</span>).saturating_mul(p.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">123</span>).saturating_mul(d.into()))
@@ -675,10 +671,10 @@
 	/// Proof: `OpenTechCommitteeCollective::CostOf` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	</span><span class="kw">fn </span>release_proposal_cost() -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `945`
-		//  Estimated: `4410`
-		// Minimum execution time: 17_414_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">18_125_000</span>, <span class="number">4410</span>)
+		//  Measured:  `978`
+		//  Estimated: `4443`
+		// Minimum execution time: 17_797_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">19_309_000</span>, <span class="number">4443</span>)
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 	}
 }
