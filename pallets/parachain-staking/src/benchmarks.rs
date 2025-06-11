@@ -2318,6 +2318,61 @@ benchmarks! {
 	}
 	verify {
 	}
+
+	migrate_locks_to_freezes_batch {
+		// x is the number of accounts to migrate in the batch
+		let x in 1..100; // Maximum 100 accounts per batch as enforced by the extrinsic
+		use frame_support::traits::LockableCurrency;
+		use frame_benchmarking::whitelisted_caller;
+		use crate::{DELEGATOR_LOCK_ID, MigratedDelegators};
+
+		let mut seed = Seed::new();
+		let mut delegator_accounts = Vec::new();
+		
+		// Create a collator that delegators will delegate to
+		let collator = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			min_candidate_stk::<T>(),
+			true,
+			1,
+		)?;
+		
+		// Create x delegator accounts with existing locks to migrate
+		for i in 0..x {
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				seed.take(),
+				Zero::zero(),
+				collator.clone(),
+				true,
+				i + 1, // delegation count
+			)?;
+			
+			// Remove from MigratedDelegators to ensure it's not already marked as migrated
+			<MigratedDelegators<T>>::remove(&delegator);
+			
+			// Set an old-style lock on the account to simulate pre-migration state
+			T::Currency::set_lock(
+				DELEGATOR_LOCK_ID,
+				&delegator,
+				min_delegator_stk::<T>(),
+				frame_support::traits::WithdrawReasons::all(),
+			);
+			
+			delegator_accounts.push(delegator);
+		}
+		
+		let caller: T::AccountId = whitelisted_caller();
+		let is_collator = false; // We're migrating delegators
+	}: _(RawOrigin::Signed(caller), delegator_accounts.clone(), is_collator)
+	verify {
+		// Verify that migration tracking storage was updated
+		// Check that all delegator accounts have been marked as migrated
+		for account in delegator_accounts.iter() {
+			assert!(<MigratedDelegators<T>>::contains_key(account), "Delegator should be marked as migrated");
+		}
+	}
 }
 
 #[cfg(test)]

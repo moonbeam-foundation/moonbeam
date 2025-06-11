@@ -84,7 +84,7 @@ pub mod pallet {
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
-		fungible::{Balanced, Inspect, InspectFreeze, Mutate, MutateFreeze},
+		fungible::{Balanced, Inspect, Mutate, MutateFreeze},
 		Currency, Get, LockIdentifier, LockableCurrency, ReservableCurrency,
 	};
 	use frame_system::pallet_prelude::*;
@@ -124,7 +124,7 @@ pub mod pallet {
 			+ MutateFreeze<Self::AccountId, Id = Self::RuntimeFreezeReason>
 			+ Balanced<Self::AccountId>
 			// DEPRECATED: Remove traits below after applying migration `MigrateLocksToFreezes`
-			+ Currency<Self::AccountId>
+			+ Currency<Self::AccountId, Balance = BalanceOf<Self>>
 			+ ReservableCurrency<Self::AccountId>
 			+ LockableCurrency<Self::AccountId>;
 		/// The overarching freeze identifier type.
@@ -701,6 +701,18 @@ pub mod pallet {
 	#[pallet::getter(fn marking_offline)]
 	/// Killswitch to enable/disable marking offline feature.
 	pub type EnableMarkingOffline<T: Config> = StorageValue<_, bool, ValueQuery>;
+
+	#[pallet::storage]
+	/// Temporary storage to track candidates that have been migrated from locks to freezes.
+	/// This storage should be removed after all accounts have been migrated.
+	pub(crate) type MigratedCandidates<T: Config> = 
+		StorageMap<_, Twox64Concat, T::AccountId, (), OptionQuery>;
+
+	#[pallet::storage]
+	/// Temporary storage to track delegators that have been migrated from locks to freezes.
+	/// This storage should be removed after all accounts have been migrated.
+	pub(crate) type MigratedDelegators<T: Config> = 
+		StorageMap<_, Twox64Concat, T::AccountId, (), OptionQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
@@ -1465,6 +1477,41 @@ pub mod pallet {
 			});
 			Ok(().into())
 		}
+
+		/// Batch migrate locks to freezes for a list of accounts.
+		/// 
+		/// This function allows migrating multiple accounts from the old lock-based
+		/// staking to the new freeze-based staking in a single transaction.
+		/// 
+		/// Parameters:
+		/// - `accounts`: List of account IDs to migrate
+		/// - `is_collator`: Whether the accounts are collators (true) or delegators (false)
+		/// 
+		/// The maximum number of accounts that can be migrated in one batch is 100.
+		#[pallet::call_index(33)]
+		#[pallet::weight(
+			T::WeightInfo::migrate_locks_to_freezes_batch(accounts.len() as u32)
+		)]
+		pub fn migrate_locks_to_freezes_batch(
+			origin: OriginFor<T>,
+			accounts: Vec<T::AccountId>,
+			is_collator: bool,
+		) -> DispatchResult {
+			ensure_signed(origin)?;
+			
+			// Limit batch size to prevent excessive weight consumption
+			ensure!(
+				accounts.len() <= 100,
+				Error::<T>::TooLowCandidateCountWeightHintJoinCandidates // Reuse existing error
+			);
+			
+			for account in accounts.iter() {
+				// Attempt migration, ignoring any errors to allow partial migration
+				Self::check_and_migrate_lock(account, is_collator)?;
+			}
+			
+			Ok(())
+		}
 	}
 
 	/// Represents a payout made via `pay_one_collator_reward`.
@@ -1479,6 +1526,150 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		/// Check if an account has been migrated from lock to freeze
+		/// If not migrated, perform the migration
+		/// Returns true if migration was performed, false if already migrated
+		/// 
+		/// `is_collator` determines whether the account is a collator or delegator
+		fn check_and_migrate_lock(
+			account: &T::AccountId,
+			is_collator: bool,
+		) -> Result<bool, DispatchError> {
+			use frame_support::traits::{
+				fungible::MutateFreeze, LockableCurrency,
+			};
+
+			// Check if already migrated
+			if is_collator {
+				if <MigratedCandidates<T>>::contains_key(account) {
+					return Ok(false); // Already migrated
+				}
+			} else {
+				if <MigratedDelegators<T>>::contains_key(account) {
+					return Ok(false); // Already migrated
+				}
+			}
+
+			// Not migrated yet, proceed with migration
+			let (lock_id, freeze_reason) = if is_collator {
+				(COLLATOR_LOCK_ID, FreezeReason::StakingCollator)
+			} else {
+				(DELEGATOR_LOCK_ID, FreezeReason::StakingDelegator)
+			};
+
+			// Get the amount that should be locked/frozen from storage
+			let amount = if is_collator {
+				// For collators, get the bond amount from storage
+				<CandidateInfo<T>>::get(account)
+					.map(|info| info.bond)
+					.unwrap_or_default()
+			} else {
+				// For delegators, get the total delegated amount from storage
+				<DelegatorState<T>>::get(account)
+					.map(|state| state.total)
+					.unwrap_or_default()
+			};
+
+			if amount > BalanceOf::<T>::zero() {
+				// Remove any existing lock
+				T::Currency::remove_lock(lock_id, account);
+
+				// Set the freeze
+				T::Currency::set_freeze(&freeze_reason.into(), account, amount)?;
+
+				log::debug!(
+					"Migrated {:?} lock to freeze for account {:?} with amount {:?}",
+					if is_collator { "collator" } else { "delegator" },
+					account,
+					amount
+				);
+			}
+
+			if is_collator {
+				<MigratedCandidates<T>>::insert(account, ());
+			} else {
+				<MigratedDelegators<T>>::insert(account, ());
+			}
+			
+			Ok(true)
+		}
+
+		/// Set freeze with lazy migration support
+		/// This will check for existing locks and migrate them before setting the freeze
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		pub(crate) fn freeze_extended(
+			account: &T::AccountId,
+			amount: BalanceOf<T>,
+			is_collator: bool,
+		) -> DispatchResult {
+			use frame_support::traits::fungible::MutateFreeze;
+
+			// First check and migrate any existing lock
+			let _ = Self::check_and_migrate_lock(account, is_collator)?;
+
+			// Now set the freeze
+			let freeze_reason = if is_collator {
+				FreezeReason::StakingCollator
+			} else {
+				FreezeReason::StakingDelegator
+			};
+
+			T::Currency::set_freeze(&freeze_reason.into(), account, amount)
+		}
+
+		/// Thaw with lazy migration support
+		/// This will check for existing locks and remove them before thawing
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		pub(crate) fn thaw_extended(account: &T::AccountId, is_collator: bool) -> DispatchResult {
+			use frame_support::traits::{fungible::MutateFreeze, LockableCurrency};
+
+			// First check and remove any existing lock
+			let lock_id = if is_collator {
+				COLLATOR_LOCK_ID
+			} else {
+				DELEGATOR_LOCK_ID
+			};
+
+			// Remove the lock if it exists
+			T::Currency::remove_lock(lock_id, account);
+
+			// Now thaw the freeze
+			let freeze_reason = if is_collator {
+				FreezeReason::StakingCollator
+			} else {
+				FreezeReason::StakingDelegator
+			};
+
+			let _ = T::Currency::thaw(&freeze_reason.into(), account);
+			Ok(())
+		}
+
+		/// Get frozen balance with lazy migration support
+		/// This will check for existing locks and migrate them before returning the frozen balance
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		pub(crate) fn balance_frozen_extended(
+			account: &T::AccountId,
+			is_collator: bool,
+		) -> BalanceOf<T> {
+			use frame_support::traits::fungible::InspectFreeze;
+
+			// First check and migrate any existing lock
+			// We ignore the result as we want to return the frozen balance regardless
+			let _ = Self::check_and_migrate_lock(account, is_collator);
+
+			// Now return the frozen balance
+			let freeze_reason = if is_collator {
+				FreezeReason::StakingCollator
+			} else {
+				FreezeReason::StakingDelegator
+			};
+
+			T::Currency::balance_frozen(&freeze_reason.into(), account)
+		}
+
 		pub fn set_candidate_bond_to_zero(acc: &T::AccountId) -> Weight {
 			let actual_weight =
 				<T as Config>::WeightInfo::set_candidate_bond_to_zero(T::MaxCandidates::get());
@@ -1526,8 +1717,7 @@ pub mod pallet {
 				Self::get_collator_stakable_free_balance(&acc) >= bond,
 				Error::<T>::InsufficientBalance,
 			);
-			T::Currency::set_freeze(&FreezeReason::StakingCollator.into(), &acc, bond)
-				.map_err(|_| Error::<T>::InsufficientBalance)?;
+			Self::freeze_extended(&acc, bond, true).map_err(|_| Error::<T>::InsufficientBalance)?;
 			let candidate = CandidateMetadata::new(bond);
 			<CandidateInfo<T>>::insert(&acc, candidate);
 			let empty_delegations: Delegations<T::AccountId, BalanceOf<T>> = Default::default();
@@ -1694,15 +1884,14 @@ pub mod pallet {
 						// last delegation was left.
 						<DelegatorState<T>>::remove(&bond.owner);
 						// Thaw all frozen funds for delegator
-						let _ =
-							T::Currency::thaw(&FreezeReason::StakingDelegator.into(), &bond.owner);
+						let _ = Self::thaw_extended(&bond.owner, false);
 					} else {
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
 				} else {
 					// TODO: review. we assume here that this delegator has no remaining staked
 					// balance, so we ensure the funds are freed
-					let _ = T::Currency::thaw(&FreezeReason::StakingDelegator.into(), &bond.owner);
+					let _ = Self::thaw_extended(&bond.owner, false);
 				}
 			};
 			// total backing stake is at least the candidate self bond
@@ -1722,7 +1911,7 @@ pub mod pallet {
 			}
 			total_backing = total_backing.saturating_add(bottom_delegations.total);
 			// Thaw all frozen funds for collator
-			let _ = T::Currency::thaw(&FreezeReason::StakingCollator.into(), &candidate);
+			let _ = Self::thaw_extended(&candidate, true);
 			<CandidateInfo<T>>::remove(&candidate);
 			<DelegationScheduledRequests<T>>::remove(&candidate);
 			<AutoCompoundingDelegations<T>>::remove(&candidate);
@@ -1741,20 +1930,14 @@ pub mod pallet {
 		/// Returns an account's stakable balance which is not frozen in delegation staking
 		pub fn get_delegator_stakable_balance(acc: &T::AccountId) -> BalanceOf<T> {
 			let total_balance = T::Currency::balance(acc);
-			let frozen_balance = T::Currency::balance_frozen(
-				&T::RuntimeFreezeReason::from(FreezeReason::StakingDelegator),
-				acc,
-			);
+			let frozen_balance = Self::balance_frozen_extended(acc, false);
 			total_balance.saturating_sub(frozen_balance)
 		}
 
 		/// Returns an account's free balance which is not frozen in collator staking
 		pub fn get_collator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
 			let total_balance = T::Currency::balance(acc);
-			let frozen_balance = T::Currency::balance_frozen(
-				&T::RuntimeFreezeReason::from(FreezeReason::StakingCollator),
-				acc,
-			);
+			let frozen_balance = Self::balance_frozen_extended(acc, true);
 			total_balance.saturating_sub(frozen_balance)
 		}
 

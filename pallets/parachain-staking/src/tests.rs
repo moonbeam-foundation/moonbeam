@@ -25,14 +25,15 @@
 use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
-	inflation_configs, query_freeze_amount, roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author,
-	set_block_author, AccountId, Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeEvent,
-	RuntimeOrigin, Test, POINTS_PER_BLOCK, POINTS_PER_ROUND,
+	inflation_configs, query_freeze_amount, roll_blocks, roll_to, roll_to_round_begin,
+	roll_to_round_end, set_author, set_block_author, AccountId, Balances, BlockNumber, ExtBuilder,
+	ParachainStaking, RuntimeEvent, RuntimeOrigin, Test, POINTS_PER_BLOCK, POINTS_PER_ROUND,
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded,
-	EnableMarkingOffline, Error, Event, FreezeReason, InflationDistributionInfo, Range, WasInactive,
+	EnableMarkingOffline, Error, Event, FreezeReason, InflationDistributionInfo, Range,
+	WasInactive,
 };
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 use frame_support::{assert_noop, assert_ok, BoundedVec};
@@ -5669,8 +5670,14 @@ fn multiple_delegations() {
 					.len(),
 				4usize
 			);
-			assert_eq!(query_freeze_amount(6, &FreezeReason::StakingDelegator.into()), 40);
-			assert_eq!(query_freeze_amount(7, &FreezeReason::StakingDelegator.into()), 90);
+			assert_eq!(
+				query_freeze_amount(6, &FreezeReason::StakingDelegator.into()),
+				40
+			);
+			assert_eq!(
+				query_freeze_amount(7, &FreezeReason::StakingDelegator.into()),
+				90
+			);
 			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&6), 60);
 			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&7), 10);
 			roll_to_round_begin(8);
@@ -9082,7 +9089,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2999210735;
+			let expected_on_init = 3036604790;
 			assert_eq!(Weight::from_parts(expected_on_init, 51554), weight);
 
 			// assemble weight manually to ensure it is well understood

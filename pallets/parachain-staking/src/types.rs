@@ -17,11 +17,11 @@
 //! Types for parachain-staking
 
 use crate::{
-	auto_compound::AutoCompoundDelegations, pallet::FreezeReason, set::OrderedSet, BalanceOf,
-	BottomDelegations, CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Round,
-	RoundIndex, TopDelegations, Total,
+	auto_compound::AutoCompoundDelegations, set::OrderedSet, BalanceOf, BottomDelegations,
+	CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Round, RoundIndex, TopDelegations,
+	Total,
 };
-use frame_support::{pallet_prelude::*, traits::fungible::MutateFreeze};
+use frame_support::pallet_prelude::*;
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::{
 	traits::{AtLeast32BitUnsigned, Saturating, Zero},
@@ -443,12 +443,8 @@ impl<
 		self.bond = self.bond.saturating_add(more);
 
 		// Freeze the total new amount (current + additional)
-		T::Currency::set_freeze(
-			&FreezeReason::StakingCollator.into(),
-			&who.clone(),
-			self.bond.into(),
-		)
-		.map_err(|_| DispatchError::from(Error::<T>::InsufficientBalance))?;
+		<Pallet<T>>::freeze_extended(&who.clone(), self.bond.into(), true)
+			.map_err(|_| DispatchError::from(Error::<T>::InsufficientBalance))?;
 
 		self.total_counted = self.total_counted.saturating_add(more);
 		<Pallet<T>>::deposit_event(Event::CandidateBondedMore {
@@ -469,13 +465,9 @@ impl<
 
 		// Update the freeze to the new total amount
 		if self.bond.is_zero() {
-			let _ = T::Currency::thaw(&FreezeReason::StakingCollator.into(), &who);
+			let _ = <Pallet<T>>::thaw_extended(&who, true);
 		} else {
-			let _ = T::Currency::set_freeze(
-				&FreezeReason::StakingCollator.into(),
-				&who,
-				self.bond.into(),
-			);
+			let _ = <Pallet<T>>::freeze_extended(&who, self.bond.into(), true);
 		}
 		self.total_counted = self.total_counted.saturating_sub(amount);
 		let event = Event::CandidateBondedLess {
@@ -1497,7 +1489,6 @@ impl<
 		T::AccountId: From<AccountId>,
 	{
 		let who: T::AccountId = self.id.clone().into();
-		let freeze_id = &FreezeReason::StakingDelegator.into();
 
 		match additional_required_balance {
 			BondAdjust::Increase(amount) => {
@@ -1519,10 +1510,10 @@ impl<
 
 		// Set the freeze to the total amount
 		if self.total > Balance::zero() {
-			T::Currency::set_freeze(freeze_id, &who, self.total.into())?;
+			<Pallet<T>>::freeze_extended(&who, self.total.into(), false)?;
 		} else {
 			// If total is zero, remove the freeze
-			let _ = T::Currency::thaw(freeze_id, &who);
+			let _ = <Pallet<T>>::thaw_extended(&who, false);
 		}
 
 		Ok(())
