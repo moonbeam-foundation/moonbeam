@@ -141,109 +141,109 @@ moonbase-runtime = { path = "runtime/moonbase" }
 moonbeam-runtime = { path = "runtime/moonbeam" }
 moonriver-runtime = { path = "runtime/moonriver" }
 
-frame-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-frame-executive = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-frame-support = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-frame-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-frame-system-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-frame-system-rpc-runtime-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-frame-try-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-assets = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-balances = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-collective = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-conviction-voting = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-identity = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-message-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-multisig = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-multiblock-migrations = { package = "pallet-migrations", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-preimage = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-parameters = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-proxy = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-referenda = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-root-testing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-scheduler = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-society = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-staking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-sudo = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-transaction-payment = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-treasury = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-whitelist = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+frame-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+frame-executive = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+frame-support = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+frame-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+frame-system-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+frame-system-rpc-runtime-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+frame-try-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-assets = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-balances = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-collective = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-conviction-voting = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-identity = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-message-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-multisig = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-multiblock-migrations = { package = "pallet-migrations", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-preimage = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-parameters = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-proxy = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-referenda = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-root-testing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-scheduler = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-society = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-staking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-sudo = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-transaction-payment = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-treasury = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-whitelist = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 parity-scale-codec = { version = "3.2.2", default-features = false, features = [
     "derive",
 ] }
 scale-info = { version = "2.0", default-features = false, features = [
     "derive",
 ] }
-sp-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-application-crypto = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-block-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-consensus-babe = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-consensus-slots = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-debug-derive = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-externalities = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-inherents = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-io = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-keyring = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-keystore = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-offchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-runtime-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-session = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-std = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-state-machine = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-tracing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-trie = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-version = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-weights = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-sp-genesis-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-application-crypto = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-block-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-consensus-babe = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-consensus-slots = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-debug-derive = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-externalities = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-inherents = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-io = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-keyring = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-keystore = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-offchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-runtime-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-session = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-std = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-state-machine = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-tracing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-trie = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-version = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-weights = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+sp-genesis-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 substrate-fixed = { git = "https://github.com/encointer/substrate-fixed", default-features = false }
 
 # Substrate (client)
-frame-benchmarking-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-pallet-transaction-payment-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-basic-authorship = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-block-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-chain-spec = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-client-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-client-db = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-consensus = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-consensus-grandpa = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-consensus-manual-seal = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-executor = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-informant = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-network = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-network-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-network-sync = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-offchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-rpc-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-sysinfo = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-telemetry = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-tracing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-transaction-pool-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sc-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sp-blockchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sp-consensus = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sp-storage = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sp-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sp-wasm-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-sp-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-substrate-build-script-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-substrate-frame-rpc-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-substrate-prometheus-endpoint = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-substrate-test-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-substrate-test-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-substrate-test-runtime-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-substrate-wasm-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-substrate-rpc-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+frame-benchmarking-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+pallet-transaction-payment-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-basic-authorship = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-block-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-chain-spec = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-client-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-client-db = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-consensus = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-consensus-grandpa = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-consensus-manual-seal = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-executor = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-informant = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-network = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-network-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-network-sync = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-offchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-rpc-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-sysinfo = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-telemetry = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-tracing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-transaction-pool-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sc-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sp-blockchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sp-consensus = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sp-storage = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sp-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sp-wasm-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+sp-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+substrate-build-script-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+substrate-frame-rpc-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+substrate-prometheus-endpoint = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+substrate-test-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+substrate-test-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+substrate-test-runtime-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+substrate-wasm-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+substrate-rpc-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
 
 # Frontier (wasm)
 
@@ -291,60 +291,60 @@ fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch =
 
 # Cumulus (wasm)
 
-cumulus-pallet-dmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-cumulus-pallet-parachain-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-cumulus-pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-cumulus-pallet-xcmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-cumulus-primitives-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-cumulus-primitives-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-cumulus-primitives-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-parachain-info = { package = "staging-parachain-info", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-parachains-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+cumulus-pallet-dmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+cumulus-pallet-parachain-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+cumulus-pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+cumulus-pallet-xcmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+cumulus-primitives-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+cumulus-primitives-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+parachain-info = { package = "staging-parachain-info", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+parachains-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 
 # Cumulus (client)
-cumulus-client-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-client-collator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-client-consensus-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-client-consensus-proposer = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-client-network = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-client-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-client-parachain-inherent = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-relay-chain-inprocess-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-relay-chain-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-relay-chain-minimal-node = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-cumulus-relay-chain-rpc-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-client-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-client-collator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-client-consensus-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-client-consensus-proposer = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-client-network = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-client-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-client-parachain-inherent = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-relay-chain-inprocess-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-relay-chain-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-relay-chain-minimal-node = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+cumulus-relay-chain-rpc-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
 
 # Polkadot / XCM (wasm)
-pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-xcm-benchmarks = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-polkadot-core-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-polkadot-parachain = { package = "polkadot-parachain-primitives", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-polkadot-runtime-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-polkadot-runtime-parachains = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-xcm = { package = "staging-xcm", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-xcm-runtime-apis = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-xcm-benchmarks = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+polkadot-core-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+polkadot-parachain = { package = "polkadot-parachain-primitives", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+polkadot-runtime-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+polkadot-runtime-parachains = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+xcm = { package = "staging-xcm", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+xcm-runtime-apis = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 
 # Polkadot / XCM (client)
-#kusama-runtime = { package = "staging-kusama-runtime", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-polkadot-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-polkadot-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-#polkadot-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-polkadot-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-rococo-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-westend-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
-xcm-simulator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+#kusama-runtime = { package = "staging-kusama-runtime", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+polkadot-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+polkadot-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+#polkadot-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+polkadot-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+rococo-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+westend-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
+xcm-simulator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
 
 # Bridge dependencies
-bp-header-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-bp-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-bp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
-pallet-bridge-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+bp-header-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+bp-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+bp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
+pallet-bridge-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 
 # Moonkit (wasm)
 async-backing-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-stable2412", default-features = false }
@@ -373,7 +373,7 @@ environmental = { version = "1.1.4", default-features = false }
 frame-metadata = { version = "18.0.0", default-features = false, features = [
     "current",
 ] }
-frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.4.1", default-features = false }
 impl-serde = { version = "0.4.0", default-features = false }
@@ -507,538 +507,3 @@ debug = 1               # debug symbols are useful for profilers
 debug-assertions = true # Enable debug-assert! for non-production profiles
 inherits = "release"
 overflow-checks = true
-
-[patch."https://github.com/moonbeam-foundation/polkadot-sdk"]
-bridge-runtime-common = { path = "/Users/elois/dev/polkadot-sdk/bridges/bin/runtime-common" }
-bp-header-chain = { path = "/Users/elois/dev/polkadot-sdk/bridges/primitives/header-chain" }
-bp-runtime = { path = "/Users/elois/dev/polkadot-sdk/bridges/primitives/runtime" }
-frame-support = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/support" }
-binary-merkle-tree = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/binary-merkle-tree" }
-sp-core = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/core" }
-sp-crypto-hashing = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/crypto/hashing" }
-sp-crypto-hashing-proc-macro = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/crypto/hashing/proc-macro" }
-sp-debug-derive = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/debug-derive" }
-sp-externalities = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/externalities" }
-sp-storage = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/storage" }
-sp-runtime-interface = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/runtime-interface" }
-sp-runtime-interface-proc-macro = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/runtime-interface/proc-macro" }
-sp-std = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/std" }
-sp-tracing = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/tracing" }
-sp-wasm-interface = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/wasm-interface" }
-sp-io = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/io" }
-sp-keystore = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/keystore" }
-sp-state-machine = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/state-machine" }
-sp-panic-handler = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/panic-handler" }
-sp-trie = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/trie" }
-sp-runtime = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/runtime" }
-sp-application-crypto = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/application-crypto" }
-sp-arithmetic = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/arithmetic" }
-sp-weights = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/weights" }
-sp-api = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/api" }
-sp-api-proc-macro = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/api/proc-macro" }
-sp-metadata-ir = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/metadata-ir" }
-sp-version = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/version" }
-sp-version-proc-macro = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/version/proc-macro" }
-sp-test-primitives = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/test-primitives" }
-substrate-test-runtime-client = { path = "/Users/elois/dev/polkadot-sdk/substrate/test-utils/runtime/client" }
-sc-block-builder = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/block-builder" }
-sp-block-builder = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/block-builder" }
-sp-inherents = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/inherents" }
-sp-blockchain = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/blockchain" }
-sp-consensus = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/consensus/common" }
-sp-database = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/database" }
-sc-client-api = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/api" }
-substrate-prometheus-endpoint = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/prometheus" }
-sc-executor = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/executor" }
-sc-executor-common = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/executor/common" }
-sc-allocator = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/allocator" }
-sp-maybe-compressed-blob = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/maybe-compressed-blob" }
-sc-executor-polkavm = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/executor/polkavm" }
-sc-executor-wasmtime = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/executor/wasmtime" }
-sc-runtime-test = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/executor/runtime-test" }
-substrate-wasm-builder = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/wasm-builder" }
-sc-tracing = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/tracing" }
-sc-tracing-proc-macro = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/tracing/proc-macro" }
-sp-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/rpc" }
-substrate-test-runtime = { path = "/Users/elois/dev/polkadot-sdk/substrate/test-utils/runtime" }
-frame-executive = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/executive" }
-frame-system = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/system" }
-frame-try-runtime = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/try-runtime" }
-pallet-balances = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/balances" }
-frame-benchmarking = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/benchmarking" }
-frame-support-procedural = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/support/procedural" }
-frame-support-procedural-tools = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/support/procedural/tools" }
-frame-support-procedural-tools-derive = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/support/procedural/tools/derive" }
-pallet-transaction-payment = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/transaction-payment" }
-frame-metadata-hash-extension = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/metadata-hash-extension" }
-sp-transaction-pool = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/transaction-pool" }
-frame-system-rpc-runtime-api = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/system/rpc/runtime-api" }
-pallet-babe = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/babe" }
-pallet-authorship = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/authorship" }
-pallet-session = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/session" }
-pallet-timestamp = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/timestamp" }
-sp-timestamp = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/timestamp" }
-sp-session = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/session" }
-sp-staking = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/staking" }
-sp-consensus-babe = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/consensus/babe" }
-sp-consensus-slots = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/consensus/slots" }
-frame-election-provider-support = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/election-provider-support" }
-frame-election-provider-solution-type = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/election-provider-support/solution-type" }
-sp-npos-elections = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/npos-elections" }
-substrate-test-utils = { path = "/Users/elois/dev/polkadot-sdk/substrate/test-utils" }
-sc-service = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/service" }
-sc-chain-spec = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/chain-spec" }
-sc-chain-spec-derive = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/chain-spec/derive" }
-sc-network = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/network" }
-sc-network-common = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/network/common" }
-sc-consensus = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/common" }
-sc-network-types = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/network/types" }
-sc-utils = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/utils" }
-sp-consensus-grandpa = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/consensus/grandpa" }
-sc-network-light = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/network/light" }
-sc-network-sync = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/network/sync" }
-fork-tree = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/fork-tree" }
-sc-telemetry = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/telemetry" }
-sp-genesis-builder = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/genesis-builder" }
-sp-keyring = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/keyring" }
-sc-client-db = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/db" }
-sc-state-db = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/state-db" }
-kitchensink-runtime = { path = "/Users/elois/dev/polkadot-sdk/substrate/bin/node/runtime" }
-node-primitives = { path = "/Users/elois/dev/polkadot-sdk/substrate/bin/node/primitives" }
-pallet-example-mbm = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/multi-block-migrations" }
-pallet-migrations = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/migrations" }
-pallet-example-tasks = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/tasks" }
-polkadot-sdk = { path = "/Users/elois/dev/polkadot-sdk/umbrella" }
-asset-test-utils = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/assets/test-utils" }
-cumulus-pallet-parachain-system = { path = "/Users/elois/dev/polkadot-sdk/cumulus/pallets/parachain-system" }
-cumulus-pallet-parachain-system-proc-macro = { path = "/Users/elois/dev/polkadot-sdk/cumulus/pallets/parachain-system/proc-macro" }
-cumulus-primitives-core = { path = "/Users/elois/dev/polkadot-sdk/cumulus/primitives/core" }
-polkadot-core-primitives = { path = "/Users/elois/dev/polkadot-sdk/polkadot/core-primitives" }
-polkadot-parachain-primitives = { path = "/Users/elois/dev/polkadot-sdk/polkadot/parachain" }
-polkadot-primitives = { path = "/Users/elois/dev/polkadot-sdk/polkadot/primitives" }
-sp-authority-discovery = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/authority-discovery" }
-polkadot-primitives-test-helpers = { path = "/Users/elois/dev/polkadot-sdk/polkadot/primitives/test-helpers" }
-staging-xcm = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm" }
-xcm-procedural = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/procedural" }
-cumulus-primitives-parachain-inherent = { path = "/Users/elois/dev/polkadot-sdk/cumulus/primitives/parachain-inherent" }
-cumulus-primitives-proof-size-hostfunction = { path = "/Users/elois/dev/polkadot-sdk/cumulus/primitives/proof-size-hostfunction" }
-pallet-message-queue = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/message-queue" }
-polkadot-runtime-common = { path = "/Users/elois/dev/polkadot-sdk/polkadot/runtime/common" }
-pallet-asset-rate = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/asset-rate" }
-pallet-broker = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/broker" }
-pallet-election-provider-multi-phase = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/election-provider-multi-phase" }
-pallet-election-provider-support-benchmarking = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/election-provider-support/benchmarking" }
-pallet-fast-unstake = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/fast-unstake" }
-pallet-staking = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/staking" }
-pallet-bags-list = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/bags-list" }
-pallet-staking-reward-curve = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/staking/reward-curve" }
-pallet-identity = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/identity" }
-pallet-staking-reward-fn = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/staking/reward-fn" }
-pallet-treasury = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/treasury" }
-pallet-utility = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/utility" }
-pallet-collective = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/collective" }
-pallet-root-testing = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/root-testing" }
-pallet-vesting = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/vesting" }
-polkadot-runtime-parachains = { path = "/Users/elois/dev/polkadot-sdk/polkadot/runtime/parachains" }
-pallet-authority-discovery = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/authority-discovery" }
-pallet-mmr = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/merkle-mountain-range" }
-sp-mmr-primitives = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/merkle-mountain-range" }
-polkadot-runtime-metrics = { path = "/Users/elois/dev/polkadot-sdk/polkadot/runtime/metrics" }
-staging-xcm-executor = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/xcm-executor" }
-frame-support-test = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/support/test" }
-frame-support-test-pallet = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/support/test/pallet" }
-sc-keystore = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/keystore" }
-slot-range-helper = { path = "/Users/elois/dev/polkadot-sdk/polkadot/runtime/common/slot_range_helper" }
-staging-xcm-builder = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/xcm-builder" }
-pallet-asset-conversion = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/asset-conversion" }
-pallet-assets = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/assets" }
-pallet-salary = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/salary" }
-pallet-ranked-collective = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/ranked-collective" }
-pallet-xcm = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/pallet-xcm" }
-xcm-runtime-apis = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/xcm-runtime-apis" }
-polkadot-test-runtime = { path = "/Users/elois/dev/polkadot-sdk/polkadot/runtime/test-runtime" }
-pallet-grandpa = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/grandpa" }
-pallet-offences = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/offences" }
-pallet-indices = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/indices" }
-pallet-sudo = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/sudo" }
-pallet-transaction-payment-rpc-runtime-api = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/transaction-payment/rpc/runtime-api" }
-sp-consensus-beefy = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/consensus/beefy" }
-sp-offchain = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/offchain" }
-test-runtime-constants = { path = "/Users/elois/dev/polkadot-sdk/polkadot/runtime/test-runtime/constants" }
-cumulus-test-client = { path = "/Users/elois/dev/polkadot-sdk/cumulus/test/client" }
-cumulus-primitives-storage-weight-reclaim = { path = "/Users/elois/dev/polkadot-sdk/cumulus/primitives/storage-weight-reclaim" }
-cumulus-test-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/test/runtime" }
-cumulus-pallet-aura-ext = { path = "/Users/elois/dev/polkadot-sdk/cumulus/pallets/aura-ext" }
-pallet-aura = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/aura" }
-sp-consensus-aura = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/consensus/aura" }
-cumulus-primitives-aura = { path = "/Users/elois/dev/polkadot-sdk/cumulus/primitives/aura" }
-pallet-collator-selection = { path = "/Users/elois/dev/polkadot-sdk/cumulus/pallets/collator-selection" }
-pallet-glutton = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/glutton" }
-staging-parachain-info = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/pallets/parachain-info" }
-cumulus-test-relay-sproof-builder = { path = "/Users/elois/dev/polkadot-sdk/cumulus/test/relay-sproof-builder" }
-cumulus-test-service = { path = "/Users/elois/dev/polkadot-sdk/cumulus/test/service" }
-cumulus-client-cli = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/cli" }
-sc-cli = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/cli" }
-sc-mixnet = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/mixnet" }
-sc-transaction-pool-api = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/transaction-pool/api" }
-sp-mixnet = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/mixnet" }
-sc-transaction-pool = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/transaction-pool" }
-substrate-test-runtime-transaction-pool = { path = "/Users/elois/dev/polkadot-sdk/substrate/test-utils/runtime/transaction-pool" }
-cumulus-client-collator = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/collator" }
-cumulus-client-consensus-common = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/consensus/common" }
-cumulus-client-pov-recovery = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/pov-recovery" }
-cumulus-relay-chain-interface = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/relay-chain-interface" }
-polkadot-overseer = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/overseer" }
-tracing-gum = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/gum" }
-tracing-gum-proc-macro = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/gum/proc-macro" }
-polkadot-node-metrics = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/metrics" }
-polkadot-test-service = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/test/service" }
-polkadot-node-primitives = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/primitives" }
-polkadot-erasure-coding = { path = "/Users/elois/dev/polkadot-sdk/polkadot/erasure-coding" }
-polkadot-node-subsystem = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/subsystem" }
-polkadot-node-subsystem-types = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/subsystem-types" }
-polkadot-node-network-protocol = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/network/protocol" }
-sc-authority-discovery = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/authority-discovery" }
-polkadot-statement-table = { path = "/Users/elois/dev/polkadot-sdk/polkadot/statement-table" }
-polkadot-rpc = { path = "/Users/elois/dev/polkadot-sdk/polkadot/rpc" }
-mmr-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/merkle-mountain-range/rpc" }
-pallet-transaction-payment-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/transaction-payment/rpc" }
-sc-consensus-babe = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/babe" }
-sc-consensus-epochs = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/epochs" }
-sc-consensus-slots = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/slots" }
-sc-network-test = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/network/test" }
-sc-consensus-babe-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/babe/rpc" }
-sc-rpc-api = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/rpc-api" }
-sc-consensus-beefy = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/beefy" }
-sc-network-gossip = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/network-gossip" }
-sc-consensus-beefy-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/beefy/rpc" }
-sc-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/rpc" }
-sp-statement-store = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/statement-store" }
-sc-consensus-grandpa = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/grandpa" }
-sc-consensus-grandpa-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/grandpa/rpc" }
-sc-rpc-spec-v2 = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/rpc-spec-v2" }
-sc-sync-state-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/sync-state-rpc" }
-substrate-frame-rpc-system = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/frame/rpc/system" }
-substrate-state-trie-migration-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/frame/rpc/state-trie-migration-rpc" }
-polkadot-service = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/service" }
-frame-benchmarking-cli = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/frame/benchmarking-cli" }
-cumulus-client-parachain-inherent = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/parachain-inherent" }
-sc-sysinfo = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/sysinfo" }
-westend-runtime = { path = "/Users/elois/dev/polkadot-sdk/polkadot/runtime/westend" }
-frame-system-benchmarking = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/system/benchmarking" }
-pallet-beefy = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/beefy" }
-pallet-beefy-mmr = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/beefy-mmr" }
-pallet-conviction-voting = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/conviction-voting" }
-pallet-scheduler = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/scheduler" }
-pallet-preimage = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/preimage" }
-pallet-delegated-staking = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/delegated-staking" }
-pallet-nomination-pools = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/nomination-pools" }
-pallet-democracy = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/democracy" }
-pallet-elections-phragmen = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/elections-phragmen" }
-pallet-membership = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/membership" }
-pallet-multisig = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/multisig" }
-polkadot-sdk-frame = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame" }
-pallet-examples = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples" }
-pallet-default-config-example = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/default-config" }
-pallet-dev-mode = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/dev-mode" }
-pallet-example-authorization-tx-extension = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/authorization-tx-extension" }
-pallet-verify-signature = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/verify-signature" }
-pallet-example-basic = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/basic" }
-pallet-example-frame-crate = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/frame-crate" }
-pallet-example-kitchensink = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/kitchensink" }
-pallet-example-offchain-worker = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/offchain-worker" }
-pallet-example-single-block-migrations = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/single-block-migrations" }
-pallet-example-split = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/examples/split" }
-pallet-nomination-pools-benchmarking = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/nomination-pools/benchmarking" }
-pallet-nomination-pools-runtime-api = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/nomination-pools/runtime-api" }
-pallet-offences-benchmarking = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/offences/benchmarking" }
-pallet-im-online = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/im-online" }
-pallet-parameters = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/parameters" }
-pallet-proxy = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/proxy" }
-pallet-recovery = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/recovery" }
-pallet-referenda = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/referenda" }
-pallet-session-benchmarking = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/session/benchmarking" }
-pallet-society = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/society" }
-pallet-staking-runtime-api = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/staking/runtime-api" }
-pallet-state-trie-migration = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/state-trie-migration" }
-frame-remote-externalities = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/frame/remote-externalities" }
-substrate-rpc-client = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/frame/rpc/client" }
-pallet-whitelist = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/whitelist" }
-pallet-xcm-benchmarks = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/pallet-xcm-benchmarks" }
-westend-runtime-constants = { path = "/Users/elois/dev/polkadot-sdk/polkadot/runtime/westend/constants" }
-mmr-gadget = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/merkle-mountain-range" }
-sc-offchain = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/offchain" }
-polkadot-approval-distribution = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/network/approval-distribution" }
-polkadot-node-subsystem-util = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/subsystem-util" }
-polkadot-node-subsystem-test-helpers = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/subsystem-test-helpers" }
-polkadot-availability-bitfield-distribution = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/network/bitfield-distribution" }
-polkadot-availability-distribution = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/network/availability-distribution" }
-polkadot-subsystem-bench = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/subsystem-bench" }
-polkadot-availability-recovery = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/network/availability-recovery" }
-polkadot-node-core-approval-voting = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/approval-voting" }
-polkadot-node-core-approval-voting-parallel = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/approval-voting-parallel" }
-polkadot-node-core-av-store = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/av-store" }
-polkadot-node-core-chain-api = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/chain-api" }
-polkadot-statement-distribution = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/network/statement-distribution" }
-polkadot-collator-protocol = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/network/collator-protocol" }
-polkadot-dispute-distribution = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/network/dispute-distribution" }
-polkadot-gossip-support = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/network/gossip-support" }
-polkadot-network-bridge = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/network/bridge" }
-polkadot-node-collation-generation = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/collation-generation" }
-polkadot-node-core-backing = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/backing" }
-polkadot-node-core-bitfield-signing = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/bitfield-signing" }
-polkadot-node-core-candidate-validation = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/candidate-validation" }
-polkadot-node-core-pvf = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/pvf" }
-polkadot-node-core-pvf-common = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/pvf/common" }
-polkadot-node-core-pvf-execute-worker = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/pvf/execute-worker" }
-polkadot-node-core-pvf-prepare-worker = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/pvf/prepare-worker" }
-staging-tracking-allocator = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/tracking-allocator" }
-rococo-runtime = { path = "/Users/elois/dev/polkadot-sdk/polkadot/runtime/rococo" }
-pallet-bounties = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/bounties" }
-pallet-child-bounties = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/child-bounties" }
-pallet-nis = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/nis" }
-pallet-tips = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/tips" }
-rococo-runtime-constants = { path = "/Users/elois/dev/polkadot-sdk/polkadot/runtime/rococo/constants" }
-test-parachain-adder = { path = "/Users/elois/dev/polkadot-sdk/polkadot/parachain/test-parachains/adder" }
-test-parachain-halt = { path = "/Users/elois/dev/polkadot-sdk/polkadot/parachain/test-parachains/halt" }
-polkadot-node-core-chain-selection = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/chain-selection" }
-polkadot-node-core-dispute-coordinator = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/dispute-coordinator" }
-polkadot-node-core-parachains-inherent = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/parachains-inherent" }
-polkadot-node-core-prospective-parachains = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/prospective-parachains" }
-polkadot-node-core-provisioner = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/provisioner" }
-polkadot-node-core-pvf-checker = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/pvf-checker" }
-polkadot-node-core-runtime-api = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/core/runtime-api" }
-sc-basic-authorship = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/basic-authorship" }
-sc-proposer-metrics = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/proposer-metrics" }
-polkadot-test-client = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/test/client" }
-substrate-test-client = { path = "/Users/elois/dev/polkadot-sdk/substrate/test-utils/client" }
-cumulus-client-network = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/network" }
-cumulus-relay-chain-inprocess-interface = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/relay-chain-inprocess-interface" }
-polkadot-cli = { path = "/Users/elois/dev/polkadot-sdk/polkadot/cli" }
-sc-storage-monitor = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/storage-monitor" }
-substrate-build-script-utils = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/build-script-utils" }
-cumulus-client-consensus-aura = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/consensus/aura" }
-cumulus-client-consensus-proposer = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/consensus/proposer" }
-sc-consensus-aura = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/aura" }
-cumulus-client-consensus-relay-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/consensus/relay-chain" }
-cumulus-client-service = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/service" }
-cumulus-relay-chain-minimal-node = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/relay-chain-minimal-node" }
-cumulus-relay-chain-rpc-interface = { path = "/Users/elois/dev/polkadot-sdk/cumulus/client/relay-chain-rpc-interface" }
-sc-network-transactions = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/network/transactions" }
-parachains-common = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/common" }
-cumulus-primitives-utility = { path = "/Users/elois/dev/polkadot-sdk/cumulus/primitives/utility" }
-pallet-asset-tx-payment = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/transaction-payment/asset-tx-payment" }
-cumulus-pallet-xcmp-queue = { path = "/Users/elois/dev/polkadot-sdk/cumulus/pallets/xcmp-queue" }
-bp-xcm-bridge-hub-router = { path = "/Users/elois/dev/polkadot-sdk/bridges/primitives/xcm-bridge-hub-router" }
-pallet-xcm-bridge-hub-router = { path = "/Users/elois/dev/polkadot-sdk/bridges/modules/xcm-bridge-hub-router" }
-parachains-runtimes-test-utils = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/test-utils" }
-assets-common = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/assets/common" }
-bp-messages = { path = "/Users/elois/dev/polkadot-sdk/bridges/primitives/messages" }
-bp-parachains = { path = "/Users/elois/dev/polkadot-sdk/bridges/primitives/parachains" }
-bp-polkadot-core = { path = "/Users/elois/dev/polkadot-sdk/bridges/primitives/polkadot-core" }
-bp-polkadot = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-polkadot" }
-bp-relayers = { path = "/Users/elois/dev/polkadot-sdk/bridges/primitives/relayers" }
-bp-test-utils = { path = "/Users/elois/dev/polkadot-sdk/bridges/primitives/test-utils" }
-bp-xcm-bridge-hub = { path = "/Users/elois/dev/polkadot-sdk/bridges/primitives/xcm-bridge-hub" }
-bridge-hub-common = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/bridge-hubs/common" }
-snowbridge-core = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/primitives/core" }
-snowbridge-beacon-primitives = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/primitives/beacon" }
-snowbridge-ethereum = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/primitives/ethereum" }
-bridge-hub-test-utils = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/bridge-hubs/test-utils" }
-pallet-bridge-grandpa = { path = "/Users/elois/dev/polkadot-sdk/bridges/modules/grandpa" }
-pallet-bridge-messages = { path = "/Users/elois/dev/polkadot-sdk/bridges/modules/messages" }
-pallet-bridge-parachains = { path = "/Users/elois/dev/polkadot-sdk/bridges/modules/parachains" }
-pallet-bridge-relayers = { path = "/Users/elois/dev/polkadot-sdk/bridges/modules/relayers" }
-pallet-xcm-bridge-hub = { path = "/Users/elois/dev/polkadot-sdk/bridges/modules/xcm-bridge-hub" }
-cumulus-pallet-dmp-queue = { path = "/Users/elois/dev/polkadot-sdk/cumulus/pallets/dmp-queue" }
-cumulus-pallet-session-benchmarking = { path = "/Users/elois/dev/polkadot-sdk/cumulus/pallets/session-benchmarking" }
-cumulus-pallet-solo-to-para = { path = "/Users/elois/dev/polkadot-sdk/cumulus/pallets/solo-to-para" }
-cumulus-pallet-xcm = { path = "/Users/elois/dev/polkadot-sdk/cumulus/pallets/xcm" }
-cumulus-ping = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/pallets/ping" }
-cumulus-primitives-timestamp = { path = "/Users/elois/dev/polkadot-sdk/cumulus/primitives/timestamp" }
-emulated-integration-tests-common = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/common" }
-xcm-emulator = { path = "/Users/elois/dev/polkadot-sdk/cumulus/xcm/xcm-emulator" }
-frame-benchmarking-pallet-pov = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/benchmarking/pov" }
-generate-bags = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/frame/generate-bags" }
-pallet-alliance = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/alliance" }
-pallet-asset-conversion-ops = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/asset-conversion/ops" }
-pallet-asset-conversion-tx-payment = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/transaction-payment/asset-conversion-tx-payment" }
-pallet-assets-freezer = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/assets-freezer" }
-pallet-atomic-swap = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/atomic-swap" }
-pallet-collective-content = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/pallets/collective-content" }
-pallet-contracts = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/contracts" }
-pallet-contracts-proc-macro = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/contracts/proc-macro" }
-pallet-contracts-uapi = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/contracts/uapi" }
-pallet-contracts-fixtures = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/contracts/fixtures" }
-pallet-insecure-randomness-collective-flip = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/insecure-randomness-collective-flip" }
-pallet-contracts-mock-network = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/contracts/mock-network" }
-xcm-simulator = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/xcm-simulator" }
-pallet-core-fellowship = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/core-fellowship" }
-pallet-lottery = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/lottery" }
-pallet-mixnet = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/mixnet" }
-pallet-nft-fractionalization = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/nft-fractionalization" }
-pallet-nfts = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/nfts" }
-pallet-nfts-runtime-api = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/nfts/runtime-api" }
-pallet-node-authorization = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/node-authorization" }
-pallet-paged-list = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/paged-list" }
-pallet-remark = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/remark" }
-pallet-root-offences = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/root-offences" }
-pallet-safe-mode = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/safe-mode" }
-pallet-scored-pool = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/scored-pool" }
-pallet-skip-feeless-payment = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/transaction-payment/skip-feeless-payment" }
-pallet-statement = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/statement" }
-pallet-transaction-storage = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/transaction-storage" }
-sp-transaction-storage-proof = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/transaction-storage-proof" }
-pallet-tx-pause = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/tx-pause" }
-pallet-uniques = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/uniques" }
-polkadot-omni-node-lib = { path = "/Users/elois/dev/polkadot-sdk/cumulus/polkadot-omni-node/lib" }
-sc-consensus-manual-seal = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/manual-seal" }
-sc-consensus-pow = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/consensus/pow" }
-sp-consensus-pow = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/consensus/pow" }
-sc-informant = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/informant" }
-sc-network-statement = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/network/statement" }
-sc-rpc-server = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/rpc-servers" }
-sc-statement-store = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/statement-store" }
-snowbridge-outbound-queue-merkle-tree = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/pallets/outbound-queue/merkle-tree" }
-snowbridge-outbound-queue-runtime-api = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/pallets/outbound-queue/runtime-api" }
-snowbridge-pallet-ethereum-client = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/pallets/ethereum-client" }
-snowbridge-pallet-ethereum-client-fixtures = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/pallets/ethereum-client/fixtures" }
-snowbridge-pallet-inbound-queue = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/pallets/inbound-queue" }
-snowbridge-pallet-inbound-queue-fixtures = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/pallets/inbound-queue/fixtures" }
-snowbridge-router-primitives = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/primitives/router" }
-snowbridge-pallet-outbound-queue = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/pallets/outbound-queue" }
-snowbridge-pallet-system = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/pallets/system" }
-snowbridge-runtime-common = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/runtime/runtime-common" }
-snowbridge-runtime-test-common = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/runtime/test-common" }
-snowbridge-system-runtime-api = { path = "/Users/elois/dev/polkadot-sdk/bridges/snowbridge/pallets/system/runtime-api" }
-sp-core-hashing = { path = "/Users/elois/dev/polkadot-sdk/substrate/deprecated/hashing" }
-sp-core-hashing-proc-macro = { path = "/Users/elois/dev/polkadot-sdk/substrate/deprecated/hashing/proc-macro" }
-sp-crypto-ec-utils = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/crypto/ec-utils" }
-staging-chain-spec-builder = { path = "/Users/elois/dev/polkadot-sdk/substrate/bin/utils/chain-spec-builder" }
-staging-node-inspect = { path = "/Users/elois/dev/polkadot-sdk/substrate/bin/node/inspect" }
-subkey = { path = "/Users/elois/dev/polkadot-sdk/substrate/bin/utils/subkey" }
-substrate-bip39 = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/substrate-bip39" }
-substrate-frame-rpc-support = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/frame/rpc/support" }
-testnet-parachains-constants = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/constants" }
-sp-runtime-interface-test-wasm = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/runtime-interface/test-wasm" }
-bp-asset-hub-rococo = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-asset-hub-rococo" }
-bp-asset-hub-westend = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-asset-hub-westend" }
-bp-bridge-hub-cumulus = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-bridge-hub-cumulus" }
-bp-bridge-hub-kusama = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-bridge-hub-kusama" }
-bp-bridge-hub-polkadot = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-bridge-hub-polkadot" }
-bp-bridge-hub-rococo = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-bridge-hub-rococo" }
-bp-bridge-hub-westend = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-bridge-hub-westend" }
-bp-kusama = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-kusama" }
-bp-polkadot-bulletin = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-polkadot-bulletin" }
-bp-rococo = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-rococo" }
-bp-westend = { path = "/Users/elois/dev/polkadot-sdk/bridges/chains/chain-westend" }
-pallet-bridge-beefy = { path = "/Users/elois/dev/polkadot-sdk/bridges/modules/beefy" }
-bp-beefy = { path = "/Users/elois/dev/polkadot-sdk/bridges/primitives/beefy" }
-relay-substrate-client = { path = "/Users/elois/dev/polkadot-sdk/bridges/relays/client-substrate" }
-finality-relay = { path = "/Users/elois/dev/polkadot-sdk/bridges/relays/finality" }
-relay-utils = { path = "/Users/elois/dev/polkadot-sdk/bridges/relays/utils" }
-equivocation-detector = { path = "/Users/elois/dev/polkadot-sdk/bridges/relays/equivocation" }
-substrate-relay-helper = { path = "/Users/elois/dev/polkadot-sdk/bridges/relays/lib-substrate-relay" }
-messages-relay = { path = "/Users/elois/dev/polkadot-sdk/bridges/relays/messages" }
-parachains-relay = { path = "/Users/elois/dev/polkadot-sdk/bridges/relays/parachains" }
-cumulus-pov-validator = { path = "/Users/elois/dev/polkadot-sdk/cumulus/bin/pov-validator" }
-asset-hub-rococo-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/parachains/assets/asset-hub-rococo" }
-asset-hub-rococo-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/assets/asset-hub-rococo" }
-rococo-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/relays/rococo" }
-asset-hub-westend-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/parachains/assets/asset-hub-westend" }
-asset-hub-westend-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/assets/asset-hub-westend" }
-westend-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/relays/westend" }
-bridge-hub-rococo-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/parachains/bridges/bridge-hub-rococo" }
-bridge-hub-rococo-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/bridge-hubs/bridge-hub-rococo" }
-bridge-hub-westend-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/parachains/bridges/bridge-hub-westend" }
-bridge-hub-westend-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/bridge-hubs/bridge-hub-westend" }
-collectives-westend-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/parachains/collectives/collectives-westend" }
-collectives-westend-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/collectives/collectives-westend" }
-coretime-rococo-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/parachains/coretime/coretime-rococo" }
-coretime-rococo-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/coretime/coretime-rococo" }
-coretime-westend-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/parachains/coretime/coretime-westend" }
-coretime-westend-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/coretime/coretime-westend" }
-people-rococo-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/parachains/people/people-rococo" }
-people-rococo-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/people/people-rococo" }
-people-westend-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/parachains/people/people-westend" }
-people-westend-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/people/people-westend" }
-penpal-emulated-chain = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/chains/parachains/testing/penpal" }
-penpal-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/testing/penpal" }
-rococo-system-emulated-network = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/networks/rococo-system" }
-rococo-westend-system-emulated-network = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/networks/rococo-westend-system" }
-westend-system-emulated-network = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/networks/westend-system" }
-asset-hub-rococo-integration-tests = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/tests/assets/asset-hub-rococo" }
-asset-hub-westend-integration-tests = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/tests/assets/asset-hub-westend" }
-bridge-hub-rococo-integration-tests = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/tests/bridges/bridge-hub-rococo" }
-bridge-hub-westend-integration-tests = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/tests/bridges/bridge-hub-westend" }
-collectives-westend-integration-tests = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/tests/collectives/collectives-westend" }
-coretime-rococo-integration-tests = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/tests/coretime/coretime-rococo" }
-coretime-westend-integration-tests = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/tests/coretime/coretime-westend" }
-people-rococo-integration-tests = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/tests/people/people-rococo" }
-people-westend-integration-tests = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/integration-tests/emulated/tests/people/people-westend" }
-contracts-rococo-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/contracts/contracts-rococo" }
-glutton-westend-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/glutton/glutton-westend" }
-rococo-parachain-runtime = { path = "/Users/elois/dev/polkadot-sdk/cumulus/parachains/runtimes/testing/rococo-parachain" }
-polkadot-omni-node = { path = "/Users/elois/dev/polkadot-sdk/cumulus/polkadot-omni-node" }
-polkadot-parachain-bin = { path = "/Users/elois/dev/polkadot-sdk/cumulus/polkadot-parachain" }
-polkadot-sdk-docs = { path = "/Users/elois/dev/polkadot-sdk/docs/sdk" }
-chain-spec-guide-runtime = { path = "/Users/elois/dev/polkadot-sdk/docs/sdk/src/reference_docs/chain_spec_runtime" }
-polkadot-sdk-docs-first-pallet = { path = "/Users/elois/dev/polkadot-sdk/docs/sdk/packages/guides/first-pallet" }
-polkadot-sdk-docs-first-runtime = { path = "/Users/elois/dev/polkadot-sdk/docs/sdk/packages/guides/first-runtime" }
-minimal-template-runtime = { path = "/Users/elois/dev/polkadot-sdk/templates/minimal/runtime" }
-pallet-minimal-template = { path = "/Users/elois/dev/polkadot-sdk/templates/minimal/pallets/template" }
-staging-node-cli = { path = "/Users/elois/dev/polkadot-sdk/substrate/bin/node/cli" }
-node-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/bin/node/rpc" }
-node-testing = { path = "/Users/elois/dev/polkadot-sdk/substrate/bin/node/testing" }
-sc-service-test = { path = "/Users/elois/dev/polkadot-sdk/substrate/client/service/test" }
-substrate-cli-test-utils = { path = "/Users/elois/dev/polkadot-sdk/substrate/test-utils/cli" }
-parachain-template-runtime = { path = "/Users/elois/dev/polkadot-sdk/templates/parachain/runtime" }
-pallet-parachain-template = { path = "/Users/elois/dev/polkadot-sdk/templates/parachain/pallets/template" }
-solochain-template-runtime = { path = "/Users/elois/dev/polkadot-sdk/templates/solochain/runtime" }
-pallet-template = { path = "/Users/elois/dev/polkadot-sdk/templates/solochain/pallets/template" }
-xcm-docs = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/docs" }
-polkadot = { path = "/Users/elois/dev/polkadot-sdk/polkadot" }
-erasure_coding_fuzzer = { path = "/Users/elois/dev/polkadot-sdk/polkadot/erasure-coding/fuzzer" }
-polkadot-test-malus = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/malus" }
-zombienet-backchannel = { path = "/Users/elois/dev/polkadot-sdk/polkadot/node/zombienet-backchannel" }
-test-parachains = { path = "/Users/elois/dev/polkadot-sdk/polkadot/parachain/test-parachains" }
-test-parachain-adder-collator = { path = "/Users/elois/dev/polkadot-sdk/polkadot/parachain/test-parachains/adder/collator" }
-test-parachain-undying = { path = "/Users/elois/dev/polkadot-sdk/polkadot/parachain/test-parachains/undying" }
-test-parachain-undying-collator = { path = "/Users/elois/dev/polkadot-sdk/polkadot/parachain/test-parachains/undying/collator" }
-polkadot-voter-bags = { path = "/Users/elois/dev/polkadot-sdk/polkadot/utils/generate-bags" }
-remote-ext-tests-bags-list = { path = "/Users/elois/dev/polkadot-sdk/polkadot/utils/remote-ext-tests/bags-list" }
-pallet-bags-list-remote-tests = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/bags-list/remote-tests" }
-xcm-executor-integration-tests = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/xcm-executor/integration-tests" }
-xcm-simulator-example = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/xcm-simulator/example" }
-xcm-simulator-fuzzer = { path = "/Users/elois/dev/polkadot-sdk/polkadot/xcm/xcm-simulator/fuzzer" }
-polkadot-zombienet-sdk-tests = { path = "/Users/elois/dev/polkadot-sdk/polkadot/zombienet-sdk-tests" }
-node-bench = { path = "/Users/elois/dev/polkadot-sdk/substrate/bin/node/bench" }
-pallet-bags-list-fuzzer = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/bags-list/fuzzer" }
-pallet-election-provider-e2e-test = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/election-provider-multi-phase/test-staking-e2e" }
-frame-election-solution-type-fuzzer = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/election-provider-support/solution-type/fuzzer" }
-pallet-nomination-pools-fuzzer = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/nomination-pools/fuzzer" }
-pallet-nomination-pools-test-delegate-stake = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/nomination-pools/test-delegate-stake" }
-pallet-nomination-pools-test-transfer-stake = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/nomination-pools/test-transfer-stake" }
-pallet-paged-list-fuzzer = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/paged-list/fuzzer" }
-pallet-revive = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/revive" }
-pallet-revive-fixtures = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/revive/fixtures" }
-pallet-revive-proc-macro = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/revive/proc-macro" }
-pallet-revive-uapi = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/revive/uapi" }
-pallet-revive-mock-network = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/revive/mock-network" }
-pallet-revive-eth-rpc = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/revive/rpc" }
-frame-support-test-compile-pass = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/support/test/compile_pass" }
-frame-support-test-stg-frame-crate = { path = "/Users/elois/dev/polkadot-sdk/substrate/frame/support/test/stg_frame_crate" }
-sp-api-test = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/api/test" }
-sp-application-crypto-test = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/application-crypto/test" }
-sp-arithmetic-fuzzer = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/arithmetic/fuzzer" }
-sp-core-fuzz = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/core/fuzz" }
-sp-npos-elections-fuzzer = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/npos-elections/fuzzer" }
-sp-runtime-interface-test = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/runtime-interface/test" }
-sp-runtime-interface-test-wasm-deprecated = { path = "/Users/elois/dev/polkadot-sdk/substrate/primitives/runtime-interface/test-wasm-deprecated" }
-node-template-release = { path = "/Users/elois/dev/polkadot-sdk/substrate/scripts/ci/node-template-release" }
-node-runtime-generate-bags = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/frame/generate-bags/node-runtime" }
-frame-omni-bencher = { path = "/Users/elois/dev/polkadot-sdk/substrate/utils/frame/omni-bencher" }
-minimal-template-node = { path = "/Users/elois/dev/polkadot-sdk/templates/minimal/node" }
-parachain-template-node = { path = "/Users/elois/dev/polkadot-sdk/templates/parachain/node" }
-solochain-template-node = { path = "/Users/elois/dev/polkadot-sdk/templates/solochain/node" }
-template-zombienet-tests = { path = "/Users/elois/dev/polkadot-sdk/templates/zombienet" }
