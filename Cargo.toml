@@ -141,109 +141,109 @@ moonbase-runtime = { path = "runtime/moonbase" }
 moonbeam-runtime = { path = "runtime/moonbeam" }
 moonriver-runtime = { path = "runtime/moonriver" }
 
-frame-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-frame-executive = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-frame-support = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-frame-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-frame-system-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-frame-system-rpc-runtime-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-frame-try-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-assets = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-balances = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-collective = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-conviction-voting = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-identity = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-message-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-multisig = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-multiblock-migrations = { package = "pallet-migrations", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-preimage = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-parameters = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-proxy = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-referenda = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-root-testing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-scheduler = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-society = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-staking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-sudo = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-transaction-payment = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-treasury = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-whitelist = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
+frame-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+frame-executive = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+frame-support = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+frame-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+frame-system-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+frame-system-rpc-runtime-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+frame-try-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-assets = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-balances = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-collective = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-conviction-voting = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-identity = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-message-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-multisig = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-multiblock-migrations = { package = "pallet-migrations", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-preimage = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-parameters = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-proxy = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-referenda = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-root-testing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-scheduler = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-society = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-staking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-sudo = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-transaction-payment = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-transaction-payment-rpc-runtime-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-treasury = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-whitelist = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
 parity-scale-codec = { version = "3.2.2", default-features = false, features = [
     "derive",
 ] }
 scale-info = { version = "2.0", default-features = false, features = [
     "derive",
 ] }
-sp-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-application-crypto = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-block-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-consensus-babe = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-consensus-slots = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-debug-derive = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-externalities = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-inherents = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-io = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-keyring = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-keystore = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-offchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-runtime-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-session = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-std = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-state-machine = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-tracing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-trie = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-version = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-weights = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-sp-genesis-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
+sp-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-application-crypto = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-block-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-consensus-babe = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-consensus-slots = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-debug-derive = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-externalities = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-inherents = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-io = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-keyring = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-keystore = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-offchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-runtime-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-session = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-std = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-state-machine = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-tracing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-trie = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-version = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-weights = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+sp-genesis-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
 substrate-fixed = { git = "https://github.com/encointer/substrate-fixed", default-features = false }
 
 # Substrate (client)
-frame-benchmarking-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-pallet-transaction-payment-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-basic-authorship = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-block-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-chain-spec = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-client-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-client-db = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-consensus = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-consensus-grandpa = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-consensus-manual-seal = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-executor = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-informant = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-network = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-network-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-network-sync = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-offchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-rpc-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-sysinfo = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-telemetry = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-tracing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-transaction-pool-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sc-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sp-blockchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sp-consensus = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sp-storage = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sp-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sp-wasm-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-sp-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-substrate-build-script-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-substrate-frame-rpc-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-substrate-prometheus-endpoint = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-substrate-test-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-substrate-test-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-substrate-test-runtime-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-substrate-wasm-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-substrate-rpc-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
+frame-benchmarking-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+pallet-transaction-payment-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-basic-authorship = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-block-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-chain-spec = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-client-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-client-db = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-consensus = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-consensus-grandpa = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-consensus-manual-seal = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-executor = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-informant = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-network = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-network-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-network-sync = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-offchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-rpc-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-sysinfo = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-telemetry = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-tracing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-transaction-pool = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-transaction-pool-api = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sc-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sp-blockchain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sp-consensus = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sp-storage = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sp-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sp-wasm-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+sp-rpc = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+substrate-build-script-utils = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+substrate-frame-rpc-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+substrate-prometheus-endpoint = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+substrate-test-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+substrate-test-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+substrate-test-runtime-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+substrate-wasm-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+substrate-rpc-client = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
 
 # Frontier (wasm)
 
@@ -291,60 +291,60 @@ fp-storage = { git = "https://github.com/moonbeam-foundation/frontier", branch =
 
 # Cumulus (wasm)
 
-cumulus-pallet-dmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-cumulus-pallet-parachain-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-cumulus-pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-cumulus-pallet-xcmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-cumulus-primitives-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-cumulus-primitives-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-cumulus-primitives-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-parachain-info = { package = "staging-parachain-info", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-parachains-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
+cumulus-pallet-dmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+cumulus-pallet-parachain-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+cumulus-pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+cumulus-pallet-xcmp-queue = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+cumulus-primitives-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+cumulus-primitives-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+cumulus-primitives-storage-weight-reclaim = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+parachain-info = { package = "staging-parachain-info", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+parachains-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
 
 # Cumulus (client)
-cumulus-client-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-client-collator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-client-consensus-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-client-consensus-proposer = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-client-network = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-client-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-client-parachain-inherent = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-relay-chain-inprocess-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-relay-chain-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-relay-chain-minimal-node = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-cumulus-relay-chain-rpc-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
+cumulus-client-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-client-collator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-client-consensus-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-client-consensus-proposer = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-client-consensus-relay-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-client-network = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-client-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-client-parachain-inherent = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-relay-chain-inprocess-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-relay-chain-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-relay-chain-minimal-node = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+cumulus-relay-chain-rpc-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
 
 # Polkadot / XCM (wasm)
-pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-xcm-benchmarks = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-polkadot-core-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-polkadot-parachain = { package = "polkadot-parachain-primitives", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-polkadot-runtime-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-polkadot-runtime-parachains = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-xcm = { package = "staging-xcm", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-xcm-runtime-apis = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
+pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-xcm-benchmarks = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+polkadot-core-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+polkadot-parachain = { package = "polkadot-parachain-primitives", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+polkadot-runtime-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+polkadot-runtime-parachains = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+xcm = { package = "staging-xcm", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+xcm-runtime-apis = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
 
 # Polkadot / XCM (client)
-#kusama-runtime = { package = "staging-kusama-runtime", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-polkadot-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-polkadot-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-#polkadot-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-polkadot-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-rococo-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-westend-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
-xcm-simulator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks" }
+#kusama-runtime = { package = "staging-kusama-runtime", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+polkadot-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+polkadot-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+#polkadot-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+polkadot-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+rococo-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+westend-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
+xcm-simulator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording" }
 
 # Bridge dependencies
-bp-header-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-bp-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-bp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
-pallet-bridge-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
+bp-header-chain = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+bp-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+bp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
+pallet-bridge-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
 
 # Moonkit (wasm)
 async-backing-primitives = { git = "https://github.com/Moonsong-Labs/moonkit", branch = "moonbeam-polkadot-stable2412", default-features = false }
@@ -373,7 +373,7 @@ environmental = { version = "1.1.4", default-features = false }
 frame-metadata = { version = "18.0.0", default-features = false, features = [
     "current",
 ] }
-frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-exec-block-without-final-cheks", default-features = false }
+frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "elois-trace-block-proof-recording", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.4.1", default-features = false }
 impl-serde = { version = "0.4.0", default-features = false }
