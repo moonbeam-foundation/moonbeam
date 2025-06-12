@@ -819,7 +819,7 @@ export class XcmFragment {
     return this;
   }
 
-  // Overrides the weight limit of the first buyExeuction encountered
+  // Overrides the weight limit of the first buyExecution encountered
   // with the measured weight
   async override_weight(context: DevModeContext): Promise<this> {
     const message: XcmVersionedXcm = context
