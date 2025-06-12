@@ -8,11 +8,11 @@ import {
   baltathar,
   generateKeyringPair,
 } from "@moonwall/util";
-import { fromBytes } from "viem";
+import { getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers/staking-freezes";
 
 describeSuite({
   id: "D013473",
-  title: "Staking - Locks - multiple delegations single lock",
+  title: "Staking - Freezes - multiple delegations single freeze",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     const randomAccount = generateKeyringPair();
@@ -68,12 +68,13 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should not be created for additional delegations",
+      title: "should have a single freeze for multiple delegations",
       test: async function () {
-        const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(locks.length).to.be.equal(
+        // Check that there's only a single delegator freeze (not multiple)
+        const delegatorFreezeCount = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        expect(delegatorFreezeCount).to.be.equal(
           1,
-          `Unexpected number of locks: ${locks.map((l) => l.id.toString()).join(` - `)}`
+          `Should have only 1 delegator freeze, got ${delegatorFreezeCount}`
         );
       },
     });
@@ -82,9 +83,9 @@ describeSuite({
       id: "T02",
       title: "should increase for additional delegations",
       test: async function () {
-        const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(fromBytes(locks[0].id.toU8a(), "string")).to.be.equal("stkngdel");
-        expect(locks[0].amount.toBigInt(), `Unexpected amount for lock`).to.be.equal(
+        // The freeze amount should be the sum of all delegations
+        const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        expect(stakingFreeze, `Unexpected amount for freeze`).to.be.equal(
           2n * MIN_GLMR_DELEGATOR
         );
       },
