@@ -839,8 +839,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl moonbeam_xcm_benchmarks::Config for Runtime {}
 					impl moonbeam_xcm_benchmarks::generic::Config for Runtime {}
 
-					use pallet_asset_manager::Config as PalletAssetManagerConfig;
-
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
 					parameter_types! {
 						pub const RandomParaId: ParaId = ParaId::new(43211234);
