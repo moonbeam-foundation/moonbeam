@@ -181,17 +181,16 @@ export async function injectHrmpMessageAndSeal(
   return block;
 }
 
-
 /**
  * Patches XCM location data structures to ensure proper formatting for XCM v4 and v5.
  * Recursively transforms junction objects to arrays where needed for compatibility.
  * This function is specifically designed for use with XCM v4 and v5 only.
- * 
+ *
  * @param value - The location data structure to patch
  * @returns The patched location data structure
- * 
+ *
  * @example
- * // Converts this: { X1: { Parachain: 1000 } } 
+ * // Converts this: { X1: { Parachain: 1000 } }
  * // to this: { X1: [ { Parachain: 1000 } ] }
  */
 function patchLocation(value: any) {
