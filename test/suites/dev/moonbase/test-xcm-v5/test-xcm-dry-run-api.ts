@@ -5,7 +5,7 @@ import { u8aToHex } from "@polkadot/util";
 import { XcmFragment } from "../../../../helpers";
 
 describeSuite({
-  id: "D014135",
+  id: "D024217",
   title: "XCM - DryRunApi",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

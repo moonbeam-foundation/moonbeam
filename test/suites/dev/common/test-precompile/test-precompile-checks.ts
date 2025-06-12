@@ -4,7 +4,7 @@ import { encodeFunctionData } from "viem";
 import { deployedContractsInLatestBlock } from "../../../../helpers";
 
 describeSuite({
-  id: "D015001",
+  id: "D010313",
   title: "Precompiles - Validate PrecompileChecks",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

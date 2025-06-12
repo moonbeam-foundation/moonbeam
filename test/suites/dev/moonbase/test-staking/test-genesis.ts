@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { DEFAULT_GENESIS_STAKING, GLMR, alith } from "@moonwall/util";
 
 describeSuite({
-  id: "D013448",
+  id: "D023449",
   title: "Staking - Genesis",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

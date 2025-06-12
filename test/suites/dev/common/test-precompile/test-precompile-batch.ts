@@ -14,7 +14,7 @@ import { encodeFunctionData, fromHex } from "viem";
 import { ConstantStore, expectEVMResult, getSignatureParameters } from "../../../../helpers";
 
 describeSuite({
-  id: "D012822",
+  id: "D010312",
   title: "Batch",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

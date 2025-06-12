@@ -3,7 +3,7 @@ import { encodeFunctionData } from "viem";
 import { createContracts } from "../../helpers";
 
 describeSuite({
-  id: "T16",
+  id: "T09",
   title: "Test 'debug_traceCall'",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

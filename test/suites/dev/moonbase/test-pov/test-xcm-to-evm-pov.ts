@@ -12,7 +12,7 @@ import {
 import { ConstantStore } from "../../../../helpers/constants";
 
 describeSuite({
-  id: "D012706",
+  id: "D022705",
   title: "XCM to EVM - PoV tests",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

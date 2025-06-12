@@ -22,7 +22,7 @@ type BlockEventsRecord = {
 };
 
 describeSuite({
-  id: "S25",
+  id: "S27",
   title:
     `XCM Failures in past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours` +
     ` should not be serious`,

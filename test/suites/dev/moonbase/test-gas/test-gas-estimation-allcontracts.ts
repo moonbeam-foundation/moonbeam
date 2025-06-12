@@ -19,7 +19,7 @@ import { encodeDeployData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 
 describeSuite({
-  id: "D011802",
+  id: "D021702",
   title: "Estimate Gas - Multiply",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

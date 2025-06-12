@@ -8,7 +8,7 @@ import { alith } from "@moonwall/util";
 import { createContracts, nestedCall, nestedSingle } from "../../helpers";
 
 describeSuite({
-  id: "T05",
+  id: "T06",
   title: "Trace (callTrace)",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

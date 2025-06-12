@@ -16,7 +16,7 @@ const assetMetadata = {
 };
 
 describeSuite({
-  id: "D014009",
+  id: "D024008",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

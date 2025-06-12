@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { getAddress } from "viem";
 
 describeSuite({
-  id: "D013201",
+  id: "D023201",
   title: "Receipt - Revert",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

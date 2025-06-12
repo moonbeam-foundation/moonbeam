@@ -12,7 +12,7 @@ import { encodeDeployData, keccak256, numberToHex, toRlp } from "viem";
 import { deployedContractsInLatestBlock, verifyLatestBlockFees } from "../../../../helpers";
 
 describeSuite({
-  id: "D010601",
+  id: "D010201",
   title: "Contract creation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

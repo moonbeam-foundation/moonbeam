@@ -6,7 +6,7 @@ import { fundAccount } from "../../../../helpers/balances.js";
 import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
-  id: "D014112",
+  id: "D020110",
   title: "Gov intervention on created Foreign Assets",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -10,7 +10,7 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D014118",
+  id: "D010706",
   title: "Mock XCM - transact ETHEREUM input size check fails",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

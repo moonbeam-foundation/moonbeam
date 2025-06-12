@@ -43,7 +43,7 @@ async function setFeeMultiplier(context: any, value: bigint) {
 // To make sense of them, basically remove 18 zeroes (divide by 10^18). This will give you the
 // number used internally by transaction-payment for fee calculations.
 describeSuite({
-  id: "D011604",
+  id: "D021504",
   title: "Fee Multiplier - XCM Executions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

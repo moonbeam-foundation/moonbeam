@@ -4,7 +4,7 @@ import { createViemTransaction } from "@moonwall/util";
 import { error } from "node:console";
 
 describeSuite({
-  id: "D011304",
+  id: "D021201",
   title: "Ethereum Transaction - Access List",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

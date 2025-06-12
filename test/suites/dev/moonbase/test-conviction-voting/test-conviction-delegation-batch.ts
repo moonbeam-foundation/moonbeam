@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@m
 import { ALITH_ADDRESS, GLMR, alith, baltathar } from "@moonwall/util";
 
 describeSuite({
-  id: "D010703",
+  id: "D020603",
   title: "Conviction Voting - Batch Delegation",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
