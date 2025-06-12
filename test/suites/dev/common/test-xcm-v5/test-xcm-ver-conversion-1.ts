@@ -24,7 +24,7 @@ describeSuite({
 
     beforeAll(async () => {
       random = generateKeyringPair();
-      sovereignAddress = sovereignAccountOfSibling(context, 2000);
+      sovereignAddress = sovereignAccountOfSibling(context, foreign_para_id);
       transferredBalance = 1_000_000_000_000_000n;
 
       await context.createBlock(
@@ -76,7 +76,7 @@ describeSuite({
           context.polkadotJs().createType("XcmVersionedXcm", xcmMessage)
         );
         // Dividing by four the xcm fees constant to match the x4 cpu per block
-        const chargedFee = (chargedWeight * 50000n) / 4n;
+        const chargedFee = (chargedWeight * 50_000n) / 4n;
 
         await injectHrmpMessageAndSeal(context, foreign_para_id, {
           type: "XcmVersionedXcm",
