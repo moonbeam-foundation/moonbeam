@@ -17,6 +17,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
+use crate::DELEGATOR_LOCK_ID;
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
 	DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
@@ -25,9 +26,11 @@ use crate::{
 };
 use frame_benchmarking::v2::*;
 use frame_support::traits::tokens::fungible::{Inspect, Mutate};
+use frame_support::traits::LockableCurrency;
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
 use sp_runtime::{traits::Zero, Perbill, Percent};
+use sp_std::vec;
 use sp_std::vec::Vec;
 
 /// Minimum collator candidate stake
@@ -65,6 +68,7 @@ fn create_funded_delegator<T: Config>(
 	collator: T::AccountId,
 	min_bond: bool,
 	collator_delegator_count: u32,
+	use_lock: bool,
 ) -> Result<T::AccountId, &'static str> {
 	let (user, total) = create_funded_user::<T>(string, n, extra);
 	let bond = if min_bond {
@@ -72,6 +76,8 @@ fn create_funded_delegator<T: Config>(
 	} else {
 		total
 	};
+
+	// Always create normally first using pallet extrinsics
 	Pallet::<T>::delegate_with_auto_compound(
 		RawOrigin::Signed(user.clone()).into(),
 		collator,
@@ -81,6 +87,25 @@ fn create_funded_delegator<T: Config>(
 		0u32,
 		0u32, // first delegation for all calls
 	)?;
+
+	if use_lock {
+		// Downgrade to pre-migration state for lazy migration benchmarking
+		use crate::{FreezeReason, MigratedDelegators, DELEGATOR_LOCK_ID};
+		use frame_support::traits::{fungible::{InspectFreeze, MutateFreeze}, LockableCurrency, WithdrawReasons};
+
+		// 1. Get the frozen amount
+		let frozen_amount = T::Currency::balance_frozen(&FreezeReason::StakingDelegator.into(), &user);
+		
+		// 2. Thaw the freeze
+		let _ = T::Currency::thaw(&FreezeReason::StakingDelegator.into(), &user);
+		
+		// 3. Set old-style lock
+		T::Currency::set_lock(DELEGATOR_LOCK_ID, &user, frozen_amount, WithdrawReasons::all());
+		
+		// 4. Remove from migration tracking to trigger migration on next operation
+		MigratedDelegators::<T>::remove(&user);
+	}
+
 	Ok(user)
 }
 
@@ -181,6 +206,7 @@ fn create_funded_collator<T: Config>(
 	extra: BalanceOf<T>,
 	min_bond: bool,
 	candidate_count: u32,
+	use_lock: bool,
 ) -> Result<T::AccountId, &'static str> {
 	let (user, total) = create_funded_user::<T>(string, n, extra);
 	let bond = if min_bond {
@@ -188,11 +214,32 @@ fn create_funded_collator<T: Config>(
 	} else {
 		total
 	};
+
+	// Always create normally first using pallet extrinsics
 	Pallet::<T>::join_candidates(
 		RawOrigin::Signed(user.clone()).into(),
 		bond,
 		candidate_count,
 	)?;
+
+	if use_lock {
+		// Downgrade to pre-migration state for lazy migration benchmarking
+		use crate::{FreezeReason, MigratedCandidates, COLLATOR_LOCK_ID};
+		use frame_support::traits::{fungible::{InspectFreeze, MutateFreeze}, LockableCurrency, WithdrawReasons};
+
+		// 1. Get the frozen amount
+		let frozen_amount = T::Currency::balance_frozen(&FreezeReason::StakingCollator.into(), &user);
+		
+		// 2. Thaw the freeze
+		let _ = T::Currency::thaw(&FreezeReason::StakingCollator.into(), &user);
+		
+		// 3. Set old-style lock
+		T::Currency::set_lock(COLLATOR_LOCK_ID, &user, frozen_amount, WithdrawReasons::all());
+		
+		// 4. Remove from migration tracking to trigger migration on next operation
+		MigratedCandidates::<T>::remove(&user);
+	}
+
 	Ok(user)
 }
 
@@ -394,8 +441,14 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let _collator =
-				create_funded_collator::<T>("collator", seed, 0u32.into(), true, candidate_count)?;
+			let _collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				0u32.into(),
+				true,
+				candidate_count,
+				true,
+			)?;
 			candidate_count += 1u32;
 		}
 		let (caller, min_candidate_stk) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
@@ -421,12 +474,24 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let _collator =
-				create_funded_collator::<T>("collator", seed, 0u32.into(), true, candidate_count)?;
+			let _collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				0u32.into(),
+				true,
+				candidate_count,
+				true,
+			)?;
 			candidate_count += 1u32;
 		}
-		let caller: T::AccountId =
-			create_funded_collator::<T>("caller", USER_SEED, 0u32.into(), true, candidate_count)?;
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"caller",
+			USER_SEED,
+			0u32.into(),
+			true,
+			candidate_count,
+			true,
+		)?;
 		candidate_count += 1u32;
 
 		#[extrinsic_call]
@@ -451,11 +516,23 @@ mod benchmarks {
 		// x is total number of delegations for the candidate
 		// Note: For our base scenario, we assume all delegations are auto-compounding
 
-		let candidate: T::AccountId =
-			create_funded_collator::<T>("unique_caller", USER_SEED - 100, 0u32.into(), true, 1u32)?;
+		let candidate: T::AccountId = create_funded_collator::<T>(
+			"unique_caller",
+			USER_SEED - 100,
+			0u32.into(),
+			true,
+			1u32,
+			true,
+		)?;
 		// 2nd delegation required for all delegators to ensure DelegatorState updated not removed
-		let second_candidate: T::AccountId =
-			create_funded_collator::<T>("unique__caller", USER_SEED - 99, 0u32.into(), true, 2u32)?;
+		let second_candidate: T::AccountId = create_funded_collator::<T>(
+			"unique__caller",
+			USER_SEED - 99,
+			0u32.into(),
+			true,
+			2u32,
+			true,
+		)?;
 		let mut delegators: Vec<T::AccountId> = Vec::new();
 		let mut col_del_count = 0u32;
 		let mut col_del_ac_count = 0u32;
@@ -468,6 +545,7 @@ mod benchmarks {
 				candidate.clone(),
 				true,
 				col_del_count,
+				true,
 			)?;
 			Pallet::<T>::delegate_with_auto_compound(
 				RawOrigin::Signed(delegator.clone()).into(),
@@ -527,11 +605,23 @@ mod benchmarks {
 		// x is total number of delegations for the candidate
 		// y is the total number of auto-compounding delegations for the candidate
 
-		let candidate: T::AccountId =
-			create_funded_collator::<T>("unique_caller", USER_SEED - 100, 0u32.into(), true, 1u32)?;
+		let candidate: T::AccountId = create_funded_collator::<T>(
+			"unique_caller",
+			USER_SEED - 100,
+			0u32.into(),
+			true,
+			1u32,
+			true,
+		)?;
 		// 2nd delegation required for all delegators to ensure DelegatorState updated not removed
-		let second_candidate: T::AccountId =
-			create_funded_collator::<T>("unique__caller", USER_SEED - 99, 0u32.into(), true, 2u32)?;
+		let second_candidate: T::AccountId = create_funded_collator::<T>(
+			"unique__caller",
+			USER_SEED - 99,
+			0u32.into(),
+			true,
+			2u32,
+			true,
+		)?;
 		let mut delegators: Vec<T::AccountId> = Vec::new();
 		let mut col_del_count = 0u32;
 		let mut col_del_ac_count = 0u32;
@@ -544,6 +634,7 @@ mod benchmarks {
 				candidate.clone(),
 				true,
 				col_del_count,
+				true,
 			)?;
 			if i < y {
 				Pallet::<T>::delegate_with_auto_compound(
@@ -599,12 +690,24 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let _collator =
-				create_funded_collator::<T>("collator", seed, 0u32.into(), true, candidate_count)?;
+			let _collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				0u32.into(),
+				true,
+				candidate_count,
+				true,
+			)?;
 			candidate_count += 1u32;
 		}
-		let caller: T::AccountId =
-			create_funded_collator::<T>("caller", USER_SEED, 0u32.into(), true, candidate_count)?;
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"caller",
+			USER_SEED,
+			0u32.into(),
+			true,
+			candidate_count,
+			true,
+		)?;
 		candidate_count += 1u32;
 		Pallet::<T>::schedule_leave_candidates(
 			RawOrigin::Signed(caller.clone()).into(),
@@ -626,13 +729,25 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let _collator =
-				create_funded_collator::<T>("collator", seed, 0u32.into(), true, candidate_count)?;
+			let _collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				0u32.into(),
+				true,
+				candidate_count,
+				true,
+			)?;
 			candidate_count += 1;
 		}
 
-		let caller: T::AccountId =
-			create_funded_collator::<T>("collator", USER_SEED, 0u32.into(), true, candidate_count)?;
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into(),
+			true,
+			candidate_count,
+			true,
+		)?;
 
 		#[block]
 		{
@@ -650,13 +765,25 @@ mod benchmarks {
 		let mut candidate_count = 1u32;
 		for i in 2..x {
 			let seed = USER_SEED - i;
-			let _collator =
-				create_funded_collator::<T>("collator", seed, 0u32.into(), true, candidate_count)?;
+			let _collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				0u32.into(),
+				true,
+				candidate_count,
+				true,
+			)?;
 			candidate_count += 1;
 		}
 
-		let caller: T::AccountId =
-			create_funded_collator::<T>("collator", USER_SEED, 0u32.into(), true, candidate_count)?;
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			0u32.into(),
+			true,
+			candidate_count,
+			true,
+		)?;
 		<Pallet<T>>::go_offline(RawOrigin::Signed(caller.clone()).into())?;
 
 		#[block]
@@ -680,12 +807,13 @@ mod benchmarks {
 		for i in 2..x {
 			let seed = USER_SEED - i;
 			let _collator =
-				create_funded_collator::<T>("collator", seed, more, true, candidate_count)?;
+				create_funded_collator::<T>("collator", seed, more, true, candidate_count, false)?;
 			candidate_count += 1;
 		}
 
+		// Use the lock-based setup for worst-case lazy migration scenario
 		let caller: T::AccountId =
-			create_funded_collator::<T>("collator", USER_SEED, more, true, candidate_count)?;
+			create_funded_collator::<T>("collator", USER_SEED, more, true, candidate_count, true)?;
 
 		#[block]
 		{
@@ -705,8 +833,14 @@ mod benchmarks {
 	#[benchmark]
 	fn schedule_candidate_bond_less() -> Result<(), BenchmarkError> {
 		let min_candidate_stk = min_candidate_stk::<T>();
-		let caller: T::AccountId =
-			create_funded_collator::<T>("collator", USER_SEED, min_candidate_stk, false, 1u32)?;
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			min_candidate_stk,
+			false,
+			1u32,
+			true,
+		)?;
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), min_candidate_stk);
@@ -737,6 +871,7 @@ mod benchmarks {
 				min_candidate_stk,
 				true,
 				candidate_count,
+				true,
 			)?;
 			candidate_count += 1;
 		}
@@ -747,6 +882,7 @@ mod benchmarks {
 			min_candidate_stk,
 			false,
 			candidate_count,
+			true,
 		)?;
 
 		Pallet::<T>::schedule_candidate_bond_less(
@@ -787,6 +923,7 @@ mod benchmarks {
 				min_candidate_stk,
 				true,
 				candidate_count,
+				true,
 			)?;
 			candidate_count += 1;
 		}
@@ -797,6 +934,7 @@ mod benchmarks {
 			min_candidate_stk,
 			false,
 			candidate_count,
+			true,
 		)?;
 
 		roll_to_and_author::<T>(2, caller.clone());
@@ -819,8 +957,14 @@ mod benchmarks {
 	#[benchmark]
 	fn cancel_candidate_bond_less() -> Result<(), BenchmarkError> {
 		let min_candidate_stk = min_candidate_stk::<T>();
-		let caller: T::AccountId =
-			create_funded_collator::<T>("collator", USER_SEED, min_candidate_stk, false, 1u32)?;
+		let caller: T::AccountId = create_funded_collator::<T>(
+			"collator",
+			USER_SEED,
+			min_candidate_stk,
+			false,
+			1u32,
+			true,
+		)?;
 		Pallet::<T>::schedule_candidate_bond_less(
 			RawOrigin::Signed(caller.clone()).into(),
 			min_candidate_stk,
@@ -1226,7 +1370,7 @@ mod benchmarks {
 	#[benchmark]
 	fn execute_revoke_delegation() -> Result<(), BenchmarkError> {
 		let collator: T::AccountId =
-			create_funded_collator::<T>("collator", USER_SEED, 0u32.into(), true, 1u32)?;
+			create_funded_collator::<T>("collator", USER_SEED, 0u32.into(), true, 1u32, false)?;
 		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
 		let bond = <<T as Config>::MinDelegation as Get<BalanceOf<T>>>::get();
 		Pallet::<T>::delegate_with_auto_compound(
@@ -1688,6 +1832,7 @@ mod benchmarks {
 			min_candidate_stk::<T>() * 1_000_000u32.into(),
 			true,
 			1,
+			true,
 		)?;
 
 		// create delegators
@@ -1700,6 +1845,7 @@ mod benchmarks {
 				collator.clone(),
 				true,
 				i,
+				true,
 			)?;
 		}
 
@@ -1744,6 +1890,7 @@ mod benchmarks {
 				min_candidate_stk::<T>() * 1_000_000u32.into(),
 				true,
 				999999,
+				true,
 			)?;
 			seed += 1;
 
@@ -1756,6 +1903,7 @@ mod benchmarks {
 					collator.clone(),
 					true,
 					9999999,
+					true,
 				)?;
 				seed += 1;
 			}
@@ -1918,7 +2066,7 @@ mod benchmarks {
 
 		// initialize our single collator
 		let sole_collator =
-			create_funded_collator::<T>("collator", 0, initial_stake_amount, true, 1u32)?;
+			create_funded_collator::<T>("collator", 0, initial_stake_amount, true, 1u32, false)?;
 		total_staked += initial_stake_amount;
 
 		// generate funded delegator accounts
@@ -1932,6 +2080,7 @@ mod benchmarks {
 				sole_collator.clone(),
 				true,
 				delegators.len() as u32,
+				true,
 			)?;
 			delegators.push(delegator);
 			total_staked += initial_stake_amount;
@@ -2002,7 +2151,7 @@ mod benchmarks {
 	#[benchmark]
 	fn base_on_initialize() -> Result<(), BenchmarkError> {
 		let collator: T::AccountId =
-			create_funded_collator::<T>("collator", USER_SEED, 0u32.into(), true, 1u32)?;
+			create_funded_collator::<T>("collator", USER_SEED, 0u32.into(), true, 1u32, false)?;
 		let start = <frame_system::Pallet<T>>::block_number();
 		parachain_staking_on_finalize::<T>(collator.clone());
 		<frame_system::Pallet<T>>::on_finalize(start);
@@ -2034,8 +2183,14 @@ mod benchmarks {
 		let mut seed = Seed::new();
 
 		// initialize the prime collator
-		let prime_candidate =
-			create_funded_collator::<T>("collator", seed.take(), min_candidate_stake, true, 1)?;
+		let prime_candidate = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			min_candidate_stake,
+			true,
+			1,
+			true,
+		)?;
 
 		// initialize the prime delegator
 		let prime_delegator = create_funded_delegator::<T>(
@@ -2045,6 +2200,7 @@ mod benchmarks {
 			prime_candidate.clone(),
 			true,
 			0,
+			true,
 		)?;
 
 		// have x-1 distinct auto-compounding delegators delegate to prime collator
@@ -2060,6 +2216,7 @@ mod benchmarks {
 				prime_candidate.clone(),
 				true,
 				i,
+				true,
 			)?;
 			auto_compounding_state
 				.set_for_delegator(delegator, Percent::from_percent(100))
@@ -2075,6 +2232,7 @@ mod benchmarks {
 				min_candidate_stake,
 				true,
 				i + 1,
+				true,
 			)?;
 			Pallet::<T>::delegate_with_auto_compound(
 				RawOrigin::Signed(prime_delegator.clone()).into(),
@@ -2135,8 +2293,14 @@ mod benchmarks {
 		let mut seed = Seed::new();
 
 		// initialize the prime collator
-		let prime_candidate =
-			create_funded_collator::<T>("collator", seed.take(), min_candidate_stake, true, 1)?;
+		let prime_candidate = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			min_candidate_stake,
+			true,
+			1,
+			true,
+		)?;
 
 		// initialize the future delegator
 		let (prime_delegator, _) = create_funded_user::<T>(
@@ -2155,6 +2319,7 @@ mod benchmarks {
 				prime_candidate.clone(),
 				true,
 				i,
+				true,
 			)?;
 			if i <= y {
 				Pallet::<T>::set_auto_compound(
@@ -2175,6 +2340,7 @@ mod benchmarks {
 				min_candidate_stake,
 				true,
 				i + 1,
+				true,
 			)?;
 			Pallet::<T>::delegate_with_auto_compound(
 				RawOrigin::Signed(prime_delegator.clone()).into(),
@@ -2370,7 +2536,8 @@ mod benchmarks {
 	#[benchmark]
 	fn mint_collator_reward() -> Result<(), BenchmarkError> {
 		let mut seed = Seed::new();
-		let collator = create_funded_collator::<T>("collator", seed.take(), 0u32.into(), true, 1)?;
+		let collator =
+			create_funded_collator::<T>("collator", seed.take(), 0u32.into(), true, 1, false)?;
 		let original_free_balance = T::Currency::free_balance(&collator);
 
 		#[block]
@@ -2405,6 +2572,7 @@ mod benchmarks {
 				min_candidate_stk::<T>() * 1_000_000u32.into(),
 				true,
 				candidate_count,
+				true,
 			)?;
 			candidate_count += 1;
 		}
@@ -2418,6 +2586,7 @@ mod benchmarks {
 			min_candidate_stk::<T>() * 1_000_000u32.into(),
 			true,
 			candidate_count,
+			true,
 		)?;
 		candidate_count += 1;
 
@@ -2428,6 +2597,7 @@ mod benchmarks {
 			min_candidate_stk::<T>() * 1_000_000u32.into(),
 			true,
 			candidate_count,
+			true,
 		)?;
 
 		// Roll to round 2 and call to select_top_candidates.
@@ -2469,6 +2639,7 @@ mod benchmarks {
 				min_candidate_stk::<T>() * 1_000_000u32.into(),
 				true,
 				999999,
+				false,
 			)?;
 
 			// All collators were inactive in previous round
@@ -2488,9 +2659,8 @@ mod benchmarks {
 	#[benchmark]
 	fn migrate_locks_to_freezes_batch(x: Linear<1, 100>) -> Result<(), BenchmarkError> {
 		// x is the number of accounts to migrate in the batch
-		use crate::{MigratedDelegators, DELEGATOR_LOCK_ID};
+		use crate::MigratedDelegators;
 		use frame_benchmarking::whitelisted_caller;
-		use frame_support::traits::LockableCurrency;
 
 		let mut seed = Seed::new();
 		let mut delegator_accounts = Vec::new();
@@ -2502,6 +2672,7 @@ mod benchmarks {
 			min_candidate_stk::<T>(),
 			true,
 			1,
+			true,
 		)?;
 
 		// Create x delegator accounts with existing locks to migrate
@@ -2513,6 +2684,7 @@ mod benchmarks {
 				collator.clone(),
 				true,
 				i + 1, // delegation count
+				true,
 			)?;
 
 			// Remove from MigratedDelegators to ensure it's not already marked as migrated
