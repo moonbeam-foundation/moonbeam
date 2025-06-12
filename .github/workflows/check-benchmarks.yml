@@ -7,7 +7,7 @@ on:
     - cron: "0 5 * * 3" # Runs every Wednesday at 5:00 AM UTC
     
 env:
-  FRAME_OMNI_BENCHER_RELEASE_VERSION: polkadot-stable2412
+  FRAME_OMNI_BENCHER_RELEASE_VERSION: polkadot-stable2503-5
 
 jobs:
   set-tags:
@@ -76,3 +76,4 @@ jobs:
             cat benchmarking_errors.txt
             exit 1
           fi
+          cargo build -r -p ${{ matrix.runtime }}-runtime
