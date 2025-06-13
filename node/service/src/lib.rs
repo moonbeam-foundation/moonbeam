@@ -660,7 +660,7 @@ async fn start_node_impl<RuntimeApi, Customizations, Net>(
 	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
 	legacy_block_import_strategy: bool,
-	nimbus_full_pov: bool,
+	max_pov_percentage: u8,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
@@ -957,7 +957,7 @@ where
 			relay_chain_slot_duration,
 			block_authoring_duration,
 			sync_service.clone(),
-			nimbus_full_pov,
+			max_pov_percentage,
 		)?;
 		/*let parachain_consensus = build_consensus(
 			client.clone(),
@@ -1023,7 +1023,7 @@ fn start_consensus<RuntimeApi, SO>(
 	relay_chain_slot_duration: Duration,
 	block_authoring_duration: Duration,
 	sync_oracle: SO,
-	nimbus_full_pov: bool,
+	max_pov_percentage: u8,
 ) -> Result<(), sc_service::Error>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
@@ -1118,7 +1118,7 @@ where
 				slot_duration: None,
 				sync_oracle,
 				reinitialize: false,
-				full_pov_size: nimbus_full_pov,
+				max_pov_percentage,
 			}),
 		);
 	} else {
@@ -1144,7 +1144,7 @@ where
 					para_client: client,
 					proposer,
 					relay_client: relay_chain_interface,
-					full_pov_size: nimbus_full_pov,
+					max_pov_percentage,
 				},
 			),
 		);
@@ -1166,7 +1166,7 @@ pub async fn start_node<RuntimeApi, Customizations>(
 	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
 	legacy_block_import_strategy: bool,
-	nimbus_full_pov: bool,
+	max_pov_percentage: u8,
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi:
@@ -1185,7 +1185,7 @@ where
 		block_authoring_duration,
 		hwbench,
 		legacy_block_import_strategy,
-		nimbus_full_pov,
+		max_pov_percentage,
 	)
 	.await
 }

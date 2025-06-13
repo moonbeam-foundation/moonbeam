@@ -333,9 +333,18 @@ pub struct RunCmd {
 	#[clap(long, default_value = "2000", value_parser=block_authoring_duration_parser)]
 	pub block_authoring_duration: Duration,
 
-	/// Enable full proof-of-validation mode for Nimbus
-	#[clap(long)]
+	/// Enable full proof-of-validation mode for Nimbus (deprecated, use --max-pov-percentage instead)
+	#[clap(long, hide = true)]
 	pub nimbus_full_pov: bool,
+
+	/// Maximum percentage of POV size to use (0-100)
+	#[arg(
+		long,
+		conflicts_with = "nimbus_full_pov",
+		default_value = "50",
+		default_value_if("nimbus_full_pov", "true", "100")
+	)]
+	pub max_pov_percentage: u8,
 }
 
 fn block_authoring_duration_parser(s: &str) -> Result<Duration, String> {
