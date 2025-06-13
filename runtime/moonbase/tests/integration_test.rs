@@ -3421,7 +3421,9 @@ mod treasury_tests {
 	}
 }
 
-#[cfg(all(feature = "bridge-betanet", test))]
+/// Run these tests:
+/// cargo test --color=always -p moonbase-runtime --features bridge-stagenet --test integration_test bridge_tests -- --nocapture
+#[cfg(all(any(feature = "bridge-stagenet", feature = "bridge-betanet"), test))]
 mod bridge_tests {
 	use crate::common::{origin_of, root_origin, ExtBuilder, XcmAssetInitialization, ALICE, BOB};
 	use bp_messages::target_chain::DispatchMessageData;
@@ -3674,7 +3676,7 @@ mod bridge_tests {
 							"18495c29e70fc42c8878918fe0bb70bb2f599a2cc1afaef91ec261b7ab275793"
 						)),
 						origin: AggregateMessageOrigin::Here,
-						weight_used: Weight::from_parts(4358896000, 30545),
+						weight_used: Weight::from_parts(4358896000, 40545),
 						success: true,
 					},
 				)]);

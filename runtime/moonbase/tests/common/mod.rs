@@ -37,7 +37,9 @@ use std::collections::BTreeMap;
 
 use bp_xcm_bridge::Receiver;
 use fp_rpc::ConvertTransaction;
+use moonbase_runtime::XcmWeightTrader;
 use pallet_transaction_payment::Multiplier;
+use sp_runtime::traits::MaybeEquivalence;
 use xcm::prelude::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
@@ -339,7 +341,7 @@ impl ExtBuilder {
 				EvmForeignAssets::create_foreign_asset(
 					root_origin(),
 					asset_id,
-					xcm_asset_initialization.xcm_location,
+					xcm_asset_initialization.xcm_location.clone(),
 					xcm_asset_initialization.decimals,
 					xcm_asset_initialization
 						.symbol
@@ -355,6 +357,13 @@ impl ExtBuilder {
 						.expect("too long"),
 				)
 				.expect("fail to create foreign asset");
+
+				XcmWeightTrader::add_asset(
+					root_origin(),
+					xcm_asset_initialization.xcm_location,
+					UNIT,
+				)
+				.expect("register evm native foreign asset as sufficient");
 
 				for (account, balance) in xcm_asset_initialization.balances {
 					if EvmForeignAssets::mint_into(asset_id, account, balance.into()).is_err() {
