@@ -1776,6 +1776,11 @@
 <a href="#1776" id="1776">1776</a>
 <a href="#1777" id="1777">1777</a>
 <a href="#1778" id="1778">1778</a>
+<a href="#1779" id="1779">1779</a>
+<a href="#1780" id="1780">1780</a>
+<a href="#1781" id="1781">1781</a>
+<a href="#1782" id="1782">1782</a>
+<a href="#1783" id="1783">1783</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -2874,17 +2879,22 @@
 		};
 
 		<span class="kw">let </span>maybe_next_key = <span class="kw">if </span><span class="self">self</span>.before_fork {
-			remote_fetch(<span class="self">self</span>.block_hash)
+			<span class="comment">// Before the fork checkpoint, always fetch remotely
+			</span>remote_fetch(<span class="self">self</span>.block_hash)
 		} <span class="kw">else </span>{
-			<span class="kw">let </span>next_storage_key = <span class="self">self</span>.db.read().next_storage_key(key);
+			<span class="comment">// Try to get the next storage key from the local DB
+			</span><span class="kw">let </span>next_storage_key = <span class="self">self</span>.db.read().next_storage_key(key);
 			<span class="kw">match </span>next_storage_key {
-				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(key)) =&gt; <span class="prelude-val">Some</span>(key),
-				<span class="kw">_ if </span>!<span class="self">self</span>.removed_keys.read().contains_key(key) =&gt; {
+				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(next_key)) =&gt; <span class="prelude-val">Some</span>(next_key),
+				<span class="comment">// If not found locally and key is not marked as removed, fetch remotely
+				</span><span class="kw">_ if </span>!<span class="self">self</span>.removed_keys.read().contains_key(key) =&gt; {
 					remote_fetch(<span class="prelude-val">Some</span>(<span class="self">self</span>.fork_block))
 				}
-				<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+				<span class="comment">// Otherwise, there's no next key
+				</span><span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 			}
-		};
+		}
+		.filter(|next_key| next_key != key);
 
 		<span class="macro">log::trace!</span>(
 			target: <span class="kw">super</span>::LAZY_LOADING_LOG_TARGET,

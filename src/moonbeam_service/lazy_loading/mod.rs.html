@@ -859,13 +859,6 @@
 <a href="#859" id="859">859</a>
 <a href="#860" id="860">860</a>
 <a href="#861" id="861">861</a>
-<a href="#862" id="862">862</a>
-<a href="#863" id="863">863</a>
-<a href="#864" id="864">864</a>
-<a href="#865" id="865">865</a>
-<a href="#866" id="866">866</a>
-<a href="#867" id="867">867</a>
-<a href="#868" id="868">868</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -901,7 +894,6 @@
 <span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>polkadot_primitives::{
 	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
-	UpgradeRestriction,
 };
 <span class="kw">use </span>sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
 <span class="kw">use </span>sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks};
@@ -1076,7 +1068,7 @@
 					SyncMode::LightState { .. } | SyncMode::Warp { .. }
 				),
 				wasm_runtime_substitutes,
-				enable_import_proof_recording: <span class="bool-val">false</span>,
+				enable_import_proof_recording: <span class="bool-val">true</span>,
 			},
 		)<span class="question-mark">?</span>;
 
@@ -1510,12 +1502,6 @@
 							</span>(
 								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
 								Slot::from(u64::from(current_para_block)).encode(),
-							),
-							(
-								relay_chain::well_known_keys::upgrade_restriction_signal(
-									ParaId::new(parachain_id),
-								),
-								<span class="prelude-val">None</span>::&lt;UpgradeRestriction&gt;.encode(),
 							),
 						];
 
