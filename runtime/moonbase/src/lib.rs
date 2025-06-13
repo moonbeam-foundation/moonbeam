@@ -1536,12 +1536,6 @@ use moonbeam_runtime_common::deal_with_fees::{
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
-	// TODO: Temporary workaround before upgrading to latest polkadot-sdk - fix https://github.com/paritytech/polkadot-sdk/pull/6435
-	#[allow(unused_imports)]
-	use pallet_collective as pallet_collective_treasury_council;
-	#[allow(unused_imports)]
-	use pallet_collective as pallet_collective_open_tech_committee;
-
 	frame_support::parameter_types! {
 		pub const MaxBalance: crate::Balance = crate::Balance::max_value();
 	}
@@ -1585,8 +1579,8 @@ mod benches {
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]
-		[pallet_collective_treasury_council, TreasuryCouncilCollective]
-		[pallet_collective_open_tech_committee, OpenTechCommitteeCollective]
+		[pallet_collective, TreasuryCouncilCollective]
+		[pallet_collective, OpenTechCommitteeCollective]
 	);
 }
 
