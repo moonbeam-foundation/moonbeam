@@ -39,7 +39,6 @@ use bp_xcm_bridge::Receiver;
 use fp_rpc::ConvertTransaction;
 use moonbase_runtime::XcmWeightTrader;
 use pallet_transaction_payment::Multiplier;
-use sp_runtime::traits::MaybeEquivalence;
 use xcm::prelude::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {

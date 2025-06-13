@@ -3432,13 +3432,12 @@ mod bridge_tests {
 	use cumulus_primitives_core::AggregateMessageOrigin;
 	use frame_support::assert_ok;
 	use frame_support::pallet_prelude::{Hooks, PalletInfoAccess};
-	use moonbase_runtime::asset_config::AssetRegistrarMetadata;
 	use moonbase_runtime::bridge_config::{
 		SourceGlobalConsensusNetwork, SourceParachain, TargetBridgeLocation,
 		TargetGlobalConsensusNetwork, TargetParachain, WithMessagesInstance,
 	};
 	use moonbase_runtime::currency::{KILOWEI, UNIT};
-	use moonbase_runtime::xcm_config::{AssetType, CurrencyId};
+	use moonbase_runtime::xcm_config::CurrencyId;
 	use moonbase_runtime::{
 		Balances, BridgeMessages, BridgeXcmOver, MessageQueue, PolkadotXcm, Runtime, RuntimeEvent,
 		System,
@@ -3452,13 +3451,12 @@ mod bridge_tests {
 	use sp_weights::Weight;
 	use xcm::latest::Junctions::X1;
 	use xcm::latest::{
-		Asset, AssetFilter, AssetId, Fungibility, Junctions, Location, NetworkId, WeightLimit,
-		WildAsset, Xcm,
+		Asset, AssetFilter, AssetId, Fungibility, Junctions, Location, WeightLimit, WildAsset, Xcm,
 	};
 	use xcm::prelude::{
 		AccountKey20, BuyExecution, ClearOrigin, DepositAsset, DescendOrigin, Fungible,
-		GlobalConsensus, PalletInstance, Parachain, ReserveAssetDeposited, SetTopic,
-		UniversalOrigin, XCM_VERSION,
+		GlobalConsensus, PalletInstance, ReserveAssetDeposited, SetTopic, UniversalOrigin,
+		XCM_VERSION,
 	};
 	use xcm::{VersionedAssets, VersionedInteriorLocation, VersionedLocation, VersionedXcm};
 	use xcm_builder::BridgeMessage;

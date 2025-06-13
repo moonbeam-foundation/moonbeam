@@ -370,7 +370,7 @@ pub type XcmRouter = WithUniqueTopic<(
 	// The means for routing XCM messages which are not for local execution into the right message
 	// queues.
 	LocalXcmRouter,
-	// Router that exports messages to be delivered to the Kusama GlobalConsensus
+	// Router that exports messages to be delivered to the bridge destination
 	super::BridgeXcmRouter,
 )>;
 
