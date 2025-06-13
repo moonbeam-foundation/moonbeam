@@ -8,8 +8,10 @@ repository = { workspace = true }
 version = "0.1.0"
 
 [dependencies]
+environmental = { workspace = true }
 
 # Moonbeam
+xcm-primitives = { workspace = true }
 evm-tracing-events = { workspace = true, features = [ "evm-tracing" ] }
 moonbeam-primitives-ext = { workspace = true }
 
@@ -44,4 +46,6 @@ std = [
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"xcm-primitives/std",
+	"environmental/std"
 ]

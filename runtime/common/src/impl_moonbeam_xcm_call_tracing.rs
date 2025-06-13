@@ -17,7 +17,7 @@
 #[macro_export]
 macro_rules! impl_moonbeam_xcm_call_tracing {
 	{} => {
-
+		use moonbeam_evm_tracer::tracer::EthereumTracingStatus;
 		type CallResult =
 			Result<
 				PostDispatchInfoOf<RuntimeCall>,
@@ -40,11 +40,13 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 							xcm_transaction, ..
 					 	}) => {
 							use crate::EthereumXcm;
-							use moonbeam_evm_tracer::tracer::EvmTracer;
+							use moonbeam_evm_tracer::tracer::{
+								EthereumTracer,
+								EvmTracer,
+								EthereumTracingStatus
+							};
 							use xcm_primitives::{
 								XcmToEthereum,
-								EthereumXcmTracingStatus,
-								ETHEREUM_XCM_TRACING_STORAGE_KEY
 							};
 							use frame_support::storage::unhashed;
 							use frame_support::traits::Get;
@@ -63,53 +65,50 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 								)
 							};
 
-							return match unhashed::get(
-								ETHEREUM_XCM_TRACING_STORAGE_KEY
-							) {
+							return match EthereumTracer::status() {
 								// This runtime instance is used for tracing.
-								Some(tracing_status) => match tracing_status {
-									// Tracing a block, all calls are done using environmental.
-									EthereumXcmTracingStatus::Block => {
-										// Each known extrinsic is a new call stack.
-										EvmTracer::emit_new();
-										let mut res: Option<CallResult> = None;
-										EvmTracer::new().trace(|| {
-											res = Some(dispatch_call());
-										});
-										res.expect("Invalid dispatch result")
-									},
-									// Tracing a transaction, the one matching the trace request
-									// is done using environmental, the rest dispatched normally.
-									EthereumXcmTracingStatus::Transaction(traced_transaction_hash) => {
-										let transaction_hash = xcm_transaction.into_transaction_v2(
-											EthereumXcm::nonce(),
-											<Runtime as pallet_evm::Config>::ChainId::get(),
-											false
-										)
-										.expect("Invalid transaction conversion")
-										.hash();
-										if transaction_hash == traced_transaction_hash {
+								Some(tracing_status) => {
+									match tracing_status {
+										// Tracing a block, all calls are done using environmental.
+										EthereumTracingStatus::Block => {
+											// Each known extrinsic is a new call stack.
+											EvmTracer::emit_new();
 											let mut res: Option<CallResult> = None;
 											EvmTracer::new().trace(|| {
 												res = Some(dispatch_call());
 											});
-											// Tracing runtime work is done, just signal instance exit.
-											unhashed::put::<EthereumXcmTracingStatus>(
-												xcm_primitives::ETHEREUM_XCM_TRACING_STORAGE_KEY,
-												&EthereumXcmTracingStatus::TransactionExited,
-											);
-											return res.expect("Invalid dispatch result");
-										}
-										dispatch_call()
-									},
-									// Tracing a transaction that has already been found and
-									// executed. There's no need to dispatch the rest of the
-									// calls.
-									EthereumXcmTracingStatus::TransactionExited => Ok(crate::PostDispatchInfo {
-										actual_weight: None,
-										pays_fee: frame_support::pallet_prelude::Pays::No,
-									}),
-								},
+											res.expect("Invalid dispatch result")
+										},
+										// Tracing a transaction, the one matching the trace request
+										// is done using environmental, the rest dispatched normally.
+										EthereumTracingStatus::Transaction(traced_transaction_hash) => {
+											let transaction_hash = xcm_transaction.into_transaction_v2(
+												EthereumXcm::nonce(),
+												<Runtime as pallet_evm::Config>::ChainId::get(),
+												false
+											)
+											.expect("Invalid transaction conversion")
+											.hash();
+											if transaction_hash == traced_transaction_hash {
+												let mut res: Option<CallResult> = None;
+												EvmTracer::new().trace(|| {
+													res = Some(dispatch_call());
+												});
+												// Tracing runtime work is done, just signal instance exit.
+												EthereumTracer::transaction_exited();
+												return res.expect("Invalid dispatch result");
+											}
+											dispatch_call()
+										},
+										// Tracing a transaction that has already been found and
+										// executed. There's no need to dispatch the rest of the
+										// calls.
+										EthereumTracingStatus::TransactionExited => Ok(crate::PostDispatchInfo {
+											actual_weight: None,
+											pays_fee: frame_support::pallet_prelude::Pays::No,
+										}),
+									}
+								}
 								// This runtime instance is importing a block.
 								None => dispatch_call()
 							};
