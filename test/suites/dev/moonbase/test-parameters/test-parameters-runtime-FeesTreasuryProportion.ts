@@ -25,7 +25,7 @@ interface TestCase {
 }
 
 describeSuite({
-  id: "DTemp03",
+  id: "D022502",
   title: "Parameters - RuntimeConfig",
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {

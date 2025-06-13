@@ -17,7 +17,7 @@ import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
-  id: "D014025",
+  id: "D024024",
   title: "Mock XCM - receive horizontal transact ETHEREUM (asset fee)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

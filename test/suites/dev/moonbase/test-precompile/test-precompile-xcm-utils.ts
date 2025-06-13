@@ -8,7 +8,7 @@ import { expectEVMResult, descendOriginFromAddress20, ConstantStore } from "../.
 export const CLEAR_ORIGIN_WEIGHT = 5_194_000n;
 
 describeSuite({
-  id: "D012801",
+  id: "D022888",
   title: "Precompiles - xcm utils",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

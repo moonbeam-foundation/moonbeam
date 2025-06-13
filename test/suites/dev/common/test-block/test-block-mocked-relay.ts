@@ -3,7 +3,7 @@ import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import type { CumulusPrimitivesParachainInherentParachainInherentData } from "@polkadot/types/lookup";
 
 describeSuite({
-  id: "D010405",
+  id: "D010105",
   title: "Block - Mocked relaychain block",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

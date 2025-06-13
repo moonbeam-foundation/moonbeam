@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@m
 import { alith } from "@moonwall/util";
 
 describeSuite({
-  id: "D013301",
+  id: "D023301",
   title: "Referenda - FastGeneralAdmin",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

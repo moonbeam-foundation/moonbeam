@@ -16,7 +16,7 @@ import {
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D012802",
+  id: "D022889",
   title: "Precompiles - xtokens",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

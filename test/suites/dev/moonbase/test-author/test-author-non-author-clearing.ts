@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, baltathar, BALTATHAR_SESSION_ADDRESS } from "@moonwall/u
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D010205",
+  id: "D020205",
   title: "Author Mapping - non author clearing",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

@@ -5,7 +5,7 @@ import type { EthereumTransactionTransactionV2 } from "@polkadot/types/lookup";
 import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../../helpers";
 
 describeSuite({
-  id: "D011302",
+  id: "D021204",
   title: "Ethereum Transaction - Legacy",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -10,7 +10,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D013803",
+  id: "D023802",
   title: "Treasury pallet spend using foreign assets",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

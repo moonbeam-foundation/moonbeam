@@ -12,7 +12,7 @@ import {
 } from "../../helpers";
 
 describeSuite({
-  id: "T09",
+  id: "T12",
   title: "Trace ERC20 xcm",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

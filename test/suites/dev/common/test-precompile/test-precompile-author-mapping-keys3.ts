@@ -10,7 +10,7 @@ import {
 } from "../../../../helpers/precompiles.js";
 
 describeSuite({
-  id: "D012812",
+  id: "D010303",
   title: "Precompile Author Mapping - Update different keys",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

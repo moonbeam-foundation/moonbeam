@@ -5,7 +5,7 @@ import { GLMR, VOTE_AMOUNT, dorothy, ethan } from "@moonwall/util";
 const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
 
 describeSuite({
-  id: "D013004",
+  id: "D010404",
   title: "Proxing governance",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
