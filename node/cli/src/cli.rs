@@ -338,7 +338,12 @@ pub struct RunCmd {
 	pub nimbus_full_pov: bool,
 
 	/// Maximum percentage of POV size to use (0-100)
-	#[arg(long, conflicts_with = "nimbus_full_pov", default_value = "50", default_value_if("nimbus_full_pov", "true", "100"))]
+	#[arg(
+		long,
+		conflicts_with = "nimbus_full_pov",
+		default_value = "50",
+		default_value_if("nimbus_full_pov", "true", "100")
+	)]
 	pub max_pov_percentage: u8,
 }
 
