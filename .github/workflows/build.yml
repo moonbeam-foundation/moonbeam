@@ -523,6 +523,10 @@ jobs:
       - name: Unit tests
         run: |
           cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
+      - name: Run bridge tests
+        run: |
+          cargo test --color=always -p moonbase-runtime --features bridge-betanet --test integration_test bridge_tests -- --nocapture
+          cargo test --color=always -p moonbase-runtime --features bridge-stagenet --test integration_test bridge_tests -- --nocapture
       - name: Run sccache stat for check pre test
         run: ${SCCACHE_PATH} --show-stats
 

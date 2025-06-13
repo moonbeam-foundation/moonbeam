@@ -81,7 +81,7 @@ pub trait WeightInfo {
 	fn clear_topic() -> Weight;
 	fn exchange_asset() -> Weight;
 	fn universal_origin() -> Weight;
-	fn export_message() -> Weight;
+	fn export_message(_: u32,) -> Weight;
 	fn set_fees_mode() -> Weight;
 	fn lock_asset() -> Weight;
 	fn unlock_asset() -> Weight;
@@ -394,21 +394,27 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Storage: Benchmark Override (r:0 w:0)
 	/// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
 	fn universal_origin() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 500_000_000_000 picoseconds.
-		Weight::from_parts(500_000_000_000, 0)
+        // Proof Size summary in bytes:
+        //  Measured:  `0`
+        //  Estimated: `1489`
+        // Minimum execution time: 2_466_000 picoseconds.
+        Weight::from_parts(2_705_000, 1489)
+            .saturating_add(T::DbWeight::get().reads(1))
 	}
 	/// Storage: Benchmark Override (r:0 w:0)
 	/// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `x` is `[1, 1000]`.
-	fn export_message() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 18_446_744_073_709_551_000 picoseconds.
-		Weight::from_parts(500_000_000_000, 0)
+	fn export_message(x: u32, ) -> Weight {
+        // Proof Size summary in bytes:
+        //  Measured:  `473`
+        //  Estimated: `6413`
+        // Minimum execution time: 66_221_000 picoseconds.
+        Weight::from_parts(126_556_981, 0)
+            .saturating_add(Weight::from_parts(0, 6413))
+            // Standard Error: 334
+            .saturating_add(Weight::from_parts(103_743, 0).saturating_mul(x.into()))
+            .saturating_add(T::DbWeight::get().reads(6))
+            .saturating_add(T::DbWeight::get().writes(2))
 	}
 	fn set_fees_mode() -> Weight {
 		// Proof Size summary in bytes:
@@ -798,7 +804,7 @@ impl WeightInfo for () {
 	/// Storage: Benchmark Override (r:0 w:0)
 	/// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `x` is `[1, 1000]`.
-	fn export_message() -> Weight {
+	fn export_message(_: u32,) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
