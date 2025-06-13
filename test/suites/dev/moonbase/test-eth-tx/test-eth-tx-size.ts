@@ -3,7 +3,7 @@ import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { EXTRINSIC_GAS_LIMIT, createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
-  id: "D011301",
+  id: "D021203",
   title: "Ethereum Transaction - Large Transaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

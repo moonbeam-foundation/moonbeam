@@ -14,7 +14,7 @@ import { ethers } from "ethers";
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
 describeSuite({
-  id: "D012900",
+  id: "D022847",
   title: "Precompiles - PalletXcm",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

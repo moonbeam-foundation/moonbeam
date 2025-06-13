@@ -13,7 +13,7 @@ import { parseAbi } from "viem";
 import { fundAccount } from "../../../../helpers/balances";
 
 describeSuite({
-  id: "D010110",
+  id: "D020107",
   title: "XCM - Origin Tests",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

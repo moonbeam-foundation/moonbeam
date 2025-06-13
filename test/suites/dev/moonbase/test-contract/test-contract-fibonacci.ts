@@ -3,7 +3,7 @@ import { TransactionTypes, describeSuite, expect, fetchCompiledContract } from "
 import { encodeDeployData } from "viem";
 
 describeSuite({
-  id: "D010606",
+  id: "D020505",
   title: "Fibonacci",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

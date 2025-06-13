@@ -13,7 +13,7 @@ import {
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
 
 describeSuite({
-  id: "D012893",
+  id: "D022880",
   title: "Precompiles - xcm transactor",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

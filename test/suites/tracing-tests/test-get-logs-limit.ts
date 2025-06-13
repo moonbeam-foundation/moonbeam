@@ -1,7 +1,7 @@
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "T20",
+  id: "T01",
   title: "Test eth_getLogs RPC",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
