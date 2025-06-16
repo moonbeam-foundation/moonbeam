@@ -694,7 +694,6 @@ jobs:
       labels: bare-metal
     permissions:
       contents: read
-    if: false # Temporarily disabled
     needs: ["set-tags", "build"]
     strategy:
       fail-fast: false
