@@ -2702,7 +2702,7 @@ mod benchmarks {
 				seed.take(),
 				extra_amount,
 				collator.clone(),
-				true,
+				false,
 				i + 1, // delegation count
 				true,
 			)?;
