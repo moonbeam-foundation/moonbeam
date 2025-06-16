@@ -19,7 +19,7 @@ pub mod generic;
 
 pub use crate::weights::generic::WeightInfo;
 use core::cmp::min;
-use frame_support::{pallet_prelude::Encode, weights::Weight, BoundedVec};
+use frame_support::{weights::Weight, BoundedVec};
 use fungible::WeightInfo as XcmFungibleWeight;
 use generic::SubstrateWeight as XcmGeneric;
 use sp_std::prelude::*;
