@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, DevModeContext, expect } from "@moonwall/cli";
 import {
   GLMR,
   MIN_GLMR_DELEGATOR,
