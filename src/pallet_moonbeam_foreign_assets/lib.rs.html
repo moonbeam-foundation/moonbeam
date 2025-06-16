@@ -781,6 +781,8 @@
 <a href="#781" id="781">781</a>
 <a href="#782" id="782">782</a>
 <a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
@@ -1173,7 +1175,7 @@
 				.map_err(Into::into)
 		}
 
-		<span class="doccomment">/// Aprrove a spender to spend a certain amount of tokens from the owner account
+		<span class="doccomment">/// Approve a spender to spend a certain amount of tokens from the owner account
 		</span><span class="kw">pub fn </span>approve(
 			asset_id: AssetId,
 			owner: T::AccountId,
@@ -1182,12 +1184,14 @@
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), evm::EvmError&gt; {
 			<span class="comment">// We perform the evm call in a storage transaction to ensure that if it fail
 			// any contract storage changes are rolled back.
-			</span>EvmCaller::&lt;T&gt;::erc20_approve(
-				<span class="self">Self</span>::contract_address_from_asset_id(asset_id),
-				T::AccountIdToH160::convert(owner),
-				T::AccountIdToH160::convert(spender),
-				amount,
-			)
+			</span>frame_support::storage::with_storage_layer(|| {
+				EvmCaller::&lt;T&gt;::erc20_approve(
+					<span class="self">Self</span>::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(owner),
+					T::AccountIdToH160::convert(spender),
+					amount,
+				)
+			})
 			.map_err(Into::into)
 		}
 

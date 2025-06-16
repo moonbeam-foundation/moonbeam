@@ -393,20 +393,6 @@
 <a href="#393" id="393">393</a>
 <a href="#394" id="394">394</a>
 <a href="#395" id="395">395</a>
-<a href="#396" id="396">396</a>
-<a href="#397" id="397">397</a>
-<a href="#398" id="398">398</a>
-<a href="#399" id="399">399</a>
-<a href="#400" id="400">400</a>
-<a href="#401" id="401">401</a>
-<a href="#402" id="402">402</a>
-<a href="#403" id="403">403</a>
-<a href="#404" id="404">404</a>
-<a href="#405" id="405">405</a>
-<a href="#406" id="406">406</a>
-<a href="#407" id="407">407</a>
-<a href="#408" id="408">408</a>
-<a href="#409" id="409">409</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -656,20 +642,6 @@
 			s: rs_id(),
 		}))
 	}
-}
-
-<span class="doccomment">/// The EthereumXcmTracingStatus storage key.
-</span><span class="kw">pub const </span>ETHEREUM_XCM_TRACING_STORAGE_KEY: <span class="kw-2">&amp;</span>[u8] = <span class="string">b":ethereum_xcm_tracing"</span>;
-
-<span class="doccomment">/// The current EthereumXcmTransaction trace status.
-</span><span class="attr">#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
-</span><span class="kw">pub enum </span>EthereumXcmTracingStatus {
-	<span class="doccomment">/// A full block trace.
-	</span>Block,
-	<span class="doccomment">/// A single transaction.
-	</span>Transaction(H256),
-	<span class="doccomment">/// Exit signal.
-	</span>TransactionExited,
 }
 
 <span class="attr">#[cfg(test)]

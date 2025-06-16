@@ -115,6 +115,48 @@
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -142,13 +184,28 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
 </span><span class="kw">pub mod </span>tracer {
+	<span class="kw">use </span>ethereum_types::H256;
 	<span class="kw">use </span>evm_tracing_events::{EvmEvent, GasometerEvent, RuntimeEvent, StepEventFilter};
-	<span class="kw">use </span>parity_scale_codec::Encode;
+	<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 
 	<span class="kw">use </span>evm::tracing::{using <span class="kw">as </span>evm_using, EventListener <span class="kw">as </span>EvmListener};
 	<span class="kw">use </span>evm_gasometer::tracing::{using <span class="kw">as </span>gasometer_using, EventListener <span class="kw">as </span>GasometerListener};
 	<span class="kw">use </span>evm_runtime::tracing::{using <span class="kw">as </span>runtime_using, EventListener <span class="kw">as </span>RuntimeListener};
+	<span class="kw">use </span>sp_runtime::DispatchError;
 	<span class="kw">use </span>sp_std::{cell::RefCell, rc::Rc};
+
+	<span class="doccomment">/// The current EthereumXcmTransaction trace status.
+	</span><span class="attr">#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
+	</span><span class="kw">pub enum </span>EthereumTracingStatus {
+		<span class="doccomment">/// A full block trace.
+		</span>Block,
+		<span class="doccomment">/// A single transaction.
+		</span>Transaction(H256),
+		<span class="doccomment">/// Exit signal.
+		</span>TransactionExited,
+	}
+
+	<span class="macro">environmental::environmental!</span>(ETHEREUM_TRACING_STATUS: EthereumTracingStatus);
 
 	<span class="kw">struct </span>ListenerProxy&lt;T&gt;(<span class="kw">pub </span>Rc&lt;RefCell&lt;T&gt;&gt;);
 	<span class="kw">impl</span>&lt;T: GasometerListener&gt; GasometerListener <span class="kw">for </span>ListenerProxy&lt;T&gt; {
@@ -166,6 +223,33 @@
 	<span class="kw">impl</span>&lt;T: EvmListener&gt; EvmListener <span class="kw">for </span>ListenerProxy&lt;T&gt; {
 		<span class="kw">fn </span>event(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: evm::tracing::Event) {
 			<span class="self">self</span>.<span class="number">0</span>.borrow_mut().event(event);
+		}
+	}
+
+	<span class="kw">pub struct </span>EthereumTracer;
+
+	<span class="kw">impl </span>EthereumTracer {
+		<span class="kw">pub fn </span>transaction(
+			tx_hash: H256,
+			func: <span class="kw">impl </span>FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;(), DispatchError&gt;,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;(), DispatchError&gt; {
+			ETHEREUM_TRACING_STATUS::using(<span class="kw-2">&amp;mut </span>EthereumTracingStatus::Transaction(tx_hash), func)
+		}
+
+		<span class="kw">pub fn </span>block(
+			func: <span class="kw">impl </span>FnOnce() -&gt; <span class="prelude-ty">Result</span>&lt;(), DispatchError&gt;,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;(), DispatchError&gt; {
+			ETHEREUM_TRACING_STATUS::using(<span class="kw-2">&amp;mut </span>EthereumTracingStatus::Block, func)
+		}
+
+		<span class="kw">pub fn </span>transaction_exited() {
+			ETHEREUM_TRACING_STATUS::with(|state| {
+				<span class="kw-2">*</span>state = EthereumTracingStatus::TransactionExited
+			});
+		}
+
+		<span class="kw">pub fn </span>status() -&gt; <span class="prelude-ty">Option</span>&lt;EthereumTracingStatus&gt; {
+			ETHEREUM_TRACING_STATUS::with(|state| state.clone())
 		}
 	}
 

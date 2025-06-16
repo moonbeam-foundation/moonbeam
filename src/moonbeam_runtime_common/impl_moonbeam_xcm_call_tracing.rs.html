@@ -121,7 +121,6 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -141,7 +140,7 @@
 </span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules!</span> impl_moonbeam_xcm_call_tracing {
 	{} =&gt; {
-
+		<span class="kw">use </span>moonbeam_evm_tracer::tracer::EthereumTracingStatus;
 		<span class="kw">type </span>CallResult =
 			<span class="prelude-ty">Result</span>&lt;
 				PostDispatchInfoOf&lt;RuntimeCall&gt;,
@@ -164,11 +163,13 @@
 							xcm_transaction, ..
 					 	}) =&gt; {
 							<span class="kw">use </span><span class="kw">crate</span>::EthereumXcm;
-							<span class="kw">use </span>moonbeam_evm_tracer::tracer::EvmTracer;
+							<span class="kw">use </span>moonbeam_evm_tracer::tracer::{
+								EthereumTracer,
+								EvmTracer,
+								EthereumTracingStatus
+							};
 							<span class="kw">use </span>xcm_primitives::{
 								XcmToEthereum,
-								EthereumXcmTracingStatus,
-								ETHEREUM_XCM_TRACING_STORAGE_KEY
 							};
 							<span class="kw">use </span>frame_support::storage::unhashed;
 							<span class="kw">use </span>frame_support::traits::Get;
@@ -187,53 +188,50 @@
 								)
 							};
 
-							<span class="kw">return match </span>unhashed::get(
-								ETHEREUM_XCM_TRACING_STORAGE_KEY
-							) {
+							<span class="kw">return match </span>EthereumTracer::status() {
 								<span class="comment">// This runtime instance is used for tracing.
-								</span><span class="prelude-val">Some</span>(tracing_status) =&gt; <span class="kw">match </span>tracing_status {
-									<span class="comment">// Tracing a block, all calls are done using environmental.
-									</span>EthereumXcmTracingStatus::Block =&gt; {
-										<span class="comment">// Each known extrinsic is a new call stack.
-										</span>EvmTracer::emit_new();
-										<span class="kw">let </span><span class="kw-2">mut </span>res: <span class="prelude-ty">Option</span>&lt;CallResult&gt; = <span class="prelude-val">None</span>;
-										EvmTracer::new().trace(|| {
-											res = <span class="prelude-val">Some</span>(dispatch_call());
-										});
-										res.expect(<span class="string">"Invalid dispatch result"</span>)
-									},
-									<span class="comment">// Tracing a transaction, the one matching the trace request
-									// is done using environmental, the rest dispatched normally.
-									</span>EthereumXcmTracingStatus::Transaction(traced_transaction_hash) =&gt; {
-										<span class="kw">let </span>transaction_hash = xcm_transaction.into_transaction_v2(
-											EthereumXcm::nonce(),
-											&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::ChainId::get(),
-											<span class="bool-val">false
-										</span>)
-										.expect(<span class="string">"Invalid transaction conversion"</span>)
-										.hash();
-										<span class="kw">if </span>transaction_hash == traced_transaction_hash {
+								</span><span class="prelude-val">Some</span>(tracing_status) =&gt; {
+									<span class="kw">match </span>tracing_status {
+										<span class="comment">// Tracing a block, all calls are done using environmental.
+										</span>EthereumTracingStatus::Block =&gt; {
+											<span class="comment">// Each known extrinsic is a new call stack.
+											</span>EvmTracer::emit_new();
 											<span class="kw">let </span><span class="kw-2">mut </span>res: <span class="prelude-ty">Option</span>&lt;CallResult&gt; = <span class="prelude-val">None</span>;
 											EvmTracer::new().trace(|| {
 												res = <span class="prelude-val">Some</span>(dispatch_call());
 											});
-											<span class="comment">// Tracing runtime work is done, just signal instance exit.
-											</span>unhashed::put::&lt;EthereumXcmTracingStatus&gt;(
-												xcm_primitives::ETHEREUM_XCM_TRACING_STORAGE_KEY,
-												<span class="kw-2">&amp;</span>EthereumXcmTracingStatus::TransactionExited,
-											);
-											<span class="kw">return </span>res.expect(<span class="string">"Invalid dispatch result"</span>);
-										}
-										dispatch_call()
-									},
-									<span class="comment">// Tracing a transaction that has already been found and
-									// executed. There's no need to dispatch the rest of the
-									// calls.
-									</span>EthereumXcmTracingStatus::TransactionExited =&gt; <span class="prelude-val">Ok</span>(<span class="kw">crate</span>::PostDispatchInfo {
-										actual_weight: <span class="prelude-val">None</span>,
-										pays_fee: frame_support::pallet_prelude::Pays::No,
-									}),
-								},
+											res.expect(<span class="string">"Invalid dispatch result"</span>)
+										},
+										<span class="comment">// Tracing a transaction, the one matching the trace request
+										// is done using environmental, the rest dispatched normally.
+										</span>EthereumTracingStatus::Transaction(traced_transaction_hash) =&gt; {
+											<span class="kw">let </span>transaction_hash = xcm_transaction.into_transaction_v2(
+												EthereumXcm::nonce(),
+												&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::ChainId::get(),
+												<span class="bool-val">false
+											</span>)
+											.expect(<span class="string">"Invalid transaction conversion"</span>)
+											.hash();
+											<span class="kw">if </span>transaction_hash == traced_transaction_hash {
+												<span class="kw">let </span><span class="kw-2">mut </span>res: <span class="prelude-ty">Option</span>&lt;CallResult&gt; = <span class="prelude-val">None</span>;
+												EvmTracer::new().trace(|| {
+													res = <span class="prelude-val">Some</span>(dispatch_call());
+												});
+												<span class="comment">// Tracing runtime work is done, just signal instance exit.
+												</span>EthereumTracer::transaction_exited();
+												<span class="kw">return </span>res.expect(<span class="string">"Invalid dispatch result"</span>);
+											}
+											dispatch_call()
+										},
+										<span class="comment">// Tracing a transaction that has already been found and
+										// executed. There's no need to dispatch the rest of the
+										// calls.
+										</span>EthereumTracingStatus::TransactionExited =&gt; <span class="prelude-val">Ok</span>(<span class="kw">crate</span>::PostDispatchInfo {
+											actual_weight: <span class="prelude-val">None</span>,
+											pays_fee: frame_support::pallet_prelude::Pays::No,
+										}),
+									}
+								}
 								<span class="comment">// This runtime instance is importing a block.
 								</span><span class="prelude-val">None </span>=&gt; dispatch_call()
 							};

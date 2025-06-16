@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["EvmTracer"]};
+window.SIDEBAR_ITEMS = {"enum":["EthereumTracingStatus"],"struct":["EthereumTracer","EvmTracer"]};
