@@ -1,7 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
-import { jumpRounds, getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers";
+import {
+  jumpRounds,
+  getDelegatorStakingFreeze,
+  getNumberOfDelegatorFreezes,
+} from "../../../../helpers";
 
 describeSuite({
   id: "D013480",
@@ -41,7 +45,10 @@ describeSuite({
       title: "should be thawed only after executing revoke delegation",
       timeout: 60_000,
       test: async function () {
-        const freeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        const freeze = await getDelegatorStakingFreeze(
+          randomAccount.address as `0x${string}`,
+          context
+        );
         expect(freeze).to.be.equal(MIN_GLMR_DELEGATOR, "Freeze should have been added");
 
         await context.createBlock(
@@ -65,7 +72,10 @@ describeSuite({
           { allowFailures: false }
         );
 
-        const freeze_count = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        const freeze_count = await getNumberOfDelegatorFreezes(
+          randomAccount.address as `0x${string}`,
+          context
+        );
         expect(freeze_count).to.be.equal(
           0,
           "Freeze should have been removed after executing revoke"

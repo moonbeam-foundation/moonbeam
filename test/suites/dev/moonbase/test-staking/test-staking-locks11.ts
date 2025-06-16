@@ -57,7 +57,10 @@ describeSuite({
         );
 
         // Additional check
-        const freeze_count = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        const freeze_count = await getNumberOfDelegatorFreezes(
+          randomAccount.address as `0x${string}`,
+          context
+        );
         expect(freeze_count).to.be.equal(1, "Should have 1 freeze");
 
         const txns = await [...additionalDelegators].map((account, i) =>
@@ -84,8 +87,14 @@ describeSuite({
         ).unwrap();
         expect(alithCandidateInfo.delegationCount.toNumber()).to.equal(additionalDelegators.length);
 
-        const freeze_count_after = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
-        expect(freeze_count_after).to.be.equal(0, "Freeze should be removed when delegator is bumped out");
+        const freeze_count_after = await getNumberOfDelegatorFreezes(
+          randomAccount.address as `0x${string}`,
+          context
+        );
+        expect(freeze_count_after).to.be.equal(
+          0,
+          "Freeze should be removed when delegator is bumped out"
+        );
       },
     });
   },

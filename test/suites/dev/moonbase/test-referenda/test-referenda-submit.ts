@@ -11,7 +11,7 @@ import { ALITH_ADDRESS, GLMR, type KeyringPair, ethan, generateKeyringPair } fro
 import { getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
-  id: "D013303",
+  id: "D023303",
   title: "Referenda - Submit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -162,7 +162,10 @@ describeSuite({
         );
         expect(result?.successful).to.be.true;
 
-        const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        const stakingFreeze = await getDelegatorStakingFreeze(
+          randomAccount.address as `0x${string}`,
+          context
+        );
         expect(stakingFreeze).to.be.equal(90n * GLMR, "Failed to incur staking freeze");
       },
     });

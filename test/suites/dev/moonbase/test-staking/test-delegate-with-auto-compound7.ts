@@ -12,7 +12,7 @@ import fs from "node:fs";
 import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
 
 describeSuite({
-  id: "D013490",
+  id: "D023419",
   title: "Test auto-compound with reserved balance",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -55,14 +55,19 @@ describeSuite({
         const freeBalance = (accountInfo as any).data.free.toBigInt();
 
         // Get the existential deposit from the runtime
-        const existentialDeposit = context.polkadotJs().consts.balances.existentialDeposit.toBigInt();
+        const existentialDeposit = context
+          .polkadotJs()
+          .consts.balances.existentialDeposit.toBigInt();
 
         // The new freeze system requires maintaining ED in free balance when setting freezes
         const transferAmount = freeBalance - existentialDeposit;
 
         // Transfer all free balance except the existential deposit
         await context.createBlock(
-          context.polkadotJs().tx.balances.transferAllowDeath(alith.address, transferAmount).signAsync(baltathar)
+          context
+            .polkadotJs()
+            .tx.balances.transferAllowDeath(alith.address, transferAmount)
+            .signAsync(baltathar)
         );
 
         // Move forward to rewardDelay rounds

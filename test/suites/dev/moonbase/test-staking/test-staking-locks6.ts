@@ -46,8 +46,14 @@ describeSuite({
           { allowFailures: false }
         );
 
-        const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
-        expect(stakingFreeze).to.be.equal(MIN_GLMR_DELEGATOR, "Funds should still be frozen after scheduling revoke");
+        const stakingFreeze = await getDelegatorStakingFreeze(
+          randomAccount.address as `0x${string}`,
+          context
+        );
+        expect(stakingFreeze).to.be.equal(
+          MIN_GLMR_DELEGATOR,
+          "Funds should still be frozen after scheduling revoke"
+        );
       },
     });
   },

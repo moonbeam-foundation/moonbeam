@@ -4,7 +4,7 @@ import { DEFAULT_GENESIS_STAKING, GLMR, alith } from "@moonwall/util";
 import { getCollatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
-  id: "D013448",
+  id: "D023449",
   title: "Staking - Genesis",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -12,7 +12,10 @@ describeSuite({
       id: "T01",
       title: "should match collator frozen bond",
       test: async function () {
-        const collatorFreeze = await getCollatorStakingFreeze(alith.address as `0x${string}`, context);
+        const collatorFreeze = await getCollatorStakingFreeze(
+          alith.address as `0x${string}`,
+          context
+        );
         const expectedFrozen = DEFAULT_GENESIS_STAKING;
 
         expect(

@@ -7,7 +7,7 @@ import {
 } from "../../helpers";
 
 describeSuite({
-  id: "T17",
+  id: "T16",
   title: "Trace ERC20 Foreign asset creation",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

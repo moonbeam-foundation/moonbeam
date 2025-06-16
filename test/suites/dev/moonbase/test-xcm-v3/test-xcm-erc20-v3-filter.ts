@@ -13,7 +13,7 @@ import {
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D014035",
+  id: "D024034",
   title: "Mock XCM V3 - XCM Weight Limit",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

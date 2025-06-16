@@ -8,7 +8,10 @@ import {
   baltathar,
   generateKeyringPair,
 } from "@moonwall/util";
-import { getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers/staking-freezes";
+import {
+  getDelegatorStakingFreeze,
+  getNumberOfDelegatorFreezes,
+} from "../../../../helpers/staking-freezes";
 
 describeSuite({
   id: "D013473",
@@ -71,7 +74,10 @@ describeSuite({
       title: "should have a single freeze for multiple delegations",
       test: async function () {
         // Check that there's only a single delegator freeze (not multiple)
-        const delegatorFreezeCount = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        const delegatorFreezeCount = await getNumberOfDelegatorFreezes(
+          randomAccount.address as `0x${string}`,
+          context
+        );
         expect(delegatorFreezeCount).to.be.equal(
           1,
           `Should have only 1 delegator freeze, got ${delegatorFreezeCount}`
@@ -84,10 +90,11 @@ describeSuite({
       title: "should increase for additional delegations",
       test: async function () {
         // The freeze amount should be the sum of all delegations
-        const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
-        expect(stakingFreeze, `Unexpected amount for freeze`).to.be.equal(
-          2n * MIN_GLMR_DELEGATOR
+        const stakingFreeze = await getDelegatorStakingFreeze(
+          randomAccount.address as `0x${string}`,
+          context
         );
+        expect(stakingFreeze, `Unexpected amount for freeze`).to.be.equal(2n * MIN_GLMR_DELEGATOR);
       },
     });
   },

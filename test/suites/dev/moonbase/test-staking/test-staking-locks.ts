@@ -38,7 +38,10 @@ describeSuite({
         );
         expect(result!.successful).to.be.true;
 
-        const delegatorFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        const delegatorFreeze = await getDelegatorStakingFreeze(
+          randomAccount.address as `0x${string}`,
+          context
+        );
         expect(delegatorFreeze > 0n, "Missing freeze").to.be.true;
         expect(delegatorFreeze).to.be.equal(MIN_GLMR_DELEGATOR);
       },

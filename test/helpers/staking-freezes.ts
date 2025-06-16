@@ -33,7 +33,7 @@ export async function getStakingFreezes(account: `0x${string}`, context: DevMode
   return {
     collator: collatorFreeze,
     delegator: delegatorFreeze,
-    total: collatorFreeze + delegatorFreeze
+    total: collatorFreeze + delegatorFreeze,
   };
 }
 
@@ -52,7 +52,10 @@ export async function getNumberOfFreezes(account: `0x${string}`, context: DevMod
  * @param context - The DevModeContext
  * @returns true if the account has a collator freeze
  */
-export async function hasCollatorStakingFreeze(account: `0x${string}`, context: DevModeContext): Promise<boolean> {
+export async function hasCollatorStakingFreeze(
+  account: `0x${string}`,
+  context: DevModeContext
+): Promise<boolean> {
   const freezes = await getStakingFreezes(account, context);
   return freezes.collator > 0n;
 }
@@ -63,7 +66,10 @@ export async function hasCollatorStakingFreeze(account: `0x${string}`, context: 
  * @param context - The DevModeContext
  * @returns true if the account has a delegator freeze
  */
-export async function hasDelegatorStakingFreeze(account: `0x${string}`, context: DevModeContext): Promise<boolean> {
+export async function hasDelegatorStakingFreeze(
+  account: `0x${string}`,
+  context: DevModeContext
+): Promise<boolean> {
   const freezes = await getStakingFreezes(account, context);
   return freezes.delegator > 0n;
 }
@@ -74,7 +80,10 @@ export async function hasDelegatorStakingFreeze(account: `0x${string}`, context:
  * @param context - The DevModeContext
  * @returns The total amount frozen for staking
  */
-export async function getTotalStakingFreeze(account: `0x${string}`, context: DevModeContext): Promise<bigint> {
+export async function getTotalStakingFreeze(
+  account: `0x${string}`,
+  context: DevModeContext
+): Promise<bigint> {
   const freezes = await getStakingFreezes(account, context);
   return freezes.total;
 }
@@ -85,7 +94,10 @@ export async function getTotalStakingFreeze(account: `0x${string}`, context: Dev
  * @param context - The DevModeContext
  * @returns The amount frozen for collator staking
  */
-export async function getCollatorStakingFreeze(account: `0x${string}`, context: DevModeContext): Promise<bigint> {
+export async function getCollatorStakingFreeze(
+  account: `0x${string}`,
+  context: DevModeContext
+): Promise<bigint> {
   const freezes = await getStakingFreezes(account, context);
   return freezes.collator;
 }
@@ -96,7 +108,10 @@ export async function getCollatorStakingFreeze(account: `0x${string}`, context: 
  * @param context - The DevModeContext
  * @returns The amount frozen for delegator staking
  */
-export async function getDelegatorStakingFreeze(account: `0x${string}`, context: DevModeContext): Promise<bigint> {
+export async function getDelegatorStakingFreeze(
+  account: `0x${string}`,
+  context: DevModeContext
+): Promise<bigint> {
   const freezes = await getStakingFreezes(account, context);
   return freezes.delegator;
 }
@@ -107,7 +122,10 @@ export async function getDelegatorStakingFreeze(account: `0x${string}`, context:
  * @param context - The DevModeContext
  * @returns The number of collator freezes
  */
-export async function getNumberOfCollatorFreezes(account: `0x${string}`, context: DevModeContext): Promise<number> {
+export async function getNumberOfCollatorFreezes(
+  account: `0x${string}`,
+  context: DevModeContext
+): Promise<number> {
   const api = context.polkadotJs();
 
   // Get all freezes for the account
@@ -136,7 +154,10 @@ export async function getNumberOfCollatorFreezes(account: `0x${string}`, context
  * @param context - The DevModeContext
  * @returns The number of delegator freezes
  */
-export async function getNumberOfDelegatorFreezes(account: `0x${string}`, context: DevModeContext): Promise<number> {
+export async function getNumberOfDelegatorFreezes(
+  account: `0x${string}`,
+  context: DevModeContext
+): Promise<number> {
   const api = context.polkadotJs();
 
   // Get all freezes for the account

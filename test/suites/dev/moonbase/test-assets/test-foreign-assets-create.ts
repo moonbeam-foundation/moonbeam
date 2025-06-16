@@ -10,7 +10,7 @@ import {
 import { parseAbi } from "viem";
 
 describeSuite({
-  id: "D010108",
+  id: "D020106",
   title: "XCM - Create new foreign asset",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

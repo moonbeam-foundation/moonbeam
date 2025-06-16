@@ -7,7 +7,11 @@ import {
   baltathar,
   generateKeyringPair,
 } from "@moonwall/util";
-import { jumpRounds, getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers";
+import {
+  jumpRounds,
+  getDelegatorStakingFreeze,
+  getNumberOfDelegatorFreezes,
+} from "../../../../helpers";
 
 describeSuite({
   id: "D013481",
@@ -70,9 +74,15 @@ describeSuite({
       );
 
       // With freezes, check for delegator freeze instead of lock
-      const freeze_count = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+      const freeze_count = await getNumberOfDelegatorFreezes(
+        randomAccount.address as `0x${string}`,
+        context
+      );
       expect(freeze_count).to.be.equal(1, "Should have 1 freeze");
-      const freeze_amount = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+      const freeze_amount = await getDelegatorStakingFreeze(
+        randomAccount.address as `0x${string}`,
+        context
+      );
       expect(freeze_amount).to.be.equal(2n * MIN_GLMR_DELEGATOR);
 
       await jumpRounds(
@@ -99,10 +109,19 @@ describeSuite({
           .query.parachainStaking.delegatorState(randomAccount.address);
         expect(delegatorState.unwrap().delegations.length).to.be.equal(1, "Missing delegation");
         // Only 1 over the 2 delegations has been revoked, so freeze should remain for the other
-        const freeze_count = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        const freeze_count = await getNumberOfDelegatorFreezes(
+          randomAccount.address as `0x${string}`,
+          context
+        );
         expect(freeze_count).to.be.equal(1, "Should still have freeze for remaining delegation");
-        const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
-        expect(stakingFreeze).to.be.equal(MIN_GLMR_DELEGATOR, "Should still have freeze for remaining delegation");
+        const stakingFreeze = await getDelegatorStakingFreeze(
+          randomAccount.address as `0x${string}`,
+          context
+        );
+        expect(stakingFreeze).to.be.equal(
+          MIN_GLMR_DELEGATOR,
+          "Should still have freeze for remaining delegation"
+        );
       },
     });
   },

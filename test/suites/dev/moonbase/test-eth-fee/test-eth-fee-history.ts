@@ -7,7 +7,7 @@ import { parseGwei } from "viem";
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.
 describeSuite({
-  id: "D011001",
+  id: "D020901",
   title: "Fee History",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

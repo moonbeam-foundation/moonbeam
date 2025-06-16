@@ -106,9 +106,15 @@ describeSuite({
           "Missing delegation"
         );
         // We should have frozen MIN_GLMR_DELEGATOR * maxDelegationsPerDelegator
-        const freeze_count = await getNumberOfDelegatorFreezes(randomAccount.address as `0x${string}`, context);
+        const freeze_count = await getNumberOfDelegatorFreezes(
+          randomAccount.address as `0x${string}`,
+          context
+        );
         expect(freeze_count).to.be.equal(1, "Should have 1 freeze");
-        const stakingFreeze = await getDelegatorStakingFreeze(randomAccount.address as `0x${string}`, context);
+        const stakingFreeze = await getDelegatorStakingFreeze(
+          randomAccount.address as `0x${string}`,
+          context
+        );
         expect(stakingFreeze).to.be.equal(
           MIN_GLMR_DELEGATOR * maxDelegationsPerDelegator,
           "Should have freeze for all delegations"

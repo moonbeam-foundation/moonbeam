@@ -10,7 +10,7 @@ import { expectEVMResult, mockOldAssetBalance } from "../../../../helpers";
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
 describeSuite({
-  id: "D012902",
+  id: "D022846",
   title: "Precompiles - PalletXcm",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

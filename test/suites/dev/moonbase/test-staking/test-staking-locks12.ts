@@ -95,7 +95,10 @@ describeSuite({
               "Top delegation extrinsics not included in time"
             );
           } else {
-            expect(numDelegatorFreezes).to.eq(topDelegators.length, "More delegations than expected");
+            expect(numDelegatorFreezes).to.eq(
+              topDelegators.length,
+              "More delegations than expected"
+            );
             break;
           }
         }
