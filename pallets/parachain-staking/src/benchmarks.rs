@@ -30,7 +30,6 @@ use frame_support::traits::LockableCurrency;
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
 use sp_runtime::{traits::Zero, Perbill, Percent};
-use sp_std::vec;
 use sp_std::vec::Vec;
 
 /// Minimum collator candidate stake
