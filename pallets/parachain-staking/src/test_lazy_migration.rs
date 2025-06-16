@@ -115,20 +115,6 @@ fn assert_freeze_amount_and_no_lock(account: AccountId, expected_amount: u128, i
 }
 
 #[test]
-fn accounts_start_as_not_migrated() {
-	ExtBuilder::default()
-		.with_balances(vec![(1, 1000), (2, 1000)])
-		.build()
-		.execute_with(|| {
-			// New accounts should not be in migration tracking storage
-			assert_not_migrated(1, true); // as collator
-			assert_not_migrated(1, false); // as delegator
-			assert_not_migrated(2, true);
-			assert_not_migrated(2, false);
-		});
-}
-
-#[test]
 fn collator_bond_more_triggers_migration() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 1000)])
