@@ -124,15 +124,14 @@ impl Convert<Vec<u8>, Xcm<()>> for UpdateBridgeStatusXcmProvider {
 parameter_types! {
 	pub MessagesPalletInstance: InteriorLocation = [PalletInstance(<BridgeMessages as PalletInfoAccess>::index() as u8)].into();
 
-	/// Price of every byte of the Betanet -> Stagenet message.
+	/// Price for every byte of the Betanet -> Stagenet message.
 	pub XcmMoonbeamRouterByteFee: Balance = 1u128;
 
 	/// Router expects payment with this `AssetId`.
 	/// (`AssetId` has to be aligned with `BridgeTable`)
 	pub XcmMoonbeamRouterFeeAssetId: AssetId = SelfReserve::get().into();
 
-	/// Base price of every Polkadot -> Kusama message. Can be adjusted via
-	/// governance `set_storage` call.
+	/// Base price of every message. Can be adjusted via governance `set_storage` call.
 	pub storage XcmMoonbeamRouterBaseFee: Balance = bp_moonbase::estimate_betanet_to_stagenet_message_fee(
 		bp_moonbase::BaseDeliveryFee::get()
 	);
@@ -217,7 +216,7 @@ impl Contains<(Location, Junction)> for UniversalAliases {
 	}
 }
 
-/// Add GRANDPA bridge pallet to track Kusama relay chain.
+/// Add GRANDPA bridge pallet to track the relay chain finality.
 pub type BridgeGrandpaInstance = pallet_bridge_grandpa::Instance1;
 impl pallet_bridge_grandpa::Config<BridgeGrandpaInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -257,12 +256,11 @@ impl pallet_bridge_messages::Config<WithMessagesInstance> for Runtime {
 
 	type MessageDispatch = BridgeXcmOver;
 	type OnMessagesDelivered = BridgeXcmOver;
-	// TODO
-	type WeightInfo = pallet_bridge_messages::weights::BridgeWeight<Runtime>;
+	type WeightInfo = moonbase_weights::pallet_bridge_messages::WeightInfo<Runtime>;
 }
 
 /// Add support for the export and dispatch of XCM programs withing
-/// `WithKusamaMessagesInstance`.
+/// `WithMessagesInstance`.
 pub type XcmOverInstance = pallet_xcm_bridge::Instance1;
 impl pallet_xcm_bridge::Config<XcmOverInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -313,6 +311,5 @@ impl pallet_xcm_bridge::Config<XcmOverInstance> for Runtime {
 	>;
 
 	type CongestionLimits = ();
-	// TODO
-	type WeightInfo = ();
+	type WeightInfo = moonbase_weights::pallet_xcm_bridge::WeightInfo<Runtime>;
 }

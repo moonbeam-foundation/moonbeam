@@ -62,5 +62,26 @@ pub mod pallet_xcm_weight_trader;
 mod bridge_weights;
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 pub mod pallet_bridge_grandpa;
+pub mod pallet_bridge_messages;
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 pub mod pallet_bridge_parachains;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_xcm_bridge;
+
+use crate::{Runtime, Weight};
+
+impl ::pallet_bridge_messages::WeightInfoExt for pallet_bridge_messages::WeightInfo<Runtime> {
+	fn expected_extra_storage_proof_size() -> u32 {
+		::pallet_bridge_messages::EXTRA_STORAGE_PROOF_SIZE
+	}
+
+	fn receive_messages_proof_overhead_from_runtime() -> Weight {
+		// Update this value if pallet_bridge_relayers is added to the runtime.
+		Weight::zero()
+	}
+
+	fn receive_messages_delivery_proof_overhead_from_runtime() -> Weight {
+		// Update this value if pallet_bridge_relayers is added to the runtime.
+		Weight::zero()
+	}
+}
