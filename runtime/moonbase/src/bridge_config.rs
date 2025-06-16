@@ -43,20 +43,15 @@ use sp_runtime::traits::Convert;
 use sp_runtime::Vec;
 use sp_std::vec;
 use sp_weights::Weight;
-use xcm::latest::{
-	AssetId, Junction, Location, MaybeErrorCode, OriginKind, SendError, SendResult, SendXcm, Xcm,
-	XcmHash,
-};
+use xcm::latest::{AssetId, Junction, Location, MaybeErrorCode, OriginKind, Xcm};
 use xcm::opaque::VersionedXcm;
 use xcm::prelude::{
 	ExpectTransactStatus, GlobalConsensus, InteriorLocation, NetworkId, PalletInstance, Parachain,
 	Transact, Unlimited, UnpaidExecution,
 };
 use xcm_builder::{
-	ensure_is_remote, BridgeMessage, DispatchBlob, DispatchBlobError, ParentIsPreset,
-	SiblingParachainConvertsVia,
+	BridgeMessage, DispatchBlob, DispatchBlobError, ParentIsPreset, SiblingParachainConvertsVia,
 };
-use xcm_executor::traits::{validate_export, ExportXcm};
 
 pub struct LocalBlobDispatcher<MQ, OurPlace, OurPlaceBridgeInstance>(
 	PhantomData<(MQ, OurPlace, OurPlaceBridgeInstance)>,
