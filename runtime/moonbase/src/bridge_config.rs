@@ -18,8 +18,8 @@ extern crate alloc;
 
 use crate::xcm_config::{SelfLocation, SelfReserve, UniversalLocation};
 use crate::{
-	moonbase_weights, xcm_config, Balances, BridgeMessages, BridgeXcmOver, BridgeXcmRouter, Get,
-	MessageQueue, PolkadotXcm, Runtime, RuntimeEvent, RuntimeHoldReason,
+	moonbase_weights, xcm_config, Balances, BridgeMessages, BridgeXcmOver, Get, MessageQueue,
+	PolkadotXcm, Runtime, RuntimeEvent, RuntimeHoldReason,
 };
 use alloc::collections::btree_set::BTreeSet;
 use bp_parachains::SingleParaStoredHeaderDataBuilder;
@@ -57,55 +57,6 @@ use xcm_builder::{
 	SiblingParachainConvertsVia,
 };
 use xcm_executor::traits::{validate_export, ExportXcm};
-
-/// TODO: This struct can be removed when updating to polkadot-sdk stable2503
-/// Added in https://github.com/paritytech/polkadot-sdk/pull/7126
-///
-/// Implementation of `SendXcm` which uses the given `ExportXcm` implementation in order to forward
-/// the message over a bridge.
-///
-/// This is only useful when the local chain has bridging capabilities.
-pub struct LocalExporter<Exporter, UniversalLocation>(PhantomData<(Exporter, UniversalLocation)>);
-impl<Exporter: ExportXcm, UniversalLocation: Get<InteriorLocation>> SendXcm
-	for LocalExporter<Exporter, UniversalLocation>
-{
-	type Ticket = Exporter::Ticket;
-
-	fn validate(
-		dest: &mut Option<Location>,
-		msg: &mut Option<Xcm<()>>,
-	) -> SendResult<Exporter::Ticket> {
-		// This `clone` ensures that `dest` is not consumed in any case.
-		let d = dest.clone().take().ok_or(SendError::MissingArgument)?;
-		let universal_source = UniversalLocation::get();
-		let devolved =
-			ensure_is_remote(universal_source.clone(), d).map_err(|_| SendError::NotApplicable)?;
-		let (remote_network, remote_location) = devolved;
-		let xcm = msg.take().ok_or(SendError::MissingArgument)?;
-
-		let hash =
-			(Some(Location::here()), &remote_location).using_encoded(sp_io::hashing::blake2_128);
-		let channel = u32::decode(&mut hash.as_ref()).unwrap_or(0);
-
-		validate_export::<Exporter>(
-			remote_network,
-			channel,
-			universal_source,
-			remote_location,
-			xcm.clone(),
-		)
-		.inspect_err(|err| {
-			if let SendError::NotApplicable = err {
-				// We need to make sure that msg is not consumed in case of `NotApplicable`.
-				*msg = Some(xcm);
-			}
-		})
-	}
-
-	fn deliver(ticket: Exporter::Ticket) -> Result<XcmHash, SendError> {
-		Exporter::deliver(ticket)
-	}
-}
 
 pub struct LocalBlobDispatcher<MQ, OurPlace, OurPlaceBridgeInstance>(
 	PhantomData<(MQ, OurPlace, OurPlaceBridgeInstance)>,
@@ -346,7 +297,7 @@ impl pallet_xcm_bridge::Config<XcmOverInstance> for Runtime {
 	type LocalXcmChannelManager = HereOrLocalConsensusXcmChannelManager<
 		bp_xcm_bridge::BridgeId,
 		// handles congestion for local chain router for local bridges
-		BridgeXcmRouter,
+		(),
 		// handles congestion for other local chains with XCM using `update_bridge_status` sent to
 		// the sending chain.
 		UpdateBridgeStatusXcmChannelManager<
@@ -367,30 +318,6 @@ impl pallet_xcm_bridge::Config<XcmOverInstance> for Runtime {
 	>;
 
 	type CongestionLimits = ();
-	// TODO
-	type WeightInfo = ();
-}
-
-/// XCM router instance to BridgeHub with bridging capabilities for `Kusama` global
-/// consensus with dynamic fees and back-pressure.
-pub type ToXcmRouterInstance = pallet_xcm_bridge_router::Instance1;
-impl pallet_xcm_bridge_router::Config<ToXcmRouterInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type DestinationVersion = PolkadotXcm;
-	type MessageExporter = pallet_xcm_bridge_router::impls::ViaLocalBridgeExporter<
-		Runtime,
-		ToXcmRouterInstance,
-		LocalExporter<BridgeXcmOver, UniversalLocation>,
-	>;
-	// For congestion - resolves `BridgeId` using the same algorithm as `pallet_xcm_bridge`.
-	type BridgeIdResolver =
-		pallet_xcm_bridge_router::impls::EnsureIsRemoteBridgeIdResolver<UniversalLocation>;
-	// We don't expect here `update_bridge_status` calls, but let's allow just for root (governance,
-	// ...).
-	type UpdateBridgeStatusOrigin = EnsureRoot<AccountId>;
-
-	type ByteFee = XcmMoonbeamRouterByteFee;
-	type FeeAsset = XcmMoonbeamRouterFeeAssetId;
 	// TODO
 	type WeightInfo = ();
 }

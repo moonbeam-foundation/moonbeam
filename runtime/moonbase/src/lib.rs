@@ -1502,9 +1502,7 @@ construct_runtime! {
 		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 		BridgeMessages: pallet_bridge_messages::<Instance1>::{Pallet, Call, Storage, Event<T>} = 132,
 		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		BridgeXcmOver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason} = 133,
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		BridgeXcmRouter: pallet_xcm_bridge_router::<Instance1>::{Pallet, Call, Storage, Event<T>} = 134
+		BridgeXcmOver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason} = 133
 	}
 }
 

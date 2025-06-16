@@ -371,7 +371,13 @@ pub type XcmRouter = WithUniqueTopic<(
 	// queues.
 	LocalXcmRouter,
 	// Router that exports messages to be delivered to the bridge destination
-	super::BridgeXcmRouter,
+	moonbeam_runtime_common::bridge_send_xcm::BridgeXcmRouter<
+		moonbeam_runtime_common::bridge_send_xcm::LocalExporter<
+			crate::BridgeXcmOver,
+			UniversalLocation,
+		>,
+		PolkadotXcm,
+	>,
 )>;
 
 /// The means for routing XCM messages which are not for local execution into the right message
