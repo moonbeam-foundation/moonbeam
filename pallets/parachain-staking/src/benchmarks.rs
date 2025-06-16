@@ -2694,10 +2694,13 @@ mod benchmarks {
 
 		// Create x delegator accounts with existing locks to migrate
 		for i in 0..x {
+			// Add extra amount to ensure each delegation is unique and larger than previous ones
+			// This prevents hitting the CannotDelegateLessThanOrEqualToLowestBottomWhenFull error
+			let extra_amount = BalanceOf::<T>::from(i.saturating_mul(100u32));
 			let delegator = create_funded_delegator::<T>(
 				"delegator",
 				seed.take(),
-				Zero::zero(),
+				extra_amount,
 				collator.clone(),
 				true,
 				i + 1, // delegation count
@@ -2707,11 +2710,14 @@ mod benchmarks {
 			// Remove from MigratedDelegators to ensure it's not already marked as migrated
 			<MigratedDelegators<T>>::remove(&delegator);
 
+			// Calculate the actual delegation amount (min_delegator_stk + extra_amount)
+			let delegation_amount = min_delegator_stk::<T>() + extra_amount;
+
 			// Set an old-style lock on the account to simulate pre-migration state
 			T::Currency::set_lock(
 				DELEGATOR_LOCK_ID,
 				&delegator,
-				min_delegator_stk::<T>(),
+				delegation_amount,
 				frame_support::traits::WithdrawReasons::all(),
 			);
 
