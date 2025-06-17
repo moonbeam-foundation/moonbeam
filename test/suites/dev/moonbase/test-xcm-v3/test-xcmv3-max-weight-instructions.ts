@@ -54,6 +54,32 @@ describeSuite({
 
     it({
       id: "T01",
+      title: "Should not execute ExportMessage",
+      test: async function () {
+        const xcmMessage = new XcmFragment(dotAsset)
+          .withdraw_asset()
+          .buy_execution()
+          .export_message()
+          .as_v3();
+
+        // Mock the reception of the xcm message
+        await injectHrmpMessageAndSeal(context, paraId, {
+          type: "XcmVersionedXcm",
+          payload: xcmMessage,
+        } as RawXcmMessage);
+
+        // Search for WeightNotComputable error
+        const events = (await api.query.system.events())
+          .filter(({ event }) => api.events.messageQueue.ProcessingFailed.is(event))
+          .map((e) => e.event.data.toHuman() as { error: string });
+
+        expect(events).to.have.lengthOf(1);
+        expect(events[0].error).equals("Unsupported");
+      },
+    });
+
+    it({
+      id: "T02",
       title: "Should not execute LockAsset",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
@@ -79,7 +105,7 @@ describeSuite({
     });
 
     it({
-      id: "T02",
+      id: "T03",
       title: "Should not execute UnlockAsset",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
@@ -105,7 +131,7 @@ describeSuite({
     });
 
     it({
-      id: "T03",
+      id: "T04",
       title: "Should not execute NoteUnlockable",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
@@ -131,7 +157,7 @@ describeSuite({
     });
 
     it({
-      id: "T04",
+      id: "T05",
       title: "Should not execute RequestUnlock",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
@@ -157,7 +183,7 @@ describeSuite({
     });
 
     it({
-      id: "T05",
+      id: "T06",
       title: "Should not execute AliasOrigin",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)

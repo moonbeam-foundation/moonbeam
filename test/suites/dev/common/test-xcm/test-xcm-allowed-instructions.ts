@@ -79,30 +79,5 @@ describeSuite({
         expect(events[0].success).to.be.false; // Fails with InvalidLocation (Expected)
       },
     });
-
-    it({
-      id: "T02",
-      title: "Should allow ExportMessage instruction",
-      test: async function () {
-        const xcmMessage = new XcmFragment(dotAsset)
-          .withdraw_asset()
-          .buy_execution()
-          .export_message()
-          .as_v4();
-
-        // Mock the reception of the xcm message
-        await injectHrmpMessageAndSeal(context, paraId, {
-          type: "XcmVersionedXcm",
-          payload: xcmMessage,
-        } as RawXcmMessage);
-
-        const events = (await api.query.system.events())
-          .filter(({ event }) => api.events.messageQueue.Processed.is(event))
-          .map((e) => e.event.data.toHuman() as { success: boolean });
-
-        expect(events).to.have.lengthOf(1);
-        expect(events[0].success).to.be.false; // Fails with Unroutable (Expected)
-      },
-    });
   },
 });
