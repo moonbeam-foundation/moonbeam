@@ -16,17 +16,14 @@
 
 #[cfg(all(feature = "std", not(feature = "metadata-hash")))]
 fn main() {
-	substrate_wasm_builder::WasmBuilder::init_with_defaults()
-		// Genesis presets increase the runtime side, we only want it enabled in the client
-		.enable_feature("disable-genesis-builder")
-		.build()
+	substrate_wasm_builder::WasmBuilder::init_with_defaults().build()
 }
 
 #[cfg(all(feature = "std", feature = "metadata-hash"))]
 fn main() {
 	substrate_wasm_builder::WasmBuilder::init_with_defaults()
 		.enable_metadata_hash("GLMR", 18)
-		// Genesis presets increase the runtime side, we only want it enabled in the client
+		// Genesis presets increase the runtime size, we only want it enabled in the client
 		.enable_feature("disable-genesis-builder")
 		.build()
 }
