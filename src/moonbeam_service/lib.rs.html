@@ -2650,7 +2650,7 @@
 	block_authoring_duration: Duration,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
 	legacy_block_import_strategy: bool,
-	nimbus_full_pov: bool,
+	max_pov_percentage: u8,
 ) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
 <span class="kw">where
 	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
@@ -2947,7 +2947,7 @@
 			relay_chain_slot_duration,
 			block_authoring_duration,
 			sync_service.clone(),
-			nimbus_full_pov,
+			max_pov_percentage,
 		)<span class="question-mark">?</span>;
 		<span class="comment">/*let parachain_consensus = build_consensus(
 			client.clone(),
@@ -3013,7 +3013,7 @@
 	relay_chain_slot_duration: Duration,
 	block_authoring_duration: Duration,
 	sync_oracle: SO,
-	nimbus_full_pov: bool,
+	max_pov_percentage: u8,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), sc_service::Error&gt;
 <span class="kw">where
 	</span>RuntimeApi: ConstructRuntimeApi&lt;Block, FullClient&lt;RuntimeApi&gt;&gt; + Send + Sync + <span class="lifetime">'static</span>,
@@ -3108,7 +3108,7 @@
 				slot_duration: <span class="prelude-val">None</span>,
 				sync_oracle,
 				reinitialize: <span class="bool-val">false</span>,
-				full_pov_size: nimbus_full_pov,
+				max_pov_percentage,
 			}),
 		);
 	} <span class="kw">else </span>{
@@ -3134,7 +3134,7 @@
 					para_client: client,
 					proposer,
 					relay_client: relay_chain_interface,
-					full_pov_size: nimbus_full_pov,
+					max_pov_percentage,
 				},
 			),
 		);
@@ -3156,7 +3156,7 @@
 	block_authoring_duration: Duration,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
 	legacy_block_import_strategy: bool,
-	nimbus_full_pov: bool,
+	max_pov_percentage: u8,
 ) -&gt; sc_service::error::Result&lt;(TaskManager, Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;)&gt;
 <span class="kw">where
 	</span>RuntimeApi:
@@ -3175,7 +3175,7 @@
 		block_authoring_duration,
 		hwbench,
 		legacy_block_import_strategy,
-		nimbus_full_pov,
+		max_pov_percentage,
 	)
 	.<span class="kw">await
 </span>}
