@@ -1487,8 +1487,8 @@ pub mod pallet {
 		/// staking to the new freeze-based staking in a single transaction.
 		///
 		/// Parameters:
-		/// - `accounts`: List of account IDs to migrate
-		/// - `is_collator`: Whether the accounts are collators (true) or delegators (false)
+		/// - `accounts`: List of tuples containing (account_id, is_collator)
+		///   where is_collator indicates if the account is a collator (true) or delegator (false)
 		///
 		/// The maximum number of accounts that can be migrated in one batch is 100.
 		#[pallet::call_index(33)]
@@ -1497,8 +1497,7 @@ pub mod pallet {
 		)]
 		pub fn migrate_locks_to_freezes_batch(
 			origin: OriginFor<T>,
-			accounts: Vec<T::AccountId>,
-			is_collator: bool,
+			accounts: Vec<(T::AccountId, bool)>,
 		) -> DispatchResult {
 			ensure_signed(origin)?;
 
@@ -1508,9 +1507,9 @@ pub mod pallet {
 				Error::<T>::MigrationBatchSizeExceedsLimit
 			);
 
-			for account in accounts.iter() {
+			for (account, is_collator) in accounts.iter() {
 				// Attempt migration, ignoring any errors to allow partial migration
-				Self::check_and_migrate_lock(account, is_collator)?;
+				Self::check_and_migrate_lock(account, *is_collator)?;
 			}
 
 			Ok(())

@@ -155,8 +155,7 @@ fn delegator_operations_trigger_migration() {
 			// The batch migration should work
 			assert_ok!(ParachainStaking::migrate_locks_to_freezes_batch(
 				RuntimeOrigin::signed(1),
-				vec![2],
-				false, // delegator
+				vec![(2, false)], // delegator
 			));
 
 			// Should be migrated
@@ -186,8 +185,7 @@ fn migrate_locks_to_freezes_batch_basic() {
 			// Batch migrate
 			assert_ok!(ParachainStaking::migrate_locks_to_freezes_batch(
 				RuntimeOrigin::signed(1),
-				vec![1, 2, 3],
-				true, // is_collator
+				vec![(1, true), (2, true), (3, true)], // all collators
 			));
 
 			// Verify all are migrated
@@ -209,14 +207,13 @@ fn migrate_locks_to_freezes_batch_size_limit() {
 		.build()
 		.execute_with(|| {
 			// Create a vector with 101 accounts (exceeds limit of 100)
-			let accounts: Vec<AccountId> = (1..=101).collect();
+			let accounts: Vec<(AccountId, bool)> = (1..=101).map(|i| (i, true)).collect();
 
 			// Should fail due to batch size limit
 			assert_noop!(
 				ParachainStaking::migrate_locks_to_freezes_batch(
 					RuntimeOrigin::signed(1),
 					accounts,
-					true,
 				),
 				Error::<Test>::MigrationBatchSizeExceedsLimit
 			);
@@ -237,16 +234,14 @@ fn migrate_locks_to_freezes_batch_partial_already_migrated() {
 			// Migrate account 2 individually first via batch call
 			assert_ok!(ParachainStaking::migrate_locks_to_freezes_batch(
 				RuntimeOrigin::signed(1),
-				vec![2],
-				true,
+				vec![(2, true)],
 			));
 			assert_migrated(2, true);
 
 			// Now batch migrate all three (including already migrated account 2)
 			assert_ok!(ParachainStaking::migrate_locks_to_freezes_batch(
 				RuntimeOrigin::signed(1),
-				vec![1, 2, 3],
-				true,
+				vec![(1, true), (2, true), (3, true)],
 			));
 
 			// All should be migrated
@@ -391,8 +386,7 @@ fn mixed_migrated_and_unmigrated_accounts() {
 			// Migrate only account 1
 			assert_ok!(ParachainStaking::migrate_locks_to_freezes_batch(
 				RuntimeOrigin::signed(1),
-				vec![1],
-				true,
+				vec![(1, true)],
 			));
 
 			// Account 1 should be migrated, 2 should not
@@ -429,8 +423,7 @@ fn zero_balance_migration() {
 			// Batch migrate
 			assert_ok!(ParachainStaking::migrate_locks_to_freezes_batch(
 				RuntimeOrigin::signed(1),
-				vec![1],
-				true,
+				vec![(1, true)],
 			));
 
 			// Should be marked as migrated
@@ -460,8 +453,7 @@ fn migration_preserves_candidate_state() {
 			// Migrate
 			assert_ok!(ParachainStaking::migrate_locks_to_freezes_batch(
 				RuntimeOrigin::signed(1),
-				vec![1],
-				true,
+				vec![(1, true)],
 			));
 
 			// Verify candidate state is preserved
@@ -471,5 +463,48 @@ fn migration_preserves_candidate_state() {
 
 			// Verify freeze was set correctly and no lock remains
 			assert_freeze_amount_and_no_lock(1, bond_amount, true);
+		});
+}
+
+#[test]
+fn migrate_locks_to_freezes_batch_mixed_collators_and_delegators() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000), (2, 1000), (3, 1000), (4, 1000)])
+		.build()
+		.execute_with(|| {
+			// Setup mixed accounts: 2 collators and 2 delegators
+			setup_collator_with_lock(1, 500);
+			setup_collator_with_lock(2, 400);
+			setup_delegator_with_lock(3, 1, 300);
+			setup_delegator_with_lock(4, 2, 200);
+
+			// Verify none are migrated initially
+			assert_not_migrated(1, true);
+			assert_not_migrated(2, true);
+			assert_not_migrated(3, false);
+			assert_not_migrated(4, false);
+
+			// Batch migrate mixed accounts
+			assert_ok!(ParachainStaking::migrate_locks_to_freezes_batch(
+				RuntimeOrigin::signed(1),
+				vec![
+					(1, true),   // collator
+					(3, false),  // delegator
+					(2, true),   // collator
+					(4, false),  // delegator
+				],
+			));
+
+			// Verify all are migrated
+			assert_migrated(1, true);
+			assert_migrated(2, true);
+			assert_migrated(3, false);
+			assert_migrated(4, false);
+
+			// Verify freeze amounts and no locks remain
+			assert_freeze_amount_and_no_lock(1, 500, true);
+			assert_freeze_amount_and_no_lock(2, 400, true);
+			assert_freeze_amount_and_no_lock(3, 300, false);
+			assert_freeze_amount_and_no_lock(4, 200, false);
 		});
 }

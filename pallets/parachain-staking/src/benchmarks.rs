@@ -2083,7 +2083,7 @@ mod benchmarks {
 
 		// initialize our single collator
 		let sole_collator =
-			create_funded_collator::<T>("collator", 0, initial_stake_amount, true, 1u32, false)?;
+			create_funded_collator::<T>("collator", 0, initial_stake_amount, true, 1u32, true)?;
 		total_staked += initial_stake_amount;
 
 		// generate funded delegator accounts
@@ -2725,14 +2725,13 @@ mod benchmarks {
 		}
 
 		let caller: T::AccountId = whitelisted_caller();
-		let is_collator = false; // We're migrating delegators
+		let accounts_with_roles: Vec<(T::AccountId, bool)> = delegator_accounts
+			.iter()
+			.map(|account| (account.clone(), false))
+			.collect();
 
 		#[extrinsic_call]
-		migrate_locks_to_freezes_batch(
-			RawOrigin::Signed(caller),
-			delegator_accounts.clone(),
-			is_collator,
-		);
+		migrate_locks_to_freezes_batch(RawOrigin::Signed(caller), accounts_with_roles);
 
 		// Verify that migration tracking storage was updated
 		// Check that all delegator accounts have been marked as migrated
