@@ -16,24 +16,39 @@
 
 use crate::{Runtime, Weight};
 use ::pallet_bridge_grandpa::WeightInfoExt as GrandpaWeightInfoExt;
+use ::pallet_bridge_messages::WeightInfoExt as MessagesWeightInfoExt;
 use ::pallet_bridge_parachains::WeightInfoExt as ParachainsWeightInfoExt;
 
 impl GrandpaWeightInfoExt for super::pallet_bridge_grandpa::WeightInfo<Runtime> {
 	fn submit_finality_proof_overhead_from_runtime() -> Weight {
-		// our signed extension:
-		// 1) checks whether relayer registration is active from validate/pre_dispatch;
-		// 2) may slash and deregister relayer from post_dispatch
-		// (2) includes (1), so (2) is the worst case
-		Weight::zero() // TODO(Rodrigo): Confirm later
+		// Update this value if pallet_bridge_relayers is added to the runtime.
+		Weight::zero()
 	}
 }
 
 impl ParachainsWeightInfoExt for super::pallet_bridge_parachains::WeightInfo<Runtime> {
-	fn submit_parachain_heads_overhead_from_runtime() -> Weight {
-		Weight::zero() // TODO(Rodrigo): Confirm later
+	fn expected_extra_storage_proof_size() -> u32 {
+		::pallet_bridge_parachains::weights_ext::EXTRA_STORAGE_PROOF_SIZE
 	}
 
+	fn submit_parachain_heads_overhead_from_runtime() -> Weight {
+		// Update this value if pallet_bridge_relayers is added to the runtime.
+		Weight::zero()
+	}
+}
+
+impl MessagesWeightInfoExt for super::pallet_bridge_messages::WeightInfo<Runtime> {
 	fn expected_extra_storage_proof_size() -> u32 {
-		0 // TODO(Rodrigo): Confirm later
+		::pallet_bridge_messages::EXTRA_STORAGE_PROOF_SIZE
+	}
+
+	fn receive_messages_proof_overhead_from_runtime() -> Weight {
+		// Update this value if pallet_bridge_relayers is added to the runtime.
+		Weight::zero()
+	}
+
+	fn receive_messages_delivery_proof_overhead_from_runtime() -> Weight {
+		// Update this value if pallet_bridge_relayers is added to the runtime.
+		Weight::zero()
 	}
 }
