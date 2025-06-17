@@ -113,7 +113,7 @@ impl Convert<Vec<u8>, Xcm<()>> for UpdateBridgeStatusXcmProvider {
 			Transact {
 				origin_kind: OriginKind::Xcm,
 				call: encoded_call.into(),
-				// TODO: FAIL-CI - add some test for this or remove TODO
+				// TODO: Try to add a test for this weight
 				fallback_max_weight: Some(Weight::from_parts(200_000_000, 6144)),
 			},
 			ExpectTransactStatus(MaybeErrorCode::Success),
@@ -130,11 +130,6 @@ parameter_types! {
 	/// Router expects payment with this `AssetId`.
 	/// (`AssetId` has to be aligned with `BridgeTable`)
 	pub XcmMoonbeamRouterFeeAssetId: AssetId = SelfReserve::get().into();
-
-	/// Base price of every message. Can be adjusted via governance `set_storage` call.
-	pub storage XcmMoonbeamRouterBaseFee: Balance = bp_moonbase::estimate_betanet_to_stagenet_message_fee(
-		bp_moonbase::BaseDeliveryFee::get()
-	);
 
 	pub const RelayChainHeadersToKeep: u32 = 1024;
 	pub const ParachainHeadsToKeep: u32 = 64;
