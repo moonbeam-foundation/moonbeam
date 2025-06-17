@@ -23,8 +23,6 @@ fn main() {
 fn main() {
 	substrate_wasm_builder::WasmBuilder::init_with_defaults()
 		.enable_metadata_hash("DEV", 18)
-		// Genesis presets increase the runtime size, we only want it enabled in the client
-		.enable_feature("disable-genesis-builder")
 		.build()
 }
 
