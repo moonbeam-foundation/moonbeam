@@ -70,18 +70,20 @@ pub mod pallet_bridge_parachains;
 pub mod pallet_xcm_bridge;
 
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-impl ::pallet_bridge_messages::WeightInfoExt for pallet_bridge_messages::WeightInfo<Runtime> {
+impl ::pallet_bridge_messages::WeightInfoExt
+	for pallet_bridge_messages::WeightInfo<crate::Runtime>
+{
 	fn expected_extra_storage_proof_size() -> u32 {
 		::pallet_bridge_messages::EXTRA_STORAGE_PROOF_SIZE
 	}
 
-	fn receive_messages_proof_overhead_from_runtime() -> Weight {
+	fn receive_messages_proof_overhead_from_runtime() -> crate::Weight {
 		// Update this value if pallet_bridge_relayers is added to the runtime.
-		Weight::zero()
+		crate::Weight::zero()
 	}
 
-	fn receive_messages_delivery_proof_overhead_from_runtime() -> Weight {
+	fn receive_messages_delivery_proof_overhead_from_runtime() -> crate::Weight {
 		// Update this value if pallet_bridge_relayers is added to the runtime.
-		Weight::zero()
+		crate::Weight::zero()
 	}
 }
