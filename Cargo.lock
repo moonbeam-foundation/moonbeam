@@ -7414,6 +7414,7 @@ dependencies = [
 name = "moonbeam-evm-tracer"
 version = "0.1.0"
 dependencies = [
+ "environmental",
  "ethereum-types",
  "evm",
  "evm-gasometer",
@@ -7427,6 +7428,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
