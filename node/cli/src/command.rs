@@ -931,7 +931,7 @@ pub fn run() -> Result<()> {
 						cli.run.block_authoring_duration,
 						hwbench,
 						cli.run.legacy_block_import_strategy,
-						cli.run.nimbus_full_pov,
+						cli.run.max_pov_percentage,
 					)
 					.await
 					.map(|r| r.0)
@@ -950,7 +950,7 @@ pub fn run() -> Result<()> {
 						cli.run.block_authoring_duration,
 						hwbench,
 						cli.run.legacy_block_import_strategy,
-						cli.run.nimbus_full_pov,
+						cli.run.max_pov_percentage,
 					)
 					.await
 					.map(|r| r.0)
@@ -969,7 +969,7 @@ pub fn run() -> Result<()> {
 						cli.run.block_authoring_duration,
 						hwbench,
 						cli.run.legacy_block_import_strategy,
-						cli.run.nimbus_full_pov,
+						cli.run.max_pov_percentage,
 					)
 					.await
 					.map(|r| r.0)
