@@ -15,13 +15,11 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use core::marker::PhantomData;
-use frame_support::__private::Get;
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::Encode;
 use sp_std::vec::Vec;
-use xcm::latest::{InteriorLocation, Location, SendError, SendResult, SendXcm, Xcm, XcmHash};
+use xcm::latest::{Location, SendError, SendResult, SendXcm, Xcm, XcmHash};
 use xcm::{GetVersion, IntoVersion, VersionedLocation, VersionedXcm};
-use xcm_builder::{ensure_is_remote, InspectMessageQueues};
-use xcm_executor::traits::{validate_export, ExportXcm};
+use xcm_builder::InspectMessageQueues;
 
 /// The target that will be used when publishing logs related to this pallet.
 pub const LOG_TARGET: &str = "xcm::bridge-router";
@@ -135,54 +133,5 @@ impl<MessageExporter, DestinationVersion> InspectMessageQueues
 	/// return any messages, since it just reuses the `XcmpQueue` router.
 	fn get_messages() -> Vec<(VersionedLocation, Vec<VersionedXcm<()>>)> {
 		Vec::new()
-	}
-}
-
-/// TODO: This struct can be removed when updating to polkadot-sdk stable2503
-/// Added in https://github.com/paritytech/polkadot-sdk/pull/7126
-///
-/// Implementation of `SendXcm` which uses the given `ExportXcm` implementation in order to forward
-/// the message over a bridge.
-///
-/// This is only useful when the local chain has bridging capabilities.
-pub struct LocalExporter<Exporter, UniversalLocation>(PhantomData<(Exporter, UniversalLocation)>);
-impl<Exporter: ExportXcm, UniversalLocation: Get<InteriorLocation>> SendXcm
-	for LocalExporter<Exporter, UniversalLocation>
-{
-	type Ticket = Exporter::Ticket;
-
-	fn validate(
-		dest: &mut Option<Location>,
-		msg: &mut Option<Xcm<()>>,
-	) -> SendResult<Exporter::Ticket> {
-		// This `clone` ensures that `dest` is not consumed in any case.
-		let d = dest.clone().take().ok_or(SendError::MissingArgument)?;
-		let universal_source = UniversalLocation::get();
-		let devolved =
-			ensure_is_remote(universal_source.clone(), d).map_err(|_| SendError::NotApplicable)?;
-		let (remote_network, remote_location) = devolved;
-		let xcm = msg.take().ok_or(SendError::MissingArgument)?;
-
-		let hash =
-			(Some(Location::here()), &remote_location).using_encoded(sp_io::hashing::blake2_128);
-		let channel = u32::decode(&mut hash.as_ref()).unwrap_or(0);
-
-		validate_export::<Exporter>(
-			remote_network,
-			channel,
-			universal_source,
-			remote_location,
-			xcm.clone(),
-		)
-		.inspect_err(|err| {
-			if let SendError::NotApplicable = err {
-				// We need to make sure that msg is not consumed in case of `NotApplicable`.
-				*msg = Some(xcm);
-			}
-		})
-	}
-
-	fn deliver(ticket: Exporter::Ticket) -> Result<XcmHash, SendError> {
-		Exporter::deliver(ticket)
 	}
 }
