@@ -18,10 +18,10 @@
 //!
 
 use super::{
-	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
-	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance,
-	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
-	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	governance, AccountId, AssetId, Balance, Balances, EmergencyParaXcm, Erc20XcmBridge,
+	EvmForeignAssets, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance, ParachainInfo,
+	ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent,
+	RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 use super::moonbeam_weights;
@@ -121,30 +121,6 @@ impl ConvertLocation<H160> for LocationToH160 {
 	}
 }
 
-// The non-reserve fungible transactor type
-// It will use pallet-assets, and the Id will be matched against AsAssetType
-pub type ForeignFungiblesTransactor = FungiblesAdapter<
-	// Use this fungibles implementation:
-	super::Assets,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	(
-		ConvertedConcreteId<
-			AssetId,
-			Balance,
-			AsAssetType<AssetId, AssetType, AssetManager>,
-			JustTry,
-		>,
-	),
-	// Do a simple punn to convert an AccountId20 Location into a native chain account ID:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We dont allow teleports.
-	NoChecking,
-	// We dont track any teleports
-	(),
->;
-
 /// The transactor for our own chain currency.
 pub type LocalAssetTransactor = XcmCurrencyAdapter<
 	// Use this currency:
@@ -161,12 +137,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 >;
 
 // We use all transactors
-pub type AssetTransactors = (
-	LocalAssetTransactor,
-	EvmForeignAssets,
-	ForeignFungiblesTransactor,
-	Erc20XcmBridge,
-);
+pub type AssetTransactors = (LocalAssetTransactor, EvmForeignAssets, Erc20XcmBridge);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -643,10 +614,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = AccountIdToLocation<AccountId>;
-	type CurrencyIdToLocation = CurrencyIdToLocation<(
-		EvmForeignAssets,
-		AsAssetType<AssetId, AssetType, AssetManager>,
-	)>;
+	type CurrencyIdToLocation = CurrencyIdToLocation<(EvmForeignAssets,)>;
 	type XcmSender = XcmRouter;
 	type SelfLocation = SelfLocation;
 	type Weigher = XcmWeigher;
@@ -690,15 +658,6 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 	}
 }
 
-pub struct EvmForeignAssetIdFilter;
-impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
-	fn contains(asset_id: &AssetId) -> bool {
-		use xcm_primitives::AssetTypeGetter as _;
-		// We should return true only if the AssetId doesn't exist in AssetManager
-		AssetManager::get_asset_type(*asset_id).is_none()
-	}
-}
-
 pub type ForeignAssetManagerOrigin = EitherOf<
 	MapSuccessToXcm<EnsureXcm<AllowSiblingParachains>>,
 	MapSuccessToGovernance<
@@ -722,7 +681,7 @@ pub type ForeignAssetManagerOrigin = EitherOf<
 
 impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type AccountIdToH160 = AccountIdToH160;
-	type AssetIdFilter = EvmForeignAssetIdFilter;
+	type AssetIdFilter = Everything;
 	type EvmRunner = EvmRunnerPrecompileOrEthXcm<MoonbeamCall, Self>;
 	type ConvertLocation =
 		SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>;
@@ -781,33 +740,4 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type XcmFeesAccount = XcmFeesAccount;
 	#[cfg(feature = "runtime-benchmarks")]
 	type NotFilteredLocation = RelayLocation;
-}
-
-#[cfg(feature = "runtime-benchmarks")]
-mod testing {
-	use super::*;
-
-	/// This From exists for benchmarking purposes. It has the potential side-effect of calling
-	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
-	impl From<Location> for CurrencyId {
-		fn from(location: Location) -> CurrencyId {
-			use xcm_primitives::AssetTypeGetter;
-
-			// If it does not exist, for benchmarking purposes, we create the association
-			let asset_id = if let Some(asset_id) =
-				AsAssetType::<AssetId, AssetType, AssetManager>::convert_location(&location)
-			{
-				asset_id
-			} else {
-				let asset_type: AssetType = location
-					.try_into()
-					.expect("Location convertion to AssetType should succeed");
-				let asset_id: AssetId = asset_type.clone().into();
-				AssetManager::set_asset_type_asset_id(asset_type, asset_id);
-				asset_id
-			};
-
-			CurrencyId::ForeignAsset(asset_id)
-		}
-	}
 }

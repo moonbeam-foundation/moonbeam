@@ -32,7 +32,6 @@ xcm-primitives = { workspace = true }
 
 # Moonbeam pallets
 moonbeam-xcm-benchmarks = { workspace = true }
-pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
 pallet-emergency-para-xcm = { workspace = true }
@@ -232,7 +231,6 @@ std = [
 	"moonbeam-xcm-benchmarks/std",
 	"moonkit-xcm-primitives/std",
 	"nimbus-primitives/std",
-	"pallet-asset-manager/std",
 	"pallet-assets/std",
 	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
@@ -356,7 +354,6 @@ runtime-benchmarks = [
 	"moonbeam-runtime-common/runtime-benchmarks",
 	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
-	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
@@ -410,7 +407,6 @@ try-runtime = [
 	"frame-system/try-runtime",
 	"frame-try-runtime",
 	"moonbeam-runtime-common/try-runtime",
-	"pallet-asset-manager/try-runtime",
 	"pallet-async-backing/try-runtime",
 	"pallet-author-mapping/try-runtime",
 	"pallet-author-slot-filter/try-runtime",
