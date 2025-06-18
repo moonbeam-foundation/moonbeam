@@ -11,20 +11,12 @@ log = { workspace = true }
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-pallet-scheduler = { workspace = true }
-pallet-assets = { workspace = true }
-pallet-balances = { workspace = true }
-pallet-moonbeam-foreign-assets = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
-xcm = { workspace = true }
-xcm-primitives = { workspace = true }
-
-environmental = { workspace = true }
 
 # Frontier
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
@@ -37,19 +29,12 @@ frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
 frame-benchmarking = { workspace = true, features = ["std"] }
-pallet-balances = { workspace = true, features = ["std", "insecure_zero_ed"] }
 pallet-timestamp = { workspace = true, features = ["std"] }
-precompile-utils = { workspace = true, features = ["std"] }
-rlp = { workspace = true, features = ["std"] }
-sp-io = { workspace = true, features = ["std"] }
-xcm-executor = { workspace = true, features = ["std"] }
 
 [features]
 default = ["std"]
 runtime-benchmarks = ["frame-benchmarking"]
 std = [
-  "environmental/std",
-  "pallet-balances/std",
   "frame-support/std",
   "frame-system/std",
   "scale-info/std",
@@ -59,11 +44,6 @@ std = [
   "sp-std/std",
   "pallet-evm/std",
   "pallet-timestamp/std",
-  "pallet-assets/std",
-  "pallet-moonbeam-foreign-assets/std",
-  "precompile-utils/std",
   "cumulus-primitives-storage-weight-reclaim/std",
-  "rlp/std",
-  "xcm-primitives/std",
 ]
 try-runtime = ["frame-support/try-runtime"]

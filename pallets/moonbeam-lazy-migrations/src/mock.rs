@@ -18,20 +18,16 @@
 
 use super::*;
 use crate as pallet_moonbeam_lazy_migrations;
-use frame_support::traits::{AsEnsureOriginWithArg, ConstU128, EitherOf};
 use frame_support::weights::constants::RocksDbWeight;
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
-use frame_system::{EnsureRoot, EnsureSigned, Origin};
-use pallet_asset_manager::AssetRegistrar;
+use frame_system::Origin;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
-use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use precompile_utils::testing::MockAccount;
 use sp_core::{ConstU32, H160, H256, U256};
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup},
 	BuildStorage, Perbill,
 };
-use xcm::v5::Junction;
 
 pub type AssetId = u128;
 pub type Balance = u128;
@@ -43,32 +39,26 @@ construct_runtime!(
 	pub enum Test
 	{
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Timestamp: pallet_timestamp,
 		EVM: pallet_evm,
 		LazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>},
-		MoonbeamForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
 parameter_types! {
-	pub const BlockHashCount: u32 = 250;
-	pub const MaximumBlockWeight: Weight = Weight::from_parts(1024, 1);
-	pub const MaximumBlockLength: u32 = 2 * 1024;
-	pub const AvailableBlockRatio: Perbill = Perbill::one();
-	pub const SS58Prefix: u8 = 42;
+	pub const BlockHashCount: u64 = 250;
+	pub const SS58Prefix: u16 = 42;
 }
 
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
+	type BlockWeights = ();
+	type BlockLength = ();
 	type DbWeight = RocksDbWeight;
 	type RuntimeOrigin = RuntimeOrigin;
-	type RuntimeTask = RuntimeTask;
+	type RuntimeCall = RuntimeCall;
 	type Nonce = u64;
 	type Block = Block;
-	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
@@ -77,12 +67,10 @@ impl frame_system::Config for Test {
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
-	type AccountData = pallet_balances::AccountData<Balance>;
+	type AccountData = ();
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
-	type BlockWeights = ();
-	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
@@ -91,31 +79,10 @@ impl frame_system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
-	type ExtensionsWeightInfo = ();
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 0;
-}
-impl pallet_balances::Config for Test {
-	type MaxReserves = ();
-	type ReserveIdentifier = ();
-	type MaxLocks = ();
-	type Balance = Balance;
-	type RuntimeEvent = RuntimeEvent;
-	type DustRemoval = ();
-	type ExistentialDeposit = ExistentialDeposit;
-	type AccountStore = System;
-	type WeightInfo = ();
-	type RuntimeHoldReason = ();
-	type FreezeIdentifier = ();
-	type MaxFreezes = ();
-	type RuntimeFreezeReason = ();
-	type DoneSlashHandler = ();
-}
-
-parameter_types! {
-	pub const MinimumPeriod: u64 = 6000 / 2;
+	pub const MinimumPeriod: u64 = 5;
 }
 
 impl pallet_timestamp::Config for Test {
@@ -125,11 +92,21 @@ impl pallet_timestamp::Config for Test {
 	type WeightInfo = ();
 }
 
+pub struct FindAuthor;
+impl frame_support::traits::FindAuthor<H160> for FindAuthor {
+	fn find_author<'a, I>(_digests: I) -> Option<H160>
+	where
+		I: 'a + IntoIterator<Item = (frame_support::ConsensusEngineId, &'a [u8])>,
+	{
+		Some(H160::default())
+	}
+}
+
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
-	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
-	pub GasLimitPovSizeRatio: u64 = 16;
-	pub GasLimitStorageGrowthRatio: u64 = 366;
+	pub const GasLimitPovSizeRatio: u64 = 15;
+	pub PrecompilesValue: ();
+	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
 	pub SuicideQuickClearLimit: u32 = 0;
 }
 
@@ -137,281 +114,58 @@ impl pallet_evm::Config for Test {
 	type FeeCalculator = ();
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
 	type WeightPerGas = WeightPerGas;
+	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
-	type Currency = Balances;
+	type Currency = ();
 	type RuntimeEvent = RuntimeEvent;
-	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = ();
-	type PrecompilesValue = ();
+	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
-	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
-	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
-	type FindAuthor = ();
+	type Runner = pallet_evm::runner::stack::Runner<Self>;
+	type OnChargeTransaction = ();
 	type OnCreate = ();
+	type FindAuthor = FindAuthor;
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
+	type SuicideQuickClearLimit = SuicideQuickClearLimit;
 	type Timestamp = Timestamp;
-	type WeightInfo = ();
-	type AccountProvider = FrameSystemAccountProvider<Test>;
+	type WeightInfo = pallet_evm::weights::SubstrateWeight<Self>;
 }
 
-parameter_types! {
-	pub const AssetDeposit: u128 = 1;
-	pub const MetadataDepositBase: u128 = 1;
-	pub const MetadataDepositPerByte: u128 = 1;
-	pub const ApprovalDeposit: u128 = 1;
-	pub const AssetsStringLimit: u32 = 50;
-	pub const AssetAccountDeposit: u128 = 1;
-}
-
-// Required for runtime benchmarks
-pallet_assets::runtime_benchmarks_enabled! {
-	pub struct BenchmarkHelper;
-	impl<AssetIdParameter> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper
-	where
-		AssetIdParameter: From<u128>,
-	{
-		fn create_asset_id_parameter(id: u32) -> AssetIdParameter {
-			(id as u128).into()
-		}
-	}
-}
-
-impl pallet_assets::Config<()> for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = AssetAccountDeposit;
-	type WeightInfo = ();
-	type RemoveItemsLimit = ConstU32<656>;
-	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
-	type CallbackHandle = ();
-	pallet_assets::runtime_benchmarks_enabled! {
-		type BenchmarkHelper = BenchmarkHelper;
-	}
-}
-
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, TypeInfo)]
-pub enum MockAssetType {
-	Xcm(Location),
-	MockAsset(AssetId),
-}
-
-impl Default for MockAssetType {
-	fn default() -> Self {
-		Self::MockAsset(0)
-	}
-}
-
-impl From<MockAssetType> for AssetId {
-	fn from(asset: MockAssetType) -> AssetId {
-		match asset {
-			MockAssetType::MockAsset(id) => id,
-			MockAssetType::Xcm(id) => {
-				let mut result: [u8; 16] = [0u8; 16];
-				let hash: H256 = id.using_encoded(<Test as frame_system::Config>::Hashing::hash);
-				result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
-				u128::from_le_bytes(result)
-			}
-		}
-	}
-}
-
-impl From<Location> for MockAssetType {
-	fn from(location: Location) -> Self {
-		Self::Xcm(location)
-	}
-}
-
-impl Into<Option<Location>> for MockAssetType {
-	fn into(self) -> Option<Location> {
-		match self {
-			Self::Xcm(location) => Some(location),
-			_ => None,
-		}
-	}
-}
-
-pub struct MockAssetPalletRegistrar;
-
-impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
-	fn create_foreign_asset(
-		asset: u128,
-		min_balance: u128,
-		_metadata: u32,
-		is_sufficient: bool,
-	) -> Result<(), DispatchError> {
-		Assets::force_create(
-			RuntimeOrigin::root(),
-			asset.into(),
-			AssetManager::account_id(),
-			is_sufficient,
-			min_balance,
-		)?;
-		Ok(())
-	}
-
-	fn destroy_foreign_asset(_asset: u128) -> Result<(), DispatchError> {
-		Ok(())
-	}
-
-	fn destroy_asset_dispatch_info_weight(_asset: u128) -> Weight {
-		Weight::from_parts(0, 0)
-	}
-}
-
-impl pallet_asset_manager::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type AssetRegistrarMetadata = u32;
-	type ForeignAssetType = MockAssetType;
-	type AssetRegistrar = MockAssetPalletRegistrar;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type WeightInfo = ();
-}
-
-pub struct AccountIdToH160;
-impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
-	fn convert(account_id: AccountId) -> H160 {
-		account_id.into()
-	}
-}
-
-pub struct SiblingAccountOf;
-impl xcm_executor::traits::ConvertLocation<AccountId> for SiblingAccountOf {
-	fn convert_location(location: &Location) -> Option<AccountId> {
-		let (parents, junctions) = location.unpack();
-		if parents != 1 {
-			return None;
-		}
-		if junctions.len() != 1 {
-			return None;
-		}
-		match junctions[0] {
-			Junction::Parachain(id) => match id {
-				1 => Some(PARA_A),
-				2 => Some(PARA_B),
-				3 => Some(PARA_C),
-				_ => None,
-			},
-			_ => None,
-		}
-	}
-}
-
-pub struct SiblingOrigin;
-impl EnsureOrigin<<Test as frame_system::Config>::RuntimeOrigin> for SiblingOrigin {
-	type Success = Location;
-	fn try_origin(
-		original_origin: <Test as frame_system::Config>::RuntimeOrigin,
-	) -> Result<Self::Success, <Test as frame_system::Config>::RuntimeOrigin> {
-		match original_origin.clone().caller {
-			OriginCaller::system(o) => match o {
-				Origin::<Test>::Signed(account) => {
-					let para_id = if account == PARA_A {
-						1
-					} else if account == PARA_B {
-						2
-					} else if account == PARA_C {
-						3
-					} else {
-						return Err(original_origin);
-					};
-					Ok(Location::new(1, [Junction::Parachain(para_id)]))
-				}
-				_ => Err(original_origin),
-			},
-			_ => Err(original_origin),
-		}
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	fn try_successful_origin() -> Result<<Test as frame_system::Config>::RuntimeOrigin, ()> {
-		Ok(RuntimeOrigin::signed(PARA_A))
-	}
-}
-
-pub type ForeignAssetManagerOrigin =
-	EitherOf<MapSuccessToGovernance<EnsureRoot<AccountId>>, MapSuccessToXcm<SiblingOrigin>>;
-
-impl pallet_moonbeam_foreign_assets::Config for Test {
-	type AccountIdToH160 = AccountIdToH160;
-	type AssetIdFilter = Everything;
-	type EvmRunner = pallet_evm::runner::stack::Runner<Self>;
-	type ConvertLocation = SiblingAccountOf;
-	type ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
-	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
-	type OnForeignAssetCreated = ();
-	type MaxForeignAssets = ConstU32<3>;
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
-	type XcmLocationToH160 = ();
-	type ForeignAssetCreationDeposit = ConstU128<1>;
-	type Balance = Balance;
-	type Currency = Balances;
+pub struct WeightInfo;
+impl crate::WeightInfo for WeightInfo {
+	// Empty implementation - no asset migration functions
 }
 
 impl Config for Test {
-	type WeightInfo = ();
-	type ForeignAssetMigratorOrigin = EnsureRoot<AccountId>;
+	type WeightInfo = WeightInfo;
 }
 
-// Constants for test accounts
-pub const ALITH: AccountId = MockAccount(H160([1; 20]));
-pub const BOB: AccountId = MockAccount(H160([2; 20]));
-
-pub const PARA_A: AccountId = MockAccount(H160([2; 20]));
-pub const PARA_B: AccountId = MockAccount(H160([2; 20]));
-pub const PARA_C: AccountId = MockAccount(H160([2; 20]));
-
-/// Externality builder for pallet migration's mock runtime
-pub(crate) struct ExtBuilder {
-	// endowed accounts with balances
-	balances: Vec<(AccountId, Balance)>,
-}
+pub struct ExtBuilder {}
 
 impl Default for ExtBuilder {
-	fn default() -> ExtBuilder {
-		ExtBuilder {
-			balances: vec![
-				(ALITH, 1000),
-				(BOB, 1000),
-				(AssetManager::account_id(), 1000),
-			],
-		}
+	fn default() -> Self {
+		Self {}
 	}
 }
 
 impl ExtBuilder {
-	pub(crate) fn build(self) -> sp_io::TestExternalities {
+	pub fn build(self) -> sp_io::TestExternalities {
 		let mut storage = frame_system::GenesisConfig::<Test>::default()
 			.build_storage()
 			.expect("Frame system builds valid default genesis config");
-
-		pallet_balances::GenesisConfig::<Test> {
-			balances: self.balances,
-		}
-		.assimilate_storage(&mut storage)
-		.expect("Pallet balances storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(storage);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
+}
+
+pub const ALITH: AccountId = AccountId::new([0x01; 20]);
+pub const BOB: AccountId = AccountId::new([0x02; 20]);
+
+pub fn new_test_ext() -> sp_io::TestExternalities {
+	ExtBuilder::default().build()
 }

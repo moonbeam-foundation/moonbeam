@@ -1158,20 +1158,8 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
-pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		EitherOf<
-			governance::custom_origins::GeneralAdmin,
-			governance::custom_origins::FastGeneralAdmin,
-		>,
-	>,
->;
-
 impl pallet_moonbeam_lazy_migrations::Config for Runtime {
-	type ForeignAssetMigratorOrigin = ForeignAssetMigratorOrigin;
-	type WeightInfo = moonriver_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
+	type WeightInfo = pallet_moonbeam_lazy_migrations::weights::SubstrateWeightInfo<Runtime>;
 }
 
 /// Maintenance mode Call filter
@@ -1545,7 +1533,6 @@ mod benches {
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
 		[pallet_multiblock_migrations, MultiBlockMigrations]
-		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]
