@@ -207,7 +207,7 @@ pub fn testnet_genesis(
 					NetworkId::Polkadot.into(),
 					Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
 				]),
-				Some(bp_messages::LegacyLaneId([0, 0, 0, 0])),
+				Some(Default::default()),
 				None,
 			)],
 			_phantom: Default::default(),

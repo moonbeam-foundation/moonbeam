@@ -24,16 +24,19 @@ pub use bp_bridge_hub_cumulus::{
 };
 use bp_messages::{ChainWithMessages, MessageNonce};
 
-pub use bp_moonbeam_common::{
-	AccountId, AccountInfoStorageMapKeyProvider, Balance, BlockNumber, Hash, Header, Signature,
-	UncheckedExtrinsic,
-};
+pub use moonbeam_core_primitives::{AccountId, Balance, BlockNumber, Hash, Header, Signature};
 
 use bp_runtime::{
 	decl_bridge_finality_runtime_apis, decl_bridge_messages_runtime_apis, Chain, ChainId, Parachain,
 };
 use frame_support::{dispatch::DispatchClass, weights::Weight};
 use sp_runtime::StateVersion;
+
+/// Identifier of Moonriver parachain in the Kusama relay chain.
+pub const PARACHAIN_ID: u32 = 2023;
+
+/// Bridge lane identifier.
+pub type LaneId = bp_messages::HashedLaneId;
 
 /// Moonriver parachain.
 pub struct Moonriver;
@@ -66,7 +69,7 @@ impl Chain for Moonriver {
 }
 
 impl Parachain for Moonriver {
-	const PARACHAIN_ID: u32 = MOONRIVER_KUSAMA_PARACHAIN_ID;
+	const PARACHAIN_ID: u32 = PARACHAIN_ID;
 	const MAX_HEADER_SIZE: u32 = 4_096;
 }
 
@@ -80,18 +83,8 @@ impl ChainWithMessages for Moonriver {
 		MAX_UNCONFIRMED_MESSAGES_IN_CONFIRMATION_TX;
 }
 
-/// Identifier of Moonbeam parachain in the Kusama relay chain.
-pub const MOONRIVER_KUSAMA_PARACHAIN_ID: u32 = 2023;
-
 /// Name of the With-MoonriverKusama messages pallet instance that is deployed at bridged chains.
 pub const WITH_MOONRIVER_KUSAMA_MESSAGES_PALLET_NAME: &str = "BridgeKusamaMessages";
-
-/// Name of the With-MoonriverKusama bridge-relayers pallet instance that is deployed at bridged
-/// chains.
-pub const WITH_MOONRIVER_KUSAMA_RELAYERS_PALLET_NAME: &str = "BridgeRelayers";
-
-/// Bridge lane identifier.
-pub type LaneId = bp_messages::LegacyLaneId;
 
 decl_bridge_finality_runtime_apis!(moonriver_kusama);
 decl_bridge_messages_runtime_apis!(moonriver_kusama, LaneId);

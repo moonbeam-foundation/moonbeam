@@ -24,16 +24,15 @@ pub use bp_bridge_hub_cumulus::{
 };
 use bp_messages::{ChainWithMessages, MessageNonce};
 
-pub use bp_moonbeam_common::{
-	AccountId, AccountInfoStorageMapKeyProvider, Balance, BlockNumber, Hash, Header, Signature,
-	UncheckedExtrinsic,
-};
-
 use bp_runtime::{
 	decl_bridge_finality_runtime_apis, decl_bridge_messages_runtime_apis, Chain, ChainId, Parachain,
 };
 use frame_support::{dispatch::DispatchClass, weights::Weight};
+pub use moonbeam_core_primitives::{AccountId, Balance, BlockNumber, Hash, Header, Signature};
 use sp_runtime::{FixedPointNumber, FixedU128, Saturating, StateVersion};
+
+/// Bridge lane identifier.
+pub type LaneId = bp_messages::HashedLaneId;
 
 /// Moonbeam parachain.
 pub struct Moonbeam;
@@ -89,9 +88,6 @@ pub const WITH_MOONBEAM_POLKADOT_MESSAGES_PALLET_NAME: &str = "BridgePolkadotMes
 /// Name of the With-MoonbeamPolkadot bridge-relayers pallet instance that is deployed at bridged
 /// chains.
 pub const WITH_MOONBEAM_POLKADOT_RELAYERS_PALLET_NAME: &str = "BridgeRelayers";
-
-/// Bridge lane identifier.
-pub type LaneId = bp_messages::LegacyLaneId;
 
 decl_bridge_finality_runtime_apis!(moonbeam_polkadot);
 decl_bridge_messages_runtime_apis!(moonbeam_polkadot, LaneId);

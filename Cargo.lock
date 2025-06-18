@@ -1128,25 +1128,12 @@ name = "bp-moonbeam"
 version = "0.0.1"
 dependencies = [
  "bp-bridge-hub-cumulus",
- "bp-header-chain",
  "bp-messages",
- "bp-moonbeam-common",
  "bp-runtime",
  "frame-support",
  "frame-system",
- "sp-api",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "bp-moonbeam-common"
-version = "0.0.1"
-dependencies = [
- "bp-runtime",
- "frame-support",
  "moonbeam-core-primitives",
- "sp-core",
+ "sp-api",
  "sp-runtime",
  "sp-std",
 ]
@@ -1156,12 +1143,11 @@ name = "bp-moonriver"
 version = "0.0.1"
 dependencies = [
  "bp-bridge-hub-cumulus",
- "bp-header-chain",
  "bp-messages",
- "bp-moonbeam-common",
  "bp-runtime",
  "frame-support",
  "frame-system",
+ "moonbeam-core-primitives",
  "sp-api",
  "sp-runtime",
  "sp-std",
