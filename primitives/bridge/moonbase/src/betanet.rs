@@ -22,10 +22,9 @@ use bp_bridge_hub_cumulus::{
 };
 use bp_messages::{ChainWithMessages, MessageNonce, Weight};
 use bp_runtime::{Chain, ChainId, Parachain};
-use frame_support::__private::StateVersion;
 use frame_support::dispatch::DispatchClass;
-
 pub use moonbeam_core_primitives::{AccountId, Balance, BlockNumber, Hash, Header, Signature};
+use sp_runtime::StateVersion;
 
 pub const PARACHAIN_ID: u32 = 888;
 /// Name of the messages pallet instance that is deployed at bridged chains.
