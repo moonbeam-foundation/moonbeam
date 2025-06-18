@@ -40,7 +40,6 @@ use bp_xcm_bridge::Receiver;
 use fp_rpc::ConvertTransaction;
 use moonbeam_runtime::bridge_config::XcmOverKusamaInstance;
 use moonbeam_runtime::{EvmForeignAssets, XcmWeightTrader};
-use sp_runtime::traits::MaybeEquivalence;
 use xcm::latest::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {

@@ -41,7 +41,6 @@ use fp_rpc::ConvertTransaction;
 use moonriver_runtime::bridge_config::XcmOverPolkadotInstance;
 use moonriver_runtime::{Assets, EvmForeignAssets, XcmWeightTrader};
 use pallet_transaction_payment::Multiplier;
-use sp_runtime::traits::MaybeEquivalence;
 use xcm::latest::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
