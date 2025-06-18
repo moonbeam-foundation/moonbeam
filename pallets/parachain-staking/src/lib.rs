@@ -1490,7 +1490,7 @@ pub mod pallet {
 		///
 		/// The maximum number of accounts that can be migrated in one batch is 100.
 		#[pallet::call_index(33)]
-		#[pallet::weight({			
+		#[pallet::weight({
 			const MAX_ACCOUNTS: u32 = 100;
 			T::WeightInfo::migrate_locks_to_freezes_batch_delegators(MAX_ACCOUNTS).max(T::WeightInfo::migrate_locks_to_freezes_batch_candidates(MAX_ACCOUNTS))
 		})]

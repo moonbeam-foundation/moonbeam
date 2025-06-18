@@ -25,7 +25,6 @@ use crate::{
 };
 use frame_benchmarking::v2::*;
 use frame_support::traits::tokens::fungible::{Inspect, Mutate};
-use frame_support::traits::LockableCurrency;
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
 use frame_support::{traits::ConstU32, BoundedVec};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
@@ -2641,7 +2640,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn migrate_locks_to_freezes_batch_delegators(x: Linear<1, 100>) -> Result<(), BenchmarkError> {
-		use crate::{MigratedDelegators, DELEGATOR_LOCK_ID};
+		use crate::MigratedDelegators;
 		use frame_benchmarking::whitelisted_caller;
 
 		let mut seed = Seed::new();
@@ -2699,7 +2698,7 @@ mod benchmarks {
 
 	#[benchmark]
 	fn migrate_locks_to_freezes_batch_candidates(x: Linear<1, 100>) -> Result<(), BenchmarkError> {
-		use crate::{MigratedCandidates, COLLATOR_LOCK_ID};
+		use crate::MigratedCandidates;
 		use frame_benchmarking::whitelisted_caller;
 
 		let mut seed = Seed::new();
