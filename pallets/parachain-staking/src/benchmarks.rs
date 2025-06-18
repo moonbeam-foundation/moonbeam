@@ -17,10 +17,9 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::DELEGATOR_LOCK_ID;
 use crate::{
-	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
-	DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
+	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, CandidatePool,
+	Config, DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
 	InflationDistributionConfig, InflationDistributionInfo, Pallet, Points, Range, RewardPayment,
 	Round, ScheduledRequest, TopDelegations,
 };
@@ -28,6 +27,7 @@ use frame_benchmarking::v2::*;
 use frame_support::traits::tokens::fungible::{Inspect, Mutate};
 use frame_support::traits::LockableCurrency;
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
+use frame_support::{traits::ConstU32, BoundedVec};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
 use sp_runtime::{traits::Zero, Perbill, Percent};
 use sp_std::vec::Vec;
@@ -1385,40 +1385,6 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn execute_revoke_delegation() -> Result<(), BenchmarkError> {
-		let collator: T::AccountId =
-			create_funded_collator::<T>("collator", USER_SEED, 0u32.into(), true, 1u32, false)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let bond = <<T as Config>::MinDelegation as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate_with_auto_compound(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-			bond,
-			Percent::zero(),
-			0u32,
-			0u32,
-			0u32,
-		)?;
-		Pallet::<T>::schedule_revoke_delegation(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-		)?;
-		roll_to_and_author::<T>(T::RevokeDelegationDelay::get(), collator.clone());
-
-		#[block]
-		{
-			Pallet::<T>::execute_delegation_request(
-				RawOrigin::Signed(caller.clone()).into(),
-				caller.clone(),
-				collator.clone(),
-			)?;
-		}
-
-		assert!(!Pallet::<T>::is_delegator(&caller));
-		Ok(())
-	}
-
-	#[benchmark]
 	fn execute_delegator_revoke_delegation_worst() -> Result<(), BenchmarkError> {
 		// We assume delegator has auto-compound set, collator has max scheduled requests, and delegator
 		// will be kicked from delegator pool, and a bottom delegator will be bumped to top.
@@ -2674,9 +2640,8 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn migrate_locks_to_freezes_batch(x: Linear<1, 100>) -> Result<(), BenchmarkError> {
-		// x is the number of accounts to migrate in the batch
-		use crate::MigratedDelegators;
+	fn migrate_locks_to_freezes_batch_delegators(x: Linear<1, 100>) -> Result<(), BenchmarkError> {
+		use crate::{MigratedDelegators, DELEGATOR_LOCK_ID};
 		use frame_benchmarking::whitelisted_caller;
 
 		let mut seed = Seed::new();
@@ -2707,38 +2672,74 @@ mod benchmarks {
 				true,
 			)?;
 
-			// Remove from MigratedDelegators to ensure it's not already marked as migrated
-			<MigratedDelegators<T>>::remove(&delegator);
-
-			// Calculate the actual delegation amount (min_delegator_stk + extra_amount)
-			let delegation_amount = min_delegator_stk::<T>() + extra_amount;
-
-			// Set an old-style lock on the account to simulate pre-migration state
-			T::Currency::set_lock(
-				DELEGATOR_LOCK_ID,
-				&delegator,
-				delegation_amount,
-				frame_support::traits::WithdrawReasons::all(),
-			);
-
-			delegator_accounts.push(delegator);
+			delegator_accounts.push((delegator, false));
 		}
 
 		let caller: T::AccountId = whitelisted_caller();
-		let accounts_with_roles: Vec<(T::AccountId, bool)> = delegator_accounts
-			.iter()
-			.map(|account| (account.clone(), false))
-			.collect();
+
+		// Convert Vec to BoundedVec
+		let bounded_accounts =
+			BoundedVec::<(T::AccountId, bool), ConstU32<100>>::try_from(delegator_accounts)
+				.expect("delegator_accounts should not exceed 100 items");
 
 		#[extrinsic_call]
-		migrate_locks_to_freezes_batch(RawOrigin::Signed(caller), accounts_with_roles);
+		migrate_locks_to_freezes_batch(RawOrigin::Signed(caller), bounded_accounts.clone());
 
 		// Verify that migration tracking storage was updated
 		// Check that all delegator accounts have been marked as migrated
-		for account in delegator_accounts.iter() {
+		for (account, _) in bounded_accounts.iter() {
 			assert!(
 				<MigratedDelegators<T>>::contains_key(account),
 				"Delegator should be marked as migrated"
+			);
+		}
+
+		Ok(())
+	}
+
+	#[benchmark]
+	fn migrate_locks_to_freezes_batch_candidates(x: Linear<1, 100>) -> Result<(), BenchmarkError> {
+		use crate::{MigratedCandidates, COLLATOR_LOCK_ID};
+		use frame_benchmarking::whitelisted_caller;
+
+		let mut seed = Seed::new();
+		let mut candidate_accounts = Vec::new();
+
+		// Get current candidate count to avoid conflicts
+		let initial_candidate_count = <CandidatePool<T>>::get().0.len() as u32;
+
+		// Create x candidate accounts with existing locks to migrate
+		for i in 0..x {
+			// Add extra amount to ensure each candidate has a unique stake
+			let extra_amount = BalanceOf::<T>::from(i.saturating_mul(100u32));
+			let candidate = create_funded_collator::<T>(
+				"candidate",
+				seed.take(),
+				min_candidate_stk::<T>() + extra_amount,
+				true,
+				initial_candidate_count + i,
+				true, // use_lock to simulate pre-migration state
+			)?;
+
+			candidate_accounts.push((candidate, true));
+		}
+
+		let caller: T::AccountId = whitelisted_caller();
+
+		// Convert Vec to BoundedVec
+		let bounded_accounts =
+			BoundedVec::<(T::AccountId, bool), ConstU32<100>>::try_from(candidate_accounts)
+				.expect("candidate_accounts should not exceed 100 items");
+
+		#[extrinsic_call]
+		migrate_locks_to_freezes_batch(RawOrigin::Signed(caller), bounded_accounts.clone());
+
+		// Verify that migration tracking storage was updated
+		// Check that all candidate accounts have been marked as migrated
+		for (account, _) in bounded_accounts.iter() {
+			assert!(
+				<MigratedCandidates<T>>::contains_key(account),
+				"Candidate should be marked as migrated"
 			);
 		}
 

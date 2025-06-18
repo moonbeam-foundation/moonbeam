@@ -272,7 +272,6 @@ pub mod pallet {
 		CannotSetAboveMaxCandidates,
 		MarkingOfflineNotEnabled,
 		CurrentRoundTooLow,
-		MigrationBatchSizeExceedsLimit,
 	}
 
 	#[pallet::event]
@@ -1480,7 +1479,6 @@ pub mod pallet {
 			});
 			Ok(().into())
 		}
-
 		/// Batch migrate locks to freezes for a list of accounts.
 		///
 		/// This function allows migrating multiple accounts from the old lock-based
@@ -1492,20 +1490,15 @@ pub mod pallet {
 		///
 		/// The maximum number of accounts that can be migrated in one batch is 100.
 		#[pallet::call_index(33)]
-		#[pallet::weight(
-			T::WeightInfo::migrate_locks_to_freezes_batch(accounts.len() as u32)
-		)]
+		#[pallet::weight({			
+			const MAX_ACCOUNTS: u32 = 100;
+			T::WeightInfo::migrate_locks_to_freezes_batch_delegators(MAX_ACCOUNTS).max(T::WeightInfo::migrate_locks_to_freezes_batch_candidates(MAX_ACCOUNTS))
+		})]
 		pub fn migrate_locks_to_freezes_batch(
 			origin: OriginFor<T>,
-			accounts: Vec<(T::AccountId, bool)>,
+			accounts: BoundedVec<(T::AccountId, bool), ConstU32<100>>,
 		) -> DispatchResult {
 			ensure_signed(origin)?;
-
-			// Limit batch size to prevent excessive weight consumption
-			ensure!(
-				accounts.len() <= 100,
-				Error::<T>::MigrationBatchSizeExceedsLimit
-			);
 
 			for (account, is_collator) in accounts.iter() {
 				// Attempt migration, ignoring any errors to allow partial migration
@@ -1528,9 +1521,9 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		/// Check if an account has been migrated from lock to freeze
-		/// If not migrated, perform the migration
-		/// Returns true if migration was performed, false if already migrated
+		/// Check if an account has been migrated from lock to freeze.
+		/// 
+		/// Returns `true` if migration was performed, `false` if already migrated or is not a collator/delegator
 		///
 		/// `is_collator` determines whether the account is a collator or delegator
 		fn check_and_migrate_lock(
@@ -1542,11 +1535,11 @@ pub mod pallet {
 			// Check if already migrated
 			if is_collator {
 				if <MigratedCandidates<T>>::contains_key(account) {
-					return Ok(false); // Already migrated
+					return Ok(false);
 				}
 			} else {
 				if <MigratedDelegators<T>>::contains_key(account) {
-					return Ok(false); // Already migrated
+					return Ok(false);
 				}
 			}
 
@@ -1560,14 +1553,16 @@ pub mod pallet {
 			// Get the amount that should be locked/frozen from storage
 			let amount = if is_collator {
 				// For collators, get the bond amount from storage
-				<CandidateInfo<T>>::get(account)
-					.map(|info| info.bond)
-					.unwrap_or_default()
+				match <CandidateInfo<T>>::get(account) {
+					Some(info) => info.bond,
+					None => return Ok(false),
+				}
 			} else {
 				// For delegators, get the total delegated amount from storage
-				<DelegatorState<T>>::get(account)
-					.map(|state| state.total)
-					.unwrap_or_default()
+				match <DelegatorState<T>>::get(account) {
+					Some(state) => state.total,
+					None => return Ok(false),
+				}
 			};
 
 			if amount > BalanceOf::<T>::zero() {
@@ -1576,13 +1571,6 @@ pub mod pallet {
 
 				// Set the freeze
 				T::Currency::set_freeze(&freeze_reason.into(), account, amount)?;
-
-				log::debug!(
-					"Migrated {:?} lock to freeze for account {:?} with amount {:?}",
-					if is_collator { "collator" } else { "delegator" },
-					account,
-					amount
-				);
 			}
 
 			if is_collator {
