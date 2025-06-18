@@ -181,6 +181,39 @@ export async function injectHrmpMessageAndSeal(
   return block;
 }
 
+/**
+ * Patches XCM location data structures to ensure proper formatting for XCM v4 and v5.
+ * Recursively transforms junction objects to arrays where needed for compatibility.
+ * This function is specifically designed for use with XCM v4 and v5 only.
+ *
+ * @param value - The location data structure to patch
+ * @returns The patched location data structure
+ *
+ * @example
+ * // Converts this: { X1: { Parachain: 1000 } }
+ * // to this: { X1: [ { Parachain: 1000 } ] }
+ */
+function patchLocation(value: any) {
+  if (value && typeof value === "object") {
+    if (Array.isArray(value)) {
+      return value.map(patchLocation);
+    }
+    for (const k of Object.keys(value)) {
+      if (k === "Concrete" || k === "Abstract") {
+        return patchLocation(value[k]);
+      }
+      if (k.match(/^X\d$/g) && !Array.isArray(value[k])) {
+        value[k] = Object.entries(value[k]).map(([k, v]) => ({
+          [k]: patchLocation(v),
+        }));
+      } else {
+        value[k] = patchLocation(value[k]);
+      }
+    }
+  }
+  return value;
+}
+
 interface Junction {
   Parachain?: number;
   AccountId32?: { network: "Any" | XcmV3JunctionNetworkId["type"] | null; id: Uint8Array | string };
@@ -317,7 +350,7 @@ export class XcmFragment {
         // Ticket seems to indicate the version of the assets
         ticket: {
           parents: 0,
-          interior: { X1: { GeneralIndex: 4 } },
+          interior: { X1: { GeneralIndex: 5 } },
         },
       },
     });
@@ -466,29 +499,15 @@ export class XcmFragment {
 
   /// XCM V4 calls
   as_v4(): any {
-    const patchLocationV4recursively = (value: any) => {
-      // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
-      if (value && typeof value === "object") {
-        if (Array.isArray(value)) {
-          return value.map(patchLocationV4recursively);
-        }
-        for (const k of Object.keys(value)) {
-          if (k === "Concrete" || k === "Abstract") {
-            return patchLocationV4recursively(value[k]);
-          }
-          if (k.match(/^X\d$/g) && !Array.isArray(value[k])) {
-            value[k] = Object.entries(value[k]).map(([k, v]) => ({
-              [k]: patchLocationV4recursively(v),
-            }));
-          } else {
-            value[k] = patchLocationV4recursively(value[k]);
-          }
-        }
-      }
-      return value;
-    };
     return {
-      V4: this.instructions.map((inst) => patchLocationV4recursively(inst)),
+      V4: this.instructions.map((inst) => patchLocation(inst)),
+    };
+  }
+
+  /// XCM V5 calls
+  as_v5(): any {
+    return {
+      V5: this.instructions.map((inst) => patchLocation(inst)),
     };
   }
 
@@ -811,7 +830,7 @@ export class XcmFragment {
     return this;
   }
 
-  // Overrides the weight limit of the first buyExeuction encountered
+  // Overrides the weight limit of the first buyExecution encountered
   // with the measured weight
   async override_weight(context: DevModeContext): Promise<this> {
     const message: XcmVersionedXcm = context
@@ -986,7 +1005,7 @@ export const sendCallAsPara = async (
   let didSucceed = false;
   let errorName: string | null = null;
 
-  const transactStatusQuery = transactStatusDecoded.asV4[0].asQueryResponse;
+  const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
   expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
   const dispatch = transactStatusQuery.response.asDispatchResult;
   if (dispatch.isSuccess) {
@@ -1106,13 +1125,13 @@ export const sendCallAsDescendedOrigin = async (
   let didSucceed = false;
   let errorName: string | null = null;
 
-  if (transactStatusDecoded.asV4[0].isSubscribeVersion) {
+  if (transactStatusDecoded.asV5[0].isSubscribeVersion) {
     // Successful executions don't generate response messages in the same block
     // instead, they send a subscription message to the destination parachain
     // We assume that the call was successful if we receive a subscription message
     didSucceed = true;
   } else {
-    const transactStatusQuery = transactStatusDecoded.asV4[0].asQueryResponse;
+    const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
     expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
     const dispatch = transactStatusQuery.response.asDispatchResult;
     if (dispatch.isSuccess) {

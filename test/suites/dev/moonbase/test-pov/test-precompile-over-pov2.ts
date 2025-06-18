@@ -11,26 +11,20 @@ import { type Abi, encodeFunctionData } from "viem";
 import { type HeavyContract, deployHeavyContracts, ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D012705",
-  title: "PoV precompile test - PoV Limit (3.5Mb in Dev)",
+  id: "D022704",
+  title: "PoV precompile test - PoV Limit (6.5Mb in Dev)",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
     let contracts: HeavyContract[];
     let batchAbi: Abi;
     let proxyAbi: Abi;
     let proxyAddress: `0x${string}`;
-    let emptyBlockProofSize: bigint;
     let MAX_ETH_POV_PER_TX: bigint;
 
     beforeAll(async () => {
       const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
       const constants = ConstantStore(context);
       MAX_ETH_POV_PER_TX = constants.MAX_ETH_POV_PER_TX.get(specVersion);
-
-      // Create an empty block to estimate empty block proof size
-      const { block } = await context.createBlock();
-      // Empty blocks usually do not exceed 50kb
-      emptyBlockProofSize = BigInt(block.proofSize || 50_000);
 
       const { contractAddress: contractAdd1, abi } = await deployCreateCompiledContract(
         context,
@@ -78,8 +72,7 @@ describeSuite({
         });
 
         const { result, block } = await context.createBlock(rawSigned);
-        expect(block.proofSize).to.be.at.least(Number(15_000));
-        expect(block.proofSize).to.be.at.most(Number(30_000n + emptyBlockProofSize));
+        expect(block.proofSize).toMatchInlineSnapshot(`109332`);
         expect(result?.successful).to.equal(true);
       },
     });

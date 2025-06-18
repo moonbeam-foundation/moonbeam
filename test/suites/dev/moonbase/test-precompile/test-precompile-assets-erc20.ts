@@ -7,7 +7,7 @@ import { type Abi, decodeAbiParameters, encodeFunctionData } from "viem";
 import { mockOldAssetBalance } from "../../../../helpers";
 
 describeSuite({
-  id: "D012803",
+  id: "D022803",
   title: "Precompiles - Assets-ERC20 Wasm",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

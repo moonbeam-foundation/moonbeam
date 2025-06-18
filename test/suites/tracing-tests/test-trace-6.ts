@@ -10,7 +10,7 @@ import {
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "T06",
+  id: "T07",
   title: "Trace (call list)",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

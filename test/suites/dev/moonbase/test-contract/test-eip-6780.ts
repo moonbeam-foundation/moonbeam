@@ -4,7 +4,7 @@ import { GLMR, BALTATHAR_ADDRESS } from "@moonwall/util";
 import { decodeEventLog } from "viem";
 
 describeSuite({
-  id: "D010612",
+  id: "D020510",
   title: "EIP-6780 - Self Destruct",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

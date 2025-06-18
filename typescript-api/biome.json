@@ -16,6 +16,9 @@
         "rules": {
             "suspicious": {
                 "noShadowRestrictedNames": "off"
+            },
+            "complexity": {
+              "noBannedTypes": "warn"
             }
         }
     }

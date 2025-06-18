@@ -13,8 +13,10 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+extern crate alloc;
 
 use crate::{AssetId, Error, Pallet};
+use alloc::format;
 use ethereum_types::{BigEndianHash, H160, H256, U256};
 use fp_evm::{ExitReason, ExitSucceed};
 use frame_support::ensure;
@@ -25,7 +27,7 @@ use precompile_utils::solidity::codec::{Address, BoundedString};
 use precompile_utils::solidity::Codec;
 use precompile_utils_macro::keccak256;
 use sp_runtime::traits::ConstU32;
-use sp_runtime::{format, DispatchError, SaturatedConversion};
+use sp_runtime::{DispatchError, SaturatedConversion};
 use sp_std::vec::Vec;
 use xcm::latest::Error as XcmError;
 
@@ -40,10 +42,12 @@ const ERC20_PAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 150_500
 pub(crate) const ERC20_TRANSFER_GAS_LIMIT: u64 = 160_000; // highest failure: 154_000
 pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 160_000; // highest failure: 153_000
 const ERC20_UNPAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 149_500
+pub(crate) const ERC20_BALANCE_OF_GAS_LIMIT: u64 = 160_000; // Calculated effective gas: max(used: 24276, pov: 150736, storage: 0) = 150736
 
 #[derive(Debug)]
 pub enum EvmError {
 	BurnFromFail(String),
+	BalanceOfFail(String),
 	ContractReturnInvalidValue,
 	DispatchError(DispatchError),
 	EvmCallFail(String),
@@ -63,6 +67,10 @@ impl From<EvmError> for XcmError {
 			EvmError::BurnFromFail(err) => {
 				log::debug!("BurnFromFail error: {:?}", err);
 				XcmError::FailedToTransactAsset("Erc20 contract call burnFrom fail")
+			}
+			EvmError::BalanceOfFail(err) => {
+				log::debug!("BalanceOfFail error: {:?}", err);
+				XcmError::FailedToTransactAsset("Erc20 contract call balanceOf fail")
 			}
 			EvmError::ContractReturnInvalidValue => {
 				XcmError::FailedToTransactAsset("Erc20 contract return invalid value")
@@ -252,8 +260,7 @@ impl<T: crate::Config> EvmCaller<T> {
 		);
 
 		// return value is true.
-		let mut bytes = [0u8; 32];
-		U256::from(1).to_big_endian(&mut bytes);
+		let bytes: [u8; 32] = U256::from(1).to_big_endian();
 
 		// Check return value to make sure not calling on empty contracts.
 		ensure!(
@@ -448,11 +455,52 @@ impl<T: crate::Config> EvmCaller<T> {
 
 		Ok(())
 	}
+
+	// Call contract selector "balanceOf"
+	pub(crate) fn erc20_balance_of(asset_id: AssetId, account: H160) -> Result<U256, EvmError> {
+		let mut input = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
+		// Selector
+		input.extend_from_slice(&keccak256!("balanceOf(address)")[..4]);
+		// append account address
+		input.extend_from_slice(H256::from(account).as_bytes());
+
+		let exec_info = T::EvmRunner::call(
+			Pallet::<T>::account_id(),
+			Pallet::<T>::contract_address_from_asset_id(asset_id),
+			input,
+			U256::default(),
+			ERC20_BALANCE_OF_GAS_LIMIT,
+			None,
+			None,
+			None,
+			Default::default(),
+			false,
+			false,
+			None,
+			None,
+			&<T as pallet_evm::Config>::config(),
+		)
+		.map_err(|err| EvmError::EvmCallFail(format!("{:?}", err.error.into())))?;
+
+		ensure!(
+			matches!(
+				exec_info.exit_reason,
+				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
+			),
+			{
+				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
+				EvmError::BalanceOfFail(err)
+			}
+		);
+
+		let balance = U256::from_big_endian(&exec_info.value);
+		Ok(balance)
+	}
 }
 
 fn error_on_execution_failure(reason: &ExitReason, data: &[u8]) -> String {
 	match reason {
-		ExitReason::Succeed(_) => String::new(),
+		ExitReason::Succeed(_) => alloc::string::String::new(),
 		ExitReason::Error(err) => format!("evm error: {err:?}"),
 		ExitReason::Fatal(err) => format!("evm fatal: {err:?}"),
 		ExitReason::Revert(_) => extract_revert_message(data),
@@ -461,7 +509,7 @@ fn error_on_execution_failure(reason: &ExitReason, data: &[u8]) -> String {
 
 /// The data should contain a UTF-8 encoded revert reason with a minimum size consisting of:
 /// error function selector (4 bytes) + offset (32 bytes) + reason string length (32 bytes)
-fn extract_revert_message(data: &[u8]) -> String {
+fn extract_revert_message(data: &[u8]) -> alloc::string::String {
 	const LEN_START: usize = 36;
 	const MESSAGE_START: usize = 68;
 	const BASE_MESSAGE: &str = "VM Exception while processing transaction: revert";
@@ -470,7 +518,8 @@ fn extract_revert_message(data: &[u8]) -> String {
 		return BASE_MESSAGE.into();
 	}
 	// Extract message length and calculate end position
-	let message_len = U256::from(&data[LEN_START..MESSAGE_START]).saturated_into::<usize>();
+	let message_len =
+		U256::from_big_endian(&data[LEN_START..MESSAGE_START]).saturated_into::<usize>();
 	let message_end = MESSAGE_START.saturating_add(message_len);
 	// Return base message if data is shorter than expected message end
 	if data.len() < message_end {

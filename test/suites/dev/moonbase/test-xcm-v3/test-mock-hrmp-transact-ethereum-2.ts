@@ -11,7 +11,7 @@ import {
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D014024",
+  id: "D024023",
   title: "Mock XCM - receive horizontal transact ETHEREUM (call)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

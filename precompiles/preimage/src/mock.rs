@@ -79,6 +79,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -97,6 +98,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
@@ -141,7 +143,6 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;

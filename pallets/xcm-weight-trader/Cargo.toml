@@ -9,6 +9,10 @@ version = "0.1.0"
 log = { workspace = true }
 serde = { workspace = true }
 
+# Moonbeam
+moonbeam-core-primitives = { workspace = true }
+pallet-moonbeam-foreign-assets = { workspace = true}
+
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }

@@ -4,7 +4,7 @@ import { ALITH_ADDRESS } from "@moonwall/util";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D010401",
+  id: "D010101",
   title: "Block 1",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

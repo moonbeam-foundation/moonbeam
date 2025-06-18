@@ -257,6 +257,8 @@ pub mod pallet {
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
+		EvmCallMintIntoFail,
+		EvmCallTransferFail,
 		EvmInternalError,
 		/// Account has insufficient balance for locking
 		InsufficientBalance,
@@ -405,7 +407,30 @@ pub mod pallet {
 			.map_err(Into::into)
 		}
 
-		/// Aprrove a spender to spend a certain amount of tokens from the owner account
+		/// Transfer an asset from an account to another one
+		pub fn transfer(
+			asset_id: AssetId,
+			from: T::AccountId,
+			to: T::AccountId,
+			amount: U256,
+		) -> Result<(), evm::EvmError> {
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_transfer(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(from),
+					T::AccountIdToH160::convert(to),
+					amount,
+				)
+			})
+			.map_err(Into::into)
+		}
+
+		pub fn balance(asset_id: AssetId, who: T::AccountId) -> Result<U256, evm::EvmError> {
+			EvmCaller::<T>::erc20_balance_of(asset_id, T::AccountIdToH160::convert(who))
+				.map_err(Into::into)
+		}
+
+		/// Approve a spender to spend a certain amount of tokens from the owner account
 		pub fn approve(
 			asset_id: AssetId,
 			owner: T::AccountId,
@@ -414,12 +439,14 @@ pub mod pallet {
 		) -> Result<(), evm::EvmError> {
 			// We perform the evm call in a storage transaction to ensure that if it fail
 			// any contract storage changes are rolled back.
-			EvmCaller::<T>::erc20_approve(
-				Self::contract_address_from_asset_id(asset_id),
-				T::AccountIdToH160::convert(owner),
-				T::AccountIdToH160::convert(spender),
-				amount,
-			)
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_approve(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(owner),
+					T::AccountIdToH160::convert(spender),
+					amount,
+				)
+			})
 			.map_err(Into::into)
 		}
 

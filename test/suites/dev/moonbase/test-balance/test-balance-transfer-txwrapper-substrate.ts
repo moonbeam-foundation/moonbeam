@@ -11,7 +11,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { verifyLatestBlockFees, signWith } from "../../../../helpers";
 
 describeSuite({
-  id: "D010305",
+  id: "D020305",
   title: "Balance transfer - TxWrapper",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

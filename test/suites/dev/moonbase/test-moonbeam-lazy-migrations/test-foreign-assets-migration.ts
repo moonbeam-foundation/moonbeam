@@ -21,7 +21,7 @@ import type { u128 } from "@polkadot/types-codec";
 import { encodeFunctionData, parseAbi } from "viem";
 
 describeSuite({
-  id: "D012202",
+  id: "D022101",
   title: "Lazy Migrations Pallet - Foreign Asset Migration",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

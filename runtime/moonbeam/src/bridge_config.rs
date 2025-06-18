@@ -141,7 +141,7 @@ impl<
 			.try_into()
 			.map_err(|_| DispatchBlobError::UnsupportedXcmVersion)?;
 
-		let msg: BoundedVec<u8, MQ::MaxMessageLen> = VersionedXcm::V4(xcm)
+		let msg: BoundedVec<u8, MQ::MaxMessageLen> = VersionedXcm::V5(xcm)
 			.encode()
 			.try_into()
 			.map_err(|_| DispatchBlobError::InvalidEncoding)?;
@@ -167,7 +167,7 @@ impl Convert<Vec<u8>, Xcm<()>> for UpdateBridgeStatusXcmProvider {
 				origin_kind: OriginKind::Xcm,
 				call: encoded_call.into(),
 				// TODO: FAIL-CI - add some test for this or remove TODO
-				require_weight_at_most: Weight::from_parts(200_000_000, 6144),
+				fallback_max_weight: Some(Weight::from_parts(200_000_000, 6144)),
 			},
 			ExpectTransactStatus(MaybeErrorCode::Success),
 		])

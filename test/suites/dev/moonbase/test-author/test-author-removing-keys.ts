@@ -12,7 +12,7 @@ const originalKeys = [
 const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
 describeSuite({
-  id: "D010210",
+  id: "D020210",
   title: "Author Mapping - Remove Charlie keys",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

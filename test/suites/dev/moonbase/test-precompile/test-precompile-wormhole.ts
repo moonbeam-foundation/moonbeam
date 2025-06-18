@@ -50,21 +50,8 @@ const PRECOMPILE_GMP_ADDRESS = "0x0000000000000000000000000000000000000816";
 const WH_IMPLICIT_DECIMALS = 18n;
 const WH_IMPLICIT_MULTIPLIER = 10n ** WH_IMPLICIT_DECIMALS;
 
-const versionedMultiLocation = {
-  v1: {
-    parents: 1,
-    interior: {
-      X1: {
-        AccountKey20: {
-          id: "0x0000000000000000000000000000000000000000000000000000000000000000",
-        },
-      },
-    },
-  },
-};
-
 describeSuite({
-  id: "D012887",
+  id: "D022874",
   title: "Test local Wormhole",
   foundationMethods: "dev",
 
@@ -124,14 +111,16 @@ describeSuite({
 
     // destination used for xtoken transfers
     const versionedMultiLocation = {
-      v1: {
+      v4: {
         parents: 1,
         interior: {
-          X1: {
-            AccountKey20: {
-              id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          X1: [
+            {
+              AccountKey20: {
+                id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+              },
             },
-          },
+          ],
         },
       },
     };

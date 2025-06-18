@@ -51,7 +51,6 @@ use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_relay_verifier::RelayDataVerifierPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
-use pallet_evm_precompile_storage_cleaner::StorageCleanerPrecompile;
 use pallet_evm_precompile_xcm::PalletXcmPrecompile;
 use pallet_evm_precompile_xcm_transactor::{
 	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2, v3::XcmTransactorPrecompileV3,
@@ -60,7 +59,6 @@ use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
 use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_precompile_benchmarks::WeightInfo;
-use precompile_foreign_asset_migrator::ForeignAssetMigratorPrecompile;
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
 use xcm_primitives::AsAssetType;
@@ -148,7 +146,7 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
 	RemovedPrecompileAt<AddressU64<1025>>, // Dispatch<R>
 	PrecompileAt<AddressU64<1026>, ECRecoverPublicKey, (CallableByContract, CallableByPrecompile)>,
-	PrecompileAt<AddressU64<1027>, StorageCleanerPrecompile<R>, CallableByPrecompile>,
+	RemovedPrecompileAt<AddressU64<1027>>, // Previous: PrecompileAt<AddressU64<1027>, StorageCleanerPrecompile<R>, CallableByPrecompile>
 	// Moonbeam specific precompiles:
 	PrecompileAt<
 		AddressU64<2048>,
@@ -291,7 +289,6 @@ type MoonbasePrecompilesAt<R> = (
 			SubcallWithMaxNesting<1>,
 		),
 	>,
-	PrecompileAt<AddressU64<2075>, ForeignAssetMigratorPrecompile<R>, ()>,
 );
 
 pub struct DisabledLocalAssets<Runtime>(sp_std::marker::PhantomData<Runtime>);

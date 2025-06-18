@@ -125,7 +125,7 @@ fn take_index_for_account() {
 			// Expected result is zero
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
-				.expect_cost(1)
+				.expect_cost(2)
 				.expect_no_logs()
 				.execute_returns(Address(H160::from(Alice)));
 		});
@@ -150,7 +150,7 @@ fn take_transact_info() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000u64.into(),
 				None
@@ -159,13 +159,13 @@ fn take_transact_info() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
-				.expect_cost(2)
+				.expect_cost(3)
 				.expect_no_logs()
 				.execute_returns((0u64, 1u128, 10000u64));
 		});
@@ -189,7 +189,7 @@ fn take_transact_info_with_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000u64.into(),
 				Some(1.into())
@@ -198,13 +198,13 @@ fn take_transact_info_with_signed() {
 			// Root can set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
-				.expect_cost(1)
+				.expect_cost(2)
 				.expect_no_logs()
 				.execute_returns((0u64, 1u128, 10_000u64));
 		});
@@ -229,12 +229,12 @@ fn take_fee_per_second() {
 			// Root can set fee per secnd
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
-				.expect_cost(1)
+				.expect_cost(2)
 				.expect_no_logs()
 				.execute_returns(1u64);
 		});
@@ -274,7 +274,7 @@ fn test_transact_derivative_multilocation_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(188253000)
+				.expect_cost(188253001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -317,7 +317,7 @@ fn test_transact_derivative_multilocation_v3() {
 						refund: false,
 					},
 				)
-				.expect_cost(188253000)
+				.expect_cost(188253001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -342,7 +342,7 @@ fn take_transact_info_with_signed_v3() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000u64.into(),
 				Some(1.into())
@@ -351,7 +351,7 @@ fn take_transact_info_with_signed_v3() {
 			// Root can set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -361,7 +361,7 @@ fn take_transact_info_with_signed_v3() {
 
 			precompiles()
 				.prepare_test(Alice, TransactorV3, input)
-				.expect_cost(1)
+				.expect_cost(2)
 				.expect_no_logs()
 				.execute_returns((
 					expected_transact_extra_weight,
@@ -387,7 +387,7 @@ fn test_transact_derivative_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				None
@@ -396,7 +396,7 @@ fn test_transact_derivative_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -418,7 +418,7 @@ fn test_transact_derivative_multilocation() {
 						inner_call: bytes.into(),
 					},
 				)
-				.expect_cost(188253000)
+				.expect_cost(188253001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -440,7 +440,7 @@ fn test_transact_derivative() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				None
@@ -449,7 +449,7 @@ fn test_transact_derivative() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -468,7 +468,7 @@ fn test_transact_derivative() {
 						inner_call: bytes.into(),
 					},
 				)
-				.expect_cost(188254000)
+				.expect_cost(188254001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -506,7 +506,7 @@ fn test_transact_derivative_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(188254000)
+				.expect_cost(188254001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -547,7 +547,7 @@ fn test_transact_derivative_v3() {
 						refund: false,
 					},
 				)
-				.expect_cost(188254000)
+				.expect_cost(188254001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -562,7 +562,7 @@ fn test_transact_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				Some(1.into())
@@ -571,7 +571,7 @@ fn test_transact_signed() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -592,7 +592,7 @@ fn test_transact_signed() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(468449000)
+				.expect_cost(468449001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -625,7 +625,7 @@ fn test_transact_signed_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(468449000)
+				.expect_cost(468449001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -663,7 +663,7 @@ fn test_transact_signed_v3() {
 						refund: false,
 					},
 				)
-				.expect_cost(468449000)
+				.expect_cost(468449001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -678,7 +678,7 @@ fn test_transact_signed_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				Weight::zero(),
 				10000000.into(),
 				Some(1.into())
@@ -687,7 +687,7 @@ fn test_transact_signed_multilocation() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -710,7 +710,7 @@ fn test_transact_signed_multilocation() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(468448000)
+				.expect_cost(468448001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -745,7 +745,7 @@ fn test_transact_signed_multilocation_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(468448000)
+				.expect_cost(468448001)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -786,7 +786,7 @@ fn test_transact_through_signed_multilocation_v3() {
 						refund: false,
 					},
 				)
-				.expect_cost(468448000)
+				.expect_cost(468448001)
 				.expect_no_logs()
 				.execute_returns(());
 		});

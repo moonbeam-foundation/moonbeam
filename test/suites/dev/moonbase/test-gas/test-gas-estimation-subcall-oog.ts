@@ -4,7 +4,7 @@ import { ALITH_ADDRESS } from "@moonwall/util";
 import { type Abi, decodeEventLog, encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D011805",
+  id: "D021705",
   title: "Estimate Gas - subCall",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -77,7 +77,7 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "gas estimation should make pov-consuming subcall suceed",
+      title: "gas estimation should make pov-consuming subcall succeed",
       test: async function () {
         const estimatedGas = await context.viem().estimateContractGas({
           account: ALITH_ADDRESS,

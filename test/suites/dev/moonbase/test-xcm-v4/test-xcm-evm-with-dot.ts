@@ -23,7 +23,7 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D014130",
+  id: "D024131",
   title: "Mock XCM - Send EVM transaction through and pay with xcDOT",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

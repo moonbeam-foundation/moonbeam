@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
+#[cfg(feature = "try-runtime")]
+use alloc::vec::Vec;
+
 use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
 
 use crate::*;
@@ -75,7 +80,9 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 
 		ensure!(state.is_some(), "State not found");
 
-		Ok(state.unwrap().encode())
+		Ok(state
+			.expect("should be Some(_) due to former call to ensure!")
+			.encode())
 	}
 
 	#[cfg(feature = "try-runtime")]

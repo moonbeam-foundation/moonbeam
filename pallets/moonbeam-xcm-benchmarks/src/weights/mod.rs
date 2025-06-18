@@ -19,13 +19,14 @@ pub mod generic;
 
 pub use crate::weights::generic::WeightInfo;
 use core::cmp::min;
-use frame_support::{pallet_prelude::Encode, weights::Weight};
+use frame_support::{weights::Weight, BoundedVec};
 use fungible::WeightInfo as XcmFungibleWeight;
 use generic::SubstrateWeight as XcmGeneric;
 use sp_std::prelude::*;
 use xcm::{
 	latest::{prelude::*, Weight as XCMWeight},
-	DoubleEncoded,
+	opaque::latest::AssetTransferFilter,
+	v5, DoubleEncoded,
 };
 use xcm_primitives::MAX_ASSETS;
 
@@ -96,7 +97,7 @@ where
 	}
 	fn transact(
 		_origin_type: &OriginKind,
-		_require_weight_at_most: &Weight,
+		_require_weight_at_most: &Option<Weight>,
 		_call: &DoubleEncoded<Call>,
 	) -> XCMWeight {
 		XcmGeneric::<Runtime>::transact()
@@ -214,9 +215,8 @@ where
 	fn universal_origin(_: &Junction) -> Weight {
 		XcmGeneric::<Runtime>::universal_origin()
 	}
-	fn export_message(_: &NetworkId, _: &Junctions, inner: &Xcm<()>) -> Weight {
-		let inner_encoded_len = inner.encode().len() as u32;
-		XcmGeneric::<Runtime>::export_message(inner_encoded_len)
+	fn export_message(_: &NetworkId, _: &Junctions, _: &Xcm<()>) -> Weight {
+		Weight::MAX
 	}
 	fn lock_asset(_: &Asset, _: &Location) -> Weight {
 		Weight::MAX
@@ -245,5 +245,23 @@ where
 	}
 	fn unpaid_execution(_: &WeightLimit, _: &Option<Location>) -> Weight {
 		XcmGeneric::<Runtime>::unpaid_execution()
+	}
+	fn pay_fees(_: &v5::Asset) -> Weight {
+		XcmGeneric::<Runtime>::pay_fees()
+	}
+	fn initiate_transfer(
+		_: &v5::Location,
+		_: &Option<AssetTransferFilter>,
+		_: &bool,
+		_: &BoundedVec<AssetTransferFilter, MaxAssetTransferFilters>,
+		_: &v5::Xcm<()>,
+	) -> Weight {
+		XcmGeneric::<Runtime>::initiate_transfer()
+	}
+	fn execute_with_origin(_: &Option<v5::Junctions>, _: &v5::Xcm<Call>) -> Weight {
+		XcmGeneric::<Runtime>::execute_with_origin()
+	}
+	fn set_hints(_: &BoundedVec<Hint, HintNumVariants>) -> Weight {
+		XcmGeneric::<Runtime>::set_hints()
 	}
 }

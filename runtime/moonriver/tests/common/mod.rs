@@ -351,7 +351,7 @@ impl ExtBuilder {
 					let metadata = xcm_asset_initialization.metadata.clone();
 					EvmForeignAssets::register_foreign_asset(
 						asset_id,
-						xcm_builder::WithLatestLocationConverter::convert_back(&location).unwrap(),
+						xcm::VersionedLocation::from(location).try_into().unwrap(),
 						metadata.decimals,
 						metadata.symbol.try_into().unwrap(),
 						metadata.name.try_into().unwrap(),

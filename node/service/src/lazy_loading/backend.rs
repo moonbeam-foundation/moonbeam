@@ -699,6 +699,11 @@ impl<Block: BlockT + DeserializeOwned> backend::BlockImportOperation<Block>
 	) -> sp_blockchain::Result<()> {
 		Ok(())
 	}
+
+	fn set_create_gap(&mut self, _create_gap: bool) {
+		// This implementation can be left empty or implemented as needed
+		// For now, we're just implementing the trait method with no functionality
+	}
 }
 
 /// DB-backed patricia trie state, transaction type is an overlay of changes to commit.
@@ -766,8 +771,8 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 			remote_fetch(prefix, start_key, backend.block_hash)
 		} else {
 			let mut iter_args = sp_state_machine::backend::IterArgs::default();
-			iter_args.prefix = self.args.prefix.as_ref().map(|b| b.as_slice());
-			iter_args.start_at = self.args.start_at.as_ref().map(|b| b.as_slice());
+			iter_args.prefix = self.args.prefix.as_deref();
+			iter_args.start_at = self.args.start_at.as_deref();
 			iter_args.start_at_exclusive = true;
 			iter_args.stop_on_incomplete_database = true;
 
@@ -775,7 +780,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 			let next_storage_key = readable_db
 				.raw_iter(iter_args)
 				.map(|mut iter| iter.next_key(&readable_db))
-				.map(|op| op.map(|result| result.ok()).flatten())
+				.map(|op| op.and_then(|result| result.ok()))
 				.ok()
 				.flatten();
 
@@ -860,8 +865,8 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 			remote_fetch(prefix, start_key, backend.block_hash)
 		} else {
 			let mut iter_args = sp_state_machine::backend::IterArgs::default();
-			iter_args.prefix = self.args.prefix.as_ref().map(|b| b.as_slice());
-			iter_args.start_at = self.args.start_at.as_ref().map(|b| b.as_slice());
+			iter_args.prefix = self.args.prefix.as_deref();
+			iter_args.start_at = self.args.start_at.as_deref();
 			iter_args.start_at_exclusive = true;
 			iter_args.stop_on_incomplete_database = true;
 
@@ -869,7 +874,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 			let next_storage_key = readable_db
 				.raw_iter(iter_args)
 				.map(|mut iter| iter.next_key(&readable_db))
-				.map(|op| op.map(|result| result.ok()).flatten())
+				.map(|op| op.and_then(|result| result.ok()))
 				.ok()
 				.flatten();
 
@@ -902,8 +907,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 
 		let maybe_value = maybe_next_key
 			.clone()
-			.map(|key| (*backend).storage(key.as_slice()).ok())
-			.flatten()
+			.and_then(|key| (*backend).storage(key.as_slice()).ok())
 			.flatten();
 
 		if let Some(next_key) = maybe_next_key {
@@ -1092,17 +1096,22 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::Backend<HashingFor<Bloc
 		};
 
 		let maybe_next_key = if self.before_fork {
+			// Before the fork checkpoint, always fetch remotely
 			remote_fetch(self.block_hash)
 		} else {
+			// Try to get the next storage key from the local DB
 			let next_storage_key = self.db.read().next_storage_key(key);
 			match next_storage_key {
-				Ok(Some(key)) => Some(key),
+				Ok(Some(next_key)) => Some(next_key),
+				// If not found locally and key is not marked as removed, fetch remotely
 				_ if !self.removed_keys.read().contains_key(key) => {
 					remote_fetch(Some(self.fork_block))
 				}
+				// Otherwise, there's no next key
 				_ => None,
 			}
-		};
+		}
+		.filter(|next_key| next_key != key);
 
 		log::trace!(
 			target: super::LAZY_LOADING_LOG_TARGET,

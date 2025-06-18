@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D010801",
+  id: "D020701",
   title: "Crowdloan - Proxy transfer",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

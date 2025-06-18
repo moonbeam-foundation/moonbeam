@@ -16,7 +16,7 @@ import {
 } from "../../../../helpers/randomness.js";
 
 describeSuite({
-  id: "D013103",
+  id: "D023103",
   title: "Randomness Babe - Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -49,7 +49,7 @@ describeSuite({
       id: "T01",
       title: "should fail to fulfill before the delay",
       test: async function () {
-        expect(estimatedGasBefore).toMatchInlineSnapshot(`111342n`);
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`112402n`);
 
         expect(
           await context.readPrecompile!({
@@ -86,7 +86,7 @@ describeSuite({
       id: "T02",
       title: "should succeed to fulfill after the delay",
       test: async function () {
-        expect(estimatedGasBefore).toMatchInlineSnapshot(`111342n`);
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`112402n`);
 
         await context.createBlock([
           // Faking relay epoch + 2 in randomness storage
@@ -109,7 +109,7 @@ describeSuite({
           account: BALTATHAR_ADDRESS,
         });
         log("Estimated Gas for startLottery", estimatedGas);
-        expect(estimatedGas).toMatchInlineSnapshot(`155374n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`152726n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Randomness",

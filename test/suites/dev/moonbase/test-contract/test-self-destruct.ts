@@ -3,7 +3,7 @@ import { createEthersTransaction } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D010613",
+  id: "D020512",
   title: "Test self-destruct contract",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

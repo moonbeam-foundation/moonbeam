@@ -39,8 +39,8 @@ use nimbus_primitives::NimbusId;
 use pallet_moonbeam_foreign_assets::EvmForeignAssetInfo;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_weight_trader::XcmWeightTraderAssetInfo;
-use parachains_common::genesis_config_helpers::get_from_seed;
 use sp_genesis_builder::PresetId;
+use sp_keyring::Sr25519Keyring;
 use sp_runtime::{Perbill, Percent};
 use xcm::latest::{Junctions, Location, NetworkId};
 use xcm::prelude::{GlobalConsensus, PalletInstance, Parachain};
@@ -277,7 +277,7 @@ pub fn development() -> serde_json::Value {
 			AccountId::from(sp_core::hex2array!(
 				"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
 			)),
-			get_from_seed::<NimbusId>("Alice"),
+			NimbusId::from(Sr25519Keyring::Alice.public()),
 			100_000 * MOVR,
 		)],
 		// Delegations
@@ -304,8 +304,8 @@ pub fn development() -> serde_json::Value {
 
 /// Provides the JSON representation of predefined genesis config for given `id`.
 pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
-	let patch = match id.try_into() {
-		Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => development(),
+	let patch = match id.as_str() {
+		sp_genesis_builder::DEV_RUNTIME_PRESET => development(),
 		_ => return None,
 	};
 	Some(

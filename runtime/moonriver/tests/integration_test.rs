@@ -25,13 +25,12 @@ use std::cell::Cell;
 use std::rc::Rc;
 
 use fp_evm::{Context, IsPrecompileResult};
-use frame_support::traits::fungible::Inspect;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo, StorageInfo,
-		StorageInfoTrait,
+		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo,
+		StorageInfo, StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
@@ -40,6 +39,7 @@ use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::runtime_params::dynamic_params;
+use moonriver_runtime::xcm_config::XcmExecutor;
 use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve},
@@ -1106,7 +1106,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(AccountId::from(BOB).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1119,7 +1119,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1191,7 +1191,7 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1306,7 +1306,7 @@ fn length_fee_is_sensible() {
 	// tests that length fee is sensible for a few hypothetical transactions
 	ExtBuilder::default().build().execute_with(|| {
 		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
-		let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
+		let uxt: TestXt<_, ()> = TestXt::new_signed(RuntimeCall::System(call), 1u64, (), ());
 
 		let calc_fee = |len: u32| -> Balance {
 			moonriver_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
@@ -1668,9 +1668,9 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(xcm::VersionedLocation::V4(chain_part.clone())),
-					Box::new(xcm::VersionedLocation::V4(beneficiary.clone())),
-					Box::new(VersionedAssets::V4(asset.clone().into())),
+					Box::new(xcm::VersionedLocation::from(chain_part.clone())),
+					Box::new(xcm::VersionedLocation::from(beneficiary.clone())),
+					Box::new(VersionedAssets::from(asset.clone())),
 					0,
 					WeightLimit::Limited(4000000000.into())
 				),
@@ -1686,9 +1686,9 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(xcm::VersionedLocation::V4(chain_part)),
-				Box::new(xcm::VersionedLocation::V4(beneficiary)),
-				Box::new(VersionedAssets::V4(asset.clone().into())),
+				Box::new(xcm::VersionedLocation::from(chain_part)),
+				Box::new(xcm::VersionedLocation::from(beneficiary)),
+				Box::new(VersionedAssets::from(asset.clone())),
 				0,
 				WeightLimit::Limited(4000000000.into())
 			));
@@ -1759,7 +1759,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 					asset_precompile_address,
 					ForeignAssetsPCall::total_supply {},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * MOVR));
 
@@ -1772,7 +1772,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 						who: Address(ALICE.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(1000 * MOVR));
 		});
@@ -1817,7 +1817,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(25026)
+				.expect_cost(26682)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1836,7 +1836,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 						who: Address(BOB.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * MOVR));
 		});
@@ -1881,7 +1881,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(15669)
+				.expect_cost(17333)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_APPROVAL,
@@ -1902,7 +1902,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						value: { 400 * MOVR }.into(),
 					},
 				)
-				.expect_cost(30329)
+				.expect_cost(31980)
 				.expect_log(log3(
 					asset_precompile_address,
 					SELECTOR_LOG_TRANSFER,
@@ -1921,7 +1921,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 						who: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(5007)
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * MOVR));
 		});
@@ -1991,7 +1991,7 @@ fn xtokens_precompiles_transfer() {
 							weight: 4_000_000,
 						},
 					)
-					.expect_cost(if evm_native { 176837 } else { 25237 })
+					.expect_cost(if evm_native { 178519 } else { 26919 })
 					.expect_no_logs()
 					// We expect an evm subcall ERC20.burnFrom
 					.with_subcall_handle(move |subcall| {
@@ -2087,7 +2087,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(25237)
+				.expect_cost(26919)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2123,9 +2123,9 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.into();
 			assert_noop!(
 				RuntimeCall::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
-					dest: Box::new(VersionedLocation::V4(dest.clone())),
-					beneficiary: Box::new(VersionedLocation::V4(dest)),
-					assets: Box::new(VersionedAssets::V4(assets)),
+					dest: Box::new(VersionedLocation::from(dest.clone())),
+					beneficiary: Box::new(VersionedLocation::from(dest)),
+					assets: Box::new(VersionedAssets::from(assets)),
 					fee_asset_item: 0,
 				})
 				.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::signed(
@@ -2167,7 +2167,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				20000.into(),
@@ -2177,7 +2177,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1
 			));
 
@@ -2187,9 +2187,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
-							Location::parent()
-						))),
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedLocation::from(Location::parent())
+						)),
 						fee_amount: None
 					},
 					vec![],
@@ -2258,7 +2258,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23742)
+				.expect_cost(25383)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2350,9 +2350,9 @@ fn call_xtokens_with_fee() {
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(chain_part)),
-				Box::new(VersionedLocation::V4(beneficiary)),
-				Box::new(VersionedAssets::V4(vec![asset_fee, asset].into())),
+				Box::new(VersionedLocation::from(chain_part)),
+				Box::new(VersionedLocation::from(beneficiary)),
+				Box::new(VersionedAssets::from(vec![asset_fee, asset])),
 				0,
 				WeightLimit::Limited(4000000000.into()),
 			),);
@@ -2381,7 +2381,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2401,7 +2401,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2431,9 +2431,46 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_location,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
+	});
+}
+
+#[test]
+fn test_nested_batch_calls_from_xcm_transact() {
+	ExtBuilder::default().build().execute_with(|| {
+		// This ensures we notice if MAX_XCM_DECODE_DEPTH changes
+		// in a future polkadot-sdk version
+		assert_eq!(xcm::MAX_XCM_DECODE_DEPTH, 8);
+
+		let mut valid_nested_calls =
+			RuntimeCall::System(frame_system::Call::remark { remark: vec![] });
+		for _ in 0..xcm::MAX_XCM_DECODE_DEPTH {
+			valid_nested_calls = RuntimeCall::Utility(pallet_utility::Call::batch {
+				calls: vec![valid_nested_calls],
+			});
+		}
+
+		let valid_message = Xcm(vec![Transact {
+			origin_kind: OriginKind::SovereignAccount,
+			fallback_max_weight: None,
+			call: valid_nested_calls.encode().into(),
+		}]);
+
+		assert!(XcmExecutor::prepare(valid_message).is_ok());
+
+		let excessive_nested_calls = RuntimeCall::Utility(pallet_utility::Call::batch {
+			calls: vec![valid_nested_calls],
+		});
+
+		let invalid_message = Xcm(vec![Transact {
+			origin_kind: OriginKind::SovereignAccount,
+			fallback_max_weight: None,
+			call: excessive_nested_calls.encode().into(),
+		}]);
+		// Expect to fail because we have too many nested calls
+		assert!(XcmExecutor::prepare(invalid_message).is_err());
 	});
 }
 
@@ -2444,7 +2481,7 @@ fn test_xcm_utils_weight_message() {
 		let expected_weight =
 			XcmWeight::<moonriver_runtime::Runtime, RuntimeCall>::clear_origin().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),
@@ -2452,7 +2489,7 @@ fn test_xcm_utils_weight_message() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(0)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(expected_weight);
 	});
@@ -2471,7 +2508,7 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});
@@ -2544,7 +2581,7 @@ fn precompile_existence() {
 fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
-		let removed_precompiles = [1025, 2051, 2062, 2063];
+		let removed_precompiles = [1025, 1027, 2051, 2062, 2063];
 
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);
@@ -2982,6 +3019,9 @@ mod bridge_tests {
 #[cfg(test)]
 mod treasury_tests {
 	use super::*;
+	use frame_support::traits::fungible::NativeOrWithId;
+	use moonriver_runtime::XcmWeightTrader;
+	use sp_core::bounded_vec;
 	use sp_runtime::traits::Hash;
 
 	fn expect_events(events: Vec<RuntimeEvent>) {
@@ -2996,6 +3036,11 @@ mod treasury_tests {
 		System::set_block_number(System::block_number() + 1u32);
 		System::on_initialize(System::block_number());
 		Treasury::on_initialize(System::block_number());
+	}
+
+	fn get_asset_balance(id: &u128, account: &AccountId) -> U256 {
+		pallet_moonbeam_foreign_assets::Pallet::<Runtime>::balance(id.clone(), account.clone())
+			.expect("failed to get account balance")
 	}
 
 	#[test]
@@ -3024,11 +3069,12 @@ mod treasury_tests {
 				next_block();
 
 				// Perform treasury spending
+				let valid_from = System::block_number() + 5u32;
 				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend {
 					amount: spend_amount,
-					asset_kind: Box::new(()),
+					asset_kind: Box::new(NativeOrWithId::Native),
 					beneficiary: Box::new(AccountId::from(BOB)),
-					valid_from: Some(5u32),
+					valid_from: Some(valid_from),
 				});
 				assert_ok!(TreasuryCouncilCollective::propose(
 					origin_of(AccountId::from(ALICE)),
@@ -3042,11 +3088,11 @@ mod treasury_tests {
 				let expected_events = [
 					RuntimeEvent::Treasury(pallet_treasury::Event::AssetSpendApproved {
 						index: 0,
-						asset_kind: (),
+						asset_kind: NativeOrWithId::Native,
 						amount: spend_amount,
 						beneficiary: spend_beneficiary,
-						valid_from: 5u32,
-						expire_at: payout_period + 5u32,
+						valid_from,
+						expire_at: payout_period + valid_from,
 					}),
 					RuntimeEvent::TreasuryCouncilCollective(pallet_collective::Event::Executed {
 						proposal_hash: sp_runtime::traits::BlakeTwo256::hash_of(&proposal),
@@ -3056,7 +3102,7 @@ mod treasury_tests {
 				.to_vec();
 				expect_events(expected_events);
 
-				while System::block_number() < 5u32 {
+				while System::block_number() < valid_from {
 					next_block();
 				}
 
@@ -3075,6 +3121,113 @@ mod treasury_tests {
 				]
 				.to_vec();
 				expect_events(expected_events);
+			});
+	}
+
+	#[test]
+	fn test_treasury_spend_foreign_asset_with_council_origin() {
+		let initial_treasury_balance = 1_000 * MOVR;
+		let asset_id = 1000100010001000u128;
+		ExtBuilder::default()
+			.with_balances(vec![(AccountId::from(ALICE), 2_000 * MOVR)])
+			.build()
+			.execute_with(|| {
+				let spend_amount = 100u128 * MOVR;
+				let spend_beneficiary = AccountId::from(BOB);
+
+				let asset_location: Location = Location {
+					parents: 1,
+					interior: Junctions::Here,
+				};
+
+				assert_ok!(EvmForeignAssets::create_foreign_asset(
+					root_origin(),
+					asset_id,
+					asset_location.clone(),
+					12,
+					bounded_vec![b'M', b'T'],
+					bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+				));
+
+				assert_ok!(XcmWeightTrader::add_asset(
+					root_origin(),
+					asset_location,
+					1u128
+				));
+
+				assert_ok!(EvmForeignAssets::mint_into(
+					asset_id,
+					Treasury::account_id(),
+					initial_treasury_balance.into()
+				));
+
+				assert_eq!(
+					get_asset_balance(&asset_id, &Treasury::account_id()),
+					initial_treasury_balance.into(),
+					"Treasury balance not updated"
+				);
+
+				// TreasuryCouncilCollective
+				assert_ok!(TreasuryCouncilCollective::set_members(
+					root_origin(),
+					vec![AccountId::from(ALICE)],
+					Some(AccountId::from(ALICE)),
+					1
+				));
+
+				// Perform treasury spending
+				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend {
+					amount: spend_amount,
+					asset_kind: Box::new(NativeOrWithId::WithId(asset_id)),
+					beneficiary: Box::new(spend_beneficiary),
+					valid_from: None,
+				});
+				assert_ok!(TreasuryCouncilCollective::propose(
+					origin_of(AccountId::from(ALICE)),
+					1,
+					Box::new(proposal.clone()),
+					1_000
+				));
+
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
+
+				let current_block = System::block_number();
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: NativeOrWithId::WithId(asset_id),
+						amount: spend_amount,
+						beneficiary: spend_beneficiary,
+						valid_from: current_block,
+						expire_at: current_block + payout_period,
+					}),
+					RuntimeEvent::TreasuryCouncilCollective(pallet_collective::Event::Executed {
+						proposal_hash: sp_runtime::traits::BlakeTwo256::hash_of(&proposal),
+						result: Ok(()),
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
+				expect_events(vec![RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+					index: 0,
+					payment_id: (),
+				})]);
+
+				assert_eq!(
+					get_asset_balance(&asset_id, &Treasury::account_id()),
+					(initial_treasury_balance - spend_amount).into(),
+					"Treasury balance not updated"
+				);
+
+				assert_eq!(
+					get_asset_balance(&asset_id, &spend_beneficiary),
+					spend_amount.into(),
+					"Treasury payout failed"
+				);
 			});
 	}
 }
@@ -3158,7 +3311,8 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: extrinsic_weight,
+					call_weight: extrinsic_weight,
+					extension_weight: Weight::zero(),
 				},
 				tip,
 			);

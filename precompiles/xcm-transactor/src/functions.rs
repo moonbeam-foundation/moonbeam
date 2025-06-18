@@ -163,7 +163,7 @@ where
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					fee_asset,
 				))),
 				fee_amount: None,
@@ -211,7 +211,7 @@ where
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					fee_asset,
 				))),
 				fee_amount: Some(fee_amount),
@@ -354,9 +354,9 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedLocation::V4(dest)),
+			dest: Box::new(xcm::VersionedLocation::from(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					fee_asset,
 				))),
 				fee_amount: None,
@@ -392,9 +392,9 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedLocation::V4(dest)),
+			dest: Box::new(xcm::VersionedLocation::from(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					fee_asset,
 				))),
 				fee_amount: Some(fee_amount),
@@ -443,7 +443,7 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedLocation::V4(dest)),
+			dest: Box::new(xcm::VersionedLocation::from(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: None,
@@ -491,7 +491,7 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedLocation::V4(dest)),
+			dest: Box::new(xcm::VersionedLocation::from(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: Some(fee_amount),
@@ -594,7 +594,7 @@ where
 			dest: transactor,
 			index,
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					fee_asset,
 				))),
 				fee_amount: Some(fee_amount),
@@ -689,9 +689,9 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedLocation::V4(dest)),
+			dest: Box::new(xcm::VersionedLocation::from(dest)),
 			fee: CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
 					fee_asset,
 				))),
 				fee_amount: Some(fee_amount),
@@ -742,7 +742,7 @@ where
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-			dest: Box::new(xcm::VersionedLocation::V4(dest)),
+			dest: Box::new(xcm::VersionedLocation::from(dest)),
 			fee: CurrencyPayment {
 				currency: Currency::AsCurrencyId(currency_id),
 				fee_amount: Some(fee_amount),

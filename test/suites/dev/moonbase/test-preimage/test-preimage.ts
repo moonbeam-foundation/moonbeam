@@ -5,7 +5,7 @@ import { blake2AsHex } from "@polkadot/util-crypto";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
-  id: "D012901",
+  id: "D022901",
   title: "Preimage - general",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -11,7 +11,7 @@ import {
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
 describeSuite({
-  id: "D012870",
+  id: "D022857",
   title: "Precompiles - Referenda precompile",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

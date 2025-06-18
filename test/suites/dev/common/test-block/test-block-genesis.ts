@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D010404",
+  id: "D010104",
   title: "Block genesis",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
