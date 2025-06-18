@@ -2987,7 +2987,7 @@ mod bridge_tests {
 				};
 
 				let mut inbound_lane = LanesManager::<Runtime, WithPolkadotMessagesInstance>::new()
-					.active_inbound_lane(bp_messages::LegacyLaneId([0, 0, 0, 0]))
+					.active_inbound_lane(Default::default())
 					.unwrap();
 
 				let msg = DispatchMessageData { payload: Ok(bridge_message.encode()) };
