@@ -115,6 +115,9 @@ pub mod pallet {
 	/// theoretically exist.
 	pub const MAX_CANDIDATES: u32 = 200;
 
+	/// Maximum number of accounts (delegators and candidates) that can be migrated at once in the `migrate_locks_to_freezes_batch` extrinsic.
+	const MAX_ACCOUNTS_PER_MIGRATION_BATCH: u32 = 100;
+
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -1491,12 +1494,11 @@ pub mod pallet {
 		/// The maximum number of accounts that can be migrated in one batch is 100.
 		#[pallet::call_index(33)]
 		#[pallet::weight({
-			const MAX_ACCOUNTS: u32 = 100;
-			T::WeightInfo::migrate_locks_to_freezes_batch_delegators(MAX_ACCOUNTS).max(T::WeightInfo::migrate_locks_to_freezes_batch_candidates(MAX_ACCOUNTS))
+			T::WeightInfo::migrate_locks_to_freezes_batch_delegators(MAX_ACCOUNTS_PER_MIGRATION_BATCH).max(T::WeightInfo::migrate_locks_to_freezes_batch_candidates(MAX_ACCOUNTS_PER_MIGRATION_BATCH))
 		})]
 		pub fn migrate_locks_to_freezes_batch(
 			origin: OriginFor<T>,
-			accounts: BoundedVec<(T::AccountId, bool), ConstU32<100>>,
+			accounts: BoundedVec<(T::AccountId, bool), ConstU32<MAX_ACCOUNTS_PER_MIGRATION_BATCH>>,
 		) -> DispatchResult {
 			ensure_signed(origin)?;
 
