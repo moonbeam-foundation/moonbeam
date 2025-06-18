@@ -813,6 +813,10 @@ impl Get<Slot> for RelayChainSlotProvider {
 	}
 }
 
+parameter_types! {
+	pub const LinearInflationThreshold: Option<Balance> = Some(1_200_000_000 * currency::MOVR);
+}
+
 impl pallet_parachain_staking::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -855,6 +859,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxCandidates = ConstU32<200>;
 	type SlotDuration = ConstU64<6_000>;
 	type BlockTime = ConstU64<6_000>;
+	type LinearInflationThreshold = LinearInflationThreshold;
 }
 
 impl pallet_author_inherent::Config for Runtime {

@@ -9133,3 +9133,36 @@ fn test_compute_top_candidates_is_stable() {
 			);
 		});
 }
+
+#[test]
+fn test_linear_inflation_threshold() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1_000_000_000)])
+		.build()
+		.execute_with(|| {
+			// Set up initial state
+			let initial_issuance = Balances::total_issuance();
+			let threshold = <Test as crate::Config>::LinearInflationThreshold::get();
+			assert_eq!(threshold, Some(1_200_000_000));
+
+			// When total issuance is below threshold, should use total issuance
+			let round_below = crate::inflation::round_issuance_range::<Test>(Range {
+				min: Perbill::from_percent(5),
+				ideal: Perbill::from_percent(5),
+				max: Perbill::from_percent(5),
+			});
+			assert_eq!(round_below.ideal, initial_issuance / 20); // 5% of total issuance
+
+			// Mint tokens to exceed threshold
+			let _ = Balances::deposit_creating(&1, 500_000_000);
+			assert!(Balances::total_issuance() > threshold.unwrap());
+
+			// When total issuance exceeds threshold, should use threshold value
+			let round_above = crate::inflation::round_issuance_range::<Test>(Range {
+				min: Perbill::from_percent(5),
+				ideal: Perbill::from_percent(5),
+				max: Perbill::from_percent(5),
+			});
+			assert_eq!(round_above.ideal, threshold.unwrap() / 20); // 5% of threshold
+		});
+}
