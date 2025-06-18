@@ -1522,7 +1522,7 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		/// Check if an account has been migrated from lock to freeze.
-		/// 
+		///
 		/// Returns `true` if migration was performed, `false` if already migrated or is not a collator/delegator
 		///
 		/// `is_collator` determines whether the account is a collator or delegator
