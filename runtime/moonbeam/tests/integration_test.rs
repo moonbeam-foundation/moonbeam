@@ -2893,7 +2893,7 @@ mod bridge_tests {
 		DescendOrigin, Fungible, GlobalConsensus, PalletInstance, Parachain, ReserveAssetDeposited,
 		SetTopic, UniversalOrigin, XCM_VERSION,
 	};
-	use xcm::v4::WildAsset;
+	use xcm::v5::WildAsset;
 	use xcm::{VersionedAssets, VersionedInteriorLocation, VersionedLocation, VersionedXcm};
 	use xcm_builder::BridgeMessage;
 
@@ -2955,8 +2955,8 @@ mod bridge_tests {
 
 				assert_ok!(PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::V4(BridgeMoonriverLocation::get())),
-					Box::new(VersionedLocation::V4(Location {
+					Box::new(VersionedLocation::V5(BridgeMoonriverLocation::get())),
+					Box::new(VersionedLocation::V5(Location {
 						parents: 0,
 						interior: [AccountKey20 {
 							network: None,
@@ -2964,7 +2964,7 @@ mod bridge_tests {
 						}]
 						.into(),
 					})),
-					Box::new(VersionedAssets::V4(asset.into())),
+					Box::new(VersionedAssets::V5(asset.into())),
 					0,
 					WeightLimit::Unlimited
 				));
@@ -2983,7 +2983,7 @@ mod bridge_tests {
 
 				assert_eq!(
 					message,
-					VersionedXcm::V4(
+					VersionedXcm::V5(
 						Xcm(
 							[
 								UniversalOrigin(GlobalConsensus(NetworkId::Polkadot)),
@@ -3045,14 +3045,14 @@ mod bridge_tests {
 			])
 			.with_evm_native_foreign_assets()
 			.with_xcm_assets(vec![XcmAssetInitialization {
-				asset_type: AssetType::Xcm(Location::new(
+				asset_type: AssetType::Xcm(xcm::VersionedLocation::from(Location::new(
 					2,
 					[
 						GlobalConsensus(KusamaGlobalConsensusNetwork::get()),
 						Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID),
 						PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 					]
-				).try_into().unwrap()),
+				)).try_into().unwrap()),
 				metadata: AssetRegistrarMetadata {
 					name: b"xcMOVR".to_vec(),
 					symbol: b"xcMOVR".to_vec(),
@@ -3086,13 +3086,13 @@ mod bridge_tests {
 				));
 
 				let bridge_message: BridgeMessage = BridgeMessage {
-					universal_dest: VersionedInteriorLocation::V4(
+					universal_dest: VersionedInteriorLocation::V5(
 						[
 							GlobalConsensus(NetworkId::Polkadot),
 							Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID)
 						].into()
 					),
-					message: VersionedXcm::V4(
+					message: VersionedXcm::V5(
 						Xcm(
 							[
 								UniversalOrigin(GlobalConsensus(NetworkId::Kusama)),

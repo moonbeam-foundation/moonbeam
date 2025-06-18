@@ -354,8 +354,7 @@ impl ExtBuilder {
 					if xcm_asset_initialization.is_sufficient {
 						XcmWeightTrader::add_asset(
 							root_origin(),
-							xcm_builder::WithLatestLocationConverter::convert_back(&location)
-								.unwrap(),
+							xcm::VersionedLocation::from(location).try_into().unwrap(),
 							GLMR,
 						)
 						.expect("register evm native foreign asset as sufficient");
