@@ -25,11 +25,11 @@ use crate::mock::{
 };
 use crate::set::OrderedSet;
 use crate::{
-	CandidateInfo, Error, FreezeReason, MigratedCandidates, MigratedDelegators, COLLATOR_LOCK_ID,
+	CandidateInfo, FreezeReason, MigratedCandidates, MigratedDelegators, COLLATOR_LOCK_ID,
 	DELEGATOR_LOCK_ID,
 };
+use frame_support::assert_ok;
 use frame_support::traits::{LockableCurrency, WithdrawReasons};
-use frame_support::{assert_noop, assert_ok};
 
 // Helper function to create a collator account with old-style locks
 fn setup_collator_with_lock(account: AccountId, bond: u128) {
