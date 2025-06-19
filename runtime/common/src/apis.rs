@@ -817,7 +817,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					use xcm::latest::prelude::{
 						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
-						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
+						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent, WeightLimit
 					};
 					use xcm_config::SelfReserve;
 					use frame_benchmarking::BenchmarkError;
@@ -1041,7 +1041,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							Ok((origin, ticket, assets))
 						}
 
-						fn fee_asset() -> Result<Asset, BenchmarkError> {
+						fn worst_case_for_trader() -> Result<(Asset, WeightLimit), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 

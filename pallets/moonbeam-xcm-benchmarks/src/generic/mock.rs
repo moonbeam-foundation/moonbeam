@@ -193,7 +193,7 @@ impl pallet_xcm_benchmarks::generic::Config for Test {
 		Err(BenchmarkError::Skip)
 	}
 
-	fn fee_asset() -> Result<Asset, BenchmarkError> {
+	fn worst_case_for_trader() -> Result<(Asset, WeightLimit), BenchmarkError> {
 		Err(BenchmarkError::Skip)
 	}
 
