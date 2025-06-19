@@ -6986,7 +6986,6 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
- "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
  "num_enum 0.5.11",
  "pallet-asset-manager",
@@ -7471,7 +7470,6 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
- "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
  "num_enum 0.5.11",
  "pallet-asset-manager",
@@ -7611,7 +7609,6 @@ dependencies = [
  "impl-trait-for-tuples",
  "log",
  "moonbeam-core-primitives",
- "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
  "pallet-asset-manager",
  "pallet-assets",
@@ -7833,31 +7830,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbeam-xcm-benchmarks"
-version = "0.2.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-balances",
- "pallet-erc20-xcm-bridge",
- "pallet-moonbeam-foreign-assets",
- "pallet-xcm-benchmarks",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "staging-xcm",
- "staging-xcm-builder",
- "staging-xcm-executor",
- "xcm-primitives 0.1.1",
-]
-
-[[package]]
 name = "moonkey"
 version = "0.1.1"
 dependencies = [
@@ -7904,7 +7876,6 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
- "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
  "num_enum 0.5.11",
  "pallet-asset-manager",

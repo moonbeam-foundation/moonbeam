@@ -31,7 +31,6 @@ session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Moonbeam pallets
-moonbeam-xcm-benchmarks = { workspace = true }
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
@@ -229,7 +228,6 @@ std = [
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"moonbeam-runtime-common/std",
-	"moonbeam-xcm-benchmarks/std",
 	"moonkit-xcm-primitives/std",
 	"nimbus-primitives/std",
 	"pallet-asset-manager/std",
@@ -354,7 +352,6 @@ runtime-benchmarks = [
 	"hex-literal",
 	"moonbeam-relay-encoder/runtime-benchmarks",
 	"moonbeam-runtime-common/runtime-benchmarks",
-	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",

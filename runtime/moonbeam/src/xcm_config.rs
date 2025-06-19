@@ -60,6 +60,7 @@ use xcm::{
 use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
+use pallet_evm::Call::create;
 use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
@@ -197,7 +198,7 @@ parameter_types! {
 
 /// Xcm Weigher shared between multiple Xcm-related configs.
 pub type XcmWeigher = WeightInfoBounds<
-	moonbeam_xcm_benchmarks::weights::XcmWeight<Runtime, RuntimeCall>,
+	crate::weights::xcm::XcmWeight<Runtime, RuntimeCall>,
 	RuntimeCall,
 	MaxInstructions,
 >;

@@ -793,9 +793,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				) {
 					use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
 					use frame_system_benchmarking::Pallet as SystemBench;
-					use moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks;
 					use frame_support::traits::StorageInfoTrait;
-					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
 					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
@@ -835,9 +833,6 @@ macro_rules! impl_runtime_apis_plus_common {
 							System::assert_last_event(cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into());
 						}
 					}
-
-					impl moonbeam_xcm_benchmarks::Config for Runtime {}
-					impl moonbeam_xcm_benchmarks::generic::Config for Runtime {}
 
 					use pallet_asset_manager::Config as PalletAssetManagerConfig;
 
