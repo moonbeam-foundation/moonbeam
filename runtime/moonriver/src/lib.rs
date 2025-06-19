@@ -1427,6 +1427,7 @@ construct_runtime! {
 		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 34,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 36,
+		// Previously 37: Lazy Migrations
 		Parameters: pallet_parameters = 38,
 
 		// Sudo was previously index 40

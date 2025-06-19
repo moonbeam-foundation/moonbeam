@@ -1465,6 +1465,7 @@ construct_runtime! {
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
+		// Previously 51: Lazy Migrations
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 52,
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 53,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 54,
