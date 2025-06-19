@@ -2543,7 +2543,10 @@ mod benchmarks {
 				new_collator
 			} else {
 				// Use the last created collator
-				collators.last().unwrap().clone()
+				collators
+					.last()
+					.expect("collators vec should have at least one element; qed")
+					.clone()
 			};
 
 			// Add extra amount to ensure each delegation is unique and larger than previous ones
@@ -2650,7 +2653,7 @@ mod tests {
 	pub fn new_test_ext() -> TestExternalities {
 		let t = frame_system::GenesisConfig::<Test>::default()
 			.build_storage()
-			.unwrap();
+			.expect("Failed to build test storage");
 		TestExternalities::new(t)
 	}
 }
