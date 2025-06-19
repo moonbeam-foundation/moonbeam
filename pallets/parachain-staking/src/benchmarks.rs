@@ -2645,29 +2645,42 @@ mod benchmarks {
 
 		let mut seed = Seed::new();
 		let mut delegator_accounts = Vec::new();
+		let mut collators = Vec::new();
 
-		// Create a collator that delegators will delegate to
-		let collator = create_funded_collator::<T>(
-			"collator",
-			seed.take(),
-			min_candidate_stk::<T>(),
-			true,
-			1,
-			true,
-		)?;
+		// Maximum delegations per collator (top + bottom)
+		let max_delegations_per_collator =
+			T::MaxTopDelegationsPerCandidate::get() + T::MaxBottomDelegationsPerCandidate::get();
 
-		// Create x delegator accounts with existing locks to migrate
+		// Create x delegator accounts with locks to migrate
 		for i in 0..x {
+			// Create a new collator every max_delegations_per_collator delegators
+			let collator = if i % max_delegations_per_collator == 0 {
+				let new_collator = create_funded_collator::<T>(
+					"collator",
+					seed.take(),
+					min_candidate_stk::<T>(),
+					true,
+					collators.len() as u32 + 1,
+					true,
+				)?;
+				collators.push(new_collator.clone());
+				new_collator
+			} else {
+				// Use the last created collator
+				collators.last().unwrap().clone()
+			};
+
 			// Add extra amount to ensure each delegation is unique and larger than previous ones
 			// This prevents hitting the CannotDelegateLessThanOrEqualToLowestBottomWhenFull error
 			let extra_amount = BalanceOf::<T>::from(i.saturating_mul(100u32));
+			let delegation_count_for_collator = i % max_delegations_per_collator;
 			let delegator = create_funded_delegator::<T>(
 				"delegator",
 				seed.take(),
 				extra_amount,
 				collator.clone(),
 				false,
-				i + 1, // delegation count
+				delegation_count_for_collator,
 				true,
 			)?;
 
