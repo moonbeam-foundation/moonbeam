@@ -685,7 +685,7 @@ fn delegation_request_is_pending_works() {
 						candidate: Address(Alice.into()),
 					},
 				)
-				.expect_cost(267178830)
+				.expect_cost(276671977)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -753,7 +753,7 @@ fn candidate_exit_is_pending_works() {
 						candidate_count: 1.into(),
 					},
 				)
-				.expect_cost(266909884)
+				.expect_cost(270134413)
 				.expect_no_logs()
 				.execute_returns(());
 
