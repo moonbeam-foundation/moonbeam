@@ -1147,10 +1147,6 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
-impl pallet_moonbeam_lazy_migrations::Config for Runtime {
-	type WeightInfo = pallet_moonbeam_lazy_migrations::weights::SubstrateWeightInfo<Runtime>;
-}
-
 /// Maintenance mode Call filter
 pub struct MaintenanceFilter;
 impl Contains<RuntimeCall> for MaintenanceFilter {
@@ -1422,7 +1418,6 @@ construct_runtime! {
 		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 34,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 36,
-		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 37,
 		Parameters: pallet_parameters = 38,
 
 		// Has been permanently removed for safety reasons.
@@ -1746,10 +1741,6 @@ mod tests {
 			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
-		assert!(
-			std::mem::size_of::<pallet_moonbeam_lazy_migrations::Call<Runtime>>()
-				<= CALL_ALIGN as usize
-		);
 		assert!(
 			std::mem::size_of::<pallet_proxy_genesis_companion::Call<Runtime>>()
 				<= CALL_ALIGN as usize
