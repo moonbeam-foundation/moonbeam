@@ -116,7 +116,7 @@ pub mod pallet {
 	pub const MAX_CANDIDATES: u32 = 200;
 
 	/// Maximum number of accounts (delegators and candidates) that can be migrated at once in the `migrate_locks_to_freezes_batch` extrinsic.
-	const MAX_ACCOUNTS_PER_MIGRATION_BATCH: u32 = 100;
+	pub(crate) const MAX_ACCOUNTS_PER_MIGRATION_BATCH: u32 = 100;
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]

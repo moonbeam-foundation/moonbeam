@@ -103,10 +103,13 @@ describeSuite({
 
         // block could support ~2000ms refTime but we consider it safer to error when reaching
         // over 216ms for the payout.
+        // UPDATED: With lazy migration, we need to account for potential migration of
+        // delegators during auto-compound. Each migration adds ~47.5ms.
+        // For worst case with many delegators needing migration, we increase the limit.
         expect(
           weights.mandatory.refTime.toNumber(),
-          "refTime over 216ms, very high for a payout"
-        ).to.be.at.most(216_000_000_000);
+          "refTime over 300ms, very high for a payout with migrations"
+        ).to.be.at.most(300_000_000_000);
 
         expect(
           weights.mandatory.proofSize.toNumber(),
