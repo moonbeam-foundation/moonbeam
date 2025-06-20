@@ -96,12 +96,9 @@ describeSuite({
           context
         );
         expect(stakingFreeze, `Unexpected amount for freeze`).to.be.equal(2n * MIN_GLMR_DELEGATOR);
-        
+
         // Verify that DelegatorState total matches the frozen amount
-        await verifyDelegatorStateMatchesFreezes(
-          randomAccount.address as `0x${string}`,
-          context
-        );
+        await verifyDelegatorStateMatchesFreezes(randomAccount.address as `0x${string}`, context);
       },
     });
   },

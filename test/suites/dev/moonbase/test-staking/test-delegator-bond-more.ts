@@ -44,7 +44,7 @@ describeSuite({
           await context.polkadotJs().query.parachainStaking.delegatorState(ethan.address)
         ).unwrap().total;
         expect(bondAmountAfter.eq(bondAmountBefore.addn(increaseAmount))).to.be.true;
-        
+
         // Verify that DelegatorState total matches the frozen amount
         await verifyDelegatorStateMatchesFreezes(ethan.address as `0x${string}`, context);
       },

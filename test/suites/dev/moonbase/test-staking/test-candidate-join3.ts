@@ -39,7 +39,7 @@ describeSuite({
           request: null,
           status: { active: null },
         });
-        
+
         // Verify that CandidateInfo bond matches the frozen amount
         await verifyCandidateInfoMatchesFreezes(ethan.address as `0x${string}`, context);
       },
