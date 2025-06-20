@@ -18,8 +18,8 @@ extern crate alloc;
 
 use crate::xcm_config::{SelfLocation, SelfReserve, UniversalLocation};
 use crate::{
-	moonbase_weights, xcm_config, Balances, BridgeMessages, BridgeXcmOver, Get, MessageQueue,
-	PolkadotXcm, Runtime, RuntimeEvent, RuntimeHoldReason,
+	moonbase_weights, Balances, BridgeMessages, BridgeXcmOver, Get, MessageQueue, PolkadotXcm,
+	Runtime, RuntimeEvent, RuntimeHoldReason,
 };
 use alloc::collections::btree_set::BTreeSet;
 use bp_parachains::SingleParaStoredHeaderDataBuilder;
@@ -33,22 +33,15 @@ use frame_system::{EnsureNever, EnsureRoot};
 use moonbeam_core_primitives::{AccountId, Balance};
 use pallet_xcm_bridge::congestion::{
 	BlobDispatcherWithChannelStatus, HereOrLocalConsensusXcmChannelManager,
-	UpdateBridgeStatusXcmChannelManager,
 };
 use pallet_xcm_bridge::XcmAsPlainPayload;
 use parity_scale_codec::{Decode, Encode};
 use polkadot_parachain::primitives::Sibling;
 use sp_core::hex2array;
-use sp_runtime::traits::Convert;
 use sp_runtime::Vec;
-use sp_std::vec;
-use sp_weights::Weight;
-use xcm::latest::{AssetId, Junction, Location, MaybeErrorCode, OriginKind, Xcm};
+use xcm::latest::{AssetId, Junction, Location, Xcm};
 use xcm::opaque::VersionedXcm;
-use xcm::prelude::{
-	ExpectTransactStatus, GlobalConsensus, InteriorLocation, NetworkId, PalletInstance, Parachain,
-	Transact, Unlimited, UnpaidExecution,
-};
+use xcm::prelude::{GlobalConsensus, InteriorLocation, NetworkId, PalletInstance, Parachain};
 use xcm_builder::{
 	BridgeMessage, DispatchBlob, DispatchBlobError, ParentIsPreset, SiblingParachainConvertsVia,
 };
@@ -98,26 +91,6 @@ impl<
 		);
 
 		Ok(())
-	}
-}
-
-/// Converts encoded call to the unpaid XCM `Transact`.
-pub struct UpdateBridgeStatusXcmProvider;
-impl Convert<Vec<u8>, Xcm<()>> for UpdateBridgeStatusXcmProvider {
-	fn convert(encoded_call: Vec<u8>) -> Xcm<()> {
-		Xcm(vec![
-			UnpaidExecution {
-				weight_limit: Unlimited,
-				check_origin: None,
-			},
-			Transact {
-				origin_kind: OriginKind::Xcm,
-				call: encoded_call.into(),
-				// TODO: Try to add a test for this weight
-				fallback_max_weight: Some(Weight::from_parts(200_000_000, 6144)),
-			},
-			ExpectTransactStatus(MaybeErrorCode::Success),
-		])
 	}
 }
 
@@ -288,12 +261,7 @@ impl pallet_xcm_bridge::Config<XcmBridgeInstance> for Runtime {
 		(),
 		// handles congestion for other local chains with XCM using `update_bridge_status` sent to
 		// the sending chain.
-		UpdateBridgeStatusXcmChannelManager<
-			Runtime,
-			XcmBridgeInstance,
-			UpdateBridgeStatusXcmProvider,
-			xcm_config::LocalXcmRouter,
-		>,
+		(),
 	>;
 	// Dispatching inbound messages from the bridge and managing congestion with the local
 	// receiving/destination chain
