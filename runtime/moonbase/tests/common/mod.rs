@@ -36,7 +36,9 @@ use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill
 use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
+use moonbase_runtime::XcmWeightTrader;
 use pallet_transaction_payment::Multiplier;
+use xcm::prelude::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
@@ -134,6 +136,12 @@ pub struct ExtBuilder {
 	// [assettype, metadata, Vec<Account, Balance>]
 	xcm_assets: Vec<XcmAssetInitialization>,
 	safe_xcm_version: Option<u32>,
+	opened_bridges: Vec<(
+		Location,
+		InteriorLocation,
+		Option<bp_moonbase::LaneId>,
+		Option<bp_xcm_bridge::Receiver>,
+	)>,
 }
 
 impl Default for ExtBuilder {
@@ -167,6 +175,7 @@ impl Default for ExtBuilder {
 			evm_accounts: BTreeMap::new(),
 			xcm_assets: vec![],
 			safe_xcm_version: None,
+			opened_bridges: vec![],
 		}
 	}
 }
@@ -179,6 +188,19 @@ impl ExtBuilder {
 
 	pub fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
+		self
+	}
+
+	pub fn with_open_bridges(
+		mut self,
+		opened_bridges: Vec<(
+			Location,
+			InteriorLocation,
+			Option<bp_moonbase::LaneId>,
+			Option<bp_xcm_bridge::Receiver>,
+		)>,
+	) -> Self {
+		self.opened_bridges = opened_bridges;
 		self
 	}
 
@@ -226,6 +248,16 @@ impl ExtBuilder {
 			.build_storage()
 			.unwrap();
 
+		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+		parachain_info::GenesisConfig::<Runtime> {
+			parachain_id:
+				<moonbase_runtime::bridge_config::ThisChain as bp_runtime::Parachain>::PARACHAIN_ID
+					.into(),
+			_config: Default::default(),
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
 		}
@@ -252,6 +284,17 @@ impl ExtBuilder {
 
 		pallet_author_mapping::GenesisConfig::<Runtime> {
 			mappings: self.mappings,
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
+		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+		pallet_xcm_bridge::GenesisConfig::<
+			Runtime,
+			moonbase_runtime::bridge_config::XcmBridgeInstance,
+		> {
+			opened_bridges: self.opened_bridges,
+			_phantom: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
@@ -296,7 +339,7 @@ impl ExtBuilder {
 				EvmForeignAssets::create_foreign_asset(
 					root_origin(),
 					asset_id,
-					xcm_asset_initialization.xcm_location,
+					xcm_asset_initialization.xcm_location.clone(),
 					xcm_asset_initialization.decimals,
 					xcm_asset_initialization
 						.symbol
@@ -312,6 +355,13 @@ impl ExtBuilder {
 						.expect("too long"),
 				)
 				.expect("fail to create foreign asset");
+
+				XcmWeightTrader::add_asset(
+					root_origin(),
+					xcm_asset_initialization.xcm_location,
+					UNIT,
+				)
+				.expect("register evm native foreign asset as sufficient");
 
 				for (account, balance) in xcm_asset_initialization.balances {
 					if EvmForeignAssets::mint_into(asset_id, account, balance.into()).is_err() {
