@@ -203,6 +203,10 @@ pub mod pallet {
 		/// Maximum candidates
 		#[pallet::constant]
 		type MaxCandidates: Get<u32>;
+		/// Threshold after which inflation become linear
+		/// If you don't want to use it, set it to `()`
+		#[pallet::constant]
+		type LinearInflationThreshold: Get<Option<BalanceOf<Self>>>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}

@@ -858,6 +858,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type SlotDuration = ConstU64<6_000>;
 	type BlockTime = ConstU64<6_000>;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type LinearInflationThreshold = ();
 }
 
 impl pallet_author_inherent::Config for Runtime {
