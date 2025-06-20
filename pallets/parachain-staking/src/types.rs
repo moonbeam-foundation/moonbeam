@@ -1268,7 +1268,7 @@ pub struct Delegator<AccountId, Balance> {
 	pub id: AccountId,
 	/// All current delegations
 	pub delegations: OrderedSet<Bond<AccountId, Balance>>,
-	/// Total balance locked for this delegator
+	/// Total frozen balance for this delegator
 	pub total: Balance,
 	/// Sum of pending revocation amounts + bond less amounts
 	pub less_total: Balance,

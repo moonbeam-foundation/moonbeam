@@ -106,6 +106,7 @@ describeSuite({
         // UPDATED: With lazy migration, we need to account for potential migration of
         // delegators during auto-compound. Each migration adds ~47.5ms.
         // For worst case with many delegators needing migration, we increase the limit.
+        // TODO: Revert back to 216ms once we have finished the lazy migration.
         expect(
           weights.mandatory.refTime.toNumber(),
           "refTime over 300ms, very high for a payout with migrations"

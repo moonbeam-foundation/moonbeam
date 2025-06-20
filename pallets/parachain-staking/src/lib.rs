@@ -62,8 +62,6 @@ mod benchmarks;
 mod mock;
 mod set;
 #[cfg(test)]
-mod test_lazy_migration;
-#[cfg(test)]
 mod tests;
 
 use frame_support::pallet;
@@ -1643,21 +1641,17 @@ pub mod pallet {
 		pub(crate) fn balance_frozen_extended(
 			account: &T::AccountId,
 			is_collator: bool,
-		) -> BalanceOf<T> {
-			use frame_support::traits::fungible::InspectFreeze;
-
+		) -> Option<BalanceOf<T>> {
 			// First check and migrate any existing lock
 			// We ignore the result as we want to return the frozen balance regardless
 			let _ = Self::check_and_migrate_lock(account, is_collator);
 
 			// Now return the frozen balance
-			let freeze_reason = if is_collator {
-				FreezeReason::StakingCollator
+			if is_collator {
+				<CandidateInfo<T>>::get(account).map(|info| info.bond)
 			} else {
-				FreezeReason::StakingDelegator
-			};
-
-			T::Currency::balance_frozen(&freeze_reason.into(), account)
+				<DelegatorState<T>>::get(account).map(|state| state.total)
+			}
 		}
 
 		pub fn set_candidate_bond_to_zero(acc: &T::AccountId) -> Weight {
@@ -1920,15 +1914,19 @@ pub mod pallet {
 		/// Returns an account's stakable balance which is not frozen in delegation staking
 		pub fn get_delegator_stakable_balance(acc: &T::AccountId) -> BalanceOf<T> {
 			let total_balance = T::Currency::balance(acc);
-			let frozen_balance = Self::balance_frozen_extended(acc, false);
-			total_balance.saturating_sub(frozen_balance)
+			if let Some(frozen_balance) = Self::balance_frozen_extended(acc, false) {
+				return total_balance.saturating_sub(frozen_balance);
+			}
+			total_balance
 		}
 
 		/// Returns an account's free balance which is not frozen in collator staking
 		pub fn get_collator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
 			let total_balance = T::Currency::balance(acc);
-			let frozen_balance = Self::balance_frozen_extended(acc, true);
-			total_balance.saturating_sub(frozen_balance)
+			if let Some(frozen_balance) = Self::balance_frozen_extended(acc, true) {
+				return total_balance.saturating_sub(frozen_balance);
+			}
+			total_balance
 		}
 
 		/// Returns a delegations auto-compound value.
@@ -2413,14 +2411,14 @@ pub mod pallet {
 		}
 
 		/// Mint a specified reward amount to the beneficiary account. Emits the [Rewarded] event.
-		pub fn mint(amt: BalanceOf<T>, to: T::AccountId) {
+		pub fn mint(amt: BalanceOf<T>, to: &T::AccountId) -> Result<BalanceOf<T>, DispatchError> {
 			// Mint rewards to the account
-			if let Ok(minted) = T::Currency::mint_into(&to, amt) {
-				Self::deposit_event(Event::Rewarded {
-					account: to.clone(),
-					rewards: minted,
-				});
-			}
+			let minted = T::Currency::mint_into(&to, amt)?;
+			Self::deposit_event(Event::Rewarded {
+				account: to.clone(),
+				rewards: minted,
+			});
+			Ok(minted)
 		}
 
 		/// Mint a specified reward amount to the collator's account. Emits the [Rewarded] event.
@@ -2430,12 +2428,14 @@ pub mod pallet {
 			amt: BalanceOf<T>,
 		) -> Weight {
 			// Mint rewards to the collator
-			if let Ok(minted) = T::Currency::mint_into(&collator_id, amt) {
-				Self::deposit_event(Event::Rewarded {
-					account: collator_id.clone(),
-					rewards: minted,
-				});
+			if let Err(e) = Self::mint(amt, &collator_id) {
+				log::warn!(
+					"Failed to mint collator reward for {:?}: {:?}",
+					collator_id,
+					e
+				);
 			}
+
 			<T as Config>::WeightInfo::mint_collator_reward()
 		}
 
@@ -2451,12 +2451,7 @@ pub mod pallet {
 		) {
 			// Mint rewards to the delegator
 			if frame_system::Pallet::<T>::account_exists(&delegator) {
-				if let Ok(minted) = T::Currency::mint_into(&delegator, amt.clone()) {
-					Self::deposit_event(Event::Rewarded {
-						account: delegator.clone(),
-						rewards: minted,
-					});
-
+				if let Ok(minted) = Self::mint(amt.clone(), &delegator) {
 					let compound_amount = compound_percent.mul_ceil(minted);
 					if compound_amount.is_zero() {
 						return;

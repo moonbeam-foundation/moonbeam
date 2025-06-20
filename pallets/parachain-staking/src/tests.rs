@@ -39,7 +39,8 @@ use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
-// ~~ ROOT ~~
+
+mod test_lazy_migration;
 
 #[test]
 fn invalid_root_origin_fails() {
