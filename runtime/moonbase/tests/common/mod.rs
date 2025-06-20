@@ -35,7 +35,6 @@ use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill
 
 use std::collections::BTreeMap;
 
-use bp_xcm_bridge::Receiver;
 use fp_rpc::ConvertTransaction;
 use moonbase_runtime::XcmWeightTrader;
 use pallet_transaction_payment::Multiplier;
@@ -141,7 +140,7 @@ pub struct ExtBuilder {
 		Location,
 		InteriorLocation,
 		Option<bp_moonbase::LaneId>,
-		Option<Receiver>,
+		Option<bp_xcm_bridge::Receiver>,
 	)>,
 }
 
@@ -198,7 +197,7 @@ impl ExtBuilder {
 			Location,
 			InteriorLocation,
 			Option<bp_moonbase::LaneId>,
-			Option<Receiver>,
+			Option<bp_xcm_bridge::Receiver>,
 		)>,
 	) -> Self {
 		self.opened_bridges = opened_bridges;
