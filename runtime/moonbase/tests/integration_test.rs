@@ -38,11 +38,11 @@ use frame_support::{
 };
 use moonbase_runtime::xcm_config::XcmExecutor;
 use moonbase_runtime::{
-	xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards, EvmForeignAssets,
-	Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
-	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	moonbase_xcm_weights, xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards,
+	EvmForeignAssets, Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm,
+	Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
+	TransactionPayment, TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective,
+	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -57,7 +57,7 @@ use xcm_executor::traits::ConvertLocation;
 use moonbase_runtime::currency::{GIGAWEI, WEI};
 use moonbase_runtime::runtime_params::dynamic_params;
 use moonbase_runtime::xcm_config::LocationToAccountId;
-use moonbeam_xcm_benchmarks::weights::XcmWeight;
+use moonbase_xcm_weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;

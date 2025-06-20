@@ -41,6 +41,7 @@ use moonbeam_runtime::xcm_config::XcmExecutor;
 use moonbeam_runtime::{
 	asset_config::ForeignAssetInstance,
 	currency::GLMR,
+	moonbeam_xcm_weights,
 	xcm_config::{CurrencyId, SelfReserve},
 	AccountId, Balances, CrowdloanRewards, EvmForeignAssets, Executive,
 	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
@@ -48,7 +49,7 @@ use moonbeam_runtime::{
 	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
-use moonbeam_xcm_benchmarks::weights::XcmWeight;
+use moonbeam_xcm_weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;

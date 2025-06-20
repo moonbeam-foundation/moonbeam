@@ -35,19 +35,20 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
-use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::runtime_params::dynamic_params;
 use moonriver_runtime::xcm_config::XcmExecutor;
 use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
+	moonriver_xcm_weights,
 	xcm_config::{CurrencyId, SelfReserve},
 	AssetId, Balances, CrowdloanRewards, EvmForeignAssets, Executive, OpenTechCommitteeCollective,
 	PolkadotXcm, Precompiles, RuntimeBlockWeights, TransactionPayment,
 	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
+use moonriver_xcm_weights::XcmWeight;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};

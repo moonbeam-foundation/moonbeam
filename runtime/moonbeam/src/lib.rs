@@ -138,6 +138,7 @@ pub mod xcm_config;
 
 use governance::councils::*;
 pub(crate) use weights as moonbeam_weights;
+pub use weights::xcm as moonbeam_xcm_weights;
 
 /// GLMR, the native token, uses 18 decimals of precision.
 pub mod currency {
