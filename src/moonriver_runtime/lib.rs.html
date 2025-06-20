@@ -1890,6 +1890,7 @@
 <a href="#1890" id="1890">1890</a>
 <a href="#1891" id="1891">1891</a>
 <a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2747,6 +2748,7 @@
 	<span class="kw">type </span>MaxCandidates = ConstU32&lt;<span class="number">200</span>&gt;;
 	<span class="kw">type </span>SlotDuration = ConstU64&lt;<span class="number">6_000</span>&gt;;
 	<span class="kw">type </span>BlockTime = ConstU64&lt;<span class="number">6_000</span>&gt;;
+	<span class="kw">type </span>LinearInflationThreshold = ();
 }
 
 <span class="kw">impl </span>pallet_author_inherent::Config <span class="kw">for </span>Runtime {

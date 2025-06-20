@@ -1887,6 +1887,12 @@
 <a href="#1887" id="1887">1887</a>
 <a href="#1888" id="1888">1888</a>
 <a href="#1889" id="1889">1889</a>
+<a href="#1890" id="1890">1890</a>
+<a href="#1891" id="1891">1891</a>
+<a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2692,6 +2698,11 @@
 	</span>}
 }
 
+<span class="macro">parameter_types!</span> {
+	<span class="comment">// Voted by the moonbeam community on this referenda: https://moonbeam.polkassembly.network/referenda/116
+	</span><span class="kw">pub const </span>LinearInflationThreshold: <span class="prelude-ty">Option</span>&lt;Balance&gt; = <span class="prelude-val">Some</span>(<span class="number">1_200_000_000 </span>* currency::GLMR);
+}
+
 <span class="kw">impl </span>pallet_parachain_staking::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
@@ -2734,6 +2745,7 @@
 	<span class="kw">type </span>MaxCandidates = ConstU32&lt;<span class="number">200</span>&gt;;
 	<span class="kw">type </span>SlotDuration = ConstU64&lt;<span class="number">6_000</span>&gt;;
 	<span class="kw">type </span>BlockTime = ConstU64&lt;<span class="number">6_000</span>&gt;;
+	<span class="kw">type </span>LinearInflationThreshold = LinearInflationThreshold;
 }
 
 <span class="kw">impl </span>pallet_author_inherent::Config <span class="kw">for </span>Runtime {
