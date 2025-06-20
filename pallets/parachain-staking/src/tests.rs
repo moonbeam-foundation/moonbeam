@@ -25,21 +25,22 @@
 use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
-	inflation_configs, roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author,
-	set_block_author, AccountId, Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeEvent,
-	RuntimeOrigin, Test, POINTS_PER_BLOCK, POINTS_PER_ROUND,
+	inflation_configs, query_freeze_amount, roll_blocks, roll_to, roll_to_round_begin,
+	roll_to_round_end, set_author, set_block_author, AccountId, Balances, BlockNumber, ExtBuilder,
+	ParachainStaking, RuntimeEvent, RuntimeOrigin, Test, POINTS_PER_BLOCK, POINTS_PER_ROUND,
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded,
-	EnableMarkingOffline, Error, Event, InflationDistributionInfo, Range, WasInactive,
-	DELEGATOR_LOCK_ID,
+	EnableMarkingOffline, Error, Event, FreezeReason, InflationDistributionInfo, Range,
+	WasInactive,
 };
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
-// ~~ ROOT ~~
+
+mod test_lazy_migration;
 
 #[test]
 fn invalid_root_origin_fails() {
@@ -5670,8 +5671,14 @@ fn multiple_delegations() {
 					.len(),
 				4usize
 			);
-			assert_eq!(Balances::locks(&6)[0].amount, 40);
-			assert_eq!(Balances::locks(&7)[0].amount, 90);
+			assert_eq!(
+				query_freeze_amount(6, &FreezeReason::StakingDelegator.into()),
+				40
+			);
+			assert_eq!(
+				query_freeze_amount(7, &FreezeReason::StakingDelegator.into()),
+				90
+			);
 			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&6), 60);
 			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&7), 10);
 			roll_to_round_begin(8);
@@ -7960,42 +7967,41 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidat
 }
 
 #[test]
-fn locking_zero_amount_removes_lock() {
-	use frame_support::traits::{LockableCurrency, WithdrawReasons};
+fn freezing_zero_amount_thaws_freeze() {
+	use crate::mock::query_freeze_amount;
+	use frame_support::traits::fungible::MutateFreeze;
 
-	// this test demonstrates the behavior of pallet Balance's `LockableCurrency` implementation of
-	// `set_locks()` when an amount of 0 is provided: any previous lock is removed
+	// this test demonstrates the behavior of fungible's freeze mechanism
 
 	ExtBuilder::default()
 		.with_balances(vec![(1, 100)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID), None);
+			let reason = &crate::pallet::FreezeReason::StakingDelegator.into();
+			assert_eq!(query_freeze_amount(1, reason), 0);
 
-			Balances::set_lock(DELEGATOR_LOCK_ID, &1, 1, WithdrawReasons::all());
-			assert_eq!(
-				crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID),
-				Some(1)
-			);
+			// Freeze 1 unit
+			assert_ok!(Balances::set_freeze(reason, &1, 1));
+			assert_eq!(query_freeze_amount(1, reason), 1);
 
-			Balances::set_lock(DELEGATOR_LOCK_ID, &1, 0, WithdrawReasons::all());
-			// Note that we tried to call `set_lock(0)` and the previous lock gets removed
-			assert_eq!(crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID), None);
+			// Thaw the freeze
+			assert_ok!(Balances::thaw(reason, &1));
+			assert_eq!(query_freeze_amount(1, reason), 0);
 		});
 }
 
 #[test]
-fn revoke_last_removes_lock() {
+fn revoke_last_removes_freeze() {
+	use crate::mock::query_freeze_amount;
+
 	ExtBuilder::default()
 		.with_balances(vec![(1, 100), (2, 100), (3, 100)])
 		.with_candidates(vec![(1, 25), (2, 25)])
 		.with_delegations(vec![(3, 1, 30), (3, 2, 25)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(
-				crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
-				Some(55)
-			);
+			let reason = &crate::pallet::FreezeReason::StakingDelegator.into();
+			assert_eq!(query_freeze_amount(3, reason), 55);
 
 			// schedule and remove one...
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
@@ -8008,10 +8014,7 @@ fn revoke_last_removes_lock() {
 				3,
 				1
 			));
-			assert_eq!(
-				crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
-				Some(25)
-			);
+			assert_eq!(query_freeze_amount(3, reason), 25);
 
 			// schedule and remove the other...
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
@@ -8024,7 +8027,7 @@ fn revoke_last_removes_lock() {
 				3,
 				2
 			));
-			assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), None);
+			assert_eq!(query_freeze_amount(3, reason), 0);
 		});
 }
 
@@ -9087,7 +9090,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2999210735;
+			let expected_on_init = 3018132161;
 			assert_eq!(Weight::from_parts(expected_on_init, 51554), weight);
 
 			// assemble weight manually to ensure it is well understood
