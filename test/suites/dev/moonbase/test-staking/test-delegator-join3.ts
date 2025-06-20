@@ -8,6 +8,7 @@ import {
   charleth,
   ethan,
 } from "@moonwall/util";
+import { verifyDelegatorStateMatchesFreezes } from "../../../../helpers/staking-freezes";
 
 describeSuite({
   id: "D023446",
@@ -43,6 +44,10 @@ describeSuite({
           )
           .signAsync(ethan),
       ]);
+      
+      // Verify delegator states match freezes after initial delegations
+      await verifyDelegatorStateMatchesFreezes(charleth.address as `0x${string}`, context);
+      await verifyDelegatorStateMatchesFreezes(ethan.address as `0x${string}`, context);
     });
 
     it({

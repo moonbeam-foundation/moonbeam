@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
+import { verifyDelegatorStateMatchesFreezes } from "../../../../helpers/staking-freezes";
 
 describeSuite({
   id: "D023441",
@@ -43,6 +44,9 @@ describeSuite({
           await context.polkadotJs().query.parachainStaking.delegatorState(ethan.address)
         ).unwrap().total;
         expect(bondAmountAfter.eq(bondAmountBefore.addn(increaseAmount))).to.be.true;
+        
+        // Verify that DelegatorState total matches the frozen amount
+        await verifyDelegatorStateMatchesFreezes(ethan.address as `0x${string}`, context);
       },
     });
   },

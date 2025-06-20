@@ -5,6 +5,7 @@ import {
   jumpRounds,
   getDelegatorStakingFreeze,
   getNumberOfDelegatorFreezes,
+  verifyDelegatorStateMatchesFreezes,
 } from "../../../../helpers";
 
 describeSuite({
@@ -50,6 +51,9 @@ describeSuite({
           context
         );
         expect(freeze).to.be.equal(MIN_GLMR_DELEGATOR, "Freeze should have been added");
+        
+        // Verify initial state matches freezes
+        await verifyDelegatorStateMatchesFreezes(randomAccount.address as `0x${string}`, context);
 
         await context.createBlock(
           context
@@ -80,6 +84,9 @@ describeSuite({
           0,
           "Freeze should have been removed after executing revoke"
         );
+        
+        // Verify that after revoke, no delegator state exists and no freeze exists
+        await verifyDelegatorStateMatchesFreezes(randomAccount.address as `0x${string}`, context);
       },
     });
   },

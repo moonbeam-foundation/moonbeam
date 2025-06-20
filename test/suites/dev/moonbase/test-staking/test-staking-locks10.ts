@@ -11,6 +11,7 @@ import {
 import {
   getDelegatorStakingFreeze,
   getNumberOfDelegatorFreezes,
+  verifyDelegatorStateMatchesFreezes,
 } from "../../../../helpers/staking-freezes";
 
 describeSuite({
@@ -95,6 +96,12 @@ describeSuite({
           context
         );
         expect(stakingFreeze, `Unexpected amount for freeze`).to.be.equal(2n * MIN_GLMR_DELEGATOR);
+        
+        // Verify that DelegatorState total matches the frozen amount
+        await verifyDelegatorStateMatchesFreezes(
+          randomAccount.address as `0x${string}`,
+          context
+        );
       },
     });
   },

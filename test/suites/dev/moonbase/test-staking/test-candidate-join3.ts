@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
+import { verifyCandidateInfoMatchesFreezes } from "../../../../helpers/staking-freezes";
 
 describeSuite({
   id: "D023404",
@@ -38,6 +39,9 @@ describeSuite({
           request: null,
           status: { active: null },
         });
+        
+        // Verify that CandidateInfo bond matches the frozen amount
+        await verifyCandidateInfoMatchesFreezes(ethan.address as `0x${string}`, context);
       },
     });
   },

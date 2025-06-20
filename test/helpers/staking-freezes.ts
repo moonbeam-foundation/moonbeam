@@ -179,3 +179,105 @@ export async function getNumberOfDelegatorFreezes(
 
   return delegatorFreezeCount;
 }
+
+/**
+ * Verify that a delegator's total bond matches their frozen balance
+ * @param account - The delegator account address to check
+ * @param context - The DevModeContext
+ * @returns true if the amounts match, throws if they don't
+ */
+export async function verifyDelegatorStateMatchesFreezes(
+  account: `0x${string}`,
+  context: DevModeContext
+): Promise<boolean> {
+  const api = context.polkadotJs();
+
+  // Get the delegator state
+  const delegatorState = await api.query.parachainStaking.delegatorState(account);
+
+  if ((delegatorState as any).isNone) {
+    // If no delegator state, verify no delegator freeze exists
+    const delegatorFreeze = await getDelegatorStakingFreeze(account, context);
+    if (delegatorFreeze !== 0n) {
+      throw new Error(
+        `Account ${account} has no DelegatorState but has delegator freeze of ${delegatorFreeze}`
+      );
+    }
+    return true;
+  }
+
+  // Get the total from DelegatorState
+  const delegatorTotal = (delegatorState as any).unwrap().total.toBigInt();
+
+  // Get the frozen amount
+  const delegatorFreeze = await getDelegatorStakingFreeze(account, context);
+
+  if (delegatorTotal !== delegatorFreeze) {
+    throw new Error(
+      `DelegatorState total (${delegatorTotal}) does not match frozen amount (${delegatorFreeze}) for account ${account}`
+    );
+  }
+
+  return true;
+}
+
+/**
+ * Verify that a candidate's bond matches their frozen balance
+ * @param account - The candidate account address to check
+ * @param context - The DevModeContext
+ * @returns true if the amounts match, throws if they don't
+ */
+export async function verifyCandidateInfoMatchesFreezes(
+  account: `0x${string}`,
+  context: DevModeContext
+): Promise<boolean> {
+  const api = context.polkadotJs();
+
+  // Get the candidate info
+  const candidateInfo = await api.query.parachainStaking.candidateInfo(account);
+
+  if ((candidateInfo as any).isNone) {
+    // If no candidate info, verify no collator freeze exists
+    const collatorFreeze = await getCollatorStakingFreeze(account, context);
+    if (collatorFreeze !== 0n) {
+      throw new Error(
+        `Account ${account} has no CandidateInfo but has collator freeze of ${collatorFreeze}`
+      );
+    }
+    return true;
+  }
+
+  // Get the bond from CandidateInfo
+  const candidateBond = (candidateInfo as any).unwrap().bond.toBigInt();
+
+  // Get the frozen amount
+  const collatorFreeze = await getCollatorStakingFreeze(account, context);
+
+  if (candidateBond !== collatorFreeze) {
+    throw new Error(
+      `CandidateInfo bond (${candidateBond}) does not match frozen amount (${collatorFreeze}) for account ${account}`
+    );
+  }
+
+  return true;
+}
+
+/**
+ * Verify that all staking state matches frozen balances for an account
+ * Checks both delegator and candidate states
+ * @param account - The account address to check
+ * @param context - The DevModeContext
+ * @returns true if all amounts match, throws if they don't
+ */
+export async function verifyStakingStateMatchesFreezes(
+  account: `0x${string}`,
+  context: DevModeContext
+): Promise<boolean> {
+  // Check delegator state
+  await verifyDelegatorStateMatchesFreezes(account, context);
+
+  // Check candidate state
+  await verifyCandidateInfoMatchesFreezes(account, context);
+
+  return true;
+}
