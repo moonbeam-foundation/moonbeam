@@ -256,8 +256,8 @@ impl pallet_bridge_messages::Config<WithMessagesInstance> for Runtime {
 
 /// Add support for the export and dispatch of XCM programs withing
 /// `WithMessagesInstance`.
-pub type XcmOverInstance = pallet_xcm_bridge::Instance1;
-impl pallet_xcm_bridge::Config<XcmOverInstance> for Runtime {
+pub type XcmBridgeInstance = pallet_xcm_bridge::Instance1;
+impl pallet_xcm_bridge::Config<XcmBridgeInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 
 	type UniversalLocation = UniversalLocation;
@@ -290,7 +290,7 @@ impl pallet_xcm_bridge::Config<XcmOverInstance> for Runtime {
 		// the sending chain.
 		UpdateBridgeStatusXcmChannelManager<
 			Runtime,
-			XcmOverInstance,
+			XcmBridgeInstance,
 			UpdateBridgeStatusXcmProvider,
 			xcm_config::LocalXcmRouter,
 		>,

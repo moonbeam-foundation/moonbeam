@@ -292,7 +292,7 @@ impl ExtBuilder {
 		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 		pallet_xcm_bridge::GenesisConfig::<
 			Runtime,
-			moonbase_runtime::bridge_config::XcmOverInstance,
+			moonbase_runtime::bridge_config::XcmBridgeInstance,
 		> {
 			opened_bridges: self.opened_bridges,
 			_phantom: Default::default(),
