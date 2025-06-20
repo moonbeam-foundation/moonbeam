@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D013480",
+  id: "D023482",
   title: "Staking - Freezes - execute revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

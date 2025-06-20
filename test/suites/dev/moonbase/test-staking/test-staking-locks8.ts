@@ -14,7 +14,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D013481",
+  id: "D023483",
   title: "Staking - Freezes - multiple delegations single revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

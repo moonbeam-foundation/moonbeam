@@ -14,7 +14,7 @@ import {
 } from "../../../../helpers/staking-freezes";
 
 describeSuite({
-  id: "D013473",
+  id: "D023475",
   title: "Staking - Freezes - multiple delegations single freeze",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
