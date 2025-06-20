@@ -1915,9 +1915,10 @@ pub mod pallet {
 			Ok(Some(actual_weight).into())
 		}
 
-		/// Returns an account's stakable balance which is not frozen in delegation staking
+		/// Returns an account's stakable balance (including the reserved) which is not frozen in delegation staking
 		pub fn get_delegator_stakable_balance(acc: &T::AccountId) -> BalanceOf<T> {
-			let total_balance = T::Currency::balance(acc);
+			let total_balance =
+				T::Currency::balance(acc).saturating_add(T::Currency::reserved_balance(acc));
 			if let Some(frozen_balance) = Self::balance_frozen_extended(acc, false) {
 				return total_balance.saturating_sub(frozen_balance);
 			}
