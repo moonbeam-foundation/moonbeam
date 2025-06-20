@@ -18,7 +18,7 @@
 //!
 
 use super::{
-	currency, governance, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
+	currency, governance, xcm_config, AccountId, AssetId, Assets, Balance, Balances,
 	OpenTechCommitteeInstance, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
@@ -105,87 +105,6 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	pallet_assets::runtime_benchmarks_enabled! {
 		type BenchmarkHelper = BenchmarkHelper;
 	}
-}
-
-// We instruct how to register the Assets
-// In this case, we tell it to Create an Asset in pallet-assets
-pub struct AssetRegistrar;
-use frame_support::{pallet_prelude::DispatchResult, transactional};
-
-impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
-	#[transactional]
-	fn create_foreign_asset(
-		asset: AssetId,
-		min_balance: Balance,
-		metadata: AssetRegistrarMetadata,
-		is_sufficient: bool,
-	) -> DispatchResult {
-		Assets::force_create(
-			RuntimeOrigin::root(),
-			asset.into(),
-			AssetManager::account_id(),
-			is_sufficient,
-			min_balance,
-		)?;
-
-		// Lastly, the metadata
-		Assets::force_set_metadata(
-			RuntimeOrigin::root(),
-			asset.into(),
-			metadata.name,
-			metadata.symbol,
-			metadata.decimals,
-			metadata.is_frozen,
-		)
-	}
-
-	#[transactional]
-	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
-		// Mark the asset as destroying
-		Assets::start_destroy(RuntimeOrigin::root(), asset.into())
-	}
-
-	fn destroy_asset_dispatch_info_weight(asset: AssetId) -> Weight {
-		// For us both of them (Foreign and Local) have the same annotated weight for a given
-		// witness
-		// We need to take the dispatch info from the destroy call, which is already annotated in
-		// the assets pallet
-
-		// This is the dispatch info of destroy
-		RuntimeCall::Assets(
-			pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy {
-				id: asset.into(),
-			},
-		)
-		.get_dispatch_info()
-		.total_weight()
-	}
-}
-
-#[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
-pub struct AssetRegistrarMetadata {
-	pub name: Vec<u8>,
-	pub symbol: Vec<u8>,
-	pub decimals: u8,
-	pub is_frozen: bool,
-}
-pub type ForeignAssetModifierOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		governance::custom_origins::GeneralAdmin,
-	>,
->;
-
-impl pallet_asset_manager::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type AssetRegistrarMetadata = AssetRegistrarMetadata;
-	type ForeignAssetType = xcm_config::AssetType;
-	type AssetRegistrar = AssetRegistrar;
-	type ForeignAssetModifierOrigin = ForeignAssetModifierOrigin;
-	type WeightInfo = moonbeam_weights::pallet_asset_manager::WeightInfo<Runtime>;
 }
 
 // Instruct how to go from an H160 to an AssetID

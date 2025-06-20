@@ -21,7 +21,6 @@ pub mod cumulus_pallet_xcmp_queue;
 pub mod db;
 pub mod frame_system;
 pub mod frame_system_extensions;
-pub mod pallet_asset_manager;
 pub mod pallet_assets;
 pub mod pallet_author_inherent;
 pub mod pallet_author_mapping;

@@ -15,7 +15,6 @@ log = "0.4"
 # Moonbeam
 moonbeam-core-primitives = { workspace = true }
 moonbeam-xcm-benchmarks = { workspace = true }
-pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-ethereum-xcm = { workspace = true }
@@ -100,7 +99,6 @@ std = [
 	"fp-evm/std",
 	"frame-support/std",
 	"moonbeam-core-primitives/std",
-	"pallet-asset-manager/std",
 	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
@@ -139,7 +137,6 @@ runtime-benchmarks = [
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
 	"frame-benchmarking/runtime-benchmarks",
-	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",

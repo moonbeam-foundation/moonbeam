@@ -35,7 +35,6 @@ use precompile_utils::prelude::*;
 use sp_runtime::traits::{Bounded, Dispatchable};
 use sp_std::vec::Vec;
 
-use pallet_moonbeam_lazy_migrations::is_migrating_foreign_assets;
 use sp_core::{MaxEncodedLen, H160, H256, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
@@ -132,7 +131,6 @@ where
 
 		if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id.clone())
 			.is_some()
-			&& !is_migrating_foreign_assets()
 		{
 			DiscriminantResult::Some(asset_id, extra_cost)
 		} else {
