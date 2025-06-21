@@ -22,6 +22,7 @@
 #[cfg(test)]
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
+use crate::HostFunctions;
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonbeam_runtime::{
@@ -35,7 +36,7 @@ use sc_service::ChainType;
 use sp_core::ecdsa;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
+pub type ChainSpec = sc_service::GenericChainSpec<Extensions, HostFunctions>;
 
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32>) -> ChainSpec {
@@ -143,6 +144,8 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
 			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+			// Bridge Location::new(1, [Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID)])
+			AccountId::from(hex!("7369626cd4070000000000000000000000000000")),
 		],
 		1_500_000 * GLMR * SUPPLY_FACTOR,
 		para_id,
