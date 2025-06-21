@@ -22,7 +22,6 @@ pallet-ethereum-xcm = { workspace = true }
 pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
-pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-parachain-staking = { workspace = true }
 pallet-precompile-benchmarks = { workspace = true }
 pallet-randomness = { workspace = true }
@@ -114,7 +113,6 @@ std = [
 	"pallet-referenda/std",
 	"pallet-scheduler/std",
 	"pallet-xcm-transactor/std",
-	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-identity/std",
 	"pallet-transaction-payment/std",
 	"pallet-xcm-weight-trader/std",
@@ -168,7 +166,6 @@ runtime-benchmarks = [
 	"pallet-whitelist/runtime-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
-	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 	"xcm-runtime-apis/runtime-benchmarks",
 ]

@@ -151,7 +151,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::EthereumXcm>("EthereumXcm");
 	is_pallet_prefix::<moonbase_runtime::Randomness>("Randomness");
 	is_pallet_prefix::<moonbase_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
-	is_pallet_prefix::<moonbase_runtime::MoonbeamLazyMigrations>("MoonbeamLazyMigrations");
 	is_pallet_prefix::<moonbase_runtime::RelayStorageRoots>("RelayStorageRoots");
 
 	let prefix = |pallet_name, storage_name| {
@@ -433,7 +432,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Randomness>(39);
 	is_pallet_index::<moonbase_runtime::TreasuryCouncilCollective>(40);
 	is_pallet_index::<moonbase_runtime::OpenTechCommitteeCollective>(46);
-	is_pallet_index::<moonbase_runtime::MoonbeamLazyMigrations>(51);
 }
 
 #[test]

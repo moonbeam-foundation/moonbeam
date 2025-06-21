@@ -7040,7 +7040,6 @@ dependencies = [
  "pallet-migrations 0.1.0",
  "pallet-migrations 9.1.0",
  "pallet-moonbeam-foreign-assets",
- "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -7527,7 +7526,6 @@ dependencies = [
  "pallet-migrations 0.1.0",
  "pallet-migrations 9.1.0",
  "pallet-moonbeam-foreign-assets",
- "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -7633,7 +7631,6 @@ dependencies = [
  "pallet-message-queue",
  "pallet-migrations 0.1.0",
  "pallet-moonbeam-foreign-assets",
- "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -7960,7 +7957,6 @@ dependencies = [
  "pallet-migrations 0.1.0",
  "pallet-migrations 9.1.0",
  "pallet-moonbeam-foreign-assets",
- "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-multisig",
  "pallet-parachain-staking",
@@ -10078,7 +10074,6 @@ dependencies = [
  "pallet-assets",
  "pallet-balances",
  "pallet-evm",
- "pallet-moonbeam-lazy-migrations",
  "pallet-timestamp",
  "parity-scale-codec",
  "paste",
@@ -10317,36 +10312,6 @@ dependencies = [
  "sp-std",
  "staging-xcm",
  "staging-xcm-executor",
-]
-
-[[package]]
-name = "pallet-moonbeam-lazy-migrations"
-version = "0.1.0"
-dependencies = [
- "cumulus-primitives-storage-weight-reclaim",
- "environmental",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "pallet-asset-manager",
- "pallet-assets",
- "pallet-balances",
- "pallet-evm",
- "pallet-moonbeam-foreign-assets",
- "pallet-scheduler",
- "pallet-timestamp",
- "parity-scale-codec",
- "precompile-utils",
- "rlp",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "staging-xcm",
- "staging-xcm-executor",
- "xcm-primitives 0.1.1",
 ]
 
 [[package]]

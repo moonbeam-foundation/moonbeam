@@ -42,7 +42,6 @@ pallet-maintenance-mode = { workspace = true, features = ["xcm-support"] }
 pallet-migrations = { workspace = true }
 pallet-multiblock-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
-pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
 pallet-parachain-staking = { workspace = true }
 pallet-precompile-benchmarks = { workspace = true }
@@ -272,7 +271,6 @@ std = [
 	"pallet-migrations/std",
 	"pallet-multiblock-migrations/std",
 	"pallet-moonbeam-foreign-assets/std",
-	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-moonbeam-orbiters/std",
 	"pallet-multisig/std",
 	"pallet-parachain-staking/std",
@@ -378,7 +376,6 @@ runtime-benchmarks = [
 	"pallet-migrations/runtime-benchmarks",
 	"pallet-multiblock-migrations/runtime-benchmarks",
 	"pallet-moonbeam-foreign-assets/runtime-benchmarks",
-	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-multisig/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
@@ -427,7 +424,6 @@ try-runtime = [
 	"pallet-maintenance-mode/try-runtime",
 	"pallet-migrations/try-runtime",
 	"pallet-multiblock-migrations/try-runtime",
-	"pallet-moonbeam-lazy-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
 	"pallet-preimage/try-runtime",
 	"pallet-parameters/try-runtime",

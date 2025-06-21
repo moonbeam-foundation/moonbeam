@@ -69,9 +69,9 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId},
-		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
-		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
-		OnFinalize, OnUnbalanced,
+		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOfDiverse,
+		EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice, OnFinalize,
+		OnUnbalanced,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -1179,22 +1179,6 @@ impl pallet_migrations::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 }
 
-pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EitherOfDiverse<
-		pallet_collective::EnsureProportionMoreThan<AccountId, OpenTechCommitteeInstance, 5, 9>,
-		EitherOf<
-			governance::custom_origins::GeneralAdmin,
-			governance::custom_origins::FastGeneralAdmin,
-		>,
-	>,
->;
-
-impl pallet_moonbeam_lazy_migrations::Config for Runtime {
-	type ForeignAssetMigratorOrigin = ForeignAssetMigratorOrigin;
-	type WeightInfo = moonbase_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
-}
-
 /// Maintenance mode Call filter
 pub struct MaintenanceFilter;
 impl Contains<RuntimeCall> for MaintenanceFilter {
@@ -1482,7 +1466,7 @@ construct_runtime! {
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 48,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 49,
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
-		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 51,
+		// Previously 51: Lazy Migrations
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 52,
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 53,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 54,
@@ -1575,7 +1559,6 @@ mod benches {
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
 		[pallet_multiblock_migrations, MultiBlockMigrations]
-		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]
@@ -1746,10 +1729,6 @@ mod tests {
 		);
 		assert!(std::mem::size_of::<pallet_asset_manager::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
-		assert!(
-			std::mem::size_of::<pallet_moonbeam_lazy_migrations::Call<Runtime>>()
-				<= CALL_ALIGN as usize
-		);
 		assert!(std::mem::size_of::<pallet_xcm_transactor::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(
 			std::mem::size_of::<pallet_proxy_genesis_companion::Call<Runtime>>()

@@ -157,7 +157,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonriver_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
 	is_pallet_prefix::<moonriver_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
-	is_pallet_prefix::<moonriver_runtime::MoonbeamLazyMigrations>("MoonbeamLazyMigrations");
 	is_pallet_prefix::<moonriver_runtime::RelayStorageRoots>("RelayStorageRoots");
 
 	let prefix = |pallet_name, storage_name| {
@@ -433,7 +432,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::Identity>(33);
 	is_pallet_index::<moonriver_runtime::Migrations>(34);
 	is_pallet_index::<moonriver_runtime::ProxyGenesisCompanion>(35);
-	is_pallet_index::<moonriver_runtime::MoonbeamLazyMigrations>(37);
 	// Ethereum compatibility
 	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonriver_runtime::EVM>(51);
