@@ -230,6 +230,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxCandidates = MaxCandidates;
 	type SlotDuration = frame_support::traits::ConstU64<6_000>;
 	type BlockTime = frame_support::traits::ConstU64<6_000>;
+	type LinearInflationThreshold = ();
 }
 
 pub(crate) struct ExtBuilder {
