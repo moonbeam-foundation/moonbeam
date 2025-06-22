@@ -12,7 +12,6 @@ paste = { workspace = true }
 
 # Moonbeam
 account = { workspace = true }
-pallet-moonbeam-lazy-migrations = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -60,7 +59,6 @@ std = [
 	"pallet-assets/std",
 	"pallet-balances/std",
 	"pallet-evm/std",
-	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-timestamp/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
