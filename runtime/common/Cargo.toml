@@ -14,7 +14,6 @@ log = "0.4"
 
 # Moonbeam
 moonbeam-core-primitives = { workspace = true }
-moonbeam-xcm-benchmarks = { workspace = true }
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-conviction-voting = { workspace = true }
@@ -169,7 +168,6 @@ runtime-benchmarks = [
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
-	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 	"xcm-runtime-apis/runtime-benchmarks",
 ]
 try-runtime = [
