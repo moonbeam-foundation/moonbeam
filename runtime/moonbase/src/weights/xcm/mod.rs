@@ -17,11 +17,11 @@
 pub mod fungible;
 pub mod generic;
 
-pub use crate::weights::generic::WeightInfo;
 use core::cmp::min;
 use frame_support::{weights::Weight, BoundedVec};
 use fungible::WeightInfo as XcmFungibleWeight;
 use generic::SubstrateWeight as XcmGeneric;
+pub use generic::WeightInfo;
 use sp_std::prelude::*;
 use xcm::{
 	latest::{prelude::*, Weight as XCMWeight},
@@ -213,7 +213,7 @@ where
 		XcmGeneric::<Runtime>::clear_transact_status()
 	}
 	fn universal_origin(_: &Junction) -> Weight {
-		XcmGeneric::<Runtime>::universal_origin()
+		Weight::MAX
 	}
 	fn export_message(_: &NetworkId, _: &Junctions, _: &Xcm<()>) -> Weight {
 		Weight::MAX

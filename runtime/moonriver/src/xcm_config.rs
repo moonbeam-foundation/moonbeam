@@ -209,7 +209,7 @@ parameter_types! {
 
 /// Xcm Weigher shared between multiple Xcm-related configs.
 pub type XcmWeigher = WeightInfoBounds<
-	moonbeam_xcm_benchmarks::weights::XcmWeight<Runtime, RuntimeCall>,
+	crate::weights::xcm::XcmWeight<Runtime, RuntimeCall>,
 	RuntimeCall,
 	MaxInstructions,
 >;

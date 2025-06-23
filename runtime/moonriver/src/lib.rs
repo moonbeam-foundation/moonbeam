@@ -146,6 +146,7 @@ mod precompiles;
 mod weights;
 
 pub(crate) use weights as moonriver_weights;
+pub use weights::xcm as moonriver_xcm_weights;
 
 pub use governance::councils::*;
 

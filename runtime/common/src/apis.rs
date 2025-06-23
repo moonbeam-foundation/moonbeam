@@ -793,9 +793,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				) {
 					use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
 					use frame_system_benchmarking::Pallet as SystemBench;
-					use moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks;
 					use frame_support::traits::StorageInfoTrait;
-					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
 					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
@@ -817,7 +815,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					use xcm::latest::prelude::{
 						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
-						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
+						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent, WeightLimit
 					};
 					use xcm_config::SelfReserve;
 					use frame_benchmarking::BenchmarkError;
@@ -835,9 +833,6 @@ macro_rules! impl_runtime_apis_plus_common {
 							System::assert_last_event(cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into());
 						}
 					}
-
-					impl moonbeam_xcm_benchmarks::Config for Runtime {}
-					impl moonbeam_xcm_benchmarks::generic::Config for Runtime {}
 
 					use pallet_asset_manager::Config as PalletAssetManagerConfig;
 
@@ -1039,6 +1034,10 @@ macro_rules! impl_runtime_apis_plus_common {
 								.into();
 							let ticket = Location { parents: 0, interior: [].into() /* Here */ };
 							Ok((origin, ticket, assets))
+						}
+
+						fn worst_case_for_trader() -> Result<(Asset, WeightLimit), BenchmarkError> {
+							Err(BenchmarkError::Skip)
 						}
 
 						fn unlockable_asset()
