@@ -1041,10 +1041,6 @@ macro_rules! impl_runtime_apis_plus_common {
 							Ok((origin, ticket, assets))
 						}
 
-						fn fee_asset() -> Result<Asset, BenchmarkError> {
-							Err(BenchmarkError::Skip)
-						}
-
 						fn unlockable_asset()
 							-> Result<(Location, Location, Asset), BenchmarkError> {
 							Err(BenchmarkError::Skip)

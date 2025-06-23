@@ -178,8 +178,7 @@ impl pallet_bridge_messages::Config<WithKusamaMessagesInstance> for Runtime {
 
 	type MessageDispatch = BridgeXcmOverMoonriver;
 	type OnMessagesDelivered = BridgeXcmOverMoonriver;
-	// TODO
-	type WeightInfo = pallet_bridge_messages::weights::BridgeWeight<Runtime>;
+	type WeightInfo = moonbeam_weights::pallet_bridge_messages::WeightInfo<Runtime>;
 }
 
 /// Add support for the export and dispatch of XCM programs withing

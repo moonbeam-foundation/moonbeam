@@ -178,8 +178,7 @@ impl pallet_bridge_messages::Config<WithPolkadotMessagesInstance> for Runtime {
 
 	type MessageDispatch = BridgeXcmOverMoonbeam;
 	type OnMessagesDelivered = BridgeXcmOverMoonbeam;
-	// TODO
-	type WeightInfo = pallet_bridge_messages::weights::BridgeWeight<Runtime>;
+	type WeightInfo = moonriver_weights::pallet_bridge_messages::WeightInfo<Runtime>;
 }
 
 /// Add support for the export and dispatch of XCM programs withing
