@@ -85,6 +85,7 @@ fn create_funded_delegator<T: Config>(
 		0u32, // first delegation for all calls
 	)?;
 
+	// TODO: Remove this once the lazy migration is complete.
 	{
 		// Downgrade to pre-migration state for lazy migration benchmarking
 		use crate::{FreezeReason, MigratedDelegators, DELEGATOR_LOCK_ID};
