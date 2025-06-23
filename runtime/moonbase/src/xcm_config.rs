@@ -367,11 +367,10 @@ pub type LocalXcmRouter = (
 /// queues.
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 pub type XcmRouter = WithUniqueTopic<(
-	// The means for routing XCM messages which are not for local execution into the right message
-	// queues.
+	// For routing XCM messages which do not cross local consensus boundary.
 	LocalXcmRouter,
 	// Router that exports messages to be delivered to the bridge destination
-	moonbeam_runtime_common::bridge_send_xcm::BridgeXcmRouter<
+	moonbeam_runtime_common::bridge::BridgeXcmRouter<
 		xcm_builder::LocalExporter<crate::BridgeXcmOver, UniversalLocation>,
 		PolkadotXcm,
 	>,

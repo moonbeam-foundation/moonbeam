@@ -19,7 +19,7 @@
 mod apis;
 #[cfg(feature = "runtime-benchmarks")]
 pub mod benchmarking;
-pub mod bridge_send_xcm;
+pub mod bridge;
 pub mod deal_with_fees;
 pub mod impl_asset_conversion;
 mod impl_moonbeam_xcm_call;

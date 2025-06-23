@@ -24,12 +24,6 @@ use xcm_builder::InspectMessageQueues;
 /// The target that will be used when publishing logs related to this pallet.
 pub const LOG_TARGET: &str = "xcm::bridge-router";
 
-/// Maximal size of the XCM message that may be sent over bridge.
-///
-/// This should be less than the maximal size, allowed by the messages pallet, because
-/// the message itself is wrapped in other structs and is double encoded.
-pub const HARD_MESSAGE_SIZE_LIMIT: u32 = 32 * 1024;
-
 pub struct BridgeXcmRouter<MessageExporter, DestinationVersion>(
 	PhantomData<(MessageExporter, DestinationVersion)>,
 );
@@ -75,7 +69,7 @@ impl<MessageExporter: SendXcm, DestinationVersion: GetVersion> SendXcm
 				// The bridge doesn't support oversized or overweight messages. Therefore, it's
 				// better to drop such messages here rather than at the bridge hub. Let's check the
 				// message size.
-				if message_size > HARD_MESSAGE_SIZE_LIMIT {
+				if message_size > bp_messages::HARD_MESSAGE_SIZE_LIMIT {
 					return Err(SendError::ExceedsMaxMessageSize);
 				}
 
@@ -117,20 +111,17 @@ impl<MessageExporter: SendXcm, DestinationVersion: GetVersion> SendXcm
 			"deliver - message (size: {message_size:?}) sent to the dest: {dest:?}, xcm_hash: {xcm_hash:?}"
 		);
 
-		// increase delivery fee factor (if required)
-		//Self::on_message_sent_to(message_size, dest);
-
 		Ok(xcm_hash)
 	}
 }
 
+/// This router needs to implement `InspectMessageQueues` but doesn't have to
+/// return any messages, since it just reuses the `XcmpQueue` router.
 impl<MessageExporter, DestinationVersion> InspectMessageQueues
 	for BridgeXcmRouter<MessageExporter, DestinationVersion>
 {
 	fn clear_messages() {}
 
-	/// This router needs to implement `InspectMessageQueues` but doesn't have to
-	/// return any messages, since it just reuses the `XcmpQueue` router.
 	fn get_messages() -> Vec<(VersionedLocation, Vec<VersionedXcm<()>>)> {
 		Vec::new()
 	}
