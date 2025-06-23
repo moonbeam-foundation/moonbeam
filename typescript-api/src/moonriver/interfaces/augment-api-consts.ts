@@ -333,6 +333,11 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       leaveDelegatorsDelay: u32 & AugmentedConst<ApiType>;
       /**
+       * Threshold after which inflation become linear
+       * If you don't want to use it, set it to `()`
+       **/
+      linearInflationThreshold: Option<u128> & AugmentedConst<ApiType>;
+      /**
        * Maximum bottom delegations (not counted) per candidate
        **/
       maxBottomDelegationsPerCandidate: u32 & AugmentedConst<ApiType>;
