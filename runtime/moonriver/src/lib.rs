@@ -1509,8 +1509,7 @@ construct_runtime! {
 		BridgePolkadotGrandpa: pallet_bridge_grandpa::<Instance1> = 130,
 		BridgePolkadotParachains: pallet_bridge_parachains::<Instance1> = 131,
 		BridgePolkadotMessages: pallet_bridge_messages::<Instance1> = 132,
-		BridgeXcmOverMoonbeam: pallet_xcm_bridge::<Instance1> = 133,
-		ToPolkadotXcmRouter: pallet_xcm_bridge_router::<Instance1> = 134
+		BridgeXcmOverMoonbeam: pallet_xcm_bridge::<Instance1> = 133
 	}
 }
 

@@ -1508,7 +1508,6 @@ construct_runtime! {
 		BridgeKusamaParachains: pallet_bridge_parachains::<Instance1> = 131,
 		BridgeKusamaMessages: pallet_bridge_messages::<Instance1> = 132,
 		BridgeXcmOverMoonriver: pallet_xcm_bridge::<Instance1> = 133,
-		ToKusamaXcmRouter: pallet_xcm_bridge_router::<Instance1> = 134,
 	}
 }
 

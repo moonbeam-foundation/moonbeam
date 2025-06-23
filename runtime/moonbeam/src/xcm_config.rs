@@ -21,8 +21,7 @@ use super::{
 	bridge_config, governance, AccountId, AssetId, AssetManager, Balance, Balances,
 	BridgeXcmOverMoonriver, EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode,
 	MessageQueue, OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm,
-	Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, ToKusamaXcmRouter,
-	Treasury, XcmpQueue,
+	Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 use super::moonbeam_weights;
@@ -337,7 +336,10 @@ pub type XcmRouter = WithUniqueTopic<(
 	// queues.
 	LocalXcmRouter,
 	// Router that exports messages to be delivered to the Kusama GlobalConsensus
-	ToKusamaXcmRouter,
+	moonbeam_runtime_common::bridge_xcm::BridgeXcmRouter<
+		xcm_builder::LocalExporter<BridgeXcmOverMoonriver, UniversalLocation>,
+		PolkadotXcm,
+	>,
 )>;
 
 impl pallet_xcm::Config for Runtime {
