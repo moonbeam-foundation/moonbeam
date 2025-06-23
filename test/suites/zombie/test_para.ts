@@ -7,13 +7,15 @@ import fs from "node:fs";
 
 describeSuite({
   id: "Z01",
-  title: "Zombienet Runtime Upgrade Test",
+  title: "Zombie AlphaNet Upgrade Test",
   foundationMethods: "zombie",
   testCases: ({ it, context, log }) => {
     let paraApi: ApiPromise;
+    let relayApi: ApiPromise;
 
     beforeAll(async () => {
       paraApi = context.polkadotJs("parachain");
+      relayApi = context.polkadotJs("relaychain");
 
       const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
       expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);
@@ -59,47 +61,22 @@ describeSuite({
           await paraApi.rpc.chain.getBlock()
         ).block.header.number.toNumber();
 
-        await new Promise<void>(async (resolve, reject) => {
-          // Fail if it takes more than 60 seconds
-          setTimeout(() => reject("timeout"), 60_000);
+        await paraApi.tx.system.applyAuthorizedUpgrade(rtHex).signAndSend(alith);
 
-          await paraApi.tx.system
-            .applyAuthorizedUpgrade(rtHex)
-            .signAndSend(alith, async ({ status, dispatchError }) => {
-              const blockNumberAfter = (
-                await paraApi.rpc.chain.getBlock()
-              ).block.header.number.toNumber();
-              console.debug(`Block number: ${blockNumberAfter}, Status: ${status}`);
+        await context.waitBlock(15);
 
-              if (dispatchError) {
-                if (dispatchError.isModule) {
-                  // for module errors, we have the section indexed, lookup
-                  const decoded = paraApi.registry.findMetaError(dispatchError.asModule);
-                  const { docs, name, section } = decoded;
+        const rtafter = paraApi.consts.system.version.specVersion.toNumber();
+        expect(rtafter).to.be.greaterThan(rtBefore);
 
-                  reject(`${section}.${name}: ${docs.join(" ")}`);
-                } else {
-                  // Other, CannotLookup, BadOrigin, no extra info
-                  reject(dispatchError.toString());
-                }
-              } else if (status.isFinalized) {
-                const rtafter = paraApi.consts.system.version.specVersion.toNumber();
-                expect(rtafter).to.be.greaterThan(rtBefore);
+        log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
 
-                log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
-
-                const blockNumberAfter = (
-                  await paraApi.rpc.chain.getBlock()
-                ).block.header.number.toNumber();
-                log(`Before: #${blockNumberBefore}, After: #${blockNumberAfter}`);
-                expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
-                  blockNumberBefore
-                );
-
-                resolve();
-              }
-            });
-        });
+        const blockNumberAfter = (
+          await paraApi.rpc.chain.getBlock()
+        ).block.header.number.toNumber();
+        log(`Before: #${blockNumberBefore}, After: #${blockNumberAfter}`);
+        expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
+          blockNumberBefore
+        );
       },
     });
 
