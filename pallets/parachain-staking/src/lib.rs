@@ -712,13 +712,13 @@ pub mod pallet {
 	#[pallet::storage]
 	/// Temporary storage to track candidates that have been migrated from locks to freezes.
 	/// This storage should be removed after all accounts have been migrated.
-	pub(crate) type MigratedCandidates<T: Config> =
+	pub type MigratedCandidates<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, (), OptionQuery>;
 
 	#[pallet::storage]
 	/// Temporary storage to track delegators that have been migrated from locks to freezes.
 	/// This storage should be removed after all accounts have been migrated.
-	pub(crate) type MigratedDelegators<T: Config> =
+	pub type MigratedDelegators<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, (), OptionQuery>;
 
 	#[pallet::genesis_config]
