@@ -2934,7 +2934,7 @@ mod bridge_tests {
 					NetworkId::Kusama.into(),
 					Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID),
 				]),
-				Some(bp_messages::LegacyLaneId([0, 0, 0, 0])),
+				Some(bp_moonbeam::LaneId::from_inner(H256([0u8; 32]))),
 				None,
 			)])
 			.build()
@@ -2948,7 +2948,7 @@ mod bridge_tests {
 				let asset = currency_to_asset(CurrencyId::SelfReserve, 100 * GLMR);
 
 				let message_data = BridgeKusamaMessages::outbound_message_data(
-					bp_messages::LegacyLaneId([0, 0, 0, 0]),
+					bp_moonriver::LaneId::from_inner(H256([0u8; 32])),
 					1u64,
 				);
 				assert!(message_data.is_none());
@@ -2970,7 +2970,7 @@ mod bridge_tests {
 				));
 
 				let message_data = BridgeKusamaMessages::outbound_message_data(
-					bp_messages::LegacyLaneId([0, 0, 0, 0]),
+					bp_moonriver::LaneId::from_inner(H256([0u8; 32])),
 					1u64,
 				).unwrap();
 				let decoded: StoredMessagePayload::<Runtime, WithKusamaMessagesInstance> = Decode::decode(&mut &message_data[..]).unwrap();
@@ -3074,7 +3074,7 @@ mod bridge_tests {
 					NetworkId::Kusama.into(),
 					Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID),
 				]),
-				Some(bp_messages::LegacyLaneId([0, 0, 0, 0])),
+				Some(bp_moonriver::LaneId::from_inner(H256([0u8; 32]))),
 				None,
 			)])
 			.build()
@@ -3161,7 +3161,7 @@ mod bridge_tests {
 						pallet_message_queue::Event::Processed {
 							id: H256::from(hex2array!("18495c29e70fc42c8878918fe0bb70bb2f599a2cc1afaef91ec261b7ab275793")),
 							origin: AggregateMessageOrigin::Here,
-							weight_used: Weight::from_parts(4358896000, 30545),
+							weight_used: Weight::from_parts(4358896000, 40545),
 							success: true
 						}
 					)

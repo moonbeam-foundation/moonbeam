@@ -2843,7 +2843,7 @@ mod bridge_tests {
 					NetworkId::Polkadot.into(),
 					Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
 				]),
-				Some(bp_messages::LegacyLaneId([0, 0, 0, 0])),
+				Some(bp_moonriver::LaneId::from_inner(H256([0u8; 32]))),
 				None,
 			)])
 			.build()
@@ -2857,7 +2857,7 @@ mod bridge_tests {
 				let asset = currency_to_asset(CurrencyId::SelfReserve, 100 * MOVR);
 
 				let message_data = BridgePolkadotMessages::outbound_message_data(
-					bp_messages::LegacyLaneId([0, 0, 0, 0]),
+					bp_moonriver::LaneId::from_inner(H256([0u8; 32])),
 					1u64,
 				);
 				assert!(message_data.is_none());
@@ -2879,7 +2879,7 @@ mod bridge_tests {
 				));
 
 				let message_data = BridgePolkadotMessages::outbound_message_data(
-					bp_messages::LegacyLaneId([0, 0, 0, 0]),
+					bp_moonriver::LaneId::from_inner(H256([0u8; 32])),
 					1u64,
 				);
 				assert!(message_data.is_some());
@@ -2926,7 +2926,7 @@ mod bridge_tests {
 					NetworkId::Polkadot.into(),
 					Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
 				]),
-				Some(bp_messages::LegacyLaneId([0, 0, 0, 0])),
+				Some(bp_moonriver::LaneId::from_inner(H256([0u8; 32]))),
 				None,
 			)])
 			.build()
