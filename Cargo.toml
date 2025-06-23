@@ -14,7 +14,6 @@ members = [
     "pallets/moonbeam-foreign-assets",
     "pallets/moonbeam-lazy-migrations",
     "pallets/moonbeam-orbiters",
-    "pallets/moonbeam-xcm-benchmarks",
     "pallets/parachain-staking",
     "pallets/precompile-benchmarks",
     "pallets/proxy-genesis-companion",
@@ -77,7 +76,6 @@ moonbeam-evm-tracer = { path = "runtime/evm_tracer", default-features = false }
 moonbeam-relay-encoder = { path = "runtime/relay-encoder", default-features = false }
 moonbeam-runtime-common = { path = "runtime/common", default-features = false }
 
-moonbeam-xcm-benchmarks = { path = "pallets/moonbeam-xcm-benchmarks", default-features = false }
 pallet-asset-manager = { path = "pallets/asset-manager", default-features = false }
 pallet-erc20-xcm-bridge = { path = "pallets/erc20-xcm-bridge", default-features = false }
 pallet-ethereum-xcm = { path = "pallets/ethereum-xcm", default-features = false }

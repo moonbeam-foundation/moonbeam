@@ -34,7 +34,6 @@ xcm-primitives = { workspace = true }
 bp-moonbase = { workspace = true }
 
 # Moonbeam pallets
-moonbeam-xcm-benchmarks = { workspace = true }
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
@@ -424,7 +423,6 @@ runtime-benchmarks = [
 	"hex-literal",
 	"moonbeam-relay-encoder/runtime-benchmarks",
 	"moonbeam-runtime-common/runtime-benchmarks",
-	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",

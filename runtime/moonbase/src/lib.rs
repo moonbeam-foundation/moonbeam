@@ -146,6 +146,8 @@ mod weights;
 
 pub(crate) use weights as moonbase_weights;
 
+pub use weights::xcm as moonbase_xcm_weights;
+
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
 	use super::Balance;
