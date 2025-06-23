@@ -1891,6 +1891,7 @@
 <a href="#1891" id="1891">1891</a>
 <a href="#1892" id="1892">1892</a>
 <a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2037,6 +2038,7 @@
 <span class="kw">mod </span>weights;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>weights <span class="kw">as </span>moonriver_weights;
+<span class="kw">pub use </span>weights::xcm <span class="kw">as </span>moonriver_xcm_weights;
 
 <span class="kw">pub use </span>governance::councils::<span class="kw-2">*</span>;
 

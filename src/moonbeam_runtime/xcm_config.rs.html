@@ -1010,7 +1010,7 @@
 
 <span class="doccomment">/// Xcm Weigher shared between multiple Xcm-related configs.
 </span><span class="kw">pub type </span>XcmWeigher = WeightInfoBounds&lt;
-	moonbeam_xcm_benchmarks::weights::XcmWeight&lt;Runtime, RuntimeCall&gt;,
+	<span class="kw">crate</span>::weights::xcm::XcmWeight&lt;Runtime, RuntimeCall&gt;,
 	RuntimeCall,
 	MaxInstructions,
 &gt;;

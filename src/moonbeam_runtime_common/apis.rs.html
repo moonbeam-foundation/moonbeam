@@ -1147,11 +1147,6 @@
 <a href="#1147" id="1147">1147</a>
 <a href="#1148" id="1148">1148</a>
 <a href="#1149" id="1149">1149</a>
-<a href="#1150" id="1150">1150</a>
-<a href="#1151" id="1151">1151</a>
-<a href="#1152" id="1152">1152</a>
-<a href="#1153" id="1153">1153</a>
-<a href="#1154" id="1154">1154</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1938,9 +1933,7 @@
 				) {
 					<span class="kw">use </span>frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
 					<span class="kw">use </span>frame_system_benchmarking::Pallet <span class="kw">as </span>SystemBench;
-					<span class="kw">use </span>moonbeam_xcm_benchmarks::generic::benchmarking <span class="kw">as </span>MoonbeamXcmBenchmarks;
 					<span class="kw">use </span>frame_support::traits::StorageInfoTrait;
-					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 
 					<span class="kw">use </span>pallet_xcm::benchmarking::Pallet <span class="kw">as </span>PalletXcmExtrinsicsBenchmark;
 					<span class="kw">use </span>pallet_transaction_payment::benchmarking::Pallet <span class="kw">as </span>PalletTransactionPaymentBenchmark;
@@ -1962,7 +1955,7 @@
 
 					<span class="kw">use </span>xcm::latest::prelude::{
 						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
-						Assets <span class="kw">as </span>XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
+						Assets <span class="kw">as </span>XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent, WeightLimit
 					};
 					<span class="kw">use </span>xcm_config::SelfReserve;
 					<span class="kw">use </span>frame_benchmarking::BenchmarkError;
@@ -1980,9 +1973,6 @@
 							System::assert_last_event(cumulus_pallet_parachain_system::Event::&lt;Runtime&gt;::ValidationFunctionStored.into());
 						}
 					}
-
-					<span class="kw">impl </span>moonbeam_xcm_benchmarks::Config <span class="kw">for </span>Runtime {}
-					<span class="kw">impl </span>moonbeam_xcm_benchmarks::generic::Config <span class="kw">for </span>Runtime {}
 
 					<span class="kw">use </span>pallet_asset_manager::Config <span class="kw">as </span>PalletAssetManagerConfig;
 
@@ -2186,7 +2176,7 @@
 							<span class="prelude-val">Ok</span>((origin, ticket, assets))
 						}
 
-						<span class="kw">fn </span>fee_asset() -&gt; <span class="prelude-ty">Result</span>&lt;Asset, BenchmarkError&gt; {
+						<span class="kw">fn </span>worst_case_for_trader() -&gt; <span class="prelude-ty">Result</span>&lt;(Asset, WeightLimit), BenchmarkError&gt; {
 							<span class="prelude-val">Err</span>(BenchmarkError::Skip)
 						}
 

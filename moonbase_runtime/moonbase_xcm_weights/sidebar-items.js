@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["fungible","generic"],"struct":["XcmWeight"],"trait":["WeightInfo"]};
