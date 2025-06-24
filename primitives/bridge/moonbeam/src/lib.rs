@@ -65,7 +65,7 @@ impl Chain for Moonbeam {
 }
 
 impl Parachain for Moonbeam {
-	const PARACHAIN_ID: u32 = MOONBEAM_POLKADOT_PARACHAIN_ID;
+	const PARACHAIN_ID: u32 = PARACHAIN_ID;
 	const MAX_HEADER_SIZE: u32 = 4_096;
 }
 
@@ -80,7 +80,7 @@ impl ChainWithMessages for Moonbeam {
 }
 
 /// Identifier of Moonbeam parachain in the Polkadot relay chain.
-pub const MOONBEAM_POLKADOT_PARACHAIN_ID: u32 = 2004;
+pub const PARACHAIN_ID: u32 = 2004;
 
 /// Name of the With-MoonbeamPolkadot messages pallet instance that is deployed at bridged chains.
 pub const WITH_MOONBEAM_POLKADOT_MESSAGES_PALLET_NAME: &str = "BridgePolkadotMessages";

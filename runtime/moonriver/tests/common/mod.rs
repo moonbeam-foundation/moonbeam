@@ -427,7 +427,7 @@ pub fn set_parachain_inherent_data() {
 	pallet_author_inherent::Author::<Runtime>::put(author);
 
 	let mut relay_sproof = RelayStateSproofBuilder::default();
-	relay_sproof.para_id = 100u32.into();
+	relay_sproof.para_id = bp_moonriver::PARACHAIN_ID.into();
 	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
 
 	let additional_key_values = vec![(
