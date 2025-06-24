@@ -58,3 +58,14 @@ pub mod pallet_xcm;
 pub mod pallet_xcm_transactor;
 pub mod pallet_xcm_weight_trader;
 pub mod xcm;
+
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+mod bridge_weights;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_bridge_grandpa;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_bridge_messages;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_bridge_parachains;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_xcm_bridge;
