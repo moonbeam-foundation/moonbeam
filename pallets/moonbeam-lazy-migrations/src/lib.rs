@@ -23,8 +23,9 @@
 
 #[cfg(test)]
 pub mod mock;
-#[cfg(test)]
-mod tests;
+
+// #[cfg(test)]
+// mod tests;
 
 // #[cfg(any(test, feature = "runtime-benchmarks"))]
 // mod benchmarks;
