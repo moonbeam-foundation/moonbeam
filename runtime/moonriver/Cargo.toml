@@ -146,7 +146,6 @@ pallet-bridge-grandpa = { workspace = true }
 pallet-bridge-parachains = { workspace = true }
 pallet-bridge-messages = { workspace = true }
 pallet-xcm-bridge = { workspace = true }
-pallet-xcm-bridge-router = { workspace = true }
 bridge-hub-common = { workspace = true }
 
 # Frontier
@@ -317,7 +316,6 @@ std = [
 	"pallet-bridge-parachains/std",
 	"pallet-bridge-messages/std",
 	"pallet-xcm-bridge/std",
-	"pallet-xcm-bridge-router/std",
 	"bridge-hub-common/std",
 	"parachain-info/std",
 	"parachains-common/std",
@@ -435,7 +433,6 @@ runtime-benchmarks = [
 	"pallet-bridge-parachains/runtime-benchmarks",
 	"pallet-bridge-messages/runtime-benchmarks",
 	"pallet-xcm-bridge/runtime-benchmarks",
-	"pallet-xcm-bridge-router/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
@@ -502,5 +499,4 @@ try-runtime = [
 	"pallet-bridge-parachains/try-runtime",
 	"pallet-bridge-messages/try-runtime",
 	"pallet-xcm-bridge/try-runtime",
-	"pallet-xcm-bridge-router/try-runtime",
 ]
