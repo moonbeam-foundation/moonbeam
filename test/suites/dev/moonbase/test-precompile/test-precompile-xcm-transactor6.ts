@@ -6,19 +6,23 @@ import {
   relayAssetMetadata,
   verifyLatestBlockFees,
   expectEVMResult,
-  registerOldForeignAsset,
   registerXcmTransactorAndContract,
+  registerForeignAsset,
 } from "../../../../helpers";
 
-const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
+// const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
 
 describeSuite({
   id: "D022884",
   title: "Precompiles - xcm transactor V2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+
+    let assetAddress;
+
     beforeAll(async () => {
-      await registerOldForeignAsset(context, RELAY_SOURCE_LOCATION, relayAssetMetadata as any);
+      let { contractAddress } = await registerForeignAsset(context, 1n, RELAY_SOURCE_LOCATION, relayAssetMetadata);
+      assetAddress = contractAddress;
       await registerXcmTransactorAndContract(context);
     });
 
@@ -29,7 +33,7 @@ describeSuite({
         // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
         // And we need relay tokens for issuing a transaction to be executed in the relay
         const dest: [number, any[]] = [1, []];
-        const asset = ADDRESS_RELAY_ASSETS;
+        const asset = assetAddress;
         const transact_call = fromBytes(new Uint8Array([0x01]), "hex");
         const transactWeight = 1000;
         const overallWeight = 2000;
