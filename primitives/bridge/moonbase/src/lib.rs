@@ -1,4 +1,4 @@
-// Copyright 2019-2025 PureStake Inc.
+// Copyright 2025 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,21 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! # Moonbase bridge primitives
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod apis;
-#[cfg(feature = "runtime-benchmarks")]
-pub mod benchmarking;
-pub mod bridge;
-pub mod deal_with_fees;
-pub mod impl_asset_conversion;
-mod impl_moonbeam_xcm_call;
-mod impl_moonbeam_xcm_call_tracing;
-pub mod impl_multiasset_paymaster;
-mod impl_on_charge_evm_transaction;
-mod impl_self_contained_call;
-mod impl_xcm_evm_runner;
-pub mod migrations;
-pub mod timestamp;
-pub mod types;
-pub mod xcm_origins;
+pub mod betanet;
+pub mod stagenet;
+
+pub use bp_bridge_hub_cumulus::{
+	BlockLength, BlockWeights, Hasher, Nonce, SignedBlock, AVERAGE_BLOCK_INTERVAL,
+	MAX_UNCONFIRMED_MESSAGES_IN_CONFIRMATION_TX, MAX_UNREWARDED_RELAYERS_IN_CONFIRMATION_TX,
+};
+use bp_runtime::{decl_bridge_finality_runtime_apis, decl_bridge_messages_runtime_apis};
+
+pub use moonbeam_core_primitives::{AccountId, Balance, BlockNumber, Hash, Header, Signature};
+
+/// Bridge lane identifier.
+pub type LaneId = bp_messages::HashedLaneId;
+
+decl_bridge_finality_runtime_apis!(moonbase_westend);
+decl_bridge_messages_runtime_apis!(moonbase_westend, LaneId);
