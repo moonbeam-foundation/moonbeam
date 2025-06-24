@@ -1193,7 +1193,6 @@ pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
 >;
 
 impl pallet_moonbeam_lazy_migrations::Config for Runtime {
-	type ForeignAssetMigratorOrigin = ForeignAssetMigratorOrigin;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
 }
 
@@ -1577,7 +1576,8 @@ mod benches {
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
 		[pallet_multiblock_migrations, MultiBlockMigrations]
-		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
+		// Currently there are no extrinsics to benchmark for the Lazy Migrations pallet
+		// [pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]
