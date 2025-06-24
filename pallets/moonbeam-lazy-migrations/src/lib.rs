@@ -46,9 +46,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config:
-		frame_system::Config
-	{
+	pub trait Config: frame_system::Config {
 		type WeightInfo: WeightInfo;
 	}
 
