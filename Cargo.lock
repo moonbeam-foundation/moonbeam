@@ -7306,6 +7306,7 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-benchmarks",
  "pallet-xcm-bridge",
+ "pallet-xcm-bridge-router",
  "pallet-xcm-transactor",
  "pallet-xcm-weight-trader",
  "parachains-common",
@@ -7806,6 +7807,7 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-benchmarks",
  "pallet-xcm-bridge",
+ "pallet-xcm-bridge-router",
  "pallet-xcm-transactor",
  "pallet-xcm-weight-trader",
  "parachains-common",
@@ -8228,6 +8230,7 @@ dependencies = [
  "pallet-xcm",
  "pallet-xcm-benchmarks",
  "pallet-xcm-bridge",
+ "pallet-xcm-bridge-router",
  "pallet-xcm-transactor",
  "pallet-xcm-weight-trader",
  "parachains-common",
@@ -11346,7 +11349,7 @@ dependencies = [
  "log",
  "pallet-balances",
  "pallet-bridge-messages",
- "pallet-xcm-bridge-hub-router",
+ "pallet-xcm-bridge-router",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
  "scale-info",
@@ -11360,11 +11363,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-xcm-bridge-hub-router"
-version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2412#eb18eec247946d6c7210135f35515d1d01f57737"
+name = "pallet-xcm-bridge-router"
+version = "0.1.0"
 dependencies = [
- "bp-xcm-bridge-hub-router",
+ "bp-xcm-bridge",
+ "bp-xcm-bridge-router",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -11372,6 +11375,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "staging-xcm",
@@ -11464,8 +11468,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes",
- "rand 0.7.3",
- "rand_core 0.5.1",
+ "rand 0.8.5",
+ "rand_core 0.6.4",
  "serde",
  "unicode-normalization",
 ]
@@ -18953,7 +18957,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.7.3",
+ "rand 0.8.5",
  "static_assertions",
 ]
 

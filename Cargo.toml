@@ -19,6 +19,7 @@ members = [
     "pallets/proxy-genesis-companion",
     "pallets/xcm-transactor",
     "pallets/xcm-weight-trader",
+    "pallets/xcm-bridge-router",
     "pallets/xcm-bridge",
     "precompiles/balances-erc20",
     "precompiles/batch",
@@ -121,6 +122,7 @@ bp-moonriver = { path = "primitives/bridge/moonriver", default-features = false 
 bp-moonbase = { path = "primitives/bridge/moonbase", default-features = false }
 bp-xcm-bridge = { path = "primitives/bridge/xcm-bridge", default-features = false }
 bp-xcm-bridge-router = { path = "primitives/bridge/xcm-bridge-router", default-features = false }
+pallet-xcm-bridge-router = { path = "pallets/xcm-bridge-router", default-features = false }
 pallet-xcm-bridge = { path = "pallets/xcm-bridge", default-features = false }
 
 # Moonbeam (client)
@@ -356,7 +358,6 @@ bp-bridge-hub-cumulus = { git = "https://github.com/moonbeam-foundation/polkadot
 pallet-bridge-grandpa = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-bridge-parachains = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-bridge-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
-pallet-xcm-bridge-router = { package = "pallet-xcm-bridge-hub-router", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 bridge-hub-common = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 
 # Moonkit (wasm)
