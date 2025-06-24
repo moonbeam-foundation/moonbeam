@@ -162,6 +162,8 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::RelayStorageRoots>("RelayStorageRoots");
 	is_pallet_prefix::<moonriver_runtime::BridgePolkadotGrandpa>("BridgePolkadotGrandpa");
 	is_pallet_prefix::<moonriver_runtime::BridgePolkadotParachains>("BridgePolkadotParachains");
+	is_pallet_prefix::<moonriver_runtime::BridgePolkadotMessages>("BridgePolkadotMessages");
+	is_pallet_prefix::<moonriver_runtime::BridgeXcmOverMoonbeam>("BridgeXcmOverMoonbeam");
 
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
@@ -231,7 +233,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Holds".to_vec(),
 				prefix: prefix(b"Balances", b"Holds"),
 				max_values: None,
-				max_size: Some(55),
+				max_size: Some(91),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
@@ -463,6 +465,8 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::XcmTransactor>(107);
 	is_pallet_index::<moonriver_runtime::BridgePolkadotGrandpa>(130);
 	is_pallet_index::<moonriver_runtime::BridgePolkadotParachains>(131);
+	is_pallet_index::<moonriver_runtime::BridgePolkadotMessages>(132);
+	is_pallet_index::<moonriver_runtime::BridgeXcmOverMoonbeam>(133);
 }
 
 #[test]
@@ -3006,7 +3010,7 @@ mod bridge_tests {
 				expect_events(vec![
 					RuntimeEvent::MessageQueue(
 						pallet_message_queue::Event::Processed {
-							id: H256::from(hex2array!("a46dbe621eda9f3c4898998053273145f3968a7ca56c9aae48b579728095ec59")),
+							id: H256::from(hex2array!("a47a2897f78ab8d821630d54861d782d2e5c90947d86ed0baf6b97b1acf8d2d4")),
 							origin: AggregateMessageOrigin::Here,
 							weight_used: Weight::from_parts(4353681000, 40545),
 							success: true

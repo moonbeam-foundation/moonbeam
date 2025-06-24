@@ -162,6 +162,8 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::RelayStorageRoots>("RelayStorageRoots");
 	is_pallet_prefix::<moonbeam_runtime::BridgeKusamaGrandpa>("BridgeKusamaGrandpa");
 	is_pallet_prefix::<moonbeam_runtime::BridgeKusamaParachains>("BridgeKusamaParachains");
+	is_pallet_prefix::<moonbeam_runtime::BridgeKusamaMessages>("BridgeKusamaMessages");
+	is_pallet_prefix::<moonbeam_runtime::BridgeXcmOverMoonriver>("BridgeXcmOverMoonriver");
 
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
@@ -231,7 +233,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Holds".to_vec(),
 				prefix: prefix(b"Balances", b"Holds"),
 				max_values: None,
-				max_size: Some(55),
+				max_size: Some(91),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
@@ -464,6 +466,8 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::XcmTransactor>(107);
 	is_pallet_index::<moonbeam_runtime::BridgeKusamaGrandpa>(130);
 	is_pallet_index::<moonbeam_runtime::BridgeKusamaParachains>(131);
+	is_pallet_index::<moonbeam_runtime::BridgeKusamaMessages>(132);
+	is_pallet_index::<moonbeam_runtime::BridgeXcmOverMoonriver>(133);
 }
 
 #[test]
