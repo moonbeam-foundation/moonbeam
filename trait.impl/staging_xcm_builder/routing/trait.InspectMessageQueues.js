@@ -1,3 +1,4 @@
 (function() {var implementors = {
+"moonbeam_runtime_common":[["impl&lt;MessageExporter, DestinationVersion&gt; InspectMessageQueues for <a class=\"struct\" href=\"moonbeam_runtime_common/bridge/struct.BridgeXcmRouter.html\" title=\"struct moonbeam_runtime_common::bridge::BridgeXcmRouter\">BridgeXcmRouter</a>&lt;MessageExporter, DestinationVersion&gt;"]],
 "pallet_xcm_bridge_router":[["impl&lt;T: <a class=\"trait\" href=\"pallet_xcm_bridge_router/pallet/trait.Config.html\" title=\"trait pallet_xcm_bridge_router::pallet::Config\">Config</a>&lt;I&gt;, I: 'static&gt; InspectMessageQueues for <a class=\"struct\" href=\"pallet_xcm_bridge_router/pallet/struct.Pallet.html\" title=\"struct pallet_xcm_bridge_router::pallet::Pallet\">Pallet</a>&lt;T, I&gt;"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,5 +1,6 @@
 var srcIndex = new Map(JSON.parse('[\
 ["account",["",[],["lib.rs"]]],\
+["bp_moonbase",["",[],["betanet.rs","lib.rs","stagenet.rs"]]],\
 ["bp_xcm_bridge",["",[],["call_info.rs","lib.rs"]]],\
 ["bp_xcm_bridge_router",["",[],["lib.rs"]]],\
 ["evm_tracing_events",["",[],["evm.rs","gasometer.rs","lib.rs","runtime.rs"]]],\
@@ -22,7 +23,7 @@ var srcIndex = new Map(JSON.parse('[\
 ["moonbeam_rpc_primitives_txpool",["",[],["lib.rs"]]],\
 ["moonbeam_rpc_trace",["",[],["lib.rs"]]],\
 ["moonbeam_runtime",["",[["governance",[],["councils.rs","mod.rs","origins.rs","referenda.rs","tracks.rs"]],["weights",[["db",[],["mod.rs","rocksdb.rs"]],["xcm",[],["fungible.rs","generic.rs","mod.rs"]]],["cumulus_pallet_parachain_system.rs","cumulus_pallet_xcmp_queue.rs","frame_system.rs","frame_system_extensions.rs","mod.rs","pallet_asset_manager.rs","pallet_assets.rs","pallet_author_inherent.rs","pallet_author_mapping.rs","pallet_author_slot_filter.rs","pallet_balances.rs","pallet_collective_open_tech_committee_collective.rs","pallet_collective_treasury_council_collective.rs","pallet_conviction_voting.rs","pallet_crowdloan_rewards.rs","pallet_evm.rs","pallet_identity.rs","pallet_message_queue.rs","pallet_moonbeam_foreign_assets.rs","pallet_moonbeam_lazy_migrations.rs","pallet_moonbeam_orbiters.rs","pallet_multiblock_migrations.rs","pallet_multisig.rs","pallet_parachain_staking.rs","pallet_parameters.rs","pallet_precompile_benchmarks.rs","pallet_preimage.rs","pallet_proxy.rs","pallet_randomness.rs","pallet_referenda.rs","pallet_relay_storage_roots.rs","pallet_scheduler.rs","pallet_timestamp.rs","pallet_transaction_payment.rs","pallet_treasury.rs","pallet_utility.rs","pallet_whitelist.rs","pallet_xcm.rs","pallet_xcm_transactor.rs","pallet_xcm_weight_trader.rs"]]],["asset_config.rs","genesis_config_preset.rs","lib.rs","migrations.rs","precompiles.rs","runtime_params.rs","xcm_config.rs"]]],\
-["moonbeam_runtime_common",["",[],["apis.rs","deal_with_fees.rs","impl_asset_conversion.rs","impl_moonbeam_xcm_call.rs","impl_moonbeam_xcm_call_tracing.rs","impl_multiasset_paymaster.rs","impl_on_charge_evm_transaction.rs","impl_self_contained_call.rs","impl_xcm_evm_runner.rs","lib.rs","migrations.rs","timestamp.rs","types.rs","xcm_origins.rs"]]],\
+["moonbeam_runtime_common",["",[],["apis.rs","bridge.rs","deal_with_fees.rs","impl_asset_conversion.rs","impl_moonbeam_xcm_call.rs","impl_moonbeam_xcm_call_tracing.rs","impl_multiasset_paymaster.rs","impl_on_charge_evm_transaction.rs","impl_self_contained_call.rs","impl_xcm_evm_runner.rs","lib.rs","migrations.rs","timestamp.rs","types.rs","xcm_origins.rs"]]],\
 ["moonbeam_service",["",[["chain_spec",[],["fake_spec.rs","mod.rs","moonbase.rs","moonbeam.rs","moonriver.rs","test_spec.rs"]],["lazy_loading",[],["backend.rs","call_executor.rs","client.rs","helpers.rs","lock.rs","manual_sealing.rs","mod.rs","state_overrides.rs"]],["rpc",[],["tracing.rs"]]],["client.rs","lib.rs","rpc.rs"]]],\
 ["moonbeam_vrf",["",[],["lib.rs"]]],\
 ["moonkey",["",[],["main.rs"]]],\

@@ -1,4 +1,5 @@
 (function() {var type_impls = {
+"bp_moonbase":[],
 "moonbase_runtime":[],
 "moonbeam_core_primitives":[],
 "moonbeam_runtime":[],
