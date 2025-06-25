@@ -37,7 +37,7 @@ use polkadot_parachain::primitives::Sibling;
 use sp_runtime::Vec;
 use xcm::latest::{Junction, Location, Xcm};
 use xcm::opaque::VersionedXcm;
-use xcm::prelude::{GlobalConsensus, InteriorLocation, NetworkId, PalletInstance, Parachain};
+use xcm::prelude::{GlobalConsensus, InteriorLocation, NetworkId, PalletInstance};
 use xcm_builder::{
 	BridgeMessage, DispatchBlob, DispatchBlobError, ParentIsPreset, SiblingParachainConvertsVia,
 };
@@ -97,14 +97,6 @@ parameter_types! {
 		2,
 		[GlobalConsensus(KusamaGlobalConsensusNetwork::get())]
 	);
-	pub BridgeMoonriverLocation: Location = Location::new(
-		2,
-		[
-			GlobalConsensus(KusamaGlobalConsensusNetwork::get()),
-			Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID)
-		]
-	);
-	pub BridgeMoonbeamLocation: Location = SelfLocation::get();
 
 	/// Price for every byte of the Polkadot -> Kusama message. Can be adjusted via
 	/// governance `set_storage` call.
@@ -191,7 +183,8 @@ impl pallet_xcm_bridge::Config<XcmOverKusamaInstance> for Runtime {
 	type BridgeMessagesPalletInstance = WithKusamaMessagesInstance;
 
 	type MessageExportPrice = ();
-	type DestinationVersion = XcmVersionOfDestAndRemoteBridge<PolkadotXcm, BridgeMoonriverLocation>;
+	type DestinationVersion =
+		XcmVersionOfDestAndRemoteBridge<PolkadotXcm, bp_moonriver::GlobalConsensusLocation>;
 
 	type ForceOrigin = EnsureRoot<AccountId>;
 	// We don't want to allow creating bridges.
@@ -216,4 +209,76 @@ impl pallet_xcm_bridge::Config<XcmOverKusamaInstance> for Runtime {
 		UniversalLocation,
 		BridgePolkadotToKusamaMessagesPalletInstance,
 	>;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmarking {
+	use crate::bridge_config::KusamaGlobalConsensusNetwork;
+	use crate::Runtime;
+	use bp_messages::source_chain::FromBridgedChainMessagesDeliveryProof;
+	use bp_messages::target_chain::FromBridgedChainMessagesProof;
+	use pallet_bridge_messages::LaneIdOf;
+	use xcm::latest::{InteriorLocation, Location, NetworkId};
+	use xcm::prelude::{GlobalConsensus, Parachain};
+
+	/// Proof of messages, coming from Moonbeam.
+	pub type FromMoonriverMessagesProof<MI> =
+		FromBridgedChainMessagesProof<bp_moonriver::Hash, LaneIdOf<Runtime, MI>>;
+	/// Messages delivery proof for Moonbeam -> Moonriver.
+	pub type ToMoonriverMessagesDeliveryProof<MI> =
+		FromBridgedChainMessagesDeliveryProof<bp_moonriver::Hash, LaneIdOf<Runtime, MI>>;
+
+	pub(crate) fn open_bridge_for_benchmarks<R, XBHI, C>(
+		with: pallet_xcm_bridge::LaneIdOf<R, XBHI>,
+		sibling_para_id: u32,
+	) -> InteriorLocation
+	where
+		R: pallet_xcm_bridge::Config<XBHI>,
+		XBHI: 'static,
+		C: xcm_executor::traits::ConvertLocation<
+			bp_runtime::AccountIdOf<pallet_xcm_bridge::ThisChainOf<R, XBHI>>,
+		>,
+	{
+		use alloc::boxed::Box;
+		use pallet_xcm_bridge::{Bridge, BridgeId, BridgeState};
+		use sp_runtime::traits::Zero;
+		use xcm::VersionedInteriorLocation;
+
+		// insert bridge metadata
+		let lane_id = with;
+		let sibling_parachain = Location::new(1, [Parachain(sibling_para_id)]);
+		let universal_source = [
+			GlobalConsensus(NetworkId::Kusama),
+			Parachain(sibling_para_id),
+		]
+		.into();
+		let universal_destination = [
+			GlobalConsensus(KusamaGlobalConsensusNetwork::get()),
+			Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
+		]
+		.into();
+		let bridge_id = BridgeId::new(&universal_source, &universal_destination);
+
+		// insert only bridge metadata, because the benchmarks create lanes
+		pallet_xcm_bridge::Bridges::<R, XBHI>::insert(
+			bridge_id,
+			Bridge {
+				bridge_origin_relative_location: Box::new(sibling_parachain.clone().into()),
+				bridge_origin_universal_location: Box::new(VersionedInteriorLocation::from(
+					universal_source.clone(),
+				)),
+				bridge_destination_universal_location: Box::new(VersionedInteriorLocation::from(
+					universal_destination,
+				)),
+				state: BridgeState::Opened,
+				bridge_owner_account: C::convert_location(&sibling_parachain)
+					.expect("valid AccountId"),
+				deposit: Zero::zero(),
+				lane_id,
+			},
+		);
+		pallet_xcm_bridge::LaneToBridge::<R, XBHI>::insert(lane_id, bridge_id);
+
+		universal_source
+	}
 }

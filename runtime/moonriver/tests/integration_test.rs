@@ -2783,7 +2783,7 @@ mod bridge_tests {
 	use moonbeam_core_primitives::AccountId;
 	use moonriver_runtime::asset_config::AssetRegistrarMetadata;
 	use moonriver_runtime::bridge_config::{
-		BridgeMoonbeamLocation, PolkadotGlobalConsensusNetwork, WithPolkadotMessagesInstance,
+		PolkadotGlobalConsensusNetwork, WithPolkadotMessagesInstance,
 	};
 	use moonriver_runtime::currency::MOVR;
 	use moonriver_runtime::xcm_config::{AssetType, CurrencyId};
@@ -2844,7 +2844,7 @@ mod bridge_tests {
 			.execute_with(|| {
 				assert_ok!(PolkadotXcm::force_xcm_version(
 					root_origin(),
-					Box::new(BridgeMoonbeamLocation::get()),
+					Box::new(bp_moonbeam::GlobalConsensusLocation::get()),
 					XCM_VERSION
 				));
 
@@ -2858,7 +2858,9 @@ mod bridge_tests {
 
 				assert_ok!(PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::V5(BridgeMoonbeamLocation::get())),
+					Box::new(VersionedLocation::V5(
+						bp_moonbeam::GlobalConsensusLocation::get()
+					)),
 					Box::new(VersionedLocation::V5(Location {
 						parents: 0,
 						interior: [AccountKey20 {

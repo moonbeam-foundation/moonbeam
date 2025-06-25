@@ -264,7 +264,7 @@ type Reserves = (
 	// Assets bridged from different consensus systems held in reserve on Asset Hub.
 	IsBridgedConcreteAssetFrom<AssetHubLocation>,
 	// Assets bridged from Moonbeam
-	IsBridgedConcreteAssetFrom<bridge_config::BridgeMoonbeamLocation>,
+	IsBridgedConcreteAssetFrom<bp_moonbeam::GlobalConsensusLocation>,
 	// Relaychain (DOT) from Asset Hub
 	Case<RelayChainNativeAssetFromAssetHub>,
 	// Assets which the reserve is the same as the origin.

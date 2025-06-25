@@ -31,6 +31,7 @@ use bp_runtime::{
 };
 use frame_support::{dispatch::DispatchClass, weights::Weight};
 use sp_runtime::StateVersion;
+use xcm::latest::prelude::{Junction, Location, NetworkId};
 
 /// Identifier of Moonriver parachain in the Kusama relay chain.
 pub const PARACHAIN_ID: u32 = 2023;
@@ -91,6 +92,13 @@ decl_bridge_messages_runtime_apis!(moonriver_kusama, LaneId);
 
 // TODO: Update values
 frame_support::parameter_types! {
+	pub GlobalConsensusLocation: Location = Location::new(
+		2,
+		[
+			Junction::GlobalConsensus(NetworkId::Kusama),
+			Junction::Parachain(Moonriver::PARACHAIN_ID)
+		]
+	);
 	/// The XCM fee that is paid for executing XCM program (with `ExportMessage` instruction) at the Kusama
 	/// BridgeHub.
 	/// (initially was calculated by test `BridgeHubKusama::can_calculate_weight_for_paid_export_message_with_reserve_transfer` + `33%`)

@@ -30,6 +30,7 @@ use bp_runtime::{
 use frame_support::{dispatch::DispatchClass, weights::Weight};
 pub use moonbeam_core_primitives::{AccountId, Balance, BlockNumber, Hash, Header, Signature};
 use sp_runtime::{FixedPointNumber, FixedU128, Saturating, StateVersion};
+use xcm::latest::prelude::{Junction, Location, NetworkId};
 
 /// Bridge lane identifier.
 pub type LaneId = bp_messages::HashedLaneId;
@@ -94,6 +95,13 @@ decl_bridge_messages_runtime_apis!(moonbeam_polkadot, LaneId);
 
 // TODO: Update values
 frame_support::parameter_types! {
+	pub GlobalConsensusLocation: Location = Location::new(
+		2,
+		[
+			Junction::GlobalConsensus(NetworkId::Polkadot),
+			Junction::Parachain(Moonbeam::PARACHAIN_ID)
+		]
+	);
 	/// The XCM fee that is paid for executing XCM program (with `ExportMessage` instruction) at the Kusama
 	/// BridgeHub.
 	/// (initially was calculated by test `BridgeHubKusama::can_calculate_weight_for_paid_export_message_with_reserve_transfer` + `33%`)

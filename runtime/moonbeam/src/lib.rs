@@ -1520,12 +1520,6 @@ bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
 	BridgeKusamaParachains,
 	// Messages
 	BridgeKusamaMessages
-	//CheckAndBoostBridgeGrandpaTransactions<
-	//	Runtime,
-	//	bridge_config::BridgeGrandpaKusamaInstance,
-	//	bridge_config::PriorityBoostPerRelayHeader,
-	//	TreasuryAccount,
-	//>
 }
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -1582,6 +1576,7 @@ mod benches {
 		[pallet_collective, OpenTechCommitteeCollective]
 		[pallet_bridge_grandpa, BridgeKusamaGrandpa]
 		[pallet_bridge_parachains, pallet_bridge_parachains::benchmarking::Pallet::<Runtime, bridge_config::BridgeMoonriverInstance>]
+		[pallet_bridge_messages, pallet_bridge_messages::benchmarking::Pallet::<Runtime, bridge_config::WithKusamaMessagesInstance>]
 	);
 }
 
@@ -1797,6 +1792,86 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 					parachain_head_size,
 					proof_params,
 				)
+			}
+		}
+
+		use bridge_runtime_common::messages_benchmarking::{
+			generate_xcm_builder_bridge_message_sample, prepare_message_delivery_proof_from_parachain,
+			prepare_message_proof_from_parachain,
+		};
+		use pallet_bridge_messages::benchmarking::{
+			Config as BridgeMessagesConfig, MessageDeliveryProofParams, MessageProofParams,
+		};
+
+		impl BridgeMessagesConfig<bridge_config::WithKusamaMessagesInstance> for Runtime {
+			fn is_relayer_rewarded(_relayer: &Self::AccountId) -> bool {
+				// Currently, we do not reward relayers
+				true
+			}
+
+			fn prepare_message_proof(
+				params: MessageProofParams<
+					pallet_bridge_messages::LaneIdOf<Runtime, bridge_config::WithKusamaMessagesInstance>,
+				>,
+			) -> (
+				bridge_config::benchmarking::FromMoonriverMessagesProof<
+					bridge_config::WithKusamaMessagesInstance,
+				>,
+				Weight,
+			) {
+				use cumulus_primitives_core::XcmpMessageSource;
+				assert!(XcmpQueue::take_outbound_messages(usize::MAX).is_empty());
+				ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(42.into());
+				PolkadotXcm::force_xcm_version(
+					RuntimeOrigin::root(),
+					Box::new(Location::new(1, Parachain(42))),
+					cumulus_primitives_core::XCM_VERSION,
+				)
+				.map_err(|e| {
+					log::error!(
+						"Failed to dispatch `force_xcm_version({:?}, {:?}, {:?})`, error: {:?}",
+						RuntimeOrigin::root(),
+						Location::new(1, Parachain(42)),
+						cumulus_primitives_core::XCM_VERSION,
+						e
+					);
+				})
+				.expect("XcmVersion stored!");
+				let universal_source = bridge_config::benchmarking::open_bridge_for_benchmarks::<
+					Runtime,
+					bridge_config::XcmOverKusamaInstance,
+					xcm_config::LocationToAccountId,
+				>(params.lane, 42);
+				prepare_message_proof_from_parachain::<
+					Runtime,
+					bridge_config::BridgeGrandpaKusamaInstance,
+					bridge_config::WithKusamaMessagesInstance,
+				>(params, generate_xcm_builder_bridge_message_sample(universal_source))
+			}
+
+			fn prepare_message_delivery_proof(
+				params: MessageDeliveryProofParams<
+					AccountId,
+					pallet_bridge_messages::LaneIdOf<Runtime, bridge_config::WithKusamaMessagesInstance>,
+				>,
+			) -> bridge_config::benchmarking::ToMoonriverMessagesDeliveryProof<
+				bridge_config::WithKusamaMessagesInstance,
+			> {
+				let _ = bridge_config::benchmarking::open_bridge_for_benchmarks::<
+					Runtime,
+					bridge_config::XcmOverKusamaInstance,
+					xcm_config::LocationToAccountId,
+				>(params.lane, 42);
+				prepare_message_delivery_proof_from_parachain::<
+					Runtime,
+					bridge_config::BridgeGrandpaKusamaInstance,
+					bridge_config::WithKusamaMessagesInstance,
+				>(params)
+			}
+
+			fn is_message_successfully_dispatched(_nonce: bp_messages::MessageNonce) -> bool {
+				// The message is not routed from Bridge Hub
+				true
 			}
 		}
 	}

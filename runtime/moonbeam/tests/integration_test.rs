@@ -2878,7 +2878,7 @@ mod bridge_tests {
 	use moonbeam_core_primitives::AccountId;
 	use moonbeam_runtime::asset_config::AssetRegistrarMetadata;
 	use moonbeam_runtime::bridge_config::{
-		BridgeMoonriverLocation, KusamaGlobalConsensusNetwork, WithKusamaMessagesInstance,
+		KusamaGlobalConsensusNetwork, WithKusamaMessagesInstance,
 	};
 	use moonbeam_runtime::currency::GLMR;
 	use moonbeam_runtime::xcm_config::{AssetType, CurrencyId};
@@ -2935,7 +2935,7 @@ mod bridge_tests {
 			.execute_with(|| {
 				assert_ok!(PolkadotXcm::force_xcm_version(
 					root_origin(),
-					Box::new(BridgeMoonriverLocation::get()),
+					Box::new(bp_moonriver::GlobalConsensusLocation::get()),
 					XCM_VERSION
 				));
 
@@ -2949,7 +2949,7 @@ mod bridge_tests {
 
 				assert_ok!(PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::V5(BridgeMoonriverLocation::get())),
+					Box::new(VersionedLocation::V5(bp_moonriver::GlobalConsensusLocation::get())),
 					Box::new(VersionedLocation::V5(Location {
 						parents: 0,
 						interior: [AccountKey20 {
@@ -2972,7 +2972,7 @@ mod bridge_tests {
 				let BridgeMessage { universal_dest, message } =
 					Decode::decode(&mut &decoded[..]).unwrap();
 
-				let expected_universal_dest: VersionedInteriorLocation = BridgeMoonriverLocation::get().interior.into();
+				let expected_universal_dest: VersionedInteriorLocation = bp_moonriver::GlobalConsensusLocation::get().interior.into();
 				assert_eq!(universal_dest, expected_universal_dest);
 
 				assert_eq!(
@@ -3074,7 +3074,7 @@ mod bridge_tests {
 			.execute_with(|| {
 				assert_ok!(PolkadotXcm::force_xcm_version(
 					root_origin(),
-					Box::new(BridgeMoonriverLocation::get()),
+					Box::new(bp_moonriver::GlobalConsensusLocation::get()),
 					XCM_VERSION
 				));
 

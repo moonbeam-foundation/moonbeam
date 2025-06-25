@@ -1151,6 +1151,7 @@ dependencies = [
  "sp-api",
  "sp-runtime",
  "sp-std",
+ "staging-xcm",
 ]
 
 [[package]]
@@ -1166,6 +1167,7 @@ dependencies = [
  "sp-api",
  "sp-runtime",
  "sp-std",
+ "staging-xcm",
 ]
 
 [[package]]

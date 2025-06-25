@@ -17,12 +17,13 @@ bp-bridge-hub-cumulus = { workspace = true }
 bp-messages = { workspace = true }
 bp-runtime = { workspace = true }
 
-# Substrate Based Dependencies
+# Polkadot Dependencies
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 sp-api = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
+xcm = { workspace = true }
 
 [features]
 default = ["std"]
@@ -35,4 +36,5 @@ std = [
     "sp-api/std",
     "sp-runtime/std",
     "sp-std/std",
+    "xcm/std"
 ]
