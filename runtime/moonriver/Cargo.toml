@@ -141,7 +141,6 @@ bp-header-chain = { workspace = true }
 bp-parachains = { workspace = true }
 bp-messages = { workspace = true }
 bp-polkadot-core = { workspace = true }
-bp-xcm-bridge = { workspace = true }
 pallet-bridge-grandpa = { workspace = true }
 pallet-bridge-parachains = { workspace = true }
 pallet-bridge-messages = { workspace = true }

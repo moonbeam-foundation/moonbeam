@@ -2839,7 +2839,6 @@ mod bridge_tests {
 					Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
 				]),
 				Some(bp_moonriver::LaneId::from_inner(H256([0u8; 32]))),
-				None,
 			)])
 			.build()
 			.execute_with(|| {
@@ -2921,8 +2920,7 @@ mod bridge_tests {
 					NetworkId::Polkadot.into(),
 					Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
 				]),
-				Some(bp_moonriver::LaneId::from_inner(H256([0u8; 32]))),
-				None,
+				Some(bp_moonriver::LaneId::from_inner(H256([0u8; 32])))
 			)])
 			.build()
 			.execute_with(|| {

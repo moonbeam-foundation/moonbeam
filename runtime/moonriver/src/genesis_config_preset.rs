@@ -208,7 +208,6 @@ pub fn testnet_genesis(
 					Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
 				]),
 				Some(Default::default()),
-				None,
 			)],
 			_phantom: Default::default(),
 		},

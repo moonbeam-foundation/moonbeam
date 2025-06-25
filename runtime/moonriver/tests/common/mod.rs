@@ -36,7 +36,6 @@ use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill
 
 use std::collections::BTreeMap;
 
-use bp_xcm_bridge::Receiver;
 use fp_rpc::ConvertTransaction;
 use moonriver_runtime::bridge_config::XcmOverPolkadotInstance;
 use moonriver_runtime::{Assets, EvmForeignAssets, XcmWeightTrader};
@@ -149,12 +148,7 @@ pub struct ExtBuilder {
 	xcm_assets: Vec<XcmAssetInitialization>,
 	evm_native_foreign_assets: bool,
 	safe_xcm_version: Option<u32>,
-	opened_bridges: Vec<(
-		Location,
-		InteriorLocation,
-		Option<bp_moonbeam::LaneId>,
-		Option<Receiver>,
-	)>,
+	opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbeam::LaneId>)>,
 }
 
 impl Default for ExtBuilder {
@@ -251,12 +245,7 @@ impl ExtBuilder {
 
 	pub fn with_open_bridges(
 		mut self,
-		opened_bridges: Vec<(
-			Location,
-			InteriorLocation,
-			Option<bp_moonbeam::LaneId>,
-			Option<Receiver>,
-		)>,
+		opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbeam::LaneId>)>,
 	) -> Self {
 		self.opened_bridges = opened_bridges;
 		self

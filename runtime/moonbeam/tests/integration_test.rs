@@ -2929,8 +2929,7 @@ mod bridge_tests {
 					NetworkId::Kusama.into(),
 					Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID),
 				]),
-				Some(bp_moonbeam::LaneId::from_inner(H256([0u8; 32]))),
-				None,
+				Some(bp_moonbeam::LaneId::from_inner(H256([0u8; 32])))
 			)])
 			.build()
 			.execute_with(|| {
@@ -3070,7 +3069,6 @@ mod bridge_tests {
 					Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID),
 				]),
 				Some(bp_moonriver::LaneId::from_inner(H256([0u8; 32]))),
-				None,
 			)])
 			.build()
 			.execute_with(|| {

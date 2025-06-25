@@ -31,9 +31,6 @@ use frame_support::traits::{Contains, EnqueueMessage, Everything};
 use frame_support::{ensure, parameter_types, traits::ConstU32, BoundedVec};
 use frame_system::{EnsureNever, EnsureRoot};
 use moonbeam_core_primitives::{AccountId, Balance};
-use pallet_xcm_bridge::congestion::{
-	BlobDispatcherWithChannelStatus, HereOrLocalConsensusXcmChannelManager,
-};
 use pallet_xcm_bridge::XcmAsPlainPayload;
 use parity_scale_codec::{Decode, Encode};
 use polkadot_parachain::primitives::Sibling;
@@ -254,25 +251,10 @@ impl pallet_xcm_bridge::Config<XcmBridgeInstance> for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	// Don't require a deposit, since we don't allow opening new bridges.
 	type AllowWithoutBridgeDeposit = Everything;
-
-	type LocalXcmChannelManager = HereOrLocalConsensusXcmChannelManager<
-		bp_xcm_bridge::BridgeId,
-		// handles congestion for local chain router for local bridges
-		(),
-		// handles congestion for other local chains with XCM using `update_bridge_status` sent to
-		// the sending chain.
-		(),
-	>;
+	// We are not exporting messages to bridge hub
+	type LocalXcmChannelManager = ();
 	// Dispatching inbound messages from the bridge and managing congestion with the local
 	// receiving/destination chain
-	type BlobDispatcher = BlobDispatcherWithChannelStatus<
-		// Dispatches received XCM messages from other bridge
-		LocalBlobDispatcher<MessageQueue, UniversalLocation, MessagesPalletInstance>,
-		// Provides the status of the XCMP queue's outbound queue, indicating whether messages can
-		// be dispatched to the sibling.
-		(),
-	>;
-
-	type CongestionLimits = ();
-	type WeightInfo = moonbase_weights::pallet_xcm_bridge::WeightInfo<Runtime>;
+	type BlobDispatcher =
+		LocalBlobDispatcher<MessageQueue, UniversalLocation, MessagesPalletInstance>;
 }

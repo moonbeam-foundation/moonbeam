@@ -23,7 +23,6 @@ use crate::{
 };
 use alloc::collections::btree_set::BTreeSet;
 use bp_parachains::SingleParaStoredHeaderDataBuilder;
-use bp_xcm_bridge::XcmAsPlainPayload;
 use bridge_hub_common::xcm_version::XcmVersionOfDestAndRemoteBridge;
 use core::marker::PhantomData;
 use cumulus_primitives_core::AggregateMessageOrigin;
@@ -32,7 +31,7 @@ use frame_support::traits::{Contains, EnqueueMessage, Everything};
 use frame_support::{ensure, parameter_types, traits::ConstU32, BoundedVec};
 use frame_system::{EnsureNever, EnsureRoot};
 use moonbeam_core_primitives::{AccountId, Balance};
-use pallet_xcm_bridge::congestion::BlobDispatcherWithChannelStatus;
+use pallet_xcm_bridge::XcmAsPlainPayload;
 use parity_scale_codec::{Decode, Encode};
 use polkadot_parachain::primitives::Sibling;
 use sp_runtime::Vec;
@@ -213,19 +212,9 @@ impl pallet_xcm_bridge::Config<XcmOverPolkadotInstance> for Runtime {
 	type LocalXcmChannelManager = ();
 	// Dispatching inbound messages from the bridge and managing congestion with the local
 	// receiving/destination chain
-	type BlobDispatcher = BlobDispatcherWithChannelStatus<
-		// Dispatches received XCM messages from other bridge
-		LocalBlobDispatcher<
-			MessageQueue,
-			UniversalLocation,
-			BridgeKusamaToPolkadotMessagesPalletInstance,
-		>,
-		// Provides the status of the XCMP queue's outbound queue, indicating whether messages can
-		// be dispatched to the sibling.
-		(),
+	type BlobDispatcher = LocalBlobDispatcher<
+		MessageQueue,
+		UniversalLocation,
+		BridgeKusamaToPolkadotMessagesPalletInstance,
 	>;
-
-	type CongestionLimits = ();
-	// TODO
-	type WeightInfo = ();
 }
