@@ -1505,8 +1505,14 @@ pub mod pallet {
 			ensure_signed(origin)?;
 
 			for (account, is_collator) in accounts.iter() {
-				// Attempt migration, ignoring any errors to allow partial migration
-				Self::check_and_migrate_lock(account, *is_collator)?;
+				if let Err(e) = Self::check_and_migrate_lock(account, *is_collator) {
+					log::debug!(
+						"Failed to migrate lock for account {:?}, is_collator {:?}: {:?}",
+						account,
+						is_collator,
+						e
+					);
+				}
 			}
 
 			Ok(())

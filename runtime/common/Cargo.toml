@@ -30,6 +30,8 @@ pallet-xcm-transactor = { workspace = true }
 pallet-xcm-weight-trader = { workspace = true }
 xcm-primitives = { workspace = true }
 
+bp-messages = { workspace = true }
+
 # Substrate
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
