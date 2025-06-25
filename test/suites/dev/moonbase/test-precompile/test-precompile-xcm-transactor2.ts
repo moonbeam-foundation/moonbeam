@@ -29,6 +29,8 @@ describeSuite({
         // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
         // And we need relay tokens for issuing a transaction to be executed in the relay
 
+        const initialBalance = 100000000000000n;
+
         const { contractAddress } = await registerAndFundAsset(
           context, 
           {
@@ -37,7 +39,7 @@ describeSuite({
             metadata: relayAssetMetadata,
             relativePrice: 1n
           },
-          100000000000000n,
+          initialBalance,
           ALITH_ADDRESS,
           true
         )
@@ -55,8 +57,8 @@ describeSuite({
           functionName: "totalSupply",
         })
 
-        expect(beforeSupply).to.equal(100000000000000n);
-        expect(beforeBalance).to.equal(100000000000000n);
+        expect(beforeSupply).to.equal(initialBalance);
+        expect(beforeBalance).to.equal(initialBalance);
         
 
         const transactor = 0;
@@ -76,18 +78,25 @@ describeSuite({
         const { result } = await context.createBlock(rawTxn);
         expectEVMResult(result!.events, "Succeed");
 
+        const afterBalance = await context.readContract!({
+          contractName: "ERC20Instance",
+          contractAddress: contractAddress,
+          functionName: "balanceOf",
+          args: [ALITH_ADDRESS],
+        });
+
+        const afterSupply = await context.readContract!({
+          contractName: "ERC20Instance",
+          contractAddress: contractAddress,
+          functionName: "totalSupply",
+        });
+
         // We have used 1000 units to pay for the fees in the relay, so balance and supply should
         // have changed
-        const afterAssetBalance = await context
-          .polkadotJs()
-          .query.assets.account(assetId.toU8a(), ALITH_ADDRESS);
+        const expectedBalance = initialBalance - 1000n - 1n;
 
-        const expectedBalance = 100000000000000n - 1000n - 1n;
-        expect(afterAssetBalance.unwrap().balance.toBigInt()).to.equal(expectedBalance);
-
-        const AfterAssetDetails = await context.polkadotJs().query.assets.asset(assetId.toU8a());
-
-        expect(AfterAssetDetails.unwrap().supply.toBigInt()).to.equal(expectedBalance);
+        expect(afterBalance).to.equal(expectedBalance);
+        expect(afterSupply).to.equal(expectedBalance);
 
         // 1000 fee for the relay is paid with relay assets
         await verifyLatestBlockFees(context);

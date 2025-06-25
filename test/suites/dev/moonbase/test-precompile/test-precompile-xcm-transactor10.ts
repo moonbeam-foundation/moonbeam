@@ -22,7 +22,7 @@ describeSuite({
 
     let assetAddress;
     beforeAll(async () => {
-      { contractAddress } = await registerForeignAsset(context, 1n, RELAY_SOURCE_LOCATION, relayAssetMetadata);
+      const { contractAddress } = await registerForeignAsset(context, 1n, RELAY_SOURCE_LOCATION, relayAssetMetadata);
       assetAddress = contractAddress;
       await registerXcmTransactorAndContract(context);
     });
@@ -32,7 +32,6 @@ describeSuite({
       title: "allows to transact signed with custom weights V2 and fee",
       test: async function () {
         const dest: [number, any[]] = [1, []];
-        const asset = assetAddress;
         const transact_call = fromBytes(new Uint8Array([0x01]), "hex");
         const transactWeight = { refTime: 1000, proofSize: 1000 };
         const overallWeight = { refTime: 2000, proofSize: 2000 };
@@ -43,7 +42,7 @@ describeSuite({
           contractAddress: PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
           contractName: "XcmTransactorV3",
           functionName: "transactThroughSigned",
-          args: [dest, asset, transactWeight, transact_call, feeAmount, overallWeight, refund],
+          args: [dest, assetAddress, transactWeight, transact_call, feeAmount, overallWeight, refund],
           gas: 500_000n,
           rawTxOnly: true,
           privateKey: ALITH_PRIVATE_KEY,
