@@ -41,6 +41,13 @@ for PALLET in "${PALLETS[@]}"; do
     output_file="${PALLET//::/_}.rs"
   fi
 
+  # TODO: Remove once this issue has been fixed: https://github.com/paritytech/polkadot-sdk/issues/8993
+  if [[ $PALLET == "pallet_bridge_messages" ]]; then
+    export RUST_LOGS="runtime::bridge-xcm=off"
+  else
+    unset RUST_LOGS
+  fi
+
   OUTPUT=$(
     ./frame-omni-bencher v1 benchmark pallet \
       --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
