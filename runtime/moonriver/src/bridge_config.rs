@@ -18,29 +18,23 @@ extern crate alloc;
 
 use crate::xcm_config::{SelfLocation, UniversalLocation};
 use crate::{
-	moonriver_weights, Balances, BridgePolkadotMessages, BridgeXcmOverMoonbeam, Get, MessageQueue,
+	moonriver_weights, Balances, BridgePolkadotMessages, BridgeXcmOverMoonbeam, MessageQueue,
 	PolkadotXcm, Runtime, RuntimeEvent, RuntimeHoldReason,
 };
 use alloc::collections::btree_set::BTreeSet;
 use bp_parachains::SingleParaStoredHeaderDataBuilder;
 use bridge_hub_common::xcm_version::XcmVersionOfDestAndRemoteBridge;
-use core::marker::PhantomData;
-use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::pallet_prelude::PalletInfoAccess;
-use frame_support::traits::{Contains, EnqueueMessage, Everything};
-use frame_support::{ensure, parameter_types, traits::ConstU32, BoundedVec};
+use frame_support::traits::{Contains, Everything};
+use frame_support::{parameter_types, traits::ConstU32};
 use frame_system::{EnsureNever, EnsureRoot};
 use moonbeam_core_primitives::{AccountId, Balance};
+use moonbeam_runtime_common::bridge::LocalBlobDispatcher;
 use pallet_xcm_bridge::XcmAsPlainPayload;
-use parity_scale_codec::{Decode, Encode};
 use polkadot_parachain::primitives::Sibling;
-use sp_runtime::Vec;
-use xcm::latest::{InteriorLocation, Junction, Location, NetworkId, Xcm};
-use xcm::opaque::VersionedXcm;
+use xcm::latest::{InteriorLocation, Junction, Location, NetworkId};
 use xcm::prelude::{GlobalConsensus, PalletInstance};
-use xcm_builder::{
-	BridgeMessage, DispatchBlob, DispatchBlobError, ParentIsPreset, SiblingParachainConvertsVia,
-};
+use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 
 parameter_types! {
 	pub BridgeKusamaToPolkadotMessagesPalletInstance: InteriorLocation = [PalletInstance(<BridgePolkadotMessages as PalletInfoAccess>::index() as u8)].into();
@@ -71,58 +65,6 @@ parameter_types! {
 impl Contains<(Location, Junction)> for UniversalAliases {
 	fn contains(alias: &(Location, Junction)) -> bool {
 		UniversalAliases::get().contains(alias)
-	}
-}
-
-pub struct LocalBlobDispatcher<MQ, OurPlace, OurPlaceBridgeInstance>(
-	PhantomData<(MQ, OurPlace, OurPlaceBridgeInstance)>,
-);
-impl<
-		MQ: EnqueueMessage<AggregateMessageOrigin>,
-		OurPlace: Get<InteriorLocation>,
-		OurPlaceBridgeInstance: Get<Option<InteriorLocation>>,
-	> DispatchBlob for LocalBlobDispatcher<MQ, OurPlace, OurPlaceBridgeInstance>
-{
-	fn dispatch_blob(blob: Vec<u8>) -> Result<(), DispatchBlobError> {
-		let our_universal = OurPlace::get();
-		let our_global = our_universal
-			.global_consensus()
-			.map_err(|()| DispatchBlobError::Unbridgable)?;
-		let BridgeMessage {
-			universal_dest,
-			message,
-		} = Decode::decode(&mut &blob[..]).map_err(|err| {
-			log::error!("Failed to decode BridgeMessage: {:?}", err);
-			DispatchBlobError::InvalidEncoding
-		})?;
-		let universal_dest: InteriorLocation = universal_dest
-			.try_into()
-			.map_err(|_| DispatchBlobError::UnsupportedLocationVersion)?;
-		// `universal_dest` is the desired destination within the universe: first we need to check
-		// we're in the right global consensus.
-		let intended_global = universal_dest
-			.global_consensus()
-			.map_err(|()| DispatchBlobError::NonUniversalDestination)?;
-		ensure!(
-			intended_global == our_global,
-			DispatchBlobError::WrongGlobal
-		);
-		// let dest = universal_dest.relative_to(&our_universal);
-		let xcm: Xcm<()> = message
-			.try_into()
-			.map_err(|_| DispatchBlobError::UnsupportedXcmVersion)?;
-
-		let msg: BoundedVec<u8, MQ::MaxMessageLen> =
-			VersionedXcm::V5(xcm).encode().try_into().map_err(|err| {
-				log::error!("Failed to encode XCM: {:?}", err);
-				DispatchBlobError::InvalidEncoding
-			})?;
-		MQ::enqueue_message(
-			msg.as_bounded_slice(),
-			AggregateMessageOrigin::Here, // The message came from the para-chain itself.
-		);
-
-		Ok(())
 	}
 }
 

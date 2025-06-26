@@ -370,7 +370,7 @@ pub type XcmRouter = WithUniqueTopic<(
 	// For routing XCM messages which do not cross local consensus boundary.
 	LocalXcmRouter,
 	// Router that exports messages to be delivered to the bridge destination
-	moonbeam_runtime_common::bridge_xcm_routing::BridgeXcmRouter<
+	moonbeam_runtime_common::bridge::BridgeXcmRouter<
 		xcm_builder::LocalExporter<crate::BridgeXcmOver, UniversalLocation>,
 	>,
 )>;

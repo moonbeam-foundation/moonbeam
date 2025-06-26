@@ -344,7 +344,7 @@ pub type XcmRouter = WithUniqueTopic<(
 	// queues.
 	LocalXcmRouter,
 	// Router that exports messages to be delivered to the Polkadot GlobalConsensus
-	moonbeam_runtime_common::bridge_xcm_routing::BridgeXcmRouter<
+	moonbeam_runtime_common::bridge::BridgeXcmRouter<
 		xcm_builder::LocalExporter<BridgeXcmOverMoonbeam, UniversalLocation>,
 	>,
 )>;
