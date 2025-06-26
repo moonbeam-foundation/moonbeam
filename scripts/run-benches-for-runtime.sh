@@ -43,9 +43,9 @@ for PALLET in "${PALLETS[@]}"; do
 
   # TODO: Remove once this issue has been fixed: https://github.com/paritytech/polkadot-sdk/issues/8993
   if [[ $PALLET == "pallet_bridge_messages" ]]; then
-    export RUST_LOGS="runtime::bridge-xcm=off"
+    export RUST_LOG="runtime::bridge-xcm=off"
   else
-    unset RUST_LOGS
+    unset RUST_LOG
   fi
 
   OUTPUT=$(
