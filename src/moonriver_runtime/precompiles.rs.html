@@ -305,6 +305,18 @@
 <a href="#305" id="305">305</a>
 <a href="#306" id="306">306</a>
 <a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -479,7 +491,11 @@
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2054</span>&gt;,
 		XcmTransactorPrecompileV1&lt;R&gt;,
-		(CallableByContract, CallableByPrecompile),
+		(
+			SubcallWithMaxNesting&lt;<span class="number">1</span>&gt;,
+			CallableByContract,
+			CallableByPrecompile,
+		),
 	&gt;,
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2055</span>&gt;,
@@ -525,7 +541,11 @@
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2061</span>&gt;,
 		XcmTransactorPrecompileV2&lt;R&gt;,
-		(CallableByContract, CallableByPrecompile),
+		(
+			SubcallWithMaxNesting&lt;<span class="number">1</span>&gt;,
+			CallableByContract,
+			CallableByPrecompile,
+		),
 	&gt;,
 	RemovedPrecompileAt&lt;AddressU64&lt;<span class="number">2062</span>&gt;&gt;, <span class="comment">//CouncilInstance
 	</span>RemovedPrecompileAt&lt;AddressU64&lt;<span class="number">2063</span>&gt;&gt;, <span class="comment">// TechCommitteeInstance
@@ -563,7 +583,11 @@
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2071</span>&gt;,
 		XcmTransactorPrecompileV3&lt;R&gt;,
-		(CallableByContract, CallableByPrecompile),
+		(
+			SubcallWithMaxNesting&lt;<span class="number">1</span>&gt;,
+			CallableByContract,
+			CallableByPrecompile,
+		),
 	&gt;,
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2072</span>&gt;,
