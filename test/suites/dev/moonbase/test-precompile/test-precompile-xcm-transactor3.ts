@@ -20,7 +20,7 @@ describeSuite({
     let assetAddress;
 
     beforeAll(async () => {
-      let { contractAddress } = await registerForeignAsset(
+      const { contractAddress } = await registerForeignAsset(
         context,
         1n,
         RELAY_SOURCE_LOCATION,
