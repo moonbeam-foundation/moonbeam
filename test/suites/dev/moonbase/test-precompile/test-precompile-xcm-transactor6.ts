@@ -17,11 +17,15 @@ describeSuite({
   title: "Precompiles - xcm transactor V2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-
     let assetAddress;
 
     beforeAll(async () => {
-      let { contractAddress } = await registerForeignAsset(context, 1n, RELAY_SOURCE_LOCATION, relayAssetMetadata);
+      let { contractAddress } = await registerForeignAsset(
+        context,
+        1n,
+        RELAY_SOURCE_LOCATION,
+        relayAssetMetadata
+      );
       assetAddress = contractAddress;
       await registerXcmTransactorAndContract(context);
     });
@@ -30,8 +34,6 @@ describeSuite({
       id: "T01",
       title: "allows to transact signed with custom weight and fee",
       test: async function () {
-        // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
-        // And we need relay tokens for issuing a transaction to be executed in the relay
         const dest: [number, any[]] = [1, []];
         const asset = assetAddress;
         const transact_call = fromBytes(new Uint8Array([0x01]), "hex");

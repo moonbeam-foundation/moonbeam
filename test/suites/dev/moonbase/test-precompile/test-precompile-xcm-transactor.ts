@@ -86,34 +86,31 @@ describeSuite({
       id: "T05",
       title: "allows to issue transfer xcm transactor",
       test: async function () {
-        // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
-        // And we need relay tokens for issuing a transaction to be executed in the relay
-  
         const { contractAddress } = await registerAndFundAsset(
-          context, 
+          context,
           {
             id: 42259045809535163221576417993425387648n,
             location: RELAY_SOURCE_LOCATION,
             metadata: relayAssetMetadata,
-            relativePrice: 1n
+            relativePrice: 1n,
           },
           100000000000000n,
           ALITH_ADDRESS,
           true
-        )
+        );
 
         const beforeBalance = await context.readContract!({
           contractName: "ERC20Instance",
           contractAddress: contractAddress,
           functionName: "balanceOf",
           args: [ALITH_ADDRESS],
-        })
+        });
 
         const beforeSupply = await context.readContract!({
           contractName: "ERC20Instance",
           contractAddress: contractAddress,
           functionName: "totalSupply",
-        })
+        });
 
         expect(beforeSupply).to.equal(100000000000000n);
         expect(beforeBalance).to.equal(100000000000000n);

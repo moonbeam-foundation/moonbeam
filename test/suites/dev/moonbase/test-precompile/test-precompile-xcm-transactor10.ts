@@ -19,10 +19,14 @@ describeSuite({
   title: "Precompiles - xcm transactor V3",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-
     let assetAddress;
     beforeAll(async () => {
-      const { contractAddress } = await registerForeignAsset(context, 1n, RELAY_SOURCE_LOCATION, relayAssetMetadata);
+      const { contractAddress } = await registerForeignAsset(
+        context,
+        1n,
+        RELAY_SOURCE_LOCATION,
+        relayAssetMetadata
+      );
       assetAddress = contractAddress;
       await registerXcmTransactorAndContract(context);
     });
@@ -42,7 +46,15 @@ describeSuite({
           contractAddress: PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
           contractName: "XcmTransactorV3",
           functionName: "transactThroughSigned",
-          args: [dest, assetAddress, transactWeight, transact_call, feeAmount, overallWeight, refund],
+          args: [
+            dest,
+            assetAddress,
+            transactWeight,
+            transact_call,
+            feeAmount,
+            overallWeight,
+            refund,
+          ],
           gas: 500_000n,
           rawTxOnly: true,
           privateKey: ALITH_PRIVATE_KEY,
