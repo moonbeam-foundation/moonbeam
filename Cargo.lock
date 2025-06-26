@@ -7848,6 +7848,7 @@ dependencies = [
  "bp-messages",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcmp-queue",
+ "cumulus-primitives-core",
  "cumulus-primitives-storage-weight-reclaim",
  "fp-ethereum",
  "fp-evm",
