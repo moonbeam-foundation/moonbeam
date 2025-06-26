@@ -349,3 +349,22 @@ mod deprecated_xcm_v2 {
 		}
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_versioned_user_action_decode() {
+		// Encoded payload from this wormhole transfer:
+		// https://wormholescan.io/#/tx/0x7a6985578742291842d25d80091cb8661f9ebf9301b266d6d4cd324758310569?view=advanced
+		let encoded_payload = hex::decode(
+			"0001010200c91f0100c862582c20ec0a5429c6d2239da9908f4b6c93ab4e2589784f8a5452f65f0e45",
+		)
+		.unwrap();
+
+		// Ensure we can decode the VersionedUserAction
+		let _versioned_user_action = VersionedUserAction::decode(&mut &encoded_payload[..])
+			.expect("Failed to decode VersionedUserAction");
+	}
+}
