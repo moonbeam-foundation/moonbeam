@@ -30,6 +30,7 @@ use sp_runtime::{
 	traits::{Hash as THash, MaybeEquivalence, PostDispatchInfoOf},
 	DispatchErrorWithPostInfo,
 };
+use sp_std::marker::PhantomData;
 
 use frame_support::{
 	parameter_types,
@@ -80,6 +81,7 @@ use sp_std::{
 	convert::{From, Into, TryFrom},
 	prelude::*,
 };
+use xcm::prelude::{AccountId32, Here};
 
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 parameter_types! {
@@ -113,11 +115,50 @@ parameter_types! {
 	};
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+pub struct BenchAccountId32Aliases<AccountId>(PhantomData<AccountId>);
+
+#[cfg(feature = "runtime-benchmarks")]
+impl<AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone> ConvertLocation<AccountId>
+	for BenchAccountId32Aliases<AccountId>
+{
+	fn convert_location(location: &Location) -> Option<AccountId> {
+		let id = match location.unpack() {
+			(0, [AccountId32 { id, network: None }]) => id,
+			_ => return None,
+		};
+		// take the first 20 bytes of the id and convert to fixed-size array
+		let mut id20: [u8; 20] = [0u8; 20];
+		id20.copy_from_slice(&id[..20]);
+		Some(id20.into())
+	}
+}
+
 /// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting, when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin, and when validating foreign assets
 /// creation and ownership through the moonbeam_foreign_assets pallet.
+#[cfg(not(feature = "runtime-benchmarks"))]
 pub type LocationToAccountId = (
+	// The parent (Relay-chain) origin converts to the default `AccountId`.
+	ParentIsPreset<AccountId>,
+	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
+	SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
+	// If we receive a Location of type AccountKey20, just generate a native account
+	AccountKey20Aliases<RelayNetwork, AccountId>,
+	// Foreign locations alias into accounts according to a hash of their standard description.
+	HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
+	// Different global consensus parachain sovereign account.
+	// (Used for over-bridge transfers and reserve processing)
+	GlobalConsensusParachainConvertsFor<UniversalLocation, AccountId>,
+);
+
+#[cfg(feature = "runtime-benchmarks")]
+pub type LocationToAccountId = (
+	// Special converter for benchmarks, which allows us to convert
+	// AccountId32Aliases, coming from this line
+	// https://github.com/paritytech/polkadot-sdk/blob/45cc86a4588fdae2929f9829f3a1d196a985afb5/polkadot/xcm/pallet-xcm-benchmarks/src/lib.rs#L113
+	BenchAccountId32Aliases<AccountId>,
 	// The parent (Relay-chain) origin converts to the default `AccountId`.
 	ParentIsPreset<AccountId>,
 	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
@@ -303,6 +344,11 @@ type Reserves = (
 	// Assets which the reserve is the same as the origin.
 	MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>,
 );
+
+parameter_types! {
+	// Native token location
+	pub const TokenLocation: Location = Here.into_location();
+}
 
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {

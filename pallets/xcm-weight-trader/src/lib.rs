@@ -422,32 +422,27 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 			id: XcmAssetId(location),
 		}) = self.1.take()
 		{
-			if actual_weight == self.0 {
-				self.1 = Some(Asset {
-					fun: Fungibility::Fungible(initial_amount),
-					id: XcmAssetId(location),
-				});
-				None
-			} else {
-				let weight = actual_weight.min(self.0);
-				let amount: u128 =
-					Self::compute_amount_to_charge(&weight, &location).unwrap_or(u128::MAX);
-				let final_amount = amount.min(initial_amount);
-				let amount_to_refund = initial_amount.saturating_sub(final_amount);
-				self.0 -= weight;
-				self.1 = Some(Asset {
-					fun: Fungibility::Fungible(final_amount),
-					id: XcmAssetId(location.clone()),
-				});
-				log::trace!(
-					target: "xcm-weight-trader",
-					"refund_weight amount to refund: {:?}",
-					amount_to_refund
-				);
+			let weight = actual_weight.min(self.0);
+			let amount: u128 =
+				Self::compute_amount_to_charge(&weight, &location).unwrap_or(u128::MAX);
+			let amount_to_refund = initial_amount.saturating_sub(amount);
+			self.0 -= weight;
+			self.1 = Some(Asset {
+				fun: Fungibility::Fungible(amount_to_refund),
+				id: XcmAssetId(location.clone()),
+			});
+			log::trace!(
+				target: "xcm-weight-trader",
+				"refund_weight amount to refund: {:?}",
+				amount_to_refund
+			);
+			if amount > 0 {
 				Some(Asset {
-					fun: Fungibility::Fungible(amount_to_refund),
+					fun: Fungibility::Fungible(amount),
 					id: XcmAssetId(location),
 				})
+			} else {
+				None
 			}
 		} else {
 			None

@@ -814,8 +814,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					use cumulus_primitives_core::ParaId;
 
 					use xcm::latest::prelude::{
-						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
-						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent, WeightLimit
+						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId, Here,
+						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent, WeightLimit,
 					};
 					use xcm_config::SelfReserve;
 					use frame_benchmarking::BenchmarkError;
@@ -953,10 +953,10 @@ macro_rules! impl_runtime_apis_plus_common {
 							Ok(Location::parent())
 						}
 						fn worst_case_holding(_depositable_count: u32) -> XcmAssets {
-						// 100 fungibles
-							const HOLDING_FUNGIBLES: u32 = 100;
+							// 50 fungibles
+							const HOLDING_FUNGIBLES: u32 = 50;
 							let fungibles_amount: u128 = 100;
-							let assets = (0..HOLDING_FUNGIBLES).map(|i| {
+							let assets = (1..=HOLDING_FUNGIBLES).map(|i| {
 								let location: Location = GeneralIndex(i as u128).into();
 								Asset {
 									id: AssetId(location),
@@ -986,11 +986,36 @@ macro_rules! impl_runtime_apis_plus_common {
 									);
 									XcmWeightTrader::set_asset_price(
 										location.clone(),
-										1u128.pow(18)
+										10u128.pow(18)
 									);
 								}
 							}
 							assets.into()
+						}
+					}
+
+					parameter_types! {
+						// Native token location
+						pub const TokenLocation: Location = Here.into_location();
+						pub TrustedTeleporter: Option<(Location, Asset)> = None;
+						pub CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;
+						pub const TrustedReserve: Option<(Location, Asset)> = None;
+					}
+
+					impl pallet_xcm_benchmarks::fungible::Config for Runtime {
+						type TransactAsset = Balances;
+
+						type CheckedAccount = CheckedAccount;
+						type TrustedTeleporter = TrustedTeleporter;
+						type TrustedReserve = TrustedReserve;
+
+						fn get_asset() -> Asset {
+							// We put more than ED here for being able to keep accounts alive when transferring
+							// and paying the delivery fees.
+							Asset {
+								id: AssetId(TokenLocation::get()),
+								fun: Fungible(1_000_000 * ExistentialDeposit::get()),
+							}
 						}
 					}
 
@@ -1037,7 +1062,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 
 						fn worst_case_for_trader() -> Result<(Asset, WeightLimit), BenchmarkError> {
-							Err(BenchmarkError::Skip)
+							let location: Location = GeneralIndex(99).into();
+							Ok((
+								Asset {
+									id: AssetId(Location::parent()),
+									fun: Fungible(100_000_000_000_000 as u128)
+								},
+								WeightLimit::Limited(Weight::from_parts(5000, 5000)),
+							))
 						}
 
 						fn unlockable_asset()
@@ -1112,9 +1144,6 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					add_benchmarks!(params, batches);
 
-					if batches.is_empty() {
-						return Err("Benchmark not found for this pallet.".into());
-					}
 					Ok(batches)
 				}
 			}

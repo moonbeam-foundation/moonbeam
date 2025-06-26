@@ -1628,6 +1628,8 @@ mod benches {
 		[pallet_xcm_weight_trader, XcmWeightTrader]
 		[pallet_collective, TreasuryCouncilCollective]
 		[pallet_collective, OpenTechCommitteeCollective]
+		[pallet_xcm_benchmarks::fungible, pallet_xcm_benchmarks::fungible::Pallet<Runtime>]
+		[pallet_xcm_benchmarks::generic, pallet_xcm_benchmarks::generic::Pallet<Runtime>]
 	);
 }
 
