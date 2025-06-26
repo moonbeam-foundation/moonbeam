@@ -170,7 +170,7 @@ describeSuite({
           _enum: {
             Parachain: "Compact<u32>",
             AccountId32: "Null",
-            AccountIndex64: "Null", 
+            AccountIndex64: "Null",
             AccountKey20: "ENUM_AccountKey20",
           },
         },
@@ -686,11 +686,11 @@ describeSuite({
             parents: 1,
             interior: {
               X1: {
-                  AccountKey20: {
-                    network: "Any",
-                    key: "0x0000000000000000000000000000000000000000",
-                  },
+                AccountKey20: {
+                  network: "Any",
+                  key: "0x0000000000000000000000000000000000000000",
                 },
+              },
             },
           },
         };
