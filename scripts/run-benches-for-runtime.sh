@@ -48,6 +48,15 @@ for PALLET in "${PALLETS[@]}"; do
     unset RUST_LOG
   fi
 
+  # Determine output path based on pallet name
+  default_path="./runtime/${output}/src/weights"
+  xcm_path="./runtime/${output}/src/weights/xcm"
+  output_path="$default_path"
+  
+  if [[ $PALLET == pallet_xcm_benchmarks* ]]; then
+    output_path="$xcm_path"
+  fi
+
   OUTPUT=$(
     ./frame-omni-bencher v1 benchmark pallet \
       --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
@@ -60,7 +69,8 @@ for PALLET in "${PALLETS[@]}"; do
       --wasm-execution=compiled \
       --header=./file_header.txt \
       --template=./benchmarking/frame-weight-template.hbs \
-      --output="./runtime/${output}/src/weights" 2>&1
+      --disable-log-color \
+      --output="$output_path" 2>&1
   )
   if [ $? -ne 0 ]; then
     echo "$OUTPUT" >> "$ERR_FILE"
