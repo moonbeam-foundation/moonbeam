@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use crate::xcm_config::{SelfLocation, SelfReserve, UniversalLocation};
+use crate::xcm_config::{SelfLocation, UniversalLocation};
 use crate::{
 	moonbase_weights, Balances, BridgeMessages, BridgeXcmOver, Get, MessageQueue, PolkadotXcm,
 	Runtime, RuntimeEvent, RuntimeHoldReason,
@@ -36,7 +36,7 @@ use parity_scale_codec::{Decode, Encode};
 use polkadot_parachain::primitives::Sibling;
 use sp_core::hex2array;
 use sp_runtime::Vec;
-use xcm::latest::{AssetId, Junction, Location, Xcm};
+use xcm::latest::{Junction, Location, Xcm};
 use xcm::opaque::VersionedXcm;
 use xcm::prelude::{GlobalConsensus, InteriorLocation, NetworkId, PalletInstance, Parachain};
 use xcm_builder::{
@@ -94,21 +94,11 @@ impl<
 parameter_types! {
 	pub MessagesPalletInstance: InteriorLocation = [PalletInstance(<BridgeMessages as PalletInfoAccess>::index() as u8)].into();
 
-	/// Price for every byte of the Betanet -> Stagenet message.
-	pub XcmMoonbeamRouterByteFee: Balance = 1u128;
-
-	/// Router expects payment with this `AssetId`.
-	/// (`AssetId` has to be aligned with `BridgeTable`)
-	pub XcmMoonbeamRouterFeeAssetId: AssetId = SelfReserve::get().into();
-
 	pub const RelayChainHeadersToKeep: u32 = 1024;
 	pub const ParachainHeadsToKeep: u32 = 64;
 
 	pub const ParasPalletName: &'static str = bp_westend::PARAS_PALLET_NAME;
 	pub const MaxParaHeadDataSize: u32 = bp_westend::MAX_NESTED_PARACHAIN_HEAD_DATA_SIZE;
-
-	// see the `FEE_BOOST_PER_RELAY_HEADER` constant get the meaning of this value
-	pub PriorityBoostPerRelayHeader: u64 = 32_007_814_407_814;
 
 	pub storage BridgeDeposit: Balance = 0;
 }

@@ -98,10 +98,6 @@ parameter_types! {
 		[GlobalConsensus(KusamaGlobalConsensusNetwork::get())]
 	);
 
-	/// Price for every byte of the Polkadot -> Kusama message. Can be adjusted via
-	/// governance `set_storage` call.
-	pub XcmMoonbeamRouterByteFee: Balance = bp_moonbeam::estimate_moonbeam_to_moonriver_byte_fee();
-
 	pub const RelayChainHeadersToKeep: u32 = 1024;
 	pub const ParachainHeadsToKeep: u32 = 64;
 
@@ -111,6 +107,8 @@ parameter_types! {
 	/// Universal aliases
 	pub UniversalAliases: BTreeSet<(Location, Junction)> = BTreeSet::from_iter(
 		alloc::vec![
+			// Messages from Moonriver will have Kusama as global consensus and
+			// will be put in the message queue with "Here" as origin
 			(SelfLocation::get(), GlobalConsensus(KusamaGlobalConsensusNetwork::get()))
 		]
 	);

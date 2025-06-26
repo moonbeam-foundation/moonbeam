@@ -50,10 +50,6 @@ parameter_types! {
 		[GlobalConsensus(PolkadotGlobalConsensusNetwork::get())]
 	);
 
-	/// Price for every byte of the Kusama -> Polkadot message. Can be adjusted via
-	/// governance `set_storage` call.
-	pub XcmMoonriverRouterByteFee: Balance = bp_moonbeam::estimate_moonbeam_to_moonriver_byte_fee();
-
 	pub const RelayChainHeadersToKeep: u32 = 1024;
 	pub const ParachainHeadsToKeep: u32 = 64;
 
@@ -63,6 +59,8 @@ parameter_types! {
 	/// Universal aliases
 	pub UniversalAliases: BTreeSet<(Location, Junction)> = BTreeSet::from_iter(
 		alloc::vec![
+			// Messages from Moonbeam will have Polkadot as global consensus and
+			// will be put in the message queue with "Here" as origin
 			(SelfLocation::get(), GlobalConsensus(PolkadotGlobalConsensusNetwork::get()))
 		]
 	);
@@ -185,7 +183,6 @@ impl pallet_xcm_bridge::Config<XcmOverPolkadotInstance> for Runtime {
 	type UniversalLocation = UniversalLocation;
 	type BridgedNetwork = PolkadotGlobalConsensusNetworkLocation;
 	type BridgeMessagesPalletInstance = WithPolkadotMessagesInstance;
-
 	type MessageExportPrice = ();
 	type DestinationVersion =
 		XcmVersionOfDestAndRemoteBridge<PolkadotXcm, bp_moonbeam::GlobalConsensusLocation>;

@@ -90,7 +90,6 @@ pub const WITH_MOONRIVER_KUSAMA_MESSAGES_PALLET_NAME: &str = "BridgeKusamaMessag
 decl_bridge_finality_runtime_apis!(moonriver_kusama);
 decl_bridge_messages_runtime_apis!(moonriver_kusama, LaneId);
 
-// TODO: Update values
 frame_support::parameter_types! {
 	pub GlobalConsensusLocation: Location = Location::new(
 		2,
@@ -99,16 +98,4 @@ frame_support::parameter_types! {
 			Junction::Parachain(Moonriver::PARACHAIN_ID)
 		]
 	);
-	/// The XCM fee that is paid for executing XCM program (with `ExportMessage` instruction) at the Kusama
-	/// BridgeHub.
-	/// (initially was calculated by test `BridgeHubKusama::can_calculate_weight_for_paid_export_message_with_reserve_transfer` + `33%`)
-	pub const BaseXcmFeeInMovr: u128 = 601_115_666;
-
-	/// Transaction fee that is paid at the Kusama BridgeHub for delivering single inbound message.
-	/// (initially was calculated by test `BridgeHubKusama::can_calculate_fee_for_complex_message_delivery_transaction` + `33%`)
-	pub const BaseDeliveryFeeInMovr: u128 = 3_142_112_953;
-
-	/// Transaction fee that is paid at the Kusama BridgeHub for delivering single outbound message confirmation.
-	/// (initially was calculated by test `BridgeHubKusama::can_calculate_fee_for_complex_message_confirmation_transaction` + `33%`)
-	pub const BaseConfirmationFeeInMovr: u128 = 575_036_072;
 }

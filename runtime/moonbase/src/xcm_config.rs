@@ -372,7 +372,6 @@ pub type XcmRouter = WithUniqueTopic<(
 	// Router that exports messages to be delivered to the bridge destination
 	moonbeam_runtime_common::bridge_xcm_routing::BridgeXcmRouter<
 		xcm_builder::LocalExporter<crate::BridgeXcmOver, UniversalLocation>,
-		PolkadotXcm,
 	>,
 )>;
 

@@ -338,7 +338,6 @@ pub type XcmRouter = WithUniqueTopic<(
 	// Router that exports messages to be delivered to the Kusama GlobalConsensus
 	moonbeam_runtime_common::bridge_xcm_routing::BridgeXcmRouter<
 		xcm_builder::LocalExporter<BridgeXcmOverMoonriver, UniversalLocation>,
-		PolkadotXcm,
 	>,
 )>;
 
