@@ -21,6 +21,8 @@ use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
 use sp_std::vec::Vec;
 
+// The Polkadot-sdk removed support for XCM Location V1, but the GMP precompile still needs to support it,
+// so we have to wrap VersionedLocation to re-add support for XCM Location V1.
 #[derive(Encode, Decode, Debug)]
 pub enum VersionedLocation {
 	#[codec(index = 1)] // v2 is same as v1 and therefore re-using the v1 index
