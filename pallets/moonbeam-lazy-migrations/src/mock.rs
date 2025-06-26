@@ -172,12 +172,14 @@ pub const PARA_B: AccountId = MockAccount(H160([2; 20]));
 pub const PARA_C: AccountId = MockAccount(H160([2; 20]));
 
 /// Externality builder for pallet migration's mock runtime
+#[allow(dead_code)]
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 }
 
 impl Default for ExtBuilder {
+	#[allow(dead_code)]
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![(ALITH, 1000), (BOB, 1000)],
