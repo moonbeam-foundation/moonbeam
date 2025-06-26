@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["VersionedUserAction"],"struct":["WormholeSignature","WormholeTransferWithPayloadData","WormholeVM","XcmRoutingUserAction","XcmRoutingUserActionWithFee"]};
+window.SIDEBAR_ITEMS = {"enum":["VersionedLocation","VersionedUserAction"],"struct":["WormholeSignature","WormholeTransferWithPayloadData","WormholeVM","XcmRoutingUserAction","XcmRoutingUserActionWithFee"]};
