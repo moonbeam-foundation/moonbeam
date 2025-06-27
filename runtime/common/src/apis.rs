@@ -1087,7 +1087,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							Ok((
 								Asset {
 									id: AssetId(Location::parent()),
-									fun: Fungible(100_000_000_000_000 as u128)
+									fun: Fungible(1_000_000_000_000_000 as u128)
 								},
 								WeightLimit::Limited(Weight::from_parts(5000, 5000)),
 							))
