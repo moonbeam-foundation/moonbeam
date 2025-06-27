@@ -148,7 +148,7 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "allows to issue transfer xcm transactor with currency Id - weights v2 - refund",
+      title: "Can call xcm transactor precompile from a smart-contract",
       test: async function () {
         const { contractAddress } = await registerAndFundAsset(
           context,
