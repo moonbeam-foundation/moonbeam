@@ -814,11 +814,13 @@ macro_rules! impl_runtime_apis_plus_common {
 					use cumulus_primitives_core::ParaId;
 
 					use xcm::latest::prelude::{
-						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
-						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent, WeightLimit
+						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId, Here,
+						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent, WeightLimit,
+						AccountId32,
 					};
-					use xcm_config::SelfReserve;
+					use xcm_config::{SelfReserve, MaxAssetsIntoHolding};
 					use frame_benchmarking::BenchmarkError;
+					use xcm_executor::traits::ConvertLocation;
 
 					use frame_system_benchmarking::Pallet as SystemBench;
 					// Needed to run `set_code` and `apply_authorized_upgrade` frame_system benchmarks
@@ -945,18 +947,37 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 					}
 
+					/// Since in moonbeam we use 20-byte account ids, we need to
+					/// convert the `AccountId32` to a 20-byte array for pallet_xcm_benchmarks
+					/// to work correctly. This workaround is only needed for benchmarks.
+					pub struct BenchAccountId32Aliases<AccountId>(sp_std::marker::PhantomData<AccountId>);
+
+					impl<AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone> ConvertLocation<AccountId>
+						for BenchAccountId32Aliases<AccountId>
+					{
+						fn convert_location(location: &Location) -> Option<AccountId> {
+							let id = match location.unpack() {
+								(0, [AccountId32 { id, network: None }]) => id,
+								_ => return None,
+							};
+							// take the first 20 bytes of the id and convert to fixed-size array
+							let mut id20: [u8; 20] = [0u8; 20];
+							id20.copy_from_slice(&id[..20]);
+							Some(id20.into())
+						}
+					}
+
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
-						type AccountIdConverter = xcm_config::LocationToAccountId;
+						type AccountIdConverter = BenchAccountId32Aliases<AccountId>;
 						type DeliveryHelper = ();
 						fn valid_destination() -> Result<Location, BenchmarkError> {
 							Ok(Location::parent())
 						}
 						fn worst_case_holding(_depositable_count: u32) -> XcmAssets {
-						// 100 fungibles
-							const HOLDING_FUNGIBLES: u32 = 100;
+							const HOLDING_FUNGIBLES: u32 = MaxAssetsIntoHolding::get();
 							let fungibles_amount: u128 = 100;
-							let assets = (0..HOLDING_FUNGIBLES).map(|i| {
+							let assets = (1..=HOLDING_FUNGIBLES).map(|i| {
 								let location: Location = GeneralIndex(i as u128).into();
 								Asset {
 									id: AssetId(location),
@@ -986,11 +1007,36 @@ macro_rules! impl_runtime_apis_plus_common {
 									);
 									XcmWeightTrader::set_asset_price(
 										location.clone(),
-										1u128.pow(18)
+										10u128.pow(18)
 									);
 								}
 							}
 							assets.into()
+						}
+					}
+
+					parameter_types! {
+						// Native token location
+						pub const TokenLocation: Location = Here.into_location();
+						pub TrustedTeleporter: Option<(Location, Asset)> = None;
+						pub CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;
+						pub const TrustedReserve: Option<(Location, Asset)> = None;
+					}
+
+					impl pallet_xcm_benchmarks::fungible::Config for Runtime {
+						type TransactAsset = Balances;
+
+						type CheckedAccount = CheckedAccount;
+						type TrustedTeleporter = TrustedTeleporter;
+						type TrustedReserve = TrustedReserve;
+
+						fn get_asset() -> Asset {
+							// We put more than ED here for being able to keep accounts alive when transferring
+							// and paying the delivery fees.
+							Asset {
+								id: AssetId(TokenLocation::get()),
+								fun: Fungible(1_000_000 * ExistentialDeposit::get()),
+							}
 						}
 					}
 
@@ -1037,7 +1083,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 
 						fn worst_case_for_trader() -> Result<(Asset, WeightLimit), BenchmarkError> {
-							Err(BenchmarkError::Skip)
+							let location: Location = GeneralIndex(99).into();
+							Ok((
+								Asset {
+									id: AssetId(Location::parent()),
+									fun: Fungible(1_000_000_000_000_000 as u128)
+								},
+								WeightLimit::Limited(Weight::from_parts(5000, 5000)),
+							))
 						}
 
 						fn unlockable_asset()
@@ -1112,9 +1165,6 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					add_benchmarks!(params, batches);
 
-					if batches.is_empty() {
-						return Err("Benchmark not found for this pallet.".into());
-					}
 					Ok(batches)
 				}
 			}
