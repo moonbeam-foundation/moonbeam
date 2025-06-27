@@ -522,7 +522,7 @@ jobs:
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks -- --test-threads=4
+          cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
       - name: Run bridge tests
         run: |
           cargo test --color=always -p moonbase-runtime --features bridge-betanet --test integration_test bridge_tests -- --nocapture
