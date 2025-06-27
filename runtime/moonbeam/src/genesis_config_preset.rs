@@ -18,27 +18,24 @@ extern crate alloc;
 
 use crate::{
 	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
-	Balance, Balances, BalancesConfig, BridgeKusamaGrandpaConfig, BridgeKusamaMessagesConfig,
+	Balance, BalancesConfig, BridgeKusamaGrandpaConfig, BridgeKusamaMessagesConfig,
 	BridgeKusamaParachainsConfig, BridgeXcmOverMoonriverConfig, CrowdloanRewardsConfig, EVMConfig,
-	EligibilityValue, EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
-	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
-	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmWeightTraderConfig, HOURS,
+	EligibilityValue, EthereumChainIdConfig, EthereumConfig, InflationInfo, MaintenanceModeConfig,
+	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
+	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, TransactionPaymentConfig,
+	TreasuryCouncilCollectiveConfig, HOURS,
 };
 use alloc::{vec, vec::Vec};
 use bp_messages::MessagesOperatingMode;
 use bp_runtime::BasicOperatingMode;
 use cumulus_primitives_core::ParaId;
 use fp_evm::GenesisAccount;
-use frame_support::pallet_prelude::PalletInfoAccess;
 use nimbus_primitives::NimbusId;
-use pallet_moonbeam_foreign_assets::EvmForeignAssetInfo;
 use pallet_transaction_payment::Multiplier;
-use pallet_xcm_weight_trader::XcmWeightTraderAssetInfo;
 use sp_genesis_builder::PresetId;
 use sp_keyring::Sr25519Keyring;
 use sp_runtime::{Perbill, Percent};
-use xcm::prelude::{GlobalConsensus, Junctions, Location, NetworkId, PalletInstance, Parachain};
+use xcm::prelude::{Junctions, Location, NetworkId, Parachain};
 
 const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
@@ -204,37 +201,6 @@ pub fn testnet_genesis(
 				]),
 				Some(Default::default()),
 			)],
-			_phantom: Default::default(),
-		},
-		evm_foreign_assets: EvmForeignAssetsConfig {
-			assets: vec![EvmForeignAssetInfo {
-				asset_id: 1,
-				name: b"xcMOVR".to_vec().try_into().expect("Invalid asset name"),
-				symbol: b"xcMOVR".to_vec().try_into().expect("Invalid asset symbol"),
-				decimals: 18,
-				xcm_location: Location::new(
-					2,
-					[
-						GlobalConsensus(crate::bridge_config::KusamaGlobalConsensusNetwork::get()),
-						Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID),
-						PalletInstance(<Balances as PalletInfoAccess>::index() as u8),
-					],
-				),
-			}],
-			_phantom: Default::default(),
-		},
-		xcm_weight_trader: XcmWeightTraderConfig {
-			assets: vec![XcmWeightTraderAssetInfo {
-				location: Location::new(
-					2,
-					[
-						GlobalConsensus(crate::bridge_config::KusamaGlobalConsensusNetwork::get()),
-						Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID),
-						PalletInstance(<Balances as PalletInfoAccess>::index() as u8),
-					],
-				),
-				relative_price: GLMR,
-			}],
 			_phantom: Default::default(),
 		},
 	};

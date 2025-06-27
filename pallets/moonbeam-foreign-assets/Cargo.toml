@@ -7,7 +7,6 @@ version = "0.1.0"
 [dependencies]
 ethereum-types = { workspace = true }
 log = { workspace = true }
-serde = { workspace = true }
 
 # Moonbeam
 moonbeam-core-primitives = { workspace = true}

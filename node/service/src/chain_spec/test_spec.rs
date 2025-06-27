@@ -17,7 +17,6 @@
 //! Embedded specs for testing purposes, must be compiled with --features=test-spec
 use crate::chain_spec::moonbase::ChainSpec;
 use crate::chain_spec::Extensions;
-use crate::HostFunctions;
 use cumulus_primitives_core::ParaId;
 use sc_service::ChainType;
 
@@ -42,7 +41,7 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 }
 
 #[cfg(feature = "lazy-loading")]
-pub fn lazy_loading_spec_builder() -> sc_chain_spec::ChainSpecBuilder<Extensions, HostFunctions> {
+pub fn lazy_loading_spec_builder() -> sc_chain_spec::ChainSpecBuilder<Extensions> {
 	crate::chain_spec::moonbeam::ChainSpec::builder(
 		moonbeam_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
 		Default::default(),
