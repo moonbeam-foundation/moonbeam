@@ -818,7 +818,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent, WeightLimit,
 						AccountId32,
 					};
-					use xcm_config::SelfReserve;
+					use xcm_config::{SelfReserve, MaxAssetsIntoHolding};
 					use frame_benchmarking::BenchmarkError;
 					use xcm_executor::traits::ConvertLocation;
 
@@ -975,8 +975,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							Ok(Location::parent())
 						}
 						fn worst_case_holding(_depositable_count: u32) -> XcmAssets {
-							// 50 fungibles
-							const HOLDING_FUNGIBLES: u32 = 50;
+							const HOLDING_FUNGIBLES: u32 = MaxAssetsIntoHolding::get();
 							let fungibles_amount: u128 = 100;
 							let assets = (1..=HOLDING_FUNGIBLES).map(|i| {
 								let location: Location = GeneralIndex(i as u128).into();
