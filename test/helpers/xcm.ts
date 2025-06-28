@@ -13,6 +13,10 @@ import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
 import { expectSubstrateEvent, expectSystemEvent } from "./expect.ts";
 import { getPalletIndex } from "./pallets.ts";
 
+// XCM versions to test
+export const XCM_VERSIONS = [3, 4, 5] as const;
+export type XcmVersion = (typeof XCM_VERSIONS)[number];
+
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
 // state changes
