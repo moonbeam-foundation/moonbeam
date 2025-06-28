@@ -160,6 +160,10 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
 	is_pallet_prefix::<moonriver_runtime::MoonbeamLazyMigrations>("MoonbeamLazyMigrations");
 	is_pallet_prefix::<moonriver_runtime::RelayStorageRoots>("RelayStorageRoots");
+	is_pallet_prefix::<moonriver_runtime::BridgePolkadotGrandpa>("BridgePolkadotGrandpa");
+	is_pallet_prefix::<moonriver_runtime::BridgePolkadotParachains>("BridgePolkadotParachains");
+	is_pallet_prefix::<moonriver_runtime::BridgePolkadotMessages>("BridgePolkadotMessages");
+	is_pallet_prefix::<moonriver_runtime::BridgeXcmOverMoonbeam>("BridgeXcmOverMoonbeam");
 
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
@@ -229,7 +233,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Holds".to_vec(),
 				prefix: prefix(b"Balances", b"Holds"),
 				max_values: None,
-				max_size: Some(55),
+				max_size: Some(91),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
@@ -459,6 +463,10 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::AssetManager>(105);
 	// is_pallet_index::<moonriver_runtime::XTokens>(106); Removed
 	is_pallet_index::<moonriver_runtime::XcmTransactor>(107);
+	is_pallet_index::<moonriver_runtime::BridgePolkadotGrandpa>(130);
+	is_pallet_index::<moonriver_runtime::BridgePolkadotParachains>(131);
+	is_pallet_index::<moonriver_runtime::BridgePolkadotMessages>(132);
+	is_pallet_index::<moonriver_runtime::BridgeXcmOverMoonbeam>(133);
 }
 
 #[test]
@@ -2760,6 +2768,249 @@ fn evm_success_keeps_substrate_events() {
 
 			assert_eq!(transfer_count, 1, "there should be 1 transfer event");
 		});
+}
+
+#[cfg(test)]
+mod bridge_tests {
+	use crate::common::{origin_of, root_origin, ExtBuilder, XcmAssetInitialization, ALICE, BOB};
+	use crate::currency_to_asset;
+	use bp_messages::target_chain::DispatchMessageData;
+	use bp_messages::ReceptionResult;
+	use bp_runtime::messages::MessageDispatchResult;
+	use cumulus_primitives_core::AggregateMessageOrigin;
+	use frame_support::assert_ok;
+	use frame_support::pallet_prelude::{Hooks, PalletInfoAccess};
+	use moonbeam_core_primitives::AccountId;
+	use moonriver_runtime::asset_config::AssetRegistrarMetadata;
+	use moonriver_runtime::bridge_config::{
+		PolkadotGlobalConsensusNetwork, WithPolkadotMessagesInstance,
+	};
+	use moonriver_runtime::currency::MOVR;
+	use moonriver_runtime::xcm_config::{AssetType, CurrencyId};
+	use moonriver_runtime::{
+		Balances, BridgePolkadotMessages, BridgeXcmOverMoonbeam, MessageQueue, PolkadotXcm,
+		Runtime, RuntimeEvent, System,
+	};
+	use pallet_bridge_messages::LanesManager;
+	use pallet_xcm_bridge::XcmBlobMessageDispatchResult::Dispatched;
+	use parity_scale_codec::Encode;
+	use sp_core::H256;
+	use xcm::latest::Junctions::X1;
+	use xcm::latest::{
+		Asset, AssetFilter, AssetId, Junctions, Location, NetworkId, WeightLimit, WildAsset, Xcm,
+	};
+	use xcm::prelude::{
+		AccountKey20, BuyExecution, ClearOrigin, DepositAsset, DescendOrigin, Fungible,
+		GlobalConsensus, PalletInstance, Parachain, ReserveAssetDeposited, UniversalOrigin,
+		XCM_VERSION,
+	};
+	use xcm::{VersionedAssets, VersionedInteriorLocation, VersionedLocation, VersionedXcm};
+	use xcm_builder::BridgeMessage;
+
+	fn next_block() {
+		System::reset_events();
+
+		let next_block = System::block_number() + 1u32;
+
+		System::set_block_number(next_block);
+		System::on_initialize(next_block);
+		MessageQueue::on_initialize(next_block);
+	}
+
+	#[test]
+	fn transfer_asset_moonriver_to_moonbeam() {
+		frame_support::__private::sp_tracing::init_for_tests();
+
+		ExtBuilder::default()
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * MOVR),
+				(AccountId::from(BOB), 1_000 * MOVR),
+			])
+			.with_safe_xcm_version(XCM_VERSION)
+			.with_open_bridges(vec![(
+				Location::new(
+					1,
+					[Parachain(
+						<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID,
+					)],
+				),
+				Junctions::from([
+					NetworkId::Polkadot.into(),
+					Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
+				]),
+				Some(bp_moonriver::LaneId::from_inner(H256([0u8; 32]))),
+			)])
+			.build()
+			.execute_with(|| {
+				assert_ok!(PolkadotXcm::force_xcm_version(
+					root_origin(),
+					Box::new(bp_moonbeam::GlobalConsensusLocation::get()),
+					XCM_VERSION
+				));
+
+				let asset = currency_to_asset(CurrencyId::SelfReserve, 100 * MOVR);
+
+				let message_data = BridgePolkadotMessages::outbound_message_data(
+					bp_moonriver::LaneId::from_inner(H256([0u8; 32])),
+					1u64,
+				);
+				assert!(message_data.is_none());
+
+				assert_ok!(PolkadotXcm::transfer_assets(
+					origin_of(AccountId::from(ALICE)),
+					Box::new(VersionedLocation::V5(
+						bp_moonbeam::GlobalConsensusLocation::get()
+					)),
+					Box::new(VersionedLocation::V5(Location {
+						parents: 0,
+						interior: [AccountKey20 {
+							network: None,
+							key: ALICE,
+						}]
+						.into(),
+					})),
+					Box::new(VersionedAssets::V5(asset.into())),
+					0,
+					WeightLimit::Unlimited
+				));
+
+				let message_data = BridgePolkadotMessages::outbound_message_data(
+					bp_moonriver::LaneId::from_inner(H256([0u8; 32])),
+					1u64,
+				);
+				assert!(message_data.is_some());
+			})
+	}
+
+	#[test]
+	fn receive_message_from_moonbeam() {
+		frame_support::__private::sp_tracing::init_for_tests();
+
+		ExtBuilder::default()
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * MOVR),
+				(AccountId::from(BOB), 1_000 * MOVR),
+			])
+			.with_evm_native_foreign_assets()
+			.with_xcm_assets(vec![XcmAssetInitialization {
+				asset_type: AssetType::Xcm(xcm::VersionedLocation::from(Location::new(
+					2,
+					[
+						GlobalConsensus(PolkadotGlobalConsensusNetwork::get()),
+						Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
+						PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
+					]
+				)).try_into().unwrap()),
+				metadata: AssetRegistrarMetadata {
+					name: b"xcGLMR".to_vec(),
+					symbol: b"xcGLMR".to_vec(),
+					decimals: 18,
+					is_frozen: false,
+				},
+				balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+				is_sufficient: true,
+			}])
+			.with_safe_xcm_version(XCM_VERSION)
+			.with_open_bridges(vec![(
+				Location::new(
+					1,
+					[Parachain(
+						<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID,
+					)],
+				),
+				Junctions::from([
+					NetworkId::Polkadot.into(),
+					Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
+				]),
+				Some(bp_moonriver::LaneId::from_inner(H256([0u8; 32])))
+			)])
+			.build()
+			.execute_with(|| {
+				let bridge_message: BridgeMessage = BridgeMessage {
+					universal_dest: VersionedInteriorLocation::V5(
+						[
+							GlobalConsensus(NetworkId::Kusama),
+							Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID)
+						].into()
+					),
+					message: VersionedXcm::V5(
+						Xcm(
+							[
+								UniversalOrigin(GlobalConsensus(NetworkId::Polkadot)),
+								DescendOrigin(X1([Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID)].into())),
+								ReserveAssetDeposited(
+									vec![
+										Asset {
+											id: AssetId(
+												Location::new(
+													2,
+													[
+														GlobalConsensus(NetworkId::Polkadot),
+														Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
+														PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
+													]
+												)
+											),
+											fun: Fungible(2 * MOVR)
+										}
+									].into()
+								),
+								ClearOrigin,
+								BuyExecution {
+									fees: Asset {
+										id: AssetId(
+											Location::new(
+												2,
+												[
+													GlobalConsensus(NetworkId::Polkadot),
+													Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
+													PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
+												]
+											)
+										),
+										fun:  Fungible(MOVR / 2)
+									},
+									weight_limit: WeightLimit::Unlimited
+								},
+								DepositAsset {
+									assets: AssetFilter::Wild(WildAsset::AllCounted(1)),
+									beneficiary: Location::new(0, [AccountKey20 { network: None, key: ALICE }]),
+								}
+							].into()
+						)
+					)
+				};
+
+				let mut inbound_lane = LanesManager::<Runtime, WithPolkadotMessagesInstance>::new()
+					.active_inbound_lane(Default::default())
+					.unwrap();
+
+				let msg = DispatchMessageData { payload: Ok(bridge_message.encode()) };
+				let result = inbound_lane.receive_message::<BridgeXcmOverMoonbeam>(
+					&AccountId::from(ALICE),
+					1,
+					msg,
+				);
+
+				assert_eq!(result, ReceptionResult::Dispatched(MessageDispatchResult { unspent_weight: Default::default(), dispatch_level_result: Dispatched }));
+
+				// Produce next block
+				next_block();
+				// Confirm that the xcm message was successfully processed
+				assert!(System::events().iter().any(|evt| {
+					matches!(
+						evt.event,
+						RuntimeEvent::MessageQueue(
+							pallet_message_queue::Event::Processed {
+								origin: AggregateMessageOrigin::Here,
+								success: true,
+								..
+							}
+						)
+					)
+				}));
+			});
+	}
 }
 
 #[cfg(test)]

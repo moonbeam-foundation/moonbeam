@@ -67,5 +67,3 @@ pub mod pallet_bridge_grandpa;
 pub mod pallet_bridge_messages;
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 pub mod pallet_bridge_parachains;
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub mod pallet_xcm_bridge;
