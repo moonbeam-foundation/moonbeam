@@ -1416,16 +1416,15 @@ impl pallet_parameters::Config for Runtime {
 }
 
 /// List of multiblock migrations to be executed by the pallet_multiblock_migrations.
-type MultiBlockMigrationList = ();
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type MultiBlockMigrationList = (moonbeam_runtime_common::migrations::MultiBlockMigrationList);
+// Benchmarks need mocked migrations to guarantee that they succeed.
+#[cfg(feature = "runtime-benchmarks")]
+pub type MultiBlockMigrationList = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
 
 impl pallet_multiblock_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// TODO fully replace pallet_migrations with multiblock migrations.
-	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Migrations = MultiBlockMigrationList;
-	// Benchmarks need mocked migrations to guarantee that they succeed.
-	#[cfg(feature = "runtime-benchmarks")]
-	type Migrations = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
 	type CursorMaxLen = ConstU32<65_536>;
 	type IdentifierMaxLen = ConstU32<256>;
 	type MigrationStatusHandler = ();
