@@ -1396,7 +1396,7 @@ impl pallet_parameters::Config for Runtime {
 
 /// List of multiblock migrations to be executed by the pallet_multiblock_migrations.
 #[cfg(not(feature = "runtime-benchmarks"))]
-pub type MultiBlockMigrationList = (moonbeam_runtime_common::migrations::MultiBlockMigrationList);
+pub type MultiBlockMigrationList = moonbeam_runtime_common::migrations::MultiBlockMigrationList;
 // Benchmarks need mocked migrations to guarantee that they succeed.
 #[cfg(feature = "runtime-benchmarks")]
 pub type MultiBlockMigrationList = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
