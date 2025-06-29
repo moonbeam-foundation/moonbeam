@@ -1394,11 +1394,14 @@ impl pallet_parameters::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
+/// List of multiblock migrations to be executed by the pallet_multiblock_migrations.
+type MultiBlockMigrationList = ();
+
 impl pallet_multiblock_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	// TODO fully replace pallet_migrations with multiblock migrations.
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = pallet_identity::migration::v2::LazyMigrationV1ToV2<Runtime>;
+	type Migrations = MultiBlockMigrationList;
 	// Benchmarks need mocked migrations to guarantee that they succeed.
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
