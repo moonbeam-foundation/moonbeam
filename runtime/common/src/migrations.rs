@@ -206,3 +206,7 @@ where
 		]
 	}
 }
+
+/// List of common multiblock migrations to be executed by the pallet_multiblock_migrations.
+/// The migrations listed here are common to every moonbeam runtime.
+pub type MultiBlockMigrationList = ();
