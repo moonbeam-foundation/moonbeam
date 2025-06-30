@@ -19,12 +19,8 @@
 use crate::bridge_config::XcmOverKusamaInstance;
 use crate::{BridgeKusamaMessages, PolkadotXcm, Runtime, RuntimeOrigin};
 use bp_messages::MessagesOperatingMode;
-use bp_runtime::AccountIdOf;
-use frame_support::instances::Instance1;
 use frame_support::traits::{ConstBool, OnRuntimeUpgrade};
-use moonbeam_core_primitives::AccountId;
 use pallet_migrations::{GetMigrations, Migration};
-use pallet_xcm_bridge::ThisChainOf;
 use sp_std::{prelude::*, vec};
 use sp_weights::Weight;
 
@@ -44,13 +40,7 @@ parameter_types! {
 }
 
 pub struct SetupBridge;
-impl Migration for SetupBridge
-where
-	Runtime: frame_system::Config<AccountId = AccountIdOf<ThisChainOf<Runtime, Instance1>>>
-		+ pallet_xcm_bridge::Config<Instance1>
-		+ pallet_xcm_bridge::Config<Instance1>,
-	AccountIdOf<ThisChainOf<Runtime, Instance1>>: From<AccountId>,
-{
+impl Migration for SetupBridge {
 	fn friendly_name(&self) -> &str {
 		"MM_SetupBridge"
 	}
