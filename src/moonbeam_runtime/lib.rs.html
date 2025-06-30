@@ -3064,7 +3064,6 @@
 &gt;;
 
 <span class="kw">impl </span>pallet_moonbeam_lazy_migrations::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>ForeignAssetMigratorOrigin = ForeignAssetMigratorOrigin;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_moonbeam_lazy_migrations::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -3449,8 +3448,9 @@
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
 		[pallet_multiblock_migrations, MultiBlockMigrations]
-		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
-		[pallet_relay_storage_roots, RelayStorageRoots]
+		<span class="comment">// Currently there are no extrinsics to benchmark for the Lazy Migrations pallet
+		// [pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
+		</span>[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]

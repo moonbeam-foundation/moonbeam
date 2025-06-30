@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["is_migrating_foreign_assets"],"mod":["pallet","weights"]};
+window.SIDEBAR_ITEMS = {"mod":["pallet","weights"]};

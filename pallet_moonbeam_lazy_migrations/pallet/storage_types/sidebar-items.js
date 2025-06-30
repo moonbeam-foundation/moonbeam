@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["ApprovedForeignAssets","ForeignAssetMigrationStatusValue"]};
+window.SIDEBAR_ITEMS = {};

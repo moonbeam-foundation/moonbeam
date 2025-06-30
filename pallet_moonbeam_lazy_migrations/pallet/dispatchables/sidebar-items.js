@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["approve_assets_to_migrate","create_contract_metadata","finish_foreign_assets_migration","migrate_foreign_asset_approvals","migrate_foreign_asset_balances","start_foreign_assets_migration"]};
+window.SIDEBAR_ITEMS = {"fn":["create_contract_metadata"]};
