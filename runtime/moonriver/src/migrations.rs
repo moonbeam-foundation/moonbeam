@@ -16,8 +16,86 @@
 
 //! # Moonriver specific Migrations
 
+use crate::bridge_config::XcmOverPolkadotInstance;
+use crate::{BridgePolkadotMessages, PolkadotXcm, Runtime, RuntimeOrigin};
+use bp_messages::MessagesOperatingMode;
+use bp_runtime::AccountIdOf;
+use frame_support::instances::Instance1;
+use frame_support::parameter_types;
+use frame_support::traits::{ConstBool, OnRuntimeUpgrade};
+use moonbeam_core_primitives::AccountId;
 use pallet_migrations::{GetMigrations, Migration};
+use pallet_xcm_bridge::ThisChainOf;
 use sp_std::{prelude::*, vec};
+use sp_weights::Weight;
+use xcm::latest::{prelude::Parachain, InteriorLocation, Location};
+
+parameter_types! {
+	pub Lane: bp_moonriver::LaneId = Default::default();
+	pub RelativeLocation: Location = Location::new(
+		1,
+		[
+			Parachain(bp_moonriver::PARACHAIN_ID)
+		],
+	);
+	pub BridgedUniversalLocation: InteriorLocation = bp_moonbeam::GlobalConsensusLocation::get().interior;
+}
+
+pub struct SetupBridge;
+impl Migration for SetupBridge
+where
+	Runtime: frame_system::Config<AccountId = AccountIdOf<ThisChainOf<Runtime, Instance1>>>
+		+ pallet_bridge_messages::Config<Instance1>
+		+ pallet_xcm_bridge::Config<Instance1>,
+	AccountIdOf<ThisChainOf<Runtime, Instance1>>: From<AccountId>,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_SetupBridge"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		let mut weight = <Runtime as frame_system::Config>::DbWeight::get().writes(1);
+		let _ = PolkadotXcm::force_xcm_version(
+			RuntimeOrigin::root(),
+			Box::new(bp_moonbeam::GlobalConsensusLocation::get()),
+			xcm::v5::VERSION,
+		)
+		.map_err(|err| {
+			log::error!("Failed to set xcm version: {:?}", err);
+		});
+
+		weight =
+			weight.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1));
+		let _ = BridgePolkadotMessages::set_operating_mode(
+			RuntimeOrigin::root(),
+			MessagesOperatingMode::RejectingOutboundMessages,
+		)
+		.map_err(|err| {
+			log::error!("Failed to set operating mode: {:?}", err);
+		});
+
+		weight = weight.saturating_add(pallet_xcm_bridge::migration::OpenBridgeForLane::<
+			Runtime,
+			XcmOverPolkadotInstance,
+			Lane,
+			ConstBool<true>,
+			RelativeLocation,
+			BridgedUniversalLocation,
+		>::on_runtime_upgrade());
+
+		weight
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		Ok(Default::default())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		Ok(())
+	}
+}
 
 pub struct MoonriverMigrations;
 
@@ -26,6 +104,7 @@ impl GetMigrations for MoonriverMigrations {
 		vec![
 			// Runtime 3000
 			// Box::new(PalletStakingMultiplyRoundLenBy2)
+			Box::new(SetupBridge),
 		]
 	}
 }

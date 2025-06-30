@@ -1505,10 +1505,10 @@ construct_runtime! {
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
 
 		// Bridge pallets (reserved indexes from 130 to 140)
-		BridgeKusamaGrandpa: pallet_bridge_grandpa::<Instance1> = 130,
-		BridgeKusamaParachains: pallet_bridge_parachains::<Instance1> = 131,
-		BridgeKusamaMessages: pallet_bridge_messages::<Instance1> = 132,
-		BridgeXcmOverMoonriver: pallet_xcm_bridge::<Instance1> = 133,
+		BridgeKusamaGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
+		BridgeKusamaParachains: pallet_bridge_parachains::<Instance1>::{Pallet, Call, Storage, Event<T>} = 131,
+		BridgeKusamaMessages: pallet_bridge_messages::<Instance1>::{Pallet, Call, Storage, Event<T>} = 132,
+		BridgeXcmOverMoonriver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason} = 133,
 	}
 }
 
