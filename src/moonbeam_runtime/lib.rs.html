@@ -1894,6 +1894,8 @@
 <a href="#1894" id="1894">1894</a>
 <a href="#1895" id="1895">1895</a>
 <a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3290,14 +3292,16 @@
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_parameters::WeightInfo&lt;Runtime&gt;;
 }
 
+<span class="doccomment">/// List of multiblock migrations to be executed by the pallet_multiblock_migrations.
+</span><span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
+</span><span class="kw">pub type </span>MultiBlockMigrationList = moonbeam_runtime_common::migrations::MultiBlockMigrationList;
+<span class="comment">// Benchmarks need mocked migrations to guarantee that they succeed.
+</span><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+</span><span class="kw">pub type </span>MultiBlockMigrationList = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
+
 <span class="kw">impl </span>pallet_multiblock_migrations::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="comment">// TODO fully replace pallet_migrations with multiblock migrations.
-	</span><span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
-	</span><span class="kw">type </span>Migrations = pallet_identity::migration::v2::LazyMigrationV1ToV2&lt;Runtime&gt;;
-	<span class="comment">// Benchmarks need mocked migrations to guarantee that they succeed.
-	</span><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
-	</span><span class="kw">type </span>Migrations = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
+	<span class="kw">type </span>Migrations = MultiBlockMigrationList;
 	<span class="kw">type </span>CursorMaxLen = ConstU32&lt;<span class="number">65_536</span>&gt;;
 	<span class="kw">type </span>IdentifierMaxLen = ConstU32&lt;<span class="number">256</span>&gt;;
 	<span class="kw">type </span>MigrationStatusHandler = ();
