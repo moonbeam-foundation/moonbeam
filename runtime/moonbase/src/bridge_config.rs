@@ -16,102 +16,35 @@
 
 extern crate alloc;
 
-use crate::xcm_config::{SelfLocation, SelfReserve, UniversalLocation};
+use crate::xcm_config::{SelfLocation, UniversalLocation};
 use crate::{
-	moonbase_weights, Balances, BridgeMessages, BridgeXcmOver, Get, MessageQueue, PolkadotXcm,
-	Runtime, RuntimeEvent, RuntimeHoldReason,
+	moonbase_weights, Balances, BridgeMessages, BridgeXcmOver, MessageQueue, PolkadotXcm, Runtime,
+	RuntimeEvent, RuntimeHoldReason,
 };
 use alloc::collections::btree_set::BTreeSet;
 use bp_parachains::SingleParaStoredHeaderDataBuilder;
 use bridge_hub_common::xcm_version::XcmVersionOfDestAndRemoteBridge;
-use core::marker::PhantomData;
-use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::pallet_prelude::PalletInfoAccess;
-use frame_support::traits::{Contains, EnqueueMessage, Everything};
-use frame_support::{ensure, parameter_types, traits::ConstU32, BoundedVec};
+use frame_support::traits::{Contains, Everything};
+use frame_support::{parameter_types, traits::ConstU32};
 use frame_system::{EnsureNever, EnsureRoot};
 use moonbeam_core_primitives::{AccountId, Balance};
-use pallet_xcm_bridge::congestion::{
-	BlobDispatcherWithChannelStatus, HereOrLocalConsensusXcmChannelManager,
-};
+use moonbeam_runtime_common::bridge::{CongestionManager, LocalBlobDispatcher};
 use pallet_xcm_bridge::XcmAsPlainPayload;
-use parity_scale_codec::{Decode, Encode};
 use polkadot_parachain::primitives::Sibling;
 use sp_core::hex2array;
-use sp_runtime::Vec;
-use xcm::latest::{AssetId, Junction, Location, Xcm};
-use xcm::opaque::VersionedXcm;
+use xcm::latest::{Junction, Location};
 use xcm::prelude::{GlobalConsensus, InteriorLocation, NetworkId, PalletInstance, Parachain};
-use xcm_builder::{
-	BridgeMessage, DispatchBlob, DispatchBlobError, ParentIsPreset, SiblingParachainConvertsVia,
-};
-
-pub struct LocalBlobDispatcher<MQ, OurPlace, OurPlaceBridgeInstance>(
-	PhantomData<(MQ, OurPlace, OurPlaceBridgeInstance)>,
-);
-impl<
-		MQ: EnqueueMessage<AggregateMessageOrigin>,
-		OurPlace: Get<InteriorLocation>,
-		OurPlaceBridgeInstance: Get<Option<InteriorLocation>>,
-	> DispatchBlob for LocalBlobDispatcher<MQ, OurPlace, OurPlaceBridgeInstance>
-{
-	fn dispatch_blob(blob: Vec<u8>) -> Result<(), DispatchBlobError> {
-		let our_universal = OurPlace::get();
-		let our_global = our_universal
-			.global_consensus()
-			.map_err(|()| DispatchBlobError::Unbridgable)?;
-		let BridgeMessage {
-			universal_dest,
-			message,
-		} = Decode::decode(&mut &blob[..]).map_err(|_| DispatchBlobError::InvalidEncoding)?;
-		let universal_dest: InteriorLocation = universal_dest
-			.try_into()
-			.map_err(|_| DispatchBlobError::UnsupportedLocationVersion)?;
-		// `universal_dest` is the desired destination within the universe: first we need to check
-		// we're in the right global consensus.
-		let intended_global = universal_dest
-			.global_consensus()
-			.map_err(|()| DispatchBlobError::NonUniversalDestination)?;
-		ensure!(
-			intended_global == our_global,
-			DispatchBlobError::WrongGlobal
-		);
-		//let dest = universal_dest.relative_to(&our_universal);
-		let xcm: Xcm<()> = message
-			.try_into()
-			.map_err(|_| DispatchBlobError::UnsupportedXcmVersion)?;
-
-		let msg: BoundedVec<u8, MQ::MaxMessageLen> = VersionedXcm::from(xcm)
-			.encode()
-			.try_into()
-			.map_err(|_| DispatchBlobError::InvalidEncoding)?;
-		MQ::enqueue_message(
-			msg.as_bounded_slice(),
-			AggregateMessageOrigin::Here, // The message came from the para-chain itself.
-		);
-
-		Ok(())
-	}
-}
+use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 
 parameter_types! {
 	pub MessagesPalletInstance: InteriorLocation = [PalletInstance(<BridgeMessages as PalletInfoAccess>::index() as u8)].into();
-
-	/// Price for every byte of the Betanet -> Stagenet message.
-	pub XcmMoonbeamRouterByteFee: Balance = 1u128;
-
-	/// Router expects payment with this `AssetId`.
-	/// (`AssetId` has to be aligned with `BridgeTable`)
-	pub XcmMoonbeamRouterFeeAssetId: AssetId = SelfReserve::get().into();
 
 	pub const RelayChainHeadersToKeep: u32 = 1024;
 	pub const ParachainHeadsToKeep: u32 = 64;
 
 	pub const ParasPalletName: &'static str = bp_westend::PARAS_PALLET_NAME;
 	pub const MaxParaHeadDataSize: u32 = bp_westend::MAX_NESTED_PARACHAIN_HEAD_DATA_SIZE;
-
-	// see the `FEE_BOOST_PER_RELAY_HEADER` constant get the meaning of this value
-	pub PriorityBoostPerRelayHeader: u64 = 32_007_814_407_814;
 
 	pub storage BridgeDeposit: Balance = 0;
 }
@@ -254,25 +187,9 @@ impl pallet_xcm_bridge::Config<XcmBridgeInstance> for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	// Don't require a deposit, since we don't allow opening new bridges.
 	type AllowWithoutBridgeDeposit = Everything;
-
-	type LocalXcmChannelManager = HereOrLocalConsensusXcmChannelManager<
-		bp_xcm_bridge::BridgeId,
-		// handles congestion for local chain router for local bridges
-		(),
-		// handles congestion for other local chains with XCM using `update_bridge_status` sent to
-		// the sending chain.
-		(),
-	>;
+	type LocalXcmChannelManager = CongestionManager<Runtime>;
 	// Dispatching inbound messages from the bridge and managing congestion with the local
 	// receiving/destination chain
-	type BlobDispatcher = BlobDispatcherWithChannelStatus<
-		// Dispatches received XCM messages from other bridge
-		LocalBlobDispatcher<MessageQueue, UniversalLocation, MessagesPalletInstance>,
-		// Provides the status of the XCMP queue's outbound queue, indicating whether messages can
-		// be dispatched to the sibling.
-		(),
-	>;
-
-	type CongestionLimits = ();
-	type WeightInfo = moonbase_weights::pallet_xcm_bridge::WeightInfo<Runtime>;
+	type BlobDispatcher =
+		LocalBlobDispatcher<MessageQueue, UniversalLocation, MessagesPalletInstance>;
 }

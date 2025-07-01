@@ -3493,7 +3493,7 @@ mod bridge_tests {
 	}
 
 	#[test]
-	fn transfer_asset_betanet_to_stagenet() {
+	fn transfer_asset() {
 		frame_support::__private::sp_tracing::init_for_tests();
 
 		ExtBuilder::default()
@@ -3506,7 +3506,6 @@ mod bridge_tests {
 					TargetParachain::get(),
 				]),
 				Some(Default::default()),
-				None,
 			)])
 			.build()
 			.execute_with(|| {
@@ -3543,7 +3542,7 @@ mod bridge_tests {
 	}
 
 	#[test]
-	fn receive_message_from_stagenet() {
+	fn receive_message() {
 		frame_support::__private::sp_tracing::init_for_tests();
 
 		ExtBuilder::default()
@@ -3574,7 +3573,6 @@ mod bridge_tests {
 					TargetParachain::get(),
 				]),
 				Some(Default::default()),
-				None,
 			)])
 			.build()
 			.execute_with(|| {

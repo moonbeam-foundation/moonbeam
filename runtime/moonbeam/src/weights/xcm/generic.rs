@@ -394,12 +394,12 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Storage: Benchmark Override (r:0 w:0)
 	/// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
 	fn universal_origin() -> Weight {
-        // Proof Size summary in bytes:
-        //  Measured:  `0`
-        //  Estimated: `1489`
-        // Minimum execution time: 2_466_000 picoseconds.
-        Weight::from_parts(2_705_000, 1489)
-            .saturating_add(T::DbWeight::get().reads(1))
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 500_000_000_000 picoseconds.
+		Weight::from_parts(2_705_000, 1489)
+			.saturating_add(T::DbWeight::get().reads(1))
 	}
 	/// Storage: Benchmark Override (r:0 w:0)
 	/// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
