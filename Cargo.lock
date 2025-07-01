@@ -7897,6 +7897,7 @@ dependencies = [
  "pallet-utility",
  "pallet-whitelist",
  "pallet-xcm",
+ "pallet-xcm-bridge-hub",
  "pallet-xcm-transactor",
  "pallet-xcm-weight-trader",
  "parity-scale-codec",
