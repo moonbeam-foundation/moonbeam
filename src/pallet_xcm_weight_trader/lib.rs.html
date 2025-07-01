@@ -512,7 +512,7 @@
 <span class="kw">use </span>frame_support::weights::WeightToFee;
 <span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_runtime::traits::{Convert, Zero};
-<span class="kw">use </span>sp_std::vec::Vec;
+<span class="kw">use </span>sp_std::{vec, vec::Vec};
 <span class="kw">use </span>xcm::v5::{Asset, AssetId <span class="kw">as </span>XcmAssetId, Error <span class="kw">as </span>XcmError, Fungibility, Location, XcmContext};
 <span class="kw">use </span>xcm::{IntoVersion, VersionedAssetId};
 <span class="kw">use </span>xcm_executor::traits::{TransactAsset, WeightTrader};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["update_bridge_status"]};

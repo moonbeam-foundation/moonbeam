@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"pallet_xcm_bridge_router":[["impl DefaultConfig for <a class=\"struct\" href=\"pallet_xcm_bridge_router/pallet/config_preludes/struct.TestDefaultConfig.html\" title=\"struct pallet_xcm_bridge_router::pallet::config_preludes::TestDefaultConfig\">TestDefaultConfig</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

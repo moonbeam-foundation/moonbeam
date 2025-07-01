@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["HARD_MESSAGE_SIZE_LIMIT","LOG_TARGET","MINIMAL_DELIVERY_FEE_FACTOR"],"mod":["impls","pallet","weights"],"struct":["BridgeState"],"trait":["ResolveBridgeId"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["LOG_TARGET"],"struct":["BridgeXcmRouter"]};
+window.SIDEBAR_ITEMS = {"constant":["LOG_TARGET"],"struct":["BridgeXcmRouter","CongestionManager","LocalBlobDispatcher"]};

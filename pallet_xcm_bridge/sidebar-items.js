@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["LOG_TARGET"],"enum":["BridgeState","XcmBlobMessageDispatchResult"],"mod":["congestion","migration","pallet","weights"],"struct":["Bridge","BridgeId","BridgeLocations","Deposit","Receiver"],"type":["PalletAsHaulBlobExporter","XcmAsPlainPayload"]};

@@ -57,6 +57,10 @@
 <a href="#57" id="57">57</a>
 <a href="#58" id="58">58</a>
 <a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -75,7 +79,8 @@
 
 </span><span class="doccomment">//! Moonbeam common weights.
 
-</span><span class="kw">pub mod </span>cumulus_pallet_parachain_system;
+</span><span class="kw">mod </span>bridge;
+<span class="kw">pub mod </span>cumulus_pallet_parachain_system;
 <span class="kw">pub mod </span>cumulus_pallet_xcmp_queue;
 <span class="kw">pub mod </span>db;
 <span class="kw">pub mod </span>frame_system;
@@ -86,6 +91,9 @@
 <span class="kw">pub mod </span>pallet_author_mapping;
 <span class="kw">pub mod </span>pallet_author_slot_filter;
 <span class="kw">pub mod </span>pallet_balances;
+<span class="kw">pub mod </span>pallet_bridge_grandpa;
+<span class="kw">pub mod </span>pallet_bridge_messages;
+<span class="kw">pub mod </span>pallet_bridge_parachains;
 <span class="kw">pub mod </span>pallet_collective_open_tech_committee_collective;
 <span class="kw">pub mod </span>pallet_collective_treasury_council_collective;
 <span class="kw">pub mod </span>pallet_conviction_voting;

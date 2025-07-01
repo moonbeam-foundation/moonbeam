@@ -823,6 +823,23 @@
 <a href="#823" id="823">823</a>
 <a href="#824" id="824">824</a>
 <a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -843,10 +860,10 @@
 //!
 
 </span><span class="kw">use super</span>::{
-	governance, AccountId, AssetId, AssetManager, Balance, Balances, EmergencyParaXcm,
-	Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue, OpenTechCommitteeInstance,
-	ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime, RuntimeBlockWeights,
-	RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	bridge_config, governance, AccountId, AssetId, AssetManager, Balance, Balances,
+	BridgeXcmOverMoonbeam, EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode,
+	MessageQueue, OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm,
+	Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 <span class="kw">use </span><span class="kw">super</span>::moonriver_weights;
@@ -867,10 +884,11 @@
 <span class="kw">use </span>xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
-	EnsureXcmOrigin, FungibleAdapter <span class="kw">as </span>XcmCurrencyAdapter, FungiblesAdapter, HashedDescription,
-	NoChecking, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, TrailingSetTopicAsId, WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
+	EnsureXcmOrigin, FungibleAdapter <span class="kw">as </span>XcmCurrencyAdapter, FungiblesAdapter,
+	GlobalConsensusParachainConvertsFor, HashedDescription, NoChecking, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
+	WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
 };
 
 <span class="kw">use </span>parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -935,8 +953,11 @@
 	</span>SiblingParachainConvertsVia&lt;polkadot_parachain::primitives::Sibling, AccountId&gt;,
 	<span class="comment">// If we receive a Location of type AccountKey20, just generate a native account
 	</span>AccountKey20Aliases&lt;RelayNetwork, AccountId&gt;,
-	<span class="comment">// Generate remote accounts according to polkadot standards
+	<span class="comment">// Foreign locations alias into accounts according to a hash of their standard description.
 	</span>HashedDescription&lt;AccountId, DescribeFamily&lt;DescribeAllTerminal&gt;&gt;,
+	<span class="comment">// Different global consensus parachain sovereign account.
+	// (Used for over-bridge transfers and reserve processing)
+	</span>GlobalConsensusParachainConvertsFor&lt;UniversalLocation, AccountId&gt;,
 );
 
 <span class="doccomment">/// Wrapper type around `LocationToAccountId` to convert an `AccountId` to type `H160`.
@@ -1084,6 +1105,8 @@
 <span class="kw">type </span>Reserves = (
 	<span class="comment">// Assets bridged from different consensus systems held in reserve on Asset Hub.
 	</span>IsBridgedConcreteAssetFrom&lt;AssetHubLocation&gt;,
+	<span class="comment">// Assets bridged from Moonbeam
+	</span>IsBridgedConcreteAssetFrom&lt;bp_moonbeam::GlobalConsensusLocation&gt;,
 	<span class="comment">// Relaychain (DOT) from Asset Hub
 	</span>Case&lt;RelayChainNativeAssetFromAssetHub&gt;,
 	<span class="comment">// Assets which the reserve is the same as the origin.
@@ -1091,7 +1114,7 @@
 );
 
 <span class="comment">// Our implementation of the Moonbeam Call
-// Attachs the right origin in case the call is made to pallet-ethereum-xcm
+// Attaches the right origin in case the call is made to pallet-ethereum-xcm
 </span><span class="attr">#[cfg(not(feature = <span class="string">"evm-tracing"</span>))]
 </span><span class="macro">moonbeam_runtime_common::impl_moonbeam_xcm_call!</span>();
 <span class="attr">#[cfg(feature = <span class="string">"evm-tracing"</span>)]
@@ -1129,8 +1152,8 @@
 	<span class="kw">type </span>AssetLocker = ();
 	<span class="kw">type </span>AssetExchanger = ();
 	<span class="kw">type </span>FeeManager = ();
-	<span class="kw">type </span>MessageExporter = ();
-	<span class="kw">type </span>UniversalAliases = Nothing;
+	<span class="kw">type </span>MessageExporter = BridgeXcmOverMoonbeam;
+	<span class="kw">type </span>UniversalAliases = bridge_config::UniversalAliases;
 	<span class="kw">type </span>SafeCallFilter = SafeCallFilter;
 	<span class="kw">type </span>Aliasers = Nothing;
 	<span class="kw">type </span>TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
@@ -1148,13 +1171,24 @@
 <span class="comment">// Converts a Signed Local Origin into a Location
 </span><span class="kw">pub type </span>LocalOriginToLocation = SignedToAccountId20&lt;RuntimeOrigin, AccountId, RelayNetwork&gt;;
 
-<span class="doccomment">/// The means for routing XCM messages which are not for local execution into the right message
-/// queues.
-</span><span class="kw">pub type </span>XcmRouter = WithUniqueTopic&lt;(
+<span class="doccomment">/// For routing XCM messages which do not cross local consensus boundary.
+</span><span class="kw">pub type </span>LocalXcmRouter = (
 	<span class="comment">// Two routers - use UMP to communicate with the relay chain:
 	</span>cumulus_primitives_utility::ParentAsUmp&lt;ParachainSystem, PolkadotXcm, ()&gt;,
 	<span class="comment">// ..and XCMP to communicate with the sibling chains.
 	</span>XcmpQueue,
+);
+
+<span class="doccomment">/// The means for routing XCM messages which are not for local execution into the right message
+/// queues.
+</span><span class="kw">pub type </span>XcmRouter = WithUniqueTopic&lt;(
+	<span class="comment">// The means for routing XCM messages which are not for local execution into the right message
+	// queues.
+	</span>LocalXcmRouter,
+	<span class="comment">// Router that exports messages to be delivered to the Polkadot GlobalConsensus
+	</span>moonbeam_runtime_common::bridge::BridgeXcmRouter&lt;
+		xcm_builder::LocalExporter&lt;BridgeXcmOverMoonbeam, UniversalLocation&gt;,
+	&gt;,
 )&gt;;
 
 <span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {

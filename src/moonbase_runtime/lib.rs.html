@@ -2008,6 +2008,11 @@
 <a href="#2008" id="2008">2008</a>
 <a href="#2009" id="2009">2009</a>
 <a href="#2010" id="2010">2010</a>
+<a href="#2011" id="2011">2011</a>
+<a href="#2012" id="2012">2012</a>
+<a href="#2013" id="2013">2013</a>
+<a href="#2014" id="2014">2014</a>
+<a href="#2015" id="2015">2015</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3653,145 +3658,150 @@
 //     // Specific impls provided to the `impl_runtime_apis_plus_common!` macro.
 // }
 // ```
-</span><span class="macro">moonbeam_runtime_common::impl_runtime_apis_plus_common!</span> {
-	<span class="kw">impl </span>sp_transaction_pool::runtime_api::TaggedTransactionQueue&lt;Block&gt; <span class="kw">for </span>Runtime {
-		<span class="kw">fn </span>validate_transaction(
-			source: TransactionSource,
-			xt: &lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic,
-			block_hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
-		) -&gt; TransactionValidity {
-			<span class="comment">// Filtered calls should not enter the tx pool as they'll fail if inserted.
-			// If this call is not allowed, we return early.
-			</span><span class="kw">if </span>!&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::BaseCallFilter::contains(<span class="kw-2">&amp;</span>xt.<span class="number">0</span>.function) {
-				<span class="kw">return </span>InvalidTransaction::Call.into();
-			}
-
-			<span class="comment">// This runtime uses Substrate's pallet transaction payment. This
-			// makes the chain feel like a standard Substrate chain when submitting
-			// frame transactions and using Substrate ecosystem tools. It has the downside that
-			// transaction are not prioritized by gas_price. The following code reprioritizes
-			// transactions to overcome this.
-			//
-			// A more elegant, ethereum-first solution is
-			// a pallet that replaces pallet transaction payment, and allows users
-			// to directly specify a gas price rather than computing an effective one.
-			// #HopefullySomeday
-
-			// First we pass the transactions to the standard FRAME executive. This calculates all the
-			// necessary tags, longevity and other properties that we will leave unchanged.
-			// This also assigns some priority that we don't care about and will overwrite next.
-			</span><span class="kw">let </span><span class="kw-2">mut </span>intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)<span class="question-mark">?</span>;
-
-			<span class="kw">let </span>dispatch_info = xt.get_dispatch_info();
-
-			<span class="comment">// If this is a pallet ethereum transaction, then its priority is already set
-			// according to effective priority fee from pallet ethereum. If it is any other kind of
-			// transaction, we modify its priority. The goal is to arrive at a similar metric used
-			// by pallet ethereum, which means we derive a fee-per-gas from the txn's tip and
-			// weight.
-			</span><span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">&amp;</span>xt.<span class="number">0</span>.function {
-				RuntimeCall::Ethereum(transact { .. }) =&gt; intermediate_valid,
-				<span class="kw">_ if </span>dispatch_info.class != DispatchClass::Normal =&gt; intermediate_valid,
-				<span class="kw">_ </span>=&gt; {
-					<span class="kw">let </span>tip = <span class="kw">match </span><span class="kw-2">&amp;</span>xt.<span class="number">0</span>.preamble {
-						Preamble::Bare(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
-						Preamble::Signed(<span class="kw">_</span>, <span class="kw">_</span>, signed_extra) =&gt; {
-							<span class="comment">// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
-							</span><span class="kw">let </span>charge_transaction_payment = <span class="kw-2">&amp;</span>signed_extra.<span class="number">7</span>;
-							charge_transaction_payment.tip()
-						},
-						Preamble::General(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="number">0</span>,
-					};
-
-					<span class="kw">let </span>effective_gas =
-						&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::weight_to_gas(
-							dispatch_info.total_weight()
-						);
-					<span class="kw">let </span>tip_per_gas = <span class="kw">if </span>effective_gas &gt; <span class="number">0 </span>{
-						tip.saturating_div(effective_gas <span class="kw">as </span>u128)
-					} <span class="kw">else </span>{
-						<span class="number">0
-					</span>};
-
-					<span class="comment">// Overwrite the original prioritization with this ethereum one
-					</span>intermediate_valid.priority = tip_per_gas <span class="kw">as </span>u64;
-					intermediate_valid
+</span><span class="macro">moonbeam_runtime_common::impl_runtime_apis_plus_common!</span>(
+	{
+		<span class="kw">impl </span>sp_transaction_pool::runtime_api::TaggedTransactionQueue&lt;Block&gt; <span class="kw">for </span>Runtime {
+			<span class="kw">fn </span>validate_transaction(
+				source: TransactionSource,
+				xt: &lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic,
+				block_hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
+			) -&gt; TransactionValidity {
+				<span class="comment">// Filtered calls should not enter the tx pool as they'll fail if inserted.
+				// If this call is not allowed, we return early.
+				</span><span class="kw">if </span>!&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::BaseCallFilter::contains(<span class="kw-2">&amp;</span>xt.<span class="number">0</span>.function) {
+					<span class="kw">return </span>InvalidTransaction::Call.into();
 				}
-			})
-		}
-	}
 
-	<span class="kw">impl </span>async_backing_primitives::UnincludedSegmentApi&lt;Block&gt; <span class="kw">for </span>Runtime {
-		<span class="kw">fn </span>can_build_upon(
-			included_hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
-			slot: async_backing_primitives::Slot,
-		) -&gt; bool {
-			ConsensusHook::can_build_upon(included_hash, slot)
-		}
-	}
+				<span class="comment">// This runtime uses Substrate's pallet transaction payment. This
+				// makes the chain feel like a standard Substrate chain when submitting
+				// frame transactions and using Substrate ecosystem tools. It has the downside that
+				// transaction are not prioritized by gas_price. The following code reprioritizes
+				// transactions to overcome this.
+				//
+				// A more elegant, ethereum-first solution is
+				// a pallet that replaces pallet transaction payment, and allows users
+				// to directly specify a gas price rather than computing an effective one.
+				// #HopefullySomeday
 
-	<span class="attr">#[cfg(any(feature = <span class="string">"bridge-stagenet"</span>, feature = <span class="string">"bridge-betanet"</span>))]
-	</span><span class="kw">impl </span>bp_westend::WestendFinalityApi&lt;Block&gt; <span class="kw">for </span>Runtime {
-		<span class="kw">fn </span>best_finalized() -&gt; <span class="prelude-ty">Option</span>&lt;bp_runtime::HeaderId&lt;bp_westend::Hash, bp_westend::BlockNumber&gt;&gt; {
-			BridgeWestendGrandpa::best_finalized()
-		}
-		<span class="kw">fn </span>free_headers_interval() -&gt; <span class="prelude-ty">Option</span>&lt;bp_westend::BlockNumber&gt; {
-			&lt;Runtime <span class="kw">as </span>pallet_bridge_grandpa::Config&lt;
-				bridge_config::BridgeGrandpaInstance
-			&gt;&gt;::FreeHeadersInterval::get()
-		}
-		<span class="kw">fn </span>synced_headers_grandpa_info(
-		) -&gt; Vec&lt;bp_header_chain::StoredHeaderGrandpaInfo&lt;bp_westend::Header&gt;&gt; {
-			BridgeWestendGrandpa::synced_headers_grandpa_info()
-		}
-	}
+				// First we pass the transactions to the standard FRAME executive. This calculates all the
+				// necessary tags, longevity and other properties that we will leave unchanged.
+				// This also assigns some priority that we don't care about and will overwrite next.
+				</span><span class="kw">let </span><span class="kw-2">mut </span>intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)<span class="question-mark">?</span>;
 
-	<span class="attr">#[cfg(any(feature = <span class="string">"bridge-stagenet"</span>, feature = <span class="string">"bridge-betanet"</span>))]
-	</span><span class="kw">impl </span>bp_moonbase::MoonbaseWestendFinalityApi&lt;Block&gt; <span class="kw">for </span>Runtime {
-		<span class="kw">fn </span>best_finalized() -&gt; <span class="prelude-ty">Option</span>&lt;bp_runtime::HeaderId&lt;bp_moonbase::Hash, bp_moonbase::BlockNumber&gt;&gt; {
-			<span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"bridge-stagenet"</span>) {
-				BridgeParachains::best_parachain_head_id::&lt;
-					bp_moonbase::betanet::Betanet
-				&gt;().unwrap_or(<span class="prelude-val">None</span>)
-			} <span class="kw">else </span>{
-				BridgeParachains::best_parachain_head_id::&lt;
-					bp_moonbase::stagenet::Stagenet
-				&gt;().unwrap_or(<span class="prelude-val">None</span>)
+				<span class="kw">let </span>dispatch_info = xt.get_dispatch_info();
+
+				<span class="comment">// If this is a pallet ethereum transaction, then its priority is already set
+				// according to effective priority fee from pallet ethereum. If it is any other kind of
+				// transaction, we modify its priority. The goal is to arrive at a similar metric used
+				// by pallet ethereum, which means we derive a fee-per-gas from the txn's tip and
+				// weight.
+				</span><span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">&amp;</span>xt.<span class="number">0</span>.function {
+					RuntimeCall::Ethereum(transact { .. }) =&gt; intermediate_valid,
+					<span class="kw">_ if </span>dispatch_info.class != DispatchClass::Normal =&gt; intermediate_valid,
+					<span class="kw">_ </span>=&gt; {
+						<span class="kw">let </span>tip = <span class="kw">match </span><span class="kw-2">&amp;</span>xt.<span class="number">0</span>.preamble {
+							Preamble::Bare(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
+							Preamble::Signed(<span class="kw">_</span>, <span class="kw">_</span>, signed_extra) =&gt; {
+								<span class="comment">// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
+								</span><span class="kw">let </span>charge_transaction_payment = <span class="kw-2">&amp;</span>signed_extra.<span class="number">7</span>;
+								charge_transaction_payment.tip()
+							},
+							Preamble::General(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="number">0</span>,
+						};
+
+						<span class="kw">let </span>effective_gas =
+							&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::weight_to_gas(
+								dispatch_info.total_weight()
+							);
+						<span class="kw">let </span>tip_per_gas = <span class="kw">if </span>effective_gas &gt; <span class="number">0 </span>{
+							tip.saturating_div(effective_gas <span class="kw">as </span>u128)
+						} <span class="kw">else </span>{
+							<span class="number">0
+						</span>};
+
+						<span class="comment">// Overwrite the original prioritization with this ethereum one
+						</span>intermediate_valid.priority = tip_per_gas <span class="kw">as </span>u64;
+						intermediate_valid
+					}
+				})
 			}
 		}
-		<span class="kw">fn </span>free_headers_interval() -&gt; <span class="prelude-ty">Option</span>&lt;bp_moonbase::BlockNumber&gt; {
-			<span class="comment">// "free interval" is not currently used for parachains
-			</span><span class="prelude-val">None
-		</span>}
-	}
 
-	<span class="attr">#[cfg(any(feature = <span class="string">"bridge-stagenet"</span>, feature = <span class="string">"bridge-betanet"</span>))]
-	</span><span class="kw">impl </span>bp_moonbase::ToMoonbaseWestendOutboundLaneApi&lt;Block&gt; <span class="kw">for </span>Runtime {
-		<span class="kw">fn </span>message_details(
-			lane: bp_moonbase::LaneId,
-			begin: bp_messages::MessageNonce,
-			end: bp_messages::MessageNonce,
-		) -&gt; Vec&lt;bp_messages::OutboundMessageDetails&gt; {
-			bridge_runtime_common::messages_api::outbound_message_details::&lt;
-				Runtime,
-				bridge_config::WithMessagesInstance,
-			&gt;(lane, begin, end)
+		<span class="kw">impl </span>async_backing_primitives::UnincludedSegmentApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+			<span class="kw">fn </span>can_build_upon(
+				included_hash: &lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
+				slot: async_backing_primitives::Slot,
+			) -&gt; bool {
+				ConsensusHook::can_build_upon(included_hash, slot)
+			}
+		}
+
+		<span class="attr">#[cfg(any(feature = <span class="string">"bridge-stagenet"</span>, feature = <span class="string">"bridge-betanet"</span>))]
+		</span><span class="kw">impl </span>bp_westend::WestendFinalityApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+			<span class="kw">fn </span>best_finalized() -&gt; <span class="prelude-ty">Option</span>&lt;bp_runtime::HeaderId&lt;bp_westend::Hash, bp_westend::BlockNumber&gt;&gt; {
+				BridgeWestendGrandpa::best_finalized()
+			}
+			<span class="kw">fn </span>free_headers_interval() -&gt; <span class="prelude-ty">Option</span>&lt;bp_westend::BlockNumber&gt; {
+				&lt;Runtime <span class="kw">as </span>pallet_bridge_grandpa::Config&lt;
+					bridge_config::BridgeGrandpaInstance
+				&gt;&gt;::FreeHeadersInterval::get()
+			}
+			<span class="kw">fn </span>synced_headers_grandpa_info(
+			) -&gt; Vec&lt;bp_header_chain::StoredHeaderGrandpaInfo&lt;bp_westend::Header&gt;&gt; {
+				BridgeWestendGrandpa::synced_headers_grandpa_info()
+			}
+		}
+
+		<span class="attr">#[cfg(any(feature = <span class="string">"bridge-stagenet"</span>, feature = <span class="string">"bridge-betanet"</span>))]
+		</span><span class="kw">impl </span>bp_moonbase::MoonbaseWestendFinalityApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+			<span class="kw">fn </span>best_finalized() -&gt; <span class="prelude-ty">Option</span>&lt;bp_runtime::HeaderId&lt;bp_moonbase::Hash, bp_moonbase::BlockNumber&gt;&gt; {
+				<span class="kw">if </span><span class="macro">cfg!</span>(feature = <span class="string">"bridge-stagenet"</span>) {
+					BridgeParachains::best_parachain_head_id::&lt;
+						bp_moonbase::betanet::Betanet
+					&gt;().unwrap_or(<span class="prelude-val">None</span>)
+				} <span class="kw">else </span>{
+					BridgeParachains::best_parachain_head_id::&lt;
+						bp_moonbase::stagenet::Stagenet
+					&gt;().unwrap_or(<span class="prelude-val">None</span>)
+				}
+			}
+			<span class="kw">fn </span>free_headers_interval() -&gt; <span class="prelude-ty">Option</span>&lt;bp_moonbase::BlockNumber&gt; {
+				<span class="comment">// "free interval" is not currently used for parachains
+				</span><span class="prelude-val">None
+			</span>}
+		}
+
+		<span class="attr">#[cfg(any(feature = <span class="string">"bridge-stagenet"</span>, feature = <span class="string">"bridge-betanet"</span>))]
+		</span><span class="kw">impl </span>bp_moonbase::ToMoonbaseWestendOutboundLaneApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+			<span class="kw">fn </span>message_details(
+				lane: bp_moonbase::LaneId,
+				begin: bp_messages::MessageNonce,
+				end: bp_messages::MessageNonce,
+			) -&gt; Vec&lt;bp_messages::OutboundMessageDetails&gt; {
+				bridge_runtime_common::messages_api::outbound_message_details::&lt;
+					Runtime,
+					bridge_config::WithMessagesInstance,
+				&gt;(lane, begin, end)
+			}
+		}
+
+		<span class="attr">#[cfg(any(feature = <span class="string">"bridge-stagenet"</span>, feature = <span class="string">"bridge-betanet"</span>))]
+		</span><span class="kw">impl </span>bp_moonbase::FromMoonbaseWestendInboundLaneApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+			<span class="kw">fn </span>message_details(
+				lane: bp_moonbase::LaneId,
+				messages: Vec&lt;(bp_messages::MessagePayload, bp_messages::OutboundMessageDetails)&gt;,
+			) -&gt; Vec&lt;bp_messages::InboundMessageDetails&gt; {
+				bridge_runtime_common::messages_api::inbound_message_details::&lt;
+					Runtime,
+					bridge_config::WithMessagesInstance,
+				&gt;(lane, messages)
+			}
 		}
 	}
 
-	<span class="attr">#[cfg(any(feature = <span class="string">"bridge-stagenet"</span>, feature = <span class="string">"bridge-betanet"</span>))]
-	</span><span class="kw">impl </span>bp_moonbase::FromMoonbaseWestendInboundLaneApi&lt;Block&gt; <span class="kw">for </span>Runtime {
-		<span class="kw">fn </span>message_details(
-			lane: bp_moonbase::LaneId,
-			messages: Vec&lt;(bp_messages::MessagePayload, bp_messages::OutboundMessageDetails)&gt;,
-		) -&gt; Vec&lt;bp_messages::InboundMessageDetails&gt; {
-			bridge_runtime_common::messages_api::inbound_message_details::&lt;
-				Runtime,
-				bridge_config::WithMessagesInstance,
-			&gt;(lane, messages)
-		}
-	}
-}
+	<span class="comment">// Benchmark customizations
+	</span>{}
+);
 
 <span class="attr">#[allow(dead_code)]
 </span><span class="kw">struct </span>CheckInherents;

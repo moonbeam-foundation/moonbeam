@@ -126,6 +126,20 @@
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -143,26 +157,31 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use </span>core::marker::PhantomData;
-<span class="kw">use </span>parity_scale_codec::Encode;
+<span class="kw">use </span>cumulus_primitives_core::AggregateMessageOrigin;
+<span class="kw">use </span>frame_support::pallet_prelude::Get;
+<span class="kw">use </span>frame_support::traits::{EnqueueMessage, ProcessMessage};
+<span class="kw">use </span>frame_support::{ensure, BoundedVec};
+<span class="kw">use </span>pallet_xcm_bridge::BridgeId;
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>sp_std::vec::Vec;
-<span class="kw">use </span>xcm::latest::{Location, SendError, SendResult, SendXcm, Xcm, XcmHash};
-<span class="kw">use </span>xcm::{GetVersion, IntoVersion, VersionedLocation, VersionedXcm};
-<span class="kw">use </span>xcm_builder::InspectMessageQueues;
+<span class="kw">use </span>xcm::latest::{InteriorLocation, Location, SendError, SendResult, SendXcm, Xcm, XcmHash};
+<span class="kw">use </span>xcm::{VersionedLocation, VersionedXcm};
+<span class="kw">use </span>xcm_builder::{BridgeMessage, DispatchBlob, DispatchBlobError, InspectMessageQueues};
 
-<span class="doccomment">/// The target that will be used when publishing logs related to this pallet.
-</span><span class="kw">pub const </span>LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">"xcm::bridge-router"</span>;
+<span class="doccomment">/// Threshold for determining if the message queue is congested.
+/// Based on XcmpQueue pallet's QueueConfigData default (64KiB * 32 = 2MiB).
+/// It should be a good heuristic to determine if the queue is congested.
+</span><span class="kw">const </span>MESSAGE_QUEUE_CONGESTION_THRESHOLD: u32 = <span class="number">32</span>;
 
-<span class="kw">pub struct </span>BridgeXcmRouter&lt;MessageExporter, DestinationVersion&gt;(
-	PhantomData&lt;(MessageExporter, DestinationVersion)&gt;,
-);
+<span class="doccomment">/// The target that will be used when publishing logs related to this component.
+</span><span class="kw">pub const </span>LOG_TARGET: <span class="kw-2">&amp;</span>str = <span class="string">"moonbeam-bridge"</span>;
 
-<span class="comment">// This struct acts as the `SendXcm` to the sibling/child bridge hub instead of regular
-// XCMP/DMP transport. This allows injecting dynamic message fees into XCM programs that
-// are going to the bridged network.
-</span><span class="kw">impl</span>&lt;MessageExporter: SendXcm, DestinationVersion: GetVersion&gt; SendXcm
-	<span class="kw">for </span>BridgeXcmRouter&lt;MessageExporter, DestinationVersion&gt;
-{
-	<span class="kw">type </span>Ticket = (u32, Location, &lt;MessageExporter&gt;::Ticket);
+<span class="kw">pub struct </span>BridgeXcmRouter&lt;MessageExporter&gt;(PhantomData&lt;MessageExporter&gt;);
+
+<span class="comment">// This struct acts as the `SendXcm` to the local instance of pallet_bridge_messages instead of
+// regular XCMP/DMP transport.
+</span><span class="kw">impl</span>&lt;MessageExporter: SendXcm&gt; SendXcm <span class="kw">for </span>BridgeXcmRouter&lt;MessageExporter&gt; {
+	<span class="kw">type </span>Ticket = MessageExporter::Ticket;
 
 	<span class="kw">fn </span>validate(
 		dest: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;Location&gt;,
@@ -170,88 +189,97 @@
 	) -&gt; SendResult&lt;<span class="self">Self</span>::Ticket&gt; {
 		<span class="macro">log::trace!</span>(target: LOG_TARGET, <span class="string">"validate - msg: {xcm:?}, destination: {dest:?}"</span>);
 
-		<span class="comment">// In case of success, the `T::MessageExporter` can modify XCM instructions and consume
-		// `dest` / `xcm`, so we retain the clone of original message and the destination for later
-		// `DestinationVersion` validation.
-		</span><span class="kw">let </span>xcm_to_dest_clone = xcm.clone();
-		<span class="kw">let </span>dest_clone = dest.clone();
-
-		<span class="comment">// First, use the inner exporter to validate the destination to determine if it is even
-		// routable. If it is not, return an error. If it is, then the XCM is extended with
-		// instructions to pay the message fee at the sibling/child bridge hub. The cost will
-		// include both the cost of (1) delivery to the sibling bridge hub (returned by
-		// `Config::MessageExporter`) and (2) delivery to the bridged bridge hub (returned by
-		// `Self::exporter_for`).
-		</span><span class="kw">match </span>MessageExporter::validate(dest, xcm) {
-			<span class="prelude-val">Ok</span>((ticket, cost)) =&gt; {
-				<span class="comment">// If the ticket is ok, it means we are routing with this router, so we need to
-				// apply more validations to the cloned `dest` and `xcm`, which are required here.
-				</span><span class="kw">let </span>xcm_to_dest_clone = xcm_to_dest_clone.ok_or(SendError::MissingArgument)<span class="question-mark">?</span>;
-				<span class="kw">let </span>dest_clone = dest_clone.ok_or(SendError::MissingArgument)<span class="question-mark">?</span>;
-
-				<span class="comment">// We won't have access to `dest` and `xcm` in the `deliver` method, so we need to
-				// precompute everything required here. However, `dest` and `xcm` were consumed by
-				// `T::MessageExporter`, so we need to use their clones.
-				</span><span class="kw">let </span>message_size = xcm_to_dest_clone.encoded_size() <span class="kw">as _</span>;
-
-				<span class="comment">// The bridge doesn't support oversized or overweight messages. Therefore, it's
-				// better to drop such messages here rather than at the bridge hub. Let's check the
-				// message size.
-				</span><span class="kw">if </span>message_size &gt; bp_messages::HARD_MESSAGE_SIZE_LIMIT {
-					<span class="kw">return </span><span class="prelude-val">Err</span>(SendError::ExceedsMaxMessageSize);
-				}
-
-				<span class="comment">// We need to ensure that the known `dest`'s XCM version can comprehend the current
-				// `xcm` program. This may seem like an additional, unnecessary check, but it is
-				// not. A similar check is probably performed by the `T::MessageExporter`, which
-				// attempts to send a versioned message to the sibling bridge hub. However, the
-				// local bridge hub may have a higher XCM version than the remote `dest`. Once
-				// again, it is better to discard such messages here than at the bridge hub (e.g.,
-				// to avoid losing funds).
-				</span><span class="kw">let </span>destination_version = DestinationVersion::get_version_for(<span class="kw-2">&amp;</span>dest_clone)
-					.ok_or(SendError::DestinationUnsupported)<span class="question-mark">?</span>;
-				<span class="kw">let _ </span>= VersionedXcm::from(xcm_to_dest_clone)
-					.into_version(destination_version)
-					.map_err(|()| SendError::DestinationUnsupported)<span class="question-mark">?</span>;
-
-				<span class="macro">log::info!</span>(
-					target: LOG_TARGET,
-					<span class="string">"Going to send message to {dest_clone:?} ({message_size:?} bytes) with actual cost: {cost:?}"
-				</span>);
-
-				<span class="prelude-val">Ok</span>(((message_size, dest_clone, ticket), cost))
-			}
-			<span class="prelude-val">Err</span>(e) =&gt; {
-				<span class="macro">log::trace!</span>(target: LOG_TARGET, <span class="string">"`T::MessageExporter` validates for dest: {dest_clone:?} with error: {e:?}"</span>);
-				<span class="prelude-val">Err</span>(e)
-			}
-		}
+		MessageExporter::validate(dest, xcm)
 	}
 
 	<span class="kw">fn </span>deliver(ticket: <span class="self">Self</span>::Ticket) -&gt; <span class="prelude-ty">Result</span>&lt;XcmHash, SendError&gt; {
-		<span class="comment">// Use router to enqueue message to the sibling/child bridge hub. This also should handle
-		// payment for passing through this queue.
-		</span><span class="kw">let </span>(message_size, dest, ticket) = ticket;
-		<span class="kw">let </span>xcm_hash = MessageExporter::deliver(ticket)<span class="question-mark">?</span>;
-
-		<span class="macro">log::trace!</span>(
-			target: LOG_TARGET,
-			<span class="string">"deliver - message (size: {message_size:?}) sent to the dest: {dest:?}, xcm_hash: {xcm_hash:?}"
-		</span>);
-
-		<span class="prelude-val">Ok</span>(xcm_hash)
+		MessageExporter::deliver(ticket)
 	}
 }
 
 <span class="doccomment">/// This router needs to implement `InspectMessageQueues` but doesn't have to
 /// return any messages, since it just reuses the `XcmpQueue` router.
-</span><span class="kw">impl</span>&lt;MessageExporter, DestinationVersion&gt; InspectMessageQueues
-	<span class="kw">for </span>BridgeXcmRouter&lt;MessageExporter, DestinationVersion&gt;
-{
+</span><span class="kw">impl</span>&lt;MessageExporter&gt; InspectMessageQueues <span class="kw">for </span>BridgeXcmRouter&lt;MessageExporter&gt; {
 	<span class="kw">fn </span>clear_messages() {}
 
 	<span class="kw">fn </span>get_messages() -&gt; Vec&lt;(VersionedLocation, Vec&lt;VersionedXcm&lt;()&gt;&gt;)&gt; {
 		Vec::new()
+	}
+}
+
+<span class="kw">pub struct </span>LocalBlobDispatcher&lt;MQ, OurPlace, OurPlaceBridgeInstance&gt;(
+	PhantomData&lt;(MQ, OurPlace, OurPlaceBridgeInstance)&gt;,
+);
+<span class="kw">impl</span>&lt;
+		MQ: EnqueueMessage&lt;AggregateMessageOrigin&gt;,
+		OurPlace: Get&lt;InteriorLocation&gt;,
+		OurPlaceBridgeInstance: Get&lt;<span class="prelude-ty">Option</span>&lt;InteriorLocation&gt;&gt;,
+	&gt; DispatchBlob <span class="kw">for </span>LocalBlobDispatcher&lt;MQ, OurPlace, OurPlaceBridgeInstance&gt;
+{
+	<span class="kw">fn </span>dispatch_blob(blob: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), DispatchBlobError&gt; {
+		<span class="kw">let </span>our_universal = OurPlace::get();
+		<span class="kw">let </span>our_global = our_universal
+			.global_consensus()
+			.map_err(|()| DispatchBlobError::Unbridgable)<span class="question-mark">?</span>;
+		<span class="kw">let </span>BridgeMessage {
+			universal_dest,
+			message,
+		} = Decode::decode(<span class="kw-2">&amp;mut &amp;</span>blob[..]).map_err(|<span class="kw">_</span>| DispatchBlobError::InvalidEncoding)<span class="question-mark">?</span>;
+		<span class="kw">let </span>universal_dest: InteriorLocation = universal_dest
+			.try_into()
+			.map_err(|<span class="kw">_</span>| DispatchBlobError::UnsupportedLocationVersion)<span class="question-mark">?</span>;
+		<span class="comment">// `universal_dest` is the desired destination within the universe: first we need to check
+		// we're in the right global consensus.
+		</span><span class="kw">let </span>intended_global = universal_dest
+			.global_consensus()
+			.map_err(|()| DispatchBlobError::NonUniversalDestination)<span class="question-mark">?</span>;
+		<span class="macro">ensure!</span>(
+			intended_global == our_global,
+			DispatchBlobError::WrongGlobal
+		);
+		<span class="kw">let </span>xcm: Xcm&lt;()&gt; = message
+			.try_into()
+			.map_err(|<span class="kw">_</span>| DispatchBlobError::UnsupportedXcmVersion)<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>msg: BoundedVec&lt;u8, MQ::MaxMessageLen&gt; = xcm::opaque::VersionedXcm::V5(xcm)
+			.encode()
+			.try_into()
+			.map_err(|<span class="kw">_</span>| DispatchBlobError::InvalidEncoding)<span class="question-mark">?</span>;
+
+		MQ::enqueue_message(
+			msg.as_bounded_slice(),
+			AggregateMessageOrigin::Here, <span class="comment">// The message came from the para-chain itself.
+		</span>);
+
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+
+<span class="doccomment">/// Implementation of `bp_xcm_bridge_hub::LocalXcmChannelManager` for congestion management.
+</span><span class="kw">pub struct </span>CongestionManager&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
+<span class="kw">impl</span>&lt;Runtime: pallet_message_queue::Config&gt; pallet_xcm_bridge::LocalXcmChannelManager
+	<span class="kw">for </span>CongestionManager&lt;Runtime&gt;
+<span class="kw">where
+	</span>&lt;Runtime <span class="kw">as </span>pallet_message_queue::Config&gt;::MessageProcessor:
+		ProcessMessage&lt;Origin = AggregateMessageOrigin&gt;,
+{
+	<span class="kw">type </span>Error = SendError;
+
+	<span class="kw">fn </span>is_congested(_with: <span class="kw-2">&amp;</span>Location) -&gt; bool {
+		<span class="kw">let </span>book_state =
+			pallet_message_queue::Pallet::&lt;Runtime&gt;::footprint(AggregateMessageOrigin::Here);
+
+		book_state.ready_pages &gt;= MESSAGE_QUEUE_CONGESTION_THRESHOLD
+	}
+
+	<span class="kw">fn </span>suspend_bridge(_local_origin: <span class="kw-2">&amp;</span>Location, _bridge: BridgeId) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+		<span class="comment">// Currently, we send a suspend message, but we reject inbound
+		// messages when the queue is congested.
+		</span><span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="kw">fn </span>resume_bridge(_local_origin: <span class="kw-2">&amp;</span>Location, _bridge: BridgeId) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt; {
+		<span class="prelude-val">Ok</span>(())
 	}
 }
 </code></pre></div></section></main></body></html>
