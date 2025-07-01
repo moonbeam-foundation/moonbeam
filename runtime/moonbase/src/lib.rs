@@ -478,7 +478,7 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 }
 
 /// A "Fast" TargetedFeeAdjustment. Parameters chosen based on model described here:
-/// https://spec.polkadot.network/id-weights#1063-fee-multiplier // editorconfig-checker-disable-line
+/// https://spec.polkadot.network/id-weights#1063-fee-multiplier
 ///
 /// The adjustment algorithm boils down to:
 ///
