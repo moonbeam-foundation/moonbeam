@@ -3446,9 +3446,7 @@ mod bridge_tests {
 	use pallet_bridge_messages::LanesManager;
 	use pallet_xcm_bridge::XcmBlobMessageDispatchResult::Dispatched;
 	use parity_scale_codec::Encode;
-	use sp_core::{hex2array, H256};
 	use sp_runtime::traits::Convert;
-	use sp_weights::Weight;
 	use xcm::latest::Junctions::X1;
 	use xcm::latest::{
 		Asset, AssetFilter, AssetId, Fungibility, Junctions, Location, WeightLimit, WildAsset, Xcm,
@@ -3471,15 +3469,6 @@ mod bridge_tests {
 			),
 			fun: Fungibility::Fungible(amount),
 		}
-	}
-
-	fn expect_events(events: Vec<RuntimeEvent>) {
-		let block_events: Vec<RuntimeEvent> =
-			System::events().into_iter().map(|r| r.event).collect();
-
-		log::debug!("Block events: {block_events:?}");
-
-		assert!(events.iter().all(|evt| block_events.contains(evt)))
 	}
 
 	fn next_block() {
@@ -3666,13 +3655,18 @@ mod bridge_tests {
 				// Produce next block
 				next_block();
 				// Confirm that the xcm message was successfully processed
-				expect_events(vec![RuntimeEvent::MessageQueue(
-					pallet_message_queue::Event::Processed {
-						origin: AggregateMessageOrigin::Here,
-						success: true,
-						..
-					},
-				)]);
+				assert!(System::events().iter().any(|evt| {
+					matches!(
+						evt.event,
+						RuntimeEvent::MessageQueue(
+							pallet_message_queue::Event::Processed {
+								origin: AggregateMessageOrigin::Here,
+								success: true,
+								..
+							}
+						)
+					)
+				}));
 			});
 	}
 }
