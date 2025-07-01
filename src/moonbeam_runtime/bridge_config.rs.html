@@ -225,7 +225,6 @@
 <a href="#225" id="225">225</a>
 <a href="#226" id="226">226</a>
 <a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
@@ -257,7 +256,7 @@
 <span class="kw">use </span>frame_support::{parameter_types, traits::ConstU32};
 <span class="kw">use </span>frame_system::{EnsureNever, EnsureRoot};
 <span class="kw">use </span>moonbeam_core_primitives::{AccountId, Balance};
-<span class="kw">use </span>moonbeam_runtime_common::bridge::LocalBlobDispatcher;
+<span class="kw">use </span>moonbeam_runtime_common::bridge::{CongestionManager, LocalBlobDispatcher};
 <span class="kw">use </span>pallet_xcm_bridge::XcmAsPlainPayload;
 <span class="kw">use </span>polkadot_parachain::primitives::Sibling;
 <span class="kw">use </span>xcm::latest::{Junction, Location};
@@ -372,8 +371,7 @@
 	<span class="kw">type </span>RuntimeHoldReason = RuntimeHoldReason;
 	<span class="comment">// Don't require a deposit, since we don't allow opening new bridges.
 	</span><span class="kw">type </span>AllowWithoutBridgeDeposit = Everything;
-	<span class="comment">// We are not exporting messages to bridge hub
-	</span><span class="kw">type </span>LocalXcmChannelManager = ();
+	<span class="kw">type </span>LocalXcmChannelManager = CongestionManager&lt;Runtime&gt;;
 	<span class="comment">// Dispatching inbound messages from the bridge and managing congestion with the local
 	// receiving/destination chain
 	</span><span class="kw">type </span>BlobDispatcher = LocalBlobDispatcher&lt;
