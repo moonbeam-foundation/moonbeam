@@ -34,6 +34,7 @@ bp-messages = { workspace = true }
 
 # Substrate
 pallet-message-queue = { workspace = true }
+pallet-xcm-bridge = { workspace = true }
 frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }

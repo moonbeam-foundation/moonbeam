@@ -17,13 +17,19 @@
 use core::marker::PhantomData;
 use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::pallet_prelude::Get;
-use frame_support::traits::EnqueueMessage;
+use frame_support::traits::{EnqueueMessage, ProcessMessage};
 use frame_support::{ensure, BoundedVec};
+use pallet_xcm_bridge::BridgeId;
 use parity_scale_codec::{Decode, Encode};
 use sp_std::vec::Vec;
 use xcm::latest::{InteriorLocation, Location, SendError, SendResult, SendXcm, Xcm, XcmHash};
 use xcm::{VersionedLocation, VersionedXcm};
 use xcm_builder::{BridgeMessage, DispatchBlob, DispatchBlobError, InspectMessageQueues};
+
+/// Threshold for determining if the message queue is congested.
+/// Based on XcmpQueue pallet's QueueConfigData default (64KiB * 32 = 2MiB).
+/// It should be a good heuristic to determine if the queue is congested.
+const MESSAGE_QUEUE_CONGESTION_THRESHOLD: u32 = 32;
 
 /// The target that will be used when publishing logs related to this component.
 pub const LOG_TARGET: &str = "moonbeam-bridge";
@@ -103,6 +109,34 @@ impl<
 			AggregateMessageOrigin::Here, // The message came from the para-chain itself.
 		);
 
+		Ok(())
+	}
+}
+
+/// Implementation of `bp_xcm_bridge_hub::LocalXcmChannelManager` for congestion management.
+pub struct CongestionManager<Runtime>(PhantomData<Runtime>);
+impl<Runtime: pallet_message_queue::Config> pallet_xcm_bridge::LocalXcmChannelManager
+	for CongestionManager<Runtime>
+where
+	<Runtime as pallet_message_queue::Config>::MessageProcessor:
+		ProcessMessage<Origin = AggregateMessageOrigin>,
+{
+	type Error = SendError;
+
+	fn is_congested(_with: &Location) -> bool {
+		let book_state =
+			pallet_message_queue::Pallet::<Runtime>::footprint(AggregateMessageOrigin::Here);
+
+		book_state.ready_pages >= MESSAGE_QUEUE_CONGESTION_THRESHOLD
+	}
+
+	fn suspend_bridge(_local_origin: &Location, _bridge: BridgeId) -> Result<(), Self::Error> {
+		// Currently, we send a suspend message, but we reject inbound
+		// messages when the queue is congested.
+		Ok(())
+	}
+
+	fn resume_bridge(_local_origin: &Location, _bridge: BridgeId) -> Result<(), Self::Error> {
 		Ok(())
 	}
 }

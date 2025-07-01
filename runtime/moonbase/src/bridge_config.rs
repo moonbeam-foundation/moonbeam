@@ -29,7 +29,7 @@ use frame_support::traits::{Contains, Everything};
 use frame_support::{parameter_types, traits::ConstU32};
 use frame_system::{EnsureNever, EnsureRoot};
 use moonbeam_core_primitives::{AccountId, Balance};
-use moonbeam_runtime_common::bridge::LocalBlobDispatcher;
+use moonbeam_runtime_common::bridge::{CongestionManager, LocalBlobDispatcher};
 use pallet_xcm_bridge::XcmAsPlainPayload;
 use polkadot_parachain::primitives::Sibling;
 use sp_core::hex2array;
@@ -187,8 +187,7 @@ impl pallet_xcm_bridge::Config<XcmBridgeInstance> for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	// Don't require a deposit, since we don't allow opening new bridges.
 	type AllowWithoutBridgeDeposit = Everything;
-	// We are not exporting messages to bridge hub
-	type LocalXcmChannelManager = ();
+	type LocalXcmChannelManager = CongestionManager<Runtime>;
 	// Dispatching inbound messages from the bridge and managing congestion with the local
 	// receiving/destination chain
 	type BlobDispatcher =
