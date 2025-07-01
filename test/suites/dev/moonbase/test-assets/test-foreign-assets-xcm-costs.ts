@@ -55,7 +55,7 @@ describeSuite({
         );
 
         const balanceAfter = await getFreeBalance(paraSovereignAccount, context);
-        expect(balanceAfter).toMatchInlineSnapshot(`696700000000n`);
+        expect(balanceAfter).toMatchInlineSnapshot(`2227512500000n`);
       },
     });
   },

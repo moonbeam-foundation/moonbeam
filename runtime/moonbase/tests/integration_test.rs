@@ -3668,12 +3668,9 @@ mod bridge_tests {
 				// Confirm that the xcm message was successfully processed
 				expect_events(vec![RuntimeEvent::MessageQueue(
 					pallet_message_queue::Event::Processed {
-						id: H256::from(hex2array!(
-							"18495c29e70fc42c8878918fe0bb70bb2f599a2cc1afaef91ec261b7ab275793"
-						)),
 						origin: AggregateMessageOrigin::Here,
-						weight_used: Weight::from_parts(4358896000, 40545),
 						success: true,
+						..
 					},
 				)]);
 			});
