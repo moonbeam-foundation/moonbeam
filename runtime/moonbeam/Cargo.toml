@@ -30,6 +30,10 @@ moonbeam-runtime-common = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
 
+# Moonbeam bridge primitives
+bp-moonriver = { workspace = true }
+bp-moonbeam = { workspace = true }
+
 # Moonbeam pallets
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
@@ -128,6 +132,20 @@ sp-version = { workspace = true }
 sp-weights = { workspace = true }
 sp-genesis-builder = { workspace = true }
 
+# Bridge
+bridge-runtime-common = { workspace = true }
+bp-kusama = { workspace = true }
+bp-runtime = { workspace = true }
+bp-header-chain = { workspace = true }
+bp-parachains = { workspace = true }
+bp-messages = { workspace = true }
+bp-polkadot-core = { workspace = true }
+pallet-bridge-grandpa = { workspace = true }
+pallet-bridge-parachains = { workspace = true }
+pallet-bridge-messages = { workspace = true }
+pallet-xcm-bridge = { workspace = true }
+bridge-hub-common = { workspace = true }
+
 # Frontier
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
@@ -158,7 +176,7 @@ xcm-runtime-apis = { workspace = true }
 cumulus-pallet-dmp-queue = { workspace = true }
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
-cumulus-pallet-xcmp-queue = { workspace = true }
+cumulus-pallet-xcmp-queue = { workspace = true, features = ["bridging"] }
 cumulus-primitives-core = { workspace = true }
 cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
@@ -293,6 +311,11 @@ std = [
 	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
 	"pallet-xcm-weight-trader/std",
+	"pallet-bridge-grandpa/std",
+	"pallet-bridge-parachains/std",
+	"pallet-bridge-messages/std",
+	"pallet-xcm-bridge/std",
+	"bridge-hub-common/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"parity-scale-codec/std",
@@ -319,6 +342,15 @@ std = [
 	"xcm-runtime-apis/std",
 	"xcm-primitives/std",
 	"xcm/std",
+	"bp-kusama/std",
+	"bp-runtime/std",
+	"bp-header-chain/std",
+	"bp-parachains/std",
+	"bp-messages/std",
+	"bp-moonbeam/std",
+	"bp-moonriver/std",
+	"bp-polkadot-core/std",
+	"bridge-runtime-common/std",
 ]
 evm-tracing = ["evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3"]
 
@@ -391,10 +423,15 @@ runtime-benchmarks = [
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"pallet-xcm-weight-trader/runtime-benchmarks",
+	"pallet-bridge-grandpa/runtime-benchmarks",
+	"pallet-bridge-parachains/runtime-benchmarks",
+	"pallet-bridge-messages/runtime-benchmarks",
+	"pallet-xcm-bridge/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"xcm-runtime-apis/runtime-benchmarks",
+	"bridge-runtime-common/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -452,4 +489,8 @@ try-runtime = [
 	"pallet-whitelist/try-runtime",
 	"pallet-erc20-xcm-bridge/try-runtime",
 	"pallet-multisig/try-runtime",
+	"pallet-bridge-grandpa/try-runtime",
+	"pallet-bridge-parachains/try-runtime",
+	"pallet-bridge-messages/try-runtime",
+	"pallet-xcm-bridge/try-runtime",
 ]
