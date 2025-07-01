@@ -3658,13 +3658,11 @@ mod bridge_tests {
 				assert!(System::events().iter().any(|evt| {
 					matches!(
 						evt.event,
-						RuntimeEvent::MessageQueue(
-							pallet_message_queue::Event::Processed {
-								origin: AggregateMessageOrigin::Here,
-								success: true,
-								..
-							}
-						)
+						RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed {
+							origin: AggregateMessageOrigin::Here,
+							success: true,
+							..
+						})
 					)
 				}));
 			});
