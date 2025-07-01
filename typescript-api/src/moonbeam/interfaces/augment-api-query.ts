@@ -78,7 +78,6 @@ import type {
   PalletMigrationsMigrationCursor,
   PalletMoonbeamForeignAssetsAssetDepositDetails,
   PalletMoonbeamForeignAssetsAssetStatus,
-  PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus,
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletMultisigMultisig,
   PalletParachainStakingAutoCompoundAutoCompoundConfig,
@@ -841,18 +840,6 @@ declare module "@polkadot/api-base/types/storage" {
       [key: string]: QueryableStorageEntry<ApiType>;
     };
     moonbeamLazyMigrations: {
-      approvedForeignAssets: AugmentedQuery<
-        ApiType,
-        (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<Null>>,
-        [u128]
-      > &
-        QueryableStorageEntry<ApiType, [u128]>;
-      foreignAssetMigrationStatusValue: AugmentedQuery<
-        ApiType,
-        () => Observable<PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus>,
-        []
-      > &
-        QueryableStorageEntry<ApiType, []>;
       /**
        * Generic query
        **/

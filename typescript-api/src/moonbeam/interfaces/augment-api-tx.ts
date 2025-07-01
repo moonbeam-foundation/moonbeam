@@ -2146,26 +2146,9 @@ declare module "@polkadot/api-base/types/submittable" {
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
     moonbeamLazyMigrations: {
-      approveAssetsToMigrate: AugmentedSubmittable<
-        (assets: Vec<u128> | (u128 | AnyNumber | Uint8Array)[]) => SubmittableExtrinsic<ApiType>,
-        [Vec<u128>]
-      >;
       createContractMetadata: AugmentedSubmittable<
         (address: H160 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [H160]
-      >;
-      finishForeignAssetsMigration: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
-      migrateForeignAssetApprovals: AugmentedSubmittable<
-        (limit: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u32]
-      >;
-      migrateForeignAssetBalances: AugmentedSubmittable<
-        (limit: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u32]
-      >;
-      startForeignAssetsMigration: AugmentedSubmittable<
-        (assetId: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u128]
       >;
       /**
        * Generic tx
