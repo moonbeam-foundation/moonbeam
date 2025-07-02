@@ -156,6 +156,7 @@ jobs:
         with:
           reporter: github-pr-review
           fail_level: any
+          filter_mode: nofilter
 
   check-biome:
     name: "Check with Biome"
