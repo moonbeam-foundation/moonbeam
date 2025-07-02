@@ -64,7 +64,7 @@ describeSuite({
       fulFillReceipt = await context
         .viem()
         .getTransactionReceipt({ hash: result![1].hash as `0x${string}` });
-      expect(fulFillReceipt.gasUsed).to.equal(84110n);
+      expect(fulFillReceipt.gasUsed).to.equal(84096n);
     });
 
     it({
