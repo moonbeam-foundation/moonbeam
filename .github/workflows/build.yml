@@ -152,10 +152,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - uses: umbrelladocs/action-linkspector@v1
         with:
-          use-quiet-mode: "yes"
-          max-depth: 4
+          reporter: github-pr-review
+          fail_level: any
 
   check-biome:
     name: "Check with Biome"
