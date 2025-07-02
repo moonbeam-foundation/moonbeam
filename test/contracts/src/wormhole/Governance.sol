@@ -206,7 +206,7 @@ abstract contract Governance is
     function upgradeImplementation(address newImplementation) internal {
         address currentImplementation = ERC1967Utils.getImplementation();
 
-        ERC1967Utils.upgradeToAndCall(newImplementation, '0x');
+        ERC1967Utils.upgradeToAndCall(newImplementation, "");
 
         // Call initialize function of the new implementation
         (bool success, bytes memory reason) = newImplementation.delegatecall(

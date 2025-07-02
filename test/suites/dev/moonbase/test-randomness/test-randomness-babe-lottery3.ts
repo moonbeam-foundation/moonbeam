@@ -49,7 +49,7 @@ describeSuite({
       id: "T01",
       title: "should fail to fulfill before the delay",
       test: async function () {
-        expect(estimatedGasBefore).toMatchInlineSnapshot(`112402n`);
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`112520n`);
 
         expect(
           await context.readPrecompile!({
@@ -86,7 +86,7 @@ describeSuite({
       id: "T02",
       title: "should succeed to fulfill after the delay",
       test: async function () {
-        expect(estimatedGasBefore).toMatchInlineSnapshot(`112402n`);
+        expect(estimatedGasBefore).toMatchInlineSnapshot(`112520n`);
 
         await context.createBlock([
           // Faking relay epoch + 2 in randomness storage

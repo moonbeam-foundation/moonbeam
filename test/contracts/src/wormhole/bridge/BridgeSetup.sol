@@ -35,7 +35,7 @@ contract BridgeSetup is BridgeSetters {
 
         setEvmChainId(evmChainId);
 
-        ERC1967Utils.upgradeToAndCall(implementation, '0x');
+        ERC1967Utils.upgradeToAndCall(implementation, "");
 
         // See https://github.com/wormhole-foundation/wormhole/issues/1930 for
         // why we set this here
