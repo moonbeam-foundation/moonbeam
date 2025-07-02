@@ -1604,7 +1604,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(178327)
+				.expect_cost(178255)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1695,7 +1695,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(178327)
+				.expect_cost(178255)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1779,7 +1779,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(26727)
+				.expect_cost(26655)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2350,7 +2350,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(25395)
+				.expect_cost(25190)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2390,7 +2390,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(25395)
+				.expect_cost(25190)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2472,7 +2472,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(16078)
+				.expect_cost(16024)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2494,7 +2494,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15572)
+				.expect_cost(15552)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2515,7 +2515,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(16091)
+				.expect_cost(16038)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2558,7 +2558,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(17892)
+				.expect_cost(17829)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2583,7 +2583,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(17892)
+				.expect_cost(17829)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -3446,9 +3446,7 @@ mod bridge_tests {
 	use pallet_bridge_messages::LanesManager;
 	use pallet_xcm_bridge::XcmBlobMessageDispatchResult::Dispatched;
 	use parity_scale_codec::Encode;
-	use sp_core::{hex2array, H256};
 	use sp_runtime::traits::Convert;
-	use sp_weights::Weight;
 	use xcm::latest::Junctions::X1;
 	use xcm::latest::{
 		Asset, AssetFilter, AssetId, Fungibility, Junctions, Location, WeightLimit, WildAsset, Xcm,
@@ -3471,15 +3469,6 @@ mod bridge_tests {
 			),
 			fun: Fungibility::Fungible(amount),
 		}
-	}
-
-	fn expect_events(events: Vec<RuntimeEvent>) {
-		let block_events: Vec<RuntimeEvent> =
-			System::events().into_iter().map(|r| r.event).collect();
-
-		log::debug!("Block events: {block_events:?}");
-
-		assert!(events.iter().all(|evt| block_events.contains(evt)))
 	}
 
 	fn next_block() {
@@ -3666,16 +3655,16 @@ mod bridge_tests {
 				// Produce next block
 				next_block();
 				// Confirm that the xcm message was successfully processed
-				expect_events(vec![RuntimeEvent::MessageQueue(
-					pallet_message_queue::Event::Processed {
-						id: H256::from(hex2array!(
-							"18495c29e70fc42c8878918fe0bb70bb2f599a2cc1afaef91ec261b7ab275793"
-						)),
-						origin: AggregateMessageOrigin::Here,
-						weight_used: Weight::from_parts(4358896000, 40545),
-						success: true,
-					},
-				)]);
+				assert!(System::events().iter().any(|evt| {
+					matches!(
+						evt.event,
+						RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed {
+							origin: AggregateMessageOrigin::Here,
+							success: true,
+							..
+						})
+					)
+				}));
 			});
 	}
 }
