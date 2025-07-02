@@ -6584,7 +6584,7 @@ declare module "@polkadot/types/lookup" {
     readonly isPreimage: boolean;
     readonly asPreimage: PalletPreimageHoldReason;
     readonly isBridgeXcmOver: boolean;
-    readonly asBridgeXcmOver: PalletXcmBridgeHoldReason;
+    readonly asBridgeXcmOver: PalletXcmBridgeHubHoldReason;
     readonly type: "Preimage" | "BridgeXcmOver";
   }
 
@@ -6594,8 +6594,8 @@ declare module "@polkadot/types/lookup" {
     readonly type: "Preimage";
   }
 
-  /** @name PalletXcmBridgeHoldReason (463) */
-  interface PalletXcmBridgeHoldReason extends Enum {
+  /** @name PalletXcmBridgeHubHoldReason (463) */
+  interface PalletXcmBridgeHubHoldReason extends Enum {
     readonly isBridgeDeposit: boolean;
     readonly type: "BridgeDeposit";
   }

@@ -23,6 +23,9 @@ import type {
 import type { ITuple } from "@polkadot/types-codec/types";
 import type { AccountId20, H160, H256, Perbill, Percent } from "@polkadot/types/interfaces/runtime";
 import type {
+  BpHeaderChainHeaderFinalityInfo,
+  BpMessagesDeliveredMessages,
+  BpMessagesReceivedMessages,
   CumulusPrimitivesCoreAggregateMessageOrigin,
   EthereumLog,
   EvmCoreErrorExitReason,
@@ -51,6 +54,7 @@ import type {
   SpRuntimeDispatchErrorWithPostInfo,
   SpWeightsWeightV2Weight,
   StagingXcmV5AssetAssets,
+  StagingXcmV5Junctions,
   StagingXcmV5Location,
   StagingXcmV5Response,
   StagingXcmV5TraitsOutcome,
@@ -569,6 +573,137 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [who: AccountId20, amount: u128],
         { who: AccountId20; amount: u128 }
+      >;
+      /**
+       * Generic event
+       **/
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    bridgeKusamaGrandpa: {
+      /**
+       * Best finalized chain header has been updated to the header with given number and hash.
+       **/
+      UpdatedBestFinalizedHeader: AugmentedEvent<
+        ApiType,
+        [number: u32, hash_: H256, grandpaInfo: BpHeaderChainHeaderFinalityInfo],
+        { number: u32; hash_: H256; grandpaInfo: BpHeaderChainHeaderFinalityInfo }
+      >;
+      /**
+       * Generic event
+       **/
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    bridgeKusamaMessages: {
+      /**
+       * Message has been accepted and is waiting to be delivered.
+       **/
+      MessageAccepted: AugmentedEvent<
+        ApiType,
+        [laneId: H256, nonce: u64],
+        { laneId: H256; nonce: u64 }
+      >;
+      /**
+       * Messages in the inclusive range have been delivered to the bridged chain.
+       **/
+      MessagesDelivered: AugmentedEvent<
+        ApiType,
+        [laneId: H256, messages: BpMessagesDeliveredMessages],
+        { laneId: H256; messages: BpMessagesDeliveredMessages }
+      >;
+      /**
+       * Messages have been received from the bridged chain.
+       **/
+      MessagesReceived: AugmentedEvent<ApiType, [BpMessagesReceivedMessages]>;
+      /**
+       * Generic event
+       **/
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    bridgeKusamaParachains: {
+      /**
+       * The caller has provided parachain head hash that is not matching the hash read from the
+       * storage proof.
+       **/
+      IncorrectParachainHeadHash: AugmentedEvent<
+        ApiType,
+        [parachain: u32, parachainHeadHash: H256, actualParachainHeadHash: H256],
+        { parachain: u32; parachainHeadHash: H256; actualParachainHeadHash: H256 }
+      >;
+      /**
+       * The caller has declared that he has provided given parachain head, but it is missing
+       * from the storage proof.
+       **/
+      MissingParachainHead: AugmentedEvent<ApiType, [parachain: u32], { parachain: u32 }>;
+      /**
+       * The caller has provided parachain head that exceeds the maximal configured head size.
+       **/
+      RejectedLargeParachainHead: AugmentedEvent<
+        ApiType,
+        [parachain: u32, parachainHeadHash: H256, parachainHeadSize: u32],
+        { parachain: u32; parachainHeadHash: H256; parachainHeadSize: u32 }
+      >;
+      /**
+       * The caller has provided obsolete parachain head, which is already known to the pallet.
+       **/
+      RejectedObsoleteParachainHead: AugmentedEvent<
+        ApiType,
+        [parachain: u32, parachainHeadHash: H256],
+        { parachain: u32; parachainHeadHash: H256 }
+      >;
+      /**
+       * The caller has provided head of parachain that the pallet is not configured to track.
+       **/
+      UntrackedParachainRejected: AugmentedEvent<ApiType, [parachain: u32], { parachain: u32 }>;
+      /**
+       * Parachain head has been updated.
+       **/
+      UpdatedParachainHead: AugmentedEvent<
+        ApiType,
+        [parachain: u32, parachainHeadHash: H256],
+        { parachain: u32; parachainHeadHash: H256 }
+      >;
+      /**
+       * Generic event
+       **/
+      [key: string]: AugmentedEvent<ApiType>;
+    };
+    bridgeXcmOverMoonriver: {
+      /**
+       * The bridge between two locations has been opened.
+       **/
+      BridgeOpened: AugmentedEvent<
+        ApiType,
+        [
+          bridgeId: H256,
+          bridgeDeposit: u128,
+          localEndpoint: StagingXcmV5Junctions,
+          remoteEndpoint: StagingXcmV5Junctions,
+          laneId: H256
+        ],
+        {
+          bridgeId: H256;
+          bridgeDeposit: u128;
+          localEndpoint: StagingXcmV5Junctions;
+          remoteEndpoint: StagingXcmV5Junctions;
+          laneId: H256;
+        }
+      >;
+      /**
+       * Bridge has been closed and pruned from the runtime storage. It now may be reopened
+       * again by any participant.
+       **/
+      BridgePruned: AugmentedEvent<
+        ApiType,
+        [bridgeId: H256, laneId: H256, bridgeDeposit: u128, prunedMessages: u64],
+        { bridgeId: H256; laneId: H256; bridgeDeposit: u128; prunedMessages: u64 }
+      >;
+      /**
+       * Bridge is going to be closed, but not yet fully pruned from the runtime storage.
+       **/
+      ClosingBridge: AugmentedEvent<
+        ApiType,
+        [bridgeId: H256, laneId: H256, prunedMessages: u64, enqueuedMessages: u64],
+        { bridgeId: H256; laneId: H256; prunedMessages: u64; enqueuedMessages: u64 }
       >;
       /**
        * Generic event
