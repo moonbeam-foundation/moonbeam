@@ -28,7 +28,7 @@
     "@moonbeam-network/types-bundle": "workspace:*",
     "@moonwall/cli": "5.13.0",
     "@moonwall/util": "5.13.0",
-    "@openzeppelin/contracts": "4.9.6",
+    "@openzeppelin/contracts": "*",
     "@polkadot-api/merkleize-metadata": "1.1.18",
     "@polkadot/api": "*",
     "@polkadot/api-derive": "*",
