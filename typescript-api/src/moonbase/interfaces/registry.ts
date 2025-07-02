@@ -295,7 +295,7 @@ import type {
   PalletWhitelistCall,
   PalletWhitelistError,
   PalletWhitelistEvent,
-  PalletXcmBridgeHoldReason,
+  PalletXcmBridgeHubHoldReason,
   PalletXcmCall,
   PalletXcmError,
   PalletXcmEvent,
@@ -708,7 +708,7 @@ declare module "@polkadot/types/types/registry" {
     PalletWhitelistCall: PalletWhitelistCall;
     PalletWhitelistError: PalletWhitelistError;
     PalletWhitelistEvent: PalletWhitelistEvent;
-    PalletXcmBridgeHoldReason: PalletXcmBridgeHoldReason;
+    PalletXcmBridgeHubHoldReason: PalletXcmBridgeHubHoldReason;
     PalletXcmCall: PalletXcmCall;
     PalletXcmError: PalletXcmError;
     PalletXcmEvent: PalletXcmEvent;

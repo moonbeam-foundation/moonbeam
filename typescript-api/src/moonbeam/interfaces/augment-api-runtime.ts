@@ -38,9 +38,11 @@ import type {
   AccountId,
   Balance,
   Block,
+  BlockNumber,
   ExtrinsicInclusionMode,
   H160,
   H256,
+  Hash,
   Header,
   Index,
   KeyTypeId,
@@ -343,6 +345,17 @@ declare module "@polkadot/api-base/types/calls" {
        * Creates the default `RuntimeGenesisConfig` and returns it as a JSON blob.
        **/
       createDefaultConfig: AugmentedCall<ApiType, () => Observable<Bytes>>;
+      /**
+       * Generic call
+       **/
+      [key: string]: DecoratedCallBase<ApiType>;
+    };
+    /** 0xdd5c5617e520964d/1 */
+    kusamaFinalityApi: {
+      /**
+       * Returns number and hash of the best finalized header known to the bridge module.
+       **/
+      bestFinalized: AugmentedCall<ApiType, () => Observable<ITuple<[BlockNumber, Hash]>>>;
       /**
        * Generic call
        **/

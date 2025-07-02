@@ -33,6 +33,14 @@ import type {
   Percent
 } from "@polkadot/types/interfaces/runtime";
 import type {
+  BpHeaderChainStoredHeaderData,
+  BpMessagesInboundLaneData,
+  BpMessagesMessageKey,
+  BpMessagesMessagesOperatingMode,
+  BpMessagesOutboundLaneData,
+  BpParachainsParaInfo,
+  BpRuntimeBasicOperatingMode,
+  BpXcmBridgeHubBridge,
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   CumulusPalletParachainSystemUnincludedSegmentAncestor,
   CumulusPalletParachainSystemUnincludedSegmentSegmentTracker,
@@ -63,6 +71,7 @@ import type {
   PalletBalancesAccountData,
   PalletBalancesBalanceLock,
   PalletBalancesReserveData,
+  PalletBridgeGrandpaStorageTypesStoredAuthoritySet,
   PalletCollectiveVotes,
   PalletConvictionVotingVoteVoting,
   PalletCrowdloanRewardsRewardInfo,
@@ -387,6 +396,231 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       totalIssuance: AugmentedQuery<ApiType, () => Observable<u128>, []> &
         QueryableStorageEntry<ApiType, []>;
+      /**
+       * Generic query
+       **/
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    bridgeKusamaGrandpa: {
+      /**
+       * Hash of the best finalized header.
+       **/
+      bestFinalized: AugmentedQuery<ApiType, () => Observable<Option<ITuple<[u32, H256]>>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * The current GRANDPA Authority set.
+       **/
+      currentAuthoritySet: AugmentedQuery<
+        ApiType,
+        () => Observable<PalletBridgeGrandpaStorageTypesStoredAuthoritySet>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Number of free header submissions that we may yet accept in the current block.
+       *
+       * If the `FreeHeadersRemaining` hits zero, all following mandatory headers in the
+       * current block are accepted with fee (`Pays::Yes` is returned).
+       *
+       * The `FreeHeadersRemaining` is an ephemeral value that is set to
+       * `MaxFreeHeadersPerBlock` at each block initialization and is killed on block
+       * finalization. So it never ends up in the storage trie.
+       **/
+      freeHeadersRemaining: AugmentedQuery<ApiType, () => Observable<Option<u32>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * A ring buffer of imported hashes. Ordered by the insertion time.
+       **/
+      importedHashes: AugmentedQuery<
+        ApiType,
+        (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<H256>>,
+        [u32]
+      > &
+        QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * Current ring buffer position.
+       **/
+      importedHashesPointer: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Relevant fields of imported headers.
+       **/
+      importedHeaders: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<BpHeaderChainStoredHeaderData>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /**
+       * Hash of the header used to bootstrap the pallet.
+       **/
+      initialHash: AugmentedQuery<ApiType, () => Observable<H256>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * The current operating mode of the pallet.
+       *
+       * Depending on the mode either all, or no transactions will be allowed.
+       **/
+      palletOperatingMode: AugmentedQuery<
+        ApiType,
+        () => Observable<BpRuntimeBasicOperatingMode>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Optional pallet owner.
+       *
+       * Pallet owner has a right to halt all pallet operations and then resume it. If it is
+       * `None`, then there are no direct ways to halt/resume pallet operations, but other
+       * runtime methods may still be used to do that (i.e. democracy::referendum to update halt
+       * flag directly or call the `set_operating_mode`).
+       **/
+      palletOwner: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Generic query
+       **/
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    bridgeKusamaMessages: {
+      /**
+       * Map of lane id => inbound lane data.
+       **/
+      inboundLanes: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<BpMessagesInboundLaneData>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /**
+       * Map of lane id => outbound lane data.
+       **/
+      outboundLanes: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<BpMessagesOutboundLaneData>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /**
+       * All queued outbound messages.
+       **/
+      outboundMessages: AugmentedQuery<
+        ApiType,
+        (
+          arg: BpMessagesMessageKey | { laneId?: any; nonce?: any } | string | Uint8Array
+        ) => Observable<Option<Bytes>>,
+        [BpMessagesMessageKey]
+      > &
+        QueryableStorageEntry<ApiType, [BpMessagesMessageKey]>;
+      /**
+       * The current operating mode of the pallet.
+       *
+       * Depending on the mode either all, some, or no transactions will be allowed.
+       **/
+      palletOperatingMode: AugmentedQuery<
+        ApiType,
+        () => Observable<BpMessagesMessagesOperatingMode>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Optional pallet owner.
+       *
+       * Pallet owner has a right to halt all pallet operations and then resume it. If it is
+       * `None`, then there are no direct ways to halt/resume pallet operations, but other
+       * runtime methods may still be used to do that (i.e. democracy::referendum to update halt
+       * flag directly or call the `set_operating_mode`).
+       **/
+      palletOwner: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Generic query
+       **/
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    bridgeKusamaParachains: {
+      /**
+       * A ring buffer of imported parachain head hashes. Ordered by the insertion time.
+       **/
+      importedParaHashes: AugmentedQuery<
+        ApiType,
+        (
+          arg1: u32 | AnyNumber | Uint8Array,
+          arg2: u32 | AnyNumber | Uint8Array
+        ) => Observable<Option<H256>>,
+        [u32, u32]
+      > &
+        QueryableStorageEntry<ApiType, [u32, u32]>;
+      /**
+       * State roots of parachain heads which have been imported into the pallet.
+       **/
+      importedParaHeads: AugmentedQuery<
+        ApiType,
+        (
+          arg1: u32 | AnyNumber | Uint8Array,
+          arg2: H256 | string | Uint8Array
+        ) => Observable<Option<Bytes>>,
+        [u32, H256]
+      > &
+        QueryableStorageEntry<ApiType, [u32, H256]>;
+      /**
+       * The current operating mode of the pallet.
+       *
+       * Depending on the mode either all, or no transactions will be allowed.
+       **/
+      palletOperatingMode: AugmentedQuery<
+        ApiType,
+        () => Observable<BpRuntimeBasicOperatingMode>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Optional pallet owner.
+       *
+       * Pallet owner has a right to halt all pallet operations and then resume them. If it is
+       * `None`, then there are no direct ways to halt/resume pallet operations, but other
+       * runtime methods may still be used to do that (i.e. democracy::referendum to update halt
+       * flag directly or call the `set_operating_mode`).
+       **/
+      palletOwner: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Parachains info.
+       *
+       * Contains the following info:
+       * - best parachain head hash
+       * - the head of the `ImportedParaHashes` ring buffer
+       **/
+      parasInfo: AugmentedQuery<
+        ApiType,
+        (arg: u32 | AnyNumber | Uint8Array) => Observable<Option<BpParachainsParaInfo>>,
+        [u32]
+      > &
+        QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * Generic query
+       **/
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    bridgeXcmOverMoonriver: {
+      /**
+       * All registered bridges.
+       **/
+      bridges: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<BpXcmBridgeHubBridge>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /**
+       * All registered `lane_id` and `bridge_id` mappings.
+       **/
+      laneToBridge: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<H256>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
       /**
        * Generic query
        **/

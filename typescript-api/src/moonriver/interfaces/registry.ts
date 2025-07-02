@@ -7,6 +7,36 @@ import "@polkadot/types/types/registry";
 
 import type {
   AccountEthereumSignature,
+  BpHeaderChainAuthoritySet,
+  BpHeaderChainHeaderChainError,
+  BpHeaderChainHeaderFinalityInfo,
+  BpHeaderChainInitializationData,
+  BpHeaderChainJustificationGrandpaJustification,
+  BpHeaderChainStoredHeaderData,
+  BpMessagesDeliveredMessages,
+  BpMessagesInboundLaneData,
+  BpMessagesLaneLaneState,
+  BpMessagesMessageKey,
+  BpMessagesMessagesOperatingMode,
+  BpMessagesOutboundLaneData,
+  BpMessagesReceivedMessages,
+  BpMessagesReceptionResult,
+  BpMessagesSourceChainFromBridgedChainMessagesDeliveryProof,
+  BpMessagesTargetChainFromBridgedChainMessagesProof,
+  BpMessagesUnrewardedRelayer,
+  BpMessagesUnrewardedRelayersState,
+  BpMessagesVerificationError,
+  BpParachainsBestParaHeadHash,
+  BpParachainsParaInfo,
+  BpPolkadotCoreParachainsParaHeadsProof,
+  BpRuntimeBasicOperatingMode,
+  BpRuntimeHeaderId,
+  BpRuntimeMessagesMessageDispatchResult,
+  BpRuntimeOwnedBridgeModuleError,
+  BpRuntimeStorageProofStorageProofError,
+  BpXcmBridgeHubBridge,
+  BpXcmBridgeHubBridgeLocationsError,
+  BpXcmBridgeHubBridgeState,
   CumulusPalletParachainSystemCall,
   CumulusPalletParachainSystemError,
   CumulusPalletParachainSystemEvent,
@@ -45,6 +75,9 @@ import type {
   EvmCoreErrorExitReason,
   EvmCoreErrorExitRevert,
   EvmCoreErrorExitSucceed,
+  FinalityGrandpaCommit,
+  FinalityGrandpaPrecommit,
+  FinalityGrandpaSignedPrecommit,
   FpRpcTransactionStatus,
   FrameMetadataHashExtensionCheckMetadataHash,
   FrameMetadataHashExtensionMode,
@@ -81,6 +114,7 @@ import type {
   FrameSystemLimitsWeightsPerClass,
   FrameSystemPhase,
   MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
+  MoonriverRuntimeBridgeRejectObsoleteHeadersAndMessages,
   MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin,
   MoonriverRuntimeOriginCaller,
   MoonriverRuntimeProxyType,
@@ -134,6 +168,18 @@ import type {
   PalletBalancesEvent,
   PalletBalancesReasons,
   PalletBalancesReserveData,
+  PalletBridgeGrandpaCall,
+  PalletBridgeGrandpaError,
+  PalletBridgeGrandpaEvent,
+  PalletBridgeGrandpaStorageTypesStoredAuthoritySet,
+  PalletBridgeMessagesCall,
+  PalletBridgeMessagesError,
+  PalletBridgeMessagesEvent,
+  PalletBridgeMessagesLanesManagerLanesManagerError,
+  PalletBridgeMessagesOutboundLaneReceptionConfirmationError,
+  PalletBridgeParachainsCall,
+  PalletBridgeParachainsError,
+  PalletBridgeParachainsEvent,
   PalletCollectiveCall,
   PalletCollectiveError,
   PalletCollectiveEvent,
@@ -291,6 +337,11 @@ import type {
   PalletWhitelistCall,
   PalletWhitelistError,
   PalletWhitelistEvent,
+  PalletXcmBridgeHubCall,
+  PalletXcmBridgeHubDispatcherXcmBlobMessageDispatchResult,
+  PalletXcmBridgeHubError,
+  PalletXcmBridgeHubEvent,
+  PalletXcmBridgeHubHoldReason,
   PalletXcmCall,
   PalletXcmError,
   PalletXcmEvent,
@@ -323,11 +374,14 @@ import type {
   PolkadotPrimitivesV8UpgradeRestriction,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpArithmeticArithmeticError,
+  SpConsensusGrandpaAppPublic,
+  SpConsensusGrandpaAppSignature,
   SpRuntimeBlakeTwo256,
   SpRuntimeDigest,
   SpRuntimeDigestDigestItem,
   SpRuntimeDispatchError,
   SpRuntimeDispatchErrorWithPostInfo,
+  SpRuntimeHeader,
   SpRuntimeModuleError,
   SpRuntimeMultiSignature,
   SpRuntimeProvingTrieTrieError,
@@ -407,6 +461,7 @@ import type {
   XcmV5TraitsError,
   XcmVersionedAssetId,
   XcmVersionedAssets,
+  XcmVersionedInteriorLocation,
   XcmVersionedLocation,
   XcmVersionedResponse,
   XcmVersionedXcm
@@ -415,6 +470,36 @@ import type {
 declare module "@polkadot/types/types/registry" {
   interface InterfaceTypes {
     AccountEthereumSignature: AccountEthereumSignature;
+    BpHeaderChainAuthoritySet: BpHeaderChainAuthoritySet;
+    BpHeaderChainHeaderChainError: BpHeaderChainHeaderChainError;
+    BpHeaderChainHeaderFinalityInfo: BpHeaderChainHeaderFinalityInfo;
+    BpHeaderChainInitializationData: BpHeaderChainInitializationData;
+    BpHeaderChainJustificationGrandpaJustification: BpHeaderChainJustificationGrandpaJustification;
+    BpHeaderChainStoredHeaderData: BpHeaderChainStoredHeaderData;
+    BpMessagesDeliveredMessages: BpMessagesDeliveredMessages;
+    BpMessagesInboundLaneData: BpMessagesInboundLaneData;
+    BpMessagesLaneLaneState: BpMessagesLaneLaneState;
+    BpMessagesMessageKey: BpMessagesMessageKey;
+    BpMessagesMessagesOperatingMode: BpMessagesMessagesOperatingMode;
+    BpMessagesOutboundLaneData: BpMessagesOutboundLaneData;
+    BpMessagesReceivedMessages: BpMessagesReceivedMessages;
+    BpMessagesReceptionResult: BpMessagesReceptionResult;
+    BpMessagesSourceChainFromBridgedChainMessagesDeliveryProof: BpMessagesSourceChainFromBridgedChainMessagesDeliveryProof;
+    BpMessagesTargetChainFromBridgedChainMessagesProof: BpMessagesTargetChainFromBridgedChainMessagesProof;
+    BpMessagesUnrewardedRelayer: BpMessagesUnrewardedRelayer;
+    BpMessagesUnrewardedRelayersState: BpMessagesUnrewardedRelayersState;
+    BpMessagesVerificationError: BpMessagesVerificationError;
+    BpParachainsBestParaHeadHash: BpParachainsBestParaHeadHash;
+    BpParachainsParaInfo: BpParachainsParaInfo;
+    BpPolkadotCoreParachainsParaHeadsProof: BpPolkadotCoreParachainsParaHeadsProof;
+    BpRuntimeBasicOperatingMode: BpRuntimeBasicOperatingMode;
+    BpRuntimeHeaderId: BpRuntimeHeaderId;
+    BpRuntimeMessagesMessageDispatchResult: BpRuntimeMessagesMessageDispatchResult;
+    BpRuntimeOwnedBridgeModuleError: BpRuntimeOwnedBridgeModuleError;
+    BpRuntimeStorageProofStorageProofError: BpRuntimeStorageProofStorageProofError;
+    BpXcmBridgeHubBridge: BpXcmBridgeHubBridge;
+    BpXcmBridgeHubBridgeLocationsError: BpXcmBridgeHubBridgeLocationsError;
+    BpXcmBridgeHubBridgeState: BpXcmBridgeHubBridgeState;
     CumulusPalletParachainSystemCall: CumulusPalletParachainSystemCall;
     CumulusPalletParachainSystemError: CumulusPalletParachainSystemError;
     CumulusPalletParachainSystemEvent: CumulusPalletParachainSystemEvent;
@@ -453,6 +538,9 @@ declare module "@polkadot/types/types/registry" {
     EvmCoreErrorExitReason: EvmCoreErrorExitReason;
     EvmCoreErrorExitRevert: EvmCoreErrorExitRevert;
     EvmCoreErrorExitSucceed: EvmCoreErrorExitSucceed;
+    FinalityGrandpaCommit: FinalityGrandpaCommit;
+    FinalityGrandpaPrecommit: FinalityGrandpaPrecommit;
+    FinalityGrandpaSignedPrecommit: FinalityGrandpaSignedPrecommit;
     FpRpcTransactionStatus: FpRpcTransactionStatus;
     FrameMetadataHashExtensionCheckMetadataHash: FrameMetadataHashExtensionCheckMetadataHash;
     FrameMetadataHashExtensionMode: FrameMetadataHashExtensionMode;
@@ -489,6 +577,7 @@ declare module "@polkadot/types/types/registry" {
     FrameSystemLimitsWeightsPerClass: FrameSystemLimitsWeightsPerClass;
     FrameSystemPhase: FrameSystemPhase;
     MoonriverRuntimeAssetConfigAssetRegistrarMetadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata;
+    MoonriverRuntimeBridgeRejectObsoleteHeadersAndMessages: MoonriverRuntimeBridgeRejectObsoleteHeadersAndMessages;
     MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin: MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin;
     MoonriverRuntimeOriginCaller: MoonriverRuntimeOriginCaller;
     MoonriverRuntimeProxyType: MoonriverRuntimeProxyType;
@@ -542,6 +631,18 @@ declare module "@polkadot/types/types/registry" {
     PalletBalancesEvent: PalletBalancesEvent;
     PalletBalancesReasons: PalletBalancesReasons;
     PalletBalancesReserveData: PalletBalancesReserveData;
+    PalletBridgeGrandpaCall: PalletBridgeGrandpaCall;
+    PalletBridgeGrandpaError: PalletBridgeGrandpaError;
+    PalletBridgeGrandpaEvent: PalletBridgeGrandpaEvent;
+    PalletBridgeGrandpaStorageTypesStoredAuthoritySet: PalletBridgeGrandpaStorageTypesStoredAuthoritySet;
+    PalletBridgeMessagesCall: PalletBridgeMessagesCall;
+    PalletBridgeMessagesError: PalletBridgeMessagesError;
+    PalletBridgeMessagesEvent: PalletBridgeMessagesEvent;
+    PalletBridgeMessagesLanesManagerLanesManagerError: PalletBridgeMessagesLanesManagerLanesManagerError;
+    PalletBridgeMessagesOutboundLaneReceptionConfirmationError: PalletBridgeMessagesOutboundLaneReceptionConfirmationError;
+    PalletBridgeParachainsCall: PalletBridgeParachainsCall;
+    PalletBridgeParachainsError: PalletBridgeParachainsError;
+    PalletBridgeParachainsEvent: PalletBridgeParachainsEvent;
     PalletCollectiveCall: PalletCollectiveCall;
     PalletCollectiveError: PalletCollectiveError;
     PalletCollectiveEvent: PalletCollectiveEvent;
@@ -699,6 +800,11 @@ declare module "@polkadot/types/types/registry" {
     PalletWhitelistCall: PalletWhitelistCall;
     PalletWhitelistError: PalletWhitelistError;
     PalletWhitelistEvent: PalletWhitelistEvent;
+    PalletXcmBridgeHubCall: PalletXcmBridgeHubCall;
+    PalletXcmBridgeHubDispatcherXcmBlobMessageDispatchResult: PalletXcmBridgeHubDispatcherXcmBlobMessageDispatchResult;
+    PalletXcmBridgeHubError: PalletXcmBridgeHubError;
+    PalletXcmBridgeHubEvent: PalletXcmBridgeHubEvent;
+    PalletXcmBridgeHubHoldReason: PalletXcmBridgeHubHoldReason;
     PalletXcmCall: PalletXcmCall;
     PalletXcmError: PalletXcmError;
     PalletXcmEvent: PalletXcmEvent;
@@ -731,11 +837,14 @@ declare module "@polkadot/types/types/registry" {
     PolkadotPrimitivesV8UpgradeRestriction: PolkadotPrimitivesV8UpgradeRestriction;
     SessionKeysPrimitivesVrfVrfCryptoPublic: SessionKeysPrimitivesVrfVrfCryptoPublic;
     SpArithmeticArithmeticError: SpArithmeticArithmeticError;
+    SpConsensusGrandpaAppPublic: SpConsensusGrandpaAppPublic;
+    SpConsensusGrandpaAppSignature: SpConsensusGrandpaAppSignature;
     SpRuntimeBlakeTwo256: SpRuntimeBlakeTwo256;
     SpRuntimeDigest: SpRuntimeDigest;
     SpRuntimeDigestDigestItem: SpRuntimeDigestDigestItem;
     SpRuntimeDispatchError: SpRuntimeDispatchError;
     SpRuntimeDispatchErrorWithPostInfo: SpRuntimeDispatchErrorWithPostInfo;
+    SpRuntimeHeader: SpRuntimeHeader;
     SpRuntimeModuleError: SpRuntimeModuleError;
     SpRuntimeMultiSignature: SpRuntimeMultiSignature;
     SpRuntimeProvingTrieTrieError: SpRuntimeProvingTrieTrieError;
@@ -815,6 +924,7 @@ declare module "@polkadot/types/types/registry" {
     XcmV5TraitsError: XcmV5TraitsError;
     XcmVersionedAssetId: XcmVersionedAssetId;
     XcmVersionedAssets: XcmVersionedAssets;
+    XcmVersionedInteriorLocation: XcmVersionedInteriorLocation;
     XcmVersionedLocation: XcmVersionedLocation;
     XcmVersionedResponse: XcmVersionedResponse;
     XcmVersionedXcm: XcmVersionedXcm;
