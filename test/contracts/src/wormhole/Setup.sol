@@ -6,9 +6,9 @@ pragma experimental ABIEncoderV2;
 
 import "./Governance.sol";
 
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
-contract Setup is Setters, ERC1967Upgrade {
+contract Setup is Setters {
     function setup(
         address implementation,
         address[] memory initialGuardians,
@@ -34,7 +34,7 @@ contract Setup is Setters, ERC1967Upgrade {
 
         setEvmChainId(evmChainId);
 
-        _upgradeTo(implementation);
+        ERC1967Utils.upgradeToAndCall(implementation, '0x');
 
         // See https://github.com/wormhole-foundation/wormhole/issues/1930 for
         // why we set this here
