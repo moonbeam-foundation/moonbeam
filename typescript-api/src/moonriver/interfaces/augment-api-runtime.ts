@@ -38,9 +38,11 @@ import type {
   AccountId,
   Balance,
   Block,
+  BlockNumber,
   ExtrinsicInclusionMode,
   H160,
   H256,
+  Hash,
   Header,
   Index,
   KeyTypeId,
@@ -441,6 +443,17 @@ declare module "@polkadot/api-base/types/calls" {
             | Uint8Array
         ) => Observable<Null>
       >;
+      /**
+       * Generic call
+       **/
+      [key: string]: DecoratedCallBase<ApiType>;
+    };
+    /** 0x61addb3820a4511c/1 */
+    polkadotFinalityApi: {
+      /**
+       * Returns number and hash of the best finalized header known to the bridge module.
+       **/
+      bestFinalized: AugmentedCall<ApiType, () => Observable<ITuple<[BlockNumber, Hash]>>>;
       /**
        * Generic call
        **/

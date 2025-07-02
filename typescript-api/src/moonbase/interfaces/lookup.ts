@@ -5406,7 +5406,7 @@ export default {
       __Unused130: "Null",
       __Unused131: "Null",
       __Unused132: "Null",
-      BridgeXcmOver: "PalletXcmBridgeHoldReason"
+      BridgeXcmOver: "PalletXcmBridgeHubHoldReason"
     }
   },
   /**
@@ -5416,9 +5416,9 @@ export default {
     _enum: ["Preimage"]
   },
   /**
-   * Lookup463: pallet_xcm_bridge::pallet::HoldReason<I>
+   * Lookup463: pallet_xcm_bridge_hub::pallet::HoldReason<I>
    **/
-  PalletXcmBridgeHoldReason: {
+  PalletXcmBridgeHubHoldReason: {
     _enum: ["BridgeDeposit"]
   },
   /**
