@@ -80,6 +80,7 @@ use pallet_evm::{
 };
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
+use parity_scale_codec as codec;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
@@ -129,6 +130,7 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonbeamPrecompiles<Runtime>;
 
 pub mod asset_config;
+pub mod bridge_config;
 #[cfg(not(feature = "disable-genesis-builder"))]
 pub mod genesis_config_preset;
 pub mod governance;
@@ -208,7 +210,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("moonbeam"),
 	impl_name: Cow::Borrowed("moonbeam"),
 	authoring_version: 3,
-	spec_version: 3800,
+	spec_version: 3900,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -1166,7 +1168,6 @@ pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
 >;
 
 impl pallet_moonbeam_lazy_migrations::Config for Runtime {
-	type ForeignAssetMigratorOrigin = ForeignAssetMigratorOrigin;
 	type WeightInfo = moonbeam_weights::pallet_moonbeam_lazy_migrations::WeightInfo<Runtime>;
 }
 
@@ -1394,14 +1395,16 @@ impl pallet_parameters::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
+/// List of multiblock migrations to be executed by the pallet_multiblock_migrations.
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type MultiBlockMigrationList = moonbeam_runtime_common::migrations::MultiBlockMigrationList;
+// Benchmarks need mocked migrations to guarantee that they succeed.
+#[cfg(feature = "runtime-benchmarks")]
+pub type MultiBlockMigrationList = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
+
 impl pallet_multiblock_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// TODO fully replace pallet_migrations with multiblock migrations.
-	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = pallet_identity::migration::v2::LazyMigrationV1ToV2<Runtime>;
-	// Benchmarks need mocked migrations to guarantee that they succeed.
-	#[cfg(feature = "runtime-benchmarks")]
-	type Migrations = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
+	type Migrations = MultiBlockMigrationList;
 	type CursorMaxLen = ConstU32<65_536>;
 	type IdentifierMaxLen = ConstU32<256>;
 	type MigrationStatusHandler = ();
@@ -1501,7 +1504,23 @@ construct_runtime! {
 
 		// Randomness
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
+
+		// Bridge pallets (reserved indexes from 130 to 140)
+		BridgeKusamaGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
+		BridgeKusamaParachains: pallet_bridge_parachains::<Instance1>::{Pallet, Call, Storage, Event<T>} = 131,
+		BridgeKusamaMessages: pallet_bridge_messages::<Instance1>::{Pallet, Call, Storage, Event<T>} = 132,
+		BridgeXcmOverMoonriver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason} = 133,
 	}
+}
+
+bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
+	RuntimeCall, AccountId,
+	// Grandpa
+	BridgeKusamaGrandpa,
+	// Parachains
+	BridgeKusamaParachains,
+	// Messages
+	BridgeKusamaMessages
 }
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -1549,13 +1568,17 @@ mod benches {
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
 		[pallet_multiblock_migrations, MultiBlockMigrations]
-		[pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
+		// Currently there are no extrinsics to benchmark for the Lazy Migrations pallet
+		// [pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
 		[pallet_precompile_benchmarks, PrecompileBenchmarks]
 		[pallet_parameters, Parameters]
 		[pallet_xcm_weight_trader, XcmWeightTrader]
 		[pallet_collective, TreasuryCouncilCollective]
 		[pallet_collective, OpenTechCommitteeCollective]
+		[pallet_bridge_grandpa, BridgeKusamaGrandpa]
+		[pallet_bridge_parachains, pallet_bridge_parachains::benchmarking::Pallet::<Runtime, bridge_config::BridgeMoonriverInstance>]
+		[pallet_bridge_messages, pallet_bridge_messages::benchmarking::Pallet::<Runtime, bridge_config::WithKusamaMessagesInstance>]
 		[pallet_xcm_benchmarks::fungible, pallet_xcm_benchmarks::fungible::Pallet<Runtime>]
 		[pallet_xcm_benchmarks::generic, pallet_xcm_benchmarks::generic::Pallet<Runtime>]
 	);
@@ -1578,6 +1601,7 @@ pub type SignedExtra = (
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	BridgeRejectObsoleteHeadersAndMessages,
 	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
 	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 );
@@ -1606,95 +1630,256 @@ pub type Executive = frame_executive::Executive<
 //     // Specific impls provided to the `impl_runtime_apis_plus_common!` macro.
 // }
 // ```
-moonbeam_runtime_common::impl_runtime_apis_plus_common! {
-	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
-		fn validate_transaction(
-			source: TransactionSource,
-			xt: <Block as BlockT>::Extrinsic,
-			block_hash: <Block as BlockT>::Hash,
-		) -> TransactionValidity {
-			// Filtered calls should not enter the tx pool as they'll fail if inserted.
-			// If this call is not allowed, we return early.
-			if !<Runtime as frame_system::Config>::BaseCallFilter::contains(&xt.0.function) {
-				return InvalidTransaction::Call.into();
+moonbeam_runtime_common::impl_runtime_apis_plus_common!(
+	{
+		impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
+			fn validate_transaction(
+				source: TransactionSource,
+				xt: <Block as BlockT>::Extrinsic,
+				block_hash: <Block as BlockT>::Hash,
+			) -> TransactionValidity {
+				// Filtered calls should not enter the tx pool as they'll fail if inserted.
+				// If this call is not allowed, we return early.
+				if !<Runtime as frame_system::Config>::BaseCallFilter::contains(&xt.0.function) {
+					return InvalidTransaction::Call.into();
+				}
+
+				// This runtime uses Substrate's pallet transaction payment. This
+				// makes the chain feel like a standard Substrate chain when submitting
+				// frame transactions and using Substrate ecosystem tools. It has the downside that
+				// transaction are not prioritized by gas_price. The following code reprioritizes
+				// transactions to overcome this.
+				//
+				// A more elegant, ethereum-first solution is
+				// a pallet that replaces pallet transaction payment, and allows users
+				// to directly specify a gas price rather than computing an effective one.
+				// #HopefullySomeday
+
+				// First we pass the transactions to the standard FRAME executive. This calculates all the
+				// necessary tags, longevity and other properties that we will leave unchanged.
+				// This also assigns some priority that we don't care about and will overwrite next.
+				let mut intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)?;
+
+				let dispatch_info = xt.get_dispatch_info();
+
+				// If this is a pallet ethereum transaction, then its priority is already set
+				// according to gas price from pallet ethereum. If it is any other kind of transaction,
+				// we modify its priority.
+				Ok(match &xt.0.function {
+					RuntimeCall::Ethereum(transact { .. }) => intermediate_valid,
+					_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
+					_ => {
+						let tip = match &xt.0.preamble {
+							Preamble::Bare(_) => 0,
+							Preamble::Signed(_, _, signed_extra) => {
+								// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
+								// Get the 7th item from the tuple
+								let charge_transaction_payment = &signed_extra.7;
+								charge_transaction_payment.tip()
+							},
+							Preamble::General(_, _) => 0,
+						};
+
+						// Calculate the fee that will be taken by pallet transaction payment
+						let fee: u64 = TransactionPayment::compute_fee(
+							xt.encode().len() as u32,
+							&dispatch_info,
+							tip,
+						).saturated_into();
+
+						// Calculate how much gas this effectively uses according to the existing mapping
+						let effective_gas =
+							<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+								dispatch_info.total_weight()
+							);
+
+						// Here we calculate an ethereum-style effective gas price using the
+						// current fee of the transaction. Because the weight -> gas conversion is
+						// lossy, we have to handle the case where a very low weight maps to zero gas.
+						let effective_gas_price = if effective_gas > 0 {
+							fee / effective_gas
+						} else {
+							// If the effective gas was zero, we just act like it was 1.
+							fee
+						};
+
+						// Overwrite the original prioritization with this ethereum one
+						intermediate_valid.priority = effective_gas_price;
+						intermediate_valid
+					}
+				})
+			}
+		}
+
+		impl async_backing_primitives::UnincludedSegmentApi<Block> for Runtime {
+			fn can_build_upon(
+				included_hash: <Block as BlockT>::Hash,
+				slot: async_backing_primitives::Slot,
+			) -> bool {
+				ConsensusHook::can_build_upon(included_hash, slot)
+			}
+		}
+
+		impl bp_kusama::KusamaFinalityApi<Block> for Runtime {
+			fn best_finalized() -> Option<bp_runtime::HeaderId<bp_kusama::Hash, bp_kusama::BlockNumber>> {
+				BridgeKusamaGrandpa::best_finalized()
+			}
+			fn free_headers_interval() -> Option<bp_kusama::BlockNumber> {
+				<Runtime as pallet_bridge_grandpa::Config<
+					bridge_config::BridgeGrandpaKusamaInstance
+				>>::FreeHeadersInterval::get()
+			}
+			fn synced_headers_grandpa_info(
+			) -> Vec<bp_header_chain::StoredHeaderGrandpaInfo<bp_kusama::Header>> {
+				BridgeKusamaGrandpa::synced_headers_grandpa_info()
+			}
+		}
+
+		impl bp_moonriver::MoonriverKusamaFinalityApi<Block> for Runtime {
+			fn best_finalized() -> Option<bp_runtime::HeaderId<bp_moonriver::Hash, bp_moonriver::BlockNumber>> {
+				BridgeKusamaParachains::best_parachain_head_id::<
+					bp_moonriver::Moonriver
+				>().unwrap_or(None)
+			}
+			fn free_headers_interval() -> Option<bp_moonriver::BlockNumber> {
+				// "free interval" is not currently used for parachains
+				None
+			}
+		}
+
+		impl bp_moonriver::ToMoonriverKusamaOutboundLaneApi<Block> for Runtime {
+			fn message_details(
+				lane: bp_moonriver::LaneId,
+				begin: bp_messages::MessageNonce,
+				end: bp_messages::MessageNonce,
+			) -> Vec<bp_messages::OutboundMessageDetails> {
+				bridge_runtime_common::messages_api::outbound_message_details::<
+					Runtime,
+					bridge_config::WithKusamaMessagesInstance,
+				>(lane, begin, end)
+			}
+		}
+
+		impl bp_moonriver::FromMoonriverKusamaInboundLaneApi<Block> for Runtime {
+			fn message_details(
+				lane: bp_moonriver::LaneId,
+				messages: Vec<(bp_messages::MessagePayload, bp_messages::OutboundMessageDetails)>,
+			) -> Vec<bp_messages::InboundMessageDetails> {
+				bridge_runtime_common::messages_api::inbound_message_details::<
+					Runtime,
+					bridge_config::WithKusamaMessagesInstance,
+				>(lane, messages)
+			}
+		}
+	}
+
+	// Benchmark customizations
+	{
+		impl pallet_bridge_parachains::benchmarking::Config<bridge_config::BridgeMoonriverInstance> for Runtime {
+			fn parachains() -> Vec<bp_polkadot_core::parachains::ParaId> {
+				use bp_runtime::Parachain;
+				vec![bp_polkadot_core::parachains::ParaId(bp_moonriver::Moonriver::PARACHAIN_ID)]
 			}
 
-			// This runtime uses Substrate's pallet transaction payment. This
-			// makes the chain feel like a standard Substrate chain when submitting
-			// frame transactions and using Substrate ecosystem tools. It has the downside that
-			// transaction are not prioritized by gas_price. The following code reprioritizes
-			// transactions to overcome this.
-			//
-			// A more elegant, ethereum-first solution is
-			// a pallet that replaces pallet transaction payment, and allows users
-			// to directly specify a gas price rather than computing an effective one.
-			// #HopefullySomeday
+			fn prepare_parachain_heads_proof(
+				parachains: &[bp_polkadot_core::parachains::ParaId],
+				parachain_head_size: u32,
+				proof_params: bp_runtime::UnverifiedStorageProofParams,
+			) -> (
+				bp_parachains::RelayBlockNumber,
+				bp_parachains::RelayBlockHash,
+				bp_polkadot_core::parachains::ParaHeadsProof,
+				Vec<(bp_polkadot_core::parachains::ParaId, bp_polkadot_core::parachains::ParaHash)>,
+			) {
+				bridge_runtime_common::parachains_benchmarking::prepare_parachain_heads_proof::<Runtime, bridge_config::BridgeMoonriverInstance>(
+					parachains,
+					parachain_head_size,
+					proof_params,
+				)
+			}
+		}
 
-			// First we pass the transactions to the standard FRAME executive. This calculates all the
-			// necessary tags, longevity and other properties that we will leave unchanged.
-			// This also assigns some priority that we don't care about and will overwrite next.
-			let mut intermediate_valid = Executive::validate_transaction(source, xt.clone(), block_hash)?;
+		use bridge_runtime_common::messages_benchmarking::{
+			generate_xcm_builder_bridge_message_sample, prepare_message_delivery_proof_from_parachain,
+			prepare_message_proof_from_parachain,
+		};
+		use pallet_bridge_messages::benchmarking::{
+			Config as BridgeMessagesConfig, MessageDeliveryProofParams, MessageProofParams,
+		};
 
-			let dispatch_info = xt.get_dispatch_info();
+		impl BridgeMessagesConfig<bridge_config::WithKusamaMessagesInstance> for Runtime {
+			fn is_relayer_rewarded(_relayer: &Self::AccountId) -> bool {
+				// Currently, we do not reward relayers
+				true
+			}
 
-			// If this is a pallet ethereum transaction, then its priority is already set
-			// according to gas price from pallet ethereum. If it is any other kind of transaction,
-			// we modify its priority.
-			Ok(match &xt.0.function {
-				RuntimeCall::Ethereum(transact { .. }) => intermediate_valid,
-				_ if dispatch_info.class != DispatchClass::Normal => intermediate_valid,
-				_ => {
-					let tip = match &xt.0.preamble {
-						Preamble::Bare(_) => 0,
-						Preamble::Signed(_, _, signed_extra) => {
-							// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
-							// Get the 7th item from the tuple
-							let charge_transaction_payment = &signed_extra.7;
-							charge_transaction_payment.tip()
-						},
-						Preamble::General(_, _) => 0,
-					};
+			fn prepare_message_proof(
+				params: MessageProofParams<
+					pallet_bridge_messages::LaneIdOf<Runtime, bridge_config::WithKusamaMessagesInstance>,
+				>,
+			) -> (
+				bridge_config::benchmarking::FromMoonriverMessagesProof<
+					bridge_config::WithKusamaMessagesInstance,
+				>,
+				Weight,
+			) {
+				use cumulus_primitives_core::XcmpMessageSource;
+				assert!(XcmpQueue::take_outbound_messages(usize::MAX).is_empty());
+				ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(42.into());
+				PolkadotXcm::force_xcm_version(
+					RuntimeOrigin::root(),
+					Box::new(Location::new(1, Parachain(42))),
+					cumulus_primitives_core::XCM_VERSION,
+				)
+				.map_err(|e| {
+					log::error!(
+						"Failed to dispatch `force_xcm_version({:?}, {:?}, {:?})`, error: {:?}",
+						RuntimeOrigin::root(),
+						Location::new(1, Parachain(42)),
+						cumulus_primitives_core::XCM_VERSION,
+						e
+					);
+				})
+				.expect("XcmVersion stored!");
+				let universal_source = bridge_config::benchmarking::open_bridge_for_benchmarks::<
+					Runtime,
+					bridge_config::XcmOverKusamaInstance,
+					xcm_config::LocationToAccountId,
+				>(params.lane, 42);
+				prepare_message_proof_from_parachain::<
+					Runtime,
+					bridge_config::BridgeGrandpaKusamaInstance,
+					bridge_config::WithKusamaMessagesInstance,
+				>(params, generate_xcm_builder_bridge_message_sample(universal_source))
+			}
 
-					// Calculate the fee that will be taken by pallet transaction payment
-					let fee: u64 = TransactionPayment::compute_fee(
-						xt.encode().len() as u32,
-						&dispatch_info,
-						tip,
-					).saturated_into();
+			fn prepare_message_delivery_proof(
+				params: MessageDeliveryProofParams<
+					AccountId,
+					pallet_bridge_messages::LaneIdOf<Runtime, bridge_config::WithKusamaMessagesInstance>,
+				>,
+			) -> bridge_config::benchmarking::ToMoonriverMessagesDeliveryProof<
+				bridge_config::WithKusamaMessagesInstance,
+			> {
+				let _ = bridge_config::benchmarking::open_bridge_for_benchmarks::<
+					Runtime,
+					bridge_config::XcmOverKusamaInstance,
+					xcm_config::LocationToAccountId,
+				>(params.lane, 42);
+				prepare_message_delivery_proof_from_parachain::<
+					Runtime,
+					bridge_config::BridgeGrandpaKusamaInstance,
+					bridge_config::WithKusamaMessagesInstance,
+				>(params)
+			}
 
-					// Calculate how much gas this effectively uses according to the existing mapping
-					let effective_gas =
-						<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-							dispatch_info.total_weight()
-						);
-
-					// Here we calculate an ethereum-style effective gas price using the
-					// current fee of the transaction. Because the weight -> gas conversion is
-					// lossy, we have to handle the case where a very low weight maps to zero gas.
-					let effective_gas_price = if effective_gas > 0 {
-						fee / effective_gas
-					} else {
-						// If the effective gas was zero, we just act like it was 1.
-						fee
-					};
-
-					// Overwrite the original prioritization with this ethereum one
-					intermediate_valid.priority = effective_gas_price;
-					intermediate_valid
-				}
-			})
+			fn is_message_successfully_dispatched(_nonce: bp_messages::MessageNonce) -> bool {
+				// The message is not routed from Bridge Hub
+				true
+			}
 		}
 	}
-
-	impl async_backing_primitives::UnincludedSegmentApi<Block> for Runtime {
-		fn can_build_upon(
-			included_hash: <Block as BlockT>::Hash,
-			slot: async_backing_primitives::Slot,
-		) -> bool {
-			ConsensusHook::can_build_upon(included_hash, slot)
-		}
-	}
-}
+);
 
 #[allow(dead_code)]
 struct CheckInherents;

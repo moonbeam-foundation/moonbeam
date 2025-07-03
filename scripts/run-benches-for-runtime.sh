@@ -41,6 +41,13 @@ for PALLET in "${PALLETS[@]}"; do
     output_file="${PALLET//::/_}.rs"
   fi
 
+  # TODO: Remove once this issue has been fixed: https://github.com/paritytech/polkadot-sdk/issues/8993
+  if [[ $PALLET == "pallet_bridge_messages" ]]; then
+    export RUST_LOG="runtime::bridge-xcm=off"
+  else
+    unset RUST_LOG
+  fi
+
   # Determine output path based on pallet name
   default_output_path="./runtime/${output}/src/weights"
   xcm_output_path="./runtime/${output}/src/weights/xcm"
@@ -69,7 +76,6 @@ for PALLET in "${PALLETS[@]}"; do
       --wasm-execution=compiled \
       --header=./file_header.txt \
       --template="$template" \
-      --disable-log-color \
       --output="$output_path" 2>&1
   )
   if [ $? -ne 0 ]; then

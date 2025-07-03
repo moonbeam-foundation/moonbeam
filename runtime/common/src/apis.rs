@@ -16,7 +16,7 @@
 
 #[macro_export]
 macro_rules! impl_runtime_apis_plus_common {
-	{$($custom:tt)*} => {
+    ({$($custom:tt)*} {$($bench_custom:tt)*}) => {
 
 		#[cfg(feature = "evm-tracing")]
 		// Helper function to replay the "on_idle" hook for all pallets, we need this for
@@ -143,27 +143,18 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			#[cfg(not(feature = "disable-genesis-builder"))]
 			impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
 				fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
 					frame_support::genesis_builder_helper::build_state::<RuntimeGenesisConfig>(config)
 				}
 
-				#[cfg(not(feature = "disable-genesis-builder"))]
 				fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
 					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, genesis_config_preset::get_preset)
 				}
-				#[cfg(feature = "disable-genesis-builder")]
-				fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
-					None
-				}
 
-				#[cfg(not(feature = "disable-genesis-builder"))]
 				fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
 					genesis_config_preset::preset_names()
-				}
-				#[cfg(feature = "disable-genesis-builder")]
-				fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
-					Default::default()
 				}
 			}
 
@@ -1128,6 +1119,8 @@ macro_rules! impl_runtime_apis_plus_common {
 							Err(BenchmarkError::Skip)
 						}
 					}
+
+					$($bench_custom)*
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
 						// Block Number

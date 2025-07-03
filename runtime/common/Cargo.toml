@@ -33,9 +33,8 @@ xcm-primitives = { workspace = true }
 bp-messages = { workspace = true }
 
 # Substrate
-cumulus-pallet-parachain-system = { workspace = true }
-cumulus-pallet-xcmp-queue = { workspace = true }
 pallet-message-queue = { workspace = true }
+pallet-xcm-bridge = { workspace = true }
 frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
@@ -91,7 +90,10 @@ scale-info = { workspace = true }
 
 account = { workspace = true }
 
-# Runtime Interfaces
+# Cumulus
+cumulus-pallet-parachain-system = { workspace = true }
+cumulus-pallet-xcmp-queue = { workspace = true }
+cumulus-primitives-core = { workspace = true, default-features = false }
 cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
 
 [features]
@@ -129,6 +131,7 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"sp-genesis-builder/std",
+	"cumulus-primitives-core/std",
 	"cumulus-primitives-storage-weight-reclaim/std",
 	"xcm-executor/std",
 	"xcm-runtime-apis/std",
@@ -136,6 +139,7 @@ std = [
 	"account/std",
 ]
 runtime-benchmarks = [
+	"cumulus-primitives-core/runtime-benchmarks",
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
