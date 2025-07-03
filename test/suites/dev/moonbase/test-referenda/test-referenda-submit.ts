@@ -10,7 +10,7 @@ import {
 import { ALITH_ADDRESS, GLMR, type KeyringPair, ethan, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D013303",
+  id: "D023303",
   title: "Referenda - Submit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

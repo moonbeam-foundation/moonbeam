@@ -13,7 +13,7 @@ import { encodeFunctionData } from "viem";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D012819",
+  id: "D010310",
   title: "Precompiles - author mapping",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

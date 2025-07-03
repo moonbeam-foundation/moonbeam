@@ -4,7 +4,7 @@ import { expect, describeSuite } from "@moonwall/cli";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D010213",
+  id: "D020213",
   title: "Author Mapping - unregistered author cannot clear association",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

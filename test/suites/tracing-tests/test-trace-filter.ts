@@ -4,7 +4,7 @@ import { hexToU8a } from "@polkadot/util";
 import { sleep } from "../../helpers";
 
 describeSuite({
-  id: "T14",
+  id: "T19",
   title: "Trace filter - Contract creation ",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

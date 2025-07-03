@@ -16,7 +16,7 @@
 
 #[macro_export]
 macro_rules! impl_runtime_apis_plus_common {
-	{$($custom:tt)*} => {
+    ({$($custom:tt)*} {$($bench_custom:tt)*}) => {
 
 		#[cfg(feature = "evm-tracing")]
 		// Helper function to replay the "on_idle" hook for all pallets, we need this for
@@ -147,75 +147,66 @@ macro_rules! impl_runtime_apis_plus_common {
 				> {
 					#[cfg(feature = "evm-tracing")]
 					{
-						use moonbeam_evm_tracer::tracer::EvmTracer;
-						use xcm_primitives::{
-							ETHEREUM_XCM_TRACING_STORAGE_KEY,
-							EthereumXcmTracingStatus
+						use moonbeam_evm_tracer::tracer::{
+							EthereumTracingStatus,
+							EvmTracer,
+							EthereumTracer
 						};
 						use frame_support::storage::unhashed;
 						use frame_system::pallet_prelude::BlockNumberFor;
 
 						// Tell the CallDispatcher we are tracing a specific Transaction.
-						unhashed::put::<EthereumXcmTracingStatus>(
-							ETHEREUM_XCM_TRACING_STORAGE_KEY,
-							&EthereumXcmTracingStatus::Transaction(traced_transaction.hash()),
-						);
+						EthereumTracer::transaction(traced_transaction.hash(), || {
+							// Initialize block: calls the "on_initialize" hook on every pallet
+							// in AllPalletsWithSystem.
+							// After pallet message queue was introduced, this must be done only after
+							// enabling XCM tracing by calling ETHEREUM_TRACING_STATUS::using
+							// in the storage
+							Executive::initialize_block(header);
 
-						// Initialize block: calls the "on_initialize" hook on every pallet
-						// in AllPalletsWithSystem.
-						// After pallet message queue was introduced, this must be done only after
-						// enabling XCM tracing by setting ETHEREUM_XCM_TRACING_STORAGE_KEY
-						// in the storage
-						Executive::initialize_block(header);
+							// Apply the a subset of extrinsics: all the substrate-specific or ethereum
+							// transactions that preceded the requested transaction.
+							for ext in extrinsics.into_iter() {
+								let _ = match &ext.0.function {
+									RuntimeCall::Ethereum(transact { transaction }) => {
+										// Reset the previously consumed weight when tracing ethereum transactions.
+										// This is necessary because EVM tracing introduces additional
+										// (ref_time) overhead, which differs from the production runtime behavior.
+										// Without resetting the block weight, the extra tracing overhead could
+										// leading to some transactions to incorrectly fail during tracing.
+										frame_system::BlockWeight::<Runtime>::kill();
 
-						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
-						// transactions that preceded the requested transaction.
-						for ext in extrinsics.into_iter() {
-							let _ = match &ext.0.function {
-								RuntimeCall::Ethereum(transact { transaction }) => {
-
-									// Reset the previously consumed weight when tracing ethereum transactions.
-									// This is necessary because EVM tracing introduces additional
-									// (ref_time) overhead, which differs from the production runtime behavior.
-									// Without resetting the block weight, the extra tracing overhead could
-									// leading to some transactions to incorrectly fail during tracing.
-									frame_system::BlockWeight::<Runtime>::kill();
-
-									if transaction == traced_transaction {
-										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
-										return Ok(());
-									} else {
-										Executive::apply_extrinsic(ext)
+										if transaction == traced_transaction {
+											EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+											return Ok(());
+										} else {
+											Executive::apply_extrinsic(ext)
+										}
 									}
+									_ => Executive::apply_extrinsic(ext),
+								};
+
+								if let Some(EthereumTracingStatus::TransactionExited) = EthereumTracer::status() {
+									return Ok(());
 								}
-								_ => Executive::apply_extrinsic(ext),
-							};
-							if let Some(EthereumXcmTracingStatus::TransactionExited) = unhashed::get(
-								ETHEREUM_XCM_TRACING_STORAGE_KEY
-							) {
-								return Ok(());
 							}
-						}
 
-						if let Some(EthereumXcmTracingStatus::Transaction(_)) = unhashed::get(
-							ETHEREUM_XCM_TRACING_STORAGE_KEY
-						) {
-							// If the transaction was not found, it might be
-							// an eth-xcm transaction that was executed at on_idle
-							replay_on_idle();
-						}
+							if let Some(EthereumTracingStatus::Transaction(_)) = EthereumTracer::status() {
+								// If the transaction was not found, it might be
+								// an eth-xcm transaction that was executed at on_idle
+								replay_on_idle();
+							}
 
-						if let Some(EthereumXcmTracingStatus::TransactionExited) = unhashed::get(
-							ETHEREUM_XCM_TRACING_STORAGE_KEY
-						) {
-							// The transaction was found
-							Ok(())
-						} else {
-							// The transaction was not-found
-							Err(sp_runtime::DispatchError::Other(
-								"Failed to find Ethereum transaction among the extrinsics.",
-							))
-						}
+							if let Some(EthereumTracingStatus::TransactionExited) = EthereumTracer::status() {
+								// The transaction was found
+								Ok(())
+							} else {
+								// The transaction was not-found
+								Err(sp_runtime::DispatchError::Other(
+									"Failed to find Ethereum transaction among the extrinsics.",
+								))
+							}
+						})
 					}
 					#[cfg(not(feature = "evm-tracing"))]
 					Err(sp_runtime::DispatchError::Other(
@@ -233,80 +224,80 @@ macro_rules! impl_runtime_apis_plus_common {
 				> {
 					#[cfg(feature = "evm-tracing")]
 					{
-						use moonbeam_evm_tracer::tracer::EvmTracer;
+						use moonbeam_evm_tracer::tracer::{
+							EthereumTracingStatus,
+							EvmTracer,
+							EthereumTracer
+						};
 						use frame_system::pallet_prelude::BlockNumberFor;
-						use xcm_primitives::EthereumXcmTracingStatus;
 
 						// Tell the CallDispatcher we are tracing a full Block.
-						frame_support::storage::unhashed::put::<EthereumXcmTracingStatus>(
-							xcm_primitives::ETHEREUM_XCM_TRACING_STORAGE_KEY,
-							&EthereumXcmTracingStatus::Block,
-						);
+						EthereumTracer::block(|| {
+							let mut config = <Runtime as pallet_evm::Config>::config().clone();
+							config.estimate = true;
 
-						let mut config = <Runtime as pallet_evm::Config>::config().clone();
-						config.estimate = true;
+							// Initialize block: calls the "on_initialize" hook on every pallet
+							// in AllPalletsWithSystem.
+							// After pallet message queue was introduced, this must be done only after
+							// enabling XCM tracing by calling ETHEREUM_TRACING_STATUS::using
+							// in the storage
+							Executive::initialize_block(header);
 
-						// Initialize block: calls the "on_initialize" hook on every pallet
-						// in AllPalletsWithSystem.
-						// After pallet message queue was introduced, this must be done only after
-						// enabling XCM tracing by setting ETHEREUM_XCM_TRACING_STORAGE_KEY
-						// in the storage
-						Executive::initialize_block(header);
+							// Apply all extrinsics. Ethereum extrinsics are traced.
+							for ext in extrinsics.into_iter() {
+								match &ext.0.function {
+									RuntimeCall::Ethereum(transact { transaction }) => {
 
-						// Apply all extrinsics. Ethereum extrinsics are traced.
-						for ext in extrinsics.into_iter() {
-							match &ext.0.function {
-								RuntimeCall::Ethereum(transact { transaction }) => {
+										// Reset the previously consumed weight when tracing multiple transactions.
+										// This is necessary because EVM tracing introduces additional
+										// (ref_time) overhead, which differs from the production runtime behavior.
+										// Without resetting the block weight, the extra tracing overhead could
+										// leading to some transactions to incorrectly fail during tracing.
+										frame_system::BlockWeight::<Runtime>::kill();
 
-									// Reset the previously consumed weight when tracing multiple transactions.
-									// This is necessary because EVM tracing introduces additional
-									// (ref_time) overhead, which differs from the production runtime behavior.
-									// Without resetting the block weight, the extra tracing overhead could
-									// leading to some transactions to incorrectly fail during tracing.
-									frame_system::BlockWeight::<Runtime>::kill();
-
-									let tx_hash = &transaction.hash();
-									if known_transactions.contains(&tx_hash) {
-										// Each known extrinsic is a new call stack.
-										EvmTracer::emit_new();
-										EvmTracer::new().trace(|| {
+										let tx_hash = &transaction.hash();
+										if known_transactions.contains(&tx_hash) {
+											// Each known extrinsic is a new call stack.
+											EvmTracer::emit_new();
+											EvmTracer::new().trace(|| {
+												if let Err(err) = Executive::apply_extrinsic(ext) {
+													log::debug!(
+														target: "tracing",
+														"Could not trace eth transaction (hash: {}): {:?}",
+														&tx_hash,
+														err
+													);
+												}
+											});
+										} else {
 											if let Err(err) = Executive::apply_extrinsic(ext) {
 												log::debug!(
 													target: "tracing",
-													"Could not trace eth transaction (hash: {}): {:?}",
+													"Failed to apply eth extrinsic (hash: {}): {:?}",
 													&tx_hash,
 													err
 												);
 											}
-										});
-									} else {
+										}
+									}
+									_ => {
 										if let Err(err) = Executive::apply_extrinsic(ext) {
 											log::debug!(
 												target: "tracing",
-												"Failed to apply eth extrinsic (hash: {}): {:?}",
-												&tx_hash,
+												"Failed to apply non-eth extrinsic: {:?}",
 												err
 											);
 										}
 									}
-								}
-								_ => {
-									if let Err(err) = Executive::apply_extrinsic(ext) {
-										log::debug!(
-											target: "tracing",
-											"Failed to apply non-eth extrinsic: {:?}",
-											err
-										);
-									}
-								}
-							};
-						}
+								};
+							}
 
-						// Replay on_idle
-						// Some XCM messages with eth-xcm transaction might be executed at on_idle
-						replay_on_idle();
+							// Replay on_idle
+							// Some XCM messages with eth-xcm transaction might be executed at on_idle
+							replay_on_idle();
 
-						Ok(())
+							Ok(())
+						})
 					}
 					#[cfg(not(feature = "evm-tracing"))]
 					Err(sp_runtime::DispatchError::Other(
@@ -793,9 +784,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				) {
 					use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
 					use frame_system_benchmarking::Pallet as SystemBench;
-					use moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks;
 					use frame_support::traits::StorageInfoTrait;
-					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
 					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
@@ -817,7 +806,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					use xcm::latest::prelude::{
 						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
-						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
+						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent, WeightLimit
 					};
 					use xcm_config::SelfReserve;
 					use frame_benchmarking::BenchmarkError;
@@ -835,9 +824,6 @@ macro_rules! impl_runtime_apis_plus_common {
 							System::assert_last_event(cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into());
 						}
 					}
-
-					impl moonbeam_xcm_benchmarks::Config for Runtime {}
-					impl moonbeam_xcm_benchmarks::generic::Config for Runtime {}
 
 					use pallet_asset_manager::Config as PalletAssetManagerConfig;
 
@@ -1041,7 +1027,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							Ok((origin, ticket, assets))
 						}
 
-						fn fee_asset() -> Result<Asset, BenchmarkError> {
+						fn worst_case_for_trader() -> Result<(Asset, WeightLimit), BenchmarkError> {
 							Err(BenchmarkError::Skip)
 						}
 
@@ -1054,6 +1040,8 @@ macro_rules! impl_runtime_apis_plus_common {
 							Err(BenchmarkError::Skip)
 						}
 					}
+
+					$($bench_custom)*
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
 						// Block Number

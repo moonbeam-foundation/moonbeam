@@ -6,7 +6,7 @@ import { Wallet } from "ethers";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D010301",
+  id: "D020301",
   title: "Existential Deposit disabled",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

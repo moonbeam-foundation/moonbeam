@@ -5,7 +5,7 @@ import BS_TRACER_V2 from "../../helpers/tracer/blockscout_tracer_v2.min.json" as
 import { nestedSingle } from "../../helpers";
 
 describeSuite({
-  id: "T02",
+  id: "T03",
   title: "Trace blockscout v2 - AllEthTxTypes",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

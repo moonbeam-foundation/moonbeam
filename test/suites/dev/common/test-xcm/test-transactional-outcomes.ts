@@ -9,7 +9,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D016000",
+  id: "D010601",
   title: "Validate XCM TransactionalProcessor outcomes",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

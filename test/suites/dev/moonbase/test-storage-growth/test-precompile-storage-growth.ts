@@ -10,7 +10,7 @@ import { expectEVMResult } from "helpers/eth-transactions";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D013504",
+  id: "D023504",
   title: "Storage growth limit - Precompiles",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -89,7 +89,7 @@ describeSuite({
 
         // The tx can create an account, so record 148 bytes of storage growth
         // Storage growth ratio is 366
-        expect(gasUsed).toMatchInlineSnapshot(`31036n`);
+        expect(gasUsed).toMatchInlineSnapshot(`31012n`);
       },
     });
   },

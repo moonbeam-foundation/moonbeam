@@ -10,7 +10,7 @@ import { nToHex } from "@polkadot/util";
 // To make sense of them, basically remove 18 zeroes (divide by 10^18). This will give you the
 // number used internally by transaction-payment for fee calculations.
 describeSuite({
-  id: "D011603",
+  id: "D021503",
   title: "Min Fee Multiplier",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

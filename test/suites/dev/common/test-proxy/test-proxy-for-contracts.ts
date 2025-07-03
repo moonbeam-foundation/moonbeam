@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, GLMR } from "@moonwall/util";
 import { alith } from "@moonwall/util";
 
 describeSuite({
-  id: "D013003",
+  id: "D010403",
   title: "Proxy Call for Contract",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

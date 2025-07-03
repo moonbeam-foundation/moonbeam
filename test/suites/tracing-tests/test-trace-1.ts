@@ -5,7 +5,7 @@ import { nestedSingle } from "../../helpers";
 import BS_TRACER from "../../helpers/tracer/blockscout_tracer.min.json" assert { type: "json" };
 
 describeSuite({
-  id: "T01",
+  id: "T02",
   title: "Trace",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -27,8 +27,8 @@ pub mod pallet_author_inherent;
 pub mod pallet_author_mapping;
 pub mod pallet_author_slot_filter;
 pub mod pallet_balances;
-pub mod pallet_collective_open_tech_committee;
-pub mod pallet_collective_treasury_council;
+pub mod pallet_collective_open_tech_committee_collective;
+pub mod pallet_collective_treasury_council_collective;
 pub mod pallet_conviction_voting;
 pub mod pallet_crowdloan_rewards;
 pub mod pallet_evm;
@@ -57,3 +57,13 @@ pub mod pallet_whitelist;
 pub mod pallet_xcm;
 pub mod pallet_xcm_transactor;
 pub mod pallet_xcm_weight_trader;
+pub mod xcm;
+
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+mod bridge_weights;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_bridge_grandpa;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_bridge_messages;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_bridge_parachains;

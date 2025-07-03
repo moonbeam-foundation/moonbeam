@@ -15,7 +15,7 @@ const createApi = async (endpoint: string) =>
   });
 
 describeSuite({
-  id: "D012101",
+  id: "D022001",
   title: "Moon RPC Methods - moon_isBlockFinalized ",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

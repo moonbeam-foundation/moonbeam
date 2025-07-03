@@ -7,7 +7,7 @@ import {
   expectEVMResult,
   RELAY_SOURCE_LOCATION,
   relayAssetMetadata,
-  registerOldForeignAsset,
+  registerForeignAsset,
   registerXcmTransactorAndContract,
   PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
 } from "../../../../helpers";
@@ -15,12 +15,19 @@ import {
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
 
 describeSuite({
-  id: "D012890",
+  id: "D022877",
   title: "Precompiles - xcm transactor V3",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    let assetAddress;
     beforeAll(async () => {
-      await registerOldForeignAsset(context, RELAY_SOURCE_LOCATION, relayAssetMetadata as any);
+      const { contractAddress } = await registerForeignAsset(
+        context,
+        1n,
+        RELAY_SOURCE_LOCATION,
+        relayAssetMetadata
+      );
+      assetAddress = contractAddress;
       await registerXcmTransactorAndContract(context);
     });
 
@@ -29,7 +36,6 @@ describeSuite({
       title: "allows to transact signed with custom weights V2 and fee",
       test: async function () {
         const dest: [number, any[]] = [1, []];
-        const asset = ADDRESS_RELAY_ASSETS;
         const transact_call = fromBytes(new Uint8Array([0x01]), "hex");
         const transactWeight = { refTime: 1000, proofSize: 1000 };
         const overallWeight = { refTime: 2000, proofSize: 2000 };
@@ -40,7 +46,15 @@ describeSuite({
           contractAddress: PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
           contractName: "XcmTransactorV3",
           functionName: "transactThroughSigned",
-          args: [dest, asset, transactWeight, transact_call, feeAmount, overallWeight, refund],
+          args: [
+            dest,
+            assetAddress,
+            transactWeight,
+            transact_call,
+            feeAmount,
+            overallWeight,
+            refund,
+          ],
           gas: 500_000n,
           rawTxOnly: true,
           privateKey: ALITH_PRIVATE_KEY,
