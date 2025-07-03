@@ -31,7 +31,7 @@
     "nodes": [
       {
         "name": "alice",
-        "ws_port": 33356,
+        "rpc_port": 33356,
         "validator": true
       },
       {
@@ -49,7 +49,7 @@
         {
           "name": "alith",
           "command": "../target/release/moonbeam",
-          "ws_port": 33345,
+          "rpc_port": 33345,
           "args": [
             "--no-hardware-benchmarks",
             "--force-authoring",
@@ -61,7 +61,7 @@
         {
           "name": "RPC1",
           "validator": false,
-          "ws_port": 33048,
+          "rpc_port": 33048,
           "p2p_port": 33049,
           "command": "../target/release/moonbeam",
           "args": [
