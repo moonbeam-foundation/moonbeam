@@ -2,7 +2,7 @@ import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall
 import { ALITH_PRIVATE_KEY, alith, createEthersTransaction } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 import { nestedSingle } from "../../helpers";
-import BS_TRACER from "../../helpers/tracer/blockscout_tracer.min.json" assert { type: "json" };
+import BS_TRACER from "../../helpers/tracer/blockscout_tracer.min.json";
 
 describeSuite({
   id: "T02",
@@ -141,9 +141,9 @@ describeSuite({
         ]);
         const logs: any[] = [];
         for (const log of traceTx.structLogs) {
-          const hasStorage = Object.prototype.hasOwnProperty.call(log, "storage");
-          const hasMemory = Object.prototype.hasOwnProperty.call(log, "memory");
-          const hasStack = Object.prototype.hasOwnProperty.call(log, "stack");
+          const hasStorage = Object.hasOwn(log, "storage");
+          const hasMemory = Object.hasOwn(log, "memory");
+          const hasStack = Object.hasOwn(log, "stack");
           if (hasStorage || hasMemory || hasStack) {
             logs.push(log);
           }
