@@ -18,7 +18,7 @@
 //! between them. This is the backbone of the client-side node implementation.
 //!
 //! This module can assemble:
-//! PartialComponents: For maintence tasks without a complete node (eg import/export blocks, purge)
+//! PartialComponents: For maintenance tasks without a complete node (eg import/export blocks, purge)
 //! Full Service: A complete parachain node including the pool, rpc, network, embedded relay chain
 //! Dev Service: A leaner service without the relay chain backing.
 
@@ -1154,7 +1154,7 @@ where
 }
 
 /// Start a normal parachain node.
-// Rustfmt wants to format the closure with space identation.
+// Rustfmt wants to format the closure with space indentation.
 #[rustfmt::skip]
 pub async fn start_node<RuntimeApi, Customizations>(
 	parachain_config: Configuration,
