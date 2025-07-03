@@ -485,3 +485,211 @@ fn migrate_locks_to_freezes_batch_mixed_collators_and_delegators() {
 			assert_freeze_amount_and_no_lock(4, 200, false);
 		});
 }
+
+#[test]
+fn migrate_batch_fee_refund_when_100_percent_succeed() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000), (2, 1000), (3, 1000), (4, 1000)])
+		.build()
+		.execute_with(|| {
+			// Setup 4 accounts with old-style locks - 2 collators, 2 delegators
+			setup_collator_with_lock(1, 500);
+			setup_collator_with_lock(2, 400);
+			setup_delegator_with_lock(3, 1, 300);
+			setup_delegator_with_lock(4, 2, 200);
+
+			// All accounts should be unmigrated initially
+			assert_not_migrated(1, true);
+			assert_not_migrated(2, true);
+			assert_not_migrated(3, false);
+			assert_not_migrated(4, false);
+
+			// Migrate all accounts - 100% success rate should trigger refund
+			let result = ParachainStaking::migrate_locks_to_freezes_batch(
+				RuntimeOrigin::signed(1),
+				vec![(1, true), (2, true), (3, false), (4, false)]
+					.try_into()
+					.unwrap(),
+			);
+
+			// Should succeed with fee refund
+			assert_ok!(result);
+			let post_info = result.unwrap();
+			assert_eq!(post_info.pays_fee, frame_support::dispatch::Pays::No);
+
+			// Verify all accounts were migrated
+			assert_migrated(1, true);
+			assert_migrated(2, true);
+			assert_migrated(3, false);
+			assert_migrated(4, false);
+
+			// Verify freeze amounts
+			assert_freeze_amount_and_no_lock(1, 500, true);
+			assert_freeze_amount_and_no_lock(2, 400, true);
+			assert_freeze_amount_and_no_lock(3, 300, false);
+			assert_freeze_amount_and_no_lock(4, 200, false);
+		});
+}
+
+#[test]
+fn migrate_batch_fee_refund_when_exactly_50_percent_succeed() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000), (2, 1000), (3, 1000), (4, 1000)])
+		.build()
+		.execute_with(|| {
+			// Setup 4 accounts - only 2 will actually migrate
+			setup_collator_with_lock(1, 500);
+			setup_collator_with_lock(2, 400);
+			// Account 3 and 4 will not have valid staking state, so won't migrate
+
+			// Verify initial state
+			assert_not_migrated(1, true);
+			assert_not_migrated(2, true);
+
+			// Try to migrate 4 accounts, but only 2 will succeed (50% success rate)
+			let result = ParachainStaking::migrate_locks_to_freezes_batch(
+				RuntimeOrigin::signed(1),
+				vec![(1, true), (2, true), (3, true), (4, false)]
+					.try_into()
+					.unwrap(),
+			);
+
+			// Should succeed with fee refund (exactly 50% = refund)
+			assert_ok!(result);
+			let post_info = result.unwrap();
+			assert_eq!(post_info.pays_fee, frame_support::dispatch::Pays::No);
+
+			// Verify only accounts with valid state were migrated
+			assert_migrated(1, true);
+			assert_migrated(2, true);
+			assert_not_migrated(3, true);
+			assert_not_migrated(4, false);
+
+			// Verify freeze amounts for successful migrations
+			assert_freeze_amount_and_no_lock(1, 500, true);
+			assert_freeze_amount_and_no_lock(2, 400, true);
+		});
+}
+
+#[test]
+fn migrate_batch_no_fee_refund_when_less_than_50_percent_succeed() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000), (2, 1000), (3, 1000), (4, 1000)])
+		.build()
+		.execute_with(|| {
+			// Setup only 1 account with valid staking state out of 4
+			setup_collator_with_lock(1, 500);
+			// Accounts 2, 3, 4 have no valid staking state
+
+			// Verify initial state
+			assert_not_migrated(1, true);
+
+			// Try to migrate 4 accounts, but only 1 will succeed (25% success rate)
+			let result = ParachainStaking::migrate_locks_to_freezes_batch(
+				RuntimeOrigin::signed(1),
+				vec![(1, true), (2, true), (3, false), (4, false)]
+					.try_into()
+					.unwrap(),
+			);
+
+			// Should succeed but charge normal fee (< 50% success)
+			assert_ok!(result);
+			let post_info = result.unwrap();
+			assert_eq!(post_info.pays_fee, frame_support::dispatch::Pays::Yes);
+
+			// Verify only the valid account was migrated
+			assert_migrated(1, true);
+			assert_not_migrated(2, true);
+			assert_not_migrated(3, false);
+			assert_not_migrated(4, false);
+
+			// Verify freeze amount for successful migration
+			assert_freeze_amount_and_no_lock(1, 500, true);
+		});
+}
+
+#[test]
+fn migrate_batch_no_fee_refund_when_all_already_migrated() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000), (2, 1000)])
+		.build()
+		.execute_with(|| {
+			// Setup accounts and migrate them first
+			setup_collator_with_lock(1, 500);
+			setup_collator_with_lock(2, 400);
+
+			// Pre-migrate both accounts
+			assert_ok!(ParachainStaking::migrate_locks_to_freezes_batch(
+				RuntimeOrigin::signed(1),
+				vec![(1, true), (2, true)].try_into().unwrap(),
+			));
+
+			// Verify they are migrated
+			assert_migrated(1, true);
+			assert_migrated(2, true);
+
+			// Try to migrate them again - 0% new migrations
+			let result = ParachainStaking::migrate_locks_to_freezes_batch(
+				RuntimeOrigin::signed(1),
+				vec![(1, true), (2, true)].try_into().unwrap(),
+			);
+
+			// Should succeed but charge normal fee (0% new migrations)
+			assert_ok!(result);
+			let post_info = result.unwrap();
+			assert_eq!(post_info.pays_fee, frame_support::dispatch::Pays::Yes);
+
+			// Accounts should still be migrated
+			assert_migrated(1, true);
+			assert_migrated(2, true);
+		});
+}
+
+#[test]
+fn migrate_batch_empty_batch_returns_error() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000)])
+		.build()
+		.execute_with(|| {
+			// Try to migrate empty batch
+			let result = ParachainStaking::migrate_locks_to_freezes_batch(
+				RuntimeOrigin::signed(1),
+				vec![].try_into().unwrap(),
+			);
+
+			// Should fail with EmptyMigrationBatch error
+			assert_eq!(
+				result,
+				Err(crate::Error::<crate::mock::Test>::EmptyMigrationBatch.into())
+			);
+		});
+}
+
+#[test]
+fn migrate_batch_mixed_success_rates_test_boundaries() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1000), (2, 1000), (3, 1000)])
+		.build()
+		.execute_with(|| {
+			// Test with 3 accounts - need 2 to succeed for >= 50%
+			setup_collator_with_lock(1, 500);
+			setup_collator_with_lock(2, 400);
+			// Account 3 has no valid staking state
+
+			// Try to migrate 3 accounts, 2 will succeed (66.6% success rate)
+			let result = ParachainStaking::migrate_locks_to_freezes_batch(
+				RuntimeOrigin::signed(1),
+				vec![(1, true), (2, true), (3, true)].try_into().unwrap(),
+			);
+
+			// Should succeed with fee refund (> 50% success)
+			assert_ok!(result);
+			let post_info = result.unwrap();
+			assert_eq!(post_info.pays_fee, frame_support::dispatch::Pays::No); // Complete refund
+
+			// Verify successful migrations
+			assert_migrated(1, true);
+			assert_migrated(2, true);
+			assert_not_migrated(3, true); // No valid candidate state
+		});
+}
