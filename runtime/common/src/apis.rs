@@ -45,9 +45,8 @@ macro_rules! impl_runtime_apis_plus_common {
 
 		/// AccountId Converter used for benchmarks.
 		///
-		/// Since in moonbeam we use 20-byte account ids, we need to
-		/// convert the `AccountId32` to a 20-byte array for pallet_xcm_benchmarks
-		/// to work correctly. This workaround is only needed for benchmarks.
+		/// * AccountId32 Junction is being used in pallet_xcm_benchmarks
+		/// * Parent is used as valid destination location for benchmarking.
 		#[cfg(feature = "runtime-benchmarks")]
 		pub struct BenchAccountIdConverter<AccountId>(sp_std::marker::PhantomData<AccountId>);
 

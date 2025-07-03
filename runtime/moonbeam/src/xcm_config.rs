@@ -754,7 +754,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type XcmLocationToH160 = LocationToH160;
 	#[cfg(feature = "runtime-benchmarks")]
-	type XcmLocationToH160 = super::BenchAccountIdConverter<H160>;
+	type XcmLocationToH160 = (LocationToH160, super::BenchAccountIdConverter<H160>);
 	type ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
 	type Balance = Balance;
 	type Currency = Balances;
