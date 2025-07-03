@@ -797,7 +797,10 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type MaxForeignAssets = ConstU32<256>;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type XcmLocationToH160 = LocationToH160;
+	#[cfg(feature = "runtime-benchmarks")]
+	type XcmLocationToH160 = super::BenchAccountIdConverter<H160>;
 	type ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
 	type Balance = Balance;
 	type Currency = Balances;

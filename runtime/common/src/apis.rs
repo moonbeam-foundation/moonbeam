@@ -43,6 +43,34 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 		}
 
+		/// AccountId Converter used for benchmarks.
+		///
+		/// Since in moonbeam we use 20-byte account ids, we need to
+		/// convert the `AccountId32` to a 20-byte array for pallet_xcm_benchmarks
+		/// to work correctly. This workaround is only needed for benchmarks.
+		#[cfg(feature = "runtime-benchmarks")]
+		pub struct BenchAccountIdConverter<AccountId>(sp_std::marker::PhantomData<AccountId>);
+
+		#[cfg(feature = "runtime-benchmarks")]
+		impl<AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone> xcm_executor::traits::ConvertLocation<AccountId>
+			for BenchAccountIdConverter<AccountId>
+		{
+			fn convert_location(location: &xcm::latest::prelude::Location) -> Option<AccountId> {
+				match location.unpack() {
+					(0, [xcm::latest::prelude::AccountId32 { id, network: None }]) => {
+						// take the first 20 bytes of the id and convert to fixed-size array
+						let mut id20: [u8; 20] = [0u8; 20];
+						id20.copy_from_slice(&id[..20]);
+						Some(id20.into())
+					},
+					(1, []) => {
+						Some([1u8; 20].into())
+					},
+					_ => return None,
+				}
+			}
+		}
+
 		impl_runtime_apis! {
 			$($custom)*
 
@@ -947,36 +975,16 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 					}
 
-					/// Since in moonbeam we use 20-byte account ids, we need to
-					/// convert the `AccountId32` to a 20-byte array for pallet_xcm_benchmarks
-					/// to work correctly. This workaround is only needed for benchmarks.
-					pub struct BenchAccountId32Aliases<AccountId>(sp_std::marker::PhantomData<AccountId>);
-
-					impl<AccountId: From<[u8; 20]> + Into<[u8; 20]> + Clone> ConvertLocation<AccountId>
-						for BenchAccountId32Aliases<AccountId>
-					{
-						fn convert_location(location: &Location) -> Option<AccountId> {
-							let id = match location.unpack() {
-								(0, [AccountId32 { id, network: None }]) => id,
-								_ => return None,
-							};
-							// take the first 20 bytes of the id and convert to fixed-size array
-							let mut id20: [u8; 20] = [0u8; 20];
-							id20.copy_from_slice(&id[..20]);
-							Some(id20.into())
-						}
-					}
-
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
-						type AccountIdConverter = BenchAccountId32Aliases<AccountId>;
+						type AccountIdConverter = BenchAccountIdConverter<AccountId>;
 						type DeliveryHelper = ();
 						fn valid_destination() -> Result<Location, BenchmarkError> {
 							Ok(Location::parent())
 						}
 						fn worst_case_holding(_depositable_count: u32) -> XcmAssets {
 							const HOLDING_FUNGIBLES: u32 = MaxAssetsIntoHolding::get();
-							let fungibles_amount: u128 = 100;
+							let fungibles_amount: u128 = 1_000 * ExistentialDeposit::get();
 							let assets = (1..=HOLDING_FUNGIBLES).map(|i| {
 								let location: Location = GeneralIndex(i as u128).into();
 								Asset {
@@ -1033,10 +1041,28 @@ macro_rules! impl_runtime_apis_plus_common {
 						fn get_asset() -> Asset {
 							// We put more than ED here for being able to keep accounts alive when transferring
 							// and paying the delivery fees.
-							Asset {
-								id: AssetId(TokenLocation::get()),
-								fun: Fungible(1_000_000 * ExistentialDeposit::get()),
-							}
+							let location: Location = GeneralIndex(1).into();
+							let asset_id = 1u128;
+							let decimals = 18u8;
+							let asset = Asset {
+								id: AssetId(location.clone()),
+								fun: Fungible(100 * ExistentialDeposit::get()),
+							};
+							EvmForeignAssets::set_asset(
+								location.clone(),
+								asset_id,
+							);
+							XcmWeightTrader::set_asset_price(
+								location.clone(),
+								10u128.pow(decimals as u32)
+							);
+							EvmForeignAssets::create_asset_contract(
+								asset_id,
+								decimals,
+								"TKN",
+								"Token",
+							).unwrap();
+							asset
 						}
 					}
 
@@ -1083,7 +1109,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 
 						fn worst_case_for_trader() -> Result<(Asset, WeightLimit), BenchmarkError> {
-							let location: Location = GeneralIndex(99).into();
+							let location: Location = GeneralIndex(1).into();
 							Ok((
 								Asset {
 									id: AssetId(Location::parent()),

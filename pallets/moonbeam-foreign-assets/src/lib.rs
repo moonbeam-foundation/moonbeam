@@ -424,6 +424,16 @@ pub mod pallet {
 			AssetsByLocation::<T>::insert(&asset_location, (asset_id, AssetStatus::Active));
 			AssetsById::<T>::insert(&asset_id, asset_location);
 		}
+
+		#[cfg(feature = "runtime-benchmarks")]
+		pub fn create_asset_contract(
+			asset_id: AssetId,
+			decimals: u8,
+			symbol: &str,
+			name: &str,
+		) -> Result<H160, Error<T>> {
+			EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)
+		}
 	}
 
 	#[pallet::call]
@@ -771,6 +781,17 @@ pub mod pallet {
 			})?;
 
 			Ok(what.clone().into())
+		}
+
+		#[cfg(feature = "runtime-benchmarks")]
+		fn can_check_out(_dest: &Location, _what: &Asset, _context: &XcmContext) -> XcmResult {
+			// Needed for the benchmarks to work
+			Ok(())
+		}
+
+		#[cfg(feature = "runtime-benchmarks")]
+		fn check_out(_dest: &Location, _what: &Asset, _context: &XcmContext) {
+			// Needed for benchmarks to work
 		}
 	}
 
