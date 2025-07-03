@@ -6,7 +6,7 @@ pragma experimental ABIEncoderV2;
 
 import "./Governance.sol";
 
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
 contract Implementation is Governance {
     event LogMessagePublished(address indexed sender, uint64 sequence, uint32 nonce, bytes payload, uint8 consistencyLevel);
@@ -62,7 +62,7 @@ contract Implementation is Governance {
     }
 
     modifier initializer() {
-        address implementation = ERC1967Upgrade._getImplementation();
+        address implementation = ERC1967Utils.getImplementation();
 
         require(
             !isInitialized(implementation),

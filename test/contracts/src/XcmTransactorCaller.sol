@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Compatible with OpenZeppelin Contracts ^5.0.0
-pragma solidity =0.8.25;
+pragma solidity >=0.8.25;
 
 import "../../../precompiles/xcm-transactor/src/v1/XcmTransactorV1.sol";
 import "../../../precompiles/xcm-transactor/src/v3/XcmTransactorV3.sol";
