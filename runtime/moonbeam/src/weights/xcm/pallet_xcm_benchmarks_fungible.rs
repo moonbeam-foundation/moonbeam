@@ -27,7 +27,7 @@
 // v1
 // benchmark
 // pallet
-// --runtime=./target/release/wbuild/moonbeam-runtime/moonbeam_runtime.wasm
+// --runtime=./target/release/wbuild/moonbase-runtime/moonbase_runtime.wasm
 // --genesis-builder=runtime
 // --genesis-builder-preset=development
 // --steps=50
@@ -38,7 +38,7 @@
 // --header=./file_header.txt
 // --template=./benchmarking/xcm-weight-template.hbs
 // --disable-log-color
-// --output=./runtime/moonbeam/src/weights/xcm
+// --output=./runtime/moonbase/src/weights/xcm
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -80,10 +80,10 @@ impl<T: frame_system::Config> WeightInfo<T> {
 	/// Proof: `Ethereum::Pending` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	pub(crate) fn withdraw_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `13352`
-		//  Estimated: `68792`
-		// Minimum execution time: 382_000_000 picoseconds.
-		Weight::from_parts(396_000_000, 68792)
+		//  Measured:  `13484`
+		//  Estimated: `68924`
+		// Minimum execution time: 374_000_000 picoseconds.
+		Weight::from_parts(384_000_000, 68924)
 			.saturating_add(T::DbWeight::get().reads(39))
 			.saturating_add(T::DbWeight::get().writes(6))
 	}
@@ -119,8 +119,8 @@ impl<T: frame_system::Config> WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `12572`
 		//  Estimated: `20987`
-		// Minimum execution time: 259_000_000 picoseconds.
-		Weight::from_parts(269_000_000, 20987)
+		// Minimum execution time: 252_000_000 picoseconds.
+		Weight::from_parts(254_000_000, 20987)
 			.saturating_add(T::DbWeight::get().reads(19))
 			.saturating_add(T::DbWeight::get().writes(6))
 	}
@@ -166,8 +166,8 @@ impl<T: frame_system::Config> WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `12679`
 		//  Estimated: `21094`
-		// Minimum execution time: 291_000_000 picoseconds.
-		Weight::from_parts(301_000_000, 21094)
+		// Minimum execution time: 285_000_000 picoseconds.
+		Weight::from_parts(291_000_000, 21094)
 			.saturating_add(T::DbWeight::get().reads(24))
 			.saturating_add(T::DbWeight::get().writes(8))
 	}
@@ -195,7 +195,7 @@ impl<T: frame_system::Config> WeightInfo<T> {
 		//  Measured:  `145`
 		//  Estimated: `3610`
 		// Minimum execution time: 179_000_000 picoseconds.
-		Weight::from_parts(187_000_000, 3610)
+		Weight::from_parts(181_000_000, 3610)
 			.saturating_add(T::DbWeight::get().reads(5))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
@@ -225,10 +225,10 @@ impl<T: frame_system::Config> WeightInfo<T> {
 	/// Proof: `Ethereum::Pending` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	pub(crate) fn deposit_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `15255`
-		//  Estimated: `70695`
-		// Minimum execution time: 279_000_000 picoseconds.
-		Weight::from_parts(288_000_000, 70695)
+		//  Measured:  `15453`
+		//  Estimated: `70893`
+		// Minimum execution time: 276_000_000 picoseconds.
+		Weight::from_parts(282_000_000, 70893)
 			.saturating_add(T::DbWeight::get().reads(35))
 			.saturating_add(T::DbWeight::get().writes(4))
 	}
@@ -268,10 +268,10 @@ impl<T: frame_system::Config> WeightInfo<T> {
 	/// Proof: `ParachainSystem::PendingUpwardMessages` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	pub(crate) fn deposit_reserve_asset() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `15362`
-		//  Estimated: `70802`
-		// Minimum execution time: 323_000_000 picoseconds.
-		Weight::from_parts(349_000_000, 70802)
+		//  Measured:  `15560`
+		//  Estimated: `71000`
+		// Minimum execution time: 320_000_000 picoseconds.
+		Weight::from_parts(334_000_000, 71000)
 			.saturating_add(T::DbWeight::get().reads(40))
 			.saturating_add(T::DbWeight::get().writes(6))
 	}
@@ -291,8 +291,8 @@ impl<T: frame_system::Config> WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `148`
 		//  Estimated: `3613`
-		// Minimum execution time: 69_000_000 picoseconds.
-		Weight::from_parts(83_000_000, 3613)
+		// Minimum execution time: 78_000_000 picoseconds.
+		Weight::from_parts(80_000_000, 3613)
 			.saturating_add(T::DbWeight::get().reads(6))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
@@ -332,10 +332,10 @@ impl<T: frame_system::Config> WeightInfo<T> {
 	/// Proof: `ParachainSystem::PendingUpwardMessages` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	pub(crate) fn initiate_transfer() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `15362`
-		//  Estimated: `70802`
-		// Minimum execution time: 556_000_000 picoseconds.
-		Weight::from_parts(590_000_000, 70802)
+		//  Measured:  `15560`
+		//  Estimated: `71000`
+		// Minimum execution time: 546_000_000 picoseconds.
+		Weight::from_parts(557_000_000, 71000)
 			.saturating_add(T::DbWeight::get().reads(41))
 			.saturating_add(T::DbWeight::get().writes(7))
 	}

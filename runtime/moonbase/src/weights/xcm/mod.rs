@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-pub mod fungible;
-pub mod generic;
+pub mod pallet_xcm_benchmarks_fungible;
+pub mod pallet_xcm_benchmarks_generic;
 
 use core::cmp::min;
 use frame_support::{weights::Weight, BoundedVec};
-use fungible::WeightInfo as XcmFungibleWeight;
-use generic::SubstrateWeight as XcmGeneric;
-pub use generic::WeightInfo;
+use pallet_xcm_benchmarks_fungible::WeightInfo as XcmFungibleWeight;
+use pallet_xcm_benchmarks_generic::WeightInfo as XcmGeneric;
 use sp_std::prelude::*;
 use xcm::{
 	latest::{prelude::*, Weight as XCMWeight},
@@ -31,29 +30,27 @@ use xcm::{
 use xcm_primitives::MAX_ASSETS;
 
 trait WeighMultiAssets {
-	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight;
+	fn weigh_assets(&self, weight: Weight) -> XCMWeight;
 }
 
 trait WeighMultiAssetsFilter {
-	fn weigh_multi_assets_filter(&self, weight: Weight) -> XCMWeight;
+	fn weigh_assets(&self, weight: Weight) -> XCMWeight;
 }
 
 impl WeighMultiAssetsFilter for AssetFilter {
-	fn weigh_multi_assets_filter(&self, weight: Weight) -> XCMWeight {
+	fn weigh_assets(&self, weight: Weight) -> XCMWeight {
 		match self {
-			Self::Definite(assets) => {
-				weight.saturating_mul(assets.inner().into_iter().count() as u64)
-			}
-			Self::Wild(AllCounted(count) | AllOfCounted { count, .. }) => {
+			Definite(assets) => weight.saturating_mul(assets.inner().into_iter().count() as u64),
+			Wild(AllCounted(count) | AllOfCounted { count, .. }) => {
 				weight.saturating_mul(min(MAX_ASSETS, *count) as u64)
 			}
-			Self::Wild(All | AllOf { .. }) => weight.saturating_mul(MAX_ASSETS as u64),
+			Wild(All | AllOf { .. }) => weight.saturating_mul(MAX_ASSETS as u64),
 		}
 	}
 }
 
 impl WeighMultiAssets for Assets {
-	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight {
+	fn weigh_assets(&self, weight: Weight) -> XCMWeight {
 		weight.saturating_mul(self.inner().into_iter().count() as u64)
 	}
 }
@@ -66,16 +63,15 @@ where
 		+ pallet_moonbeam_foreign_assets::Config,
 {
 	fn withdraw_asset(assets: &Assets) -> XCMWeight {
-		assets.inner().iter().fold(Weight::zero(), |acc, asset| {
-			acc.saturating_add(XcmFungibleWeight::<Runtime>::withdraw_asset(&asset))
-		})
+		assets.weigh_assets(XcmFungibleWeight::<Runtime>::withdraw_asset())
 	}
 	// Currently there is no trusted reserve
-	fn reserve_asset_deposited(_assets: &Assets) -> XCMWeight {
-		XcmFungibleWeight::<Runtime>::reserve_asset_deposited()
+	fn reserve_asset_deposited(assets: &Assets) -> XCMWeight {
+		assets.weigh_assets(XcmFungibleWeight::<Runtime>::reserve_asset_deposited())
 	}
-	fn receive_teleported_asset(assets: &Assets) -> XCMWeight {
-		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::receive_teleported_asset())
+	fn receive_teleported_asset(_assets: &Assets) -> XCMWeight {
+		// Instruction disabled
+		Weight::MAX
 	}
 	fn query_response(
 		_query_id: &u64,
@@ -86,14 +82,10 @@ where
 		XcmGeneric::<Runtime>::query_response()
 	}
 	fn transfer_asset(assets: &Assets, _dest: &Location) -> XCMWeight {
-		assets.inner().iter().fold(Weight::zero(), |acc, asset| {
-			acc.saturating_add(XcmFungibleWeight::<Runtime>::transfer_asset(&asset))
-		})
+		assets.weigh_assets(XcmFungibleWeight::<Runtime>::transfer_asset())
 	}
 	fn transfer_reserve_asset(assets: &Assets, _dest: &Location, _xcm: &Xcm<()>) -> XCMWeight {
-		assets.inner().iter().fold(Weight::zero(), |acc, asset| {
-			acc.saturating_add(XcmFungibleWeight::<Runtime>::transfer_reserve_asset(&asset))
-		})
+		assets.weigh_assets(XcmFungibleWeight::<Runtime>::transfer_reserve_asset())
 	}
 	fn transact(
 		_origin_type: &OriginKind,
@@ -128,23 +120,20 @@ where
 		XcmGeneric::<Runtime>::report_error()
 	}
 	fn deposit_asset(assets: &AssetFilter, _dest: &Location) -> XCMWeight {
-		assets.weigh_multi_assets_filter(XcmFungibleWeight::<Runtime>::deposit_asset())
+		assets.weigh_assets(XcmFungibleWeight::<Runtime>::deposit_asset())
 	}
 	fn deposit_reserve_asset(assets: &AssetFilter, _dest: &Location, _xcm: &Xcm<()>) -> XCMWeight {
-		assets.weigh_multi_assets_filter(XcmFungibleWeight::<Runtime>::deposit_reserve_asset())
+		assets.weigh_assets(XcmFungibleWeight::<Runtime>::deposit_reserve_asset())
 	}
 	fn exchange_asset(_give: &AssetFilter, _receive: &Assets, _maximal: &bool) -> XCMWeight {
 		Weight::MAX
 	}
 	fn initiate_reserve_withdraw(
-		_assets: &AssetFilter,
+		assets: &AssetFilter,
 		_reserve: &Location,
 		_xcm: &Xcm<()>,
 	) -> XCMWeight {
-		// This is not correct. initiate reserve withdraw does not to that many db reads
-		// the only thing it does based on number of assets is a take from a local variable
-		//assets.weigh_multi_assets(XcmGeneric::<Runtime>::initiate_reserve_withdraw())
-		XcmGeneric::<Runtime>::initiate_reserve_withdraw()
+		assets.weigh_assets(XcmFungibleWeight::<Runtime>::initiate_reserve_withdraw())
 	}
 	fn initiate_teleport(_assets: &AssetFilter, _dest: &Location, _xcm: &Xcm<()>) -> XCMWeight {
 		XcmFungibleWeight::<Runtime>::initiate_teleport()
@@ -180,10 +169,10 @@ where
 		XcmGeneric::<Runtime>::unsubscribe_version()
 	}
 	fn burn_asset(assets: &Assets) -> Weight {
-		assets.weigh_multi_assets(XcmGeneric::<Runtime>::burn_asset())
+		assets.weigh_assets(XcmGeneric::<Runtime>::burn_asset())
 	}
 	fn expect_asset(assets: &Assets) -> Weight {
-		assets.weigh_multi_assets(XcmGeneric::<Runtime>::expect_asset())
+		assets.weigh_assets(XcmGeneric::<Runtime>::expect_asset())
 	}
 	fn expect_origin(_origin: &Option<Location>) -> Weight {
 		XcmGeneric::<Runtime>::expect_origin()
@@ -213,7 +202,7 @@ where
 		XcmGeneric::<Runtime>::clear_transact_status()
 	}
 	fn universal_origin(_: &Junction) -> Weight {
-		XcmGeneric::<Runtime>::universal_origin()
+		Weight::MAX
 	}
 	fn export_message(_: &NetworkId, _: &Junctions, _: &Xcm<()>) -> Weight {
 		Weight::MAX
@@ -250,18 +239,39 @@ where
 		XcmGeneric::<Runtime>::pay_fees()
 	}
 	fn initiate_transfer(
-		_: &v5::Location,
-		_: &Option<AssetTransferFilter>,
-		_: &bool,
-		_: &BoundedVec<AssetTransferFilter, MaxAssetTransferFilters>,
-		_: &v5::Xcm<()>,
+		_dest: &Location,
+		remote_fees: &Option<AssetTransferFilter>,
+		_preserve_origin: &bool,
+		assets: &BoundedVec<AssetTransferFilter, MaxAssetTransferFilters>,
+		_xcm: &Xcm<()>,
 	) -> Weight {
-		XcmGeneric::<Runtime>::initiate_transfer()
+		let base_weight = XcmFungibleWeight::<Runtime>::initiate_transfer();
+		let mut weight = if let Some(remote_fees) = remote_fees {
+			let fees = remote_fees.inner();
+			fees.weigh_assets(base_weight)
+		} else {
+			base_weight
+		};
+
+		for asset_filter in assets {
+			let assets = asset_filter.inner();
+			let extra = assets.weigh_assets(XcmFungibleWeight::<Runtime>::initiate_transfer());
+			weight = weight.saturating_add(extra);
+		}
+		weight
 	}
 	fn execute_with_origin(_: &Option<v5::Junctions>, _: &v5::Xcm<Call>) -> Weight {
 		XcmGeneric::<Runtime>::execute_with_origin()
 	}
-	fn set_hints(_: &BoundedVec<Hint, HintNumVariants>) -> Weight {
-		XcmGeneric::<Runtime>::set_hints()
+	fn set_hints(hints: &BoundedVec<Hint, HintNumVariants>) -> Weight {
+		let mut weight = Weight::zero();
+		for hint in hints {
+			match hint {
+				AssetClaimer { .. } => {
+					weight = weight.saturating_add(XcmGeneric::<Runtime>::asset_claimer());
+				}
+			}
+		}
+		weight
 	}
 }
