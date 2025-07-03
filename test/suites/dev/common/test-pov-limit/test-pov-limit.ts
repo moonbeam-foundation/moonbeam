@@ -1,4 +1,4 @@
-import { deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
 import { encodeFunctionData } from "viem";
 import { deployHeavyContracts, getBlockDetails } from "../../../../helpers";
 import { baltathar, BALTATHAR_ADDRESS } from "@moonwall/util";
@@ -10,7 +10,7 @@ describeSuite({
   title: "PoV Limit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    async function heavyContractsMethod() {
+    beforeAll(async function () {
       const { contractAddress, abi } = await deployCreateCompiledContract(context, "CallForwarder");
 
       const MAX_CONTRACTS = 40;
@@ -65,14 +65,12 @@ describeSuite({
         }
       }
       await new Promise((resolve) => setTimeout(resolve, 50));
-    }
+    });
 
     it({
       id: "T01",
       title: "Test PoV Limit",
       test: async function () {
-        await heavyContractsMethod();
-
         const res = await context.createBlock();
 
         const blockDetails = await getBlockDetails(context.polkadotJs(), res.block.hash);
@@ -94,8 +92,8 @@ describeSuite({
         console.log(`Proof size: ${floatPov / 1024} KB`);
         console.log(`Proof size: ${floatPov / 1024 / 1024} MB`);
 
-        // 75% of 10MB
-        const limit = 10 * 1024 * 1024 * 0.75;
+        // 75% of 85% of 10MB
+        const limit = 10 * 1024 * 1024 * 0.75 * 0.85;
         expect(
           floatPov,
           `Included ${txCount} extrinsics did not fit in the PoV limit`
