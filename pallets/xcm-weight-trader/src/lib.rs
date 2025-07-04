@@ -425,8 +425,7 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 			let weight_to_refund = weight_to_refund.min(self.0);
 			let amount_to_refund: u128 =
 				Self::compute_amount_to_charge(&weight_to_refund, &location).unwrap_or(u128::MAX);
-			let final_amount = amount_to_refund.min(initial_amount);
-			let amount_to_refund = initial_amount.saturating_sub(final_amount);
+			let final_amount = initial_amount.saturating_sub(amount_to_refund);
 			self.0 -= weight_to_refund;
 			self.1 = Some(Asset {
 				fun: Fungibility::Fungible(final_amount),
