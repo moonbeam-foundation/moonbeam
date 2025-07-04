@@ -220,7 +220,7 @@ fn test_pause_asset_support() {
 			Error::<Test>::AssetAlreadyPaused
 		);
 
-		// Should be able to udpate relative price of paused asset
+		// Should be able to update relative price of paused asset
 		assert_ok!(XcmWeightTrader::edit_asset(
 			RuntimeOrigin::signed(EditAccount::get()),
 			Location::parent(),
