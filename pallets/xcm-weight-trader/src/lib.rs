@@ -408,11 +408,11 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 		}
 	}
 
-	fn refund_weight(&mut self, actual_weight: Weight, context: &XcmContext) -> Option<Asset> {
+	fn refund_weight(&mut self, weight_to_refund: Weight, context: &XcmContext) -> Option<Asset> {
 		log::trace!(
 			target: "xcm-weight-trader",
 			"refund_weight weight: {:?}, context: {:?}, available weight: {:?}, asset: {:?}",
-			actual_weight,
+			weight_to_refund,
 			context,
 			self.0,
 			self.1
@@ -422,13 +422,14 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 			id: XcmAssetId(location),
 		}) = self.1.take()
 		{
-			let weight = actual_weight.min(self.0);
-			let amount: u128 =
-				Self::compute_amount_to_charge(&weight, &location).unwrap_or(u128::MAX);
-			let amount_to_refund = initial_amount.saturating_sub(amount);
-			self.0 -= weight;
+			let weight_to_refund = weight_to_refund.min(self.0);
+			let amount_to_refund: u128 =
+				Self::compute_amount_to_charge(&weight_to_refund, &location).unwrap_or(u128::MAX);
+			let final_amount = amount_to_refund.min(initial_amount);
+			let amount_to_refund = initial_amount.saturating_sub(final_amount);
+			self.0 -= weight_to_refund;
 			self.1 = Some(Asset {
-				fun: Fungibility::Fungible(amount_to_refund),
+				fun: Fungibility::Fungible(final_amount),
 				id: XcmAssetId(location.clone()),
 			});
 			log::trace!(
@@ -436,9 +437,9 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 				"refund_weight amount to refund: {:?}",
 				amount_to_refund
 			);
-			if amount > 0 {
+			if amount_to_refund > 0 {
 				Some(Asset {
-					fun: Fungibility::Fungible(amount),
+					fun: Fungibility::Fungible(amount_to_refund),
 					id: XcmAssetId(location),
 				})
 			} else {
