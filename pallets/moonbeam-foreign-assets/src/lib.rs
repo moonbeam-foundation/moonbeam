@@ -200,7 +200,7 @@ pub mod pallet {
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
 
-		/// Maximum numbers of differnt foreign assets
+		/// Maximum numbers of different foreign assets
 		type MaxForeignAssets: Get<u32>;
 
 		/// The overarching event type.
