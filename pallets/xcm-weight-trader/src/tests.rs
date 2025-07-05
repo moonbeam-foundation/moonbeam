@@ -426,7 +426,10 @@ fn test_trader_native_asset() {
 		let actual_weight = weight_to_buy;
 		assert_eq!(
 			trader.refund_weight(actual_weight, &dummy_xcm_context),
-			None
+			Some(Asset {
+				id: XcmAssetId(Location::here()),
+				fun: Fungibility::Fungible(10_000),
+			}),
 		);
 
 		// Should not be able to buy weight again with the same trader
@@ -443,9 +446,9 @@ fn test_trader_native_asset() {
 			Err(XcmError::NotWithdrawable)
 		);
 
-		// Fees asset should be deposited into XcmFeesAccount
+		// XcmFeesAccount should have zero balance
 		drop(trader);
-		assert_eq!(Balances::free_balance(&xcm_fees_account()), 10_000);
+		assert_eq!(Balances::free_balance(&xcm_fees_account()), 0);
 
 		// Should be able to buy weight with more native asset (and get back unused amount)
 		let mut trader = Trader::<Test>::new();
@@ -471,16 +474,16 @@ fn test_trader_native_asset() {
 		assert_eq!(
 			trader.refund_weight(actual_weight, &dummy_xcm_context),
 			Some(Asset {
-				fun: Fungibility::Fungible(2_000),
+				fun: Fungibility::Fungible(8_000),
 				id: XcmAssetId(Location::here()),
 			})
 		);
 
-		// Fees asset should be deposited again into XcmFeesAccount (2 times cost minus one refund)
+		// Fees asset should be deposited again into XcmFeesAccount
 		drop(trader);
 		assert_eq!(
 			Balances::free_balance(&xcm_fees_account()),
-			(2 * 10_000) - 2_000
+			2_000
 		);
 	})
 }
@@ -526,7 +529,7 @@ fn test_trader_parent_asset() {
 		assert_eq!(
 			trader.refund_weight(actual_weight, &dummy_xcm_context),
 			Some(Asset {
-				fun: Fungibility::Fungible(4_000_000_000_000),
+				fun: Fungibility::Fungible(16_000_000_000_000),
 				id: XcmAssetId(Location::parent()),
 			})
 		);
@@ -535,7 +538,7 @@ fn test_trader_parent_asset() {
 		drop(trader);
 		assert_eq!(
 			get_parent_asset_deposited(),
-			Some((xcm_fees_account(), 20_000_000_000_000 - 4_000_000_000_000))
+			Some((xcm_fees_account(), 20_000_000_000_000 - 16_000_000_000_000))
 		);
 
 		// Should not be able to buy weight if the asset is not a first position
