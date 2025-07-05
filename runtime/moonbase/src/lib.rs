@@ -478,7 +478,7 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 }
 
 /// A "Fast" TargetedFeeAdjustment. Parameters chosen based on model described here:
-/// https://research.web3.foundation/en/latest/polkadot/overview/2-token-economics.html#-1.-fast-adjusting-mechanism // editorconfig-checker-disable-line
+/// https://research.web3.foundation/Polkadot/overview/token-economics#1-fast-adjusting-mechanism
 ///
 /// The adjustment algorithm boils down to:
 ///

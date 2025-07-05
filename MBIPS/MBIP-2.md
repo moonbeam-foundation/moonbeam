@@ -78,14 +78,14 @@ interface StorageDeposit {
 The deposit will not be visible in the transaction fields. This will break the assumption that a transaction cannot remove more than the "gasLimit \* gasPrice" (or their EIP-1559 equivalent).  
 _(This is already the case with Precompiles. Ex: registering identity or a collator also reserves some amount from the sender)_
 
-(see [Addition 3](#addition-3---deposit-from-the-value) for a possible solution)
+(see [Addition 1](#addition-1---deposit-from-the-value) for a possible solution)
 
 This proposal impacts mostly the users as each one might get a deposit if they
 interact with a smart contract that is increasing the state storage size.
 
 ## Security Considerations
 
-A possible attack from a bad actor could be done by tricking a user to send a transaction to a smart contract which would trigger many CREATE to drain the user account into the deposit that the user won't be able to retrieve. (see [Addition 3](#addition-1---deposit-from-the-value) for a possible solution)
+A possible attack from a bad actor could be done by tricking a user to send a transaction to a smart contract which would trigger many CREATE to drain the user account into the deposit that the user won't be able to retrieve. (see [Addition 1](#addition-1---deposit-from-the-value) for a possible solution)
 
 Additionally some people might gamble that the deposit storage ratio (GLMR/bytes) will increase in the future and start to store more data on-chain in the hope to "resell" that storage in the future. However it is very unlikely for the storage to increase as the cost of storage becomes cheaper over time.
 
