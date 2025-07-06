@@ -1491,8 +1491,8 @@ construct_runtime! {
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event<T>} = 109,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 111,
-		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 114,
-		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 115,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>, Config<T>} = 114,
+		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>, Config<T>} = 115,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 116,
 		MultiBlockMigrations: pallet_multiblock_migrations = 117,
 
@@ -1506,10 +1506,10 @@ construct_runtime! {
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
 
 		// Bridge pallets (reserved indexes from 130 to 140)
-		BridgeKusamaGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
-		BridgeKusamaParachains: pallet_bridge_parachains::<Instance1>::{Pallet, Call, Storage, Event<T>} = 131,
-		BridgeKusamaMessages: pallet_bridge_messages::<Instance1>::{Pallet, Call, Storage, Event<T>} = 132,
-		BridgeXcmOverMoonriver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason} = 133,
+		BridgeKusamaGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>, Config<T>} = 130,
+		BridgeKusamaParachains: pallet_bridge_parachains::<Instance1>::{Pallet, Call, Storage, Event<T>, Config<T>} = 131,
+		BridgeKusamaMessages: pallet_bridge_messages::<Instance1>::{Pallet, Call, Storage, Event<T>, Config<T>} = 132,
+		BridgeXcmOverMoonriver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason, Config<T>} = 133,
 	}
 }
 
