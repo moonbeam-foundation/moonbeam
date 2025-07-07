@@ -271,20 +271,17 @@ const logMigrationStatistics = (stats: MigrationStats, log: any): void => {
   log(`  Total Accounts Processed: ${stats.totalProcessed}`);
   log(
     `  ✅ Successful: ${stats.totalSuccessful} (${(
-      (stats.totalSuccessful / stats.totalProcessed) *
-      100
+      (stats.totalSuccessful / stats.totalProcessed) * 100
     ).toFixed(2)}%)`
   );
   log(
     `  ❌ Failed: ${stats.totalFailed} (${(
-      (stats.totalFailed / stats.totalProcessed) *
-      100
+      (stats.totalFailed / stats.totalProcessed) * 100
     ).toFixed(2)}%)`
   );
   log(
     `  ⏭️  Skipped (RPC timeouts): ${stats.totalSkipped} (${(
-      (stats.totalSkipped / stats.totalProcessed) *
-      100
+      (stats.totalSkipped / stats.totalProcessed) * 100
     ).toFixed(2)}%)`
   );
 
