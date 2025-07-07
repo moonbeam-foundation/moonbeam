@@ -8,6 +8,7 @@ import {
   XCM_VERSIONS,
   registerOldForeignAsset,
   relayAssetMetadata,
+  convertXcmFragmentToVersion,
 } from "../../../../helpers";
 
 // Twelve decimal places in the moonbase relay chain's token
@@ -57,13 +58,7 @@ describeSuite({
           .buy_execution();
 
         // Convert to appropriate XCM version
-        if (xcmVersion === 3) {
-          xcmMessage = xcmMessage.as_v3();
-        } else if (xcmVersion === 4) {
-          xcmMessage = xcmMessage.as_v4();
-        } else if (xcmVersion === 5) {
-          xcmMessage = xcmMessage.as_v5();
-        }
+        xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
         const receivedMessage: XcmVersionedXcm = context
           .polkadotJs()
@@ -121,13 +116,7 @@ describeSuite({
             .deposit_asset();
 
           // Convert to appropriate XCM version
-          if (xcmVersion === 3) {
-            xcmMessage = xcmMessage.as_v3();
-          } else if (xcmVersion === 4) {
-            xcmMessage = xcmMessage.as_v4();
-          } else if (xcmVersion === 5) {
-            xcmMessage = xcmMessage.as_v5();
-          }
+          xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
           const receivedMessage: XcmVersionedXcm = context
             .polkadotJs()

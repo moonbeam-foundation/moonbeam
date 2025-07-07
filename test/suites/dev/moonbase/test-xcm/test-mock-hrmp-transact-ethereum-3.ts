@@ -13,6 +13,7 @@ import {
   descendOriginFromAddress20,
   type MultiLocation,
   weightMessage,
+  convertXcmFragmentToVersion,
 } from "../../../../helpers/xcm.js";
 import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 import { ConstantStore } from "../../../../helpers/constants.js";
@@ -229,13 +230,7 @@ describeSuite({
               });
 
             // Convert to appropriate XCM version
-            if (xcmVersion === 3) {
-              xcmMessage = xcmMessage.as_v3();
-            } else if (xcmVersion === 4) {
-              xcmMessage = xcmMessage.as_v4();
-            } else if (xcmVersion === 5) {
-              xcmMessage = xcmMessage.as_v5();
-            }
+            xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
             // Send an XCM and create block to execute it
             await injectHrmpMessageAndSeal(context, 1, {

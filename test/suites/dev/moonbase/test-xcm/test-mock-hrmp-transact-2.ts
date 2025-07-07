@@ -9,6 +9,7 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
+  convertXcmFragmentToVersion,
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
@@ -93,13 +94,7 @@ describeSuite({
             });
 
           // Convert to appropriate XCM version
-          if (xcmVersion === 3) {
-            xcmMessage = xcmMessage.as_v3();
-          } else if (xcmVersion === 4) {
-            xcmMessage = xcmMessage.as_v4();
-          } else if (xcmVersion === 5) {
-            xcmMessage = xcmMessage.as_v5();
-          }
+          xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
           // Send an XCM and create block to execute it
           await injectHrmpMessageAndSeal(context, 1, {

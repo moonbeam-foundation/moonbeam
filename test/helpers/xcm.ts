@@ -912,6 +912,27 @@ export const expectXcmEventMessage = async (context: DevModeContext, message: st
 
 type XcmCallback = (this: XcmFragment) => void;
 
+/**
+ * Converts an XcmFragment to the specified XCM version format.
+ * This helper method centralizes the version conversion logic.
+ *
+ * @param xcmFragment - The XcmFragment instance to convert
+ * @param xcmVersion - The target XCM version (3, 4, or 5)
+ * @returns The XcmFragment converted to the appropriate version format
+ */
+export function convertXcmFragmentToVersion(xcmFragment: XcmFragment, xcmVersion: XcmVersion): any {
+  switch (xcmVersion) {
+    case 3:
+      return xcmFragment.as_v3();
+    case 4:
+      return xcmFragment.as_v4();
+    case 5:
+      return xcmFragment.as_v5();
+    default:
+      throw new Error(`Unsupported XCM version: ${xcmVersion}`);
+  }
+}
+
 export const sendCallAsPara = async (
   call: any,
   paraId: number,
