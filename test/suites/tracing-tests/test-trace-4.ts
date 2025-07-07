@@ -6,7 +6,7 @@ import {
   baltathar,
   alith,
 } from "@moonwall/util";
-import BS_TRACER from "../../helpers/tracer/blockscout_tracer.min.json" assert { type: "json" };
+import BS_TRACER from "../../helpers/tracer/blockscout_tracer.min.json";
 
 describeSuite({
   id: "T05",

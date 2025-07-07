@@ -55,7 +55,6 @@ use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::Contains;
-
 use frame_system::pallet_prelude::*;
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
@@ -201,7 +200,7 @@ pub mod pallet {
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
 
-		/// Maximum numbers of differnt foreign assets
+		/// Maximum numbers of different foreign assets
 		type MaxForeignAssets: Get<u32>;
 
 		/// The overarching event type.
@@ -390,7 +389,7 @@ pub mod pallet {
 				.map_err(Into::into)
 		}
 
-		/// Aprrove a spender to spend a certain amount of tokens from the owner account
+		/// Approve a spender to spend a certain amount of tokens from the owner account
 		pub fn approve(
 			asset_id: AssetId,
 			owner: T::AccountId,
@@ -399,12 +398,14 @@ pub mod pallet {
 		) -> Result<(), evm::EvmError> {
 			// We perform the evm call in a storage transaction to ensure that if it fail
 			// any contract storage changes are rolled back.
-			EvmCaller::<T>::erc20_approve(
-				Self::contract_address_from_asset_id(asset_id),
-				T::AccountIdToH160::convert(owner),
-				T::AccountIdToH160::convert(spender),
-				amount,
-			)
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_approve(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(owner),
+					T::AccountIdToH160::convert(spender),
+					amount,
+				)
+			})
 			.map_err(Into::into)
 		}
 

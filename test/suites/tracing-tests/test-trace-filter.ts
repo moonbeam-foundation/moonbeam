@@ -93,7 +93,7 @@ describeSuite({
         expect(response.length).to.equal(1);
         expect(response[0].action.creationMethod).to.equal("create");
         expect(response[0].action.from).to.equal(ALITH_ADDRESS.toLocaleLowerCase());
-        expect(response[0].action.gas).to.equal("0x10df");
+        expect(response[0].action.gas).to.equal("0x10e0");
         expect(response[0].action.init).to.be.a("string");
         expect(response[0].action.value).to.equal("0x0");
         expect(response[0].blockHash).to.be.a("string");

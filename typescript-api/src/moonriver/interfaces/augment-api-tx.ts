@@ -38,6 +38,14 @@ import type {
 } from "@polkadot/types/interfaces/runtime";
 import type {
   AccountEthereumSignature,
+  BpHeaderChainInitializationData,
+  BpHeaderChainJustificationGrandpaJustification,
+  BpMessagesMessagesOperatingMode,
+  BpMessagesSourceChainFromBridgedChainMessagesDeliveryProof,
+  BpMessagesTargetChainFromBridgedChainMessagesProof,
+  BpMessagesUnrewardedRelayersState,
+  BpPolkadotCoreParachainsParaHeadsProof,
+  BpRuntimeBasicOperatingMode,
   CumulusPrimitivesCoreAggregateMessageOrigin,
   CumulusPrimitivesParachainInherentParachainInherentData,
   EthereumTransactionTransactionV2,
@@ -63,6 +71,8 @@ import type {
   PalletXcmTransactorCurrencyPayment,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorTransactWeights,
+  SpConsensusGrandpaAppPublic,
+  SpRuntimeHeader,
   SpRuntimeMultiSignature,
   SpWeightsWeightV2Weight,
   StagingXcmExecutorAssetTransferTransferType,
@@ -72,6 +82,7 @@ import type {
   XcmV3WeightLimit,
   XcmVersionedAssetId,
   XcmVersionedAssets,
+  XcmVersionedInteriorLocation,
   XcmVersionedLocation,
   XcmVersionedXcm
 } from "@polkadot/types/lookup";
@@ -1132,6 +1143,445 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
+    bridgePolkadotGrandpa: {
+      /**
+       * Set current authorities set and best finalized bridged header to given values
+       * (almost) without any checks. This call can fail only if:
+       *
+       * - the call origin is not a root or a pallet owner;
+       *
+       * - there are too many authorities in the new set.
+       *
+       * No other checks are made. Previously imported headers stay in the storage and
+       * are still accessible after the call.
+       **/
+      forceSetPalletState: AugmentedSubmittable<
+        (
+          newCurrentSetId: u64 | AnyNumber | Uint8Array,
+          newAuthorities:
+            | Vec<ITuple<[SpConsensusGrandpaAppPublic, u64]>>
+            | [SpConsensusGrandpaAppPublic | string | Uint8Array, u64 | AnyNumber | Uint8Array][],
+          newBestHeader:
+            | SpRuntimeHeader
+            | {
+                parentHash?: any;
+                number?: any;
+                stateRoot?: any;
+                extrinsicsRoot?: any;
+                digest?: any;
+              }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u64, Vec<ITuple<[SpConsensusGrandpaAppPublic, u64]>>, SpRuntimeHeader]
+      >;
+      /**
+       * Bootstrap the bridge pallet with an initial header and authority set from which to sync.
+       *
+       * The initial configuration provided does not need to be the genesis header of the bridged
+       * chain, it can be any arbitrary header. You can also provide the next scheduled set
+       * change if it is already know.
+       *
+       * This function is only allowed to be called from a trusted origin and writes to storage
+       * with practically no checks in terms of the validity of the data. It is important that
+       * you ensure that valid data is being passed in.
+       **/
+      initialize: AugmentedSubmittable<
+        (
+          initData:
+            | BpHeaderChainInitializationData
+            | { header?: any; authorityList?: any; setId?: any; operatingMode?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [BpHeaderChainInitializationData]
+      >;
+      /**
+       * Halt or resume all pallet operations.
+       *
+       * May only be called either by root, or by `PalletOwner`.
+       **/
+      setOperatingMode: AugmentedSubmittable<
+        (
+          operatingMode: BpRuntimeBasicOperatingMode | "Normal" | "Halted" | number | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [BpRuntimeBasicOperatingMode]
+      >;
+      /**
+       * Change `PalletOwner`.
+       *
+       * May only be called either by root, or by `PalletOwner`.
+       **/
+      setOwner: AugmentedSubmittable<
+        (
+          newOwner: Option<AccountId20> | null | Uint8Array | AccountId20 | string
+        ) => SubmittableExtrinsic<ApiType>,
+        [Option<AccountId20>]
+      >;
+      /**
+       * This call is deprecated and will be removed around May 2024. Use the
+       * `submit_finality_proof_ex` instead. Semantically, this call is an equivalent of the
+       * `submit_finality_proof_ex` call without current authority set id check.
+       **/
+      submitFinalityProof: AugmentedSubmittable<
+        (
+          finalityTarget:
+            | SpRuntimeHeader
+            | {
+                parentHash?: any;
+                number?: any;
+                stateRoot?: any;
+                extrinsicsRoot?: any;
+                digest?: any;
+              }
+            | string
+            | Uint8Array,
+          justification:
+            | BpHeaderChainJustificationGrandpaJustification
+            | { round?: any; commit?: any; votesAncestries?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [SpRuntimeHeader, BpHeaderChainJustificationGrandpaJustification]
+      >;
+      /**
+       * Verify a target header is finalized according to the given finality proof. The proof
+       * is assumed to be signed by GRANDPA authorities set with `current_set_id` id.
+       *
+       * It will use the underlying storage pallet to fetch information about the current
+       * authorities and best finalized header in order to verify that the header is finalized.
+       *
+       * If successful in verification, it will write the target header to the underlying storage
+       * pallet.
+       *
+       * The call fails if:
+       *
+       * - the pallet is halted;
+       *
+       * - the pallet knows better header than the `finality_target`;
+       *
+       * - the id of best GRANDPA authority set, known to the pallet is not equal to the
+       * `current_set_id`;
+       *
+       * - verification is not optimized or invalid;
+       *
+       * - header contains forced authorities set change or change with non-zero delay.
+       *
+       * The `is_free_execution_expected` parameter is not really used inside the call. It is
+       * used by the transaction extension, which should be registered at the runtime level. If
+       * this parameter is `true`, the transaction will be treated as invalid, if the call won't
+       * be executed for free. If transaction extension is not used by the runtime, this
+       * parameter is not used at all.
+       **/
+      submitFinalityProofEx: AugmentedSubmittable<
+        (
+          finalityTarget:
+            | SpRuntimeHeader
+            | {
+                parentHash?: any;
+                number?: any;
+                stateRoot?: any;
+                extrinsicsRoot?: any;
+                digest?: any;
+              }
+            | string
+            | Uint8Array,
+          justification:
+            | BpHeaderChainJustificationGrandpaJustification
+            | { round?: any; commit?: any; votesAncestries?: any }
+            | string
+            | Uint8Array,
+          currentSetId: u64 | AnyNumber | Uint8Array,
+          isFreeExecutionExpected: bool | boolean | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [SpRuntimeHeader, BpHeaderChainJustificationGrandpaJustification, u64, bool]
+      >;
+      /**
+       * Generic tx
+       **/
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    bridgePolkadotMessages: {
+      /**
+       * Receive messages delivery proof from bridged chain.
+       **/
+      receiveMessagesDeliveryProof: AugmentedSubmittable<
+        (
+          proof:
+            | BpMessagesSourceChainFromBridgedChainMessagesDeliveryProof
+            | { bridgedHeaderHash?: any; storageProof?: any; lane?: any }
+            | string
+            | Uint8Array,
+          relayersState:
+            | BpMessagesUnrewardedRelayersState
+            | {
+                unrewardedRelayerEntries?: any;
+                messagesInOldestEntry?: any;
+                totalMessages?: any;
+                lastDeliveredNonce?: any;
+              }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [
+          BpMessagesSourceChainFromBridgedChainMessagesDeliveryProof,
+          BpMessagesUnrewardedRelayersState
+        ]
+      >;
+      /**
+       * Receive messages proof from bridged chain.
+       *
+       * The weight of the call assumes that the transaction always brings outbound lane
+       * state update. Because of that, the submitter (relayer) has no benefit of not including
+       * this data in the transaction, so reward confirmations lags should be minimal.
+       *
+       * The call fails if:
+       *
+       * - the pallet is halted;
+       *
+       * - the call origin is not `Signed(_)`;
+       *
+       * - there are too many messages in the proof;
+       *
+       * - the proof verification procedure returns an error - e.g. because header used to craft
+       * proof is not imported by the associated finality pallet;
+       *
+       * - the `dispatch_weight` argument is not sufficient to dispatch all bundled messages.
+       *
+       * The call may succeed, but some messages may not be delivered e.g. if they are not fit
+       * into the unrewarded relayers vector.
+       **/
+      receiveMessagesProof: AugmentedSubmittable<
+        (
+          relayerIdAtBridgedChain: AccountId20 | string | Uint8Array,
+          proof:
+            | BpMessagesTargetChainFromBridgedChainMessagesProof
+            | {
+                bridgedHeaderHash?: any;
+                storageProof?: any;
+                lane?: any;
+                noncesStart?: any;
+                noncesEnd?: any;
+              }
+            | string
+            | Uint8Array,
+          messagesCount: u32 | AnyNumber | Uint8Array,
+          dispatchWeight:
+            | SpWeightsWeightV2Weight
+            | { refTime?: any; proofSize?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [
+          AccountId20,
+          BpMessagesTargetChainFromBridgedChainMessagesProof,
+          u32,
+          SpWeightsWeightV2Weight
+        ]
+      >;
+      /**
+       * Halt or resume all/some pallet operations.
+       *
+       * May only be called either by root, or by `PalletOwner`.
+       **/
+      setOperatingMode: AugmentedSubmittable<
+        (
+          operatingMode:
+            | BpMessagesMessagesOperatingMode
+            | { Basic: any }
+            | { RejectingOutboundMessages: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [BpMessagesMessagesOperatingMode]
+      >;
+      /**
+       * Change `PalletOwner`.
+       *
+       * May only be called either by root, or by `PalletOwner`.
+       **/
+      setOwner: AugmentedSubmittable<
+        (
+          newOwner: Option<AccountId20> | null | Uint8Array | AccountId20 | string
+        ) => SubmittableExtrinsic<ApiType>,
+        [Option<AccountId20>]
+      >;
+      /**
+       * Generic tx
+       **/
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    bridgePolkadotParachains: {
+      /**
+       * Halt or resume all pallet operations.
+       *
+       * May only be called either by root, or by `PalletOwner`.
+       **/
+      setOperatingMode: AugmentedSubmittable<
+        (
+          operatingMode: BpRuntimeBasicOperatingMode | "Normal" | "Halted" | number | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [BpRuntimeBasicOperatingMode]
+      >;
+      /**
+       * Change `PalletOwner`.
+       *
+       * May only be called either by root, or by `PalletOwner`.
+       **/
+      setOwner: AugmentedSubmittable<
+        (
+          newOwner: Option<AccountId20> | null | Uint8Array | AccountId20 | string
+        ) => SubmittableExtrinsic<ApiType>,
+        [Option<AccountId20>]
+      >;
+      /**
+       * Submit proof of one or several parachain heads.
+       *
+       * The proof is supposed to be proof of some `Heads` entries from the
+       * `polkadot-runtime-parachains::paras` pallet instance, deployed at the bridged chain.
+       * The proof is supposed to be crafted at the `relay_header_hash` that must already be
+       * imported by corresponding GRANDPA pallet at this chain.
+       *
+       * The call fails if:
+       *
+       * - the pallet is halted;
+       *
+       * - the relay chain block `at_relay_block` is not imported by the associated bridge
+       * GRANDPA pallet.
+       *
+       * The call may succeed, but some heads may not be updated e.g. because pallet knows
+       * better head or it isn't tracked by the pallet.
+       **/
+      submitParachainHeads: AugmentedSubmittable<
+        (
+          atRelayBlock:
+            | ITuple<[u32, H256]>
+            | [u32 | AnyNumber | Uint8Array, H256 | string | Uint8Array],
+          parachains:
+            | Vec<ITuple<[u32, H256]>>
+            | [u32 | AnyNumber | Uint8Array, H256 | string | Uint8Array][],
+          parachainHeadsProof:
+            | BpPolkadotCoreParachainsParaHeadsProof
+            | { storageProof?: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [ITuple<[u32, H256]>, Vec<ITuple<[u32, H256]>>, BpPolkadotCoreParachainsParaHeadsProof]
+      >;
+      /**
+       * Submit proof of one or several parachain heads.
+       *
+       * The proof is supposed to be proof of some `Heads` entries from the
+       * `polkadot-runtime-parachains::paras` pallet instance, deployed at the bridged chain.
+       * The proof is supposed to be crafted at the `relay_header_hash` that must already be
+       * imported by corresponding GRANDPA pallet at this chain.
+       *
+       * The call fails if:
+       *
+       * - the pallet is halted;
+       *
+       * - the relay chain block `at_relay_block` is not imported by the associated bridge
+       * GRANDPA pallet.
+       *
+       * The call may succeed, but some heads may not be updated e.g. because pallet knows
+       * better head or it isn't tracked by the pallet.
+       *
+       * The `is_free_execution_expected` parameter is not really used inside the call. It is
+       * used by the transaction extension, which should be registered at the runtime level. If
+       * this parameter is `true`, the transaction will be treated as invalid, if the call won't
+       * be executed for free. If transaction extension is not used by the runtime, this
+       * parameter is not used at all.
+       **/
+      submitParachainHeadsEx: AugmentedSubmittable<
+        (
+          atRelayBlock:
+            | ITuple<[u32, H256]>
+            | [u32 | AnyNumber | Uint8Array, H256 | string | Uint8Array],
+          parachains:
+            | Vec<ITuple<[u32, H256]>>
+            | [u32 | AnyNumber | Uint8Array, H256 | string | Uint8Array][],
+          parachainHeadsProof:
+            | BpPolkadotCoreParachainsParaHeadsProof
+            | { storageProof?: any }
+            | string
+            | Uint8Array,
+          isFreeExecutionExpected: bool | boolean | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [
+          ITuple<[u32, H256]>,
+          Vec<ITuple<[u32, H256]>>,
+          BpPolkadotCoreParachainsParaHeadsProof,
+          bool
+        ]
+      >;
+      /**
+       * Generic tx
+       **/
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    bridgeXcmOverMoonbeam: {
+      /**
+       * Try to close the bridge.
+       *
+       * Can only be called by the "owner" of this side of the bridge, meaning that the
+       * inbound XCM channel with the local origin chain is working.
+       *
+       * Closed bridge is a bridge without any traces in the runtime storage. So this method
+       * first tries to prune all queued messages at the outbound lane. When there are no
+       * outbound messages left, outbound and inbound lanes are purged. After that, funds
+       * are returned back to the owner of this side of the bridge.
+       *
+       * The number of messages that we may prune in a single call is limited by the
+       * `may_prune_messages` argument. If there are more messages in the queue, the method
+       * prunes exactly `may_prune_messages` and exits early. The caller may call it again
+       * until outbound queue is depleted and get his funds back.
+       *
+       * The states after this call: everything is either `Closed`, or purged from the
+       * runtime storage.
+       **/
+      closeBridge: AugmentedSubmittable<
+        (
+          bridgeDestinationUniversalLocation:
+            | XcmVersionedInteriorLocation
+            | { V3: any }
+            | { V4: any }
+            | { V5: any }
+            | string
+            | Uint8Array,
+          mayPruneMessages: u64 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [XcmVersionedInteriorLocation, u64]
+      >;
+      /**
+       * Open a bridge between two locations.
+       *
+       * The caller must be within the `T::OpenBridgeOrigin` filter (presumably: a sibling
+       * parachain or a parent relay chain). The `bridge_destination_universal_location` must be
+       * a destination within the consensus of the `T::BridgedNetwork` network.
+       *
+       * The `BridgeDeposit` amount is reserved on the caller account. This deposit
+       * is unreserved after bridge is closed.
+       *
+       * The states after this call: bridge is `Opened`, outbound lane is `Opened`, inbound lane
+       * is `Opened`.
+       **/
+      openBridge: AugmentedSubmittable<
+        (
+          bridgeDestinationUniversalLocation:
+            | XcmVersionedInteriorLocation
+            | { V3: any }
+            | { V4: any }
+            | { V5: any }
+            | string
+            | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [XcmVersionedInteriorLocation]
+      >;
+      /**
+       * Generic tx
+       **/
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
     convictionVoting: {
       /**
        * Delegate the voting power (with some given conviction) of the sending account for a
@@ -2146,26 +2596,9 @@ declare module "@polkadot/api-base/types/submittable" {
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
     };
     moonbeamLazyMigrations: {
-      approveAssetsToMigrate: AugmentedSubmittable<
-        (assets: Vec<u128> | (u128 | AnyNumber | Uint8Array)[]) => SubmittableExtrinsic<ApiType>,
-        [Vec<u128>]
-      >;
       createContractMetadata: AugmentedSubmittable<
         (address: H160 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [H160]
-      >;
-      finishForeignAssetsMigration: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
-      migrateForeignAssetApprovals: AugmentedSubmittable<
-        (limit: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u32]
-      >;
-      migrateForeignAssetBalances: AugmentedSubmittable<
-        (limit: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u32]
-      >;
-      startForeignAssetsMigration: AugmentedSubmittable<
-        (assetId: u128 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u128]
       >;
       /**
        * Generic tx

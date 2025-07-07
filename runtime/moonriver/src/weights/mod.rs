@@ -16,6 +16,7 @@
 
 //! Moonbeam common weights.
 
+mod bridge;
 pub mod cumulus_pallet_parachain_system;
 pub mod cumulus_pallet_xcmp_queue;
 pub mod db;
@@ -27,6 +28,9 @@ pub mod pallet_author_inherent;
 pub mod pallet_author_mapping;
 pub mod pallet_author_slot_filter;
 pub mod pallet_balances;
+pub mod pallet_bridge_grandpa;
+pub mod pallet_bridge_messages;
+pub mod pallet_bridge_parachains;
 pub mod pallet_collective_open_tech_committee_collective;
 pub mod pallet_collective_treasury_council_collective;
 pub mod pallet_conviction_voting;
@@ -56,3 +60,4 @@ pub mod pallet_whitelist;
 pub mod pallet_xcm;
 pub mod pallet_xcm_transactor;
 pub mod pallet_xcm_weight_trader;
+pub mod xcm;

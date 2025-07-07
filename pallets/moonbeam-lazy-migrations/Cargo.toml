@@ -12,10 +12,6 @@ log = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-scheduler = { workspace = true }
-pallet-assets = { workspace = true }
-pallet-asset-manager = { workspace = true }
-pallet-balances = { workspace = true }
-pallet-moonbeam-foreign-assets = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
@@ -50,7 +46,6 @@ default = ["std"]
 runtime-benchmarks = ["frame-benchmarking"]
 std = [
   "environmental/std",
-  "pallet-balances/std",
   "frame-support/std",
   "frame-system/std",
   "scale-info/std",
@@ -60,9 +55,6 @@ std = [
   "sp-std/std",
   "pallet-evm/std",
   "pallet-timestamp/std",
-  "pallet-assets/std",
-  "pallet-moonbeam-foreign-assets/std",
-  "pallet-asset-manager/std", 
   "precompile-utils/std",
   "cumulus-primitives-storage-weight-reclaim/std",
   "rlp/std",

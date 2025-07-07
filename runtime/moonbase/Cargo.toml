@@ -30,8 +30,10 @@ moonbeam-runtime-common = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
 
+# Bridge primitives
+bp-moonbase = { workspace = true }
+
 # Moonbeam pallets
-moonbeam-xcm-benchmarks = { workspace = true }
 pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
@@ -130,6 +132,20 @@ sp-version = { workspace = true }
 sp-weights = { workspace = true }
 sp-genesis-builder = { workspace = true }
 
+# Bridge
+bridge-runtime-common = { workspace = true, optional = true }
+bp-westend = { workspace = true, optional = true }
+bp-runtime = { workspace = true, optional = true }
+bp-header-chain = { workspace = true, optional = true }
+bp-parachains = { workspace = true, optional = true }
+bp-messages = { workspace = true, optional = true }
+bp-polkadot-core = { workspace = true, optional = true }
+pallet-bridge-grandpa = { workspace = true, optional = true }
+pallet-bridge-parachains = { workspace = true, optional = true }
+pallet-bridge-messages = { workspace = true, optional = true }
+pallet-xcm-bridge = { workspace = true, optional = true }
+bridge-hub-common = { workspace = true, optional = true }
+
 # Frontier
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
@@ -160,7 +176,7 @@ xcm-runtime-apis = { workspace = true }
 cumulus-pallet-dmp-queue = { workspace = true }
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
-cumulus-pallet-xcmp-queue = { workspace = true }
+cumulus-pallet-xcmp-queue = { workspace = true, features = ["bridging"] }
 cumulus-primitives-core = { workspace = true }
 cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
@@ -297,6 +313,11 @@ std = [
 	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
 	"pallet-xcm-weight-trader/std",
+	"pallet-bridge-grandpa/std",
+	"pallet-bridge-parachains/std",
+	"pallet-bridge-messages/std",
+	"pallet-xcm-bridge/std",
+	"bridge-hub-common/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"parity-scale-codec/std",
@@ -323,6 +344,43 @@ std = [
 	"xcm-runtime-apis/std",
 	"xcm-primitives/std",
 	"xcm/std",
+	"bp-moonbase/std",
+	"bp-westend/std",
+	"bp-runtime/std",
+	"bp-header-chain/std",
+	"bp-parachains/std",
+	"bp-messages/std",
+	"bp-polkadot-core/std",
+	"bridge-runtime-common/std",
+]
+
+bridge-stagenet = [
+	"bridge-runtime-common",
+	"bp-westend",
+	"bp-runtime",
+	"bp-header-chain",
+	"bp-parachains",
+	"bp-messages",
+	"bp-polkadot-core",
+	"pallet-bridge-grandpa",
+	"pallet-bridge-parachains",
+	"pallet-bridge-messages",
+	"pallet-xcm-bridge",
+	"bridge-hub-common"
+]
+bridge-betanet = [
+	"bridge-runtime-common",
+	"bp-westend",
+	"bp-runtime",
+	"bp-header-chain",
+	"bp-parachains",
+	"bp-messages",
+	"bp-polkadot-core",
+	"pallet-bridge-grandpa",
+	"pallet-bridge-parachains",
+	"pallet-bridge-messages",
+	"pallet-xcm-bridge",
+	"bridge-hub-common"
 ]
 
 # Must be enabled for tracing runtimes only
@@ -360,7 +418,6 @@ runtime-benchmarks = [
 	"hex-literal",
 	"moonbeam-relay-encoder/runtime-benchmarks",
 	"moonbeam-runtime-common/runtime-benchmarks",
-	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
@@ -401,10 +458,15 @@ runtime-benchmarks = [
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"pallet-xcm-weight-trader/runtime-benchmarks",
+	"pallet-bridge-grandpa/runtime-benchmarks",
+	"pallet-bridge-parachains/runtime-benchmarks",
+	"pallet-bridge-messages/runtime-benchmarks",
+	"pallet-xcm-bridge/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"xcm-runtime-apis/runtime-benchmarks",
+	"bridge-runtime-common/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -464,4 +526,8 @@ try-runtime = [
 	"pallet-multisig/try-runtime",
 	"pallet-async-backing/try-runtime",
 	"pallet-precompile-benchmarks/try-runtime",
+	"pallet-bridge-grandpa/try-runtime",
+	"pallet-bridge-parachains/try-runtime",
+	"pallet-bridge-messages/try-runtime",
+	"pallet-xcm-bridge/try-runtime",
 ]

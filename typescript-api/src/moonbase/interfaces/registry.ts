@@ -203,8 +203,6 @@ import type {
   PalletMoonbeamForeignAssetsEvent,
   PalletMoonbeamLazyMigrationsCall,
   PalletMoonbeamLazyMigrationsError,
-  PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo,
-  PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus,
   PalletMoonbeamOrbitersCall,
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletMoonbeamOrbitersCurrentOrbiter,
@@ -297,6 +295,7 @@ import type {
   PalletWhitelistCall,
   PalletWhitelistError,
   PalletWhitelistEvent,
+  PalletXcmBridgeHubHoldReason,
   PalletXcmCall,
   PalletXcmError,
   PalletXcmEvent,
@@ -617,8 +616,6 @@ declare module "@polkadot/types/types/registry" {
     PalletMoonbeamForeignAssetsEvent: PalletMoonbeamForeignAssetsEvent;
     PalletMoonbeamLazyMigrationsCall: PalletMoonbeamLazyMigrationsCall;
     PalletMoonbeamLazyMigrationsError: PalletMoonbeamLazyMigrationsError;
-    PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo: PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationInfo;
-    PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus: PalletMoonbeamLazyMigrationsForeignAssetForeignAssetMigrationStatus;
     PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
     PalletMoonbeamOrbitersCollatorPoolInfo: PalletMoonbeamOrbitersCollatorPoolInfo;
     PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;
@@ -711,6 +708,7 @@ declare module "@polkadot/types/types/registry" {
     PalletWhitelistCall: PalletWhitelistCall;
     PalletWhitelistError: PalletWhitelistError;
     PalletWhitelistEvent: PalletWhitelistEvent;
+    PalletXcmBridgeHubHoldReason: PalletXcmBridgeHubHoldReason;
     PalletXcmCall: PalletXcmCall;
     PalletXcmError: PalletXcmError;
     PalletXcmEvent: PalletXcmEvent;

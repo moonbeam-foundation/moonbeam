@@ -1,0 +1,67 @@
+Pallets:
+    ~ Balances
+        Storage Entries:
+            ~ Holds (Changed: value type)
+    + BridgeKusamaGrandpa
+    + BridgeKusamaMessages
+    + BridgeKusamaParachains
+    + BridgeXcmOverMoonriver
+    ~ MoonbeamLazyMigrations
+        Calls:
+            - approve_assets_to_migrate
+            - finish_foreign_assets_migration
+            - migrate_foreign_asset_approvals
+            - migrate_foreign_asset_balances
+            - start_foreign_assets_migration
+        Storage Entries:
+            - ApprovedForeignAssets
+            - ForeignAssetMigrationStatusValue
+    ~ Multisig
+        Calls:
+            ~ as_multi
+            ~ as_multi_threshold_1
+    ~ OpenTechCommitteeCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: )
+    ~ ParachainStaking
+        Constants:
+            + LinearInflationThreshold
+    ~ Proxy
+        Calls:
+            ~ proxy
+            ~ proxy_announced
+    ~ Scheduler
+        Calls:
+            ~ schedule
+            ~ schedule_after
+            ~ schedule_named
+            ~ schedule_named_after
+    ~ System
+        Storage Entries:
+            ~ Events (Changed: )
+    ~ TreasuryCouncilCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: )
+    ~ Utility
+        Calls:
+            ~ as_derivative
+            ~ batch
+            ~ batch_all
+            ~ dispatch_as
+            ~ force_batch
+            ~ with_weight
+    ~ Whitelist
+        Calls:
+            ~ dispatch_whitelisted_call_with_preimage
+Runtime APIs:
+    ~ DryRunApi
+    + FromMoonriverKusamaInboundLaneApi
+    + KusamaFinalityApi
+    + MoonriverKusamaFinalityApi
+    + ToMoonriverKusamaOutboundLaneApi

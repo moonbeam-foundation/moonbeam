@@ -148,6 +148,10 @@ impl Get<Slot> for StakingRoundSlotProvider {
 	}
 }
 
+parameter_types! {
+	pub const LinearInflationThreshold: Option<Balance> = Some(1_200_000_000);
+}
+
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -176,6 +180,7 @@ impl Config for Test {
 	type MaxCandidates = MaxCandidates;
 	type SlotDuration = frame_support::traits::ConstU64<6_000>;
 	type BlockTime = frame_support::traits::ConstU64<6_000>;
+	type LinearInflationThreshold = LinearInflationThreshold;
 }
 
 pub(crate) struct ExtBuilder {
