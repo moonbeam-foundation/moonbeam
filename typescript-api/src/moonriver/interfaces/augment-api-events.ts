@@ -2846,7 +2846,7 @@ declare module "@polkadot/api-base/types/events" {
         { location: StagingXcmV5Location }
       >;
       /**
-       * HRMP manage action successfully sent
+       * HRMP manage action succesfully sent
        **/
       HrmpManagementSent: AugmentedEvent<
         ApiType,
