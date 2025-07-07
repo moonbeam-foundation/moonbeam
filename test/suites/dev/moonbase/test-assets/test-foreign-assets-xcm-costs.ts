@@ -13,9 +13,9 @@ describeSuite({
     const paraId = 4444;
     let paraSovereignAccount;
     // Previous feeAmount: 139_608_625_000_000n;
-    const feeAmount = 139_303_300_000_000n;
+    const feeLimit = 140_000_000_000_000n;
     const depositAmount = 100_000_000_000_000_000_000n; // 100 tokens
-    const fundAmount = feeAmount + depositAmount;
+    const fundAmount = feeLimit + depositAmount;
 
     const assetId = 1;
     const assetLocation = {
@@ -35,7 +35,7 @@ describeSuite({
       title: "Account with right amount should be able to pay deposit & fees",
       test: async function () {
         const balanceBefore = await getFreeBalance(paraSovereignAccount, context);
-        expect(balanceBefore).toMatchInlineSnapshot(`100000139303300000000n`);
+        expect(balanceBefore).to.equal(fundAmount);
         const createForeignAssetCall = context
           .polkadotJs()
           .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
@@ -44,7 +44,7 @@ describeSuite({
           createForeignAssetCall,
           paraId,
           context,
-          feeAmount
+          feeLimit
         );
 
         await expectSystemEvent(
@@ -55,7 +55,7 @@ describeSuite({
         );
 
         const balanceAfter = await getFreeBalance(paraSovereignAccount, context);
-        expect(balanceAfter).toMatchInlineSnapshot(`0n`);
+        expect(balanceAfter).toMatchInlineSnapshot(`2227512500000n`);
       },
     });
   },

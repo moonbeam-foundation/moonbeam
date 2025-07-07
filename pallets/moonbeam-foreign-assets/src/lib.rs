@@ -55,7 +55,6 @@ use ethereum_types::{H160, U256};
 use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::Contains;
-
 use frame_system::pallet_prelude::*;
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
@@ -201,7 +200,7 @@ pub mod pallet {
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
 
-		/// Maximum numbers of differnt foreign assets
+		/// Maximum numbers of different foreign assets
 		type MaxForeignAssets: Get<u32>;
 
 		/// The overarching event type.

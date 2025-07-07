@@ -82,6 +82,7 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
+	use frame_support::dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		fungible::{Balanced, Inspect, Mutate, MutateFreeze},
@@ -277,6 +278,7 @@ pub mod pallet {
 		CannotSetAboveMaxCandidates,
 		MarkingOfflineNotEnabled,
 		CurrentRoundTooLow,
+		EmptyMigrationBatch,
 	}
 
 	#[pallet::event]
@@ -1494,6 +1496,11 @@ pub mod pallet {
 		///   where is_collator indicates if the account is a collator (true) or delegator (false)
 		///
 		/// The maximum number of accounts that can be migrated in one batch is 100.
+		/// The batch cannot be empty.
+		///
+		/// If 50% or more of the migration attempts are successful, the entire
+		/// extrinsic fee is refunded to incentivize successful batch migrations.
+		/// Weight is calculated based on actual successful operations performed.
 		#[pallet::call_index(33)]
 		#[pallet::weight({
 			T::WeightInfo::migrate_locks_to_freezes_batch_delegators(MAX_ACCOUNTS_PER_MIGRATION_BATCH).max(T::WeightInfo::migrate_locks_to_freezes_batch_candidates(MAX_ACCOUNTS_PER_MIGRATION_BATCH))
@@ -1501,21 +1508,68 @@ pub mod pallet {
 		pub fn migrate_locks_to_freezes_batch(
 			origin: OriginFor<T>,
 			accounts: BoundedVec<(T::AccountId, bool), ConstU32<MAX_ACCOUNTS_PER_MIGRATION_BATCH>>,
-		) -> DispatchResult {
+		) -> DispatchResultWithPostInfo {
 			ensure_signed(origin)?;
+			ensure!(!accounts.is_empty(), Error::<T>::EmptyMigrationBatch);
+
+			let total_accounts = accounts.len() as u32;
+			let mut successful_migrations = 0u32;
+			let mut delegators = 0u32;
+			let mut candidates = 0u32;
 
 			for (account, is_collator) in accounts.iter() {
-				if let Err(e) = Self::check_and_migrate_lock(account, *is_collator) {
+				if let Ok(migrated) = Self::check_and_migrate_lock(account, *is_collator) {
+					if migrated {
+						successful_migrations = successful_migrations.saturating_add(1);
+					}
+
+					if *is_collator {
+						candidates = candidates.saturating_add(1);
+					} else {
+						delegators = delegators.saturating_add(1);
+					}
+				} else {
 					log::debug!(
-						"Failed to migrate lock for account {:?}, is_collator {:?}: {:?}",
+						"Failed to migrate lock for account {:?}, is_collator {:?}",
 						account,
-						is_collator,
-						e
+						is_collator
 					);
 				}
 			}
 
-			Ok(())
+			// Calculate success rate
+			let success_rate = if total_accounts > 0 {
+				Percent::from_rational(successful_migrations, total_accounts)
+			} else {
+				Percent::zero()
+			};
+
+			// Calculate actual weight consumed
+			let delegator_weight = if delegators > 0 {
+				T::WeightInfo::migrate_locks_to_freezes_batch_delegators(delegators)
+			} else {
+				Weight::zero()
+			};
+
+			let candidate_weight = if candidates > 0 {
+				T::WeightInfo::migrate_locks_to_freezes_batch_candidates(candidates)
+			} else {
+				Weight::zero()
+			};
+
+			let actual_weight = delegator_weight.saturating_add(candidate_weight);
+
+			// Apply refund if 50% or more successful using Percent comparison
+			let pays_fee = if success_rate >= Percent::from_percent(50) {
+				Pays::No
+			} else {
+				Pays::Yes
+			};
+
+			Ok(PostDispatchInfo {
+				actual_weight: Some(actual_weight),
+				pays_fee,
+			})
 		}
 	}
 

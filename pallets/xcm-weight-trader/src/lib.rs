@@ -37,7 +37,7 @@ use frame_support::traits::Contains;
 use frame_support::weights::WeightToFee;
 use frame_system::pallet_prelude::*;
 use sp_runtime::traits::{Convert, Zero};
-use sp_std::vec::Vec;
+use sp_std::{vec, vec::Vec};
 use xcm::v5::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
