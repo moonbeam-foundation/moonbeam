@@ -9,6 +9,7 @@ import {
   XCM_VERSIONS,
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
+  convertXcmFragmentToVersion,
 } from "../../../../helpers";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
@@ -127,11 +128,7 @@ describeSuite({
               .deposit_asset();
 
             // Convert to appropriate XCM version
-            if (xcmVersion === 4) {
-              xcmMessage = xcmMessage.as_v4();
-            } else if (xcmVersion === 5) {
-              xcmMessage = xcmMessage.as_v5();
-            }
+            xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
             // Send an XCM and create block to execute it
             await injectHrmpMessageAndSeal(context, statemint_para_id, {
