@@ -583,7 +583,7 @@ jobs:
       fail-fast: false
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
-        shard: [1, 2, 3, 4]
+        #shard: [1, 2, 3, 4]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
