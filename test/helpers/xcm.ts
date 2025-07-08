@@ -1,16 +1,15 @@
 import { type DevModeContext, customDevRpcRequest, expect } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS, baltathar } from "@moonwall/util";
+import { alith, ALITH_ADDRESS } from "@moonwall/util";
 import type { DispatchError, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import type {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmV3JunctionNetworkId,
   XcmVersionedXcm,
-  PalletMessageQueueEvent,
 } from "@polkadot/types/lookup";
 import { type BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
-import { expectSubstrateEvent, expectSystemEvent } from "./expect.ts";
+import { expectSystemEvent } from "./expect.ts";
 import { getPalletIndex } from "./pallets.ts";
 
 // XCM versions to test
@@ -928,6 +927,23 @@ export function convertXcmFragmentToVersion(xcmFragment: XcmFragment, xcmVersion
       return xcmFragment.as_v4();
     case 5:
       return xcmFragment.as_v5();
+    default:
+      throw new Error(`Unsupported XCM version: ${xcmVersion}`);
+  }
+}
+
+export function wrapWithXcmVersion(xcm: object, xcmVersion: XcmVersion): any {
+  switch (xcmVersion) {
+    case 3:
+      return { V3: xcm };
+    case 4:
+      return {
+        V4: patchLocation(xcm),
+      };
+    case 5:
+      return {
+        V5: patchLocation(xcm),
+      };
     default:
       throw new Error(`Unsupported XCM version: ${xcmVersion}`);
   }

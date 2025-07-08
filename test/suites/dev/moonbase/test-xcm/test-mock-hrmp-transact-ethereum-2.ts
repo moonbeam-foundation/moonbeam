@@ -50,9 +50,7 @@ describeSuite({
       expect(balance).to.eq(transferredBalance);
     });
 
-    // TODO: Fix test for XCM v4 and v5 - contract calls are not executing
-    for (const xcmVersion of [3] as const) {
-      // XCM_VERSIONS when fixed
+    for (const xcmVersion of XCM_VERSIONS) {
       it({
         id: `T01-XCM-v${xcmVersion}`,
         title: `should receive transact and should be able to execute (XCM v${xcmVersion})`,
@@ -130,7 +128,7 @@ describeSuite({
                       X1: { PalletInstance: balancesPalletIndex },
                     },
                   },
-                  fungible: transferredBalance / 2n,
+                  fungible: 1_000_000_000_000_000_000n,
                 },
               ],
               descend_origin: sendingAddress,

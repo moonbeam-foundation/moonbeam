@@ -22,7 +22,7 @@ describeSuite({
   id: "D024024",
   title: "Mock XCM - receive horizontal transact ETHEREUM (asset fee)",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const assetMetadata = {
       name: "FOREIGN",
       symbol: "FOREIGN",
@@ -85,66 +85,64 @@ describeSuite({
       );
       assetId = registeredAssetId;
       expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
-
-      const config = {
-        assets: [
-          {
-            multilocation: ASSET_MULTILOCATION,
-            fungible: assetsToTransfer,
-          },
-        ],
-        beneficiary: descendOriginAddress,
-      };
-
-      // How much will the message weight?
-      const chargedWeight = await weightMessage(
-        context,
-        context
-          .polkadotJs()
-          .createType(
-            "XcmVersionedXcm",
-            new XcmFragment(config)
-              .reserve_asset_deposited()
-              .clear_origin()
-              .buy_execution()
-              .deposit_asset()
-              .as_v3()
-          ) as any
-      );
-
-      // we modify the config now:
-      // we send assetsToTransfer plus whatever we will be charged in weight
-      config.assets[0].fungible = assetsToTransfer + chargedWeight;
-
-      // Construct the real message
-      const xcmMessage = new XcmFragment(config)
-        .reserve_asset_deposited()
-        .clear_origin()
-        .buy_execution()
-        .deposit_asset()
-        .as_v3();
-
-      // Send an XCM and create block to execute it
-      await injectHrmpMessageAndSeal(context, statemint_para_id, {
-        type: "XcmVersionedXcm",
-        payload: xcmMessage,
-      } as RawXcmMessage);
-
-      // Make sure descended address has the transferred foreign assets (minus the xcm fees).
-      expect(
-        (await context.polkadotJs().query.assets.account(assetId, descendedAddress))
-          .unwrap()
-          .balance.toBigInt()
-      ).to.eq(assetsToTransfer);
     });
 
-    // TODO: Fix test for XCM v4 and v5 - contract calls are not executing
-    for (const xcmVersion of [3] as const) {
-      // XCM_VERSIONS when fixed
+    for (const xcmVersion of XCM_VERSIONS) {
       it({
         id: `T01-XCM-v${xcmVersion}`,
         title: `should receive transact and should be able to execute (XCM v${xcmVersion})`,
         test: async function () {
+          const config = {
+            assets: [
+              {
+                multilocation: ASSET_MULTILOCATION,
+                fungible: assetsToTransfer,
+              },
+            ],
+            beneficiary: descendedAddress,
+          };
+
+          // How much will the message weight?
+          const chargedWeight = await weightMessage(
+            context,
+            context
+              .polkadotJs()
+              .createType(
+                "XcmVersionedXcm",
+                new XcmFragment(config)
+                  .reserve_asset_deposited()
+                  .clear_origin()
+                  .buy_execution()
+                  .deposit_asset()
+                  .as_v3()
+              ) as any
+          );
+
+          // we modify the config now:
+          // we send assetsToTransfer plus whatever we will be charged in weight
+          config.assets[0].fungible = assetsToTransfer + chargedWeight;
+
+          // Construct the real message
+          const xcmMessage = new XcmFragment(config)
+            .reserve_asset_deposited()
+            .clear_origin()
+            .buy_execution()
+            .deposit_asset()
+            .as_v3();
+
+          // Send an XCM and create block to execute it
+          await injectHrmpMessageAndSeal(context, statemint_para_id, {
+            type: "XcmVersionedXcm",
+            payload: xcmMessage,
+          } as RawXcmMessage);
+
+          // Make sure descended address has the transferred foreign assets (minus the xcm fees).
+          expect(
+            (await context.polkadotJs().query.assets.account(assetId, descendedAddress))
+              .unwrap()
+              .balance.toBigInt()
+          ).to.eq(assetsToTransfer);
+
           // Get initial contract count
           const initialCount = (
             await context.viem().call({
@@ -193,11 +191,9 @@ describeSuite({
           ];
 
           let expectedCalls = 0n;
-
           for (const xcmTransaction of xcmTransactions) {
             expectedCalls++;
 
-            // TODO need to update lookup types for xcm ethereum transaction V2
             const transferCall = context.polkadotJs().tx.ethereumXcm.transact(xcmTransaction);
             const transferCallEncoded = transferCall?.method.toHex();
 
