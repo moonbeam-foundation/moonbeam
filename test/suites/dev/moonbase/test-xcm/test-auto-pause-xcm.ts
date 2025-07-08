@@ -13,10 +13,10 @@ import {
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D024201",
+  id: "D024101",
   title: "Auto-pause XCM",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance: bigint;
     let sovereignAddress: string;
     let random: KeyringPair;
