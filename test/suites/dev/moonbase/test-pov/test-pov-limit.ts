@@ -64,7 +64,7 @@ describeSuite({
           console.log(`Error: ${error}`);
         }
       }
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 5_000));
     });
 
     it({
