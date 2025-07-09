@@ -1,5 +1,5 @@
 ZOMBINET_VERSION := v1.3.121
-POLKADOT_VERSION := stable2506
+POLKADOT_VERSION := stable2503-5
 
 ZOMBINET_DOWNLOAD_URL := https://github.com/paritytech/zombienet/releases/download/${ZOMBINET_VERSION}
 POLKADOT_DOWNLOAD_URL := https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-${POLKADOT_VERSION}
