@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+#[allow(dead_code)]
 pub mod pallet_xcm_benchmarks_fungible;
+#[allow(dead_code)]
 pub mod pallet_xcm_benchmarks_generic;
 
 use core::cmp::min;

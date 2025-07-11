@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+#[allow(dead_code)]
 pub mod pallet_xcm_benchmarks_fungible;
+#[allow(dead_code)]
 pub mod pallet_xcm_benchmarks_generic;
 
 use core::cmp::min;
@@ -59,8 +61,8 @@ pub struct XcmWeight<Runtime, Call>(core::marker::PhantomData<(Runtime, Call)>);
 impl<Runtime, Call> XcmWeightInfo<Call> for XcmWeight<Runtime, Call>
 where
 	Runtime: frame_system::Config
-		+ pallet_erc20_xcm_bridge::Config
-		+ pallet_moonbeam_foreign_assets::Config,
+	+ pallet_erc20_xcm_bridge::Config
+	+ pallet_moonbeam_foreign_assets::Config,
 {
 	fn withdraw_asset(assets: &Assets) -> XCMWeight {
 		assets.weigh_assets(XcmFungibleWeight::<Runtime>::withdraw_asset())
