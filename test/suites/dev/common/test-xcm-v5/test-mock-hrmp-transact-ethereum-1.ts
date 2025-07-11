@@ -116,7 +116,7 @@ describeSuite({
             ],
             weight_limit: {
               refTime: targetXcmWeight,
-              proofSize: 120_583n,
+              proofSize: 130_583n,
             },
             descend_origin: sendingAddress,
           })
