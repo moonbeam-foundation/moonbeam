@@ -136,7 +136,7 @@ where
 		assets.weigh_assets(XcmFungibleWeight::<Runtime>::initiate_reserve_withdraw())
 	}
 	fn initiate_teleport(_assets: &AssetFilter, _dest: &Location, _xcm: &Xcm<()>) -> XCMWeight {
-		XcmFungibleWeight::<Runtime>::initiate_teleport()
+		Weight::MAX
 	}
 	fn report_holding(_response_info: &QueryResponseInfo, _assets: &AssetFilter) -> Weight {
 		XcmGeneric::<Runtime>::report_holding()

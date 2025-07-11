@@ -1018,7 +1018,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						pub const TokenLocation: Location = Here.into_location();
 						pub TrustedTeleporter: Option<(Location, Asset)> = None;
 						pub CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;
-						pub const TrustedReserve: Option<(Location, Asset)> = None;
+						pub TrustedReserve: Option<(Location, Asset)> = Some(
+							(
+								Location::parent(),
+								Asset::from((
+									Location::parent(),
+									1000000000000 as u128
+								))
+							)
+						);
 					}
 
 					impl pallet_xcm_benchmarks::fungible::Config for Runtime {

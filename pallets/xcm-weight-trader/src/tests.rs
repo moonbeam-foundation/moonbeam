@@ -481,10 +481,7 @@ fn test_trader_native_asset() {
 
 		// Fees asset should be deposited again into XcmFeesAccount
 		drop(trader);
-		assert_eq!(
-			Balances::free_balance(&xcm_fees_account()),
-			2_000
-		);
+		assert_eq!(Balances::free_balance(&xcm_fees_account()), 2_000);
 	})
 }
 

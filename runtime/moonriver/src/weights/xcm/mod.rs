@@ -59,8 +59,8 @@ pub struct XcmWeight<Runtime, Call>(core::marker::PhantomData<(Runtime, Call)>);
 impl<Runtime, Call> XcmWeightInfo<Call> for XcmWeight<Runtime, Call>
 where
 	Runtime: frame_system::Config
-		+ pallet_erc20_xcm_bridge::Config
-		+ pallet_moonbeam_foreign_assets::Config,
+	+ pallet_erc20_xcm_bridge::Config
+	+ pallet_moonbeam_foreign_assets::Config,
 {
 	fn withdraw_asset(assets: &Assets) -> XCMWeight {
 		assets.weigh_assets(XcmFungibleWeight::<Runtime>::withdraw_asset())
@@ -136,7 +136,7 @@ where
 		assets.weigh_assets(XcmFungibleWeight::<Runtime>::initiate_reserve_withdraw())
 	}
 	fn initiate_teleport(_assets: &AssetFilter, _dest: &Location, _xcm: &Xcm<()>) -> XCMWeight {
-		XcmFungibleWeight::<Runtime>::initiate_teleport()
+		Weight::MAX
 	}
 	fn report_holding(_response_info: &QueryResponseInfo, _assets: &AssetFilter) -> Weight {
 		XcmGeneric::<Runtime>::report_holding()
