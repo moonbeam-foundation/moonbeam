@@ -245,7 +245,7 @@ substrate-rpc-client = { git = "https://github.com/moonbeam-foundation/polkadot-
 
 # Frontier (wasm)
 
-ethereum = { git = "https://github.com/rust-ethereum/ethereum.git", rev = "3be0d8fd4c2ad1ba216b69ef65b9382612efc8ba", default-features = false, features = [
+ethereum = { version = "0.18.2", default-features = false, features = [
     "with-scale",
 ] }
 ethereum-types = { version = "0.15.1", default-features = false }
