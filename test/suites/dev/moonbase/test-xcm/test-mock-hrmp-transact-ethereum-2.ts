@@ -17,8 +17,9 @@ describeSuite({
   title: "Mock XCM - receive horizontal transact ETHEREUM (call)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let transferredBalance: bigint;
+    const transferredBalance = 1_000_000_000_000_000_000_000n;
     let sendingAddress: `0x${string}`;
+    let descendOriginAddress: `0x${string}`;
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
     let GAS_LIMIT_POV_RATIO: number;
@@ -32,22 +33,10 @@ describeSuite({
       contractDeployed = contractAddress;
       contractABI = abi;
 
-      const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
+      const { originAddress, descendOriginAddress: _descendOriginAddress } =
+        descendOriginFromAddress20(context);
       sendingAddress = originAddress;
-      transferredBalance = 1_000_000_000_000_000_000_000n;
-
-      // We first fund parachain 2000 sovreign account
-      await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.balances.transferAllowDeath(descendOriginAddress, transferredBalance),
-        { allowFailures: false }
-      );
-
-      const balance = (
-        await context.polkadotJs().query.system.account(descendOriginAddress)
-      ).data.free.toBigInt();
-      expect(balance).to.eq(transferredBalance);
+      descendOriginAddress = _descendOriginAddress;
     });
 
     for (const xcmVersion of XCM_VERSIONS) {
@@ -55,6 +44,19 @@ describeSuite({
         id: `T01-XCM-v${xcmVersion}`,
         title: `should receive transact and should be able to execute (XCM v${xcmVersion})`,
         test: async function () {
+          // We first fund parachain 2000 sovreign account
+          await context.createBlock(
+            context
+              .polkadotJs()
+              .tx.balances.transferAllowDeath(descendOriginAddress, transferredBalance),
+            { allowFailures: false }
+          );
+
+          const balance = (
+            await context.polkadotJs().query.system.account(descendOriginAddress)
+          ).data.free.toBigInt();
+          expect(balance).to.eq(transferredBalance);
+
           // Get initial contract count
           const initialCount = await context.readContract!({
             contractAddress: contractDeployed,
@@ -128,7 +130,7 @@ describeSuite({
                       X1: { PalletInstance: balancesPalletIndex },
                     },
                   },
-                  fungible: 1_000_000_000_000_000_000n,
+                  fungible: transferredBalance / 2n,
                 },
               ],
               descend_origin: sendingAddress,

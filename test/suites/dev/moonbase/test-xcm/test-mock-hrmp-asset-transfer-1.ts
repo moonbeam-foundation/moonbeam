@@ -112,7 +112,7 @@ describeSuite({
 
       it({
         id: `T02-XCM-v${xcmVersion}`,
-        title: "Should NOT receive a 10 Statemine tokens to Alith with old prefix",
+        title: "Should NOT receive Statemine tokens to Alith with old prefix",
         test: async function () {
           const alith_balance_before = (
             await context.polkadotJs().query.assets.account(assetId, alith.address)

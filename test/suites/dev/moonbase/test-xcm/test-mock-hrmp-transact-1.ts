@@ -71,8 +71,8 @@ describeSuite({
               },
             ],
             weight_limit: {
-              refTime: xcmVersion === 3 ? 6_000_000_000n : 40_000_000_000n,
-              proofSize: xcmVersion === 3 ? 150_000n : 120_853n,
+              refTime: 6_000_000_000n,
+              proofSize: 150_000n,
             },
             descend_origin: sendingAddress,
           })
