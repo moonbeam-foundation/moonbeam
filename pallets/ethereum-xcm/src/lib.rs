@@ -44,7 +44,7 @@ use sp_std::{marker::PhantomData, prelude::*};
 
 pub use ethereum::{
 	AccessListItem, BlockV2 as Block, LegacyTransactionMessage, Log, ReceiptV3 as Receipt,
-	TransactionAction, TransactionV2 as Transaction,
+	TransactionAction, TransactionV3 as Transaction,
 };
 pub use fp_rpc::TransactionStatus;
 pub use xcm_primitives::{EnsureProxy, EthereumXcmTransaction, XcmToEthereum};
@@ -177,7 +177,8 @@ pub mod pallet {
 			<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
 				match xcm_transaction {
 					EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
-					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
+					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V3(v3_tx) =>  v3_tx.gas_limit.unique_saturated_into(),
 				}
 			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(1))
 		})]
@@ -206,7 +207,8 @@ pub mod pallet {
 			<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
 				match xcm_transaction {
 					EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
-					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
+					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V3(v3_tx) =>  v3_tx.gas_limit.unique_saturated_into(),
 				}
 			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(2))
 		})]
@@ -272,8 +274,9 @@ pub mod pallet {
 			let without_base_extrinsic_weight = false;
 			<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
 				match xcm_transaction {
-					EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
-					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
+					EthereumXcmTransaction::V1(v1_tx) => v1_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V2(v2_tx) => v2_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V3(v3_tx) => v3_tx.gas_limit.unique_saturated_into(),
 				}
 			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(1))
 		})]
@@ -324,7 +327,7 @@ impl<T: Config> Pallet<T> {
 		let error_weight = T::DbWeight::get().reads(1);
 
 		let transaction: Option<Transaction> =
-			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get(), allow_create);
+			xcm_transaction.into_transaction(current_nonce, T::ChainId::get(), allow_create);
 		if let Some(transaction) = transaction {
 			let tx_hash = transaction.hash();
 			let transaction_data: TransactionData = (&transaction).into();

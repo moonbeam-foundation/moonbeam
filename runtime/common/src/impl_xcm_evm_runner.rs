@@ -137,6 +137,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_max_priority_fee_per_gas: Option<U256>,
 				_nonce: Option<U256>,
 				_access_list: Vec<(H160, Vec<H256>)>,
+				_authorization_list: Vec<(U256, H160, U256, Option<H160>)>
 				_is_transactional: bool,
 				_validate: bool,
 				_weight_limit: Option<Weight>,
@@ -156,6 +157,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_max_priority_fee_per_gas: Option<U256>,
 				_nonce: Option<U256>,
 				_access_list: Vec<(H160, Vec<H256>)>,
+				_authorization_list: Vec<(U256, H160, U256, Option<H160>)>
 				_is_transactional: bool,
 				_validate: bool,
 				_weight_limit: Option<Weight>,
@@ -174,6 +176,8 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				max_priority_fee_per_gas: Option<U256>,
 				nonce: Option<U256>,
 				access_list: Vec<(H160, Vec<H256>)>,
+				_authorization_list: Vec<(U256, H160, U256, Option<H160>)>
+				authorization_list: Vec<(U256, H160, U256, Option<H160>)>,
 				is_transactional: bool,
 				validate: bool,
 				weight_limit: Option<Weight>,
@@ -229,6 +233,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_max_priority_fee_per_gas: Option<U256>,
 				_nonce: Option<U256>,
 				_access_list: Vec<(H160, Vec<H256>)>,
+				_authorization_list: Vec<(U256, H160, U256, Option<H160>)>
 				_is_transactional: bool,
 				_weight_limit: Option<Weight>,
 				_transaction_len: Option<u64>,

@@ -756,7 +756,7 @@ where
 						} else {
 							// Pre-london update, legacy transactions.
 							match transaction {
-								ethereum::TransactionV2::Legacy(tx) =>
+								ethereum::TransactionV3::Legacy(tx) =>
 								{
 									#[allow(deprecated)]
 									api.trace_transaction_before_version_4(
