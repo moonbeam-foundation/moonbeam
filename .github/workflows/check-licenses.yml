@@ -11,11 +11,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: 1.78.0
-          override: true
+      - name: Setup Rust toolchain
+        run: |
+          rustup override unset
+          rustup show
       - name: Verify Licenses
         run: |
           cargo install cargo-license
