@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use ethereum::AccessListItem;
+use ethereum::{AccessListItem, AuthorizationListItem};
 use ethereum_types::{H160, H256, U256};
 use fc_rpc_core::types::Bytes;
 use jsonrpsee::{core::RpcResult, proc_macros::rpc};
@@ -57,6 +57,8 @@ pub struct TraceCallParams {
 	pub nonce: Option<U256>,
 	/// EIP-2930 access list
 	pub access_list: Option<Vec<AccessListItem>>,
+	/// EIP-7702 authorization list
+	pub authorization_list: Option<Vec<AuthorizationListItem>>,
 	/// EIP-2718 type
 	#[serde(rename = "type")]
 	pub transaction_type: Option<U256>,
