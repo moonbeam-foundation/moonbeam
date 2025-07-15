@@ -16,7 +16,7 @@
 
 //! Test utilities
 
-use ethereum::{TransactionAction, TransactionSignature};
+use ethereum::{AuthorizationListItem, TransactionAction, TransactionSignature};
 use frame_support::{
 	parameter_types,
 	traits::{ConstU32, FindAuthor, InstanceFilter},
@@ -499,9 +499,9 @@ impl EIP2930UnsignedTransaction {
 			value: msg.value,
 			input: msg.input.clone(),
 			access_list: msg.access_list,
-			odd_y_parity: recid.serialize() != 0,
-			r,
-			s,
+			// TODO Safe to unwrap by construction?
+			signature: ethereum::eip1559::TransactionSignature::new(recid.serialize() != 0, r, s)
+				.unwrap(),
 		})
 	}
 }
@@ -551,9 +551,68 @@ impl EIP1559UnsignedTransaction {
 			value: msg.value,
 			input: msg.input.clone(),
 			access_list: msg.access_list,
-			odd_y_parity: recid.serialize() != 0,
-			r,
-			s,
+			// TODO Safe to unwrap by construction?
+			signature: ethereum::eip1559::TransactionSignature::new(recid.serialize() != 0, r, s)
+				.unwrap(),
+		})
+	}
+}
+
+pub struct EIP7702UnsignedTransaction {
+	pub nonce: U256,
+	pub max_priority_fee_per_gas: U256,
+	pub max_fee_per_gas: U256,
+	pub gas_limit: U256,
+	pub destination: TransactionAction,
+	pub value: U256,
+	pub data: Vec<u8>,
+}
+
+impl EIP7702UnsignedTransaction {
+	pub fn sign(
+		&self,
+		secret: &H256,
+		chain_id: Option<u64>,
+		authorization_list: Vec<AuthorizationListItem>,
+	) -> Transaction {
+		let secret = {
+			let mut sk: [u8; 32] = [0u8; 32];
+			sk.copy_from_slice(&secret[0..]);
+			libsecp256k1::SecretKey::parse(&sk).unwrap()
+		};
+		let chain_id = chain_id.unwrap_or(ChainId::get());
+		let msg = ethereum::EIP7702TransactionMessage {
+			chain_id,
+			nonce: self.nonce,
+			max_priority_fee_per_gas: self.max_priority_fee_per_gas,
+			max_fee_per_gas: self.max_fee_per_gas,
+			gas_limit: self.gas_limit,
+			destination: self.destination,
+			value: self.value,
+			data: self.data.clone(),
+			access_list: vec![],
+			authorization_list,
+		};
+		let signing_message = libsecp256k1::Message::parse_slice(&msg.hash()[..]).unwrap();
+
+		let (signature, recid) = libsecp256k1::sign(&signing_message, &secret);
+		let rs = signature.serialize();
+		let r = H256::from_slice(&rs[0..32]);
+		let s = H256::from_slice(&rs[32..64]);
+		Transaction::EIP7702(ethereum::EIP7702Transaction {
+			chain_id: msg.chain_id,
+			nonce: msg.nonce,
+			max_priority_fee_per_gas: msg.max_priority_fee_per_gas,
+			max_fee_per_gas: msg.max_fee_per_gas,
+			gas_limit: msg.gas_limit,
+			destination: msg.destination,
+			value: msg.value,
+			data: msg.data.clone(),
+			access_list: msg.access_list,
+			authorization_list: msg.authorization_list,
+			// TODO Safe to unwrap by construction?
+			signature: ethereum::eip1559::TransactionSignature::new(recid.serialize() != 0, r, s)
+				.unwrap(),
 		})
 	}
 }
