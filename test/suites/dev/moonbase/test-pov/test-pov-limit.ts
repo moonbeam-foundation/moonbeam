@@ -8,7 +8,6 @@ describeSuite({
   title: "PoV Limit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-
     let contractCallForwarderAddress: `0x${string}`;
     let contracts: HeavyContract[];
     let callData: `0x${string}`;
@@ -19,7 +18,10 @@ describeSuite({
     const MAX_CONTRACTS = Math.floor(MAX_POV_LIMIT / 24_000);
 
     beforeAll(async function () {
-      const { contractAddress: _contractAddress, abi } = await deployCreateCompiledContract(context, "CallForwarder");
+      const { contractAddress: _contractAddress, abi } = await deployCreateCompiledContract(
+        context,
+        "CallForwarder"
+      );
       contractCallForwarderAddress = _contractAddress;
       proxyAbi = abi;
 
@@ -37,15 +39,15 @@ describeSuite({
         const transactions: `0x${string}`[] = [];
 
         // Get initial nonce for Alith
-        let nonce = await context.viem().getTransactionCount({address: ALITH_ADDRESS});
+        let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
         // Split into batches of HEAVY_CONTRACTS_PER_TX contracts
         for (let i = 0; i < MAX_CONTRACTS; i += HEAVY_CONTRACTS_PER_TX) {
           const endIndex = Math.min(i + HEAVY_CONTRACTS_PER_TX, MAX_CONTRACTS);
-          
+
           const callData = encodeFunctionData({
             abi: proxyAbi,
-            functionName: "callRange", 
+            functionName: "callRange",
             args: [contracts[i].account, contracts[endIndex].account],
           });
 
@@ -61,7 +63,7 @@ describeSuite({
             data: callData,
             txnType: "eip1559",
             gasLimit: gasEstimate,
-            nonce: nonce++
+            nonce: nonce++,
           });
 
           transactions.push(rawSigned);
@@ -79,10 +81,9 @@ describeSuite({
         log(`Consumed block proofSize: ${proofSize} / ${MAX_POV_LIMIT}`);
         // In practice the total block proof size consumed should be greather than 75%
         // because some proof size is consumed outisde of normal transactions (e.g. on_initialize stuff)
-        expect(
-          proofSize,
-          `Proof size is not greater than ${MAX_POV_LIMIT}`
-        ).toBeGreaterThanOrEqual(MAX_POV_LIMIT);
+        expect(proofSize, `Proof size is not greater than ${MAX_POV_LIMIT}`).toBeGreaterThanOrEqual(
+          MAX_POV_LIMIT
+        );
       },
     });
   },
