@@ -3454,7 +3454,7 @@ dependencies = [
 [[package]]
 name = "evm"
 version = "0.42.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2412#44aa6b59e07f96d4b962813f74e08bcfdd94e2c6"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2412#7d7a9035a28258567a2e0a31984daa3c3648278d"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -3474,7 +3474,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.42.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2412#44aa6b59e07f96d4b962813f74e08bcfdd94e2c6"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2412#7d7a9035a28258567a2e0a31984daa3c3648278d"
 dependencies = [
  "parity-scale-codec",
  "primitive-types 0.13.1",
@@ -3485,7 +3485,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.42.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2412#44aa6b59e07f96d4b962813f74e08bcfdd94e2c6"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2412#7d7a9035a28258567a2e0a31984daa3c3648278d"
 dependencies = [
  "environmental",
  "evm-core",
@@ -3496,7 +3496,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.42.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2412#44aa6b59e07f96d4b962813f74e08bcfdd94e2c6"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2412#7d7a9035a28258567a2e0a31984daa3c3648278d"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -7852,6 +7852,7 @@ dependencies = [
  "cumulus-pallet-xcmp-queue",
  "cumulus-primitives-core",
  "cumulus-primitives-storage-weight-reclaim",
+ "ethereum",
  "fp-ethereum",
  "fp-evm",
  "frame-benchmarking",
