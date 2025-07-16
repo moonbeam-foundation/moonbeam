@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum::{
-	AccessList, AccessListItem, AuthorizationList, AuthorizationListItem, EIP1559Transaction,
-	EIP2930Transaction, EIP7702Transaction, LegacyTransaction, TransactionAction, TransactionV3,
+	AccessList, AccessListItem, AuthorizationList, EIP1559Transaction, EIP2930Transaction,
+	EIP7702Transaction, LegacyTransaction, TransactionAction, TransactionV3,
 };
 use ethereum_types::{H160, H256, U256};
 use frame_support::{traits::ConstU32, BoundedVec};
