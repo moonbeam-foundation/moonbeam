@@ -174,8 +174,13 @@ pub fn testnet_genesis(
 			start_in_maintenance_mode: false,
 			..Default::default()
 		},
-		// This should initialize it to whatever we have set in the pallet
-		polkadot_xcm: PolkadotXcmConfig::default(),
+		polkadot_xcm: PolkadotXcmConfig {
+			supported_version: vec![
+				// Required for bridging Moonriver with Moonbeam
+				(bp_moonbeam::GlobalConsensusLocation::get(), xcm::latest::VERSION)
+			],
+			..Default::default()
+		},
 		transaction_payment: TransactionPaymentConfig {
 			multiplier: Multiplier::from(10u128),
 			..Default::default()
