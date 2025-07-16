@@ -24,6 +24,7 @@ strum_macros = { workspace = true }
 
 # Moonbeam
 account = { workspace = true }
+ethereum = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
@@ -200,7 +201,6 @@ frame-system-benchmarking = { workspace = true, optional = true }
 frame-try-runtime = { workspace = true, optional = true }
 
 [dev-dependencies]
-ethereum = { workspace = true }
 frame-metadata = { workspace = true }
 hex = { workspace = true, features = ["std"] }
 sha3 = { workspace = true, features = ["std"] }
@@ -230,6 +230,7 @@ std = [
 	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
 	"cumulus-primitives-storage-weight-reclaim/std",
+	"ethereum/std",
 	"evm-tracing-events/std",
 	"fp-evm/std",
 	"fp-rpc/std",

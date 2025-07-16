@@ -66,6 +66,7 @@ sp-genesis-builder = { workspace = true }
 frame-try-runtime = { workspace = true }
 
 # Frontier
+ethereum = { workspace = true }
 fp-ethereum = { workspace = true }
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
@@ -99,6 +100,7 @@ cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features
 [features]
 std = [
 	"cumulus-pallet-parachain-system/std",
+	"ethereum/std",
 	"fp-ethereum/std",
 	"fp-evm/std",
 	"frame-support/std",

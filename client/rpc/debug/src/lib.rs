@@ -22,7 +22,7 @@ use tokio::{
 	sync::{oneshot, Semaphore},
 };
 
-use ethereum_types::{H256, U256};
+use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
 use fc_storage::StorageOverride;
 use fp_rpc::EthereumRuntimeRPCApi;
@@ -983,7 +983,6 @@ where
 		let data = data.map(|d| d.0).unwrap_or_default();
 
 		let access_list = access_list.unwrap_or_default();
-		let authorization_list = authorization_list.unwrap_or_default();
 
 		let f = || -> RpcResult<_> {
 			let _result = api
@@ -1004,19 +1003,7 @@ where
 							.map(|item| (item.address, item.storage_keys))
 							.collect(),
 					),
-					Some(
-						authorization_list
-							.into_iter()
-							.map(|item| {
-								(
-									U256::from(item.chain_id),
-									item.address,
-									item.nonce,
-									item.authorizing_address().ok(),
-								)
-							})
-							.collect::<Vec<(U256, sp_core::H160, U256, Option<sp_core::H160>)>>(),
-					),
+					authorization_list,
 				)
 				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
 				.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;

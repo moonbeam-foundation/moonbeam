@@ -16,7 +16,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use ethereum::{TransactionV0 as LegacyTransaction, TransactionV3 as Transaction};
+use ethereum::{
+	AuthorizationList, TransactionV0 as LegacyTransaction, TransactionV3 as Transaction,
+};
 use ethereum_types::{H160, H256, U256};
 use parity_scale_codec::{Decode, Encode};
 use sp_std::vec::Vec;
@@ -73,7 +75,7 @@ sp_api::decl_runtime_apis! {
 			max_priority_fee_per_gas: Option<U256>,
 			nonce: Option<U256>,
 			access_list: Option<Vec<(H160, Vec<H256>)>>,
-			authorization_list: Option<Vec<(U256, H160, U256, Option<H160>)>>,
+			authorization_list: Option<AuthorizationList>,
 		) -> Result<(), sp_runtime::DispatchError>;
 	}
 }

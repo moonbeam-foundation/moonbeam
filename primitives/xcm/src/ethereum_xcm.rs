@@ -117,7 +117,7 @@ pub struct EthereumXcmTransactionV3 {
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 	/// Authorization list as defined in EIP-7702.
-	pub authorization_list: Option<Vec<(U256, H160, U256, (bool, H256, H256))>>,
+	pub authorization_list: Option<AuthorizationList>,
 }
 
 pub trait XcmToEthereum {
@@ -300,22 +300,6 @@ impl XcmToEthereum for EthereumXcmTransactionV3 {
 				.collect::<Vec<AccessListItem>>()
 		};
 
-		let from_tuple_to_authorization_list =
-			|t: &Vec<(U256, H160, U256, (bool, H256, H256))>| -> AuthorizationList {
-				t.iter()
-					.map(|item| AuthorizationListItem {
-						chain_id: item.0.as_u64(),
-						address: item.1,
-						nonce: item.2,
-						signature: ethereum::eip7702::MalleableTransactionSignature {
-							odd_y_parity: (item.3).0,
-							r: (item.3).1,
-							s: (item.3).2,
-						},
-					})
-					.collect::<Vec<AuthorizationListItem>>()
-			};
-
 		// TODO this might be safe to unwrap (or always invalid)
 		let Some(signature) = ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())
 		else {
@@ -337,11 +321,7 @@ impl XcmToEthereum for EthereumXcmTransactionV3 {
 			} else {
 				Vec::new()
 			},
-			authorization_list: if let Some(ref authorization_list) = self.authorization_list {
-				from_tuple_to_authorization_list(authorization_list)
-			} else {
-				Vec::new()
-			},
+			authorization_list: self.authorization_list.clone().unwrap_or_default(),
 			signature,
 		}))
 	}

@@ -17,6 +17,7 @@
 #[macro_export]
 macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 	{} => {
+		use ethereum::AuthorizationList;
 		use fp_evm::{CallInfo, CallOrCreateInfo, Context, Transfer};
 		use frame_support::dispatch::CallableCallFor;
 		use pallet_evm::{Runner, RunnerError};
@@ -24,7 +25,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 		use sp_core::U256;
 		use sp_runtime::DispatchError;
 		use sp_std::vec::Vec;
-		use xcm_primitives::{EthereumXcmTransaction, EthereumXcmTransactionV2};
+		use xcm_primitives::{EthereumXcmTransaction, EthereumXcmTransactionV3};
 
 		pub struct EvmRunnerPrecompileOrEthXcm<CallDispatcher, Runtime>(
 			core::marker::PhantomData<(CallDispatcher, Runtime)>,
@@ -49,6 +50,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_max_priority_fee_per_gas: Option<U256>,
 				_nonce: Option<U256>,
 				access_list: Vec<(H160, Vec<H256>)>,
+				authorization_list: AuthorizationList,
 				_is_transactional: bool,
 				_validate: bool,
 				_weight_limit: Option<Weight>,
@@ -93,7 +95,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 						weight_info: None,
 					})
 				} else {
-					let xcm_transaction = EthereumXcmTransaction::V2(EthereumXcmTransactionV2 {
+					let xcm_transaction = EthereumXcmTransaction::V3(EthereumXcmTransactionV3 {
 						gas_limit: gas_limit.into(),
 						action: pallet_ethereum_xcm::TransactionAction::Call(target),
 						value,
@@ -102,6 +104,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 							weight: Default::default(),
 						})?,
 						access_list: Some(access_list),
+						authorization_list: Some(authorization_list),
 					});
 
 					let mut execution_info: Option<CallOrCreateInfo> = None;
@@ -137,7 +140,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_max_priority_fee_per_gas: Option<U256>,
 				_nonce: Option<U256>,
 				_access_list: Vec<(H160, Vec<H256>)>,
-				_authorization_list: Vec<(U256, H160, U256, Option<H160>)>
+				_authorization_list: AuthorizationList,
 				_is_transactional: bool,
 				_validate: bool,
 				_weight_limit: Option<Weight>,
@@ -157,7 +160,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_max_priority_fee_per_gas: Option<U256>,
 				_nonce: Option<U256>,
 				_access_list: Vec<(H160, Vec<H256>)>,
-				_authorization_list: Vec<(U256, H160, U256, Option<H160>)>
+				_authorization_list: AuthorizationList,
 				_is_transactional: bool,
 				_validate: bool,
 				_weight_limit: Option<Weight>,
@@ -176,8 +179,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				max_priority_fee_per_gas: Option<U256>,
 				nonce: Option<U256>,
 				access_list: Vec<(H160, Vec<H256>)>,
-				_authorization_list: Vec<(U256, H160, U256, Option<H160>)>
-				authorization_list: Vec<(U256, H160, U256, Option<H160>)>,
+				authorization_list: AuthorizationList,
 				is_transactional: bool,
 				validate: bool,
 				weight_limit: Option<Weight>,
@@ -185,7 +187,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				config: &fp_evm::Config,
 				force_address: H160,
 			) -> Result<fp_evm::CreateInfo, RunnerError<Self::Error>> {
-				let xcm_transaction = EthereumXcmTransaction::V2(EthereumXcmTransactionV2 {
+				let xcm_transaction = EthereumXcmTransaction::V3(EthereumXcmTransactionV3 {
 					gas_limit: gas_limit.into(),
 					action: pallet_ethereum_xcm::TransactionAction::Create,
 					value,
@@ -194,6 +196,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 						weight: Default::default(),
 					})?,
 					access_list: Some(access_list),
+					authorization_list: Some(authorization_list),
 				});
 
 				let mut execution_info: Option<CallOrCreateInfo> = None;
@@ -233,7 +236,7 @@ macro_rules! impl_evm_runner_precompile_or_eth_xcm {
 				_max_priority_fee_per_gas: Option<U256>,
 				_nonce: Option<U256>,
 				_access_list: Vec<(H160, Vec<H256>)>,
-				_authorization_list: Vec<(U256, H160, U256, Option<H160>)>
+				_authorization_list: Vec<(U256, H160, U256, Option<H160>)>,
 				_is_transactional: bool,
 				_weight_limit: Option<Weight>,
 				_transaction_len: Option<u64>,
