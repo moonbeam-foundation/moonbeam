@@ -16,7 +16,7 @@
 
 //! Test utilities
 
-use ethereum::{AuthorizationListItem, TransactionAction, TransactionSignature};
+use ethereum::{AuthorizationList, TransactionAction};
 use frame_support::{
 	parameter_types,
 	traits::{ConstU32, FindAuthor, InstanceFilter},
@@ -438,7 +438,7 @@ impl LegacyUnsignedTransaction {
 		);
 		let sig = s.0.serialize();
 
-		let sig = TransactionSignature::new(
+		let sig = ethereum::legacy::TransactionSignature::new(
 			s.1.serialize() as u64 % 2 + chain_id * 2 + 35,
 			H256::from_slice(&sig[0..32]),
 			H256::from_slice(&sig[32..64]),
@@ -573,7 +573,7 @@ impl EIP7702UnsignedTransaction {
 		&self,
 		secret: &H256,
 		chain_id: Option<u64>,
-		authorization_list: Vec<AuthorizationListItem>,
+		authorization_list: AuthorizationList,
 	) -> Transaction {
 		let secret = {
 			let mut sk: [u8; 32] = [0u8; 32];

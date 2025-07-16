@@ -43,7 +43,7 @@ use sp_runtime::{traits::UniqueSaturatedInto, DispatchErrorWithPostInfo, Runtime
 use sp_std::{marker::PhantomData, prelude::*};
 
 pub use ethereum::{
-	AccessListItem, BlockV2 as Block, LegacyTransactionMessage, Log, ReceiptV3 as Receipt,
+	AccessListItem, BlockV3 as Block, LegacyTransactionMessage, Log, ReceiptV4 as Receipt,
 	TransactionAction, TransactionV3 as Transaction,
 };
 pub use fp_rpc::TransactionStatus;
