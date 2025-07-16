@@ -21,5 +21,4 @@ use ethereum_types::{H160, H256, U256};
 
 mod eip1559;
 mod eip2930;
-mod eip7702;
 mod legacy;
