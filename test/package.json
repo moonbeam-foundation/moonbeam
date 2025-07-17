@@ -46,7 +46,7 @@
     "@zombienet/utils": "0.0.29",
     "chalk": "5.4.1",
     "eth-object": "github:aurora-is-near/eth-object#master",
-    "ethers": "*",
+    "ethers": "6.15.0",
     "json-bigint": "1.0.0",
     "json-stable-stringify": "1.3.0",
     "merkle-patricia-tree": "4.2.4",
