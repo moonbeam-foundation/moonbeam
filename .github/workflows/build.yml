@@ -903,3 +903,8 @@ jobs:
           export LOGS_ZIP="bridge_integration_tests_$TIMESTAMP.zip"
           find /tmp/bridge-integration-tests -maxdepth 3 -type f -name '*.log' -exec zip -r LOGS_ZIP {} \;
           echo "LOGS_ZIP=${LOGS_ZIP}" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: bridge-integration-tests-logs
+          path: ${{ env.LOGS_ZIP }}
