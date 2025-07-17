@@ -894,5 +894,5 @@ jobs:
           path: target/release
       - name: Setup
         run: |
-          # Initial setup (just testing)
-          make
+          # This command prepares all required binaries and runs the bridge integration tests
+          make run-bridge-integration-tests
