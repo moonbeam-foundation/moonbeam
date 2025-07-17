@@ -873,3 +873,16 @@ jobs:
         with:
           name: failed-node-logs
           path: ${{ env.NODE_LOGS_ZIP }}
+
+  bridge-integration-tests:
+    needs: ["set-tags", "build"]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup
+        run: |
+          # Initial setup (just testing)
+          make
