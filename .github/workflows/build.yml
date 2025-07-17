@@ -882,6 +882,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: "Download branch built runtime"
+        uses: actions/download-artifact@v4
+        with:
+          name: runtimes
+          path: target/release
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v4
+        with:
+          name: moonbeam
+          path: target/release
       - name: Setup
         run: |
           # Initial setup (just testing)
