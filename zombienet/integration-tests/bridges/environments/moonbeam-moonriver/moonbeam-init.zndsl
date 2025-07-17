@@ -1,0 +1,10 @@
+Network: ../../../../configs/moonbeam-polkadot.toml
+Creds: config
+
+alice: is up
+bob: is up
+
+alice: parachain 2004 block height is at least 4 within 200 seconds
+
+# Check Alith Balance
+alith: js-script {{FRAMEWORK_PATH}}/js-helpers/native-asset-balance.js with "0x892f127CDE86967C5Aaca5Ebbe768a8AFe0ca26f" return is 0 within 5 seconds
