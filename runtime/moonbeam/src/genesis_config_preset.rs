@@ -172,7 +172,10 @@ pub fn testnet_genesis(
 		polkadot_xcm: PolkadotXcmConfig {
 			supported_version: vec![
 				// Required for bridging Moonbeam with Moonriver
-				(bp_moonriver::GlobalConsensusLocation::get(), xcm::latest::VERSION)
+				(
+					bp_moonriver::GlobalConsensusLocation::get(),
+					xcm::latest::VERSION,
+				),
 			],
 			..Default::default()
 		},
