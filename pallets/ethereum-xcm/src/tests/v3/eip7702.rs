@@ -148,7 +148,7 @@ fn test_transact_xcm_evm_call_works() {
 			value: U256::zero(),
 			data: hex::decode(CONTRACT).unwrap(),
 		}
-		.sign(&alice.private_key, None, None);
+		.sign(&alice.private_key, None, Vec::new());
 		assert_ok!(Ethereum::execute(alice.address, &t, None, None));
 
 		let contract_address = hex::decode("32dcab0ef3fb2de2fce1d2e0799d36239671f04a").unwrap();
