@@ -45,7 +45,9 @@ export SUBSTRATE_RELAY_BINARY="${PWD}/zombienet/bin/substrate-relay";
 export ALITH_PRIVATE_KEY="0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
 export BALTATHAR_PRIVATE_KEY="0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b";
 
-export TEST_DIR=`mktemp -d /tmp/bridges-tests-run-XXXXX`
+BASE_TEST_DIR="/tmp/bridge-integration-tests"
+mkdir -p "/tmp/bridge-integration-tests"
+export TEST_DIR=`mktemp -d ${BASE_TEST_DIR}/run-XXXXX`
 echo -e "Test folder: $TEST_DIR\n"
 
 ${BASH_SOURCE%/*}/tests/$test/run.sh
