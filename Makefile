@@ -84,6 +84,5 @@ export PATH = $(ZOMBINET_PATHS)
 start-zombienet-moonriver: all
 	@zombienet spawn zombienet/configs/moonriver-kusama.toml
 
-export FRAMEWORK_REPO_PATH = /Users/romarq/local_bridge_testing/downloads/polkadot-sdk
 run-bridge-integration-tests: all
 	@./zombienet/integration-tests/bridges/run-test.sh 0001-moonbeam-moonriver-asset-transfer
