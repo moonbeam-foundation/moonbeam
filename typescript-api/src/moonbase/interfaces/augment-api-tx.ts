@@ -40,7 +40,8 @@ import type {
   AccountEthereumSignature,
   CumulusPrimitivesCoreAggregateMessageOrigin,
   CumulusPrimitivesParachainInherentParachainInherentData,
-  EthereumTransactionTransactionV2,
+  EthereumTransactionEip7702AuthorizationListItem,
+  EthereumTransactionTransactionV3,
   FrameSupportPreimagesBounded,
   FrameSupportScheduleDispatchTime,
   FrameSupportTokensFungibleUnionOfNativeOrWithId,
@@ -1424,14 +1425,15 @@ declare module "@polkadot/api-base/types/submittable" {
       transact: AugmentedSubmittable<
         (
           transaction:
-            | EthereumTransactionTransactionV2
+            | EthereumTransactionTransactionV3
             | { Legacy: any }
             | { EIP2930: any }
             | { EIP1559: any }
+            | { EIP7702: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [EthereumTransactionTransactionV2]
+        [EthereumTransactionTransactionV3]
       >;
       /**
        * Generic tx
@@ -1451,6 +1453,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmPrimitivesEthereumXcmEthereumXcmTransaction
             | { V1: any }
             | { V2: any }
+            | { V3: any }
             | string
             | Uint8Array,
           forceCreateAddress: Option<H160> | null | Uint8Array | H160 | string
@@ -1479,6 +1482,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmPrimitivesEthereumXcmEthereumXcmTransaction
             | { V1: any }
             | { V2: any }
+            | { V3: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
@@ -1495,6 +1499,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | XcmPrimitivesEthereumXcmEthereumXcmTransaction
             | { V1: any }
             | { V2: any }
+            | { V3: any }
             | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
@@ -1521,7 +1526,15 @@ declare module "@polkadot/api-base/types/submittable" {
           nonce: Option<U256> | null | Uint8Array | U256 | AnyNumber,
           accessList:
             | Vec<ITuple<[H160, Vec<H256>]>>
-            | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][]
+            | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][],
+          authorizationList:
+            | Vec<EthereumTransactionEip7702AuthorizationListItem>
+            | (
+                | EthereumTransactionEip7702AuthorizationListItem
+                | { chainId?: any; address?: any; nonce?: any; signature?: any }
+                | string
+                | Uint8Array
+              )[]
         ) => SubmittableExtrinsic<ApiType>,
         [
           H160,
@@ -1532,7 +1545,8 @@ declare module "@polkadot/api-base/types/submittable" {
           U256,
           Option<U256>,
           Option<U256>,
-          Vec<ITuple<[H160, Vec<H256>]>>
+          Vec<ITuple<[H160, Vec<H256>]>>,
+          Vec<EthereumTransactionEip7702AuthorizationListItem>
         ]
       >;
       /**
@@ -1550,9 +1564,27 @@ declare module "@polkadot/api-base/types/submittable" {
           nonce: Option<U256> | null | Uint8Array | U256 | AnyNumber,
           accessList:
             | Vec<ITuple<[H160, Vec<H256>]>>
-            | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][]
+            | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][],
+          authorizationList:
+            | Vec<EthereumTransactionEip7702AuthorizationListItem>
+            | (
+                | EthereumTransactionEip7702AuthorizationListItem
+                | { chainId?: any; address?: any; nonce?: any; signature?: any }
+                | string
+                | Uint8Array
+              )[]
         ) => SubmittableExtrinsic<ApiType>,
-        [H160, Bytes, U256, u64, U256, Option<U256>, Option<U256>, Vec<ITuple<[H160, Vec<H256>]>>]
+        [
+          H160,
+          Bytes,
+          U256,
+          u64,
+          U256,
+          Option<U256>,
+          Option<U256>,
+          Vec<ITuple<[H160, Vec<H256>]>>,
+          Vec<EthereumTransactionEip7702AuthorizationListItem>
+        ]
       >;
       /**
        * Issue an EVM create2 operation.
@@ -1569,7 +1601,15 @@ declare module "@polkadot/api-base/types/submittable" {
           nonce: Option<U256> | null | Uint8Array | U256 | AnyNumber,
           accessList:
             | Vec<ITuple<[H160, Vec<H256>]>>
-            | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][]
+            | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][],
+          authorizationList:
+            | Vec<EthereumTransactionEip7702AuthorizationListItem>
+            | (
+                | EthereumTransactionEip7702AuthorizationListItem
+                | { chainId?: any; address?: any; nonce?: any; signature?: any }
+                | string
+                | Uint8Array
+              )[]
         ) => SubmittableExtrinsic<ApiType>,
         [
           H160,
@@ -1580,7 +1620,8 @@ declare module "@polkadot/api-base/types/submittable" {
           U256,
           Option<U256>,
           Option<U256>,
-          Vec<ITuple<[H160, Vec<H256>]>>
+          Vec<ITuple<[H160, Vec<H256>]>>,
+          Vec<EthereumTransactionEip7702AuthorizationListItem>
         ]
       >;
       /**
