@@ -896,3 +896,10 @@ jobs:
         run: |
           # This command prepares all required binaries and runs the bridge integration tests
           make run-bridge-integration-tests
+      - name: Zip and Upload Logs on Failure
+        if: failure()
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          export LOGS_ZIP="bridge_integration_tests_$TIMESTAMP.zip"
+          find /tmp/bridge-integration-tests -maxdepth 3 -type f -name '*.log' -exec zip -r LOGS_ZIP {} \;
+          echo "LOGS_ZIP=${LOGS_ZIP}" >> $GITHUB_ENV
