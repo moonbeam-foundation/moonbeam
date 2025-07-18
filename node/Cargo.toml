@@ -18,13 +18,13 @@ moonbeam-cli = { workspace = true }
 [features]
 default = [ "moonbase-native", "moonbeam-native", "moonriver-native", "lazy-loading" ]
 
-westend-native = [ "moonbeam-cli/westend-native" ]
-
 moonbase-native = [ "moonbeam-cli/moonbase-native" ]
 moonbeam-native = [ "moonbeam-cli/moonbeam-native" ]
 moonriver-native = [ "moonbeam-cli/moonriver-native" ]
 
 lazy-loading = ["moonbeam-cli/lazy-loading"]
+
+metadata-hash = ["moonbeam-cli/metadata-hash"]
 
 runtime-benchmarks = [
 	"moonbeam-cli/runtime-benchmarks"

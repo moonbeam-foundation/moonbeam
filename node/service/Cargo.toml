@@ -185,19 +185,14 @@ default = [
 	"moonbase-native",
 	"moonbeam-native",
 	"moonriver-native",
-	"rococo-native",
-	"westend-native",
+	"rococo-native"
 ]
 
 lazy-loading = ["sc-service/test-helpers", "parking_lot/send_guard"]
 
 rococo-native = ["polkadot-cli/rococo-native", "polkadot-service/rococo-native"]
-westend-native = [
-	"polkadot-cli/westend-native",
-	"polkadot-service/westend-native",
-]
 
-moonbase-native = ["moonbase-runtime", "westend-native"]
+moonbase-native = ["moonbase-runtime"]
 moonbeam-native = ["moonbeam-runtime"]
 moonriver-native = ["moonriver-runtime"]
 
