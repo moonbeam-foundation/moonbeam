@@ -48,8 +48,8 @@ import type {
   CumulusPalletXcmpQueueQueueConfigData,
   CumulusPrimitivesCoreAggregateMessageOrigin,
   EthereumBlock,
-  EthereumReceiptReceiptV3,
-  EthereumTransactionTransactionV2,
+  EthereumReceiptReceiptV4,
+  EthereumTransactionTransactionV3,
   FpRpcTransactionStatus,
   FrameSupportDispatchPerDispatchClassWeight,
   FrameSupportTokensMiscIdAmount,
@@ -740,7 +740,7 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       currentReceipts: AugmentedQuery<
         ApiType,
-        () => Observable<Option<Vec<EthereumReceiptReceiptV3>>>,
+        () => Observable<Option<Vec<EthereumReceiptReceiptV4>>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -763,7 +763,7 @@ declare module "@polkadot/api-base/types/storage" {
         ) => Observable<
           Option<
             ITuple<
-              [EthereumTransactionTransactionV2, FpRpcTransactionStatus, EthereumReceiptReceiptV3]
+              [EthereumTransactionTransactionV3, FpRpcTransactionStatus, EthereumReceiptReceiptV4]
             >
           >
         >,

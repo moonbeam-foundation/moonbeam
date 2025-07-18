@@ -14,6 +14,4 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-mod v1;
-mod v2;
-mod v3;
+mod eip7702;

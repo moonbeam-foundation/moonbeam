@@ -61,14 +61,18 @@ import type {
   EthereumHeader,
   EthereumLog,
   EthereumReceiptEip658ReceiptData,
-  EthereumReceiptReceiptV3,
+  EthereumReceiptReceiptV4,
   EthereumTransactionEip1559Eip1559Transaction,
   EthereumTransactionEip2930AccessListItem,
   EthereumTransactionEip2930Eip2930Transaction,
+  EthereumTransactionEip2930MalleableTransactionSignature,
+  EthereumTransactionEip2930TransactionSignature,
+  EthereumTransactionEip7702AuthorizationListItem,
+  EthereumTransactionEip7702Eip7702Transaction,
   EthereumTransactionLegacyLegacyTransaction,
   EthereumTransactionLegacyTransactionAction,
   EthereumTransactionLegacyTransactionSignature,
-  EthereumTransactionTransactionV2,
+  EthereumTransactionTransactionV3,
   EthereumTypesHashH64,
   EvmCoreErrorExitError,
   EvmCoreErrorExitFatal,
@@ -435,6 +439,7 @@ import type {
   XcmPrimitivesEthereumXcmEthereumXcmTransaction,
   XcmPrimitivesEthereumXcmEthereumXcmTransactionV1,
   XcmPrimitivesEthereumXcmEthereumXcmTransactionV2,
+  XcmPrimitivesEthereumXcmEthereumXcmTransactionV3,
   XcmPrimitivesEthereumXcmManualEthereumXcmFee,
   XcmV3Instruction,
   XcmV3Junction,
@@ -524,14 +529,18 @@ declare module "@polkadot/types/types/registry" {
     EthereumHeader: EthereumHeader;
     EthereumLog: EthereumLog;
     EthereumReceiptEip658ReceiptData: EthereumReceiptEip658ReceiptData;
-    EthereumReceiptReceiptV3: EthereumReceiptReceiptV3;
+    EthereumReceiptReceiptV4: EthereumReceiptReceiptV4;
     EthereumTransactionEip1559Eip1559Transaction: EthereumTransactionEip1559Eip1559Transaction;
     EthereumTransactionEip2930AccessListItem: EthereumTransactionEip2930AccessListItem;
     EthereumTransactionEip2930Eip2930Transaction: EthereumTransactionEip2930Eip2930Transaction;
+    EthereumTransactionEip2930MalleableTransactionSignature: EthereumTransactionEip2930MalleableTransactionSignature;
+    EthereumTransactionEip2930TransactionSignature: EthereumTransactionEip2930TransactionSignature;
+    EthereumTransactionEip7702AuthorizationListItem: EthereumTransactionEip7702AuthorizationListItem;
+    EthereumTransactionEip7702Eip7702Transaction: EthereumTransactionEip7702Eip7702Transaction;
     EthereumTransactionLegacyLegacyTransaction: EthereumTransactionLegacyLegacyTransaction;
     EthereumTransactionLegacyTransactionAction: EthereumTransactionLegacyTransactionAction;
     EthereumTransactionLegacyTransactionSignature: EthereumTransactionLegacyTransactionSignature;
-    EthereumTransactionTransactionV2: EthereumTransactionTransactionV2;
+    EthereumTransactionTransactionV3: EthereumTransactionTransactionV3;
     EthereumTypesHashH64: EthereumTypesHashH64;
     EvmCoreErrorExitError: EvmCoreErrorExitError;
     EvmCoreErrorExitFatal: EvmCoreErrorExitFatal;
@@ -898,6 +907,7 @@ declare module "@polkadot/types/types/registry" {
     XcmPrimitivesEthereumXcmEthereumXcmTransaction: XcmPrimitivesEthereumXcmEthereumXcmTransaction;
     XcmPrimitivesEthereumXcmEthereumXcmTransactionV1: XcmPrimitivesEthereumXcmEthereumXcmTransactionV1;
     XcmPrimitivesEthereumXcmEthereumXcmTransactionV2: XcmPrimitivesEthereumXcmEthereumXcmTransactionV2;
+    XcmPrimitivesEthereumXcmEthereumXcmTransactionV3: XcmPrimitivesEthereumXcmEthereumXcmTransactionV3;
     XcmPrimitivesEthereumXcmManualEthereumXcmFee: XcmPrimitivesEthereumXcmManualEthereumXcmFee;
     XcmV3Instruction: XcmV3Instruction;
     XcmV3Junction: XcmV3Junction;

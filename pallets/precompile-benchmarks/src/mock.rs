@@ -88,7 +88,7 @@ impl PrecompileHandle for MockHandle {
 		if self
 			.record_cost(precompile_utils::evm::costs::call_cost(
 				context.apparent_value,
-				&evm::Config::cancun(),
+				&evm::Config::pectra(),
 			))
 			.is_err()
 		{

@@ -42,6 +42,7 @@ fn evm_call(source: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None, // Use the next nonce
 		access_list: Vec::new(),
+		authorization_list: Vec::new(),
 	}
 }
 

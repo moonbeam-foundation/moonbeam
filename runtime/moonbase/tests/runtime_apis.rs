@@ -166,6 +166,7 @@ fn ethereum_runtime_rpc_api_call() {
 				None,                  // nonce
 				false,                 // estimate
 				None,                  // access_list
+				None,                  // authorization_list
 			);
 			assert!(execution_result.is_ok());
 		});
@@ -187,6 +188,7 @@ fn ethereum_runtime_rpc_api_create() {
 				None,                  // nonce
 				false,                 // estimate
 				None,                  // access_list
+				None,                  // authorization_list
 			);
 			assert!(execution_result.is_ok());
 		});
