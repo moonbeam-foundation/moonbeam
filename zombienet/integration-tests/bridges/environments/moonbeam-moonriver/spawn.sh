@@ -36,6 +36,17 @@ start_zombienet $TEST_DIR $moonriver_def moonriver_dir moonriver_pid
 echo
 
 if [[ $init -eq 1 ]]; then
+  moonbeam_init_log=$logs_dir/moonbeam-init.log
+  echo -e "Setting up the moonbeam side of the bridge. Logs available at: $moonbeam_init_log\n"
+  moonriver_init_log=$logs_dir/moonriver-init.log
+  echo -e "Setting up the moonriver side of the bridge. Logs available at: $moonriver_init_log\n"
+
+  $bridge_script init-moonbeam-local >> $moonbeam_init_log 2>&1 &
+  moonbeam_init_pid=$!
+  $bridge_script init-moonriver-local >> $moonriver_init_log 2>&1 &
+  moonriver_init_pid=$!
+  wait_for_process $moonbeam_init_pid $moonriver_init_pid
+
   run_zndsl ${BASH_SOURCE%/*}/moonbeam-init.zndsl $moonbeam_dir
   run_zndsl ${BASH_SOURCE%/*}/moonriver-init.zndsl $moonriver_dir
 fi

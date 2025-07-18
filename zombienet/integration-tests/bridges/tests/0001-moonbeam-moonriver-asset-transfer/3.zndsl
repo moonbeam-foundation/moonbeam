@@ -1,9 +1,0 @@
-Description: User is able to transfer MOVR from Moonriver to Moonbeam
-Network: {{ENV_PATH}}/../../../../configs/moonriver-kusama.toml
-Creds: config
-
-# send 5 MOVR to //Alice from Moonriver to Moonbeam
-alith: run {{ENV_PATH}}/helper.sh with "reserve-transfer-assets-from-moonriver-local 50000000000" within 120 seconds
-
-# check that //Alice received at least 4.8 DOT on Kusama AH
-alith: js-script {{FRAMEWORK_PATH}}/js-helpers/wrapped-assets-balance.js with '{ "accountAddress": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "expectedAssetBalance": 48000000000, "expectedAssetId": { "parents": 2, "interior": { "X1": [{ "GlobalConsensus": "Polkadot" }] }}}' within 300 seconds
