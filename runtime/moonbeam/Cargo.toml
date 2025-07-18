@@ -374,6 +374,7 @@ on-chain-release-build = [
 disable-genesis-builder = []
 
 runtime-benchmarks = [
+	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"cumulus-primitives-core/runtime-benchmarks",
 	"frame-benchmarking",
