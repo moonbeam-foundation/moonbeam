@@ -1403,6 +1403,7 @@ impl pallet_relay_storage_roots::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
 impl pallet_precompile_benchmarks::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
 }
@@ -1490,7 +1491,10 @@ construct_runtime! {
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = 50,
 		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 51,
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 52,
+
+		#[cfg(feature = "runtime-benchmarks")]
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 53,
+
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event<T>} = 54,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 55,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
