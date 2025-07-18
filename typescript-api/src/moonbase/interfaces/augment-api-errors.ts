@@ -452,14 +452,23 @@ declare module "@polkadot/api-base/types/errors" {
       AssetDoesNotExist: AugmentedError<ApiType>;
       AssetIdFiltered: AugmentedError<ApiType>;
       AssetNotFrozen: AugmentedError<ApiType>;
+      AssetNotInSiblingPara: AugmentedError<ApiType>;
+      CannotConvertLocationToAccount: AugmentedError<ApiType>;
       CorruptedStorageOrphanLocation: AugmentedError<ApiType>;
       Erc20ContractCreationFail: AugmentedError<ApiType>;
+      EvmCallMintIntoFail: AugmentedError<ApiType>;
       EvmCallPauseFail: AugmentedError<ApiType>;
+      EvmCallTransferFail: AugmentedError<ApiType>;
       EvmCallUnpauseFail: AugmentedError<ApiType>;
       EvmInternalError: AugmentedError<ApiType>;
+      /**
+       * Account has insufficient balance for locking
+       **/
+      InsufficientBalance: AugmentedError<ApiType>;
       InvalidSymbol: AugmentedError<ApiType>;
       InvalidTokenName: AugmentedError<ApiType>;
       LocationAlreadyExists: AugmentedError<ApiType>;
+      LocationOutsideOfOrigin: AugmentedError<ApiType>;
       TooManyForeignAssets: AugmentedError<ApiType>;
       /**
        * Generic error
@@ -472,6 +481,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       AlreadyClaimed: AugmentedError<ApiType>;
       /**
+       * The username cannot be unbound because it is already unbinding.
+       **/
+      AlreadyUnbinding: AugmentedError<ApiType>;
+      /**
        * Empty index.
        **/
       EmptyIndex: AugmentedError<ApiType>;
@@ -479,6 +492,11 @@ declare module "@polkadot/api-base/types/errors" {
        * Fee is changed.
        **/
       FeeChanged: AugmentedError<ApiType>;
+      /**
+       * The action cannot be performed because of insufficient privileges (e.g. authority
+       * trying to unbind a username provided by the system).
+       **/
+      InsufficientPrivileges: AugmentedError<ApiType>;
       /**
        * The index is invalid.
        **/
@@ -544,6 +562,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       NotSub: AugmentedError<ApiType>;
       /**
+       * The username cannot be removed because it is not unbinding.
+       **/
+      NotUnbinding: AugmentedError<ApiType>;
+      /**
        * The sender does not have permission to issue a username.
        **/
       NotUsernameAuthority: AugmentedError<ApiType>;
@@ -559,6 +581,10 @@ declare module "@polkadot/api-base/types/errors" {
        * Sticky judgement.
        **/
       StickyJudgement: AugmentedError<ApiType>;
+      /**
+       * The username cannot be removed because it's still in the grace period.
+       **/
+      TooEarly: AugmentedError<ApiType>;
       /**
        * Maximum amount of registrars reached. Cannot add any more.
        **/
@@ -662,18 +688,6 @@ declare module "@polkadot/api-base/types/errors" {
     };
     moonbeamLazyMigrations: {
       /**
-       * Fail to add an approval
-       **/
-      ApprovalFailed: AugmentedError<ApiType>;
-      /**
-       * Asset not found
-       **/
-      AssetNotFound: AugmentedError<ApiType>;
-      /**
-       * The asset type was not found
-       **/
-      AssetTypeNotFound: AugmentedError<ApiType>;
-      /**
        * The contract already have metadata
        **/
       ContractMetadataAlreadySet: AugmentedError<ApiType>;
@@ -681,34 +695,6 @@ declare module "@polkadot/api-base/types/errors" {
        * Contract not exist
        **/
       ContractNotExist: AugmentedError<ApiType>;
-      /**
-       * The limit cannot be zero
-       **/
-      LimitCannotBeZero: AugmentedError<ApiType>;
-      /**
-       * The location of the asset was not found
-       **/
-      LocationNotFound: AugmentedError<ApiType>;
-      /**
-       * Migration is not finished yet
-       **/
-      MigrationNotFinished: AugmentedError<ApiType>;
-      /**
-       * Fail to mint the foreign asset
-       **/
-      MintFailed: AugmentedError<ApiType>;
-      /**
-       * The name length exceeds the maximum allowed
-       **/
-      NameTooLong: AugmentedError<ApiType>;
-      /**
-       * No migration in progress
-       **/
-      NoMigrationInProgress: AugmentedError<ApiType>;
-      /**
-       * The symbol length exceeds the maximum allowed
-       **/
-      SymbolTooLong: AugmentedError<ApiType>;
       /**
        * Generic error
        **/
@@ -752,6 +738,16 @@ declare module "@polkadot/api-base/types/errors" {
        * The orbiter is still at least in one pool
        **/
       OrbiterStillInAPool: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       **/
+      [key: string]: AugmentedError<ApiType>;
+    };
+    multiBlockMigrations: {
+      /**
+       * The operation cannot complete since some MBMs are ongoing.
+       **/
+      Ongoing: AugmentedError<ApiType>;
       /**
        * Generic error
        **/
@@ -841,6 +837,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       PrimeAccountNotMember: AugmentedError<ApiType>;
       /**
+       * Proposal is still active.
+       **/
+      ProposalActive: AugmentedError<ApiType>;
+      /**
        * Proposal must exist
        **/
       ProposalMissing: AugmentedError<ApiType>;
@@ -909,7 +909,6 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestDNE: AugmentedError<ApiType>;
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
-      RemovedCall: AugmentedError<ApiType>;
       RoundLengthMustBeGreaterThanTotalSelectedCollators: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
@@ -1393,6 +1392,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       PrimeAccountNotMember: AugmentedError<ApiType>;
       /**
+       * Proposal is still active.
+       **/
+      ProposalActive: AugmentedError<ApiType>;
+      /**
        * Proposal must exist
        **/
       ProposalMissing: AugmentedError<ApiType>;
@@ -1537,6 +1540,10 @@ declare module "@polkadot/api-base/types/errors" {
        * The relative price cannot be zero
        **/
       PriceCannotBeZero: AugmentedError<ApiType>;
+      /**
+       * The relative price calculation overflowed
+       **/
+      PriceOverflow: AugmentedError<ApiType>;
       /**
        * XCM location filtered
        **/

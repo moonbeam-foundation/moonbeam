@@ -1,4 +1,4 @@
-// Copyright 2024 Moonbeam Foundation.
+// Copyright 2025 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,8 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg(feature = "runtime-benchmarks")]
+extern crate alloc;
 
 use crate::{AssetStatus, Call, Config, Pallet};
+use alloc::format;
 use frame_benchmarking::v2::*;
 use frame_support::pallet_prelude::*;
 use frame_system::RawOrigin;
@@ -40,15 +42,33 @@ mod benchmarks {
 
 	#[benchmark]
 	fn create_foreign_asset() -> Result<(), BenchmarkError> {
-		let asset_id = T::MaxForeignAssets::get() as u128;
+		let max_assets = T::MaxForeignAssets::get() as u128;
+
+		for i in 1..max_assets {
+			let symbol = format!("MT{}", i);
+			let name = format!("Mytoken{}", i);
+			Pallet::<T>::create_foreign_asset(
+				RawOrigin::Root.into(),
+				i,
+				location_of(i),
+				18,
+				str_to_bv(&symbol),
+				str_to_bv(&name),
+			)?;
+		}
+
+		let asset_id = max_assets;
+		let symbol = format!("MT{}", asset_id);
+		let name = format!("Mytoken{}", asset_id);
+
 		#[extrinsic_call]
 		_(
 			RawOrigin::Root,
 			asset_id,
 			Location::parent(),
 			18,
-			str_to_bv("MT"),
-			str_to_bv("Mytoken"),
+			str_to_bv(&symbol),
+			str_to_bv(&name),
 		);
 
 		assert_eq!(
@@ -61,18 +81,21 @@ mod benchmarks {
 
 	#[benchmark]
 	fn change_xcm_location() -> Result<(), BenchmarkError> {
-		let asset_id = T::MaxForeignAssets::get() as u128;
-		Pallet::<T>::create_foreign_asset(
-			RawOrigin::Root.into(),
-			asset_id,
-			location_of(asset_id),
-			18,
-			str_to_bv("MT"),
-			str_to_bv("Mytoken"),
-		)?;
+		let max_assets = T::MaxForeignAssets::get() as u128;
+		for i in 1..=max_assets {
+			let symbol = format!("MT{}", i);
+			let name = format!("Mytoken{}", i);
+			Pallet::<T>::create_foreign_asset(
+				RawOrigin::Root.into(),
+				i,
+				location_of(i),
+				18,
+				str_to_bv(&symbol),
+				str_to_bv(&name),
+			)?;
+		}
 
-		// Remove ethereum receipts
-		pallet_ethereum::Pending::<T>::kill();
+		let asset_id = max_assets;
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id, Location::here());
@@ -84,18 +107,21 @@ mod benchmarks {
 
 	#[benchmark]
 	fn freeze_foreign_asset() -> Result<(), BenchmarkError> {
-		let asset_id = T::MaxForeignAssets::get() as u128;
-		Pallet::<T>::create_foreign_asset(
-			RawOrigin::Root.into(),
-			asset_id,
-			location_of(asset_id),
-			18,
-			str_to_bv("MT"),
-			str_to_bv("Mytoken"),
-		)?;
+		let max_assets = T::MaxForeignAssets::get() as u128;
+		for i in 1..=max_assets {
+			let symbol = format!("MT{}", i);
+			let name = format!("Mytoken{}", i);
+			Pallet::<T>::create_foreign_asset(
+				RawOrigin::Root.into(),
+				i,
+				location_of(i),
+				18,
+				str_to_bv(&symbol),
+				str_to_bv(&name),
+			)?;
+		}
 
-		// Remove ethereum receipts
-		pallet_ethereum::Pending::<T>::kill();
+		let asset_id = max_assets;
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id, true);
@@ -110,20 +136,23 @@ mod benchmarks {
 
 	#[benchmark]
 	fn unfreeze_foreign_asset() -> Result<(), BenchmarkError> {
-		let asset_id = T::MaxForeignAssets::get() as u128;
-		Pallet::<T>::create_foreign_asset(
-			RawOrigin::Root.into(),
-			asset_id,
-			location_of(asset_id),
-			18,
-			str_to_bv("MT"),
-			str_to_bv("Mytoken"),
-		)?;
+		let max_assets = T::MaxForeignAssets::get() as u128;
+		for i in 1..=max_assets {
+			let symbol = format!("MT{}", i);
+			let name = format!("Mytoken{}", i);
+			Pallet::<T>::create_foreign_asset(
+				RawOrigin::Root.into(),
+				i,
+				location_of(i),
+				18,
+				str_to_bv(&symbol),
+				str_to_bv(&name),
+			)?;
 
-		let _ = Pallet::<T>::freeze_foreign_asset(RawOrigin::Root.into(), asset_id, true);
+			let _ = Pallet::<T>::freeze_foreign_asset(RawOrigin::Root.into(), i, true);
+		}
 
-		// Remove ethereum receipts
-		pallet_ethereum::Pending::<T>::kill();
+		let asset_id = max_assets;
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id);

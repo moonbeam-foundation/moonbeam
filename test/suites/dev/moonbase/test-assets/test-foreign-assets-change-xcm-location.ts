@@ -10,7 +10,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D010106",
+  id: "D020105",
   title: "XCM - Change existing asset's XCM location",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -43,9 +43,13 @@ describeSuite({
           ({ event: { method } }) => method.toString() === "ForeignAssetXcmLocationChanged"
         ).event;
 
-        const newLocation = locationChangeEvent.data[1];
         const id = locationChangeEvent.data[0];
+        const prevLocation = locationChangeEvent.data[1];
+        const newLocation = locationChangeEvent.data[2];
 
+        expect(JSON.stringify(prevLocation).toLowerCase()).to.eq(
+          JSON.stringify(RELAY_SOURCE_LOCATION_V4).toLowerCase()
+        );
         expect(JSON.stringify(newLocation).toLowerCase()).to.eq(
           JSON.stringify(PARA_1000_SOURCE_LOCATION_V4).toLowerCase()
         );

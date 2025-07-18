@@ -5,7 +5,7 @@ import { stringToU8a } from "@polkadot/util";
 import { VESTING_PERIOD, getAccountPayable } from "../../../../helpers";
 
 describeSuite({
-  id: "D010813",
+  id: "D020713",
   title: "Crowdloan - Update Address Relay",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

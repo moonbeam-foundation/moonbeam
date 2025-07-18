@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -114,7 +114,48 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 		)
 		.expect("Provided valid json map"),
 	)
-	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
+	.with_genesis_config(testnet_genesis(
+		// Alith is Sudo
+		AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+		// Treasury Council members: Baltathar, Charleth and Dorothy
+		vec![
+			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+		],
+		// Open Tech committee members: Alith and Baltathar
+		vec![
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+		],
+		// Collator Candidates
+		vec![
+			// Alice -> Alith
+			(
+				AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+				get_from_seed::<NimbusId>("Alice"),
+				1_000 * UNIT,
+			),
+			// Bob -> Baltathar
+			(
+				AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+				get_from_seed::<NimbusId>("Bob"),
+				1_000 * UNIT,
+			),
+		],
+		// Delegations
+		vec![],
+		// Endowed: Alith, Baltathar, Charleth and Dorothy
+		vec![
+			AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+			AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+		],
+		3_000_000 * UNIT,
+		para_id,
+		1280, //ChainId
+	))
 	.build()
 }
 

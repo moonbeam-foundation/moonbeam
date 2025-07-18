@@ -10,7 +10,7 @@ import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D010206",
+  id: "D020206",
   title: "Author Mapping - non-author cannot rotate",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

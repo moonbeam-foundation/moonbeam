@@ -6,8 +6,7 @@ import {
   maximizeConvictionVotingOf,
   whiteListTrackNoSend,
 } from "@moonwall/cli";
-import { DEFAULT_GENESIS_BALANCE, ethan, GLMR, GOLIATH_ADDRESS } from "@moonwall/util";
-import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import { baltathar, DEFAULT_GENESIS_BALANCE, ethan, GLMR, GOLIATH_ADDRESS } from "@moonwall/util";
 import {
   getAccountPayable,
   RELAYCHAIN_ARBITRARY_ADDRESS_1,
@@ -16,7 +15,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D010805",
+  id: "D020705",
   title: "Crowdloan - Democracy",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -24,35 +23,30 @@ describeSuite({
       id: "T01",
       title: "should be able to initialize through democracy",
       test: async () => {
-        const batchedCalls: SubmittableExtrinsic[] = [];
-        batchedCalls.push(
-          context.polkadotJs().tx.crowdloanRewards.initializeRewardVec([
-            [RELAYCHAIN_ARBITRARY_ADDRESS_1, GOLIATH_ADDRESS, 1_500_000n * GLMR],
-            [RELAYCHAIN_ARBITRARY_ADDRESS_2, null, 1_500_000n * GLMR],
-          ])
-        );
+        const initializeRewardVec = context.polkadotJs().tx.crowdloanRewards.initializeRewardVec([
+          [RELAYCHAIN_ARBITRARY_ADDRESS_1, GOLIATH_ADDRESS, 1_500_000n * GLMR],
+          [RELAYCHAIN_ARBITRARY_ADDRESS_2, null, 1_500_000n * GLMR],
+        ]);
 
         const initBlock = await context.polkadotJs().query.crowdloanRewards.initRelayBlock();
-        batchedCalls.push(
-          context
-            .polkadotJs()
-            .tx.crowdloanRewards.completeInitialization(initBlock.toBigInt() + VESTING_PERIOD)
-        );
+        const completeInitialization = context
+          .polkadotJs()
+          .tx.crowdloanRewards.completeInitialization(initBlock.toBigInt() + VESTING_PERIOD);
 
-        // Here we build the utility call
-        const proposal = context.polkadotJs().tx.utility.batchAll(batchedCalls);
-
-        await whiteListTrackNoSend(context, proposal);
+        await whiteListTrackNoSend(context, initializeRewardVec);
+        await whiteListTrackNoSend(context, completeInitialization);
 
         await maximizeConvictionVotingOf(context, [ethan], 0);
+        await maximizeConvictionVotingOf(context, [baltathar], 1);
         await context.createBlock();
 
         await fastFowardToNextEvent(context); // ⏩️ until preparation done
         await fastFowardToNextEvent(context); // ⏩️ until proposal confirmed
         await fastFowardToNextEvent(context); // ⏩️ until proposal enacted
 
-        const isInitialized = await context.polkadotJs().query.crowdloanRewards.initialized();
+        await fastFowardToNextEvent(context); // ⏩️ until proposal 2 is enacted
 
+        const isInitialized = await context.polkadotJs().query.crowdloanRewards.initialized();
         expect(isInitialized.toHuman()).to.be.true;
 
         const reward_info_associated = await getAccountPayable(context, GOLIATH_ADDRESS);

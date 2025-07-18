@@ -47,12 +47,13 @@
       "collator": {
         "name": "alith",
         "command": "../target/release/moonbeam",
-        "ws_port": 33345,
+        "rpc_port": 33345,
         "args": [
           "--no-hardware-benchmarks",
           "--force-authoring",
           "-lparachain=debug",
-          "--database=paritydb"
+          "--database=paritydb",
+          "--pool-type=fork-aware"
         ]
       }
     }

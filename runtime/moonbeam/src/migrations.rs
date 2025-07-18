@@ -1,4 +1,4 @@
-// Copyright 2024 Moonbeam Foundation Inc.
+// Copyright 2025 Moonbeam Foundation.Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Moonbeam specific Migrations
+
 use pallet_migrations::{GetMigrations, Migration};
 use sp_std::{prelude::*, vec};
 

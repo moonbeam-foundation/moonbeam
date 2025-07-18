@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -19,13 +19,16 @@
 pub mod cumulus_pallet_parachain_system;
 pub mod cumulus_pallet_xcmp_queue;
 pub mod db;
+pub mod frame_system;
+pub mod frame_system_extensions;
 pub mod pallet_asset_manager;
 pub mod pallet_assets;
 pub mod pallet_author_inherent;
 pub mod pallet_author_mapping;
 pub mod pallet_author_slot_filter;
 pub mod pallet_balances;
-pub mod pallet_collective;
+pub mod pallet_collective_open_tech_committee_collective;
+pub mod pallet_collective_treasury_council_collective;
 pub mod pallet_conviction_voting;
 pub mod pallet_crowdloan_rewards;
 pub mod pallet_evm;
@@ -34,6 +37,7 @@ pub mod pallet_message_queue;
 pub mod pallet_moonbeam_foreign_assets;
 pub mod pallet_moonbeam_lazy_migrations;
 pub mod pallet_moonbeam_orbiters;
+pub mod pallet_multiblock_migrations;
 pub mod pallet_multisig;
 pub mod pallet_parachain_staking;
 pub mod pallet_parameters;
@@ -46,9 +50,20 @@ pub mod pallet_relay_storage_roots;
 pub mod pallet_scheduler;
 pub mod pallet_sudo;
 pub mod pallet_timestamp;
+pub mod pallet_transaction_payment;
 pub mod pallet_treasury;
 pub mod pallet_utility;
 pub mod pallet_whitelist;
 pub mod pallet_xcm;
 pub mod pallet_xcm_transactor;
 pub mod pallet_xcm_weight_trader;
+pub mod xcm;
+
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+mod bridge_weights;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_bridge_grandpa;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_bridge_messages;
+#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
+pub mod pallet_bridge_parachains;

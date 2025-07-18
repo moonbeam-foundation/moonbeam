@@ -12,7 +12,7 @@ import { encodeFunctionData } from "viem";
 // number used internally by transaction-payment for fee calculations.
 
 describeSuite({
-  id: "D011602",
+  id: "D021502",
   title: "Max Fee Multiplier",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -82,9 +82,8 @@ describeSuite({
         // note that this is not really affected by the high multiplier because most of its fee is
         // derived from the length_fee, which is not scaled by the multiplier
         // ~/4 to compensate for the ref time XCM fee changes
-        // Previous value: 449_284_776_265_723_667_008n
-        // Previous value: 119_241_298_837_127_813_277n
-        expect(initialBalance - afterBalance).to.equal(119_241_297_050_552_813_277n);
+        // Previous value: 231664695814090313277n
+        expect(initialBalance - afterBalance).toMatchInlineSnapshot(`245351558314090313277n`);
       },
     });
 

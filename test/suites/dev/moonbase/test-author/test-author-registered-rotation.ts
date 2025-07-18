@@ -4,7 +4,7 @@ import { getMappingInfo } from "../../../../helpers";
 import { expect, describeSuite } from "@moonwall/cli";
 
 describeSuite({
-  id: "D010208",
+  id: "D020208",
   title: "Author Mapping - registered can rotate",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

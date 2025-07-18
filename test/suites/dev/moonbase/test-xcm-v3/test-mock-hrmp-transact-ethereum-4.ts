@@ -2,16 +2,17 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import type { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D014026",
+  id: "D024025",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -19,8 +20,13 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
+    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
@@ -114,7 +120,7 @@ describeSuite({
             ],
             weight_limit: {
               refTime: targetXcmWeight,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 7,
+              proofSize: 43_208,
             } as any,
             descend_origin: sendingAddress,
           })
@@ -126,8 +132,9 @@ describeSuite({
                 originKind: "SovereignAccount",
                 // 100_000 gas + 2 db read
                 requireWeightAtMost: {
-                  refTime: 575_000_000,
-                  proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+                  refTime: 608_484_000,
+                  // This is impacted by `GasWeightMapping::gas_to_weight` in pallet-ethereum-xcm
+                  proofSize: 2625, // Previously (with 5MB max PoV): 1312
                 },
                 call: {
                   encoded: transferCallEncoded,

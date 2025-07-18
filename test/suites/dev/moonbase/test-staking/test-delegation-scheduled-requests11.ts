@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, baltathar, ethan } from "@
 import { jumpToRound } from "../../../../helpers";
 
 describeSuite({
-  id: "D013423",
+  id: "D023424",
   title: "Staking - Delegation Scheduled Requests - execute bond less after round delay",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -23,7 +23,14 @@ describeSuite({
             .signAsync(baltathar),
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR + LESS_AMOUNT, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              alith.address,
+              MIN_GLMR_DELEGATOR + LESS_AMOUNT,
+              0,
+              0,
+              0,
+              0
+            )
             .signAsync(ethan),
         ],
         { allowFailures: false }
@@ -31,7 +38,14 @@ describeSuite({
       await context.createBlock(
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(baltathar.address, MIN_GLMR_DELEGATOR + LESS_AMOUNT, 0, 1)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            baltathar.address,
+            MIN_GLMR_DELEGATOR + LESS_AMOUNT,
+            0,
+            0,
+            0,
+            1
+          )
           .signAsync(ethan),
         { allowFailures: false }
       );

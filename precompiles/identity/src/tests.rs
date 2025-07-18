@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -79,7 +79,7 @@ fn test_set_fee_on_existing_registrar_index_succeeds() {
 			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::registrars().to_vec(),
+				pallet_identity::Registrars::<Runtime>::get().to_vec(),
 				vec![Some(RegistrarInfo {
 					account: Bob.into(),
 					fee: 100,
@@ -129,7 +129,7 @@ fn test_set_account_id_on_existing_registrar_index_succeeds() {
 			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::registrars().to_vec(),
+				pallet_identity::Registrars::<Runtime>::get().to_vec(),
 				vec![Some(RegistrarInfo {
 					account: Charlie.into(),
 					fee: 0,
@@ -183,7 +183,7 @@ fn test_set_fields_on_existing_registrar_index_succeeds() {
 			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::registrars().to_vec(),
+				pallet_identity::Registrars::<Runtime>::get().to_vec(),
 				vec![Some(RegistrarInfo {
 					account: Bob.into(),
 					fee: 0,
@@ -302,11 +302,11 @@ fn test_set_identity_works() {
 			));
 
 			let identity =
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)).expect("exists");
-			let encoded_byte_size = identity.0.info.encoded_size() as u32;
+				pallet_identity::IdentityOf::<Runtime>::get(AccountId::from(Bob)).expect("exists");
+			let encoded_byte_size = identity.info.encoded_size() as u32;
 			let byte_deposit = ByteDeposit::get().saturating_mul(encoded_byte_size as u64);
 			assert_eq!(
-				identity.0,
+				identity,
 				pallet_identity::Registration::<Balance, MaxRegistrars, _> {
 					judgements: Default::default(),
 					deposit: (BasicDeposit::get() + byte_deposit).into(),
@@ -413,11 +413,11 @@ fn test_set_identity_works_for_already_set_identity() {
 			));
 
 			let identity =
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)).expect("exists");
-			let encoded_byte_size = identity.0.info.encoded_size() as u32;
+				pallet_identity::IdentityOf::<Runtime>::get(AccountId::from(Bob)).expect("exists");
+			let encoded_byte_size = identity.info.encoded_size() as u32;
 			let byte_deposit = ByteDeposit::get().saturating_mul(encoded_byte_size as u64);
 			assert_eq!(
-				identity.0,
+				identity,
 				pallet_identity::Registration::<Balance, MaxRegistrars, _> {
 					judgements: Default::default(),
 					deposit: (BasicDeposit::get() + byte_deposit) as u128,
@@ -455,11 +455,11 @@ fn test_set_identity_works_for_already_set_identity() {
 			.dispatch(RuntimeOrigin::root()));
 
 			let identity =
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)).expect("exists");
-			let encoded_byte_size = identity.0.info.encoded_size() as u32;
+				pallet_identity::IdentityOf::<Runtime>::get(AccountId::from(Bob)).expect("exists");
+			let encoded_byte_size = identity.info.encoded_size() as u32;
 			let byte_deposit = ByteDeposit::get().saturating_mul(encoded_byte_size as u64);
 			assert_eq!(
-				identity.0,
+				identity,
 				pallet_identity::Registration::<Balance, MaxRegistrars, _> {
 					judgements: Default::default(),
 					deposit: (BasicDeposit::get() + byte_deposit).into(),
@@ -503,11 +503,11 @@ fn test_set_subs_works_if_identity_set() {
 			.dispatch(RuntimeOrigin::root()));
 
 			let identity =
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)).expect("exists");
-			let encoded_byte_size = identity.0.info.encoded_size() as u32;
+				pallet_identity::IdentityOf::<Runtime>::get(AccountId::from(Bob)).expect("exists");
+			let encoded_byte_size = identity.info.encoded_size() as u32;
 			let byte_deposit = ByteDeposit::get().saturating_mul(encoded_byte_size as u64);
 			assert_eq!(
-				identity.0,
+				identity,
 				pallet_identity::Registration::<Balance, MaxRegistrars, _> {
 					judgements: Default::default(),
 					deposit: (BasicDeposit::get() + byte_deposit).into(),
@@ -553,7 +553,7 @@ fn test_set_subs_works_if_identity_set() {
 			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::subs_of(AccountId::from(Bob)),
+				<pallet_identity::SubsOf<Runtime>>::get(AccountId::from(Bob)),
 				(
 					SubAccountDeposit::get() as u128 * 2,
 					vec![Charlie.into(), David.into(),]
@@ -626,11 +626,11 @@ fn test_clear_identity_works_if_identity_set() {
 			.dispatch(RuntimeOrigin::root()));
 
 			let identity =
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)).expect("exists");
-			let encoded_byte_size = identity.0.info.encoded_size() as u32;
+				pallet_identity::IdentityOf::<Runtime>::get(AccountId::from(Bob)).expect("exists");
+			let encoded_byte_size = identity.info.encoded_size() as u32;
 			let byte_deposit = ByteDeposit::get().saturating_mul(encoded_byte_size as u64);
 			assert_eq!(
-				identity.0,
+				identity,
 				pallet_identity::Registration::<Balance, MaxRegistrars, _> {
 					judgements: Default::default(),
 					deposit: (BasicDeposit::get() + byte_deposit).into(),
@@ -675,7 +675,7 @@ fn test_clear_identity_works_if_identity_set() {
 			));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob)),
+				pallet_identity::IdentityOf::<Runtime>::get(AccountId::from(Bob)),
 				None,
 			);
 		})
@@ -769,9 +769,8 @@ fn test_request_judgement_works_if_identity_set() {
 			));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
+				pallet_identity::IdentityOf::<Runtime>::get(AccountId::from(Bob))
 					.expect("exists")
-					.0
 					.judgements
 					.to_vec(),
 				vec![(0, pallet_identity::Judgement::FeePaid(100))],
@@ -854,9 +853,8 @@ fn test_cancel_request_works_if_identity_judgement_requested() {
 			));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
+				pallet_identity::IdentityOf::<Runtime>::get(AccountId::from(Bob))
 					.expect("exists")
-					.0
 					.judgements
 					.to_vec(),
 				vec![],
@@ -929,9 +927,8 @@ fn test_provide_judgement_works_if_identity_judgement_requested() {
 			};
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
+				pallet_identity::IdentityOf::<Runtime>::get(AccountId::from(Bob))
 					.expect("exists")
-					.0
 					.info,
 				identity.info
 			);
@@ -972,9 +969,8 @@ fn test_provide_judgement_works_if_identity_judgement_requested() {
 			));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::identity(AccountId::from(Bob))
+				pallet_identity::IdentityOf::<Runtime>::get(AccountId::from(Bob))
 					.expect("exists")
-					.0
 					.judgements
 					.to_vec(),
 				vec![(0, pallet_identity::Judgement::Reasonable)],
@@ -1039,7 +1035,7 @@ fn test_add_sub_works_if_identity_set() {
 			));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::subs_of(AccountId::from(Bob)),
+				<pallet_identity::SubsOf<Runtime>>::get(AccountId::from(Bob)),
 				(
 					SubAccountDeposit::get() as u128,
 					vec![Charlie.into()].try_into().expect("succeeds")
@@ -1097,7 +1093,7 @@ fn test_rename_sub_works_if_identity_set() {
 			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::super_of(AccountId::from(Charlie)),
+				pallet_identity::SuperOf::<Runtime>::get(AccountId::from(Charlie)),
 				Some((
 					AccountId::from(Bob),
 					pallet_identity::Data::Raw(vec![0xaa].try_into().expect("succeeds"))
@@ -1172,7 +1168,7 @@ fn test_remove_sub_works_if_identity_set() {
 			));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::super_of(AccountId::from(Charlie)),
+				pallet_identity::SuperOf::<Runtime>::get(AccountId::from(Charlie)),
 				None,
 			);
 		})
@@ -1239,7 +1235,7 @@ fn test_quit_sub_works_if_identity_set() {
 			));
 
 			assert_eq!(
-				<IdentityPallet<Runtime>>::super_of(AccountId::from(Charlie)),
+				pallet_identity::SuperOf::<Runtime>::get(AccountId::from(Charlie)),
 				None,
 			);
 		})

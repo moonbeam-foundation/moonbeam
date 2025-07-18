@@ -11,7 +11,7 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D014120",
+  id: "D024121",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -125,8 +125,9 @@ describeSuite({
                 originKind: "SovereignAccount",
                 // 100_000 gas + 2 db read
                 requireWeightAtMost: {
-                  refTime: 575_000_000n,
-                  proofSize: 80000n,
+                  refTime: 608_484_000,
+                  // This is impacted by `GasWeightMapping::gas_to_weight` in pallet-ethereum-xcm
+                  proofSize: 2625, // Previously (with 5MB max PoV): 1312
                 },
                 call: {
                   encoded: transferCallEncoded,
@@ -148,7 +149,7 @@ describeSuite({
           expect(testAccountBalance).to.eq(0n);
 
           // Make sure the descended address has been deducted fees once (in xcm-executor) but
-          // transfered nothing.
+          // transferred nothing.
           const descendOriginBalance = await context.viem().getBalance({ address: descendAddress });
           expect(BigInt(descendOriginBalance)).to.eq(transferredBalance - feeAmount);
         }

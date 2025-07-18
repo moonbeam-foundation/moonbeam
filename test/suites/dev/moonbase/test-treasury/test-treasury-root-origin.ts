@@ -5,8 +5,8 @@ import { alith, baltathar, ethan } from "@moonwall/util";
 import type { FrameSupportPalletId } from "@polkadot/types/lookup";
 
 describeSuite({
-  id: "D013801",
-  title: "Treasury pallet spend_local call (Root Origin)",
+  id: "D023803",
+  title: "Treasury pallet spend call (Root Origin)",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let treasuryPalletId: FrameSupportPalletId;

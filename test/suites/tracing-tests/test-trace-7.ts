@@ -3,7 +3,7 @@ import { ALITH_PRIVATE_KEY, alith, createEthersTransaction } from "@moonwall/uti
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "T07",
+  id: "T08",
   title: "Raw trace limits",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

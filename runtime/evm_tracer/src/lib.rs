@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -25,13 +25,28 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod tracer {
+	use ethereum_types::H256;
 	use evm_tracing_events::{EvmEvent, GasometerEvent, RuntimeEvent, StepEventFilter};
-	use parity_scale_codec::Encode;
+	use parity_scale_codec::{Decode, Encode};
 
 	use evm::tracing::{using as evm_using, EventListener as EvmListener};
 	use evm_gasometer::tracing::{using as gasometer_using, EventListener as GasometerListener};
 	use evm_runtime::tracing::{using as runtime_using, EventListener as RuntimeListener};
+	use sp_runtime::DispatchError;
 	use sp_std::{cell::RefCell, rc::Rc};
+
+	/// The current EthereumXcmTransaction trace status.
+	#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
+	pub enum EthereumTracingStatus {
+		/// A full block trace.
+		Block,
+		/// A single transaction.
+		Transaction(H256),
+		/// Exit signal.
+		TransactionExited,
+	}
+
+	environmental::environmental!(ETHEREUM_TRACING_STATUS: EthereumTracingStatus);
 
 	struct ListenerProxy<T>(pub Rc<RefCell<T>>);
 	impl<T: GasometerListener> GasometerListener for ListenerProxy<T> {
@@ -49,6 +64,33 @@ pub mod tracer {
 	impl<T: EvmListener> EvmListener for ListenerProxy<T> {
 		fn event(&mut self, event: evm::tracing::Event) {
 			self.0.borrow_mut().event(event);
+		}
+	}
+
+	pub struct EthereumTracer;
+
+	impl EthereumTracer {
+		pub fn transaction(
+			tx_hash: H256,
+			func: impl FnOnce() -> Result<(), DispatchError>,
+		) -> Result<(), DispatchError> {
+			ETHEREUM_TRACING_STATUS::using(&mut EthereumTracingStatus::Transaction(tx_hash), func)
+		}
+
+		pub fn block(
+			func: impl FnOnce() -> Result<(), DispatchError>,
+		) -> Result<(), DispatchError> {
+			ETHEREUM_TRACING_STATUS::using(&mut EthereumTracingStatus::Block, func)
+		}
+
+		pub fn transaction_exited() {
+			ETHEREUM_TRACING_STATUS::with(|state| {
+				*state = EthereumTracingStatus::TransactionExited
+			});
+		}
+
+		pub fn status() -> Option<EthereumTracingStatus> {
+			ETHEREUM_TRACING_STATUS::with(|state| state.clone())
 		}
 	}
 

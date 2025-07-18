@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -92,6 +92,7 @@ impl frame_system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -110,6 +111,7 @@ impl pallet_balances::Config for Test {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 impl block_author::Config for Test {}
 const GENESIS_BLOCKS_PER_ROUND: BlockNumber = 5;
@@ -146,6 +148,10 @@ impl Get<Slot> for StakingRoundSlotProvider {
 	}
 }
 
+parameter_types! {
+	pub const LinearInflationThreshold: Option<Balance> = Some(1_200_000_000);
+}
+
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -174,6 +180,7 @@ impl Config for Test {
 	type MaxCandidates = MaxCandidates;
 	type SlotDuration = frame_support::traits::ConstU64<6_000>;
 	type BlockTime = frame_support::traits::ConstU64<6_000>;
+	type LinearInflationThreshold = LinearInflationThreshold;
 }
 
 pub(crate) struct ExtBuilder {

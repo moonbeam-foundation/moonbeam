@@ -213,7 +213,7 @@ declare module "@polkadot/api-base/types/calls" {
        **/
       [key: string]: DecoratedCallBase<ApiType>;
     };
-    /** 0x91b1c8b16328eb92/1 */
+    /** 0x91b1c8b16328eb92/2 */
     dryRunApi: {
       /**
        * Dry run call
@@ -222,7 +222,8 @@ declare module "@polkadot/api-base/types/calls" {
         ApiType,
         (
           origin: OriginCaller | { System: any } | string | Uint8Array,
-          call: RuntimeCall | IMethod | string | Uint8Array
+          call: RuntimeCall | IMethod | string | Uint8Array,
+          resultXcmsVersion: u32 | AnyNumber | Uint8Array
         ) => Observable<Result<CallDryRunEffects, XcmDryRunApiError>>
       >;
       /**
@@ -238,6 +239,7 @@ declare module "@polkadot/api-base/types/calls" {
             | { V2: any }
             | { V3: any }
             | { V4: any }
+            | { v5: any }
             | string
             | Uint8Array,
           xcm:
@@ -247,6 +249,7 @@ declare module "@polkadot/api-base/types/calls" {
             | { V2: any }
             | { V3: any }
             | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array
         ) => Observable<Result<XcmDryRunEffects, XcmDryRunApiError>>
@@ -409,9 +412,9 @@ declare module "@polkadot/api-base/types/calls" {
         (
           location:
             | XcmVersionedLocation
-            | { V2: any }
             | { V3: any }
             | { V4: any }
+            | { V5: any }
             | string
             | Uint8Array
         ) => Observable<Result<AccountId, Error>>
@@ -599,7 +602,7 @@ declare module "@polkadot/api-base/types/calls" {
         ApiType,
         (
           weight: WeightV2 | { refTime?: any; proofSize?: any } | string | Uint8Array,
-          asset: XcmVersionedAssetId | { V3: any } | { V4: any } | string | Uint8Array
+          asset: XcmVersionedAssetId | { V3: any } | { V4: any } | { V5: any } | string | Uint8Array
         ) => Observable<Result<u128, XcmPaymentApiError>>
       >;
       /**
@@ -608,7 +611,7 @@ declare module "@polkadot/api-base/types/calls" {
       queryXcmWeight: AugmentedCall<
         ApiType,
         (
-          message: XcmVersionedXcm | { V2: any } | { V3: any } | { V4: any } | string | Uint8Array
+          message: XcmVersionedXcm | { V3: any } | { V4: any } | { V5: any } | string | Uint8Array
         ) => Observable<Result<WeightV2, XcmPaymentApiError>>
       >;
       /**

@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, baltathar, ethan } from "@
 import { jumpToRound } from "../../../../helpers";
 
 describeSuite({
-  id: "D013425",
+  id: "D023426",
   title: "Staking - Delegation Scheduled Requests - collator leave",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -21,14 +21,28 @@ describeSuite({
           .signAsync(baltathar),
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR + 10n, 0, 0)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            alith.address,
+            MIN_GLMR_DELEGATOR + 10n,
+            0,
+            0,
+            0,
+            0
+          )
           .signAsync(ethan),
       ]);
 
       await context.createBlock([
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(baltathar.address, MIN_GLMR_DELEGATOR + 10n, 0, 1)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            baltathar.address,
+            MIN_GLMR_DELEGATOR + 10n,
+            0,
+            0,
+            0,
+            1
+          )
           .signAsync(ethan),
       ]);
       await context.createBlock([

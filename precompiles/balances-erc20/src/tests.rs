@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -280,7 +280,7 @@ fn transfer() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(173364756) // 1 weight => 1 gas in mock
+				.expect_cost(176106756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Precompile1,
 					SELECTOR_LOG_TRANSFER,
@@ -370,7 +370,7 @@ fn transfer_from() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(173364756) // 1 weight => 1 gas in mock
+				.expect_cost(176106756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Precompile1,
 					SELECTOR_LOG_TRANSFER,
@@ -466,7 +466,7 @@ fn transfer_from_self() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(173364756) // 1 weight => 1 gas in mock
+				.expect_cost(176106756) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Precompile1,
 					SELECTOR_LOG_TRANSFER,

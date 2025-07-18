@@ -41,9 +41,17 @@ contract ProxyForContractsDemo {
     // for debugging purpose
     //
     constructor() payable{
-        // payable because you need some funds to be resereved
+        // payable because you need some funds to be reserved
         // add Alice as delegate for this newly created contract
-        PROXY_ADDRESS.call(abi.encodeWithSelector(IProxy.addProxy.selector, 0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac, IProxy.ProxyType.Any, 0));
+        (bool success, bytes memory result) = PROXY_ADDRESS.call(abi.encodeWithSelector(IProxy.addProxy.selector, 0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac, IProxy.ProxyType.Any, 0));
+        // Bubble up the error if call reverts
+        if (!success) {
+            assembly{
+                let revertStringLength := mload(result)
+                let revertStringPtr := add(result, 0x20)
+                revert(revertStringPtr, revertStringLength)
+            }
+        }
     }
 
     // shortcut function to check if Alice is a delegate of this contract

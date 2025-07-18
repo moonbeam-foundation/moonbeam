@@ -6,7 +6,7 @@
 import "@polkadot/api-base/types/consts";
 
 import type { ApiTypes, AugmentedConst } from "@polkadot/api-base/types";
-import type { Bytes, Option, Vec, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
+import type { Bytes, Option, Text, Vec, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec, ITuple } from "@polkadot/types-codec/types";
 import type { Perbill, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
@@ -17,7 +17,7 @@ import type {
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
-  StagingXcmV4Location
+  StagingXcmV5Location
 } from "@polkadot/types/lookup";
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
@@ -107,6 +107,99 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       [key: string]: Codec;
     };
+    bridgePolkadotGrandpa: {
+      /**
+       * The distance between bridged chain headers, that may be submitted for free. The
+       * first free header is header number zero, the next one is header number
+       * `FreeHeadersInterval::get()` or any of its descendant if that header has not
+       * been submitted. In other words, interval between free headers should be at least
+       * `FreeHeadersInterval`.
+       **/
+      freeHeadersInterval: Option<u32> & AugmentedConst<ApiType>;
+      /**
+       * Maximal number of finalized headers to keep in the storage.
+       *
+       * The setting is there to prevent growing the on-chain state indefinitely. Note
+       * the setting does not relate to block numbers - we will simply keep as much items
+       * in the storage, so it doesn't guarantee any fixed timeframe for finality headers.
+       *
+       * Incautious change of this constant may lead to orphan entries in the runtime storage.
+       **/
+      headersToKeep: u32 & AugmentedConst<ApiType>;
+      /**
+       * Maximal number of "free" header transactions per block.
+       *
+       * To be able to track the bridged chain, the pallet requires all headers that are
+       * changing GRANDPA authorities set at the bridged chain (we call them mandatory).
+       * So it is a common good deed to submit mandatory headers to the pallet.
+       *
+       * The pallet may be configured (see `[Self::FreeHeadersInterval]`) to import some
+       * non-mandatory headers for free as well. It also may be treated as a common good
+       * deed, because it may help to reduce bridge fees - this cost may be deducted from
+       * bridge fees, paid by message senders.
+       *
+       * However, if the bridged chain gets compromised, its validators may generate as many
+       * "free" headers as they want. And they may fill the whole block (at this chain) for
+       * free. This constant limits number of calls that we may refund in a single block.
+       * All calls above this limit are accepted, but are not refunded.
+       **/
+      maxFreeHeadersPerBlock: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
+    bridgePolkadotParachains: {
+      /**
+       * Maximal number of single parachain heads to keep in the storage.
+       *
+       * The setting is there to prevent growing the on-chain state indefinitely. Note
+       * the setting does not relate to parachain block numbers - we will simply keep as much
+       * items in the storage, so it doesn't guarantee any fixed timeframe for heads.
+       *
+       * Incautious change of this constant may lead to orphan entries in the runtime storage.
+       **/
+      headsToKeep: u32 & AugmentedConst<ApiType>;
+      /**
+       * Maximal size (in bytes) of the SCALE-encoded parachain head data
+       * (`bp_parachains::ParaStoredHeaderData`).
+       *
+       * Keep in mind that the size of any tracked parachain header data must not exceed this
+       * value. So if you're going to track multiple parachains, one of which is using large
+       * hashes, you shall choose this maximal value.
+       *
+       * There's no mandatory headers in this pallet, so it can't stall if there's some header
+       * that exceeds this bound.
+       **/
+      maxParaHeadDataSize: u32 & AugmentedConst<ApiType>;
+      /**
+       * Name of the original `paras` pallet in the `construct_runtime!()` call at the bridged
+       * chain.
+       *
+       * Please keep in mind that this should be the name of the `runtime_parachains::paras`
+       * pallet from polkadot repository, not the `pallet-bridge-parachains`.
+       **/
+      parasPalletName: Text & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
+    bridgeXcmOverMoonbeam: {
+      /**
+       * Amount of this chain native tokens that is reserved on the sibling parachain account
+       * when bridge open request is registered.
+       **/
+      bridgeDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * Bridged network as relative location of bridged `GlobalConsensus`.
+       **/
+      bridgedNetwork: StagingXcmV5Location & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
     convictionVoting: {
       /**
        * The maximum number of concurrent votes an account may have.
@@ -185,6 +278,16 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       subAccountDeposit: u128 & AugmentedConst<ApiType>;
       /**
+       * The amount held on deposit per registered username. This value should change only in
+       * runtime upgrades with proper migration of existing deposits.
+       **/
+      usernameDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * The number of blocks that must pass to enable the permanent deletion of a username by
+       * its respective authority.
+       **/
+      usernameGracePeriod: u32 & AugmentedConst<ApiType>;
+      /**
        * Generic const
        **/
       [key: string]: Codec;
@@ -246,6 +349,26 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       [key: string]: Codec;
     };
+    multiBlockMigrations: {
+      /**
+       * The maximal length of an encoded cursor.
+       *
+       * A good default needs to selected such that no migration will ever have a cursor with MEL
+       * above this limit. This is statically checked in `integrity_test`.
+       **/
+      cursorMaxLen: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximal length of an encoded identifier.
+       *
+       * A good default needs to selected such that no migration will ever have an identifier
+       * with MEL above this limit. This is statically checked in `integrity_test`.
+       **/
+      identifierMaxLen: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
     multisig: {
       /**
        * The base amount of currency needed to reserve for creating a multisig execution or to
@@ -302,6 +425,11 @@ declare module "@polkadot/api-base/types/consts" {
        * Number of rounds that delegators remain bonded before exit request is executable
        **/
       leaveDelegatorsDelay: u32 & AugmentedConst<ApiType>;
+      /**
+       * Threshold after which inflation become linear
+       * If you don't want to use it, set it to `()`
+       **/
+      linearInflationThreshold: Option<u128> & AugmentedConst<ApiType>;
       /**
        * Maximum bottom delegations (not counted) per candidate
        **/
@@ -586,6 +714,9 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       burn: Permill & AugmentedConst<ApiType>;
       /**
+       * DEPRECATED: associated with `spend_local` call and will be removed in May 2025.
+       * Refer to <https://github.com/paritytech/polkadot-sdk/pull/5961> for migration to `spend`.
+       *
        * The maximum number of approvals that can wait in the spending queue.
        *
        * NOTE: This parameter is also used within the Bounties Pallet extension if enabled.
@@ -671,7 +802,7 @@ declare module "@polkadot/api-base/types/consts" {
       /**
        * Self chain location.
        **/
-      selfLocation: StagingXcmV4Location & AugmentedConst<ApiType>;
+      selfLocation: StagingXcmV5Location & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/

@@ -31,7 +31,7 @@
     "nodes": [
       {
         "name": "alice",
-        "ws_port": 33356,
+        "rpc_port": 33356,
         "validator": true
       },
       {
@@ -48,25 +48,27 @@
       "collators": [
         {
           "name": "alith",
-          "ws_port": 33345,
+          "rpc_port": 33345,
           "command": "../target/release/moonbeam",
           "args": [
             "--no-hardware-benchmarks",
             "--force-authoring",
             "-lparachain=debug",
-            "--database=paritydb"
+            "--database=paritydb",
+            "--pool-type=fork-aware"
           ]
         },
         {
           "name": "RPC1",
           "validator": false,
-          "ws_port": 33048,
+          "rpc_port": 33048,
           "p2p_port": 33049,
           "command": "../target/release/moonbeam",
           "args": [
             "--no-hardware-benchmarks",
             "-lparachain=trace",
-            "--database=paritydb"
+            "--database=paritydb",
+            "--pool-type=fork-aware"
           ]
         }
       ]

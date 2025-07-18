@@ -4,7 +4,7 @@ import { ALITH_ADDRESS } from "@moonwall/util";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D010401",
+  id: "D010101",
   title: "Block 1",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -26,7 +26,10 @@ describeSuite({
       id: "T02",
       title: "should have valid timestamp after block production",
       test: async function () {
-        // Originally ,this test required the timestamp be in the last finve minutes.
+        // Seal a new block manually
+        await context.createBlock();
+
+        // Originally, this test required the timestamp be in the last five minutes.
         // This requirement doesn't make sense when we forge timestamps in manual seal.
         const block = await context.viem().getBlock({ blockTag: "latest" });
         const next5Minutes = BigInt(Math.floor(Date.now() / 1000 + 300));
@@ -48,7 +51,7 @@ describeSuite({
           gasUsed: 0n,
           logsBloom: `0x${"0".repeat(512)}`,
           miner: ALITH_ADDRESS.toLocaleLowerCase(),
-          number: 1n,
+          number: 2n,
           receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421",
           sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           totalDifficulty: 0n,
@@ -79,7 +82,7 @@ describeSuite({
       title: "should be accessible by number",
       test: async function () {
         const latestBlock = await context.viem().getBlock({ blockTag: "latest" });
-        const block = await context.viem().getBlock({ blockNumber: 1n });
+        const block = await context.viem().getBlock({ blockNumber: latestBlock.number });
         expect(block.hash).toBe(latestBlock.hash);
       },
     });

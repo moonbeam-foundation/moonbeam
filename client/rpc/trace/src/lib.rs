@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -244,7 +244,7 @@ where
 		self.clone()
 			.filter(filter)
 			.await
-			.map_err(|e| fc_rpc::internal_err(e))
+			.map_err(fc_rpc::internal_err)
 	}
 }
 
@@ -709,7 +709,7 @@ where
 					tracing::trace!("Pooled block {} is no longer requested.", block);
 					// Remove block from the cache. Drops the value,
 					// closing all the channels contained in it.
-					let _ = self.cached_blocks.remove(&block);
+					let _ = self.cached_blocks.remove(block);
 				}
 			}
 		}
@@ -803,7 +803,7 @@ where
 					substrate_hash, e
 				)
 			})?
-			.ok_or_else(|| format!("Subtrate block {} don't exist", substrate_hash))?;
+			.ok_or_else(|| format!("Substrate block {} don't exist", substrate_hash))?;
 
 		let height = *block_header.number();
 		let substrate_parent_hash = *block_header.parent_hash();
@@ -846,7 +846,7 @@ where
 		{
 			api_version
 		} else {
-			return Err(format!("Runtime api version call failed (trace)"));
+			return Err("Runtime api version call failed (trace)".to_string());
 		};
 
 		// Trace the block.
@@ -890,6 +890,7 @@ where
 				.map_err(|e| format!("Blockchain error when replaying block {} : {:?}", height, e))?
 				.map_err(|e| {
 					tracing::warn!(
+						target: "tracing",
 						"Internal runtime error when replaying block {} : {:?}",
 						height,
 						e
@@ -935,6 +936,7 @@ where
 						}
 						None => {
 							log::warn!(
+								target: "tracing",
 								"A trace in block {} does not map to any known ethereum transaction. Trace: {:?}",
 								height,
 								trace,

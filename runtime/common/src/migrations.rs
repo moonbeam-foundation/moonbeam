@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -30,7 +30,7 @@ where
 	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>: OnRuntimeUpgrade,
 {
 	fn friendly_name(&self) -> &str {
-		"MM_MigrateToLatestXcmVersion"
+		"MM_MigrateToV5XcmVersion"
 	}
 
 	fn migrate(&self, _available_weight: Weight) -> Weight {
@@ -206,3 +206,7 @@ where
 		]
 	}
 }
+
+/// List of common multiblock migrations to be executed by the pallet_multiblock_migrations.
+/// The migrations listed here are common to every moonbeam runtime.
+pub type MultiBlockMigrationList = ();

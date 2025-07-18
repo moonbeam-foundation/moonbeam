@@ -1,5 +1,6 @@
 export * from "./accounts";
 export * from "./assets";
+export * from "./balances";
 export * from "./block";
 export * from "./common";
 export * from "./constants";
@@ -9,6 +10,7 @@ export * from "./eth-transactions";
 export * from "./expect";
 export * from "./foreign-chains";
 export * from "./modexp";
+export * from "./pallets";
 export * from "./precompile-contract-calls";
 export * from "./precompiles";
 export * from "./providers";

@@ -28,7 +28,7 @@ import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../../helpers";
 const ABI_REVERT_SELECTOR = "0x08c379a0";
 
 describeSuite({
-  id: "D012842",
+  id: "D022828",
   title: "Precompiles - ERC20 Native",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

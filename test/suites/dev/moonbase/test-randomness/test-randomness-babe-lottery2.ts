@@ -18,7 +18,7 @@ import {
 } from "../../../../helpers/randomness.js";
 
 describeSuite({
-  id: "D013102",
+  id: "D023102",
   title: "Randomness Babe - Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -47,7 +47,7 @@ describeSuite({
         args: [0],
         account: BALTATHAR_ADDRESS,
       });
-      expect(estimatedGas).toMatchInlineSnapshot(`295530n`);
+      expect(estimatedGas).to.equal(151470n);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
@@ -64,7 +64,7 @@ describeSuite({
       fulFillReceipt = await context
         .viem()
         .getTransactionReceipt({ hash: result![1].hash as `0x${string}` });
-      expect(fulFillReceipt.gasUsed).toMatchInlineSnapshot(`158480n`);
+      expect(fulFillReceipt.gasUsed).to.equal(84096n);
     });
 
     it({

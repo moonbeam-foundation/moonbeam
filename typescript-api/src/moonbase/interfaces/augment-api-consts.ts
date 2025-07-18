@@ -17,7 +17,7 @@ import type {
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
-  StagingXcmV4Location
+  StagingXcmV5Location
 } from "@polkadot/types/lookup";
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
@@ -185,6 +185,16 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       subAccountDeposit: u128 & AugmentedConst<ApiType>;
       /**
+       * The amount held on deposit per registered username. This value should change only in
+       * runtime upgrades with proper migration of existing deposits.
+       **/
+      usernameDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * The number of blocks that must pass to enable the permanent deletion of a username by
+       * its respective authority.
+       **/
+      usernameGracePeriod: u32 & AugmentedConst<ApiType>;
+      /**
        * Generic const
        **/
       [key: string]: Codec;
@@ -246,6 +256,26 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       [key: string]: Codec;
     };
+    multiBlockMigrations: {
+      /**
+       * The maximal length of an encoded cursor.
+       *
+       * A good default needs to selected such that no migration will ever have a cursor with MEL
+       * above this limit. This is statically checked in `integrity_test`.
+       **/
+      cursorMaxLen: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximal length of an encoded identifier.
+       *
+       * A good default needs to selected such that no migration will ever have an identifier
+       * with MEL above this limit. This is statically checked in `integrity_test`.
+       **/
+      identifierMaxLen: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
     multisig: {
       /**
        * The base amount of currency needed to reserve for creating a multisig execution or to
@@ -302,6 +332,11 @@ declare module "@polkadot/api-base/types/consts" {
        * Number of rounds that delegators remain bonded before exit request is executable
        **/
       leaveDelegatorsDelay: u32 & AugmentedConst<ApiType>;
+      /**
+       * Threshold after which inflation become linear
+       * If you don't want to use it, set it to `()`
+       **/
+      linearInflationThreshold: Option<u128> & AugmentedConst<ApiType>;
       /**
        * Maximum bottom delegations (not counted) per candidate
        **/
@@ -586,6 +621,9 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       burn: Permill & AugmentedConst<ApiType>;
       /**
+       * DEPRECATED: associated with `spend_local` call and will be removed in May 2025.
+       * Refer to <https://github.com/paritytech/polkadot-sdk/pull/5961> for migration to `spend`.
+       *
        * The maximum number of approvals that can wait in the spending queue.
        *
        * NOTE: This parameter is also used within the Bounties Pallet extension if enabled.
@@ -671,7 +709,7 @@ declare module "@polkadot/api-base/types/consts" {
       /**
        * Self chain location.
        **/
-      selfLocation: StagingXcmV4Location & AugmentedConst<ApiType>;
+      selfLocation: StagingXcmV5Location & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/

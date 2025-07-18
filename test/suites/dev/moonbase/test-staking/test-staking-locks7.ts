@@ -4,7 +4,7 @@ import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D013480",
+  id: "D023482",
   title: "Staking - Locks - execute revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -23,7 +23,14 @@ describeSuite({
       await context.createBlock(
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 10, 10)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            alith.address,
+            MIN_GLMR_DELEGATOR,
+            0,
+            10,
+            0,
+            10
+          )
           .signAsync(randomAccount),
         { allowFailures: false }
       );

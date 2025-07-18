@@ -4,7 +4,7 @@ import { alith, createEthersTransaction, sendRawTransaction } from "@moonwall/ut
 import { encodeDeployData, toHex } from "viem";
 
 describeSuite({
-  id: "D013902",
+  id: "D023902",
   title: "TxPool - Future Ethereum transaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -52,7 +52,7 @@ describeSuite({
         // web3 rpc returns lowercase
         const data = content.queued[alith.address.toLowerCase()][toHex(1)];
         expect(data).toMatchObject({
-          blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          blockHash: null,
           blockNumber: null,
           from: alith.address.toLowerCase(),
           gas: "0x100000",
@@ -60,9 +60,8 @@ describeSuite({
           hash: txHash,
           input: deployData,
           nonce: toHex(1),
-          to: "0x0000000000000000000000000000000000000000",
+          to: null,
           transactionIndex: null,
-
           value: "0x0",
         });
       },

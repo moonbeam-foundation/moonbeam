@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
 
 describeSuite({
-  id: "D013453",
+  id: "D023454",
   title: "Staking - Rewards Auto-Compound - 0% auto-compound",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -16,7 +16,14 @@ describeSuite({
           .signAsync(alith),
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            alith.address,
+            MIN_GLMR_DELEGATOR,
+            0,
+            0,
+            0,
+            0
+          )
           .signAsync(ethan),
       ]);
     });

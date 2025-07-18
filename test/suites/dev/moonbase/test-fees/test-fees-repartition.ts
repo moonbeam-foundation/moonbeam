@@ -4,7 +4,7 @@ import { BALTATHAR_ADDRESS, TREASURY_ACCOUNT, createRawTransfer, extractFee } fr
 
 // These tests are checking the default value of FeesTreasuryProportion which is set to 20%
 describeSuite({
-  id: "D011605",
+  id: "D021505",
   title: "Fees - Transaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

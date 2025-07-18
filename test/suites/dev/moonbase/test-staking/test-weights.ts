@@ -6,7 +6,7 @@ import { createAccounts, countExtrinsics } from "../../../../helpers";
 const INITIAL_AMOUNT = 12n * MIN_GLMR_STAKING + 50n * GLMR;
 
 describeSuite({
-  id: "D013483",
+  id: "D023485",
   title: "Staking - Max Transaction Fit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -44,7 +44,7 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "delegate",
+      title: "delegateWithAutoCompound",
       test: async () => {
         const maxTransactions = 350;
         const randomAccounts = await createAccounts(context, maxTransactions, INITIAL_AMOUNT);
@@ -52,7 +52,14 @@ describeSuite({
           randomAccounts.map((account) =>
             context
               .polkadotJs()
-              .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, maxTransactions, 0)
+              .tx.parachainStaking.delegateWithAutoCompound(
+                alith.address,
+                MIN_GLMR_DELEGATOR,
+                0,
+                maxTransactions,
+                0,
+                0
+              )
               .signAsync(account)
           )
         );

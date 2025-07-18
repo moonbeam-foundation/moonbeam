@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
 import { type Abi, encodeFunctionData } from "viem";
 import {
   XcmFragment,
@@ -9,9 +8,10 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D014021",
+  id: "D024020",
   title: "Mock XCM - transact ETHEREUM input size check succeeds",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -19,8 +19,11 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
+    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      GAS_LIMIT_POV_RATIO = Number(ConstantStore(context).GAS_PER_POV_BYTES.get(specVersion));
       const { contractAddress, abi } = await context.deployContract!("CallForwarder");
       contractDeployed = contractAddress;
       contractABI = abi;

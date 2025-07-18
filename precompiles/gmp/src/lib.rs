@@ -1,4 +1,4 @@
-// Copyright 2019-2023 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -234,9 +234,9 @@ where
 				.ok_or(revert("Invalid destination"))?;
 
 				Some(pallet_xcm::Call::<Runtime>::transfer_assets {
-					dest: Box::new(VersionedLocation::V4(chain_part)),
-					beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
-					assets: Box::new(VersionedAssets::V4(asset.into())),
+					dest: Box::new(VersionedLocation::from(chain_part)),
+					beneficiary: Box::new(VersionedLocation::from(beneficiary)),
+					assets: Box::new(VersionedAssets::from(asset)),
 					fee_asset_item: 0,
 					weight_limit: WeightLimit::Unlimited,
 				})
@@ -293,9 +293,9 @@ where
 					.ok_or(revert("Invalid destination"))?;
 
 					Some(pallet_xcm::Call::<Runtime>::transfer_assets {
-						dest: Box::new(VersionedLocation::V4(chain_part)),
-						beneficiary: Box::new(VersionedLocation::V4(beneficiary)),
-						assets: Box::new(VersionedAssets::V4(asset.into())),
+						dest: Box::new(VersionedLocation::from(chain_part)),
+						beneficiary: Box::new(VersionedLocation::from(beneficiary)),
+						assets: Box::new(VersionedAssets::from(asset)),
 						fee_asset_item: 0,
 						weight_limit: WeightLimit::Unlimited,
 					})

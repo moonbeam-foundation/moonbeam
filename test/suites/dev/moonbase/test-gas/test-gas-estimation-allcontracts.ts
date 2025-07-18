@@ -19,7 +19,7 @@ import { encodeDeployData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 
 describeSuite({
-  id: "D011802",
+  id: "D021702",
   title: "Estimate Gas - Multiply",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -58,21 +58,33 @@ describeSuite({
             // ask RPC for an gas estimate of deploying this contract
 
             const args = constructorAbi
-              ? constructorAbi.inputs.map((input) =>
-                  input.type === "bool"
-                    ? true
-                    : input.type === "address"
-                      ? faith.address
-                      : input.type.startsWith("uint")
-                        ? `0x${Buffer.from(
-                            randomBytes(Number(input.type.split("uint")[1]) / 8)
-                          ).toString("hex")}`
-                        : input.type.startsWith("bytes")
-                          ? `0x${Buffer.from(
-                              randomBytes(Number(input.type.split("bytes")[1]))
-                            ).toString("hex")}`
-                          : "0x"
-                )
+              ? constructorAbi.inputs.map((input: { type: string }) => {
+                  if (input.type === "bool") {
+                    return true;
+                  }
+
+                  if (input.type === "address") {
+                    return faith.address;
+                  }
+
+                  if (input.type.startsWith("uint")) {
+                    const rest = input.type.split("uint")[1];
+                    if (rest === "[]") {
+                      return [];
+                    }
+                    const length = Number(rest) || 256;
+                    return `0x${Buffer.from(randomBytes(length / 8)).toString("hex")}`;
+                  }
+
+                  if (input.type.startsWith("bytes")) {
+                    const rest = input.type.split("bytes")[1];
+                    if (rest === "[]") {
+                      return [];
+                    }
+                    const length = Number(rest) || 1;
+                    return `0x${Buffer.from(randomBytes(length)).toString("hex")}`;
+                  }
+                })
               : [];
 
             const callData = encodeDeployData({

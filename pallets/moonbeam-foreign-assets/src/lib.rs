@@ -1,4 +1,4 @@
-// Copyright 2024 Moonbeam Foundation.
+// Copyright 2025 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -60,6 +60,8 @@ use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
 	XcmContext,
 };
+use xcm::prelude::Parachain;
+use xcm_executor::traits::ConvertLocation;
 use xcm_executor::traits::Error as MatchError;
 
 const FOREIGN_ASSETS_PREFIX: [u8; 4] = [0xff, 0xff, 0xff, 0xff];
@@ -71,6 +73,54 @@ pub trait ForeignAssetCreatedHook<ForeignAsset> {
 
 impl<ForeignAsset> ForeignAssetCreatedHook<ForeignAsset> for () {
 	fn on_asset_created(_foreign_asset: &ForeignAsset, _asset_id: &AssetId) {}
+}
+
+/// Ensure origin location is a sibling
+fn convert_location<T>(location: &Location) -> Result<T::AccountId, DispatchError>
+where
+	T: Config,
+{
+	match location.unpack() {
+		(1, [Parachain(_)]) => T::ConvertLocation::convert_location(location)
+			.ok_or(Error::<T>::CannotConvertLocationToAccount.into()),
+		_ => Err(DispatchError::BadOrigin.into()),
+	}
+}
+#[derive(Decode, Encode, Debug, PartialEq, TypeInfo, Clone)]
+pub enum OriginType {
+	XCM(Location),
+	Governance,
+}
+
+/// Used to convert the success of an EnsureOrigin into `OriginType::Governance`
+pub struct MapSuccessToGovernance<Original>(PhantomData<Original>);
+impl<O, Original: EnsureOrigin<O, Success = ()>> EnsureOrigin<O>
+	for MapSuccessToGovernance<Original>
+{
+	type Success = OriginType;
+	fn try_origin(o: O) -> Result<OriginType, O> {
+		Original::try_origin(o)?;
+		Ok(OriginType::Governance)
+	}
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin() -> Result<O, ()> {
+		Original::try_successful_origin()
+	}
+}
+
+/// Used to convert the success of an EnsureOrigin into `OriginType::XCM`
+pub struct MapSuccessToXcm<Original>(PhantomData<Original>);
+impl<O, Original: EnsureOrigin<O, Success = Location>> EnsureOrigin<O>
+	for MapSuccessToXcm<Original>
+{
+	type Success = OriginType;
+	fn try_origin(o: O) -> Result<OriginType, O> {
+		Original::try_origin(o).map(OriginType::XCM)
+	}
+	#[cfg(feature = "runtime-benchmarks")]
+	fn try_successful_origin() -> Result<O, ()> {
+		Original::try_successful_origin()
+	}
 }
 
 pub(crate) struct ForeignAssetsMatcher<T>(core::marker::PhantomData<T>);
@@ -107,8 +157,9 @@ pub enum AssetStatus {
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use frame_support::traits::{Currency, ReservableCurrency};
 	use pallet_evm::{GasWeightMapping, Runner};
-	use sp_runtime::traits::{AccountIdConversion, Convert};
+	use sp_runtime::traits::{AccountIdConversion, AtLeast32BitUnsigned, Convert};
 	use xcm_executor::traits::ConvertLocation;
 	use xcm_executor::traits::Error as MatchError;
 	use xcm_executor::AssetsInHolding;
@@ -121,7 +172,7 @@ pub mod pallet {
 	pub const PALLET_ID: frame_support::PalletId = frame_support::PalletId(*b"forgasst");
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_evm::Config {
+	pub trait Config: frame_system::Config + pallet_evm::Config + scale_info::TypeInfo {
 		// Convert AccountId to H160
 		type AccountIdToH160: Convert<Self::AccountId, H160>;
 
@@ -131,23 +182,25 @@ pub mod pallet {
 		/// EVM runner
 		type EvmRunner: Runner<Self>;
 
+		type ConvertLocation: ConvertLocation<Self::AccountId>;
+
 		/// Origin that is allowed to create a new foreign assets
-		type ForeignAssetCreatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		type ForeignAssetCreatorOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = OriginType>;
 
 		/// Origin that is allowed to freeze all tokens of a foreign asset
-		type ForeignAssetFreezerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		type ForeignAssetFreezerOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = OriginType>;
 
 		/// Origin that is allowed to modify asset information for foreign assets
-		type ForeignAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		type ForeignAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = OriginType>;
 
 		/// Origin that is allowed to unfreeze all tokens of a foreign asset that was previously
 		/// frozen
-		type ForeignAssetUnfreezerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+		type ForeignAssetUnfreezerOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = OriginType>;
 
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
 
-		/// Maximum nulmbers of differnt foreign assets
+		/// Maximum numbers of different foreign assets
 		type MaxForeignAssets: Get<u32>;
 
 		/// The overarching event type.
@@ -158,7 +211,26 @@ pub mod pallet {
 
 		// Convert XCM Location to H160
 		type XcmLocationToH160: ConvertLocation<H160>;
+
+		/// Amount of tokens required to lock for creating a new foreign asset
+		type ForeignAssetCreationDeposit: Get<BalanceOf<Self>>;
+
+		/// The balance type for locking funds
+		type Balance: Member
+			+ Parameter
+			+ AtLeast32BitUnsigned
+			+ Default
+			+ Copy
+			+ MaybeSerializeDeserialize
+			+ MaxEncodedLen
+			+ TypeInfo;
+
+		/// The currency type for locking funds
+		type Currency: ReservableCurrency<Self::AccountId>;
 	}
+
+	type BalanceOf<T> =
+		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 	pub type AssetBalance = U256;
 	pub type AssetId = u128;
@@ -172,11 +244,17 @@ pub mod pallet {
 		AssetIdFiltered,
 		AssetNotFrozen,
 		CorruptedStorageOrphanLocation,
-		//Erc20ContractCallFail,
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
+		EvmCallMintIntoFail,
+		EvmCallTransferFail,
 		EvmInternalError,
+		/// Account has insufficient balance for locking
+		InsufficientBalance,
+		CannotConvertLocationToAccount,
+		LocationOutsideOfOrigin,
+		AssetNotInSiblingPara,
 		InvalidSymbol,
 		InvalidTokenName,
 		LocationAlreadyExists,
@@ -191,10 +269,12 @@ pub mod pallet {
 			contract_address: H160,
 			asset_id: AssetId,
 			xcm_location: Location,
+			deposit: Option<BalanceOf<T>>,
 		},
 		/// Changed the xcm type mapping for a given asset id
 		ForeignAssetXcmLocationChanged {
 			asset_id: AssetId,
+			previous_xcm_location: Location,
 			new_xcm_location: Location,
 		},
 		// Freezes all tokens of a given asset id
@@ -207,6 +287,8 @@ pub mod pallet {
 			asset_id: AssetId,
 			xcm_location: Location,
 		},
+		/// Tokens have been locked for asset creation
+		TokensLocked(T::AccountId, AssetId, AssetBalance),
 	}
 
 	/// Mapping from an asset id to a Foreign asset type.
@@ -225,6 +307,18 @@ pub mod pallet {
 	pub type AssetsByLocation<T: Config> =
 		StorageMap<_, Blake2_128Concat, Location, (AssetId, AssetStatus)>;
 
+	/// Mapping from an asset id to its creation details
+	#[pallet::storage]
+	#[pallet::getter(fn assets_creation_details)]
+	pub type AssetsCreationDetails<T: Config> =
+		StorageMap<_, Blake2_128Concat, AssetId, AssetDepositDetails<T>>;
+
+	#[derive(Clone, Decode, Encode, Eq, PartialEq, Debug, TypeInfo, MaxEncodedLen)]
+	pub struct AssetDepositDetails<T: Config> {
+		pub deposit_account: T::AccountId,
+		pub deposit: BalanceOf<T>,
+	}
+
 	impl<T: Config> Pallet<T> {
 		/// The account ID of this pallet
 		#[inline]
@@ -242,6 +336,8 @@ pub mod pallet {
 			H160(buffer)
 		}
 
+		/// This method only exists for migration purposes and will be deleted once the
+		/// foreign assets migration is finished.
 		pub fn register_foreign_asset(
 			asset_id: AssetId,
 			xcm_location: Location,
@@ -249,45 +345,7 @@ pub mod pallet {
 			symbol: BoundedVec<u8, ConstU32<256>>,
 			name: BoundedVec<u8, ConstU32<256>>,
 		) -> DispatchResult {
-			// Ensure such an assetId does not exist
-			ensure!(
-				!AssetsById::<T>::contains_key(&asset_id),
-				Error::<T>::AssetAlreadyExists
-			);
-
-			ensure!(
-				!AssetsByLocation::<T>::contains_key(&xcm_location),
-				Error::<T>::LocationAlreadyExists
-			);
-
-			ensure!(
-				AssetsById::<T>::count() < T::MaxForeignAssets::get(),
-				Error::<T>::TooManyForeignAssets
-			);
-
-			ensure!(
-				T::AssetIdFilter::contains(&asset_id),
-				Error::<T>::AssetIdFiltered
-			);
-
-			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
-			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
-
-			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
-
-			// Insert the association assetId->foreigAsset
-			// Insert the association foreigAsset->assetId
-			AssetsById::<T>::insert(&asset_id, &xcm_location);
-			AssetsByLocation::<T>::insert(&xcm_location, (asset_id, AssetStatus::Active));
-
-			T::OnForeignAssetCreated::on_asset_created(&xcm_location, &asset_id);
-
-			Self::deposit_event(Event::ForeignAssetCreated {
-				contract_address,
-				asset_id,
-				xcm_location,
-			});
-			Ok(())
+			Self::do_create_asset(asset_id, xcm_location, decimals, symbol, name, None)
 		}
 
 		/// Mint an asset into a specific account
@@ -308,7 +366,30 @@ pub mod pallet {
 			.map_err(Into::into)
 		}
 
-		/// Aprrove a spender to spend a certain amount of tokens from the owner account
+		/// Transfer an asset from an account to another one
+		pub fn transfer(
+			asset_id: AssetId,
+			from: T::AccountId,
+			to: T::AccountId,
+			amount: U256,
+		) -> Result<(), evm::EvmError> {
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_transfer(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(from),
+					T::AccountIdToH160::convert(to),
+					amount,
+				)
+			})
+			.map_err(Into::into)
+		}
+
+		pub fn balance(asset_id: AssetId, who: T::AccountId) -> Result<U256, evm::EvmError> {
+			EvmCaller::<T>::erc20_balance_of(asset_id, T::AccountIdToH160::convert(who))
+				.map_err(Into::into)
+		}
+
+		/// Approve a spender to spend a certain amount of tokens from the owner account
 		pub fn approve(
 			asset_id: AssetId,
 			owner: T::AccountId,
@@ -317,12 +398,14 @@ pub mod pallet {
 		) -> Result<(), evm::EvmError> {
 			// We perform the evm call in a storage transaction to ensure that if it fail
 			// any contract storage changes are rolled back.
-			EvmCaller::<T>::erc20_approve(
-				Self::contract_address_from_asset_id(asset_id),
-				T::AccountIdToH160::convert(owner),
-				T::AccountIdToH160::convert(spender),
-				amount,
-			)
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_approve(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(owner),
+					T::AccountIdToH160::convert(spender),
+					amount,
+				)
+			})
 			.map_err(Into::into)
 		}
 
@@ -350,14 +433,24 @@ pub mod pallet {
 		pub fn create_foreign_asset(
 			origin: OriginFor<T>,
 			asset_id: AssetId,
-			xcm_location: Location,
+			asset_xcm_location: Location,
 			decimals: u8,
 			symbol: BoundedVec<u8, ConstU32<256>>,
 			name: BoundedVec<u8, ConstU32<256>>,
 		) -> DispatchResult {
-			T::ForeignAssetCreatorOrigin::ensure_origin(origin)?;
+			let origin_type = T::ForeignAssetCreatorOrigin::ensure_origin(origin.clone())?;
 
-			Self::register_foreign_asset(asset_id, xcm_location, decimals, symbol, name)
+			Self::ensure_origin_can_modify_location(origin_type.clone(), &asset_xcm_location)?;
+			let deposit_account = Self::get_deposit_account(origin_type)?;
+
+			Self::do_create_asset(
+				asset_id,
+				asset_xcm_location,
+				decimals,
+				symbol,
+				name,
+				deposit_account,
+			)
 		}
 
 		/// Change the xcm type mapping for a given assetId
@@ -370,29 +463,16 @@ pub mod pallet {
 			asset_id: AssetId,
 			new_xcm_location: Location,
 		) -> DispatchResult {
-			T::ForeignAssetModifierOrigin::ensure_origin(origin)?;
+			let origin_type = T::ForeignAssetModifierOrigin::ensure_origin(origin.clone())?;
+
+			Self::ensure_origin_can_modify_location(origin_type.clone(), &new_xcm_location)?;
 
 			let previous_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
-			ensure!(
-				!AssetsByLocation::<T>::contains_key(&new_xcm_location),
-				Error::<T>::LocationAlreadyExists
-			);
+			Self::ensure_origin_can_modify_location(origin_type, &previous_location)?;
 
-			// Remove previous foreign asset info
-			let (_asset_id, asset_status) = AssetsByLocation::<T>::take(&previous_location)
-				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
-
-			// Insert new foreign asset info
-			AssetsById::<T>::insert(&asset_id, &new_xcm_location);
-			AssetsByLocation::<T>::insert(&new_xcm_location, (asset_id, asset_status));
-
-			Self::deposit_event(Event::ForeignAssetXcmLocationChanged {
-				asset_id,
-				new_xcm_location,
-			});
-			Ok(())
+			Self::do_change_xcm_location(asset_id, previous_location, new_xcm_location)
 		}
 
 		/// Freeze a given foreign assetId
@@ -403,11 +483,162 @@ pub mod pallet {
 			asset_id: AssetId,
 			allow_xcm_deposit: bool,
 		) -> DispatchResult {
-			T::ForeignAssetFreezerOrigin::ensure_origin(origin)?;
+			let origin_type = T::ForeignAssetFreezerOrigin::ensure_origin(origin.clone())?;
 
 			let xcm_location =
 				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
 
+			Self::ensure_origin_can_modify_location(origin_type, &xcm_location)?;
+
+			Self::do_freeze_asset(asset_id, xcm_location, allow_xcm_deposit)
+		}
+
+		/// Unfreeze a given foreign assetId
+		#[pallet::call_index(3)]
+		#[pallet::weight(<T as Config>::WeightInfo::unfreeze_foreign_asset())]
+		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
+			let origin_type = T::ForeignAssetUnfreezerOrigin::ensure_origin(origin.clone())?;
+
+			let xcm_location =
+				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+
+			Self::ensure_origin_can_modify_location(origin_type, &xcm_location)?;
+
+			Self::do_unfreeze_asset(asset_id, xcm_location)
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		/// Ensure that the caller origin can modify the location,
+		fn ensure_origin_can_modify_location(
+			origin_type: OriginType,
+			location: &Location,
+		) -> DispatchResult {
+			match origin_type {
+				OriginType::XCM(origin_location) => {
+					ensure!(
+						location.starts_with(&origin_location),
+						Error::<T>::LocationOutsideOfOrigin,
+					);
+				}
+				OriginType::Governance => {
+					// nothing to check Governance can change any asset
+				}
+			};
+			Ok(())
+		}
+
+		fn get_deposit_account(
+			origin_type: OriginType,
+		) -> Result<Option<T::AccountId>, DispatchError> {
+			match origin_type {
+				OriginType::XCM(origin_location) => {
+					let deposit_account = convert_location::<T>(&origin_location)?;
+					Ok(Some(deposit_account))
+				}
+				OriginType::Governance => Ok(None),
+			}
+		}
+
+		pub fn do_create_asset(
+			asset_id: AssetId,
+			asset_xcm_location: Location,
+			decimals: u8,
+			symbol: BoundedVec<u8, ConstU32<256>>,
+			name: BoundedVec<u8, ConstU32<256>>,
+			deposit_account: Option<T::AccountId>,
+		) -> DispatchResult {
+			ensure!(
+				!AssetsById::<T>::contains_key(&asset_id),
+				Error::<T>::AssetAlreadyExists
+			);
+
+			ensure!(
+				!AssetsByLocation::<T>::contains_key(&asset_xcm_location),
+				Error::<T>::LocationAlreadyExists
+			);
+
+			ensure!(
+				AssetsById::<T>::count() < T::MaxForeignAssets::get(),
+				Error::<T>::TooManyForeignAssets
+			);
+
+			ensure!(
+				T::AssetIdFilter::contains(&asset_id),
+				Error::<T>::AssetIdFiltered
+			);
+
+			let symbol = core::str::from_utf8(&symbol).map_err(|_| Error::<T>::InvalidSymbol)?;
+			let name = core::str::from_utf8(&name).map_err(|_| Error::<T>::InvalidTokenName)?;
+			let contract_address = EvmCaller::<T>::erc20_create(asset_id, decimals, symbol, name)?;
+
+			let deposit = if let Some(deposit_account) = deposit_account {
+				let deposit = T::ForeignAssetCreationDeposit::get();
+
+				// Reserve _deposit_ amount of funds from the caller
+				<T as Config>::Currency::reserve(&deposit_account, deposit)?;
+
+				// Insert the amount that is reserved from the user
+				AssetsCreationDetails::<T>::insert(
+					&asset_id,
+					AssetDepositDetails {
+						deposit_account,
+						deposit,
+					},
+				);
+
+				Some(deposit)
+			} else {
+				None
+			};
+
+			// Insert the association assetId->foreigAsset
+			// Insert the association foreigAsset->assetId
+			AssetsById::<T>::insert(&asset_id, &asset_xcm_location);
+			AssetsByLocation::<T>::insert(&asset_xcm_location, (asset_id, AssetStatus::Active));
+
+			T::OnForeignAssetCreated::on_asset_created(&asset_xcm_location, &asset_id);
+
+			Self::deposit_event(Event::ForeignAssetCreated {
+				contract_address,
+				asset_id,
+				xcm_location: asset_xcm_location,
+				deposit,
+			});
+			Ok(())
+		}
+
+		pub fn do_change_xcm_location(
+			asset_id: AssetId,
+			previous_xcm_location: Location,
+			new_xcm_location: Location,
+		) -> DispatchResult {
+			ensure!(
+				!AssetsByLocation::<T>::contains_key(&new_xcm_location),
+				Error::<T>::LocationAlreadyExists
+			);
+
+			// Remove previous foreign asset info
+			let (_asset_id, asset_status) = AssetsByLocation::<T>::take(&previous_xcm_location)
+				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
+
+			// Insert new foreign asset info
+			AssetsById::<T>::insert(&asset_id, &new_xcm_location);
+			AssetsByLocation::<T>::insert(&new_xcm_location, (asset_id, asset_status));
+
+			Self::deposit_event(Event::ForeignAssetXcmLocationChanged {
+				asset_id,
+				new_xcm_location,
+				previous_xcm_location,
+			});
+			Ok(())
+		}
+
+		pub fn do_freeze_asset(
+			asset_id: AssetId,
+			xcm_location: Location,
+			allow_xcm_deposit: bool,
+		) -> DispatchResult {
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
 
@@ -433,15 +664,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Unfreeze a given foreign assetId
-		#[pallet::call_index(3)]
-		#[pallet::weight(<T as Config>::WeightInfo::unfreeze_foreign_asset())]
-		pub fn unfreeze_foreign_asset(origin: OriginFor<T>, asset_id: AssetId) -> DispatchResult {
-			T::ForeignAssetUnfreezerOrigin::ensure_origin(origin)?;
-
-			let xcm_location =
-				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
-
+		pub fn do_unfreeze_asset(asset_id: AssetId, xcm_location: Location) -> DispatchResult {
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
 

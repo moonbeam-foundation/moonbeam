@@ -8,6 +8,7 @@ repository = { workspace = true }
 version = "0.1.0"
 
 [dependencies]
+log = { workspace = true }
 futures = { workspace = true, features = [ "compat" ] }
 hex-literal = { workspace = true }
 jsonrpsee = { workspace = true, features = [ "macros", "server" ] }
@@ -31,7 +32,7 @@ sp-runtime = { workspace = true, features = [ "std" ] }
 sp-trie = { workspace = true, features = [ "std" ] }
 
 # Frontier
-ethereum = { workspace = true, features = [ "std", "with-codec" ] }
+ethereum = { workspace = true, features = [ "std", "with-scale" ] }
 ethereum-types = { workspace = true, features = [ "std" ] }
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }

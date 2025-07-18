@@ -144,17 +144,17 @@
         {
           "name": "ethers",
           "type": "ethers",
-          "endpoints": ["wss://stagenet-unlimited.api.moondev.network"]
+          "endpoints": ["wss://wss.api.moondev.network"]
         },
         {
           "name": "viem",
           "type": "viem",
-          "endpoints": ["wss://stagenet-unlimited.api.moondev.network"]
+          "endpoints": ["wss://wss.api.moondev.network"]
         },
         {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://stagenet-unlimited.api.moondev.network"],
+          "endpoints": ["wss://wss.api.moondev.network"],
           "rpc": {
             "moon": {
               "isBlockFinalized": {
@@ -310,17 +310,17 @@
         {
           "name": "ethers",
           "type": "ethers",
-          "endpoints": ["wss://trace.api.moonbase.moonbeam.network"]
+          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
         },
         {
           "name": "viem",
           "type": "viem",
-          "endpoints": ["wss://trace.api.moonbase.moonbeam.network"]
+          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"]
         },
         {
           "name": "para",
           "type": "polkadotJs",
-          "endpoints": ["wss://trace.api.moonbase.moonbeam.network"],
+          "endpoints": ["wss://wss.api.moonbase.moonbeam.network"],
           "rpc": {
             "moon": {
               "isBlockFinalized": {
@@ -382,10 +382,11 @@
               "--rpc-cors=all",
               "--alice",
               "--sealing=manual",
-              "--tmp"
+              "--tmp",
+              "--max-pov-percentage=100"
             ],
             "defaultForkConfig": {
-              "url": "https://moonbeam.unitedbloc.com",
+              "url": "https://trace.api.moonbeam.network",
               "stateOverridePath": "tmp/lazyLoadingStateOverrides.json",
               "verbose": true
             }
@@ -430,7 +431,8 @@
               "--alice",
               "--chain=tmp/moonbeam-dev-raw.json",
               "--sealing=manual",
-              "--tmp"
+              "--tmp",
+              "--max-pov-percentage=100"
             ]
           }
         ]
@@ -473,7 +475,8 @@
               "--alice",
               "--chain=tmp/moonriver-dev-raw.json",
               "--sealing=manual",
-              "--tmp"
+              "--tmp",
+              "--max-pov-percentage=100"
             ]
           }
         ]
@@ -516,7 +519,8 @@
               "--alice",
               "--chain=tmp/moonbase-dev-raw.json",
               "--sealing=manual",
-              "--tmp"
+              "--tmp",
+              "--max-pov-percentage=100"
             ]
           }
         ]
@@ -557,7 +561,8 @@
               "--sealing=manual",
               "--tmp",
               "--wasm-runtime-overrides=moonbase-overrides",
-              "--blocks-pruning=archive"
+              "--blocks-pruning=archive",
+              "--max-pov-percentage=100"
             ]
           }
         ]

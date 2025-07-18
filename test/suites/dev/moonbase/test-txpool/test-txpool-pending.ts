@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, createEthersTransaction, sendRawTransaction } from "@moo
 import { encodeDeployData, toHex } from "viem";
 
 describeSuite({
-  id: "D013907",
+  id: "D023907",
   title: "TxPool - Pending Ethereum transaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -69,14 +69,14 @@ describeSuite({
         // web3 rpc returns lowercase
         const data = content.pending[ALITH_ADDRESS.toLowerCase()][toHex(0)];
         expect(data).to.include({
-          blockHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          blockHash: null,
           blockNumber: null,
           from: ALITH_ADDRESS.toLowerCase(),
           gas: "0x100000",
           gasPrice: "0x2540be400",
           hash: txHash,
           nonce: toHex(0),
-          to: "0x0000000000000000000000000000000000000000",
+          to: null,
           value: "0x0",
         });
       },

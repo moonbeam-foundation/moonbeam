@@ -13,7 +13,7 @@ import { type Abi, encodeFunctionData } from "viem";
 import { mockOldAssetBalance } from "../../../../helpers";
 
 describeSuite({
-  id: "D012807",
+  id: "D022807",
   title: "Precompiles - Assets-ERC20 Wasm",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -138,7 +138,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`111252n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`60798n`);
 
         // this time we call directly from Baltathar the ERC20 contract
         const directBlock = await context.createBlock(

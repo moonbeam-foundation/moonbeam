@@ -1,4 +1,4 @@
-// Copyright 2024 Moonbeam Foundation Inc.
+// Copyright 2025 Moonbeam Foundation.Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -23,9 +23,6 @@ pub struct MoonriverMigrations;
 
 impl GetMigrations for MoonriverMigrations {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![
-			// Runtime 3000
-			// Box::new(PalletStakingMultiplyRoundLenBy2)
-		]
+		vec![]
 	}
 }

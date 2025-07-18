@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -1107,7 +1107,7 @@ pub mod pallet {
 			}
 			instructions.push(Transact {
 				origin_kind,
-				require_weight_at_most: dispatch_weight,
+				fallback_max_weight: Some(dispatch_weight),
 				call: call.into(),
 			});
 			Ok(Xcm(instructions))

@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -18,7 +18,9 @@
 
 use account::SYSTEM_ACCOUNT_SIZE;
 use evm::ExitReason;
-use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
+use fp_evm::{
+	Context, PrecompileFailure, PrecompileHandle, Transfer, ACCOUNT_CODES_METADATA_PROOF_SIZE,
+};
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use pallet_balances::Call as BalancesCall;
 use pallet_evm::AddressMapping;
@@ -30,6 +32,7 @@ use sp_core::{Get, H160, U256};
 use sp_runtime::{
 	codec::Decode,
 	traits::{ConstU32, Dispatchable, StaticLookup, Zero},
+	SaturatedConversion,
 };
 use sp_std::marker::PhantomData;
 
@@ -182,7 +185,7 @@ where
 		// Proxies:
 		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
 		handle.record_db_read::<Runtime>(
-			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 16,
 		)?;
 		if ProxyPallet::<Runtime>::proxies(origin.clone())
 			.0
@@ -340,7 +343,7 @@ where
 		// Proxies:
 		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
 		handle.record_db_read::<Runtime>(
-			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 16,
 		)?;
 		let is_proxy = ProxyPallet::<Runtime>::proxies(real)
 			.0
@@ -368,7 +371,7 @@ where
 		// Proxies:
 		// Twox64Concat(8) + AccountId(20) + BoundedVec(ProxyDefinition * MaxProxies) + Balance(16)
 		handle.record_db_read::<Runtime>(
-			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 8,
+			28 + (29 * (<Runtime as pallet_proxy::Config>::MaxProxies::get() as usize)) + 16,
 		)?;
 		let def =
 			pallet_proxy::Pallet::<Runtime>::find_proxy(&real_account_id, &who, force_proxy_type)
@@ -376,11 +379,10 @@ where
 		frame_support::ensure!(def.delay.is_zero(), revert("Unannounced"));
 
 		// Read subcall recipient code
-		// AccountCodes: Blake2128(16) + H160(20) + Vec(5)
-		// decode_len reads the first 5 bytes to find the payload len under this key
-		handle.record_db_read::<Runtime>(41)?;
+		// AccountCodesMetadata: 16 (hash) + 20 (key) + 40 (CodeMetadata).
+		handle.record_db_read::<Runtime>(ACCOUNT_CODES_METADATA_PROOF_SIZE.saturated_into())?;
 		let recipient_has_code =
-			pallet_evm::AccountCodes::<Runtime>::decode_len(evm_subcall.to.0).unwrap_or(0) > 0;
+			pallet_evm::AccountCodesMetadata::<Runtime>::get(evm_subcall.to.0).is_some();
 
 		// Apply proxy type filter
 		frame_support::ensure!(

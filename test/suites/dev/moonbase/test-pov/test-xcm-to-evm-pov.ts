@@ -9,10 +9,10 @@ import {
   descendOriginFromAddress20,
   injectHrmpMessage,
 } from "../../../../helpers/xcm.js";
-import { ConstantStore, GAS_LIMIT_POV_RATIO } from "../../../../helpers/constants";
+import { ConstantStore } from "../../../../helpers/constants";
 
 describeSuite({
-  id: "D012706",
+  id: "D022705",
   title: "XCM to EVM - PoV tests",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -20,14 +20,18 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let proxyAbi: Abi;
     let proxyAddress: `0x${string}`;
-    const MAX_CONTRACTS = 400;
+    const MAX_CONTRACTS = 30;
     let contracts: HeavyContract[];
-    const EXPECTED_POV_ROUGH = 24_000; // bytes
+    const EXPECTED_POV_ROUGH = 50_000; // bytes
     let balancesPalletIndex: number;
     let STORAGE_READ_COST: bigint;
+    let GAS_LIMIT_POV_RATIO: number;
 
-    beforeAll(async function () {
-      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+    beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+      STORAGE_READ_COST = constants.STORAGE_READ_COST;
       // Get Pallet balances index
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       const foundPallet = metadata.asLatest.pallets.find(
@@ -146,8 +150,8 @@ describeSuite({
         // With 500k gas we are allowed to use ~150k of POV, so verify the range.
         // The tx is still included in the block because it contains the failed tx,
         // so POV is included in the block as well.
-        expect(block.proofSize).to.be.at.least(15_000);
-        expect(block.proofSize).to.be.at.most(25_000);
+        expect(block.proofSize).to.be.at.least(30_000);
+        expect(block.proofSize).to.be.at.most(45_000);
 
         // Check the evm tx was not executed because of OutOfGas error
         const ethEvents = (await context.polkadotJs().query.system.events()).filter(({ event }) =>

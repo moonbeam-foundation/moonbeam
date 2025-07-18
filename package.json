@@ -17,37 +17,39 @@
     "check:fix": "pnpm -r check:fix"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "4.9.6",
-    "@polkadot/api": "15.5.1",
-    "@polkadot/api-derive": "15.5.1",
-    "@polkadot/keyring": "13.3.1",
-    "@polkadot/rpc-provider": "15.5.1",
-    "@polkadot/types": "15.5.1",
-    "@polkadot/types-codec": "15.5.1",
-    "@polkadot/util": "13.3.1",
-    "@polkadot/util-crypto": "13.3.1",
-    "ethers": "6.13.4",
-    "tsup": "8.3.5"
+    "@openzeppelin/contracts": "5.3.0",
+    "@polkadot/api": "16.3.1",
+    "@polkadot/api-derive": "16.3.1",
+    "@polkadot/keyring": "13.5.3",
+    "@polkadot/rpc-provider": "16.3.1",
+    "@polkadot/typegen": "16.3.1",
+    "@polkadot/types": "16.3.1",
+    "@polkadot/types-codec": "16.3.1",
+    "@polkadot/util": "13.5.3",
+    "@polkadot/util-crypto": "13.5.3",
+    "ethers": "6.14.4",
+    "tsup": "8.5.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@types/node": "22.12.0",
-    "tsx": "4.19.2",
-    "typescript": "5.5.4"
+    "@biomejs/biome": "2.0.6",
+    "@types/node": "24.0.10",
+    "tsx": "4.20.3",
+    "typescript": "5.8.3"
   },
   "pnpm": {
     "overrides": {
-      "@openzeppelin/contracts": "4.9.6",
-      "@polkadot/api": "15.5.1",
-      "@polkadot/api-derive": "15.5.1",
-      "@polkadot/keyring": "13.3.1",
-      "@polkadot/rpc-provider": "15.5.1",
-      "@polkadot/types": "15.5.1",
-      "@polkadot/types-codec": "15.5.1",
-      "@polkadot/util": "13.3.1",
-      "@polkadot/util-crypto": "13.3.1",
-      "ethers": "6.13.4",
-      "tsup": "8.3.5"
+      "@openzeppelin/contracts": "5.3.0",
+      "@polkadot/api": "16.3.1",
+      "@polkadot/api-derive": "16.3.1",
+      "@polkadot/keyring": "13.5.3",
+      "@polkadot/rpc-provider": "16.3.1",
+      "@polkadot/typegen": "16.3.1",
+      "@polkadot/types": "16.3.1",
+      "@polkadot/types-codec": "16.3.1",
+      "@polkadot/util": "13.5.3",
+      "@polkadot/util-crypto": "13.5.3",
+      "ethers": "6.14.4",
+      "tsup": "8.5.0"
     }
   },
   "keywords": [],

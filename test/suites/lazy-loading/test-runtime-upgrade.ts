@@ -8,12 +8,12 @@ import assert from "node:assert";
 import type { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
 describeSuite({
-  id: "LD01",
+  id: "L01",
   title: "Lazy Loading - Runtime Upgrade",
   foundationMethods: "dev",
   options: {
     forkConfig: {
-      url: process.env.FORK_URL ?? "https://moonbeam.unitedbloc.com",
+      url: process.env.FORK_URL ?? "https://trace.api.moonbeam.network",
       stateOverridePath: "tmp/lazyLoadingStateOverrides.json",
       verbose: true,
     },

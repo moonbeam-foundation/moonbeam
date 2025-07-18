@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -37,7 +37,10 @@ use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill
 use std::collections::BTreeMap;
 
 use fp_rpc::ConvertTransaction;
+use moonriver_runtime::bridge_config::XcmOverPolkadotInstance;
+use moonriver_runtime::{Assets, EvmForeignAssets, XcmWeightTrader};
 use pallet_transaction_payment::Multiplier;
+use xcm::latest::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
@@ -66,8 +69,6 @@ pub fn rpc_run_to_block(n: u32) {
 /// Utility function that advances the chain to the desired block number.
 /// If an author is provided, that author information is injected to all the blocks in the meantime.
 pub fn run_to_block(n: u32, author: Option<NimbusId>) {
-	// Finalize the first block
-	Ethereum::on_finalize(System::block_number());
 	while System::block_number() < n {
 		// Set the new block number and author
 		match author {
@@ -92,10 +93,8 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
-		Ethereum::on_initialize(System::block_number());
 
 		// Finalize the block
-		Ethereum::on_finalize(System::block_number());
 		ParachainStaking::on_finalize(System::block_number());
 	}
 }
@@ -143,7 +142,9 @@ pub struct ExtBuilder {
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
 	// [assettype, metadata, Vec<Account, Balance,>, is_sufficient]
 	xcm_assets: Vec<XcmAssetInitialization>,
+	evm_native_foreign_assets: bool,
 	safe_xcm_version: Option<u32>,
+	opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbeam::LaneId>)>,
 }
 
 impl Default for ExtBuilder {
@@ -176,7 +177,9 @@ impl Default for ExtBuilder {
 			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
 			xcm_assets: vec![],
+			evm_native_foreign_assets: false,
 			safe_xcm_version: None,
+			opened_bridges: vec![],
 		}
 	}
 }
@@ -226,8 +229,21 @@ impl ExtBuilder {
 		self
 	}
 
+	pub fn with_evm_native_foreign_assets(mut self) -> Self {
+		self.evm_native_foreign_assets = true;
+		self
+	}
+
 	pub fn with_safe_xcm_version(mut self, safe_xcm_version: u32) -> Self {
 		self.safe_xcm_version = Some(safe_xcm_version);
+		self
+	}
+
+	pub fn with_open_bridges(
+		mut self,
+		opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbeam::LaneId>)>,
+	) -> Self {
+		self.opened_bridges = opened_bridges;
 		self
 	}
 
@@ -235,6 +251,13 @@ impl ExtBuilder {
 		let mut t = frame_system::GenesisConfig::<Runtime>::default()
 			.build_storage()
 			.unwrap();
+
+		parachain_info::GenesisConfig::<Runtime> {
+			parachain_id: <bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID.into(),
+			_config: Default::default(),
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
@@ -295,28 +318,61 @@ impl ExtBuilder {
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
+		let genesis_config = pallet_xcm_bridge::GenesisConfig::<Runtime, XcmOverPolkadotInstance> {
+			opened_bridges: self.opened_bridges,
+			_phantom: Default::default(),
+		};
+		genesis_config.assimilate_storage(&mut t).unwrap();
+
 		let mut ext = sp_io::TestExternalities::new(t);
 		let xcm_assets = self.xcm_assets.clone();
 		ext.execute_with(|| {
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
-				AssetManager::register_foreign_asset(
-					root_origin(),
-					xcm_asset_initialization.asset_type,
-					xcm_asset_initialization.metadata,
-					1,
-					xcm_asset_initialization.is_sufficient,
-				)
-				.unwrap();
-				for (account, balance) in xcm_asset_initialization.balances {
-					moonriver_runtime::Assets::mint(
-						origin_of(AssetManager::account_id()),
-						asset_id.into(),
-						account,
-						balance,
+				if self.evm_native_foreign_assets {
+					let AssetType::Xcm(location) = xcm_asset_initialization.asset_type;
+					let metadata = xcm_asset_initialization.metadata.clone();
+					EvmForeignAssets::register_foreign_asset(
+						asset_id,
+						xcm::VersionedLocation::from(location).try_into().unwrap(),
+						metadata.decimals,
+						metadata.symbol.try_into().unwrap(),
+						metadata.name.try_into().unwrap(),
+					)
+					.expect("register evm native foreign asset");
+
+					if xcm_asset_initialization.is_sufficient {
+						XcmWeightTrader::add_asset(
+							root_origin(),
+							xcm::VersionedLocation::from(location).try_into().unwrap(),
+							MOVR, // 1 to 1 ratio
+						)
+						.expect("register evm native foreign asset as sufficient");
+					}
+
+					for (account, balance) in xcm_asset_initialization.balances {
+						EvmForeignAssets::mint_into(asset_id.into(), account, balance.into())
+							.expect("mint evm native foreign asset");
+					}
+				} else {
+					AssetManager::register_foreign_asset(
+						root_origin(),
+						xcm_asset_initialization.asset_type,
+						xcm_asset_initialization.metadata,
+						1,
+						xcm_asset_initialization.is_sufficient,
 					)
 					.unwrap();
+					for (account, balance) in xcm_asset_initialization.balances {
+						Assets::mint(
+							origin_of(AssetManager::account_id()),
+							asset_id.into(),
+							account,
+							balance,
+						)
+						.unwrap();
+					}
 				}
 			}
 			System::set_block_number(1);
@@ -356,7 +412,7 @@ pub fn set_parachain_inherent_data() {
 	pallet_author_inherent::Author::<Runtime>::put(author);
 
 	let mut relay_sproof = RelayStateSproofBuilder::default();
-	relay_sproof.para_id = 100u32.into();
+	relay_sproof.para_id = bp_moonriver::PARACHAIN_ID.into();
 	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
 
 	let additional_key_values = vec![(

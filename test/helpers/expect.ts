@@ -1,4 +1,4 @@
-import { type BlockCreationResponse, expect } from "@moonwall/cli";
+import { type BlockCreationResponse, type DevModeContext, expect } from "@moonwall/cli";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type {
   ApiTypes,
@@ -147,4 +147,30 @@ export function expectSubstrateEvents<
   }
   expect(events.length > 0).to.not.be.null;
   return events.map(({ event }) => event) as any;
+}
+
+export async function expectSystemEvent(
+  blockHash: string,
+  section: string,
+  method: string,
+  context: DevModeContext
+): Promise<EventRecord> {
+  const events = await getAllBlockEvents(blockHash, context);
+  const foundEvents = events.filter(
+    ({ event }) => event.section.toString() === section && event.method.toString() === method
+  );
+  const event = foundEvents[0];
+  expect(
+    foundEvents,
+    `Event ${section.toString()}.${method.toString()} appeared multiple times`
+  ).to.be.length(1);
+  expect(event, `Event ${section.toString()}.${method.toString()} not found in block ${blockHash}`)
+    .to.not.be.undefined;
+  return event;
+}
+
+async function getAllBlockEvents(hash: string, context: DevModeContext): Promise<EventRecord[]> {
+  const apiAt = await context.polkadotJs().at(hash);
+  const events = await apiAt.query.system.events();
+  return events;
 }

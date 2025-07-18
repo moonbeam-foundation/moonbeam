@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -203,7 +203,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 					s: rs_id(),
 				}))
 			}
-			_ => return None,
+			_ => None,
 		}
 	}
 }
@@ -222,7 +222,7 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 		let from_tuple_to_access_list = |t: &Vec<(H160, Vec<H256>)>| -> AccessList {
 			t.iter()
 				.map(|item| AccessListItem {
-					address: item.0.clone(),
+					address: item.0,
 					storage_keys: item.1.clone(),
 				})
 				.collect::<Vec<AccessListItem>>()
@@ -247,20 +247,6 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 			s: rs_id(),
 		}))
 	}
-}
-
-/// The EthereumXcmTracingStatus storage key.
-pub const ETHEREUM_XCM_TRACING_STORAGE_KEY: &[u8] = b":ethereum_xcm_tracing";
-
-/// The current EthereumXcmTransaction trace status.
-#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
-pub enum EthereumXcmTracingStatus {
-	/// A full block trace.
-	Block,
-	/// A single transaction.
-	Transaction(H256),
-	/// Exit signal.
-	TransactionExited,
 }
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
-import { type DevModeContext, customDevRpcRequest } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
-import type { XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { type DevModeContext, customDevRpcRequest, expect } from "@moonwall/cli";
+import { alith, ALITH_ADDRESS } from "@moonwall/util";
+import type { DispatchError, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import type {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmV3JunctionNetworkId,
@@ -9,6 +9,12 @@ import type {
 import { type BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
+import { expectSystemEvent } from "./expect.ts";
+import { getPalletIndex } from "./pallets.ts";
+
+// XCM versions to test
+export const XCM_VERSIONS = [3, 4, 5] as const;
+export type XcmVersion = (typeof XCM_VERSIONS)[number];
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -174,7 +180,41 @@ export async function injectHrmpMessageAndSeal(
   // using the remaining weight.
   //
   // See https://github.com/paritytech/polkadot-sdk/pull/3844 for more context.
-  await context.createBlock();
+  const { block } = await context.createBlock();
+  return block;
+}
+
+/**
+ * Patches XCM location data structures to ensure proper formatting for XCM v4 and v5.
+ * Recursively transforms junction objects to arrays where needed for compatibility.
+ * This function is specifically designed for use with XCM v4 and v5 only.
+ *
+ * @param value - The location data structure to patch
+ * @returns The patched location data structure
+ *
+ * @example
+ * // Converts this: { X1: { Parachain: 1000 } }
+ * // to this: { X1: [ { Parachain: 1000 } ] }
+ */
+function patchLocation(value: any) {
+  if (value && typeof value === "object") {
+    if (Array.isArray(value)) {
+      return value.map(patchLocation);
+    }
+    for (const k of Object.keys(value)) {
+      if (k === "Concrete" || k === "Abstract") {
+        return patchLocation(value[k]);
+      }
+      if (k.match(/^X\d$/g) && !Array.isArray(value[k])) {
+        value[k] = Object.entries(value[k]).map(([k, v]) => ({
+          [k]: patchLocation(v),
+        }));
+      } else {
+        value[k] = patchLocation(value[k]);
+      }
+    }
+  }
+  return value;
 }
 
 interface Junction {
@@ -313,7 +353,7 @@ export class XcmFragment {
         // Ticket seems to indicate the version of the assets
         ticket: {
           parents: 0,
-          interior: { X1: { GeneralIndex: 4 } },
+          interior: { X1: { GeneralIndex: 5 } },
         },
       },
     });
@@ -348,14 +388,18 @@ export class XcmFragment {
   }
 
   // Add a `DepositAsset` instruction
-  deposit_asset(max_assets = 1n, network: XcmV3JunctionNetworkId["type"] | null = null): this {
+  deposit_asset(
+    max_assets = 1n,
+    network: XcmV3JunctionNetworkId["type"] | null = null,
+    beneficiary: MultiLocation | null = null
+  ): this {
     if (this.config.beneficiary == null) {
       console.warn("!Building a DepositAsset instruction without a configured beneficiary");
     }
     this.instructions.push({
       DepositAsset: {
         assets: { Wild: { AllCounted: max_assets } },
-        beneficiary: {
+        beneficiary: beneficiary ?? {
           parents: 0,
           interior: { X1: { AccountKey20: { network, key: this.config.beneficiary } } },
         },
@@ -458,29 +502,15 @@ export class XcmFragment {
 
   /// XCM V4 calls
   as_v4(): any {
-    const patchLocationV4recursively = (value: any) => {
-      // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
-      if (value && typeof value === "object") {
-        if (Array.isArray(value)) {
-          return value.map(patchLocationV4recursively);
-        }
-        for (const k of Object.keys(value)) {
-          if (k === "Concrete" || k === "Abstract") {
-            return patchLocationV4recursively(value[k]);
-          }
-          if (k.match(/^X\d$/g) && !Array.isArray(value[k])) {
-            value[k] = Object.entries(value[k]).map(([k, v]) => ({
-              [k]: patchLocationV4recursively(v),
-            }));
-          } else {
-            value[k] = patchLocationV4recursively(value[k]);
-          }
-        }
-      }
-      return value;
-    };
     return {
-      V4: this.instructions.map((inst) => patchLocationV4recursively(inst)),
+      V4: this.instructions.map((inst) => patchLocation(inst)),
+    };
+  }
+
+  /// XCM V5 calls
+  as_v5(): any {
+    return {
+      V5: this.instructions.map((inst) => patchLocation(inst)),
     };
   }
 
@@ -803,7 +833,7 @@ export class XcmFragment {
     return this;
   }
 
-  // Overrides the weight limit of the first buyExeuction encountered
+  // Overrides the weight limit of the first buyExecution encountered
   // with the measured weight
   async override_weight(context: DevModeContext): Promise<this> {
     const message: XcmVersionedXcm = context
@@ -880,3 +910,294 @@ export const expectXcmEventMessage = async (context: DevModeContext, message: st
 };
 
 type XcmCallback = (this: XcmFragment) => void;
+
+/**
+ * Converts an XcmFragment to the specified XCM version format.
+ * This helper method centralizes the version conversion logic.
+ *
+ * @param xcmFragment - The XcmFragment instance to convert
+ * @param xcmVersion - The target XCM version (3, 4, or 5)
+ * @returns The XcmFragment converted to the appropriate version format
+ */
+export function convertXcmFragmentToVersion(xcmFragment: XcmFragment, xcmVersion: XcmVersion): any {
+  switch (xcmVersion) {
+    case 3:
+      return xcmFragment.as_v3();
+    case 4:
+      return xcmFragment.as_v4();
+    case 5:
+      return xcmFragment.as_v5();
+    default:
+      throw new Error(`Unsupported XCM version: ${xcmVersion}`);
+  }
+}
+
+export function wrapWithXcmVersion(xcm: object, xcmVersion: XcmVersion): any {
+  switch (xcmVersion) {
+    case 3:
+      return { V3: xcm };
+    case 4:
+      return {
+        V4: patchLocation(xcm),
+      };
+    case 5:
+      return {
+        V5: patchLocation(xcm),
+      };
+    default:
+      throw new Error(`Unsupported XCM version: ${xcmVersion}`);
+  }
+}
+
+export const sendCallAsPara = async (
+  call: any,
+  paraId: number,
+  context: DevModeContext,
+  fungible = 10_000_000_000_000_000_000n, // Default 10 GLMR
+  allowFailure = false,
+  opts?: {
+    originKind?: string;
+  }
+) => {
+  const encodedCall = call.method.toHex();
+  const balancesPalletIndex = await getPalletIndex("Balances", context);
+
+  const QUERY_ID = 43981;
+
+  const xcmMessage = new XcmFragment({
+    assets: [
+      {
+        multilocation: {
+          parents: 0,
+          interior: {
+            X1: { PalletInstance: balancesPalletIndex },
+          },
+        },
+        fungible: fungible,
+      },
+    ],
+    weight_limit: {
+      refTime: 40_000_000_000n,
+      proofSize: 150_713n,
+    },
+    beneficiary: sovereignAccountOfSibling(context, paraId),
+  })
+    .withdraw_asset()
+    .buy_execution()
+    .push_any({
+      Transact: {
+        originKind: opts?.originKind ?? "Xcm",
+        requireWeightAtMost: {
+          refTime: 20_089_165_000n,
+          proofSize: 80_000n,
+        },
+        call: {
+          encoded: encodedCall,
+        },
+      },
+    })
+    .report_transact_status(
+      {
+        parents: 1,
+        interior: { X1: { Parachain: paraId } },
+      },
+      QUERY_ID
+    )
+    .refund_surplus()
+    .deposit_asset(1n, null, {
+      parents: 1,
+      interior: { X1: { Parachain: paraId } },
+    })
+    .as_v4();
+
+  const mockHrmpExistanceTx = context
+    .polkadotJs()
+    .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, paraId, 1000, 102400, 102400));
+  await mockHrmpExistanceTx.signAndSend(alith);
+
+  // Send an XCM and create block to execute it
+  await injectHrmpMessage(context, paraId, {
+    type: "XcmVersionedXcm",
+    payload: xcmMessage,
+  } as RawXcmMessage);
+
+  const blockRes = await context.createBlock(); // Passing an empty array to get the correct return type
+
+  if (!allowFailure) {
+    const event = await expectSystemEvent(
+      blockRes.block.hash,
+      "messageQueue",
+      "Processed",
+      context
+    );
+    // Processed.success == true, to check that xcm message was processed successfully
+    expect(event.event.data[3].toJSON()).to.be.true;
+  }
+
+  const transactStatusMsg = (
+    await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages()
+  )[0];
+
+  const transactStatusEncoded = "0x" + transactStatusMsg.data.toHex().slice(4);
+  const transactStatusDecoded = context
+    .polkadotJs()
+    .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
+
+  let didSucceed = false;
+  let errorName: string | null = null;
+
+  const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
+  expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
+  const dispatch = transactStatusQuery.response.asDispatchResult;
+  if (dispatch.isSuccess) {
+    didSucceed = true;
+  } else {
+    const error = dispatch.asError;
+    const dispatchError = context.polkadotJs().createType("DispatchError", error) as DispatchError;
+    if (dispatchError.isModule) {
+      const err = context.polkadotJs().registry.findMetaError({
+        index: dispatchError.asModule.index,
+        error: dispatchError.asModule.error,
+      });
+      errorName = err.name;
+    } else {
+      errorName = dispatchError.type;
+    }
+  }
+
+  if (!allowFailure) {
+    expect(errorName).to.be.null;
+    expect(didSucceed).to.be.true;
+  }
+
+  // this seems to fix an issue where we see SubscribeVersion instead of QueryResponse.
+  // a better fix would be set a correct XCM Version in pallet xcm for the parachain,
+  // so pallet xcm wouldn't need to send a SubscribeVersion message.
+  await context.createBlock();
+
+  return { blockRes, didSucceed, errorName };
+};
+
+export const sendCallAsDescendedOrigin = async (
+  address: `0x${string}`,
+  call: any,
+  paraId: number,
+  context: DevModeContext,
+  fungible = 10_000_000_000_000_000_000n, // Default 10 GLMR
+  allowFailure = false
+) => {
+  const descndedAddress = descendOriginFromAddress20(context, address, paraId);
+
+  const encodedCall = call.method.toHex();
+  const balancesPalletIndex = await getPalletIndex("Balances", context);
+
+  const QUERY_ID = 43981;
+
+  const xcmMessage = new XcmFragment({
+    assets: [
+      {
+        multilocation: {
+          parents: 0,
+          interior: {
+            X1: { PalletInstance: balancesPalletIndex },
+          },
+        },
+        fungible: fungible,
+      },
+    ],
+    weight_limit: {
+      refTime: 40_000_000_000n,
+      proofSize: 150_713n,
+    },
+    descend_origin: address,
+    beneficiary: descndedAddress.descendOriginAddress,
+  })
+    .withdraw_asset()
+    .buy_execution()
+    .descend_origin()
+    .push_any({
+      Transact: {
+        originKind: "Xcm",
+        requireWeightAtMost: {
+          refTime: 20_089_165_000n,
+          proofSize: 80_000n,
+        },
+        call: {
+          encoded: encodedCall,
+        },
+      },
+    })
+    .report_transact_status(
+      {
+        parents: 1,
+        interior: { X1: { Parachain: paraId } },
+      },
+      QUERY_ID
+    )
+    .refund_surplus()
+    .deposit_asset(1n, null, {
+      parents: 1,
+      interior: { X1: { Parachain: paraId } },
+    })
+    .as_v4();
+
+  const mockHrmpExistanceTx = context
+    .polkadotJs()
+    .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, paraId, 1000, 102400, 102400));
+  await mockHrmpExistanceTx.signAndSend(alith);
+
+  // Send an XCM and create block to execute it
+  await injectHrmpMessage(context, paraId, {
+    type: "XcmVersionedXcm",
+    payload: xcmMessage,
+  } as RawXcmMessage);
+
+  const { block } = await context.createBlock();
+
+  const transactStatusMsg = (
+    await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages()
+  )[0];
+
+  const transactStatusEncoded = "0x" + transactStatusMsg.data.toHex().slice(4);
+  const transactStatusDecoded = context
+    .polkadotJs()
+    .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
+
+  let didSucceed = false;
+  let errorName: string | null = null;
+
+  if (transactStatusDecoded.asV5[0].isSubscribeVersion) {
+    // Successful executions don't generate response messages in the same block
+    // instead, they send a subscription message to the destination parachain
+    // We assume that the call was successful if we receive a subscription message
+    didSucceed = true;
+  } else {
+    const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
+    expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
+    const dispatch = transactStatusQuery.response.asDispatchResult;
+    if (dispatch.isSuccess) {
+      didSucceed = true;
+    } else {
+      const error = dispatch.asError;
+      const dispatchError = context
+        .polkadotJs()
+        .createType("DispatchError", error) as DispatchError;
+      if (dispatchError.isModule) {
+        const err = context.polkadotJs().registry.findMetaError({
+          index: dispatchError.asModule.index,
+          error: dispatchError.asModule.error,
+        });
+        errorName = err.name;
+      } else {
+        errorName = dispatchError.type;
+      }
+    }
+  }
+
+  if (!allowFailure) {
+    expect(didSucceed).to.be.true;
+    expect(errorName).to.be.null;
+  }
+
+  return { block, didSucceed, errorName };
+};

@@ -12,7 +12,7 @@ import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D010212",
+  id: "D020212",
   title: "Author Mapping - simple association",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

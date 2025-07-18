@@ -3,7 +3,7 @@ import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith, baltathar, ethan } from "@moonwall/util";
 
 describeSuite({
-  id: "D013436",
+  id: "D023437",
   title:
     "Staking - Delegation Scheduled Requests with bondless collator - cancel scheduled bond less",
   foundationMethods: "dev",
@@ -26,7 +26,16 @@ describeSuite({
       await createBlock(
         [
           sudo(psTx.setBlocksPerRound(10)).signAsync(alith),
-          psTx.delegate(baltathar.address, MIN_GLMR_DELEGATOR + LESS_AMOUNT, 0, 0).signAsync(ethan),
+          psTx
+            .delegateWithAutoCompound(
+              baltathar.address,
+              MIN_GLMR_DELEGATOR + LESS_AMOUNT,
+              0,
+              0,
+              0,
+              0
+            )
+            .signAsync(ethan),
         ],
         { allowFailures: false }
       );

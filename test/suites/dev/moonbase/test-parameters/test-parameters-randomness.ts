@@ -3,7 +3,7 @@ import { alith } from "@moonwall/util";
 import { parameterType, UNIT } from "./test-parameters";
 
 describeSuite({
-  id: "DTemp02",
+  id: "D022501",
   title: "Parameters - Pallet Randomness",
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {

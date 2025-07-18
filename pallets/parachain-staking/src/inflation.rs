@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -100,7 +100,11 @@ pub fn annual_to_round<T: Config>(annual: Range<Perbill>) -> Range<Perbill> {
 
 /// Compute round issuance range from round inflation range and current total issuance
 pub fn round_issuance_range<T: Config>(round: Range<Perbill>) -> Range<BalanceOf<T>> {
-	let circulating = T::Currency::total_issuance();
+	let circulating = if let Some(threshold) = T::LinearInflationThreshold::get() {
+		core::cmp::min(T::Currency::total_issuance(), threshold)
+	} else {
+		T::Currency::total_issuance()
+	};
 	Range {
 		min: round.min * circulating,
 		ideal: round.ideal * circulating,
