@@ -894,6 +894,7 @@ jobs:
           path: target/release
       - name: Setup
         run: |
+          chmod uog+x ./target/release/moonbeam
           # This command prepares all required binaries and runs the bridge integration tests
           make run-bridge-integration-tests
       - name: Zip and Upload Logs on Failure
