@@ -11,7 +11,6 @@ version = "0.1.1"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-blake2-rfc = { workspace = true, optional = true }
 impl-serde = { workspace = true }
 libsecp256k1 = { workspace = true, features = ["hmac"] }
 log = { workspace = true }
@@ -47,6 +46,5 @@ std = [
 ]
 
 full_crypto = [
-	"blake2-rfc",
 	"sp-runtime-interface/disable_target_static_assertions",
 ]

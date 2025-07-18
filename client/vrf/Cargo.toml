@@ -22,9 +22,6 @@ session-keys-primitives = { workspace = true, features = ["std"] }
 # Nimbus
 nimbus-primitives = { workspace = true, features = ["std"] }
 
-# Polkadot
-polkadot-primitives = { workspace = true }
-
 # Other
 schnorrkel = { workspace = true, default-features = false, features = [
     "preaudit_deprecated",

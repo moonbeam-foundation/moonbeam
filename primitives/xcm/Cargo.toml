@@ -33,7 +33,6 @@ sp-std = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 
 # Polkadot / XCM
-polkadot-runtime-common = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
@@ -54,12 +53,10 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-builder/std",
-	"xcm/std",
-	"polkadot-runtime-common/std"
+	"xcm/std"
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
 	"frame-benchmarking/runtime-benchmarks",
-	"xcm-builder/runtime-benchmarks",
-	"polkadot-runtime-common/runtime-benchmarks"
+	"xcm-builder/runtime-benchmarks"
 ]

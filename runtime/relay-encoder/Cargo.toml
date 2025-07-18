@@ -10,7 +10,6 @@ version = "0.1.0"
 [dependencies]
 
 # Moonbeam
-pallet-evm-precompile-relay-encoder = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -34,11 +33,9 @@ pallet-proxy = { workspace = true, features = [ "std" ] }
 pallet-utility = { workspace = true, features = [ "std" ] }
 pallet-xcm-transactor = { workspace = true }
 
-#kusama-runtime = { workspace = true }
 moonbase-runtime = { workspace = true }
 moonbeam-runtime = { workspace = true }
 moonriver-runtime = { workspace = true }
-#polkadot-runtime = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 rococo-runtime = { workspace = true }
 westend-runtime = { workspace = true }
@@ -51,7 +48,6 @@ std = [
 	"moonbase-runtime/std",
 	"moonbeam-runtime/std",
 	"moonriver-runtime/std",
-	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-staking/std",
 	"pallet-xcm-transactor/std",
 	"parity-scale-codec/std",
@@ -62,5 +58,5 @@ std = [
 ]
 
 runtime-benchmarks = [
-#	"polkadot-runtime/runtime-benchmarks",
+	"westend-runtime/runtime-benchmarks"
 ]

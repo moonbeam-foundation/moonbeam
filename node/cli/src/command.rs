@@ -32,8 +32,6 @@ use moonbeam_service::moonriver_runtime;
 
 use moonbeam_service::{chain_spec, frontier_database_dir, HostFunctions, IdentifyVariant};
 use parity_scale_codec::Encode;
-#[cfg(feature = "westend-native")]
-use polkadot_service::WestendChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RpcEndpoint, RuntimeVersion, SharedParams, SubstrateCli,
@@ -194,10 +192,11 @@ impl SubstrateCli for RelayChainCli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
-			#[cfg(feature = "westend-native")]
-			"westend_moonbase_relay_testnet" => Ok(Box::new(WestendChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/alphanet/westend-embedded-specs-v8.json")[..],
-			)?)),
+			"westend_moonbase_relay_testnet" => Ok(Box::new(
+				polkadot_service::WestendChainSpec::from_json_bytes(
+					&include_bytes!("../../../specs/alphanet/westend-embedded-specs-v8.json")[..],
+				)?,
+			)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
 			_ => polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter())

@@ -134,7 +134,6 @@ cumulus-client-cli = { workspace = true }
 cumulus-client-collator = { workspace = true }
 cumulus-client-consensus-common = { workspace = true }
 cumulus-client-consensus-proposer = { workspace = true }
-cumulus-client-consensus-relay-chain = { workspace = true }
 cumulus-client-network = { workspace = true }
 cumulus-client-service = { workspace = true }
 cumulus-primitives-core = { workspace = true }
@@ -186,19 +185,14 @@ default = [
 	"moonbase-native",
 	"moonbeam-native",
 	"moonriver-native",
-	"rococo-native",
-	"westend-native",
+	"rococo-native"
 ]
 
 lazy-loading = ["sc-service/test-helpers", "parking_lot/send_guard"]
 
 rococo-native = ["polkadot-cli/rococo-native", "polkadot-service/rococo-native"]
-westend-native = [
-	"polkadot-cli/westend-native",
-	"polkadot-service/westend-native",
-]
 
-moonbase-native = ["moonbase-runtime", "westend-native"]
+moonbase-native = ["moonbase-runtime"]
 moonbeam-native = ["moonbeam-runtime"]
 moonriver-native = ["moonriver-runtime"]
 

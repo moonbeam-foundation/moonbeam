@@ -11,12 +11,10 @@ version = "0.1.0"
 ethereum-types = { workspace = true, features = [ "std" ] }
 hex = { workspace = true, features = [ "serde" ] }
 serde = { workspace = true, features = [ "derive", "std" ] }
-serde_json = { workspace = true, default-features = true }
 log = { workspace = true }
 
 # Moonbeam
 evm-tracing-events = { workspace = true, features = [ "std" ] }
-moonbeam-rpc-primitives-debug = { workspace = true, features = [ "std" ] }
 
 # Substrate
 parity-scale-codec = { workspace = true, features = [ "std" ] }

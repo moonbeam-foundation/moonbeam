@@ -11,7 +11,6 @@ version = "0.1.0"
 environmental = { workspace = true }
 
 # Moonbeam
-xcm-primitives = { workspace = true }
 evm-tracing-events = { workspace = true, features = [ "evm-tracing" ] }
 moonbeam-primitives-ext = { workspace = true }
 
@@ -27,8 +26,6 @@ ethereum-types = { workspace = true }
 evm = { workspace = true }
 evm-gasometer = { workspace = true }
 evm-runtime = { workspace = true }
-fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 
 [features]
 default = [ "std" ]
@@ -39,13 +36,10 @@ std = [
 	"evm-tracing-events/std",
 	"evm/std",
 	"evm/with-serde",
-	"fp-evm/std",
 	"moonbeam-primitives-ext/std",
-	"pallet-evm/std",
 	"parity-scale-codec/std",
 	"sp-core/std",
 	"sp-runtime/std",
 	"sp-std/std",
-	"xcm-primitives/std",
 	"environmental/std"
 ]
