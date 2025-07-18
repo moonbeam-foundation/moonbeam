@@ -12647,7 +12647,6 @@ dependencies = [
  "thiserror 1.0.69",
  "tracing-gum",
  "westend-runtime",
- "westend-runtime-constants",
  "xcm-runtime-apis",
 ]
 
