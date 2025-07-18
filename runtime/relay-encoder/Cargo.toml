@@ -10,7 +10,6 @@ version = "0.1.0"
 [dependencies]
 
 # Moonbeam
-pallet-evm-precompile-relay-encoder = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -51,7 +50,6 @@ std = [
 	"moonbase-runtime/std",
 	"moonbeam-runtime/std",
 	"moonriver-runtime/std",
-	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-staking/std",
 	"pallet-xcm-transactor/std",
 	"parity-scale-codec/std",

@@ -25,7 +25,6 @@ strum_macros = { workspace = true }
 # Moonbeam
 account = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
-moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
@@ -154,7 +153,6 @@ pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm-precompile-blake2 = { workspace = true }
 pallet-evm-precompile-bn128 = { workspace = true }
-pallet-evm-precompile-dispatch = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
@@ -240,7 +238,6 @@ std = [
 	"frame-system/std",
 	"moonbeam-core-primitives/std",
 	"moonbeam-evm-tracer/std",
-	"moonbeam-relay-encoder/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"moonbeam-runtime-common/std",
@@ -384,7 +381,6 @@ runtime-benchmarks = [
 	"frame-system-benchmarking/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"hex-literal",
-	"moonbeam-relay-encoder/runtime-benchmarks",
 	"moonbeam-runtime-common/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",

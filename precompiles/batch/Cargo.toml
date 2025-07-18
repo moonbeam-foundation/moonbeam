@@ -9,7 +9,6 @@ version = "0.1.0"
 log = { workspace = true }
 num_enum = { workspace = true }
 paste = { workspace = true }
-slices = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }

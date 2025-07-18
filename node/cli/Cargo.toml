@@ -30,7 +30,6 @@ sp-core = { workspace = true, features = ["std"] }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true, features = ["std"] }
 sp-wasm-interface = { workspace = true }
-substrate-prometheus-endpoint = { workspace = true }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { workspace = true }

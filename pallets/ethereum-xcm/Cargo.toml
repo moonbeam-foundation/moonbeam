@@ -33,7 +33,6 @@ sp-std = { workspace = true }
 fp-ethereum = { workspace = true }
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
-fp-self-contained = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 xcm-primitives = { workspace = true }
 
@@ -64,7 +63,6 @@ std = [
 	"fp-ethereum/std",
 	"fp-evm/std",
 	"fp-rpc/std",
-	"fp-self-contained/std",
 	# Substrate FRAME
 	"frame-support/std",
 	"frame-system/std",
