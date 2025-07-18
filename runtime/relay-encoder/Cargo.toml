@@ -33,11 +33,9 @@ pallet-proxy = { workspace = true, features = [ "std" ] }
 pallet-utility = { workspace = true, features = [ "std" ] }
 pallet-xcm-transactor = { workspace = true }
 
-#kusama-runtime = { workspace = true }
 moonbase-runtime = { workspace = true }
 moonbeam-runtime = { workspace = true }
 moonriver-runtime = { workspace = true }
-#polkadot-runtime = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 rococo-runtime = { workspace = true }
 westend-runtime = { workspace = true }
@@ -60,5 +58,5 @@ std = [
 ]
 
 runtime-benchmarks = [
-#	"polkadot-runtime/runtime-benchmarks",
+	"westend-runtime/runtime-benchmarks"
 ]

@@ -41,6 +41,7 @@ frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
 pallet-evm-precompile-proxy = { workspace = true, features = [ "std" ] }
+fp-self-contained = { workspace = true, features = [ "std" ] }
 
 pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy", "std" ] }
