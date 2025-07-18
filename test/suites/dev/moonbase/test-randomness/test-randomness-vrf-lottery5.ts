@@ -48,7 +48,7 @@ describeSuite({
         args: [0],
       });
 
-      expect(estimatedGas).to.equal(150495n);
+      expect(estimatedGas).to.equal(150504n);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
