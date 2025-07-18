@@ -155,13 +155,14 @@ case "$1" in
           0 \
           "Unlimited"
       ;;
+  *)
     echo "A command is require. Supported commands for:
     Local (zombienet) run:
           - run-relay
           - run-finality-relay
           - run-parachains-relay
           - run-messages-relay
-          - reserve-transfer-assets-from-moonbeam-local;
+          - reserve-transfer-assets-from-moonbeam-local";
     exit 1
     ;;
 esac

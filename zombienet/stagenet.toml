@@ -1,0 +1,49 @@
+[settings]
+provider = "native"
+
+[relaychain]
+default_command = "polkadot"
+default_args = [
+    "-l=debug"
+]
+chain = "westend-local"
+
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+rpc_port = 9901
+
+[[relaychain.nodes]]
+name = "bob"
+validator = true
+
+[[parachains]]
+id = 1_000
+chain = "moonbase-local"
+cumulus_based = true
+
+[[parachains.collators]]
+name = "alith"
+command = "moonbeam"
+rpc_port = 8801
+args = [
+    "--no-hardware-benchmarks",
+    "--no-telemetry",
+    "--force-authoring",
+]
+
+[[parachains.collators]]
+name = "baltathar"
+command = "moonbeam"
+rpc_port = 8802
+args = [
+    "-l=trace",
+    "--no-hardware-benchmarks",
+    "--no-telemetry",
+    "--force-authoring",
+]
+
+[types.Header]
+number = "u64"
+parent_hash = "Hash"
+post_state = "Hash"

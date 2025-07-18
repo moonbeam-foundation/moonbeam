@@ -1,0 +1,709 @@
+{
+  "name": "Moonbeam Local Testnet",
+  "id": "moonbeam_local",
+  "chainType": "Local",
+  "bootNodes": [],
+  "telemetryEndpoints": null,
+  "protocolId": null,
+  "properties": {
+    "SS58Prefix": 1284,
+    "tokenDecimals": 18,
+    "tokenSymbol": "GLMR"
+  },
+  "relayChain": "polkadot-local",
+  "paraId": 2004,
+  "codeSubstitutes": {},
+  "genesis": {
+    "runtimeGenesis": {
+      "code": "",
+      "config": {
+        "authorFilter": {
+          "eligibleCount": 50
+        },
+        "authorMapping": {
+          "mappings": [
+            [
+              "5HEL3iLyDyaqmfibHXAXVzyQq4fBqLCHGMEYxZXgRAuhEKXX",
+              "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+            ]
+          ]
+        },
+        "balances": {
+          "balances": [
+            [
+              "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac",
+              1298074214633707000000000000000000
+            ],
+            [
+              "0x3cd0a705a2dc65e5b1e1205896baa2be8a07c6e0",
+              1298074214633707000000000000000000
+            ],
+            [
+              "0x798d4ba9baf0064ec19eb4f0a1a45785ae9d6dfc",
+              1298074214633707000000000000000000
+            ],
+            [
+              "0x773539d4ac0e786233d90a233654ccee26a613d9",
+              1298074214633707000000000000000000
+            ],
+            [
+              "0x7369626cd4070000000000000000000000000000",
+              1298074214633707000000000000000000
+            ]
+          ]
+        },
+        "bridgeKusamaGrandpa": {
+          "initData": null,
+          "owner": "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac"
+        },
+        "bridgeKusamaMessages": {
+          "openedLanes": [],
+          "operatingMode": {
+            "Basic": "Normal"
+          },
+          "owner": "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac"
+        },
+        "bridgeKusamaParachains": {
+          "operatingMode": "Normal",
+          "owner": "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac"
+        },
+        "bridgeXcmOverMoonriver": {
+          "openedBridges": [
+            [
+              {
+                "interior": {
+                  "X1": [
+                    {
+                      "Parachain": 2004
+                    }
+                  ]
+                },
+                "parents": 1
+              },
+              {
+                "X2": [
+                  {
+                    "GlobalConsensus": "Kusama"
+                  },
+                  {
+                    "Parachain": 2023
+                  }
+                ]
+              },
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              null
+            ]
+          ]
+        },
+        "crowdloanRewards": {
+          "fundedAmount": 150000000000000000000000000
+        },
+        "ethereum": {},
+        "ethereumChainId": {
+          "chainId": 1280
+        },
+        "evm": {
+          "accounts": {
+            "0x0000000000000000000000000000000000000001": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000002": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000003": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000004": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000005": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000006": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000007": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000008": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000009": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000100": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000400": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000401": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000402": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000800": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000801": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000802": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000803": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000804": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000805": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000806": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000807": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000808": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000809": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x000000000000000000000000000000000000080a": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x000000000000000000000000000000000000080b": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x000000000000000000000000000000000000080c": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x000000000000000000000000000000000000080d": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x000000000000000000000000000000000000080e": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x000000000000000000000000000000000000080f": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000810": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000811": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000812": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000813": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000814": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000815": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000816": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000817": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000818": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x0000000000000000000000000000000000000819": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0x000000000000000000000000000000000000081a": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0xfffffffeabb8953ac77edece4a6e251a849c7cdf": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0xfffffffecb45afd30a637967995394cc88c0c194": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0xfffffffed1b57d12738e41eae0124e285e5e86a3": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            },
+            "0xfffffffefd9d0bf45a2947a519a741c4b9e99eb6": {
+              "balance": "0x0",
+              "code": [
+                96,
+                0,
+                96,
+                0,
+                253
+              ],
+              "nonce": "0x0",
+              "storage": {}
+            }
+          }
+        },
+        "maintenanceMode": {
+          "startInMaintenanceMode": false
+        },
+        "migrations": {},
+        "openTechCommitteeCollective": {
+          "members": [
+            "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac",
+            "0x3cd0a705a2dc65e5b1e1205896baa2be8a07c6e0"
+          ]
+        },
+        "parachainInfo": {
+          "parachainId": 2004
+        },
+        "parachainStaking": {
+          "blocksPerRound": 3600,
+          "candidates": [
+            [
+              "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac",
+              2000000000000000000000000
+            ]
+          ],
+          "collatorCommission": 200000000,
+          "delegations": [],
+          "inflationConfig": {
+            "annual": {
+              "ideal": 50000000,
+              "max": 50000000,
+              "min": 40000000
+            },
+            "expect": {
+              "ideal": 20000000000000000000000000,
+              "max": 50000000000000000000000000,
+              "min": 10000000000000000000000000
+            },
+            "round": {
+              "ideal": 66839,
+              "max": 66839,
+              "min": 53729
+            }
+          },
+          "numSelectedCandidates": 8,
+          "parachainBondReservePercent": 30
+        },
+        "polkadotXcm": {
+          "safeXcmVersion": 4
+        },
+        "proxyGenesisCompanion": {
+          "proxies": []
+        },
+        "sudo": {
+          "key": "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac"
+        },
+        "system": {},
+        "transactionPayment": {
+          "multiplier": "8000000000000000000"
+        },
+        "treasury": {},
+        "treasuryCouncilCollective": {
+          "members": [
+            "0x3cd0a705a2dc65e5b1e1205896baa2be8a07c6e0",
+            "0x798d4ba9baf0064ec19eb4f0a1a45785ae9d6dfc",
+            "0x773539d4ac0e786233d90a233654ccee26a613d9"
+          ]
+        }
+      }
+    }
+  }
+}

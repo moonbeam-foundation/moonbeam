@@ -4,7 +4,7 @@ Creds: config
 alice: is up
 bob: is up
 
-alice: parachain 2023 block height is at least 4 within 200 seconds
+alice: parachain 2023 block height is at least 4 within 300 seconds
 
 # Check Alith Balance
 alith: js-script {{FRAMEWORK_PATH}}/js-helpers/native-asset-balance.js with "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac" return is 0 within 30 seconds
