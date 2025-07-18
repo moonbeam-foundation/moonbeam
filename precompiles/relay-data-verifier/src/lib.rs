@@ -49,10 +49,7 @@ pub struct RelayDataVerifierPrecompile<Runtime, WeightInfo>(PhantomData<(Runtime
 #[precompile_utils::precompile]
 impl<Runtime, WeightInfo> RelayDataVerifierPrecompile<Runtime, WeightInfo>
 where
-	Runtime: frame_system::Config
-		+ pallet_relay_storage_roots::Config
-		+ pallet_evm::Config
-		+ pallet_precompile_benchmarks::Config,
+	Runtime: frame_system::Config + pallet_relay_storage_roots::Config + pallet_evm::Config,
 	WeightInfo: TWeightInfo,
 {
 	/// Verify the storage entry using the provided relay block number and proof. Return the value
