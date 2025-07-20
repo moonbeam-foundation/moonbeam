@@ -498,7 +498,7 @@ jobs:
           target: wasm32-unknown-unknown
       - name: Check for unused dependencies
         run: |
-          cargo install +nightly udeps
+          cargo +nightly install udeps
           cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
