@@ -13,11 +13,8 @@ targets = [ "x86_64-unknown-linux-gnu" ]
 [dependencies]
 ethereum = { workspace = true, features = [ "with-scale" ] }
 ethereum-types = { workspace = true }
-hex = { workspace = true }
 impl-trait-for-tuples = { workspace = true }
 log = { workspace = true }
-serde = { workspace = true, optional = true, features = [ "derive" ] }
-sha3 = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -25,7 +22,6 @@ frame-system = { workspace = true }
 pallet-staking = { workspace = true }
 parity-scale-codec = { workspace = true, features = [ "derive" ] }
 scale-info = { workspace = true, features = [ "derive" ] }
-sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
@@ -37,26 +33,17 @@ xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
-# Benchmarks
-frame-benchmarking = { workspace = true, optional = true }
-
 [features]
 default = [ "std" ]
 std = [
 	"cumulus-primitives-core/std",
-	"hex/std",
 	"pallet-staking/std",
 	"parity-scale-codec/std",
-	"serde/std",
-	"sha3/std",
-	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-builder/std",
 	"xcm/std"
 ]
 runtime-benchmarks = [
-	"frame-benchmarking",
-	"frame-benchmarking/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks"
 ]

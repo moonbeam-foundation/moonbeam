@@ -23,8 +23,6 @@ scale-info = { workspace = true }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
-sp-runtime-interface = { workspace = true }
-sp-std = { workspace = true }
 
 [dev-dependencies]
 hex = { workspace = true }
@@ -32,7 +30,6 @@ hex = { workspace = true }
 [features]
 default = ["std"]
 std = [
-	"full_crypto",
 	"hex/std",
 	"impl-serde/std",
 	"libsecp256k1/std",
@@ -41,10 +38,5 @@ std = [
 	"sha3/std",
 	"sp-core/std",
 	"sp-io/std",
-	"sp-runtime/std",
-	"sp-std/std",
-]
-
-full_crypto = [
-	"sp-runtime-interface/disable_target_static_assertions",
+	"sp-runtime/std"
 ]

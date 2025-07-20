@@ -46,7 +46,7 @@ use sc_client_api::{
 use jsonrpsee::http_client::HttpClient;
 use sp_runtime::generic::SignedBlock;
 
-use crate::chain_spec;
+use crate::lazy_loading;
 use crate::lazy_loading::lock::ReadWriteLock;
 use crate::lazy_loading::state_overrides::StateEntry;
 use crate::lazy_loading::{helpers, state_overrides};
@@ -1746,7 +1746,7 @@ where
 		.system_properties()
 		.expect("Should fetch chain properties");
 
-	let spec_builder = chain_spec::test_spec::lazy_loading_spec_builder()
+	let spec_builder = lazy_loading::spec_builder()
 		.with_name(chain_name.as_str())
 		.with_properties(chain_properties);
 	config.chain_spec = Box::new(spec_builder.build());

@@ -8,13 +8,10 @@ repository = { workspace = true }
 version = "0.6.0"
 
 [dependencies]
-ethereum = { workspace = true, features = [ "with-scale" ] }
 ethereum-types = { workspace = true }
 futures = { workspace = true }
 jsonrpsee = { workspace = true, features = [ "macros", "server" ] }
 log = { workspace = true }
-serde = { workspace = true, features = [ "derive" ] }
-sha3 = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
 tokio = { workspace = true, features = [ "sync", "time" ] }
 tracing = { workspace = true }
@@ -27,18 +24,13 @@ moonbeam-rpc-primitives-debug = { workspace = true }
 
 # Substrate
 sc-client-api = { workspace = true }
-sc-network = { workspace = true }
 sc-utils = { workspace = true }
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-blockchain = { workspace = true }
-sp-io = { workspace = true }
 sp-runtime = { workspace = true }
-sp-std = { workspace = true }
-sp-transaction-pool = { workspace = true }
 
 # Frontier
 fc-rpc = { workspace = true, features = [ "rpc-binary-search-estimate" ] }
-fc-rpc-core = { workspace = true }
 fc-storage = { workspace = true }
 fp-rpc = { workspace = true }

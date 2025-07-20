@@ -37,7 +37,6 @@ moonbase-runtime = { workspace = true }
 moonbeam-runtime = { workspace = true }
 moonriver-runtime = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
-rococo-runtime = { workspace = true }
 westend-runtime = { workspace = true }
 
 [features]
@@ -55,8 +54,13 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-primitives/std",
+	"westend-runtime/std",
 ]
 
 runtime-benchmarks = [
 	"westend-runtime/runtime-benchmarks"
+]
+
+try-runtime = [
+	"westend-runtime/try-runtime"
 ]
