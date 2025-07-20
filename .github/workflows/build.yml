@@ -483,6 +483,24 @@ jobs:
           body-path: runtime_size_report.md
           edit-mode: replace
 
+  check-unused-dependencies:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rust-src
+          target: wasm32-unknown-unknown
+      - name: Check for unused dependencies
+        run: |
+          cargo install +nightly udeps
+          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
+
   rust-test:
     runs-on:
       labels: bare-metal
