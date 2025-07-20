@@ -484,7 +484,7 @@ jobs:
           edit-mode: replace
 
   check-unused-dependencies:
-    runs-on: ubuntu-latest
+    runs-on: moonbeam-release-medium
     permissions:
       contents: read
     steps:
@@ -504,7 +504,7 @@ jobs:
         run: |
           # There may be false negatives/positives
           # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
-          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
+          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime,bridge-stagenet --all-targets
 
   rust-test:
     runs-on:
