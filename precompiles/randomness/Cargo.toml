@@ -37,6 +37,8 @@ session-keys-primitives = { workspace = true, features = [ "std" ] }
 pallet-balances = { workspace = true, features = [ "std" ] }
 pallet-timestamp = { workspace = true, features = [ "std" ] }
 sp-runtime = { workspace = true, features = [ "std" ] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len", "std"] }
+scale-info = { workspace = true, features = ["derive", "std"] }
 
 [features]
 default = [ "std" ]
@@ -47,6 +49,7 @@ std = [
 	"nimbus-primitives/std",
 	"pallet-evm/std",
 	"pallet-randomness/std",
+	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-io/std",
