@@ -7,8 +7,6 @@ version = "1.0.0"
 
 [dependencies]
 log = { workspace = true }
-num_enum = { workspace = true }
-rustc-hex = { workspace = true }
 
 # Moonbeam
 pallet-parachain-staking = { workspace = true }

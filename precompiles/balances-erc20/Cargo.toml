@@ -6,8 +6,6 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-log = { workspace = true }
-num_enum = { workspace = true }
 paste = { workspace = true }
 
 # Moonbeam

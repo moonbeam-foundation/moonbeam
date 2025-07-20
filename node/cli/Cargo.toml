@@ -17,28 +17,21 @@ moonbeam-service = { workspace = true }
 
 # Substrate
 frame-benchmarking-cli = { workspace = true }
-sc-chain-spec = { workspace = true }
 sc-cli = { workspace = true }
-sc-client-api = { workspace = true }
-sc-consensus-grandpa = { workspace = true }
 sc-network = { workspace = true }
 sc-service = { workspace = true }
 sc-sysinfo = { workspace = true }
-sc-telemetry = { workspace = true }
 sc-tracing = { workspace = true }
 sp-core = { workspace = true, features = ["std"] }
-sp-io = { workspace = true }
 sp-runtime = { workspace = true, features = ["std"] }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { workspace = true }
-cumulus-client-service = { workspace = true }
 cumulus-primitives-core = { workspace = true, features = ["std"] }
 nimbus-primitives = { workspace = true, features = ["std"] }
 
 # Polkadot
 polkadot-cli = { workspace = true }
-polkadot-parachain = { workspace = true, features = ["std"] }
 polkadot-primitives = { workspace = true }
 polkadot-service = { workspace = true }
 
