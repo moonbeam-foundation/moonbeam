@@ -23,11 +23,8 @@ pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 precompile-utils = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
 hex-literal = { workspace = true }
 libsecp256k1 = { workspace = true }
-serde = { workspace = true }
-sha3 = { workspace = true }
 
 pallet-timestamp = { workspace = true, features = ["std"] }
 pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }

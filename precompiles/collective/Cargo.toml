@@ -28,10 +28,6 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 precompile-utils = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
-hex-literal = { workspace = true }
-serde = { workspace = true }
-sha3 = { workspace = true }
 similar-asserts = { workspace = true }
 
 pallet-balances = { workspace = true, features = ["std"] }

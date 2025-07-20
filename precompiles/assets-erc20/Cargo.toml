@@ -31,10 +31,8 @@ precompile-utils = { workspace = true }
 moonkit-xcm-primitives = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
 hex-literal = { workspace = true }
 libsecp256k1 = { workspace = true }
-serde = { workspace = true }
 sha3 = { workspace = true }
 
 # Moonbeam

@@ -30,9 +30,6 @@ xcm = { workspace = true }
 pallet-xcm = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
-serde = { workspace = true }
-sha3 = { workspace = true }
 
 # Moonbeam
 precompile-utils = { workspace = true, features = ["testing"] }

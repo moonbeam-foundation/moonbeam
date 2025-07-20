@@ -29,9 +29,6 @@ xcm = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
-serde = { workspace = true }
-sha3 = { workspace = true }
 
 # Moonbeam
 precompile-utils = { workspace = true, features = ["testing", "codec-xcm"] }
@@ -45,7 +42,6 @@ scale-info = { workspace = true, features = ["derive"] }
 sp-io = { workspace = true }
 
 # Polkadot
-pallet-xcm = { workspace = true, features = ["std"] }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 

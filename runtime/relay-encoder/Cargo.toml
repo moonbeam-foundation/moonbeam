@@ -29,13 +29,10 @@ xcm = { workspace = true }
 
 [dev-dependencies]
 frame-support = { workspace = true, features = [ "std" ] }
-pallet-proxy = { workspace = true, features = [ "std" ] }
 pallet-utility = { workspace = true, features = [ "std" ] }
 pallet-xcm-transactor = { workspace = true }
 
 moonbase-runtime = { workspace = true }
-moonbeam-runtime = { workspace = true }
-moonriver-runtime = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 westend-runtime = { workspace = true }
 
@@ -45,8 +42,6 @@ std = [
 	"cumulus-primitives-core/std",
 	"frame-system/std",
 	"moonbase-runtime/std",
-	"moonbeam-runtime/std",
-	"moonriver-runtime/std",
 	"pallet-staking/std",
 	"pallet-xcm-transactor/std",
 	"parity-scale-codec/std",
