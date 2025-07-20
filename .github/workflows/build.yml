@@ -496,9 +496,14 @@ jobs:
           override: true
           components: rust-src
           target: wasm32-unknown-unknown
+      - name: Install required dependencies
+        run: |
+          sudo apt-get install -y libprotobuf-dev protobuf-compiler
+          cargo +nightly install cargo-udeps
       - name: Check for unused dependencies
         run: |
-          cargo +nightly install cargo-udeps
+          # There may be false negatives/positives
+          # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
           cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
