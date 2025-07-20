@@ -12,7 +12,6 @@ targets = [ "x86_64-unknown-linux-gnu" ]
 
 [dependencies]
 ethereum = { workspace = true, features = [ "with-scale" ] }
-serde = { workspace = true, optional = true }
 
 # Parity
 environmental = { workspace = true }
@@ -35,9 +34,6 @@ fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 xcm-primitives = { workspace = true }
-
-# Benchmarks
-frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
 pallet-evm-precompile-proxy = { workspace = true, features = [ "std" ] }
@@ -74,7 +70,6 @@ std = [
 	"parity-scale-codec/std",
 	"rlp/std",
 	"scale-info/std",
-	"serde",
 	# Substrate
 	"sp-io/std",
 	"sp-runtime/std",
@@ -82,8 +77,6 @@ std = [
 	"xcm-primitives/std",
 ]
 runtime-benchmarks = [
-	"frame-benchmarking",
-	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"pallet-evm/runtime-benchmarks", 
