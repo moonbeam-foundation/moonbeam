@@ -129,7 +129,6 @@ moonbeam-dev-rpc = { path = "client/rpc/dev" }
 moonbeam-finality-rpc = { path = "client/rpc/finality" }
 moonbeam-rpc-core-debug = { path = "client/rpc-core/debug" }
 moonbeam-rpc-core-trace = { path = "client/rpc-core/trace" }
-moonbeam-rpc-core-txpool = { path = "client/rpc-core/txpool" }
 moonbeam-rpc-core-types = { path = "client/rpc-core/types" }
 moonbeam-rpc-debug = { path = "client/rpc/debug" }
 moonbeam-rpc-trace = { path = "client/rpc/trace" }
@@ -160,7 +159,6 @@ pallet-proxy = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", br
 pallet-referenda = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-root-testing = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-scheduler = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
-pallet-society = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-staking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-sudo = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-timestamp = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
@@ -264,7 +262,6 @@ pallet-evm = { git = "https://github.com/moonbeam-foundation/frontier", branch =
 pallet-evm-chain-id = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-evm-precompile-blake2 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-evm-precompile-bn128 = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2412", default-features = false }
-pallet-evm-precompile-dispatch = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-evm-precompile-modexp = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-evm-precompile-sha3fips = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2412", default-features = false }
 pallet-evm-precompile-simple = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2412", default-features = false }
@@ -326,12 +323,9 @@ xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/moo
 xcm-runtime-apis = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 
 # Polkadot / XCM (client)
-#kusama-runtime = { package = "staging-kusama-runtime", git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
 polkadot-cli = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
 polkadot-primitives = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
-#polkadot-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
 polkadot-service = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
-rococo-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
 westend-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
 xcm-simulator = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412" }
 
@@ -390,7 +384,6 @@ rlp = { version = "0.6.1", default-features = false }
 rustc-hex = { version = "2.0.1", default-features = false }
 serde = { version = "1.0.197", default-features = false }
 sha3 = { version = "0.10", default-features = false }
-slices = "0.2.0"
 strum = { version = "0.26.3", default-features = false, features = ["derive"] }
 strum_macros = "0.24"
 smallvec = "1.11.0"
@@ -424,7 +417,6 @@ schnorrkel = { version = "0.11.4", default-features = false, features = [
 tokio = { version = "1.43.0" }
 tokio-retry = { version = "0.3.0" }
 tracing = "0.1.37"
-tracing-core = "0.1.32"
 trie-root = "0.18.0"
 url = { version = "2.4.0" }
 thiserror = "1.0.63"

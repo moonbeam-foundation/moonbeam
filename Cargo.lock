@@ -9490,14 +9490,11 @@ dependencies = [
 name = "pallet-evm-precompile-author-mapping"
 version = "0.2.0"
 dependencies = [
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
  "log",
  "nimbus-primitives",
- "num_enum 0.5.11",
  "pallet-author-mapping",
  "pallet-balances",
  "pallet-evm",
@@ -9505,8 +9502,6 @@ dependencies = [
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
- "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9870,23 +9865,16 @@ dependencies = [
 name = "pallet-evm-precompile-randomness"
 version = "0.1.0"
 dependencies = [
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
- "log",
  "nimbus-primitives",
- "num_enum 0.5.11",
  "pallet-author-mapping",
  "pallet-balances",
  "pallet-evm",
  "pallet-randomness",
- "pallet-scheduler",
  "pallet-timestamp",
- "parity-scale-codec",
  "precompile-utils",
- "scale-info",
  "session-keys-primitives",
  "sp-core",
  "sp-io",
@@ -9898,13 +9886,10 @@ dependencies = [
 name = "pallet-evm-precompile-referenda"
 version = "0.1.0"
 dependencies = [
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
  "log",
- "num_enum 0.5.11",
  "pallet-balances",
  "pallet-evm",
  "pallet-preimage",
@@ -9913,10 +9898,7 @@ dependencies = [
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
- "rustc-hex",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9927,24 +9909,16 @@ dependencies = [
 name = "pallet-evm-precompile-registry"
 version = "0.1.0"
 dependencies = [
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
- "log",
  "pallet-balances",
  "pallet-evm",
- "pallet-scheduler",
  "pallet-timestamp",
- "parity-scale-codec",
  "precompile-utils",
- "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
