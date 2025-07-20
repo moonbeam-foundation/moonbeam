@@ -7388,9 +7388,6 @@ dependencies = [
  "frame-support",
  "frame-system",
  "moonbase-runtime",
- "moonbeam-runtime",
- "moonriver-runtime",
- "pallet-proxy",
  "pallet-staking",
  "pallet-utility",
  "pallet-xcm-transactor",
@@ -9463,7 +9460,6 @@ name = "pallet-evm-precompile-balances-erc20"
 version = "0.1.0"
 dependencies = [
  "account",
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -9476,7 +9472,6 @@ dependencies = [
  "paste",
  "precompile-utils",
  "scale-info",
- "serde",
  "sha3",
  "sp-core",
  "sp-io",
@@ -9488,7 +9483,6 @@ dependencies = [
 name = "pallet-evm-precompile-batch"
 version = "0.1.0"
 dependencies = [
- "derive_more 0.99.20",
  "evm",
  "fp-evm",
  "frame-support",
@@ -9500,8 +9494,6 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9530,7 +9522,6 @@ dependencies = [
 name = "pallet-evm-precompile-call-permit"
 version = "0.1.0"
 dependencies = [
- "derive_more 0.99.20",
  "evm",
  "fp-evm",
  "frame-support",
@@ -9543,8 +9534,6 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9556,12 +9545,10 @@ name = "pallet-evm-precompile-collective"
 version = "0.1.0"
 dependencies = [
  "account",
- "derive_more 0.99.20",
  "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
  "pallet-balances",
  "pallet-collective",
  "pallet-evm",
@@ -9570,8 +9557,6 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "similar-asserts",
  "sp-core",
  "sp-io",
@@ -9585,11 +9570,9 @@ name = "pallet-evm-precompile-conviction-voting"
 version = "0.1.0"
 dependencies = [
  "account",
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
  "log",
  "pallet-balances",
  "pallet-conviction-voting",
@@ -9598,8 +9581,6 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9707,7 +9688,6 @@ dependencies = [
 name = "pallet-evm-precompile-parachain-staking"
 version = "1.0.0"
 dependencies = [
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -9719,8 +9699,6 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "sp-consensus-slots",
  "sp-core",
  "sp-io",
@@ -9732,11 +9710,9 @@ dependencies = [
 name = "pallet-evm-precompile-preimage"
 version = "0.1.0"
 dependencies = [
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
  "pallet-balances",
  "pallet-evm",
  "pallet-preimage",
@@ -9744,8 +9720,6 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9941,20 +9915,16 @@ name = "pallet-evm-precompile-xcm-transactor"
 version = "0.2.0"
 dependencies = [
  "cumulus-primitives-core",
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
- "pallet-xcm",
  "pallet-xcm-transactor",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9971,7 +9941,6 @@ name = "pallet-evm-precompile-xcm-utils"
 version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -9980,11 +9949,8 @@ dependencies = [
  "pallet-timestamp",
  "pallet-xcm",
  "parity-scale-codec",
- "polkadot-parachain-primitives",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -10002,7 +9968,6 @@ version = "0.1.0"
 dependencies = [
  "account",
  "cumulus-primitives-core",
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -10014,8 +9979,6 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -10032,7 +9995,6 @@ name = "pallet-evm-precompileset-assets-erc20"
 version = "0.1.0"
 dependencies = [
  "account",
- "derive_more 0.99.20",
  "fp-evm",
  "frame-support",
  "frame-system",
@@ -10046,7 +10008,6 @@ dependencies = [
  "paste",
  "precompile-utils",
  "scale-info",
- "serde",
  "sha3",
  "sp-core",
  "sp-io",
@@ -10298,7 +10259,6 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
- "staging-xcm-executor",
 ]
 
 [[package]]
@@ -11005,7 +10965,6 @@ dependencies = [
  "frame-system",
  "pallet-balances",
  "pallet-timestamp",
- "pallet-xcm",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -11028,7 +10987,6 @@ dependencies = [
  "frame-system",
  "log",
  "pallet-balances",
- "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
