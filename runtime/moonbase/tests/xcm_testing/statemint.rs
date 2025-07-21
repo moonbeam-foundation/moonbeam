@@ -1,0 +1,1331 @@
+// Copyright 2019-2025 PureStake Inc.
+// This file is part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+use frame_support::{assert_ok, traits::PalletInfoAccess, weights::Weight};
+use moonbase_runtime::xcm_config::AssetType;
+
+use crate::{
+	xcm_mock::{parachain::PolkadotXcm, *},
+	xcm_testing::{add_supported_asset, currency_to_asset},
+};
+use sp_std::boxed::Box;
+use xcm::VersionedLocation;
+use xcm::{
+	latest::prelude::{
+		AccountId32, AccountKey20, Asset, AssetId, Assets as XcmAssets, Fungibility, GeneralIndex,
+		Junction, Location, PalletInstance, Parachain, WeightLimit,
+	},
+	VersionedAssets,
+};
+use xcm_executor::traits::ConvertLocation;
+use xcm_primitives::{split_location_into_chain_part_and_beneficiary, DEFAULT_PROOF_SIZE};
+use xcm_simulator::TestExt;
+
+#[test]
+fn test_statemint_like() {
+	MockNet::reset();
+
+	let dest_para = Location::new(1, [Parachain(1)]);
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemint_like::AccountId,
+	>::convert_location(&dest_para)
+	.unwrap();
+
+	let statemint_asset_a_balances = Location::new(
+		1,
+		[
+			Parachain(1000),
+			PalletInstance(5),
+			xcm::latest::prelude::GeneralIndex(0u128),
+		],
+	);
+	let source_location: AssetType = statemint_asset_a_balances
+		.try_into()
+		.expect("Location convertion to AssetType should succeed");
+	let source_id: parachain::AssetId = source_location.clone().into();
+
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"StatemintToken".to_vec(),
+		symbol: b"StatemintToken".to_vec(),
+		decimals: 12,
+	};
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			source_location.clone(),
+			asset_metadata.clone(),
+			1u128,
+			true
+		));
+		assert_ok!(add_supported_asset(source_location, 0));
+	});
+
+	Statemint::execute_with(|| {
+		// Set new prefix
+		statemint_like::PrefixChanger::set_prefix(
+			PalletInstance(<StatemintAssets as PalletInfoAccess>::index() as u8).into(),
+		);
+		assert_ok!(StatemintAssets::create(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemintAssets::mint(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			0,
+			RELAYALICE,
+			300000000000000
+		));
+
+		// This is needed, since the asset is created as non-sufficient
+		assert_ok!(StatemintBalances::transfer_allow_death(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			sov,
+			100000000000000
+		));
+
+		// Actually send relay asset to parachain
+		let dest: Location = AccountKey20 {
+			network: None,
+			key: PARAALICE,
+		}
+		.into();
+
+		// Send asset with previous prefix
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(VersionedLocation::from(dest).clone()),
+			Box::new(
+				(
+					[
+						xcm::latest::prelude::PalletInstance(
+							<StatemintAssets as PalletInfoAccess>::index() as u8
+						),
+						xcm::latest::prelude::GeneralIndex(0),
+					],
+					123
+				)
+					.into()
+			),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+	});
+}
+
+#[test]
+fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
+	MockNet::reset();
+
+	// Relay asset
+	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
+	let source_relay_id: parachain::AssetId = relay_location.clone().into();
+
+	let relay_asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
+	// Statemint asset
+	let statemint_asset = Location::new(
+		1,
+		[
+			Parachain(1000u32),
+			PalletInstance(5u8),
+			GeneralIndex(10u128),
+		],
+	);
+	let statemint_location_asset: AssetType = statemint_asset
+		.clone()
+		.try_into()
+		.expect("Location convertion to AssetType should succeed");
+	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
+
+	let asset_metadata_statemint_asset = parachain::AssetMetadata {
+		name: b"USDC".to_vec(),
+		symbol: b"USDC".to_vec(),
+		decimals: 12,
+	};
+
+	let dest_para = Location::new(1, [Parachain(1)]);
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemint_like::AccountId,
+	>::convert_location(&dest_para)
+	.unwrap();
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			relay_location.clone(),
+			relay_asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(add_supported_asset(relay_location, 0));
+
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			statemint_location_asset.clone(),
+			asset_metadata_statemint_asset,
+			1u128,
+			true
+		));
+		assert_ok!(add_supported_asset(statemint_location_asset, 0));
+	});
+
+	let parachain_beneficiary_from_relay: Location = Junction::AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	}
+	.into();
+
+	// Send relay chain asset to Alice in Parachain A
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Parachain(1).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_from_relay)
+					.clone()
+					.into()
+			),
+			Box::new(([], 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	Statemint::execute_with(|| {
+		// Set new prefix
+		statemint_like::PrefixChanger::set_prefix(
+			PalletInstance(<StatemintAssets as PalletInfoAccess>::index() as u8).into(),
+		);
+
+		assert_ok!(StatemintAssets::create(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			10,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemintAssets::mint(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			10,
+			RELAYALICE,
+			300000000000000
+		));
+
+		// Send some native statemint tokens to sovereign for fees.
+		// We can't pay fees with USDC as the asset is minted as non-sufficient.
+		assert_ok!(StatemintBalances::transfer_allow_death(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			sov,
+			100000000000000
+		));
+
+		// Send statemint USDC asset to Alice in Parachain A
+		let parachain_beneficiary_from_statemint: Location = AccountKey20 {
+			network: None,
+			key: PARAALICE,
+		}
+		.into();
+
+		// Send with new prefix
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_from_statemint)
+					.clone()
+					.into()
+			),
+			Box::new(
+				(
+					[
+						xcm::latest::prelude::PalletInstance(
+							<StatemintAssets as PalletInfoAccess>::index() as u8
+						),
+						GeneralIndex(10),
+					],
+					125
+				)
+					.into()
+			),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	let statemint_beneficiary = Location {
+		parents: 1,
+		interior: [
+			Parachain(1000),
+			AccountId32 {
+				network: None,
+				id: RELAYBOB.into(),
+			},
+		]
+		.into(),
+	};
+
+	ParaA::execute_with(|| {
+		// Alice has received 125 USDC
+		assert_eq!(
+			Assets::balance(source_statemint_asset_id, &PARAALICE.into()),
+			125
+		);
+
+		// Alice has received 200 Relay assets
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+	});
+
+	Statemint::execute_with(|| {
+		// Check that BOB's balance is empty before the transfer
+		assert_eq!(StatemintAssets::account_balances(RELAYBOB), vec![]);
+	});
+
+	let (chain_part, beneficiary) =
+		split_location_into_chain_part_and_beneficiary(statemint_beneficiary).unwrap();
+
+	// Transfer USDC from Parachain A to Statemint using Relay asset as fee
+	ParaA::execute_with(|| {
+		let asset = currency_to_asset(
+			parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
+			100,
+		);
+		let asset_fee =
+			currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+		assert_ok!(PolkadotXcm::transfer_assets(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset])),
+			0,
+			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Alice has 100 USDC less
+		assert_eq!(
+			Assets::balance(source_statemint_asset_id, &PARAALICE.into()),
+			25
+		);
+
+		// Alice has 100 relay asset less
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+	});
+
+	Statemint::execute_with(|| {
+		// Check that BOB received 100 USDC on statemint
+		assert_eq!(StatemintAssets::account_balances(RELAYBOB), vec![(10, 100)]);
+	});
+}
+
+#[test]
+fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
+	MockNet::reset();
+
+	// Relay asset
+	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
+	let source_relay_id: parachain::AssetId = relay_location.clone().into();
+
+	let relay_asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
+	let dest_para = Location::new(1, [Parachain(1)]);
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemint_like::AccountId,
+	>::convert_location(&dest_para)
+	.unwrap();
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			relay_location.clone(),
+			relay_asset_metadata,
+			1u128,
+			true
+		));
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
+	});
+
+	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	}
+	.into();
+
+	let statemint_beneficiary_absolute: Location = Junction::AccountId32 {
+		network: None,
+		id: RELAYALICE.into(),
+	}
+	.into();
+
+	// First we send relay chain asset to Alice in AssetHub (via teleport)
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::limited_teleport_assets(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Parachain(1000).into()),
+			Box::new(
+				VersionedLocation::from(statemint_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new(([], 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	// Send DOTs from AssetHub to ParaA (Moonbeam)
+	Statemint::execute_with(|| {
+		// Check Alice received 200 tokens on AssetHub
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYALICE),
+			INITIAL_BALANCE + 200
+		);
+
+		assert_ok!(StatemintBalances::transfer_allow_death(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			sov,
+			110000000000000
+		));
+
+		// Now send those tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
+					.clone()
+					.into()
+			),
+			Box::new((Location::parent(), 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received the DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+	});
+
+	let dest = Location::new(
+		1,
+		[
+			Parachain(1000),
+			AccountId32 {
+				network: None,
+				id: RELAYBOB.into(),
+			},
+		],
+	);
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+
+	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
+	ParaA::execute_with(|| {
+		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+		assert_ok!(PolkadotXcm::transfer_assets(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(vec![asset])),
+			0,
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
+		));
+
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+	});
+
+	Statemint::execute_with(|| {
+		// Check that Bob received the tokens back in AssetHub
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYBOB),
+			INITIAL_BALANCE + 100
+		);
+	});
+
+	// Send back tokens from AH to ParaA from Bob's account
+	Statemint::execute_with(|| {
+		// Now send those tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYBOB),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new((Location::parent(), 100).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+
+		// 100 DOTs were deducted from Bob's account
+		assert_eq!(StatemintBalances::free_balance(RELAYBOB), INITIAL_BALANCE);
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received 100 DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+	});
+}
+
+#[test]
+fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
+	MockNet::reset();
+
+	// Relay asset
+	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
+	let source_relay_id: parachain::AssetId = relay_location.clone().into();
+
+	let relay_asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
+	let dest_para = Location::new(1, [Parachain(1)]);
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemint_like::AccountId,
+	>::convert_location(&dest_para)
+	.unwrap();
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			relay_location.clone(),
+			relay_asset_metadata,
+			1u128,
+			true
+		));
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
+	});
+
+	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	}
+	.into();
+
+	let statemint_beneficiary_absolute: Location = Junction::AccountId32 {
+		network: None,
+		id: RELAYALICE.into(),
+	}
+	.into();
+
+	// First we send relay chain asset to Alice in AssetHub (via teleport)
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::limited_teleport_assets(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Parachain(1000).into()),
+			Box::new(
+				VersionedLocation::from(statemint_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new(([], 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	// Send DOTs from AssetHub to ParaA (Moonbeam)
+	Statemint::execute_with(|| {
+		// Check Alice received 200 tokens on AssetHub
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYALICE),
+			INITIAL_BALANCE + 200
+		);
+
+		assert_ok!(StatemintBalances::transfer_allow_death(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			sov,
+			110000000000000
+		));
+
+		// Now send those tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
+					.clone()
+					.into()
+			),
+			Box::new((Location::parent(), 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received the DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+	});
+
+	let dest = Location::new(
+		1,
+		[
+			Parachain(1000),
+			AccountId32 {
+				network: None,
+				id: RELAYBOB.into(),
+			},
+		],
+	);
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+
+	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
+	ParaA::execute_with(|| {
+		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+		let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 10);
+		assert_ok!(PolkadotXcm::transfer_assets(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset])),
+			0,
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
+		));
+
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 90);
+	});
+
+	Statemint::execute_with(|| {
+		// Free execution: check that Bob received the tokens back in AssetHub
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYBOB),
+			INITIAL_BALANCE + 110
+		);
+	});
+
+	// Send back tokens from AH to ParaA from Bob's account
+	Statemint::execute_with(|| {
+		// Now send those tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYBOB),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new((Location::parent(), 100).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+
+		// 100 DOTs were deducted from Bob's account
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYBOB),
+			INITIAL_BALANCE + 10
+		);
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received 100 DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 190);
+	});
+}
+
+#[test]
+fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
+	MockNet::reset();
+
+	// Relay asset
+	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
+	let source_relay_id: parachain::AssetId = relay_location.clone().into();
+
+	let relay_asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
+	let dest_para = Location::new(1, [Parachain(1)]);
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemint_like::AccountId,
+	>::convert_location(&dest_para)
+	.unwrap();
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			relay_location.clone(),
+			relay_asset_metadata,
+			1u128,
+			true
+		));
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
+	});
+
+	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	}
+	.into();
+
+	let statemint_beneficiary_absolute: Location = Junction::AccountId32 {
+		network: None,
+		id: RELAYALICE.into(),
+	}
+	.into();
+
+	// First we send relay chain asset to Alice in AssetHub (via teleport)
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::limited_teleport_assets(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Parachain(1000).into()),
+			Box::new(
+				VersionedLocation::from(statemint_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new(([], 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	// Send DOTs from AssetHub to ParaA (Moonbeam)
+	Statemint::execute_with(|| {
+		// Check Alice received 200 tokens on AssetHub
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYALICE),
+			INITIAL_BALANCE + 200
+		);
+
+		assert_ok!(StatemintBalances::transfer_allow_death(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			sov,
+			110000000000000
+		));
+
+		// Now send those tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
+					.clone()
+					.into()
+			),
+			Box::new((Location::parent(), 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received the DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+	});
+
+	let dest = Location::new(
+		1,
+		[
+			Parachain(1000),
+			AccountId32 {
+				network: None,
+				id: RELAYBOB.into(),
+			},
+		],
+	);
+
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let asset = Asset {
+		id: AssetId(Location::parent()),
+		fun: Fungibility::Fungible(100),
+	};
+	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
+	ParaA::execute_with(|| {
+		assert_ok!(PolkadotXcm::transfer_assets(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(asset)),
+			0,
+			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
+		));
+
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+	});
+
+	Statemint::execute_with(|| {
+		// Check that Bob received the tokens back in AssetHub
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYBOB),
+			INITIAL_BALANCE + 100
+		);
+	});
+
+	// Send back tokens from AH to ParaA from Bob's account
+	Statemint::execute_with(|| {
+		// Now send those tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYBOB),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new((Location::parent(), 100).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+
+		// 100 DOTs were deducted from Bob's account
+		assert_eq!(StatemintBalances::free_balance(RELAYBOB), INITIAL_BALANCE);
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received 100 DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+	});
+}
+
+#[test]
+fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
+	MockNet::reset();
+
+	// Relay asset
+	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
+	let source_relay_id: parachain::AssetId = relay_location.clone().into();
+
+	let relay_asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
+	// Statemint asset
+	let statemint_asset = Location::new(
+		1,
+		[
+			Parachain(1000u32),
+			PalletInstance(5u8),
+			GeneralIndex(10u128),
+		],
+	);
+	let statemint_location_asset: AssetType = statemint_asset
+		.clone()
+		.try_into()
+		.expect("Location convertion to AssetType should succeed");
+	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
+
+	let asset_metadata_statemint_asset = parachain::AssetMetadata {
+		name: b"USDC".to_vec(),
+		symbol: b"USDC".to_vec(),
+		decimals: 12,
+	};
+
+	let dest_para = Location::new(1, [Parachain(1)]);
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemint_like::AccountId,
+	>::convert_location(&dest_para)
+	.unwrap();
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			relay_location.clone(),
+			relay_asset_metadata,
+			1u128,
+			true
+		));
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
+
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			statemint_location_asset.clone(),
+			asset_metadata_statemint_asset,
+			1u128,
+			true
+		));
+		XcmWeightTrader::set_asset_price(statemint_asset, 0u128);
+	});
+
+	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	}
+	.into();
+
+	let statemint_beneficiary_absolute: Location = Junction::AccountId32 {
+		network: None,
+		id: RELAYALICE.into(),
+	}
+	.into();
+
+	// First we send relay chain asset to Alice in AssetHub (via teleport)
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::limited_teleport_assets(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Parachain(1000).into()),
+			Box::new(
+				VersionedLocation::from(statemint_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new(([], 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	// Send DOTs and USDC from AssetHub to ParaA (Moonbeam)
+	Statemint::execute_with(|| {
+		// Check Alice received 200 tokens on AssetHub
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYALICE),
+			INITIAL_BALANCE + 200
+		);
+
+		assert_ok!(StatemintBalances::transfer_allow_death(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			sov,
+			110000000000000
+		));
+
+		statemint_like::PrefixChanger::set_prefix(
+			PalletInstance(<StatemintAssets as PalletInfoAccess>::index() as u8).into(),
+		);
+
+		assert_ok!(StatemintAssets::create(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			10,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemintAssets::mint(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			10,
+			RELAYALICE,
+			300000000000000
+		));
+
+		// Now send relay tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
+					.clone()
+					.into()
+			),
+			Box::new((Location::parent(), 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+
+		// Send USDC
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
+					.clone()
+					.into()
+			),
+			Box::new(
+				(
+					[
+						xcm::latest::prelude::PalletInstance(
+							<StatemintAssets as PalletInfoAccess>::index() as u8
+						),
+						GeneralIndex(10),
+					],
+					125
+				)
+					.into()
+			),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received the DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+
+		// Alice has received 125 USDC
+		assert_eq!(
+			Assets::balance(source_statemint_asset_id, &PARAALICE.into()),
+			125
+		);
+	});
+
+	let dest = Location::new(
+		1,
+		[
+			Parachain(1000),
+			AccountId32 {
+				network: None,
+				id: RELAYBOB.into(),
+			},
+		],
+	);
+
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
+	ParaA::execute_with(|| {
+		let asset = currency_to_asset(
+			parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
+			100,
+		);
+		let asset_fee =
+			currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+		assert_ok!(PolkadotXcm::transfer_assets(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(vec![asset_fee, asset])),
+			0,
+			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
+		));
+
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+	});
+
+	Statemint::execute_with(|| {
+		// Check that Bob received relay tokens back in AssetHub
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYBOB),
+			INITIAL_BALANCE + 100
+		);
+
+		// Check that BOB received 100 USDC on AssetHub
+		assert_eq!(StatemintAssets::account_balances(RELAYBOB), vec![(10, 100)]);
+	});
+
+	// Send back tokens from AH to ParaA from Bob's account
+	Statemint::execute_with(|| {
+		let bob_previous_balance = StatemintBalances::free_balance(RELAYBOB);
+
+		// Now send those tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYBOB),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new((Location::parent(), 100).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+
+		// 100 DOTs were deducted from Bob's account
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYBOB),
+			bob_previous_balance - 100
+		);
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received 100 DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+	});
+}
+
+#[test]
+fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
+	MockNet::reset();
+
+	// Relay asset
+	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
+	let source_relay_id: parachain::AssetId = relay_location.clone().into();
+
+	let relay_asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+
+	// Statemint asset
+	let statemint_asset = Location::new(
+		1,
+		[
+			Parachain(1000u32),
+			PalletInstance(5u8),
+			GeneralIndex(10u128),
+		],
+	);
+	let statemint_location_asset: AssetType = statemint_asset
+		.clone()
+		.try_into()
+		.expect("Location convertion to AssetType should succeed");
+	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
+
+	let asset_metadata_statemint_asset = parachain::AssetMetadata {
+		name: b"USDC".to_vec(),
+		symbol: b"USDC".to_vec(),
+		decimals: 12,
+	};
+
+	let dest_para = Location::new(1, [Parachain(1)]);
+
+	let sov = xcm_builder::SiblingParachainConvertsVia::<
+		polkadot_parachain::primitives::Sibling,
+		statemint_like::AccountId,
+	>::convert_location(&dest_para)
+	.unwrap();
+
+	ParaA::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			relay_location.clone(),
+			relay_asset_metadata,
+			1u128,
+			true
+		));
+		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
+
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			statemint_location_asset.clone(),
+			asset_metadata_statemint_asset,
+			1u128,
+			true
+		));
+		XcmWeightTrader::set_asset_price(statemint_asset.clone(), 0u128);
+	});
+
+	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
+		network: None,
+		key: PARAALICE,
+	}
+	.into();
+
+	let statemint_beneficiary_absolute: Location = Junction::AccountId32 {
+		network: None,
+		id: RELAYALICE.into(),
+	}
+	.into();
+
+	// First we send relay chain asset to Alice in AssetHub (via teleport)
+	Relay::execute_with(|| {
+		assert_ok!(RelayChainPalletXcm::limited_teleport_assets(
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Parachain(1000).into()),
+			Box::new(
+				VersionedLocation::from(statemint_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new(([], 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	// Send DOTs and USDC from AssetHub to ParaA (Moonbeam)
+	Statemint::execute_with(|| {
+		// Check Alice received 200 tokens on AssetHub
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYALICE),
+			INITIAL_BALANCE + 200
+		);
+
+		assert_ok!(StatemintBalances::transfer_allow_death(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			sov,
+			110000000000000
+		));
+
+		statemint_like::PrefixChanger::set_prefix(
+			PalletInstance(<StatemintAssets as PalletInfoAccess>::index() as u8).into(),
+		);
+
+		assert_ok!(StatemintAssets::create(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			10,
+			RELAYALICE,
+			1
+		));
+
+		assert_ok!(StatemintAssets::mint(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			10,
+			RELAYALICE,
+			300000000000000
+		));
+
+		// Now send relay tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
+					.clone()
+					.into()
+			),
+			Box::new((Location::parent(), 200).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+
+		// Send USDC
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute.clone())
+					.clone()
+					.into()
+			),
+			Box::new(
+				(
+					[
+						xcm::latest::prelude::PalletInstance(
+							<StatemintAssets as PalletInfoAccess>::index() as u8
+						),
+						GeneralIndex(10),
+					],
+					125
+				)
+					.into()
+			),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received the DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+
+		// Alice has received 125 USDC
+		assert_eq!(
+			Assets::balance(source_statemint_asset_id, &PARAALICE.into()),
+			125
+		);
+	});
+
+	let dest = Location::new(
+		1,
+		[
+			Parachain(1000),
+			AccountId32 {
+				network: None,
+				id: RELAYBOB.into(),
+			},
+		],
+	);
+
+	let statemint_asset_to_send = Asset {
+		id: AssetId(statemint_asset),
+		fun: Fungibility::Fungible(100),
+	};
+
+	let relay_asset_to_send = Asset {
+		id: AssetId(Location::parent()),
+		fun: Fungibility::Fungible(100),
+	};
+
+	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
+	let assets_to_send: XcmAssets =
+		XcmAssets::from(vec![statemint_asset_to_send, relay_asset_to_send.clone()]);
+
+	// For some reason the order of the assets is inverted when creating the array above.
+	// We need to use relay asset for fees, so we pick index 0.
+	assert_eq!(assets_to_send.get(0).unwrap(), &relay_asset_to_send);
+
+	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
+	ParaA::execute_with(|| {
+		assert_ok!(PolkadotXcm::transfer_assets(
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
+			Box::new(VersionedLocation::from(chain_part)),
+			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedAssets::from(assets_to_send)),
+			0,
+			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
+		));
+
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+	});
+
+	Statemint::execute_with(|| {
+		// Check that Bob received relay tokens back in AssetHub
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYBOB),
+			INITIAL_BALANCE + 100
+		);
+
+		// Check that BOB received 100 USDC on AssetHub
+		assert_eq!(StatemintAssets::account_balances(RELAYBOB), vec![(10, 100)]);
+	});
+
+	// Send back tokens from AH to ParaA from Bob's account
+	Statemint::execute_with(|| {
+		let bob_previous_balance = StatemintBalances::free_balance(RELAYBOB);
+
+		// Now send those tokens to ParaA
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYBOB),
+			Box::new(Location::new(1, [Parachain(1)]).into()),
+			Box::new(
+				VersionedLocation::from(parachain_beneficiary_absolute)
+					.clone()
+					.into()
+			),
+			Box::new((Location::parent(), 100).into()),
+			0,
+			WeightLimit::Unlimited
+		));
+
+		// 100 DOTs were deducted from Bob's account
+		assert_eq!(
+			StatemintBalances::free_balance(RELAYBOB),
+			bob_previous_balance - 100
+		);
+	});
+
+	ParaA::execute_with(|| {
+		// Alice should have received 100 DOTs
+		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+	});
+}
