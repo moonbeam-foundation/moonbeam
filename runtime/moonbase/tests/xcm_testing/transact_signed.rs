@@ -28,12 +28,13 @@ use xcm::latest::prelude::{
 use xcm_executor::traits::ConvertLocation;
 
 use crate::xcm_mock::*;
+use crate::xcm_testing::helpers::*;
 use parity_scale_codec::Encode;
 use xcm_simulator::TestExt;
 
 #[test]
 fn transact_through_signed_multilocation() {
-	MockNet::reset();
+	reset_test_environment();
 	let mut ancestry = Location::parent();
 
 	ParaA::execute_with(|| {
@@ -94,22 +95,7 @@ fn transact_through_signed_multilocation() {
 
 	// Encode the call. Balances transact to para_a_account
 	// First index
-	let mut encoded: Vec<u8> = Vec::new();
-	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
-		relay_chain::Balances,
-	>()
-	.unwrap() as u8;
-
-	encoded.push(index);
-
-	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
-		// 100 to sovereign
-		dest: para_a_account(),
-		value: 100u32.into(),
-	}
-	.encode();
-	encoded.append(&mut call_bytes);
+	let encoded = encode_relay_balance_transfer_call(para_a_account(), 100u128);
 
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
@@ -140,7 +126,7 @@ fn transact_through_signed_multilocation() {
 
 #[test]
 fn transact_through_signed_multilocation_custom_fee_and_weight() {
-	MockNet::reset();
+	reset_test_environment();
 	let mut ancestry = Location::parent();
 
 	ParaA::execute_with(|| {
@@ -185,22 +171,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 
 	// Encode the call. Balances transact to para_a_account
 	// First index
-	let mut encoded: Vec<u8> = Vec::new();
-	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
-		relay_chain::Balances,
-	>()
-	.unwrap() as u8;
-
-	encoded.push(index);
-
-	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
-		// 100 to sovereign
-		dest: para_a_account(),
-		value: 100u32.into(),
-	}
-	.encode();
-	encoded.append(&mut call_bytes);
+	let encoded = encode_relay_balance_transfer_call(para_a_account(), 100u128);
 
 	let total_weight = 4000004000u64;
 	ParaA::execute_with(|| {
@@ -232,7 +203,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 
 #[test]
 fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
-	MockNet::reset();
+	reset_test_environment();
 	let mut ancestry = Location::parent();
 
 	ParaA::execute_with(|| {
@@ -277,22 +248,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 
 	// Encode the call. Balances transact to para_a_account
 	// First index
-	let mut encoded: Vec<u8> = Vec::new();
-	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
-		relay_chain::Balances,
-	>()
-	.unwrap() as u8;
-
-	encoded.push(index);
-
-	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
-		// 100 to sovereign
-		dest: para_a_account(),
-		value: 100u32.into(),
-	}
-	.encode();
-	encoded.append(&mut call_bytes);
+	let encoded = encode_relay_balance_transfer_call(para_a_account(), 100u128);
 
 	let total_weight = 4000009000u64;
 	ParaA::execute_with(|| {
@@ -326,7 +282,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 
 #[test]
 fn transact_through_signed_multilocation_para_to_para() {
-	MockNet::reset();
+	reset_test_environment();
 	let mut ancestry = Location::parent();
 
 	let para_b_location = Location::new(1, [Parachain(2)]);
@@ -438,7 +394,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 
 #[test]
 fn transact_through_signed_multilocation_para_to_para_refund() {
-	MockNet::reset();
+	reset_test_environment();
 	let mut ancestry = Location::parent();
 
 	let para_b_location = Location::new(1, [Parachain(2)]);
@@ -540,7 +496,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 
 #[test]
 fn transact_through_signed_multilocation_para_to_para_ethereum() {
-	MockNet::reset();
+	reset_test_environment();
 	let mut ancestry = Location::parent();
 
 	let para_b_location = Location::new(1, [Parachain(2)]);
@@ -669,7 +625,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 
 #[test]
 fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() {
-	MockNet::reset();
+	reset_test_environment();
 	let mut ancestry = Location::parent();
 
 	let para_b_location = Location::new(1, [Parachain(2)]);
@@ -794,7 +750,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 
 #[test]
 fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() {
-	MockNet::reset();
+	reset_test_environment();
 	let mut ancestry = Location::parent();
 
 	let para_b_location = Location::new(1, [Parachain(2)]);

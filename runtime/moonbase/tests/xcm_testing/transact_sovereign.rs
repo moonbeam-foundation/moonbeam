@@ -16,7 +16,9 @@
 
 use crate::xcm_mock::parachain::PolkadotXcm;
 use crate::xcm_mock::*;
-use crate::xcm_testing::{add_supported_asset, currency_to_asset, derivative_account_id};
+use crate::xcm_testing::{
+	add_supported_asset, currency_to_asset, derivative_account_id, helpers::*,
+};
 use frame_support::{
 	assert_ok, traits::PalletInfo, weights::constants::WEIGHT_REF_TIME_PER_SECOND, weights::Weight,
 };
@@ -24,9 +26,7 @@ use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use sp_std::boxed::Box;
 use xcm::VersionedLocation;
 use xcm::{
-	latest::prelude::{
-		AccountId32, AccountKey20, Limited, Location, OriginKind, Parachain, WeightLimit,
-	},
+	latest::prelude::{AccountId32, Limited, Location, OriginKind, Parachain, WeightLimit},
 	VersionedAssets,
 };
 use xcm_primitives::{
@@ -36,7 +36,7 @@ use xcm_simulator::{Encode, TestExt};
 
 #[test]
 fn transact_through_sovereign() {
-	MockNet::reset();
+	reset_test_environment();
 
 	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -74,11 +74,7 @@ fn transact_through_sovereign() {
 		));
 	});
 
-	let dest: Location = AccountKey20 {
-		network: None,
-		key: PARAALICE,
-	}
-	.into();
+	let dest = account_key20_location(PARAALICE);
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
@@ -150,21 +146,7 @@ fn transact_through_sovereign() {
 
 	// Encode the call. Balances transact to para_a_account
 	// First index
-	let mut encoded: Vec<u8> = Vec::new();
-	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
-		relay_chain::Balances,
-	>()
-	.unwrap() as u8;
-
-	encoded.push(index);
-
-	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
-		dest: para_a_account(),
-		value: 100u32.into(),
-	}
-	.encode();
-	encoded.append(&mut call_bytes);
+	let encoded = encode_relay_balance_transfer_call(para_a_account(), 100u128);
 
 	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
@@ -202,7 +184,7 @@ fn transact_through_sovereign() {
 
 #[test]
 fn transact_through_sovereign_fee_payer_none() {
-	MockNet::reset();
+	reset_test_environment();
 
 	ParaA::execute_with(|| {
 		// Root can set transact info
@@ -307,7 +289,7 @@ fn transact_through_sovereign_fee_payer_none() {
 
 #[test]
 fn transact_through_sovereign_with_custom_fee_weight() {
-	MockNet::reset();
+	reset_test_environment();
 
 	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -329,11 +311,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 		assert_ok!(add_supported_asset(source_location, 1));
 	});
 
-	let dest: Location = AccountKey20 {
-		network: None,
-		key: PARAALICE,
-	}
-	.into();
+	let dest = account_key20_location(PARAALICE);
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
@@ -405,21 +383,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 
 	// Encode the call. Balances transact to para_a_account
 	// First index
-	let mut encoded: Vec<u8> = Vec::new();
-	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
-		relay_chain::Balances,
-	>()
-	.unwrap() as u8;
-
-	encoded.push(index);
-
-	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
-		dest: para_a_account(),
-		value: 100u32.into(),
-	}
-	.encode();
-	encoded.append(&mut call_bytes);
+	let encoded = encode_relay_balance_transfer_call(para_a_account(), 100u128);
 
 	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
@@ -459,7 +423,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 
 #[test]
 fn transact_through_sovereign_with_custom_fee_weight_refund() {
-	MockNet::reset();
+	reset_test_environment();
 
 	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -481,11 +445,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 		assert_ok!(add_supported_asset(source_location, 1));
 	});
 
-	let dest: Location = AccountKey20 {
-		network: None,
-		key: PARAALICE,
-	}
-	.into();
+	let dest = account_key20_location(PARAALICE);
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
@@ -557,21 +517,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 
 	// Encode the call. Balances transact to para_a_account
 	// First index
-	let mut encoded: Vec<u8> = Vec::new();
-	let index = <relay_chain::Runtime as frame_system::Config>::PalletInfo::index::<
-		relay_chain::Balances,
-	>()
-	.unwrap() as u8;
-
-	encoded.push(index);
-
-	// Then call bytes
-	let mut call_bytes = pallet_balances::Call::<relay_chain::Runtime>::transfer_allow_death {
-		dest: para_a_account(),
-		value: 100u32.into(),
-	}
-	.encode();
-	encoded.append(&mut call_bytes);
+	let encoded = encode_relay_balance_transfer_call(para_a_account(), 100u128);
 
 	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),

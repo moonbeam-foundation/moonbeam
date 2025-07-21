@@ -24,6 +24,8 @@ use sp_weights::Weight;
 use xcm::latest::prelude::{Asset, AssetId, Fungibility};
 use xcm::{IntoVersion, VersionedLocation};
 
+pub mod helpers;
+
 mod automatic_versioning;
 mod evm_accounts;
 mod hrmp;
@@ -33,6 +35,8 @@ mod statemint;
 mod transact_derivative;
 mod transact_signed;
 mod transact_sovereign;
+
+// Re-export helpers for easy access
 
 // Helper to derive accountIds
 pub fn derivative_account_id(who: sp_runtime::AccountId32, index: u16) -> sp_runtime::AccountId32 {

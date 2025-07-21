@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::xcm_mock::{parachain::PolkadotXcm, *};
-use crate::xcm_testing::{add_supported_asset, currency_to_asset};
+use crate::xcm_testing::{add_supported_asset, currency_to_asset, helpers::*};
 use frame_support::assert_ok;
 use moonbase_runtime::xcm_config::AssetType;
 use sp_weights::Weight;
@@ -31,7 +31,7 @@ use xcm_simulator::TestExt;
 
 #[test]
 fn send_para_a_asset_to_para_b() {
-	MockNet::reset();
+	reset_test_environment();
 
 	// this represents the asset in paraA
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
@@ -58,41 +58,18 @@ fn send_para_a_asset_to_para_b() {
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
-	// Send para A asset from para A to para B
-	let dest = Location {
-		parents: 1,
-		interior: [
-			Parachain(2),
-			AccountKey20 {
-				network: None,
-				key: PARAALICE.into(),
-			},
-		]
-		.into(),
-	};
-
-	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
-
-	ParaA::execute_with(|| {
-		let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
-		// Free execution, full amount received
-		assert_ok!(PolkadotXcm::transfer_assets(
-			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(vec![asset])),
-			0,
-			WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
-		));
-	});
+	// Send para A asset from para A to para B using helper
+	let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
+	execute_transfer_to_para(
+		PARAALICE,
+		VersionedAssets::from(vec![asset]),
+		2,
+		PARAALICE,
+		Some(standard_heavy_weight()),
+	);
 
 	// Native token is substracted in paraA
-	ParaA::execute_with(|| {
-		assert_eq!(
-			ParaBalances::free_balance(&PARAALICE.into()),
-			INITIAL_BALANCE - 100
-		);
-	});
+	assert_native_balance_decreased_by(&PARAALICE, INITIAL_BALANCE, 100);
 
 	// Asset is minted in paraB
 	ParaB::execute_with(|| {
@@ -102,7 +79,7 @@ fn send_para_a_asset_to_para_b() {
 
 #[test]
 fn send_para_a_asset_from_para_b_to_para_c() {
-	MockNet::reset();
+	reset_test_environment();
 
 	// Represents para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
@@ -141,40 +118,18 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
 
-	// Send para A asset to para B
-	let dest = Location {
-		parents: 1,
-		interior: [
-			Parachain(2),
-			AccountKey20 {
-				network: None,
-				key: PARAALICE.into(),
-			},
-		]
-		.into(),
-	};
-	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
-
-	ParaA::execute_with(|| {
-		let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
-		// free execution, full amount received
-		assert_ok!(PolkadotXcm::transfer_assets(
-			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(vec![asset])),
-			0,
-			WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
-		));
-	});
+	// Send para A asset to para B using helper
+	let asset = currency_to_asset(parachain::CurrencyId::SelfReserve, 100);
+	execute_transfer_to_para(
+		PARAALICE,
+		VersionedAssets::from(vec![asset]),
+		2,
+		PARAALICE,
+		Some(standard_transfer_weight()),
+	);
 
 	// Para A balances have been substracted
-	ParaA::execute_with(|| {
-		assert_eq!(
-			ParaBalances::free_balance(&PARAALICE.into()),
-			INITIAL_BALANCE - 100
-		);
-	});
+	assert_native_balance_decreased_by(&PARAALICE, INITIAL_BALANCE, 100);
 
 	// Para B balances have been credited
 	ParaB::execute_with(|| {
@@ -216,7 +171,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 #[test]
 fn send_para_a_asset_to_para_b_and_back_to_para_a() {
-	MockNet::reset();
+	reset_test_environment();
 
 	// Para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
@@ -319,7 +274,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 
 #[test]
 fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
-	MockNet::reset();
+	reset_test_environment();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location: AssetType = para_a_balances
@@ -431,7 +386,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 
 #[test]
 fn send_para_a_asset_to_para_b_with_trader() {
-	MockNet::reset();
+	reset_test_environment();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location: AssetType = para_a_balances
@@ -506,7 +461,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 
 #[test]
 fn send_para_a_asset_to_para_b_with_trader_and_fee() {
-	MockNet::reset();
+	reset_test_environment();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location: AssetType = para_a_balances

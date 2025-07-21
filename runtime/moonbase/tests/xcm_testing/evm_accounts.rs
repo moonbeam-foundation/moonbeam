@@ -22,11 +22,11 @@ use xcm::VersionedLocation;
 
 use xcm_simulator::TestExt;
 
-use crate::{xcm_mock::*, xcm_testing::add_supported_asset};
+use crate::{xcm_mock::*, xcm_testing::helpers::*};
 
 #[test]
 fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
-	MockNet::reset();
+	reset_test_environment();
 
 	let mut sufficient_account = [0u8; 20];
 	sufficient_account[0..20].copy_from_slice(&evm_account()[..]);
@@ -38,23 +38,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 		assert_eq!(parachain::System::account(evm_account_id).sufficients, 1);
 	});
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
-		decimals: 12,
-	};
-	// register relay asset in parachain A
-	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::RuntimeOrigin::root(),
-			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
-		));
-		assert_ok!(add_supported_asset(source_location, 0));
-	});
+	register_relay_asset();
 
 	// Actually send relay asset to parachain
 	let dest: Location = AccountKey20 {
@@ -94,7 +78,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 
 #[test]
 fn empty_account_should_not_be_reset() {
-	MockNet::reset();
+	reset_test_environment();
 
 	// Test account has nonce 1 on genesis.
 	let mut sufficient_account = [0u8; 20];
@@ -102,24 +86,7 @@ fn empty_account_should_not_be_reset() {
 
 	let evm_account_id = parachain::AccountId::from(sufficient_account);
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
-		decimals: 12,
-	};
-	// register relay asset in parachain A
-	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::RuntimeOrigin::root(),
-			source_location.clone(),
-			asset_metadata,
-			1u128,
-			false
-		));
-		assert_ok!(add_supported_asset(source_location, 0));
-	});
+	let source_id = register_relay_asset_non_sufficient();
 
 	// Send native token to evm_account
 	ParaA::execute_with(|| {

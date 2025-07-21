@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::xcm_mock::*;
+use crate::{xcm_mock::*, xcm_testing::helpers::*};
 use frame_support::assert_ok;
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
@@ -27,7 +27,7 @@ use cumulus_primitives_core::relay_chain::HrmpChannelId;
 
 #[test]
 fn hrmp_init_accept_through_root() {
-	MockNet::reset();
+	reset_test_environment();
 
 	Relay::execute_with(|| {
 		assert_ok!(RelayBalances::transfer_allow_death(
@@ -113,7 +113,7 @@ fn hrmp_init_accept_through_root() {
 
 #[test]
 fn hrmp_close_works() {
-	MockNet::reset();
+	reset_test_environment();
 
 	Relay::execute_with(|| {
 		assert_ok!(RelayBalances::transfer_allow_death(
