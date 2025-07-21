@@ -18,7 +18,11 @@
 
 pub mod assertions;
 pub mod assets;
-pub mod setup;
+pub mod core;
+pub mod statemint;
+pub mod transactor;
+pub mod transfers;
+pub mod weights;
 
 // Re-export only the functions that are actually used
 pub use assertions::{
@@ -29,8 +33,16 @@ pub use assets::{
 	register_relay_asset, register_relay_asset_in_para_b, register_relay_asset_non_sufficient,
 	register_relay_asset_with_units_per_second, setup_relay_asset_for_statemint,
 };
-pub use setup::{
-	account_key20_location, encode_relay_balance_transfer_call, execute_transfer_to_para,
-	fund_account_native, medium_transfer_weight, parachain_location, reset_test_environment,
-	setup_relay_transactor_config, standard_heavy_weight, standard_transfer_weight,
+// Re-export functions from specific modules
+pub use core::{
+	account_key20_location, fund_account_native, parachain_location, reset_test_environment,
 };
+pub use statemint::{
+	create_statemint_asset_location, execute_statemint_asset_transfer,
+	execute_statemint_to_para_dot_transfer, execute_statemint_to_para_transfer_with_balance_check,
+	register_statemint_asset_on_para, setup_multi_asset_statemint_test, setup_statemint_asset,
+	setup_statemint_test_environment, StatemintTestSetup,
+};
+pub use transactor::{encode_relay_balance_transfer_call, setup_relay_transactor_config};
+pub use transfers::{execute_relay_to_statemint_transfer, execute_transfer_to_para};
+pub use weights::{medium_transfer_weight, standard_heavy_weight, standard_transfer_weight};
