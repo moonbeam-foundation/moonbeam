@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::chain_spec::Extensions;
 use crate::{
 	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
 	ClientCustomizations, FrontierBlockImport, HostFunctions, PartialComponentsResult,
@@ -34,7 +35,7 @@ use parity_scale_codec::Encode;
 use polkadot_primitives::{
 	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
 };
-use sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
+use sc_chain_spec::{get_extension, BuildGenesisBlock, ChainType, GenesisBlockBuilder};
 use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks};
 use sc_executor::{HeapAllocStrategy, RuntimeVersionOf, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::config::FullNetworkConfiguration;
@@ -858,4 +859,21 @@ where
 	log::info!("Service Ready");
 
 	Ok(task_manager)
+}
+
+pub fn spec_builder() -> sc_chain_spec::ChainSpecBuilder<Extensions> {
+	crate::chain_spec::moonbeam::ChainSpec::builder(
+		moonbeam_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
+		Default::default(),
+	)
+	.with_name("Lazy Loading")
+	.with_id("lazy_loading")
+	.with_chain_type(ChainType::Development)
+	.with_properties(
+		serde_json::from_str(
+			"{\"tokenDecimals\": 18, \"tokenSymbol\": \"GLMR\", \"SS58Prefix\": 1284}",
+		)
+		.expect("Provided valid json map"),
+	)
+	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
 }

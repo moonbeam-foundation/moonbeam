@@ -8,81 +8,34 @@ name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 
 [dependencies]
-hex-literal = "0.3.4"
-impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
 # Moonbeam
 moonbeam-core-primitives = { workspace = true }
-pallet-asset-manager = { workspace = true }
-pallet-author-mapping = { workspace = true }
-pallet-conviction-voting = { workspace = true }
-pallet-ethereum-xcm = { workspace = true }
-pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
-pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-parachain-staking = { workspace = true }
-pallet-precompile-benchmarks = { workspace = true }
-pallet-randomness = { workspace = true }
-pallet-relay-storage-roots = { workspace = true }
-pallet-xcm-transactor = { workspace = true }
 pallet-xcm-weight-trader = { workspace = true }
-xcm-primitives = { workspace = true }
-
-bp-messages = { workspace = true }
 
 # Substrate
 pallet-message-queue = { workspace = true }
 pallet-xcm-bridge = { workspace = true }
-frame-benchmarking = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-pallet-assets = { workspace = true }
 pallet-balances = { workspace = true }
-pallet-collective = { workspace = true }
-pallet-crowdloan-rewards = { workspace = true }
-pallet-identity = { workspace = true }
-pallet-moonbeam-orbiters = { workspace = true }
-pallet-multisig = { workspace = true }
-pallet-preimage = { workspace = true }
-pallet-parameters = { workspace = true }
-pallet-proxy = { workspace = true }
-pallet-referenda = { workspace = true }
-pallet-scheduler = { workspace = true }
-pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-treasury = { workspace = true }
-pallet-utility = { workspace = true }
-pallet-whitelist = { workspace = true }
 pallet-xcm = { workspace = true }
-sp-api = { workspace = true }
-sp-consensus-slots = { workspace = true }
 sp-core = { workspace = true }
-sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
-sp-genesis-builder = { workspace = true }
-frame-try-runtime = { workspace = true }
-
-# Frontier
-fp-ethereum = { workspace = true }
-fp-evm = { workspace = true }
-pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
-pallet-evm-chain-id = { workspace = true }
-precompile-utils = { workspace = true }
 
 # Moonkit
-nimbus-primitives = { workspace = true }
-pallet-async-backing = { workspace = true }
 pallet-author-inherent = { workspace = true }
-pallet-author-slot-filter = { workspace = true }
 
 # Polkadot
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
-xcm-executor = { workspace = true }
-xcm-runtime-apis = { workspace = true }
 
 # Parity
 parity-scale-codec = { workspace = true }
@@ -92,89 +45,38 @@ account = { workspace = true }
 
 # Cumulus
 cumulus-pallet-parachain-system = { workspace = true }
-cumulus-pallet-xcmp-queue = { workspace = true }
 cumulus-primitives-core = { workspace = true, default-features = false }
-cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
 
 [features]
 std = [
 	"cumulus-pallet-parachain-system/std",
-	"fp-ethereum/std",
-	"fp-evm/std",
 	"frame-support/std",
 	"moonbeam-core-primitives/std",
-	"pallet-asset-manager/std",
-	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
-	"pallet-author-mapping/std",
-	"pallet-ethereum-xcm/std",
-	"pallet-ethereum/std",
-	"pallet-evm/std",
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",
-	"pallet-parameters/std",
-	"pallet-randomness/std",
-	"pallet-referenda/std",
-	"pallet-scheduler/std",
-	"pallet-xcm-transactor/std",
-	"pallet-moonbeam-lazy-migrations/std",
-	"pallet-identity/std",
 	"pallet-transaction-payment/std",
 	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
-	"precompile-utils/std",
-	"sp-consensus-slots/std",
 	"sp-core/std",
-	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
-	"sp-genesis-builder/std",
 	"cumulus-primitives-core/std",
-	"cumulus-primitives-storage-weight-reclaim/std",
-	"xcm-executor/std",
-	"xcm-runtime-apis/std",
 	"xcm/std",
 	"account/std",
 ]
 runtime-benchmarks = [
 	"cumulus-primitives-core/runtime-benchmarks",
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
-	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
-	"frame-benchmarking/runtime-benchmarks",
-	"pallet-asset-manager/runtime-benchmarks",
-	"pallet-assets/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
-	"pallet-author-mapping/runtime-benchmarks",
-	"pallet-author-slot-filter/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
-	"pallet-conviction-voting/runtime-benchmarks",
-	"pallet-crowdloan-rewards/runtime-benchmarks",
-	"pallet-ethereum-xcm/runtime-benchmarks",
-	"pallet-ethereum/runtime-benchmarks",
-	"pallet-evm/runtime-benchmarks",
-	"pallet-identity/runtime-benchmarks",
-	"pallet-moonbeam-orbiters/runtime-benchmarks",
-	"pallet-multisig/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
-	"pallet-preimage/runtime-benchmarks",
-	"pallet-parameters/runtime-benchmarks",
-	"pallet-proxy/runtime-benchmarks",
-	"pallet-randomness/runtime-benchmarks",
-	"pallet-referenda/runtime-benchmarks",
-	"pallet-referenda/runtime-benchmarks",
-	"pallet-scheduler/runtime-benchmarks",
-	"pallet-timestamp/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
-	"pallet-utility/runtime-benchmarks",
-	"pallet-whitelist/runtime-benchmarks",
-	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
-	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
-	"xcm-runtime-apis/runtime-benchmarks",
 ]
 try-runtime = [
 	"cumulus-pallet-parachain-system/try-runtime",

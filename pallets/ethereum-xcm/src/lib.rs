@@ -22,9 +22,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::comparison_chain, clippy::large_enum_variant)]
 
-#[cfg(all(feature = "std", test))]
+#[cfg(test)]
 mod mock;
-#[cfg(all(feature = "std", test))]
+#[cfg(test)]
 mod tests;
 
 use ethereum_types::{H160, H256, U256};
