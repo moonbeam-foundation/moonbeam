@@ -39,10 +39,9 @@ pub use core::{
 	account_key20_location, fund_account_native, parachain_location, reset_test_environment,
 };
 pub use statemint::{
-	create_statemint_asset_location, execute_statemint_asset_transfer,
-	execute_statemint_to_para_dot_transfer, execute_statemint_to_para_transfer_with_balance_check,
-	register_statemint_asset_on_para, setup_multi_asset_statemint_test, setup_statemint_asset,
-	setup_statemint_test_environment, StatemintTestSetup,
+	create_statemint_asset_location, execute_statemint_to_para_dot_transfer,
+	execute_statemint_to_para_transfer_with_balance_check, register_statemint_asset_on_para,
+	setup_multi_asset_statemint_test, setup_statemint_asset, setup_statemint_test_environment,
 };
 pub use transactor::{encode_relay_balance_transfer_call, setup_relay_transactor_config};
 pub use transfers::{execute_relay_to_statemint_transfer, execute_transfer_to_para};

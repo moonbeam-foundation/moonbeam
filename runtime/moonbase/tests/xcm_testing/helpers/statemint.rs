@@ -35,7 +35,7 @@ use super::transfers::execute_relay_to_statemint_transfer;
 // Statemint test setup struct and functions
 
 #[derive(Clone)]
-pub struct StatemintTestSetup {
+struct StatemintTestSetup {
 	pub dest_para: Location,
 	pub sov_account: crate::xcm_mock::statemint_like::AccountId,
 	pub parachain_beneficiary: Location,
