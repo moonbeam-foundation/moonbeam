@@ -114,7 +114,7 @@ fn send_relay_asset_to_relay() {
 		));
 	});
 
-	// Verify balances using helpers
+	// Verify balances
 	assert_asset_balance(&PARAALICE, relay_asset_id, 0);
 	Relay::execute_with(|| {
 		assert!(RelayBalances::free_balance(&RELAYALICE) > balance_before_sending);
@@ -173,7 +173,7 @@ fn send_relay_asset_to_para_b() {
 		));
 	});
 
-	// Verify balances using helpers
+	// Verify balances
 	assert_asset_balance(&PARAALICE, relay_asset_id, 23);
 	assert_asset_balance_para_b(&PARAALICE, relay_asset_id, 100);
 }
@@ -207,7 +207,7 @@ fn receive_relay_asset_with_trader() {
 		));
 	});
 
-	// Use assertion helpers
+	// Use assertion
 	assert_asset_balance(&PARAALICE, relay_asset_id, 90);
 	assert_treasury_asset_balance(relay_asset_id, 10);
 }

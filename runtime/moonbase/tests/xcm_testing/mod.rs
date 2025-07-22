@@ -36,8 +36,6 @@ mod transact_derivative;
 mod transact_signed;
 mod transact_sovereign;
 
-// Re-export helpers for easy access
-
 // Helper to derive accountIds
 pub fn derivative_account_id(who: sp_runtime::AccountId32, index: u16) -> sp_runtime::AccountId32 {
 	let entropy = (b"modlpy/utilisuba", who, index).using_encoded(blake2_256);
