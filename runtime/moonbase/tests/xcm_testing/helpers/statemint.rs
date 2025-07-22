@@ -32,7 +32,7 @@ use super::assets::setup_relay_asset_for_statemint;
 use super::core::{account_key20_location, parachain_location, reset_test_environment};
 use super::transfers::execute_relay_to_statemint_transfer;
 
-// Comprehensive Statemint test setup struct and functions
+// Statemint test setup struct and functions
 
 #[derive(Clone)]
 pub struct StatemintTestSetup {

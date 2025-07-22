@@ -26,7 +26,7 @@ pub fn reset_test_environment() {
 	MockNet::reset();
 }
 
-// Location creation helpers - these are the most commonly used helpers
+// Location creation helpers
 
 pub fn account_key20_location(account: [u8; 20]) -> Location {
 	AccountKey20 {

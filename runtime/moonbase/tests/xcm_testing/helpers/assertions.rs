@@ -19,7 +19,7 @@
 use crate::xcm_mock::{parachain, Assets, ParaA, Treasury};
 use xcm_simulator::TestExt;
 
-// Balance assertion helpers - only keep the ones that are actually used
+// Balance assertion helpers
 
 pub fn assert_asset_balance(account: &[u8; 20], asset_id: parachain::AssetId, expected: u128) {
 	ParaA::execute_with(|| {
@@ -46,7 +46,7 @@ pub fn assert_treasury_asset_balance(asset_id: parachain::AssetId, expected: u12
 	});
 }
 
-// Balance change assertion helpers - only keep the one that's used
+// Balance change assertion helpers
 
 pub fn assert_native_balance_decreased_by(
 	account: &[u8; 20],

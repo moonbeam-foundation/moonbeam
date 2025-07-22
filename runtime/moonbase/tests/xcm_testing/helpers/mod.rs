@@ -24,7 +24,8 @@ pub mod transactor;
 pub mod transfers;
 pub mod weights;
 
-// Re-export only the functions that are actually used
+// Re-export functions from specific modules
+
 pub use assertions::{
 	assert_asset_balance, assert_asset_balance_para_b, assert_native_balance_decreased_by,
 	assert_treasury_asset_balance,
@@ -33,7 +34,7 @@ pub use assets::{
 	register_relay_asset, register_relay_asset_in_para_b, register_relay_asset_non_sufficient,
 	register_relay_asset_with_units_per_second, setup_relay_asset_for_statemint,
 };
-// Re-export functions from specific modules
+
 pub use core::{
 	account_key20_location, fund_account_native, parachain_location, reset_test_environment,
 };

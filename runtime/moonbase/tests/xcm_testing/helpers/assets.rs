@@ -21,7 +21,6 @@ use crate::xcm_testing::add_supported_asset;
 use frame_support::assert_ok;
 use xcm_simulator::TestExt;
 
-// Simplified AssetBuilder - keeping only essential functionality
 pub struct AssetBuilder {
 	location: xcm::v3::Location,
 	is_sufficient: bool,
@@ -88,7 +87,7 @@ impl AssetBuilder {
 	}
 }
 
-// Convenience functions for common asset types - keep only used ones
+// Convenience functions for common asset types
 pub fn register_relay_asset() -> parachain::AssetId {
 	AssetBuilder::relay_asset().register()
 }
