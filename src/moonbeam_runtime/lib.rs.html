@@ -2079,6 +2079,7 @@
 <a href="#2079" id="2079">2079</a>
 <a href="#2080" id="2080">2080</a>
 <a href="#2081" id="2081">2081</a>
+<a href="#2082" id="2082">2082</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3465,7 +3466,8 @@
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="kw">impl </span>pallet_precompile_benchmarks::Config <span class="kw">for </span>Runtime {
+<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+</span><span class="kw">impl </span>pallet_precompile_benchmarks::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_precompile_benchmarks::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -3580,7 +3582,7 @@
 		<span class="comment">// Utils
 		</span>RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = <span class="number">112</span>,
 
-		<span class="comment">// TODO should not be included in production
+		<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 		</span>PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = <span class="number">113</span>,
 
 		<span class="comment">// Randomness

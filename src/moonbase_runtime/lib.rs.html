@@ -2013,6 +2013,10 @@
 <a href="#2013" id="2013">2013</a>
 <a href="#2014" id="2014">2014</a>
 <a href="#2015" id="2015">2015</a>
+<a href="#2016" id="2016">2016</a>
+<a href="#2017" id="2017">2017</a>
+<a href="#2018" id="2018">2018</a>
+<a href="#2019" id="2019">2019</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3418,7 +3422,8 @@
 	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_relay_storage_roots::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="kw">impl </span>pallet_precompile_benchmarks::Config <span class="kw">for </span>Runtime {
+<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+</span><span class="kw">impl </span>pallet_precompile_benchmarks::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_precompile_benchmarks::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -3505,7 +3510,10 @@
 		AsyncBacking: pallet_async_backing::{Pallet, Storage} = <span class="number">50</span>,
 		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = <span class="number">51</span>,
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = <span class="number">52</span>,
-		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = <span class="number">53</span>,
+
+		<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+		</span>PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = <span class="number">53</span>,
+
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">54</span>,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = <span class="number">55</span>,
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">56</span>,
