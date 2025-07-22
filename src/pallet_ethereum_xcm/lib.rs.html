@@ -418,9 +418,9 @@
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 #![allow(clippy::comparison_chain, clippy::large_enum_variant)]
 
-#[cfg(all(feature = <span class="string">"std"</span>, test))]
+#[cfg(test)]
 </span><span class="kw">mod </span>mock;
-<span class="attr">#[cfg(all(feature = <span class="string">"std"</span>, test))]
+<span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 
 <span class="kw">use </span>ethereum_types::{H160, H256, U256};

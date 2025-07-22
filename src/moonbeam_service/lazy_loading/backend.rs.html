@@ -1829,7 +1829,7 @@
 <span class="kw">use </span>jsonrpsee::http_client::HttpClient;
 <span class="kw">use </span>sp_runtime::generic::SignedBlock;
 
-<span class="kw">use </span><span class="kw">crate</span>::chain_spec;
+<span class="kw">use </span><span class="kw">crate</span>::lazy_loading;
 <span class="kw">use </span><span class="kw">crate</span>::lazy_loading::lock::ReadWriteLock;
 <span class="kw">use </span><span class="kw">crate</span>::lazy_loading::state_overrides::StateEntry;
 <span class="kw">use </span><span class="kw">crate</span>::lazy_loading::{helpers, state_overrides};
@@ -3529,7 +3529,7 @@
 		.system_properties()
 		.expect(<span class="string">"Should fetch chain properties"</span>);
 
-	<span class="kw">let </span>spec_builder = chain_spec::test_spec::lazy_loading_spec_builder()
+	<span class="kw">let </span>spec_builder = lazy_loading::spec_builder()
 		.with_name(chain_name.as_str())
 		.with_properties(chain_properties);
 	config.chain_spec = Box::new(spec_builder.build());

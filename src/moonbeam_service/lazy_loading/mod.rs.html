@@ -859,6 +859,24 @@
 <a href="#859" id="859">859</a>
 <a href="#860" id="860">860</a>
 <a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -875,7 +893,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use crate</span>::{
+</span><span class="kw">use </span><span class="kw">crate</span>::chain_spec::Extensions;
+<span class="kw">use crate</span>::{
 	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
 	ClientCustomizations, FrontierBlockImport, HostFunctions, PartialComponentsResult,
 	PendingConsensusDataProvider, RuntimeApiCollection, SOFT_DEADLINE_PERCENT,
@@ -895,7 +914,7 @@
 <span class="kw">use </span>polkadot_primitives::{
 	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
 };
-<span class="kw">use </span>sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
+<span class="kw">use </span>sc_chain_spec::{get_extension, BuildGenesisBlock, ChainType, GenesisBlockBuilder};
 <span class="kw">use </span>sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks};
 <span class="kw">use </span>sc_executor::{HeapAllocStrategy, RuntimeVersionOf, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 <span class="kw">use </span>sc_network::config::FullNetworkConfiguration;
@@ -1719,5 +1738,22 @@
 	<span class="macro">log::info!</span>(<span class="string">"Service Ready"</span>);
 
 	<span class="prelude-val">Ok</span>(task_manager)
+}
+
+<span class="kw">pub fn </span>spec_builder() -&gt; sc_chain_spec::ChainSpecBuilder&lt;Extensions&gt; {
+	<span class="kw">crate</span>::chain_spec::moonbeam::ChainSpec::builder(
+		moonbeam_runtime::WASM_BINARY.expect(<span class="string">"WASM binary was not build, please build it!"</span>),
+		Default::default(),
+	)
+	.with_name(<span class="string">"Lazy Loading"</span>)
+	.with_id(<span class="string">"lazy_loading"</span>)
+	.with_chain_type(ChainType::Development)
+	.with_properties(
+		serde_json::from_str(
+			<span class="string">"{\"tokenDecimals\": 18, \"tokenSymbol\": \"GLMR\", \"SS58Prefix\": 1284}"</span>,
+		)
+		.expect(<span class="string">"Provided valid json map"</span>),
+	)
+	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
 }
 </code></pre></div></section></main></body></html>
