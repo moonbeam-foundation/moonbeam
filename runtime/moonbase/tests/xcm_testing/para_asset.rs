@@ -31,7 +31,7 @@ use xcm_simulator::TestExt;
 
 #[test]
 fn send_para_a_asset_to_para_b() {
-	reset_test_environment();
+	MockNet::reset();
 
 	// this represents the asset in paraA
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
@@ -79,7 +79,7 @@ fn send_para_a_asset_to_para_b() {
 
 #[test]
 fn send_para_a_asset_from_para_b_to_para_c() {
-	reset_test_environment();
+	MockNet::reset();
 
 	// Represents para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
@@ -171,7 +171,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 #[test]
 fn send_para_a_asset_to_para_b_and_back_to_para_a() {
-	reset_test_environment();
+	MockNet::reset();
 
 	// Para A asset
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
@@ -274,7 +274,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 
 #[test]
 fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location: AssetType = para_a_balances
@@ -386,7 +386,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 
 #[test]
 fn send_para_a_asset_to_para_b_with_trader() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location: AssetType = para_a_balances
@@ -461,7 +461,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 
 #[test]
 fn send_para_a_asset_to_para_b_with_trader_and_fee() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location: AssetType = para_a_balances

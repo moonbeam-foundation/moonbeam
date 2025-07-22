@@ -26,7 +26,7 @@ use crate::{xcm_mock::*, xcm_testing::helpers::*};
 
 #[test]
 fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let mut sufficient_account = [0u8; 20];
 	sufficient_account[0..20].copy_from_slice(&evm_account()[..]);
@@ -78,7 +78,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 
 #[test]
 fn empty_account_should_not_be_reset() {
-	reset_test_environment();
+	MockNet::reset();
 
 	// Test account has nonce 1 on genesis.
 	let mut sufficient_account = [0u8; 20];

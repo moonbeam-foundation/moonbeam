@@ -36,7 +36,7 @@ use xcm_simulator::{Encode, TestExt};
 
 #[test]
 fn transact_through_sovereign() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -184,7 +184,7 @@ fn transact_through_sovereign() {
 
 #[test]
 fn transact_through_sovereign_fee_payer_none() {
-	reset_test_environment();
+	MockNet::reset();
 
 	ParaA::execute_with(|| {
 		// Root can set transact info
@@ -289,7 +289,7 @@ fn transact_through_sovereign_fee_payer_none() {
 
 #[test]
 fn transact_through_sovereign_with_custom_fee_weight() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -423,7 +423,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 
 #[test]
 fn transact_through_sovereign_with_custom_fee_weight_refund() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();

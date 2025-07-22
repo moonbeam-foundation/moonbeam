@@ -35,9 +35,7 @@ pub use assets::{
 	register_relay_asset_with_units_per_second, setup_relay_asset_for_statemint,
 };
 
-pub use core::{
-	account_key20_location, fund_account_native, parachain_location, reset_test_environment,
-};
+pub use core::{account_key20_location, fund_account_native, parachain_location};
 pub use statemint::{
 	create_statemint_asset_location, execute_statemint_to_para_dot_transfer,
 	execute_statemint_to_para_transfer_with_balance_check, register_statemint_asset_on_para,

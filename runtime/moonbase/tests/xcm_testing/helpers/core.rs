@@ -20,12 +20,6 @@ use crate::xcm_mock::MockNet;
 use xcm::latest::prelude::{AccountKey20, Location, Parachain};
 use xcm_simulator::TestExt;
 
-// Essential test environment management
-
-pub fn reset_test_environment() {
-	MockNet::reset();
-}
-
 // Location creation helpers
 
 pub fn account_key20_location(account: [u8; 20]) -> Location {

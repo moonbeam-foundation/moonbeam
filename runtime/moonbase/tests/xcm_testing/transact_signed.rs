@@ -34,7 +34,7 @@ use xcm_simulator::TestExt;
 
 #[test]
 fn transact_through_signed_multilocation() {
-	reset_test_environment();
+	MockNet::reset();
 	let mut ancestry = Location::parent();
 
 	ParaA::execute_with(|| {
@@ -126,7 +126,7 @@ fn transact_through_signed_multilocation() {
 
 #[test]
 fn transact_through_signed_multilocation_custom_fee_and_weight() {
-	reset_test_environment();
+	MockNet::reset();
 	let mut ancestry = Location::parent();
 
 	ParaA::execute_with(|| {
@@ -203,7 +203,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight() {
 
 #[test]
 fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
-	reset_test_environment();
+	MockNet::reset();
 	let mut ancestry = Location::parent();
 
 	ParaA::execute_with(|| {
@@ -282,7 +282,7 @@ fn transact_through_signed_multilocation_custom_fee_and_weight_refund() {
 
 #[test]
 fn transact_through_signed_multilocation_para_to_para() {
-	reset_test_environment();
+	MockNet::reset();
 	let mut ancestry = Location::parent();
 
 	let para_b_location = Location::new(1, [Parachain(2)]);
@@ -394,7 +394,7 @@ fn transact_through_signed_multilocation_para_to_para() {
 
 #[test]
 fn transact_through_signed_multilocation_para_to_para_refund() {
-	reset_test_environment();
+	MockNet::reset();
 	let mut ancestry = Location::parent();
 
 	let para_b_location = Location::new(1, [Parachain(2)]);
@@ -496,7 +496,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 
 #[test]
 fn transact_through_signed_multilocation_para_to_para_ethereum() {
-	reset_test_environment();
+	MockNet::reset();
 	let mut ancestry = Location::parent();
 
 	let para_b_location = Location::new(1, [Parachain(2)]);
@@ -625,7 +625,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 
 #[test]
 fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() {
-	reset_test_environment();
+	MockNet::reset();
 	let mut ancestry = Location::parent();
 
 	let para_b_location = Location::new(1, [Parachain(2)]);
@@ -750,7 +750,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 
 #[test]
 fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() {
-	reset_test_environment();
+	MockNet::reset();
 	let mut ancestry = Location::parent();
 
 	let para_b_location = Location::new(1, [Parachain(2)]);

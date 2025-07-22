@@ -73,7 +73,7 @@ fn test_statemint_like() {
 
 #[test]
 fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
-	reset_test_environment();
+	MockNet::reset();
 
 	// Setup relay asset using helper
 	let (_relay_location, source_relay_id) = setup_relay_asset_for_statemint();
@@ -397,7 +397,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 
 #[test]
 fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
-	reset_test_environment();
+	MockNet::reset();
 
 	// Setup relay asset using helper
 	let (_relay_location, source_relay_id) = setup_relay_asset_for_statemint();

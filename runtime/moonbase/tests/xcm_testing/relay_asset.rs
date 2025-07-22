@@ -30,7 +30,7 @@ use xcm_simulator::TestExt;
 // Send a relay asset (like DOT) to a parachain A
 #[test]
 fn receive_relay_asset_from_relay() {
-	reset_test_environment();
+	MockNet::reset();
 
 	// Register relay asset using helper
 	let relay_asset_id = register_relay_asset();
@@ -59,7 +59,7 @@ fn receive_relay_asset_from_relay() {
 // Send relay asset (like DOT) back from Parachain A to relaychain
 #[test]
 fn send_relay_asset_to_relay() {
-	reset_test_environment();
+	MockNet::reset();
 
 	// Register relay asset using helper
 	let relay_asset_id = register_relay_asset();
@@ -123,7 +123,7 @@ fn send_relay_asset_to_relay() {
 
 #[test]
 fn send_relay_asset_to_para_b() {
-	reset_test_environment();
+	MockNet::reset();
 
 	// Register relay asset in both parachains using helpers
 	let relay_asset_id = register_relay_asset();
@@ -180,7 +180,7 @@ fn send_relay_asset_to_para_b() {
 
 #[test]
 fn receive_relay_asset_with_trader() {
-	reset_test_environment();
+	MockNet::reset();
 
 	// Use helper for high units_per_second registration
 	let relay_asset_id = register_relay_asset_with_units_per_second(2_500_000_000_000);
@@ -214,7 +214,7 @@ fn receive_relay_asset_with_trader() {
 
 #[test]
 fn error_when_not_paying_enough() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let relay_asset_id = register_relay_asset_with_units_per_second(2500000000000);
 
@@ -247,7 +247,7 @@ fn error_when_not_paying_enough() {
 
 #[test]
 fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let fresh_account = [2u8; 20];
 	let relay_asset_id = register_relay_asset_non_sufficient();
@@ -293,7 +293,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 
 #[test]
 fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_assets() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let fresh_account = [2u8; 20];
 	let relay_asset_id = register_relay_asset(); // Uses sufficient=true by default

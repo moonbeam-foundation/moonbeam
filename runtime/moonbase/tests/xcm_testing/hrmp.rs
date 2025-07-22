@@ -27,7 +27,7 @@ use cumulus_primitives_core::relay_chain::HrmpChannelId;
 
 #[test]
 fn hrmp_init_accept_through_root() {
-	reset_test_environment();
+	MockNet::reset();
 
 	Relay::execute_with(|| {
 		assert_ok!(RelayBalances::transfer_allow_death(
@@ -113,7 +113,7 @@ fn hrmp_init_accept_through_root() {
 
 #[test]
 fn hrmp_close_works() {
-	reset_test_environment();
+	MockNet::reset();
 
 	Relay::execute_with(|| {
 		assert_ok!(RelayBalances::transfer_allow_death(

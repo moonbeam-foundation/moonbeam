@@ -29,7 +29,7 @@ use xcm_executor::traits::ConvertLocation;
 use xcm_simulator::TestExt;
 
 use super::assets::setup_relay_asset_for_statemint;
-use super::core::{account_key20_location, parachain_location, reset_test_environment};
+use super::core::{account_key20_location, parachain_location};
 use super::transfers::execute_relay_to_statemint_transfer;
 
 // Statemint test setup struct and functions
@@ -43,7 +43,7 @@ pub struct StatemintTestSetup {
 }
 
 pub fn setup_statemint_test_environment() -> StatemintTestSetup {
-	reset_test_environment();
+	crate::xcm_mock::MockNet::reset();
 
 	let dest_para = parachain_location(1);
 	let sov = xcm_builder::SiblingParachainConvertsVia::<

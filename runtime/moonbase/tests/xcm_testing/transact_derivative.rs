@@ -32,7 +32,7 @@ use xcm_simulator::TestExt;
 
 #[test]
 fn transact_through_derivative_multilocation() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -169,7 +169,7 @@ fn transact_through_derivative_multilocation() {
 
 #[test]
 fn transact_through_derivative_with_custom_fee_weight() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
@@ -305,7 +305,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 
 #[test]
 fn transact_through_derivative_with_custom_fee_weight_refund() {
-	reset_test_environment();
+	MockNet::reset();
 
 	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
 	let source_id: parachain::AssetId = source_location.clone().into();
