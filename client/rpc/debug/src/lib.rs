@@ -22,6 +22,7 @@ use tokio::{
 	sync::{oneshot, Semaphore},
 };
 
+use ethereum;
 use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
 use fc_storage::StorageOverride;
@@ -712,7 +713,7 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || -> RpcResult<_> {
-					let result = if trace_api_version >= 5 {
+					let result = if trace_api_version >= 6 {
 						// The block is initialized inside "trace_transaction"
 						api.trace_transaction(parent_block_hash, exts, &transaction, &header)
 					} else {
@@ -745,14 +746,47 @@ where
 								})?;
 						}
 
-						if trace_api_version == 4 {
+						if trace_api_version == 5 {
 							// Pre pallet-message-queue
-							#[allow(deprecated)]
-							api.trace_transaction_before_version_5(
-								parent_block_hash,
-								exts,
-								&transaction,
-							)
+							// API version 5 expects TransactionV2, so we need to convert from TransactionV3
+							match transaction {
+								ethereum::TransactionV3::Legacy(tx) => {
+									let tx_v2 = ethereum::TransactionV2::Legacy(tx.clone());
+									#[allow(deprecated)]
+									api.trace_transaction_before_version_6(
+										parent_block_hash,
+										exts,
+										&tx_v2,
+										&header,
+									)
+								}
+								ethereum::TransactionV3::EIP2930(tx) => {
+									let tx_v2 = ethereum::TransactionV2::EIP2930(tx.clone());
+									#[allow(deprecated)]
+									api.trace_transaction_before_version_6(
+										parent_block_hash,
+										exts,
+										&tx_v2,
+										&header,
+									)
+								}
+								ethereum::TransactionV3::EIP1559(tx) => {
+									let tx_v2 = ethereum::TransactionV2::EIP1559(tx.clone());
+									#[allow(deprecated)]
+									api.trace_transaction_before_version_6(
+										parent_block_hash,
+										exts,
+										&tx_v2,
+										&header,
+									)
+								}
+								ethereum::TransactionV3::EIP7702(_) => {
+									return Err(internal_err(
+										"EIP-7702 transactions are not supported in API version 5"
+											.to_string(),
+									))
+								}
+							}
 						} else {
 							// Pre-london update, legacy transactions.
 							match transaction {
