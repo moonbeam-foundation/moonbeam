@@ -713,7 +713,7 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || -> RpcResult<_> {
-					let result = if trace_api_version >= 6 {
+					let result = if trace_api_version >= 7 {
 						// The block is initialized inside "trace_transaction"
 						api.trace_transaction(parent_block_hash, exts, &transaction, &header)
 					} else {
@@ -746,39 +746,17 @@ where
 								})?;
 						}
 
-						if trace_api_version == 5 {
-							// Pre pallet-message-queue
-							// API version 5 expects TransactionV2, so we need to convert from TransactionV3
-							match transaction {
+						if trace_api_version >= 4 {
+							// API version 6 expects TransactionV2, so we need to convert from TransactionV3
+							let tx_v2 = match transaction {
 								ethereum::TransactionV3::Legacy(tx) => {
-									let tx_v2 = ethereum::TransactionV2::Legacy(tx.clone());
-									#[allow(deprecated)]
-									api.trace_transaction_before_version_6(
-										parent_block_hash,
-										exts,
-										&tx_v2,
-										&header,
-									)
+									ethereum::TransactionV2::Legacy(tx.clone())
 								}
 								ethereum::TransactionV3::EIP2930(tx) => {
-									let tx_v2 = ethereum::TransactionV2::EIP2930(tx.clone());
-									#[allow(deprecated)]
-									api.trace_transaction_before_version_6(
-										parent_block_hash,
-										exts,
-										&tx_v2,
-										&header,
-									)
+									ethereum::TransactionV2::EIP2930(tx.clone())
 								}
 								ethereum::TransactionV3::EIP1559(tx) => {
-									let tx_v2 = ethereum::TransactionV2::EIP1559(tx.clone());
-									#[allow(deprecated)]
-									api.trace_transaction_before_version_6(
-										parent_block_hash,
-										exts,
-										&tx_v2,
-										&header,
-									)
+									ethereum::TransactionV2::EIP1559(tx.clone())
 								}
 								ethereum::TransactionV3::EIP7702(_) => {
 									return Err(internal_err(
@@ -786,6 +764,24 @@ where
 											.to_string(),
 									))
 								}
+							};
+
+							if trace_api_version == 4 {
+								// Pre pallet-message-queue
+								#[allow(deprecated)]
+								api.trace_transaction_before_version_5(
+									parent_block_hash,
+									exts,
+									&tx_v2,
+								)
+							} else {
+								#[allow(deprecated)]
+								api.trace_transaction_before_version_7(
+									parent_block_hash,
+									exts,
+									&tx_v2,
+									&header,
+								)
 							}
 						} else {
 							// Pre-london update, legacy transactions.
