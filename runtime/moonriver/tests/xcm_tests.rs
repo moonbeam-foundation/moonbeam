@@ -566,7 +566,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 		));
 	});
 
-	// Balances have been substracted
+	// Balances have been subtracted
 	ParaA::execute_with(|| {
 		assert_eq!(
 			ParaBalances::free_balance(&PARAALICE.into()),
@@ -622,7 +622,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
 	let source_location: AssetType = para_a_balances
 		.try_into()
-		.expect("Location convertion to AssetType should succeed");
+		.expect("Location conversion to AssetType should succeed");
 	let source_id: parachain::AssetId = source_location.clone().into();
 
 	let asset_metadata = parachain::AssetMetadata {

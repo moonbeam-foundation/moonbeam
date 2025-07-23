@@ -1812,7 +1812,7 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       claim: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
-       * This extrinsic completes the initialization if some checks are fullfiled. These checks are:
+       * This extrinsic completes the initialization if some checks are fulfilled. These checks are:
        * -The reward contribution money matches the crowdloan pot
        * -The end vesting block is higher than the init vesting block
        * -The initialization has not complete yet
