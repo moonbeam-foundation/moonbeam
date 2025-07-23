@@ -11,7 +11,6 @@ bip32 = { workspace = true, features = ["bip39"] }
 clap = { workspace = true, features = ["derive"] }
 libsecp256k1 = { workspace = true, features = ["std"] }
 primitive-types = { workspace = true }
-sha3 = { workspace = true }
 tiny-bip39 = { workspace = true }
 url = { workspace = true }
 

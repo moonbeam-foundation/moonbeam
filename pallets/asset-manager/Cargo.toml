@@ -5,8 +5,6 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-log = { workspace = true }
-serde = { workspace = true, optional = true }
 
 # Moonbeam
 xcm-primitives = { workspace = true }
@@ -37,7 +35,6 @@ std = [
 	"frame-system/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
-	"serde",
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",

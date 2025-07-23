@@ -10,8 +10,6 @@ version = "0.47.0"
 async-io = { workspace = true }
 async-trait = { workspace = true }
 bip32 = { workspace = true }
-derive_more = { workspace = true }
-exit-future = { workspace = true }
 flume = { workspace = true }
 futures = { workspace = true, features = ["compat"] }
 hex-literal = { workspace = true }
@@ -25,12 +23,9 @@ serde_json = { workspace = true, default-features = true }
 sha3 = { workspace = true }
 tiny-bip39 = { workspace = true }
 tokio = { workspace = true, features = ["sync", "rt-multi-thread"] }
-trie-root = { workspace = true }
 tokio-retry = { workspace = true }
 substrate-rpc-client = { workspace = true }
 hex = { workspace = true, features = ["std"] }
-thiserror = { workspace = true }
-tracing = { workspace = true }
 ansi_term = { workspace = true }
 
 # Moonbeam
@@ -39,27 +34,20 @@ moonbeam-cli-opt = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-finality-rpc = { workspace = true }
 moonbeam-primitives-ext = { workspace = true }
-moonbeam-relay-encoder = { workspace = true }
 moonbeam-rpc-debug = { workspace = true }
 moonbeam-rpc-primitives-debug = { workspace = true }
 moonbeam-rpc-primitives-txpool = { workspace = true }
 moonbeam-rpc-trace = { workspace = true }
-moonbeam-runtime-common = { workspace = true }
 moonbeam-vrf = { workspace = true }
 pallet-parachain-staking = { workspace = true }
-pallet-xcm-transactor = { workspace = true }
 session-keys-primitives = { workspace = true }
 
 # Moonbeam runtimes
 moonbase-runtime = { workspace = true, optional = true }
 moonbeam-runtime = { workspace = true, optional = true }
 moonriver-runtime = { workspace = true, optional = true }
-
-# Substrate
-frame-system-rpc-runtime-api = { workspace = true, features = ["std"] }
 frame-system = { workspace = true, features = ["std"] }
 pallet-balances = { workspace = true, features = ["std"] }
-pallet-transaction-payment = { workspace = true, features = ["std"] }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [
 	"std",
@@ -67,20 +55,16 @@ pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [
 parity-scale-codec = { workspace = true }
 sc-basic-authorship = { workspace = true }
 sc-chain-spec = { workspace = true }
-sc-cli = { workspace = true }
 sc-client-api = { workspace = true }
 sc-client-db = { workspace = true }
 sc-consensus = { workspace = true }
-sc-consensus-grandpa = { workspace = true }
 sc-consensus-manual-seal = { workspace = true }
 sc-executor = { workspace = true }
-sc-informant = { workspace = true }
 sc-network = { workspace = true }
 sc-network-common = { workspace = true }
 sc-network-sync = { workspace = true }
 sc-offchain = { workspace = true }
 sc-rpc = { workspace = true }
-sc-rpc-api = { workspace = true }
 sc-service = { workspace = true }
 sc-sysinfo = { workspace = true }
 sc-telemetry = { workspace = true }
@@ -106,7 +90,6 @@ sp-trie = { workspace = true, features = ["std"] }
 sp-state-machine = { workspace = true }
 sp-rpc = { workspace = true }
 sp-externalities = { workspace = true }
-sp-version = { workspace = true }
 substrate-frame-rpc-system = { workspace = true }
 substrate-prometheus-endpoint = { workspace = true }
 
@@ -120,9 +103,7 @@ fc-rpc = { workspace = true, features = [
 	"txpool",
 ] }
 fc-rpc-core = { workspace = true }
-fp-consensus = { workspace = true, features = ["std"] }
 fp-rpc = { workspace = true, features = ["std"] }
-fp-storage = { workspace = true, features = ["std"] }
 pallet-ethereum = { workspace = true, features = [
 	"forbid-evm-reentrancy",
 	"std",
@@ -134,8 +115,6 @@ cumulus-client-cli = { workspace = true }
 cumulus-client-collator = { workspace = true }
 cumulus-client-consensus-common = { workspace = true }
 cumulus-client-consensus-proposer = { workspace = true }
-cumulus-client-consensus-relay-chain = { workspace = true }
-cumulus-client-network = { workspace = true }
 cumulus-client-service = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 cumulus-primitives-parachain-inherent = { workspace = true }
@@ -143,24 +122,15 @@ cumulus-client-parachain-inherent = { workspace = true }
 cumulus-relay-chain-inprocess-interface = { workspace = true }
 cumulus-relay-chain-interface = { workspace = true }
 cumulus-relay-chain-minimal-node = { workspace = true }
-cumulus-relay-chain-rpc-interface = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 nimbus-consensus = { workspace = true }
 # TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
 nimbus-primitives = { workspace = true }
-pallet-author-inherent = { workspace = true }
-
-# Polkadot
-polkadot-cli = { workspace = true }
-polkadot-parachain = { workspace = true }
 polkadot-primitives = { workspace = true }
-polkadot-service = { workspace = true }
-xcm = { workspace = true }
 xcm-runtime-apis = { workspace = true }
 
 # Benchmarking
 frame-benchmarking = { workspace = true, features = ["std"] }
-frame-benchmarking-cli = { workspace = true }
 
 [dev-dependencies]
 nix = { workspace = true }
@@ -186,19 +156,11 @@ default = [
 	"moonbase-native",
 	"moonbeam-native",
 	"moonriver-native",
-	"rococo-native",
-	"westend-native",
 ]
 
 lazy-loading = ["sc-service/test-helpers", "parking_lot/send_guard"]
 
-rococo-native = ["polkadot-cli/rococo-native", "polkadot-service/rococo-native"]
-westend-native = [
-	"polkadot-cli/westend-native",
-	"polkadot-service/westend-native",
-]
-
-moonbase-native = ["moonbase-runtime", "westend-native"]
+moonbase-native = ["moonbase-runtime"]
 moonbeam-native = ["moonbeam-runtime"]
 moonriver-native = ["moonriver-runtime"]
 
@@ -208,8 +170,6 @@ metadata-hash = [
 	"moonbeam-runtime/metadata-hash",
 ]
 
-test-spec = []
-
 runtime-benchmarks = [
 	"moonbase-native",
 	"moonbase-runtime/runtime-benchmarks",
@@ -218,11 +178,9 @@ runtime-benchmarks = [
 	"moonriver-native",
 	"moonriver-runtime/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
-	"pallet-transaction-payment/runtime-benchmarks",
 ]
 
 try-runtime = [
 	"moonbase-runtime",
 	"moonbase-runtime/try-runtime",
-	"polkadot-service/try-runtime",
 ]
