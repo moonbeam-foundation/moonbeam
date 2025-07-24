@@ -78,11 +78,11 @@ release-build:
 
 export PATH = $(ZOMBINET_PATHS)
 start-zombienet-moonbeam: all
-	@zombienet spawn zombienet/configs/moonbeam-polkadot.toml
+	@zombienet/bin/${ZOMBIENET_BIN} spawn zombienet/configs/moonbeam-polkadot.toml
 
 export PATH = $(ZOMBINET_PATHS)
 start-zombienet-moonriver: all
-	@zombienet spawn zombienet/configs/moonriver-kusama.toml
+	@zombienet/bin/${ZOMBIENET_BIN} spawn zombienet/configs/moonriver-kusama.toml
 
 run-bridge-integration-tests: all
 	@./zombienet/integration-tests/bridges/run-test.sh 0001-moonbeam-moonriver-asset-transfer
