@@ -10,4 +10,3 @@ version = "0.1.0"
 [dependencies]
 ethereum-types = { workspace = true, features = [ "std" ] }
 serde = { workspace = true, features = [ "derive" ] }
-serde_json = { workspace = true, default-features = true }

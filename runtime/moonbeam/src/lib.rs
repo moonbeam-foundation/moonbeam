@@ -1384,6 +1384,7 @@ impl pallet_relay_storage_roots::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_relay_storage_roots::WeightInfo<Runtime>;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
 impl pallet_precompile_benchmarks::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_precompile_benchmarks::WeightInfo<Runtime>;
 }
@@ -1499,7 +1500,7 @@ construct_runtime! {
 		// Utils
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,
 
-		// TODO should not be included in production
+		#[cfg(feature = "runtime-benchmarks")]
 		PrecompileBenchmarks: pallet_precompile_benchmarks::{Pallet} = 113,
 
 		// Randomness

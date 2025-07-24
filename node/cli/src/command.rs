@@ -30,10 +30,10 @@ use moonbeam_service::moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 use moonbeam_service::moonriver_runtime;
 
-use moonbeam_service::{chain_spec, frontier_database_dir, HostFunctions, IdentifyVariant};
+use moonbeam_service::{
+	chain_spec, frontier_database_dir, lazy_loading, HostFunctions, IdentifyVariant,
+};
 use parity_scale_codec::Encode;
-#[cfg(feature = "westend-native")]
-use polkadot_service::WestendChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RpcEndpoint, RuntimeVersion, SharedParams, SubstrateCli,
@@ -68,7 +68,7 @@ fn load_spec(
 			Box::new(chain_spec::moonbase::development_chain_spec(None, None))
 		}
 		#[cfg(feature = "moonbeam-native")]
-		"staking" => Box::new(chain_spec::test_spec::staking_spec(para_id)),
+		"staking" => Box::new(chain_spec::moonbeam::get_chain_spec(para_id)),
 		// Moonriver networks
 		"moonriver" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
 			&include_bytes!("../../../specs/moonriver/parachain-embedded-specs.json")[..],
@@ -194,10 +194,11 @@ impl SubstrateCli for RelayChainCli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
-			#[cfg(feature = "westend-native")]
-			"westend_moonbase_relay_testnet" => Ok(Box::new(WestendChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/alphanet/westend-embedded-specs-v8.json")[..],
-			)?)),
+			"westend_moonbase_relay_testnet" => Ok(Box::new(
+				polkadot_service::WestendChainSpec::from_json_bytes(
+					&include_bytes!("../../../specs/alphanet/westend-embedded-specs-v8.json")[..],
+				)?,
+			)),
 			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
 			// Polkadot service to interpret the id.
 			_ => polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter())
@@ -857,7 +858,7 @@ pub fn run() -> Result<()> {
 						max_retries_per_request: cli.run.lazy_loading_max_retries_per_request,
 					};
 
-					let spec_builder = chain_spec::test_spec::lazy_loading_spec_builder();
+					let spec_builder = lazy_loading::spec_builder();
 					config.chain_spec = Box::new(spec_builder.build());
 
 					// TODO: create a tokio runtime inside offchain_worker thread (otherwise it will panic)
