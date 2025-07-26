@@ -1,5 +1,5 @@
-ZOMBINET_VERSION := v1.3.121
-POLKADOT_VERSION := stable2503-5
+ZOMBINET_VERSION := v1.3.133
+POLKADOT_VERSION := stable2506
 BRIDGE_RELAY_VERSION := v1.8.5
 
 ZOMBINET_DOWNLOAD_URL := https://github.com/paritytech/zombienet/releases/download/${ZOMBINET_VERSION}
