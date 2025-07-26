@@ -1,0 +1,5 @@
+Network: ../../../../configs/moonbeam-polkadot.toml
+Creds: config
+
+# relay is already started - let's wait until with-Kusama GRANPDA pallet is initialized at Moonbeam
+alith: js-script {{FRAMEWORK_PATH}}/js-helpers/best-finalized-header-at-bridged-chain.js with "Kusama,0" within 400 seconds
