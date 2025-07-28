@@ -1,10 +1,10 @@
 ZOMBINET_VERSION := v1.3.133
 POLKADOT_VERSION := stable2506
-BRIDGE_RELAY_VERSION := v1.8.5
+BRIDGE_RELAY_VERSION := v1.8.6
 
 ZOMBINET_DOWNLOAD_URL := https://github.com/paritytech/zombienet/releases/download/${ZOMBINET_VERSION}
 POLKADOT_DOWNLOAD_URL := https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-${POLKADOT_VERSION}
-BRIDGE_RELAY_DOWNLOAD_URL := https://github.com/Moonsong-Labs/parity-bridges-common/releases/download/${BRIDGE_RELAY_VERSION}
+BRIDGE_RELAY_DOWNLOAD_URL := https://github.com/moonbeam-foundation/parity-bridges-common/releases/download/${BRIDGE_RELAY_VERSION}
 
 ZOMBINET_PATHS := ${PATH}:${PWD}/zombienet/bin
 
@@ -30,9 +30,11 @@ endif
 UNAME_P := $(shell uname -p)
 ifeq ($(UNAME_P),x86_64)
 	ZOMBIENET_BIN_POSTFIX := ${ZOMBIENET_BIN_POSTFIX}-x64
+	BRIDGE_RELAY_BIN_POSTFIX := ${BRIDGE_RELAY_BIN_POSTFIX}-x64
 endif
 ifneq ($(filter arm%,$(UNAME_P)),)
 	ZOMBIENET_BIN_POSTFIX := ${ZOMBIENET_BIN_POSTFIX}-arm64
+	BRIDGE_RELAY_BIN_POSTFIX := ${BRIDGE_RELAY_BIN_POSTFIX}-arm64
 endif
 
 BINARIES := $(ZOMBIENET_BIN) $(BRIDGE_RELAY_BIN) $(POLKADOT_BIN) $(POLKADOT_EXECUTE_WORKER_BIN) $(POLKADOT_PREPARE_WORKER_BIN)
