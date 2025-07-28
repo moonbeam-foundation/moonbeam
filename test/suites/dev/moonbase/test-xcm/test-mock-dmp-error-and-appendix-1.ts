@@ -16,7 +16,6 @@ import {
 // Twelve decimal places in the moonbase relay chain's token
 const RELAY_TOKEN = 10n ** relayAssetMetadata.decimals; // 12 decimals
 
-
 describeSuite({
   id: "D024002",
   title: "Mock XCM - downward transfer with non-triggered error handler",
@@ -25,18 +24,9 @@ describeSuite({
     const assetId = 1n;
 
     beforeAll(async () => {
-      await registerForeignAsset(
-        context,
-        assetId,
-        RELAY_SOURCE_LOCATION,
-        relayAssetMetadata
-      );
+      await registerForeignAsset(context, assetId, RELAY_SOURCE_LOCATION, relayAssetMetadata);
 
-      await addAssetToWeightTrader(
-        RELAY_SOURCE_LOCATION,
-        1_000_000_000_000_000_000n,
-        context
-      )
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 1_000_000_000_000_000_000n, context);
     });
 
     for (const xcmVersion of XCM_VERSIONS) {
@@ -44,7 +34,6 @@ describeSuite({
         id: `T01-XCM-v${xcmVersion}`,
         title: `Should make sure that Alith does not receive 10 dot without error (XCM v${xcmVersion})`,
         test: async function () {
-
           const aliceBeforeBalance = await foreignAssetBalance(
             context,
             assetId,
@@ -94,9 +83,11 @@ describeSuite({
             context,
             assetId,
             alith.address as `0x{string}`
-          )
+          );
 
-          expect(alithAfterBalance, "Alith's DOT balance is not empty").to.be.equal(aliceBeforeBalance);
+          expect(alithAfterBalance, "Alith's DOT balance is not empty").to.be.equal(
+            aliceBeforeBalance
+          );
         },
       });
     }
