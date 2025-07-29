@@ -4,6 +4,7 @@ cargo license --json > licenses.json
 LICENSES=(
     "(MIT OR Apache-2.0) AND Unicode-DFS-2016"
     "(MIT OR Apache-2.0) AND Unicode-3.0"
+    "(Apache-2.0 OR MIT) AND Unicode-3.0"
     "0BSD OR Apache-2.0 OR MIT"
     "Apache-2.0 AND MIT"
     "Apache-2.0 OR LGPL-2.1-or-later OR MIT"
