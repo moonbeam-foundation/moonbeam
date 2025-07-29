@@ -67,7 +67,7 @@ evm-tracing-events = { path = "primitives/rpc/evm-tracing-events", default-featu
 moonbeam-core-primitives = { path = "core-primitives", default-features = false }
 moonbeam-primitives-ext = { path = "primitives/ext", default-features = false }
 moonbeam-rpc-primitives-debug = { path = "primitives/rpc/debug", default-features = false, features = [
-    "runtime-3900",
+    "runtime-3000",
 ] }
 moonbeam-rpc-primitives-txpool = { path = "primitives/rpc/txpool", default-features = false }
 storage-proof-primitives = { path = "primitives/storage-proof", default-features = false }
@@ -362,9 +362,7 @@ nimbus-consensus = { git = "https://github.com/Moonsong-Labs/moonkit", branch = 
 async-trait = { version = "0.1.42" }
 derive_more = "0.99.17"
 environmental = { version = "1.1.4", default-features = false }
-frame-metadata = { version = "18.0.0", default-features = false, features = [
-    "current",
-] }
+frame-metadata = { version = "18.0.0", default-features = false, features = ["current"] }
 frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2412", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.4.1", default-features = false }
