@@ -45,7 +45,7 @@ default = [
     "moonriver-native"
 ]
 
-lazy-loading = ["sc-service/test-helpers", "moonbeam-service/lazy-loading"]
+lazy-loading = ["moonbeam-service/lazy-loading"]
 
 metadata-hash = ["moonbeam-service/metadata-hash"]
 

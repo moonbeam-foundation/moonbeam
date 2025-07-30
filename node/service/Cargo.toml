@@ -158,7 +158,7 @@ default = [
 	"moonriver-native",
 ]
 
-lazy-loading = ["sc-service/test-helpers", "parking_lot/send_guard"]
+lazy-loading = ["parking_lot/send_guard"]
 
 moonbase-native = ["moonbase-runtime"]
 moonbeam-native = ["moonbeam-runtime"]
