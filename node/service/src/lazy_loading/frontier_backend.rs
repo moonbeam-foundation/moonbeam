@@ -34,7 +34,7 @@ where
 	async fn block_hash(&self, eth_block_hash: &H256) -> Result<Option<Vec<Block::Hash>>, String> {
 		let result = self
 			.rpc_client
-			.block_by_hash::<Block>(eth_block_hash, false)
+			.block_by_hash(eth_block_hash, false)
 			.map_err(|e| format!("failed to get block by hash: {:?}", e))?;
 
 		if let Some(block) = result {
@@ -67,7 +67,7 @@ where
 
 			let substrate_block_hash = self
 				.rpc_client
-				.block_hash(Some(block_number))
+				.block_hash::<Block>(Some(block_number))
 				.map_err(|e| format!("failed to get block: {:?}", e))?;
 
 			return Ok(vec![TransactionMetadata::<Block> {
