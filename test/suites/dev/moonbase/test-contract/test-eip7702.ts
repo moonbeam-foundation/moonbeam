@@ -1,0 +1,160 @@
+import "@moonbeam-network/api-augment";
+import { describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import { createEthersTransaction } from "@moonwall/util";
+import { encodeFunctionData, numberToHex } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { createEIP7702Authorization, EIP7702_DELEGATION_ABI, expectOk } from "../../../../helpers";
+
+describeSuite({
+  id: "D010301",
+  title: "EIP-7702 Transactions",
+  foundationMethods: "dev",
+  testCases: ({ context, it, log }) => {
+    it({
+      id: "T01",
+      title: "happy path - should successfully delegate with valid EIP-7702 authorization",
+      test: async function () {
+        // Deploy the delegation contract
+        const { contractAddress: delegationContract } = await deployCreateCompiledContract(
+          context,
+          "EIP7702Delegation"
+        );
+        await context.createBlock();
+
+        expect(delegationContract).toBeTruthy();
+        log(`Delegation contract deployed at: ${delegationContract}`);
+
+        // Create a new EOA for delegation
+        const delegatingEOA = privateKeyToAccount(
+          "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133"
+        );
+        const delegatingAddress = delegatingEOA.address;
+
+        log(`Created EOA for delegation: ${delegatingAddress}`);
+
+        // Fund the delegating EOA with some balance from ALITH
+        await context.createBlock([
+          context
+            .polkadotJs()
+            .tx.balances.transferAllowDeath(delegatingAddress, 1000000000000000000n),
+        ]);
+
+        // Get the actual nonce of the delegating EOA
+        const delegatingNonce = await context
+          .viem("public")
+          .getTransactionCount({ address: delegatingAddress });
+
+        // Create authorization for the new EOA to delegate to the contract
+        const authorization = await createEIP7702Authorization(
+          delegatingEOA,
+          1281n, // chainId
+          BigInt(delegatingNonce), // Use actual nonce
+          delegationContract!
+        );
+
+        log(`Authorization created for ${delegatingAddress} to delegate to ${delegationContract}`);
+        log(`Authorization nonce: ${authorization.nonce}`);
+
+        // Create the authorization list
+        const authorizationList = [authorization];
+
+        // Use the delegation ABI from helpers
+
+        // Set balance for an arbitrary address
+        const targetAddress = "0x1234567890123456789012345678901234567890" as `0x${string}`;
+        const targetBalance = 5000n;
+
+        const callData = encodeFunctionData({
+          abi: EIP7702_DELEGATION_ABI,
+          functionName: "setBalance",
+          args: [targetAddress, targetBalance],
+        });
+
+        // Try using createEthersTransaction with proper authorization
+        const rawSigned = await createEthersTransaction(context, {
+          to: delegatingAddress,
+          data: callData,
+          gasLimit: 200000,
+          authorizationList: authorizationList,
+        });
+
+        const result = await context.createBlock(rawSigned);
+        log(`Transaction submitted by ALITH for delegation to ${delegatingAddress}`);
+        log(`Block result:`, result.result);
+
+        // Check if the delegating address now has delegated code
+        const codeAtDelegator = await context.viem("public").getCode({
+          address: delegatingAddress,
+        });
+        log(`Code at delegating address: ${codeAtDelegator}`);
+
+        // Now check if the delegation worked
+        // The storage should be in Baltathar's account context, not the contract's
+
+        // Calculate storage slot for mapping(address => uint256) balances
+        // slot = keccak256(abi.encode(targetAddress, 0))
+        const { keccak256, concat } = await import("viem");
+        const storageSlot = keccak256(
+          concat([
+            targetAddress.toLowerCase().padEnd(66, "0") as `0x${string}`,
+            numberToHex(0n, { size: 32 }),
+          ])
+        );
+
+        // Check storage at the delegating EOA's address
+        const storageAtDelegator = await context.viem("public").getStorageAt({
+          address: delegatingAddress,
+          slot: storageSlot,
+        });
+
+        const actualBalance = BigInt(storageAtDelegator || "0");
+        log(`Storage at delegating address ${delegatingAddress}: ${actualBalance}`);
+
+        // Also check the contract storage (should be 0 if delegation worked properly)
+        const contractStorageBalance = await context.viem("public").readContract({
+          address: delegationContract!,
+          abi: EIP7702_DELEGATION_ABI,
+          functionName: "getBalance",
+          args: [targetAddress],
+        });
+
+        log(`Balance in contract storage: ${contractStorageBalance}`);
+
+        // Happy path expectations
+        expect(actualBalance).to.equal(targetBalance);
+        log(
+          `SUCCESS: EIP-7702 delegation worked! Balance ${actualBalance} was stored in the delegating account's storage`
+        );
+
+        // Additional test: call incrementBalance to verify continued delegation
+        const incrementData = encodeFunctionData({
+          abi: EIP7702_DELEGATION_ABI,
+          functionName: "incrementBalance",
+          args: [targetAddress, 500n],
+        });
+
+        // Second transaction: increment balance using the same delegation
+        const rawSigned2 = await createEthersTransaction(context, {
+          to: delegatingAddress,
+          data: incrementData,
+          gasLimit: 200000,
+          authorizationList: [authorization],
+        });
+
+        await expectOk(context.createBlock(rawSigned2));
+
+        // Check updated balance
+        const updatedStorage = await context.viem("public").getStorageAt({
+          address: delegatingAddress,
+          slot: storageSlot,
+        });
+
+        const updatedBalance = BigInt(updatedStorage || "0");
+        expect(updatedBalance).to.equal(5500n);
+
+        log(`After increment: Balance is now ${updatedBalance}`);
+        log(`EIP-7702 delegation is working correctly!`);
+      },
+    });
+  },
+});
