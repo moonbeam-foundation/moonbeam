@@ -3493,25 +3493,8 @@ dependencies = [
 
 [[package]]
 name = "ethereum"
-version = "0.15.0"
-source = "git+https://github.com/rust-ethereum/ethereum.git?rev=3be0d8fd4c2ad1ba216b69ef65b9382612efc8ba#3be0d8fd4c2ad1ba216b69ef65b9382612efc8ba"
-dependencies = [
- "bytes",
- "ethereum-types",
- "hash-db",
- "hash256-std-hasher",
- "parity-scale-codec",
- "rlp",
- "scale-info",
- "serde",
- "sha3",
- "trie-root",
-]
-
-[[package]]
-name = "ethereum"
 version = "0.18.2"
-source = "git+https://github.com/rust-ethereum/ethereum?rev=cf3076f07e61102eec686f6816da668f97d94f1f#cf3076f07e61102eec686f6816da668f97d94f1f"
+source = "git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f#cf3076f07e61102eec686f6816da668f97d94f1f"
 dependencies = [
  "bytes",
  "ethereum-types",
@@ -3587,7 +3570,7 @@ source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkado
 dependencies = [
  "auto_impl",
  "environmental",
- "ethereum 0.18.2",
+ "ethereum",
  "evm-core",
  "evm-gasometer",
  "evm-runtime",
@@ -3756,7 +3739,7 @@ version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#ba6edcc591d4c81e883972b9eee770b479183219"
 dependencies = [
  "async-trait",
- "ethereum 0.18.2",
+ "ethereum",
  "fc-api",
  "fc-storage",
  "fp-consensus",
@@ -3808,7 +3791,7 @@ name = "fc-rpc"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#ba6edcc591d4c81e883972b9eee770b479183219"
 dependencies = [
- "ethereum 0.18.2",
+ "ethereum",
  "ethereum-types",
  "evm",
  "fc-api",
@@ -3862,7 +3845,7 @@ name = "fc-rpc-core"
 version = "1.1.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#ba6edcc591d4c81e883972b9eee770b479183219"
 dependencies = [
- "ethereum 0.18.2",
+ "ethereum",
  "ethereum-types",
  "jsonrpsee",
  "rlp",
@@ -3877,7 +3860,7 @@ name = "fc-storage"
 version = "1.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#ba6edcc591d4c81e883972b9eee770b479183219"
 dependencies = [
- "ethereum 0.18.2",
+ "ethereum",
  "ethereum-types",
  "fp-rpc",
  "fp-storage",
@@ -4083,7 +4066,7 @@ name = "fp-consensus"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#ba6edcc591d4c81e883972b9eee770b479183219"
 dependencies = [
- "ethereum 0.18.2",
+ "ethereum",
  "parity-scale-codec",
  "sp-core",
  "sp-runtime",
@@ -4094,7 +4077,7 @@ name = "fp-ethereum"
 version = "1.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#ba6edcc591d4c81e883972b9eee770b479183219"
 dependencies = [
- "ethereum 0.18.2",
+ "ethereum",
  "ethereum-types",
  "fp-evm",
  "frame-support",
@@ -4122,7 +4105,7 @@ name = "fp-rpc"
 version = "3.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#ba6edcc591d4c81e883972b9eee770b479183219"
 dependencies = [
- "ethereum 0.18.2",
+ "ethereum",
  "ethereum-types",
  "fp-evm",
  "parity-scale-codec",
@@ -7151,7 +7134,7 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
- "ethereum 0.15.0",
+ "ethereum",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
@@ -7449,7 +7432,7 @@ dependencies = [
 name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.15.0",
+ "ethereum",
  "ethereum-types",
  "fc-rpc-core",
  "jsonrpsee",
@@ -7481,7 +7464,7 @@ dependencies = [
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.15.0",
+ "ethereum",
  "ethereum-types",
  "fc-api",
  "fc-rpc",
@@ -7511,7 +7494,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.15.0",
+ "ethereum",
  "ethereum-types",
  "parity-scale-codec",
  "sp-api",
@@ -7523,7 +7506,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.15.0",
+ "ethereum",
  "parity-scale-codec",
  "scale-info",
  "sp-api",
@@ -7582,7 +7565,7 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
- "ethereum 0.15.0",
+ "ethereum",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
@@ -7927,7 +7910,7 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
- "ethereum 0.15.0",
+ "ethereum",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
@@ -9410,7 +9393,7 @@ version = "4.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#ba6edcc591d4c81e883972b9eee770b479183219"
 dependencies = [
  "environmental",
- "ethereum 0.18.2",
+ "ethereum",
  "ethereum-types",
  "evm",
  "fp-consensus",
@@ -9433,7 +9416,7 @@ name = "pallet-ethereum-xcm"
 version = "1.0.0-dev"
 dependencies = [
  "environmental",
- "ethereum 0.15.0",
+ "ethereum",
  "ethereum-types",
  "fp-ethereum",
  "fp-evm",
@@ -9466,7 +9449,7 @@ source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-po
 dependencies = [
  "cumulus-primitives-storage-weight-reclaim",
  "environmental",
- "ethereum 0.18.2",
+ "ethereum",
  "evm",
  "fp-account",
  "fp-evm",
@@ -19731,7 +19714,7 @@ name = "xcm-primitives"
 version = "0.1.1"
 dependencies = [
  "cumulus-primitives-core",
- "ethereum 0.15.0",
+ "ethereum",
  "ethereum-types",
  "frame-support",
  "frame-system",

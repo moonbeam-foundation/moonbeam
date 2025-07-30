@@ -15,12 +15,14 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum::{
-	AccessList, AccessListItem, EIP1559Transaction, EIP2930Transaction, LegacyTransaction,
-	TransactionAction, TransactionSignature, TransactionV2,
+	eip1559::TransactionSignature as EIP1559TransactionSignature,
+	eip2930::TransactionSignature as EIP2930TransactionSignature,
+	legacy::TransactionSignature as LegacyTransactionSignature, AccessList, AccessListItem,
+	EIP1559Transaction, EIP2930Transaction, LegacyTransaction, TransactionAction, TransactionV2,
 };
 use ethereum_types::{H160, H256, U256};
 use frame_support::{traits::ConstU32, BoundedVec};
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
@@ -42,7 +44,7 @@ pub trait EnsureProxy<AccountId> {
 	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str>;
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 /// Manually sets a gas fee.
 pub struct ManualEthereumXcmFee {
 	/// Legacy or Eip-2930, all fee will be used.
@@ -53,7 +55,7 @@ pub struct ManualEthereumXcmFee {
 }
 
 /// Xcm transact's Ethereum transaction configurable fee.
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 pub enum EthereumXcmFee {
 	/// Manually set gas fee.
 	Manual(ManualEthereumXcmFee),
@@ -62,7 +64,7 @@ pub enum EthereumXcmFee {
 }
 
 /// Xcm transact's Ethereum transaction.
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 pub enum EthereumXcmTransaction {
 	V1(EthereumXcmTransactionV1),
 	V2(EthereumXcmTransactionV2),
@@ -73,7 +75,7 @@ pub fn rs_id() -> H256 {
 	H256::from_low_u64_be(1u64)
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 pub struct EthereumXcmTransactionV1 {
 	/// Gas limit to be consumed by EVM execution.
 	pub gas_limit: U256,
@@ -89,7 +91,7 @@ pub struct EthereumXcmTransactionV1 {
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 pub struct EthereumXcmTransactionV2 {
 	/// Gas limit to be consumed by EVM execution.
 	pub gas_limit: U256,
@@ -165,9 +167,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 						value: self.value,
 						input: self.input.to_vec(),
 						access_list: from_tuple_to_access_list(access_list),
-						odd_y_parity: true,
-						r: rs_id(),
-						s: rs_id(),
+						signature: EIP2930TransactionSignature::new(true, rs_id(), rs_id())?,
 					}))
 				} else {
 					// Legacy
@@ -178,7 +178,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 						action: self.action,
 						value: self.value,
 						input: self.input.to_vec(),
-						signature: TransactionSignature::new(42, rs_id(), rs_id())?,
+						signature: LegacyTransactionSignature::new(42, rs_id(), rs_id())?,
 					}))
 				}
 			}
@@ -198,9 +198,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 					} else {
 						Vec::new()
 					},
-					odd_y_parity: true,
-					r: rs_id(),
-					s: rs_id(),
+					signature: EIP1559TransactionSignature::new(true, rs_id(), rs_id())?,
 				}))
 			}
 			_ => None,
@@ -242,9 +240,7 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 			} else {
 				Vec::new()
 			},
-			odd_y_parity: true,
-			r: rs_id(),
-			s: rs_id(),
+			signature: EIP1559TransactionSignature::new(true, rs_id(), rs_id())?,
 		}))
 	}
 }
@@ -274,9 +270,12 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
-			odd_y_parity: true,
-			r: H256::from_low_u64_be(1u64),
-			s: H256::from_low_u64_be(1u64),
+			signature: EIP1559TransactionSignature::new(
+				true,
+				H256::from_low_u64_be(1u64),
+				H256::from_low_u64_be(1u64),
+			)
+			.unwrap(),
 		}));
 
 		assert_eq!(
@@ -307,7 +306,7 @@ mod tests {
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
 			input: vec![1u8],
-			signature: TransactionSignature::new(42, rs_id(), rs_id()).unwrap(),
+			signature: LegacyTransactionSignature::new(42, rs_id(), rs_id()).unwrap(),
 		}));
 
 		assert_eq!(
@@ -350,9 +349,12 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: from_tuple_to_access_list(&access_list.unwrap()),
-			odd_y_parity: true,
-			r: H256::from_low_u64_be(1u64),
-			s: H256::from_low_u64_be(1u64),
+			signature: EIP2930TransactionSignature::new(
+				true,
+				H256::from_low_u64_be(1u64),
+				H256::from_low_u64_be(1u64),
+			)
+			.unwrap(),
 		}));
 
 		assert_eq!(
@@ -382,9 +384,12 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
-			odd_y_parity: true,
-			r: H256::from_low_u64_be(1u64),
-			s: H256::from_low_u64_be(1u64),
+			signature: EIP1559TransactionSignature::new(
+				true,
+				H256::from_low_u64_be(1u64),
+				H256::from_low_u64_be(1u64),
+			)
+			.unwrap(),
 		}));
 
 		assert_eq!(
