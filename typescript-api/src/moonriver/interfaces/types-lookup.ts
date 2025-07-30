@@ -8620,19 +8620,13 @@ declare module "@polkadot/types/lookup" {
     readonly type: "NotInPausedMode";
   }
 
-  /** @name PalletPrecompileBenchmarksError (753) */
-  interface PalletPrecompileBenchmarksError extends Enum {
-    readonly isBenchmarkError: boolean;
-    readonly type: "BenchmarkError";
-  }
-
-  /** @name PalletRandomnessRequestState (754) */
+  /** @name PalletRandomnessRequestState (753) */
   interface PalletRandomnessRequestState extends Struct {
     readonly request: PalletRandomnessRequest;
     readonly deposit: u128;
   }
 
-  /** @name PalletRandomnessRequest (755) */
+  /** @name PalletRandomnessRequest (754) */
   interface PalletRandomnessRequest extends Struct {
     readonly refundAddress: H160;
     readonly contractAddress: H160;
@@ -8643,7 +8637,7 @@ declare module "@polkadot/types/lookup" {
     readonly info: PalletRandomnessRequestInfo;
   }
 
-  /** @name PalletRandomnessRequestInfo (756) */
+  /** @name PalletRandomnessRequestInfo (755) */
   interface PalletRandomnessRequestInfo extends Enum {
     readonly isBabeEpoch: boolean;
     readonly asBabeEpoch: ITuple<[u64, u64]>;
@@ -8652,7 +8646,7 @@ declare module "@polkadot/types/lookup" {
     readonly type: "BabeEpoch" | "Local";
   }
 
-  /** @name PalletRandomnessRequestType (757) */
+  /** @name PalletRandomnessRequestType (756) */
   interface PalletRandomnessRequestType extends Enum {
     readonly isBabeEpoch: boolean;
     readonly asBabeEpoch: u64;
@@ -8661,13 +8655,13 @@ declare module "@polkadot/types/lookup" {
     readonly type: "BabeEpoch" | "Local";
   }
 
-  /** @name PalletRandomnessRandomnessResult (758) */
+  /** @name PalletRandomnessRandomnessResult (757) */
   interface PalletRandomnessRandomnessResult extends Struct {
     readonly randomness: Option<H256>;
     readonly requestCount: u64;
   }
 
-  /** @name PalletRandomnessError (759) */
+  /** @name PalletRandomnessError (758) */
   interface PalletRandomnessError extends Enum {
     readonly isRequestCounterOverflowed: boolean;
     readonly isRequestFeeOverflowed: boolean;
@@ -8696,22 +8690,22 @@ declare module "@polkadot/types/lookup" {
       | "RandomnessResultNotFilled";
   }
 
-  /** @name BpRuntimeHeaderId (760) */
+  /** @name BpRuntimeHeaderId (759) */
   interface BpRuntimeHeaderId extends ITuple<[u32, H256]> {}
 
-  /** @name BpHeaderChainStoredHeaderData (761) */
+  /** @name BpHeaderChainStoredHeaderData (760) */
   interface BpHeaderChainStoredHeaderData extends Struct {
     readonly number: u32;
     readonly stateRoot: H256;
   }
 
-  /** @name PalletBridgeGrandpaStorageTypesStoredAuthoritySet (762) */
+  /** @name PalletBridgeGrandpaStorageTypesStoredAuthoritySet (761) */
   interface PalletBridgeGrandpaStorageTypesStoredAuthoritySet extends Struct {
     readonly authorities: Vec<ITuple<[SpConsensusGrandpaAppPublic, u64]>>;
     readonly setId: u64;
   }
 
-  /** @name PalletBridgeGrandpaError (764) */
+  /** @name PalletBridgeGrandpaError (763) */
   interface PalletBridgeGrandpaError extends Enum {
     readonly isInvalidJustification: boolean;
     readonly isInvalidAuthoritySet: boolean;
@@ -8741,25 +8735,25 @@ declare module "@polkadot/types/lookup" {
       | "HeaderOverflowLimits";
   }
 
-  /** @name BpRuntimeOwnedBridgeModuleError (765) */
+  /** @name BpRuntimeOwnedBridgeModuleError (764) */
   interface BpRuntimeOwnedBridgeModuleError extends Enum {
     readonly isHalted: boolean;
     readonly type: "Halted";
   }
 
-  /** @name BpParachainsParaInfo (766) */
+  /** @name BpParachainsParaInfo (765) */
   interface BpParachainsParaInfo extends Struct {
     readonly bestHeadHash: BpParachainsBestParaHeadHash;
     readonly nextImportedHashPosition: u32;
   }
 
-  /** @name BpParachainsBestParaHeadHash (767) */
+  /** @name BpParachainsBestParaHeadHash (766) */
   interface BpParachainsBestParaHeadHash extends Struct {
     readonly atRelayBlockNumber: u32;
     readonly headHash: H256;
   }
 
-  /** @name PalletBridgeParachainsError (770) */
+  /** @name PalletBridgeParachainsError (769) */
   interface PalletBridgeParachainsError extends Enum {
     readonly isUnknownRelayChainBlock: boolean;
     readonly isInvalidRelayChainBlockNumber: boolean;
@@ -8774,7 +8768,7 @@ declare module "@polkadot/types/lookup" {
       | "BridgeModule";
   }
 
-  /** @name BpHeaderChainHeaderChainError (771) */
+  /** @name BpHeaderChainHeaderChainError (770) */
   interface BpHeaderChainHeaderChainError extends Enum {
     readonly isUnknownHeader: boolean;
     readonly isStorageProof: boolean;
@@ -8782,7 +8776,7 @@ declare module "@polkadot/types/lookup" {
     readonly type: "UnknownHeader" | "StorageProof";
   }
 
-  /** @name BpRuntimeStorageProofStorageProofError (772) */
+  /** @name BpRuntimeStorageProofStorageProofError (771) */
   interface BpRuntimeStorageProofStorageProofError extends Enum {
     readonly isUnableToGenerateTrieProof: boolean;
     readonly isInvalidProof: boolean;
@@ -8807,27 +8801,27 @@ declare module "@polkadot/types/lookup" {
       | "DuplicateNodes";
   }
 
-  /** @name BpMessagesInboundLaneData (773) */
+  /** @name BpMessagesInboundLaneData (772) */
   interface BpMessagesInboundLaneData extends Struct {
     readonly relayers: Vec<BpMessagesUnrewardedRelayer>;
     readonly lastConfirmedNonce: u64;
     readonly state: BpMessagesLaneLaneState;
   }
 
-  /** @name BpMessagesUnrewardedRelayer (775) */
+  /** @name BpMessagesUnrewardedRelayer (774) */
   interface BpMessagesUnrewardedRelayer extends Struct {
     readonly relayer: AccountId20;
     readonly messages: BpMessagesDeliveredMessages;
   }
 
-  /** @name BpMessagesLaneLaneState (776) */
+  /** @name BpMessagesLaneLaneState (775) */
   interface BpMessagesLaneLaneState extends Enum {
     readonly isOpened: boolean;
     readonly isClosed: boolean;
     readonly type: "Opened" | "Closed";
   }
 
-  /** @name BpMessagesOutboundLaneData (777) */
+  /** @name BpMessagesOutboundLaneData (776) */
   interface BpMessagesOutboundLaneData extends Struct {
     readonly oldestUnprunedNonce: u64;
     readonly latestReceivedNonce: u64;
@@ -8835,13 +8829,13 @@ declare module "@polkadot/types/lookup" {
     readonly state: BpMessagesLaneLaneState;
   }
 
-  /** @name BpMessagesMessageKey (778) */
+  /** @name BpMessagesMessageKey (777) */
   interface BpMessagesMessageKey extends Struct {
     readonly laneId: H256;
     readonly nonce: u64;
   }
 
-  /** @name PalletBridgeMessagesError (780) */
+  /** @name PalletBridgeMessagesError (779) */
   interface PalletBridgeMessagesError extends Enum {
     readonly isNotOperatingNormally: boolean;
     readonly isLanesManager: boolean;
@@ -8870,7 +8864,7 @@ declare module "@polkadot/types/lookup" {
       | "BridgeModule";
   }
 
-  /** @name PalletBridgeMessagesLanesManagerLanesManagerError (781) */
+  /** @name PalletBridgeMessagesLanesManagerLanesManagerError (780) */
   interface PalletBridgeMessagesLanesManagerLanesManagerError extends Enum {
     readonly isInboundLaneAlreadyExists: boolean;
     readonly isOutboundLaneAlreadyExists: boolean;
@@ -8889,7 +8883,7 @@ declare module "@polkadot/types/lookup" {
       | "LaneDispatcherInactive";
   }
 
-  /** @name BpMessagesVerificationError (782) */
+  /** @name BpMessagesVerificationError (781) */
   interface BpMessagesVerificationError extends Enum {
     readonly isEmptyMessageProof: boolean;
     readonly isHeaderChain: boolean;
@@ -8919,7 +8913,7 @@ declare module "@polkadot/types/lookup" {
       | "Other";
   }
 
-  /** @name PalletBridgeMessagesOutboundLaneReceptionConfirmationError (783) */
+  /** @name PalletBridgeMessagesOutboundLaneReceptionConfirmationError (782) */
   interface PalletBridgeMessagesOutboundLaneReceptionConfirmationError extends Enum {
     readonly isFailedToConfirmFutureMessages: boolean;
     readonly isEmptyUnrewardedRelayerEntry: boolean;
@@ -8932,7 +8926,7 @@ declare module "@polkadot/types/lookup" {
       | "TryingToConfirmMoreMessagesThanExpected";
   }
 
-  /** @name BpXcmBridgeHubBridge (784) */
+  /** @name BpXcmBridgeHubBridge (783) */
   interface BpXcmBridgeHubBridge extends Struct {
     readonly bridgeOriginRelativeLocation: XcmVersionedLocation;
     readonly bridgeOriginUniversalLocation: XcmVersionedInteriorLocation;
@@ -8943,7 +8937,7 @@ declare module "@polkadot/types/lookup" {
     readonly laneId: H256;
   }
 
-  /** @name BpXcmBridgeHubBridgeState (785) */
+  /** @name BpXcmBridgeHubBridgeState (784) */
   interface BpXcmBridgeHubBridgeState extends Enum {
     readonly isOpened: boolean;
     readonly isSuspended: boolean;
@@ -8951,7 +8945,7 @@ declare module "@polkadot/types/lookup" {
     readonly type: "Opened" | "Suspended" | "Closed";
   }
 
-  /** @name PalletXcmBridgeHubError (786) */
+  /** @name PalletXcmBridgeHubError (785) */
   interface PalletXcmBridgeHubError extends Enum {
     readonly isBridgeLocations: boolean;
     readonly asBridgeLocations: BpXcmBridgeHubBridgeLocationsError;
@@ -8976,7 +8970,7 @@ declare module "@polkadot/types/lookup" {
       | "UnsupportedXcmVersion";
   }
 
-  /** @name BpXcmBridgeHubBridgeLocationsError (787) */
+  /** @name BpXcmBridgeHubBridgeLocationsError (786) */
   interface BpXcmBridgeHubBridgeLocationsError extends Enum {
     readonly isNonUniversalLocation: boolean;
     readonly isInvalidBridgeOrigin: boolean;
@@ -8997,42 +8991,42 @@ declare module "@polkadot/types/lookup" {
       | "UnsupportedLaneIdType";
   }
 
-  /** @name FrameSystemExtensionsCheckNonZeroSender (790) */
+  /** @name FrameSystemExtensionsCheckNonZeroSender (789) */
   type FrameSystemExtensionsCheckNonZeroSender = Null;
 
-  /** @name FrameSystemExtensionsCheckSpecVersion (791) */
+  /** @name FrameSystemExtensionsCheckSpecVersion (790) */
   type FrameSystemExtensionsCheckSpecVersion = Null;
 
-  /** @name FrameSystemExtensionsCheckTxVersion (792) */
+  /** @name FrameSystemExtensionsCheckTxVersion (791) */
   type FrameSystemExtensionsCheckTxVersion = Null;
 
-  /** @name FrameSystemExtensionsCheckGenesis (793) */
+  /** @name FrameSystemExtensionsCheckGenesis (792) */
   type FrameSystemExtensionsCheckGenesis = Null;
 
-  /** @name FrameSystemExtensionsCheckNonce (796) */
+  /** @name FrameSystemExtensionsCheckNonce (795) */
   interface FrameSystemExtensionsCheckNonce extends Compact<u32> {}
 
-  /** @name FrameSystemExtensionsCheckWeight (797) */
+  /** @name FrameSystemExtensionsCheckWeight (796) */
   type FrameSystemExtensionsCheckWeight = Null;
 
-  /** @name PalletTransactionPaymentChargeTransactionPayment (798) */
+  /** @name PalletTransactionPaymentChargeTransactionPayment (797) */
   interface PalletTransactionPaymentChargeTransactionPayment extends Compact<u128> {}
 
-  /** @name MoonriverRuntimeBridgeRejectObsoleteHeadersAndMessages (799) */
+  /** @name MoonriverRuntimeBridgeRejectObsoleteHeadersAndMessages (798) */
   type MoonriverRuntimeBridgeRejectObsoleteHeadersAndMessages = Null;
 
-  /** @name FrameMetadataHashExtensionCheckMetadataHash (800) */
+  /** @name FrameMetadataHashExtensionCheckMetadataHash (799) */
   interface FrameMetadataHashExtensionCheckMetadataHash extends Struct {
     readonly mode: FrameMetadataHashExtensionMode;
   }
 
-  /** @name FrameMetadataHashExtensionMode (801) */
+  /** @name FrameMetadataHashExtensionMode (800) */
   interface FrameMetadataHashExtensionMode extends Enum {
     readonly isDisabled: boolean;
     readonly isEnabled: boolean;
     readonly type: "Disabled" | "Enabled";
   }
 
-  /** @name CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim (802) */
+  /** @name CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim (801) */
   type CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim = Null;
 } // declare module

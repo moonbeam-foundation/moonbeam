@@ -7214,20 +7214,14 @@ export default {
     _enum: ["NotInPausedMode"]
   },
   /**
-   * Lookup753: pallet_precompile_benchmarks::pallet::Error<T>
-   **/
-  PalletPrecompileBenchmarksError: {
-    _enum: ["BenchmarkError"]
-  },
-  /**
-   * Lookup754: pallet_randomness::types::RequestState<T>
+   * Lookup753: pallet_randomness::types::RequestState<T>
    **/
   PalletRandomnessRequestState: {
     request: "PalletRandomnessRequest",
     deposit: "u128"
   },
   /**
-   * Lookup755: pallet_randomness::types::Request<Balance, pallet_randomness::types::RequestInfo<T>>
+   * Lookup754: pallet_randomness::types::Request<Balance, pallet_randomness::types::RequestInfo<T>>
    **/
   PalletRandomnessRequest: {
     refundAddress: "H160",
@@ -7239,7 +7233,7 @@ export default {
     info: "PalletRandomnessRequestInfo"
   },
   /**
-   * Lookup756: pallet_randomness::types::RequestInfo<T>
+   * Lookup755: pallet_randomness::types::RequestInfo<T>
    **/
   PalletRandomnessRequestInfo: {
     _enum: {
@@ -7248,7 +7242,7 @@ export default {
     }
   },
   /**
-   * Lookup757: pallet_randomness::types::RequestType<T>
+   * Lookup756: pallet_randomness::types::RequestType<T>
    **/
   PalletRandomnessRequestType: {
     _enum: {
@@ -7257,14 +7251,14 @@ export default {
     }
   },
   /**
-   * Lookup758: pallet_randomness::types::RandomnessResult<primitive_types::H256>
+   * Lookup757: pallet_randomness::types::RandomnessResult<primitive_types::H256>
    **/
   PalletRandomnessRandomnessResult: {
     randomness: "Option<H256>",
     requestCount: "u64"
   },
   /**
-   * Lookup759: pallet_randomness::pallet::Error<T>
+   * Lookup758: pallet_randomness::pallet::Error<T>
    **/
   PalletRandomnessError: {
     _enum: [
@@ -7283,25 +7277,25 @@ export default {
     ]
   },
   /**
-   * Lookup760: bp_runtime::HeaderId<primitive_types::H256, Number>
+   * Lookup759: bp_runtime::HeaderId<primitive_types::H256, Number>
    **/
   BpRuntimeHeaderId: "(u32,H256)",
   /**
-   * Lookup761: bp_header_chain::StoredHeaderData<Number, primitive_types::H256>
+   * Lookup760: bp_header_chain::StoredHeaderData<Number, primitive_types::H256>
    **/
   BpHeaderChainStoredHeaderData: {
     number: "u32",
     stateRoot: "H256"
   },
   /**
-   * Lookup762: pallet_bridge_grandpa::storage_types::StoredAuthoritySet<T, I>
+   * Lookup761: pallet_bridge_grandpa::storage_types::StoredAuthoritySet<T, I>
    **/
   PalletBridgeGrandpaStorageTypesStoredAuthoritySet: {
     authorities: "Vec<(SpConsensusGrandpaAppPublic,u64)>",
     setId: "u64"
   },
   /**
-   * Lookup764: pallet_bridge_grandpa::pallet::Error<T, I>
+   * Lookup763: pallet_bridge_grandpa::pallet::Error<T, I>
    **/
   PalletBridgeGrandpaError: {
     _enum: {
@@ -7320,27 +7314,27 @@ export default {
     }
   },
   /**
-   * Lookup765: bp_runtime::OwnedBridgeModuleError
+   * Lookup764: bp_runtime::OwnedBridgeModuleError
    **/
   BpRuntimeOwnedBridgeModuleError: {
     _enum: ["Halted"]
   },
   /**
-   * Lookup766: bp_parachains::ParaInfo
+   * Lookup765: bp_parachains::ParaInfo
    **/
   BpParachainsParaInfo: {
     bestHeadHash: "BpParachainsBestParaHeadHash",
     nextImportedHashPosition: "u32"
   },
   /**
-   * Lookup767: bp_parachains::BestParaHeadHash
+   * Lookup766: bp_parachains::BestParaHeadHash
    **/
   BpParachainsBestParaHeadHash: {
     atRelayBlockNumber: "u32",
     headHash: "H256"
   },
   /**
-   * Lookup770: pallet_bridge_parachains::pallet::Error<T, I>
+   * Lookup769: pallet_bridge_parachains::pallet::Error<T, I>
    **/
   PalletBridgeParachainsError: {
     _enum: {
@@ -7351,7 +7345,7 @@ export default {
     }
   },
   /**
-   * Lookup771: bp_header_chain::HeaderChainError
+   * Lookup770: bp_header_chain::HeaderChainError
    **/
   BpHeaderChainHeaderChainError: {
     _enum: {
@@ -7360,7 +7354,7 @@ export default {
     }
   },
   /**
-   * Lookup772: bp_runtime::storage_proof::StorageProofError
+   * Lookup771: bp_runtime::storage_proof::StorageProofError
    **/
   BpRuntimeStorageProofStorageProofError: {
     _enum: [
@@ -7377,7 +7371,7 @@ export default {
     ]
   },
   /**
-   * Lookup773: bp_messages::InboundLaneData<account::AccountId20>
+   * Lookup772: bp_messages::InboundLaneData<account::AccountId20>
    **/
   BpMessagesInboundLaneData: {
     relayers: "Vec<BpMessagesUnrewardedRelayer>",
@@ -7385,20 +7379,20 @@ export default {
     state: "BpMessagesLaneLaneState"
   },
   /**
-   * Lookup775: bp_messages::UnrewardedRelayer<account::AccountId20>
+   * Lookup774: bp_messages::UnrewardedRelayer<account::AccountId20>
    **/
   BpMessagesUnrewardedRelayer: {
     relayer: "AccountId20",
     messages: "BpMessagesDeliveredMessages"
   },
   /**
-   * Lookup776: bp_messages::lane::LaneState
+   * Lookup775: bp_messages::lane::LaneState
    **/
   BpMessagesLaneLaneState: {
     _enum: ["Opened", "Closed"]
   },
   /**
-   * Lookup777: bp_messages::OutboundLaneData
+   * Lookup776: bp_messages::OutboundLaneData
    **/
   BpMessagesOutboundLaneData: {
     oldestUnprunedNonce: "u64",
@@ -7407,14 +7401,14 @@ export default {
     state: "BpMessagesLaneLaneState"
   },
   /**
-   * Lookup778: bp_messages::MessageKey<bp_messages::lane::HashedLaneId>
+   * Lookup777: bp_messages::MessageKey<bp_messages::lane::HashedLaneId>
    **/
   BpMessagesMessageKey: {
     laneId: "H256",
     nonce: "u64"
   },
   /**
-   * Lookup780: pallet_bridge_messages::pallet::Error<T, I>
+   * Lookup779: pallet_bridge_messages::pallet::Error<T, I>
    **/
   PalletBridgeMessagesError: {
     _enum: {
@@ -7431,7 +7425,7 @@ export default {
     }
   },
   /**
-   * Lookup781: pallet_bridge_messages::lanes_manager::LanesManagerError
+   * Lookup780: pallet_bridge_messages::lanes_manager::LanesManagerError
    **/
   PalletBridgeMessagesLanesManagerLanesManagerError: {
     _enum: [
@@ -7445,7 +7439,7 @@ export default {
     ]
   },
   /**
-   * Lookup782: bp_messages::VerificationError
+   * Lookup781: bp_messages::VerificationError
    **/
   BpMessagesVerificationError: {
     _enum: {
@@ -7462,7 +7456,7 @@ export default {
     }
   },
   /**
-   * Lookup783: pallet_bridge_messages::outbound_lane::ReceptionConfirmationError
+   * Lookup782: pallet_bridge_messages::outbound_lane::ReceptionConfirmationError
    **/
   PalletBridgeMessagesOutboundLaneReceptionConfirmationError: {
     _enum: [
@@ -7473,7 +7467,7 @@ export default {
     ]
   },
   /**
-   * Lookup784: bp_xcm_bridge_hub::Bridge<ThisChain, LaneId>
+   * Lookup783: bp_xcm_bridge_hub::Bridge<ThisChain, LaneId>
    **/
   BpXcmBridgeHubBridge: {
     bridgeOriginRelativeLocation: "XcmVersionedLocation",
@@ -7485,13 +7479,13 @@ export default {
     laneId: "H256"
   },
   /**
-   * Lookup785: bp_xcm_bridge_hub::BridgeState
+   * Lookup784: bp_xcm_bridge_hub::BridgeState
    **/
   BpXcmBridgeHubBridgeState: {
     _enum: ["Opened", "Suspended", "Closed"]
   },
   /**
-   * Lookup786: pallet_xcm_bridge_hub::pallet::Error<T, I>
+   * Lookup785: pallet_xcm_bridge_hub::pallet::Error<T, I>
    **/
   PalletXcmBridgeHubError: {
     _enum: {
@@ -7507,7 +7501,7 @@ export default {
     }
   },
   /**
-   * Lookup787: bp_xcm_bridge_hub::BridgeLocationsError
+   * Lookup786: bp_xcm_bridge_hub::BridgeLocationsError
    **/
   BpXcmBridgeHubBridgeLocationsError: {
     _enum: [
@@ -7522,51 +7516,51 @@ export default {
     ]
   },
   /**
-   * Lookup790: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T>
+   * Lookup789: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T>
    **/
   FrameSystemExtensionsCheckNonZeroSender: "Null",
   /**
-   * Lookup791: frame_system::extensions::check_spec_version::CheckSpecVersion<T>
+   * Lookup790: frame_system::extensions::check_spec_version::CheckSpecVersion<T>
    **/
   FrameSystemExtensionsCheckSpecVersion: "Null",
   /**
-   * Lookup792: frame_system::extensions::check_tx_version::CheckTxVersion<T>
+   * Lookup791: frame_system::extensions::check_tx_version::CheckTxVersion<T>
    **/
   FrameSystemExtensionsCheckTxVersion: "Null",
   /**
-   * Lookup793: frame_system::extensions::check_genesis::CheckGenesis<T>
+   * Lookup792: frame_system::extensions::check_genesis::CheckGenesis<T>
    **/
   FrameSystemExtensionsCheckGenesis: "Null",
   /**
-   * Lookup796: frame_system::extensions::check_nonce::CheckNonce<T>
+   * Lookup795: frame_system::extensions::check_nonce::CheckNonce<T>
    **/
   FrameSystemExtensionsCheckNonce: "Compact<u32>",
   /**
-   * Lookup797: frame_system::extensions::check_weight::CheckWeight<T>
+   * Lookup796: frame_system::extensions::check_weight::CheckWeight<T>
    **/
   FrameSystemExtensionsCheckWeight: "Null",
   /**
-   * Lookup798: pallet_transaction_payment::ChargeTransactionPayment<T>
+   * Lookup797: pallet_transaction_payment::ChargeTransactionPayment<T>
    **/
   PalletTransactionPaymentChargeTransactionPayment: "Compact<u128>",
   /**
-   * Lookup799: moonbeam_runtime::BridgeRejectObsoleteHeadersAndMessages
+   * Lookup798: moonbeam_runtime::BridgeRejectObsoleteHeadersAndMessages
    **/
   MoonbeamRuntimeBridgeRejectObsoleteHeadersAndMessages: "Null",
   /**
-   * Lookup800: frame_metadata_hash_extension::CheckMetadataHash<T>
+   * Lookup799: frame_metadata_hash_extension::CheckMetadataHash<T>
    **/
   FrameMetadataHashExtensionCheckMetadataHash: {
     mode: "FrameMetadataHashExtensionMode"
   },
   /**
-   * Lookup801: frame_metadata_hash_extension::Mode
+   * Lookup800: frame_metadata_hash_extension::Mode
    **/
   FrameMetadataHashExtensionMode: {
     _enum: ["Disabled", "Enabled"]
   },
   /**
-   * Lookup802: cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<T>
+   * Lookup801: cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<T>
    **/
   CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim: "Null"
 };
