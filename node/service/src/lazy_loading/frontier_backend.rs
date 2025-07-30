@@ -58,7 +58,7 @@ where
 	) -> Result<Vec<TransactionMetadata<Block>>, String> {
 		let result = self
 			.rpc_client
-			.transaction_by_hash::<Block>(eth_transaction_hash)
+			.transaction_by_hash(eth_transaction_hash)
 			.map_err(|e| format!("failed to get transaction by hash: {:?}", e))?;
 
 		if let Some(tx) = result {
@@ -67,7 +67,7 @@ where
 
 			let substrate_block_hash = self
 				.rpc_client
-				.block_hash::<Block>(Some(block_number))
+				.block_hash(Some(block_number))
 				.map_err(|e| format!("failed to get block: {:?}", e))?;
 
 			return Ok(vec![TransactionMetadata::<Block> {

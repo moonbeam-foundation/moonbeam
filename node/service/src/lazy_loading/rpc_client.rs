@@ -192,7 +192,7 @@ impl RPC {
 		}
 	}
 
-	pub fn transaction_by_hash<Block: BlockT>(
+	pub fn transaction_by_hash(
 		&self,
 		eth_transaction_hash: &H256,
 	) -> Result<Option<fc_rpc_v2_api::types::Transaction>, jsonrpsee::core::ClientError> {
@@ -206,7 +206,7 @@ impl RPC {
 		self.block_on(request)
 	}
 
-	pub fn block_by_hash<Block: BlockT>(
+	pub fn block_by_hash(
 		&self,
 		eth_block_hash: &H256,
 		full: bool,
