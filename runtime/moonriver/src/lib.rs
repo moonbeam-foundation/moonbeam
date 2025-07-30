@@ -1269,6 +1269,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
 	type ProxyType = ProxyType;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
