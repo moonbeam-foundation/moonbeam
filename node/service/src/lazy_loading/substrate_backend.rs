@@ -29,9 +29,7 @@ use std::time::Duration;
 use std::{
 	collections::{HashMap, HashSet},
 	ptr,
-	sync::{
-		Arc,
-	},
+	sync::Arc,
 };
 
 use sc_client_api::{
