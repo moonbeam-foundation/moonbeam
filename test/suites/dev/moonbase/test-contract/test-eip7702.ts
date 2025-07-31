@@ -13,7 +13,7 @@ describeSuite({
     it({
       id: "T01",
       title: "happy path - should successfully delegate with valid EIP-7702 authorization",
-      test: async function () {
+      test: async () => {
         // Deploy the delegation contract
         const { contractAddress: delegationContract } = await deployCreateCompiledContract(
           context,
