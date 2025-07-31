@@ -57,10 +57,16 @@ pnpm check  # Runs Biome linter
 docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev --alice --sealing 6000 --rpc-port 9944
 ```
 
-### Benchmarking
+### Runtime Benchmarking
+
+**Prerequisites**: Install `frame-omni-bencher` from [crates.io](https://crates.io/crates/frame-omni-bencher) or [Polkadot SDK](https://github.com/paritytech/polkadot-sdk/tree/b45f89c51fbd58e984e5e013992dd26715cb8bdc/substrate/utils/frame/omni-bencher)
+
 ```bash
-# Run benchmarks for a specific pallet
-./scripts/run-bench.sh pallet_parachain_staking
+# Run runtime benchmarks (may need to update frame-omni-bencher path in script)
+./scripts/run-benches-for-runtime.sh moonbase release
+
+# The script uses frame-omni-bencher with these key parameters:
+# --steps=50 --repeat=20 --wasm-execution=compiled
 ```
 
 ## Architecture Overview
@@ -96,12 +102,12 @@ Tests are split into:
 
 ## Network Configuration
 
-| Network | Chain ID | Runtime | Purpose |
-|---------|----------|---------|---------|
-| Moonbeam | 1284 | moonbeam | Polkadot MainNet |
-| Moonriver | 1285 | moonriver | Kusama parachain |
-| Moonbase Alpha | 1287 | moonbase | Public TestNet |
-| Development | 1281 | moonbase | Local development |
+| Network        | Chain ID | Runtime   | Purpose           |
+| -------------- | -------- | --------- | ----------------- |
+| Moonbeam       | 1284     | moonbeam  | Polkadot MainNet  |
+| Moonriver      | 1285     | moonriver | Kusama parachain  |
+| Moonbase Alpha | 1287     | moonbase  | Public TestNet    |
+| Development    | 1281     | moonbase  | Local development |
 
 ## Key Development Patterns
 
