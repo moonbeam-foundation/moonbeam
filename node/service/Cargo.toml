@@ -103,6 +103,7 @@ fc-rpc = { workspace = true, features = [
 	"txpool",
 ] }
 fc-rpc-core = { workspace = true }
+fc-rpc-v2-api = { workspace = true }
 fp-rpc = { workspace = true, features = ["std"] }
 pallet-ethereum = { workspace = true, features = [
 	"forbid-evm-reentrancy",

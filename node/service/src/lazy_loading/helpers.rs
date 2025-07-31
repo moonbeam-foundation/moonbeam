@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::lazy_loading;
-use crate::lazy_loading::backend::RPC;
 use cumulus_primitives_core::BlockT;
 use parity_scale_codec::Encode;
 use sc_client_api::{Backend, BlockImportOperation, NewBlockState};
@@ -26,7 +25,7 @@ use sp_storage::{StateVersion, Storage, StorageKey};
 use std::sync::Arc;
 
 pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
-	backend: Arc<lazy_loading::backend::Backend<Block>>,
+	backend: Arc<lazy_loading::substrate_backend::Backend<Block>>,
 	fork_checkpoint: Block,
 	mut state_overrides: Vec<(Vec<u8>, Vec<u8>)>,
 ) -> sp_blockchain::Result<()> {
@@ -74,7 +73,7 @@ pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 	backend.commit_operation(op)
 }
 
-pub fn get_parachain_id(rpc_client: Arc<RPC>) -> Option<u32> {
+pub fn get_parachain_id(rpc_client: Arc<super::rpc_client::RPC>) -> Option<u32> {
 	let key = [twox_128(b"ParachainInfo"), twox_128(b"ParachainId")].concat();
 	let result = rpc_client.storage::<H256>(StorageKey(key), None);
 
