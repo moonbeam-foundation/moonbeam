@@ -65,6 +65,7 @@ describeSuite({
                   10_000_000_000n,
                   "0",
                   null,
+                  [],
                   []
                 )
             )
@@ -170,7 +171,14 @@ describeSuite({
                     V4: {
                       parents: 0n,
                       interior: {
-                        X1: [{ AccountKey20: { network: null, key: hexToU8a(baltathar.address) } }],
+                        X1: [
+                          {
+                            AccountKey20: {
+                              network: null,
+                              key: hexToU8a(baltathar.address),
+                            },
+                          },
+                        ],
                       },
                     },
                   } as any,

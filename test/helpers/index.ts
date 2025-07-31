@@ -6,6 +6,7 @@ export * from "./common";
 export * from "./constants";
 export * from "./contracts";
 export * from "./crowdloan";
+export * from "./eip7702";
 export * from "./eth-transactions";
 export * from "./expect";
 export * from "./foreign-chains";
