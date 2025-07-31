@@ -93,7 +93,6 @@ Tests are split into:
 - **Rust Unit Tests**: In each pallet/module
 - **TypeScript Integration Tests**: In `/test` using Moonwall framework
 - **Smoke Tests**: Minimal tests for quick validation
-- **Dev Tests**: Comprehensive feature testing
 
 ### Cross-Component Communication
 1. **Runtime ↔ EVM**: Through precompiles and pallet-evm
