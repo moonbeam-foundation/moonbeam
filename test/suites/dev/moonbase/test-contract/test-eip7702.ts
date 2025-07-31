@@ -22,7 +22,7 @@ describeSuite({
         await context.createBlock();
 
         expect(delegationContract).toBeTruthy();
-        log(`Delegation contract deployed at: ${delegationContract}`);
+        console.log(`Delegation contract deployed at: ${delegationContract}`);
 
         // Create a new EOA for delegation
         const delegatingEOA = privateKeyToAccount(
@@ -30,7 +30,7 @@ describeSuite({
         );
         const delegatingAddress = delegatingEOA.address;
 
-        log(`Created EOA for delegation: ${delegatingAddress}`);
+        console.log(`Created EOA for delegation: ${delegatingAddress}`);
 
         // Fund the delegating EOA with some balance from ALITH
         await context.createBlock([
@@ -52,8 +52,10 @@ describeSuite({
           delegationContract!
         );
 
-        log(`Authorization created for ${delegatingAddress} to delegate to ${delegationContract}`);
-        log(`Authorization nonce: ${authorization.nonce}`);
+        console.log(
+          `Authorization created for ${delegatingAddress} to delegate to ${delegationContract}`
+        );
+        console.log(`Authorization nonce: ${authorization.nonce}`);
 
         // Create the authorization list
         const authorizationList = [authorization];
@@ -79,14 +81,18 @@ describeSuite({
         });
 
         const result = await context.createBlock(rawSigned);
-        log(`Transaction submitted by ALITH for delegation to ${delegatingAddress}`);
-        log(`Block result:`, result.result);
+        console.log(`Transaction submitted by ALITH for delegation to ${delegatingAddress}`);
+        console.log(`Block result:`, result.result);
 
         // Check if the delegating address now has delegated code
         const codeAtDelegator = await context.viem("public").getCode({
           address: delegatingAddress,
         });
-        log(`Code at delegating address: ${codeAtDelegator}`);
+
+        // EIP-7702 sets a special delegated code format: 0xef0100 + 20-byte address
+        expect(codeAtDelegator).toBeTruthy();
+        expect(codeAtDelegator?.startsWith("0xef0100")).toBe(true);
+        expect(codeAtDelegator?.length).toBe(48); // 0x + ef0100 (6) + address (40)
 
         // Now check if the delegation worked
         // The storage should be in Baltathar's account context, not the contract's
@@ -108,7 +114,7 @@ describeSuite({
         });
 
         const actualBalance = BigInt(storageAtDelegator || "0");
-        log(`Storage at delegating address ${delegatingAddress}: ${actualBalance}`);
+        console.log(`Storage at delegating address ${delegatingAddress}: ${actualBalance}`);
 
         // Also check the contract storage (should be 0 if delegation worked properly)
         const contractStorageBalance = await context.viem("public").readContract({
@@ -118,11 +124,11 @@ describeSuite({
           args: [targetAddress],
         });
 
-        log(`Balance in contract storage: ${contractStorageBalance}`);
+        console.log(`Balance in contract storage: ${contractStorageBalance}`);
 
         // Happy path expectations
         expect(actualBalance).to.equal(targetBalance);
-        log(
+        console.log(
           `SUCCESS: EIP-7702 delegation worked! Balance ${actualBalance} was stored in the delegating account's storage`
         );
 
@@ -152,8 +158,8 @@ describeSuite({
         const updatedBalance = BigInt(updatedStorage || "0");
         expect(updatedBalance).to.equal(5500n);
 
-        log(`After increment: Balance is now ${updatedBalance}`);
-        log(`EIP-7702 delegation is working correctly!`);
+        console.log(`After increment: Balance is now ${updatedBalance}`);
+        console.log(`EIP-7702 delegation is working correctly!`);
       },
     });
   },
