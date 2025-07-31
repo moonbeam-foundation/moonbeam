@@ -51,7 +51,7 @@ pnpm check  # Runs Biome linter
 ### Running Development Node
 ```bash
 # Using built binary
-./target/release/moonbeam --dev --rpc-port 9944 --ws-port 9945
+./target/release/moonbeam --dev --alice --sealing 6000 --rpc-port 9944
 
 # Using Docker
 docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev
