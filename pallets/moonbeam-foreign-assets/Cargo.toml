@@ -11,10 +11,10 @@ log = { workspace = true }
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-parity-scale-codec = { workspace = true, features = [ "derive" ] }
+parity-scale-codec = { workspace = true, features = ["derive"] }
 precompile-utils = { workspace = true }
 precompile-utils-macro = { workspace = true }
-scale-info = { workspace = true, features = [ "derive" ] }
+scale-info = { workspace = true, features = ["derive"] }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
@@ -32,32 +32,39 @@ xcm-executor = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
 [build-dependencies]
-hex = { workspace = true, features = [ "std" ] }
+hex = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
 hex = { workspace = true }
-pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
-pallet-timestamp = { workspace = true, features = [ "std" ] }
-sp-core = { workspace = true, features = [ "std" ] }
+pallet-balances = { workspace = true, features = ["insecure_zero_ed", "std"] }
+pallet-timestamp = { workspace = true, features = ["std"] }
+sp-core = { workspace = true, features = ["std"] }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
-	"ethereum-types/std",
-	"frame-benchmarking/std",
-	"frame-support/std",
-	"frame-system/std",
-	"precompile-utils/std",
-	"precompile-utils/testing",
-	"pallet-evm/std",
-	"parity-scale-codec/std",
-	"scale-info/std",
-	"sp-io/std",
-	"sp-runtime/std",
-	"sp-std/std",
-	"xcm/std",
-	"xcm-executor/std",
+    "ethereum-types/std",
+    "frame-benchmarking/std",
+    "frame-support/std",
+    "frame-system/std",
+    "precompile-utils/std",
+    "precompile-utils/testing",
+    "pallet-evm/std",
+    "parity-scale-codec/std",
+    "scale-info/std",
+    "sp-io/std",
+    "sp-runtime/std",
+    "sp-std/std",
+    "xcm/std",
+    "xcm-executor/std",
+    "fp-evm/std",
+    "pallet-ethereum/std",
 ]
 
-runtime-benchmarks = ["frame-benchmarking"]
-try-runtime = [ "frame-support/try-runtime" ]
+runtime-benchmarks = [
+    "frame-benchmarking",
+    "frame-support/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "pallet-ethereum/runtime-benchmarks",
+]
+try-runtime = ["frame-support/try-runtime"]
