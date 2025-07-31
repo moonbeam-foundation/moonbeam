@@ -1,29 +1,36 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { createEthersTransaction } from "@moonwall/util";
-import { encodeFunctionData, numberToHex } from "viem";
+import { encodeFunctionData, numberToHex, type Abi } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { createEIP7702Authorization, EIP7702_DELEGATION_ABI, expectOk } from "../../../../helpers";
+import { createEIP7702Authorization, expectOk } from "../../../../helpers";
 
 describeSuite({
   id: "D010301",
   title: "EIP-7702 Transactions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    let contractAddress: `0x${string}`;
+    let contractAbi: Abi;
+
+    beforeAll(async () => {
+      // Deploy the delegation contract
+      const { contractAddress: address, abi } = await deployCreateCompiledContract(
+        context,
+        "EIP7702Delegation"
+      );
+
+      expect(address).toBeTruthy();
+      console.log(`Delegation contract deployed at: ${address}`);
+
+      contractAddress = address;
+      contractAbi = abi;
+    });
+
     it({
       id: "T01",
       title: "happy path - should successfully delegate with valid EIP-7702 authorization",
       test: async () => {
-        // Deploy the delegation contract
-        const { contractAddress: delegationContract } = await deployCreateCompiledContract(
-          context,
-          "EIP7702Delegation"
-        );
-        await context.createBlock();
-
-        expect(delegationContract).toBeTruthy();
-        console.log(`Delegation contract deployed at: ${delegationContract}`);
-
         // Create a new EOA for delegation
         const delegatingEOA = privateKeyToAccount(
           "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133"
@@ -49,11 +56,11 @@ describeSuite({
           delegatingEOA,
           1281n, // chainId
           BigInt(delegatingNonce), // Use actual nonce
-          delegationContract!
+          contractAddress!
         );
 
         console.log(
-          `Authorization created for ${delegatingAddress} to delegate to ${delegationContract}`
+          `Authorization created for ${delegatingAddress} to delegate to ${contractAddress}`
         );
         console.log(`Authorization nonce: ${authorization.nonce}`);
 
@@ -67,7 +74,7 @@ describeSuite({
         const targetBalance = 5000n;
 
         const callData = encodeFunctionData({
-          abi: EIP7702_DELEGATION_ABI,
+          abi: contractAbi,
           functionName: "setBalance",
           args: [targetAddress, targetBalance],
         });
@@ -118,8 +125,8 @@ describeSuite({
 
         // Also check the contract storage (should be 0 if delegation worked properly)
         const contractStorageBalance = await context.viem("public").readContract({
-          address: delegationContract!,
-          abi: EIP7702_DELEGATION_ABI,
+          address: contractAddress!,
+          abi: contractAbi,
           functionName: "getBalance",
           args: [targetAddress],
         });
@@ -134,7 +141,7 @@ describeSuite({
 
         // Additional test: call incrementBalance to verify continued delegation
         const incrementData = encodeFunctionData({
-          abi: EIP7702_DELEGATION_ABI,
+          abi: contractAbi,
           functionName: "incrementBalance",
           args: [targetAddress, 500n],
         });

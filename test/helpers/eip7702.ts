@@ -70,14 +70,3 @@ export async function createEIP7702Authorization(
     },
   };
 }
-
-/**
- * EIP-7702 Delegation Contract ABI
- * Common ABI for testing EIP-7702 delegation functionality
- */
-export const EIP7702_DELEGATION_ABI = parseAbi([
-  "function setBalance(address account, uint256 newBalance) external",
-  "function incrementBalance(address account, uint256 amount) external returns (uint256)",
-  "function getBalance(address account) external view returns (uint256)",
-  "function balances(address) external view returns (uint256)",
-]);
