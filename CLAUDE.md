@@ -54,7 +54,7 @@ pnpm check  # Runs Biome linter
 ./target/release/moonbeam --dev --alice --sealing 6000 --rpc-port 9944
 
 # Using Docker
-docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev
+docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev --alice --sealing 6000 --rpc-port 9944
 ```
 
 ### Benchmarking
