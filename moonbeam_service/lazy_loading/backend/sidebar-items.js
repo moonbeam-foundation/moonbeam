@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["check_genesis_storage","new_lazy_loading_backend"],"struct":["Backend","BlockImportOperation","Blockchain","ForkedLazyBackend","RPC","RawIter","RawIterArgs"],"type":["DbState"]};

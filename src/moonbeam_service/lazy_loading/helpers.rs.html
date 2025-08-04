@@ -86,7 +86,6 @@
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -104,7 +103,6 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::lazy_loading;
-<span class="kw">use </span><span class="kw">crate</span>::lazy_loading::backend::RPC;
 <span class="kw">use </span>cumulus_primitives_core::BlockT;
 <span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>sc_client_api::{Backend, BlockImportOperation, NewBlockState};
@@ -115,7 +113,7 @@
 <span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">pub fn </span>produce_first_block&lt;Block: BlockT + sp_runtime::DeserializeOwned&gt;(
-	backend: Arc&lt;lazy_loading::backend::Backend&lt;Block&gt;&gt;,
+	backend: Arc&lt;lazy_loading::substrate_backend::Backend&lt;Block&gt;&gt;,
 	fork_checkpoint: Block,
 	<span class="kw-2">mut </span>state_overrides: Vec&lt;(Vec&lt;u8&gt;, Vec&lt;u8&gt;)&gt;,
 ) -&gt; sp_blockchain::Result&lt;()&gt; {
@@ -163,7 +161,7 @@
 	backend.commit_operation(op)
 }
 
-<span class="kw">pub fn </span>get_parachain_id(rpc_client: Arc&lt;RPC&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+<span class="kw">pub fn </span>get_parachain_id(rpc_client: Arc&lt;<span class="kw">super</span>::rpc_client::RPC&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
 	<span class="kw">let </span>key = [twox_128(<span class="string">b"ParachainInfo"</span>), twox_128(<span class="string">b"ParachainId"</span>)].concat();
 	<span class="kw">let </span>result = rpc_client.storage::&lt;H256&gt;(StorageKey(key), <span class="prelude-val">None</span>);
 

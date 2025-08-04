@@ -877,6 +877,12 @@
 <a href="#877" id="877">877</a>
 <a href="#878" id="878">878</a>
 <a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
@@ -905,6 +911,7 @@
 <span class="kw">use </span>cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 <span class="kw">use </span>fc_rpc::StorageOverrideHandler;
 <span class="kw">use </span>fc_rpc_core::types::{FeeHistoryCache, FilterPool};
+<span class="kw">use </span>frontier_backend::LazyLoadingFrontierBackend;
 <span class="kw">use </span>futures::{FutureExt, StreamExt};
 <span class="kw">use </span>moonbeam_cli_opt::{EthApi <span class="kw">as </span>EthApiCmd, LazyLoadingConfig, RpcConfig};
 <span class="kw">use </span>moonbeam_core_primitives::{Block, Hash};
@@ -936,13 +943,15 @@
 <span class="kw">use </span>std::sync::{Arc, Mutex};
 <span class="kw">use </span>std::time::Duration;
 
-<span class="kw">pub mod </span>backend;
 <span class="kw">pub mod </span>call_executor;
 <span class="kw">mod </span>client;
+<span class="kw">pub mod </span>frontier_backend;
 <span class="kw">mod </span>helpers;
 <span class="kw">mod </span>lock;
 <span class="kw">mod </span>manual_sealing;
+<span class="kw">mod </span>rpc_client;
 <span class="kw">mod </span>state_overrides;
+<span class="kw">pub mod </span>substrate_backend;
 
 <span class="kw">pub const </span>LAZY_LOADING_LOG_TARGET: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"lazy-loading"</span>;
 
@@ -955,7 +964,7 @@
 &gt;;
 
 <span class="doccomment">/// Lazy loading client backend type.
-</span><span class="kw">pub type </span>TLazyLoadingBackend&lt;TBl&gt; = backend::Backend&lt;TBl&gt;;
+</span><span class="kw">pub type </span>TLazyLoadingBackend&lt;TBl&gt; = substrate_backend::Backend&lt;TBl&gt;;
 
 <span class="doccomment">/// Lazy loading client call executor type.
 </span><span class="kw">pub type </span>TLazyLoadingCallExecutor&lt;TBl, TExec&gt; = call_executor::LazyLoadingCallExecutor&lt;
@@ -987,7 +996,7 @@
 	TBl::Hash: From&lt;H256&gt;,
 	TExec: CodeExecutor + RuntimeVersionOf + Clone,
 {
-	<span class="kw">let </span>backend = backend::new_lazy_loading_backend(config, <span class="kw-2">&amp;</span>lazy_loading_config)<span class="question-mark">?</span>;
+	<span class="kw">let </span>backend = substrate_backend::new_backend(config, <span class="kw-2">&amp;</span>lazy_loading_config)<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>genesis_block_builder = GenesisBlockBuilder::new(
 		config.chain_spec.as_storage_builder(),
@@ -1657,10 +1666,13 @@
 				command_sink: command_sink_for_task.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: <span class="kw">match </span><span class="kw-2">*</span>frontier_backend {
-					fc_db::Backend::KeyValue(<span class="kw-2">ref </span>b) =&gt; b.clone(),
-					fc_db::Backend::Sql(<span class="kw-2">ref </span>b) =&gt; b.clone(),
-				},
+				frontier_backend: Arc::new(LazyLoadingFrontierBackend {
+					rpc_client: backend.clone().rpc_client.clone(),
+					frontier_backend: <span class="kw">match </span><span class="kw-2">*</span>frontier_backend {
+						fc_db::Backend::KeyValue(<span class="kw-2">ref </span>b) =&gt; b.clone(),
+						fc_db::Backend::Sql(<span class="kw-2">ref </span>b) =&gt; b.clone(),
+					},
+				}),
 				graph: pool.clone(),
 				pool: pool.clone(),
 				is_authority: collator,
