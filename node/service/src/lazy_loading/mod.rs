@@ -26,6 +26,7 @@ use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_rpc::StorageOverrideHandler;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
+use frontier_backend::LazyLoadingFrontierBackend;
 use futures::{FutureExt, StreamExt};
 use moonbeam_cli_opt::{EthApi as EthApiCmd, LazyLoadingConfig, RpcConfig};
 use moonbeam_core_primitives::{Block, Hash};
@@ -57,13 +58,15 @@ use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-pub mod backend;
 pub mod call_executor;
 mod client;
+pub mod frontier_backend;
 mod helpers;
 mod lock;
 mod manual_sealing;
+mod rpc_client;
 mod state_overrides;
+pub mod substrate_backend;
 
 pub const LAZY_LOADING_LOG_TARGET: &'static str = "lazy-loading";
 
@@ -76,7 +79,7 @@ pub type TLazyLoadingClient<TBl, TRtApi, TExec> = sc_service::client::Client<
 >;
 
 /// Lazy loading client backend type.
-pub type TLazyLoadingBackend<TBl> = backend::Backend<TBl>;
+pub type TLazyLoadingBackend<TBl> = substrate_backend::Backend<TBl>;
 
 /// Lazy loading client call executor type.
 pub type TLazyLoadingCallExecutor<TBl, TExec> = call_executor::LazyLoadingCallExecutor<
@@ -108,7 +111,7 @@ where
 	TBl::Hash: From<H256>,
 	TExec: CodeExecutor + RuntimeVersionOf + Clone,
 {
-	let backend = backend::new_lazy_loading_backend(config, &lazy_loading_config)?;
+	let backend = substrate_backend::new_backend(config, &lazy_loading_config)?;
 
 	let genesis_block_builder = GenesisBlockBuilder::new(
 		config.chain_spec.as_storage_builder(),
@@ -778,10 +781,13 @@ where
 				command_sink: command_sink_for_task.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: match *frontier_backend {
-					fc_db::Backend::KeyValue(ref b) => b.clone(),
-					fc_db::Backend::Sql(ref b) => b.clone(),
-				},
+				frontier_backend: Arc::new(LazyLoadingFrontierBackend {
+					rpc_client: backend.clone().rpc_client.clone(),
+					frontier_backend: match *frontier_backend {
+						fc_db::Backend::KeyValue(ref b) => b.clone(),
+						fc_db::Backend::Sql(ref b) => b.clone(),
+					},
+				}),
 				graph: pool.clone(),
 				pool: pool.clone(),
 				is_authority: collator,

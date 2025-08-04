@@ -3673,6 +3673,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "fc-rpc-v2-api"
+version = "0.1.0"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2412#080a791b79002c95c553d69789cc0e48e1459c2a"
+dependencies = [
+ "ethereum-types",
+ "fc-rpc-v2-types",
+ "jsonrpsee 0.24.9",
+]
+
+[[package]]
+name = "fc-rpc-v2-types"
+version = "0.1.0"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2412#080a791b79002c95c553d69789cc0e48e1459c2a"
+dependencies = [
+ "const-hex",
+ "ethereum-types",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2412#1b6edf7a3558475b9cf368bfd1d396bccb9b5eb0"
@@ -7744,6 +7765,7 @@ dependencies = [
  "fc-mapping-sync",
  "fc-rpc",
  "fc-rpc-core",
+ "fc-rpc-v2-api",
  "flume 0.10.14",
  "fp-rpc",
  "frame-benchmarking",
