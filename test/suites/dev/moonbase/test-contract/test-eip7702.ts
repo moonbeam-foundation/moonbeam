@@ -2,8 +2,8 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { createEthersTransaction } from "@moonwall/util";
 import { encodeFunctionData, numberToHex, type Abi } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { createEIP7702Authorization, expectOk } from "../../../../helpers";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { expectOk } from "../../../../helpers";
 
 describeSuite({
   id: "D010301",
@@ -32,9 +32,9 @@ describeSuite({
       title: "happy path - should successfully delegate with valid EIP-7702 authorization",
       test: async () => {
         // Create a new EOA for delegation
-        const delegatingEOA = privateKeyToAccount(
-          "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133"
-        );
+        const privateKey = generatePrivateKey();
+        const delegatingEOA = privateKeyToAccount(privateKey);
+
         const delegatingAddress = delegatingEOA.address;
 
         console.log(`Created EOA for delegation: ${delegatingAddress}`);
@@ -46,18 +46,11 @@ describeSuite({
             .tx.balances.transferAllowDeath(delegatingAddress, 1000000000000000000n),
         ]);
 
-        // Get the actual nonce of the delegating EOA
-        const delegatingNonce = await context
-          .viem("public")
-          .getTransactionCount({ address: delegatingAddress });
-
-        // Create authorization for the new EOA to delegate to the contract
-        const authorization = await createEIP7702Authorization(
-          delegatingEOA,
-          1281n, // chainId
-          BigInt(delegatingNonce), // Use actual nonce
-          contractAddress!
-        );
+        const authorization = await delegatingEOA.signAuthorization({
+          contractAddress: contractAddress,
+          chainId: 1281,
+          nonce: 0,
+        });
 
         console.log(
           `Authorization created for ${delegatingAddress} to delegate to ${contractAddress}`
