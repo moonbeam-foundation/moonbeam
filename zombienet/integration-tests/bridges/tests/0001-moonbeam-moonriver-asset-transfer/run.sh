@@ -12,7 +12,7 @@ export ENV_PATH=`realpath ${BASH_SOURCE%/*}/../../environments/moonbeam-moonrive
 $ENV_PATH/spawn.sh --init --start-relayer &
 env_pid=$!
 
-ensure_process_file $env_pid $TEST_DIR/moonbeam.env 600
+ensure_process_file $env_pid $TEST_DIR/moonbeam.env 300
 moonbeam_dir=`cat $TEST_DIR/moonbeam.env`
 echo
 
@@ -20,5 +20,5 @@ ensure_process_file $env_pid $TEST_DIR/moonriver.env 300
 moonriver_dir=`cat $TEST_DIR/moonriver.env`
 echo
 
-run_zndsl ${BASH_SOURCE%/*}/movr-reaches-moonbeam.zndsl $moonbeam_dir
-run_zndsl ${BASH_SOURCE%/*}/glmr-reaches-moonriver.zndsl $moonriver_dir
+run_zndsl ${BASH_SOURCE%/*}/glmr-reaches-moonriver.zndsl $moonbeam_dir
+run_zndsl ${BASH_SOURCE%/*}/movr-reaches-moonbeam.zndsl $moonriver_dir

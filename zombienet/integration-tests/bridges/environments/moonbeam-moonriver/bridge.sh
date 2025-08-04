@@ -3,6 +3,38 @@
 # import common functions
 source "$FRAMEWORK_PATH/utils/bridges.sh"
 
+function transfer_assets() {
+    local url=$1
+    local seed=$2
+    local destination=$3
+    local beneficiary=$4
+    local assets=$5
+    local fee_asset_item=$6
+    local weight_limit=$7
+    echo "  calling transfer_assets:"
+    echo "      url: ${url}"
+    echo "      seed: ${seed}"
+    echo "      destination: ${destination}"
+    echo "      beneficiary: ${beneficiary}"
+    echo "      assets: ${assets}"
+    echo "      fee_asset_item: ${fee_asset_item}"
+    echo "      weight_limit: ${weight_limit}"
+    echo ""
+    echo "--------------------------------------------------"
+
+    # TODO: Fix Signing
+
+    call_polkadot_js_api \
+        --ws "${url?}" \
+        --seed "${seed?}" \
+        tx.polkadotXcm.transferAssets \
+            "${destination}" \
+            "${beneficiary}" \
+            "${assets}" \
+            "${fee_asset_item}" \
+            "${weight_limit}"
+}
+
 LANE_ID="0000000000000000000000000000000000000000000000000000000000000000"
 
 function init_polkadot_to_moonriver() {
@@ -59,7 +91,7 @@ function run_finality_relay() {
         --source-version-mode Auto \
         --target-uri ws://localhost:8801 \
         --target-version-mode Auto \
-        --target-signer $BOB_PRIVATE_KEY \
+        --target-signer $BALTATHAR_PRIVATE_KEY \
         --target-transactions-mortality 4&
 
     RUST_LOG=runtime=trace,rpc=trace,bridge=trace \
@@ -69,7 +101,7 @@ function run_finality_relay() {
         --source-version-mode Auto \
         --target-uri ws://localhost:8800 \
         --target-version-mode Auto \
-        --target-signer $BOB_PRIVATE_KEY \
+        --target-signer $BALTATHAR_PRIVATE_KEY \
         --target-transactions-mortality 4
 }
 
@@ -83,7 +115,7 @@ function run_parachains_relay() {
         --source-version-mode Auto \
         --target-uri ws://localhost:8801 \
         --target-version-mode Auto \
-        --target-signer $BOB_PRIVATE_KEY \
+        --target-signer $BALTATHAR_PRIVATE_KEY \
         --target-transactions-mortality 4&
 
     RUST_LOG=runtime=trace,rpc=trace,bridge=trace \
@@ -93,7 +125,7 @@ function run_parachains_relay() {
         --source-version-mode Auto \
         --target-uri ws://localhost:8800 \
         --target-version-mode Auto \
-        --target-signer $BOB_PRIVATE_KEY \
+        --target-signer $BALTATHAR_PRIVATE_KEY \
         --target-transactions-mortality 4
 }
 
@@ -104,11 +136,11 @@ function run_messages_relay() {
         $relayer_path relay-messages moonbeam-to-moonriver \
         --source-uri ws://localhost:8800 \
         --source-version-mode Auto \
-        --source-signer $BOB_PRIVATE_KEY \
+        --source-signer $BALTATHAR_PRIVATE_KEY \
         --source-transactions-mortality 4 \
         --target-uri ws://localhost:8801 \
         --target-version-mode Auto \
-        --target-signer $BOB_PRIVATE_KEY \
+        --target-signer $BALTATHAR_PRIVATE_KEY \
         --target-transactions-mortality 4 \
         --lane $LANE_ID&
 
@@ -116,11 +148,11 @@ function run_messages_relay() {
         $relayer_path relay-messages moonriver-to-moonbeam \
         --source-uri ws://localhost:8801 \
         --source-version-mode Auto \
-        --source-signer $BOB_PRIVATE_KEY \
+        --source-signer $BALTATHAR_PRIVATE_KEY \
         --source-transactions-mortality 4 \
         --target-uri ws://localhost:8800 \
         --target-version-mode Auto \
-        --target-signer $BOB_PRIVATE_KEY \
+        --target-signer $BALTATHAR_PRIVATE_KEY \
         --target-transactions-mortality 4 \
         --lane $LANE_ID
 }
@@ -146,12 +178,25 @@ case "$1" in
       amount=$2
       ensure_polkadot_js_api
       # send GLMR to Alice account on Moonriver
-      limited_reserve_transfer_assets \
+      transfer_assets \
           "ws://127.0.0.1:8800" \
           $ALITH_PRIVATE_KEY \
-          "$(jq --null-input '{ "V4": { "parents": 2, "interior": { "X2": [ { "GlobalConsensus": "Kusama" }, { "Parachain": 1000 } ] } } }')" \
-          "$(jq --null-input '{ "V4": { "parents": 0, "interior": { "X1": [ { "AccountId32": { "id": [212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133, 88, 133, 76, 205, 227, 154, 86, 132, 231, 165, 109, 162, 125] } } ] } } }')" \
-          "$(jq --null-input '{ "V4": [ { "id": { "parents": 1, "interior": "Here" }, "fun": { "Fungible": '$amount' } } ] }')" \
+          "$(jq --null-input '{ "V5": { "parents": 2, "interior": { "X2": [ { "GlobalConsensus": "Kusama" }, { "Parachain": 2023 } ] } } }')" \
+          "$(jq --null-input '{ "V5": { "parents": 0, "interior": { "X1": [ { "AccountKey20": { "key": [242, 79, 243, 169, 207, 4, 199, 29, 188, 148, 208, 181, 102, 247, 162, 123, 148, 86, 108, 172] } } ] } } }')" \
+          "$(jq --null-input '{ "V5": [ { "id": { "parents": 0, "interior": { "X1": [ { "PalletInstance": 10  } ] }, "fun": { "Fungible": '$amount' } } } ] }')" \
+          0 \
+          "Unlimited"
+      ;;
+  reserve-transfer-assets-from-moonriver-local)
+      amount=$2
+      ensure_polkadot_js_api
+      # send MOVR to Alice account on Moonbeam
+      transfer_assets \
+          "ws://127.0.0.1:8801" \
+          $ALITH_PRIVATE_KEY \
+          "$(jq --null-input '{ "V5": { "parents": 2, "interior": { "X2": [ { "GlobalConsensus": "Polkadot" }, { "Parachain": 2004 } ] } } }')" \
+          "$(jq --null-input '{ "V5": { "parents": 0, "interior": { "X1": [ { "AccountKey20": { "key": [242, 79, 243, 169, 207, 4, 199, 29, 188, 148, 208, 181, 102, 247, 162, 123, 148, 86, 108, 172] } } ] } } }')" \
+          "$(jq --null-input '{ "V5": [ { "id": { "parents": 0, "interior": { "X1": [ { "PalletInstance": 10  } ] }, "fun": { "Fungible": '$amount' } } } ] }')" \
           0 \
           "Unlimited"
       ;;
