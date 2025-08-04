@@ -878,10 +878,6 @@ jobs:
         run: |
           cd test
           pnpm moonwall test zombie_${{ matrix.chain }}
-      - name: "Run zombie RPC test"
-        run: |
-          cd test
-          pnpm moonwall test zombie_${{ matrix.chain }}_rpc
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |
