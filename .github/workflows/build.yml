@@ -828,7 +828,7 @@ jobs:
       max-parallel: 1
       matrix:
         ## TODO: add moonriver here when it is ready
-        chain: ["moonbase", "moonbeam"]
+        chain: ["moonbase", "moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
