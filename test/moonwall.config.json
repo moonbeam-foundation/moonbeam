@@ -74,6 +74,19 @@
       ]
     },
     {
+      "name": "zombie_moonriver",
+      "testFileDir": ["suites/zombie"],
+      "multiThreads": false,
+      "runScripts": ["download-polkadot.sh"],
+      "foundation": {
+        "rtUpgradePath": "../target/release/wbuild/moonriver-runtime/moonriver_runtime.compact.compressed.wasm",
+        "type": "zombie",
+        "zombieSpec": {
+          "configPath": "./configs/zombieMoonriver.json"
+        }
+      }
+    },
+    {
       "name": "zombie_moonbase",
       "testFileDir": ["suites/zombie"],
       "multiThreads": false,
