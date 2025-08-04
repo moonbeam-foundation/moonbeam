@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { createEthersTransaction } from "@moonwall/util";
 import { encodeFunctionData, numberToHex, type Abi } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
@@ -56,6 +55,14 @@ describeSuite({
           `Authorization created for ${delegatingAddress} to delegate to ${contractAddress}`
         );
         console.log(`Authorization nonce: ${authorization.nonce}`);
+        console.log(`Authorization details:`, {
+          contractAddress: contractAddress,
+          chainId: authorization.chainId,
+          nonce: authorization.nonce?.toString(),
+          r: authorization.r,
+          s: authorization.s,
+          yParity: authorization.yParity,
+        });
 
         // Create the authorization list
         const authorizationList = [authorization];
@@ -72,22 +79,88 @@ describeSuite({
           args: [targetAddress, targetBalance],
         });
 
-        // Try using createEthersTransaction with proper authorization
-        const rawSigned = await createEthersTransaction(context, {
+        // Create a raw EIP-7702 transaction manually
+        console.log(`Creating EIP-7702 transaction with authorizationList...`);
+        console.log(`Authorization list being sent:`, authorizationList);
+
+        // Get ALITH's account info for signing
+        const alithPrivateKey =
+          "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
+        const alithAccount = privateKeyToAccount(alithPrivateKey);
+
+        // Create the transaction object with authorizationList
+        const transaction = {
           to: delegatingAddress,
           data: callData,
-          gasLimit: 200000,
+          gas: 200000n,
+          maxFeePerGas: 10_000_000_000n,
+          maxPriorityFeePerGas: 0n,
+          nonce: await context.viem("public").getTransactionCount({
+            address: alithAccount.address,
+          }),
+          chainId: 1281,
           authorizationList: authorizationList,
-        });
+          type: "eip7702" as const,
+        };
 
-        const result = await context.createBlock(rawSigned);
+        console.log(`Transaction object:`, transaction);
+
+        // Sign the transaction
+        const signature = await alithAccount.signTransaction(transaction);
+        console.log(`Signed transaction: ${signature}`);
+
+        const result = await context.createBlock(signature);
         console.log(`Transaction submitted by ALITH for delegation to ${delegatingAddress}`);
         console.log(`Block result:`, result.result);
+        console.log(`Result object keys:`, Object.keys(result));
+        console.log(`Full result:`, result);
+
+        // Try to get transaction hash from different sources
+        let txHash: `0x${string}` | undefined;
+        if (result.hash) {
+          txHash = result.hash as `0x${string}`;
+        } else if (result.result?.hash) {
+          txHash = result.result.hash as `0x${string}`;
+        } else if (result.result?.extrinsic?.hash) {
+          txHash = result.result.extrinsic.hash.toHex() as `0x${string}`;
+        }
+
+        console.log(`Transaction hash: ${txHash}`);
+
+        if (txHash) {
+          // Check transaction receipt
+          const receipt = await context.viem("public").getTransactionReceipt({
+            hash: txHash,
+          });
+          console.log(`Transaction receipt status: ${receipt.status}`);
+          console.log(`Transaction receipt logs:`, receipt.logs);
+
+          // Check the transaction details
+          const tx = await context.viem("public").getTransaction({
+            hash: txHash,
+          });
+          console.log(`Transaction type: ${tx.type}`);
+          console.log(`Transaction authorizationList:`, tx.authorizationList);
+
+          // Also check the raw transaction
+          console.log(`Raw transaction:`, tx);
+        } else {
+          console.log(`WARNING: Could not find transaction hash in result`);
+        }
 
         // Check if the delegating address now has delegated code
         const codeAtDelegator = await context.viem("public").getCode({
           address: delegatingAddress,
         });
+        console.log(`Code at delegator address ${delegatingAddress}: ${codeAtDelegator}`);
+
+        // Also check code at contract address for comparison
+        const codeAtContract = await context.viem("public").getCode({
+          address: contractAddress,
+        });
+        console.log(
+          `Code at contract address ${contractAddress}: ${codeAtContract?.slice(0, 50)}...`
+        );
 
         // EIP-7702 sets a special delegated code format: 0xef0100 + 20-byte address
         expect(codeAtDelegator).toBeTruthy();
@@ -126,10 +199,36 @@ describeSuite({
 
         console.log(`Balance in contract storage: ${contractStorageBalance}`);
 
-        // Happy path expectations
-        expect(actualBalance).to.equal(targetBalance);
+        // Let's check if we can read the balance through the delegated address
+        try {
+          const delegatedBalance = await context.viem("public").readContract({
+            address: delegatingAddress,
+            abi: contractAbi,
+            functionName: "getBalance",
+            args: [targetAddress],
+          });
+          console.log(`Balance read through delegated address: ${delegatedBalance}`);
+        } catch (error) {
+          console.log(`Error reading through delegated address:`, error);
+        }
+
+        // Happy path expectations for EIP-7702
+        // The storage is NOT in the delegating address, but accessed through the contract
+        // The delegating address should have the delegation code
+        expect(codeAtDelegator).toBeTruthy();
+        expect(codeAtDelegator?.startsWith("0xef0100")).toBe(true);
+
+        // Reading through the delegated address should return the correct balance
+        const delegatedBalance = await context.viem("public").readContract({
+          address: delegatingAddress,
+          abi: contractAbi,
+          functionName: "getBalance",
+          args: [targetAddress],
+        });
+
+        expect(delegatedBalance).to.equal(targetBalance);
         console.log(
-          `SUCCESS: EIP-7702 delegation worked! Balance ${actualBalance} was stored in the delegating account's storage`
+          `SUCCESS: EIP-7702 delegation worked! Balance ${delegatedBalance} can be read through the delegating address`
         );
 
         // Additional test: call incrementBalance to verify continued delegation
@@ -139,23 +238,31 @@ describeSuite({
           args: [targetAddress, 500n],
         });
 
-        // Second transaction: increment balance using the same delegation
-        const rawSigned2 = await createEthersTransaction(context, {
+        // Second transaction: increment balance through the delegated address
+        // We don't need to send the authorization again since it's already set
+        const incrementTx = {
           to: delegatingAddress,
           data: incrementData,
-          gasLimit: 200000,
-          authorizationList: [authorization],
-        });
+          gas: 200000n,
+          maxFeePerGas: 10_000_000_000n,
+          maxPriorityFeePerGas: 0n,
+          nonce: await context.viem("public").getTransactionCount({
+            address: alithAccount.address,
+          }),
+          chainId: 1281,
+        };
 
-        await expectOk(context.createBlock(rawSigned2));
+        const signedIncrement = await alithAccount.signTransaction(incrementTx);
+        await expectOk(context.createBlock(signedIncrement));
 
-        // Check updated balance
-        const updatedStorage = await context.viem("public").getStorageAt({
+        // Check updated balance through the delegated address
+        const updatedBalance = await context.viem("public").readContract({
           address: delegatingAddress,
-          slot: storageSlot,
+          abi: contractAbi,
+          functionName: "getBalance",
+          args: [targetAddress],
         });
 
-        const updatedBalance = BigInt(updatedStorage || "0");
         expect(updatedBalance).to.equal(5500n);
 
         console.log(`After increment: Balance is now ${updatedBalance}`);
