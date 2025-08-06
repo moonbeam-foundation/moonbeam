@@ -50,16 +50,16 @@ describeSuite({
       id: "C200",
       title: "should return correct parent hash via rpc for block #1648995",
       test: async function () {
-        const badBlockNumber = 1648995;
-        const apiAtBadBlock = await context
-          .polkadotJs("para")
-          .at(await context.polkadotJs("para").rpc.chain.getBlockHash(badBlockNumber));
-
         const chainName = (await context.polkadotJs("para").rpc.system.chain()).toString();
         if (chainName !== "Moonbase Alpha") {
           log(`Test only applies for "Moonbase Alpha", skipping for "${chainName}"`);
           return;
         }
+
+        const badBlockNumber = 1648995;
+        const apiAtBadBlock = await context
+          .polkadotJs("para")
+          .at(await context.polkadotJs("para").rpc.chain.getBlockHash(badBlockNumber));
 
         const rpcParentHash = (
           await context.polkadotJs("para").rpc.eth.getBlockByNumber(badBlockNumber, false)
