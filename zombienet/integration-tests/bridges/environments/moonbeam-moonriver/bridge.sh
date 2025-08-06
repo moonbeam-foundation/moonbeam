@@ -22,11 +22,10 @@ function transfer_assets() {
     echo ""
     echo "--------------------------------------------------"
 
-    # TODO: Fix Signing
-
     call_polkadot_js_api \
         --ws "${url?}" \
         --seed "${seed?}" \
+        --sign ethereum \
         tx.polkadotXcm.transferAssets \
             "${destination}" \
             "${beneficiary}" \
@@ -183,7 +182,7 @@ case "$1" in
           $ALITH_PRIVATE_KEY \
           "$(jq --null-input '{ "V5": { "parents": 2, "interior": { "X2": [ { "GlobalConsensus": "Kusama" }, { "Parachain": 2023 } ] } } }')" \
           "$(jq --null-input '{ "V5": { "parents": 0, "interior": { "X1": [ { "AccountKey20": { "key": [242, 79, 243, 169, 207, 4, 199, 29, 188, 148, 208, 181, 102, 247, 162, 123, 148, 86, 108, 172] } } ] } } }')" \
-          "$(jq --null-input '{ "V5": [ { "id": { "parents": 0, "interior": { "X1": [ { "PalletInstance": 10  } ] }, "fun": { "Fungible": '$amount' } } } ] }')" \
+          "$(jq --null-input '{ "V5": [ { "id": { "parents": 0, "interior": { "X1": [ { "PalletInstance": 10  } ] } }, "fun": { "Fungible": '$amount' } } ] }')" \
           0 \
           "Unlimited"
       ;;
@@ -196,7 +195,7 @@ case "$1" in
           $ALITH_PRIVATE_KEY \
           "$(jq --null-input '{ "V5": { "parents": 2, "interior": { "X2": [ { "GlobalConsensus": "Polkadot" }, { "Parachain": 2004 } ] } } }')" \
           "$(jq --null-input '{ "V5": { "parents": 0, "interior": { "X1": [ { "AccountKey20": { "key": [242, 79, 243, 169, 207, 4, 199, 29, 188, 148, 208, 181, 102, 247, 162, 123, 148, 86, 108, 172] } } ] } } }')" \
-          "$(jq --null-input '{ "V5": [ { "id": { "parents": 0, "interior": { "X1": [ { "PalletInstance": 10  } ] }, "fun": { "Fungible": '$amount' } } } ] }')" \
+          "$(jq --null-input '{ "V5": [ { "id": { "parents": 0, "interior": { "X1": [ { "PalletInstance": 10  } ] } }, "fun": { "Fungible": '$amount' } } ] }')" \
           0 \
           "Unlimited"
       ;;

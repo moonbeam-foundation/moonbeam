@@ -917,6 +917,9 @@ jobs:
           path: target/release
       - name: Setup
         run: |
+          # Install polkadot-js-api
+          # https://github.com/paritytech/polkadot-sdk/blob/56f683fabfc5a4554d4b9208e91103624264407c/bridges/testing/framework/utils/bridges.sh#L21
+          npm install -g @polkadot/api-cli
           chmod uog+x ./target/release/moonbeam
           # This command prepares all required binaries and runs the bridge integration tests
           make run-bridge-integration-tests

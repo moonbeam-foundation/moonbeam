@@ -3,10 +3,9 @@ Network: {{ENV_PATH}}/../../../../configs/moonriver-kusama.toml
 Creds: config
 
 # send 5 MOVR to //Alice from Moonriver to Moonbeam
-alith: run {{ENV_PATH}}/bridge.sh with "reserve-transfer-assets-from-moonriver-local 50000000000" within 120 seconds
-
+alith: run {{ENV_PATH}}/bridge.sh with "reserve-transfer-assets-from-moonriver-local 50000000000000" within 120 seconds
 
 # Expects events
+alith: system event contains "Message has been accepted and is waiting to be delivered" within 100 seconds
 alith: system event contains "Best finalized chain header has been updated to the header with given number and hash" within 400 seconds
-# alith: system event contains "Message has been accepted and is waiting to be delivered" within 100 seconds
-# alith: system event contains "Messages in the inclusive range have been delivered to the bridged chain" within 400 seconds
+alith: system event contains "Messages in the inclusive range have been delivered to the bridged chain" within 800 seconds
