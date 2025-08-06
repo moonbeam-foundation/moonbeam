@@ -379,7 +379,7 @@ where
 				Ok(BlockId::Number(client.info().best_number))
 			}
 			RequestBlockId::Tag(RequestBlockTag::Finalized) => {
-				Ok(BlockId::Number(client.info().finalized_hash))
+				Ok(BlockId::Hash(client.info().finalized_hash))
 			}
 			RequestBlockId::Tag(RequestBlockTag::Earliest) => {
 				Ok(BlockId::Number(0u32.unique_saturated_into()))
