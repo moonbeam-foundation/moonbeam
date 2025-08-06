@@ -240,7 +240,6 @@ import type {
   PalletParachainStakingSetOrderedSet,
   PalletParametersCall,
   PalletParametersEvent,
-  PalletPrecompileBenchmarksError,
   PalletPreimageCall,
   PalletPreimageError,
   PalletPreimageEvent,
@@ -653,7 +652,6 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingSetOrderedSet: PalletParachainStakingSetOrderedSet;
     PalletParametersCall: PalletParametersCall;
     PalletParametersEvent: PalletParametersEvent;
-    PalletPrecompileBenchmarksError: PalletPrecompileBenchmarksError;
     PalletPreimageCall: PalletPreimageCall;
     PalletPreimageError: PalletPreimageError;
     PalletPreimageEvent: PalletPreimageEvent;
