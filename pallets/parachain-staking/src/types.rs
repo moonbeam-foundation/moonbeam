@@ -181,28 +181,6 @@ pub struct DelayedPayout<Balance> {
 	pub collator_commission: Perbill,
 }
 
-#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
-/// DEPRECATED
-/// Collator state with commission fee, bonded stake, and delegations
-pub struct Collator2<AccountId, Balance> {
-	/// The account of this collator
-	pub id: AccountId,
-	/// This collator's self stake.
-	pub bond: Balance,
-	/// Set of all nominator AccountIds (to prevent >1 nomination per AccountId)
-	pub nominators: OrderedSet<AccountId>,
-	/// Top T::MaxDelegatorsPerCollator::get() nominators, ordered greatest to least
-	pub top_nominators: Vec<Bond<AccountId, Balance>>,
-	/// Bottom nominators (unbounded), ordered least to greatest
-	pub bottom_nominators: Vec<Bond<AccountId, Balance>>,
-	/// Sum of top delegations + self.bond
-	pub total_counted: Balance,
-	/// Sum of all delegations + self.bond = (total_counted + uncounted)
-	pub total_backing: Balance,
-	/// Current status of the collator
-	pub state: CollatorStatus,
-}
-
 #[derive(PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Request scheduled to change the collator candidate self-bond
 pub struct CandidateBondLessRequest<Balance> {
@@ -1541,38 +1519,6 @@ pub mod deprecated {
 		}
 	}
 }
-
-#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// DEPRECATED in favor of Delegator
-/// Nominator state
-pub struct Nominator2<AccountId, Balance> {
-	/// All current delegations
-	pub delegations: OrderedSet<Bond<AccountId, Balance>>,
-	/// Delegations scheduled to be revoked
-	pub revocations: OrderedSet<AccountId>,
-	/// Total balance locked for this nominator
-	pub total: Balance,
-	/// Total number of revocations scheduled to be executed
-	pub scheduled_revocations_count: u32,
-	/// Total amount to be unbonded once revocations are executed
-	pub scheduled_revocations_total: Balance,
-	/// Status for this nominator
-	pub status: DelegatorStatus,
-}
-
-// /// Temporary function to migrate state
-// pub(crate) fn migrate_nominator_to_delegator_state<T: Config>(
-// 	id: T::AccountId,
-// 	nominator: Nominator2<T::AccountId, BalanceOf<T>>,
-// ) -> Delegator<T::AccountId, BalanceOf<T>> {
-// 	Delegator {
-// 		id,
-// 		delegations: nominator.delegations,
-// 		total: nominator.total,
-// 		requests: PendingDelegationRequests::new(),
-// 		status: nominator.status,
-// 	}
-// }
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// The current round index and transition information
