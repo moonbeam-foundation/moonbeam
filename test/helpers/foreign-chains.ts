@@ -26,7 +26,10 @@ export const getEndpoints = (relay: "Polkadot" | "Kusama" | "Unsupported", paraI
         return Object.values(commonGoodPolka!.providers);
       }
       const polkaPara = prodParasPolkadot.find((a) => a.paraId === paraId);
-      return Object.values(polkaPara!.providers);
+      if (polkaPara) {
+        return Object.values(polkaPara.providers);
+      }
+      throw new Error("Unknown chain with paraId: " + paraId);
     }
     case "Kusama": {
       if (paraId < 2000) {
@@ -34,7 +37,10 @@ export const getEndpoints = (relay: "Polkadot" | "Kusama" | "Unsupported", paraI
         return Object.values(commonGoodKusama!.providers);
       }
       const kusamaPara = prodParasKusama.find((a) => a.paraId === paraId);
-      return Object.values(kusamaPara!.providers);
+      if (kusamaPara) {
+        return Object.values(kusamaPara.providers);
+      }
+      throw new Error("Unknown chain with paraId: " + paraId);
     }
     case "Unsupported":
       throw new Error("Unsupported chain.");
@@ -100,7 +106,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Heiko",
         paraId: 2085,
-        mutedUntil: new Date("2025-02-28").getTime(),
       },
       {
         name: "Picasso",
@@ -121,12 +126,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Turing",
         paraId: 2114,
-      },
-      // Litmus has become a para-thread
-      {
-        name: "Litmus",
-        paraId: 2106,
-        mutedUntil: new Date("2025-01-30").getTime(),
       },
     ],
   },
@@ -158,7 +157,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Composable",
         paraId: 2019,
-        mutedUntil: new Date("2025-01-27").getTime(),
       },
       {
         name: "Nodle",
