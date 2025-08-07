@@ -35,7 +35,7 @@ describeSuite({
           lowestBottomDelegationAmount: 0,
           topCapacity: "Empty",
           bottomCapacity: "Empty",
-          request: null,
+          bondLessRequests: [],
           status: { active: null },
         });
       },

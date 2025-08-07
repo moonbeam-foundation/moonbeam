@@ -27,7 +27,7 @@ use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, Sc
 use crate::mock::{
 	inflation_configs, roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author,
 	set_block_author, AccountId, Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeEvent,
-	RuntimeOrigin, Test, POINTS_PER_BLOCK, POINTS_PER_ROUND,
+	RuntimeOrigin, System, Test, POINTS_PER_BLOCK, POINTS_PER_ROUND,
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
@@ -39,7 +39,6 @@ use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
-// ~~ ROOT ~~
 
 #[test]
 fn invalid_root_origin_fails() {

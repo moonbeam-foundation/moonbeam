@@ -1636,13 +1636,6 @@ pub mod pallet {
 						error: err,
 					})?;
 
-			// Emit event for the total amount executed
-			Self::deposit_event(Event::CandidateBondedLess {
-				candidate: candidate.clone(),
-				amount: total_executed.into(),
-				new_bond: state.bond.into(),
-			});
-
 			<CandidateInfo<T>>::insert(&candidate, state);
 			Ok(Some(actual_weight).into())
 		}

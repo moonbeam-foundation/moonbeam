@@ -470,29 +470,19 @@ impl<
 		BalanceOf<T>: From<Balance>,
 	{
 		let current_round = <Round<T>>::get().current;
-		let mut total_executed: Balance = Zero::zero();
 
-		// Separate executable and non-executable requests
-		let (executable, remaining): (Vec<_>, Vec<_>) = self
+		// Find the index of the first executable request
+		let executable_index = self
 			.bond_less_requests
-			.drain(..)
-			.partition(|req| req.when_executable <= current_round);
+			.iter()
+			.position(|req| req.when_executable <= current_round)
+			.ok_or(Error::<T>::PendingCandidateRequestsDNE)?;
 
-		ensure!(
-			!executable.is_empty(),
-			Error::<T>::PendingCandidateRequestsDNE
-		);
+		// Remove and execute the request
+		let request = self.bond_less_requests.remove(executable_index);
+		self.bond_less::<T>(who, request.amount);
 
-		// Execute all eligible requests
-		for request in executable {
-			self.bond_less::<T>(who.clone(), request.amount);
-			total_executed = total_executed.saturating_add(request.amount);
-		}
-
-		// Keep the remaining non-executable requests
-		self.bond_less_requests = remaining;
-
-		Ok(total_executed)
+		Ok(request.amount)
 	}
 
 	/// Cancel all candidate bond less requests
