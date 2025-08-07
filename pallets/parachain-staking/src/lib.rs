@@ -1628,12 +1628,14 @@ pub mod pallet {
 			let actual_weight =
 				<T as Config>::WeightInfo::execute_candidate_bond_less(T::MaxCandidates::get());
 
-			state
-				.execute_bond_less::<T>(candidate.clone())
-				.map_err(|err| DispatchErrorWithPostInfo {
-					post_info: Some(actual_weight).into(),
-					error: err,
-				})?;
+			let _total_executed =
+				state
+					.execute_bond_less::<T>(candidate.clone())
+					.map_err(|err| DispatchErrorWithPostInfo {
+						post_info: Some(actual_weight).into(),
+						error: err,
+					})?;
+
 			<CandidateInfo<T>>::insert(&candidate, state);
 			Ok(Some(actual_weight).into())
 		}

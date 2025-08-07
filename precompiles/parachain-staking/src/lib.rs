@@ -439,7 +439,7 @@ where
 		let pending = if let Some(state) =
 			<pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&candidate)
 		{
-			state.request.is_some()
+			!state.bond_less_requests.is_empty()
 		} else {
 			log::trace!(
 				target: "staking-precompile",

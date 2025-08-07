@@ -711,12 +711,13 @@ mod benchmarks {
 		_(RawOrigin::Signed(caller.clone()), min_candidate_stk);
 
 		let state = Pallet::<T>::candidate_info(&caller).expect("request bonded less so exists");
+		assert_eq!(state.bond_less_requests.len(), 1);
 		assert_eq!(
-			state.request,
-			Some(CandidateBondLessRequest {
+			state.bond_less_requests[0],
+			CandidateBondLessRequest {
 				amount: min_candidate_stk,
 				when_executable: T::CandidateBondLessDelay::get() + 1,
-			})
+			}
 		);
 		Ok(())
 	}
@@ -832,8 +833,8 @@ mod benchmarks {
 
 		assert!(Pallet::<T>::candidate_info(&caller)
 			.expect("must exist")
-			.request
-			.is_none());
+			.bond_less_requests
+			.is_empty());
 		Ok(())
 	}
 
