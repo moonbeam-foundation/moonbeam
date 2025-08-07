@@ -1246,13 +1246,6 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       [key: string]: AugmentedError<ApiType>;
     };
-    precompileBenchmarks: {
-      BenchmarkError: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       **/
-      [key: string]: AugmentedError<ApiType>;
-    };
     preimage: {
       /**
        * Preimage has already been noted on-chain.

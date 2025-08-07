@@ -483,6 +483,29 @@ jobs:
           body-path: runtime_size_report.md
           edit-mode: replace
 
+  check-unused-dependencies:
+    runs-on: moonbeam-release-medium
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rust-src
+          target: wasm32-unknown-unknown
+      - name: Install required dependencies
+        run: |
+          sudo apt-get install -y libprotobuf-dev protobuf-compiler
+          cargo +nightly install cargo-udeps
+      - name: Check for unused dependencies
+        run: |
+          # There may be false negatives/positives
+          # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
+          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime,bridge-stagenet --all-targets
+
   rust-test:
     runs-on:
       labels: bare-metal
@@ -804,8 +827,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        ## TODO: add moonriver here when it is ready
-        chain: ["moonbase", "moonbeam"]
+        chain: ["moonbase", "moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
@@ -856,10 +878,6 @@ jobs:
         run: |
           cd test
           pnpm moonwall test zombie_${{ matrix.chain }}
-      - name: "Run zombie RPC test"
-        run: |
-          cd test
-          pnpm moonwall test zombie_${{ matrix.chain }}_rpc
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |

@@ -7,7 +7,6 @@ version = "0.2.0"
 
 [dependencies]
 log = { workspace = true }
-num_enum = { workspace = true }
 
 # Moonbeam
 pallet-author-mapping = { workspace = true }
@@ -30,9 +29,6 @@ precompile-utils = { workspace = true }
 nimbus-primitives = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
-hex-literal = { workspace = true }
-serde = { workspace = true }
 
 # Moonbeam
 pallet-author-mapping = { workspace = true, features = ["std"] }

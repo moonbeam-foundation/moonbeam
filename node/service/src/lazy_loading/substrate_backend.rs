@@ -24,16 +24,12 @@ use sp_runtime::{
 use sp_state_machine::{
 	BackendTransaction, ChildStorageCollection, IndexOperation, StorageCollection, TrieBackend,
 };
-use std::future::Future;
 use std::marker::PhantomData;
 use std::time::Duration;
 use std::{
 	collections::{HashMap, HashSet},
 	ptr,
-	sync::{
-		atomic::{AtomicU64, Ordering},
-		Arc,
-	},
+	sync::Arc,
 };
 
 use sc_client_api::{
@@ -43,26 +39,18 @@ use sc_client_api::{
 	UsageInfo,
 };
 
-use jsonrpsee::http_client::HttpClient;
-use sp_runtime::generic::SignedBlock;
-
-use crate::chain_spec;
+use crate::lazy_loading;
 use crate::lazy_loading::lock::ReadWriteLock;
 use crate::lazy_loading::state_overrides::StateEntry;
 use crate::lazy_loading::{helpers, state_overrides};
 use moonbeam_cli_opt::LazyLoadingConfig;
-use moonbeam_core_primitives::BlockNumber;
 use sc_client_api::StorageKey;
 use sc_service::{Configuration, Error};
 use serde::de::DeserializeOwned;
 use sp_core::offchain::storage::InMemOffchainStorage;
 use sp_core::{twox_128, H256};
-use sp_rpc::list::ListOrValue;
-use sp_rpc::number::NumberOrHex;
-use sp_storage::{ChildInfo, StorageData};
+use sp_storage::ChildInfo;
 use sp_trie::PrefixedMemoryDB;
-use tokio_retry::strategy::FixedInterval;
-use tokio_retry::Retry;
 
 struct PendingBlock<B: BlockT> {
 	block: StoredBlock<B>,
@@ -135,7 +123,7 @@ struct BlockchainStorage<Block: BlockT> {
 /// In-memory blockchain. Supports concurrent reads.
 #[derive(Clone)]
 pub struct Blockchain<Block: BlockT> {
-	rpc_client: Arc<RPC>,
+	rpc_client: Arc<super::rpc_client::RPC>,
 	storage: Arc<ReadWriteLock<BlockchainStorage<Block>>>,
 }
 
@@ -164,7 +152,7 @@ impl<Block: BlockT + DeserializeOwned> Blockchain<Block> {
 	}
 
 	/// Create new in-memory blockchain storage.
-	fn new(rpc_client: Arc<RPC>) -> Blockchain<Block> {
+	fn new(rpc_client: Arc<super::rpc_client::RPC>) -> Blockchain<Block> {
 		let storage = Arc::new(ReadWriteLock::new(BlockchainStorage {
 			blocks: HashMap::new(),
 			hashes: HashMap::new(),
@@ -941,7 +929,7 @@ impl<Block: BlockT + DeserializeOwned> sp_state_machine::StorageIterator<Hashing
 
 #[derive(Debug, Clone)]
 pub struct ForkedLazyBackend<Block: BlockT> {
-	rpc_client: Arc<RPC>,
+	rpc_client: Arc<super::rpc_client::RPC>,
 	block_hash: Option<Block::Hash>,
 	fork_block: Block::Hash,
 	pub(crate) db: Arc<ReadWriteLock<sp_state_machine::InMemoryBackend<HashingFor<Block>>>>,
@@ -1195,7 +1183,7 @@ impl<B: BlockT> sp_state_machine::backend::AsTrieBackend<HashingFor<B>> for Fork
 
 /// Lazy loading (In-memory) backend. Keeps all states and blocks in memory.
 pub struct Backend<Block: BlockT> {
-	pub(crate) rpc_client: Arc<RPC>,
+	pub(crate) rpc_client: Arc<super::rpc_client::RPC>,
 	states: ReadWriteLock<HashMap<Block::Hash, ForkedLazyBackend<Block>>>,
 	pub(crate) blockchain: Blockchain<Block>,
 	import_lock: parking_lot::RwLock<()>,
@@ -1204,7 +1192,7 @@ pub struct Backend<Block: BlockT> {
 }
 
 impl<Block: BlockT + DeserializeOwned> Backend<Block> {
-	fn new(rpc_client: Arc<RPC>, fork_checkpoint: Block::Header) -> Self {
+	fn new(rpc_client: Arc<super::rpc_client::RPC>, fork_checkpoint: Block::Header) -> Self {
 		Backend {
 			rpc_client: rpc_client.clone(),
 			states: Default::default(),
@@ -1461,247 +1449,8 @@ pub fn check_genesis_storage(storage: &Storage) -> sp_blockchain::Result<()> {
 	Ok(())
 }
 
-#[derive(Debug, Clone)]
-pub struct RPC {
-	http_client: HttpClient,
-	delay_between_requests_ms: u32,
-	max_retries_per_request: u32,
-	counter: Arc<AtomicU64>,
-}
-
-impl RPC {
-	pub fn new(
-		http_client: HttpClient,
-		delay_between_requests_ms: u32,
-		max_retries_per_request: u32,
-	) -> Self {
-		Self {
-			http_client,
-			delay_between_requests_ms,
-			max_retries_per_request,
-			counter: Default::default(),
-		}
-	}
-	pub fn system_chain(&self) -> Result<String, jsonrpsee::core::ClientError> {
-		let request = &|| {
-			substrate_rpc_client::SystemApi::<H256, BlockNumber>::system_chain(&self.http_client)
-		};
-
-		self.block_on(request)
-	}
-
-	pub fn system_properties(
-		&self,
-	) -> Result<sc_chain_spec::Properties, jsonrpsee::core::ClientError> {
-		let request = &|| {
-			substrate_rpc_client::SystemApi::<H256, BlockNumber>::system_properties(
-				&self.http_client,
-			)
-		};
-
-		self.block_on(request)
-	}
-
-	pub fn system_name(&self) -> Result<String, jsonrpsee::core::ClientError> {
-		let request = &|| {
-			substrate_rpc_client::SystemApi::<H256, BlockNumber>::system_name(&self.http_client)
-		};
-
-		self.block_on(request)
-	}
-
-	pub fn block<Block, Hash: Clone>(
-		&self,
-		hash: Option<Hash>,
-	) -> Result<Option<SignedBlock<Block>>, jsonrpsee::core::ClientError>
-	where
-		Block: BlockT + DeserializeOwned,
-		Hash: 'static + Send + Sync + sp_runtime::Serialize + DeserializeOwned,
-	{
-		let request = &|| {
-			substrate_rpc_client::ChainApi::<
-				BlockNumber,
-				Hash,
-				Block::Header,
-				SignedBlock<Block>,
-			>::block(&self.http_client, hash.clone())
-		};
-
-		self.block_on(request)
-	}
-
-	pub fn block_hash<Block: BlockT + DeserializeOwned>(
-		&self,
-		block_number: Option<<Block::Header as HeaderT>::Number>,
-	) -> Result<Option<Block::Hash>, jsonrpsee::core::ClientError> {
-		let request = &|| {
-			substrate_rpc_client::ChainApi::<
-				<Block::Header as HeaderT>::Number,
-				Block::Hash,
-				Block::Header,
-				SignedBlock<Block>,
-			>::block_hash(
-				&self.http_client,
-				block_number.map(|n| ListOrValue::Value(NumberOrHex::Hex(n.into()))),
-			)
-		};
-
-		self.block_on(request).map(|ok| match ok {
-			ListOrValue::List(v) => v.get(0).map_or(None, |some| *some),
-			ListOrValue::Value(v) => v,
-		})
-	}
-
-	pub fn header<Block: BlockT + DeserializeOwned>(
-		&self,
-		hash: Option<Block::Hash>,
-	) -> Result<Option<Block::Header>, jsonrpsee::core::ClientError> {
-		let request = &|| {
-			substrate_rpc_client::ChainApi::<
-				BlockNumber,
-				Block::Hash,
-				Block::Header,
-				SignedBlock<Block>,
-			>::header(&self.http_client, hash)
-		};
-
-		self.block_on(request)
-	}
-
-	pub fn storage_hash<
-		Hash: 'static + Clone + Sync + Send + DeserializeOwned + sp_runtime::Serialize,
-	>(
-		&self,
-		key: StorageKey,
-		at: Option<Hash>,
-	) -> Result<Option<Hash>, jsonrpsee::core::ClientError> {
-		let request = &|| {
-			substrate_rpc_client::StateApi::<Hash>::storage_hash(
-				&self.http_client,
-				key.clone(),
-				at.clone(),
-			)
-		};
-
-		self.block_on(request)
-	}
-
-	pub fn storage<
-		Hash: 'static + Clone + Sync + Send + DeserializeOwned + sp_runtime::Serialize + core::fmt::Debug,
-	>(
-		&self,
-		key: StorageKey,
-		at: Option<Hash>,
-	) -> Result<Option<StorageData>, jsonrpsee::core::ClientError> {
-		let request = &|| {
-			substrate_rpc_client::StateApi::<Hash>::storage(
-				&self.http_client,
-				key.clone(),
-				at.clone(),
-			)
-		};
-
-		self.block_on(request)
-	}
-
-	pub fn storage_keys_paged<
-		Hash: 'static + Clone + Sync + Send + DeserializeOwned + sp_runtime::Serialize,
-	>(
-		&self,
-		key: Option<StorageKey>,
-		count: u32,
-		start_key: Option<StorageKey>,
-		at: Option<Hash>,
-	) -> Result<Vec<sp_state_machine::StorageKey>, jsonrpsee::core::ClientError> {
-		let request = &|| {
-			substrate_rpc_client::StateApi::<Hash>::storage_keys_paged(
-				&self.http_client,
-				key.clone(),
-				count.clone(),
-				start_key.clone(),
-				at.clone(),
-			)
-		};
-		let result = self.block_on(request);
-
-		match result {
-			Ok(result) => Ok(result.iter().map(|item| item.0.clone()).collect()),
-			Err(err) => Err(err),
-		}
-	}
-
-	pub fn query_storage_at<
-		Hash: 'static + Clone + Sync + Send + DeserializeOwned + sp_runtime::Serialize,
-	>(
-		&self,
-		keys: Vec<StorageKey>,
-		from_block: Option<Hash>,
-	) -> Result<Vec<(StorageKey, Option<StorageData>)>, jsonrpsee::core::ClientError> {
-		let request = &|| {
-			substrate_rpc_client::StateApi::<Hash>::query_storage_at(
-				&self.http_client,
-				keys.clone(),
-				from_block.clone(),
-			)
-		};
-		let result = self.block_on(request);
-
-		match result {
-			Ok(result) => Ok(result
-				.iter()
-				.flat_map(|item| item.changes.clone())
-				.collect()),
-			Err(err) => Err(err),
-		}
-	}
-
-	fn block_on<F, T, E>(&self, f: &dyn Fn() -> F) -> Result<T, E>
-	where
-		F: Future<Output = Result<T, E>>,
-	{
-		use tokio::runtime::Handle;
-
-		let id = self.counter.fetch_add(1, Ordering::SeqCst);
-		let start = std::time::Instant::now();
-
-		tokio::task::block_in_place(move || {
-			Handle::current().block_on(async move {
-				let delay_between_requests =
-					Duration::from_millis(self.delay_between_requests_ms.into());
-
-				let start_req = std::time::Instant::now();
-				log::debug!(
-					target: super::LAZY_LOADING_LOG_TARGET,
-					"Sending request: {}",
-					id
-				);
-
-				// Explicit request delay, to avoid getting 429 errors
-				let _ = tokio::time::sleep(delay_between_requests).await;
-
-				// Retry request in case of failure
-				// The maximum number of retries is specified by `self.max_retries_per_request`
-				let retry_strategy = FixedInterval::new(delay_between_requests)
-					.take(self.max_retries_per_request as usize);
-				let result = Retry::spawn(retry_strategy, f).await;
-
-				log::debug!(
-					target: super::LAZY_LOADING_LOG_TARGET,
-					"Completed request (id: {}, successful: {}, elapsed_time: {:?}, query_time: {:?})",
-					id,
-					result.is_ok(),
-					start.elapsed(),
-					start_req.elapsed()
-				);
-
-				result
-			})
-		})
-	}
-}
-
 /// Create an instance of a lazy loading memory backend.
-pub fn new_lazy_loading_backend<Block>(
+pub fn new_backend<Block>(
 	config: &mut Configuration,
 	lazy_loading_config: &LazyLoadingConfig,
 ) -> Result<Arc<Backend<Block>>, Error>
@@ -1720,7 +1469,7 @@ where
 			)
 		})?;
 
-	let rpc = RPC::new(
+	let rpc = super::rpc_client::RPC::new(
 		http_client,
 		lazy_loading_config.delay_between_requests,
 		lazy_loading_config.max_retries_per_request,
@@ -1746,7 +1495,7 @@ where
 		.system_properties()
 		.expect("Should fetch chain properties");
 
-	let spec_builder = chain_spec::test_spec::lazy_loading_spec_builder()
+	let spec_builder = lazy_loading::spec_builder()
 		.with_name(chain_name.as_str())
 		.with_properties(chain_properties);
 	config.chain_spec = Box::new(spec_builder.build());

@@ -6,9 +6,6 @@ edition = "2021"
 version = "0.2.0"
 
 [dependencies]
-log = { workspace = true }
-num_enum = { workspace = true }
-rustc-hex = { workspace = true }
 
 # Moonbeam
 pallet-xcm-transactor = { workspace = true }
@@ -21,9 +18,6 @@ sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 sp-weights = { workspace = true }
-
-# Frontier
-evm = { workspace = true, features = ["with-codec"] }
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 precompile-utils = { workspace = true, features = ["codec-xcm"] }
@@ -35,9 +29,6 @@ xcm = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
-serde = { workspace = true }
-sha3 = { workspace = true }
 
 # Moonbeam
 precompile-utils = { workspace = true, features = ["testing", "codec-xcm"] }
@@ -51,7 +42,6 @@ scale-info = { workspace = true, features = ["derive"] }
 sp-io = { workspace = true }
 
 # Polkadot
-pallet-xcm = { workspace = true, features = ["std"] }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
 
