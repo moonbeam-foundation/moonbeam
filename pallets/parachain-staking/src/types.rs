@@ -280,7 +280,7 @@ impl<AccountId, Balance: Copy + Ord + sp_std::ops::AddAssign + Zero + Saturating
 	}
 }
 
-#[derive(PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(Clone, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Capacity status for top or bottom delegations
 pub enum CapacityStatus {
 	/// Reached capacity
@@ -310,8 +310,8 @@ pub struct CandidateMetadata<Balance> {
 	pub top_capacity: CapacityStatus,
 	/// Capacity status for bottom delegations
 	pub bottom_capacity: CapacityStatus,
-	/// Maximum 1 pending request to decrease candidate self bond at any given time
-	pub request: Option<CandidateBondLessRequest<Balance>>,
+	/// Pending requests to decrease candidate self bond
+	pub bond_less_requests: Vec<CandidateBondLessRequest<Balance>>,
 	/// Current status of the collator
 	pub status: CollatorStatus,
 }
@@ -337,7 +337,7 @@ impl<
 			lowest_bottom_delegation_amount: Zero::zero(),
 			top_capacity: CapacityStatus::Empty,
 			bottom_capacity: CapacityStatus::Empty,
-			request: None,
+			bond_less_requests: Vec::new(),
 			status: CollatorStatus::Active,
 		}
 	}
@@ -436,58 +436,85 @@ impl<
 	where
 		BalanceOf<T>: Into<Balance>,
 	{
-		// ensure no pending request
+		// Calculate total pending bond less amount
+		let total_pending: Balance = self
+			.bond_less_requests
+			.iter()
+			.map(|req| req.amount)
+			.fold(Zero::zero(), |acc, x| acc.saturating_add(x));
+
+		// ensure bond above min after decrease (including all pending requests)
 		ensure!(
-			self.request.is_none(),
-			Error::<T>::PendingCandidateRequestAlreadyExists
+			self.bond > total_pending.saturating_add(less),
+			Error::<T>::CandidateBondBelowMin
 		);
-		// ensure bond above min after decrease
-		ensure!(self.bond > less, Error::<T>::CandidateBondBelowMin);
 		ensure!(
-			self.bond - less >= T::MinCandidateStk::get().into(),
+			self.bond.saturating_sub(total_pending).saturating_sub(less)
+				>= T::MinCandidateStk::get().into(),
 			Error::<T>::CandidateBondBelowMin
 		);
 		let when_executable = <Round<T>>::get().current + T::CandidateBondLessDelay::get();
-		self.request = Some(CandidateBondLessRequest {
+		self.bond_less_requests.push(CandidateBondLessRequest {
 			amount: less,
 			when_executable,
 		});
 		Ok(when_executable)
 	}
-	/// Execute pending request to decrease the collator self bond
-	/// Returns the event to be emitted
-	pub fn execute_bond_less<T: Config>(&mut self, who: T::AccountId) -> DispatchResult
+	/// Execute pending requests to decrease the collator self bond
+	/// Returns the total amount executed
+	pub fn execute_bond_less<T: Config>(
+		&mut self,
+		who: T::AccountId,
+	) -> Result<Balance, DispatchError>
 	where
 		BalanceOf<T>: From<Balance>,
 	{
-		let request = self
-			.request
-			.ok_or(Error::<T>::PendingCandidateRequestsDNE)?;
+		let current_round = <Round<T>>::get().current;
+		let mut total_executed: Balance = Zero::zero();
+
+		// Separate executable and non-executable requests
+		let (executable, remaining): (Vec<_>, Vec<_>) = self
+			.bond_less_requests
+			.drain(..)
+			.partition(|req| req.when_executable <= current_round);
+
 		ensure!(
-			request.when_executable <= <Round<T>>::get().current,
-			Error::<T>::PendingCandidateRequestNotDueYet
+			!executable.is_empty(),
+			Error::<T>::PendingCandidateRequestsDNE
 		);
-		self.bond_less::<T>(who.clone(), request.amount);
-		// reset s.t. no pending request
-		self.request = None;
-		Ok(())
+
+		// Execute all eligible requests
+		for request in executable {
+			self.bond_less::<T>(who.clone(), request.amount);
+			total_executed = total_executed.saturating_add(request.amount);
+		}
+
+		// Keep the remaining non-executable requests
+		self.bond_less_requests = remaining;
+
+		Ok(total_executed)
 	}
 
-	/// Cancel candidate bond less request
+	/// Cancel all candidate bond less requests
 	pub fn cancel_bond_less<T: Config>(&mut self, who: T::AccountId) -> DispatchResult
 	where
 		BalanceOf<T>: From<Balance>,
 	{
-		let request = self
-			.request
-			.ok_or(Error::<T>::PendingCandidateRequestsDNE)?;
-		let event = Event::CancelledCandidateBondLess {
-			candidate: who.clone().into(),
-			amount: request.amount.into(),
-			execute_round: request.when_executable,
-		};
-		self.request = None;
-		Pallet::<T>::deposit_event(event);
+		ensure!(
+			!self.bond_less_requests.is_empty(),
+			Error::<T>::PendingCandidateRequestsDNE
+		);
+
+		// Cancel all requests and emit events for each
+		for request in self.bond_less_requests.drain(..) {
+			let event = Event::CancelledCandidateBondLess {
+				candidate: who.clone().into(),
+				amount: request.amount.into(),
+				execute_round: request.when_executable,
+			};
+			Pallet::<T>::deposit_event(event);
+		}
+
 		Ok(())
 	}
 	/// Reset top delegations metadata

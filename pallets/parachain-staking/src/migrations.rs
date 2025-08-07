@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-#[cfg(feature = "try-runtime")]
-use alloc::vec::Vec;
-
-use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
+use sp_std::{vec::Vec, vec};
+use frame_support::{
+	traits::{Get, OnRuntimeUpgrade},
+	weights::Weight,
+};
+use parity_scale_codec::{Decode, Encode};
+use scale_info::TypeInfo;
+use sp_runtime::RuntimeDebug;
 
 use crate::*;
 
@@ -104,6 +106,75 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 
 		ensure!(new_state == expected_new_state, "State migration failed");
 
+		Ok(())
+	}
+}
+
+/// Old version of CandidateMetadata with single bond less request
+#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+pub struct OldCandidateMetadata<Balance> {
+	pub bond: Balance,
+	pub delegation_count: u32,
+	pub total_counted: Balance,
+	pub lowest_top_delegation_amount: Balance,
+	pub highest_bottom_delegation_amount: Balance,
+	pub lowest_bottom_delegation_amount: Balance,
+	pub top_capacity: CapacityStatus,
+	pub bottom_capacity: CapacityStatus,
+	pub request: Option<CandidateBondLessRequest<Balance>>,
+	pub status: CollatorStatus,
+}
+
+/// Migration to convert single bond less request to multiple requests
+pub struct MigrateCandidateBondLessRequests<T>(sp_std::marker::PhantomData<T>);
+impl<T: Config> OnRuntimeUpgrade for MigrateCandidateBondLessRequests<T> {
+	fn on_runtime_upgrade() -> Weight {
+		let mut reads = 0u64;
+		let mut writes = 0u64;
+
+		CandidateInfo::<T>::translate(|_key, old: OldCandidateMetadata<BalanceOf<T>>| {
+			reads = reads.saturating_add(1);
+			writes = writes.saturating_add(1);
+
+			// Convert old single request to vector
+			let bond_less_requests = if let Some(request) = old.request {
+				vec![request]
+			} else {
+				Vec::new()
+			};
+
+			Some(CandidateMetadata {
+				bond: old.bond,
+				delegation_count: old.delegation_count,
+				total_counted: old.total_counted,
+				lowest_top_delegation_amount: old.lowest_top_delegation_amount,
+				highest_bottom_delegation_amount: old.highest_bottom_delegation_amount,
+				lowest_bottom_delegation_amount: old.lowest_bottom_delegation_amount,
+				top_capacity: old.top_capacity,
+				bottom_capacity: old.bottom_capacity,
+				bond_less_requests,
+				status: old.status,
+			})
+		});
+
+		<T as frame_system::Config>::DbWeight::get().reads_writes(reads, writes)
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::DispatchError> {
+		let count = CandidateInfo::<T>::iter().count() as u32;
+		Ok(count.encode())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
+		let expected_count: u32 = Decode::decode(&mut &state[..])
+			.map_err(|_| sp_runtime::DispatchError::Other("Failed to decode pre-upgrade state"))?;
+		let actual_count = CandidateInfo::<T>::iter().count() as u32;
+		frame_support::ensure!(
+			expected_count == actual_count,
+			"CandidateInfo count mismatch after migration"
+		);
 		Ok(())
 	}
 }

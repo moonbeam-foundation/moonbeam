@@ -1628,12 +1628,21 @@ pub mod pallet {
 			let actual_weight =
 				<T as Config>::WeightInfo::execute_candidate_bond_less(T::MaxCandidates::get());
 
-			state
-				.execute_bond_less::<T>(candidate.clone())
-				.map_err(|err| DispatchErrorWithPostInfo {
-					post_info: Some(actual_weight).into(),
-					error: err,
-				})?;
+			let total_executed =
+				state
+					.execute_bond_less::<T>(candidate.clone())
+					.map_err(|err| DispatchErrorWithPostInfo {
+						post_info: Some(actual_weight).into(),
+						error: err,
+					})?;
+
+			// Emit event for the total amount executed
+			Self::deposit_event(Event::CandidateBondedLess {
+				candidate: candidate.clone(),
+				amount: total_executed.into(),
+				new_bond: state.bond.into(),
+			});
+
 			<CandidateInfo<T>>::insert(&candidate, state);
 			Ok(Some(actual_weight).into())
 		}
