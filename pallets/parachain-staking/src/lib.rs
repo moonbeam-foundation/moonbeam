@@ -1628,7 +1628,7 @@ pub mod pallet {
 			let actual_weight =
 				<T as Config>::WeightInfo::execute_candidate_bond_less(T::MaxCandidates::get());
 
-			let total_executed =
+			let _total_executed =
 				state
 					.execute_bond_less::<T>(candidate.clone())
 					.map_err(|err| DispatchErrorWithPostInfo {
