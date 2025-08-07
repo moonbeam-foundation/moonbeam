@@ -22,7 +22,6 @@ use sp_std::boxed::Box;
 use xcm::latest::prelude::{Location, Parachain, WeightLimit};
 use xcm_simulator::TestExt;
 
-use super::core::para_to_para_location;
 use super::weights::standard_transfer_weight;
 
 // Generic transfer execution helpers

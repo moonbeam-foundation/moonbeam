@@ -16,7 +16,7 @@
 
 use crate::{
 	xcm_mock::{parachain::PolkadotXcm, *},
-	xcm_testing::{currency_to_asset, helpers::*},
+	xcm_testing::{add_supported_asset, currency_to_asset, helpers::*},
 };
 use frame_support::assert_ok;
 use sp_weights::Weight;

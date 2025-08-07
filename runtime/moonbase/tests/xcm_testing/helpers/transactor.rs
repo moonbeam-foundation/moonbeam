@@ -16,16 +16,9 @@
 
 //! Transactor and call encoding helpers for XCM tests
 
-use crate::xcm_mock::{parachain, ParaA, XcmTransactor};
-use frame_support::{assert_ok, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
-use sp_std::boxed::Box;
-use xcm::latest::prelude::Location;
-use xcm_simulator::TestExt;
-
 // Transactor setup helpers
 
 // Call encoding helpers for relay chain transactions
-
 pub fn encode_relay_balance_transfer_call(
 	dest: crate::xcm_mock::relay_chain::AccountId,
 	amount: u128,

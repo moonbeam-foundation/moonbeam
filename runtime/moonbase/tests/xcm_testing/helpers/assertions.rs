@@ -16,7 +16,7 @@
 
 //! Assertion helpers for XCM tests
 
-use crate::xcm_mock::{parachain, Assets, ParaA, Treasury};
+use crate::xcm_mock::{parachain, Assets, ParaA};
 use xcm_simulator::TestExt;
 
 // Balance assertion helpers

@@ -17,7 +17,6 @@
 //! Core test environment and location helpers for XCM tests
 
 use xcm::latest::prelude::{AccountKey20, Location, Parachain};
-use xcm_simulator::TestExt;
 
 // Location creation helpers
 
