@@ -65,7 +65,10 @@ fn send_para_a_asset_to_para_b() {
 		VersionedAssets::from(vec![asset]),
 		2,
 		PARAALICE,
-		Some(standard_heavy_weight()),
+		Some(WeightLimit::Limited(Weight::from_parts(
+			800000u64,
+			DEFAULT_PROOF_SIZE,
+		))),
 	);
 
 	// Native token is substracted in paraA

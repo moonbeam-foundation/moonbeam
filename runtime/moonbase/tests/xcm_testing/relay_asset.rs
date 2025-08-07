@@ -125,9 +125,26 @@ fn send_relay_asset_to_relay() {
 fn send_relay_asset_to_para_b() {
 	MockNet::reset();
 
-	// Register relay asset in both parachains using helpers
+	// Register relay asset in both parachains
 	let relay_asset_id = register_relay_asset();
-	register_relay_asset_in_para_b();
+
+	// Register relay asset in ParaB
+	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
+	let asset_metadata = parachain::AssetMetadata {
+		name: b"RelayToken".to_vec(),
+		symbol: b"Relay".to_vec(),
+		decimals: 12,
+	};
+	ParaB::execute_with(|| {
+		assert_ok!(AssetManager::register_foreign_asset(
+			parachain::RuntimeOrigin::root(),
+			source_location.clone(),
+			asset_metadata,
+			1u128,
+			true
+		));
+		assert_ok!(add_supported_asset(source_location.clone(), 0));
+	});
 
 	// Send relay asset to Para A first
 	let dest: Location = Junction::AccountKey20 {
@@ -175,7 +192,10 @@ fn send_relay_asset_to_para_b() {
 
 	// Verify balances
 	assert_asset_balance(&PARAALICE, relay_asset_id, 23);
-	assert_asset_balance_para_b(&PARAALICE, relay_asset_id, 100);
+	ParaB::execute_with(|| {
+		let account_id = parachain::AccountId::from(PARAALICE);
+		assert_eq!(Assets::balance(relay_asset_id, &account_id), 100);
+	});
 }
 
 #[test]
@@ -209,7 +229,9 @@ fn receive_relay_asset_with_trader() {
 
 	// Use assertion
 	assert_asset_balance(&PARAALICE, relay_asset_id, 90);
-	assert_treasury_asset_balance(relay_asset_id, 10);
+	ParaA::execute_with(|| {
+		assert_eq!(Assets::balance(relay_asset_id, &Treasury::account_id()), 10);
+	});
 }
 
 #[test]
@@ -272,8 +294,15 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	// parachain should not have received assets (non-sufficient asset to non-existent account)
 	assert_asset_balance(&fresh_account, relay_asset_id, 0);
 
-	// Fund fresh account with native tokens using helper
-	fund_account_native(&fresh_account, 100);
+	// Fund fresh account with native tokens
+	ParaA::execute_with(|| {
+		let account_id = parachain::AccountId::from(fresh_account);
+		let _ = parachain::Balances::force_set_balance(
+			parachain::RuntimeOrigin::root(),
+			account_id.into(),
+			100,
+		);
+	});
 
 	// Re-send tokens
 	Relay::execute_with(|| {

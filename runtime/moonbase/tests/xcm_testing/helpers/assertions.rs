@@ -28,24 +28,6 @@ pub fn assert_asset_balance(account: &[u8; 20], asset_id: parachain::AssetId, ex
 	});
 }
 
-pub fn assert_asset_balance_para_b(
-	account: &[u8; 20],
-	asset_id: parachain::AssetId,
-	expected: u128,
-) {
-	use crate::xcm_mock::ParaB;
-	ParaB::execute_with(|| {
-		let account_id = parachain::AccountId::from(*account);
-		assert_eq!(Assets::balance(asset_id, &account_id), expected);
-	});
-}
-
-pub fn assert_treasury_asset_balance(asset_id: parachain::AssetId, expected: u128) {
-	ParaA::execute_with(|| {
-		assert_eq!(Assets::balance(asset_id, &Treasury::account_id()), expected);
-	});
-}
-
 // Balance change assertion helpers
 
 pub fn assert_native_balance_decreased_by(

@@ -34,7 +34,17 @@ pub fn execute_transfer_to_para(
 	dest_account: [u8; 20],
 	weight: Option<WeightLimit>,
 ) {
-	let dest = para_to_para_location(dest_para, dest_account);
+	let dest = Location {
+		parents: 1,
+		interior: [
+			xcm::latest::prelude::Parachain(dest_para),
+			xcm::latest::prelude::AccountKey20 {
+				network: None,
+				key: dest_account,
+			},
+		]
+		.into(),
+	};
 	let (chain_part, beneficiary) =
 		xcm_primitives::split_location_into_chain_part_and_beneficiary(dest).unwrap();
 	let weight_limit = weight.unwrap_or(standard_transfer_weight());

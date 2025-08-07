@@ -35,31 +35,3 @@ pub fn parachain_location(para_id: u32) -> Location {
 		interior: [Parachain(para_id)].into(),
 	}
 }
-
-pub fn para_to_para_location(dest_para: u32, account: [u8; 20]) -> Location {
-	Location {
-		parents: 1,
-		interior: [
-			Parachain(dest_para),
-			AccountKey20 {
-				network: None,
-				key: account,
-			},
-		]
-		.into(),
-	}
-}
-
-// Account funding helper
-pub fn fund_account_native(account: &[u8; 20], amount: u128) {
-	use crate::xcm_mock::{parachain, ParaA};
-
-	ParaA::execute_with(|| {
-		let account_id = parachain::AccountId::from(*account);
-		let _ = parachain::Balances::force_set_balance(
-			parachain::RuntimeOrigin::root(),
-			account_id.into(),
-			amount,
-		);
-	});
-}

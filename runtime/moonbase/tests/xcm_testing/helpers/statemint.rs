@@ -171,33 +171,6 @@ pub fn execute_statemint_to_para_dot_transfer(
 	});
 }
 
-pub fn execute_statemint_asset_transfer(
-	setup: &StatemintTestSetup,
-	from_account: crate::xcm_mock::statemint_like::AccountId,
-	asset_id: u128,
-	amount: u128,
-) {
-	Statemint::execute_with(|| {
-		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
-			statemint_like::RuntimeOrigin::signed(from_account),
-			Box::new(setup.dest_para.clone().into()),
-			Box::new(xcm::VersionedLocation::from(setup.parachain_beneficiary.clone()).into()),
-			Box::new(
-				(
-					[
-						PalletInstance(<StatemintAssets as PalletInfoAccess>::index() as u8),
-						GeneralIndex(asset_id),
-					],
-					amount
-				)
-					.into()
-			),
-			0,
-			WeightLimit::Unlimited
-		));
-	});
-}
-
 pub fn execute_statemint_to_para_transfer_with_balance_check(
 	from_account: [u8; 32],
 	to_account: [u8; 20],
@@ -277,7 +250,25 @@ pub fn setup_multi_asset_statemint_test(
 	execute_statemint_to_para_dot_transfer(&setup, RELAYALICE, 200);
 
 	// Transfer USDC to ParaA
-	execute_statemint_asset_transfer(&setup, RELAYALICE, asset_id, 125);
+	Statemint::execute_with(|| {
+		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
+			statemint_like::RuntimeOrigin::signed(RELAYALICE),
+			Box::new(setup.dest_para.clone().into()),
+			Box::new(xcm::VersionedLocation::from(setup.parachain_beneficiary.clone()).into()),
+			Box::new(
+				(
+					[
+						PalletInstance(<StatemintAssets as PalletInfoAccess>::index() as u8),
+						GeneralIndex(asset_id),
+					],
+					125
+				)
+					.into()
+			),
+			0,
+			WeightLimit::Unlimited
+		));
+	});
 
 	(setup, source_relay_id, usdc_asset_id)
 }

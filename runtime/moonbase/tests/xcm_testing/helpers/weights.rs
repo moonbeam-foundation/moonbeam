@@ -26,10 +26,6 @@ pub fn standard_transfer_weight() -> WeightLimit {
 	WeightLimit::Limited(Weight::from_parts(80u64, DEFAULT_PROOF_SIZE))
 }
 
-pub fn standard_heavy_weight() -> WeightLimit {
-	WeightLimit::Limited(Weight::from_parts(800000u64, DEFAULT_PROOF_SIZE))
-}
-
 pub fn medium_transfer_weight() -> WeightLimit {
 	WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 }

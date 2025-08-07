@@ -24,26 +24,6 @@ use xcm_simulator::TestExt;
 
 // Transactor setup helpers
 
-pub fn setup_relay_transactor_config() {
-	ParaA::execute_with(|| {
-		// Root can set transact info
-		assert_ok!(XcmTransactor::set_transact_info(
-			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::from(Location::parent())),
-			// Relay charges 1000 for every instruction, and we have 3, so 3000
-			3000.into(),
-			20000000000.into(),
-			None
-		));
-		// Root can set fee per second
-		assert_ok!(XcmTransactor::set_fee_per_second(
-			parachain::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::from(Location::parent())),
-			WEIGHT_REF_TIME_PER_SECOND as u128,
-		));
-	});
-}
-
 // Call encoding helpers for relay chain transactions
 
 pub fn encode_relay_balance_transfer_call(

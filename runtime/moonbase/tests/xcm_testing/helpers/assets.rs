@@ -102,29 +102,6 @@ pub fn register_relay_asset_non_sufficient() -> parachain::AssetId {
 		.register()
 }
 
-pub fn register_relay_asset_in_para_b() -> parachain::AssetId {
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
-		decimals: 12,
-	};
-
-	use crate::xcm_mock::ParaB;
-	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::RuntimeOrigin::root(),
-			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
-		));
-		assert_ok!(add_supported_asset(source_location.clone(), 0));
-	});
-
-	source_location.into()
-}
-
 // Helper for the common relay asset setup pattern in statemint tests
 pub fn setup_relay_asset_for_statemint() -> (parachain::AssetType, parachain::AssetId) {
 	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());

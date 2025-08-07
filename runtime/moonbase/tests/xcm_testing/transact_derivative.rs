@@ -54,8 +54,24 @@ fn transact_through_derivative_multilocation() {
 		assert_ok!(add_supported_asset(source_location, 1));
 	});
 
-	// Setup relay transactor configuration using helper
-	setup_relay_transactor_config();
+	// Setup relay transactor configuration
+	ParaA::execute_with(|| {
+		// Root can set transact info
+		assert_ok!(XcmTransactor::set_transact_info(
+			parachain::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
+			// Relay charges 1000 for every instruction, and we have 3, so 3000
+			3000.into(),
+			20000000000.into(),
+			None
+		));
+		// Root can set fee per second
+		assert_ok!(XcmTransactor::set_fee_per_second(
+			parachain::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
+			frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND as u128,
+		));
+	});
 
 	// Let's construct the call to know how much weight it is going to require
 
