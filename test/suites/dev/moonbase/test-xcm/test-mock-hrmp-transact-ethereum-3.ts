@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { BN } from "@polkadot/util";
 import type { KeyringPair } from "@polkadot/keyring/types";
-import { type Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData, parseAbi } from "viem";
 import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
@@ -14,9 +14,11 @@ import {
   type MultiLocation,
   weightMessage,
   convertXcmFragmentToVersion,
-} from "../../../../helpers/xcm.js";
-import { registerOldForeignAsset } from "../../../../helpers/assets.js";
-import { ConstantStore } from "../../../../helpers/constants.js";
+  registerForeignAsset,
+  foreignAssetBalance,
+  addAssetToWeightTrader,
+  ConstantStore,
+} from "../../../../helpers";
 
 describeSuite({
   id: "D024024",
@@ -26,12 +28,11 @@ describeSuite({
     const assetMetadata = {
       name: "FOREIGN",
       symbol: "FOREIGN",
-      decimals: new BN(12),
+      decimals: 12n,
       isFrozen: false,
     };
     const statemint_para_id = 1001;
     const statemint_assets_pallet_instance = 50;
-    const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
     const ASSET_MULTILOCATION: MultiLocation = {
       parents: 1,
@@ -48,14 +49,14 @@ describeSuite({
       Xcm: ASSET_MULTILOCATION,
     };
 
-    let assetId: string;
+    const assetId = 1n;
     let sendingAddress: `0x${string}`;
     let descendedAddress: `0x${string}`;
     let random: KeyringPair;
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
 
-    const assetsToTransfer = 100_000_000_000n;
+    const assetsToTransfer = 100_000_000_000_000_000n;
 
     let STORAGE_READ_COST: bigint;
 
@@ -76,15 +77,26 @@ describeSuite({
       descendedAddress = descendOriginAddress;
       random = generateKeyringPair();
 
-      // registerOldForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
+      const { contractAddress: assetAddress } = await registerForeignAsset(
         context,
+        assetId,
         STATEMINT_LOCATION,
-        assetMetadata,
-        1_000_000_000_000
+        assetMetadata
       );
-      assetId = registeredAssetId;
-      expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
+
+      // Expect to confirm the contract has the correct decimals
+
+      expect(
+        await context.viem().readContract({
+          address: assetAddress as `0x${string}`,
+          functionName: "decimals",
+          args: [],
+          abi: parseAbi(["function decimals() view returns (uint8)"]),
+        })
+      ).toBe(12);
+
+      // Foreign asset is registered with the same price as the native token
+      await addAssetToWeightTrader(STATEMINT_LOCATION, 1_000_000_000_000_000_000n, context);
     });
 
     for (const xcmVersion of XCM_VERSIONS) {
@@ -92,6 +104,11 @@ describeSuite({
         id: `T01-XCM-v${xcmVersion}`,
         title: `should receive transact and should be able to execute (XCM v${xcmVersion})`,
         test: async function () {
+          const initialBalance = await foreignAssetBalance(context, assetId, descendedAddress);
+          const initialNonce = await context
+            .viem()
+            .getTransactionCount({ address: descendedAddress });
+
           const config = {
             assets: [
               {
@@ -118,9 +135,19 @@ describeSuite({
               ) as any
           );
 
+          // Foreign asset was registered with the same price as the native token
+          // so we can calculate the fees using the txPaymentApi
+          const nativeFees = (await context
+            .polkadotJs()
+            .call.transactionPaymentApi.queryWeightToFee({
+              refTime: chargedWeight,
+              proofSize: 0n,
+            })) as bigint;
+          const feesToAdd = BigInt(nativeFees.toLocaleString()); // If not converted via string, fees seem to overfund the account
+
           // we modify the config now:
           // we send assetsToTransfer plus whatever we will be charged in weight
-          config.assets[0].fungible = assetsToTransfer + chargedWeight;
+          config.assets[0].fungible = assetsToTransfer + feesToAdd;
 
           // Construct the real message
           const xcmMessage = new XcmFragment(config)
@@ -137,11 +164,8 @@ describeSuite({
           } as RawXcmMessage);
 
           // Make sure descended address has the transferred foreign assets (minus the xcm fees).
-          expect(
-            (await context.polkadotJs().query.assets.account(assetId, descendedAddress))
-              .unwrap()
-              .balance.toBigInt()
-          ).to.eq(assetsToTransfer);
+          const descendedBalance = await foreignAssetBalance(context, assetId, descendedAddress);
+          expect(descendedBalance - initialBalance).to.eq(assetsToTransfer);
 
           // Get initial contract count
           const initialCount = (
@@ -243,19 +267,12 @@ describeSuite({
 
             expect(BigInt(actualCalls!.toString()) - initialCountBigInt).to.eq(expectedCalls);
           }
-          // Make sure descended address went below existential deposit and was killed
-          expect(
-            (await context.polkadotJs().query.assets.account(assetId, descendedAddress)).isNone
-          ).to.be.true;
-          // Even if the account does not exist in assets aymore, we still have a nonce 1. Reason is:
-          // - First transact withdrew 1/2 of assets, nonce was increased to 1.
-          // - Second transact withdrew the last 1/2 of assets, account was reaped and zeroed.
-          // - The subsequent evm execution increased the nonce to 1, even without sufficient
-          //   references.
-          // We can expect this to be the behaviour on any xcm fragment that completely drains an
-          // account to transact ethereum-xcm after.
+          // Make sure descended address has no funds
+          const finalBalance = await foreignAssetBalance(context, assetId, descendedAddress);
+          expect(finalBalance).to.eq(0n);
+
           const nonce = await context.viem().getTransactionCount({ address: descendedAddress });
-          expect(nonce).to.be.eq(1);
+          expect(nonce - initialNonce).to.be.eq(2);
         },
       });
     }
