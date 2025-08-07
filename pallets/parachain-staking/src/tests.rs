@@ -2092,20 +2092,34 @@ fn schedule_candidate_bond_less_event_emits_correctly() {
 }
 
 #[test]
-fn cannot_schedule_candidate_bond_less_if_request_exists() {
+fn can_schedule_multiple_candidate_bond_less_requests() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 30)])
-		.with_candidates(vec![(1, 30)])
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 50)])
 		.build()
 		.execute_with(|| {
+			// First request
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
 				RuntimeOrigin::signed(1),
-				5
+				10
 			));
-			assert_noop!(
-				ParachainStaking::schedule_candidate_bond_less(RuntimeOrigin::signed(1), 5),
-				Error::<Test>::PendingCandidateRequestAlreadyExists
-			);
+			// Second request
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				10
+			));
+			// Third request
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				10
+			));
+
+			// Verify state has 3 pending requests
+			let state = ParachainStaking::candidate_info(1).unwrap();
+			assert_eq!(state.bond_less_requests.len(), 3);
+			assert_eq!(state.bond_less_requests[0].amount, 10);
+			assert_eq!(state.bond_less_requests[1].amount, 10);
+			assert_eq!(state.bond_less_requests[2].amount, 10);
 		});
 }
 
@@ -2130,6 +2144,37 @@ fn cannot_schedule_candidate_bond_less_if_new_total_below_min_candidate_stk() {
 				ParachainStaking::schedule_candidate_bond_less(RuntimeOrigin::signed(1), 21),
 				Error::<Test>::CandidateBondBelowMin
 			);
+		});
+}
+
+#[test]
+fn cannot_schedule_candidate_bond_less_if_total_pending_exceeds_available() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 50)])
+		.build()
+		.execute_with(|| {
+			// First request for 20
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				20
+			));
+			// Second request for 15 (total 35)
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				15
+			));
+			// Third request for 16 would bring bond below minimum (50 - 20 - 15 - 16 = -1)
+			// Min candidate stake is 10, so this should fail
+			assert_noop!(
+				ParachainStaking::schedule_candidate_bond_less(RuntimeOrigin::signed(1), 16),
+				Error::<Test>::CandidateBondBelowMin
+			);
+			// But a request for 5 should work (50 - 20 - 15 - 5 = 10)
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				5
+			));
 		});
 }
 
@@ -2291,6 +2336,61 @@ fn execute_candidate_bond_less_updates_candidate_pool() {
 		});
 }
 
+#[test]
+fn execute_candidate_bond_less_with_multiple_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100)])
+		.with_candidates(vec![(1, 100)])
+		.build()
+		.execute_with(|| {
+			// Schedule multiple requests at different rounds
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				20
+			));
+			roll_to(5);
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				15
+			));
+			roll_to(8);
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				10
+			));
+
+			// First execution should only execute the first request
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				1
+			));
+			let state = ParachainStaking::candidate_info(1).unwrap();
+			assert_eq!(state.bond, 80); // 100 - 20
+			assert_eq!(state.bond_less_requests.len(), 2); // 2 requests remaining
+
+			// Second execution should execute the second request
+			roll_to(15);
+			assert_ok!(ParachainStaking::execute_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				1
+			));
+			let state = ParachainStaking::candidate_info(1).unwrap();
+			assert_eq!(state.bond, 65); // 80 - 15
+			assert_eq!(state.bond_less_requests.len(), 1); // 1 request remaining
+
+			// Third execution should execute the last request
+			roll_to(18);
+			assert_ok!(ParachainStaking::execute_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				1
+			));
+			let state = ParachainStaking::candidate_info(1).unwrap();
+			assert_eq!(state.bond, 55); // 65 - 10
+			assert_eq!(state.bond_less_requests.len(), 0); // No requests remaining
+		});
+}
+
 // CANCEL CANDIDATE BOND LESS REQUEST
 
 #[test]
@@ -2331,8 +2431,59 @@ fn cancel_candidate_bond_less_updates_candidate_state() {
 			));
 			assert!(ParachainStaking::candidate_info(&1)
 				.unwrap()
-				.request
-				.is_none());
+				.bond_less_requests
+				.is_empty());
+		});
+}
+
+#[test]
+fn cancel_candidate_bond_less_with_multiple_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50)])
+		.with_candidates(vec![(1, 50)])
+		.build()
+		.execute_with(|| {
+			// Schedule multiple requests
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				10
+			));
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				5
+			));
+			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
+				RuntimeOrigin::signed(1),
+				8
+			));
+
+			let state = ParachainStaking::candidate_info(1).unwrap();
+			assert_eq!(state.bond_less_requests.len(), 3);
+
+			// Cancel should remove all requests
+			assert_ok!(ParachainStaking::cancel_candidate_bond_less(
+				RuntimeOrigin::signed(1)
+			));
+
+			let state = ParachainStaking::candidate_info(1).unwrap();
+			assert!(state.bond_less_requests.is_empty());
+
+			// Should emit events for each cancelled request
+			let events = System::events();
+			let cancel_events: Vec<_> = events
+				.iter()
+				.filter_map(|e| {
+					if let RuntimeEvent::ParachainStaking(Event::CancelledCandidateBondLess {
+						..
+					}) = &e.event
+					{
+						Some(&e.event)
+					} else {
+						None
+					}
+				})
+				.collect();
+			assert_eq!(cancel_events.len(), 3);
 		});
 }
 
