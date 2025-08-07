@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use sp_std::{vec::Vec, vec};
 use frame_support::{
 	traits::{Get, OnRuntimeUpgrade},
 	weights::Weight,
@@ -22,6 +21,7 @@ use frame_support::{
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_runtime::RuntimeDebug;
+use sp_std::{vec, vec::Vec};
 
 use crate::*;
 
