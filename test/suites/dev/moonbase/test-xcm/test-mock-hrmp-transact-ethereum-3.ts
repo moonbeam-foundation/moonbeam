@@ -105,6 +105,9 @@ describeSuite({
         title: `should receive transact and should be able to execute (XCM v${xcmVersion})`,
         test: async function () {
           const initialBalance = await foreignAssetBalance(context, assetId, descendedAddress);
+          const initialNonce = await context
+            .viem()
+            .getTransactionCount({ address: descendedAddress });
 
           const config = {
             assets: [
@@ -267,6 +270,9 @@ describeSuite({
           // Make sure descended address has no funds
           const finalBalance = await foreignAssetBalance(context, assetId, descendedAddress);
           expect(finalBalance).to.eq(0n);
+
+          const nonce = await context.viem().getTransactionCount({ address: descendedAddress });
+          expect(nonce - initialNonce).to.be.eq(2);
         },
       });
     }
