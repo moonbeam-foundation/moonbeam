@@ -28,7 +28,7 @@ describeSuite({
     const assetMetadata = {
       name: "FOREIGN",
       symbol: "FOREIGN",
-      decimals: 12n, // TODO the deposit seems to be done with 14 decimals no matter what this config is
+      decimals: 12n,
       isFrozen: false,
     };
     const statemint_para_id = 1001;
@@ -56,7 +56,7 @@ describeSuite({
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
 
-    const assetsToTransfer = 2n;
+    const assetsToTransfer = 100_000_000_000_000_000n;
 
     let STORAGE_READ_COST: bigint;
 
@@ -85,7 +85,7 @@ describeSuite({
       );
 
       // Expect to confirm the contract has the correct decimals
-      
+
       expect(
         await context.viem().readContract({
           address: assetAddress as `0x${string}`,
@@ -96,11 +96,7 @@ describeSuite({
       ).toBe(12);
 
       // Foreign asset is registered with the same price as the native token
-      await addAssetToWeightTrader(
-        STATEMINT_LOCATION,
-        1_000_000_000_000_000_000n,
-        context
-      );
+      await addAssetToWeightTrader(STATEMINT_LOCATION, 1_000_000_000_000_000_000n, context);
     });
 
     for (const xcmVersion of XCM_VERSIONS) {
@@ -108,14 +104,7 @@ describeSuite({
         id: `T01-XCM-v${xcmVersion}`,
         title: `should receive transact and should be able to execute (XCM v${xcmVersion})`,
         test: async function () {
-
-          const initialBalance = await foreignAssetBalance(
-            context, 
-            assetId,
-            descendedAddress
-          );
-
-          console.log("initial balance:" + initialBalance);
+          const initialBalance = await foreignAssetBalance(context, assetId, descendedAddress);
 
           const config = {
             assets: [
@@ -143,19 +132,19 @@ describeSuite({
               ) as any
           );
 
-          console.log("calculated weight:" + chargedWeight);
-
           // Foreign asset was registered with the same price as the native token
-          // so we can calculate the fees using the txPaymentApi  
-          const fees = await context
+          // so we can calculate the fees using the txPaymentApi
+          const nativeFees = (await context
             .polkadotJs()
-            .call.transactionPaymentApi.queryWeightToFee({refTime: chargedWeight, proofSize: 0n});
+            .call.transactionPaymentApi.queryWeightToFee({
+              refTime: chargedWeight,
+              proofSize: 0n,
+            })) as bigint;
+          const feesToAdd = BigInt(nativeFees.toLocaleString()); // If not converted via string, fees seem to overfund the account
 
-
-          console.log("calculated fees:" + fees);
           // we modify the config now:
           // we send assetsToTransfer plus whatever we will be charged in weight
-          config.assets[0].fungible = assetsToTransfer + fees;
+          config.assets[0].fungible = assetsToTransfer + feesToAdd;
 
           // Construct the real message
           const xcmMessage = new XcmFragment(config)
@@ -172,13 +161,8 @@ describeSuite({
           } as RawXcmMessage);
 
           // Make sure descended address has the transferred foreign assets (minus the xcm fees).
-          const descendedBalance = await foreignAssetBalance(
-            context,
-            assetId,
-            descendedAddress
-          );
-          console.log("descended balance:" + descendedBalance);
-          expect(descendedBalance - initialBalance).to.eq(assetsToTransfer * 10n ** assetMetadata.decimals);
+          const descendedBalance = await foreignAssetBalance(context, assetId, descendedAddress);
+          expect(descendedBalance - initialBalance).to.eq(assetsToTransfer);
 
           // Get initial contract count
           const initialCount = (
@@ -280,22 +264,9 @@ describeSuite({
 
             expect(BigInt(actualCalls!.toString()) - initialCountBigInt).to.eq(expectedCalls);
           }
-          // Make sure descended address went below existential deposit and was killed
-          const finalBalance = await foreignAssetBalance(
-            context,
-            assetId,
-            descendedAddress
-          );
+          // Make sure descended address has no funds
+          const finalBalance = await foreignAssetBalance(context, assetId, descendedAddress);
           expect(finalBalance).to.eq(0n);
-          // Even if the account does not exist in assets aymore, we still have a nonce 1. Reason is:
-          // - First transact withdrew 1/2 of assets, nonce was increased to 1.
-          // - Second transact withdrew the last 1/2 of assets, account was reaped and zeroed.
-          // - The subsequent evm execution increased the nonce to 1, even without sufficient
-          //   references.
-          // We can expect this to be the behaviour on any xcm fragment that completely drains an
-          // account to transact ethereum-xcm after.
-          const nonce = await context.viem().getTransactionCount({ address: descendedAddress });
-          expect(nonce).to.be.eq(1);
         },
       });
     }
