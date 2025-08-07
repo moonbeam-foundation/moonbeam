@@ -52,10 +52,11 @@ pub use weights::WeightInfo;
 
 use self::evm::EvmCaller;
 use ethereum_types::{H160, U256};
-use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::Contains;
+use frame_support::{pallet, Deserialize, Serialize};
 use frame_system::pallet_prelude::*;
+use sp_std::{vec, vec::Vec};
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
 	XcmContext,
@@ -152,6 +153,15 @@ pub enum AssetStatus {
 	FrozenXcmDepositAllowed,
 	/// The asset is frozen, and deposit from XCM will fail
 	FrozenXcmDepositForbidden,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct EvmForeignAssetInfo {
+	pub asset_id: AssetId,
+	pub xcm_location: Location,
+	pub decimals: u8,
+	pub symbol: BoundedVec<u8, ConstU32<256>>,
+	pub name: BoundedVec<u8, ConstU32<256>>,
 }
 
 #[pallet]
@@ -317,6 +327,37 @@ pub mod pallet {
 	pub struct AssetDepositDetails<T: Config> {
 		pub deposit_account: T::AccountId,
 		pub deposit: BalanceOf<T>,
+	}
+
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T: Config> {
+		pub assets: Vec<EvmForeignAssetInfo>,
+		pub _phantom: PhantomData<T>,
+	}
+
+	impl<T: Config> Default for GenesisConfig<T> {
+		fn default() -> Self {
+			Self {
+				assets: vec![],
+				_phantom: Default::default(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
+		fn build(&self) {
+			for asset in self.assets.clone() {
+				Pallet::<T>::register_foreign_asset(
+					asset.asset_id,
+					asset.xcm_location,
+					asset.decimals,
+					asset.symbol,
+					asset.name,
+				)
+				.expect("couldn't register asset");
+			}
+		}
 	}
 
 	impl<T: Config> Pallet<T> {

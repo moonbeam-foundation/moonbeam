@@ -22,6 +22,7 @@
 #[cfg(test)]
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
+use crate::HostFunctions;
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonriver_runtime::{
@@ -33,7 +34,7 @@ use sc_service::ChainType;
 use sp_core::ecdsa;
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
+pub type ChainSpec = sc_service::GenericChainSpec<Extensions, HostFunctions>;
 
 /// Generate a chain spec for use with the development service.
 pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32>) -> ChainSpec {
