@@ -72,19 +72,8 @@ describeSuite({
 
         expect(extrinsic.isEip2930).to.be.true;
 
-        const {
-          chainId,
-          nonce,
-          gasPrice,
-          gasLimit,
-          action,
-          value,
-          input,
-          accessList,
-          oddYParity,
-          r,
-          s,
-        } = extrinsic.asEip2930;
+        const { chainId, nonce, gasPrice, gasLimit, action, value, input, accessList, signature } =
+          extrinsic.asEip2930;
         expect(chainId.toNumber()).to.equal(1281);
         expect(nonce.toNumber()).to.equal(currentNonce);
         expect(gasPrice.toNumber()).to.equal(DEFAULT_TXN_MAX_BASE_FEE);
@@ -93,11 +82,11 @@ describeSuite({
         expect(value.toBigInt()).to.equal(512n);
         expect(input.toHex()).to.equal("0x");
         expect(accessList.toString()).toBe("[]");
-        expect(oddYParity.isTrue).to.be.true;
-        expect(r.toHex()).to.equal(
+        expect(signature.oddYParity.isTrue).to.be.true;
+        expect(signature.r.toHex()).to.equal(
           "0x8b978b8a38a3237af932f1988af0b01e60311a440c80bfcae96d7b9ac4ef8310"
         );
-        expect(s.toHex()).to.equal(
+        expect(signature.s.toHex()).to.equal(
           "0x67c4d6d489d7d5180c8764eb4eff3e16e0330c9a0000b52756847b9ca14069e1"
         );
       },
@@ -137,9 +126,7 @@ describeSuite({
           value,
           input,
           accessList,
-          oddYParity,
-          r,
-          s,
+          signature,
         } = extrinsic.asEip1559;
         expect(chainId.toNumber()).to.equal(1281);
         expect(nonce.toNumber()).to.equal(currentNonce);
@@ -150,11 +137,11 @@ describeSuite({
         expect(value.toBigInt()).to.equal(512n);
         expect(input.toHex()).to.equal("0x");
         expect(accessList.toString()).toBe("[]");
-        expect(oddYParity.isFalse).to.be.true;
-        expect(r.toHex()).to.equal(
+        expect(signature.oddYParity.isFalse).to.be.true;
+        expect(signature.r.toHex()).to.equal(
           "0x6a11d199415bee29b89a65a689546bbb7f50e95fae3a7d238e6a0d5e9753f998"
         );
-        expect(s.toHex()).to.equal(
+        expect(signature.s.toHex()).to.equal(
           "0x45ec58c0626fef976a5e3a9cbad8d3aadbad03a4784fd7ca0cd332d2f571a000"
         );
       },
