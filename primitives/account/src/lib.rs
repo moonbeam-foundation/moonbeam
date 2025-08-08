@@ -41,7 +41,18 @@ pub const SYSTEM_ACCOUNT_SIZE: u64 = 148;
 /// Polkadot JS.
 
 #[derive(
-	Eq, PartialEq, Copy, Clone, Encode, Decode, TypeInfo, MaxEncodedLen, Default, PartialOrd, Ord,
+	Eq,
+	PartialEq,
+	Copy,
+	Clone,
+	Encode,
+	Decode,
+	TypeInfo,
+	MaxEncodedLen,
+	Default,
+	PartialOrd,
+	Ord,
+	DecodeWithMemTracking,
 )]
 pub struct AccountId20(pub [u8; 20]);
 

@@ -200,6 +200,7 @@ pub mod pallet {
 		Eq,
 		PartialEq,
 		scale_info::TypeInfo,
+		DecodeWithMemTracking,
 	)]
 	pub struct RemoteTransactInfoWithMaxWeight {
 		/// Extra weight that transacting a call in a destination chain adds
@@ -232,7 +233,16 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
+	#[derive(
+		Clone,
+		Encode,
+		Decode,
+		Eq,
+		PartialEq,
+		RuntimeDebug,
+		scale_info::TypeInfo,
+		DecodeWithMemTracking,
+	)]
 	pub struct HrmpInitParams {
 		pub para_id: ParaId,
 		pub proposed_max_capacity: u32,
@@ -240,7 +250,16 @@ pub mod pallet {
 	}
 
 	/// Enum defining the way to express a Currency.
-	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
+	#[derive(
+		Clone,
+		Encode,
+		Decode,
+		Eq,
+		PartialEq,
+		RuntimeDebug,
+		scale_info::TypeInfo,
+		DecodeWithMemTracking,
+	)]
 	pub enum HrmpOperation {
 		InitOpen(HrmpInitParams),
 		Accept {
@@ -280,7 +299,16 @@ pub mod pallet {
 		pub fee_amount: Option<u128>,
 	}
 
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+	#[derive(
+		Default,
+		Clone,
+		Encode,
+		Decode,
+		RuntimeDebug,
+		PartialEq,
+		scale_info::TypeInfo,
+		DecodeWithMemTracking,
+	)]
 	/// Struct tindicating information about transact weights
 	/// It allows to specify:
 	/// - transact_required_weight_at_most: the amount of weight the Transact instruction

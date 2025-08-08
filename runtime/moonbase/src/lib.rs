@@ -93,14 +93,15 @@ use moonbeam_runtime_common::{
 };
 use nimbus_primitives::CanAuthor;
 use pallet_ethereum::Call::transact;
-use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
+use pallet_ethereum::PostLogContent;
+use ethereum::TransactionV2 as EthereumTransaction;
 use pallet_evm::{
 	Account as EVMAccount, EVMFungibleAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, FrameSystemAccountProvider, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen, DecodeWithMemTracking};
 use runtime_params::*;
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
@@ -542,6 +543,8 @@ impl pallet_evm::Config for Runtime {
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 
 	type WeightInfo = moonbase_weights::pallet_evm::WeightInfo<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -560,6 +563,7 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_scheduler::WeightInfo<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -951,6 +955,7 @@ impl pallet_author_mapping::Config for Runtime {
 	TypeInfo,
 	Serialize,
 	Deserialize,
+	DecodeWithMemTracking,
 )]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
@@ -1171,6 +1176,7 @@ impl pallet_proxy::Config for Runtime {
 	// - 32 bytes Hasher (Blake2256)
 	// - 4 bytes BlockNumber (u32)
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
+	type BlockNumberProvider = System;
 }
 
 impl pallet_migrations::Config for Runtime {
@@ -1396,6 +1402,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
 	type WeightInfo = moonbase_weights::pallet_multisig::WeightInfo<Runtime>;
+	type BlockNumberProvider = System;
 }
 
 impl pallet_relay_storage_roots::Config for Runtime {

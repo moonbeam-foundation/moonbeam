@@ -79,8 +79,6 @@ impl pallet_whitelist::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-pallet_referenda::impl_tracksinfo_get!(TracksInfo, Balance, BlockNumber);
-
 impl pallet_referenda::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_referenda::WeightInfo<Runtime>;
 	type RuntimeCall = RuntimeCall;
