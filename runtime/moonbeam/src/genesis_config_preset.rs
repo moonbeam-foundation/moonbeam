@@ -157,7 +157,6 @@ pub fn testnet_genesis(
 		},
 		proxy_genesis_companion: Default::default(),
 		treasury: Default::default(),
-		migrations: Default::default(),
 		maintenance_mode: MaintenanceModeConfig {
 			start_in_maintenance_mode: false,
 			..Default::default()

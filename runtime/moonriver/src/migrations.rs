@@ -16,13 +16,23 @@
 
 //! # Moonriver specific Migrations
 
-use pallet_migrations::{GetMigrations, Migration};
-use sp_std::{prelude::*, vec};
+type MoonriverMigrations = ();
 
-pub struct MoonriverMigrations;
+/// List of single block migrations to be executed by frame executive.
+pub type SingleBlockMigrations<Runtime> = (
+	// Common migrations applied on all Moonbeam runtime
+	moonbeam_runtime_common::migrations::SingleBlockMigrations<Runtime>,
+	// Moonriver specific migrations
+	MoonriverMigrations,
+);
 
-impl GetMigrations for MoonriverMigrations {
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![]
-	}
-}
+/// List of multi block migrations to be executed by the pallet_migrations.
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type MultiBlockMigrationList<Runtime> = (
+	// Common multiblock migrations applied on all Moonbeam runtime
+	moonbeam_runtime_common::migrations::MultiBlockMigrations<Runtime>,
+	// ... Moonriver specific multiblock migrations
+);
+// Benchmarks need mocked migrations to guarantee that they succeed.
+#[cfg(feature = "runtime-benchmarks")]
+pub type MultiBlockMigrationList<Runtime> = pallet_migrations::mock_helpers::MockedMigrations;
