@@ -19,34 +19,23 @@
 //! This module acts as a registry where each migration is defined. Each migration should implement
 //! the "Migration" trait declared in the pallet-migrations crate.
 
-use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
 use frame_system::pallet_prelude::BlockNumberFor;
 use pallet_migrations::{GetMigrations, Migration};
 use sp_std::{marker::PhantomData, prelude::*, vec};
 
-pub struct MigrateToLatestXcmVersion<Runtime>(PhantomData<Runtime>);
-impl<Runtime> Migration for MigrateToLatestXcmVersion<Runtime>
-where
-	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>: OnRuntimeUpgrade,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_MigrateToV5XcmVersion"
-	}
+/// Unreleased migrations. Add new ones here:
+pub type UnreleasedSingleBlockMigrations<Runtime> =
+	(pallet_parachain_staking::migrations::MigrateToV1<Runtime>,);
 
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::on_runtime_upgrade()
-	}
+/// Migrations/checks that do not need to be versioned and can run on every update.
+pub type PermanentSingleBlockMigrations<Runtime> =
+	(pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,);
 
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::pre_upgrade()
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		pallet_xcm::migration::MigrateToLatestXcmVersion::<Runtime>::post_upgrade(state)
-	}
-}
+/// All migrations that will run on the next runtime upgrade.
+pub type SingleBlockMigrations<Runtime> = (
+	UnreleasedSingleBlockMigrations<Runtime>,
+	PermanentSingleBlockMigrations<Runtime>,
+);
 
 pub struct CommonMigrations<Runtime>(PhantomData<Runtime>);
 
@@ -202,7 +191,7 @@ where
 			// Box::new(MigrateStakingParachainBondConfig::<Runtime>(Default::default())),
 
 			// permanent migrations
-			Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
+			//Box::new(MigrateToLatestXcmVersion::<Runtime>(Default::default())),
 		]
 	}
 }

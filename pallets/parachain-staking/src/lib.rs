@@ -80,7 +80,9 @@ pub mod pallet {
 	use crate::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
 	};
-	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
+	use crate::{
+		migrations, set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo,
+	};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
@@ -98,6 +100,7 @@ pub mod pallet {
 	/// Pallet for parachain staking
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
+	#[pallet::storage_version(migrations::STORAGE_VERSION)]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	pub type RoundIndex = u32;

@@ -308,7 +308,10 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = ConstU16<1287>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
-	type SingleBlockMigrations = ();
+	type SingleBlockMigrations = (
+		// Common migrations applied on all Moonbeam runtime
+		moonbeam_runtime_common::migrations::SingleBlockMigrations<Runtime>,
+	);
 	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
 	type PostInherents = ();
