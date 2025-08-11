@@ -27,12 +27,8 @@ pub type SingleBlockMigrations<Runtime> = (
 );
 
 /// List of multi block migrations to be executed by the pallet_migrations.
-#[cfg(not(feature = "runtime-benchmarks"))]
 pub type MultiBlockMigrationList<Runtime> = (
 	// Common multiblock migrations applied on all Moonbeam runtime
 	moonbeam_runtime_common::migrations::MultiBlockMigrations<Runtime>,
 	// ... Moonriver specific multiblock migrations
 );
-// Benchmarks need mocked migrations to guarantee that they succeed.
-#[cfg(feature = "runtime-benchmarks")]
-pub type MultiBlockMigrationList<Runtime> = pallet_migrations::mock_helpers::MockedMigrations;
