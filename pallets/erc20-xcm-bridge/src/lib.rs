@@ -123,7 +123,6 @@ pub mod pallet {
 				None,
 				None,
 				Default::default(),
-				Default::default(),
 				false,
 				false,
 				Some(weight_limit),

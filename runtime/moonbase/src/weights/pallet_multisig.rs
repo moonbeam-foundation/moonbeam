@@ -161,4 +161,9 @@ impl<T: frame_system::Config> pallet_multisig::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
+
+    fn poke_deposit(s: u32) -> Weight {
+        // TODO: regenerate weights
+        Weight::from_parts(1_533_606, 1587)
+    }
 }

@@ -219,7 +219,16 @@ pub mod pallet {
 	}
 
 	/// Enum defining the way to express a Currency.
-	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
+	#[derive(
+		Clone,
+		Encode,
+		Decode,
+		Eq,
+		PartialEq,
+		RuntimeDebug,
+		scale_info::TypeInfo,
+		DecodeWithMemTracking,
+	)]
 	pub enum Currency<CurrencyId> {
 		// Express the Currency as a CurrencyId
 		AsCurrencyId(CurrencyId),
@@ -282,6 +291,7 @@ pub mod pallet {
 		RuntimeDebug,
 		MaxEncodedLen,
 		scale_info::TypeInfo,
+		DecodeWithMemTracking,
 	)]
 
 	/// Struct that defines how to express the payment in a particular currency

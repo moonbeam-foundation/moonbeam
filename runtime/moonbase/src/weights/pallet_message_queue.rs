@@ -138,7 +138,13 @@ impl<T: frame_system::Config> pallet_message_queue::WeightInfo for WeightInfo<T>
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
+
+    fn set_service_head() -> Weight {
+        // TODO: regenerate this file
+        Weight::from_parts(7_630_000, 3517)
+    }
+
+    /// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
 	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
 	/// Storage: `MessageQueue::Pages` (r:1 w:1)
 	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(105521), added: 107996, mode: `MaxEncodedLen`)

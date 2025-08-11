@@ -42,6 +42,7 @@ mod migrations;
 mod precompiles;
 
 extern crate alloc;
+extern crate core;
 
 use alloc::borrow::Cow;
 // Re-export required by get! macro.
@@ -93,15 +94,14 @@ use moonbeam_runtime_common::{
 };
 use nimbus_primitives::CanAuthor;
 use pallet_ethereum::Call::transact;
-use pallet_ethereum::PostLogContent;
-use ethereum::TransactionV2 as EthereumTransaction;
+use pallet_ethereum::{PostLogContent, Transaction as EthereumTransaction};
 use pallet_evm::{
 	Account as EVMAccount, EVMFungibleAdapter, EnsureAddressNever, EnsureAddressRoot,
 	FeeCalculator, FrameSystemAccountProvider, GasWeightMapping, IdentityAddressMapping,
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen, DecodeWithMemTracking};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use runtime_params::*;
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
