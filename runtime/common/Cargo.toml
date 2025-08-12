@@ -14,7 +14,6 @@ log = "0.4"
 moonbeam-core-primitives = { workspace = true }
 pallet-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
-pallet-parachain-staking = { workspace = true }
 pallet-xcm-weight-trader = { workspace = true }
 
 # Substrate
@@ -55,7 +54,6 @@ std = [
 	"moonbeam-core-primitives/std",
 	"pallet-author-inherent/std",
 	"pallet-migrations/std",
-	"pallet-parachain-staking/std",
 	"pallet-transaction-payment/std",
 	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
@@ -75,7 +73,6 @@ runtime-benchmarks = [
 	"pallet-message-queue/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
-	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",

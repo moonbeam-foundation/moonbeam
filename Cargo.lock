@@ -7718,7 +7718,6 @@ dependencies = [
  "pallet-message-queue",
  "pallet-migrations",
  "pallet-moonbeam-foreign-assets",
- "pallet-parachain-staking",
  "pallet-transaction-payment",
  "pallet-treasury",
  "pallet-xcm",
