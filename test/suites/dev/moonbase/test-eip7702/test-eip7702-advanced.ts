@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "
 import { encodeFunctionData, type Abi, parseEther, parseGwei, keccak256 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
-import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
+import { createFundedAccount } from "./helpers";
 
 describeSuite({
   id: "D010306",
@@ -20,7 +20,6 @@ describeSuite({
     let storageModifierAbi: Abi;
     let ethReceiverAddress: `0x${string}`;
     let ethReceiverAbi: Abi;
-
 
     // Precompile addresses
     const ecrecoverPrecompile = "0x0000000000000000000000000000000000000001";

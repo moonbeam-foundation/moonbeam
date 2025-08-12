@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { type Abi, parseEther, parseGwei, encodeAbiParameters, keccak256, toRlp } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
+import { createFundedAccount } from "./helpers";
 
 describeSuite({
   id: "D010304",
@@ -11,7 +11,6 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let contractAddress: `0x${string}`;
     let contractAbi: Abi;
-
 
     beforeAll(async () => {
       const contract = await deployCreateCompiledContract(context, "Counter");

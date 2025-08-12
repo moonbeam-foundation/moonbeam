@@ -11,7 +11,7 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
-import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
+import { createFundedAccount } from "./helpers";
 
 describeSuite({
   id: "D010305",
@@ -30,7 +30,6 @@ describeSuite({
     let callerAbi: Abi;
     let reentrantCallerAddress: `0x${string}`;
     let reentrantCallerAbi: Abi;
-
 
     beforeAll(async () => {
       // Deploy all test contracts

@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "
 import { encodeFunctionData, type Abi, parseEther, parseGwei, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
-import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
+import { createFundedAccount } from "./helpers";
 
 describeSuite({
   id: "D010302",
@@ -18,7 +18,6 @@ describeSuite({
     let callerAbi: Abi;
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
-
 
     beforeAll(async () => {
       // Deploy test contracts

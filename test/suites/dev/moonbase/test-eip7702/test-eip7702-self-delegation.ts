@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { encodeFunctionData, type Abi, parseEther, parseGwei } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
+import { createFundedAccount } from "./helpers";
 
 describeSuite({
   id: "D010307",
@@ -11,7 +11,6 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
-
 
     beforeAll(async () => {
       const counter = await deployCreateCompiledContract(context, "Counter");

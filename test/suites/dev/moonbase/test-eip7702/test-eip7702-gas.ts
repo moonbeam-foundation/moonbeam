@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { encodeFunctionData, type Abi, parseEther, parseGwei } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
+import { createFundedAccount } from "./helpers";
 
 describeSuite({
   id: "D010303",
@@ -13,7 +13,6 @@ describeSuite({
     let storageWriterAbi: Abi;
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
-
 
     // EIP-7702 gas costs
     const PER_AUTH_BASE_COST = 2500n;
