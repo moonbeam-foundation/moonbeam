@@ -159,57 +159,6 @@
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -226,200 +175,149 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="doccomment">//! # Migrations
-//!
-//! This module acts as a registry where each migration is defined. Each migration should implement
-//! the "Migration" trait declared in the pallet-migrations crate.
+</span><span class="doccomment">//! # Common Moonbeam Migrations
 
-</span><span class="kw">use </span>frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
-<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
-<span class="kw">use </span>pallet_migrations::{GetMigrations, Migration};
-<span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>, vec};
+</span><span class="kw">use </span>core::marker::PhantomData;
+<span class="kw">use </span>frame_support::migrations::SteppedMigrationError;
+<span class="kw">use </span>frame_support::weights::WeightMeter;
+<span class="kw">use </span>frame_support::{migrations::SteppedMigration, parameter_types};
+<span class="kw">use </span>pallet_migrations::WeightInfo;
+<span class="kw">use </span>parity_scale_codec::Encode;
+<span class="kw">use </span>sp_core::{twox_128, Get};
+<span class="kw">use </span>sp_io::{storage::clear_prefix, KillStorageResult};
+<span class="kw">use </span>sp_runtime::SaturatedConversion;
 
-<span class="kw">pub struct </span>MigrateToLatestXcmVersion&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
-<span class="kw">impl</span>&lt;Runtime&gt; Migration <span class="kw">for </span>MigrateToLatestXcmVersion&lt;Runtime&gt;
+<span class="doccomment">/// Remove all of a pallet's state and re-initializes it to the current in-code storage version.
+///
+/// It uses the multi block migration frame. Hence it is safe to use even on
+/// pallets that contain a lot of storage.
+///
+/// # Parameters
+///
+/// - T: The runtime. Used to access the weight definition.
+/// - P: The pallet name to be removed as defined in construct runtime
+///
+/// # Note
+///
+/// If your pallet does rely of some state in genesis you need to take care of that
+/// separately. This migration only sets the storage version after wiping.
+</span><span class="kw">pub struct </span>RemovePallet&lt;T, P&gt;(PhantomData&lt;(T, P)&gt;);
+
+<span class="kw">impl</span>&lt;T, P&gt; RemovePallet&lt;T, P&gt;
 <span class="kw">where
-	</span>pallet_xcm::migration::MigrateToLatestXcmVersion&lt;Runtime&gt;: OnRuntimeUpgrade,
+	</span>P: Get&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
 {
-	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-		<span class="string">"MM_MigrateToV5XcmVersion"
+	<span class="attr">#[cfg(feature = <span class="string">"try-runtime"</span>)]
+	</span><span class="kw">fn </span>num_keys() -&gt; u64 {
+		<span class="kw">let </span>prefix = twox_128(P::get().as_bytes()).to_vec();
+		frame_support::storage::KeyPrefixIterator::new(prefix.clone(), prefix, |<span class="kw">_</span>| <span class="prelude-val">Ok</span>(())).count()
+			<span class="kw">as _
 	</span>}
+}
 
-	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
-		pallet_xcm::migration::MigrateToLatestXcmVersion::&lt;Runtime&gt;::on_runtime_upgrade()
+<span class="kw">impl</span>&lt;T, P&gt; SteppedMigration <span class="kw">for </span>RemovePallet&lt;T, P&gt;
+<span class="kw">where
+	</span>T: pallet_migrations::Config,
+	P: Get&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str&gt;,
+{
+	<span class="kw">type </span>Cursor = bool;
+	<span class="kw">type </span>Identifier = [u8; <span class="number">16</span>];
+
+	<span class="kw">fn </span>id() -&gt; <span class="self">Self</span>::Identifier {
+		(<span class="string">"RemovePallet::"</span>, P::get()).using_encoded(twox_128)
+	}
+
+	<span class="kw">fn </span>step(
+		cursor: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cursor&gt;,
+		meter: <span class="kw-2">&amp;mut </span>WeightMeter,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cursor&gt;, SteppedMigrationError&gt; {
+		<span class="comment">// we write the storage version in a seperate block
+		</span><span class="kw">if </span>cursor.unwrap_or(<span class="bool-val">false</span>) {
+			<span class="kw">let </span>required = T::DbWeight::get().writes(<span class="number">1</span>);
+			meter
+				.try_consume(required)
+				.map_err(|<span class="kw">_</span>| SteppedMigrationError::InsufficientWeight { required })<span class="question-mark">?</span>;
+			<span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+		}
+
+		<span class="kw">let </span>base_weight = T::WeightInfo::reset_pallet_migration(<span class="number">0</span>);
+		<span class="kw">let </span>weight_per_key = T::WeightInfo::reset_pallet_migration(<span class="number">1</span>).saturating_sub(base_weight);
+		<span class="kw">let </span>key_budget = meter
+			.remaining()
+			.saturating_sub(base_weight)
+			.checked_div_per_component(<span class="kw-2">&amp;</span>weight_per_key)
+			.unwrap_or_default()
+			.saturated_into();
+
+		<span class="kw">if </span>key_budget == <span class="number">0 </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(SteppedMigrationError::InsufficientWeight {
+				required: T::WeightInfo::reset_pallet_migration(<span class="number">1</span>),
+			});
+		}
+
+		<span class="kw">let </span>(keys_removed, is_done) =
+			<span class="kw">match </span>clear_prefix(<span class="kw-2">&amp;</span>twox_128(P::get().as_bytes()), <span class="prelude-val">Some</span>(key_budget)) {
+				KillStorageResult::AllRemoved(value) =&gt; (value, <span class="bool-val">true</span>),
+				KillStorageResult::SomeRemaining(value) =&gt; (value, <span class="bool-val">false</span>),
+			};
+
+		meter.consume(T::WeightInfo::reset_pallet_migration(keys_removed));
+
+		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(is_done))
 	}
 
 	<span class="attr">#[cfg(feature = <span class="string">"try-runtime"</span>)]
-	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, sp_runtime::DispatchError&gt; {
-		pallet_xcm::migration::MigrateToLatestXcmVersion::&lt;Runtime&gt;::pre_upgrade()
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;sp_std::vec::Vec&lt;u8&gt;, sp_runtime::TryRuntimeError&gt; {
+		<span class="kw">let </span>num_keys: u64 = <span class="self">Self</span>::num_keys();
+		<span class="macro">log::info!</span>(
+			<span class="string">"RemovePallet&lt;{}&gt;: Trying to remove {num_keys} keys."</span>,
+			P::get()
+		);
+		<span class="prelude-val">Ok</span>(num_keys.encode())
 	}
 
 	<span class="attr">#[cfg(feature = <span class="string">"try-runtime"</span>)]
-	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>, state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt; {
-		pallet_xcm::migration::MigrateToLatestXcmVersion::&lt;Runtime&gt;::post_upgrade(state)
+	</span><span class="kw">fn </span>post_upgrade(state: sp_std::vec::Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::TryRuntimeError&gt; {
+		<span class="kw">use </span>parity_scale_codec::Decode;
+		<span class="kw">let </span>keys_before = u64::decode(<span class="kw-2">&amp;mut </span>state.as_ref()).expect(<span class="string">"We encoded as u64 above; qed"</span>);
+		<span class="kw">let </span>keys_now = <span class="self">Self</span>::num_keys();
+		<span class="macro">log::info!</span>(
+			<span class="string">"RemovePallet&lt;{}&gt;: Keys remaining after migration: {keys_now}"</span>,
+			P::get()
+		);
+
+		<span class="kw">if </span>keys_before &lt;= keys_now {
+			<span class="macro">log::error!</span>(<span class="string">"RemovePallet&lt;{}&gt;: Did not remove any keys."</span>, P::get());
+			<span class="prelude-val">Err</span>(<span class="string">"RemovePallet failed"</span>)<span class="question-mark">?</span>;
+		}
+
+		<span class="kw">if </span>keys_now != <span class="number">1 </span>{
+			<span class="macro">log::error!</span>(<span class="string">"RemovePallet&lt;{}&gt;: Should have a single key after"</span>, P::get());
+			<span class="prelude-val">Err</span>(<span class="string">"RemovePallet failed"</span>)<span class="question-mark">?</span>;
+		}
+
+		<span class="prelude-val">Ok</span>(())
 	}
 }
 
-<span class="kw">pub struct </span>CommonMigrations&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
+<span class="doccomment">/// Unreleased migrations. Add new ones here:
+</span><span class="kw">pub type </span>UnreleasedSingleBlockMigrations = ();
 
-<span class="kw">impl</span>&lt;Runtime&gt; GetMigrations <span class="kw">for </span>CommonMigrations&lt;Runtime&gt;
-<span class="kw">where
-	</span>Runtime: pallet_xcm::Config
-		+ pallet_transaction_payment::Config
-		+ pallet_xcm_weight_trader::Config
-		+ pallet_parachain_staking::Config,
-	Runtime::AccountId: Default,
-	BlockNumberFor&lt;Runtime&gt;: Into&lt;u64&gt;,
-{
-	<span class="kw">fn </span>get_migrations() -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>Migration&gt;&gt; {
-		<span class="comment">// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::&lt;Runtime&gt; {
-		// 	0: Default::default(),
-		// };
+<span class="doccomment">/// Migrations/checks that do not need to be versioned and can run on every update.
+</span><span class="kw">pub type </span>PermanentSingleBlockMigrations&lt;Runtime&gt; =
+	(pallet_xcm::migration::MigrateToLatestXcmVersion&lt;Runtime&gt;,);
 
-		// let migration_parachain_staking_purge_stale_storage =
-		// 	ParachainStakingPurgeStaleStorage::&lt;Runtime&gt;(Default::default());
-		// let migration_parachain_staking_manual_exits =
-		// 	ParachainStakingManualExits::&lt;Runtime&gt;(Default::default());
-		// let migration_parachain_staking_increase_max_delegations_per_candidate =
-		// 	ParachainStakingIncreaseMaxDelegationsPerCandidate::&lt;Runtime&gt;(Default::default());
-		// let migration_parachain_staking_split_candidate_state =
-		// 	ParachainStakingSplitCandidateState::&lt;Runtime&gt;(Default::default());
-		// let migration_parachain_staking_patch_incorrect_delegation_sums =
-		//	ParachainStakingPatchIncorrectDelegationSums::&lt;Runtime&gt;(Default::default());
+<span class="doccomment">/// All migrations that will run on the next runtime upgrade.
+</span><span class="kw">pub type </span>SingleBlockMigrations&lt;Runtime&gt; = (
+	UnreleasedSingleBlockMigrations,
+	PermanentSingleBlockMigrations&lt;Runtime&gt;,
+);
 
-		// let migration_scheduler_v3 = SchedulerMigrationV3::&lt;Runtime&gt;(Default::default());
-
-		// let migration_base_fee = MigrateBaseFeePerGas::&lt;Runtime&gt;(Default::default());
-
-		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
-		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
-
-		// let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
-		// 	AuthorSlotFilterEligibleRatioToEligiblityCount::&lt;Runtime&gt;(Default::default());
-		// let migration_author_mapping_add_keys_to_registration_info =
-		// 	AuthorMappingAddKeysToRegistrationInfo::&lt;Runtime&gt;(Default::default());
-		// let staking_delegator_state_requests =
-		// 	ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::&lt;Runtime&gt;(
-		// 		Default::default(),
-		// 	);
-		// let migration_author_mapping_add_account_id_to_nimbus_lookup =
-		//	AuthorMappingAddAccountIdToNimbusLookup::&lt;Runtime&gt;(Default::default());
-
-		// let xcm_transactor_max_weight =
-		// 	XcmTransactorMaxTransactWeight::&lt;Runtime&gt;(Default::default());
-
-		// let asset_manager_units_with_asset_type =
-		// 	AssetManagerUnitsWithAssetType::&lt;Runtime&gt;(Default::default());
-
-		// let asset_manager_populate_asset_type_id_storage =
-		// 	AssetManagerPopulateAssetTypeIdStorage::&lt;Runtime&gt;(Default::default());
-
-		// let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::&lt;
-		// 	Runtime,
-		// 	StatemineParaIdInfo,
-		// 	StatemineAssetsInstanceInfo,
-		// &gt;(Default::default());
-
-		// let xcm_supported_assets = XcmPaymentSupportedAssets::&lt;Runtime&gt;(Default::default());
-
-		// let migration_elasticity = MigrateBaseFeeElasticity::&lt;Runtime&gt;(Default::default());
-		//let staking_at_stake_auto_compound =
-		//	ParachainStakingMigrateAtStakeAutoCompound::&lt;Runtime&gt;(Default::default());
-
-		//let scheduler_to_v4 = SchedulerMigrationV4::&lt;Runtime&gt;(Default::default());
-		//let democracy_migration_hash_to_bounded_call =
-		//	DemocracryMigrationHashToBoundedCall::&lt;Runtime&gt;(Default::default());
-		//let preimage_migration_hash_to_bounded_call =
-		//	PreimageMigrationHashToBoundedCall::&lt;Runtime&gt;(Default::default());
-		//let asset_manager_to_xcm_v3 =
-		//	PalletAssetManagerMigrateXcmV2ToV3::&lt;Runtime&gt;(Default::default());
-		//let xcm_transactor_to_xcm_v3 =
-		//	PalletXcmTransactorMigrateXcmV2ToV3::&lt;Runtime&gt;(Default::default());
-		//let remove_min_bond_for_old_orbiter_collators =
-		//	RemoveMinBondForOrbiterCollators::&lt;Runtime&gt;(Default::default());
-		// let missing_balances_migrations = MissingBalancesMigrations::&lt;Runtime&gt;(Default::default());
-		// let fix_pallet_versions =
-		// 	FixIncorrectPalletVersions::&lt;Runtime, Treasury, OpenTech&gt;(Default::default());
-		// let pallet_referenda_migrate_v0_to_v1 =
-		// 	PalletReferendaMigrateV0ToV1::&lt;Runtime&gt;(Default::default());
-		//let pallet_collective_drop_gov_v1_collectives =
-		//	PalletCollectiveDropGovV1Collectives::&lt;Runtime&gt;(Default::default());
-		//let pallet_staking_round = PalletStakingRoundMigration::&lt;Runtime&gt;(Default::default());
-
-		</span><span class="macro">vec!</span>[
-			<span class="comment">// completed in runtime 800
-			// Box::new(migration_author_mapping_twox_to_blake),
-			// completed in runtime 900
-			// completed in runtime 1000
-			// Box::new(migration_parachain_staking_purge_stale_storage),
-			// completed in runtime 1000
-			// Box::new(migration_parachain_staking_manual_exits),
-			// completed in runtime 1101
-			// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
-			// completed in runtime 1201
-			// Box::new(migration_parachain_staking_split_candidate_state),
-			// completed in runtime 1201
-			// Box::new(xcm_transactor_max_weight),
-			// completed in runtime 1201
-			// Box::new(asset_manager_units_with_asset_type),
-			// completed in runtime 1201
-			// Box::new(asset_manager_change_statemine_prefixes),
-			// completed in runtime 1201
-			// Box::new(asset_manager_populate_asset_type_id_storage),
-			// completed in runtime 1300
-			// Box::new(migration_scheduler_v3),
-			// completed in runtime 1300
-			// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
-			// completed in runtime 1300
-			// Box::new(migration_base_fee),
-			// completed in runtime 1300
-			// Box::new(xcm_supported_assets),
-			// completed in runtime 1500
-			// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
-			// Box::new(migration_author_mapping_add_keys_to_registration_info),
-			// Box::new(staking_delegator_state_requests),
-			// completed in runtime 1600
-			// Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
-			// completed in runtime 1600
-			// Box::new(xcm_transactor_transact_signed),
-			// completed in runtime 1700
-			//Box::new(migration_elasticity),
-			// completed in runtime 1900
-			//Box::new(staking_at_stake_auto_compound),
-			// completed in runtime 2000
-			//Box::new(scheduler_to_v4),
-			//Box::new(democracy_migration_hash_to_bounded_call),
-			//Box::new(preimage_migration_hash_to_bounded_call),
-			// completed in runtime 2100
-			//Box::new(asset_manager_to_xcm_v3),
-			//Box::new(xcm_transactor_to_xcm_v3),
-			// completed in runtime 2600
-			//Box::new(remove_min_bond_for_old_orbiter_collators),
-			// completed in runtime 2700
-			// Box::new(missing_balances_migrations),
-			// Box::new(fix_pallet_versions),
-			// Box::new(pallet_referenda_migrate_v0_to_v1),
-			// completed in runtime 2800
-			//Box::new(pallet_collective_drop_gov_v1_collectives),
-			// completed in runtime 2801
-			// Box::new(pallet_staking_round),
-			// Box::new(pallet_collective_drop_gov_v1_collectives),
-			// completed in runtime 2900
-			// Box::new(remove_pallet_democracy),
-			// Box::new(remove_collectives_addresses
-			// completed in runtime 3200
-			// Box::new(MigrateXcmFeesAssetsMeatdata::&lt;Runtime&gt;(Default::default())),
-			// complete in runtime 3300
-			// Box::new(MigrateCodeToStateTrieV1::&lt;Runtime&gt;(Default::default())),
-			// Box::new(MigrateStakingParachainBondConfig::&lt;Runtime&gt;(Default::default())),
-
-			// permanent migrations
-			</span>Box::new(MigrateToLatestXcmVersion::&lt;Runtime&gt;(Default::default())),
-		]
-	}
+<span class="macro">parameter_types!</span> {
+	<span class="kw">pub const </span>MigrationsPalletName: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"Migrations"</span>;
 }
 
 <span class="doccomment">/// List of common multiblock migrations to be executed by the pallet_multiblock_migrations.
 /// The migrations listed here are common to every moonbeam runtime.
-</span><span class="kw">pub type </span>MultiBlockMigrationList = ();
+</span><span class="kw">pub type </span>MultiBlockMigrations&lt;Runtime&gt; = (RemovePallet&lt;Runtime, MigrationsPalletName&gt;,);
 </code></pre></div></section></main></body></html>

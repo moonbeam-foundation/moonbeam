@@ -26,6 +26,13 @@
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam Foundation.Inc.
 // This file is part of Moonbeam.
 
@@ -44,14 +51,21 @@
 
 </span><span class="doccomment">//! # Moonbeam specific Migrations
 
-</span><span class="kw">use </span>pallet_migrations::{GetMigrations, Migration};
-<span class="kw">use </span>sp_std::{prelude::<span class="kw-2">*</span>, vec};
+</span><span class="kw">type </span>MoonbeamMigrations = ();
 
-<span class="kw">pub struct </span>MoonbeamMigrations;
+<span class="doccomment">/// List of single block migrations to be executed by frame executive.
+</span><span class="kw">pub type </span>SingleBlockMigrations&lt;Runtime&gt; = (
+	<span class="comment">// Common migrations applied on all Moonbeam runtime
+	</span>moonbeam_runtime_common::migrations::SingleBlockMigrations&lt;Runtime&gt;,
+	<span class="comment">// Moonbeam specific migrations
+	</span>MoonbeamMigrations,
+);
 
-<span class="kw">impl </span>GetMigrations <span class="kw">for </span>MoonbeamMigrations {
-	<span class="kw">fn </span>get_migrations() -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>Migration&gt;&gt; {
-		<span class="macro">vec!</span>[]
-	}
-}
+<span class="doccomment">/// List of multi block migrations to be executed by the pallet_migrations.
+</span><span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
+</span><span class="kw">pub type </span>MultiBlockMigrationList&lt;Runtime&gt; = (
+	<span class="comment">// Common multiblock migrations applied on all Moonbeam runtime
+	</span>moonbeam_runtime_common::migrations::MultiBlockMigrations&lt;Runtime&gt;,
+	<span class="comment">// ... Moonbeam specific multiblock migrations
+</span>);
 </code></pre></div></section></main></body></html>

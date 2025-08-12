@@ -2067,19 +2067,6 @@
 <a href="#2067" id="2067">2067</a>
 <a href="#2068" id="2068">2068</a>
 <a href="#2069" id="2069">2069</a>
-<a href="#2070" id="2070">2070</a>
-<a href="#2071" id="2071">2071</a>
-<a href="#2072" id="2072">2072</a>
-<a href="#2073" id="2073">2073</a>
-<a href="#2074" id="2074">2074</a>
-<a href="#2075" id="2075">2075</a>
-<a href="#2076" id="2076">2076</a>
-<a href="#2077" id="2077">2077</a>
-<a href="#2078" id="2078">2078</a>
-<a href="#2079" id="2079">2079</a>
-<a href="#2080" id="2080">2080</a>
-<a href="#2081" id="2081">2081</a>
-<a href="#2082" id="2082">2082</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2389,7 +2376,7 @@
 	</span><span class="kw">type </span>SS58Prefix = ConstU16&lt;<span class="number">1285</span>&gt;;
 	<span class="kw">type </span>OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>MaxConsumers = frame_support::traits::ConstU32&lt;<span class="number">16</span>&gt;;
-	<span class="kw">type </span>SingleBlockMigrations = ();
+	<span class="kw">type </span>SingleBlockMigrations = migrations::SingleBlockMigrations&lt;Runtime&gt;;
 	<span class="kw">type </span>MultiBlockMigrator = MultiBlockMigrations;
 	<span class="kw">type </span>PreInherents = ();
 	<span class="kw">type </span>PostInherents = ();
@@ -3235,15 +3222,6 @@
 	</span><span class="kw">type </span>AnnouncementDepositFactor = ConstU128&lt;{ currency::deposit(<span class="number">0</span>, <span class="number">56</span>) }&gt;;
 }
 
-<span class="kw">impl </span>pallet_migrations::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>MigrationsList = (
-		moonbeam_runtime_common::migrations::CommonMigrations&lt;Runtime&gt;,
-		migrations::MoonriverMigrations,
-	);
-	<span class="kw">type </span>XcmExecutionManager = XcmExecutionManager;
-}
-
 <span class="kw">pub type </span>ForeignAssetMigratorOrigin = EitherOfDiverse&lt;
 	EnsureRoot&lt;AccountId&gt;,
 	EitherOfDiverse&lt;
@@ -3483,22 +3461,18 @@
 	<span class="kw">type </span>WeightInfo = moonriver_weights::pallet_parameters::WeightInfo&lt;Runtime&gt;;
 }
 
-<span class="doccomment">/// List of multiblock migrations to be executed by the pallet_multiblock_migrations.
-</span><span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
-</span><span class="kw">pub type </span>MultiBlockMigrationList = moonbeam_runtime_common::migrations::MultiBlockMigrationList;
-<span class="comment">// Benchmarks need mocked migrations to guarantee that they succeed.
-</span><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
-</span><span class="kw">pub type </span>MultiBlockMigrationList = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
-
-<span class="kw">impl </span>pallet_multiblock_migrations::Config <span class="kw">for </span>Runtime {
+<span class="kw">impl </span>pallet_migrations::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>Migrations = MultiBlockMigrationList;
+	<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
+	</span><span class="kw">type </span>Migrations = migrations::MultiBlockMigrationList&lt;Runtime&gt;;
+	<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+	</span><span class="kw">type </span>Migrations = pallet_migrations::mock_helpers::MockedMigrations;
 	<span class="kw">type </span>CursorMaxLen = ConstU32&lt;<span class="number">65_536</span>&gt;;
 	<span class="kw">type </span>IdentifierMaxLen = ConstU32&lt;<span class="number">256</span>&gt;;
 	<span class="kw">type </span>MigrationStatusHandler = ();
 	<span class="kw">type </span>FailedMigrationHandler = MaintenanceMode;
 	<span class="kw">type </span>MaxServiceWeight = MaxServiceWeight;
-	<span class="kw">type </span>WeightInfo = weights::pallet_multiblock_migrations::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>WeightInfo = weights::pallet_migrations::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="macro">construct_runtime!</span> {
@@ -3529,8 +3503,8 @@
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">31</span>,
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config&lt;T&gt;, Storage, Event} = <span class="number">32</span>,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">33</span>,
-		Migrations: pallet_migrations::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = <span class="number">34</span>,
-		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config&lt;T&gt;} = <span class="number">35</span>,
+		<span class="comment">// [Removed] Migrations: pallet_migrations::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = 34,
+		</span>ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config&lt;T&gt;} = <span class="number">35</span>,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">36</span>,
 		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = <span class="number">37</span>,
 		Parameters: pallet_parameters = <span class="number">38</span>,
@@ -3581,7 +3555,7 @@
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">114</span>,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">115</span>,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = <span class="number">116</span>,
-		MultiBlockMigrations: pallet_multiblock_migrations = <span class="number">117</span>,
+		MultiBlockMigrations: pallet_migrations = <span class="number">117</span>,
 
 		<span class="comment">// Utils
 		</span>RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = <span class="number">112</span>,
@@ -3650,7 +3624,7 @@
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
-		[pallet_multiblock_migrations, MultiBlockMigrations]
+		[pallet_migrations, MultiBlockMigrations]
 		<span class="comment">// Currently there are no extrinsics to benchmark for the Lazy Migrations pallet
 		// [pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		</span>[pallet_relay_storage_roots, RelayStorageRoots]

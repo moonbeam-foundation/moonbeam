@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CommonMigrations","MigrateToLatestXcmVersion"],"type":["MultiBlockMigrationList"]};
+window.SIDEBAR_ITEMS = {"struct":["MigrationsPalletName","RemovePallet"],"type":["MultiBlockMigrations","PermanentSingleBlockMigrations","SingleBlockMigrations","UnreleasedSingleBlockMigrations"]};
