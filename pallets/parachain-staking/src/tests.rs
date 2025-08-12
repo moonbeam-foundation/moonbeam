@@ -9166,3 +9166,236 @@ fn test_linear_inflation_threshold() {
 			assert_eq!(round_above.ideal, threshold.unwrap() / 20); // 5% of threshold
 		});
 }
+
+#[test]
+fn test_multiple_delegator_bond_decrease_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 50)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 40)])
+		.build()
+		.execute_with(|| {
+			// Schedule first decrease
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				5
+			));
+
+			// Schedule second decrease - should succeed with multiple requests
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				10
+			));
+
+			// Schedule third decrease
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				5
+			));
+
+			// Verify all three events were emitted
+			assert_events_eq!(
+				Event::DelegationDecreaseScheduled {
+					delegator: 2,
+					candidate: 1,
+					amount_to_decrease: 5,
+					execute_round: 3,
+				},
+				Event::DelegationDecreaseScheduled {
+					delegator: 2,
+					candidate: 1,
+					amount_to_decrease: 10,
+					execute_round: 3,
+				},
+				Event::DelegationDecreaseScheduled {
+					delegator: 2,
+					candidate: 1,
+					amount_to_decrease: 5,
+					execute_round: 3,
+				},
+			);
+
+			// Total pending decrease is 20, bond is 40, so remaining would be 20
+			// Try to schedule a decrease that would bring remaining below min delegation (3)
+			// Decreasing by 18 would leave 2, which is below min
+			assert_noop!(
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 18)
+					.map_err(|err| err.error),
+				Error::<Test>::DelegationBelowMin
+			);
+
+			// Move to round 3 to execute requests
+			roll_to(10);
+
+			// Execute first request (FIFO - should be the 5 decrease)
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				RuntimeOrigin::signed(2),
+				2,
+				1
+			));
+
+			// Execute second request (should be the 10 decrease)
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				RuntimeOrigin::signed(2),
+				2,
+				1
+			));
+
+			// Execute third request (should be the 5 decrease)
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				RuntimeOrigin::signed(2),
+				2,
+				1
+			));
+
+			// Check all execution events
+			assert_events_emitted!(
+				Event::DelegationDecreased {
+					delegator: 2,
+					candidate: 1,
+					amount: 5,
+					in_top: true,
+				},
+				Event::DelegationDecreased {
+					delegator: 2,
+					candidate: 1,
+					amount: 10,
+					in_top: true,
+				},
+				Event::DelegationDecreased {
+					delegator: 2,
+					candidate: 1,
+					amount: 5,
+					in_top: true,
+				},
+			);
+
+			// Verify final delegation amount is 20 (40 - 5 - 10 - 5)
+			let delegator_state = ParachainStaking::delegator_state(2).expect("delegator exists");
+			assert_eq!(delegator_state.get_bond_amount(&1), Some(20));
+
+			// No more pending requests
+			assert_noop!(
+				ParachainStaking::execute_delegation_request(RuntimeOrigin::signed(2), 2, 1),
+				Error::<Test>::PendingDelegationRequestDNE
+			);
+		});
+}
+
+#[test]
+fn test_cancel_multiple_delegator_bond_decrease_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 50)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 40)])
+		.build()
+		.execute_with(|| {
+			// Schedule multiple decreases
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				5
+			));
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				10
+			));
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				8
+			));
+
+			// Cancel first request (FIFO - should cancel the 5 decrease)
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				RuntimeOrigin::signed(2),
+				1
+			));
+
+			// Cancel second request (should cancel the 10 decrease)
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				RuntimeOrigin::signed(2),
+				1
+			));
+
+			// Check cancellation events
+			assert_events_emitted!(
+				Event::CancelledDelegationRequest {
+					delegator: 2,
+					collator: 1,
+					cancelled_request: CancelledScheduledRequest {
+						when_executable: 3,
+						action: DelegationAction::Decrease(5),
+					},
+				},
+				Event::CancelledDelegationRequest {
+					delegator: 2,
+					collator: 1,
+					cancelled_request: CancelledScheduledRequest {
+						when_executable: 3,
+						action: DelegationAction::Decrease(10),
+					},
+				},
+			);
+
+			// Still one request remaining
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				RuntimeOrigin::signed(2),
+				2,
+				1
+			));
+
+			// Check the execution event for the remaining request
+			assert_events_emitted!(Event::DelegationDecreased {
+				delegator: 2,
+				candidate: 1,
+				amount: 8,
+				in_top: true,
+			});
+
+			// Verify final delegation amount is 32 (40 - 8)
+			let delegator_state = ParachainStaking::delegator_state(2).expect("delegator exists");
+			assert_eq!(delegator_state.get_bond_amount(&1), Some(32));
+		});
+}
+
+#[test]
+fn test_revoke_request_blocks_decrease_requests() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 50)])
+		.with_candidates(vec![(1, 30)])
+		.with_delegations(vec![(2, 1, 40)])
+		.build()
+		.execute_with(|| {
+			// Schedule a revoke request
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				RuntimeOrigin::signed(2),
+				1
+			));
+
+			// Try to schedule a decrease - should fail
+			assert_noop!(
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 5)
+					.map_err(|err| err.error),
+				Error::<Test>::PendingDelegationRequestAlreadyExists
+			);
+
+			// Cancel the revoke request
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				RuntimeOrigin::signed(2),
+				1
+			));
+
+			// Now decrease should work
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				5
+			));
+		});
+}
