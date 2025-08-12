@@ -20,8 +20,14 @@ describeSuite({
     let ethReceiverAddress: `0x${string}`;
     let ethReceiverAbi: Abi;
 
-    const alithPrivateKey = "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-    const alithAccount = privateKeyToAccount(alithPrivateKey);
+    // Use ephemeral accounts to avoid nonce conflicts
+    const createFundedAccount = async () => {
+      const account = privateKeyToAccount(generatePrivateKey());
+      await context.createBlock([
+        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
+      ]);
+      return account;
+    };
 
     // Precompile addresses
     const ecrecoverPrecompile = "0x0000000000000000000000000000000000000001";
@@ -93,14 +99,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth1, auth2, auth3],
           type: "eip7702" as const,
         };
 
-        const setupSignature = await alithAccount.signTransaction(setupTx);
+        const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
         // Now test pointer chain: EOA1 calls EOA2
@@ -123,12 +129,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const chainSignature = await alithAccount.signTransaction(chainTx);
+        const chainSignature = await senderAccount.signTransaction(chainTx);
         await expectOk(context.createBlock(chainSignature));
 
         // Verify storage in EOA2's context
@@ -146,6 +152,7 @@ describeSuite({
       id: "T02",
       title: "should handle pointer-to-pointer calls",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const pointer1 = privateKeyToAccount(generatePrivateKey());
         const pointer2 = privateKeyToAccount(generatePrivateKey());
 
@@ -174,14 +181,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth1, auth2],
           type: "eip7702" as const,
         };
 
-        const setupSignature = await alithAccount.signTransaction(setupTx);
+        const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
         // Pointer1 calls Pointer2
@@ -198,12 +205,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const pointerSignature = await alithAccount.signTransaction(pointerTx);
+        const pointerSignature = await senderAccount.signTransaction(pointerTx);
         const result = await context.createBlock(pointerSignature);
 
         if (result.hash || result.result?.hash) {
@@ -220,6 +227,7 @@ describeSuite({
       id: "T03",
       title: "should test context opcodes with pointers (BALANCE, CODESIZE, etc.)",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -239,14 +247,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
 
-        const setupSignature = await alithAccount.signTransaction(setupTx);
+        const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
         // Test ADDRESS opcode - should return pointer's address
@@ -291,6 +299,7 @@ describeSuite({
       id: "T04",
       title: "should test call to precompile in pointer context",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -310,14 +319,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
 
-        const setupSignature = await alithAccount.signTransaction(setupTx);
+        const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
         // Call identity precompile through pointer
@@ -335,12 +344,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const precompileSignature = await alithAccount.signTransaction(precompileTx);
+        const precompileSignature = await senderAccount.signTransaction(precompileTx);
         const result = await context.createBlock(precompileSignature);
 
         if (result.hash || result.result?.hash) {
@@ -357,6 +366,7 @@ describeSuite({
       id: "T05",
       title: "should test gas difference between pointer and direct calls",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -377,14 +387,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
 
-        const setupSignature = await alithAccount.signTransaction(setupTx);
+        const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
         // Call through pointer
@@ -401,12 +411,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const pointerSignature = await alithAccount.signTransaction(pointerCallTx);
+        const pointerSignature = await senderAccount.signTransaction(pointerCallTx);
         const pointerResult = await context.createBlock(pointerSignature);
 
         let pointerGas = 0n;
@@ -428,12 +438,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const directSignature = await alithAccount.signTransaction(directCallTx);
+        const directSignature = await senderAccount.signTransaction(directCallTx);
         const directResult = await context.createBlock(directSignature);
 
         let directGas = 0n;
@@ -455,6 +465,7 @@ describeSuite({
       id: "T06",
       title: "should test static context preservation through pointers",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -474,14 +485,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
 
-        const setupSignature = await alithAccount.signTransaction(setupTx);
+        const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
         // Try to make a static call that should fail if it tries to modify state
@@ -504,12 +515,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const staticSignature = await alithAccount.signTransaction(staticTx);
+        const staticSignature = await senderAccount.signTransaction(staticTx);
         const result = await context.createBlock(staticSignature);
 
         // Static call to state-modifying function should fail
@@ -528,6 +539,7 @@ describeSuite({
       id: "T07",
       title: "should test pointer reverts and error propagation",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -547,14 +559,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
 
-        const setupSignature = await alithAccount.signTransaction(setupTx);
+        const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
         // Set the contract to revert
@@ -569,12 +581,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const setRevertSignature = await alithAccount.signTransaction(setRevertTx);
+        const setRevertSignature = await senderAccount.signTransaction(setRevertTx);
         await expectOk(context.createBlock(setRevertSignature));
 
         // Now try to set value which should revert
@@ -589,12 +601,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const revertSignature = await alithAccount.signTransaction(revertTx);
+        const revertSignature = await senderAccount.signTransaction(revertTx);
         const result = await context.createBlock(revertSignature);
 
         if (result.hash || result.result?.hash) {
@@ -611,6 +623,7 @@ describeSuite({
       id: "T08",
       title: "should test double authorization (last authorization wins)",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const doubleAuth = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -638,14 +651,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth1, auth2],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         await expectOk(context.createBlock(signature));
 
         // Check which delegation is active - should be contextChecker (last one)
@@ -676,6 +689,7 @@ describeSuite({
       id: "T09",
       title: "should test pre-Prague transaction rejection",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         // This test would require the ability to simulate pre-Prague behavior
         // Since we're testing on a post-Prague chain, we can only verify
         // that EIP-7702 transactions work correctly
@@ -699,14 +713,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         const result = await context.createBlock(signature);
 
         // On a Prague-enabled chain, this should succeed
@@ -725,6 +739,7 @@ describeSuite({
       id: "T10",
       title: "should test pointer with ETH transfers",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -744,14 +759,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
 
-        const setupSignature = await alithAccount.signTransaction(setupTx);
+        const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
         // Send ETH to the pointer (which delegates to EthReceiver)
@@ -762,12 +777,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const sendEthSignature = await alithAccount.signTransaction(sendEthTx);
+        const sendEthSignature = await senderAccount.signTransaction(sendEthTx);
         await expectOk(context.createBlock(sendEthSignature));
 
         // Check deposit was recorded
@@ -775,7 +790,7 @@ describeSuite({
           address: pointer.address,
           abi: ethReceiverAbi,
           functionName: "deposits",
-          args: [alithAccount.address],
+          args: [senderAccount.address],
         });
         expect(deposit).toBe(parseEther("0.5"));
 
@@ -791,12 +806,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const withdrawSignature = await alithAccount.signTransaction(withdrawTx);
+        const withdrawSignature = await senderAccount.signTransaction(withdrawTx);
         await expectOk(context.createBlock(withdrawSignature));
 
         // Check deposit was cleared
@@ -804,7 +819,7 @@ describeSuite({
           address: pointer.address,
           abi: ethReceiverAbi,
           functionName: "deposits",
-          args: [alithAccount.address],
+          args: [senderAccount.address],
         });
         expect(depositAfter).toBe(0n);
       },

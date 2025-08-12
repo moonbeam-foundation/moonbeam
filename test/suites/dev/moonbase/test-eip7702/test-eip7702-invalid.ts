@@ -11,8 +11,14 @@ describeSuite({
     let contractAddress: `0x${string}`;
     let contractAbi: Abi;
 
-    const alithPrivateKey = "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-    const alithAccount = privateKeyToAccount(alithPrivateKey);
+    // Use ephemeral accounts to avoid nonce conflicts
+    const createFundedAccount = async () => {
+      const account = privateKeyToAccount(generatePrivateKey());
+      await context.createBlock([
+        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
+      ]);
+      return account;
+    };
 
     beforeAll(async () => {
       const contract = await deployCreateCompiledContract(context, "Counter");
@@ -24,6 +30,7 @@ describeSuite({
       id: "T01",
       title: "should reject empty authorization list properly",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         // EIP-7702 transactions with empty authorization list should be valid
         // but behave like regular transactions
         const tx = {
@@ -33,14 +40,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         const result = await context.createBlock(signature);
 
         // Transaction should succeed as a normal transfer
@@ -64,6 +71,7 @@ describeSuite({
       id: "T02",
       title: "should reject authorization with invalid signature (s > secp256k1n/2)",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -93,7 +101,7 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [invalidAuth],
@@ -101,7 +109,7 @@ describeSuite({
         };
 
         try {
-          const signature = await alithAccount.signTransaction(tx);
+          const signature = await senderAccount.signTransaction(tx);
           const result = await context.createBlock(signature);
 
           // Check that delegation was not set
@@ -121,6 +129,7 @@ describeSuite({
       id: "T03",
       title: "should reject authorization with chain ID overflow",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -147,14 +156,14 @@ describeSuite({
             maxFeePerGas: 10_000_000_000n,
             maxPriorityFeePerGas: parseGwei("1"),
             nonce: await context.viem("public").getTransactionCount({
-              address: alithAccount.address,
+              address: senderAccount.address,
             }),
             chainId: 1281,
             authorizationList: [invalidAuth],
             type: "eip7702" as const,
           };
 
-          const signature = await alithAccount.signTransaction(tx);
+          const signature = await senderAccount.signTransaction(tx);
           const result = await context.createBlock(signature);
 
           // Delegation should not be set
@@ -173,6 +182,7 @@ describeSuite({
       id: "T04",
       title: "should reject authorization with nonce overflow",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -198,14 +208,14 @@ describeSuite({
             maxFeePerGas: 10_000_000_000n,
             maxPriorityFeePerGas: parseGwei("1"),
             nonce: await context.viem("public").getTransactionCount({
-              address: alithAccount.address,
+              address: senderAccount.address,
             }),
             chainId: 1281,
             authorizationList: [invalidAuth],
             type: "eip7702" as const,
           };
 
-          const signature = await alithAccount.signTransaction(tx);
+          const signature = await senderAccount.signTransaction(tx);
           const result = await context.createBlock(signature);
 
           // Even with max nonce, transaction might succeed but delegation won't match
@@ -228,6 +238,7 @@ describeSuite({
       id: "T05",
       title: "should reject malformed authorization with invalid address",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -257,14 +268,14 @@ describeSuite({
             maxFeePerGas: 10_000_000_000n,
             maxPriorityFeePerGas: parseGwei("1"),
             nonce: await context.viem("public").getTransactionCount({
-              address: alithAccount.address,
+              address: senderAccount.address,
             }),
             chainId: 1281,
             authorizationList: [malformedAuth],
             type: "eip7702" as const,
           };
 
-          const signature = await alithAccount.signTransaction(tx);
+          const signature = await senderAccount.signTransaction(tx);
           const result = await context.createBlock(signature);
 
           // Should fail or not set delegation
@@ -283,6 +294,7 @@ describeSuite({
       id: "T06",
       title: "should reject authorization tuple with extra elements",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -309,14 +321,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [validAuth],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         const result = await context.createBlock(signature);
 
         // This test would need lower-level RLP manipulation to properly test
@@ -335,6 +347,7 @@ describeSuite({
       id: "T07",
       title: "should reject authorization with yParity > 1",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -363,14 +376,14 @@ describeSuite({
             maxFeePerGas: 10_000_000_000n,
             maxPriorityFeePerGas: parseGwei("1"),
             nonce: await context.viem("public").getTransactionCount({
-              address: alithAccount.address,
+              address: senderAccount.address,
             }),
             chainId: 1281,
             authorizationList: [invalidAuth],
             type: "eip7702" as const,
           };
 
-          const signature = await alithAccount.signTransaction(tx);
+          const signature = await senderAccount.signTransaction(tx);
           const result = await context.createBlock(signature);
 
           // Delegation should not be set
@@ -389,6 +402,7 @@ describeSuite({
       id: "T08",
       title: "should reject duplicate authorizations in same transaction",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -411,14 +425,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth, auth], // Duplicate
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         const result = await context.createBlock(signature);
 
         // First authorization should succeed, second should be ignored
@@ -445,6 +459,7 @@ describeSuite({
       id: "T09",
       title: "should reject authorization with zero r value",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -473,14 +488,14 @@ describeSuite({
             maxFeePerGas: 10_000_000_000n,
             maxPriorityFeePerGas: parseGwei("1"),
             nonce: await context.viem("public").getTransactionCount({
-              address: alithAccount.address,
+              address: senderAccount.address,
             }),
             chainId: 1281,
             authorizationList: [invalidAuth],
             type: "eip7702" as const,
           };
 
-          const signature = await alithAccount.signTransaction(tx);
+          const signature = await senderAccount.signTransaction(tx);
           const result = await context.createBlock(signature);
 
           // Invalid signature should not set delegation
@@ -499,6 +514,7 @@ describeSuite({
       id: "T10",
       title: "should reject authorization with zero s value",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -527,14 +543,14 @@ describeSuite({
             maxFeePerGas: 10_000_000_000n,
             maxPriorityFeePerGas: parseGwei("1"),
             nonce: await context.viem("public").getTransactionCount({
-              address: alithAccount.address,
+              address: senderAccount.address,
             }),
             chainId: 1281,
             authorizationList: [invalidAuth],
             type: "eip7702" as const,
           };
 
-          const signature = await alithAccount.signTransaction(tx);
+          const signature = await senderAccount.signTransaction(tx);
           const result = await context.createBlock(signature);
 
           // Invalid signature should not set delegation

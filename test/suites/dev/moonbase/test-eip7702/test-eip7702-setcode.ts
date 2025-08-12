@@ -30,8 +30,14 @@ describeSuite({
     let reentrantCallerAddress: `0x${string}`;
     let reentrantCallerAbi: Abi;
 
-    const alithPrivateKey = "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-    const alithAccount = privateKeyToAccount(alithPrivateKey);
+    // Use ephemeral accounts to avoid nonce conflicts
+    const createFundedAccount = async () => {
+      const account = privateKeyToAccount(generatePrivateKey());
+      await context.createBlock([
+        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
+      ]);
+      return account;
+    };
 
     beforeAll(async () => {
       // Deploy all test contracts
@@ -64,6 +70,7 @@ describeSuite({
       id: "T01",
       title: "should handle set-code transaction with self-authorization",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const selfSponsor = privateKeyToAccount(generatePrivateKey());
 
         // Fund the self-sponsoring account
@@ -107,14 +114,14 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(alithTx);
+        const signature = await senderAccount.signTransaction(alithTx);
         const result = await context.createBlock(signature);
 
         let txHash: `0x${string}` | undefined;
@@ -153,6 +160,7 @@ describeSuite({
       id: "T02",
       title: "should execute simple SSTORE through set-code",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -180,14 +188,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         await expectOk(context.createBlock(signature));
 
         // Verify storage was written
@@ -205,6 +213,7 @@ describeSuite({
       id: "T03",
       title: "should handle set-code with existing storage and non-zero nonce",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const existingEOA = privateKeyToAccount(generatePrivateKey());
 
         // Fund and use the account first
@@ -225,10 +234,7 @@ describeSuite({
           chainId: 1281,
         });
 
-        await context.viem("public").sendRawTransaction({
-          serializedTransaction: dummyTx,
-        });
-        await context.createBlock();
+        await context.createBlock(dummyTx);
 
         // Now the account has nonce = 1
         const currentNonce = await context.viem("public").getTransactionCount({
@@ -260,14 +266,14 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         await expectOk(context.createBlock(signature));
 
         // Verify delegation was set despite non-zero account nonce
@@ -292,6 +298,7 @@ describeSuite({
       id: "T04",
       title: "should handle SSTORE then SLOAD in separate transactions",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -318,14 +325,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const storeSignature = await alithAccount.signTransaction(storeTx);
+        const storeSignature = await senderAccount.signTransaction(storeTx);
         await expectOk(context.createBlock(storeSignature));
 
         // Second transaction: SLOAD (no authorization needed, already delegated)
@@ -340,12 +347,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const loadSignature = await alithAccount.signTransaction(loadTx);
+        const loadSignature = await senderAccount.signTransaction(loadTx);
         const loadResult = await context.createBlock(loadSignature);
 
         // Use static call to get the return value
@@ -363,6 +370,7 @@ describeSuite({
       id: "T05",
       title: "should handle TSTORE with re-entry to TLOAD",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -391,14 +399,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         const result = await context.createBlock(signature);
 
         // Transaction should succeed
@@ -422,6 +430,7 @@ describeSuite({
       id: "T06",
       title: "should execute SELFDESTRUCT in delegated context",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
         const recipient = privateKeyToAccount(generatePrivateKey());
 
@@ -455,14 +464,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         await expectOk(context.createBlock(signature));
 
         // After EIP-6780, SELFDESTRUCT only transfers balance in same transaction
@@ -484,6 +493,7 @@ describeSuite({
       id: "T07",
       title: "should handle contract creation opcodes (CREATE, CREATE2)",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -512,14 +522,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const createSignature = await alithAccount.signTransaction(createTx);
+        const createSignature = await senderAccount.signTransaction(createTx);
         const createResult = await context.createBlock(createSignature);
 
         // Get transaction receipt to check for created contract
@@ -553,12 +563,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const create2Signature = await alithAccount.signTransaction(create2Tx);
+        const create2Signature = await senderAccount.signTransaction(create2Tx);
         const create2Result = await context.createBlock(create2Signature);
 
         if (create2Result.hash || create2Result.result?.hash) {
@@ -576,6 +586,7 @@ describeSuite({
       id: "T08",
       title: "should handle re-entry until max call stack depth",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -607,14 +618,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         const result = await context.createBlock(signature);
 
         // Check if transaction succeeded or failed due to stack depth
@@ -635,6 +646,7 @@ describeSuite({
       id: "T09",
       title: "should handle cross-delegation calls between set-code accounts",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const eoa1 = privateKeyToAccount(generatePrivateKey());
         const eoa2 = privateKeyToAccount(generatePrivateKey());
 
@@ -666,14 +678,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth1, auth2],
           type: "eip7702" as const,
         };
 
-        const setupSignature = await alithAccount.signTransaction(setupTx);
+        const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
         // Now EOA1 (delegated to caller) calls EOA2 (delegated to storage writer)
@@ -696,12 +708,12 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
         };
 
-        const crossCallSignature = await alithAccount.signTransaction(crossCallTx);
+        const crossCallSignature = await senderAccount.signTransaction(crossCallTx);
         await expectOk(context.createBlock(crossCallSignature));
 
         // Verify storage was written in EOA2's context
@@ -719,6 +731,7 @@ describeSuite({
       id: "T10",
       title: "should handle chain of delegating accounts",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const eoa1 = privateKeyToAccount(generatePrivateKey());
         const eoa2 = privateKeyToAccount(generatePrivateKey());
         const eoa3 = privateKeyToAccount(generatePrivateKey());
@@ -757,14 +770,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth1, auth2, auth3],
           type: "eip7702" as const,
         };
 
-        const setupSignature = await alithAccount.signTransaction(setupTx);
+        const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
         // Verify all delegations are set
@@ -784,6 +797,7 @@ describeSuite({
       id: "T11",
       title: "should handle multiple authorizations in single transaction",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const eoa1 = privateKeyToAccount(generatePrivateKey());
         const eoa2 = privateKeyToAccount(generatePrivateKey());
         const eoa3 = privateKeyToAccount(generatePrivateKey());
@@ -834,14 +848,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth1, auth2, auth3, auth4],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         await expectOk(context.createBlock(signature));
 
         // Verify all delegations were set

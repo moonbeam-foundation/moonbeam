@@ -11,6 +11,15 @@ describeSuite({
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
 
+    // Use ephemeral accounts to avoid nonce conflicts
+    const createFundedAccount = async () => {
+      const account = privateKeyToAccount(generatePrivateKey());
+      await context.createBlock([
+        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
+      ]);
+      return account;
+    };
+
     beforeAll(async () => {
       const counter = await deployCreateCompiledContract(context, "Counter");
       counterAddress = counter.contractAddress;
@@ -57,7 +66,7 @@ describeSuite({
           }),
           gas: 200000n,
           maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("2"),
+          maxPriorityFeePerGas: parseGwei("1"),
           nonce: currentNonce, // Current nonce for the transaction
           chainId: 1281,
           authorizationList: [selfAuth],
@@ -72,14 +81,21 @@ describeSuite({
         console.log(`Transaction signed, sending to network...`);
 
         // Send the self-signed transaction directly
-        const txHash = await context.viem("public").sendRawTransaction({
-          serializedTransaction: signature,
-        });
+        const result = await context.createBlock(signature);
 
-        await context.createBlock();
+        let txHash: `0x${string}` | undefined;
+        if (result.hash) {
+          txHash = result.hash as `0x${string}`;
+        } else if (result.result?.hash) {
+          txHash = result.result.hash as `0x${string}`;
+        } else if (result.result?.extrinsic?.hash) {
+          txHash = result.result.extrinsic.hash.toHex() as `0x${string}`;
+        }
+
+        expect(txHash).toBeTruthy();
 
         const receipt = await context.viem("public").getTransactionReceipt({
-          hash: txHash,
+          hash: txHash!,
         });
         expect(receipt.status).toBe("success");
 

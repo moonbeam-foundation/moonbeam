@@ -18,8 +18,14 @@ describeSuite({
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
 
-    const alithPrivateKey = "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-    const alithAccount = privateKeyToAccount(alithPrivateKey);
+    // Use ephemeral accounts to avoid nonce conflicts
+    const createFundedAccount = async () => {
+      const account = privateKeyToAccount(generatePrivateKey());
+      await context.createBlock([
+        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
+      ]);
+      return account;
+    };
 
     beforeAll(async () => {
       // Deploy test contracts
@@ -44,6 +50,7 @@ describeSuite({
       id: "T01",
       title: "should perform delegatecall to empty account",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
         const emptyTarget = privateKeyToAccount(generatePrivateKey());
 
@@ -75,14 +82,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         await expectOk(context.createBlock(signature));
 
         // Verify delegation was set
@@ -97,6 +104,7 @@ describeSuite({
       id: "T02",
       title: "should perform delegatecall to EOA",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
         const targetEOA = privateKeyToAccount(generatePrivateKey());
 
@@ -129,14 +137,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         const result = await context.createBlock(signature);
 
         // Get transaction hash
@@ -160,6 +168,7 @@ describeSuite({
       id: "T03",
       title: "should perform delegatecall to contract account",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -195,14 +204,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         await expectOk(context.createBlock(signature));
 
         // Storage should be in the delegating EOA's context (via caller contract delegation)
@@ -214,6 +223,7 @@ describeSuite({
       id: "T04",
       title: "should verify storage state after delegatecall",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -243,14 +253,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         await expectOk(context.createBlock(signature));
 
         // Read the stored value
@@ -269,6 +279,7 @@ describeSuite({
       id: "T05",
       title: "should handle calls from existing contracts to delegated EOAs",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -296,14 +307,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         await expectOk(context.createBlock(signature));
 
         // Now call the delegated EOA from another contract
@@ -342,6 +353,7 @@ describeSuite({
       id: "T06",
       title: "should handle context opcodes (ADDRESS, BALANCE, CODESIZE)",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -364,14 +376,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         await expectOk(context.createBlock(signature));
 
         // Check ADDRESS opcode
@@ -416,6 +428,7 @@ describeSuite({
       id: "T07",
       title: "should handle calls to precompile addresses",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
         const ecrecoverPrecompile = "0x0000000000000000000000000000000000000001";
 
@@ -448,14 +461,14 @@ describeSuite({
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         const result = await context.createBlock(signature);
 
         // Transaction should succeed (precompile returns zero address for invalid signature)

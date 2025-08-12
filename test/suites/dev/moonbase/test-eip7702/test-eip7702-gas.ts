@@ -13,8 +13,14 @@ describeSuite({
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
 
-    const alithPrivateKey = "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-    const alithAccount = privateKeyToAccount(alithPrivateKey);
+    // Use ephemeral accounts to avoid nonce conflicts
+    const createFundedAccount = async () => {
+      const account = privateKeyToAccount(generatePrivateKey());
+      await context.createBlock([
+        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
+      ]);
+      return account;
+    };
 
     // EIP-7702 gas costs
     const PER_AUTH_BASE_COST = 2500n;
@@ -34,6 +40,7 @@ describeSuite({
       id: "T01",
       title: "should calculate correct gas cost for single authorization",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -60,14 +67,14 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         const result = await context.createBlock(signature);
 
         let txHash: `0x${string}` | undefined;
@@ -94,6 +101,7 @@ describeSuite({
       id: "T02",
       title: "should calculate correct gas cost for multiple authorizations",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const eoa1 = privateKeyToAccount(generatePrivateKey());
         const eoa2 = privateKeyToAccount(generatePrivateKey());
         const eoa3 = privateKeyToAccount(generatePrivateKey());
@@ -135,14 +143,14 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [auth1, auth2, auth3],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(tx);
+        const signature = await senderAccount.signTransaction(tx);
         const result = await context.createBlock(signature);
 
         let txHash: `0x${string}` | undefined;
@@ -170,6 +178,7 @@ describeSuite({
       id: "T03",
       title: "should test account warming for authority and authorized accounts",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const coldEOA = privateKeyToAccount(generatePrivateKey());
         const warmEOA = privateKeyToAccount(generatePrivateKey());
 
@@ -201,14 +210,14 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [coldAuth],
           type: "eip7702" as const,
         };
 
-        const coldSignature = await alithAccount.signTransaction(coldTx);
+        const coldSignature = await senderAccount.signTransaction(coldTx);
         const coldResult = await context.createBlock(coldSignature);
 
         // Transaction with warm account
@@ -219,14 +228,14 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [warmAuth],
           type: "eip7702" as const,
         };
 
-        const warmSignature = await alithAccount.signTransaction(warmTx);
+        const warmSignature = await senderAccount.signTransaction(warmTx);
         const warmResult = await context.createBlock(warmSignature);
 
         // Get gas used for both
@@ -257,6 +266,7 @@ describeSuite({
       id: "T04",
       title: "should test intrinsic gas cost with exact gas limit",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -285,7 +295,7 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
@@ -293,7 +303,7 @@ describeSuite({
         };
 
         try {
-          const signature = await alithAccount.signTransaction(exactGasTx);
+          const signature = await senderAccount.signTransaction(exactGasTx);
           const result = await context.createBlock(signature);
 
           // Check if transaction failed due to out of gas
@@ -311,11 +321,11 @@ describeSuite({
           ...exactGasTx,
           gas: intrinsicGas + 10000n,
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
         };
 
-        const signature = await alithAccount.signTransaction(sufficientGasTx);
+        const signature = await senderAccount.signTransaction(sufficientGasTx);
         const result = await context.createBlock(signature);
 
         if (result.hash || result.result?.hash) {
@@ -379,14 +389,21 @@ describeSuite({
         ]);
 
         // Send the self-signed transaction
-        const result = await context.viem("public").sendRawTransaction({
-          serializedTransaction: signature,
-        });
+        const result = await context.createBlock(signature);
 
-        await context.createBlock();
+        let txHash: `0x${string}` | undefined;
+        if (result.hash) {
+          txHash = result.hash as `0x${string}`;
+        } else if (result.result?.hash) {
+          txHash = result.result.hash as `0x${string}`;
+        } else if (result.result?.extrinsic?.hash) {
+          txHash = result.result.extrinsic.hash.toHex() as `0x${string}`;
+        }
+
+        expect(txHash).toBeTruthy();
 
         const receipt = await context.viem("public").getTransactionReceipt({
-          hash: result,
+          hash: txHash!,
         });
 
         expect(receipt.status).toBe("success");
@@ -413,6 +430,7 @@ describeSuite({
       id: "T06",
       title: "should handle out-of-gas during authorization processing",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -439,14 +457,14 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(lowGasTx);
+        const signature = await senderAccount.signTransaction(lowGasTx);
         const result = await context.createBlock(signature);
 
         if (result.hash || result.result?.hash) {
@@ -469,6 +487,7 @@ describeSuite({
       id: "T07",
       title: "should test gas refund for authorization clearing",
       test: async () => {
+        const senderAccount = await createFundedAccount();
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -491,14 +510,14 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [setAuth],
           type: "eip7702" as const,
         };
 
-        const setSignature = await alithAccount.signTransaction(setTx);
+        const setSignature = await senderAccount.signTransaction(setTx);
         await context.createBlock(setSignature);
 
         // Verify delegation is set
@@ -521,14 +540,14 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: await context.viem("public").getTransactionCount({
-            address: alithAccount.address,
+            address: senderAccount.address,
           }),
           chainId: 1281,
           authorizationList: [clearAuth],
           type: "eip7702" as const,
         };
 
-        const clearSignature = await alithAccount.signTransaction(clearTx);
+        const clearSignature = await senderAccount.signTransaction(clearTx);
         const clearResult = await context.createBlock(clearSignature);
 
         if (clearResult.hash || clearResult.result?.hash) {
