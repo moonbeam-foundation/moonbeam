@@ -12,7 +12,7 @@ import { BN } from "@polkadot/util";
 import { addAssetToWeightTrader } from "../../../../helpers";
 
 describeSuite({
-  id: "D021903",
+  id: "D022003",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

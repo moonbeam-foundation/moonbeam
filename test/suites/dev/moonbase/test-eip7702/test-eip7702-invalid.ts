@@ -5,7 +5,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount } from "./helpers";
 
 describeSuite({
-  id: "D010304",
+  id: "D020805",
   title: "EIP-7702 Invalid Transaction Handling",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

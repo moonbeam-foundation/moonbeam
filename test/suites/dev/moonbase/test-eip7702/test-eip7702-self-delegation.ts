@@ -5,7 +5,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount } from "./helpers";
 
 describeSuite({
-  id: "D010307",
+  id: "D020806",
   title: "EIP-7702 Self-Delegation Test",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

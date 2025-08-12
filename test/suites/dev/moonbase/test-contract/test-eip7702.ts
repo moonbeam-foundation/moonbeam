@@ -5,7 +5,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
 
 describeSuite({
-  id: "D010301",
+  id: "D020512",
   title: "EIP-7702 Transactions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

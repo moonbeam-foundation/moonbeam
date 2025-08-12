@@ -5,7 +5,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount } from "./helpers";
 
 describeSuite({
-  id: "D010303",
+  id: "D020804",
   title: "EIP-7702 Gas Cost and Accounting",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

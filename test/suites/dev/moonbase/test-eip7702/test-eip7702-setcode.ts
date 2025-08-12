@@ -14,7 +14,7 @@ import { expectOk } from "../../../../helpers";
 import { createFundedAccount } from "./helpers";
 
 describeSuite({
-  id: "D010305",
+  id: "D020807",
   title: "EIP-7702 Core Set-Code Transaction Tests",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

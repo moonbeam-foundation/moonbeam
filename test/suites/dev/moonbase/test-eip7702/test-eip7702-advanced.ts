@@ -6,7 +6,7 @@ import { expectOk } from "../../../../helpers";
 import { createFundedAccount } from "./helpers";
 
 describeSuite({
-  id: "D010306",
+  id: "D020802",
   title: "EIP-7702 Advanced Pointer and Context Tests",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
