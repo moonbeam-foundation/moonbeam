@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
+
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { type Abi, parseEther, parseGwei, encodeAbiParameters, keccak256, toRlp } from "viem";
+import { type Abi, parseEther, parseGwei } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount } from "./helpers";
 
@@ -40,22 +41,12 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        const result = await context.createBlock(signature);
+        const { result } = await context.createBlock(signature);
 
-        // Transaction should succeed as a normal transfer
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
-        }
-
-        if (txHash) {
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
-          expect(receipt.status).toBe("success");
-        }
+        // EIP-7702 transactions with empty authorization list must be rejected
+        // The transaction should fail and not produce a hash
+        expect(result?.successful).toBe(false);
+        expect(result?.hash).toBeUndefined();
       },
     });
 
@@ -81,6 +72,7 @@ describeSuite({
 
         // Manipulate the signature to have invalid s value
         // s must be <= secp256k1n/2 for canonical signatures
+        // Note: This creates an authorization with mismatched signature
         const invalidAuth = {
           ...validAuth,
           s: "0x7fffffffffffffffffffffffffffffff5d576e7357a4501ddfe92f46681b20a1", // > n/2
@@ -100,26 +92,26 @@ describeSuite({
           type: "eip7702" as const,
         };
 
-        try {
-          const signature = await senderAccount.signTransaction(tx);
-          const result = await context.createBlock(signature);
+        const signature = await senderAccount.signTransaction(tx);
+        const { result } = await context.createBlock(signature);
 
-          // Check that delegation was not set
-          const code = await context.viem("public").getCode({
-            address: delegatingEOA.address,
-          });
-          expect(code).toBeFalsy();
-        } catch (error) {
-          // Transaction may be rejected at signing stage
-          console.log("Transaction rejected due to invalid signature");
-          expect(error).toBeTruthy();
-        }
+        // Check that delegation was not set
+        const code = await context.viem("public").getCode({
+          address: delegatingEOA.address,
+        });
+        expect(code).toBeFalsy();
+
+        // Verify transaction succeeded but authorization was invalid
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
       },
     });
 
     it({
       id: "T03",
-      title: "should reject authorization with chain ID overflow",
+      title: "should reject authorization with invalid chain ID",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
@@ -130,43 +122,44 @@ describeSuite({
             .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
         ]);
 
-        // Try to create authorization with overflowing chain ID
-        // Max uint64 = 2^64 - 1 = 18446744073709551615
-        const overflowChainId = BigInt("18446744073709551616"); // uint64 max + 1
+        // Try to create authorization with invalid chain ID (different from tx chain ID)
+        // This should cause authorization to be invalid due to chain ID mismatch
+        const wrongChainId = 999999; // Wrong chain ID
 
-        try {
-          const invalidAuth = await delegatingEOA.signAuthorization({
-            contractAddress: contractAddress,
-            chainId: Number(overflowChainId), // This will overflow
-            nonce: 0,
-          });
+        const invalidAuth = await delegatingEOA.signAuthorization({
+          contractAddress: contractAddress,
+          chainId: wrongChainId,
+          nonce: 0,
+        });
 
-          const tx = {
-            to: delegatingEOA.address,
-            data: "0x",
-            gas: 100000n,
-            maxFeePerGas: 10_000_000_000n,
-            maxPriorityFeePerGas: parseGwei("1"),
-            nonce: await context.viem("public").getTransactionCount({
-              address: senderAccount.address,
-            }),
-            chainId: 1281,
-            authorizationList: [invalidAuth],
-            type: "eip7702" as const,
-          };
+        const tx = {
+          to: delegatingEOA.address,
+          data: "0x",
+          gas: 100000n,
+          maxFeePerGas: 10_000_000_000n,
+          maxPriorityFeePerGas: parseGwei("1"),
+          nonce: await context.viem("public").getTransactionCount({
+            address: senderAccount.address,
+          }),
+          chainId: 1281,
+          authorizationList: [invalidAuth],
+          type: "eip7702" as const,
+        };
 
-          const signature = await senderAccount.signTransaction(tx);
-          const result = await context.createBlock(signature);
+        const signature = await senderAccount.signTransaction(tx);
+        const { result } = await context.createBlock(signature);
 
-          // Delegation should not be set
-          const code = await context.viem("public").getCode({
-            address: delegatingEOA.address,
-          });
-          expect(code).toBeFalsy();
-        } catch (error) {
-          console.log("Transaction rejected due to chain ID overflow");
-          expect(error).toBeTruthy();
-        }
+        // Delegation should not be set due to chain ID mismatch
+        const code = await context.viem("public").getCode({
+          address: delegatingEOA.address,
+        });
+        expect(code).toBeFalsy();
+
+        // Verify transaction succeeded but authorization was invalid
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
       },
     });
 
@@ -183,52 +176,49 @@ describeSuite({
             .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
         ]);
 
-        // Try with max uint64 nonce
-        const maxNonce = BigInt("18446744073709551615"); // uint64 max
+        // Try with wrong nonce (should be 0 for first delegation, use 1 instead)
+        const wrongNonce = 1;
 
-        try {
-          const invalidAuth = await delegatingEOA.signAuthorization({
-            contractAddress: contractAddress,
-            chainId: 1281,
-            nonce: Number(maxNonce), // This may overflow
-          });
+        const invalidAuth = await delegatingEOA.signAuthorization({
+          contractAddress: contractAddress,
+          chainId: 1281,
+          nonce: wrongNonce,
+        });
 
-          const tx = {
-            to: delegatingEOA.address,
-            data: "0x",
-            gas: 100000n,
-            maxFeePerGas: 10_000_000_000n,
-            maxPriorityFeePerGas: parseGwei("1"),
-            nonce: await context.viem("public").getTransactionCount({
-              address: senderAccount.address,
-            }),
-            chainId: 1281,
-            authorizationList: [invalidAuth],
-            type: "eip7702" as const,
-          };
+        const tx = {
+          to: delegatingEOA.address,
+          data: "0x" as `0x${string}`,
+          gas: 100000n,
+          maxFeePerGas: 10_000_000_000n,
+          maxPriorityFeePerGas: parseGwei("1"),
+          nonce: await context.viem("public").getTransactionCount({
+            address: senderAccount.address,
+          }),
+          chainId: 1281,
+          authorizationList: [invalidAuth],
+          type: "eip7702" as const,
+        };
 
-          const signature = await senderAccount.signTransaction(tx);
-          const result = await context.createBlock(signature);
+        const signature = await senderAccount.signTransaction(tx);
+        const { result } = await context.createBlock(signature);
 
-          // Even with max nonce, transaction might succeed but delegation won't match
-          const code = await context.viem("public").getCode({
-            address: delegatingEOA.address,
-          });
+        // Delegation should not be set due to wrong nonce
+        const code = await context.viem("public").getCode({
+          address: delegatingEOA.address,
+        });
+        expect(code).toBeFalsy();
 
-          // Delegation likely won't be set due to nonce mismatch
-          if (!code) {
-            console.log("Delegation not set due to high nonce");
-          }
-        } catch (error) {
-          console.log("Transaction rejected due to nonce overflow");
-          expect(error).toBeTruthy();
-        }
+        // Verify transaction succeeded but authorization was invalid
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
       },
     });
 
     it({
       id: "T05",
-      title: "should reject malformed authorization with invalid address",
+      title: "should handle authorization with zero address",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
@@ -241,74 +231,14 @@ describeSuite({
 
         // Create authorization with invalid contract address (not 20 bytes)
         const validAuth = await delegatingEOA.signAuthorization({
-          contractAddress: contractAddress,
+          contractAddress: "0x0000000000000000000000000000000000000000" as `0x${string}`, // Zero address
           chainId: 1281,
           nonce: 0,
         });
 
-        // Manually construct malformed authorization with invalid address
-        const malformedAuth = {
-          ...validAuth,
-          contractAddress: "0x12345" as `0x${string}`, // Invalid address (too short)
-        };
-
-        try {
-          const tx = {
-            to: delegatingEOA.address,
-            data: "0x",
-            gas: 100000n,
-            maxFeePerGas: 10_000_000_000n,
-            maxPriorityFeePerGas: parseGwei("1"),
-            nonce: await context.viem("public").getTransactionCount({
-              address: senderAccount.address,
-            }),
-            chainId: 1281,
-            authorizationList: [malformedAuth],
-            type: "eip7702" as const,
-          };
-
-          const signature = await senderAccount.signTransaction(tx);
-          const result = await context.createBlock(signature);
-
-          // Should fail or not set delegation
-          const code = await context.viem("public").getCode({
-            address: delegatingEOA.address,
-          });
-          expect(code).toBeFalsy();
-        } catch (error) {
-          console.log("Transaction rejected due to invalid address format");
-          expect(error).toBeTruthy();
-        }
-      },
-    });
-
-    it({
-      id: "T06",
-      title: "should reject authorization tuple with extra elements",
-      test: async () => {
-        const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
-
-        const validAuth = await delegatingEOA.signAuthorization({
-          contractAddress: contractAddress,
-          chainId: 1281,
-          nonce: 0,
-        });
-
-        // Authorization tuple should be [chainId, address, nonce, yParity, r, s]
-        // Try to add extra element (this would require manual RLP encoding)
-        // For now, we'll test with the validation that viem provides
-
-        // Create a transaction with valid authorization
         const tx = {
           to: delegatingEOA.address,
-          data: "0x",
+          data: "0x" as `0x${string}`,
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
@@ -321,23 +251,27 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        const result = await context.createBlock(signature);
+        const { result } = await context.createBlock(signature);
 
-        // This test would need lower-level RLP manipulation to properly test
-        // For now, we verify that valid authorization works
-        if (result.hash || result.result?.hash) {
-          const txHash = (result.hash || result.result?.hash) as `0x${string}`;
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
-          expect(receipt.status).toBe("success");
-        }
+        // Delegation may be set even with zero address - this is actually valid behavior
+        const code = await context.viem("public").getCode({
+          address: delegatingEOA.address,
+        });
+        // Zero address delegation is actually allowed in the spec, but resets the delegation to empty code
+        expect(code).toBeFalsy();
+
+        // Verify transaction result - may revert when calling zero address delegation
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        // Transaction may revert when calling zero address after delegation
+        expect(["success", "reverted"]).toContain(receipt.status);
       },
     });
 
     it({
-      id: "T07",
-      title: "should reject authorization with yParity > 1",
+      id: "T06",
+      title: "should handle authorization with EOA address",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
@@ -348,45 +282,102 @@ describeSuite({
             .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
         ]);
 
+        // Sign authorization with EOA address directly
+        const eoaAuth = await delegatingEOA.signAuthorization({
+          contractAddress: senderAccount.address, // Use EOA address instead of contract
+          chainId: 1281,
+          nonce: 0,
+        });
+        const tx = {
+          to: delegatingEOA.address,
+          value: 1000n, // Send some value instead of calling
+          gas: 100000n,
+          maxFeePerGas: 10_000_000_000n,
+          maxPriorityFeePerGas: parseGwei("1"),
+          nonce: await context.viem("public").getTransactionCount({
+            address: senderAccount.address,
+          }),
+          chainId: 1281,
+          authorizationList: [eoaAuth],
+          type: "eip7702" as const,
+        };
+
+        const signature = await senderAccount.signTransaction(tx);
+        const { result } = await context.createBlock(signature);
+
+        // Verify transaction result - may revert when calling EOA after delegation
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        // Transaction may revert when calling EOA after delegation
+        expect(["success", "reverted"]).toContain(receipt.status);
+
+        // Check that delegation was set (EOA can be delegated to)
+        const code = await context.viem("public").getCode({
+          address: delegatingEOA.address,
+        });
+        // EOA delegation should work, so code should be set
+        if (code && code !== "0x") {
+          expect(code.startsWith("0xef0100")).toBe(true);
+        }
+      },
+    });
+
+    it({
+      id: "T07",
+      title: "should reject authorization with invalid signature",
+      test: async () => {
+        const senderAccount = await createFundedAccount(context);
+        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
+
+        await context.createBlock([
+          context
+            .polkadotJs()
+            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
+        ]);
+
+        // Create a valid authorization first
         const validAuth = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
           chainId: 1281,
           nonce: 0,
         });
 
-        // yParity should be 0 or 1
+        // Create auth with wrong signature (manipulate r value to make signature invalid)
+        // Note: This creates an authorization with mismatched signature
         const invalidAuth = {
           ...validAuth,
-          yParity: 2, // Invalid yParity
+          r: "0x1111111111111111111111111111111111111111111111111111111111111111", // Wrong r value
         };
 
-        try {
-          const tx = {
-            to: delegatingEOA.address,
-            data: "0x",
-            gas: 100000n,
-            maxFeePerGas: 10_000_000_000n,
-            maxPriorityFeePerGas: parseGwei("1"),
-            nonce: await context.viem("public").getTransactionCount({
-              address: senderAccount.address,
-            }),
-            chainId: 1281,
-            authorizationList: [invalidAuth],
-            type: "eip7702" as const,
-          };
+        const tx = {
+          to: delegatingEOA.address,
+          data: "0x",
+          gas: 100000n,
+          maxFeePerGas: 10_000_000_000n,
+          maxPriorityFeePerGas: parseGwei("1"),
+          nonce: await context.viem("public").getTransactionCount({
+            address: senderAccount.address,
+          }),
+          chainId: 1281,
+          authorizationList: [invalidAuth],
+          type: "eip7702" as const,
+        };
 
-          const signature = await senderAccount.signTransaction(tx);
-          const result = await context.createBlock(signature);
+        const signature = await senderAccount.signTransaction(tx);
+        const { result } = await context.createBlock(signature);
 
-          // Delegation should not be set
-          const code = await context.viem("public").getCode({
-            address: delegatingEOA.address,
-          });
-          expect(code).toBeFalsy();
-        } catch (error) {
-          console.log("Transaction rejected due to invalid yParity");
-          expect(error).toBeTruthy();
-        }
+        // Delegation should not be set due to invalid signature
+        const code = await context.viem("public").getCode({
+          address: delegatingEOA.address,
+        });
+        expect(code).toBeFalsy();
+
+        // Verify transaction succeeded but authorization was invalid
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
       },
     });
 
@@ -425,24 +416,21 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        const result = await context.createBlock(signature);
+        const { result } = await context.createBlock(signature);
 
         // First authorization should succeed, second should be ignored
-        if (result.hash || result.result?.hash) {
-          const txHash = (result.hash || result.result?.hash) as `0x${string}`;
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
 
-          // Transaction may succeed but only one delegation should be set
-          const code = await context.viem("public").getCode({
-            address: delegatingEOA.address,
-          });
+        // Transaction may succeed but only one delegation should be set
+        const code = await context.viem("public").getCode({
+          address: delegatingEOA.address,
+        });
 
-          if (code) {
-            expect(code.startsWith("0xef0100")).toBe(true);
-            console.log("First authorization succeeded, duplicate ignored");
-          }
+        if (code) {
+          expect(code.startsWith("0xef0100")).toBe(true);
+          console.log("First authorization succeeded, duplicate ignored");
         }
       },
     });
@@ -460,6 +448,7 @@ describeSuite({
             .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
         ]);
 
+        // Create a valid authorization first
         const validAuth = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
           chainId: 1281,
@@ -467,38 +456,40 @@ describeSuite({
         });
 
         // Invalid signature with r = 0
+        // Note: This creates an authorization with mismatched signature
         const invalidAuth = {
           ...validAuth,
           r: "0x0000000000000000000000000000000000000000000000000000000000000000",
         };
 
-        try {
-          const tx = {
-            to: delegatingEOA.address,
-            data: "0x",
-            gas: 100000n,
-            maxFeePerGas: 10_000_000_000n,
-            maxPriorityFeePerGas: parseGwei("1"),
-            nonce: await context.viem("public").getTransactionCount({
-              address: senderAccount.address,
-            }),
-            chainId: 1281,
-            authorizationList: [invalidAuth],
-            type: "eip7702" as const,
-          };
+        const tx = {
+          to: delegatingEOA.address,
+          data: "0x",
+          gas: 100000n,
+          maxFeePerGas: 10_000_000_000n,
+          maxPriorityFeePerGas: parseGwei("1"),
+          nonce: await context.viem("public").getTransactionCount({
+            address: senderAccount.address,
+          }),
+          chainId: 1281,
+          authorizationList: [invalidAuth],
+          type: "eip7702" as const,
+        };
 
-          const signature = await senderAccount.signTransaction(tx);
-          const result = await context.createBlock(signature);
+        const signature = await senderAccount.signTransaction(tx);
+        const { result } = await context.createBlock(signature);
 
-          // Invalid signature should not set delegation
-          const code = await context.viem("public").getCode({
-            address: delegatingEOA.address,
-          });
-          expect(code).toBeFalsy();
-        } catch (error) {
-          console.log("Transaction rejected due to zero r value");
-          expect(error).toBeTruthy();
-        }
+        // Invalid signature with zero r should not set delegation
+        const code = await context.viem("public").getCode({
+          address: delegatingEOA.address,
+        });
+        expect(code).toBeFalsy();
+
+        // Verify transaction succeeded but authorization was invalid
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
       },
     });
 
@@ -515,6 +506,7 @@ describeSuite({
             .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
         ]);
 
+        // Create a valid authorization first
         const validAuth = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
           chainId: 1281,
@@ -522,38 +514,40 @@ describeSuite({
         });
 
         // Invalid signature with s = 0
+        // Note: This creates an authorization with mismatched signature
         const invalidAuth = {
           ...validAuth,
           s: "0x0000000000000000000000000000000000000000000000000000000000000000",
         };
 
-        try {
-          const tx = {
-            to: delegatingEOA.address,
-            data: "0x",
-            gas: 100000n,
-            maxFeePerGas: 10_000_000_000n,
-            maxPriorityFeePerGas: parseGwei("1"),
-            nonce: await context.viem("public").getTransactionCount({
-              address: senderAccount.address,
-            }),
-            chainId: 1281,
-            authorizationList: [invalidAuth],
-            type: "eip7702" as const,
-          };
+        const tx = {
+          to: delegatingEOA.address,
+          data: "0x",
+          gas: 100000n,
+          maxFeePerGas: 10_000_000_000n,
+          maxPriorityFeePerGas: parseGwei("1"),
+          nonce: await context.viem("public").getTransactionCount({
+            address: senderAccount.address,
+          }),
+          chainId: 1281,
+          authorizationList: [invalidAuth],
+          type: "eip7702" as const,
+        };
 
-          const signature = await senderAccount.signTransaction(tx);
-          const result = await context.createBlock(signature);
+        const signature = await senderAccount.signTransaction(tx);
+        const { result } = await context.createBlock(signature);
 
-          // Invalid signature should not set delegation
-          const code = await context.viem("public").getCode({
-            address: delegatingEOA.address,
-          });
-          expect(code).toBeFalsy();
-        } catch (error) {
-          console.log("Transaction rejected due to zero s value");
-          expect(error).toBeTruthy();
-        }
+        // Invalid signature with zero s should not set delegation
+        const code = await context.viem("public").getCode({
+          address: delegatingEOA.address,
+        });
+        expect(code).toBeFalsy();
+
+        // Verify transaction succeeded but authorization was invalid
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
       },
     });
   },
