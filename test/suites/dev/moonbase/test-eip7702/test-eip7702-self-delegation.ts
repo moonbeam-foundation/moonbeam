@@ -22,6 +22,15 @@ describeSuite({
       id: "T01",
       title: "should test gas cost for self-delegation with correct nonce",
       test: async () => {
+        // Check counter was incremented
+        const init_count = await context.viem("public").readContract({
+          address: counterAddress,
+          abi: counterAbi,
+          functionName: "count",
+          args: [],
+        });
+        expect(init_count).toBe(0n);
+
         const selfDelegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -73,21 +82,9 @@ describeSuite({
         console.log(`Transaction signed, sending to network...`);
 
         // Send the self-signed transaction directly
-        const result = await context.createBlock(signature);
-
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
-        } else if (result.result?.extrinsic?.hash) {
-          txHash = result.result.extrinsic.hash.toHex() as `0x${string}`;
-        }
-
-        expect(txHash).toBeTruthy();
-
+        const { result } = await context.createBlock(signature);
         const receipt = await context.viem("public").getTransactionReceipt({
-          hash: txHash!,
+          hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");
 
@@ -109,7 +106,7 @@ describeSuite({
           functionName: "count",
           args: [],
         });
-        expect(count).toBe(1n);
+        expect(count).toBe((init_count as bigint) + 1n);
 
         console.log(`Counter value through delegation: ${count}`);
         console.log(`✅ Self-delegation test passed!`);
