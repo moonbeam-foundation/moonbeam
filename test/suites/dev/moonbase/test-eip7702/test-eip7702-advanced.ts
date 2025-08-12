@@ -3,6 +3,7 @@ import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "
 import { encodeFunctionData, type Abi, parseEther, parseGwei, keccak256 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
+import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
 
 describeSuite({
   id: "D010306",
@@ -20,14 +21,6 @@ describeSuite({
     let ethReceiverAddress: `0x${string}`;
     let ethReceiverAbi: Abi;
 
-    // Use ephemeral accounts to avoid nonce conflicts
-    const createFundedAccount = async () => {
-      const account = privateKeyToAccount(generatePrivateKey());
-      await context.createBlock([
-        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
-      ]);
-      return account;
-    };
 
     // Precompile addresses
     const ecrecoverPrecompile = "0x0000000000000000000000000000000000000001";
@@ -152,7 +145,7 @@ describeSuite({
       id: "T02",
       title: "should handle pointer-to-pointer calls",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const pointer1 = privateKeyToAccount(generatePrivateKey());
         const pointer2 = privateKeyToAccount(generatePrivateKey());
 
@@ -227,7 +220,7 @@ describeSuite({
       id: "T03",
       title: "should test context opcodes with pointers (BALANCE, CODESIZE, etc.)",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -299,7 +292,7 @@ describeSuite({
       id: "T04",
       title: "should test call to precompile in pointer context",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -366,7 +359,7 @@ describeSuite({
       id: "T05",
       title: "should test gas difference between pointer and direct calls",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -465,7 +458,7 @@ describeSuite({
       id: "T06",
       title: "should test static context preservation through pointers",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -539,7 +532,7 @@ describeSuite({
       id: "T07",
       title: "should test pointer reverts and error propagation",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -623,7 +616,7 @@ describeSuite({
       id: "T08",
       title: "should test double authorization (last authorization wins)",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const doubleAuth = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -689,7 +682,7 @@ describeSuite({
       id: "T09",
       title: "should test pre-Prague transaction rejection",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         // This test would require the ability to simulate pre-Prague behavior
         // Since we're testing on a post-Prague chain, we can only verify
         // that EIP-7702 transactions work correctly
@@ -739,7 +732,7 @@ describeSuite({
       id: "T10",
       title: "should test pointer with ETH transfers",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const pointer = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([

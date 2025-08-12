@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { encodeFunctionData, type Abi, parseEther, parseGwei } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
 
 describeSuite({
   id: "D010307",
@@ -11,14 +12,6 @@ describeSuite({
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
 
-    // Use ephemeral accounts to avoid nonce conflicts
-    const createFundedAccount = async () => {
-      const account = privateKeyToAccount(generatePrivateKey());
-      await context.createBlock([
-        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
-      ]);
-      return account;
-    };
 
     beforeAll(async () => {
       const counter = await deployCreateCompiledContract(context, "Counter");

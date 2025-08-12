@@ -11,6 +11,7 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
+import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
 
 describeSuite({
   id: "D010305",
@@ -30,14 +31,6 @@ describeSuite({
     let reentrantCallerAddress: `0x${string}`;
     let reentrantCallerAbi: Abi;
 
-    // Use ephemeral accounts to avoid nonce conflicts
-    const createFundedAccount = async () => {
-      const account = privateKeyToAccount(generatePrivateKey());
-      await context.createBlock([
-        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
-      ]);
-      return account;
-    };
 
     beforeAll(async () => {
       // Deploy all test contracts
@@ -70,7 +63,7 @@ describeSuite({
       id: "T01",
       title: "should handle set-code transaction with self-authorization",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const selfSponsor = privateKeyToAccount(generatePrivateKey());
 
         // Fund the self-sponsoring account
@@ -160,7 +153,7 @@ describeSuite({
       id: "T02",
       title: "should execute simple SSTORE through set-code",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -213,7 +206,7 @@ describeSuite({
       id: "T03",
       title: "should handle set-code with existing storage and non-zero nonce",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const existingEOA = privateKeyToAccount(generatePrivateKey());
 
         // Fund and use the account first
@@ -298,7 +291,7 @@ describeSuite({
       id: "T04",
       title: "should handle SSTORE then SLOAD in separate transactions",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -370,7 +363,7 @@ describeSuite({
       id: "T05",
       title: "should handle TSTORE with re-entry to TLOAD",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -430,7 +423,7 @@ describeSuite({
       id: "T06",
       title: "should execute SELFDESTRUCT in delegated context",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
         const recipient = privateKeyToAccount(generatePrivateKey());
 
@@ -493,7 +486,7 @@ describeSuite({
       id: "T07",
       title: "should handle contract creation opcodes (CREATE, CREATE2)",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -586,7 +579,7 @@ describeSuite({
       id: "T08",
       title: "should handle re-entry until max call stack depth",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -646,7 +639,7 @@ describeSuite({
       id: "T09",
       title: "should handle cross-delegation calls between set-code accounts",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const eoa1 = privateKeyToAccount(generatePrivateKey());
         const eoa2 = privateKeyToAccount(generatePrivateKey());
 
@@ -731,7 +724,7 @@ describeSuite({
       id: "T10",
       title: "should handle chain of delegating accounts",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const eoa1 = privateKeyToAccount(generatePrivateKey());
         const eoa2 = privateKeyToAccount(generatePrivateKey());
         const eoa3 = privateKeyToAccount(generatePrivateKey());
@@ -797,7 +790,7 @@ describeSuite({
       id: "T11",
       title: "should handle multiple authorizations in single transaction",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const eoa1 = privateKeyToAccount(generatePrivateKey());
         const eoa2 = privateKeyToAccount(generatePrivateKey());
         const eoa3 = privateKeyToAccount(generatePrivateKey());

@@ -3,6 +3,7 @@ import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "
 import { encodeFunctionData, type Abi, parseEther, parseGwei, zeroAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
+import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
 
 describeSuite({
   id: "D010302",
@@ -18,14 +19,6 @@ describeSuite({
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
 
-    // Use ephemeral accounts to avoid nonce conflicts
-    const createFundedAccount = async () => {
-      const account = privateKeyToAccount(generatePrivateKey());
-      await context.createBlock([
-        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
-      ]);
-      return account;
-    };
 
     beforeAll(async () => {
       // Deploy test contracts
@@ -50,7 +43,7 @@ describeSuite({
       id: "T01",
       title: "should perform delegatecall to empty account",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
         const emptyTarget = privateKeyToAccount(generatePrivateKey());
 
@@ -104,7 +97,7 @@ describeSuite({
       id: "T02",
       title: "should perform delegatecall to EOA",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
         const targetEOA = privateKeyToAccount(generatePrivateKey());
 
@@ -168,7 +161,7 @@ describeSuite({
       id: "T03",
       title: "should perform delegatecall to contract account",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -223,7 +216,7 @@ describeSuite({
       id: "T04",
       title: "should verify storage state after delegatecall",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -279,7 +272,7 @@ describeSuite({
       id: "T05",
       title: "should handle calls from existing contracts to delegated EOAs",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -353,7 +346,7 @@ describeSuite({
       id: "T06",
       title: "should handle context opcodes (ADDRESS, BALANCE, CODESIZE)",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -428,7 +421,7 @@ describeSuite({
       id: "T07",
       title: "should handle calls to precompile addresses",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
         const ecrecoverPrecompile = "0x0000000000000000000000000000000000000001";
 

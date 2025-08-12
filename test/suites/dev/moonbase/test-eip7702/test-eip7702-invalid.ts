@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { type Abi, parseEther, parseGwei, encodeAbiParameters, keccak256, toRlp } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
 
 describeSuite({
   id: "D010304",
@@ -11,14 +12,6 @@ describeSuite({
     let contractAddress: `0x${string}`;
     let contractAbi: Abi;
 
-    // Use ephemeral accounts to avoid nonce conflicts
-    const createFundedAccount = async () => {
-      const account = privateKeyToAccount(generatePrivateKey());
-      await context.createBlock([
-        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
-      ]);
-      return account;
-    };
 
     beforeAll(async () => {
       const contract = await deployCreateCompiledContract(context, "Counter");
@@ -30,7 +23,7 @@ describeSuite({
       id: "T01",
       title: "should reject empty authorization list properly",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         // EIP-7702 transactions with empty authorization list should be valid
         // but behave like regular transactions
         const tx = {
@@ -71,7 +64,7 @@ describeSuite({
       id: "T02",
       title: "should reject authorization with invalid signature (s > secp256k1n/2)",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -129,7 +122,7 @@ describeSuite({
       id: "T03",
       title: "should reject authorization with chain ID overflow",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -182,7 +175,7 @@ describeSuite({
       id: "T04",
       title: "should reject authorization with nonce overflow",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -238,7 +231,7 @@ describeSuite({
       id: "T05",
       title: "should reject malformed authorization with invalid address",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -294,7 +287,7 @@ describeSuite({
       id: "T06",
       title: "should reject authorization tuple with extra elements",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -347,7 +340,7 @@ describeSuite({
       id: "T07",
       title: "should reject authorization with yParity > 1",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -402,7 +395,7 @@ describeSuite({
       id: "T08",
       title: "should reject duplicate authorizations in same transaction",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -459,7 +452,7 @@ describeSuite({
       id: "T09",
       title: "should reject authorization with zero r value",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -514,7 +507,7 @@ describeSuite({
       id: "T10",
       title: "should reject authorization with zero s value",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([

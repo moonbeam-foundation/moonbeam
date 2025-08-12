@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { encodeFunctionData, type Abi, parseEther, parseGwei } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { createFundedAccount } from "../../../../helpers/eip7702-accounts";
 
 describeSuite({
   id: "D010303",
@@ -13,14 +14,6 @@ describeSuite({
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
 
-    // Use ephemeral accounts to avoid nonce conflicts
-    const createFundedAccount = async () => {
-      const account = privateKeyToAccount(generatePrivateKey());
-      await context.createBlock([
-        context.polkadotJs().tx.balances.transferAllowDeath(account.address, parseEther("10")),
-      ]);
-      return account;
-    };
 
     // EIP-7702 gas costs
     const PER_AUTH_BASE_COST = 2500n;
@@ -40,7 +33,7 @@ describeSuite({
       id: "T01",
       title: "should calculate correct gas cost for single authorization",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -101,7 +94,7 @@ describeSuite({
       id: "T02",
       title: "should calculate correct gas cost for multiple authorizations",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const eoa1 = privateKeyToAccount(generatePrivateKey());
         const eoa2 = privateKeyToAccount(generatePrivateKey());
         const eoa3 = privateKeyToAccount(generatePrivateKey());
@@ -178,7 +171,7 @@ describeSuite({
       id: "T03",
       title: "should test account warming for authority and authorized accounts",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const coldEOA = privateKeyToAccount(generatePrivateKey());
         const warmEOA = privateKeyToAccount(generatePrivateKey());
 
@@ -266,7 +259,7 @@ describeSuite({
       id: "T04",
       title: "should test intrinsic gas cost with exact gas limit",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -430,7 +423,7 @@ describeSuite({
       id: "T06",
       title: "should handle out-of-gas during authorization processing",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -487,7 +480,7 @@ describeSuite({
       id: "T07",
       title: "should test gas refund for authorization clearing",
       test: async () => {
-        const senderAccount = await createFundedAccount();
+        const senderAccount = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
