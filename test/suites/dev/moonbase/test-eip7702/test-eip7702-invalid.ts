@@ -24,11 +24,12 @@ describeSuite({
       title: "should reject empty authorization list properly",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
+        const receiverAccount = await createFundedAccount(context);
         // EIP-7702 transactions with empty authorization list should be valid
         // but behave like regular transactions
         const tx = {
-          to: "0x1234567890123456789012345678901234567890",
-          value: 100n,
+          to: receiverAccount.address,
+          data: "0x",
           gas: 21000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
