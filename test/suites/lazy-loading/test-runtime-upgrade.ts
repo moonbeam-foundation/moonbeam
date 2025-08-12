@@ -51,7 +51,7 @@ describeSuite({
         .map(
           ({
             event: {
-              data: [error, info],
+              data: [error],
             },
           }) => {
             const dispatchError = error as SpRuntimeDispatchError;
@@ -114,12 +114,12 @@ describeSuite({
               api.events.multiBlockMigrations.MigrationCompleted.is(event) ||
               api.events.multiBlockMigrations.UpgradeCompleted.is(event)
           );
-          if (events.length == 2) {
+          if (events.length === 2) {
             break;
           }
           await context.createBlock();
         }
-        expect(events.length == 2, "Migrations should have completed").to.be.true;
+        expect(events.length === 2, "Migrations should have completed").to.be.true;
       },
     });
   },
