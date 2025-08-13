@@ -1255,19 +1255,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bp-kusama"
-version = "0.5.0"
-source = "git+https://github.com/moonbeam-foundation/parity-bridges-common?branch=moonbeam-polkadot-stable2503#42b4c9ce1636320216dc88bfc40758d98b6f550b"
-dependencies = [
- "bp-header-chain",
- "bp-polkadot-core",
- "bp-runtime",
- "frame-support",
- "sp-api",
- "sp-std",
-]
-
-[[package]]
 name = "bp-messages"
 version = "0.20.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#e35e8c55af8a2ff6ac3bc4719d64ea0b4afc69b8"
@@ -1301,7 +1288,9 @@ name = "bp-moonbeam"
 version = "0.0.1"
 dependencies = [
  "bp-bridge-hub-cumulus",
+ "bp-header-chain",
  "bp-messages",
+ "bp-polkadot-core",
  "bp-runtime",
  "frame-support",
  "moonbeam-core-primitives",
@@ -1315,7 +1304,9 @@ name = "bp-moonriver"
 version = "0.0.1"
 dependencies = [
  "bp-bridge-hub-cumulus",
+ "bp-header-chain",
  "bp-messages",
+ "bp-polkadot-core",
  "bp-runtime",
  "frame-support",
  "moonbeam-core-primitives",
@@ -1338,19 +1329,6 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "bp-polkadot"
-version = "0.5.0"
-source = "git+https://github.com/moonbeam-foundation/parity-bridges-common?branch=moonbeam-polkadot-stable2503#42b4c9ce1636320216dc88bfc40758d98b6f550b"
-dependencies = [
- "bp-header-chain",
- "bp-polkadot-core",
- "bp-runtime",
- "frame-support",
- "sp-api",
  "sp-std",
 ]
 
@@ -7519,7 +7497,6 @@ dependencies = [
  "account",
  "async-backing-primitives",
  "bp-header-chain",
- "bp-kusama",
  "bp-messages",
  "bp-moonbeam",
  "bp-moonriver",
@@ -7868,7 +7845,6 @@ dependencies = [
  "bp-moonbeam",
  "bp-moonriver",
  "bp-parachains",
- "bp-polkadot",
  "bp-polkadot-core",
  "bp-runtime",
  "bridge-hub-common",

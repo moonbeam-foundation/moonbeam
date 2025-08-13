@@ -38,6 +38,7 @@ use cumulus_pallet_parachain_system::{
 use fp_rpc::TransactionStatus;
 
 // Re-export required by get! macro.
+use bp_moonriver::bp_polkadot;
 use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;

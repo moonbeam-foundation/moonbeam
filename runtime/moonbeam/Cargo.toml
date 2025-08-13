@@ -132,7 +132,6 @@ sp-genesis-builder = { workspace = true }
 
 # Bridge
 bridge-runtime-common = { workspace = true }
-bp-kusama = { workspace = true }
 bp-runtime = { workspace = true }
 bp-header-chain = { workspace = true }
 bp-parachains = { workspace = true }
@@ -335,7 +334,6 @@ std = [
 	"xcm-runtime-apis/std",
 	"xcm-primitives/std",
 	"xcm/std",
-	"bp-kusama/std",
 	"bp-runtime/std",
 	"bp-header-chain/std",
 	"bp-parachains/std",

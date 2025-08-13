@@ -328,8 +328,6 @@ bp-messages = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", bra
 bp-parachains = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2503", default-features = false }
 bp-polkadot-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2503", default-features = false }
 bp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2503", default-features = false }
-bp-kusama = { git = "https://github.com/moonbeam-foundation/parity-bridges-common", branch = "moonbeam-polkadot-stable2503", default-features = false }
-bp-polkadot = { git = "https://github.com/moonbeam-foundation/parity-bridges-common", branch = "moonbeam-polkadot-stable2503", default-features = false }
 bp-westend = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2503", default-features = false }
 bp-bridge-hub-cumulus = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2503", default-features = false }
 pallet-bridge-grandpa = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2503", default-features = false }
@@ -373,7 +371,7 @@ log = { version = "0.4.21", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
 paste = "1.0.14"
 rlp = { version = "0.6.1", default-features = false }
-serde = { version = "1.0.214", default-features = false }
+serde = { version = "1.0.219", default-features = false }
 sha3 = { version = "0.10", default-features = false }
 strum = { version = "0.26.3", default-features = false, features = ["derive"] }
 strum_macros = "0.24"

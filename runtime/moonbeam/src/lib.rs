@@ -37,6 +37,7 @@ use cumulus_pallet_parachain_system::{
 };
 use fp_rpc::TransactionStatus;
 
+use bp_moonbeam::bp_kusama;
 use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
