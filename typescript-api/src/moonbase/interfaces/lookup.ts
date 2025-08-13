@@ -2970,18 +2970,6 @@ export default {
           max: "Perbill"
         }
       },
-      set_parachain_bond_account: {
-        _alias: {
-          new_: "new"
-        },
-        new_: "AccountId20"
-      },
-      set_parachain_bond_reserve_percent: {
-        _alias: {
-          new_: "new"
-        },
-        new_: "Percent"
-      },
       set_total_selected: {
         _alias: {
           new_: "new"
