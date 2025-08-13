@@ -366,14 +366,14 @@ frame-metadata = { version = "20.0.0", default-features = false, features = ["cu
 frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2503", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.4.1", default-features = false }
-impl-serde = { version = "0.4.0", default-features = false }
+impl-serde = { version = "0.5.0", default-features = false }
 impl-trait-for-tuples = "0.2.2"
 libsecp256k1 = { version = "0.7", default-features = false }
 log = { version = "0.4.21", default-features = false }
 num_enum = { version = "0.5.3", default-features = false }
 paste = "1.0.14"
 rlp = { version = "0.6.1", default-features = false }
-serde = { version = "1.0.197", default-features = false }
+serde = { version = "1.0.214", default-features = false }
 sha3 = { version = "0.10", default-features = false }
 strum = { version = "0.26.3", default-features = false, features = ["derive"] }
 strum_macros = "0.24"
@@ -396,7 +396,7 @@ parking_lot = "0.12.1"
 primitive-types = "0.13.1"
 prometheus = { version = "0.13.0", default-features = false }
 rand = "0.8.5"
-serde_json = { version = "1.0.114", default-features = false }
+serde_json = { version = "1.0.132", default-features = false }
 similar-asserts = "1.1.0"
 tempfile = "3.8.1"
 tiny-bip39 = { version = "0.8", default-features = false }
