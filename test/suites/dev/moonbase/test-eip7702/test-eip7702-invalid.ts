@@ -24,7 +24,7 @@ describeSuite({
       title: "should reject empty authorization list properly",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const receiverAccount = await createFundedAccount(context);
+        const receiverAccount = privateKeyToAccount(generatePrivateKey());
         // EIP-7702 transactions with empty authorization list should be valid
         // but behave like regular transactions
         const tx = {
