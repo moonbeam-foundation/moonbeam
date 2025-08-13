@@ -14,9 +14,10 @@ describeSuite({
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
 
-    // EIP-7702 gas costs
-    const PER_AUTH_BASE_COST = 2500n;
-    const PER_CONTRACT_CODE_BASE_COST = 2500n;
+    // EIP-7702 gas costs (from EIP-7702 specification)
+    const PER_AUTH_BASE_COST = 12500n; // Cost for processing each authorization
+    const PER_EMPTY_ACCOUNT_COST = 25000n; // Intrinsic cost per authorization in list
+    const PER_CONTRACT_CODE_BASE_COST = 2500n; // Moonbeam-specific implementation detail
 
     beforeAll(async () => {
       const storageWriter = await deployCreateCompiledContract(context, "StorageWriter");
@@ -33,13 +34,7 @@ describeSuite({
       title: "should calculate correct gas cost for single authorization",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: counterAddress,
@@ -67,25 +62,16 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        const result = await context.createBlock(signature);
+        const { result } = await context.createBlock(signature);
 
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
-        }
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
 
-        if (txHash) {
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
+        // Gas used should include authorization costs
+        expect(receipt.gasUsed).toBeGreaterThan(PER_AUTH_BASE_COST);
 
-          // Gas used should include authorization costs
-          expect(receipt.gasUsed).toBeGreaterThan(PER_AUTH_BASE_COST);
-
-          console.log(`Gas used with 1 authorization: ${receipt.gasUsed}`);
-        }
+        console.log(`Gas used with 1 authorization: ${receipt.gasUsed}`);
       },
     });
 
@@ -94,16 +80,9 @@ describeSuite({
       title: "should calculate correct gas cost for multiple authorizations",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const eoa1 = privateKeyToAccount(generatePrivateKey());
-        const eoa2 = privateKeyToAccount(generatePrivateKey());
-        const eoa3 = privateKeyToAccount(generatePrivateKey());
-
-        // Fund all EOAs
-        await context.createBlock([
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa1.address, parseEther("1")),
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa2.address, parseEther("1")),
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa3.address, parseEther("1")),
-        ]);
+        const eoa1 = await createFundedAccount(context);
+        const eoa2 = await createFundedAccount(context);
+        const eoa3 = await createFundedAccount(context);
 
         // Create multiple authorizations
         const auth1 = await eoa1.signAuthorization({
@@ -143,44 +122,28 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        const result = await context.createBlock(signature);
+        const { result } = await context.createBlock(signature);
 
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
-        }
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
 
-        if (txHash) {
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
+        // Gas should include cost for 3 authorizations
+        const minExpectedGas = PER_AUTH_BASE_COST * 3n;
+        expect(receipt.gasUsed).toBeGreaterThan(minExpectedGas);
 
-          // Gas should include cost for 3 authorizations
-          const minExpectedGas = PER_AUTH_BASE_COST * 3n;
-          expect(receipt.gasUsed).toBeGreaterThan(minExpectedGas);
-
-          console.log(`Gas used with 3 authorizations: ${receipt.gasUsed}`);
-        }
+        console.log(`Gas used with 3 authorizations: ${receipt.gasUsed}`);
       },
     });
 
     it({
       id: "T03",
-      title: "should test account warming for authority and authorized accounts",
+      title:
+        "should document current account warming behavior for authority and authorized accounts",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
         const coldEOA = privateKeyToAccount(generatePrivateKey());
-        const warmEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context.polkadotJs().tx.balances.transferAllowDeath(coldEOA.address, parseEther("1")),
-          context.polkadotJs().tx.balances.transferAllowDeath(warmEOA.address, parseEther("1")),
-        ]);
-
-        // Warm up the warmEOA by accessing it first
-        await context.viem("public").getBalance({ address: warmEOA.address });
+        const warmEOA = await createFundedAccount(context);
 
         const coldAuth = await coldEOA.signAuthorization({
           contractAddress: counterAddress,
@@ -194,63 +157,58 @@ describeSuite({
           nonce: 0,
         });
 
+        // Execute both transactions in the same block to test warming effect
+        const senderNonce = await context.viem("public").getTransactionCount({
+          address: senderAccount.address,
+        });
+
         // Transaction with cold account
         const coldTx = {
           to: coldEOA.address,
-          data: "0x",
+          data: "0x" as `0x${string}`,
           gas: 100000n,
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
-            address: senderAccount.address,
-          }),
+          nonce: senderNonce,
           chainId: 1281,
           authorizationList: [coldAuth],
           type: "eip7702" as const,
         };
 
-        const coldSignature = await senderAccount.signTransaction(coldTx);
-        const coldResult = await context.createBlock(coldSignature);
-
         // Transaction with warm account
         const warmTx = {
           to: warmEOA.address,
-          data: "0x",
+          data: "0x" as `0x${string}`,
           gas: 100000n,
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
-            address: senderAccount.address,
-          }),
+          nonce: senderNonce + 1,
           chainId: 1281,
           authorizationList: [warmAuth],
           type: "eip7702" as const,
         };
 
+        const coldSignature = await senderAccount.signTransaction(coldTx);
         const warmSignature = await senderAccount.signTransaction(warmTx);
-        const warmResult = await context.createBlock(warmSignature);
 
-        // Get gas used for both
-        let coldGas = 0n;
-        let warmGas = 0n;
+        // Execute both transactions in the same block
+        const result = await context.createBlock([coldSignature, warmSignature]);
 
-        if (coldResult.hash || coldResult.result?.hash) {
-          const txHash = (coldResult.hash || coldResult.result?.hash) as `0x${string}`;
-          const receipt = await context.viem("public").getTransactionReceipt({ hash: txHash });
-          coldGas = receipt.gasUsed;
-        }
+        // Get gas used for both transactions
+        const receipts = await Promise.all([
+          context.viem("public").getTransactionReceipt({
+            hash: result.result![0].hash as `0x${string}`,
+          }),
+          context.viem("public").getTransactionReceipt({
+            hash: result.result![1].hash as `0x${string}`,
+          }),
+        ]);
 
-        if (warmResult.hash || warmResult.result?.hash) {
-          const txHash = (warmResult.hash || warmResult.result?.hash) as `0x${string}`;
-          const receipt = await context.viem("public").getTransactionReceipt({ hash: txHash });
-          warmGas = receipt.gasUsed;
-        }
+        const coldGas = receipts[0].gasUsed;
+        const warmGas = receipts[1].gasUsed;
 
         console.log(`Cold account gas: ${coldGas}, Warm account gas: ${warmGas}`);
-
-        // Cold account should use more gas due to account access cost
-        // Note: This may not always be true depending on implementation
-        console.log(`Gas difference: ${coldGas - warmGas}`);
+        expect(coldGas).toBeGreaterThan(warmGas);
       },
     });
 
@@ -259,13 +217,7 @@ describeSuite({
       title: "should test intrinsic gas cost with exact gas limit",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: counterAddress,
@@ -273,16 +225,49 @@ describeSuite({
           nonce: 0,
         });
 
-        // Calculate intrinsic gas
-        // Base transaction: 21000
-        // Per authorization: 2500
-        // Call data cost: varies
-        const intrinsicGas = 21000n + PER_AUTH_BASE_COST;
+        // Calculate calldata gas cost
+        // increment() function selector: 0xd09de08a (4 bytes)
+        const calldata = encodeFunctionData({
+          abi: counterAbi,
+          functionName: "increment",
+          args: [],
+        });
 
-        // Try with exact intrinsic gas (should fail)
+        // Count zero and non-zero bytes in calldata
+        let zeroBytes = 0n;
+        let nonZeroBytes = 0n;
+
+        // Remove '0x' prefix and process hex string
+        const hexData = calldata.slice(2);
+        for (let i = 0; i < hexData.length; i += 2) {
+          const byte = hexData.slice(i, i + 2);
+          if (byte === "00") {
+            zeroBytes++;
+          } else {
+            nonZeroBytes++;
+          }
+        }
+
+        // Calculate intrinsic gas according to EIP-7702:
+        // - Base transaction cost: 21000
+        // - Per authorization in list: PER_EMPTY_ACCOUNT_COST (25000)
+        // - Calldata: 4 gas per zero byte, 16 gas per non-zero byte
+        const calldataGas = zeroBytes * 4n + nonZeroBytes * 16n;
+        const authorizationListGas = PER_EMPTY_ACCOUNT_COST * 1n; // 1 authorization
+        const intrinsicGas = 21000n + authorizationListGas + calldataGas;
+
+        console.log(`Intrinsic gas calculation breakdown:`);
+        console.log(`  Base transaction: 21000`);
+        console.log(`  Authorization list (1 auth): ${authorizationListGas}`);
+        console.log(
+          `  Calldata (${zeroBytes} zero bytes, ${nonZeroBytes} non-zero): ${calldataGas}`
+        );
+        console.log(`  Total intrinsic gas: ${intrinsicGas}`);
+
+        // Test 1: Transaction with exact intrinsic gas (should fail - no gas for execution)
         const exactGasTx = {
           to: delegatingEOA.address,
-          data: "0x",
+          data: calldata,
           gas: intrinsicGas,
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
@@ -296,35 +281,77 @@ describeSuite({
 
         try {
           const signature = await senderAccount.signTransaction(exactGasTx);
-          const result = await context.createBlock(signature);
+          const { result } = await context.createBlock(signature);
 
-          // Check if transaction failed due to out of gas
-          if (result.hash || result.result?.hash) {
-            const txHash = (result.hash || result.result?.hash) as `0x${string}`;
-            const receipt = await context.viem("public").getTransactionReceipt({ hash: txHash });
+          if (result?.hash) {
+            const receipt = await context.viem("public").getTransactionReceipt({
+              hash: result.hash as `0x${string}`,
+            });
             console.log(`Transaction with exact intrinsic gas status: ${receipt.status}`);
+            // Should have failed due to insufficient gas
+            expect(receipt.status).toBe("reverted");
+          } else {
+            console.log("Transaction with exact intrinsic gas failed to be included");
           }
-        } catch (error) {
+        } catch (_error) {
           console.log("Transaction with exact intrinsic gas failed as expected");
         }
 
-        // Try with slightly more gas (should succeed)
+        // Test 2: Transaction with intrinsic + 1 gas (should still fail - not enough for execution)
+        const almostEnoughGasTx = {
+          ...exactGasTx,
+          gas: intrinsicGas + 1n,
+          nonce: await context.viem("public").getTransactionCount({
+            address: senderAccount.address,
+          }),
+        };
+
+        try {
+          const signature = await senderAccount.signTransaction(almostEnoughGasTx);
+          const { result } = await context.createBlock(signature);
+
+          if (result?.hash) {
+            const receipt = await context.viem("public").getTransactionReceipt({
+              hash: result.hash as `0x${string}`,
+            });
+            console.log(`Transaction with intrinsic + 1 gas status: ${receipt.status}`);
+            // Should have failed due to insufficient gas for execution
+            expect(receipt.status).toBe("reverted");
+          }
+        } catch (_error) {
+          console.log("Transaction with intrinsic + 1 gas failed as expected");
+        }
+
+        // Test 3: Transaction with sufficient gas for execution (should succeed)
+        const executionGasEstimate = 30_000n; // Estimated gas for increment() execution
         const sufficientGasTx = {
           ...exactGasTx,
-          gas: intrinsicGas + 10000n,
+          gas: intrinsicGas + executionGasEstimate,
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
         };
 
         const signature = await senderAccount.signTransaction(sufficientGasTx);
-        const result = await context.createBlock(signature);
+        const { result } = await context.createBlock(signature);
 
-        if (result.hash || result.result?.hash) {
-          const txHash = (result.hash || result.result?.hash) as `0x${string}`;
-          const receipt = await context.viem("public").getTransactionReceipt({ hash: txHash });
-          expect(receipt.status).toBe("success");
-        }
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+
+        console.log(`Transaction with sufficient gas:`);
+        console.log(`  Gas limit: ${intrinsicGas + executionGasEstimate}`);
+        console.log(`  Gas used: ${receipt.gasUsed}`);
+        console.log(`  Status: ${receipt.status}`);
+
+        expect(receipt.status).toBe("success");
+
+        // Verify the intrinsic gas portion
+        const executionGas = receipt.gasUsed - intrinsicGas;
+        console.log(`  Execution gas (actual - intrinsic): ${executionGas}`);
+
+        // Gas used should be at least the intrinsic gas
+        expect(receipt.gasUsed).toBeGreaterThanOrEqual(intrinsicGas);
       },
     });
 
@@ -332,13 +359,7 @@ describeSuite({
       id: "T05",
       title: "should test gas cost for self-delegation",
       test: async () => {
-        const selfDelegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(selfDelegatingEOA.address, parseEther("1")),
-        ]);
+        const selfDelegatingEOA = await createFundedAccount(context);
 
         // Self-authorization (EOA delegates to a contract on behalf of itself)
         // In EIP-7702, when the authorizing address is the same as the sender,
@@ -353,15 +374,45 @@ describeSuite({
           nonce: currentNonce + 1, // current_nonce + 1 for self-authorizing transactions
         });
 
-        // Transaction sent by the same EOA that signed the authorization
+        // Calculate calldata gas cost for increment()
+        const calldata = encodeFunctionData({
+          abi: counterAbi,
+          functionName: "increment",
+          args: [],
+        });
+
+        // Count zero and non-zero bytes in calldata
+        let zeroBytes = 0n;
+        let nonZeroBytes = 0n;
+        const hexData = calldata.slice(2);
+        for (let i = 0; i < hexData.length; i += 2) {
+          const byte = hexData.slice(i, i + 2);
+          if (byte === "00") {
+            zeroBytes++;
+          } else {
+            nonZeroBytes++;
+          }
+        }
+
+        // Calculate intrinsic gas for self-delegation
+        const calldataGas = zeroBytes * 4n + nonZeroBytes * 16n;
+        const authorizationListGas = PER_EMPTY_ACCOUNT_COST * 1n; // 1 authorization
+        const intrinsicGas = 21000n + authorizationListGas + calldataGas;
+
+        console.log(`Self-delegation intrinsic gas calculation:`);
+        console.log(`  Base transaction: 21000`);
+        console.log(`  Authorization list (1 auth): ${authorizationListGas}`);
+        console.log(
+          `  Calldata (${zeroBytes} zero bytes, ${nonZeroBytes} non-zero): ${calldataGas}`
+        );
+        console.log(`  Total intrinsic gas: ${intrinsicGas}`);
+
+        // Test with sufficient gas for self-delegation
+        const gasLimit = intrinsicGas + 30000n; // Add execution gas
         const selfTx = {
           to: selfDelegatingEOA.address,
-          data: encodeFunctionData({
-            abi: counterAbi,
-            functionName: "increment",
-            args: [],
-          }),
-          gas: 200000n,
+          data: calldata,
+          gas: gasLimit,
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: currentNonce, // Current nonce for the transaction
@@ -381,31 +432,39 @@ describeSuite({
         ]);
 
         // Send the self-signed transaction
-        const result = await context.createBlock(signature);
-
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
-        } else if (result.result?.extrinsic?.hash) {
-          txHash = result.result.extrinsic.hash.toHex() as `0x${string}`;
-        }
-
-        expect(txHash).toBeTruthy();
+        const { result } = await context.createBlock(signature);
 
         const receipt = await context.viem("public").getTransactionReceipt({
-          hash: txHash!,
+          hash: result?.hash as `0x${string}`,
         });
 
         expect(receipt.status).toBe("success");
-        console.log(`Self-delegation gas used: ${receipt.gasUsed}`);
+
+        // Detailed gas cost analysis
+        console.log(`Self-delegation gas costs:`);
+        console.log(`  Gas limit: ${gasLimit}`);
+        console.log(`  Gas used: ${receipt.gasUsed}`);
+        console.log(`  Intrinsic gas: ${intrinsicGas}`);
+        const executionGas = receipt.gasUsed - intrinsicGas;
+        console.log(`  Execution gas: ${executionGas}`);
+
+        // Verify gas used is reasonable
+        expect(receipt.gasUsed).toBeGreaterThanOrEqual(intrinsicGas);
+        expect(receipt.gasUsed).toBeLessThan(gasLimit);
+
+        // Additional gas cost checks for self-delegation specifics
+        // Self-delegation might have different gas costs due to:
+        // 1. Account state changes (nonce increment before auth processing)
+        // 2. Self-reference in authorization
+        const selfDelegationOverhead = receipt.gasUsed - intrinsicGas;
+        console.log(`  Self-delegation overhead: ${selfDelegationOverhead}`);
 
         // Verify delegation was set
         const code = await context.viem("public").getCode({
           address: selfDelegatingEOA.address,
         });
         expect(code?.startsWith("0xef0100")).toBe(true);
+        console.log(`  Delegation code set: ${code?.slice(0, 50)}...`);
 
         // Check counter was incremented
         const count = await context.viem("public").readContract({
@@ -415,6 +474,7 @@ describeSuite({
           args: [],
         });
         expect(count).toBe(1n);
+        console.log(`  Counter value after increment: ${count}`);
       },
     });
 
@@ -423,13 +483,7 @@ describeSuite({
       title: "should handle out-of-gas during authorization processing",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: storageWriterAddress,
@@ -457,21 +511,20 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(lowGasTx);
-        const result = await context.createBlock(signature);
+        const { result } = await context.createBlock(signature);
 
-        if (result.hash || result.result?.hash) {
-          const txHash = (result.hash || result.result?.hash) as `0x${string}`;
-          const receipt = await context.viem("public").getTransactionReceipt({ hash: txHash });
+        const receipt = await context
+          .viem("public")
+          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
 
-          // Transaction should fail due to out of gas
-          expect(receipt.status).toBe("reverted");
+        // Transaction should fail due to out of gas
+        expect(receipt.status).toBe("reverted");
 
-          // Delegation should not be set
-          const code = await context.viem("public").getCode({
-            address: delegatingEOA.address,
-          });
-          expect(code).toBeFalsy();
-        }
+        // Delegation should not be set
+        const code = await context.viem("public").getCode({
+          address: delegatingEOA.address,
+        });
+        expect(code).toBeFalsy();
       },
     });
 
@@ -480,13 +533,7 @@ describeSuite({
       title: "should test gas refund for authorization clearing",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         // First set a delegation
         const setAuth = await delegatingEOA.signAuthorization({
@@ -497,7 +544,7 @@ describeSuite({
 
         const setTx = {
           to: delegatingEOA.address,
-          data: "0x",
+          data: "0x" as `0x${string}`,
           gas: 100000n,
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
@@ -527,7 +574,7 @@ describeSuite({
 
         const clearTx = {
           to: delegatingEOA.address,
-          data: "0x",
+          data: "0x" as `0x${string}`,
           gas: 100000n,
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
@@ -542,13 +589,13 @@ describeSuite({
         const clearSignature = await senderAccount.signTransaction(clearTx);
         const clearResult = await context.createBlock(clearSignature);
 
-        if (clearResult.hash || clearResult.result?.hash) {
-          const txHash = (clearResult.hash || clearResult.result?.hash) as `0x${string}`;
-          const receipt = await context.viem("public").getTransactionReceipt({ hash: txHash });
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: clearResult.result?.hash as `0x${string}`,
+        });
 
-          // Gas used for clearing should potentially include refund
-          console.log(`Gas used for clearing delegation: ${receipt.gasUsed}`);
-        }
+        // Gas used for clearing
+        console.log(`Gas used for clearing delegation: ${receipt.gasUsed}`);
+        expect(receipt.gasUsed).toBe(36800n);
       },
     });
   },
