@@ -1050,52 +1050,6 @@ declare module "@polkadot/api-base/types/events" {
        **/
       [key: string]: AugmentedEvent<ApiType>;
     };
-    migrations: {
-      /**
-       * XCM execution resume failed with inner error
-       **/
-      FailedToResumeIdleXcmExecution: AugmentedEvent<
-        ApiType,
-        [error: SpRuntimeDispatchError],
-        { error: SpRuntimeDispatchError }
-      >;
-      /**
-       * XCM execution suspension failed with inner error
-       **/
-      FailedToSuspendIdleXcmExecution: AugmentedEvent<
-        ApiType,
-        [error: SpRuntimeDispatchError],
-        { error: SpRuntimeDispatchError }
-      >;
-      /**
-       * Migration completed
-       **/
-      MigrationCompleted: AugmentedEvent<
-        ApiType,
-        [migrationName: Bytes, consumedWeight: SpWeightsWeightV2Weight],
-        { migrationName: Bytes; consumedWeight: SpWeightsWeightV2Weight }
-      >;
-      /**
-       * Migration started
-       **/
-      MigrationStarted: AugmentedEvent<ApiType, [migrationName: Bytes], { migrationName: Bytes }>;
-      /**
-       * Runtime upgrade completed
-       **/
-      RuntimeUpgradeCompleted: AugmentedEvent<
-        ApiType,
-        [weight: SpWeightsWeightV2Weight],
-        { weight: SpWeightsWeightV2Weight }
-      >;
-      /**
-       * Runtime upgrade started
-       **/
-      RuntimeUpgradeStarted: AugmentedEvent<ApiType, []>;
-      /**
-       * Generic event
-       **/
-      [key: string]: AugmentedEvent<ApiType>;
-    };
     moonbeamOrbiters: {
       /**
        * An orbiter join a collator pool
