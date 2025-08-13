@@ -43,15 +43,8 @@ describeSuite({
       title: "should perform delegatecall to empty account",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
+        const delegatingEOA = await createFundedAccount(context);
         const emptyTarget = privateKeyToAccount(generatePrivateKey());
-
-        // Fund the delegating EOA
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
 
         // Create authorization for caller contract
         const authorization = await delegatingEOA.signAuthorization({
@@ -82,7 +75,15 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        await expectOk(context.createBlock(signature));
+        const { result } = await context.createBlock(signature);
+
+        // Get transaction receipt to check for events and status
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+
+        // Verify transaction succeeded
+        expect(receipt.status).toBe("success");
 
         // Verify delegation was set
         const code = await context.viem("public").getCode({
@@ -97,16 +98,8 @@ describeSuite({
       title: "should perform delegatecall to EOA",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-        const targetEOA = privateKeyToAccount(generatePrivateKey());
-
-        // Fund both EOAs
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-          context.polkadotJs().tx.balances.transferAllowDeath(targetEOA.address, parseEther("0.5")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
+        const targetEOA = await createFundedAccount(context);
 
         // Create authorization
         const authorization = await delegatingEOA.signAuthorization({
@@ -137,22 +130,12 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        const result = await context.createBlock(signature);
+        const { result } = await context.createBlock(signature);
 
-        // Get transaction hash
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
-        }
-
-        if (txHash) {
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
-          expect(receipt.status).toBe("success");
-        }
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
       },
     });
 
@@ -161,13 +144,7 @@ describeSuite({
       title: "should perform delegatecall to contract account",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         // Create authorization for caller contract
         const authorization = await delegatingEOA.signAuthorization({
@@ -183,6 +160,8 @@ describeSuite({
           args: [1n, 42n],
         });
 
+        // NOTE: When contract A executes delegatecall to contract B, B's code is executed
+        // with contract A's storage, msg.sender and msg.value
         const callData = encodeFunctionData({
           abi: callerAbi,
           functionName: "delegatecallAddress",
@@ -204,7 +183,12 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        await expectOk(context.createBlock(signature));
+        const { result } = await context.createBlock(signature);
+
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
 
         // Storage should be in the delegating EOA's context (via caller contract delegation)
         // This is complex because of double delegation - may need to check actual storage slots
@@ -213,16 +197,10 @@ describeSuite({
 
     it({
       id: "T04",
-      title: "should verify storage state after delegatecall",
+      title: "should verify storage state after delegation",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         // Create authorization for storage writer
         const authorization = await delegatingEOA.signAuthorization({
@@ -272,13 +250,7 @@ describeSuite({
       title: "should handle calls from existing contracts to delegated EOAs",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         // Delegate EOA to counter contract
         const authorization = await delegatingEOA.signAuthorization({
@@ -307,10 +279,15 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        await expectOk(context.createBlock(signature));
+        const { result } = await context.createBlock(signature);
+
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
 
         // Now call the delegated EOA from another contract
-        const callTx = await context.viem("wallet").sendTransaction({
+        const tx2 = {
           to: callerAddress,
           data: encodeFunctionData({
             abi: callerAbi,
@@ -324,10 +301,26 @@ describeSuite({
               }),
             ],
           }),
-          gas: 300000n,
-        });
+          gas: 200000n,
+          maxFeePerGas: 10_000_000_000n,
+          maxPriorityFeePerGas: parseGwei("1"),
+          nonce: await context.viem("public").getTransactionCount({
+            address: senderAccount.address,
+          }),
+          chainId: 1281,
+          authorizationList: [authorization],
+          type: "eip7702" as const,
+        };
 
-        await expectOk(context.createBlock());
+        {
+          const signature = await senderAccount.signTransaction(tx2);
+          const { result } = await context.createBlock(signature);
+
+          const receipt = await context.viem("public").getTransactionReceipt({
+            hash: result?.hash as `0x${string}`,
+          });
+          expect(receipt.status).toBe("success");
+        }
 
         // Check counter value
         const count = await context.viem("public").readContract({
@@ -346,13 +339,7 @@ describeSuite({
       title: "should handle context opcodes (ADDRESS, BALANCE, CODESIZE)",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("2")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         // Delegate to context checker
         const authorization = await delegatingEOA.signAuthorization({
@@ -363,7 +350,7 @@ describeSuite({
 
         const tx = {
           to: delegatingEOA.address,
-          data: "0x", // Empty call to establish delegation
+          data: "0x" as `0x${string}`, // Empty call to establish delegation
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
@@ -421,14 +408,8 @@ describeSuite({
       title: "should handle calls to precompile addresses",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
+        const delegatingEOA = await createFundedAccount(context);
         const ecrecoverPrecompile = "0x0000000000000000000000000000000000000001";
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
 
         // Delegate to caller contract
         const authorization = await delegatingEOA.signAuthorization({
@@ -461,22 +442,13 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        const result = await context.createBlock(signature);
+        const { result } = await context.createBlock(signature);
 
         // Transaction should succeed (precompile returns zero address for invalid signature)
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
-        }
-
-        if (txHash) {
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
-          expect(receipt.status).toBe("success");
-        }
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
       },
     });
   },
