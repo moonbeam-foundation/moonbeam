@@ -54,18 +54,8 @@ describeSuite({
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
 
-      // Create types for funding descend address
-      const balance = api.createType("Balance", initialSenderBalance);
-
-      const assetBalance: PalletAssetsAssetAccount = api.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
-      const assetDetails: PalletAssetsAssetDetails = api.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-      });
-
       // Fund descend address with enough xcDOTs to pay XCM message and EVM execution fees
-      await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, descendAddress);
+      await mockAssetBalance(context, initialSenderBalance, assetId, alith, descendAddress);
 
       // Deploy example contract to be called through XCM
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
