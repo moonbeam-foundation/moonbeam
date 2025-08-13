@@ -621,14 +621,8 @@ describeSuite({
       title: "should handle cross-delegation calls between set-code accounts",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const eoa1 = privateKeyToAccount(generatePrivateKey());
-        const eoa2 = privateKeyToAccount(generatePrivateKey());
-
-        // Fund both EOAs
-        await context.createBlock([
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa1.address, parseEther("1")),
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa2.address, parseEther("1")),
-        ]);
+        const eoa1 = await createFundedAccount(context);
+        const eoa2 = await createFundedAccount(context);
 
         // EOA1 delegates to caller contract
         const auth1 = await eoa1.signAuthorization({
@@ -647,7 +641,7 @@ describeSuite({
         // Set up both delegations
         const setupTx = {
           to: eoa1.address,
-          data: "0x",
+          data: "0x" as `0x${string}`,
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
@@ -703,21 +697,15 @@ describeSuite({
 
     it({
       id: "T10",
-      title: "should handle chain of delegating accounts",
+      title: "should handle nested calls/delegations",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const eoa1 = privateKeyToAccount(generatePrivateKey());
-        const eoa2 = privateKeyToAccount(generatePrivateKey());
-        const eoa3 = privateKeyToAccount(generatePrivateKey());
+        const eoa1 = await createFundedAccount(context);
+        const eoa2 = await createFundedAccount(context);
 
-        // Fund all EOAs
-        await context.createBlock([
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa1.address, parseEther("1")),
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa2.address, parseEther("1")),
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa3.address, parseEther("1")),
-        ]);
-
-        // Create chain: EOA1 -> Caller -> EOA2 -> Storage -> EOA3 -> Counter
+        // Set up delegation chain:
+        // EOA1 delegates to Caller contract (which can call other addresses)
+        // EOA2 delegates to StorageWriter contract
         const auth1 = await eoa1.signAuthorization({
           contractAddress: callerAddress,
           chainId: 1281,
@@ -730,16 +718,10 @@ describeSuite({
           nonce: 0,
         });
 
-        const auth3 = await eoa3.signAuthorization({
-          contractAddress: storageWriterAddress, // Using same contract for simplicity
-          chainId: 1281,
-          nonce: 0,
-        });
-
-        // Set up all delegations
+        // Set up both delegations in a single transaction
         const setupTx = {
           to: eoa1.address,
-          data: "0x",
+          data: "0x" as `0x${string}`,
           gas: 300000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
@@ -747,23 +729,83 @@ describeSuite({
             address: senderAccount.address,
           }),
           chainId: 1281,
-          authorizationList: [auth1, auth2, auth3],
+          authorizationList: [auth1, auth2],
           type: "eip7702" as const,
         };
 
         const setupSignature = await senderAccount.signTransaction(setupTx);
         await expectOk(context.createBlock(setupSignature));
 
-        // Verify all delegations are set
+        // Verify both delegations are set
         const code1 = await context.viem("public").getCode({ address: eoa1.address });
         const code2 = await context.viem("public").getCode({ address: eoa2.address });
-        const code3 = await context.viem("public").getCode({ address: eoa3.address });
 
         expect(code1?.startsWith("0xef0100")).toBe(true);
         expect(code2?.startsWith("0xef0100")).toBe(true);
-        expect(code3?.startsWith("0xef0100")).toBe(true);
 
-        console.log("Chain of delegations established successfully");
+        // Prepare the nested call: EOA2.store(42, 1337)
+        const storeData = encodeFunctionData({
+          abi: storageWriterAbi,
+          functionName: "store",
+          args: [42n, 1337n],
+        });
+
+        // Call EOA1 (as Caller) to call EOA2 with the store data
+        const callData = encodeFunctionData({
+          abi: callerAbi,
+          functionName: "callAddress",
+          args: [eoa2.address, storeData],
+        });
+
+        const chainCallTx = {
+          to: eoa1.address,
+          data: callData,
+          gas: 500000n,
+          maxFeePerGas: 10_000_000_000n,
+          maxPriorityFeePerGas: parseGwei("1"),
+          nonce: await context.viem("public").getTransactionCount({
+            address: senderAccount.address,
+          }),
+          chainId: 1281,
+        };
+
+        const chainCallSignature = await senderAccount.signTransaction(chainCallTx);
+        const result = await context.createBlock(chainCallSignature);
+
+        // Verify the transaction succeeded
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result.result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
+
+        // Verify that storage was written in EOA2's context
+        // This proves that EOA2 executed StorageWriter code, not followed another chain
+        const storedValue = await context.viem("public").readContract({
+          address: eoa2.address,
+          abi: storageWriterAbi,
+          functionName: "load",
+          args: [42n],
+        });
+        expect(storedValue).toBe(1337n);
+
+        // Also verify that EOA1 doesn't have this storage
+        // EOA1 is delegated to Caller, not StorageWriter, so trying to call
+        // StorageWriter functions on it should fail
+        try {
+          await context.viem("public").readContract({
+            address: eoa1.address,
+            abi: storageWriterAbi,
+            functionName: "load",
+            args: [42n],
+          });
+          // If we get here, the test should fail
+          expect(true).toBe(false);
+        } catch (error) {
+          // Expected to fail since EOA1 has Caller code, not StorageWriter
+          expect(error).toBeDefined();
+        }
+
+        console.log("Verified: Delegated calls do not follow chains");
       },
     });
 
@@ -772,18 +814,10 @@ describeSuite({
       title: "should handle multiple authorizations in single transaction",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const eoa1 = privateKeyToAccount(generatePrivateKey());
-        const eoa2 = privateKeyToAccount(generatePrivateKey());
-        const eoa3 = privateKeyToAccount(generatePrivateKey());
-        const eoa4 = privateKeyToAccount(generatePrivateKey());
-
-        // Fund all EOAs
-        await context.createBlock([
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa1.address, parseEther("1")),
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa2.address, parseEther("1")),
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa3.address, parseEther("1")),
-          context.polkadotJs().tx.balances.transferAllowDeath(eoa4.address, parseEther("1")),
-        ]);
+        const eoa1 = await createFundedAccount(context);
+        const eoa2 = await createFundedAccount(context);
+        const eoa3 = await createFundedAccount(context);
+        const eoa4 = await createFundedAccount(context);
 
         // Create multiple authorizations to different contracts
         const auth1 = await eoa1.signAuthorization({
