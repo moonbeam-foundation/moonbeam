@@ -372,7 +372,7 @@ describeSuite({
 
     it({
       id: "T04",
-      title: "BUG: delegation clearing to zero address not working correctly",
+      title: "delegation to zero address should reset the delegation",
       test: async () => {
         // First, create a delegation
         const privateKey = generatePrivateKey();
@@ -504,13 +504,13 @@ describeSuite({
               args: ["0x1234567890123456789012345678901234567890"],
             });
             console.log(`🐛 BUG: Balance still accessible after clear: ${balanceAfterClear}`);
+            expect(true).toBe(false); // Should not reach here
           } catch (error) {
             console.log("✅ Function calls properly fail after clearing");
           }
         }
 
-        // For now, document the current behavior instead of failing the test
-        expect(codeAfterClear).toBeTruthy(); // Current buggy behavior
+        expect(codeAfterClear).toBeFalsy();
       },
     });
 
