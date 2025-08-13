@@ -10,7 +10,7 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
   convertXcmFragmentToVersion,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 describeSuite({
   id: "D024011",

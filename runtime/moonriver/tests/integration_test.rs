@@ -153,7 +153,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonriver_runtime::Assets>("Assets");
 	is_pallet_prefix::<moonriver_runtime::AssetManager>("AssetManager");
-	is_pallet_prefix::<moonriver_runtime::Migrations>("Migrations");
 	is_pallet_prefix::<moonriver_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonriver_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonriver_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -436,7 +435,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::Proxy>(31);
 	is_pallet_index::<moonriver_runtime::MaintenanceMode>(32);
 	is_pallet_index::<moonriver_runtime::Identity>(33);
-	is_pallet_index::<moonriver_runtime::Migrations>(34);
 	is_pallet_index::<moonriver_runtime::ProxyGenesisCompanion>(35);
 	is_pallet_index::<moonriver_runtime::MoonbeamLazyMigrations>(37);
 	// Ethereum compatibility

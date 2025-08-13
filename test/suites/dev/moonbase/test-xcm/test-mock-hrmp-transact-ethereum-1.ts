@@ -10,8 +10,8 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
   convertXcmFragmentToVersion,
-} from "../../../../helpers/xcm.js";
-import { ConstantStore } from "../../../../helpers/constants.js";
+  ConstantStore,
+} from "../../../../helpers";
 
 describeSuite({
   id: "D024013",

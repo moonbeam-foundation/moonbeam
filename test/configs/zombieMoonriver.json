@@ -43,13 +43,13 @@
   "parachains": [
     {
       "id": 1000,
-      "chain": "moonbase-local",
-      "chain_spec_path": "tmp/moonbase-modified-raw-spec.json",
+      "chain": "moonriver-local",
+      "chain_spec_path": "tmp/moonriver-modified-raw-spec.json",
       "collators": [
         {
           "name": "alith",
-          "rpc_port": 33345,
           "command": "../target/release/moonbeam",
+          "rpc_port": 33345,
           "args": [
             "--no-hardware-benchmarks",
             "--force-authoring",
@@ -66,7 +66,7 @@
           "command": "../target/release/moonbeam",
           "args": [
             "--no-hardware-benchmarks",
-            "-lparachain=trace",
+            "-lparachain=debug",
             "--database=paritydb",
             "--pool-type=fork-aware"
           ]

@@ -1046,33 +1046,6 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       [key: string]: QueryableStorageEntry<ApiType>;
     };
-    migrations: {
-      /**
-       * True if all required migrations have completed
-       **/
-      fullyUpgraded: AugmentedQuery<ApiType, () => Observable<bool>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /**
-       * MigrationState tracks the progress of a migration.
-       * Maps name (Vec<u8>) -> whether or not migration has been completed (bool)
-       **/
-      migrationState: AugmentedQuery<
-        ApiType,
-        (arg: Bytes | string | Uint8Array) => Observable<bool>,
-        [Bytes]
-      > &
-        QueryableStorageEntry<ApiType, [Bytes]>;
-      /**
-       * Temporary value that is set to true at the beginning of the block during which the execution
-       * of xcm messages must be paused.
-       **/
-      shouldPauseXcm: AugmentedQuery<ApiType, () => Observable<bool>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /**
-       * Generic query
-       **/
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
     moonbeamLazyMigrations: {
       /**
        * Generic query

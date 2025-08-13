@@ -3,31 +3,26 @@ import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall
 import { alith } from "@moonwall/util";
 import {
   RELAY_SOURCE_LOCATION,
-  registerOldForeignAsset,
+  registerForeignAsset,
+  foreignAssetBalance,
+  addAssetToWeightTrader,
   relayAssetMetadata,
 } from "../../../../helpers";
 
 // Twelve decimal places in the moonbase relay chain's token
 const RELAY_TOKEN = 1_000_000_000_000n;
 
-const palletId = "0x6D6f646c617373746d6E67720000000000000000";
-
 describeSuite({
   id: "D024101",
   title: "Mock XCM - receive downward transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let assetId: string;
+    const assetId = 1n;
 
     beforeAll(async () => {
-      // registerOldForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
-        context,
-        RELAY_SOURCE_LOCATION,
-        relayAssetMetadata
-      );
-      assetId = registeredAssetId;
-      expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
+      await registerForeignAsset(context, assetId, RELAY_SOURCE_LOCATION, relayAssetMetadata);
+
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0n, context);
     });
 
     it({
@@ -44,11 +39,11 @@ describeSuite({
         await context.createBlock();
 
         // Make sure the state has ALITH's to DOT tokens
-        const alith_dot_balance = (
-          await context.polkadotJs().query.assets.account(assetId, alith.address)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const alith_dot_balance = await foreignAssetBalance(
+          context,
+          assetId,
+          alith.address as `0x${string}`
+        );
 
         expect(alith_dot_balance).to.eq(10n * RELAY_TOKEN);
       },
