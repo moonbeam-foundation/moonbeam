@@ -7,7 +7,15 @@ import {
   maximizeConvictionVotingOf,
   whiteListTrackNoSend,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, type KeyringPair, ethan, generateKeyringPair } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  type KeyringPair,
+  ethan,
+  generateKeyringPair,
+  BALTATHAR_ADDRESS,
+  DEFAULT_GENESIS_BALANCE,
+} from "@moonwall/util";
 
 describeSuite({
   id: "D023303",
@@ -25,7 +33,7 @@ describeSuite({
       randomAccount = generateKeyringPair();
       randomAddress = randomAccount.address;
 
-      const proposal = context.pjsApi.tx.parachainStaking.setParachainBondAccount(randomAddress);
+      const proposal = context.pjsApi.tx.balances.forceSetBalance(BALTATHAR_ADDRESS, 0);
 
       const { whitelistedHash: wlHash } = await whiteListTrackNoSend(context, proposal);
       whitelistedHash = wlHash;
@@ -77,9 +85,7 @@ describeSuite({
         expect(finishedReferendum.isOngoing, "Still ongoing").to.be.false;
         expect(finishedReferendum.isTimedOut, "Timed out").to.be.false;
 
-        const inflationDistributionConfig =
-          await context.pjsApi.query.parachainStaking.inflationDistributionInfo();
-        expect(inflationDistributionConfig[0].account.toString()).toBe(randomAddress);
+        expect(await context.viem().getBalance({ address: BALTATHAR_ADDRESS })).to.equal(0n);
       },
     });
 

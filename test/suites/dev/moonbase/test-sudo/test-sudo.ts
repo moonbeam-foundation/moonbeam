@@ -4,17 +4,21 @@ import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
-  alith,
   baltathar,
   generateKeyringPair,
 } from "@moonwall/util";
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../../../../helpers";
+import {
+  CHARLETH_ADDRESS,
+  DOROTHY_ADDRESS,
+  ETHAN_ADDRESS,
+} from "@moonwall/util/dist/types/constants/accounts";
 
 describeSuite({
   id: "D023701",
-  title: "Sudo - successful setParachainBondAccount",
+  title: "Sudo - successful forceSetBalance",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should be able to call sudo with the right account",
@@ -22,23 +26,15 @@ describeSuite({
         const { result } = await context.createBlock(
           context
             .polkadotJs()
-            .tx.sudo.sudo(
-              context.polkadotJs().tx.parachainStaking.setParachainBondAccount(alith.address)
-            )
+            .tx.sudo.sudo(context.polkadotJs().tx.balances.forceSetBalance(ETHAN_ADDRESS, 0))
         );
-        const inflationDistributionConfig = await context
-          .polkadotJs()
-          .query.parachainStaking.inflationDistributionInfo();
 
-        expect(inflationDistributionConfig[0].account.toString()).to.equal(alith.address);
-        expect(inflationDistributionConfig[0].percent.toNumber()).to.equal(30);
+        const account = await context.polkadotJs().query.system.account(ETHAN_ADDRESS);
+        expect(account.data.free.toBigInt()).toBe(0);
 
         expect(result!.events.length).to.eq(6);
-        expect(
-          context
-            .polkadotJs()
-            .events.parachainStaking.InflationDistributionConfigUpdated.is(result!.events[1].event)
-        ).to.be.true;
+        expect(context.polkadotJs().events.balances.BalanceSet.is(result!.events[1].event)).to.be
+          .true;
         expect(context.polkadotJs().events.balances.Deposit.is(result!.events[3].event)).to.be.true;
         expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(result!.events[5].event)).to
           .be.true;
@@ -58,7 +54,9 @@ describeSuite({
           context
             .polkadotJs()
             .tx.sudo.sudo(
-              context.polkadotJs().tx.parachainStaking.setParachainBondAccount(alith.address)
+              context
+                .polkadotJs()
+                .tx.balances.forceSetBalance(DOROTHY_ADDRESS, DEFAULT_GENESIS_BALANCE)
             )
         );
 
@@ -70,27 +68,17 @@ describeSuite({
       id: "T03",
       title: "should NOT be able to call sudo with another account than sudo account",
       test: async function () {
-        const parachainBondAccount = (
-          await context.polkadotJs().query.parachainStaking.inflationDistributionInfo()
-        )[0].account.toString();
-
         const { result } = await context.createBlock(
           context
             .polkadotJs()
-            .tx.sudo.sudo(
-              context
-                .polkadotJs()
-                .tx.parachainStaking.setParachainBondAccount(generateKeyringPair().address)
-            )
+            .tx.sudo.sudo(context.polkadotJs().tx.balances.forceSetBalance(CHARLETH_ADDRESS, 0))
             .signAsync(baltathar),
           { allowFailures: true }
         );
 
-        const inflationDistributionConfig = await context
-          .polkadotJs()
-          .query.parachainStaking.inflationDistributionInfo();
-        expect(inflationDistributionConfig[0].account.toString()).to.equal(parachainBondAccount);
-        expect(inflationDistributionConfig[0].percent.toNumber()).to.equal(30);
+        // Check that balance didn't change
+        const account = await context.polkadotJs().query.system.account(CHARLETH_ADDRESS);
+        expect(account.data.free.toBigInt()).toBe(DEFAULT_GENESIS_BALANCE);
 
         expect(result!.events.length === 7).to.be.true;
         expect(context.polkadotJs().events.system.NewAccount.is(result!.events[2].event)).to.be
@@ -99,12 +87,9 @@ describeSuite({
         expect(context.polkadotJs().events.system.ExtrinsicFailed.is(result!.events[6].event)).to.be
           .true;
 
-        expect(
-          (await context.viem().getBalance({ address: BALTATHAR_ADDRESS })) -
-            DEFAULT_GENESIS_BALANCE !==
-            0n,
-          "should not be null for a failed extrinsic"
-        ).to.equal(true);
+        expect(await context.viem().getBalance({ address: BALTATHAR_ADDRESS })).to.equal(
+          DEFAULT_GENESIS_BALANCE
+        );
       },
     });
 
@@ -113,9 +98,6 @@ describeSuite({
       title: "should not be able to call sudo with no funds",
       test: async function () {
         const newSigner = generateKeyringPair();
-        const parachainBondAccount = (
-          await context.polkadotJs().query.parachainStaking.inflationDistributionInfo()
-        )[0].account.toString();
 
         await context.createBlock(context.polkadotJs().tx.sudo.setKey(newSigner.address), {
           allowFailures: false,
@@ -131,7 +113,7 @@ describeSuite({
               context
                 .polkadotJs()
                 .tx.sudo.sudo(
-                  context.polkadotJs().tx.parachainStaking.setParachainBondAccount(alith.address)
+                  context.polkadotJs().tx.balances.forceSetBalance(BALTATHAR_ADDRESS, 0)
                 )
                 .signAsync(newSigner)
             )
@@ -139,10 +121,9 @@ describeSuite({
           "1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
         );
 
-        const inflationDistributionConfig = await context
-          .polkadotJs()
-          .query.parachainStaking.inflationDistributionInfo();
-        expect(inflationDistributionConfig[0].account.toString()).to.equal(parachainBondAccount);
+        expect(await context.viem().getBalance({ address: BALTATHAR_ADDRESS })).to.equal(
+          DEFAULT_GENESIS_BALANCE
+        );
       },
     });
   },
