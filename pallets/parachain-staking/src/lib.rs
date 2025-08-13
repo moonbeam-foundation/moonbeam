@@ -894,42 +894,6 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// Deprecated: please use `set_inflation_distribution_config` instead.
-		///
-		///  Set the account that will hold funds set aside for parachain bond
-		#[pallet::call_index(2)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_account())]
-		pub fn set_parachain_bond_account(
-			origin: OriginFor<T>,
-			new: T::AccountId,
-		) -> DispatchResultWithPostInfo {
-			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
-			let old = <InflationDistributionInfo<T>>::get().0;
-			let new = InflationDistributionAccount {
-				account: new,
-				percent: old[0].percent.clone(),
-			};
-			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()].into())
-		}
-
-		/// Deprecated: please use `set_inflation_distribution_config` instead.
-		///
-		/// Set the percent of inflation set aside for parachain bond
-		#[pallet::call_index(3)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_reserve_percent())]
-		pub fn set_parachain_bond_reserve_percent(
-			origin: OriginFor<T>,
-			new: Percent,
-		) -> DispatchResultWithPostInfo {
-			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
-			let old = <InflationDistributionInfo<T>>::get().0;
-			let new = InflationDistributionAccount {
-				account: old[0].account.clone(),
-				percent: new,
-			};
-			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()].into())
-		}
-
 		/// Set the total number of collator candidates selected per round
 		/// - changes are not applied until the start of the next round
 		#[pallet::call_index(4)]
