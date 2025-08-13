@@ -138,15 +138,15 @@ contract ReentrantCaller {
     function reenter(address target, uint256 targetDepth) external {
         maxDepth = targetDepth;
         depth = 0;
-        _reenter(target);
+        doReenter(target);
     }
     
-    function _reenter(address target) internal {
+    function doReenter(address target) public {
         depth++;
         emit ReentryDepth(depth);
         
         if (depth < maxDepth) {
-            (bool success,) = target.call(abi.encodeWithSignature("_reenter(address)", target));
+            (bool success,) = target.call(abi.encodeWithSignature("doReenter(address)", target));
             require(success, "Reentry failed");
         }
         

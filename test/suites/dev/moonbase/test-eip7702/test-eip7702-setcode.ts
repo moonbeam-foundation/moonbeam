@@ -1,14 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import {
-  encodeFunctionData,
-  type Abi,
-  parseEther,
-  parseGwei,
-  keccak256,
-  concat,
-  numberToHex,
-} from "viem";
+import { encodeFunctionData, type Abi, parseEther, parseGwei, keccak256 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
 import { createFundedAccount } from "./helpers";
@@ -62,8 +54,7 @@ describeSuite({
       id: "T01",
       title: "should handle set-code transaction with self-authorization",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
-        const selfSponsor = privateKeyToAccount(generatePrivateKey());
+        const selfSponsor = await createFundedAccount(context);
 
         // Fund the self-sponsoring account
         await context.createBlock([
@@ -76,7 +67,7 @@ describeSuite({
         const authorization = await selfSponsor.signAuthorization({
           contractAddress: storageWriterAddress,
           chainId: 1281,
-          nonce: 0,
+          nonce: 1,
         });
 
         const callData = encodeFunctionData({
@@ -89,7 +80,7 @@ describeSuite({
           to: selfSponsor.address, // Sending to self
           data: callData,
           gas: 300000n,
-          maxFeePerGas: parseGwei("10"),
+          maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: 0, // First transaction from this account
           chainId: 1281,
@@ -97,38 +88,22 @@ describeSuite({
           type: "eip7702" as const,
         };
 
-        // Note: For now, use ALITH to send the transaction instead of self-sponsoring
-        // because self-sponsoring may not work correctly in current Moonbeam implementation
-        const alithTx = {
-          to: selfSponsor.address,
-          data: callData,
-          gas: 300000n,
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
-            address: senderAccount.address,
-          }),
-          chainId: 1281,
-          authorizationList: [authorization],
-          type: "eip7702" as const,
-        };
+        const signature = await selfSponsor.signTransaction(tx);
+        console.log("Signed transaction:", signature);
 
-        const signature = await senderAccount.signTransaction(alithTx);
-        const result = await context.createBlock(signature);
+        const blockResult = await context.createBlock(signature);
+        console.log("Block creation result:", blockResult);
+        console.log("Result object:", blockResult.result);
 
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
+        if (!blockResult.result) {
+          throw new Error("Transaction failed - no result returned");
         }
 
-        if (txHash) {
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
-          expect(receipt.status).toBe("success");
-        }
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: blockResult.result.hash as `0x${string}`,
+        });
+        console.log("Transaction receipt:", receipt);
+        expect(receipt.status).toBe("success");
 
         // Verify delegation was set
         const code = await context.viem("public").getCode({
@@ -291,13 +266,7 @@ describeSuite({
       title: "should handle SSTORE then SLOAD in separate transactions",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: storageWriterAddress,
@@ -345,9 +314,18 @@ describeSuite({
         };
 
         const loadSignature = await senderAccount.signTransaction(loadTx);
-        const loadResult = await context.createBlock(loadSignature);
+        const { result } = await context.createBlock(loadSignature);
 
-        // Use static call to get the return value
+        // Get the transaction receipt to verify success
+        const loadReceipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(loadReceipt.status).toBe("success");
+
+        // Decode the return value from the transaction
+        // The load function should return the stored value (200n)
+        // Note: For view functions called via transactions, the return value might not be directly accessible
+        // We can verify it through a static call instead
         const loadedValue = await context.viem("public").readContract({
           address: delegatingEOA.address,
           abi: storageWriterAbi,
@@ -363,13 +341,7 @@ describeSuite({
       title: "should handle TSTORE with re-entry to TLOAD",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: transientStorageAddress,
@@ -399,22 +371,12 @@ describeSuite({
         };
 
         const signature = await senderAccount.signTransaction(tx);
-        const result = await context.createBlock(signature);
+        const { result } = await context.createBlock(signature);
 
-        // Transaction should succeed
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
-        }
-
-        if (txHash) {
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
-          expect(receipt.status).toBe("success");
-        }
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
       },
     });
 
@@ -423,14 +385,8 @@ describeSuite({
       title: "should execute SELFDESTRUCT in delegated context",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
+        const delegatingEOA = await createFundedAccount(context);
         const recipient = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("2")),
-        ]);
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: selfDestructorAddress,
@@ -438,8 +394,12 @@ describeSuite({
           nonce: 0,
         });
 
-        const initialBalance = await context.viem("public").getBalance({
+        const initialDelegatingBalance = await context.viem("public").getBalance({
           address: delegatingEOA.address,
+        });
+
+        const initialRecipientBalance = await context.viem("public").getBalance({
+          address: recipient.address,
         });
 
         // Execute selfdestruct
@@ -473,11 +433,27 @@ describeSuite({
         });
         expect(codeAfter?.startsWith("0xef0100")).toBe(true);
 
-        // Check if balance was transferred
-        const recipientBalance = await context.viem("public").getBalance({
+        // Check balances after SELFDESTRUCT
+        const finalDelegatingBalance = await context.viem("public").getBalance({
+          address: delegatingEOA.address,
+        });
+        const finalRecipientBalance = await context.viem("public").getBalance({
           address: recipient.address,
         });
-        console.log(`Recipient balance after selfdestruct: ${recipientBalance}`);
+
+        // The delegatingEOA is not paying for gas - senderAccount is
+        // So the entire balance of delegatingEOA should be transferred to recipient
+        // Note: After EIP-6780, SELFDESTRUCT only transfers balance but doesn't destroy the account
+
+        // Assert that recipient received ALL funds from delegatingEOA
+        expect(finalRecipientBalance).toBe(initialRecipientBalance + initialDelegatingBalance);
+
+        // Assert that delegating EOA's balance is now zero (all transferred)
+        expect(finalDelegatingBalance).toBe(0n);
+
+        console.log(
+          `Balance transfer: ${initialDelegatingBalance} wei (from ${delegatingEOA.address} to ${recipient.address})`
+        );
       },
     });
 
@@ -486,13 +462,7 @@ describeSuite({
       title: "should handle contract creation opcodes (CREATE, CREATE2)",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("2")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: contractCreatorAddress,
@@ -525,20 +495,18 @@ describeSuite({
         const createResult = await context.createBlock(createSignature);
 
         // Get transaction receipt to check for created contract
-        let createdAddress: string | undefined;
-        if (createResult.hash || createResult.result?.hash) {
-          const txHash = (createResult.hash || createResult.result?.hash) as `0x${string}`;
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
-          expect(receipt.status).toBe("success");
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: createResult.result?.hash as `0x${string}`,
+        });
+        expect(receipt.status).toBe("success");
 
-          // Check logs for ContractCreated event
-          if (receipt.logs.length > 0) {
-            console.log(`Contract created via CREATE opcode`);
-            createdAddress = receipt.logs[0].topics[1]; // Indexed address parameter
-          }
-        }
+        // Check logs for ContractCreated event
+        console.log(`Contract created via CREATE opcode`);
+        // Indexed address parameter
+        const createdAddress = receipt.logs[0].topics[1];
+        expect(createdAddress).toBeDefined();
+        // Should be a 32-byte hex string
+        expect(createdAddress).toMatch(/^0x[0-9a-fA-F]{64}$/);
 
         // Test CREATE2 opcode
         const salt = keccak256("0x1234");
@@ -563,14 +531,17 @@ describeSuite({
         const create2Signature = await senderAccount.signTransaction(create2Tx);
         const create2Result = await context.createBlock(create2Signature);
 
-        if (create2Result.hash || create2Result.result?.hash) {
-          const txHash = (create2Result.hash || create2Result.result?.hash) as `0x${string}`;
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
-          expect(receipt.status).toBe("success");
-          console.log(`Contract created via CREATE2 opcode`);
-        }
+        const receipt2 = await context.viem("public").getTransactionReceipt({
+          hash: create2Result.result?.hash as `0x${string}`,
+        });
+
+        expect(receipt2.status).toBe("success");
+        console.log(`Contract created via CREATE2 opcode`);
+
+        // Check logs for ContractCreated event from CREATE2
+        const created2Address = receipt2.logs[0].topics[1]; // Indexed address parameter
+        expect(created2Address).toBeDefined();
+        expect(created2Address).toMatch(/^0x[0-9a-fA-F]{64}$/); // Should be a 32-byte hex string
       },
     });
 
@@ -579,13 +550,7 @@ describeSuite({
       title: "should handle re-entry until max call stack depth",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: reentrantCallerAddress,
@@ -595,7 +560,7 @@ describeSuite({
 
         // Try to reach max depth (1024 in EVM)
         // We'll test with a smaller depth to avoid gas issues
-        const targetDepth = 10n;
+        const targetDepth = 64n;
 
         const callData = encodeFunctionData({
           abi: reentrantCallerAbi,
@@ -621,16 +586,33 @@ describeSuite({
         const result = await context.createBlock(signature);
 
         // Check if transaction succeeded or failed due to stack depth
-        if (result.hash || result.result?.hash) {
-          const txHash = (result.hash || result.result?.hash) as `0x${string}`;
-          const receipt = await context.viem("public").getTransactionReceipt({
-            hash: txHash,
-          });
+        const receipt = await context.viem("public").getTransactionReceipt({
+          hash: result.result?.hash as `0x${string}`,
+        });
 
-          console.log(`Re-entry test status: ${receipt.status}`);
-          // With depth 10, should succeed
-          // With depth 1024, would fail
-        }
+        console.log(`Re-entry test status: ${receipt.status}`);
+
+        // With depth 64, should succeed
+        expect(receipt.status).toBe("success");
+
+        // Verify the contract reached the expected depth
+        // The depth state variable should show the maximum depth reached
+        const maxDepthReached = await context.viem("public").readContract({
+          address: delegatingEOA.address,
+          abi: reentrantCallerAbi,
+          functionName: "maxDepth",
+          args: [],
+        });
+        expect(maxDepthReached).toBe(targetDepth);
+
+        // The depth should be back to 0 after completion
+        const currentDepth = await context.viem("public").readContract({
+          address: delegatingEOA.address,
+          abi: reentrantCallerAbi,
+          functionName: "depth",
+          args: [],
+        });
+        expect(currentDepth).toBe(0n);
       },
     });
 
