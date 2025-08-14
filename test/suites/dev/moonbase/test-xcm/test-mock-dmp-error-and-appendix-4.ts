@@ -6,32 +6,27 @@ import {
   RELAY_SOURCE_LOCATION,
   XcmFragment,
   XCM_VERSIONS,
-  registerOldForeignAsset,
   relayAssetMetadata,
   convertXcmFragmentToVersion,
+  registerForeignAsset,
+  foreignAssetBalance,
+  addAssetToWeightTrader,
 } from "../../../../helpers";
 
 // Twelve decimal places in the moonbase relay chain's token
-const RELAY_TOKEN = 1_000_000_000_000n;
-
-const palletId = "0x6D6f646c617373746d6E67720000000000000000";
+const RELAY_TOKEN = 10n ** relayAssetMetadata.decimals; // 12 decimals
 
 describeSuite({
   id: "D024005",
   title: "Mock XCM - downward transfer with always triggered appendix",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let assetId: string;
+    const assetId = 1n;
 
     beforeAll(async () => {
-      // registerOldForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
-        context,
-        RELAY_SOURCE_LOCATION,
-        relayAssetMetadata
-      );
-      assetId = registeredAssetId;
-      expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
+      await registerForeignAsset(context, assetId, RELAY_SOURCE_LOCATION, relayAssetMetadata);
+
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0n, context);
     });
 
     for (const xcmVersion of XCM_VERSIONS) {
@@ -39,13 +34,11 @@ describeSuite({
         id: `T01-XCM-v${xcmVersion}`,
         title: `Should make sure Alith receives 10 dot with appendix and error (XCM v${xcmVersion})`,
         test: async function () {
-          // Get initial balance
-          const initialBalance = await context
-            .polkadotJs()
-            .query.assets.account(assetId, alith.address);
-          const initialDotBalance = initialBalance.isSome
-            ? initialBalance.unwrap().balance.toBigInt()
-            : 0n;
+          const initialDotBalance = await foreignAssetBalance(
+            context,
+            assetId,
+            alith.address as `0x{string}`
+          );
 
           let xcmMessage = new XcmFragment({
             assets: [
@@ -86,11 +79,11 @@ describeSuite({
           await context.createBlock();
           await context.createBlock();
           // Make sure the state has ALITH's to DOT tokens
-          const alith_dot_balance = (
-            await context.polkadotJs().query.assets.account(assetId, alith.address)
-          )
-            .unwrap()
-            .balance.toBigInt();
+          const alith_dot_balance = await foreignAssetBalance(
+            context,
+            assetId,
+            alith.address as `0x{string}`
+          );
 
           expect(
             alith_dot_balance - initialDotBalance,
