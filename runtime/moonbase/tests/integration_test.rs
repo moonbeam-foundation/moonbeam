@@ -48,7 +48,7 @@ use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
 use sp_runtime::{
 	traits::{Convert as XcmConvert, Dispatchable},
-	BuildStorage,
+	BuildStorage, Percent,
 };
 use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
@@ -62,6 +62,7 @@ use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_moonbeam_foreign_assets::AssetStatus;
+use pallet_parachain_staking::InflationDistributionAccount;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
@@ -657,10 +658,17 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		.build()
 		.execute_with(|| {
 			increase_last_relay_slot_number(1);
-			assert_ok!(ParachainStaking::set_parachain_bond_account(
+			assert_ok!(ParachainStaking::set_inflation_distribution_config(
 				root_origin(),
-				AccountId::from(CHARLIE),
-			),);
+				[
+					InflationDistributionAccount {
+						account: AccountId::from(CHARLIE),
+						percent: Percent::from_percent(30),
+					},
+					InflationDistributionAccount::default(),
+				]
+				.into()
+			));
 
 			// Stop just before round 2
 			run_to_block(1199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
