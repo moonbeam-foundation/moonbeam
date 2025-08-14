@@ -78,10 +78,9 @@ impl GenerateAccountKey {
 		// Retrieves the seed from the mnemonic
 		let seed = Seed::new(&mnemonic, "");
 		// Use network parameter to determine chain ID for derivation path
-		let coin_type = self.network.coin_type();
 		let derivation_path = format!(
 			"m/44'/{}'/0'/0/{}",
-			coin_type,
+			self.network.coin_type(),
 			self.account_index.unwrap_or(0)
 		);
 		let private_key = if let Some(private_key) =
