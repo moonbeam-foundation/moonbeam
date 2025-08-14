@@ -16,7 +16,7 @@ describeSuite({
       // Deploy the delegation contract
       const { contractAddress: address, abi } = await deployCreateCompiledContract(
         context,
-        "EIP7702Delegation"
+        "BalanceTracker"
       );
 
       expect(address).toBeTruthy();
