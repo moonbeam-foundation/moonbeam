@@ -275,13 +275,7 @@ describeSuite({
       title: "should handle authorization with EOA address",
       test: async () => {
         const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = privateKeyToAccount(generatePrivateKey());
-
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(delegatingEOA.address, parseEther("1")),
-        ]);
+        const delegatingEOA = await createFundedAccount(context);
 
         // Sign authorization with EOA address directly
         const eoaAuth = await delegatingEOA.signAuthorization({
@@ -289,6 +283,7 @@ describeSuite({
           chainId: 1281,
           nonce: 0,
         });
+
         const tx = {
           to: delegatingEOA.address,
           value: 1000n, // Send some value instead of calling
