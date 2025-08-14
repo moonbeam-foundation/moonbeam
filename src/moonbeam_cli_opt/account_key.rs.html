@@ -128,6 +128,35 @@
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
 <a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -149,12 +178,32 @@
 	PublicKey <span class="kw">as </span>PublicKeyT, PublicKeyBytes,
 };
 <span class="kw">use </span>bip39::{Language, Mnemonic, MnemonicType, Seed};
-<span class="kw">use </span>clap::Parser;
+<span class="kw">use </span>clap::{Parser, ValueEnum};
 <span class="kw">use </span>libsecp256k1::{PublicKey, SecretKey};
 <span class="kw">use </span>primitive_types::H256;
 <span class="kw">use </span>sp_runtime::traits::IdentifyAccount;
 
-<span class="attr">#[derive(Debug, Parser)]
+<span class="attr">#[derive(Debug, Clone, ValueEnum)]
+</span><span class="kw">pub enum </span>Network {
+	Moonbeam,
+	Moonriver,
+	Moonbase,
+	Ethereum,
+}
+
+<span class="kw">impl </span>Network {
+	<span class="doccomment">/// Returns the coin type for the derivation path
+	</span><span class="kw">pub fn </span>coin_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+		<span class="kw">match </span><span class="self">self </span>{
+			Network::Moonbeam =&gt; <span class="number">1284</span>,
+			Network::Moonriver =&gt; <span class="number">1285</span>,
+			Network::Moonbase =&gt; <span class="number">1287</span>,
+			Network::Ethereum =&gt; <span class="number">60</span>,
+		}
+	}
+}
+
+<span class="attr">#[derive(Debug, Clone, Parser)]
 </span><span class="kw">pub struct </span>GenerateAccountKey {
 	<span class="doccomment">/// Generate 12 words mnemonic instead of 24
 	</span><span class="attr">#[clap(long, short = <span class="string">'w'</span>)]
@@ -167,6 +216,10 @@
 	<span class="doccomment">/// The account index to use in the derivation path
 	</span><span class="attr">#[clap(long = <span class="string">"account-index"</span>, short = <span class="string">'a'</span>)]
 	</span>account_index: <span class="prelude-ty">Option</span>&lt;u32&gt;,
+
+	<span class="doccomment">/// The network to use for derivation path
+	</span><span class="attr">#[clap(long, short = <span class="string">'n'</span>, default_value = <span class="string">"moonbeam"</span>)]
+	</span><span class="kw">pub </span>network: Network,
 }
 
 <span class="kw">impl </span>GenerateAccountKey {
@@ -183,7 +236,12 @@
 
 		<span class="comment">// Retrieves the seed from the mnemonic
 		</span><span class="kw">let </span>seed = Seed::new(<span class="kw-2">&amp;</span>mnemonic, <span class="string">""</span>);
-		<span class="kw">let </span>derivation_path = <span class="macro">format!</span>(<span class="string">"m/44'/60'/0'/0/{}"</span>, <span class="self">self</span>.account_index.unwrap_or(<span class="number">0</span>));
+		<span class="comment">// Use network parameter to determine chain ID for derivation path
+		</span><span class="kw">let </span>derivation_path = <span class="macro">format!</span>(
+			<span class="string">"m/44'/{}'/0'/0/{}"</span>,
+			<span class="self">self</span>.network.coin_type(),
+			<span class="self">self</span>.account_index.unwrap_or(<span class="number">0</span>)
+		);
 		<span class="kw">let </span>private_key = <span class="kw">if let </span><span class="prelude-val">Some</span>(private_key) =
 			derivation_path.parse().ok().and_then(|derivation_path| {
 				<span class="kw">let </span>extended = ExtendedPrivateKey::&lt;Secp256k1SecretKey&gt;::derive_from_path(
