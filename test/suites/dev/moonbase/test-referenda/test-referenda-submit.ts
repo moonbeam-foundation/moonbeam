@@ -14,26 +14,32 @@ import {
   ethan,
   generateKeyringPair,
   BALTATHAR_ADDRESS,
-  DEFAULT_GENESIS_BALANCE,
 } from "@moonwall/util";
 
 describeSuite({
   id: "D023303",
   title: "Referenda - Submit",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let whitelistedHash: string;
     let currentRef: number;
     let randomAddress: string;
     let randomAccount: KeyringPair;
-    let randBlocksPerRound: number;
 
     beforeEach(async () => {
-      randBlocksPerRound = Math.floor(Math.random() * 1000) + 200;
       randomAccount = generateKeyringPair();
       randomAddress = randomAccount.address;
 
-      const proposal = context.pjsApi.tx.balances.forceSetBalance(BALTATHAR_ADDRESS, 0);
+      const proposal = context.pjsApi.tx.parachainStaking.setInflationDistributionConfig([
+        {
+          account: randomAddress,
+          percent: 30,
+        },
+        {
+          account: BALTATHAR_ADDRESS,
+          percent: 0,
+        },
+      ]);
 
       const { whitelistedHash: wlHash } = await whiteListTrackNoSend(context, proposal);
       whitelistedHash = wlHash;
@@ -85,7 +91,9 @@ describeSuite({
         expect(finishedReferendum.isOngoing, "Still ongoing").to.be.false;
         expect(finishedReferendum.isTimedOut, "Timed out").to.be.false;
 
-        expect(await context.viem().getBalance({ address: BALTATHAR_ADDRESS })).to.equal(0n);
+        const inflationDistributionConfig =
+          await context.pjsApi.query.parachainStaking.inflationDistributionInfo();
+        expect(inflationDistributionConfig[0].account.toString()).toBe(randomAddress);
       },
     });
 
