@@ -9,7 +9,7 @@ import {
   injectHrmpMessageAndSeal,
   weightMessage,
   sovereignAccountOfSibling,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 const foreign_para_id = 2000;
 
