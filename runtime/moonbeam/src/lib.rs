@@ -29,6 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 extern crate alloc;
+extern crate core;
 
 use account::AccountId20;
 use alloc::borrow::Cow;
@@ -82,7 +83,7 @@ use pallet_evm::{
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec as codec;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use smallvec::smallvec;
@@ -530,6 +531,8 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = RelayTimestamp;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 	type WeightInfo = moonbeam_weights::pallet_evm::WeightInfo<Runtime>;
 }
 
@@ -548,6 +551,7 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_scheduler::WeightInfo<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -926,6 +930,7 @@ impl pallet_author_mapping::Config for Runtime {
 	TypeInfo,
 	Serialize,
 	Deserialize,
+	DecodeWithMemTracking,
 )]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
@@ -1146,6 +1151,7 @@ impl pallet_proxy::Config for Runtime {
 	// - 32 bytes Hasher (Blake2256)
 	// - 4 bytes BlockNumber (u32)
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
+	type BlockNumberProvider = System;
 }
 
 impl pallet_migrations::Config for Runtime {
@@ -1378,6 +1384,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
 	type WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo<Runtime>;
+	type BlockNumberProvider = System;
 }
 
 impl pallet_relay_storage_roots::Config for Runtime {

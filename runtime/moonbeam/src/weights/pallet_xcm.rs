@@ -345,4 +345,18 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
+
+    fn add_authorized_alias() -> Weight {
+        // TODO: regenerate this file
+        Weight::from_parts(28_499_000, 11171)
+            .saturating_add(T::DbWeight::get().reads(1_u64))
+            .saturating_add(T::DbWeight::get().writes(1_u64))
+    }
+
+    fn remove_authorized_alias() -> Weight {
+        // TODO: regenerate this file
+        Weight::from_parts(28_499_000, 11171)
+            .saturating_add(T::DbWeight::get().reads(1_u64))
+            .saturating_add(T::DbWeight::get().writes(1_u64))
+    }
 }
