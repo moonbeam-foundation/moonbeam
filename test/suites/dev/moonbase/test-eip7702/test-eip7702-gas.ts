@@ -513,12 +513,9 @@ describeSuite({
         const signature = await senderAccount.signTransaction(lowGasTx);
         const { result } = await context.createBlock(signature);
 
-        const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
-
         // Transaction should fail due to out of gas
-        expect(receipt.status).toBe("reverted");
+        expect(result?.successful).toBe(false);
+        expect(result?.hash).toBeUndefined();
 
         // Delegation should not be set
         const code = await context.viem("public").getCode({
