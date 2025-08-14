@@ -197,4 +197,11 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
 			.saturating_add(Weight::from_parts(0, 2740).saturating_mul(n.into()))
 	}
+
+    fn reset_pallet_migration(n: u32) -> Weight {
+        // TODO: regenerate this file
+        Weight::from_parts(42_137_000, 1591)
+            .saturating_add(T::DbWeight::get().reads(2_u64))
+            .saturating_add(T::DbWeight::get().writes(1_u64))
+    }
 }

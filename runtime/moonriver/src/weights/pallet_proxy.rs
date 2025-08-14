@@ -218,4 +218,11 @@ impl<T: frame_system::Config> pallet_proxy::WeightInfo for WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
+
+    fn poke_deposit() -> Weight {
+        // TODO: regenerate this file
+        Weight::from_parts(42_137_000, 1591)
+            .saturating_add(T::DbWeight::get().reads(2_u64))
+            .saturating_add(T::DbWeight::get().writes(1_u64))
+    }
 }
