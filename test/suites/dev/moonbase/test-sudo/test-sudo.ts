@@ -12,7 +12,7 @@ import {
   CHARLETH_ADDRESS,
   DOROTHY_ADDRESS,
   ETHAN_ADDRESS,
-} from "@moonwall/util/dist/types/constants/accounts";
+} from "@moonwall/util";
 
 describeSuite({
   id: "D023701",
