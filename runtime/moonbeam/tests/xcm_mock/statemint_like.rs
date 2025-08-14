@@ -16,12 +16,12 @@
 
 //! Relay chain runtime mock.
 
+use frame_support::traits::Disabled;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{AsEnsureOriginWithArg, Contains, ContainsPair, Everything, Get, Nothing},
 	weights::Weight,
 };
-use frame_support::traits::Disabled;
 use frame_system::{EnsureRoot, EnsureSigned};
 
 use sp_core::H256;

@@ -751,7 +751,19 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	}
 }
 
-#[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
+#[derive(
+	Clone,
+	Default,
+	Eq,
+	Debug,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	TypeInfo,
+	DecodeWithMemTracking,
+)]
 pub struct AssetMetadata {
 	pub name: Vec<u8>,
 	pub symbol: Vec<u8>,
@@ -1033,7 +1045,18 @@ parameter_types! {
 }
 
 #[derive(
-	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo, DecodeWithMemTracking,
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	MaxEncodedLen,
+	TypeInfo,
+	DecodeWithMemTracking,
 )]
 pub enum ProxyType {
 	NotAllowed = 0,
