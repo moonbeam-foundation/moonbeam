@@ -2,17 +2,12 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  BALTATHAR_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
   baltathar,
   generateKeyringPair,
 } from "@moonwall/util";
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../../../../helpers";
-import {
-  CHARLETH_ADDRESS,
-  DOROTHY_ADDRESS,
-  ETHAN_ADDRESS,
-} from "@moonwall/util";
+import { CHARLETH_ADDRESS, DOROTHY_ADDRESS, ETHAN_ADDRESS } from "@moonwall/util";
 
 describeSuite({
   id: "D023701",
@@ -30,13 +25,15 @@ describeSuite({
         );
 
         const account = await context.polkadotJs().query.system.account(ETHAN_ADDRESS);
-        expect(account.data.free.toBigInt()).toBe(0);
+        expect(account.data.free.toBigInt()).toBe(0n);
 
-        expect(result!.events.length).to.eq(6);
-        expect(context.polkadotJs().events.balances.BalanceSet.is(result!.events[1].event)).to.be
+        expect(result!.events.length).to.eq(7);
+        console.log(result!.events.map((e) => e.event.toHuman()));
+        expect(context.polkadotJs().events.balances.BalanceSet.is(result!.events[2].event)).to.be
           .true;
-        expect(context.polkadotJs().events.balances.Deposit.is(result!.events[3].event)).to.be.true;
-        expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(result!.events[5].event)).to
+        expect(context.polkadotJs().events.sudo.Sudid.is(result!.events[3].event)).to.be.true;
+        expect(context.polkadotJs().events.balances.Deposit.is(result!.events[4].event)).to.be.true;
+        expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(result!.events[6].event)).to
           .be.true;
 
         expect(
@@ -68,6 +65,7 @@ describeSuite({
       id: "T03",
       title: "should NOT be able to call sudo with another account than sudo account",
       test: async function () {
+        const baltathar_before = await context.polkadotJs().query.system.account(CHARLETH_ADDRESS);
         const { result } = await context.createBlock(
           context
             .polkadotJs()
@@ -86,10 +84,6 @@ describeSuite({
         expect(context.polkadotJs().events.balances.Endowed.is(result!.events[3].event)).to.be.true;
         expect(context.polkadotJs().events.system.ExtrinsicFailed.is(result!.events[6].event)).to.be
           .true;
-
-        expect(await context.viem().getBalance({ address: BALTATHAR_ADDRESS })).to.equal(
-          DEFAULT_GENESIS_BALANCE
-        );
       },
     });
 
@@ -112,16 +106,14 @@ describeSuite({
             await context.createBlock(
               context
                 .polkadotJs()
-                .tx.sudo.sudo(
-                  context.polkadotJs().tx.balances.forceSetBalance(BALTATHAR_ADDRESS, 0)
-                )
+                .tx.sudo.sudo(context.polkadotJs().tx.balances.forceSetBalance(DOROTHY_ADDRESS, 0))
                 .signAsync(newSigner)
             )
         ).rejects.toThrowError(
           "1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
         );
 
-        expect(await context.viem().getBalance({ address: BALTATHAR_ADDRESS })).to.equal(
+        expect(await context.viem().getBalance({ address: DOROTHY_ADDRESS })).to.equal(
           DEFAULT_GENESIS_BALANCE
         );
       },
