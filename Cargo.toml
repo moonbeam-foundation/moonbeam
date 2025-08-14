@@ -405,7 +405,6 @@ tokio = { version = "1.43.0" }
 tokio-retry = { version = "0.3.0" }
 tracing = "0.1.37"
 url = { version = "2.4.0" }
-colored = { version = "2.1.0" }
 
 # The list of dependencies below (which can be both direct and indirect dependencies) are crates
 # that are suspected to be CPU-intensive, and that are unlikely to require debugging (as some of

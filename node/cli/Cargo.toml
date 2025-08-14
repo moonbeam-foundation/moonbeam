@@ -10,7 +10,7 @@ clap-num = { workspace = true }
 log = { workspace = true }
 parity-scale-codec = { workspace = true }
 url = { workspace = true }
-colored = { workspace = true }
+ansi_term = { workspace = true }
 
 # Moonbeam
 moonbeam-cli-opt = { workspace = true }

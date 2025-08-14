@@ -20,8 +20,10 @@
 //! It is built using clap and inherits behavior from Substrate's sc_cli crate.
 
 use clap::Parser;
-use colored::Colorize;
-use moonbeam_cli_opt::{account_key::GenerateAccountKey, EthApi, FrontierBackendType, Sealing};
+use moonbeam_cli_opt::{
+	account_key::{GenerateAccountKey, Network},
+	EthApi, FrontierBackendType, Sealing,
+};
 use moonbeam_service::chain_spec;
 use sc_cli::{Error as CliError, SubstrateCli};
 use std::path::PathBuf;
@@ -407,18 +409,26 @@ impl KeyCmd {
 		match self {
 			KeyCmd::BaseCli(cmd) => cmd.run(cli),
 			KeyCmd::GenerateAccountKey(cmd) => {
-				eprintln!(
-				"\n{}\n",
-				"Warning: This command is deprecated, please use `generate-moonbeam-key`instead."
-					.on_yellow()
-					.black()
-					.bold()
-				);
-				cmd.run(true);
+				let deprecation_msg = r#"
+
+				Warning: This command is deprecated, please use `generate-moonbeam-key` instead.
+
+				The `generate-account-key` command used Ethereum's derivation path (m/44'/60'/0'/0/n)
+				while `generate-moonbeam-key` uses Moonbeam's derivation path (m/44'/1284'/0'/0/n).
+
+				For more information, see: https://github.com/moonbeam-foundation/moonbeam/pull/3090
+
+				"#;
+				eprintln!("{}", ansi_term::Colour::Yellow.paint(deprecation_msg));
+
+				// Force ethereum network for deprecated command
+				let mut cmd = cmd.clone();
+				cmd.network = Network::Ethereum;
+				cmd.run();
 				Ok(())
 			}
 			KeyCmd::GenerateMoonbeamKey(cmd) => {
-				cmd.run(false);
+				cmd.run();
 				Ok(())
 			}
 		}
