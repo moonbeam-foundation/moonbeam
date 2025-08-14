@@ -199,6 +199,8 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 type ForeignAssetInstance = pallet_assets::Instance1;
@@ -246,6 +248,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type AssetIdParameter = AssetId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
+	type Holder = ();
 	pallet_assets::runtime_benchmarks_enabled! {
 		type BenchmarkHelper = BenchmarkHelper;
 	}
@@ -287,6 +290,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

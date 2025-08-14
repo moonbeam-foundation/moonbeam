@@ -1986,7 +1986,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		relay_chain::relay_roll_to(2);
 
 		// queries should have been updated
-		assert!(RelayChainPalletXcm::query(0).is_some());
+		assert!(RelayChainPalletXcm::query(&0).is_some());
 	});
 
 	let expected_supported_version: relay_chain::RuntimeEvent =

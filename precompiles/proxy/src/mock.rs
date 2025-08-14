@@ -24,6 +24,7 @@ use frame_support::{
 use pallet_evm::{
 	EnsureAddressNever, EnsureAddressOrigin, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
+use parity_scale_codec::DecodeWithMemTracking;
 use precompile_utils::{
 	precompile_set::{
 		AddressU64, CallableByContract, CallableByPrecompile, OnlyFrom, PrecompileAt,
@@ -189,6 +190,8 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Self>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -203,7 +206,18 @@ impl pallet_timestamp::Config for Runtime {
 
 #[repr(u8)]
 #[derive(
-	Debug, Eq, PartialEq, Ord, PartialOrd, Decode, MaxEncodedLen, Encode, Clone, Copy, TypeInfo,
+	Debug,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Decode,
+	MaxEncodedLen,
+	Encode,
+	Clone,
+	Copy,
+	TypeInfo,
+	DecodeWithMemTracking,
 )]
 pub enum ProxyType {
 	Any = 0,
@@ -261,6 +275,7 @@ impl pallet_proxy::Config for Runtime {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = ();
 	type AnnouncementDepositFactor = ();
+	type BlockNumberProvider = System;
 }
 
 /// Build test externalities, prepopulated with data for testing democracy precompiles
@@ -290,6 +305,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances.clone(),
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

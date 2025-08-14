@@ -21,6 +21,7 @@ use frame_support::{
 	traits::{AsEnsureOriginWithArg, Contains, ContainsPair, Everything, Get, Nothing},
 	weights::Weight,
 };
+use frame_support::traits::Disabled;
 use frame_system::{EnsureRoot, EnsureSigned};
 
 use sp_core::H256;
@@ -157,6 +158,7 @@ impl pallet_assets::Config for Runtime {
 	type AssetIdParameter = AssetId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type CallbackHandle = ();
+	type Holder = ();
 	pallet_assets::runtime_benchmarks_enabled! {
 		type BenchmarkHelper = BenchmarkHelper;
 	}
@@ -350,6 +352,7 @@ impl Config for XcmConfig {
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type XcmRecorder = PolkadotXcm;
+	type XcmEventEmitter = ();
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.
@@ -381,6 +384,7 @@ impl pallet_xcm::Config for Runtime {
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
+	type AuthorizedAliasConsideration = Disabled;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {

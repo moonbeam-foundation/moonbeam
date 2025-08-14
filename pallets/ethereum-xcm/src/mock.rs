@@ -16,7 +16,11 @@
 
 //! Test utilities
 
-use ethereum::{TransactionAction, TransactionSignature};
+use ethereum::{
+	eip1559::TransactionSignature as EIP1559TransactionSignature,
+	eip2930::TransactionSignature as EIP2930TransactionSignature,
+	legacy::TransactionSignature as LegacyTransactionSignature, TransactionAction,
+};
 use frame_support::{
 	parameter_types,
 	traits::{ConstU32, FindAuthor, InstanceFilter},
@@ -202,6 +206,8 @@ impl pallet_evm::Config for Test {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
 	type AccountProvider = FrameSystemAccountProvider<Test>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -220,7 +226,18 @@ parameter_types! {
 }
 
 #[derive(
-	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	MaxEncodedLen,
+	TypeInfo,
+	DecodeWithMemTracking,
 )]
 pub enum ProxyType {
 	NotAllowed = 0,
@@ -264,6 +281,7 @@ impl pallet_proxy::Config for Test {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = ProxyCost;
 	type AnnouncementDepositFactor = ProxyCost;
+	type BlockNumberProvider = System;
 }
 
 pub struct EthereumXcmEnsureProxy;
@@ -389,9 +407,12 @@ pub fn new_test_ext(accounts_len: usize) -> (Vec<AccountInfo>, sp_io::TestExtern
 		.map(|i| (pairs[i].account_id.clone(), 10_000_000))
 		.collect();
 
-	pallet_balances::GenesisConfig::<Test> { balances }
-		.assimilate_storage(&mut ext)
-		.unwrap();
+	pallet_balances::GenesisConfig::<Test> {
+		balances,
+		dev_accounts: Default::default(),
+	}
+	.assimilate_storage(&mut ext)
+	.unwrap();
 
 	(pairs, ext.into())
 }
@@ -438,7 +459,7 @@ impl LegacyUnsignedTransaction {
 		);
 		let sig = s.0.serialize();
 
-		let sig = TransactionSignature::new(
+		let sig = LegacyTransactionSignature::new(
 			s.1.serialize() as u64 % 2 + chain_id * 2 + 35,
 			H256::from_slice(&sig[0..32]),
 			H256::from_slice(&sig[32..64]),
@@ -499,9 +520,7 @@ impl EIP2930UnsignedTransaction {
 			value: msg.value,
 			input: msg.input.clone(),
 			access_list: msg.access_list,
-			odd_y_parity: recid.serialize() != 0,
-			r,
-			s,
+			signature: EIP2930TransactionSignature::new(recid.serialize() != 0, r, s).unwrap(),
 		})
 	}
 }
@@ -551,9 +570,7 @@ impl EIP1559UnsignedTransaction {
 			value: msg.value,
 			input: msg.input.clone(),
 			access_list: msg.access_list,
-			odd_y_parity: recid.serialize() != 0,
-			r,
-			s,
+			signature: EIP1559TransactionSignature::new(recid.serialize() != 0, r, s).unwrap(),
 		})
 	}
 }
