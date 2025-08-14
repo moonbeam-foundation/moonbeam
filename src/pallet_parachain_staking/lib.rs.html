@@ -2310,42 +2310,6 @@
 <a href="#2310" id="2310">2310</a>
 <a href="#2311" id="2311">2311</a>
 <a href="#2312" id="2312">2312</a>
-<a href="#2313" id="2313">2313</a>
-<a href="#2314" id="2314">2314</a>
-<a href="#2315" id="2315">2315</a>
-<a href="#2316" id="2316">2316</a>
-<a href="#2317" id="2317">2317</a>
-<a href="#2318" id="2318">2318</a>
-<a href="#2319" id="2319">2319</a>
-<a href="#2320" id="2320">2320</a>
-<a href="#2321" id="2321">2321</a>
-<a href="#2322" id="2322">2322</a>
-<a href="#2323" id="2323">2323</a>
-<a href="#2324" id="2324">2324</a>
-<a href="#2325" id="2325">2325</a>
-<a href="#2326" id="2326">2326</a>
-<a href="#2327" id="2327">2327</a>
-<a href="#2328" id="2328">2328</a>
-<a href="#2329" id="2329">2329</a>
-<a href="#2330" id="2330">2330</a>
-<a href="#2331" id="2331">2331</a>
-<a href="#2332" id="2332">2332</a>
-<a href="#2333" id="2333">2333</a>
-<a href="#2334" id="2334">2334</a>
-<a href="#2335" id="2335">2335</a>
-<a href="#2336" id="2336">2336</a>
-<a href="#2337" id="2337">2337</a>
-<a href="#2338" id="2338">2338</a>
-<a href="#2339" id="2339">2339</a>
-<a href="#2340" id="2340">2340</a>
-<a href="#2341" id="2341">2341</a>
-<a href="#2342" id="2342">2342</a>
-<a href="#2343" id="2343">2343</a>
-<a href="#2344" id="2344">2344</a>
-<a href="#2345" id="2345">2345</a>
-<a href="#2346" id="2346">2346</a>
-<a href="#2347" id="2347">2347</a>
-<a href="#2348" id="2348">2348</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3240,42 +3204,6 @@
 			});
 			&lt;InflationConfig&lt;T&gt;&gt;::put(config);
 			<span class="prelude-val">Ok</span>(().into())
-		}
-
-		<span class="doccomment">/// Deprecated: please use `set_inflation_distribution_config` instead.
-		///
-		///  Set the account that will hold funds set aside for parachain bond
-		</span><span class="attr">#[pallet::call_index(<span class="number">2</span>)]
-		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::set_parachain_bond_account())]
-		</span><span class="kw">pub fn </span>set_parachain_bond_account(
-			origin: OriginFor&lt;T&gt;,
-			new: T::AccountId,
-		) -&gt; DispatchResultWithPostInfo {
-			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())<span class="question-mark">?</span>;
-			<span class="kw">let </span>old = &lt;InflationDistributionInfo&lt;T&gt;&gt;::get().<span class="number">0</span>;
-			<span class="kw">let </span>new = InflationDistributionAccount {
-				account: new,
-				percent: old[<span class="number">0</span>].percent.clone(),
-			};
-			Pallet::&lt;T&gt;::set_inflation_distribution_config(origin, [new, old[<span class="number">1</span>].clone()].into())
-		}
-
-		<span class="doccomment">/// Deprecated: please use `set_inflation_distribution_config` instead.
-		///
-		/// Set the percent of inflation set aside for parachain bond
-		</span><span class="attr">#[pallet::call_index(<span class="number">3</span>)]
-		#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::set_parachain_bond_reserve_percent())]
-		</span><span class="kw">pub fn </span>set_parachain_bond_reserve_percent(
-			origin: OriginFor&lt;T&gt;,
-			new: Percent,
-		) -&gt; DispatchResultWithPostInfo {
-			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())<span class="question-mark">?</span>;
-			<span class="kw">let </span>old = &lt;InflationDistributionInfo&lt;T&gt;&gt;::get().<span class="number">0</span>;
-			<span class="kw">let </span>new = InflationDistributionAccount {
-				account: old[<span class="number">0</span>].account.clone(),
-				percent: new,
-			};
-			Pallet::&lt;T&gt;::set_inflation_distribution_config(origin, [new, old[<span class="number">1</span>].clone()].into())
 		}
 
 		<span class="doccomment">/// Set the total number of collator candidates selected per round
