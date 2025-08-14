@@ -3,7 +3,11 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith } from "@moonwall/util";
 
-import { XcmFragment, RawXcmMessage, injectHrmpMessageAndSeal } from "../../../../helpers/xcm.js";
+import {
+  XcmFragment,
+  type RawXcmMessage,
+  injectHrmpMessageAndSeal,
+} from "../../../../helpers/xcm.js";
 import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
@@ -44,7 +48,7 @@ const STATEMINT_ASSET_ONE_LOCATION = {
 };
 
 describeSuite({
-  id: "D014111",
+  id: "D024112",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -109,7 +113,7 @@ describeSuite({
           .reserve_asset_deposited()
           .clear_origin()
           .buy_execution(1) // buy execution with asset at index 1
-          .deposit_asset_v3(2n)
+          .deposit_asset(2n)
           .as_v4();
 
         // Send an XCM and create block to execute it

@@ -26,7 +26,10 @@ export const getEndpoints = (relay: "Polkadot" | "Kusama" | "Unsupported", paraI
         return Object.values(commonGoodPolka!.providers);
       }
       const polkaPara = prodParasPolkadot.find((a) => a.paraId === paraId);
-      return Object.values(polkaPara!.providers);
+      if (polkaPara) {
+        return Object.values(polkaPara.providers);
+      }
+      throw new Error("Unknown chain with paraId: " + paraId);
     }
     case "Kusama": {
       if (paraId < 2000) {
@@ -34,7 +37,10 @@ export const getEndpoints = (relay: "Polkadot" | "Kusama" | "Unsupported", paraI
         return Object.values(commonGoodKusama!.providers);
       }
       const kusamaPara = prodParasKusama.find((a) => a.paraId === paraId);
-      return Object.values(kusamaPara!.providers);
+      if (kusamaPara) {
+        return Object.values(kusamaPara.providers);
+      }
+      throw new Error("Unknown chain with paraId: " + paraId);
     }
     case "Unsupported":
       throw new Error("Unsupported chain.");
@@ -55,7 +61,8 @@ export const isMuted = (moonbeamNetworkName: MoonbeamNetworkName, paraId: ParaId
 
     const currentTime = new Date().getTime();
     return match.mutedUntil && match.mutedUntil >= currentTime;
-  } else return false;
+  }
+  return false;
 };
 
 export const ForeignChainsEndpoints = [
@@ -75,10 +82,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Bifrost",
         paraId: 2001,
-      },
-      {
-        name: "Khala",
-        paraId: 2004,
       },
       {
         name: "Shiden",
@@ -154,7 +157,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Composable",
         paraId: 2019,
-        mutedUntil: new Date("2025-01-27").getTime(),
       },
       {
         name: "Nodle",
@@ -183,10 +185,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Unique",
         paraId: 2037,
-      },
-      {
-        name: "Polkadex",
-        paraId: 2040,
       },
       {
         name: "OriginTrail",

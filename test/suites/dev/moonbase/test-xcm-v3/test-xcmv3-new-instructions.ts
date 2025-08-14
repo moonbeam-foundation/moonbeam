@@ -4,19 +4,19 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { alith, CHARLETH_ADDRESS } from "@moonwall/util";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   sovereignAccountOfSibling,
-  XcmFragmentConfig,
+  type XcmFragmentConfig,
   injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
 import { parseEther } from "ethers";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 // Here we are testing each allowed instruction to be executed. Even if some of them throw an error,
 // the important thing (and what we are testing) is that they are
 // executed and are not blocked with 'WeightNotComputable' due to using max weight.
 describeSuite({
-  id: "D014040",
+  id: "D024039",
   title: "XCM V3 - Max Weight Instructions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

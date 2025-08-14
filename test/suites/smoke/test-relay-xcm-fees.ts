@@ -1,16 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { ApiDecoration } from "@polkadot/api/types";
+import type { ApiDecoration } from "@polkadot/api/types";
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import { extractWeight } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "S20",
+  id: "S21",
   title: "Verify XCM weight fees for relay",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
-    let atBlockNumber: number = 0;
-    let relayAtBlockNumber: number = 0;
+    let atBlockNumber = 0;
+    let relayAtBlockNumber = 0;
     let paraApiAt: ApiDecoration<"promise">;
     let relayApiAt: ApiDecoration<"promise">;
     let paraApi: ApiPromise;
@@ -33,16 +33,14 @@ describeSuite({
       test: async function () {
         const relayRuntime = relayApi.runtimeVersion.specName.toString();
         const paraRuntime = paraApi.runtimeVersion.specName.toString();
-        const relayVersion = relayApi.runtimeVersion.specVersion.toNumber();
 
         // skip test if runtime inconsistency. The storage is set for
         // specific runtimes, so does not make sense to compare non-matching runtimes
-        const skipTestRuntimeInconsistency =
+        const skipTestRuntimeInconsistency = !(
           (relayRuntime.startsWith("polkadot") && paraRuntime.startsWith("moonbeam")) ||
           (relayRuntime.startsWith("kusama") && paraRuntime.startsWith("moonriver")) ||
           (relayRuntime.startsWith("westend") && paraRuntime.startsWith("moonbase"))
-            ? false
-            : true;
+        );
 
         if (skipTestRuntimeInconsistency) {
           log(`Relay and Para runtimes dont match, skipping test`);
@@ -52,10 +50,10 @@ describeSuite({
         const units = relayRuntime.startsWith("polkadot")
           ? 10_000_000_000n
           : relayRuntime.startsWith("kusama") ||
-            relayRuntime.startsWith("rococo") ||
-            relayRuntime.startsWith("westend")
-          ? 1_000_000_000_000n
-          : 1_000_000_000_000n;
+              relayRuntime.startsWith("rococo") ||
+              relayRuntime.startsWith("westend")
+            ? 1_000_000_000_000n
+            : 1_000_000_000_000n;
 
         const seconds = 1_000_000_000_000n;
 
@@ -65,8 +63,8 @@ describeSuite({
           relayRuntime.startsWith("westend")
             ? units / 100n
             : relayRuntime.startsWith("kusama")
-            ? units / 3_000n
-            : units / 100n;
+              ? units / 3_000n
+              : units / 100n;
         const coef = cent / 10n;
 
         const relayBaseWeight = extractWeight(
@@ -75,24 +73,13 @@ describeSuite({
 
         const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 
-        const parachainRuntime = paraApi.runtimeVersion.specVersion.toNumber();
+        let feePerSecondValueForRelay = (
+          await paraApiAt.query.xcmTransactor.destinationAssetFeePerSecond({
+            parents: 1,
+            interior: "Here",
+          })
+        ).unwrap();
 
-        let feePerSecondValueForRelay;
-        if (parachainRuntime >= 1600) {
-          feePerSecondValueForRelay = (
-            await paraApiAt.query.xcmTransactor.destinationAssetFeePerSecond({
-              parents: 1,
-              interior: "Here",
-            })
-          ).unwrap();
-        } else {
-          feePerSecondValueForRelay = (
-            (await paraApiAt.query.xcmTransactor.transactInfoWithWeightLimit({
-              parents: 1,
-              interior: "Here",
-            })) as any
-          ).unwrap().feePerSecond;
-        }
         expect(
           feePerSecondValueForRelay.toBigInt() >= expectedFeePerSecond,
           "failed check: feePerSecond: " +

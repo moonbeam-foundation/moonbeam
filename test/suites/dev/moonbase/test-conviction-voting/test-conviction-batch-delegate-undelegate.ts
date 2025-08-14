@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { KeyringPair, alith } from "@moonwall/util";
+import { type KeyringPair, alith } from "@moonwall/util";
 import { createAccounts, expectSubstrateEvents } from "../../../../helpers";
 
 describeSuite({
-  id: "D010701",
+  id: "D020601",
   title: "Conviction Voting - Batch Delegate and Undelegate",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

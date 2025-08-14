@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   GLMR,
-  KeyringPair,
+  type KeyringPair,
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
   alith,
@@ -12,7 +12,7 @@ import { fromBytes } from "viem";
 import { chunk } from "../../../../helpers";
 
 describeSuite({
-  id: "D013482",
+  id: "D023484",
   title: "Staking - Locks - max delegations",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

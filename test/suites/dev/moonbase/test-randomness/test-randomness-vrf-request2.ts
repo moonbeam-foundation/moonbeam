@@ -4,7 +4,7 @@ import { GLMR, alith } from "@moonwall/util";
 import { SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
-  id: "D013118",
+  id: "D023118",
   title: "Randomness VRF - Requesting a random number",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -22,7 +22,7 @@ describeSuite({
       id: "T01",
       title: "should store a request with id:0",
       test: async function () {
-        const requestId = parseInt(
+        const requestId = Number.parseInt(
           ((await context.polkadotJs().query.randomness.requests.entries()) as any)[0][0]
             .toHex()
             .slice(-16),

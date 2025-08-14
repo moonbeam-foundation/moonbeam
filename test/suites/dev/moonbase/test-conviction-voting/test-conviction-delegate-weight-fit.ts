@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { KeyringPair, alith } from "@moonwall/util";
+import { type KeyringPair, alith } from "@moonwall/util";
 import { createAccounts, expectSubstrateEvents } from "../../../../helpers";
 
 describeSuite({
-  id: "D010702",
+  id: "D020602",
   title: "Conviction Voting - Delegate Weight Fit",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

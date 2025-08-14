@@ -1,17 +1,18 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair, charleth, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import type { KeyringPair } from "@polkadot/keyring/types";
+import { generateKeyringPair, charleth } from "@moonwall/util";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D014027",
+  id: "D024026",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -19,8 +20,13 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
+    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
         context,
         charleth.address as `0x${string}`
@@ -56,7 +62,7 @@ describeSuite({
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
 
         const amountToTransfer = transferredBalance / 10n;

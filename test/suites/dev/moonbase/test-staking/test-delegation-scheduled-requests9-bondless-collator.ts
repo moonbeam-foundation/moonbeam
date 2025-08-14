@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, alith, baltathar, ethan } from "@moonwall/util";
 import { jumpToRound } from "../../../../helpers/block.js";
 
 describeSuite({
-  id: "D013438",
+  id: "D023439",
   title: "Staking - Delegation Scheduled Requests with bondless collator - execute bond less early",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -24,7 +24,16 @@ describeSuite({
       await createBlock(
         [
           sudo(psTx.setBlocksPerRound(10)).signAsync(alith),
-          psTx.delegate(baltathar.address, MIN_GLMR_DELEGATOR + LESS_AMOUNT, 0, 0).signAsync(ethan),
+          psTx
+            .delegateWithAutoCompound(
+              baltathar.address,
+              MIN_GLMR_DELEGATOR + LESS_AMOUNT,
+              0,
+              0,
+              0,
+              0
+            )
+            .signAsync(ethan),
         ],
         { allowFailures: false }
       );

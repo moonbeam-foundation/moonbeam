@@ -7,7 +7,7 @@ import {
   ETHAN_PRIVATE_KEY,
   GLMR,
 } from "@moonwall/util";
-import { Abi, decodeEventLog } from "viem";
+import { type Abi, decodeEventLog } from "viem";
 import {
   ConvictionVoting,
   cancelProposal,
@@ -17,7 +17,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D012834",
+  id: "D022820",
   title: "Precompiles - Conviction on General Admin Track",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

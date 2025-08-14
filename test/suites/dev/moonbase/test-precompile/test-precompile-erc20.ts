@@ -8,7 +8,7 @@ import {
   PRECOMPILE_NATIVE_ERC20_ADDRESS,
   baltathar,
 } from "@moonwall/util";
-import { PrivateKeyAccount, keccak256, pad, parseEther, toBytes, toHex } from "viem";
+import { type PrivateKeyAccount, keccak256, pad, parseEther, toBytes, toHex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../../helpers";
 
@@ -28,7 +28,7 @@ import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../../helpers";
 const ABI_REVERT_SELECTOR = "0x08c379a0";
 
 describeSuite({
-  id: "D012842",
+  id: "D022828",
   title: "Precompiles - ERC20 Native",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

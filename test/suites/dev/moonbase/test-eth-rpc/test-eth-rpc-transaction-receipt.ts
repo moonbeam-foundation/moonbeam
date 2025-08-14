@@ -1,9 +1,9 @@
 import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { BALTATHAR_ADDRESS, createViemTransaction, extractFee } from "@moonwall/util";
 
 describeSuite({
-  id: "D011204",
+  id: "D021105",
   title: "Ethereum RPC - eth_getTransactionReceipt",
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {

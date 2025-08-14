@@ -2,7 +2,11 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith } from "@moonwall/util";
-import { XcmFragment, RawXcmMessage, injectHrmpMessageAndSeal } from "../../../../helpers/xcm.js";
+import {
+  XcmFragment,
+  type RawXcmMessage,
+  injectHrmpMessageAndSeal,
+} from "../../../../helpers/xcm.js";
 import { registerOldForeignAsset } from "../../../../helpers/assets.js";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
@@ -31,7 +35,7 @@ const STATEMINT_LOCATION = {
 };
 
 describeSuite({
-  id: "D014108",
+  id: "D024109",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -85,7 +89,7 @@ describeSuite({
           .reserve_asset_deposited()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3()
+          .deposit_asset()
           .as_v4();
 
         // Send an XCM and create block to execute it

@@ -19,7 +19,7 @@ import {
 // GasToWeight by gas_price, but does not adjust this afterwards. This leads to accounting for too
 // much weight in a block.
 describeSuite({
-  id: "D011003",
+  id: "D020903",
   title: "Ethereum Weight Accounting",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -54,7 +54,7 @@ describeSuite({
 
         const wholeBlock = await context.polkadotJs().rpc.chain.getBlock(block.hash);
         const index = wholeBlock.block.extrinsics.findIndex(
-          (ext) => ext.method.method == "transact" && ext.method.section == "ethereum"
+          (ext) => ext.method.method === "transact" && ext.method.section === "ethereum"
         );
         const extSuccessEvent = result?.events
           .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))

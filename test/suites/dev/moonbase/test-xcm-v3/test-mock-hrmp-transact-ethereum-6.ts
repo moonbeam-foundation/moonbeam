@@ -1,18 +1,18 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair, charleth, GAS_LIMIT_POV_RATIO } from "@moonwall/util";
+import type { KeyringPair } from "@polkadot/keyring/types";
+import { generateKeyringPair, charleth } from "@moonwall/util";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
 import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
-  id: "D014028",
+  id: "D024027",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -23,9 +23,13 @@ describeSuite({
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
     let STORAGE_READ_COST: bigint;
+    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
-      STORAGE_READ_COST = ConstantStore(context).STORAGE_READ_COST;
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+      STORAGE_READ_COST = constants.STORAGE_READ_COST;
 
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
         context,
@@ -59,7 +63,7 @@ describeSuite({
       ).data.free.toBigInt();
 
       // Charleth nonce
-      charlethNonce = parseInt(
+      charlethNonce = Number.parseInt(
         (await context.polkadotJs().query.system.account(sendingAddress)).nonce.toString()
       );
     });
@@ -71,7 +75,7 @@ describeSuite({
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
 
         const amountToTransfer = transferredBalance / 10n;
@@ -138,7 +142,7 @@ describeSuite({
             ],
             weight_limit: {
               refTime: targetXcmWeight,
-              proofSize: (GAS_LIMIT / GAS_LIMIT_POV_RATIO) * 7,
+              proofSize: 43_208,
             } as any,
             descend_origin: sendingAddress,
           })
@@ -151,7 +155,8 @@ describeSuite({
                 // 100_000 gas + 2db reads
                 requireWeightAtMost: {
                   refTime: 575_000_000n + STORAGE_READ_COST,
-                  proofSize: GAS_LIMIT / GAS_LIMIT_POV_RATIO,
+                  // This is impacted by `GasWeightMapping::gas_to_weight` in pallet-ethereum-xcm
+                  proofSize: 2625, // Previously (with 5MB max PoV): 1312
                 },
                 call: {
                   encoded: transferCallEncoded,

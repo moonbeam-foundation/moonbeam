@@ -4,10 +4,10 @@ import { BALTATHAR_ADDRESS } from "@moonwall/util";
 import { Receipt } from "eth-object";
 import { BaseTrie as Trie } from "merkle-patricia-tree";
 import * as RLP from "rlp";
-import { Log, encodeDeployData, toHex } from "viem";
+import { type Log, encodeDeployData, toHex } from "viem";
 
 describeSuite({
-  id: "D013202",
+  id: "D023202",
   title: "Receipt root - With events",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -116,7 +116,7 @@ describeSuite({
             return await tree.put(Buffer.from(siblingPath), serializedReceipt);
           })
         );
-        // Onchain receipt root == Offchain receipt root
+        // Onchain receipt root === Offchain receipt root
         expect(block.receiptsRoot).to.be.eq("0x" + tree.root.toString("hex"));
       },
     });

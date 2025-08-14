@@ -5,7 +5,7 @@ import { BALTATHAR_ADDRESS, GLMR, createRawTransfer } from "@moonwall/util";
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.
 describeSuite({
-  id: "D011002",
+  id: "D020902",
   title: "Ethereum - PaysFee",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -19,7 +19,7 @@ describeSuite({
           );
           const info = extractInfo(result?.events)!;
           expect(info).to.not.be.empty;
-          expect(info.paysFee.isYes, "Transaction should be marked as paysFees == no").to.be.false;
+          expect(info.paysFee.isYes, "Transaction should be marked as paysFees === no").to.be.false;
         },
       });
     }

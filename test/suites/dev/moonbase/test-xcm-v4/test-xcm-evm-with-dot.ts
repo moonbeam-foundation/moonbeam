@@ -2,11 +2,11 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
-import { u128 } from "@polkadot/types";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { ApiPromise } from "@polkadot/api";
+import type { u128 } from "@polkadot/types";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { hexToBigInt } from "@polkadot/util";
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 import {
   RELAY_SOURCE_LOCATION,
   mockOldAssetBalance,
@@ -15,15 +15,15 @@ import {
   verifyLatestBlockFees,
 } from "../../../../helpers/index.js";
 import {
-  RawXcmMessage,
+  type RawXcmMessage,
   XcmFragment,
-  XcmFragmentConfig,
+  type XcmFragmentConfig,
   descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D014130",
+  id: "D024131",
   title: "Mock XCM - Send EVM transaction through and pay with xcDOT",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -85,7 +85,7 @@ describeSuite({
       id: "T01",
       title: "should execute EVM remote call through XCM paying fees in DOT",
       test: async function () {
-        // Since we cannot infer the actual weitght of the inner message,
+        // Since we cannot infer the actual weight of the inner message,
         // we are using big enough gas limits to be able to execute the whole xcm transaction.
         const xcmTransaction = {
           V1: {
@@ -123,7 +123,7 @@ describeSuite({
           ],
           weight_limit: {
             refTime: 120_000_000_000,
-            proofSize: 90_000,
+            proofSize: 90_583,
           } as any,
           descend_origin: sendingAddress,
           beneficiary: sendingAddress,
@@ -145,7 +145,7 @@ describeSuite({
                 proofSize: 50_000,
               },
               call: {
-                Call: transferCallEncoded,
+                encoded: transferCallEncoded,
               },
             },
           })

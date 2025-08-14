@@ -1,5 +1,5 @@
 // Ethers is used to handle post-london transactions
-import { DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "@moonwall/cli";
 import { createViemTransaction } from "@moonwall/util";
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
@@ -17,7 +17,7 @@ export async function rpcToLocalNode(
   method: string,
   params: any[] = []
 ): Promise<any> {
-  return fetch("http://localhost:" + rpcPort, {
+  return fetch(`http://localhost:${rpcPort}`, {
     body: JSON.stringify({
       id: 1,
       jsonrpc: "2.0",
@@ -37,9 +37,8 @@ export async function rpcToLocalNode(
           throw new Error(`${error.code} ${error.message}: ${JSON.stringify(error.data)}`);
         }
         return result;
-      } else {
-        throw new Error("Unexpected response format");
       }
+      throw new Error("Unexpected response format");
     });
 }
 
@@ -63,7 +62,7 @@ export const sendAllStreamAndWaitLast = async (
           chunk.map((tx) => {
             return new Promise(async (resolve, reject) => {
               const timer = setTimeout(() => {
-                reject(`timed out`);
+                reject("timed out");
                 unsub();
               }, timeout);
               const unsub = await tx.send((result) => {
@@ -105,9 +104,10 @@ export async function sendPrecompileTx(
   } else {
     throw new Error(`selector doesn't exist on the precompile contract`);
   }
-  parameters.forEach((para: string) => {
-    data += para.slice(2).padStart(64, "0");
-  });
+
+  for (const param of parameters) {
+    data += param.slice(2).padStart(64, "0");
+  }
 
   return context.createBlock(
     createViemTransaction(context, {

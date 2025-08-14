@@ -1,10 +1,9 @@
-// import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 
 describeSuite({
-  id: "D013414",
+  id: "D023414",
   title: "Staking - Delegate With Auto-Compound - already delegated",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

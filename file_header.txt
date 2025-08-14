@@ -1,4 +1,4 @@
-// Copyright 2024 Moonbeam foundation
+// Copyright 2025 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify

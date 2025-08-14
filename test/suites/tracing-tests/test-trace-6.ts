@@ -10,7 +10,7 @@ import {
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "T06",
+  id: "T07",
   title: "Trace (call list)",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -18,13 +18,11 @@ describeSuite({
       id: "T01",
       title: "should correctly trace subcall",
       test: async function () {
-        const { contractAddress: contractProxy, abi: abiProxy } = await context.deployContract!(
-          "CallForwarder"
-        );
+        const { contractAddress: contractProxy, abi: abiProxy } =
+          await context.deployContract!("CallForwarder");
 
-        const { contractAddress: contractDummy, abi: abiDummy } = await context.deployContract!(
-          "MultiplyBy7"
-        );
+        const { contractAddress: contractDummy, abi: abiDummy } =
+          await context.deployContract!("MultiplyBy7");
 
         const callTx = await createEthersTransaction(context, {
           from: alith.address,
@@ -66,13 +64,11 @@ describeSuite({
       id: "T02",
       title: "should correctly trace delegatecall subcall",
       test: async function () {
-        const { contractAddress: contractProxy, abi: abiProxy } = await context.deployContract!(
-          "CallForwarder"
-        );
+        const { contractAddress: contractProxy, abi: abiProxy } =
+          await context.deployContract!("CallForwarder");
 
-        const { contractAddress: contractDummy, abi: abiDummy } = await context.deployContract!(
-          "MultiplyBy7"
-        );
+        const { contractAddress: contractDummy, abi: abiDummy } =
+          await context.deployContract!("MultiplyBy7");
 
         const callTx = await createEthersTransaction(context, {
           from: alith.address,
@@ -115,13 +111,11 @@ describeSuite({
       title: "should correctly trace precompile subcall (call list)",
       timeout: 10000,
       test: async function () {
-        const { contractAddress: contractProxy, abi: abiProxy } = await context.deployContract!(
-          "CallForwarder"
-        );
+        const { contractAddress: contractProxy, abi: abiProxy } =
+          await context.deployContract!("CallForwarder");
 
-        const { contractAddress: contractDummy, abi: abiDummy } = await context.deployContract!(
-          "MultiplyBy7"
-        );
+        const { contractAddress: contractDummy, abi: abiDummy } =
+          await context.deployContract!("MultiplyBy7");
 
         const abiBatch = fetchCompiledContract("Batch").abi;
 

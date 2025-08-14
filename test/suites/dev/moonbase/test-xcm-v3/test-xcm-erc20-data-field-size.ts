@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import {
   sovereignAccountOfSibling,
   injectEncodedHrmpMessageAndSeal,
@@ -11,7 +11,7 @@ import { parseEther } from "ethers";
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D014032",
+  id: "D024031",
   title: "Mock ERC20 <> XCM - Test wrong size of GeneralKey data field",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

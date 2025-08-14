@@ -1,5 +1,5 @@
 import { Octokit } from "octokit";
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
 
 // Typescript 4 will support it natively, but not yet :(
 type Await<T> = T extends PromiseLike<infer U> ? U : T;
@@ -46,7 +46,7 @@ export async function getCommitAndLabels(
       page,
     });
     commits = commits.concat(compare.data.commits);
-    more = compare.data.commits.length == 200;
+    more = compare.data.commits.length === 200;
     page++;
   }
 

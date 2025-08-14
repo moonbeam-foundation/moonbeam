@@ -1,4 +1,4 @@
-// Copyright 2019-2023 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -82,17 +82,16 @@ where
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::RuntimeCall: From<pallet_identity::Call<Runtime>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	// Note: addRegistrar(address) & killIdentity(address) are not supported since they use a
 	// force origin.
 
-	// editorconfig-checker-disable
 	#[precompile::public("setIdentity((((bool,bytes),(bool,bytes))[],(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),(bool,bytes),bool,bytes,(bool,bytes),(bool,bytes)))")]
 	fn set_identity(
 		handle: &mut impl PrecompileHandle,
 		info: IdentityInfo<MaxAdditionalFields>,
 	) -> EvmResult {
-		// editorconfig-checker-enable
 		let caller = handle.context().caller;
 
 		let event = log1(
@@ -380,7 +379,7 @@ where
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
-		let identity = pallet_identity::Pallet::<Runtime>::identity(who);
+		let identity = pallet_identity::IdentityOf::<Runtime>::get(who);
 
 		Ok(Self::identity_to_output(identity)?)
 	}
@@ -396,7 +395,7 @@ where
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
-		if let Some((account, data)) = pallet_identity::Pallet::<Runtime>::super_of(who) {
+		if let Some((account, data)) = pallet_identity::SuperOf::<Runtime>::get(who) {
 			Ok(SuperOf {
 				is_valid: true,
 				account: Address(account.into()),
@@ -420,7 +419,7 @@ where
 
 		let who: H160 = who.into();
 		let who = Runtime::AddressMapping::into_account_id(who);
-		let (deposit, accounts) = pallet_identity::Pallet::<Runtime>::subs_of(who);
+		let (deposit, accounts) = pallet_identity::SubsOf::<Runtime>::get(who);
 
 		let accounts = accounts
 			.into_iter()
@@ -447,7 +446,7 @@ where
 			.saturating_mul(Runtime::MaxRegistrars::get() as usize),
 		)?;
 
-		let registrars = pallet_identity::Pallet::<Runtime>::registrars()
+		let registrars = pallet_identity::Registrars::<Runtime>::get()
 			.into_iter()
 			.enumerate()
 			.map(|(index, maybe_reg)| {
@@ -587,25 +586,18 @@ where
 	}
 
 	fn identity_to_output(
-		registration: Option<(
+		registration: Option<
 			pallet_identity::Registration<
 				BalanceOf<Runtime>,
 				Runtime::MaxRegistrars,
 				Runtime::IdentityInformation,
 			>,
-			Option<
-				frame_support::BoundedVec<
-					u8,
-					<Runtime as pallet_identity::Config>::MaxUsernameLength,
-				>,
-			>,
-		)>,
+		>,
 	) -> MayRevert<Registration<MaxAdditionalFields>> {
-		if registration.is_none() {
+		let Some(registration) = registration else {
 			return Ok(Registration::<MaxAdditionalFields>::default());
-		}
+		};
 
-		let registration = registration.expect("none case checked above; qed").0;
 		let mut identity_info = IdentityInfo::<MaxAdditionalFields> {
 			additional: Default::default(),
 			display: Self::data_to_output(registration.info.display),

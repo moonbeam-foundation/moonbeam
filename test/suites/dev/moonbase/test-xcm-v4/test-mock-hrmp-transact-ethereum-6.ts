@@ -1,18 +1,18 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { KeyringPair } from "@polkadot/keyring/types";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair, charleth } from "@moonwall/util";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
 import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
-  id: "D014122",
+  id: "D024123",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -59,7 +59,7 @@ describeSuite({
       ).data.free.toBigInt();
 
       // Charleth nonce
-      charlethNonce = parseInt(
+      charlethNonce = Number.parseInt(
         (await context.polkadotJs().query.system.account(sendingAddress)).nonce.toString()
       );
     });
@@ -71,7 +71,7 @@ describeSuite({
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
 
         const amountToTransfer = transferredBalance / 10n;
@@ -137,7 +137,7 @@ describeSuite({
             ],
             weight_limit: {
               refTime: targetXcmWeight,
-              proofSize: 120_000n,
+              proofSize: 120_583n,
             },
             descend_origin: sendingAddress,
           })

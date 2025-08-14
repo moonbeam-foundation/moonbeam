@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -51,8 +51,9 @@ parameter_types! {
 
 pub type GeneralAdminOrRoot = EitherOf<EnsureRoot<AccountId>, origins::GeneralAdmin>;
 
-/// The policy allows for Root or FastGeneralAdmin.
-pub type FastGeneralAdminOrRoot = EitherOf<EnsureRoot<AccountId>, origins::FastGeneralAdmin>;
+/// The policy allows for Root, GeneralAdmin or FastGeneralAdmin.
+pub type FastGeneralAdminOrRoot =
+	EitherOf<EnsureRoot<AccountId>, EitherOf<origins::GeneralAdmin, origins::FastGeneralAdmin>>;
 
 impl custom_origins::Config for Runtime {}
 

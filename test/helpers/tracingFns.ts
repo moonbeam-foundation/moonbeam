@@ -1,6 +1,10 @@
-import { DevModeContext, customDevRpcRequest, deployCreateCompiledContract } from "@moonwall/cli";
+import {
+  type DevModeContext,
+  customDevRpcRequest,
+  deployCreateCompiledContract,
+} from "@moonwall/cli";
 import { alith, createEthersTransaction } from "@moonwall/util";
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 
 export async function createContracts(context: DevModeContext) {
   let nonce = await context.viem().getTransactionCount({ address: alith.address as `0x${string}` });

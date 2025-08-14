@@ -12,7 +12,7 @@ import { BN } from "@polkadot/util";
 import { addAssetToWeightTrader } from "../../../../helpers";
 
 describeSuite({
-  id: "D012003",
+  id: "D021903",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -53,7 +53,7 @@ describeSuite({
       assetId = events.event.data[0].toHex().replace(/,/g, "");
 
       // set relative price in xcmWeightTrader
-      await addAssetToWeightTrader(sourceLocation, 0, context);
+      await addAssetToWeightTrader(sourceLocation, 0n, context);
     });
 
     beforeEach(async () => {

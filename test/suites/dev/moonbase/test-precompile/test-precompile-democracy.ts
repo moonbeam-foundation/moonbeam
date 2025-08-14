@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, ZERO_ADDRESS } from "@moonwall/util";
 import { notePreimagePrecompile } from "../../../../helpers";
 
 describeSuite({
-  id: "D012837",
+  id: "D022823",
   title: "Governance - genesis and preimage",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -14,7 +14,7 @@ describeSuite({
       test: async function () {
         const referendumCount = await context.polkadotJs().query.referenda.referendumCount();
         const blockNum = (await context.polkadotJs().rpc.chain.getHeader()).number.toBigInt();
-        if (blockNum == 0n) {
+        if (blockNum === 0n) {
           expect(referendumCount.toNumber()).to.equal(0);
         } else {
           log(`Skipping test T01 because block number is ${blockNum}`);

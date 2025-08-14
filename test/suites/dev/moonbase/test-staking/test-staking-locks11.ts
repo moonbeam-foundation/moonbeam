@@ -1,10 +1,16 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, KeyringPair, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
+import {
+  GLMR,
+  type KeyringPair,
+  MIN_GLMR_DELEGATOR,
+  alith,
+  generateKeyringPair,
+} from "@moonwall/util";
 import { chunk } from "../../../../helpers";
 
 describeSuite({
-  id: "D013474",
+  id: "D023476",
   title: "Staking - Locks - bottom delegator removed",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

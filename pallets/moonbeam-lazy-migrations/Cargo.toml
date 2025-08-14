@@ -6,35 +6,19 @@ name = "pallet-moonbeam-lazy-migrations"
 version = "0.1.0"
 
 [dependencies]
-log = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-pallet-scheduler = { workspace = true }
-pallet-assets = { workspace = true }
-pallet-asset-manager = { workspace = true }
-pallet-balances = { workspace = true }
-pallet-moonbeam-foreign-assets = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true, features = ["derive"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
-xcm = { workspace = true }
-xcm-primitives = { workspace = true }
-
-environmental = { workspace = true }
 
 # Frontier
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
-
-# Runtime Interfaces
-cumulus-primitives-storage-weight-reclaim = { workspace = true, default-features = false }
-
-# Benchmarks
-frame-benchmarking = { workspace = true, optional = true }
 
 [dev-dependencies]
 frame-benchmarking = { workspace = true, features = ["std"] }
@@ -46,10 +30,8 @@ sp-io = { workspace = true, features = ["std"] }
 
 [features]
 default = ["std"]
-runtime-benchmarks = ["frame-benchmarking"]
+runtime-benchmarks = []
 std = [
-  "environmental/std",
-  "pallet-balances/std",
   "frame-support/std",
   "frame-system/std",
   "scale-info/std",
@@ -59,12 +41,7 @@ std = [
   "sp-std/std",
   "pallet-evm/std",
   "pallet-timestamp/std",
-  "pallet-assets/std",
-  "pallet-moonbeam-foreign-assets/std",
-  "pallet-asset-manager/std", 
   "precompile-utils/std",
-  "cumulus-primitives-storage-weight-reclaim/std",
-  "rlp/std",
-  "xcm-primitives/std",
+  "rlp/std"
 ]
 try-runtime = ["frame-support/try-runtime"]

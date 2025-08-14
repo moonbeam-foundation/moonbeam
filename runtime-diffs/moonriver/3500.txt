@@ -1,0 +1,56 @@
+Pallets:
+    ~ Assets
+        Calls:
+            + transfer_all
+    ~ ConvictionVoting
+    ~ MoonbeamLazyMigrations
+    ~ Multisig
+        Calls:
+            ~ as_multi
+            ~ as_multi_threshold_1
+    ~ OpenTechCommitteeCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: value type)
+    ~ ParachainStaking
+        Storage Entries:
+            + WasInactive
+    ~ ParachainSystem
+        Calls:
+            - authorize_upgrade
+            - enact_authorized_upgrade
+    ~ Preimage
+    ~ Proxy
+        Calls:
+            ~ proxy
+            ~ proxy_announced
+    ~ Scheduler
+        Calls:
+            ~ schedule
+            ~ schedule_after
+            ~ schedule_named
+            ~ schedule_named_after
+    ~ System
+        Storage Entries:
+            ~ Events (Changed: )
+    ~ TreasuryCouncilCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: value type)
+    ~ Utility
+        Calls:
+            ~ as_derivative
+            ~ batch
+            ~ batch_all
+            ~ dispatch_as
+            ~ force_batch
+            ~ with_weight
+    ~ Whitelist
+        Calls:
+            ~ dispatch_whitelisted_call_with_preimage
+Runtime APIs:
+    ~ DryRunApi

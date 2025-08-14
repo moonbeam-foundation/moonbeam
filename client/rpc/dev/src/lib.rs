@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ use jsonrpsee::{
 };
 use parity_scale_codec::Encode;
 use xcm::opaque::lts::Weight;
-use xcm::v4::prelude::*;
+use xcm::v5::prelude::*;
 use xcm_primitives::DEFAULT_PROOF_SIZE;
 
 /// This RPC interface is used to provide methods in dev mode only
@@ -34,7 +34,7 @@ use xcm_primitives::DEFAULT_PROOF_SIZE;
 #[jsonrpsee::core::async_trait]
 pub trait DevApi {
 	/// Inject a downward xcm message - A message that comes from the relay chain.
-	/// You may provide an arbitrary message, or if you provide an emtpy byte array,
+	/// You may provide an arbitrary message, or if you provide an empty byte array,
 	/// Then a default message (DOT transfer down to ALITH) will be injected
 	#[method(name = "xcm_injectDownwardMessage")]
 	async fn inject_downward_message(&self, message: Vec<u8>) -> RpcResult<()>;
@@ -70,7 +70,7 @@ impl DevApiServer for DevRpc {
 		let downward_message_channel = self.downward_message_channel.clone();
 		// If no message is supplied, inject a default one.
 		let msg = if msg.is_empty() {
-			xcm::VersionedXcm::<()>::V4(Xcm(vec![
+			xcm::VersionedXcm::<()>::V5(Xcm(vec![
 				ReserveAssetDeposited((Parent, 10000000000000u128).into()),
 				ClearOrigin,
 				BuyExecution {
@@ -97,7 +97,7 @@ impl DevApiServer for DevRpc {
 		};
 
 		// Push the message to the shared channel where it will be queued up
-		// to be injected in to an upcoming block.
+		// to be injected into an upcoming block.
 		downward_message_channel
 			.send_async(msg)
 			.await
@@ -113,7 +113,7 @@ impl DevApiServer for DevRpc {
 		let msg = if msg.is_empty() {
 			let mut mes = XcmpMessageFormat::ConcatenatedVersionedXcm.encode();
 			mes.append(
-				&mut (xcm::VersionedXcm::<()>::V4(Xcm(vec![
+				&mut (xcm::VersionedXcm::<()>::V5(Xcm(vec![
 					ReserveAssetDeposited(
 						((Parent, Parachain(sender.into())), 10000000000000u128).into(),
 					),
@@ -144,7 +144,7 @@ impl DevApiServer for DevRpc {
 		};
 
 		// Push the message to the shared channel where it will be queued up
-		// to be injected in to an upcoming block.
+		// to be injected into an upcoming block.
 		hrmp_message_channel
 			.send_async((sender, msg))
 			.await

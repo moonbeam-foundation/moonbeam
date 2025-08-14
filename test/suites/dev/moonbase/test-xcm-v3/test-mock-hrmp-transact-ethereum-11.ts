@@ -1,17 +1,17 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { GAS_LIMIT_POV_RATIO } from "@moonwall/util";
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
+import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D014022",
+  id: "D024021",
   title: "Mock XCM - transact ETHEREUM input size check fails",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -19,8 +19,11 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
+    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      GAS_LIMIT_POV_RATIO = Number(ConstantStore(context).GAS_PER_POV_BYTES.get(specVersion));
       const { contractAddress, abi } = await context.deployContract!("CallForwarder");
       contractDeployed = contractAddress;
       contractABI = abi;
@@ -50,11 +53,11 @@ describeSuite({
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
 
         // Matches the BoundedVec limit in the runtime.
-        const CALL_INPUT_SIZE_LIMIT = Math.pow(2, 16);
+        const CALL_INPUT_SIZE_LIMIT = 2 ** 16;
         const GAS_LIMIT = 1000000;
 
         const xcmTransactions = [

@@ -1,16 +1,16 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { TWO_MINS, getBlockArray } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";
-import {
+import type {
   EthereumReceiptReceiptV3,
   FpRpcTransactionStatus,
   FrameSystemEventRecord,
 } from "@polkadot/types/lookup";
-import { GenericExtrinsic } from "@polkadot/types";
-import { AnyTuple } from "@polkadot/types/types";
+import type { GenericExtrinsic } from "@polkadot/types";
+import type { AnyTuple } from "@polkadot/types/types";
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 5000);
@@ -168,9 +168,8 @@ describeSuite({
 
                   if (success) {
                     return true;
-                  } else {
-                    return false;
                   }
+                  return false;
                 }
                 return undefined;
               })

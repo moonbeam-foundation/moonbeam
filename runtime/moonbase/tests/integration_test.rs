@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -30,36 +30,19 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, PalletInfo, StorageInfo,
-		StorageInfoTrait,
+		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo,
+		StorageInfo, StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
+use moonbase_runtime::xcm_config::XcmExecutor;
 use moonbase_runtime::{
-	//asset_config::ForeignAssetInstance,
-	xcm_config::SelfReserve,
-	AccountId,
-	AssetId,
-	Balances,
-	CrowdloanRewards,
-	EvmForeignAssets,
-	Executive,
-	OpenTechCommitteeCollective,
-	ParachainStaking,
-	PolkadotXcm,
-	Precompiles,
-	Runtime,
-	RuntimeBlockWeights,
-	RuntimeCall,
-	RuntimeEvent,
-	System,
-	TransactionPayment,
-	TransactionPaymentAsGasPrice,
-	TreasuryCouncilCollective,
-	XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	WEEKS,
+	moonbase_xcm_weights, xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards,
+	EvmForeignAssets, Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm,
+	Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
+	TransactionPayment, TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective,
+	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -72,17 +55,18 @@ use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
 
 use moonbase_runtime::currency::{GIGAWEI, WEI};
-use moonbeam_xcm_benchmarks::weights::XcmWeight;
+use moonbase_runtime::runtime_params::dynamic_params;
+use moonbase_runtime::xcm_config::LocationToAccountId;
+use moonbase_xcm_weights::XcmWeight;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-//use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
 use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
-use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, H256, U256};
+use sp_core::{crypto::UncheckedFrom, ByteArray, Get, Pair, H160, H256, U256};
 use sp_runtime::{bounded_vec, DispatchError, ModuleError};
 use std::cell::Cell;
 use std::rc::Rc;
@@ -160,7 +144,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonbase_runtime::Assets>("Assets");
 	is_pallet_prefix::<moonbase_runtime::AssetManager>("AssetManager");
-	is_pallet_prefix::<moonbase_runtime::Migrations>("Migrations");
 	is_pallet_prefix::<moonbase_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbase_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonbase_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -219,7 +202,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Holds".to_vec(),
 				prefix: prefix(b"Balances", b"Holds"),
 				max_values: None,
-				max_size: Some(55),
+				max_size: Some(91),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
@@ -441,7 +424,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Assets>(29);
 	// is_pallet_index::<moonbase_runtime::XTokens>(30); Removed
 	is_pallet_index::<moonbase_runtime::AssetManager>(31);
-	is_pallet_index::<moonbase_runtime::Migrations>(32);
 	is_pallet_index::<moonbase_runtime::XcmTransactor>(33);
 	is_pallet_index::<moonbase_runtime::ProxyGenesisCompanion>(34);
 	is_pallet_index::<moonbase_runtime::MoonbeamOrbiters>(37);
@@ -1088,7 +1070,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(BOB.into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1101,7 +1083,7 @@ fn is_contributor_via_precompile() {
 						contributor: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1172,7 +1154,7 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(1669)
+				.expect_cost(3338)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1265,9 +1247,9 @@ fn update_reward_address_via_precompile() {
 }
 
 #[test]
-fn create_and_manipulate_foreign_asset() {
+fn create_and_manipulate_foreign_asset_using_root() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = xcm::v4::Location::parent();
+		let source_location = xcm::v5::Location::parent();
 
 		// Create foreign asset
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
@@ -1310,6 +1292,62 @@ fn create_and_manipulate_foreign_asset() {
 	});
 }
 
+#[test]
+fn create_and_manipulate_foreign_asset_using_sibling() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_location: Location = (Parent, Parachain(1), PalletInstance(3)).into();
+		let para_location = asset_location.chain_location();
+		let para_account =
+			LocationToAccountId::convert_location(&para_location).expect("Cannot convert location");
+
+		let deposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
+		Balances::make_free_balance_be(&para_account, deposit * 2);
+
+		// Create foreign asset
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			pallet_xcm::Origin::Xcm(para_location.clone()).into(),
+			1,
+			asset_location.clone(),
+			12,
+			bounded_vec![b'M', b'T'],
+			bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+		));
+
+		// deposit is taken from the account
+		assert_eq!(Balances::free_balance(&para_account), deposit);
+
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(1),
+			Some(asset_location.clone())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
+			Some((1, AssetStatus::Active))
+		);
+
+		// Freeze foreign asset
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			pallet_xcm::Origin::Xcm(para_location.clone()).into(),
+			1,
+			true
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+
+		// Unfreeze foreign asset
+		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+			pallet_xcm::Origin::Xcm(para_location.clone()).into(),
+			1,
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
+			Some((1, AssetStatus::Active))
+		);
+	});
+}
+
 // The precoompile asset-erc20 is deprecated and not used anymore for new evm foreign assets
 // We don't have testing tools in rust test to call real evm smart contract, so we rely on ts tests.
 /*
@@ -1318,7 +1356,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1373,7 +1411,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1434,7 +1472,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1516,7 +1554,7 @@ fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1526,7 +1564,7 @@ fn xtokens_precompiles_transfer() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
@@ -1564,7 +1602,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(176190)
+				.expect_cost(178255)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1614,7 +1652,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1624,7 +1662,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
@@ -1655,7 +1693,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(176190)
+				.expect_cost(178255)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1710,7 +1748,7 @@ fn xtokens_precompiles_transfer_native() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
@@ -1739,7 +1777,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24590)
+				.expect_cost(26655)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -1767,7 +1805,7 @@ fn length_fee_is_sensible() {
 	// tests that length fee is sensible for a few hypothetical transactions
 	ExtBuilder::default().build().execute_with(|| {
 		let call = frame_system::Call::remark::<Runtime> { remark: vec![] };
-		let uxt: TestXt<_, ()> = TestXt::new(call, Some((1u64, ())));
+		let uxt: TestXt<_, ()> = TestXt::new_signed(RuntimeCall::System(call), 1u64, (), ());
 
 		let calc_fee = |len: u32| -> Balance {
 			moonbase_runtime::TransactionPayment::query_fee_details(uxt.clone(), len)
@@ -1776,7 +1814,6 @@ fn length_fee_is_sensible() {
 				.len_fee
 		};
 
-		// editorconfig-checker-disable
 		//                  left: cost of length fee, right: size in bytes
 		//                             /------------- proportional component: O(N * 1B)
 		//                             |           /- exponential component: O(N ** 3)
@@ -1790,7 +1827,6 @@ fn length_fee_is_sensible() {
 		assert_eq!(        1_001_000_000_000_000_000, calc_fee(1_000_000)); // one UNIT, ~ 1MB
 		assert_eq!(    1_000_010_000_000_000_000_000, calc_fee(10_000_000));
 		assert_eq!(1_000_000_100_000_000_000_000_000, calc_fee(100_000_000));
-		// editorconfig-checker-enable
 	});
 }
 
@@ -1883,6 +1919,7 @@ fn transfer_ed_0_evm() {
 		])
 		.build()
 		.execute_with(|| {
+			set_parachain_inherent_data();
 			// EVM transfer
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(ALICE),
@@ -1935,7 +1972,7 @@ fn refund_ed_0_evm() {
 }
 
 #[test]
-fn author_does_not_receive_priority_fee() {
+fn author_does_receive_priority_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
@@ -1945,6 +1982,7 @@ fn author_does_not_receive_priority_fee() {
 		.execute_with(|| {
 			// Some block author as seen by pallet-evm.
 			let author = AccountId::from(<pallet_evm::Pallet<Runtime>>::find_author());
+			pallet_author_inherent::Author::<Runtime>::put(author);
 			// Currently the default impl of the evm uses `deposit_into_existing`.
 			// If we were to use this implementation, and for an author to receive eventual tips,
 			// the account needs to be somehow initialized, otherwise the deposit would fail.
@@ -1963,8 +2001,10 @@ fn author_does_not_receive_priority_fee() {
 				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
-			// Author free balance didn't change.
-			assert_eq!(Balances::free_balance(author), 100 * UNIT,);
+
+			let priority_fee = 200 * GIGAWEI * 21_000;
+			// Author free balance increased by priority fee.
+			assert_eq!(Balances::free_balance(author), 100 * UNIT + priority_fee,);
 		});
 }
 
@@ -1985,6 +2025,8 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 		.build()
 		.execute_with(|| {
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
+			let author = AccountId::from(<pallet_evm::Pallet<Runtime>>::find_author());
+			pallet_author_inherent::Author::<Runtime>::put(author);
 			// EVM transfer.
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -2000,14 +2042,18 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 1 * base_fee + tip.
-			let fee = ((2 * BASE_FEE_GENISIS) * 21_000) as f64;
-			// 80% was burned.
-			let expected_burn = (fee * 0.8) as u128;
-			assert_eq!(issuance_after, issuance_before - expected_burn,);
-			// 20% was sent to treasury.
-			let expected_treasury = (fee * 0.2) as u128;
-			assert_eq!(moonbase_runtime::Treasury::pot(), expected_treasury);
+
+			let base_fee: Balance = BASE_FEE_GENISIS * 21_000;
+
+			let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
+
+			// only base fee is split between being burned and sent to treasury
+			let treasury_base_fee_part: Balance = treasury_proportion.mul_floor(base_fee);
+			let burnt_base_fee_part: Balance = base_fee - treasury_base_fee_part;
+
+			assert_eq!(issuance_after, issuance_before - burnt_base_fee_part);
+
+			assert_eq!(moonbase_runtime::Treasury::pot(), treasury_base_fee_part);
 		});
 }
 
@@ -2028,6 +2074,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 		])
 		.build()
 		.execute_with(|| {
+			set_parachain_inherent_data();
 			let issuance_before = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 			// EVM transfer.
 			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
@@ -2047,13 +2094,18 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 			// Fee is 1 GWEI base fee.
 			let base_fee = TransactionPaymentAsGasPrice::min_gas_price().0;
 			assert_eq!(base_fee.as_u128(), BASE_FEE_GENISIS); // hint in case following asserts fail
-			let fee = (base_fee.as_u128() * 21_000u128) as f64;
-			// 80% was burned.
-			let expected_burn = (fee * 0.8) as u128;
-			assert_eq!(issuance_after, issuance_before - expected_burn,);
-			// 20% was sent to treasury.
-			let expected_treasury = (fee * 0.2) as u128;
-			assert_eq!(moonbase_runtime::Treasury::pot(), expected_treasury);
+
+			let base_fee: Balance = BASE_FEE_GENISIS * 21_000;
+
+			let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
+
+			// only base fee is split between being burned and sent to treasury
+			let treasury_base_fee_part: Balance = treasury_proportion.mul_floor(base_fee);
+			let burnt_base_fee_part: Balance = base_fee - treasury_base_fee_part;
+
+			assert_eq!(issuance_after, issuance_before - burnt_base_fee_part);
+
+			assert_eq!(moonbase_runtime::Treasury::pot(), treasury_base_fee_part);
 		});
 }
 
@@ -2066,7 +2118,7 @@ fn root_can_change_default_xcm_vers() {
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -2090,8 +2142,8 @@ fn root_can_change_default_xcm_vers() {
 			assert_noop!(
 				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::V4(Location::parent())),
-					Box::new(VersionedLocation::V4(Location {
+					Box::new(VersionedLocation::from(Location::parent())),
+					Box::new(VersionedLocation::from(Location {
 						parents: 0,
 						interior: [AccountId32 {
 							network: None,
@@ -2099,7 +2151,7 @@ fn root_can_change_default_xcm_vers() {
 						}]
 						.into(),
 					})),
-					Box::new(VersionedAssets::V4(asset.clone().into())),
+					Box::new(VersionedAssets::from(asset.clone())),
 					0,
 					WeightLimit::Unlimited
 				),
@@ -2109,14 +2161,14 @@ fn root_can_change_default_xcm_vers() {
 			// Root sets the defaultXcm
 			assert_ok!(PolkadotXcm::force_default_xcm_version(
 				root_origin(),
-				Some(4)
+				Some(5)
 			));
 
 			// Now transferring does not fail
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::V4(Location::parent())),
-				Box::new(VersionedLocation::V4(Location {
+				Box::new(VersionedLocation::from(Location::parent())),
+				Box::new(VersionedLocation::from(Location {
 					parents: 0,
 					interior: [AccountId32 {
 						network: None,
@@ -2124,7 +2176,7 @@ fn root_can_change_default_xcm_vers() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::V4(asset.into())),
+				Box::new(VersionedAssets::from(asset)),
 				0,
 				WeightLimit::Unlimited
 			));
@@ -2140,7 +2192,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v4::Location::parent(),
+			xcm_location: xcm::v5::Location::parent(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -2158,7 +2210,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				20000.into(),
@@ -2167,7 +2219,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1,
 			));
 
@@ -2177,9 +2229,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
-							Location::parent()
-						))),
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedLocation::from(Location::parent())
+						)),
 						fee_amount: None
 					},
 					vec![],
@@ -2234,9 +2286,9 @@ fn root_can_use_hrmp_manage() {
 						para_id: 2000u32.into()
 					},
 					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::V4(
-							Location::parent()
-						))),
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedLocation::from(Location::parent())
+						)),
 						fee_amount: Some(10000)
 					},
 					// 20000 is the max
@@ -2257,7 +2309,7 @@ fn transact_through_signed_precompile_works_v1() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			// Destination
@@ -2272,7 +2324,7 @@ fn transact_through_signed_precompile_works_v1() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				// Relay charges 1000 for every instruction, and we have 3, so 3000
 				3000.into(),
 				Weight::from_parts(200_000, (xcm_primitives::DEFAULT_PROOF_SIZE) + 4000),
@@ -2281,7 +2333,7 @@ fn transact_through_signed_precompile_works_v1() {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
-				Box::new(xcm::VersionedLocation::V4(Location::parent())),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
 				1,
 			));
 
@@ -2296,7 +2348,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(23248)
+				.expect_cost(25190)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2309,7 +2361,7 @@ fn transact_through_signed_precompile_works_v2() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			// Destination
@@ -2336,7 +2388,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23248)
+				.expect_cost(25190)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2349,7 +2401,7 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 			(AccountId::from(ALICE), 2_000 * UNIT),
 			(AccountId::from(BOB), 1_000 * UNIT),
 		])
-		.with_safe_xcm_version(2)
+		.with_safe_xcm_version(3)
 		.build()
 		.execute_with(|| {
 			// Destination
@@ -2418,7 +2470,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(14217)
+				.expect_cost(16024)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2440,7 +2492,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(13783)
+				.expect_cost(15552)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2461,7 +2513,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(14248)
+				.expect_cost(16038)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2504,7 +2556,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16012)
+				.expect_cost(17829)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2529,7 +2581,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(16012)
+				.expect_cost(17829)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2560,7 +2612,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2580,7 +2632,7 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2610,9 +2662,46 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
+	});
+}
+
+#[test]
+fn test_nested_batch_calls_from_xcm_transact() {
+	ExtBuilder::default().build().execute_with(|| {
+		// This ensures we notice if MAX_XCM_DECODE_DEPTH changes
+		// in a future polkadot-sdk version
+		assert_eq!(xcm::MAX_XCM_DECODE_DEPTH, 8);
+
+		let mut valid_nested_calls =
+			RuntimeCall::System(frame_system::Call::remark { remark: vec![] });
+		for _ in 0..xcm::MAX_XCM_DECODE_DEPTH {
+			valid_nested_calls = RuntimeCall::Utility(pallet_utility::Call::batch {
+				calls: vec![valid_nested_calls],
+			});
+		}
+
+		let valid_message = Xcm(vec![Transact {
+			origin_kind: OriginKind::SovereignAccount,
+			fallback_max_weight: None,
+			call: valid_nested_calls.encode().into(),
+		}]);
+
+		assert!(XcmExecutor::prepare(valid_message).is_ok());
+
+		let excessive_nested_calls = RuntimeCall::Utility(pallet_utility::Call::batch {
+			calls: vec![valid_nested_calls],
+		});
+
+		let invalid_message = Xcm(vec![Transact {
+			origin_kind: OriginKind::SovereignAccount,
+			fallback_max_weight: None,
+			call: excessive_nested_calls.encode().into(),
+		}]);
+		// Expect to fail because we have too many nested calls
+		assert!(XcmExecutor::prepare(invalid_message).is_err());
 	});
 }
 
@@ -2623,7 +2712,7 @@ fn test_xcm_utils_weight_message() {
 		let expected_weight =
 			XcmWeight::<moonbase_runtime::Runtime, RuntimeCall>::clear_origin().ref_time();
 
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V4(Xcm(vec![ClearOrigin])).encode();
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V5(Xcm(vec![ClearOrigin])).encode();
 
 		let input = XcmUtilsPCall::weight_message {
 			message: message.into(),
@@ -2631,7 +2720,7 @@ fn test_xcm_utils_weight_message() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(0)
+			.expect_cost(1669)
 			.expect_no_logs()
 			.execute_returns(expected_weight);
 	});
@@ -2650,7 +2739,7 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1669)
+			.expect_cost(3338)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});
@@ -2663,7 +2752,7 @@ fn precompile_existence() {
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 256, 1024, 1025, 1026, 1027, 2048, 2049, 2050, 2051, 2052,
 			2053, 2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066,
-			2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074, 2075,
+			2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2723,7 +2812,7 @@ fn precompile_existence() {
 fn removed_precompiles() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
-		let removed_precompiles = [1025, 2051, 2062, 2063];
+		let removed_precompiles = [1025, 1027, 2051, 2062, 2063];
 
 		for i in 1..3000 {
 			let address = H160::from_low_u64_be(i);
@@ -2767,9 +2856,10 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 		let size_bytes = 0;
 		let tip = 0;
 		let dispatch_info = DispatchInfo {
-			weight: Weight::zero(),
 			class: DispatchClass::Normal,
 			pays_fee: Pays::Yes,
+			call_weight: Weight::zero(),
+			extension_weight: Weight::zero(),
 		};
 
 		assert_eq!(
@@ -2782,21 +2872,27 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 #[test]
 fn deal_with_fees_handles_tip() {
 	use frame_support::traits::OnUnbalanced;
-	use moonbase_runtime::{DealWithFees, Treasury};
+	use moonbase_runtime::Treasury;
+	use moonbeam_runtime_common::deal_with_fees::DealWithSubstrateFeesAndTip;
 
 	ExtBuilder::default().build().execute_with(|| {
-		// This test checks the functionality of the `DealWithFees` trait implementation in the runtime.
-		// It simulates a scenario where a fee and a tip are issued to an account and ensures that the
-		// treasury receives the correct amount (20% of the total), and the rest is burned (80%).
-		//
-		// The test follows these steps:
-		// 1. It issues a fee of 100 and a tip of 1000.
-		// 2. It checks the total supply before the fee and tip are dealt with, which should be 1_100.
-		// 3. It checks that the treasury's balance is initially 0.
-		// 4. It calls `DealWithFees::on_unbalanceds` with the fee and tip.
-		// 5. It checks that the treasury's balance is now 220 (20% of the fee and tip).
-		// 6. It checks that the total supply has decreased by 880 (80% of the fee and tip), indicating
-		//    that this amount was burned.
+		set_parachain_inherent_data();
+		// This test validates the functionality of the `DealWithSubstrateFeesAndTip` trait implementation
+		// in the Moonbeam runtime. It verifies that:
+		// - The correct proportion of the fee is sent to the treasury.
+		// - The remaining fee is burned (removed from the total supply).
+		// - The entire tip is sent to the block author.
+
+		// The test details:
+		// 1. Simulate issuing a `fee` of 100 and a `tip` of 1000.
+		// 2. Confirm the initial total supply is 1,100 (equal to the sum of the issued fee and tip).
+		// 3. Confirm the treasury's balance is initially 0.
+		// 4. Execute the `DealWithSubstrateFeesAndTip::on_unbalanceds` function with the `fee` and `tip`.
+		// 5. Validate that the treasury's balance has increased by 20% of the fee (based on FeesTreasuryProportion).
+		// 6. Validate that 80% of the fee is burned, and the total supply decreases accordingly.
+		// 7. Validate that the entire tip (100%) is sent to the block author (collator).
+
+		// Step 1: Issue the fee and tip amounts.
 		let fee = <pallet_balances::Pallet<Runtime> as frame_support::traits::fungible::Balanced<
 			AccountId,
 		>>::issue(100);
@@ -2804,18 +2900,41 @@ fn deal_with_fees_handles_tip() {
 			AccountId,
 		>>::issue(1000);
 
+		// Step 2: Validate the initial supply and balances.
 		let total_supply_before = Balances::total_issuance();
+		let block_author = pallet_author_inherent::Pallet::<Runtime>::get();
+		let block_author_balance_before = Balances::free_balance(&block_author);
 		assert_eq!(total_supply_before, 1_100);
 		assert_eq!(Balances::free_balance(&Treasury::account_id()), 0);
 
-		DealWithFees::on_unbalanceds(vec![fee, tip].into_iter());
+		// Step 3: Execute the fees handling logic.
+		DealWithSubstrateFeesAndTip::<
+			Runtime,
+			dynamic_params::runtime_config::FeesTreasuryProportion,
+		>::on_unbalanceds(vec![fee, tip].into_iter());
 
-		// treasury should have received 20%
-		assert_eq!(Balances::free_balance(&Treasury::account_id()), 220);
+		// Step 4: Compute the split between treasury and burned fees based on FeesTreasuryProportion (20%).
+		let treasury_proportion = dynamic_params::runtime_config::FeesTreasuryProportion::get();
 
-		// verify 80% burned
+		let treasury_fee_part: Balance = treasury_proportion.mul_floor(100);
+		let burnt_fee_part: Balance = 100 - treasury_fee_part;
+
+		// Step 5: Validate the treasury received 20% of the fee.
+		assert_eq!(
+			Balances::free_balance(&Treasury::account_id()),
+			treasury_fee_part,
+		);
+
+		// Step 6: Verify that 80% of the fee was burned (removed from the total supply).
 		let total_supply_after = Balances::total_issuance();
-		assert_eq!(total_supply_before - total_supply_after, 880);
+		assert_eq!(total_supply_before - total_supply_after, burnt_fee_part,);
+
+		// Step 7: Validate that the block author (collator) received 100% of the tip.
+		let block_author_balance_after = Balances::free_balance(&block_author);
+		assert_eq!(
+			block_author_balance_after - block_author_balance_before,
+			1000,
+		);
 	});
 }
 
@@ -2907,7 +3026,7 @@ fn validate_transaction_fails_on_filtered_call() {
 	use sp_transaction_pool::runtime_api::runtime_decl_for_tagged_transaction_queue::TaggedTransactionQueueV3; // editorconfig-checker-disable-line
 
 	ExtBuilder::default().build().execute_with(|| {
-		let xt = UncheckedExtrinsic::new_unsigned(
+		let xt = UncheckedExtrinsic::new_bare(
 			pallet_evm::Call::<Runtime>::call {
 				source: Default::default(),
 				target: H160::default(),
@@ -2927,6 +3046,625 @@ fn validate_transaction_fails_on_filtered_call() {
 			Err(TransactionValidityError::Invalid(InvalidTransaction::Call)),
 		);
 	});
+}
+
+#[cfg(test)]
+mod treasury_tests {
+	use super::*;
+	use frame_support::traits::fungible::NativeOrWithId;
+	use moonbase_runtime::XcmWeightTrader;
+	use sp_runtime::traits::Hash;
+
+	fn expect_events(events: Vec<RuntimeEvent>) {
+		let block_events: Vec<RuntimeEvent> =
+			System::events().into_iter().map(|r| r.event).collect();
+
+		dbg!(events.clone());
+		dbg!(block_events.clone());
+
+		assert!(events.iter().all(|evt| block_events.contains(evt)))
+	}
+
+	fn next_block() {
+		System::reset_events();
+		System::set_block_number(System::block_number() + 1u32);
+		System::on_initialize(System::block_number());
+		Treasury::on_initialize(System::block_number());
+	}
+
+	fn get_asset_balance(id: &u128, account: &AccountId) -> U256 {
+		pallet_moonbeam_foreign_assets::Pallet::<Runtime>::balance(id.clone(), account.clone())
+			.expect("failed to get account balance")
+	}
+
+	#[test]
+	fn test_treasury_spend_local_with_root_origin() {
+		let initial_treasury_balance = 1_000 * UNIT;
+		ExtBuilder::default()
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * UNIT),
+				(Treasury::account_id(), initial_treasury_balance),
+			])
+			.build()
+			.execute_with(|| {
+				let spend_amount = 100u128 * UNIT;
+				let spend_beneficiary = AccountId::from(BOB);
+
+				next_block();
+
+				// Perform treasury spending
+				let valid_from = System::block_number() + 5u32;
+				assert_ok!(moonbase_runtime::Sudo::sudo(
+					root_origin(),
+					Box::new(RuntimeCall::Treasury(pallet_treasury::Call::spend {
+						amount: spend_amount,
+						asset_kind: Box::new(NativeOrWithId::Native),
+						beneficiary: Box::new(AccountId::from(BOB)),
+						valid_from: Some(valid_from),
+					}))
+				));
+
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
+				let expected_events = [RuntimeEvent::Treasury(
+					pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: NativeOrWithId::Native,
+						amount: spend_amount,
+						beneficiary: spend_beneficiary,
+						valid_from,
+						expire_at: payout_period + valid_from,
+					},
+				)]
+				.to_vec();
+				expect_events(expected_events);
+
+				while System::block_number() < valid_from {
+					next_block();
+				}
+
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+						index: 0,
+						payment_id: (),
+					}),
+					RuntimeEvent::Balances(pallet_balances::Event::Transfer {
+						from: Treasury::account_id(),
+						to: spend_beneficiary,
+						amount: spend_amount,
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+			});
+	}
+
+	#[test]
+	fn test_treasury_spend_local_with_council_origin() {
+		let initial_treasury_balance = 1_000 * UNIT;
+		ExtBuilder::default()
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * UNIT),
+				(Treasury::account_id(), initial_treasury_balance),
+			])
+			.build()
+			.execute_with(|| {
+				let spend_amount = 100u128 * UNIT;
+				let spend_beneficiary = AccountId::from(BOB);
+
+				next_block();
+
+				// TreasuryCouncilCollective
+				assert_ok!(TreasuryCouncilCollective::set_members(
+					root_origin(),
+					vec![AccountId::from(ALICE)],
+					Some(AccountId::from(ALICE)),
+					1
+				));
+
+				next_block();
+
+				// Perform treasury spending
+				let valid_from = System::block_number() + 5u32;
+				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend {
+					amount: spend_amount,
+					asset_kind: Box::new(NativeOrWithId::Native),
+					beneficiary: Box::new(AccountId::from(BOB)),
+					valid_from: Some(valid_from),
+				});
+				assert_ok!(TreasuryCouncilCollective::propose(
+					origin_of(AccountId::from(ALICE)),
+					1,
+					Box::new(proposal.clone()),
+					1_000
+				));
+
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: NativeOrWithId::Native,
+						amount: spend_amount,
+						beneficiary: spend_beneficiary,
+						valid_from,
+						expire_at: payout_period + valid_from,
+					}),
+					RuntimeEvent::TreasuryCouncilCollective(pallet_collective::Event::Executed {
+						proposal_hash: sp_runtime::traits::BlakeTwo256::hash_of(&proposal),
+						result: Ok(()),
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+
+				while System::block_number() < valid_from {
+					next_block();
+				}
+
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+						index: 0,
+						payment_id: (),
+					}),
+					RuntimeEvent::Balances(pallet_balances::Event::Transfer {
+						from: Treasury::account_id(),
+						to: spend_beneficiary,
+						amount: spend_amount,
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+			});
+	}
+
+	#[test]
+	fn test_treasury_spend_foreign_asset_with_root_origin() {
+		let initial_treasury_balance = 1_000 * UNIT;
+		let asset_id = 1000100010001000u128;
+		ExtBuilder::default()
+			.with_balances(vec![(AccountId::from(ALICE), 2_000 * UNIT)])
+			.build()
+			.execute_with(|| {
+				let spend_amount = 100u128 * UNIT;
+				let spend_beneficiary = AccountId::from(BOB);
+
+				let asset_location: Location = Location {
+					parents: 1,
+					interior: Junctions::Here,
+				};
+
+				assert_ok!(EvmForeignAssets::create_foreign_asset(
+					root_origin(),
+					asset_id,
+					asset_location.clone(),
+					12,
+					bounded_vec![b'M', b'T'],
+					bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+				));
+
+				assert_ok!(XcmWeightTrader::add_asset(
+					root_origin(),
+					asset_location,
+					1u128
+				));
+
+				assert_ok!(EvmForeignAssets::mint_into(
+					asset_id,
+					Treasury::account_id(),
+					initial_treasury_balance.into()
+				));
+
+				assert_eq!(
+					get_asset_balance(&asset_id, &Treasury::account_id()),
+					initial_treasury_balance.into(),
+					"Treasury balance not updated"
+				);
+
+				assert_ok!(moonbase_runtime::Sudo::sudo(
+					root_origin(),
+					Box::new(RuntimeCall::Treasury(pallet_treasury::Call::spend {
+						amount: spend_amount,
+						asset_kind: Box::new(NativeOrWithId::WithId(asset_id)),
+						beneficiary: Box::new(spend_beneficiary),
+						valid_from: None,
+					}))
+				));
+
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
+
+				let current_block = System::block_number();
+				expect_events(vec![RuntimeEvent::Treasury(
+					pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: NativeOrWithId::WithId(asset_id),
+						amount: spend_amount,
+						beneficiary: spend_beneficiary,
+						valid_from: current_block,
+						expire_at: current_block + payout_period,
+					},
+				)]);
+
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
+				expect_events(vec![RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+					index: 0,
+					payment_id: (),
+				})]);
+
+				assert_eq!(
+					get_asset_balance(&asset_id, &Treasury::account_id()),
+					(initial_treasury_balance - spend_amount).into(),
+					"Treasury balance not updated"
+				);
+
+				assert_eq!(
+					get_asset_balance(&asset_id, &spend_beneficiary),
+					spend_amount.into(),
+					"Treasury payout failed"
+				);
+			});
+	}
+
+	#[test]
+	fn test_treasury_spend_foreign_asset_with_council_origin() {
+		let initial_treasury_balance = 1_000 * UNIT;
+		let asset_id = 1000100010001000u128;
+		ExtBuilder::default()
+			.with_balances(vec![(AccountId::from(ALICE), 2_000 * UNIT)])
+			.build()
+			.execute_with(|| {
+				let spend_amount = 100u128 * UNIT;
+				let spend_beneficiary = AccountId::from(BOB);
+
+				let asset_location: Location = Location {
+					parents: 1,
+					interior: Junctions::Here,
+				};
+
+				assert_ok!(EvmForeignAssets::create_foreign_asset(
+					root_origin(),
+					asset_id,
+					asset_location.clone(),
+					12,
+					bounded_vec![b'M', b'T'],
+					bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+				));
+
+				assert_ok!(XcmWeightTrader::add_asset(
+					root_origin(),
+					asset_location,
+					1u128
+				));
+
+				assert_ok!(EvmForeignAssets::mint_into(
+					asset_id,
+					Treasury::account_id(),
+					initial_treasury_balance.into()
+				));
+
+				assert_eq!(
+					get_asset_balance(&asset_id, &Treasury::account_id()),
+					initial_treasury_balance.into(),
+					"Treasury balance not updated"
+				);
+
+				// TreasuryCouncilCollective
+				assert_ok!(TreasuryCouncilCollective::set_members(
+					root_origin(),
+					vec![AccountId::from(ALICE)],
+					Some(AccountId::from(ALICE)),
+					1
+				));
+
+				// Perform treasury spending
+				let proposal = RuntimeCall::Treasury(pallet_treasury::Call::spend {
+					amount: spend_amount,
+					asset_kind: Box::new(NativeOrWithId::WithId(asset_id)),
+					beneficiary: Box::new(spend_beneficiary),
+					valid_from: None,
+				});
+				assert_ok!(TreasuryCouncilCollective::propose(
+					origin_of(AccountId::from(ALICE)),
+					1,
+					Box::new(proposal.clone()),
+					1_000
+				));
+
+				let payout_period =
+					<<Runtime as pallet_treasury::Config>::PayoutPeriod as Get<u32>>::get();
+
+				let current_block = System::block_number();
+				let expected_events = [
+					RuntimeEvent::Treasury(pallet_treasury::Event::AssetSpendApproved {
+						index: 0,
+						asset_kind: NativeOrWithId::WithId(asset_id),
+						amount: spend_amount,
+						beneficiary: spend_beneficiary,
+						valid_from: current_block,
+						expire_at: current_block + payout_period,
+					}),
+					RuntimeEvent::TreasuryCouncilCollective(pallet_collective::Event::Executed {
+						proposal_hash: sp_runtime::traits::BlakeTwo256::hash_of(&proposal),
+						result: Ok(()),
+					}),
+				]
+				.to_vec();
+				expect_events(expected_events);
+
+				assert_ok!(Treasury::payout(origin_of(spend_beneficiary), 0));
+
+				expect_events(vec![RuntimeEvent::Treasury(pallet_treasury::Event::Paid {
+					index: 0,
+					payment_id: (),
+				})]);
+
+				assert_eq!(
+					get_asset_balance(&asset_id, &Treasury::account_id()),
+					(initial_treasury_balance - spend_amount).into(),
+					"Treasury balance not updated"
+				);
+
+				assert_eq!(
+					get_asset_balance(&asset_id, &spend_beneficiary),
+					spend_amount.into(),
+					"Treasury payout failed"
+				);
+			});
+	}
+}
+
+/// Run these tests:
+/// cargo test --color=always -p moonbase-runtime --features bridge-stagenet --test integration_test bridge_tests -- --nocapture
+#[cfg(all(any(feature = "bridge-stagenet", feature = "bridge-betanet"), test))]
+mod bridge_tests {
+	use crate::common::{origin_of, root_origin, ExtBuilder, XcmAssetInitialization, ALICE, BOB};
+	use bp_messages::target_chain::DispatchMessageData;
+	use bp_messages::ReceptionResult;
+	use bp_runtime::messages::MessageDispatchResult;
+	use cumulus_primitives_core::AggregateMessageOrigin;
+	use frame_support::assert_ok;
+	use frame_support::pallet_prelude::{Hooks, PalletInfoAccess};
+	use moonbase_runtime::bridge_config::{
+		SourceGlobalConsensusNetwork, SourceParachain, TargetBridgeLocation,
+		TargetGlobalConsensusNetwork, TargetParachain, WithMessagesInstance,
+	};
+	use moonbase_runtime::currency::{KILOWEI, UNIT};
+	use moonbase_runtime::xcm_config::CurrencyId;
+	use moonbase_runtime::{
+		Balances, BridgeMessages, BridgeXcmOver, MessageQueue, PolkadotXcm, Runtime, RuntimeEvent,
+		System,
+	};
+	use moonbeam_core_primitives::AccountId;
+	use pallet_bridge_messages::LanesManager;
+	use pallet_xcm_bridge::XcmBlobMessageDispatchResult::Dispatched;
+	use parity_scale_codec::Encode;
+	use sp_runtime::traits::Convert;
+	use xcm::latest::Junctions::X1;
+	use xcm::latest::{
+		Asset, AssetFilter, AssetId, Fungibility, Junctions, Location, WeightLimit, WildAsset, Xcm,
+	};
+	use xcm::prelude::{
+		AccountKey20, BuyExecution, ClearOrigin, DepositAsset, DescendOrigin, Fungible,
+		GlobalConsensus, PalletInstance, ReserveAssetDeposited, SetTopic, UniversalOrigin,
+		XCM_VERSION,
+	};
+	use xcm::{VersionedAssets, VersionedInteriorLocation, VersionedLocation, VersionedXcm};
+	use xcm_builder::BridgeMessage;
+
+	fn currency_to_asset(currency_id: CurrencyId, amount: u128) -> Asset {
+		Asset {
+			id: AssetId(
+				<moonbase_runtime::Runtime as pallet_xcm_transactor::Config>::CurrencyIdToLocation::convert(
+					currency_id,
+				)
+					.unwrap(),
+			),
+			fun: Fungibility::Fungible(amount),
+		}
+	}
+
+	fn next_block() {
+		System::reset_events();
+
+		let next_block = System::block_number() + 1u32;
+
+		System::set_block_number(next_block);
+		System::on_initialize(next_block);
+		MessageQueue::on_initialize(next_block);
+	}
+
+	#[test]
+	fn transfer_asset() {
+		frame_support::__private::sp_tracing::init_for_tests();
+
+		ExtBuilder::default()
+			.with_balances(vec![(AccountId::from(ALICE), 2_000 * UNIT)])
+			.with_safe_xcm_version(XCM_VERSION)
+			.with_open_bridges(vec![(
+				Location::new(1, [SourceParachain::get()]),
+				Junctions::from([
+					TargetGlobalConsensusNetwork::get().into(),
+					TargetParachain::get(),
+				]),
+				Some(Default::default()),
+			)])
+			.build()
+			.execute_with(|| {
+				assert_ok!(PolkadotXcm::force_xcm_version(
+					root_origin(),
+					Box::new(TargetBridgeLocation::get()),
+					XCM_VERSION
+				));
+
+				let asset = currency_to_asset(CurrencyId::SelfReserve, KILOWEI);
+
+				let message_data = BridgeMessages::outbound_message_data(Default::default(), 1u64);
+				assert!(message_data.is_none());
+
+				assert_ok!(PolkadotXcm::transfer_assets(
+					origin_of(AccountId::from(ALICE)),
+					Box::new(VersionedLocation::V5(TargetBridgeLocation::get())),
+					Box::new(VersionedLocation::V5(Location {
+						parents: 0,
+						interior: [AccountKey20 {
+							network: None,
+							key: ALICE,
+						}]
+						.into(),
+					})),
+					Box::new(VersionedAssets::V5(asset.into())),
+					0,
+					WeightLimit::Unlimited
+				));
+
+				let message_data = BridgeMessages::outbound_message_data(Default::default(), 1u64);
+				assert!(message_data.is_some());
+			})
+	}
+
+	#[test]
+	fn receive_message() {
+		frame_support::__private::sp_tracing::init_for_tests();
+
+		ExtBuilder::default()
+			.with_balances(vec![
+				(AccountId::from(ALICE), 2_000 * UNIT),
+				(AccountId::from(BOB), 1_000 * UNIT),
+			])
+			.with_xcm_assets(vec![XcmAssetInitialization {
+				asset_id: 1,
+				xcm_location: Location::new(
+					2,
+					[
+						GlobalConsensus(TargetGlobalConsensusNetwork::get()),
+						TargetParachain::get(),
+						PalletInstance(<Balances as PalletInfoAccess>::index() as u8),
+					],
+				),
+				name: "xcToken",
+				symbol: "xcToken",
+				decimals: 18,
+				balances: vec![(AccountId::from(ALICE), 1_000 * UNIT)],
+			}])
+			.with_safe_xcm_version(XCM_VERSION)
+			.with_open_bridges(vec![(
+				Location::new(1, [SourceParachain::get()]),
+				Junctions::from([
+					TargetGlobalConsensusNetwork::get().into(),
+					TargetParachain::get(),
+				]),
+				Some(Default::default()),
+			)])
+			.build()
+			.execute_with(|| {
+				assert_ok!(PolkadotXcm::force_xcm_version(
+					root_origin(),
+					Box::new(TargetBridgeLocation::get()),
+					XCM_VERSION
+				));
+
+				let bridge_message: BridgeMessage = BridgeMessage {
+					universal_dest: VersionedInteriorLocation::V5(
+						[
+							GlobalConsensus(SourceGlobalConsensusNetwork::get()),
+							SourceParachain::get(),
+						]
+						.into(),
+					),
+					message: VersionedXcm::V5(Xcm([
+						UniversalOrigin(GlobalConsensus(TargetGlobalConsensusNetwork::get())),
+						DescendOrigin(X1([TargetParachain::get()].into())),
+						ReserveAssetDeposited(
+							vec![Asset {
+								id: AssetId(Location::new(
+									2,
+									[
+										GlobalConsensus(TargetGlobalConsensusNetwork::get()),
+										TargetParachain::get(),
+										PalletInstance(
+											<Balances as PalletInfoAccess>::index() as u8
+										),
+									],
+								)),
+								fun: Fungible(UNIT * 2),
+							}]
+							.into(),
+						),
+						ClearOrigin,
+						BuyExecution {
+							fees: Asset {
+								id: AssetId(Location::new(
+									2,
+									[
+										GlobalConsensus(TargetGlobalConsensusNetwork::get()),
+										TargetParachain::get(),
+										PalletInstance(
+											<Balances as PalletInfoAccess>::index() as u8
+										),
+									],
+								)),
+								fun: Fungible(UNIT / 2),
+							},
+							weight_limit: WeightLimit::Unlimited,
+						},
+						DepositAsset {
+							assets: AssetFilter::Wild(WildAsset::AllCounted(1)),
+							beneficiary: Location::new(
+								0,
+								[AccountKey20 {
+									network: None,
+									key: ALICE,
+								}],
+							),
+						},
+						SetTopic([
+							24, 73, 92, 41, 231, 15, 196, 44, 136, 120, 145, 143, 224, 187, 112,
+							187, 47, 89, 154, 44, 193, 175, 174, 249, 30, 194, 97, 183, 171, 39,
+							87, 147,
+						]),
+					]
+					.into())),
+				};
+
+				let mut inbound_lane = LanesManager::<Runtime, WithMessagesInstance>::new()
+					.active_inbound_lane(Default::default())
+					.unwrap();
+
+				let msg = DispatchMessageData {
+					payload: Ok(bridge_message.encode()),
+				};
+				let result =
+					inbound_lane.receive_message::<BridgeXcmOver>(&AccountId::from(ALICE), 1, msg);
+
+				assert_eq!(
+					result,
+					ReceptionResult::Dispatched(MessageDispatchResult {
+						unspent_weight: Default::default(),
+						dispatch_level_result: Dispatched
+					})
+				);
+
+				// Produce next block
+				next_block();
+				// Confirm that the xcm message was successfully processed
+				assert!(System::events().iter().any(|evt| {
+					matches!(
+						evt.event,
+						RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed {
+							origin: AggregateMessageOrigin::Here,
+							success: true,
+							..
+						})
+					)
+				}));
+			});
+	}
 }
 
 #[cfg(test)]
@@ -3010,7 +3748,8 @@ mod fee_tests {
 				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
-					weight: Weight::from_parts(extrinsic_weight, 1),
+					call_weight: Weight::from_parts(extrinsic_weight, 1),
+					extension_weight: Weight::zero(),
 				},
 				tip,
 			);

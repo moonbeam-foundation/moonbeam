@@ -1,5 +1,4 @@
-import "@polkadot/api-augment";
-import "@moonbeam-network/api-augment/moonbase";
+import "@moonbeam-network/api-augment";
 import {
   checkBlockFinalized,
   getBlockTime,
@@ -9,8 +8,8 @@ import {
 } from "@moonwall/util";
 import semver from "semver";
 import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { Signer } from "ethers";
-import { ApiPromise } from "@polkadot/api";
+import type { Signer } from "ethers";
+import type { ApiPromise } from "@polkadot/api";
 import { rateLimiter } from "../../helpers/common.js";
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : TWO_HOURS;

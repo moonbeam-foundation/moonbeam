@@ -1,19 +1,19 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { RUNTIME_CONSTANTS } from "../../helpers";
-import { ApiPromise } from "@polkadot/api";
-import fs from "fs/promises";
+import type { ApiPromise } from "@polkadot/api";
+import fs from "node:fs/promises";
 import { u8aToHex } from "@polkadot/util";
 import assert from "node:assert";
-import { SpRuntimeDispatchError } from "@polkadot/types/lookup";
+import type { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
 describeSuite({
-  id: "LD01",
+  id: "L01",
   title: "Lazy Loading - Runtime Upgrade",
   foundationMethods: "dev",
   options: {
     forkConfig: {
-      url: process.env.FORK_URL ?? "https://moonbeam.unitedbloc.com",
+      url: process.env.FORK_URL ?? "https://trace.api.moonbeam.network",
       stateOverridePath: "tmp/lazyLoadingStateOverrides.json",
       verbose: true,
     },
@@ -30,18 +30,16 @@ describeSuite({
         .filter((v) => Object.keys(RUNTIME_CONSTANTS).includes(v))
         .join()
         .toLowerCase();
-      const wasmPath = `../target/release/wbuild/${runtime}-runtime/${runtime}_runtime.compact.compressed.wasm`; // editorconfig-checker-disable-line
-
+      const wasmPath = `../target/release/wbuild/${runtime}-runtime/${runtime}_runtime.compact.compressed.wasm`;
       const runtimeWasmHex = u8aToHex(await fs.readFile(wasmPath));
 
       const rtBefore = api.consts.system.version.specVersion.toNumber();
       log("Current runtime:", rtBefore);
       log("About to upgrade to runtime at:", wasmPath);
 
-      await context.createBlock([], { finalize: false });
+      await context.createBlock();
       const { result } = await context.createBlock(
-        api.tx.system.applyAuthorizedUpgrade(runtimeWasmHex),
-        { finalize: false }
+        api.tx.system.applyAuthorizedUpgrade(runtimeWasmHex)
       );
 
       assert(result, "Block has no extrinsic results");
@@ -53,7 +51,7 @@ describeSuite({
         .map(
           ({
             event: {
-              data: [error, info],
+              data: [error],
             },
           }) => {
             const dispatchError = error as SpRuntimeDispatchError;
@@ -63,10 +61,9 @@ describeSuite({
               const { docs, method, section } = decoded;
 
               return `${section}.${method}: ${docs.join(" ")}`;
-            } else {
-              // Other, CannotLookup, BadOrigin, no extra info
-              return error.toString();
             }
+            // Other, CannotLookup, BadOrigin, no extra info
+            return error.toString();
           }
         );
 
@@ -75,14 +72,9 @@ describeSuite({
       }
 
       // This next block will receive the GoAhead signal
-      await context.createBlock([], { finalize: false });
+      await context.createBlock();
       // The next block will process the runtime upgrade
-      await context.createBlock([], { finalize: false });
-
-      const events = (await api.query.system.events()).filter(({ event }) =>
-        api.events.migrations.RuntimeUpgradeCompleted.is(event)
-      );
-      expect(events.length > 0, "Migrations should complete").to.be.true;
+      await context.createBlock();
 
       const rtAfter = api.consts.system.version.specVersion.toNumber();
       log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtAfter}`);
@@ -95,9 +87,39 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Validate new applied runtime",
+      title: "Ensure migrations are executed",
       test: async function () {
-        // TODO
+        // Ensure multi block migrations started
+        const upgradeStartedEvt = (await api.query.system.events()).find(({ event }) =>
+          api.events.multiBlockMigrations.UpgradeStarted.is(event)
+        );
+        expect(!!upgradeStartedEvt, "Upgrade Started").to.be.true;
+        const migrationAdvancedEvt = (await api.query.system.events()).find(({ event }) =>
+          api.events.multiBlockMigrations.MigrationAdvanced.is(event)
+        );
+        expect(!!migrationAdvancedEvt, "Migration Advanced").to.be.true;
+
+        // Ensure single block migrations were executed
+        const versionMigrationFinishedEvt = (await api.query.system.events()).find(({ event }) =>
+          api.events.polkadotXcm.VersionMigrationFinished.is(event)
+        );
+        expect(!!versionMigrationFinishedEvt, "Permanent XCM migration was executed").to.be.true;
+
+        // Ensure multi block migrations completed in less than 10 blocks
+        let events = [];
+        let attempts = 0;
+        for (; attempts < 10; attempts++) {
+          events = (await api.query.system.events()).filter(
+            ({ event }) =>
+              api.events.multiBlockMigrations.MigrationCompleted.is(event) ||
+              api.events.multiBlockMigrations.UpgradeCompleted.is(event)
+          );
+          if (events.length === 2) {
+            break;
+          }
+          await context.createBlock();
+        }
+        expect(events.length === 2, "Migrations should have completed").to.be.true;
       },
     });
   },

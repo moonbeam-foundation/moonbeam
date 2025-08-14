@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith, baltathar, ethan } from "@moonwall/util";
 
 describeSuite({
-  id: "D013443",
+  id: "D023444",
   title: "Staking - Delegator Join",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -15,7 +15,14 @@ describeSuite({
         const block = await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, minDelegatorStk.subn(10), 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              alith.address,
+              minDelegatorStk.subn(10),
+              0,
+              0,
+              0,
+              0
+            )
             .signAsync(ethan)
         );
         expect(block.result!.successful).to.be.false;
@@ -30,7 +37,14 @@ describeSuite({
         const block = await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              baltathar.address,
+              MIN_GLMR_DELEGATOR,
+              0,
+              0,
+              0,
+              0
+            )
             .signAsync(ethan)
         );
         expect(block.result!.successful!).to.be.false;
@@ -45,7 +59,14 @@ describeSuite({
         const block = await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(ethan.address, MIN_GLMR_DELEGATOR, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              ethan.address,
+              MIN_GLMR_DELEGATOR,
+              0,
+              0,
+              0,
+              0
+            )
             .signAsync(ethan)
         );
         expect(block.result!.successful!).to.be.false;
@@ -60,7 +81,14 @@ describeSuite({
         const block = await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              alith.address,
+              MIN_GLMR_DELEGATOR,
+              0,
+              0,
+              0,
+              0
+            )
             .signAsync(alith)
         );
         expect(block.result!.successful!).to.be.false;

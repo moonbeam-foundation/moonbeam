@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -43,9 +43,7 @@ use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServ
 use sc_network::service::traits::NetworkService;
 use sc_network_sync::SyncingService;
 use sc_rpc::SubscriptionTaskExecutor;
-use sc_rpc_api::DenyUnsafe;
 use sc_service::TaskManager;
-use sc_transaction_pool::{ChainApi, Pool};
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::{CallApiAt, ProvideRuntimeApi};
 use sp_blockchain::{
@@ -98,15 +96,13 @@ where
 }
 
 /// Full client dependencies.
-pub struct FullDeps<C, P, A: ChainApi, BE> {
+pub struct FullDeps<C, P, BE> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
 	/// Graph pool instance.
-	pub graph: Arc<Pool<A>>,
-	/// Whether to deny unsafe calls
-	pub deny_unsafe: DenyUnsafe,
+	pub graph: Arc<P>,
 	/// The Node authority flag
 	pub is_authority: bool,
 	/// Network service
@@ -125,6 +121,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 	/// Maximum number of logs in a query.
 	pub max_past_logs: u32,
+	/// Maximum block range in a query.
+	pub max_block_range: u32,
 	/// Maximum fee history cache size.
 	pub fee_history_limit: u64,
 	/// Fee history cache.
@@ -149,8 +147,8 @@ pub struct TracingConfig {
 }
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, BE, A>(
-	deps: FullDeps<C, P, A, BE>,
+pub fn create_full<C, P, BE>(
+	deps: FullDeps<C, P, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 	maybe_tracing_config: Option<TracingConfig>,
 	pubsub_notification_sinks: Arc<
@@ -169,19 +167,17 @@ where
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: CallApiAt<Block>,
 	C: Send + Sync + 'static,
-	A: ChainApi<Block = Block> + 'static,
 	C::Api: RuntimeApiCollection,
-	P: TransactionPool<Block = Block> + 'static,
+	P: TransactionPool<Block = Block, Hash = <Block as BlockT>::Hash> + 'static,
 {
 	use fc_rpc::{
 		Eth, EthApiServer, EthFilter, EthFilterApiServer, EthPubSub, EthPubSubApiServer, Net,
-		NetApiServer, Web3, Web3ApiServer,
+		NetApiServer, TxPool, TxPoolApiServer, Web3, Web3ApiServer,
 	};
 	use moonbeam_dev_rpc::{DevApiServer, DevRpc};
 	use moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApiServer};
 	use moonbeam_rpc_debug::{Debug, DebugServer};
 	use moonbeam_rpc_trace::{Trace, TraceServer};
-	use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
@@ -190,7 +186,6 @@ where
 		client,
 		pool,
 		graph,
-		deny_unsafe,
 		is_authority,
 		network,
 		sync,
@@ -200,6 +195,7 @@ where
 		frontier_backend,
 		backend: _,
 		max_past_logs,
+		max_block_range,
 		fee_history_limit,
 		fee_history_cache,
 		dev_rpc_data,
@@ -208,7 +204,7 @@ where
 		forced_parent_hashes,
 	} = deps;
 
-	io.merge(System::new(Arc::clone(&client), Arc::clone(&pool), deny_unsafe).into_rpc())?;
+	io.merge(System::new(Arc::clone(&client), Arc::clone(&pool)).into_rpc())?;
 	io.merge(TransactionPayment::new(Arc::clone(&client)).into_rpc())?;
 
 	// TODO: are we supporting signing?
@@ -249,7 +245,7 @@ where
 	};
 
 	io.merge(
-		Eth::<_, _, _, _, _, _, _, MoonbeamEthConfig<_, _>>::new(
+		Eth::<_, _, _, _, _, _, MoonbeamEthConfig<_, _>>::new(
 			Arc::clone(&client),
 			Arc::clone(&pool),
 			graph.clone(),
@@ -280,6 +276,7 @@ where
 				filter_pool,
 				500_usize, // max stored filters
 				max_past_logs,
+				max_block_range,
 				block_data_cache,
 			)
 			.into_rpc(),
@@ -308,6 +305,7 @@ where
 		)
 		.into_rpc(),
 	)?;
+
 	if ethapi_cmd.contains(&EthApiCmd::Txpool) {
 		io.merge(TxPool::new(Arc::clone(&client), graph).into_rpc())?;
 	}

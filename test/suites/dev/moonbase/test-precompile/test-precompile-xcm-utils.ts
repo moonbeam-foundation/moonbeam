@@ -1,14 +1,14 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, generateKeyringPair } from "@moonwall/util";
-import { XcmVersionedXcm } from "@polkadot/types/lookup";
+import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { u8aToHex } from "@polkadot/util";
 import { expectEVMResult, descendOriginFromAddress20, ConstantStore } from "../../../../helpers";
 
 export const CLEAR_ORIGIN_WEIGHT = 5_194_000n;
 
 describeSuite({
-  id: "D012801",
+  id: "D022888",
   title: "Precompiles - xcm utils",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -111,7 +111,7 @@ describeSuite({
       title: "allows to retrieve weight of message",
       test: async function () {
         const message = {
-          V2: [
+          V4: [
             {
               ClearOrigin: null,
             },
@@ -172,11 +172,14 @@ describeSuite({
         const transferCallEncoded = transferCall?.method.toHex();
 
         const xcmMessage = {
-          V2: [
+          V4: [
             {
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
+                requireWeightAtMost: {
+                  refTime: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
+                  proofSize: 0n,
+                },
                 call: {
                   encoded: transferCallEncoded,
                 },
@@ -233,11 +236,14 @@ describeSuite({
         const transferCallEncoded = transferCall?.method.toHex();
 
         const xcmMessage = {
-          V2: [
+          V4: [
             {
               Transact: {
                 originType: "SovereignAccount",
-                requireWeightAtMost: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
+                requireWeightAtMost: {
+                  refTime: 525_000_000n + STORAGE_READ_COST, // 21_000 gas limit
+                  proofSize: 0n,
+                },
                 call: {
                   encoded: transferCallEncoded,
                 },
@@ -306,7 +312,7 @@ describeSuite({
         ];
 
         const xcmMessage = {
-          V2: [
+          V4: [
             {
               ClearOrigin: null,
             },
@@ -402,7 +408,7 @@ describeSuite({
         ];
 
         const xcmMessage = {
-          V2: [
+          V4: [
             {
               ClearOrigin: null,
             },

@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::lazy_loading;
-use crate::lazy_loading::backend::RPC;
 use cumulus_primitives_core::BlockT;
 use parity_scale_codec::Encode;
 use sc_client_api::{Backend, BlockImportOperation, NewBlockState};
@@ -25,38 +24,8 @@ use sp_runtime::Saturating;
 use sp_storage::{StateVersion, Storage, StorageKey};
 use std::sync::Arc;
 
-pub fn produce_genesis_block<TBl: BlockT + sp_runtime::DeserializeOwned>(
-	backend: Arc<lazy_loading::backend::Backend<TBl>>,
-) -> sp_blockchain::Result<()> {
-	let mut op = backend.begin_operation()?;
-	op.before_fork = true;
-
-	let genesis_block_hash: TBl::Hash = backend
-		.rpc_client
-		.block_hash::<TBl>(Some(Default::default()))
-		.unwrap()
-		.expect("Not able to obtain genesis block hash");
-
-	let genesis_block = backend
-		.rpc_client
-		.block::<TBl, _>(Some(genesis_block_hash))
-		.unwrap()
-		.unwrap()
-		.block;
-
-	let _ = op.set_block_data(
-		genesis_block.header().clone(),
-		Some(genesis_block.extrinsics().to_vec()),
-		None,
-		None,
-		NewBlockState::Final,
-	);
-
-	backend.commit_operation(op)
-}
-
 pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
-	backend: Arc<lazy_loading::backend::Backend<Block>>,
+	backend: Arc<lazy_loading::substrate_backend::Backend<Block>>,
 	fork_checkpoint: Block,
 	mut state_overrides: Vec<(Vec<u8>, Vec<u8>)>,
 ) -> sp_blockchain::Result<()> {
@@ -89,7 +58,7 @@ pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 			top: state_overrides.into_iter().collect(),
 			children_default: Default::default(),
 		},
-		StateVersion::V0,
+		StateVersion::V1,
 	)?;
 
 	// Create empty first block
@@ -104,7 +73,7 @@ pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 	backend.commit_operation(op)
 }
 
-pub fn get_parachain_id(rpc_client: Arc<RPC>) -> Option<u32> {
+pub fn get_parachain_id(rpc_client: Arc<super::rpc_client::RPC>) -> Option<u32> {
 	let key = [twox_128(b"ParachainInfo"), twox_128(b"ParachainId")].concat();
 	let result = rpc_client.storage::<H256>(StorageKey(key), None);
 

@@ -6,7 +6,6 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-num_enum = { workspace = true }
 
 # Moonbeam
 xcm-primitives = { workspace = true }
@@ -31,26 +30,22 @@ xcm = { workspace = true }
 xcm-executor = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
-serde = { workspace = true }
-sha3 = { workspace = true }
 
 # Moonbeam
-precompile-utils = { workspace = true, features = ["testing"] }
+precompile-utils = { workspace = true, features = ["testing", "std", "codec-xcm"] }
 
 # Substrate
 pallet-balances = { workspace = true }
 pallet-timestamp = { workspace = true }
 parity-scale-codec = { workspace = true, features = ["max-encoded-len"] }
-scale-info = { workspace = true, features = ["derive"] }
+scale-info = { workspace = true, features = ["derive", "std"] }
 sp-io = { workspace = true }
-sp-runtime = { workspace = true }
+sp-runtime = { workspace = true, features = ["std"] }
 
 # Cumulus
-cumulus-primitives-core = { workspace = true }
+cumulus-primitives-core = { workspace = true, features = ["std"] }
 
 # Polkadot
-polkadot-parachain = { workspace = true }
 xcm-builder = { workspace = true }
 
 [features]
@@ -62,7 +57,6 @@ std = [
 	"pallet-evm/std",
 	"pallet-timestamp/std",
 	"parity-scale-codec/std",
-	"polkadot-parachain/std",
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-io/std",
@@ -70,6 +64,7 @@ std = [
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm-primitives/std",
+	"pallet-xcm/std",
 ]
 runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",

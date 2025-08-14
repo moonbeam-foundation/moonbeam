@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -122,6 +122,7 @@ where
 			<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
 		>,
 	>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	/// Internal helper function for vote* extrinsics exposed in this precompile.
 	fn vote(

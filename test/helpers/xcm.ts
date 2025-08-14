@@ -1,14 +1,20 @@
-import { DevModeContext, customDevRpcRequest } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
-import { XcmpMessageFormat } from "@polkadot/types/interfaces";
-import {
+import { type DevModeContext, customDevRpcRequest, expect } from "@moonwall/cli";
+import { alith, ALITH_ADDRESS } from "@moonwall/util";
+import type { DispatchError, XcmpMessageFormat } from "@polkadot/types/interfaces";
+import type {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmV3JunctionNetworkId,
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
-import { BN, stringToU8a, u8aToHex } from "@polkadot/util";
+import { type BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
+import { expectSystemEvent } from "./expect.ts";
+import { getPalletIndex } from "./pallets.ts";
+
+// XCM versions to test
+export const XCM_VERSIONS = [3, 4, 5] as const;
+export type XcmVersion = (typeof XCM_VERSIONS)[number];
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -75,7 +81,7 @@ export function mockHrmpChannelExistanceTx(
 export function descendOriginFromAddress20(
   context: DevModeContext,
   address: `0x${string}` = "0x0101010101010101010101010101010101010101",
-  paraId: number = 1
+  paraId = 1
 ) {
   const toHash = new Uint8Array([
     ...new TextEncoder().encode("SiblingChain"),
@@ -174,7 +180,41 @@ export async function injectHrmpMessageAndSeal(
   // using the remaining weight.
   //
   // See https://github.com/paritytech/polkadot-sdk/pull/3844 for more context.
-  await context.createBlock();
+  const { block } = await context.createBlock();
+  return block;
+}
+
+/**
+ * Patches XCM location data structures to ensure proper formatting for XCM v4 and v5.
+ * Recursively transforms junction objects to arrays where needed for compatibility.
+ * This function is specifically designed for use with XCM v4 and v5 only.
+ *
+ * @param value - The location data structure to patch
+ * @returns The patched location data structure
+ *
+ * @example
+ * // Converts this: { X1: { Parachain: 1000 } }
+ * // to this: { X1: [ { Parachain: 1000 } ] }
+ */
+function patchLocation(value: any) {
+  if (value && typeof value === "object") {
+    if (Array.isArray(value)) {
+      return value.map(patchLocation);
+    }
+    for (const k of Object.keys(value)) {
+      if (k === "Concrete" || k === "Abstract") {
+        return patchLocation(value[k]);
+      }
+      if (k.match(/^X\d$/g) && !Array.isArray(value[k])) {
+        value[k] = Object.entries(value[k]).map(([k, v]) => ({
+          [k]: patchLocation(v),
+        }));
+      } else {
+        value[k] = patchLocation(value[k]);
+      }
+    }
+  }
+  return value;
 }
 
 interface Junction {
@@ -266,7 +306,7 @@ export class XcmFragment {
 
   // Add one or more `BuyExecution` instruction
   // if weight_limit is not set in config, then we put unlimited
-  buy_execution(fee_index: number = 0, repeat: bigint = 1n): this {
+  buy_execution(fee_index = 0, repeat = 1n): this {
     const weightLimit =
       this.config.weight_limit != null
         ? { Limited: this.config.weight_limit }
@@ -289,7 +329,7 @@ export class XcmFragment {
 
   // Add one or more `BuyExecution` instruction
   // if weight_limit is not set in config, then we put unlimited
-  refund_surplus(repeat: bigint = 1n): this {
+  refund_surplus(repeat = 1n): this {
     for (let i = 0; i < repeat; i++) {
       this.instructions.push({
         RefundSurplus: null,
@@ -299,7 +339,7 @@ export class XcmFragment {
   }
 
   // Add a `ClaimAsset` instruction
-  claim_asset(index: number = 0): this {
+  claim_asset(index = 0): this {
     this.instructions.push({
       ClaimAsset: {
         assets: [
@@ -313,7 +353,7 @@ export class XcmFragment {
         // Ticket seems to indicate the version of the assets
         ticket: {
           parents: 0,
-          interior: { X1: { GeneralIndex: 4 } },
+          interior: { X1: { GeneralIndex: 5 } },
         },
       },
     });
@@ -321,7 +361,7 @@ export class XcmFragment {
   }
 
   // Add a `ClearOrigin` instruction
-  clear_origin(repeat: bigint = 1n): this {
+  clear_origin(repeat = 1n): this {
     for (let i = 0; i < repeat; i++) {
       this.instructions.push({ ClearOrigin: null as any });
     }
@@ -349,29 +389,9 @@ export class XcmFragment {
 
   // Add a `DepositAsset` instruction
   deposit_asset(
-    max_assets: bigint = 1n,
-    network: "Any" | XcmV3JunctionNetworkId["type"] = "Any"
-  ): this {
-    if (this.config.beneficiary == null) {
-      console.warn("!Building a DepositAsset instruction without a configured beneficiary");
-    }
-    this.instructions.push({
-      DepositAsset: {
-        assets: { Wild: "All" },
-        maxAssets: max_assets,
-        beneficiary: {
-          parents: 0,
-          interior: { X1: { AccountKey20: { network, key: this.config.beneficiary } } },
-        },
-      },
-    });
-    return this;
-  }
-
-  // Add a `DepositAsset` instruction for xcm v3
-  deposit_asset_v3(
-    max_assets: bigint = 1n,
-    network: XcmV3JunctionNetworkId["type"] | null = null
+    max_assets = 1n,
+    network: XcmV3JunctionNetworkId["type"] | null = null,
+    beneficiary: MultiLocation | null = null
   ): this {
     if (this.config.beneficiary == null) {
       console.warn("!Building a DepositAsset instruction without a configured beneficiary");
@@ -379,7 +399,7 @@ export class XcmFragment {
     this.instructions.push({
       DepositAsset: {
         assets: { Wild: { AllCounted: max_assets } },
-        beneficiary: {
+        beneficiary: beneficiary ?? {
           parents: 0,
           interior: { X1: { AccountKey20: { network, key: this.config.beneficiary } } },
         },
@@ -456,7 +476,8 @@ export class XcmFragment {
 
   // Utility function to support functional style method call chaining bound to `this` context
   with(callback: (this: this) => void): this {
-    return callback.call(this), this;
+    callback.call(this);
+    return this;
   }
 
   // Pushes the given instruction
@@ -481,41 +502,27 @@ export class XcmFragment {
 
   /// XCM V4 calls
   as_v4(): any {
-    const patchLocationV4recursively = (value: any) => {
-      // e.g. Convert this: { X1: { Parachain: 1000 } } to { X1: [ { Parachain: 1000 } ] }
-      if (value && typeof value == "object") {
-        if (Array.isArray(value)) {
-          return value.map(patchLocationV4recursively);
-        }
-        for (const k of Object.keys(value)) {
-          if (k === "Concrete" || k === "Abstract") {
-            return patchLocationV4recursively(value[k]);
-          }
-          if (k.match(/^X\d$/g) && !Array.isArray(value[k])) {
-            value[k] = Object.entries(value[k]).map(([k, v]) => ({
-              [k]: patchLocationV4recursively(v),
-            }));
-          } else {
-            value[k] = patchLocationV4recursively(value[k]);
-          }
-        }
-      }
-      return value;
-    };
     return {
-      V4: this.instructions.map((inst) => patchLocationV4recursively(inst)),
+      V4: this.instructions.map((inst) => patchLocation(inst)),
+    };
+  }
+
+  /// XCM V5 calls
+  as_v5(): any {
+    return {
+      V5: this.instructions.map((inst) => patchLocation(inst)),
     };
   }
 
   // Add a `BurnAsset` instruction
-  burn_asset(amount: bigint = 0n): this {
+  burn_asset(amount = 0n): this {
     this.instructions.push({
       BurnAsset: this.config.assets.map(({ multilocation, fungible }) => {
         return {
           id: {
             Concrete: multilocation,
           },
-          fun: { Fungible: amount == 0n ? fungible : amount },
+          fun: { Fungible: amount === 0n ? fungible : amount },
         };
       }, this),
     });
@@ -570,7 +577,7 @@ export class XcmFragment {
   }
 
   // Add a `ExpectError` instruction
-  expect_error(index: number = 0, error: string = "Unimplemented"): this {
+  expect_error(index = 0, error = "Unimplemented"): this {
     this.instructions.push({
       ExpectError: [index, error],
     });
@@ -578,7 +585,7 @@ export class XcmFragment {
   }
 
   // Add a `ExpectTransactStatus` instruction
-  expect_transact_status(status: string = "Success"): this {
+  expect_transact_status(status = "Success"): this {
     this.instructions.push({
       ExpectTransactStatus: status,
     });
@@ -589,7 +596,7 @@ export class XcmFragment {
   query_pallet(
     destination: MultiLocation = { parents: 1, interior: { X1: { Parachain: 1000 } } },
     query_id: number = Math.floor(Math.random() * 1000),
-    module_name: string = "pallet_balances",
+    module_name = "pallet_balances",
     max_weight: { refTime: bigint; proofSize: bigint } = {
       refTime: 1_000_000_000n,
       proofSize: 1_000_000_000n,
@@ -610,11 +617,11 @@ export class XcmFragment {
 
   // Add a `ExpectPallet` instruction
   expect_pallet(
-    index: number = 0,
-    name: string = "Balances",
-    module_name: string = "pallet_balances",
-    crate_major: number = 4,
-    min_crate_minor: number = 0
+    index = 0,
+    name = "Balances",
+    module_name = "pallet_balances",
+    crate_major = 4,
+    min_crate_minor = 0
   ): this {
     this.instructions.push({
       ExpectPallet: {
@@ -665,7 +672,7 @@ export class XcmFragment {
 
   // Add a `ExportMessage` instruction
   export_message(
-    xcm_hex: string = "",
+    xcm_hex = "",
     network: "Any" | XcmV3JunctionNetworkId["type"] = "Ethereum",
     destination: Junctions = { X1: { Parachain: 1000 } }
   ): this {
@@ -770,7 +777,7 @@ export class XcmFragment {
   }
 
   // Add a `SetFeesMode` instruction
-  set_fees_mode(jit_withdraw: boolean = true): this {
+  set_fees_mode(jit_withdraw = true): this {
     this.instructions.push({
       SetFeesMode: { jit_withdraw },
     });
@@ -778,7 +785,7 @@ export class XcmFragment {
   }
 
   // Add a `SetTopic` instruction
-  set_topic(topic: string = "0xk89103a9CF04c71Dbc94D0b566f7A2"): this {
+  set_topic(topic = "0xk89103a9CF04c71Dbc94D0b566f7A2"): this {
     this.instructions.push({
       SetTopic: Array.from(stringToU8a(topic)),
     });
@@ -826,7 +833,7 @@ export class XcmFragment {
     return this;
   }
 
-  // Overrides the weight limit of the first buyExeuction encountered
+  // Overrides the weight limit of the first buyExecution encountered
   // with the measured weight
   async override_weight(context: DevModeContext): Promise<this> {
     const message: XcmVersionedXcm = context
@@ -835,7 +842,7 @@ export class XcmFragment {
 
     const instructions = message.asV2;
     for (let i = 0; i < instructions.length; i++) {
-      if (instructions[i].isBuyExecution == true) {
+      if (instructions[i].isBuyExecution === true) {
         const newWeight = await weightMessage(context, message);
         this.instructions[i] = {
           BuyExecution: {
@@ -894,11 +901,303 @@ export const registerXcmTransactorDerivativeIndex = async (context: DevModeConte
 export const expectXcmEventMessage = async (context: DevModeContext, message: string) => {
   const records = await context.polkadotJs().query.system.events();
 
-  const filteredEvents = records
-    .map(({ event }) => (context.polkadotJs().events.xcmpQueue.Fail.is(event) ? event : undefined))
-    .filter((event) => event);
-
-  return filteredEvents.length ? filteredEvents[0]!.data.error.toString() === message : false;
+  return records
+    .filter(({ event }) => context.polkadotJs().events.xcmpQueue.Fail.is(event))
+    .some(
+      ({ event: { data: eventData } }: { event: { data: any } }) =>
+        eventData.error.toString() === message
+    );
 };
 
 type XcmCallback = (this: XcmFragment) => void;
+
+/**
+ * Converts an XcmFragment to the specified XCM version format.
+ * This helper method centralizes the version conversion logic.
+ *
+ * @param xcmFragment - The XcmFragment instance to convert
+ * @param xcmVersion - The target XCM version (3, 4, or 5)
+ * @returns The XcmFragment converted to the appropriate version format
+ */
+export function convertXcmFragmentToVersion(xcmFragment: XcmFragment, xcmVersion: XcmVersion): any {
+  switch (xcmVersion) {
+    case 3:
+      return xcmFragment.as_v3();
+    case 4:
+      return xcmFragment.as_v4();
+    case 5:
+      return xcmFragment.as_v5();
+    default:
+      throw new Error(`Unsupported XCM version: ${xcmVersion}`);
+  }
+}
+
+export function wrapWithXcmVersion(xcm: object, xcmVersion: XcmVersion): any {
+  switch (xcmVersion) {
+    case 3:
+      return { V3: xcm };
+    case 4:
+      return {
+        V4: patchLocation(xcm),
+      };
+    case 5:
+      return {
+        V5: patchLocation(xcm),
+      };
+    default:
+      throw new Error(`Unsupported XCM version: ${xcmVersion}`);
+  }
+}
+
+export const sendCallAsPara = async (
+  call: any,
+  paraId: number,
+  context: DevModeContext,
+  fungible = 10_000_000_000_000_000_000n, // Default 10 GLMR
+  allowFailure = false,
+  opts?: {
+    originKind?: string;
+  }
+) => {
+  const encodedCall = call.method.toHex();
+  const balancesPalletIndex = await getPalletIndex("Balances", context);
+
+  const QUERY_ID = 43981;
+
+  const xcmMessage = new XcmFragment({
+    assets: [
+      {
+        multilocation: {
+          parents: 0,
+          interior: {
+            X1: { PalletInstance: balancesPalletIndex },
+          },
+        },
+        fungible: fungible,
+      },
+    ],
+    weight_limit: {
+      refTime: 40_000_000_000n,
+      proofSize: 150_713n,
+    },
+    beneficiary: sovereignAccountOfSibling(context, paraId),
+  })
+    .withdraw_asset()
+    .buy_execution()
+    .push_any({
+      Transact: {
+        originKind: opts?.originKind ?? "Xcm",
+        requireWeightAtMost: {
+          refTime: 20_089_165_000n,
+          proofSize: 80_000n,
+        },
+        call: {
+          encoded: encodedCall,
+        },
+      },
+    })
+    .report_transact_status(
+      {
+        parents: 1,
+        interior: { X1: { Parachain: paraId } },
+      },
+      QUERY_ID
+    )
+    .refund_surplus()
+    .deposit_asset(1n, null, {
+      parents: 1,
+      interior: { X1: { Parachain: paraId } },
+    })
+    .as_v4();
+
+  const mockHrmpExistanceTx = context
+    .polkadotJs()
+    .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, paraId, 1000, 102400, 102400));
+  await mockHrmpExistanceTx.signAndSend(alith);
+
+  // Send an XCM and create block to execute it
+  await injectHrmpMessage(context, paraId, {
+    type: "XcmVersionedXcm",
+    payload: xcmMessage,
+  } as RawXcmMessage);
+
+  const blockRes = await context.createBlock(); // Passing an empty array to get the correct return type
+
+  if (!allowFailure) {
+    const event = await expectSystemEvent(
+      blockRes.block.hash,
+      "messageQueue",
+      "Processed",
+      context
+    );
+    // Processed.success == true, to check that xcm message was processed successfully
+    expect(event.event.data[3].toJSON()).to.be.true;
+  }
+
+  const transactStatusMsg = (
+    await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages()
+  )[0];
+
+  const transactStatusEncoded = "0x" + transactStatusMsg.data.toHex().slice(4);
+  const transactStatusDecoded = context
+    .polkadotJs()
+    .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
+
+  let didSucceed = false;
+  let errorName: string | null = null;
+
+  const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
+  expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
+  const dispatch = transactStatusQuery.response.asDispatchResult;
+  if (dispatch.isSuccess) {
+    didSucceed = true;
+  } else {
+    const error = dispatch.asError;
+    const dispatchError = context.polkadotJs().createType("DispatchError", error) as DispatchError;
+    if (dispatchError.isModule) {
+      const err = context.polkadotJs().registry.findMetaError({
+        index: dispatchError.asModule.index,
+        error: dispatchError.asModule.error,
+      });
+      errorName = err.name;
+    } else {
+      errorName = dispatchError.type;
+    }
+  }
+
+  if (!allowFailure) {
+    expect(errorName).to.be.null;
+    expect(didSucceed).to.be.true;
+  }
+
+  // this seems to fix an issue where we see SubscribeVersion instead of QueryResponse.
+  // a better fix would be set a correct XCM Version in pallet xcm for the parachain,
+  // so pallet xcm wouldn't need to send a SubscribeVersion message.
+  await context.createBlock();
+
+  return { blockRes, didSucceed, errorName };
+};
+
+export const sendCallAsDescendedOrigin = async (
+  address: `0x${string}`,
+  call: any,
+  paraId: number,
+  context: DevModeContext,
+  fungible = 10_000_000_000_000_000_000n, // Default 10 GLMR
+  allowFailure = false
+) => {
+  const descndedAddress = descendOriginFromAddress20(context, address, paraId);
+
+  const encodedCall = call.method.toHex();
+  const balancesPalletIndex = await getPalletIndex("Balances", context);
+
+  const QUERY_ID = 43981;
+
+  const xcmMessage = new XcmFragment({
+    assets: [
+      {
+        multilocation: {
+          parents: 0,
+          interior: {
+            X1: { PalletInstance: balancesPalletIndex },
+          },
+        },
+        fungible: fungible,
+      },
+    ],
+    weight_limit: {
+      refTime: 40_000_000_000n,
+      proofSize: 150_713n,
+    },
+    descend_origin: address,
+    beneficiary: descndedAddress.descendOriginAddress,
+  })
+    .withdraw_asset()
+    .buy_execution()
+    .descend_origin()
+    .push_any({
+      Transact: {
+        originKind: "Xcm",
+        requireWeightAtMost: {
+          refTime: 20_089_165_000n,
+          proofSize: 80_000n,
+        },
+        call: {
+          encoded: encodedCall,
+        },
+      },
+    })
+    .report_transact_status(
+      {
+        parents: 1,
+        interior: { X1: { Parachain: paraId } },
+      },
+      QUERY_ID
+    )
+    .refund_surplus()
+    .deposit_asset(1n, null, {
+      parents: 1,
+      interior: { X1: { Parachain: paraId } },
+    })
+    .as_v4();
+
+  const mockHrmpExistanceTx = context
+    .polkadotJs()
+    .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, paraId, 1000, 102400, 102400));
+  await mockHrmpExistanceTx.signAndSend(alith);
+
+  // Send an XCM and create block to execute it
+  await injectHrmpMessage(context, paraId, {
+    type: "XcmVersionedXcm",
+    payload: xcmMessage,
+  } as RawXcmMessage);
+
+  const { block } = await context.createBlock();
+
+  const transactStatusMsg = (
+    await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages()
+  )[0];
+
+  const transactStatusEncoded = "0x" + transactStatusMsg.data.toHex().slice(4);
+  const transactStatusDecoded = context
+    .polkadotJs()
+    .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
+
+  let didSucceed = false;
+  let errorName: string | null = null;
+
+  if (transactStatusDecoded.asV5[0].isSubscribeVersion) {
+    // Successful executions don't generate response messages in the same block
+    // instead, they send a subscription message to the destination parachain
+    // We assume that the call was successful if we receive a subscription message
+    didSucceed = true;
+  } else {
+    const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
+    expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
+    const dispatch = transactStatusQuery.response.asDispatchResult;
+    if (dispatch.isSuccess) {
+      didSucceed = true;
+    } else {
+      const error = dispatch.asError;
+      const dispatchError = context
+        .polkadotJs()
+        .createType("DispatchError", error) as DispatchError;
+      if (dispatchError.isModule) {
+        const err = context.polkadotJs().registry.findMetaError({
+          index: dispatchError.asModule.index,
+          error: dispatchError.asModule.error,
+        });
+        errorName = err.name;
+      } else {
+        errorName = dispatchError.type;
+      }
+    }
+  }
+
+  if (!allowFailure) {
+    expect(didSucceed).to.be.true;
+    expect(errorName).to.be.null;
+  }
+
+  return { block, didSucceed, errorName };
+};

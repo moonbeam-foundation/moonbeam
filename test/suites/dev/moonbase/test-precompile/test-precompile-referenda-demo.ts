@@ -15,7 +15,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D012869",
+  id: "D022856",
   title: "Precompiles - Referenda Auto Upgrade Demo",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
@@ -26,7 +26,7 @@ describeSuite({
         const setStorageCallIndex = u8aToHex(context.polkadotJs().tx.system.setStorage.callIndex);
         const trackName = "root";
         const tracksInfo = context.polkadotJs().consts.referenda.tracks;
-        const trackInfo = tracksInfo.find((track) => track[1].name.toString() == trackName);
+        const trackInfo = tracksInfo.find((track) => track[1].name.toString() === trackName);
         expect(trackInfo).to.not.be.empty;
 
         const { contractAddress: refUpgradeDemoV1Address, abi: refUpgradeDemoV1Abi } =

@@ -127,7 +127,7 @@ const main = async () => {
   // Instantiate Api
   const api = await getApiFor(argv);
   const totalIssuance = (await api.query.balances.totalIssuance()).toBigInt();
-  const proposalIndex = argv["generate-proposal"]
+  const proposalIndex: number = argv["generate-proposal"]
     ? (await api.query.referenda.referendumCount()).toNumber()
     : argv["proposal-index"];
 
@@ -143,6 +143,7 @@ const main = async () => {
 
   const referendumData = await api.query.referenda.referendumInfoFor(proposalIndex);
   const referendumKey = api.query.referenda.referendumInfoFor.key(proposalIndex);
+
   if (!referendumData.isSome) {
     throw new Error(`Referendum ${proposalIndex} not found`);
   }
@@ -204,7 +205,8 @@ const main = async () => {
     }
     const callData = api.createType("Call", call.asInline.toHex());
     return (
-      callData.method == "nudgeReferendum" && (callData.args[0] as any).toNumber() == proposalIndex
+      callData.method === "nudgeReferendum" &&
+      (callData.args[0] as any).toNumber() === proposalIndex
     );
   });
 
@@ -221,7 +223,7 @@ const main = async () => {
       (await api.rpc.chain.getHeader()).number.toNumber() + 2
     )}`
   );
-  await moveScheduledCallTo(api, 1, (call) => call.isLookup && call.asLookup.toHex() == callHash);
+  await moveScheduledCallTo(api, 1, (call) => call.isLookup && call.asLookup.toHex() === callHash);
 
   console.log(
     `${chalk.yellow("Fast forward")} ${chalk.green(1)} to #${chalk.green(

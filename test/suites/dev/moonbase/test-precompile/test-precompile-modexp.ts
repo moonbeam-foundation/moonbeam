@@ -7,7 +7,7 @@ import { expectEVMResult, testVectors } from "../../../../helpers";
 const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
 
 describeSuite({
-  id: "D012857",
+  id: "D022843",
   title: "Precompiles - modexp",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -65,7 +65,7 @@ describeSuite({
       id: "T03",
       title: "EIP example 1 - gas",
       test: async function () {
-        const expectedModExpGasCost = 1360n;
+        const expectedModExpGasCost = 3029n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000001" + // base length
           "0000000000000000000000000000000000000000000000000000000000000020" + // exponent length
@@ -75,7 +75,7 @@ describeSuite({
           "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"; // modulus
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -125,7 +125,7 @@ describeSuite({
       id: "T05",
       title: "EIP example 2 - gas",
       test: async function () {
-        const expectedModExpGasCost = 1360n;
+        const expectedModExpGasCost = 3029n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000000" + // base length
           "0000000000000000000000000000000000000000000000000000000000000020" + // exponent length
@@ -135,7 +135,7 @@ describeSuite({
           "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f"; // modulus
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -158,7 +158,7 @@ describeSuite({
       id: "T06",
       title: "nagydani-1-square - gas",
       test: async function () {
-        const expectedModExpGasCost = 200n;
+        const expectedModExpGasCost = 1869n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000040" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -168,7 +168,7 @@ describeSuite({
           testVectors["nagydani-1-square"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -193,7 +193,7 @@ describeSuite({
       id: "T07",
       title: "nagydani-1-qube - gas",
       test: async function () {
-        const expectedModExpGasCost = 200n;
+        const expectedModExpGasCost = 1869n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000040" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -203,7 +203,7 @@ describeSuite({
           testVectors["nagydani-1-qube"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -227,7 +227,7 @@ describeSuite({
       id: "T08",
       title: "nagydani-1-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 341n;
+        const expectedModExpGasCost = 2010n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000040" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -237,7 +237,7 @@ describeSuite({
           testVectors["nagydani-1-pow0x10001"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -261,7 +261,7 @@ describeSuite({
       id: "T09",
       title: "nagydani-2-square - gas",
       test: async function () {
-        const expectedModExpGasCost = 200n;
+        const expectedModExpGasCost = 1869n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000080" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -271,7 +271,7 @@ describeSuite({
           testVectors["nagydani-2-square"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -295,7 +295,7 @@ describeSuite({
       id: "T10",
       title: "nagydani-2-qube - gas",
       test: async function () {
-        const expectedModExpGasCost = 200n;
+        const expectedModExpGasCost = 1869n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000080" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -305,7 +305,7 @@ describeSuite({
           testVectors["nagydani-2-qube"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -329,7 +329,7 @@ describeSuite({
       id: "T11",
       title: "nagydani-2-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 1365n;
+        const expectedModExpGasCost = 3034n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000080" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -339,7 +339,7 @@ describeSuite({
           testVectors["nagydani-2-pow0x10001"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -363,7 +363,7 @@ describeSuite({
       id: "T12",
       title: "nagydani-3-square - gas",
       test: async function () {
-        const expectedModExpGasCost = 341n;
+        const expectedModExpGasCost = 2010n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000100" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -373,7 +373,7 @@ describeSuite({
           testVectors["nagydani-3-square"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -397,7 +397,7 @@ describeSuite({
       id: "T13",
       title: "nagydani-3-qube - gas",
       test: async function () {
-        const expectedModExpGasCost = 341n;
+        const expectedModExpGasCost = 2010n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000100" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -407,7 +407,7 @@ describeSuite({
           testVectors["nagydani-3-qube"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -431,7 +431,7 @@ describeSuite({
       id: "T14",
       title: "nagydani-3-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 5461n;
+        const expectedModExpGasCost = 7130n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000100" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -441,7 +441,7 @@ describeSuite({
           testVectors["nagydani-3-pow0x10001"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -465,7 +465,7 @@ describeSuite({
       id: "T15",
       title: "nagydani-4-square - gas",
       test: async function () {
-        const expectedModExpGasCost = 1365n;
+        const expectedModExpGasCost = 3034n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000200" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -475,7 +475,7 @@ describeSuite({
           testVectors["nagydani-4-square"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -499,7 +499,7 @@ describeSuite({
       id: "T16",
       title: "nagydani-4-qube - gas",
       test: async function () {
-        const expectedModExpGasCost = 1365n;
+        const expectedModExpGasCost = 3034n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000200" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -509,7 +509,7 @@ describeSuite({
           testVectors["nagydani-4-qube"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -533,7 +533,7 @@ describeSuite({
       id: "T17",
       title: "nagydani-4-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 21845n;
+        const expectedModExpGasCost = 23514n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000200" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -543,7 +543,7 @@ describeSuite({
           testVectors["nagydani-4-pow0x10001"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -567,7 +567,7 @@ describeSuite({
       id: "T18",
       title: "nagydani-5-square - gas",
       test: async function () {
-        const expectedModExpGasCost = 5461n;
+        const expectedModExpGasCost = 7130n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000400" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -577,7 +577,7 @@ describeSuite({
           testVectors["nagydani-5-square"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -601,7 +601,7 @@ describeSuite({
       id: "T19",
       title: "nagydani-5-qube - gas",
       test: async function () {
-        const expectedModExpGasCost = 5461n;
+        const expectedModExpGasCost = 7130n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000400" + // base length
           "0000000000000000000000000000000000000000000000000000000000000001" + // exponent length
@@ -611,7 +611,7 @@ describeSuite({
           testVectors["nagydani-5-qube"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -635,7 +635,7 @@ describeSuite({
       id: "T20",
       title: "nagydani-5-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 87381n;
+        const expectedModExpGasCost = 89050n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000400" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -645,7 +645,7 @@ describeSuite({
           testVectors["nagydani-5-pow0x10001"].modulus;
         const byteArray = hexToU8a(inputData);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -697,7 +697,7 @@ describeSuite({
         ]);
         const inputData = u8aToHex(byteArray);
         const inputLength = byteArray.length;
-        const numZeroBytes = byteArray.filter((a) => a == 0).length;
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
         const numNonZeroBytes = inputLength - numZeroBytes;
 
         const rawTxn = await createViemTransaction(context, {
@@ -711,8 +711,13 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
+        const isPrecompileCheckGas = 1669n;
         const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
+          receipt.gasUsed -
+          BigInt(numNonZeroBytes) * 16n -
+          BigInt(numZeroBytes) * 4n -
+          21000n -
+          isPrecompileCheckGas;
         expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
       },
     });

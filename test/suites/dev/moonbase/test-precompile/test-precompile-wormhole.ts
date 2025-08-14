@@ -5,8 +5,8 @@ import { Enum, Struct } from "@polkadot/types";
 import type { Registry } from "@polkadot/types/types/registry";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
-import { InterfaceAbi, ethers } from "ethers";
-import { Abi, encodeFunctionData } from "viem";
+import { type InterfaceAbi, ethers } from "ethers";
+import { type Abi, encodeFunctionData } from "viem";
 import {
   expectEVMResult,
   expectSubstrateEvents,
@@ -50,21 +50,8 @@ const PRECOMPILE_GMP_ADDRESS = "0x0000000000000000000000000000000000000816";
 const WH_IMPLICIT_DECIMALS = 18n;
 const WH_IMPLICIT_MULTIPLIER = 10n ** WH_IMPLICIT_DECIMALS;
 
-const versionedMultiLocation = {
-  v1: {
-    parents: 1,
-    interior: {
-      X1: {
-        AccountKey20: {
-          id: "0x0000000000000000000000000000000000000000000000000000000000000000",
-        },
-      },
-    },
-  },
-};
-
 describeSuite({
-  id: "D012887",
+  id: "D022874",
   title: "Test local Wormhole",
   foundationMethods: "dev",
 
@@ -124,14 +111,16 @@ describeSuite({
 
     // destination used for xtoken transfers
     const versionedMultiLocation = {
-      v1: {
+      v4: {
         parents: 1,
         interior: {
-          X1: {
-            AccountKey20: {
-              id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+          X1: [
+            {
+              AccountKey20: {
+                id: "0x0000000000000000000000000000000000000000000000000000000000000000",
+              },
             },
-          },
+          ],
         },
       },
     };
@@ -155,6 +144,50 @@ describeSuite({
     }
 
     beforeAll(async function () {
+      // Register the VersionedMultiLocation type with V1 variant for the GMP precompile
+      context.polkadotJs().registry.register({
+        VersionedMultiLocation: {
+          _enum: {
+            v0: "Null",
+            v1: "MultiLocationV1",
+            v2: "Null", // v2 is same as v1 and therefore re-using the v1 index
+            v3: "MultiLocationV3",
+            v4: "MultiLocationV4",
+            v5: "MultiLocationV5",
+          },
+        },
+        MultiLocationV1: {
+          parents: "u8",
+          interior: "JunctionsV1",
+        },
+        JunctionsV1: {
+          _enum: {
+            Here: "Null",
+            X1: "JunctionV1",
+          },
+        },
+        JunctionV1: {
+          _enum: {
+            Parachain: "Compact<u32>",
+            AccountId32: "Null",
+            AccountIndex64: "Null",
+            AccountKey20: "ENUM_AccountKey20",
+          },
+        },
+        ENUM_AccountKey20: {
+          network: "NetworkId",
+          key: "[u8; 20]",
+        },
+        NetworkId: {
+          _enum: {
+            Any: "Null",
+            Named: "Vec<u8>",
+            Polkadot: "Null",
+            Kusama: "Null",
+          },
+        },
+      });
+
       const wethDeployment = await deploy("MockWETH9");
       // wethContract = wethDeployment.contract;
       wethAddress = wethDeployment.contractAddress;
@@ -192,9 +225,8 @@ describeSuite({
       const finality = 1;
       // Deploy bridge (based on wormhole)
       // wormhole-foundation/wormhole/blob/main/ethereum/migrations/3_deploy_bridge.js
-      const { contractAddress: tokenImplAddr } = await context.deployContract!(
-        "TokenImplementation"
-      );
+      const { contractAddress: tokenImplAddr } =
+        await context.deployContract!("TokenImplementation");
       log(`wormhole token impl deployed to ${tokenImplAddr}`);
       const { contractAddress: bridgeSetupAddr, abi: bridgeSetupAbi } =
         await context.deployContract!("BridgeSetup");
@@ -639,6 +671,64 @@ describeSuite({
 
         expectEVMResult(result.result.events, "Succeed", "Returned");
         const events = expectSubstrateEvents(result, "polkadotXcm", "Attempted");
+        const outcomeEvent = events[0].data[0];
+        expect(outcomeEvent.isComplete);
+      },
+    });
+
+    it({
+      id: "T06",
+      title: "should support XCM MultiLocation V1",
+      test: async function () {
+        // create V1 versionedMultiLocation
+        const versionedMultiLocationV1 = {
+          v1: {
+            parents: 1,
+            interior: {
+              X1: {
+                AccountKey20: {
+                  network: "Any",
+                  key: "0x0000000000000000000000000000000000000000",
+                },
+              },
+            },
+          },
+        };
+
+        // create payload
+        const destination = context
+          .polkadotJs()
+          .createType("VersionedMultiLocation", versionedMultiLocationV1);
+
+        const userAction = new XcmRoutingUserAction(context.pjsApi.registry, { destination });
+        const versionedUserAction = new VersionedUserAction(context.pjsApi.registry, {
+          V1: userAction,
+        });
+
+        const whAmount = 999n;
+        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+
+        const transferVAA = await makeTestVAA(
+          Number(whAmount),
+          wethAddress,
+          foreignChainId,
+          versionedUserAction
+        );
+
+        const rawTx = await context.writePrecompile!({
+          precompileName: "Gmp",
+          functionName: "wormholeTransferERC20",
+          args: [`0x${transferVAA}`],
+          rawTxOnly: true,
+        });
+        const block = await context.createBlock(rawTx);
+
+        if (!block.result?.events) {
+          throw new Error("no events in result");
+        }
+
+        expectEVMResult(block.result.events, "Succeed", "Returned");
+        const events = expectSubstrateEvents(block, "polkadotXcm", "Attempted");
         const outcomeEvent = events[0].data[0];
         expect(outcomeEvent.isComplete);
       },

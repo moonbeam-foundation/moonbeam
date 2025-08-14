@@ -1,15 +1,15 @@
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 import {
-  RawXcmMessage,
+  type RawXcmMessage,
   XcmFragment,
   descendOriginFromAddress20,
   injectHrmpMessage,
 } from "../../helpers";
 
 describeSuite({
-  id: "T11",
+  id: "T14",
   title: "Trace ethereum xcm #2",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -40,7 +40,7 @@ describeSuite({
       // Get Pallet balances index
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       const balancesPalletIndex = metadata.asLatest.pallets
-        .find(({ name }) => name.toString() == "Balances")!
+        .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
 
       const xcmTransaction = {

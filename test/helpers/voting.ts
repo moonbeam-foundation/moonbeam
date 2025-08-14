@@ -1,8 +1,8 @@
-import { DevModeContext, filterAndApply } from "@moonwall/cli";
+import { type DevModeContext, filterAndApply } from "@moonwall/cli";
 import { alith, baltathar } from "@moonwall/util";
 import { expectSubstrateEvent } from "./expect.js";
-import { KeyringPair } from "@polkadot/keyring/types";
-import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import type { KeyringPair } from "@polkadot/keyring/types";
+import type { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 
 export async function createProposal({
   context,
@@ -23,7 +23,7 @@ export async function createProposal({
     await context
       .polkadotJs()
       .tx.referenda.submit(
-        track == "root" ? { system: "root" } : { Origins: track },
+        track === "root" ? { system: "root" } : { Origins: track },
         { Lookup: { Hash: call.hash.toHex(), len: call.method.encodedLength } },
         { After: 1 }
       )
@@ -49,7 +49,7 @@ export const OPEN_TECHNICAL_COMMITTEE_THRESHOLD = Math.ceil(
 
 export const executeExtViaOpenTechCommittee = async <
   Call extends SubmittableExtrinsic<ApiType>,
-  ApiType extends ApiTypes
+  ApiType extends ApiTypes,
 >(
   context: DevModeContext,
   extrinsic: Call | string,

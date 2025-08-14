@@ -7,7 +7,7 @@ import { parseGwei } from "viem";
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.
 describeSuite({
-  id: "D011001",
+  id: "D020901",
   title: "Fee History",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -49,11 +49,10 @@ describeSuite({
         return a - b;
       });
       const index = (percentile / 100) * array.length - 1;
-      if (Math.floor(index) == index) {
+      if (Math.floor(index) === index) {
         return array[index];
-      } else {
-        return Math.ceil((array[Math.floor(index)] + array[Math.ceil(index)]) / 2);
       }
+      return Math.ceil((array[Math.floor(index)] + array[Math.ceil(index)]) / 2);
     }
 
     function matchExpectations(
@@ -93,7 +92,7 @@ describeSuite({
         const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
           const unwatch = context.viem().watchBlocks({
             onBlock: async (block) => {
-              if (Number(block.number! - startingBlock) == block_count) {
+              if (Number(block.number! - startingBlock) === block_count) {
                 const result = (await customDevRpcRequest("eth_feeHistory", [
                   "0x2",
                   "latest",
@@ -126,7 +125,7 @@ describeSuite({
         const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
           const unwatch = context.viem().watchBlocks({
             onBlock: async (block) => {
-              if (Number(block.number! - startingBlock) == block_count) {
+              if (Number(block.number! - startingBlock) === block_count) {
                 const result = (await customDevRpcRequest("eth_feeHistory", [
                   "0xA",
                   "latest",
@@ -180,7 +179,7 @@ describeSuite({
         const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
           const unwatch = context.viem().watchBlocks({
             onBlock: async (block) => {
-              if (Number(block.number! - startingBlock) == block_count) {
+              if (Number(block.number! - startingBlock) === block_count) {
                 const result = (await customDevRpcRequest("eth_feeHistory", [
                   block_count,
                   "latest",

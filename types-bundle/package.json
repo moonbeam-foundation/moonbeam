@@ -1,0 +1,66 @@
+{
+  "name": "@moonbeam-network/types-bundle",
+  "version": "1.0.2",
+  "description": "Bundled types to instantiate the Polkadot JS api with a Moonbeam network",
+  "main": "./dist/definitions.cjs",
+  "prepublish": "tsc",
+  "type": "module",
+  "module": "./dist/definitions.js",
+  "types": "./dist/definitions.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/definitions.d.ts",
+      "import": "./dist/definitions.js",
+      "require": "./dist/definitions.cjs"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js",
+      "require": "./dist/types.cjs"
+    },
+    "./rpc": {
+      "types": "./dist/rpc.d.ts",
+      "import": "./dist/rpc.js",
+      "require": "./dist/rpc.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "clean": "rm -rf node_modules && rm -rf dist",
+    "tsc": "tsc --noEmit --pretty",
+    "build": "tsup src --format cjs,esm --dts --no-splitting",
+    "publish-package": "npm run build && npm publish",
+    "check":"biome check .",
+    "check:fix": "biome check . --write"
+  },
+  "keywords": [
+    "moonbeam",
+    "moonriver",
+    "types",
+    "bundle",
+    "polkadot",
+    "api"
+  ],
+  "author": "Moonsong Labs",
+  "license": "GPL-3.0-only",
+  "homepage": "https://github.com/moonbeam-foundation/moonbeam/tree/master/types-bundle#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moonbeam-foundation/moonbeam.git",
+    "directory": "typescript-api"
+  },
+  "dependencies": {
+    "@biomejs/biome": "*",
+    "@polkadot/api": "*",
+    "@polkadot/api-base": "*",
+    "@polkadot/rpc-core": "*",
+    "@polkadot/typegen": "*",
+    "@polkadot/types": "*",
+    "@polkadot/types-codec": "*",
+    "tsup": "*",
+    "typescript": "*"
+  }
+}

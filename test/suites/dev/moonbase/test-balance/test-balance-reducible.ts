@@ -12,7 +12,7 @@ import {
 import { blake2AsHex } from "@polkadot/util-crypto";
 
 describeSuite({
-  id: "D010304",
+  id: "D020304",
   title: "Reducible Balance",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 import { jumpToRound } from "../../../../helpers";
 
 describeSuite({
-  id: "D013427",
+  id: "D023428",
   title: "Staking - Delegation Scheduled Requests - execute revoke early",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -16,7 +16,14 @@ describeSuite({
           .signAsync(alith),
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            alith.address,
+            MIN_GLMR_DELEGATOR,
+            0,
+            0,
+            0,
+            0
+          )
           .signAsync(ethan),
       ]);
 

@@ -5,7 +5,7 @@ import { expectEVMResult, createProposal, ConvictionVoting } from "../../../../h
 const CONVICTION_VALUES = [0n, 1n, 2n, 3n, 4n, 5n, 6n];
 
 describeSuite({
-  id: "D012832",
+  id: "D022818",
   title: "Precompiles - Conviction",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
@@ -33,7 +33,7 @@ describeSuite({
             .polkadotJs()
             .query.referenda.referendumInfoFor(proposalIndex);
           expect(referendum.unwrap().asOngoing.tally.ayes.toBigInt()).to.equal(
-            1n * 10n ** 17n * (conviction == 0n ? 1n : conviction * 10n)
+            1n * 10n ** 17n * (conviction === 0n ? 1n : conviction * 10n)
           );
         },
       });

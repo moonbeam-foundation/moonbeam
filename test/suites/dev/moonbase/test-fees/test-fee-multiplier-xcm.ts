@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, type KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
 import { bnToHex } from "@polkadot/util";
 import {
-  RawXcmMessage,
+  type RawXcmMessage,
   XcmFragment,
   descendOriginFromAddress20,
   expectOk,
@@ -43,7 +43,7 @@ async function setFeeMultiplier(context: any, value: bigint) {
 // To make sense of them, basically remove 18 zeroes (divide by 10^18). This will give you the
 // number used internally by transaction-payment for fee calculations.
 describeSuite({
-  id: "D011604",
+  id: "D021504",
   title: "Fee Multiplier - XCM Executions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -70,7 +70,7 @@ describeSuite({
 
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       balancesPalletIndex = metadata.asLatest.pallets
-        .find(({ name }) => name.toString() == "Balances")!
+        .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
     });
 

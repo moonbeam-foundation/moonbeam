@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -216,6 +216,8 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 		)])
 		.build()
 		.execute_with(|| {
+			set_parachain_inherent_data();
+
 			let _result = Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX));
 			rpc_run_to_block(2);
 			let statuses =
@@ -273,6 +275,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 		)])
 		.build()
 		.execute_with(|| {
+			set_parachain_inherent_data();
 			let _result = Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX));
 			rpc_run_to_block(2);
 			let receipts = Runtime::current_receipts().expect("Receipts result.");
@@ -283,7 +286,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 #[test]
 fn txpool_runtime_api_extrinsic_filter() {
 	ExtBuilder::default().build().execute_with(|| {
-		let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
+		let non_eth_uxt = UncheckedExtrinsic::new_bare(
 			pallet_balances::Call::<Runtime>::transfer_allow_death {
 				dest: AccountId::from(BOB),
 				value: 1 * UNIT,

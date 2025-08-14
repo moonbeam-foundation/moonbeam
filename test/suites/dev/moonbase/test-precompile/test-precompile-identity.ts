@@ -5,7 +5,7 @@ import { toHex } from "viem";
 import { PRECOMPILE_IDENTITY_ADDRESS } from "../../../../helpers";
 
 describeSuite({
-  id: "D012843",
+  id: "D022829",
   title: "Precompiles - Identity precompile",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {
@@ -29,7 +29,9 @@ describeSuite({
         //    ..the other variants
         //
         // See BitWise operator (<<) for more info.
-        context.polkadotJs().tx.identity.setFields(0, 0b111 as any)
+        context
+          .polkadotJs()
+          .tx.identity.setFields(0, 0b111 as any)
       );
 
       await context.createBlock(

@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { GLMR, MIN_GLMR_DELEGATOR, alith, baltathar, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D013477",
+  id: "D023479",
   title: "Staking - Locks - delegator balance is locked",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -20,7 +20,14 @@ describeSuite({
       await context.createBlock(
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            alith.address,
+            MIN_GLMR_DELEGATOR,
+            0,
+            0,
+            0,
+            0
+          )
           .signAsync(randomAccount),
         { allowFailures: false }
       );
@@ -33,7 +40,14 @@ describeSuite({
         const { result } = await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(baltathar.address, MIN_GLMR_DELEGATOR, 10, 10)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              baltathar.address,
+              MIN_GLMR_DELEGATOR,
+              0,
+              10,
+              0,
+              10
+            )
             .signAsync(randomAccount)
         );
         expect(result!.error!.name.toString()).to.be.equal("InsufficientBalance");

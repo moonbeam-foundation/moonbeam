@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import { charleth, getBlockExtrinsic } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 
 // Keys used to set author-mapping in the tests
 const originalKeys = [
@@ -12,7 +12,7 @@ const originalKeys = [
 const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
 describeSuite({
-  id: "D010210",
+  id: "D020210",
   title: "Author Mapping - Remove Charlie keys",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -54,7 +54,7 @@ describeSuite({
           "authorMapping",
           "removeKeys"
         );
-        expect(events.find((e) => e.section == "authorMapping" && e.method == "KeysRemoved")).to
+        expect(events.find((e) => e.section === "authorMapping" && e.method === "KeysRemoved")).to
           .exist;
       },
     });

@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -178,11 +178,10 @@ fn test_transact_xcm_evm_call_works() {
 		)
 		.expect("Failed to call `bar`");
 
-		let pending = pallet_ethereum::Pending::<Test>::get();
-		assert!(pending.len() == 2);
+		assert!(pallet_ethereum::Pending::<Test>::count() == 2);
 
 		// Transaction is in Pending storage, with nonce 0 and status 1 (evm succeed).
-		let (transaction_0, _, receipt_0) = &pending[0];
+		let (transaction_0, _, receipt_0) = &pallet_ethereum::Pending::<Test>::get(0).unwrap();
 		match (transaction_0, receipt_0) {
 			(&crate::Transaction::Legacy(ref t), &crate::Receipt::Legacy(ref r)) => {
 				assert!(t.nonce == U256::from(0u8));
@@ -192,7 +191,7 @@ fn test_transact_xcm_evm_call_works() {
 		}
 
 		// Transaction is in Pending storage, with nonce 1 and status 0 (evm failed).
-		let (transaction_1, _, receipt_1) = &pending[1];
+		let (transaction_1, _, receipt_1) = &pallet_ethereum::Pending::<Test>::get(1).unwrap();
 		match (transaction_1, receipt_1) {
 			(&crate::Transaction::Legacy(ref t), &crate::Receipt::Legacy(ref r)) => {
 				assert!(t.nonce == U256::from(1u8));
@@ -417,8 +416,7 @@ fn test_transaction_hash_collision() {
 		)
 		.expect("Failed to execute transaction from Bob to Charlie");
 
-		let mut hashes = pallet_ethereum::Pending::<Test>::get()
-			.iter()
+		let mut hashes = pallet_ethereum::Pending::<Test>::iter_values()
 			.map(|(tx, _, _)| tx.hash())
 			.collect::<Vec<ethereum_types::H256>>();
 

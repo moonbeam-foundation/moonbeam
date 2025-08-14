@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { PRECOMPILE_RELAY_DATA_VERIFIER_ADDRESS } from "../../../../helpers";
 
 describeSuite({
-  id: "D012872",
+  id: "D022859",
   title: "Precompiles - relay-verifier",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -78,24 +78,24 @@ describeSuite({
               ])
           ),
       ]);
-    }),
-      it({
-        id: "T01",
-        title: "should successfully verify the Timestamp value in the proof",
-        test: async function () {
-          const readProof = context.polkadotJs().createType("ReadProof", proof);
+    });
+    it({
+      id: "T01",
+      title: "should successfully verify the Timestamp value in the proof",
+      test: async function () {
+        const readProof = context.polkadotJs().createType("ReadProof", proof);
 
-          expect(
-            await context.readContract!({
-              contractAddress: PRECOMPILE_RELAY_DATA_VERIFIER_ADDRESS,
-              contractName: "RelayDataVerifier",
-              functionName: "verifyEntry",
-              args: [1000, readProof.toJSON(), keys[0]],
-              gas: 100_000n,
-            })
-          ).toBe("0xc0e413b88d010000"); // 1_708_190_328_000 scale encoded
-        },
-      });
+        expect(
+          await context.readContract!({
+            contractAddress: PRECOMPILE_RELAY_DATA_VERIFIER_ADDRESS,
+            contractName: "RelayDataVerifier",
+            functionName: "verifyEntry",
+            args: [1000, readProof.toJSON(), keys[0]],
+            gas: 100_000n,
+          })
+        ).toBe("0xc0e413b88d010000"); // 1_708_190_328_000 scale encoded
+      },
+    });
     it({
       id: "T02",
       title: "should successfully verify the values in the proof (order of values matters)",

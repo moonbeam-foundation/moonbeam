@@ -5,7 +5,7 @@ import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 const numberToHex = (n: bigint): string => `0x${n.toString(16).padStart(32, "0")}`;
 
 describeSuite({
-  id: "D013419",
+  id: "D023420",
   title: "Staking - Delegation Scheduled Requests - schedule revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -18,7 +18,14 @@ describeSuite({
             .signAsync(alith),
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              alith.address,
+              MIN_GLMR_DELEGATOR,
+              0,
+              0,
+              0,
+              0
+            )
             .signAsync(ethan),
         ],
         { signer: alith, allowFailures: false }

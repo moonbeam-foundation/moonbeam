@@ -8,7 +8,7 @@ import {
 } from "@moonwall/util";
 
 describeSuite({
-  id: "D011300",
+  id: "D021202",
   title: "Native Token Transfer Test",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

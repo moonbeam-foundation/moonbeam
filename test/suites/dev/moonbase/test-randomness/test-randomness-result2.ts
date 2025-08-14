@@ -7,12 +7,12 @@ import {
   GLMR,
   alith,
 } from "@moonwall/util";
-import { Option } from "@polkadot/types";
-import { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
+import type { Option } from "@polkadot/types";
+import type { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { jumpBlocks, SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
-  id: "D013108",
+  id: "D023108",
   title: "Randomness Result - Fulfilling one of multiple random numbers",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

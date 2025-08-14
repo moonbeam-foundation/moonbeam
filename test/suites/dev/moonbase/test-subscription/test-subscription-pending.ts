@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, GLMR, createRawTransfer, sendRawTransaction } from "@moonwall/util";
-import { setTimeout } from "timers/promises";
+import { setTimeout } from "node:timers/promises";
 
 describeSuite({
-  id: "D013604",
+  id: "D023604",
   title: "Subscription -  Pending transactions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

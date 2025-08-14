@@ -10,7 +10,7 @@ import { ALITH_ADDRESS, PRECOMPILE_BATCH_ADDRESS } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D011803",
+  id: "D021703",
   title: "Estimate Gas - Contract estimation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

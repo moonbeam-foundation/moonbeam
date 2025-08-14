@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   GLMR,
-  KeyringPair,
+  type KeyringPair,
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
   alith,
@@ -11,7 +11,7 @@ import {
 import { chunk, jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D013450",
+  id: "D023451",
   title: "Staking - Rewards Auto-Compound - PoV Size",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -101,12 +101,12 @@ describeSuite({
           "proofSize is too high, this might lead to empty block"
         ).to.be.at.most(2_616_200);
 
-        // block could support ~500ms refTime but we consider it safer to error when reaching
-        // over 210ms for the payout. After Async Backing a block could support 2000ms.
+        // block could support ~2000ms refTime but we consider it safer to error when reaching
+        // over 214ms for the payout.
         expect(
           weights.mandatory.refTime.toNumber(),
-          "refTime over 210ms, very high for a payout"
-        ).to.be.at.most(210_000_000_000);
+          "refTime over 214ms, very high for a payout"
+        ).to.be.at.most(214_000_000_000);
 
         expect(
           weights.mandatory.proofSize.toNumber(),

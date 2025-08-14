@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -64,6 +64,7 @@ where
 	Runtime::RuntimeCall: From<AuthorMappingCall<Runtime>>,
 	Runtime::Hash: From<H256>,
 	Runtime::AccountId: Into<H160>,
+	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	#[precompile::public("addAssociation(bytes32)")]

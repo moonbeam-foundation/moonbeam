@@ -8,10 +8,10 @@ import {
 import { createEthersTransaction } from "@moonwall/util";
 import { expectEVMResult } from "helpers/eth-transactions";
 import { expectOk } from "helpers/expect";
-import { Abi, encodeFunctionData } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D013503",
+  id: "D023503",
   title: "Storage growth limit - New Entries",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -1,9 +1,9 @@
 #!/usr/bin/env ts-node
 
-import { exec as execProcess } from "child_process";
+import { exec as execProcess } from "node:child_process";
 import yargs from "yargs";
 import util from "node:util";
-import fs from "fs";
+import fs from "node:fs";
 import os from "os";
 import path from "path";
 import { strict as assert } from "node:assert";
@@ -256,7 +256,6 @@ async function view(input: string, output: string, open: boolean) {
   const totalWrites = data.map((x: any) => x["totalWrites"]);
   const extrinsicTime = data.map((x: any) => x["extrinsicTime"]);
 
-  // editorconfig-checker-disable
   fs.writeFileSync(
     output,
     `<html>
@@ -446,7 +445,6 @@ async function view(input: string, output: string, open: boolean) {
     <body>
   </html>`
   );
-  // editorconfig-checker-enable
 
   if (open) {
     await exec(`${openCmd} ${output}`);
@@ -474,7 +472,6 @@ async function analyze(inputs: string[], output: string) {
   }
   const colors = new Array(inputs.length).fill(0).map((x) => random_rgb());
 
-  // editorconfig-checker-disable
   fs.writeFileSync(
     output,
     `<html>
@@ -675,7 +672,6 @@ async function analyze(inputs: string[], output: string) {
     <body>
   </html>`
   );
-  // editorconfig-checker-enable
 
   await exec(`${openCmd} ${output}`);
 }

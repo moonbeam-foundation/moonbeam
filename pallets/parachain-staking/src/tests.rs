@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -27,15 +27,16 @@ use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, Sc
 use crate::mock::{
 	inflation_configs, roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author,
 	set_block_author, AccountId, Balances, BlockNumber, ExtBuilder, ParachainStaking, RuntimeEvent,
-	RuntimeOrigin, Test,
+	RuntimeOrigin, Test, POINTS_PER_BLOCK, POINTS_PER_ROUND,
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded,
-	EnableMarkingOffline, Error, Event, InflationDistributionInfo, Range, DELEGATOR_LOCK_ID,
+	EnableMarkingOffline, Error, Event, InflationDistributionInfo, Range, WasInactive,
+	DELEGATOR_LOCK_ID,
 };
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
-use frame_support::{assert_err, assert_noop, assert_ok, pallet_prelude::*, BoundedVec};
+use frame_support::{assert_noop, assert_ok, BoundedVec};
 use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 // ~~ ROOT ~~
@@ -1174,7 +1175,77 @@ fn enable_marking_offline_fails_bad_origin() {
 }
 
 #[test]
+fn was_inactive_is_cleaned_up_after_max_offline_rounds() {
+	const ACTIVE_COLLATOR: AccountId = 1;
+	const INACTIVE_COLLATOR: AccountId = 2;
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20), (2, 20)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(<Test as crate::Config>::MaxOfflineRounds::get(), 2);
+			assert_eq!(<Test as crate::Config>::RewardPaymentDelay::get(), 2);
+
+			// ACTIVE_COLLATOR authors all the blocks
+			set_block_author(ACTIVE_COLLATOR);
+
+			// Round 2
+			roll_to_round_begin(2);
+
+			assert!(<AtStake<Test>>::contains_key(1, ACTIVE_COLLATOR));
+			assert!(!<WasInactive<Test>>::contains_key(1, ACTIVE_COLLATOR));
+
+			assert!(<AtStake<Test>>::contains_key(1, INACTIVE_COLLATOR));
+			assert!(<WasInactive<Test>>::contains_key(1, INACTIVE_COLLATOR));
+
+			// Round 3
+			roll_to_round_begin(3);
+
+			assert!(<AtStake<Test>>::contains_key(2, ACTIVE_COLLATOR));
+			assert!(!<WasInactive<Test>>::contains_key(2, ACTIVE_COLLATOR));
+
+			assert!(<AtStake<Test>>::contains_key(2, INACTIVE_COLLATOR));
+			assert!(<WasInactive<Test>>::contains_key(2, INACTIVE_COLLATOR));
+
+			// End of round 3
+			roll_to_round_end(3);
+
+			assert!(
+				!<AtStake<Test>>::contains_key(1, ACTIVE_COLLATOR),
+				"Active collator should have no stake in round 1 due to the distribution of rewards"
+			);
+			assert!(
+				!<AtStake<Test>>::contains_key(1, INACTIVE_COLLATOR),
+				"Inactive collator should have no stake in round 1 due to the distribution of rewards"
+			);
+
+			assert!(
+				!<WasInactive<Test>>::contains_key(1, ACTIVE_COLLATOR),
+				"Active collator should not be in WasInactive for round 1"
+			);
+			assert!(
+				<WasInactive<Test>>::contains_key(1, INACTIVE_COLLATOR),
+				"Inactive collator should still be in WasInactive for round 1"
+			);
+
+			// Round 4
+			roll_to_round_end(4);
+
+			assert!(
+				!<WasInactive<Test>>::contains_key(1, INACTIVE_COLLATOR),
+				"Round 1 WasInactive should be cleaned up after MaxOfflineRounds"
+			);
+			assert!(<WasInactive<Test>>::contains_key(2, INACTIVE_COLLATOR));
+			assert!(<WasInactive<Test>>::contains_key(3, INACTIVE_COLLATOR));
+		});
+}
+
+#[test]
 fn notify_inactive_collator_works() {
+	const INACTIVE_COLLATOR: AccountId = 1;
+	const ACTIVE_COLLATOR: AccountId = 2;
+
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
 		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
@@ -1183,38 +1254,91 @@ fn notify_inactive_collator_works() {
 			// Enable killswitch
 			<EnableMarkingOffline<Test>>::set(true);
 
-			// Round 2
+			assert_eq!(<Test as crate::Config>::MaxOfflineRounds::get(), 2);
+			assert_eq!(<Test as crate::Config>::RewardPaymentDelay::get(), 2);
+
+			// Round 2 - INACTIVE_COLLATOR authors blocks
+			set_block_author(INACTIVE_COLLATOR);
 			roll_to_round_begin(2);
 
 			// Change block author
-			set_block_author(1);
+			set_block_author(ACTIVE_COLLATOR);
 
-			// Finalize the first block of round 2
-			ParachainStaking::on_finalize(5);
-
-			// We don't produce blocks on round 3
-			roll_to_round_begin(3);
-			roll_blocks(1);
-
-			// We don't produce blocks on round 4
+			// INACTIVE_COLLATOR does not produce blocks on round 2 and 3
 			roll_to_round_begin(4);
 			roll_blocks(1);
 
-			// Round 6 - notify the collator as inactive
-			roll_to_round_begin(6);
-			roll_blocks(1);
-
-			assert_eq!(<Test as crate::Config>::MaxOfflineRounds::get(), 1);
-			assert_eq!(<Test as crate::Config>::RewardPaymentDelay::get(), 2);
-
-			// Call 'notify_inactive_collator' extrinsic
+			// On round 4 notify inactive collator
 			assert_ok!(ParachainStaking::notify_inactive_collator(
 				RuntimeOrigin::signed(1),
-				1
+				INACTIVE_COLLATOR
 			));
 
 			// Check the collator was marked as offline as it hasn't produced blocks
-			assert_events_eq!(Event::CandidateWentOffline { candidate: 1 },);
+			assert_events_eq!(Event::CandidateWentOffline {
+				candidate: INACTIVE_COLLATOR
+			},);
+		});
+}
+
+#[test]
+fn notify_inactive_collator_succeeds_even_after_rewards_are_distributed() {
+	const INACTIVE_COLLATOR: AccountId = 1;
+	const ACTIVE_COLLATOR: AccountId = 2;
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20)])
+		.build()
+		.execute_with(|| {
+			// Enable killswitch
+			<EnableMarkingOffline<Test>>::set(true);
+
+			// We need (strictly) more blocks per round than collators so rewards
+			// can be distributed before the end of a round
+			assert_ok!(ParachainStaking::set_blocks_per_round(
+				RuntimeOrigin::root(),
+				6u32
+			));
+
+			// ACTIVE_COLLATOR authors all the blocks while INACTIVE_COLLATOR stays inactive
+			set_block_author(ACTIVE_COLLATOR);
+
+			// Round 2
+			roll_to_round_begin(2);
+			roll_blocks(1);
+
+			// INACTIVE_COLLATOR has a stake in round 1
+			assert!(<AtStake<Test>>::contains_key(1, INACTIVE_COLLATOR));
+
+			// Round 3
+			roll_to_round_begin(3);
+			roll_blocks(1);
+
+			// INACTIVE_COLLATOR has a stake in round 2
+			assert!(<AtStake<Test>>::contains_key(2, INACTIVE_COLLATOR));
+
+			// End of round 3
+			roll_to_round_end(3);
+
+			// INACTIVE_COLLATOR has a no stake in round 1 anymore due to the distribution of rewards
+			assert!(!<AtStake<Test>>::contains_key(1, INACTIVE_COLLATOR));
+
+			// Call 'notify_inactive_collator' extrinsic on INACTIVE_COLLATOR
+			assert_ok!(ParachainStaking::notify_inactive_collator(
+				RuntimeOrigin::signed(1),
+				INACTIVE_COLLATOR
+			));
+
+			assert_events_eq!(
+				Event::Rewarded {
+					account: 2,
+					rewards: 0,
+				},
+				Event::CandidateWentOffline {
+					candidate: INACTIVE_COLLATOR
+				},
+			);
 		});
 }
 
@@ -1356,15 +1480,9 @@ fn notify_inactive_collator_fails_cannot_be_notified_as_inactive() {
 			// Change block author
 			set_block_author(1);
 
-			// Finalize the first block of round 2
-			ParachainStaking::on_finalize(5);
-
 			// Round 3
 			roll_to_round_begin(3);
 			roll_blocks(1);
-
-			// Finalize a block of round 3
-			ParachainStaking::on_finalize(11);
 
 			// Round 4
 			roll_to_round_begin(4);
@@ -2245,10 +2363,12 @@ fn delegate_event_emits_correctly() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				0
 			));
@@ -2270,10 +2390,12 @@ fn delegate_reserves_balance() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::get_delegator_stakable_balance(&2), 10);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				0
 			));
@@ -2289,10 +2411,12 @@ fn delegate_updates_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert!(ParachainStaking::delegator_state(2).is_none());
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				0
 			));
@@ -2318,10 +2442,12 @@ fn delegate_updates_collator_state() {
 				ParachainStaking::top_delegations(1).expect("registered in genesis");
 			assert!(top_delegations.delegations.is_empty());
 			assert!(top_delegations.total.is_zero());
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				0
 			));
@@ -2347,10 +2473,12 @@ fn can_delegate_immediately_after_other_join_candidates() {
 				20,
 				0
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				20,
+				Percent::zero(),
+				0,
 				0,
 				0
 			));
@@ -2369,10 +2497,12 @@ fn can_delegate_if_revoking() {
 				RuntimeOrigin::signed(2),
 				1
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				4,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				2
 			));
@@ -2409,7 +2539,15 @@ fn cannot_delegate_if_full_and_new_delegation_less_than_or_equal_lowest_bottom()
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(RuntimeOrigin::signed(11), 1, 10, 8, 0),
+				ParachainStaking::delegate_with_auto_compound(
+					RuntimeOrigin::signed(11),
+					1,
+					10,
+					Percent::zero(),
+					8,
+					0,
+					0
+				),
 				Error::<Test>::CannotDelegateLessThanOrEqualToLowestBottomWhenFull
 			);
 		});
@@ -2444,11 +2582,13 @@ fn can_delegate_if_full_and_new_delegation_greater_than_lowest_bottom() {
 		])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(11),
 				1,
 				11,
+				Percent::zero(),
 				8,
+				0,
 				0
 			));
 			assert_events_emitted!(Event::DelegationKicked {
@@ -2475,13 +2615,15 @@ fn can_still_delegate_if_leaving() {
 				RuntimeOrigin::signed(2),
 				1,
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				3,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				1
-			),);
+			));
 		});
 }
 
@@ -2493,7 +2635,15 @@ fn cannot_delegate_if_candidate() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(RuntimeOrigin::signed(2), 1, 10, 0, 0),
+				ParachainStaking::delegate_with_auto_compound(
+					RuntimeOrigin::signed(2),
+					1,
+					10,
+					Percent::zero(),
+					0,
+					0,
+					0
+				),
 				Error::<Test>::CandidateExists
 			);
 		});
@@ -2508,7 +2658,15 @@ fn cannot_delegate_if_already_delegated() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(RuntimeOrigin::signed(2), 1, 10, 1, 1),
+				ParachainStaking::delegate_with_auto_compound(
+					RuntimeOrigin::signed(2),
+					1,
+					10,
+					Percent::zero(),
+					1,
+					0,
+					1
+				),
 				Error::<Test>::AlreadyDelegatedCandidate
 			);
 		});
@@ -2523,7 +2681,15 @@ fn cannot_delegate_more_than_max_delegations() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(RuntimeOrigin::signed(2), 6, 10, 0, 4),
+				ParachainStaking::delegate_with_auto_compound(
+					RuntimeOrigin::signed(2),
+					6,
+					10,
+					Percent::zero(),
+					0,
+					0,
+					4,
+				),
 				Error::<Test>::ExceedMaxDelegationsPerDelegator,
 			);
 		});
@@ -2550,22 +2716,26 @@ fn sufficient_delegate_weight_hint_succeeds() {
 		.execute_with(|| {
 			let mut count = 4u32;
 			for i in 7..11 {
-				assert_ok!(ParachainStaking::delegate(
+				assert_ok!(ParachainStaking::delegate_with_auto_compound(
 					RuntimeOrigin::signed(i),
 					1,
 					10,
+					Percent::zero(),
 					count,
-					0u32
+					0,
+					0
 				));
 				count += 1u32;
 			}
 			let mut count = 0u32;
 			for i in 3..11 {
-				assert_ok!(ParachainStaking::delegate(
+				assert_ok!(ParachainStaking::delegate_with_auto_compound(
 					RuntimeOrigin::signed(i),
 					2,
 					10,
+					Percent::zero(),
 					count,
+					0,
 					1u32
 				));
 				count += 1u32;
@@ -2595,26 +2765,44 @@ fn insufficient_delegate_weight_hint_fails() {
 			let mut count = 3u32;
 			for i in 7..11 {
 				assert_noop!(
-					ParachainStaking::delegate(RuntimeOrigin::signed(i), 1, 10, count, 0u32),
+					ParachainStaking::delegate_with_auto_compound(
+						RuntimeOrigin::signed(i),
+						1,
+						10,
+						Percent::zero(),
+						count,
+						0,
+						0
+					),
 					Error::<Test>::TooLowCandidateDelegationCountToDelegate
 				);
 			}
 			// to set up for next error test
 			count = 4u32;
 			for i in 7..11 {
-				assert_ok!(ParachainStaking::delegate(
+				assert_ok!(ParachainStaking::delegate_with_auto_compound(
 					RuntimeOrigin::signed(i),
 					1,
 					10,
+					Percent::zero(),
 					count,
-					0u32
+					0,
+					0
 				));
 				count += 1u32;
 			}
 			count = 0u32;
 			for i in 3..11 {
 				assert_noop!(
-					ParachainStaking::delegate(RuntimeOrigin::signed(i), 2, 10, count, 0u32),
+					ParachainStaking::delegate_with_auto_compound(
+						RuntimeOrigin::signed(i),
+						2,
+						10,
+						Percent::zero(),
+						count,
+						0,
+						0
+					),
 					Error::<Test>::TooLowDelegationCountToDelegate
 				);
 				count += 1u32;
@@ -4025,10 +4213,12 @@ fn delegator_schedule_revocation_total() {
 					.expect("delegator state must exist"),
 				0
 			);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				5,
 				10,
+				Percent::zero(),
+				0,
 				0,
 				2
 			));
@@ -4147,14 +4337,14 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			);
 			assert_eq!(Balances::free_balance(&11), 1);
 			// ~ set block author as 1 for all blocks this round
-			set_author(2, 1, 100);
+			set_author(2, 1, POINTS_PER_ROUND);
 			roll_to_round_begin(4);
 			// distribute total issuance to collator 1 and its delegators 6, 7, 19
 			assert_eq!(Balances::free_balance(&11), 16);
-			// ~ set block author as 1 for all blocks this round
-			set_author(3, 1, 100);
-			set_author(4, 1, 100);
-			set_author(5, 1, 100);
+			// ~ set block author as 1 for all blocks in rounds 3, 4, and 5
+			set_author(3, 1, POINTS_PER_ROUND);
+			set_author(4, 1, POINTS_PER_ROUND);
+			set_author(5, 1, POINTS_PER_ROUND);
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
 				ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(66), 1),
@@ -4443,7 +4633,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				new: inflation_configs(11, 50, 0, 0),
 			});
 			// 6 won't be paid for this round because they left already
-			set_author(6, 1, 100);
+			set_author(6, 1, POINTS_PER_ROUND);
 			roll_to_round_begin(8);
 			// keep paying 6
 			assert_events_eq!(
@@ -4505,7 +4695,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 			);
 			assert_eq!(Balances::free_balance(&11), 95);
-			set_author(7, 1, 100);
+			set_author(7, 1, POINTS_PER_ROUND);
 			roll_to_round_begin(9);
 			// no more paying 6
 			assert_events_eq!(
@@ -4567,13 +4757,15 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 			);
 			assert_eq!(Balances::free_balance(&11), 127);
-			set_author(8, 1, 100);
+			set_author(8, 1, POINTS_PER_ROUND);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(8),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_eq!(Event::Delegation {
@@ -4644,8 +4836,8 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 			);
 			assert_eq!(Balances::free_balance(&11), 160);
-			set_author(9, 1, 100);
-			set_author(10, 1, 100);
+			set_author(9, 1, POINTS_PER_ROUND);
+			set_author(10, 1, POINTS_PER_ROUND);
 			roll_to_round_begin(11);
 			// new delegation is still not rewarded yet
 			assert_events_eq!(
@@ -4816,18 +5008,22 @@ fn paid_collator_commission_matches_config() {
 			);
 
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(5),
 				4,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(6),
 				4,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_eq!(
@@ -4867,7 +5063,7 @@ fn paid_collator_commission_matches_config() {
 				},
 			);
 			// only reward author with id 4
-			set_author(3, 4, 100);
+			set_author(3, 4, POINTS_PER_ROUND);
 			roll_to_round_begin(5);
 			// 20% of 10 is commission + due_portion (0) = 2 + 4 = 6
 			// all delegator payouts are 10-2 = 8 * stake_pct
@@ -4894,15 +5090,15 @@ fn paid_collator_commission_matches_config() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 4,
-					rewards: 18,
+					rewards: 9,
 				},
 				Event::Rewarded {
 					account: 5,
-					rewards: 6,
+					rewards: 3,
 				},
 				Event::Rewarded {
 					account: 6,
-					rewards: 6,
+					rewards: 3,
 				},
 			);
 		});
@@ -5124,7 +5320,7 @@ fn payout_distribution_to_solo_collators() {
 				},
 			);
 			// ~ set block author as 1 for all blocks this round
-			set_author(2, 1, 100);
+			set_author(2, 1, POINTS_PER_ROUND);
 			roll_to_round_begin(4);
 			assert_events_eq!(
 				Event::CollatorChosen {
@@ -5158,12 +5354,12 @@ fn payout_distribution_to_solo_collators() {
 			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 205,
+				rewards: 102,
 			});
 			// ~ set block author as 1 for 3 blocks this round
-			set_author(4, 1, 60);
+			set_author(4, 1, POINTS_PER_BLOCK * 3);
 			// ~ set block author as 2 for 2 blocks this round
-			set_author(4, 2, 40);
+			set_author(4, 2, POINTS_PER_BLOCK * 2);
 			roll_to_round_begin(6);
 			// pay 60% total issuance to 1 and 40% total issuance to 2
 			assert_events_eq!(
@@ -5197,18 +5393,18 @@ fn payout_distribution_to_solo_collators() {
 			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 129,
+				rewards: 63,
 			});
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 2,
-				rewards: 86,
+				rewards: 42,
 			},);
-			// ~ each collator produces 1 block this round
-			set_author(6, 1, 20);
-			set_author(6, 2, 20);
-			set_author(6, 3, 20);
-			set_author(6, 4, 20);
+			// ~ each collator produces at least 1 block this round
+			set_author(6, 1, POINTS_PER_BLOCK * 2);
+			set_author(6, 2, POINTS_PER_BLOCK);
+			set_author(6, 3, POINTS_PER_BLOCK);
+			set_author(6, 4, POINTS_PER_BLOCK);
 			roll_to_round_begin(8);
 			// pay 20% issuance for all collators
 			assert_events_eq!(
@@ -5242,22 +5438,22 @@ fn payout_distribution_to_solo_collators() {
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 3,
-				rewards: 56,
+				rewards: 21,
 			});
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 4,
-				rewards: 56,
+				rewards: 21,
 			});
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 56,
+				rewards: 43,
 			});
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 2,
-				rewards: 56,
+				rewards: 21,
 			});
 			// check that distributing rewards clears awarded pts
 			assert!(ParachainStaking::awarded_pts(1, 1).is_zero());
@@ -5331,25 +5527,31 @@ fn multiple_delegations() {
 				},
 			);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(6),
 				2,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(6),
 				3,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(6),
 				4,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_eq!(
@@ -5377,18 +5579,22 @@ fn multiple_delegations() {
 			);
 			roll_to_round_begin(6);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(7),
 				2,
 				80,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(10),
 				2,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
@@ -5569,8 +5775,8 @@ fn payouts_follow_delegation_changes() {
 		.build()
 		.execute_with(|| {
 			// ~ set block author as 1 for all blocks this round
-			set_author(1, 1, 100);
-			set_author(2, 1, 100);
+			set_author(1, 1, POINTS_PER_ROUND);
+			set_author(2, 1, POINTS_PER_ROUND);
 			roll_to_round_begin(2);
 			// chooses top TotalSelectedCandidates (5), in order
 			assert_events_eq!(
@@ -5602,8 +5808,8 @@ fn payouts_follow_delegation_changes() {
 				},
 			);
 
-			set_author(3, 1, 100);
-			set_author(4, 1, 100);
+			set_author(3, 1, POINTS_PER_ROUND);
+			set_author(4, 1, POINTS_PER_ROUND);
 
 			roll_to_round_begin(4);
 			// distribute total issuance to collator 1 and its delegators 6, 7, 19
@@ -5639,23 +5845,23 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 23,
+					rewards: 11,
 				},
 				Event::Rewarded {
 					account: 6,
-					rewards: 7,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 7,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 7,
+					rewards: 4,
 				},
 			);
 			// ~ set block author as 1 for all blocks this round
-			set_author(5, 1, 100);
+			set_author(5, 1, POINTS_PER_ROUND);
 
 			roll_blocks(1);
 			// 1. ensure delegators are paid for 2 rounds after they leave
@@ -5707,23 +5913,23 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 24,
+					rewards: 12,
 				},
 				Event::Rewarded {
 					account: 6,
-					rewards: 8,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 8,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 8,
+					rewards: 4,
 				},
 			);
 
-			set_author(6, 1, 100);
+			set_author(6, 1, POINTS_PER_ROUND);
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			roll_to_round_begin(6);
 			assert_ok!(ParachainStaking::execute_delegation_request(
@@ -5778,23 +5984,23 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 26,
+					rewards: 12,
 				},
 				Event::Rewarded {
 					account: 6,
-					rewards: 8,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 8,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 8,
+					rewards: 4,
 				},
 			);
 			// 6 won't be paid for this round because they left already
-			set_author(7, 1, 100);
+			set_author(7, 1, POINTS_PER_ROUND);
 			roll_to_round_begin(7);
 			// keep paying 6
 			assert_events_eq!(
@@ -5829,18 +6035,18 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 31,
+					rewards: 14,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 10,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 10,
+					rewards: 5,
 				},
 			);
-			set_author(8, 1, 100);
+			set_author(8, 1, POINTS_PER_ROUND);
 			roll_to_round_begin(8);
 			assert_events_eq!(
 				Event::CollatorChosen {
@@ -5874,18 +6080,18 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 32,
+					rewards: 15,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 11,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 11,
+					rewards: 5,
 				},
 			);
-			set_author(9, 1, 100);
+			set_author(9, 1, POINTS_PER_ROUND);
 			roll_to_round_begin(9);
 			// no more paying 6
 			assert_events_eq!(
@@ -5920,23 +6126,25 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 34,
+					rewards: 15,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 11,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 11,
+					rewards: 5,
 				},
 			);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(8),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_eq!(Event::Delegation {
@@ -5947,7 +6155,7 @@ fn payouts_follow_delegation_changes() {
 				auto_compound: Percent::zero(),
 			});
 
-			set_author(10, 1, 100);
+			set_author(10, 1, POINTS_PER_ROUND);
 			roll_to_round_begin(10);
 			// new delegation is not rewarded yet
 			assert_events_eq!(
@@ -5982,15 +6190,15 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 36,
+					rewards: 15,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 12,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 12,
+					rewards: 5,
 				},
 			);
 			roll_to_round_begin(11);
@@ -6027,15 +6235,15 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 37,
+					rewards: 15,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 12,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 12,
+					rewards: 5,
 				},
 			);
 			roll_to_round_begin(12);
@@ -6073,19 +6281,19 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 34,
+					rewards: 14,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 10,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 10,
+					rewards: 4,
 				},
 				Event::Rewarded {
 					account: 8,
-					rewards: 10,
+					rewards: 4,
 				},
 			);
 		});
@@ -6104,11 +6312,13 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 			assert!(top_delegations.delegations.is_empty());
 			assert!(bottom_delegations.delegations.is_empty());
 			// 1 delegator => 1 top delegator, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
@@ -6116,11 +6326,13 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 			assert_eq!(top_delegations.delegations.len(), 1usize);
 			assert!(bottom_delegations.delegations.is_empty());
 			// 2 delegators => 2 top delegators, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(3),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
@@ -6128,11 +6340,13 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 			assert_eq!(top_delegations.delegations.len(), 2usize);
 			assert!(bottom_delegations.delegations.is_empty());
 			// 3 delegators => 3 top delegators, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(4),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
@@ -6140,11 +6354,13 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 			assert_eq!(top_delegations.delegations.len(), 3usize);
 			assert!(bottom_delegations.delegations.is_empty());
 			// 4 delegators => 4 top delegators, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(5),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
@@ -6361,11 +6577,13 @@ fn delegation_events_convey_correct_position() {
 			// 11 + 12 + 13 + 14 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 70);
 			// Top delegations are full, new highest delegation is made
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(7),
 				1,
 				15,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_emitted!(Event::Delegation {
@@ -6379,11 +6597,13 @@ fn delegation_events_convey_correct_position() {
 			// 12 + 13 + 14 + 15 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 74);
 			// New delegation is added to the bottom
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(8),
 				1,
 				10,
+				Percent::zero(),
 				10,
+				0,
 				10
 			));
 			assert_events_emitted!(Event::Delegation {
@@ -6491,11 +6711,9 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 		.build()
 		.execute_with(|| {
 			// payouts for round 1
-			set_author(1, 1, 1);
-			set_author(1, 2, 1);
-			set_author(1, 2, 1);
-			set_author(1, 3, 1);
-			set_author(1, 3, 1);
+			set_author(1, 1, POINTS_PER_BLOCK);
+			set_author(1, 2, POINTS_PER_BLOCK * 2);
+			set_author(1, 3, POINTS_PER_BLOCK * 2);
 
 			roll_to_round_begin(2);
 			assert_events_eq!(
@@ -6556,7 +6774,7 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 1,
+				rewards: 0,
 			});
 
 			roll_blocks(1);
@@ -6584,8 +6802,8 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 		.with_candidates(vec![(1, 20), (2, 20)])
 		.build()
 		.execute_with(|| {
-			set_author(1, 1, 1);
-			set_author(1, 2, 1);
+			set_author(1, 1, POINTS_PER_BLOCK * 3);
+			set_author(1, 2, POINTS_PER_BLOCK * 2);
 
 			// reflects genesis?
 			assert!(<AtStake<Test>>::contains_key(1, 1));
@@ -6666,16 +6884,16 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 				"DelayedPayouts should be populated after RewardPaymentDelay"
 			);
 			assert!(<Points<Test>>::contains_key(1));
-			assert!(!<DelayedPayouts<Test>>::contains_key(2));
+			assert!(<DelayedPayouts<Test>>::contains_key(2));
 			assert!(
-				!<Points<Test>>::contains_key(2),
-				"We never rewarded points for round 2"
+				<Points<Test>>::contains_key(2),
+				"We awarded points for round 2"
 			);
 
 			assert!(!<DelayedPayouts<Test>>::contains_key(3));
 			assert!(
-				!<Points<Test>>::contains_key(3),
-				"We never awarded points for round 3"
+				<Points<Test>>::contains_key(3),
+				"We awarded points for round 3"
 			);
 
 			// collator 1 has been paid in this last block and associated storage cleaned up
@@ -6690,7 +6908,7 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 2,
-				rewards: 1,
+				rewards: 0,
 			},);
 
 			roll_to_round_begin(4);
@@ -6736,8 +6954,8 @@ fn deferred_payment_and_at_stake_storage_items_cleaned_up_for_candidates_not_pro
 		.build()
 		.execute_with(|| {
 			// candidate 3 will not produce blocks
-			set_author(1, 1, 1);
-			set_author(1, 2, 1);
+			set_author(1, 1, POINTS_PER_BLOCK * 3);
+			set_author(1, 2, POINTS_PER_BLOCK * 2);
 
 			// reflects genesis?
 			assert!(<AtStake<Test>>::contains_key(1, 1));
@@ -6808,10 +7026,10 @@ fn deferred_payment_steady_state_event_flow() {
 		.execute_with(|| {
 			// convenience to set the round points consistently
 			let set_round_points = |round: BlockNumber| {
-				set_author(round as BlockNumber, 1, 1);
-				set_author(round as BlockNumber, 2, 1);
-				set_author(round as BlockNumber, 3, 1);
-				set_author(round as BlockNumber, 4, 1);
+				set_author(round as BlockNumber, 1, 2 * POINTS_PER_ROUND);
+				set_author(round as BlockNumber, 2, POINTS_PER_ROUND);
+				set_author(round as BlockNumber, 3, POINTS_PER_ROUND);
+				set_author(round as BlockNumber, 4, POINTS_PER_ROUND);
 			};
 
 			// grab initial issuance -- we will reset it before round issuance is calculated so that
@@ -6892,15 +7110,15 @@ fn deferred_payment_steady_state_event_flow() {
 				assert_events_eq!(
 					Event::Rewarded {
 						account: 3,
-						rewards: 19,
+						rewards: 13,
 					},
 					Event::Rewarded {
 						account: 22,
-						rewards: 6,
+						rewards: 4,
 					},
 					Event::Rewarded {
 						account: 33,
-						rewards: 6,
+						rewards: 4,
 					},
 				);
 
@@ -6908,15 +7126,15 @@ fn deferred_payment_steady_state_event_flow() {
 				assert_events_eq!(
 					Event::Rewarded {
 						account: 4,
-						rewards: 19,
+						rewards: 13,
 					},
 					Event::Rewarded {
 						account: 33,
-						rewards: 6,
+						rewards: 4,
 					},
 					Event::Rewarded {
 						account: 44,
-						rewards: 6,
+						rewards: 4,
 					},
 				);
 
@@ -6924,15 +7142,15 @@ fn deferred_payment_steady_state_event_flow() {
 				assert_events_eq!(
 					Event::Rewarded {
 						account: 1,
-						rewards: 19,
+						rewards: 27,
 					},
 					Event::Rewarded {
 						account: 11,
-						rewards: 6,
+						rewards: 9,
 					},
 					Event::Rewarded {
 						account: 44,
-						rewards: 6,
+						rewards: 9,
 					},
 				);
 
@@ -6940,15 +7158,15 @@ fn deferred_payment_steady_state_event_flow() {
 				assert_events_eq!(
 					Event::Rewarded {
 						account: 2,
-						rewards: 19,
+						rewards: 13,
 					},
 					Event::Rewarded {
 						account: 11,
-						rewards: 6,
+						rewards: 4,
 					},
 					Event::Rewarded {
 						account: 22,
-						rewards: 6,
+						rewards: 4,
 					},
 				);
 
@@ -7009,12 +7227,14 @@ fn delegation_kicked_from_bottom_removes_pending_request() {
 				1
 			));
 			// 10 delegates to full 1 => kicks lowest delegation (2, 19)
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(10),
 				1,
 				20,
+				Percent::zero(),
 				8,
-				0
+				0,
+				0,
 			));
 			// check the event
 			assert_events_emitted!(Event::DelegationKicked {
@@ -7085,7 +7305,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 1, 2 and 3
-			(1..=3).for_each(|round| set_author(round, 1, 1));
+			(1..=3).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
@@ -7113,7 +7333,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 4,
+					rewards: 2,
 				},
 				Event::Rewarded {
 					account: 2,
@@ -7126,7 +7346,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 5,
+				rewards: 2,
 			},);
 			let collator_snapshot =
 				ParachainStaking::at_stake(ParachainStaking::round().current, 1)
@@ -7152,7 +7372,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 2, 3 and 4
-			(2..=4).for_each(|round| set_author(round, 1, 1));
+			(2..=4).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
@@ -7185,7 +7405,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 5,
+				rewards: 2,
 			},);
 			let collator_snapshot =
 				ParachainStaking::at_stake(ParachainStaking::round().current, 1)
@@ -7206,7 +7426,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 4,
+					rewards: 1,
 				},
 				Event::Rewarded {
 					account: 2,
@@ -7226,7 +7446,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 1, 2 and 3
-			(1..=3).for_each(|round| set_author(round, 1, 1));
+			(1..=3).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
 				RuntimeOrigin::signed(2),
@@ -7255,11 +7475,11 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 3,
+					rewards: 2,
 				},
 				Event::Rewarded {
 					account: 2,
-					rewards: 2,
+					rewards: 1,
 				},
 			);
 
@@ -7269,7 +7489,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 4,
+					rewards: 1,
 				},
 				Event::Rewarded {
 					account: 2,
@@ -7300,7 +7520,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 2, 3 and 4
-			(2..=4).for_each(|round| set_author(round, 1, 1));
+			(2..=4).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
 				RuntimeOrigin::signed(2),
@@ -7335,7 +7555,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 4,
+					rewards: 1,
 				},
 				Event::Rewarded {
 					account: 2,
@@ -7361,11 +7581,11 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 3,
+					rewards: 1,
 				},
 				Event::Rewarded {
 					account: 2,
-					rewards: 2,
+					rewards: 1,
 				},
 			);
 		});
@@ -7380,7 +7600,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 1, 2 and 3
-			(1..=3).for_each(|round| set_author(round, 1, 1));
+			(1..=3).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
@@ -7420,7 +7640,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 4,
+					rewards: 2,
 				},
 				Event::Rewarded {
 					account: 2,
@@ -7433,7 +7653,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 5,
+				rewards: 2,
 			},);
 			let collator_snapshot =
 				ParachainStaking::at_stake(ParachainStaking::round().current, 1)
@@ -7459,7 +7679,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 		.build()
 		.execute_with(|| {
 			// preset rewards for rounds 2, 3 and 4
-			(2..=4).for_each(|round| set_author(round, 1, 1));
+			(2..=4).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
@@ -7508,7 +7728,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 5,
+				rewards: 2,
 			},);
 			let collator_snapshot =
 				ParachainStaking::at_stake(ParachainStaking::round().current, 1)
@@ -7529,7 +7749,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 4,
+					rewards: 1,
 				},
 				Event::Rewarded {
 					account: 2,
@@ -8162,12 +8382,14 @@ fn test_delegation_kicked_from_bottom_delegation_removes_auto_compounding_state(
 			));
 
 			// kicks lowest delegation (2, 19)
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(10),
 				1,
 				20,
+				Percent::zero(),
 				8,
-				0
+				0,
+				0,
 			));
 
 			assert!(
@@ -8187,7 +8409,7 @@ fn test_rewards_do_not_auto_compound_on_payment_if_delegation_scheduled_revoke_e
 		.with_delegations(vec![(2, 1, 200), (3, 1, 200)])
 		.build()
 		.execute_with(|| {
-			(2..=5).for_each(|round| set_author(round, 1, 1));
+			(2..=5).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 			assert_ok!(ParachainStaking::set_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
@@ -8229,22 +8451,22 @@ fn test_rewards_do_not_auto_compound_on_payment_if_delegation_scheduled_revoke_e
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 9,
+					rewards: 4,
 				},
 				// no compound since revoke request exists
 				Event::Rewarded {
 					account: 2,
-					rewards: 8,
+					rewards: 4,
 				},
 				// 50%
 				Event::Rewarded {
 					account: 3,
-					rewards: 8,
+					rewards: 4,
 				},
 				Event::Compounded {
 					candidate: 1,
 					delegator: 3,
-					amount: 4,
+					amount: 2,
 				},
 			);
 		});
@@ -8258,7 +8480,7 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 		.with_delegations(vec![(2, 1, 200), (3, 1, 200), (4, 1, 200), (5, 1, 200)])
 		.build()
 		.execute_with(|| {
-			(2..=6).for_each(|round| set_author(round, 1, 1));
+			(2..=6).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
 			assert_ok!(ParachainStaking::set_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
@@ -8300,37 +8522,37 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 13,
+					rewards: 6,
 				},
 				// 0%
 				Event::Rewarded {
 					account: 2,
-					rewards: 8,
+					rewards: 4,
 				},
 				// 50%
 				Event::Rewarded {
 					account: 3,
-					rewards: 8,
+					rewards: 4,
 				},
 				Event::Compounded {
 					candidate: 1,
 					delegator: 3,
-					amount: 4,
+					amount: 2,
 				},
 				// 100%
 				Event::Rewarded {
 					account: 4,
-					rewards: 8,
+					rewards: 4,
 				},
 				Event::Compounded {
 					candidate: 1,
 					delegator: 4,
-					amount: 8,
+					amount: 4,
 				},
 				// no-config
 				Event::Rewarded {
 					account: 5,
-					rewards: 8,
+					rewards: 4,
 				},
 			);
 		});
@@ -8800,11 +9022,13 @@ fn test_delegate_skips_auto_compound_storage_but_emits_event_for_zero_auto_compo
 		.execute_with(|| {
 			// We already have an auto-compounding delegation from 3 -> 1, so the hint validation
 			// would cause a failure if the auto-compounding isn't skipped properly.
-			assert_ok!(ParachainStaking::delegate(
+			assert_ok!(ParachainStaking::delegate_with_auto_compound(
 				RuntimeOrigin::signed(2),
 				1,
 				10,
+				Percent::zero(),
 				1,
+				0,
 				0,
 			));
 			assert_eq!(1, ParachainStaking::auto_compounding_delegations(&1).len(),);
@@ -8849,10 +9073,10 @@ fn test_on_initialize_weights() {
 			let weight = ParachainStaking::on_initialize(1);
 
 			// TODO: build this with proper db reads/writes
-			assert_eq!(Weight::from_parts(277168000, 0), weight);
+			assert_eq!(Weight::from_parts(401000000, 0), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
-			set_author(3, 1, 100); // must set some points for prepare_staking_payouts
+			set_author(3, 1, POINTS_PER_ROUND); // must set some points for prepare_staking_payouts
 			roll_to_round_end(3);
 			let block = System::block_number() + 1;
 			let weight = ParachainStaking::on_initialize(block);
@@ -8863,13 +9087,14 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2404547135;
-			assert_eq!(Weight::from_parts(expected_on_init, 32562), weight);
+			let expected_on_init = 2999210735;
+			assert_eq!(Weight::from_parts(expected_on_init, 51554), weight);
 
 			// assemble weight manually to ensure it is well understood
 			let mut expected_weight = 0u64;
 			expected_weight += PalletWeights::<Test>::base_on_initialize().ref_time();
 			expected_weight += PalletWeights::<Test>::prepare_staking_payouts().ref_time();
+			expected_weight += PalletWeights::<Test>::mark_collators_as_inactive(5).ref_time();
 
 			// TODO: this should be the same as <TotalSelected<Test>>. I believe this relates to
 			// genesis building
@@ -8884,9 +9109,9 @@ fn test_on_initialize_weights() {
 			// Round write, done in on-round-change code block inside on_initialize()
 			expected_weight += RocksDbWeight::get().reads_writes(0, 1).ref_time();
 			// more reads/writes manually accounted for for on_finalize
-			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
+			expected_weight += RocksDbWeight::get().reads_writes(4, 3).ref_time();
 
-			assert_eq!(Weight::from_parts(expected_weight, 32562), weight);
+			assert_eq!(Weight::from_parts(expected_weight, 51554), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
@@ -8910,19 +9135,34 @@ fn test_compute_top_candidates_is_stable() {
 }
 
 #[test]
-fn test_removed_calls() {
-	ExtBuilder::default().build().execute_with(|| {
-		assert_err!(
-			ParachainStaking::removed_call_19(RuntimeOrigin::root()),
-			Error::<Test>::RemovedCall
-		);
-		assert_err!(
-			ParachainStaking::removed_call_20(RuntimeOrigin::root()),
-			Error::<Test>::RemovedCall
-		);
-		assert_err!(
-			ParachainStaking::removed_call_21(RuntimeOrigin::root()),
-			Error::<Test>::RemovedCall
-		);
-	});
+fn test_linear_inflation_threshold() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1_000_000_000)])
+		.build()
+		.execute_with(|| {
+			// Set up initial state
+			let initial_issuance = Balances::total_issuance();
+			let threshold = <Test as crate::Config>::LinearInflationThreshold::get();
+			assert_eq!(threshold, Some(1_200_000_000));
+
+			// When total issuance is below threshold, should use total issuance
+			let round_below = crate::inflation::round_issuance_range::<Test>(Range {
+				min: Perbill::from_percent(5),
+				ideal: Perbill::from_percent(5),
+				max: Perbill::from_percent(5),
+			});
+			assert_eq!(round_below.ideal, initial_issuance / 20); // 5% of total issuance
+
+			// Mint tokens to exceed threshold
+			let _ = Balances::deposit_creating(&1, 500_000_000);
+			assert!(Balances::total_issuance() > threshold.unwrap());
+
+			// When total issuance exceeds threshold, should use threshold value
+			let round_above = crate::inflation::round_issuance_range::<Test>(Range {
+				min: Perbill::from_percent(5),
+				ideal: Perbill::from_percent(5),
+				max: Perbill::from_percent(5),
+			});
+			assert_eq!(round_above.ideal, threshold.unwrap() / 20); // 5% of threshold
+		});
 }

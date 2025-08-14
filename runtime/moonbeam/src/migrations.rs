@@ -1,4 +1,4 @@
-// Copyright 2024 Moonbeam Foundation Inc.
+// Copyright 2025 Moonbeam Foundation.Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -15,13 +15,21 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Moonbeam specific Migrations
-use pallet_migrations::{GetMigrations, Migration};
-use sp_std::{prelude::*, vec};
 
-pub struct MoonbeamMigrations;
+type MoonbeamMigrations = ();
 
-impl GetMigrations for MoonbeamMigrations {
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![]
-	}
-}
+/// List of single block migrations to be executed by frame executive.
+pub type SingleBlockMigrations<Runtime> = (
+	// Common migrations applied on all Moonbeam runtime
+	moonbeam_runtime_common::migrations::SingleBlockMigrations<Runtime>,
+	// Moonbeam specific migrations
+	MoonbeamMigrations,
+);
+
+/// List of multi block migrations to be executed by the pallet_migrations.
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type MultiBlockMigrationList<Runtime> = (
+	// Common multiblock migrations applied on all Moonbeam runtime
+	moonbeam_runtime_common::migrations::MultiBlockMigrations<Runtime>,
+	// ... Moonbeam specific multiblock migrations
+);

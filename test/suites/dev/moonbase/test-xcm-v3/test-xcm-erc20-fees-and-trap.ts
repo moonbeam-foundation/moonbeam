@@ -1,11 +1,11 @@
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
 import { expectEVMResult } from "../../../../helpers";
 import {
   XcmFragment,
-  XcmFragmentConfig,
+  type XcmFragmentConfig,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
   weightMessage,
@@ -14,7 +14,7 @@ import {
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D014034",
+  id: "D024033",
   title: "Mock XCM - Fails trying to pay fees with ERC20",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -42,7 +42,7 @@ describeSuite({
         // Get pallet index
         const metadata = await polkadotJs.rpc.state.getMetadata();
         const erc20XcmPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .find(({ name }) => name.toString() === "Erc20XcmBridge")!
           .index.toNumber();
 
         // Send some erc20 tokens to the sovereign account of paraId
@@ -99,7 +99,7 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3(2n)
+          .deposit_asset(2n)
           .as_v3();
 
         // Mock the reception of the xcm message
@@ -142,10 +142,10 @@ describeSuite({
         // Get pallet index
         const metadata = await polkadotJs.rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
         const erc20XcmPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .find(({ name }) => name.toString() === "Erc20XcmBridge")!
           .index.toNumber();
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
@@ -254,7 +254,7 @@ describeSuite({
         const xcmMessageToClaimAssets = new XcmFragment(claimConfig)
           .claim_asset()
           .buy_execution()
-          .deposit_asset_v3()
+          .deposit_asset()
           .as_v3();
 
         const balanceBefore = (
@@ -270,7 +270,7 @@ describeSuite({
         // Search for AssetsClaimed event
         const records = await polkadotJs.query.system.events();
         const events = records.filter(
-          ({ event }) => event.section == "polkadotXcm" && event.method == "AssetsClaimed"
+          ({ event }) => event.section === "polkadotXcm" && event.method === "AssetsClaimed"
         );
         expect(events).to.have.lengthOf(1);
 
@@ -325,7 +325,7 @@ describeSuite({
         const xcmMessageFailedClaim = new XcmFragment(failedClaimConfig)
           .claim_asset()
           .buy_execution()
-          .deposit_asset_v3()
+          .deposit_asset()
           .as_v3();
 
         await injectHrmpMessageAndSeal(context, paraId, {

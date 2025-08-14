@@ -17,6 +17,12 @@ on:
         description: set to pull_request number to execute on external pr
         required: false
 
+# Cancel any previous job still running this workflow for this branch
+# https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs#example-using-concurrency-to-cancel-any-in-progress-job-or-run
+concurrency:  
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation"
   CARGO_TERM_COLOR: always
@@ -62,7 +68,7 @@ jobs:
           echo "repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
           echo "github.repository: ${{ github.repository }}"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
       - name: Get Latest RT Release
@@ -123,7 +129,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Find un-copyrighted files
@@ -143,87 +149,37 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - uses: umbrelladocs/action-linkspector@v1
         with:
-          use-quiet-mode: "yes"
-          max-depth: 4
+          reporter: github-pr-review
+          fail_level: any
+          filter_mode: nofilter
 
-  check-editorconfig:
-    name: "Check editorconfig"
+  check-biome:
+    name: "Check with Biome"
     runs-on: ubuntu-latest
     permissions:
       contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Setup editorconfig checker
-        run: |
-          ls /tmp/bin/ec-linux-amd64 || \
-          cd /tmp && \
-          wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.7.0/ec-linux-amd64.tar.gz && \
-          tar xvf ec-linux-amd64.tar.gz && \
-          chmod +x bin/ec-linux-amd64
-      - name: Check files
-        # Prettier and editorconfig-checker have different ideas about indentation
-        run: /tmp/bin/ec-linux-amd64 --exclude "(typescript-api\/)|(test\/contracts\/lib\/.*)" -disable-indent-size
-
-  check-prettier:
-    name: "Check with Prettier"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    needs: ["set-tags"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Check with Prettier
-        run: |
-          bun x prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)' \
-          || (git diff --quiet \
-          || (echo 'Unable to show a diff because there are unstaged changes'; false) \
-          && (bun x prettier@2 --ignore-path \
-              .prettierignore '**/*.(yml|js|ts|json)' -w --loglevel silent \
-          && git --no-pager diff; git restore .) && false)
-
-          bun x prettier@2 --check --ignore-path .prettierignore '**/*.(yml|js|ts|json)'
-
-  check-eslint:
-    name: "Check with EsLint"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    needs: ["set-tags"]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Use pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - name: Use Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
-      - name: Run Eslint check
-        run: |
-          cd test
-          pnpm i
-          pnpm lint
+      - run: pnpm install
+      - run: pnpm check
 
   check-cargo-toml-format:
     name: "Check Cargo.toml files format"
@@ -234,7 +190,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -254,7 +210,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
@@ -272,7 +228,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -294,7 +250,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Install Protoc
@@ -321,7 +277,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
@@ -348,15 +304,16 @@ jobs:
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       pull-requests: write
-    if: github.event_name == 'pull_request'
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
     needs: ["set-tags", "build"]
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -366,16 +323,29 @@ jobs:
           rustup override unset
           rustup show
       - name: Download Twiggy
-        run: cargo install twiggy
+        run: cargo install twiggy --locked
       - name: Lookup for latest target branch build
+        id: latest-target-build
         run: |
           TARGET_BRANCH=${{ github.event.pull_request.base.ref }}
-          LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$TARGET_BRANCH\" and .event == \"push\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -n 1)
+          LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$TARGET_BRANCH\" and .event == \"push\" and .status == \"completed\") | .databaseId" | head -n 1)
           echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
-      - name: Download latest target branch build artifacts
-        run: |
-          gh run download $LATEST_TARGET_BRANCH_BUILD -n uncompressed-runtimes --dir uncompressed-runtimes-target-branch
-          gh run download $LATEST_TARGET_BRANCH_BUILD -n runtimes --dir runtimes-target-branch
+      - name: "Download runtimes from target branch"
+        uses: actions/download-artifact@v4
+        with:
+          name: runtimes
+          path: runtimes-target-branch
+          merge-multiple: true
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
+      - name: "Download uncompressed-runtimes from target branch"
+        uses: actions/download-artifact@v4
+        with:
+          name: uncompressed-runtimes
+          path: uncompressed-runtimes-target-branch
+          merge-multiple: true
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
       - name: Check Runtimes size for target branch
         run: |
           PREVIOUS_MOONBASE=$(du -k runtimes-target-branch/* | awk '/moonbase_runtime/ {print $1}')
@@ -389,11 +359,13 @@ jobs:
         with:
           name: runtimes
           path: runtimes-current-branch
+          merge-multiple: true
       - name: "Download branch built uncompressed-runtimes"
         uses: actions/download-artifact@v4
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-current-branch
+          merge-multiple: true
       - name: Check Runtimes size for current branch
         run: |
           CURRENT_MOONBASE=$(du -k runtimes-current-branch/* | awk '/moonbase_runtime/ {print $1}')
@@ -511,6 +483,29 @@ jobs:
           body-path: runtime_size_report.md
           edit-mode: replace
 
+  check-unused-dependencies:
+    runs-on: moonbeam-release-medium
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rust-src
+          target: wasm32-unknown-unknown
+      - name: Install required dependencies
+        run: |
+          sudo apt-get install -y libprotobuf-dev protobuf-compiler
+          cargo +nightly install cargo-udeps
+      - name: Check for unused dependencies
+        run: |
+          # There may be false negatives/positives
+          # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
+          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime,bridge-stagenet --all-targets
+
   rust-test:
     runs-on:
       labels: bare-metal
@@ -521,13 +516,14 @@ jobs:
       RUSTC_WRAPPER: "sccache"
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: "100GB"
+      SCCACHE_GHA_ENABLED: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.6
+        uses: mozilla-actions/sccache-action@v0.0.9
       - name: Setup Variables
         shell: bash
         run: |
@@ -536,7 +532,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p mold
-          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.30.0/mold-2.30.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
+          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.39.0/mold-2.39.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
       # https://github.com/actions-rs/toolchain/issues/126#issuecomment-782989659
       - name: Setup Rust toolchain
@@ -551,8 +547,54 @@ jobs:
       - name: Unit tests
         run: |
           cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
+      - name: Run bridge tests
+        run: |
+          cargo test --color=always -p moonbase-runtime --features bridge-betanet --test integration_test bridge_tests -- --nocapture
+          cargo test --color=always -p moonbase-runtime --features bridge-stagenet --test integration_test bridge_tests -- --nocapture
       - name: Run sccache stat for check pre test
         run: ${SCCACHE_PATH} --show-stats
+
+  # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
+
+  # typegen_check:
+  #   needs: ["set-tags", "build"]
+  #   name: "Check Rust/TS bindings are up to date"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v5
+  #       with:
+  #         ref: ${{ needs.set-tags.outputs.git_ref }}
+  #     - uses: pnpm/action-setup@v4
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version-file: "test/.nvmrc"
+  #         cache: "pnpm"
+  #         cache-dependency-path: pnpm-lock.yaml
+  #     - name: "Download branch built node"
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: moonbeam
+  #         path: target/release
+  #     - run: chmod uog+x target/release/moonbeam
+  #     - name: Run Typegen
+  #       run: |
+  #         pnpm i
+
+  #         cd test
+  #         pnpm typegen
+  #     - name: Check for changes
+  #       run: |
+  #         cd typescript-api
+  #         if [ -n "$(git status --porcelain .)" ]; then
+  #           echo "Typegen produced changes. Please run 'pnpm typegen' locally and commit the changes."
+  #           false
+  #         else
+  #           echo "No changes"
+  #           true
+  #         fi
 
   dev-test:
     runs-on:
@@ -571,7 +613,7 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Create local folders
@@ -619,7 +661,7 @@ jobs:
 
   typescript-tracing-tests:
     if: >
-      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork) || 
       (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on:
       labels: bare-metal
@@ -628,7 +670,7 @@ jobs:
     needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v4
@@ -661,16 +703,6 @@ jobs:
         run: |
           chmod uog+x build/moonbeam
           chmod uog+x target/release/moonbeam
-
-          ####  Preparing the repository
-          cd moonbeam-types-bundle
-          pnpm i
-          pnpm build
-
-          ####  Preparing the typescript api
-          cd ../typescript-api
-          pnpm i
-          pnpm build
       - name: Running Tracing Tests
         env:
           DEBUG_COLOURS: "1"
@@ -681,65 +713,12 @@ jobs:
           pnpm compile-solidity
           pnpm moonwall test dev_moonbase_tracing
 
-  docker-moonbeam:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists == 'false' && !github.event.pull_request.head.repo.fork }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: moonbeam
-          path: build
-      - name: Prepare
-        id: prep
-        run: |
-          DOCKER_IMAGE=moonbeamfoundation/moonbeam
-          TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
-          echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.6.1
-        with:
-          version: latest
-          driver-opts: |
-            image=moby/buildkit:master
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
-          password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
-      - name: Build and push moonbeam
-        id: docker_build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/moonbeam.Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ steps.prep.outputs.tags }}
-          labels: |
-            org.opencontainers.image.title=${{ github.event.repository.name }}
-            org.opencontainers.image.description=${{ github.event.repository.description }}
-            org.opencontainers.image.url=${{ github.event.repository.html_url }}
-            org.opencontainers.image.source=${{ github.event.repository.clone_url }}
-            org.opencontainers.image.created=${{ steps.prep.outputs.created }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
-
   lazy-loading-tests:
     runs-on:
       labels: bare-metal
     permissions:
       contents: read
-    needs: ["set-tags", "build", "typescript-tracing-tests"]
+    needs: ["set-tags", "build"]
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -751,7 +730,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -774,21 +753,6 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - name: Setup Moonbeam PolkadotJS types
-        shell: bash
-        run: |
-          #### Preparing the legacy types
-          cd moonbeam-types-bundle
-          pnpm i
-          pnpm build
-
-          #### Preparing the typescript api
-          cd ../typescript-api
-          pnpm i
-          pnpm build
-
-          cd ../test
-          pnpm add ../typescript-api
       - name: "Run lazy loading tests"
         run: |
           chmod uog+x target/release/moonbeam
@@ -800,8 +764,7 @@ jobs:
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
           export NODE_LOGS_ZIP="node_logs_$TIMESTAMP.zip"
-          MOST_RECENT_ZOMBIE_DIR=$(ls -td /tmp/zombie-* | head -n 1)
-          find $MOST_RECENT_ZOMBIE_DIR -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
+          find test/tmp/node_logs -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
           echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -812,7 +775,7 @@ jobs:
   chopsticks-upgrade-test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build", "typescript-tracing-tests"]
+    needs: ["set-tags", "build"]
     strategy:
       fail-fast: false
       matrix:
@@ -822,7 +785,7 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -842,21 +805,6 @@ jobs:
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
-      - name: Setup Moonbeam PolkadotJS types
-        shell: bash
-        run: |
-          #### Preparing the legacy types
-          cd moonbeam-types-bundle
-          pnpm i
-          pnpm build
-
-          #### Preparing the typescript api
-          cd ../typescript-api
-          pnpm i
-          pnpm build
-
-          cd ../test
-          pnpm add ../typescript-api
       - name: "Install and run upgrade test"
         run: |
           cd test
@@ -874,20 +822,19 @@ jobs:
   zombie_upgrade_test:
     runs-on:
       labels: bare-metal
-    needs: ["set-tags", "build", "typescript-tracing-tests"]
+    needs: ["set-tags", "build"]
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
-        ## TODO: add moonriver here when it is ready
-        chain: ["moonbase", "moonbeam"]
+        chain: ["moonbase", "moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -912,28 +859,9 @@ jobs:
           path: target/release
       - name: Retrieve moonbeam binary from docker (for plainSpec generation)
         run: |
-          MOONBEAM_COMMIT=${{ needs.set-tags.outputs.latest_rt_sha8 }}
-          DOCKER_TAG="moonbeamfoundation/moonbeam:sha-$MOONBEAM_COMMIT"
-
-          docker rm -f moonbeam_container 2> /dev/null | true
-          docker create --name moonbeam_container $DOCKER_TAG bash
-          docker cp moonbeam_container:moonbeam/moonbeam test/tmp/moonbeam_rt
-          docker rm -f moonbeam_container
-      - name: Setup Moonbeam PolkadotJS types
-        shell: bash
-        run: |
-          #### Preparing the legacy types
-          cd moonbeam-types-bundle
-          pnpm i
-          pnpm build
-
-          #### Preparing the typescript api
-          cd ../typescript-api
-          pnpm i
-          pnpm build
-
-          cd ../test
-          pnpm add ../typescript-api
+          LATEST_CLIENT=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("v";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]')
+          echo "Latest client: $LATEST_CLIENT"
+          wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$LATEST_CLIENT/moonbeam -O test/tmp/moonbeam_rt
       - name: Prepare Chainspecs
         run: |
           cd test
@@ -950,10 +878,6 @@ jobs:
         run: |
           cd test
           pnpm moonwall test zombie_${{ matrix.chain }}
-      - name: "Run zombie RPC test"
-        run: |
-          cd test
-          pnpm moonwall test zombie_${{ matrix.chain }}_rpc
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |

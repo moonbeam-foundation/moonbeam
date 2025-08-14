@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { KeyringPair } from "@polkadot/keyring/types";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
-  RawXcmMessage,
+  type RawXcmMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../../../helpers/xcm.js";
@@ -13,7 +13,7 @@ import {
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D014012",
+  id: "D024011",
   title: "Mock XCM - receive horizontal transfer of DEV",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -44,7 +44,7 @@ describeSuite({
         // Get Pallet balances index
         const metadata = await context.polkadotJs().rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
 
         // We are charging 100_000_000 weight for every XCM instruction
@@ -73,7 +73,7 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3()
+          .deposit_asset()
           .as_v3();
 
         // Send an XCM and create block to execute it

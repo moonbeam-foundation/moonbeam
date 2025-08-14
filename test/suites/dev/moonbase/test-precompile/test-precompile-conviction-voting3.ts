@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { Abi, decodeEventLog } from "viem";
+import { type Abi, decodeEventLog } from "viem";
 import {
   ConvictionVoting,
   createProposal,
@@ -10,7 +10,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D012833",
+  id: "D022819",
   title: "Precompiles - Conviction on Root Track",
   foundationMethods: "dev",
   testCases: ({ it, log, context }) => {

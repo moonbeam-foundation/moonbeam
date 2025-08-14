@@ -9,7 +9,7 @@ import {
   baltathar,
   createRawTransfer,
 } from "@moonwall/util";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { hexToU8a } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { mockOldAssetBalance } from "../../../../helpers";
@@ -20,7 +20,7 @@ const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
 const ARBITRARY_VESTING_PERIOD = 201600n;
 
 describeSuite({
-  id: "D012001",
+  id: "D021901",
   title: "Maintenance Mode - Filter",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

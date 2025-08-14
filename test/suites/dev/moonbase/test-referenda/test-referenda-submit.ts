@@ -7,10 +7,10 @@ import {
   maximizeConvictionVotingOf,
   whiteListTrackNoSend,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, KeyringPair, ethan, generateKeyringPair } from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR, type KeyringPair, ethan, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D013303",
+  id: "D023303",
   title: "Referenda - Submit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -144,7 +144,7 @@ describeSuite({
         await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(ALITH_ADDRESS, 90n * GLMR, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(ALITH_ADDRESS, 90n * GLMR, 0, 0, 0, 0)
             .signAsync(randomAccount)
         );
         currentRef = (await context.polkadotJs().query.referenda.referendumCount()).toNumber() - 1;

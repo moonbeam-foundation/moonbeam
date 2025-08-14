@@ -4,12 +4,12 @@ import {
   beforeAll,
   describeSuite,
   expect,
-  ChopsticksContext,
+  type ChopsticksContext,
 } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
-import { HexString } from "@polkadot/util/types";
-import { u32 } from "@polkadot/types";
+import type { ApiPromise } from "@polkadot/api";
+import type { HexString } from "@polkadot/util/types";
+import type { u32 } from "@polkadot/types";
 import { hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
 import { blake2AsHex, xxhashAsU8a } from "@polkadot/util-crypto";
 import { parseEther } from "ethers";

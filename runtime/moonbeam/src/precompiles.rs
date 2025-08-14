@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -18,8 +18,8 @@ use super::moonbeam_weights;
 use crate::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{AssetType, XcmExecutorConfig},
-	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, OpenTechCommitteeInstance, Runtime,
-	TreasuryCouncilInstance, H160,
+	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, EvmForeignAssets,
+	OpenTechCommitteeInstance, Runtime, TreasuryCouncilInstance, H160,
 };
 use frame_support::parameter_types;
 use moonkit_xcm_primitives::{
@@ -111,7 +111,10 @@ type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, Callab
 
 // Pallet-xcm precompile types.
 // Type that converts AssetId into Location
-type AssetIdToLocationManager = AsAssetType<AssetId, AssetType, AssetManager>;
+type AssetIdToLocationManager = (
+	AsAssetType<AssetId, AssetType, AssetManager>,
+	EvmForeignAssets,
+);
 
 // The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
 type SingleAddressMatch = SingleAddressMatcher<AccountId, ERC20_BALANCES_PRECOMPILE, Balances>;
@@ -153,7 +156,7 @@ type MoonbeamPrecompilesAt<R> = (
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<
-		AddressU64<2050>,
+		AddressU64<ERC20_BALANCES_PRECOMPILE>,
 		Erc20BalancesPrecompile<R, NativeErc20Metadata>,
 		(CallableByContract, CallableByPrecompile),
 	>,
@@ -175,7 +178,11 @@ type MoonbeamPrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2054>,
 		XcmTransactorPrecompileV1<R>,
-		(CallableByContract, CallableByPrecompile),
+		(
+			SubcallWithMaxNesting<1>,
+			CallableByContract,
+			CallableByPrecompile,
+		),
 	>,
 	PrecompileAt<
 		AddressU64<2055>,
@@ -221,7 +228,11 @@ type MoonbeamPrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2061>,
 		XcmTransactorPrecompileV2<R>,
-		(CallableByContract, CallableByPrecompile),
+		(
+			SubcallWithMaxNesting<1>,
+			CallableByContract,
+			CallableByPrecompile,
+		),
 	>,
 	RemovedPrecompileAt<AddressU64<2062>>, //CouncilInstance
 	RemovedPrecompileAt<AddressU64<2063>>, // TechCommitteeInstance
@@ -259,7 +270,11 @@ type MoonbeamPrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2071>,
 		XcmTransactorPrecompileV3<R>,
-		(CallableByContract, CallableByPrecompile),
+		(
+			SubcallWithMaxNesting<1>,
+			CallableByContract,
+			CallableByPrecompile,
+		),
 	>,
 	PrecompileAt<
 		AddressU64<2072>,
@@ -277,7 +292,11 @@ type MoonbeamPrecompilesAt<R> = (
 	PrecompileAt<
 		AddressU64<2074>,
 		PalletXcmPrecompile<R, (SingleAddressMatch, ForeignAssetMatch, Erc20Match)>,
-		(CallableByContract, CallableByPrecompile),
+		(
+			CallableByContract,
+			CallableByPrecompile,
+			SubcallWithMaxNesting<1>,
+		),
 	>,
 );
 

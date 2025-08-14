@@ -10,7 +10,7 @@ import {
 import { createProposal } from "../../../../helpers";
 
 describeSuite({
-  id: "D011901",
+  id: "D021801",
   title: "Locks - Voting and staking locks are not mutually exclusive",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -60,7 +60,7 @@ describeSuite({
           await context.polkadotJs().query.system.account(randomAddress)
         ).data.frozen.toBigInt();
 
-        // BigInt doesn't have max()- we are testing frozenBalance == max(GLMR, MIN_GLMR_DELEGATOR)
+        // BigInt doesn't have max()- we are testing frozenBalance === max(GLMR, MIN_GLMR_DELEGATOR)
         if (GLMR > MIN_GLMR_DELEGATOR) {
           expect(frozenBalance).to.equal(GLMR);
         } else {

@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext } from "@moonwall/cli";
-import { FrameSupportPreimagesBounded } from "@polkadot/types/lookup";
+import type { DevModeContext } from "@moonwall/cli";
+import type { FrameSupportPreimagesBounded } from "@polkadot/types/lookup";
 import chalk from "chalk";
 import Debugger from "debug";
 
@@ -56,22 +56,22 @@ export const forceReducedReferendaExecution = async (
   };
   if (forceTally) {
     const totalIssuance = (await api.query.balances.totalIssuance()).toBigInt();
-    fastProposalData["tally"] = {
+    fastProposalData.tally = {
       ayes: totalIssuance - 1n,
       nays: 0,
       support: totalIssuance - 1n,
     };
   }
 
-  let fastProposal;
+  let fastProposal: any;
   try {
     fastProposal = api.registry.createType(
-      `Option<PalletReferendaReferendumInfo>`,
+      "Option<PalletReferendaReferendumInfo>",
       fastProposalData
     );
   } catch {
     fastProposal = api.registry.createType(
-      `Option<PalletReferendaReferendumInfoConvictionVotingTally>`,
+      "Option<PalletReferendaReferendumInfoConvictionVotingTally>",
       fastProposalData
     );
   }
@@ -100,7 +100,8 @@ export const forceReducedReferendaExecution = async (
     }
     const callData = api.createType("Call", call.asInline.toHex());
     return (
-      callData.method == "nudgeReferendum" && (callData.args[0] as any).toNumber() == proposalIndex
+      callData.method === "nudgeReferendum" &&
+      (callData.args[0] as any).toNumber() === proposalIndex
     );
   });
 
@@ -120,7 +121,7 @@ export const forceReducedReferendaExecution = async (
   await moveScheduledCallTo(
     context,
     2,
-    (call) => call.isLookup && call.asLookup.toHex() == callHash
+    (call) => call.isLookup && call.asLookup.toHex() === callHash
   );
 
   log(
@@ -169,7 +170,7 @@ async function moveScheduledCallTo(
     }
   }
 
-  if (storages.length == 0) {
+  if (storages.length === 0) {
     throw new Error("No scheduled call found");
   }
   await context.createBlock(

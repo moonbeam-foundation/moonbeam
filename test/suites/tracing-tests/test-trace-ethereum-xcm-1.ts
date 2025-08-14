@@ -3,12 +3,12 @@ import {
   XcmFragment,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
-  RawXcmMessage,
+  type RawXcmMessage,
 } from "../../helpers";
-import { hexToNumber, Abi, encodeFunctionData } from "viem";
+import { hexToNumber, type Abi, encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "T10",
+  id: "T13",
   title: "Trace ethereum xcm #1",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -36,7 +36,7 @@ describeSuite({
       // Get Pallet balances index
       const metadata = await context.polkadotJs().rpc.state.getMetadata();
       const balancesPalletIndex = metadata.asLatest.pallets
-        .find(({ name }) => name.toString() == "Balances")!
+        .find(({ name }) => name.toString() === "Balances")!
         .index.toNumber();
 
       const xcmTransactions = [

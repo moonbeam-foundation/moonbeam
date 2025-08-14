@@ -1,8 +1,8 @@
-# Node for Moonbeam
+# Production Node for Moonbeam
 #
 # Requires to run from repository root and to copy the binary in the build folder (part of the release workflow)
 
-FROM debian:stable AS builder
+FROM docker.io/library/ubuntu:22.04 AS builder
 
 # Branch or tag to build moonbeam from
 ARG COMMIT="master"
@@ -29,11 +29,14 @@ RUN echo "*** Cloning Moonbeam ***" && \
 	if git ls-remote --heads https://github.com/moonbeam-foundation/moonbeam.git $COMMIT | grep -q $COMMIT; then \
 	echo "Cloning branch $COMMIT"; \
 	git clone --depth=1 --branch $COMMIT https://github.com/moonbeam-foundation/moonbeam.git; \
+	elif git ls-remote --tags https://github.com/moonbeam-foundation/moonbeam.git $COMMIT | grep -q $COMMIT; then \
+	echo "Cloning tag $COMMIT"; \
+	git clone --depth=1 --branch $COMMIT https://github.com/moonbeam-foundation/moonbeam.git; \
 	else \
 	echo "Cloning specific commit $COMMIT"; \
 	git clone --depth=1 https://github.com/moonbeam-foundation/moonbeam.git && \
 	cd moonbeam && \
-	git fetch --depth=1 origin $COMMIT && \
+	git fetch origin $COMMIT && \
 	git checkout $COMMIT; \
 	fi
 
@@ -47,7 +50,7 @@ RUN cargo build --profile=production --all
 
 FROM debian:stable-slim
 LABEL maintainer="alan@moonsonglabs.com"
-LABEL description="Binary for Moonbeam Nodes"
+LABEL description="Production Binary for Moonbeam Nodes"
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /moonbeam moonbeam && \
 	mkdir -p /moonbeam/.local/share && \

@@ -8,11 +8,11 @@ import {
   DEFAULT_GENESIS_BALANCE,
   DEFAULT_GENESIS_MAPPING,
 } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D010201",
+  id: "D020201",
   title: "Author Mapping - double registration",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

@@ -4,7 +4,7 @@ import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/
 import { fromBytes } from "viem";
 
 describeSuite({
-  id: "D013479",
+  id: "D023481",
   title: "Staking - Locks - schedule revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -21,7 +21,14 @@ describeSuite({
       await context.createBlock(
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 1, 0)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            alith.address,
+            MIN_GLMR_DELEGATOR,
+            0,
+            1,
+            0,
+            0
+          )
           .signAsync(randomAccount),
         { allowFailures: false }
       );

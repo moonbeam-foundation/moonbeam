@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 
 describeSuite({
-  id: "D013444",
+  id: "D023445",
   title: "Staking - Delegator Join - already delegated",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -11,7 +11,14 @@ describeSuite({
       await context.createBlock(
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            alith.address,
+            MIN_GLMR_DELEGATOR,
+            0,
+            0,
+            0,
+            0
+          )
           .signAsync(ethan),
         { allowFailures: false }
       );
@@ -24,7 +31,14 @@ describeSuite({
         const block = await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 1)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              alith.address,
+              MIN_GLMR_DELEGATOR,
+              0,
+              0,
+              0,
+              1
+            )
             .signAsync(ethan)
         );
         expect(block.result!.successful!).to.be.false;

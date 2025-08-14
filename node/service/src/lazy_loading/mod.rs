@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::chain_spec::Extensions;
 use crate::{
 	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
 	ClientCustomizations, FrontierBlockImport, HostFunctions, PartialComponentsResult,
 	PendingConsensusDataProvider, RuntimeApiCollection, SOFT_DEADLINE_PERCENT,
 };
 use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
-use cumulus_primitives_core::{relay_chain, BlockT, ParaId};
+use cumulus_primitives_core::{relay_chain, BlockT, CollectCollationInfo, ParaId};
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_rpc::StorageOverrideHandler;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
+use frontier_backend::LazyLoadingFrontierBackend;
 use futures::{FutureExt, StreamExt};
 use moonbeam_cli_opt::{EthApi as EthApiCmd, LazyLoadingConfig, RpcConfig};
 use moonbeam_core_primitives::{Block, Hash};
@@ -34,8 +36,8 @@ use parity_scale_codec::Encode;
 use polkadot_primitives::{
 	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
 };
-use sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
-use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks, StorageProvider};
+use sc_chain_spec::{get_extension, BuildGenesisBlock, ChainType, GenesisBlockBuilder};
+use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks};
 use sc_executor::{HeapAllocStrategy, RuntimeVersionOf, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::config::FullNetworkConfiguration;
 use sc_network::NetworkBackend;
@@ -45,24 +47,26 @@ use sc_service::{
 	LocalCallExecutor, PartialComponents, TaskManager,
 };
 use sc_telemetry::{TelemetryHandle, TelemetryWorker};
-use sc_transaction_pool_api::OffchainTransactionPoolFactory;
-use sp_api::ConstructRuntimeApi;
+use sc_transaction_pool_api::{OffchainTransactionPoolFactory, TransactionPool};
+use sp_api::{ConstructRuntimeApi, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
 use sp_core::traits::CodeExecutor;
-use sp_core::{twox_128, H256};
+use sp_core::H256;
 use sp_runtime::traits::NumberFor;
-use sp_storage::StorageKey;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-pub mod backend;
 pub mod call_executor;
 mod client;
+pub mod frontier_backend;
 mod helpers;
 mod lock;
+mod manual_sealing;
+mod rpc_client;
 mod state_overrides;
+pub mod substrate_backend;
 
 pub const LAZY_LOADING_LOG_TARGET: &'static str = "lazy-loading";
 
@@ -75,7 +79,7 @@ pub type TLazyLoadingClient<TBl, TRtApi, TExec> = sc_service::client::Client<
 >;
 
 /// Lazy loading client backend type.
-pub type TLazyLoadingBackend<TBl> = backend::Backend<TBl>;
+pub type TLazyLoadingBackend<TBl> = substrate_backend::Backend<TBl>;
 
 /// Lazy loading client call executor type.
 pub type TLazyLoadingCallExecutor<TBl, TExec> = call_executor::LazyLoadingCallExecutor<
@@ -107,7 +111,7 @@ where
 	TBl::Hash: From<H256>,
 	TExec: CodeExecutor + RuntimeVersionOf + Clone,
 {
-	let backend = backend::new_lazy_loading_backend(config, &lazy_loading_config)?;
+	let backend = substrate_backend::new_backend(config, &lazy_loading_config)?;
 
 	let genesis_block_builder = GenesisBlockBuilder::new(
 		config.chain_spec.as_storage_builder(),
@@ -200,14 +204,14 @@ where
 			ClientConfig {
 				offchain_worker_enabled: config.offchain_worker.enabled,
 				offchain_indexing_api: config.offchain_worker.indexing_enabled,
-				wasmtime_precompiled: config.wasmtime_precompiled.clone(),
+				wasmtime_precompiled: config.executor.wasmtime_precompiled.clone(),
 				wasm_runtime_overrides: config.wasm_runtime_overrides.clone(),
 				no_genesis: matches!(
 					config.network.sync_mode,
 					SyncMode::LightState { .. } | SyncMode::Warp { .. }
 				),
 				wasm_runtime_substitutes,
-				enable_import_proof_recording: false,
+				enable_import_proof_recording: true,
 			},
 		)?;
 
@@ -232,7 +236,7 @@ where
 	set_prometheus_registry(config, rpc_config.no_prometheus_prefix)?;
 
 	// Use ethereum style for subscription ids
-	config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
+	config.rpc.id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
 
 	let telemetry = config
 		.telemetry_endpoints
@@ -246,19 +250,20 @@ where
 		.transpose()?;
 
 	let heap_pages = config
+		.executor
 		.default_heap_pages
 		.map_or(DEFAULT_HEAP_ALLOC_STRATEGY, |h| HeapAllocStrategy::Static {
 			extra_pages: h as _,
 		});
 	let mut wasm_builder = WasmExecutor::builder()
-		.with_execution_method(config.wasm_method)
+		.with_execution_method(config.executor.wasm_method)
 		.with_onchain_heap_alloc_strategy(heap_pages)
 		.with_offchain_heap_alloc_strategy(heap_pages)
 		.with_ignore_onchain_heap_pages(true)
-		.with_max_runtime_instances(config.max_runtime_instances)
-		.with_runtime_cache_size(config.runtime_cache_size);
+		.with_max_runtime_instances(config.executor.max_runtime_instances)
+		.with_runtime_cache_size(config.executor.runtime_cache_size);
 
-	if let Some(ref wasmtime_precompiled_path) = config.wasmtime_precompiled {
+	if let Some(ref wasmtime_precompiled_path) = config.executor.wasmtime_precompiled {
 		wasm_builder = wasm_builder.with_wasmtime_precompiled_path(wasmtime_precompiled_path);
 	}
 
@@ -294,13 +299,14 @@ where
 
 	let maybe_select_chain = Some(sc_consensus::LongestChain::new(backend.clone()));
 
-	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
-		config.role.is_authority().into(),
-		config.prometheus_registry(),
+	let transaction_pool = sc_transaction_pool::Builder::new(
 		task_manager.spawn_essential_handle(),
 		client.clone(),
-	);
+		config.role.is_authority().into(),
+	)
+	.with_options(config.transaction_pool.clone())
+	.with_prometheus(config.prometheus_registry())
+	.build();
 
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
@@ -347,7 +353,7 @@ where
 		import_queue,
 		keystore_container,
 		task_manager,
-		transaction_pool,
+		transaction_pool: transaction_pool.into(),
 		select_chain: maybe_select_chain,
 		other: (
 			block_import,
@@ -379,7 +385,7 @@ where
 {
 	use async_io::Timer;
 	use futures::Stream;
-	use sc_consensus_manual_seal::{run_manual_seal, EngineCommand, ManualSealParams};
+	use sc_consensus_manual_seal::{EngineCommand, ManualSealParams};
 
 	let sc_service::PartialComponents {
 		client,
@@ -444,7 +450,9 @@ where
 		));
 	};
 
-	let net_config = FullNetworkConfiguration::<_, _, Net>::new(&config.network);
+	let prometheus_registry = config.prometheus_registry().cloned();
+	let net_config =
+		FullNetworkConfiguration::<_, _, Net>::new(&config.network, prometheus_registry.clone());
 
 	let metrics = Net::register_notification_metrics(
 		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
@@ -458,7 +466,7 @@ where
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue,
 			block_announce_validator_builder: None,
-			warp_sync_params: None,
+			warp_sync_config: None,
 			net_config,
 			block_relay: None,
 			metrics,
@@ -479,7 +487,7 @@ where
 				is_validator: config.role.is_authority(),
 				enable_http_requests: true,
 				custom_extensions: move |_| vec![],
-			})
+			})?
 			.run(client.clone(), task_manager.spawn_handle())
 			.boxed(),
 		);
@@ -507,16 +515,14 @@ where
 				moonbeam_cli_opt::Sealing::Instant => {
 					Box::new(
 						// This bit cribbed from the implementation of instant seal.
-						transaction_pool
-							.pool()
-							.validated_pool()
-							.import_notification_stream()
-							.map(|_| EngineCommand::SealNewBlock {
+						transaction_pool.import_notification_stream().map(|_| {
+							EngineCommand::SealNewBlock {
 								create_empty: false,
 								finalize: false,
 								parent_hash: None,
 								sender: None,
-							}),
+							}
+						}),
 					)
 				}
 				moonbeam_cli_opt::Sealing::Manual => {
@@ -542,8 +548,6 @@ where
 				Therefore, a `LongestChainRule` is present. qed.",
 		);
 
-		let client_set_aside_for_cidp = client.clone();
-
 		// Create channels for mocked XCM messages.
 		let (downward_xcm_sender, downward_xcm_receiver) = flume::bounded::<Vec<u8>>(100);
 		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
@@ -554,12 +558,15 @@ where
 			additional_relay_offset,
 		));
 
-		let client_clone = client.clone();
+		// Need to clone it and store here to avoid moving of `client`
+		// variable in closure below.
+		let client_vrf = client.clone();
+
 		let keystore_clone = keystore_container.keystore().clone();
 		let maybe_provide_vrf_digest =
 			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
 				moonbeam_vrf::vrf_pre_digest::<Block, LazyLoadingClient<RuntimeApi>>(
-					&client_clone,
+					&client_vrf,
 					&keystore_clone,
 					nimbus_id,
 					parent,
@@ -569,10 +576,14 @@ where
 		let parachain_id = helpers::get_parachain_id(backend.rpc_client.clone())
 			.unwrap_or_else(|| panic!("Could not get parachain identifier for lazy loading mode."));
 
+		// Need to clone it and store here to avoid moving of `client`
+		// variable in closure below.
+		let client_for_cidp = client.clone();
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			Some("block-authoring"),
-			run_manual_seal(ManualSealParams {
+			manual_sealing::run_manual_seal(ManualSealParams {
 				block_import,
 				env,
 				client: client.clone(),
@@ -586,12 +597,15 @@ where
 					_phantom: Default::default(),
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
-					let maybe_current_para_block = client_set_aside_for_cidp.number(block);
-					let maybe_current_para_head = client_set_aside_for_cidp.expect_header(block);
+					let maybe_current_para_block = client_for_cidp.number(block);
+					let maybe_current_para_head = client_for_cidp.expect_header(block);
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
 
-					let client_for_cidp = client_set_aside_for_cidp.clone();
+					// Need to clone it and store here to avoid moving of `client`
+					// variable in closure below.
+					let client_for_xcm = client_for_cidp.clone();
+
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
@@ -602,7 +616,7 @@ where
 							maybe_current_para_head?.encode(),
 						));
 
-						let mut additional_key_values = vec![
+						let additional_key_values = vec![
 							(
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
@@ -634,29 +648,31 @@ where
 							),
 						];
 
-						// If there is a pending upgrade, lets mimic a GoAhead
-						// signal from the relay
+						let current_para_head = client_for_xcm
+							.header(block)
+							.expect("Header lookup should succeed")
+							.expect("Header passed in as parent should be present in backend.");
 
-						let storage_key = [
-							twox_128(b"ParachainSystem"),
-							twox_128(b"PendingValidationCode"),
-						]
-						.concat();
-						let has_pending_upgrade = client_for_cidp
-							.storage(block, &StorageKey(storage_key))
-							.map_or(false, |ok| ok.map_or(false, |some| !some.0.is_empty()));
-						if has_pending_upgrade {
-							additional_key_values.push((
-								relay_chain::well_known_keys::upgrade_go_ahead_signal(ParaId::new(
-									parachain_id,
-								)),
-								Some(UpgradeGoAhead::GoAhead).encode(),
-							));
-						}
+						let should_send_go_ahead = match client_for_xcm
+							.runtime_api()
+							.collect_collation_info(block, &current_para_head)
+						{
+							Ok(info) => info.new_validation_code.is_some(),
+							Err(e) => {
+								log::error!("Failed to collect collation info: {:?}", e);
+								false
+							}
+						};
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							para_id: ParaId::new(parachain_id),
+							upgrade_go_ahead: should_send_go_ahead.then(|| {
+								log::info!(
+									"Detected pending validation code, sending go-ahead signal."
+								);
+								UpgradeGoAhead::GoAhead
+							}),
 							current_para_block_head,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
@@ -664,7 +680,7 @@ where
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
 							xcm_config: MockXcmConfig::new(
-								&*client_for_cidp,
+								&*client_for_xcm,
 								block,
 								Default::default(),
 							),
@@ -693,6 +709,7 @@ where
 	> = Default::default();
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
 
+	/* TODO: only enable this when frontier backend is compatible with lazy-loading
 	rpc::spawn_essential_tasks(
 		rpc::SpawnTasksParams {
 			task_manager: &task_manager,
@@ -707,6 +724,8 @@ where
 		sync_service.clone(),
 		pubsub_notification_sinks.clone(),
 	);
+	*/
+
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
@@ -747,6 +766,7 @@ where
 		let sync = sync_service.clone();
 		let ethapi_cmd = ethapi_cmd.clone();
 		let max_past_logs = rpc_config.max_past_logs;
+		let max_block_range = rpc_config.max_block_range;
 		let overrides = overrides.clone();
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
@@ -754,22 +774,25 @@ where
 
 		let keystore = keystore_container.keystore();
 		let command_sink_for_task = command_sink.clone();
-		move |deny_unsafe, subscription_task_executor| {
+		move |subscription_task_executor| {
 			let deps = rpc::FullDeps {
 				backend: backend.clone(),
 				client: client.clone(),
 				command_sink: command_sink_for_task.clone(),
-				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: match *frontier_backend {
-					fc_db::Backend::KeyValue(ref b) => b.clone(),
-					fc_db::Backend::Sql(ref b) => b.clone(),
-				},
-				graph: pool.pool().clone(),
+				frontier_backend: Arc::new(LazyLoadingFrontierBackend {
+					rpc_client: backend.clone().rpc_client.clone(),
+					frontier_backend: match *frontier_backend {
+						fc_db::Backend::KeyValue(ref b) => b.clone(),
+						fc_db::Backend::Sql(ref b) => b.clone(),
+					},
+				}),
+				graph: pool.clone(),
 				pool: pool.clone(),
 				is_authority: collator,
 				max_past_logs,
+				max_block_range,
 				fee_history_limit,
 				fee_history_cache: fee_history_cache.clone(),
 				network: network.clone(),
@@ -842,4 +865,21 @@ where
 	log::info!("Service Ready");
 
 	Ok(task_manager)
+}
+
+pub fn spec_builder() -> sc_chain_spec::ChainSpecBuilder<Extensions> {
+	crate::chain_spec::moonbeam::ChainSpec::builder(
+		moonbeam_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
+		Default::default(),
+	)
+	.with_name("Lazy Loading")
+	.with_id("lazy_loading")
+	.with_chain_type(ChainType::Development)
+	.with_properties(
+		serde_json::from_str(
+			"{\"tokenDecimals\": 18, \"tokenSymbol\": \"GLMR\", \"SS58Prefix\": 1284}",
+		)
+		.expect("Provided valid json map"),
+	)
+	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
 }

@@ -1,4 +1,3 @@
-// import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
@@ -11,7 +10,7 @@ import {
 } from "@moonwall/util";
 
 describeSuite({
-  id: "D013415",
+  id: "D023415",
   title: "Staking - Delegate With Auto-Compound - wrong candidate delegation hint",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

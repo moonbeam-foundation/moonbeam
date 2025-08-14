@@ -13,7 +13,7 @@ import { jumpBlocks } from "../../../../helpers";
 import { BN } from "@polkadot/util";
 
 describeSuite({
-  id: "D0134655",
+  id: "D023466",
   title: "Staking - Rewards - Bond + Treasury",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -56,11 +56,11 @@ describeSuite({
               .signAsync(alith),
             context
               .polkadotJs()
-              .tx.parachainStaking.delegate(alith.address, BOND_AMOUNT, 0, 0)
+              .tx.parachainStaking.delegateWithAutoCompound(alith.address, BOND_AMOUNT, 0, 0, 0, 0)
               .signAsync(ethan),
             context
               .polkadotJs()
-              .tx.parachainStaking.delegate(alith.address, BOND_AMOUNT, 1, 0)
+              .tx.parachainStaking.delegateWithAutoCompound(alith.address, BOND_AMOUNT, 0, 1, 0, 0)
               .signAsync(baltathar),
           ],
           { allowFailures: false }
@@ -79,9 +79,9 @@ describeSuite({
 
         (await context.polkadotJs().query.system.events()).forEach((event) => {
           if (context.polkadotJs().events.parachainStaking.InflationDistributed.is(event.event)) {
-            if (event.event.data.account.toString() == dorothy.address) {
+            if (event.event.data.account.toString() === dorothy.address) {
               pbrReward = event.event.data.value.toBigInt();
-            } else if (event.event.data.account.toString() == charleth.address) {
+            } else if (event.event.data.account.toString() === charleth.address) {
               treasuryReward = event.event.data.value.toBigInt();
             }
           }
@@ -96,16 +96,21 @@ describeSuite({
         expect(pbrReward).is.not.undefined;
         expect(treasuryReward).is.not.undefined;
 
-        expect((pbrReward! + treasuryReward!).toString()).to.be.eq(
-          new Percent(PBR_PERCENTAGE + TREASURY_PERCENTAGE)
-            .of(new BN(totalReward.toString()))
-            .toString()
+        // Allow a small delta due to rounding
+        expect(Number(pbrReward! + treasuryReward!)).to.be.approximately(
+          Number(
+            new Percent(PBR_PERCENTAGE + TREASURY_PERCENTAGE).of(new BN(totalReward.toString()))
+          ),
+          1
         );
 
-        expect(otherRewards.toString()).to.be.eq(
-          new Percent(100 - PBR_PERCENTAGE - TREASURY_PERCENTAGE)
-            .of(new BN(totalReward.toString()))
-            .toString()
+        expect(Number(otherRewards.toString())).to.be.approximately(
+          Number(
+            new Percent(100 - PBR_PERCENTAGE - TREASURY_PERCENTAGE)
+              .of(new BN(totalReward.toString()))
+              .toString()
+          ),
+          1
         );
 
         expect(pbrReward!.toString()).to.be.eq(

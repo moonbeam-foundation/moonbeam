@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -22,9 +22,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::comparison_chain, clippy::large_enum_variant)]
 
-#[cfg(all(feature = "std", test))]
+#[cfg(test)]
 mod mock;
-#[cfg(all(feature = "std", test))]
+#[cfg(test)]
 mod tests;
 
 use ethereum_types::{H160, H256, U256};
@@ -107,6 +107,7 @@ pub use self::pallet::*;
 #[frame_support::pallet(dev_mode)]
 pub mod pallet {
 	use super::*;
+	use fp_evm::AccountProvider;
 	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
@@ -122,7 +123,9 @@ pub mod pallet {
 		/// Maximum Weight reserved for xcm in a block
 		type ReservedXcmpWeight: Get<Weight>;
 		/// Ensure proxy
-		type EnsureProxy: EnsureProxy<Self::AccountId>;
+		type EnsureProxy: EnsureProxy<
+			<<Self as pallet_evm::Config>::AccountProvider as AccountProvider>::AccountId,
+		>;
 		/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.
 		type ControllerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		/// An origin that can submit a create tx type

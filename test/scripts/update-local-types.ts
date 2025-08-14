@@ -1,9 +1,8 @@
-import { exec, spawn } from "child_process";
-import { promisify } from "util";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { readFileSync, writeFileSync } from "fs";
-import { start } from "repl";
+import { exec, spawn } from "node:child_process";
+import { promisify } from "node:util";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { readFileSync, writeFileSync } from "node:fs";
 
 const execAsync = promisify(exec);
 
@@ -53,14 +52,15 @@ const startNode = (network: string, rpcPort: string, port: string) => {
   const node = spawn(
     "../target/release/moonbeam",
     [
-      `--alice`,
+      "--alice",
       `--chain=${network}`,
       `--rpc-port=${rpcPort}`,
-      `--no-hardware-benchmarks`,
-      `--unsafe-force-node-key-generation`,
-      `--wasm-execution=interpreted-i-know-what-i-do`,
-      `--no-telemetry`,
-      `--no-prometheus`,
+      "--no-hardware-benchmarks",
+      "--unsafe-force-node-key-generation",
+      "--wasm-execution=interpreted-i-know-what-i-do",
+      "--no-telemetry",
+      "--no-prometheus",
+      "--rpc-cors=all",
       "--tmp",
     ],
     {
@@ -87,7 +87,7 @@ const scrapeMetadata = async (network: string, port: string) => {
 
   const metadataJson = await metadata.json();
   writeFile(
-    `../../typescript-api`,
+    "../../typescript-api",
     `metadata-${network.replace("-dev", "")}.json`,
     JSON.stringify(metadataJson)
   );
@@ -106,9 +106,9 @@ const executeUpdateAPIScript = async () => {
   await checkBinary();
 
   // Bundle types
-  await executeScript("../../moonbeam-types-bundle", "pnpm i");
-  await executeScript("../../moonbeam-types-bundle", "pnpm build");
-  await executeScript("../../moonbeam-types-bundle", "pnpm fmt:fix");
+  await executeScript("../../types-bundle", "pnpm i");
+  await executeScript("../../types-bundle", "pnpm build");
+  await executeScript("../../types-bundle", "pnpm check:fix");
 
   // Generate types
   console.log("Extracting metadata for all runtimes...");

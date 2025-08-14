@@ -7,8 +7,8 @@ import {
   execOpenTechCommitteeProposal,
 } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
-import { u128 } from "@polkadot/types-codec";
-import { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { u128 } from "@polkadot/types-codec";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import {
   RELAY_SOURCE_LOCATION,
   addAssetToWeightTrader,
@@ -18,7 +18,7 @@ import {
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "D012002",
+  id: "D021902",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -52,7 +52,7 @@ describeSuite({
       );
 
       // set relative price in xcmWeightTrader
-      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0, context);
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0n, context);
 
       await execOpenTechCommitteeProposal(
         context,

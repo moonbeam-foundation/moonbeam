@@ -3,7 +3,7 @@ import { encodeFunctionData } from "viem";
 import { createContracts } from "../../helpers";
 
 describeSuite({
-  id: "T16",
+  id: "T09",
   title: "Test 'debug_traceCall'",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -23,10 +23,10 @@ describeSuite({
         const traceTx = await customDevRpcRequest("debug_traceCall", [callParams, "latest"]);
         const logs: any[] = [];
         for (const log of traceTx.structLogs) {
-          if (logs.length == 1) {
+          if (logs.length === 1) {
             logs.push(log);
           }
-          if (log.op == "RETURN") {
+          if (log.op === "RETURN") {
             logs.push(log);
           }
         }

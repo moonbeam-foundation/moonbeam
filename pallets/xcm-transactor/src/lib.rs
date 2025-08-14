@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -104,6 +104,7 @@ pub mod pallet {
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
+	use sp_std::vec;
 	use sp_std::vec::Vec;
 	use xcm::{latest::prelude::*, VersionedLocation};
 	use xcm_executor::traits::{TransactAsset, WeightBounds};
@@ -419,6 +420,7 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T> {
 		pub relay_indices: RelayChainIndices,
+		#[serde(skip)]
 		pub _phantom: PhantomData<T>,
 	}
 
@@ -1105,7 +1107,7 @@ pub mod pallet {
 			}
 			instructions.push(Transact {
 				origin_kind,
-				require_weight_at_most: dispatch_weight,
+				fallback_max_weight: Some(dispatch_weight),
 				call: call.into(),
 			});
 			Ok(Xcm(instructions))

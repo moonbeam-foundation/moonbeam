@@ -1,5 +1,5 @@
-import { BlockCreation, DevModeContext, PrecompileCallOptions } from "@moonwall/cli";
-import { KeyringPair } from "@moonwall/util";
+import type { BlockCreation, DevModeContext, PrecompileCallOptions } from "@moonwall/cli";
+import type { KeyringPair } from "@moonwall/util";
 
 class PrecompileContract {
   precompileName: string;
@@ -36,7 +36,7 @@ class PrecompileContract {
   }
 
   withRawTxOnly(rawTxOnly: boolean) {
-    if (rawTxOnly == false) {
+    if (rawTxOnly === false) {
       this.rawTxOnly = undefined;
     }
     return this;
@@ -105,28 +105,12 @@ export class PrecompileCall {
 }
 
 class ReadPrecompileCall extends PrecompileCall {
-  constructor(
-    params: PrecompileCallOptions,
-    context: DevModeContext,
-    blockCreationOptions: BlockCreation
-  ) {
-    super(params, context, blockCreationOptions);
-  }
-
   async tx(): Promise<unknown> {
     return await this.context.readPrecompile!(this.params);
   }
 }
 
 class WritePrecompileCall extends PrecompileCall {
-  constructor(
-    params: PrecompileCallOptions,
-    context: DevModeContext,
-    blockCreationOptions: BlockCreation
-  ) {
-    super(params, context, blockCreationOptions);
-  }
-
   async tx(): Promise<unknown> {
     return await this.context.writePrecompile!(this.params);
   }

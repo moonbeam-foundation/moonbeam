@@ -16,7 +16,7 @@ import {
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D011303",
+  id: "D021205",
   title: "Ethereum Transaction - Nonce",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

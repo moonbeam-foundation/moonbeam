@@ -1,4 +1,4 @@
 packages:
   - "test"
   - "typescript-api"
-  - "moonbeam-types-bundle"
+  - "types-bundle"

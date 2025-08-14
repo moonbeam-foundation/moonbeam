@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D012895",
+  id: "D022882",
   title: "Precompiles - xcm transactor",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -20,8 +20,6 @@ describeSuite({
       id: "T01",
       title: "allows to issue transfer signed xcm transactor with multilocation",
       test: async function () {
-        // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
-        // And we need relay tokens for issuing a transaction to be executed in the relay
         const dest: [number, any[]] = [1, []];
         const asset: [number, any[]] = [1, []];
         const transact_call = fromBytes(new Uint8Array([0x01]), "hex");

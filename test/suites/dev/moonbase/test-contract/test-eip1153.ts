@@ -1,7 +1,7 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D010611",
+  id: "D020511",
   title: "EIP-1153 - Transient storage",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

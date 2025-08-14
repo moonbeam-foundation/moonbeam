@@ -24,7 +24,7 @@ import {
 const HIGH_MAX_FEE_PER_GAS = GLMR;
 
 describeSuite({
-  id: "D013901",
+  id: "D023901",
   title: "Tip should be respected",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -136,8 +136,8 @@ describeSuite({
         const { block } = await context.polkadotJs().rpc.chain.getBlock(hash);
         const transferExts = block.extrinsics.filter((ext) => {
           return (
-            (ext.method.section == "balances" && ext.method.method == "transferAllowDeath") ||
-            (ext.method.section == "ethereum" && ext.method.method == "transact")
+            (ext.method.section === "balances" && ext.method.method === "transferAllowDeath") ||
+            (ext.method.section === "ethereum" && ext.method.method === "transact")
           );
         });
 

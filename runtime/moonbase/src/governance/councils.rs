@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -18,6 +18,7 @@
 
 use super::moonbase_weights;
 use super::*;
+use crate::governance::referenda::FastGeneralAdminOrRoot;
 
 pub type TreasuryCouncilInstance = pallet_collective::Instance3;
 pub type OpenTechCommitteeInstance = pallet_collective::Instance4;
@@ -39,9 +40,13 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	/// The maximum number of treasury council members.
 	type MaxMembers = ConstU32<9>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = moonbase_weights::pallet_collective::WeightInfo<Runtime>;
+	type WeightInfo =
+		moonbase_weights::pallet_collective_treasury_council_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
+	type DisapproveOrigin = FastGeneralAdminOrRoot;
+	type KillOrigin = FastGeneralAdminOrRoot;
+	type Consideration = ();
 }
 
 impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
@@ -56,7 +61,11 @@ impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
 	/// The maximum number of technical committee members.
 	type MaxMembers = ConstU32<100>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = moonbase_weights::pallet_collective::WeightInfo<Runtime>;
+	type WeightInfo =
+		moonbase_weights::pallet_collective_open_tech_committee_collective::WeightInfo<Runtime>;
 	type SetMembersOrigin = referenda::GeneralAdminOrRoot;
 	type MaxProposalWeight = MaxProposalWeight;
+	type DisapproveOrigin = FastGeneralAdminOrRoot;
+	type KillOrigin = FastGeneralAdminOrRoot;
+	type Consideration = ();
 }

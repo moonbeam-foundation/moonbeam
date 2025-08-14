@@ -3,7 +3,7 @@ import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { ethers } from "ethers";
 
 describeSuite({
-  id: "D011401",
+  id: "D021301",
   title: "Ethers.js",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

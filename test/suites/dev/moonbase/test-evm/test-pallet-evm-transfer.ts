@@ -11,7 +11,7 @@ import {
 // A signed call cannot make a transfer directly in pallet_evm
 
 describeSuite({
-  id: "D011502",
+  id: "D021402",
   title: "Pallet EVM - call",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -71,7 +71,8 @@ describeSuite({
 
         expect(
           result?.events.find(
-            ({ event: { section, method } }) => section == "system" && method == "ExtrinsicSuccess"
+            ({ event: { section, method } }) =>
+              section === "system" && method === "ExtrinsicSuccess"
           )
         ).to.exist;
         expect(await context.viem().getBalance({ address: baltathar.address })).to.equal(

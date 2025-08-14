@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { encodeDeployData } from "viem";
 
 describeSuite({
-  id: "D013905",
+  id: "D023905",
   title: "TxPool - Limits",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -82,7 +82,7 @@ describeSuite({
           ).length;
           log(`Transactions left in pool: ${txPoolSize}`);
 
-          if ((await context.viem().getBlock()).transactions.length == 0) {
+          if ((await context.viem().getBlock()).transactions.length === 0) {
             break;
           }
           blocks++;

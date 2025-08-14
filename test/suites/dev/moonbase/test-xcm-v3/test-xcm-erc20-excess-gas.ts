@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
 import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { ApiPromise } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
 import { expectEVMResult, getTransactionFees } from "../../../../helpers";
 import {
   XcmFragment,
-  XcmFragmentConfig,
+  type XcmFragmentConfig,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../../../helpers/xcm.js";
@@ -14,7 +14,7 @@ import {
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D014033",
+  id: "D024032",
   title: "Mock XCM - Test bad contract with excess gas usage",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -108,10 +108,10 @@ describeSuite({
         // Get pallet indices
         const metadata = await polkadotJs.rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
         const erc20XcmPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .find(({ name }) => name.toString() === "Erc20XcmBridge")!
           .index.toNumber();
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
@@ -159,7 +159,7 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3(2n)
+          .deposit_asset(2n)
           .as_v3();
 
         // Mock the reception of the xcm message
@@ -196,10 +196,10 @@ describeSuite({
         // Get pallet indices
         const metadata = await polkadotJs.rpc.state.getMetadata();
         const balancesPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Balances")!
+          .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
         const erc20XcmPalletIndex = metadata.asLatest.pallets
-          .find(({ name }) => name.toString() == "Erc20XcmBridge")!
+          .find(({ name }) => name.toString() === "Erc20XcmBridge")!
           .index.toNumber();
 
         // Send some native tokens to the sovereign account of paraId (to pay fees)
@@ -258,7 +258,7 @@ describeSuite({
           .withdraw_asset()
           .clear_origin()
           .buy_execution()
-          .deposit_asset_v3(2n)
+          .deposit_asset(2n)
           .as_v3();
 
         // Mock the reception of the xcm message

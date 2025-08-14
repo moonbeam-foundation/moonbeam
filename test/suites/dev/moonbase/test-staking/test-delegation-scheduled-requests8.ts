@@ -3,7 +3,7 @@ import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 
 describeSuite({
-  id: "D013437",
+  id: "D023438",
   title: "Staking - Delegation Scheduled Requests - cancel scheduled bond less",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -18,7 +18,14 @@ describeSuite({
             .signAsync(alith),
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR + LESS_AMOUNT, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              alith.address,
+              MIN_GLMR_DELEGATOR + LESS_AMOUNT,
+              0,
+              0,
+              0,
+              0
+            )
             .signAsync(ethan),
         ],
         { allowFailures: false }

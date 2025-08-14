@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -82,7 +82,6 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
-	use frame_support::fail;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
@@ -193,6 +192,10 @@ pub mod pallet {
 		/// Maximum candidates
 		#[pallet::constant]
 		type MaxCandidates: Get<u32>;
+		/// Threshold after which inflation become linear
+		/// If you don't want to use it, set it to `()`
+		#[pallet::constant]
+		type LinearInflationThreshold: Get<Option<BalanceOf<Self>>>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}
@@ -252,7 +255,6 @@ pub mod pallet {
 		TooLowCandidateCountWeightHintGoOffline,
 		CandidateLimitReached,
 		CannotSetAboveMaxCandidates,
-		RemovedCall,
 		MarkingOfflineNotEnabled,
 		CurrentRoundTooLow,
 	}
@@ -489,6 +491,8 @@ pub mod pallet {
 					selected_collators_number: collator_count,
 					total_balance: total_staked,
 				});
+				// record inactive collators
+				weight = weight.saturating_add(Self::mark_collators_as_inactive(round.current));
 				// account for Round write
 				weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 1));
 			} else {
@@ -496,13 +500,14 @@ pub mod pallet {
 			}
 
 			// add on_finalize weight
-			//   read:  Author, Points, AwardedPts
-			//   write: Points, AwardedPts
-			weight = weight.saturating_add(T::DbWeight::get().reads_writes(3, 2));
+			//   read:  Author, Points, AwardedPts, WasInactive
+			//   write: Points, AwardedPts, WasInactive
+			weight = weight.saturating_add(T::DbWeight::get().reads_writes(4, 3));
 			weight
 		}
 		fn on_finalize(_n: BlockNumberFor<T>) {
 			Self::award_points_to_block_author();
+			Self::cleanup_inactive_collator_info();
 		}
 	}
 
@@ -642,6 +647,13 @@ pub mod pallet {
 		CollatorSnapshot<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn was_inactive)]
+	/// Records collators' inactivity.
+	/// Data persists for MaxOfflineRounds + 1 rounds before being pruned.
+	pub type WasInactive<T: Config> =
+		StorageDoubleMap<_, Twox64Concat, RoundIndex, Twox64Concat, T::AccountId, (), OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn delayed_payouts)]
@@ -1159,32 +1171,6 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// DEPRECATED use delegateWithAutoCompound
-		/// If caller is not a delegator and not a collator, then join the set of delegators
-		/// If caller is a delegator, then makes delegation to change their delegation state
-		#[pallet::call_index(17)]
-		#[pallet::weight(
-			<T as Config>::WeightInfo::delegate_with_auto_compound_worst()
-		)]
-		pub fn delegate(
-			origin: OriginFor<T>,
-			candidate: T::AccountId,
-			amount: BalanceOf<T>,
-			candidate_delegation_count: u32,
-			delegation_count: u32,
-		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-			<AutoCompoundDelegations<T>>::delegate_with_auto_compound(
-				candidate,
-				delegator,
-				amount,
-				Percent::zero(),
-				candidate_delegation_count,
-				0,
-				delegation_count,
-			)
-		}
-
 		/// If caller is not a delegator and not a collator, then join the set of delegators
 		/// If caller is a delegator, then makes delegation to change their delegation state
 		/// Sets the auto-compound config for the delegation
@@ -1215,27 +1201,6 @@ pub mod pallet {
 				candidate_auto_compounding_delegation_count,
 				delegation_count,
 			)
-		}
-
-		/// REMOVED, was schedule_leave_delegators
-		#[pallet::call_index(19)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
-		pub fn removed_call_19(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			fail!(Error::<T>::RemovedCall)
-		}
-
-		/// REMOVED, was execute_leave_delegators
-		#[pallet::call_index(20)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
-		pub fn removed_call_20(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			fail!(Error::<T>::RemovedCall)
-		}
-
-		/// REMOVED, was cancel_leave_delegators
-		#[pallet::call_index(21)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
-		pub fn removed_call_21(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			fail!(Error::<T>::RemovedCall)
 		}
 
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
@@ -1417,17 +1382,9 @@ pub mod pallet {
 			// the collator should be notified as inactive
 			let mut inactive_counter: RoundIndex = 0u32;
 
-			// Iter rounds to check
-			//
-			// - The collator has AtStake associated and their AwardedPts are zero
-			//
-			// If the previous condition is met in all rounds of rounds_to_check,
-			// the collator is notified as inactive
+			// Iter rounds and check whether the collator has been inactive
 			for r in rounds_to_check {
-				let stake = <AtStake<T>>::get(r, &collator);
-				let pts = <AwardedPts<T>>::get(r, &collator);
-
-				if stake.is_some() && pts.is_zero() {
+				if <WasInactive<T>>::get(r, &collator).is_some() {
 					inactive_counter = inactive_counter.saturating_add(1);
 				}
 			}
@@ -1704,8 +1661,8 @@ pub mod pallet {
 			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
 				// remove delegation from delegator state
 				let mut delegator = DelegatorState::<T>::get(&bond.owner).expect(
-					"Collator state and delegator state are consistent. 
-						Collator state has a record of this delegation. Therefore, 
+					"Collator state and delegator state are consistent.
+						Collator state has a record of this delegation. Therefore,
 						Delegator state also has a record. qed.",
 				);
 
@@ -2333,17 +2290,47 @@ pub mod pallet {
 				});
 			};
 		}
-	}
 
-	/// Add reward points to block authors:
-	/// * 20 points to the block producer for producing a block in the chain
-	impl<T: Config> Pallet<T> {
+		/// Add reward points to block authors:
+		/// * 20 points to the block producer for producing a block in the chain
 		fn award_points_to_block_author() {
 			let author = T::BlockAuthor::get();
 			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author).saturating_add(20);
 			<AwardedPts<T>>::insert(now, author, score_plus_20);
 			<Points<T>>::mutate(now, |x| *x = x.saturating_add(20));
+		}
+
+		/// Marks collators as inactive for the previous round if they received zero awarded points.
+		pub fn mark_collators_as_inactive(cur: RoundIndex) -> Weight {
+			// This function is called after round index increment,
+			// We don't need to saturate here because the genesis round is 1.
+			let prev = cur - 1;
+
+			let mut collators_at_stake_count = 0u32;
+			for (account, _) in <AtStake<T>>::iter_prefix(prev) {
+				collators_at_stake_count = collators_at_stake_count.saturating_add(1u32);
+				if <AwardedPts<T>>::get(prev, &account).is_zero() {
+					<WasInactive<T>>::insert(prev, account, ());
+				}
+			}
+
+			<T as Config>::WeightInfo::mark_collators_as_inactive(collators_at_stake_count)
+		}
+
+		/// Cleans up historical staking information that is older than MaxOfflineRounds
+		/// by removing entries from the WasIactive storage map.
+		fn cleanup_inactive_collator_info() {
+			let now = <Round<T>>::get().current;
+			let minimum_rounds_required = T::MaxOfflineRounds::get() + 1;
+
+			if now < minimum_rounds_required {
+				return;
+			}
+
+			let _ = <WasInactive<T>>::iter_prefix(now - minimum_rounds_required)
+				.drain()
+				.next();
 		}
 	}
 

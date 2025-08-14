@@ -1,9 +1,9 @@
 import "@moonbeam-network/api-augment";
-import { DevModeContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { type DevModeContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   GLMR,
-  KeyringPair,
+  type KeyringPair,
   MIN_GLMR_STAKING,
   alith,
   generateKeyringPair,
@@ -11,7 +11,7 @@ import {
 import { chunk } from "../../../../helpers";
 
 describeSuite({
-  id: "D010707",
+  id: "D020607",
   title: "Conviction Voting - undelegate",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -44,15 +44,18 @@ describeSuite({
         );
 
         const events = await context.polkadotJs().query.system.events();
-        const undelegatedEvents = events.reduce((acc, event) => {
-          if (context.polkadotJs().events.convictionVoting.Undelegated.is(event.event)) {
-            acc.push({
-              who: event.event.data[0].toString(),
-            });
-          }
+        const undelegatedEvents = events.reduce(
+          (acc, event) => {
+            if (context.polkadotJs().events.convictionVoting.Undelegated.is(event.event)) {
+              acc.push({
+                who: event.event.data[0].toString(),
+              });
+            }
 
-          return acc;
-        }, [] as { who: string }[]);
+            return acc;
+          },
+          [] as { who: string }[]
+        );
 
         console.log(undelegatedEvents.length);
         expect(undelegatedEvents.length).to.be.greaterThanOrEqual(10);
