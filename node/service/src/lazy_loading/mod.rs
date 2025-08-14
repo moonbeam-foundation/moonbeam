@@ -341,6 +341,7 @@ where
 		&task_manager.spawn_essential_handle(),
 		config.prometheus_registry(),
 		false,
+		false,
 	)?;
 	let block_import = BlockImportPipeline::Dev(frontier_block_import);
 
@@ -455,7 +456,7 @@ where
 		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
 	);
 
-	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
+	let (network, system_rpc_tx, tx_handler_controller, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
@@ -853,8 +854,6 @@ where
 			);
 		}
 	}
-
-	network_starter.start_network();
 
 	log::info!("Service Ready");
 

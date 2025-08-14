@@ -570,6 +570,7 @@ where
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
 				legacy_block_import_strategy,
+				false,
 			)?,
 			BlockImportPipeline::Dev(frontier_block_import),
 		)
@@ -590,6 +591,7 @@ where
 				&task_manager.spawn_essential_handle(),
 				config.prometheus_registry(),
 				legacy_block_import_strategy,
+				false,
 			)?,
 			BlockImportPipeline::Parachain(parachain_block_import),
 		)
@@ -710,7 +712,7 @@ where
 		prometheus_registry.clone(),
 	);
 
-	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
+	let (network, system_rpc_tx, tx_handler_controller, sync_service) =
 		cumulus_client_service::build_network(cumulus_client_service::BuildNetworkParams {
 			parachain_config: &parachain_config,
 			client: client.clone(),
@@ -997,8 +999,6 @@ where
 		start_collator(params).await?;*/
 	}
 
-	start_network.start_network();
-
 	Ok((task_manager, client))
 }
 
@@ -1245,7 +1245,7 @@ where
 		config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
 	);
 
-	let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
+	let (network, system_rpc_tx, tx_handler_controller, sync_service) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
@@ -1655,7 +1655,6 @@ where
 
 	log::info!("Development Service Ready");
 
-	network_starter.start_network();
 	Ok(task_manager)
 }
 
