@@ -35,7 +35,10 @@ pnpm moonwall test dev_moonbase  # Development tests
 pnpm moonwall test smoke_moonbase # Smoke tests
 
 # Run a single test file
-pnpm moonwall test dev_moonbase --grep "test-description"
+pnpm moonwall test -d "test-contact" dev_moonbase D020512
+
+# Run a single test
+pnpm moonwall test -d "test-contact" dev_moonbase D020512T01
 ```
 
 ### Code Quality
