@@ -1754,14 +1754,6 @@ declare module "@polkadot/types/lookup" {
         readonly max: Perbill;
       } & Struct;
     } & Struct;
-    readonly isSetParachainBondAccount: boolean;
-    readonly asSetParachainBondAccount: {
-      readonly new_: AccountId20;
-    } & Struct;
-    readonly isSetParachainBondReservePercent: boolean;
-    readonly asSetParachainBondReservePercent: {
-      readonly new_: Percent;
-    } & Struct;
     readonly isSetTotalSelected: boolean;
     readonly asSetTotalSelected: {
       readonly new_: u32;
@@ -1871,8 +1863,6 @@ declare module "@polkadot/types/lookup" {
     readonly type:
       | "SetStakingExpectations"
       | "SetInflation"
-      | "SetParachainBondAccount"
-      | "SetParachainBondReservePercent"
       | "SetTotalSelected"
       | "SetCollatorCommission"
       | "SetBlocksPerRound"

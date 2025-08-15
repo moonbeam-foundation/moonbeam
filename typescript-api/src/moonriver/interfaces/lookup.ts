@@ -1443,6 +1443,8 @@ export default {
           max: "Perbill"
         }
       },
+      __Unused2: "Null",
+      __Unused3: "Null",
       set_total_selected: {
         _alias: {
           new_: "new"
