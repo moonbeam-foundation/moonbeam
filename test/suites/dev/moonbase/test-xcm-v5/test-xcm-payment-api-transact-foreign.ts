@@ -11,11 +11,15 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
+} from "../../../../helpers/xcm.js";
+import {
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION,
-  registerOldForeignAsset,
-  mockOldAssetBalance,
-} from "../../../../helpers";
+  registerForeignAsset,
+  mockAssetBalance,
+  addAssetToWeightTrader,
+  foreignAssetBalance,
+} from "../../../../helpers/assets.js";
 
 describeSuite({
   id: "D024220",
@@ -29,7 +33,7 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
-    let foreignAssetId: string;
+    const foreignAssetId = 1n;
     const weightLimit = {
       refTime: 40_000_000_000n,
       proofSize: 120_583n,
@@ -39,14 +43,27 @@ describeSuite({
     beforeAll(async () => {
       polkadotJs = context.polkadotJs();
 
-      const { registeredAssetId } = await registerOldForeignAsset(
+      await registerForeignAsset(
         context,
+        foreignAssetId,
         RELAY_SOURCE_LOCATION,
-        relayAssetMetadata as any,
-        20000000000
+        relayAssetMetadata as any
       );
 
-      foreignAssetId = registeredAssetId;
+      // Calculate relative price: equivalent to 20000000000 unitsPerSecond
+      const WEIGHT_REF_TIME_PER_SECOND = 1_000_000_000_000n;
+      const nativeAmountPerSecond = await context
+        .polkadotJs()
+        .call.transactionPaymentApi.queryWeightToFee({
+          refTime: WEIGHT_REF_TIME_PER_SECOND,
+          proofSize: 0n,
+        });
+
+      const relativePriceDecimals = 18n;
+      const relativePrice =
+        (BigInt(nativeAmountPerSecond.toString()) * 10n ** relativePriceDecimals) / 20000000000n;
+
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, relativePrice, context);
 
       // Fetch the exact amount of foreign fees that we will use given
       // the indicated weightLimit
@@ -68,31 +85,8 @@ describeSuite({
       // Amount to transfer to random address
       amountForTransfer = 1_000_000_000_000_000_000n;
 
-      const balance = polkadotJs.createType("Balance", amountForFees);
-      assetId = polkadotJs.createType("u128", hexToBigInt(foreignAssetId as `0x${string}`));
-
-      const assetBalance: PalletAssetsAssetAccount = polkadotJs.createType(
-        "PalletAssetsAssetAccount",
-        {
-          balance: balance,
-        }
-      );
-      const assetDetails: PalletAssetsAssetDetails = polkadotJs.createType(
-        "PalletAssetsAssetDetails",
-        {
-          supply: balance,
-        }
-      );
-
-      // Fund descendAddress with enough xcDOTs to pay XCM execution fees
-      await mockOldAssetBalance(
-        context,
-        assetBalance,
-        assetDetails,
-        alith,
-        assetId,
-        descendAddress
-      );
+      // Fund descendAddress with enough foreign asset to pay XCM execution fees
+      await mockAssetBalance(context, amountForFees, foreignAssetId, alith, descendAddress);
 
       // We need to fund the descendAddress with both amounts.
       // This account takes care of paying the foreign fees and also transfering the
@@ -102,11 +96,11 @@ describeSuite({
         { allowFailures: false }
       );
 
-      const descendForeignBalance = (
-        await polkadotJs.query.assets.account(foreignAssetId, descendAddress)
-      )
-        .unwrap()
-        .balance.toBigInt();
+      const descendForeignBalance = await foreignAssetBalance(
+        context,
+        foreignAssetId,
+        descendAddress
+      );
 
       const descendNativeBalance = (
         await polkadotJs.query.system.account(descendAddress)
@@ -169,11 +163,11 @@ describeSuite({
         ).data.free.toBigInt();
 
         // Make sure the descendOrigin address has zero foreign balance now
-        const testDescendBalance = (
-          await polkadotJs.query.assets.account(foreignAssetId, descendAddress)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const testDescendBalance = await foreignAssetBalance(
+          context,
+          foreignAssetId,
+          descendAddress
+        );
 
         expect(testAccountBalance).to.eq(amountForTransfer);
         expect(testDescendBalance).to.eq(0n);
