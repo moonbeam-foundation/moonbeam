@@ -1,7 +1,7 @@
 import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
 
 describeSuite({
-  id: "D021001",
+  id: "D021101",
   title: "Transaction Cost discards",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

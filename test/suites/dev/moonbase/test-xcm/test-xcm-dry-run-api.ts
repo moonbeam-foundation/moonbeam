@@ -10,7 +10,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D024217",
+  id: "D024016",
   title: "XCM - DryRunApi",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

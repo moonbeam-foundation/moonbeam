@@ -8,7 +8,7 @@ import { join } from "node:path";
 const processFile = async (filePath: string): Promise<void> => {
   const content = await fs.readFile(filePath, "utf-8");
 
-  const importRegex = /import \{ ([^\}]+) \} from "\.\.\/\.\.\/\.\.\/helpers";/g;
+  const importRegex = /import \{ ([^}]+) \} from "\.\.\/\.\.\/\.\.\/helpers";/g;
 
   const allImports: string[] = [];
   let firstMatchIndex = -1;

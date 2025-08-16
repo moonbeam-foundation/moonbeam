@@ -4,7 +4,7 @@ import { deployHeavyContracts, type HeavyContract } from "../../../../helpers";
 import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
-  id: "D0121111",
+  id: "D022703",
   title: "PoV Limit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

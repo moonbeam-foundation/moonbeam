@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D021501",
+  id: "D021601",
   title: "Genesis Fee Multiplier",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

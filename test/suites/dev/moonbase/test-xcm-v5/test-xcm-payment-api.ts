@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D024221",
+  id: "D024312",
   title: "XCM - XcmPaymentApi",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
