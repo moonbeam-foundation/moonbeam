@@ -205,6 +205,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Subsocial",
         paraId: 2101,
+        mutedUntil: new Date("2025-10-01").getTime(), // Remove this channel on October 1st
       },
       {
         name: "Manta",

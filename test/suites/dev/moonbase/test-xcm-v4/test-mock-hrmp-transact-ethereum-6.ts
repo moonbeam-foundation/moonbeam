@@ -8,7 +8,7 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({

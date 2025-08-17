@@ -7288,6 +7288,7 @@ dependencies = [
 name = "moonbeam-cli"
 version = "0.47.0"
 dependencies = [
+ "ansi_term",
  "clap",
  "clap-num",
  "cumulus-client-cli",
@@ -7871,14 +7872,6 @@ dependencies = [
  "sp-core",
  "sp-keystore",
  "sp-runtime",
-]
-
-[[package]]
-name = "moonkey"
-version = "0.1.1"
-dependencies = [
- "clap",
- "moonbeam-cli-opt",
 ]
 
 [[package]]

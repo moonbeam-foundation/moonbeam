@@ -27,10 +27,10 @@ use frame_support::{
 };
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::{
-	traits::{AtLeast32BitUnsigned, Saturating, Zero},
+	traits::{Saturating, Zero},
 	Perbill, Percent, RuntimeDebug,
 };
-use sp_std::{cmp::Ordering, collections::btree_map::BTreeMap, prelude::*};
+use sp_std::{cmp::Ordering, prelude::*};
 
 pub struct CountedDelegations<T: Config> {
 	pub uncounted_stake: BalanceOf<T>,
@@ -181,73 +181,11 @@ pub struct DelayedPayout<Balance> {
 	pub collator_commission: Perbill,
 }
 
-#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
-/// DEPRECATED
-/// Collator state with commission fee, bonded stake, and delegations
-pub struct Collator2<AccountId, Balance> {
-	/// The account of this collator
-	pub id: AccountId,
-	/// This collator's self stake.
-	pub bond: Balance,
-	/// Set of all nominator AccountIds (to prevent >1 nomination per AccountId)
-	pub nominators: OrderedSet<AccountId>,
-	/// Top T::MaxDelegatorsPerCollator::get() nominators, ordered greatest to least
-	pub top_nominators: Vec<Bond<AccountId, Balance>>,
-	/// Bottom nominators (unbounded), ordered least to greatest
-	pub bottom_nominators: Vec<Bond<AccountId, Balance>>,
-	/// Sum of top delegations + self.bond
-	pub total_counted: Balance,
-	/// Sum of all delegations + self.bond = (total_counted + uncounted)
-	pub total_backing: Balance,
-	/// Current status of the collator
-	pub state: CollatorStatus,
-}
-
-impl<A, B> From<Collator2<A, B>> for CollatorCandidate<A, B> {
-	fn from(other: Collator2<A, B>) -> CollatorCandidate<A, B> {
-		CollatorCandidate {
-			id: other.id,
-			bond: other.bond,
-			delegators: other.nominators,
-			top_delegations: other.top_nominators,
-			bottom_delegations: other.bottom_nominators,
-			total_counted: other.total_counted,
-			total_backing: other.total_backing,
-			request: None,
-			state: other.state,
-		}
-	}
-}
-
 #[derive(PartialEq, Clone, Copy, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Request scheduled to change the collator candidate self-bond
 pub struct CandidateBondLessRequest<Balance> {
 	pub amount: Balance,
 	pub when_executable: RoundIndex,
-}
-
-#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
-/// DEPRECATED, replaced by `CandidateMetadata` and two storage instances of `Delegations`
-/// Collator candidate state with self bond + delegations
-pub struct CollatorCandidate<AccountId, Balance> {
-	/// The account of this collator
-	pub id: AccountId,
-	/// This collator's self stake.
-	pub bond: Balance,
-	/// Set of all delegator AccountIds (to prevent >1 delegation per AccountId)
-	pub delegators: OrderedSet<AccountId>,
-	/// Top T::MaxDelegatorsPerCollator::get() delegations, ordered greatest to least
-	pub top_delegations: Vec<Bond<AccountId, Balance>>,
-	/// Bottom delegations (unbounded), ordered least to greatest
-	pub bottom_delegations: Vec<Bond<AccountId, Balance>>,
-	/// Sum of top delegations + self.bond
-	pub total_counted: Balance,
-	/// Sum of all delegations + self.bond = (total_counted + uncounted)
-	pub total_backing: Balance,
-	/// Maximum 1 pending request to decrease candidate self bond at any given time
-	pub request: Option<CandidateBondLessRequest<Balance>>,
-	/// Current status of the collator
-	pub state: CollatorStatus,
 }
 
 #[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
@@ -1160,102 +1098,12 @@ impl<
 	}
 }
 
-// Temporary manual implementation for migration testing purposes
-impl<A: PartialEq, B: PartialEq> PartialEq for CollatorCandidate<A, B> {
-	fn eq(&self, other: &Self) -> bool {
-		let must_be_true = self.id == other.id
-			&& self.bond == other.bond
-			&& self.total_counted == other.total_counted
-			&& self.total_backing == other.total_backing
-			&& self.request == other.request
-			&& self.state == other.state;
-		if !must_be_true {
-			return false;
-		}
-		for (x, y) in self.delegators.0.iter().zip(other.delegators.0.iter()) {
-			if x != y {
-				return false;
-			}
-		}
-		for (
-			Bond {
-				owner: o1,
-				amount: a1,
-			},
-			Bond {
-				owner: o2,
-				amount: a2,
-			},
-		) in self
-			.top_delegations
-			.iter()
-			.zip(other.top_delegations.iter())
-		{
-			if o1 != o2 || a1 != a2 {
-				return false;
-			}
-		}
-		for (
-			Bond {
-				owner: o1,
-				amount: a1,
-			},
-			Bond {
-				owner: o2,
-				amount: a2,
-			},
-		) in self
-			.bottom_delegations
-			.iter()
-			.zip(other.bottom_delegations.iter())
-		{
-			if o1 != o2 || a1 != a2 {
-				return false;
-			}
-		}
-		true
-	}
-}
-
 /// Convey relevant information describing if a delegator was added to the top or bottom
 /// Delegations added to the top yield a new total
 #[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub enum DelegatorAdded<B> {
 	AddedToTop { new_total: B },
 	AddedToBottom,
-}
-
-impl<
-		A: Ord + Clone + sp_std::fmt::Debug,
-		B: AtLeast32BitUnsigned
-			+ Ord
-			+ Copy
-			+ sp_std::ops::AddAssign
-			+ sp_std::ops::SubAssign
-			+ sp_std::fmt::Debug,
-	> CollatorCandidate<A, B>
-{
-	pub fn is_active(&self) -> bool {
-		self.state == CollatorStatus::Active
-	}
-}
-
-impl<A: Clone, B: Copy> From<CollatorCandidate<A, B>> for CollatorSnapshot<A, B> {
-	fn from(other: CollatorCandidate<A, B>) -> CollatorSnapshot<A, B> {
-		CollatorSnapshot {
-			bond: other.bond,
-			delegations: other
-				.top_delegations
-				.into_iter()
-				.map(|d| BondWithAutoCompound {
-					owner: d.owner,
-					amount: d.amount,
-					auto_compound: Percent::zero(),
-				})
-				.collect(),
-			total: other.total_counted,
-		}
-	}
 }
 
 #[allow(deprecated)]
@@ -1536,173 +1384,6 @@ impl<
 			.map(|b| b.amount)
 	}
 }
-
-pub mod deprecated {
-	#![allow(deprecated)]
-
-	use super::*;
-
-	#[deprecated(note = "use DelegationAction")]
-	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
-	/// Changes requested by the delegator
-	/// - limit of 1 ongoing change per delegation
-	pub enum DelegationChange {
-		Revoke,
-		Decrease,
-	}
-
-	#[deprecated(note = "use ScheduledRequest")]
-	#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
-	pub struct DelegationRequest<AccountId, Balance> {
-		pub collator: AccountId,
-		pub amount: Balance,
-		pub when_executable: RoundIndex,
-		pub action: DelegationChange,
-	}
-
-	#[deprecated(note = "use DelegationScheduledRequests storage item")]
-	#[derive(Clone, Encode, PartialEq, Decode, RuntimeDebug, TypeInfo)]
-	/// Pending requests to mutate delegations for each delegator
-	pub struct PendingDelegationRequests<AccountId, Balance> {
-		/// Number of pending revocations (necessary for determining whether revoke is exit)
-		pub revocations_count: u32,
-		/// Map from collator -> Request (enforces at most 1 pending request per delegation)
-		pub requests: BTreeMap<AccountId, DelegationRequest<AccountId, Balance>>,
-		/// Sum of pending revocation amounts + bond less amounts
-		pub less_total: Balance,
-	}
-
-	impl<A: Ord, B: Zero> Default for PendingDelegationRequests<A, B> {
-		fn default() -> PendingDelegationRequests<A, B> {
-			PendingDelegationRequests {
-				revocations_count: 0u32,
-				requests: BTreeMap::new(),
-				less_total: B::zero(),
-			}
-		}
-	}
-
-	impl<
-			A: Ord + Clone,
-			B: Zero
-				+ Ord
-				+ Copy
-				+ Clone
-				+ sp_std::ops::AddAssign
-				+ sp_std::ops::Add<Output = B>
-				+ sp_std::ops::SubAssign
-				+ sp_std::ops::Sub<Output = B>
-				+ Saturating,
-		> PendingDelegationRequests<A, B>
-	{
-		/// New default (empty) pending requests
-		pub fn new() -> Self {
-			Self::default()
-		}
-	}
-
-	#[deprecated(note = "use new crate::types::Delegator struct")]
-	#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-	/// Delegator state
-	pub struct Delegator<AccountId, Balance> {
-		/// Delegator account
-		pub id: AccountId,
-		/// All current delegations
-		pub delegations: OrderedSet<Bond<AccountId, Balance>>,
-		/// Total balance locked for this delegator
-		pub total: Balance,
-		/// Requests to change delegations, relevant iff active
-		pub requests: PendingDelegationRequests<AccountId, Balance>,
-		/// Status for this delegator
-		pub status: DelegatorStatus,
-	}
-
-	// CollatorSnapshot
-
-	#[deprecated(note = "use CollatorSnapshot with BondWithAutoCompound delegations")]
-	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
-	/// Snapshot of collator state at the start of the round for which they are selected
-	pub struct CollatorSnapshot<AccountId, Balance> {
-		/// The total value locked by the collator.
-		pub bond: Balance,
-
-		/// The rewardable delegations. This list is a subset of total delegators, where certain
-		/// delegators are adjusted based on their scheduled
-		/// [DelegationChange::Revoke] or [DelegationChange::Decrease] action.
-		pub delegations: Vec<Bond<AccountId, Balance>>,
-
-		/// The total counted value locked for the collator, including the self bond + total staked by
-		/// top delegators.
-		pub total: Balance,
-	}
-
-	impl<A: PartialEq, B: PartialEq> PartialEq for CollatorSnapshot<A, B> {
-		fn eq(&self, other: &Self) -> bool {
-			let must_be_true = self.bond == other.bond && self.total == other.total;
-			if !must_be_true {
-				return false;
-			}
-			for (
-				Bond {
-					owner: o1,
-					amount: a1,
-				},
-				Bond {
-					owner: o2,
-					amount: a2,
-				},
-			) in self.delegations.iter().zip(other.delegations.iter())
-			{
-				if o1 != o2 || a1 != a2 {
-					return false;
-				}
-			}
-			true
-		}
-	}
-
-	impl<A, B: Default> Default for CollatorSnapshot<A, B> {
-		fn default() -> CollatorSnapshot<A, B> {
-			CollatorSnapshot {
-				bond: B::default(),
-				delegations: Vec::new(),
-				total: B::default(),
-			}
-		}
-	}
-}
-
-#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
-/// DEPRECATED in favor of Delegator
-/// Nominator state
-pub struct Nominator2<AccountId, Balance> {
-	/// All current delegations
-	pub delegations: OrderedSet<Bond<AccountId, Balance>>,
-	/// Delegations scheduled to be revoked
-	pub revocations: OrderedSet<AccountId>,
-	/// Total balance locked for this nominator
-	pub total: Balance,
-	/// Total number of revocations scheduled to be executed
-	pub scheduled_revocations_count: u32,
-	/// Total amount to be unbonded once revocations are executed
-	pub scheduled_revocations_total: Balance,
-	/// Status for this nominator
-	pub status: DelegatorStatus,
-}
-
-// /// Temporary function to migrate state
-// pub(crate) fn migrate_nominator_to_delegator_state<T: Config>(
-// 	id: T::AccountId,
-// 	nominator: Nominator2<T::AccountId, BalanceOf<T>>,
-// ) -> Delegator<T::AccountId, BalanceOf<T>> {
-// 	Delegator {
-// 		id,
-// 		delegations: nominator.delegations,
-// 		total: nominator.total,
-// 		requests: PendingDelegationRequests::new(),
-// 		status: nominator.status,
-// 	}
-// }
 
 #[derive(Copy, Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
 /// The current round index and transition information

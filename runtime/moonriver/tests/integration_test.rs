@@ -52,6 +52,7 @@ use moonriver_xcm_weights::XcmWeight;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
+use pallet_parachain_staking::InflationDistributionAccount;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
@@ -65,7 +66,7 @@ use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Get, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, Dispatchable},
-	BuildStorage, DispatchError, ModuleError,
+	BuildStorage, DispatchError, ModuleError, Percent,
 };
 use std::str::from_utf8;
 use xcm::latest::prelude::*;
@@ -694,10 +695,17 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		.build()
 		.execute_with(|| {
 			increase_last_relay_slot_number(1);
-			assert_ok!(ParachainStaking::set_parachain_bond_account(
+			assert_ok!(ParachainStaking::set_inflation_distribution_config(
 				root_origin(),
-				AccountId::from(CHARLIE),
-			),);
+				[
+					InflationDistributionAccount {
+						account: AccountId::from(CHARLIE),
+						percent: Percent::from_percent(30),
+					},
+					InflationDistributionAccount::default(),
+				]
+				.into()
+			));
 
 			// Stop just before round 2
 			run_to_block(1199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));

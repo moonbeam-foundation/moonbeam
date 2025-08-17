@@ -9,28 +9,28 @@ import { hexToBigInt } from "@polkadot/util";
 import { type Abi, encodeFunctionData } from "viem";
 import {
   RELAY_SOURCE_LOCATION,
-  mockOldAssetBalance,
-  registerOldForeignAsset,
+  mockAssetBalance,
+  registerForeignAsset,
   relayAssetMetadata,
   verifyLatestBlockFees,
-} from "../../../../helpers/index.js";
-import {
+  foreignAssetBalance,
+  addAssetToWeightTrader,
   type RawXcmMessage,
   XcmFragment,
   type XcmFragmentConfig,
   descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers/index.js";
 
 describeSuite({
   id: "D024216",
   title: "Mock XCM - Send EVM transaction through and pay with xcDOT",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let api: ApiPromise;
-    let assetId: u128;
+    const assetId = 1n;
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
 
@@ -40,38 +40,22 @@ describeSuite({
       api = context.polkadotJs();
 
       // Register DOT as foreign asset, obtaining xcDOTs
-      const { registeredAssetId } = await registerOldForeignAsset(
+      await registerForeignAsset(
         context,
+        assetId,
         RELAY_SOURCE_LOCATION,
-        relayAssetMetadata as any,
-        1
+        relayAssetMetadata as any
       );
+
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0n, context);
 
       // Descend address from origin address
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
 
-      // Create types for funding descend address
-      const balance = api.createType("Balance", initialSenderBalance);
-      assetId = api.createType("u128", hexToBigInt(registeredAssetId as `0x${string}`));
-
-      const assetBalance: PalletAssetsAssetAccount = api.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
-      const assetDetails: PalletAssetsAssetDetails = api.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-      });
-
       // Fund descend address with enough xcDOTs to pay XCM message and EVM execution fees
-      await mockOldAssetBalance(
-        context,
-        assetBalance,
-        assetDetails,
-        alith,
-        assetId,
-        descendAddress
-      );
+      await mockAssetBalance(context, initialSenderBalance, assetId, alith, descendAddress);
 
       // Deploy example contract to be called through XCM
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
@@ -151,9 +135,7 @@ describeSuite({
           })
           .as_v3();
 
-        let senderBalance = (await api.query.assets.account(assetId, descendAddress))
-          .unwrap()
-          .balance.toBigInt();
+        let senderBalance = await foreignAssetBalance(context, assetId, descendAddress);
 
         expect(senderBalance).toBe(initialSenderBalance);
         // Send an XCM and create block to execute it
@@ -162,9 +144,7 @@ describeSuite({
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        senderBalance = (await api.query.assets.account(assetId, descendAddress))
-          .unwrap()
-          .balance.toBigInt();
+        senderBalance = await foreignAssetBalance(context, assetId, descendAddress);
 
         // Check that xcDOT where debited from Alith to pay the fees of the XCM execution
         expect(initialSenderBalance - senderBalance).toBe(XCDOT_FEE_AMOUNT);

@@ -19,7 +19,7 @@ import {
   XcmFragment,
   descendOriginFromAddress20,
   injectHrmpMessageAndSeal,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 export const InterlayAssetMetadata: AssetMetadata = {
   name: "INTR",

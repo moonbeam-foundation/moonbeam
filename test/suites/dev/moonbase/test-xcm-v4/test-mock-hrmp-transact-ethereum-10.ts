@@ -7,7 +7,7 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 describeSuite({
   id: "D024206",

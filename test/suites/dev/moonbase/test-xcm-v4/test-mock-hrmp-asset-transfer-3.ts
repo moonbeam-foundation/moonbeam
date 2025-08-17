@@ -8,7 +8,7 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 const foreign_para_id = 2000;
 
