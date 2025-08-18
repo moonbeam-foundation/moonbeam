@@ -8,11 +8,13 @@ import {
 } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
 import type { u128 } from "@polkadot/types-codec";
-import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import {
   RELAY_SOURCE_LOCATION,
   addAssetToWeightTrader,
-  mockOldAssetBalance,
+  registerForeignAsset,
+  mockAssetBalance,
+  relayAssetMetadata,
+  foreignAssetBalance,
 } from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
@@ -27,28 +29,26 @@ describeSuite({
     let foreignAssetId: u128;
 
     beforeAll(async () => {
-      // registering asset
-      const balance = context.polkadotJs().createType("Balance", 100000000000000);
-      const assetBalance: PalletAssetsAssetAccount = context
-        .polkadotJs()
-        .createType("PalletAssetsAssetAccount", {
-          balance: balance,
-        });
+      // registering asset using new foreign assets system
+      const balance = 100000000000000n;
 
-      assetId = context.polkadotJs().createType("u128", ARBITRARY_ASSET_ID);
-      const assetDetails: PalletAssetsAssetDetails = context
-        .polkadotJs()
-        .createType("PalletAssetsAssetDetails", {
-          supply: balance,
-        });
-
-      await mockOldAssetBalance(
+      // Register foreign asset
+      const { registeredAssetId } = await registerForeignAsset(
         context,
-        assetBalance,
-        assetDetails,
+        ARBITRARY_ASSET_ID,
+        RELAY_SOURCE_LOCATION,
+        relayAssetMetadata
+      );
+
+      assetId = context.polkadotJs().createType("u128", registeredAssetId);
+
+      // Mock asset balance for baltathar
+      await mockAssetBalance(
+        context,
+        balance,
+        ARBITRARY_ASSET_ID,
         alith,
-        assetId,
-        baltathar.address
+        baltathar.address as `0x{string}`
       );
 
       // set relative price in xcmWeightTrader
@@ -72,12 +72,10 @@ describeSuite({
         await context.createBlock();
 
         // Make sure the state does not have ALITH's DOT tokens
-        const alithBalance = await context
-          .polkadotJs()
-          .query.assets.account(assetId.toU8a(), ALITH_ADDRESS);
+        const alithBalance = await foreignAssetBalance(context, ARBITRARY_ASSET_ID, ALITH_ADDRESS);
 
         // Alith balance is 0
-        expect(alithBalance.isNone).to.eq(true);
+        expect(alithBalance).to.eq(0n);
 
         // turn maintenance off
         await execOpenTechCommitteeProposal(
@@ -89,12 +87,14 @@ describeSuite({
         await context.createBlock();
 
         // Make sure the state has ALITH's to DOT tokens
-        const newAlithBalance = (
-          await context.polkadotJs().query.assets.account(assetId.toU8a(), ALITH_ADDRESS)
-        ).unwrap();
+        const newAlithBalance = await foreignAssetBalance(
+          context,
+          ARBITRARY_ASSET_ID,
+          ALITH_ADDRESS
+        );
 
         // Alith balance is 10 DOT
-        expect(newAlithBalance.balance.toBigInt()).to.eq(10000000000000n);
+        expect(newAlithBalance).to.eq(10000000000000n);
       },
     });
   },
