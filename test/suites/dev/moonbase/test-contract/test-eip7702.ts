@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { encodeFunctionData, numberToHex, type Abi } from "viem";
+import { ALITH_PRIVATE_KEY } from "@moonwall/util";
+import { encodeFunctionData, numberToHex, PrivateKeyAccount, type Abi } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
 
@@ -11,8 +12,12 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let contractAddress: `0x${string}`;
     let contractAbi: Abi;
+    let alithAccount: PrivateKeyAccount;
 
     beforeAll(async () => {
+      // Get ALITH's account info for signing
+      alithAccount = privateKeyToAccount(ALITH_PRIVATE_KEY);
+
       // Deploy the delegation contract
       const { contractAddress: address, abi } = await deployCreateCompiledContract(
         context,
@@ -82,11 +87,6 @@ describeSuite({
         // Create a raw EIP-7702 transaction manually
         console.log(`Creating EIP-7702 transaction with authorizationList...`);
         console.log(`Authorization list being sent:`, authorizationList);
-
-        // Get ALITH's account info for signing
-        const alithPrivateKey =
-          "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-        const alithAccount = privateKeyToAccount(alithPrivateKey);
 
         // Create the transaction object with authorizationList
         const transaction = {
@@ -291,10 +291,6 @@ describeSuite({
           nonce: 1, // Wrong nonce - should be 0 for a fresh account
         });
 
-        const alithPrivateKey =
-          "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-        const alithAccount = privateKeyToAccount(alithPrivateKey);
-
         const callData = encodeFunctionData({
           abi: contractAbi,
           functionName: "setBalance",
@@ -332,10 +328,6 @@ describeSuite({
       id: "T03",
       title: "should handle empty authorization list",
       test: async () => {
-        const alithPrivateKey =
-          "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-        const alithAccount = privateKeyToAccount(alithPrivateKey);
-
         const transaction = {
           to: "0x1234567890123456789012345678901234567890",
           value: 100n,
@@ -390,10 +382,6 @@ describeSuite({
           chainId: 1281,
           nonce: 0,
         });
-
-        const alithPrivateKey =
-          "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-        const alithAccount = privateKeyToAccount(alithPrivateKey);
 
         const callData = encodeFunctionData({
           abi: contractAbi,
@@ -533,10 +521,6 @@ describeSuite({
           chainId: 1, // Wrong chain ID (should be 1281)
           nonce: 0,
         });
-
-        const alithPrivateKey =
-          "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
-        const alithAccount = privateKeyToAccount(alithPrivateKey);
 
         const callData = encodeFunctionData({
           abi: contractAbi,
