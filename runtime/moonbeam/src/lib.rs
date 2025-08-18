@@ -1414,7 +1414,6 @@ impl pallet_migrations::Config for Runtime {
 	type WeightInfo = weights::pallet_migrations::WeightInfo<Runtime>;
 }
 
-
 construct_runtime! {
 	pub enum Runtime
 	{
