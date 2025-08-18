@@ -499,7 +499,6 @@ impl EIP2930UnsignedTransaction {
 			value: msg.value,
 			input: msg.input.clone(),
 			access_list: msg.access_list,
-			// TODO Safe to unwrap by construction?
 			signature: ethereum::eip1559::TransactionSignature::new(recid.serialize() != 0, r, s)
 				.unwrap(),
 		})
@@ -551,7 +550,6 @@ impl EIP1559UnsignedTransaction {
 			value: msg.value,
 			input: msg.input.clone(),
 			access_list: msg.access_list,
-			// TODO Safe to unwrap by construction?
 			signature: ethereum::eip1559::TransactionSignature::new(recid.serialize() != 0, r, s)
 				.unwrap(),
 		})
@@ -610,7 +608,6 @@ impl EIP7702UnsignedTransaction {
 			data: msg.data.clone(),
 			access_list: msg.access_list,
 			authorization_list: msg.authorization_list,
-			// TODO Safe to unwrap by construction?
 			signature: ethereum::eip1559::TransactionSignature::new(recid.serialize() != 0, r, s)
 				.unwrap(),
 		})
