@@ -16,7 +16,7 @@
 
 use ethereum::{
 	AccessList, AccessListItem, AuthorizationList, EIP1559Transaction, EIP2930Transaction,
-	EIP7702Transaction, LegacyTransaction, TransactionAction, TransactionV3,
+	LegacyTransaction, TransactionAction, TransactionV3,
 };
 use ethereum_types::{H160, H256, U256};
 use frame_support::{traits::ConstU32, BoundedVec};
@@ -225,7 +225,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 					} else {
 						Vec::new()
 					},
-					signature: ethereum::eip2930::TransactionSignature::new(
+					signature: ethereum::eip1559::TransactionSignature::new(
 						true,
 						rs_id(),
 						rs_id(),
@@ -272,7 +272,7 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 			} else {
 				Vec::new()
 			},
-			signature: ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())?,
+			signature: ethereum::eip1559::TransactionSignature::new(true, rs_id(), rs_id())?,
 		}))
 	}
 }
@@ -312,7 +312,7 @@ impl XcmToEthereum for EthereumXcmTransactionV3 {
 			} else {
 				Vec::new()
 			},
-			signature: ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())?,
+			signature: ethereum::eip1559::TransactionSignature::new(true, rs_id(), rs_id())?,
 		}))
 	}
 }
@@ -343,7 +343,7 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
-			signature: ethereum::eip2930::TransactionSignature::new(
+			signature: ethereum::eip1559::TransactionSignature::new(
 				true,
 				H256::from_low_u64_be(1u64),
 				H256::from_low_u64_be(1u64),
@@ -457,7 +457,7 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
-			signature: ethereum::eip2930::TransactionSignature::new(
+			signature: ethereum::eip1559::TransactionSignature::new(
 				true,
 				H256::from_low_u64_be(1u64),
 				H256::from_low_u64_be(1u64),
