@@ -1405,6 +1405,10 @@ impl pallet_parameters::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
+impl cumulus_pallet_weight_reclaim::Config for Runtime {
+	type WeightInfo = moonbeam_weights::cumulus_pallet_weight_reclaim::WeightInfo<Runtime>;
+}
+
 /// List of multiblock migrations to be executed by the pallet_multiblock_migrations.
 #[cfg(not(feature = "runtime-benchmarks"))]
 pub type MultiBlockMigrationList = moonbeam_runtime_common::migrations::MultiBlockMigrationList;
@@ -1505,6 +1509,7 @@ construct_runtime! {
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 115,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 116,
 		MultiBlockMigrations: pallet_multiblock_migrations = 117,
+		WeightReclaim: cumulus_pallet_weight_reclaim = 118,
 
 		// Utils
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,
@@ -1589,6 +1594,7 @@ mod benches {
 		[pallet_bridge_grandpa, BridgeKusamaGrandpa]
 		[pallet_bridge_parachains, pallet_bridge_parachains::benchmarking::Pallet::<Runtime, bridge_config::BridgeMoonriverInstance>]
 		[pallet_bridge_messages, pallet_bridge_messages::benchmarking::Pallet::<Runtime, bridge_config::WithKusamaMessagesInstance>]
+		[cumulus_pallet_weight_reclaim, WeightReclaim]
 	);
 }
 
@@ -1601,17 +1607,21 @@ pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
-	frame_system::CheckNonZeroSender<Runtime>,
-	frame_system::CheckSpecVersion<Runtime>,
-	frame_system::CheckTxVersion<Runtime>,
-	frame_system::CheckGenesis<Runtime>,
-	frame_system::CheckEra<Runtime>,
-	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-	BridgeRejectObsoleteHeadersAndMessages,
-	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
+	cumulus_pallet_weight_reclaim::StorageWeightReclaim<
+		Runtime,
+		(
+			frame_system::CheckNonZeroSender<Runtime>,
+			frame_system::CheckSpecVersion<Runtime>,
+			frame_system::CheckTxVersion<Runtime>,
+			frame_system::CheckGenesis<Runtime>,
+			frame_system::CheckEra<Runtime>,
+			frame_system::CheckNonce<Runtime>,
+			frame_system::CheckWeight<Runtime>,
+			pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+			BridgeRejectObsoleteHeadersAndMessages,
+			frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
+		),
+	>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -1682,7 +1692,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 							Preamble::Signed(_, _, signed_extra) => {
 								// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
 								// Get the 7th item from the tuple
-								let charge_transaction_payment = &signed_extra.7;
+								let charge_transaction_payment = &signed_extra.0.0.7;
 								charge_transaction_payment.tip()
 							},
 							Preamble::General(_, _) => 0,

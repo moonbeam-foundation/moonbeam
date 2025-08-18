@@ -83,7 +83,6 @@ use frame_support::{
 	},
 	PalletId,
 };
-
 use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
@@ -1423,6 +1422,10 @@ impl pallet_parameters::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
+impl cumulus_pallet_weight_reclaim::Config for Runtime {
+	type WeightInfo = moonbase_weights::cumulus_pallet_weight_reclaim::WeightInfo<Runtime>;
+}
+
 /// List of multiblock migrations to be executed by the pallet_multiblock_migrations.
 #[cfg(not(feature = "runtime-benchmarks"))]
 pub type MultiBlockMigrationList = moonbeam_runtime_common::migrations::MultiBlockMigrationList;
@@ -1508,6 +1511,7 @@ construct_runtime! {
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
 		Parameters: pallet_parameters = 57,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 58,
+		WeightReclaim: cumulus_pallet_weight_reclaim = 59,
 		MultiBlockMigrations: pallet_multiblock_migrations = 117,
 
 		// Bridge pallets (reserved indexes from 130 to 140)
@@ -1544,7 +1548,7 @@ pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
 #[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
-pub type SignedExtra = (
+pub type InnerSignedExtra = (
 	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
@@ -1554,12 +1558,11 @@ pub type SignedExtra = (
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 );
 
 /// The SignedExtension to the basic transaction logic.
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub type SignedExtra = (
+pub type InnerSignedExtra = (
 	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
@@ -1569,9 +1572,11 @@ pub type SignedExtra = (
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 	BridgeRejectObsoleteHeadersAndMessages,
 );
+
+pub type SignedExtra =
+	(cumulus_pallet_weight_reclaim::StorageWeightReclaim<Runtime, InnerSignedExtra>,);
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -1642,6 +1647,7 @@ mod benches {
 		[pallet_xcm_weight_trader, XcmWeightTrader]
 		[pallet_collective, TreasuryCouncilCollective]
 		[pallet_collective, OpenTechCommitteeCollective]
+		[cumulus_pallet_weight_reclaim, WeightReclaim]
 	);
 }
 
@@ -1700,7 +1706,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 							Preamble::Bare(_) => 0,
 							Preamble::Signed(_, _, signed_extra) => {
 								// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
-								let charge_transaction_payment = &signed_extra.7;
+								let charge_transaction_payment = &signed_extra.0.0.7;
 								charge_transaction_payment.tip()
 							},
 							Preamble::General(_, _) => 0,

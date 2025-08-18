@@ -18,6 +18,7 @@
 
 mod bridge;
 pub mod cumulus_pallet_parachain_system;
+pub mod cumulus_pallet_weight_reclaim;
 pub mod cumulus_pallet_xcmp_queue;
 pub mod db;
 pub mod frame_system;
