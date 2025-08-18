@@ -172,11 +172,6 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 			EthereumXcmFee::Auto => (None, Some(U256::zero())),
 		};
 
-		let Some(signature) = ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())
-		else {
-			return None;
-		};
-
 		match (gas_price, max_fee) {
 			(Some(gas_price), None) => {
 				// Legacy or Eip-2930
@@ -191,7 +186,11 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 						value: self.value,
 						input: self.input.to_vec(),
 						access_list: from_tuple_to_access_list(access_list),
-						signature,
+						signature: ethereum::eip2930::TransactionSignature::new(
+							true,
+							rs_id(),
+							rs_id(),
+						)?,
 					}))
 				} else {
 					// Legacy
@@ -226,7 +225,11 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 					} else {
 						Vec::new()
 					},
-					signature,
+					signature: ethereum::eip2930::TransactionSignature::new(
+						true,
+						rs_id(),
+						rs_id(),
+					)?,
 				}))
 			}
 			_ => None,
@@ -254,12 +257,6 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 				.collect::<Vec<AccessListItem>>()
 		};
 
-		// TODO this might be safe to unwrap (or always invalid)
-		let Some(signature) = ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())
-		else {
-			return None;
-		};
-
 		// Eip-1559
 		Some(TransactionV3::EIP1559(EIP1559Transaction {
 			chain_id,
@@ -275,7 +272,7 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 			} else {
 				Vec::new()
 			},
-			signature,
+			signature: ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())?,
 		}))
 	}
 }
@@ -300,12 +297,6 @@ impl XcmToEthereum for EthereumXcmTransactionV3 {
 				.collect::<Vec<AccessListItem>>()
 		};
 
-		// TODO this might be safe to unwrap (or always invalid)
-		let Some(signature) = ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())
-		else {
-			return None;
-		};
-
 		// Eip-7702
 		Some(TransactionV3::EIP7702(EIP7702Transaction {
 			chain_id,
@@ -322,7 +313,7 @@ impl XcmToEthereum for EthereumXcmTransactionV3 {
 				Vec::new()
 			},
 			authorization_list: self.authorization_list.clone().unwrap_or_default(),
-			signature,
+			signature: ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())?,
 		}))
 	}
 }
