@@ -325,7 +325,7 @@ impl pallet_utility::Config for Runtime {
 impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
-	type OnTimestampSet = ();
+	type OnTimestampSet = AsyncBacking;
 	type MinimumPeriod = ConstU64<3000>;
 	type WeightInfo = moonriver_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
@@ -879,7 +879,7 @@ impl pallet_author_slot_filter::Config for Runtime {
 impl pallet_async_backing::Config for Runtime {
 	type AllowMultipleBlocksPerSlot = ConstBool<true>;
 	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
-	type ExpectedBlockTime = ConstU64<6000>;
+	type SlotDuration = ConstU64<6000>;
 }
 
 parameter_types! {
