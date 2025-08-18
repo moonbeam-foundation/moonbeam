@@ -760,7 +760,7 @@ where
 								}
 								ethereum::TransactionV3::EIP7702(_) => {
 									return Err(internal_err(
-										"EIP-7702 transactions are not supported in API version 5"
+										"EIP-7702 transactions are supported starting from API version 7"
 											.to_string(),
 									))
 								}
