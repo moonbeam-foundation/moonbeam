@@ -297,22 +297,21 @@ impl XcmToEthereum for EthereumXcmTransactionV3 {
 				.collect::<Vec<AccessListItem>>()
 		};
 
-		// Eip-7702
-		Some(TransactionV3::EIP7702(EIP7702Transaction {
+		// EIP-1559
+		Some(TransactionV3::EIP1559(EIP1559Transaction {
 			chain_id,
 			nonce,
 			max_fee_per_gas: U256::zero(),
 			max_priority_fee_per_gas: U256::zero(),
 			gas_limit: self.gas_limit,
-			destination: self.action,
+			action: self.action,
 			value: self.value,
-			data: self.input.to_vec(),
+			input: self.input.to_vec(),
 			access_list: if let Some(ref access_list) = self.access_list {
 				from_tuple_to_access_list(access_list)
 			} else {
 				Vec::new()
 			},
-			authorization_list: self.authorization_list.clone().unwrap_or_default(),
 			signature: ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())?,
 		}))
 	}
