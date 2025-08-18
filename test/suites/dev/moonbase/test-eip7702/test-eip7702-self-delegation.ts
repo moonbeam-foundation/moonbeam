@@ -2,7 +2,6 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { encodeFunctionData, type Abi, parseEther, parseGwei } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createFundedAccount } from "./helpers";
 
 describeSuite({
   id: "D020806",
