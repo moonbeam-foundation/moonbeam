@@ -33,7 +33,6 @@ describeSuite({
       test: async function () {
         const relayRuntime = relayApi.runtimeVersion.specName.toString();
         const paraRuntime = paraApi.runtimeVersion.specName.toString();
-        const relayVersion = relayApi.runtimeVersion.specVersion.toNumber();
 
         // skip test if runtime inconsistency. The storage is set for
         // specific runtimes, so does not make sense to compare non-matching runtimes
@@ -74,24 +73,13 @@ describeSuite({
 
         const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 
-        const parachainRuntime = paraApi.runtimeVersion.specVersion.toNumber();
+        let feePerSecondValueForRelay = (
+          await paraApiAt.query.xcmTransactor.destinationAssetFeePerSecond({
+            parents: 1,
+            interior: "Here",
+          })
+        ).unwrap();
 
-        let feePerSecondValueForRelay;
-        if (parachainRuntime >= 1600) {
-          feePerSecondValueForRelay = (
-            await paraApiAt.query.xcmTransactor.destinationAssetFeePerSecond({
-              parents: 1,
-              interior: "Here",
-            })
-          ).unwrap();
-        } else {
-          feePerSecondValueForRelay = (
-            (await paraApiAt.query.xcmTransactor.transactInfoWithWeightLimit({
-              parents: 1,
-              interior: "Here",
-            })) as any
-          ).unwrap().feePerSecond;
-        }
         expect(
           feePerSecondValueForRelay.toBigInt() >= expectedFeePerSecond,
           "failed check: feePerSecond: " +

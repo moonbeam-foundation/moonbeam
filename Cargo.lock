@@ -3853,6 +3853,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "fc-rpc-v2-api"
+version = "0.1.0"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+dependencies = [
+ "ethereum-types",
+ "fc-rpc-v2-types",
+ "jsonrpsee",
+]
+
+[[package]]
+name = "fc-rpc-v2-types"
+version = "0.1.0"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+dependencies = [
+ "const-hex",
+ "ethereum-types",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
@@ -5225,7 +5246,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.5.9",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -7179,8 +7200,7 @@ dependencies = [
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
- "pallet-migrations 0.1.0",
- "pallet-migrations 10.1.1",
+ "pallet-migrations",
  "pallet-moonbeam-foreign-assets",
  "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
@@ -7263,6 +7283,7 @@ dependencies = [
 name = "moonbeam-cli"
 version = "0.47.0"
 dependencies = [
+ "ansi_term",
  "clap",
  "clap-num",
  "cumulus-client-cli",
@@ -7609,8 +7630,7 @@ dependencies = [
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
- "pallet-migrations 0.1.0",
- "pallet-migrations 10.1.1",
+ "pallet-migrations",
  "pallet-moonbeam-foreign-assets",
  "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
@@ -7694,9 +7714,8 @@ dependencies = [
  "pallet-author-inherent",
  "pallet-balances",
  "pallet-message-queue",
- "pallet-migrations 0.1.0",
+ "pallet-migrations",
  "pallet-moonbeam-foreign-assets",
- "pallet-parachain-staking",
  "pallet-transaction-payment",
  "pallet-treasury",
  "pallet-xcm",
@@ -7705,6 +7724,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
  "staging-xcm",
@@ -7738,6 +7758,7 @@ dependencies = [
  "fc-mapping-sync",
  "fc-rpc",
  "fc-rpc-core",
+ "fc-rpc-v2-api",
  "flume 0.10.14",
  "fp-rpc",
  "frame-benchmarking",
@@ -7848,14 +7869,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonkey"
-version = "0.1.1"
-dependencies = [
- "clap",
- "moonbeam-cli-opt",
-]
-
-[[package]]
 name = "moonriver-runtime"
 version = "0.8.4"
 dependencies = [
@@ -7954,8 +7967,7 @@ dependencies = [
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
- "pallet-migrations 0.1.0",
- "pallet-migrations 10.1.1",
+ "pallet-migrations",
  "pallet-moonbeam-foreign-assets",
  "pallet-moonbeam-lazy-migrations",
  "pallet-moonbeam-orbiters",
@@ -10194,26 +10206,6 @@ dependencies = [
 
 [[package]]
 name = "pallet-migrations"
-version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
-dependencies = [
- "cumulus-primitives-core",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "impl-trait-for-tuples",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "xcm-primitives 0.1.0",
-]
-
-[[package]]
-name = "pallet-migrations"
 version = "10.1.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#e35e8c55af8a2ff6ac3bc4719d64ea0b4afc69b8"
 dependencies = [
@@ -11070,8 +11062,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -13480,7 +13472,7 @@ dependencies = [
  "pallet-identity",
  "pallet-indices",
  "pallet-message-queue",
- "pallet-migrations 10.1.1",
+ "pallet-migrations",
  "pallet-mmr",
  "pallet-multisig",
  "pallet-nis",
@@ -18260,7 +18252,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
@@ -19079,7 +19071,7 @@ dependencies = [
  "pallet-membership",
  "pallet-message-queue",
  "pallet-meta-tx",
- "pallet-migrations 10.1.1",
+ "pallet-migrations",
  "pallet-mmr",
  "pallet-multisig",
  "pallet-nomination-pools",

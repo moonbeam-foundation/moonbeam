@@ -301,7 +301,7 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = ConstU16<1284>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
-	type SingleBlockMigrations = ();
+	type SingleBlockMigrations = migrations::SingleBlockMigrations<Runtime>;
 	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
 	type PostInherents = ();
@@ -1154,15 +1154,6 @@ impl pallet_proxy::Config for Runtime {
 	type BlockNumberProvider = System;
 }
 
-impl pallet_migrations::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type MigrationsList = (
-		moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,
-		migrations::MoonbeamMigrations,
-	);
-	type XcmExecutionManager = XcmExecutionManager;
-}
-
 pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	EitherOfDiverse<
@@ -1409,23 +1400,20 @@ impl cumulus_pallet_weight_reclaim::Config for Runtime {
 	type WeightInfo = moonbeam_weights::cumulus_pallet_weight_reclaim::WeightInfo<Runtime>;
 }
 
-/// List of multiblock migrations to be executed by the pallet_multiblock_migrations.
-#[cfg(not(feature = "runtime-benchmarks"))]
-pub type MultiBlockMigrationList = moonbeam_runtime_common::migrations::MultiBlockMigrationList;
-// Benchmarks need mocked migrations to guarantee that they succeed.
-#[cfg(feature = "runtime-benchmarks")]
-pub type MultiBlockMigrationList = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
-
-impl pallet_multiblock_migrations::Config for Runtime {
+impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type Migrations = MultiBlockMigrationList;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Migrations = migrations::MultiBlockMigrationList<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;
 	type CursorMaxLen = ConstU32<65_536>;
 	type IdentifierMaxLen = ConstU32<256>;
 	type MigrationStatusHandler = ();
 	type FailedMigrationHandler = MaintenanceMode;
 	type MaxServiceWeight = MaxServiceWeight;
-	type WeightInfo = weights::pallet_multiblock_migrations::WeightInfo<Runtime>;
+	type WeightInfo = weights::pallet_migrations::WeightInfo<Runtime>;
 }
+
 
 construct_runtime! {
 	pub enum Runtime
@@ -1455,7 +1443,7 @@ construct_runtime! {
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>} = 31,
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config<T>, Storage, Event} = 32,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event<T>} = 33,
-		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 34,
+		// [Removed] Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 34,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 35,
 		Multisig: pallet_multisig::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamLazyMigrations: pallet_moonbeam_lazy_migrations::{Pallet, Call, Storage} = 37,
@@ -1508,7 +1496,7 @@ construct_runtime! {
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 114,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 115,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 116,
-		MultiBlockMigrations: pallet_multiblock_migrations = 117,
+		MultiBlockMigrations: pallet_migrations = 117,
 		WeightReclaim: cumulus_pallet_weight_reclaim = 118,
 
 		// Utils
@@ -1582,7 +1570,7 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
-		[pallet_multiblock_migrations, MultiBlockMigrations]
+		[pallet_migrations, MultiBlockMigrations]
 		// Currently there are no extrinsics to benchmark for the Lazy Migrations pallet
 		// [pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]

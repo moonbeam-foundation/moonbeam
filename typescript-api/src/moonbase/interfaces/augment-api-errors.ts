@@ -664,28 +664,6 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       [key: string]: AugmentedError<ApiType>;
     };
-    migrations: {
-      /**
-       * Preimage already exists in the new storage.
-       **/
-      PreimageAlreadyExists: AugmentedError<ApiType>;
-      /**
-       * Preimage is larger than the new max size.
-       **/
-      PreimageIsTooBig: AugmentedError<ApiType>;
-      /**
-       * Missing preimage in original democracy storage
-       **/
-      PreimageMissing: AugmentedError<ApiType>;
-      /**
-       * Provided upper bound is too low.
-       **/
-      WrongUpperBound: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       **/
-      [key: string]: AugmentedError<ApiType>;
-    };
     moonbeamLazyMigrations: {
       /**
        * The contract already have metadata
@@ -1069,13 +1047,6 @@ declare module "@polkadot/api-base/types/errors" {
        * The message's weight could not be determined.
        **/
       UnweighableMessage: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       **/
-      [key: string]: AugmentedError<ApiType>;
-    };
-    precompileBenchmarks: {
-      BenchmarkError: AugmentedError<ApiType>;
       /**
        * Generic error
        **/

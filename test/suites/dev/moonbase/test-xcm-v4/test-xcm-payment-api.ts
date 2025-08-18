@@ -2,9 +2,10 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { type ApiPromise, WsProvider } from "@polkadot/api";
 import {
   XcmFragment,
-  registerOldForeignAsset,
+  registerForeignAsset,
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION,
+  addAssetToWeightTrader,
 } from "../../../../helpers";
 
 describeSuite({
@@ -13,16 +14,19 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let polkadotJs: ApiPromise;
+    const assetId = 1n;
 
     beforeAll(async function () {
       polkadotJs = context.polkadotJs();
 
-      await registerOldForeignAsset(
+      await registerForeignAsset(
         context,
+        assetId,
         RELAY_SOURCE_LOCATION,
-        relayAssetMetadata as any,
-        20000000000
+        relayAssetMetadata as any
       );
+
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 1_000_000_000_000_000_000n, context);
     });
 
     it({
@@ -75,9 +79,8 @@ describeSuite({
 
         expect(weightToForeignFee.isOk).to.be.true;
 
-        // (unitsPerSec * weight.ref_time()) / WEIGHT_REF_TIME_PER_SECOND
-        // (20_000_000_000 * 10_000_000_000) / 1_000_000_000_000
-        expect(BigInt(weightToForeignFee.asOk.toJSON())).to.eq(200_000_000n);
+        // Foreign asset registered in Weight Trader with a 1-1 relative price to the native asset
+        expect(BigInt(weightToForeignFee.asOk.toJSON())).to.eq(125_000_000_000_000n);
 
         const transactWeightAtMost = {
           refTime: 500_000_000n,

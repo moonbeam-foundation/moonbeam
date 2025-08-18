@@ -9,7 +9,7 @@ import {
   type XcmFragmentConfig,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 

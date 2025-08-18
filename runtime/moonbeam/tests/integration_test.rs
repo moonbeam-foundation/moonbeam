@@ -54,6 +54,7 @@ use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
+use pallet_parachain_staking::InflationDistributionAccount;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
@@ -67,7 +68,7 @@ use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Get, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, Dispatchable},
-	BuildStorage, DispatchError, ModuleError,
+	BuildStorage, DispatchError, ModuleError, Percent,
 };
 use std::str::from_utf8;
 use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
@@ -153,7 +154,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonbeam_runtime::Assets>("Assets");
 	is_pallet_prefix::<moonbeam_runtime::AssetManager>("AssetManager");
-	is_pallet_prefix::<moonbeam_runtime::Migrations>("Migrations");
 	is_pallet_prefix::<moonbeam_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbeam_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonbeam_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -437,7 +437,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Proxy>(31);
 	is_pallet_index::<moonbeam_runtime::MaintenanceMode>(32);
 	is_pallet_index::<moonbeam_runtime::Identity>(33);
-	is_pallet_index::<moonbeam_runtime::Migrations>(34);
 	is_pallet_index::<moonbeam_runtime::ProxyGenesisCompanion>(35);
 	is_pallet_index::<moonbeam_runtime::MoonbeamLazyMigrations>(37);
 	// Ethereum compatibility
@@ -703,10 +702,17 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		.build()
 		.execute_with(|| {
 			increase_last_relay_slot_number(1);
-			assert_ok!(ParachainStaking::set_parachain_bond_account(
+			assert_ok!(ParachainStaking::set_inflation_distribution_config(
 				root_origin(),
-				AccountId::from(CHARLIE),
-			),);
+				[
+					InflationDistributionAccount {
+						account: AccountId::from(CHARLIE),
+						percent: Percent::from_percent(30),
+					},
+					InflationDistributionAccount::default(),
+				]
+				.into()
+			));
 
 			// Stop just before round 3
 			run_to_block(7199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));

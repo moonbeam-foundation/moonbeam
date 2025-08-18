@@ -10,13 +10,13 @@ import {
   XCM_VERSIONS,
   convertXcmFragmentToVersion,
   injectHrmpMessage,
-} from "../../../../helpers/xcm.js";
-import { registerOldForeignAsset } from "../../../../helpers/assets.js";
+  registerForeignAsset,
+  foreignAssetBalance,
+  addAssetToWeightTrader,
+} from "../../../../helpers";
 
-const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 const statemint_para_id = 1001;
 const statemint_assets_pallet_instance = 50;
-const FOREIGN_TOKEN = 10_000_000_000_000n;
 
 const assetMetadata = {
   name: "FOREIGN",
@@ -24,6 +24,8 @@ const assetMetadata = {
   decimals: 12n,
   isFrozen: false,
 };
+
+const FOREIGN_TOKEN = 10n ** assetMetadata.decimals; // 12 decimals
 
 const STATEMINT_LOCATION = {
   Xcm: {
@@ -43,17 +45,12 @@ describeSuite({
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let assetId: string;
+    const assetId = 1n;
 
     beforeAll(async () => {
-      // registerOldForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
-        context,
-        STATEMINT_LOCATION,
-        assetMetadata
-      );
-      assetId = registeredAssetId;
-      expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
+      await registerForeignAsset(context, assetId, STATEMINT_LOCATION, assetMetadata);
+
+      await addAssetToWeightTrader(STATEMINT_LOCATION, 0n, context);
     });
 
     for (const xcmVersion of XCM_VERSIONS) {
@@ -61,11 +58,11 @@ describeSuite({
         id: `T01-XCM-v${xcmVersion}`,
         title: "Should receive a horizontal transfer of 10 FOREIGNs to Alith",
         test: async function () {
-          const alith_balance_before = (
-            await context.polkadotJs().query.assets.account(assetId, alith.address)
-          )
-            .unwrapOr({ balance: context.polkadotJs().createType("u128", 0) })
-            .balance.toBigInt();
+          const alith_balance_before = await foreignAssetBalance(
+            context,
+            assetId,
+            alith.address as `0x{string}`
+          );
 
           let xcmMessage = new XcmFragment({
             assets: [
@@ -100,11 +97,11 @@ describeSuite({
           // Create a block in which the XCM will be executed
           await context.createBlock();
           // Make sure the state has ALITH's foreign parachain tokens
-          const alith_balance_after = (
-            await context.polkadotJs().query.assets.account(assetId, alith.address)
-          )
-            .unwrap()
-            .balance.toBigInt();
+          const alith_balance_after = await foreignAssetBalance(
+            context,
+            assetId,
+            alith.address as `0x{string}`
+          );
 
           expect(alith_balance_after - alith_balance_before).to.eq(FOREIGN_TOKEN);
         },
@@ -114,11 +111,11 @@ describeSuite({
         id: `T02-XCM-v${xcmVersion}`,
         title: "Should NOT receive Statemine tokens to Alith with old prefix",
         test: async function () {
-          const alith_balance_before = (
-            await context.polkadotJs().query.assets.account(assetId, alith.address)
-          )
-            .unwrapOr({ balance: context.polkadotJs().createType("u128", 0) })
-            .balance.toBigInt();
+          const alith_balance_before = await foreignAssetBalance(
+            context,
+            assetId,
+            alith.address as `0x{string}`
+          );
 
           // We are going to test that, using the prefix prior to
           // https://github.com/paritytech/cumulus/pull/831
@@ -155,11 +152,11 @@ describeSuite({
           } as RawXcmMessage);
 
           // Make sure the state has ALITH's foreign parachain tokens
-          const alith_balance_after = (
-            await context.polkadotJs().query.assets.account(assetId, alith.address)
-          )
-            .unwrapOr({ balance: context.polkadotJs().createType("u128", 0) })
-            .balance.toBigInt();
+          const alith_balance_after = await foreignAssetBalance(
+            context,
+            assetId,
+            alith.address as `0x{string}`
+          );
 
           // The message execution failed
           expect(alith_balance_before).to.eq(alith_balance_after);

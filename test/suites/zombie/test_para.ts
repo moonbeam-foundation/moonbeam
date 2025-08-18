@@ -7,7 +7,7 @@ import fs from "node:fs";
 
 describeSuite({
   id: "Z01",
-  title: "Zombie AlphaNet Upgrade Test",
+  title: "Zombienet - Runtime Upgrade Test",
   foundationMethods: "zombie",
   testCases: ({ it, context, log }) => {
     let paraApi: ApiPromise;

@@ -20,7 +20,7 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 47.2.0
 //! DATE: 2025-07-01, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `ip-10-0-0-198`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
+//! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
 //! WASM-EXECUTION: Compiled, CHAIN: None, DB CACHE: 1024
 
 // Executed Command:
@@ -28,7 +28,7 @@
 // v1
 // benchmark
 // pallet
-// --runtime=./target/production/wbuild/moonbase-runtime/moonbase_runtime.wasm
+// --runtime=./target/production/wbuild/moonbeam-runtime/moonbeam_runtime.wasm
 // --genesis-builder=runtime
 // --genesis-builder-preset=development
 // --steps=50
@@ -38,7 +38,7 @@
 // --wasm-execution=compiled
 // --header=./file_header.txt
 // --template=./benchmarking/frame-weight-template.hbs
-// --output=./runtime/moonbase/src/weights
+// --output=./runtime/moonbeam/src/weights
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -47,19 +47,19 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use sp_std::marker::PhantomData;
 
-/// Weights for `pallet_multiblock_migrations`.
+/// Weights for `pallet_migrations`.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for WeightInfo<T> {
+impl<T: frame_system::Config> pallet_migrations::WeightInfo for WeightInfo<T> {
 	/// Storage: `MultiBlockMigrations::Cursor` (r:1 w:1)
 	/// Proof: `MultiBlockMigrations::Cursor` (`max_values`: Some(1), `max_size`: Some(65550), added: 66045, mode: `MaxEncodedLen`)
 	/// Storage: UNKNOWN KEY `0x583359fe0e84d953a9dd84e8addb08a5` (r:1 w:0)
 	/// Proof: UNKNOWN KEY `0x583359fe0e84d953a9dd84e8addb08a5` (r:1 w:0)
 	fn onboard_new_mbms() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `133`
+		//  Measured:  `100`
 		//  Estimated: `67035`
-		// Minimum execution time: 7_151_000 picoseconds.
-		Weight::from_parts(7_576_000, 67035)
+		// Minimum execution time: 7_325_000 picoseconds.
+		Weight::from_parts(7_710_000, 67035)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -69,8 +69,8 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 		// Proof Size summary in bytes:
 		//  Measured:  `4`
 		//  Estimated: `67035`
-		// Minimum execution time: 1_903_000 picoseconds.
-		Weight::from_parts(1_990_000, 67035)
+		// Minimum execution time: 1_735_000 picoseconds.
+		Weight::from_parts(1_920_000, 67035)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 	}
 	/// Storage: UNKNOWN KEY `0x583359fe0e84d953a9dd84e8addb08a5` (r:1 w:0)
@@ -79,10 +79,10 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 	/// Proof: `MultiBlockMigrations::Cursor` (`max_values`: Some(1), `max_size`: Some(65550), added: 66045, mode: `MaxEncodedLen`)
 	fn exec_migration_completed() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `129`
-		//  Estimated: `3594`
-		// Minimum execution time: 5_891_000 picoseconds.
-		Weight::from_parts(6_223_000, 3594)
+		//  Measured:  `96`
+		//  Estimated: `3561`
+		// Minimum execution time: 5_780_000 picoseconds.
+		Weight::from_parts(6_028_000, 3561)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -92,10 +92,10 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 	/// Proof: `MultiBlockMigrations::Historic` (`max_values`: None, `max_size`: Some(266), added: 2741, mode: `MaxEncodedLen`)
 	fn exec_migration_skipped_historic() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `187`
+		//  Measured:  `154`
 		//  Estimated: `3731`
-		// Minimum execution time: 10_565_000 picoseconds.
-		Weight::from_parts(10_870_000, 3731)
+		// Minimum execution time: 10_373_000 picoseconds.
+		Weight::from_parts(10_945_000, 3731)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 	}
 	/// Storage: UNKNOWN KEY `0x583359fe0e84d953a9dd84e8addb08a5` (r:1 w:0)
@@ -104,10 +104,10 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 	/// Proof: `MultiBlockMigrations::Historic` (`max_values`: None, `max_size`: Some(266), added: 2741, mode: `MaxEncodedLen`)
 	fn exec_migration_advance() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `133`
+		//  Measured:  `100`
 		//  Estimated: `3731`
-		// Minimum execution time: 10_013_000 picoseconds.
-		Weight::from_parts(10_338_000, 3731)
+		// Minimum execution time: 10_090_000 picoseconds.
+		Weight::from_parts(10_531_000, 3731)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 	}
 	/// Storage: UNKNOWN KEY `0x583359fe0e84d953a9dd84e8addb08a5` (r:1 w:0)
@@ -116,10 +116,10 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 	/// Proof: `MultiBlockMigrations::Historic` (`max_values`: None, `max_size`: Some(266), added: 2741, mode: `MaxEncodedLen`)
 	fn exec_migration_complete() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `133`
+		//  Measured:  `100`
 		//  Estimated: `3731`
-		// Minimum execution time: 11_563_000 picoseconds.
-		Weight::from_parts(11_907_000, 3731)
+		// Minimum execution time: 11_512_000 picoseconds.
+		Weight::from_parts(11_936_000, 3731)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -135,10 +135,10 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn exec_migration_fail() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `275`
-		//  Estimated: `3740`
-		// Minimum execution time: 26_189_000 picoseconds.
-		Weight::from_parts(27_180_000, 3740)
+		//  Measured:  `242`
+		//  Estimated: `3731`
+		// Minimum execution time: 26_044_000 picoseconds.
+		Weight::from_parts(27_157_000, 3731)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -146,8 +146,8 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 171_000 picoseconds.
-		Weight::from_parts(205_000, 0)
+		// Minimum execution time: 176_000 picoseconds.
+		Weight::from_parts(221_000, 0)
 	}
 	/// Storage: `MultiBlockMigrations::Cursor` (r:0 w:1)
 	/// Proof: `MultiBlockMigrations::Cursor` (`max_values`: Some(1), `max_size`: Some(65550), added: 66045, mode: `MaxEncodedLen`)
@@ -155,8 +155,8 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 2_531_000 picoseconds.
-		Weight::from_parts(2_634_000, 0)
+		// Minimum execution time: 2_538_000 picoseconds.
+		Weight::from_parts(2_778_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 	/// Storage: `MultiBlockMigrations::Cursor` (r:0 w:1)
@@ -165,8 +165,8 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 2_833_000 picoseconds.
-		Weight::from_parts(3_019_000, 0)
+		// Minimum execution time: 2_961_000 picoseconds.
+		Weight::from_parts(3_219_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 	/// Storage: `MultiBlockMigrations::Cursor` (r:1 w:0)
@@ -175,10 +175,10 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 	/// Proof: UNKNOWN KEY `0x583359fe0e84d953a9dd84e8addb08a5` (r:1 w:0)
 	fn force_onboard_mbms() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `109`
+		//  Measured:  `76`
 		//  Estimated: `67035`
-		// Minimum execution time: 5_396_000 picoseconds.
-		Weight::from_parts(5_631_000, 67035)
+		// Minimum execution time: 5_338_000 picoseconds.
+		Weight::from_parts(5_657_000, 67035)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 	}
 	/// Storage: `MultiBlockMigrations::Historic` (r:256 w:256)
@@ -188,18 +188,29 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 		// Proof Size summary in bytes:
 		//  Measured:  `984 + n * (271 ±0)`
 		//  Estimated: `3834 + n * (2740 ±0)`
-		// Minimum execution time: 15_395_000 picoseconds.
-		Weight::from_parts(15_692_179, 3834)
-			// Standard Error: 2_932
-			.saturating_add(Weight::from_parts(1_311_610, 0).saturating_mul(n.into()))
+		// Minimum execution time: 15_662_000 picoseconds.
+		Weight::from_parts(15_392_204, 3834)
+			// Standard Error: 3_533
+			.saturating_add(Weight::from_parts(1_335_637, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(n.into())))
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
 			.saturating_add(Weight::from_parts(0, 2740).saturating_mul(n.into()))
 	}
-
-    fn reset_pallet_migration(_n: u32) -> Weight {
-        // TODO: regenerate this file
-        Weight::from_parts(15_692_179, 3834)
+    /// Storage: `Skipped::Metadata` (r:0 w:0)
+    /// Proof: `Skipped::Metadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+    /// The range of component `n` is `[0, 2048]`.
+    fn reset_pallet_migration(n: u32, ) -> Weight {
+        // Proof Size summary in bytes:
+        //  Measured:  `1605 + n * (38 ±0)`
+        //  Estimated: `686 + n * (39 ±0)`
+        // Minimum execution time: 1_174_000 picoseconds.
+        Weight::from_parts(1_216_000, 0)
+            .saturating_add(Weight::from_parts(0, 686))
+            // Standard Error: 3_009
+            .saturating_add(Weight::from_parts(952_922, 0).saturating_mul(n.into()))
+            .saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(n.into())))
+            .saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
+            .saturating_add(Weight::from_parts(0, 39).saturating_mul(n.into()))
     }
 }

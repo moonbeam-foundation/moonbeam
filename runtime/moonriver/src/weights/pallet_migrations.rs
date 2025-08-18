@@ -47,9 +47,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use sp_std::marker::PhantomData;
 
-/// Weights for `pallet_multiblock_migrations`.
+/// Weights for `pallet_migrations`.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for WeightInfo<T> {
+impl<T: frame_system::Config> pallet_migrations::WeightInfo for WeightInfo<T> {
 	/// Storage: `MultiBlockMigrations::Cursor` (r:1 w:1)
 	/// Proof: `MultiBlockMigrations::Cursor` (`max_values`: Some(1), `max_size`: Some(65550), added: 66045, mode: `MaxEncodedLen`)
 	/// Storage: UNKNOWN KEY `0x583359fe0e84d953a9dd84e8addb08a5` (r:1 w:0)
@@ -197,11 +197,20 @@ impl<T: frame_system::Config> pallet_multiblock_migrations::WeightInfo for Weigh
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
 			.saturating_add(Weight::from_parts(0, 2740).saturating_mul(n.into()))
 	}
-
-    fn reset_pallet_migration(_n: u32) -> Weight {
-        // TODO: regenerate this file
-        Weight::from_parts(42_137_000, 1591)
-            .saturating_add(T::DbWeight::get().reads(2_u64))
-            .saturating_add(T::DbWeight::get().writes(1_u64))
+    /// Storage: `Skipped::Metadata` (r:0 w:0)
+    /// Proof: `Skipped::Metadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+    /// The range of component `n` is `[0, 2048]`.
+    fn reset_pallet_migration(n: u32, ) -> Weight {
+        // Proof Size summary in bytes:
+        //  Measured:  `1605 + n * (38 ±0)`
+        //  Estimated: `686 + n * (39 ±0)`
+        // Minimum execution time: 1_174_000 picoseconds.
+        Weight::from_parts(1_216_000, 0)
+            .saturating_add(Weight::from_parts(0, 686))
+            // Standard Error: 3_009
+            .saturating_add(Weight::from_parts(952_922, 0).saturating_mul(n.into()))
+            .saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(n.into())))
+            .saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
+            .saturating_add(Weight::from_parts(0, 39).saturating_mul(n.into()))
     }
 }

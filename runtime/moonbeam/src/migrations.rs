@@ -16,13 +16,20 @@
 
 //! # Moonbeam specific Migrations
 
-use pallet_migrations::{GetMigrations, Migration};
-use sp_std::{prelude::*, vec};
+type MoonbeamMigrations = ();
 
-pub struct MoonbeamMigrations;
+/// List of single block migrations to be executed by frame executive.
+pub type SingleBlockMigrations<Runtime> = (
+	// Common migrations applied on all Moonbeam runtime
+	moonbeam_runtime_common::migrations::SingleBlockMigrations<Runtime>,
+	// Moonbeam specific migrations
+	MoonbeamMigrations,
+);
 
-impl GetMigrations for MoonbeamMigrations {
-	fn get_migrations() -> Vec<Box<dyn Migration>> {
-		vec![]
-	}
-}
+/// List of multi block migrations to be executed by the pallet_migrations.
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type MultiBlockMigrationList<Runtime> = (
+	// Common multiblock migrations applied on all Moonbeam runtime
+	moonbeam_runtime_common::migrations::MultiBlockMigrations<Runtime>,
+	// ... Moonbeam specific multiblock migrations
+);
