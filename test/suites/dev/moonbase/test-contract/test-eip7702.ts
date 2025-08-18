@@ -1,7 +1,14 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { ALITH_PRIVATE_KEY } from "@moonwall/util";
-import { encodeFunctionData, numberToHex, PrivateKeyAccount, type Abi } from "viem";
+import {
+  keccak256,
+  concat,
+  encodeFunctionData,
+  numberToHex,
+  type PrivateKeyAccount,
+  type Abi,
+} from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectOk } from "../../../../helpers";
 
@@ -172,7 +179,6 @@ describeSuite({
 
         // Calculate storage slot for mapping(address => uint256) balances
         // slot = keccak256(abi.encode(targetAddress, 0))
-        const { keccak256, concat } = await import("viem");
         const storageSlot = keccak256(
           concat([
             targetAddress.toLowerCase().padEnd(66, "0") as `0x${string}`,
