@@ -133,6 +133,8 @@ use xcm_runtime_apis::{
 	dry_run::{CallDryRunEffects, Error as XcmDryRunApiError, XcmDryRunEffects},
 	fees::Error as XcmPaymentApiError,
 };
+// TODO
+use cumulus_primitives_timestamp as _;
 
 use smallvec::smallvec;
 use sp_runtime::serde::{Deserialize, Serialize};
