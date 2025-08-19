@@ -6,8 +6,6 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-enumflags2 = "0.7.7"
-log = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -20,16 +18,11 @@ sp-std = { workspace = true }
 pallet-identity = { workspace = true }
 
 # Frontier
-evm = { workspace = true, features = [ "with-codec" ] }
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 precompile-utils = { workspace = true }
 
 [dev-dependencies]
-hex = { workspace = true }
-hex-literal = { workspace = true }
-serde = { workspace = true }
-sha3 = { workspace = true }
 
 pallet-balances = { workspace = true, features = [ "std" ] }
 pallet-timestamp = { workspace = true, features = [ "std" ] }

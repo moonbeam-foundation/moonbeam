@@ -68,7 +68,7 @@ jobs:
           echo "repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
           echo "github.repository: ${{ github.repository }}"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
       - name: Get Latest RT Release
@@ -129,7 +129,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Find un-copyrighted files
@@ -149,7 +149,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: umbrelladocs/action-linkspector@v1
@@ -166,7 +166,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -190,7 +190,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -210,7 +210,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
@@ -228,7 +228,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -250,7 +250,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Install Protoc
@@ -277,7 +277,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
@@ -313,7 +313,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -483,6 +483,29 @@ jobs:
           body-path: runtime_size_report.md
           edit-mode: replace
 
+  check-unused-dependencies:
+    runs-on: moonbeam-release-medium
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rust-src
+          target: wasm32-unknown-unknown
+      - name: Install required dependencies
+        run: |
+          sudo apt-get install -y libprotobuf-dev protobuf-compiler
+          cargo +nightly install cargo-udeps
+      - name: Check for unused dependencies
+        run: |
+          # There may be false negatives/positives
+          # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
+          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime,bridge-stagenet --all-targets
+
   rust-test:
     runs-on:
       labels: bare-metal
@@ -496,7 +519,7 @@ jobs:
       SCCACHE_GHA_ENABLED: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Run sccache-cache
@@ -539,7 +562,7 @@ jobs:
   #   runs-on: ubuntu-latest
   #   steps:
   #     - name: Checkout
-  #       uses: actions/checkout@v4
+  #       uses: actions/checkout@v5
   #       with:
   #         ref: ${{ needs.set-tags.outputs.git_ref }}
   #     - uses: pnpm/action-setup@v4
@@ -590,7 +613,7 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Create local folders
@@ -647,7 +670,7 @@ jobs:
     needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v4
@@ -707,7 +730,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -762,7 +785,7 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -804,15 +827,14 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        ## TODO: add moonriver here when it is ready
-        chain: ["moonbase", "moonbeam"]
+        chain: ["moonbase", "moonriver", "moonbeam"]
     env:
       GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
       DEBUG_COLORS: 1
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -856,10 +878,6 @@ jobs:
         run: |
           cd test
           pnpm moonwall test zombie_${{ matrix.chain }}
-      - name: "Run zombie RPC test"
-        run: |
-          cd test
-          pnpm moonwall test zombie_${{ matrix.chain }}_rpc
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+use crate::chain_spec::Extensions;
 use crate::{
 	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
 	ClientCustomizations, FrontierBlockImport, HostFunctions, PartialComponentsResult,
@@ -25,6 +26,7 @@ use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_rpc::StorageOverrideHandler;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
+use frontier_backend::LazyLoadingFrontierBackend;
 use futures::{FutureExt, StreamExt};
 use moonbeam_cli_opt::{EthApi as EthApiCmd, LazyLoadingConfig, RpcConfig};
 use moonbeam_core_primitives::{Block, Hash};
@@ -34,7 +36,7 @@ use parity_scale_codec::Encode;
 use polkadot_primitives::{
 	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
 };
-use sc_chain_spec::{get_extension, BuildGenesisBlock, GenesisBlockBuilder};
+use sc_chain_spec::{get_extension, BuildGenesisBlock, ChainType, GenesisBlockBuilder};
 use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks};
 use sc_executor::{HeapAllocStrategy, RuntimeVersionOf, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::config::FullNetworkConfiguration;
@@ -56,13 +58,15 @@ use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-pub mod backend;
 pub mod call_executor;
 mod client;
+pub mod frontier_backend;
 mod helpers;
 mod lock;
 mod manual_sealing;
+mod rpc_client;
 mod state_overrides;
+pub mod substrate_backend;
 
 pub const LAZY_LOADING_LOG_TARGET: &'static str = "lazy-loading";
 
@@ -75,7 +79,7 @@ pub type TLazyLoadingClient<TBl, TRtApi, TExec> = sc_service::client::Client<
 >;
 
 /// Lazy loading client backend type.
-pub type TLazyLoadingBackend<TBl> = backend::Backend<TBl>;
+pub type TLazyLoadingBackend<TBl> = substrate_backend::Backend<TBl>;
 
 /// Lazy loading client call executor type.
 pub type TLazyLoadingCallExecutor<TBl, TExec> = call_executor::LazyLoadingCallExecutor<
@@ -107,7 +111,7 @@ where
 	TBl::Hash: From<H256>,
 	TExec: CodeExecutor + RuntimeVersionOf + Clone,
 {
-	let backend = backend::new_lazy_loading_backend(config, &lazy_loading_config)?;
+	let backend = substrate_backend::new_backend(config, &lazy_loading_config)?;
 
 	let genesis_block_builder = GenesisBlockBuilder::new(
 		config.chain_spec.as_storage_builder(),
@@ -777,10 +781,13 @@ where
 				command_sink: command_sink_for_task.clone(),
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: match *frontier_backend {
-					fc_db::Backend::KeyValue(ref b) => b.clone(),
-					fc_db::Backend::Sql(ref b) => b.clone(),
-				},
+				frontier_backend: Arc::new(LazyLoadingFrontierBackend {
+					rpc_client: backend.clone().rpc_client.clone(),
+					frontier_backend: match *frontier_backend {
+						fc_db::Backend::KeyValue(ref b) => b.clone(),
+						fc_db::Backend::Sql(ref b) => b.clone(),
+					},
+				}),
 				graph: pool.clone(),
 				pool: pool.clone(),
 				is_authority: collator,
@@ -858,4 +865,21 @@ where
 	log::info!("Service Ready");
 
 	Ok(task_manager)
+}
+
+pub fn spec_builder() -> sc_chain_spec::ChainSpecBuilder<Extensions> {
+	crate::chain_spec::moonbeam::ChainSpec::builder(
+		moonbeam_runtime::WASM_BINARY.expect("WASM binary was not build, please build it!"),
+		Default::default(),
+	)
+	.with_name("Lazy Loading")
+	.with_id("lazy_loading")
+	.with_chain_type(ChainType::Development)
+	.with_properties(
+		serde_json::from_str(
+			"{\"tokenDecimals\": 18, \"tokenSymbol\": \"GLMR\", \"SS58Prefix\": 1284}",
+		)
+		.expect("Provided valid json map"),
+	)
+	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
 }

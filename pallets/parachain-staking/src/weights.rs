@@ -50,8 +50,6 @@ use core::marker::PhantomData;
 pub trait WeightInfo {
 	fn set_staking_expectations() -> Weight;
 	fn set_inflation() -> Weight;
-	fn set_parachain_bond_account() -> Weight;
-	fn set_parachain_bond_reserve_percent() -> Weight;
 	fn set_inflation_distribution_config() -> Weight;
 	fn set_total_selected() -> Weight;
 	fn set_collator_commission() -> Weight;
@@ -112,28 +110,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		//  Estimated: `1573`
 		// Minimum execution time: 25_000_000 picoseconds.
 		Weight::from_parts(27_000_000, 1573)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
-	/// Storage: `ParachainStaking::InflationDistributionInfo` (r:1 w:1)
-	/// Proof: `ParachainStaking::InflationDistributionInfo` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	fn set_parachain_bond_account() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `30`
-		//  Estimated: `1515`
-		// Minimum execution time: 9_000_000 picoseconds.
-		Weight::from_parts(10_000_000, 1515)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
-	/// Storage: `ParachainStaking::InflationDistributionInfo` (r:1 w:1)
-	/// Proof: `ParachainStaking::InflationDistributionInfo` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	fn set_parachain_bond_reserve_percent() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `30`
-		//  Estimated: `1515`
-		// Minimum execution time: 9_000_000 picoseconds.
-		Weight::from_parts(9_000_000, 1515)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -965,28 +941,6 @@ impl WeightInfo for () {
 		//  Estimated: `1573`
 		// Minimum execution time: 25_000_000 picoseconds.
 		Weight::from_parts(27_000_000, 1573)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `ParachainStaking::InflationDistributionInfo` (r:1 w:1)
-	/// Proof: `ParachainStaking::InflationDistributionInfo` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	fn set_parachain_bond_account() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `30`
-		//  Estimated: `1515`
-		// Minimum execution time: 9_000_000 picoseconds.
-		Weight::from_parts(10_000_000, 1515)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `ParachainStaking::InflationDistributionInfo` (r:1 w:1)
-	/// Proof: `ParachainStaking::InflationDistributionInfo` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	fn set_parachain_bond_reserve_percent() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `30`
-		//  Estimated: `1515`
-		// Minimum execution time: 9_000_000 picoseconds.
-		Weight::from_parts(9_000_000, 1515)
 			.saturating_add(RocksDbWeight::get().reads(1_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}

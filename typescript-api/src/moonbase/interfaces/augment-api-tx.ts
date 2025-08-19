@@ -2863,24 +2863,6 @@ declare module "@polkadot/api-base/types/submittable" {
         [PalletParachainStakingInflationDistributionConfig]
       >;
       /**
-       * Deprecated: please use `set_inflation_distribution_config` instead.
-       *
-       * Set the account that will hold funds set aside for parachain bond
-       **/
-      setParachainBondAccount: AugmentedSubmittable<
-        (updated: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [AccountId20]
-      >;
-      /**
-       * Deprecated: please use `set_inflation_distribution_config` instead.
-       *
-       * Set the percent of inflation set aside for parachain bond
-       **/
-      setParachainBondReservePercent: AugmentedSubmittable<
-        (updated: Percent | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [Percent]
-      >;
-      /**
        * Set the expectations for total staked. These expectations determine the issuance for
        * the round according to logic in `fn compute_issuance`
        **/

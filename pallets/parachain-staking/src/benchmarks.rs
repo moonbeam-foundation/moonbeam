@@ -354,32 +354,6 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn set_parachain_bond_account() -> Result<(), BenchmarkError> {
-		let parachain_bond_account: T::AccountId = account("TEST", 0u32, USER_SEED);
-
-		#[extrinsic_call]
-		_(RawOrigin::Root, parachain_bond_account.clone());
-
-		assert_eq!(
-			Pallet::<T>::inflation_distribution_info().0[0].account,
-			parachain_bond_account
-		);
-		Ok(())
-	}
-
-	#[benchmark]
-	fn set_parachain_bond_reserve_percent() -> Result<(), BenchmarkError> {
-		#[extrinsic_call]
-		_(RawOrigin::Root, Percent::from_percent(33));
-
-		assert_eq!(
-			Pallet::<T>::inflation_distribution_info().0[0].percent,
-			Percent::from_percent(33)
-		);
-		Ok(())
-	}
-
-	#[benchmark]
 	fn set_inflation_distribution_config() -> Result<(), BenchmarkError> {
 		let config = [
 			InflationDistributionAccount {

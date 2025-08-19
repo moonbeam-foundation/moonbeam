@@ -7,8 +7,6 @@ version = "0.1.0"
 
 [dependencies]
 log = { workspace = true }
-num_enum = { workspace = true }
-rustc-hex = { workspace = true }
 
 # Substrate
 frame-support = { workspace = true }
@@ -25,12 +23,8 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 precompile-utils = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
-hex-literal = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-scheduler = { workspace = true }
-serde = { workspace = true }
-sha3 = { workspace = true }
 
 # Moonbeam
 precompile-utils = { workspace = true, features = ["std", "testing"] }

@@ -7,7 +7,6 @@ version = "1.0.0"
 [dependencies]
 environmental = { workspace = true }
 ethereum-types = { workspace = true }
-serde = { workspace = true, optional = true, features = ["derive"] }
 log = { workspace = true }
 
 # Substrate
@@ -43,7 +42,6 @@ std = [
     "pallet-evm/std",
     "parity-scale-codec/std",
     "scale-info/std",
-    "serde",
     "sp-core/std",
     "sp-runtime/std",
     "sp-std/std",
