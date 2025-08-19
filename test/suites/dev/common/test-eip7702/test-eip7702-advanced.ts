@@ -19,6 +19,7 @@ describeSuite({
     let storageModifierAbi: Abi;
     let ethReceiverAddress: `0x${string}`;
     let ethReceiverAbi: Abi;
+    let chainId: number;
 
     // Precompile addresses
     const ecrecoverPrecompile = "0x0000000000000000000000000000000000000001";
@@ -27,6 +28,9 @@ describeSuite({
     const identityPrecompile = "0x0000000000000000000000000000000000000004";
 
     beforeAll(async () => {
+      // Get the chainId from the RPC
+      chainId = await context.viem().getChainId();
+
       const storageWriter = await deployCreateCompiledContract(context, "StorageWriter");
       storageWriterAddress = storageWriter.contractAddress;
       storageWriterAbi = storageWriter.abi;
@@ -61,19 +65,19 @@ describeSuite({
         // Create pointer chain
         const auth1 = await eoa1.signAuthorization({
           contractAddress: callerAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
         const auth2 = await eoa2.signAuthorization({
           contractAddress: storageWriterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
         const auth3 = await eoa3.signAuthorization({
           contractAddress: contextCheckerAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -87,7 +91,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth1, auth2, auth3],
           type: "eip7702" as const,
         };
@@ -117,7 +121,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
         };
 
         const chainSignature = await senderAccount.signTransaction(chainTx);
@@ -145,13 +149,13 @@ describeSuite({
         // Both pointers delegate to caller contract
         const auth1 = await eoa1.signAuthorization({
           contractAddress: eoa2.address,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
         const auth2 = await eoa2.signAuthorization({
           contractAddress: callerAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -164,7 +168,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth1, auth2],
           type: "eip7702" as const,
         };
@@ -188,7 +192,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
         };
 
         const pointerSignature = await senderAccount.signTransaction(pointerTx);
@@ -212,7 +216,7 @@ describeSuite({
 
         const auth = await pointer.signAuthorization({
           contractAddress: contextCheckerAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -225,7 +229,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
@@ -280,7 +284,7 @@ describeSuite({
 
         const auth = await pointer.signAuthorization({
           contractAddress: callerAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -293,7 +297,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
@@ -318,7 +322,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
         };
 
         const precompileSignature = await senderAccount.signTransaction(precompileTx);
@@ -341,7 +345,7 @@ describeSuite({
         // Set up pointer
         const auth = await pointer.signAuthorization({
           contractAddress: storageWriterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -354,7 +358,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
@@ -378,7 +382,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
         };
 
         const pointerSignature = await senderAccount.signTransaction(pointerCallTx);
@@ -404,7 +408,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
         };
 
         const directSignature = await senderAccount.signTransaction(directCallTx);
@@ -433,7 +437,7 @@ describeSuite({
 
         const auth = await pointer.signAuthorization({
           contractAddress: callerAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -446,7 +450,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
@@ -492,7 +496,7 @@ describeSuite({
 
         const auth = await pointer.signAuthorization({
           contractAddress: storageModifierAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -505,7 +509,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
@@ -527,7 +531,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
         };
 
         const setRevertSignature = await senderAccount.signTransaction(setRevertTx);
@@ -547,7 +551,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
         };
 
         const revertSignature = await senderAccount.signTransaction(revertTx);
@@ -570,13 +574,13 @@ describeSuite({
         // Create two authorizations for the same EOA
         const auth1 = await doubleAuth.signAuthorization({
           contractAddress: storageWriterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
         const auth2 = await doubleAuth.signAuthorization({
           contractAddress: contextCheckerAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 1,
         });
 
@@ -590,7 +594,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth1, auth2],
           type: "eip7702" as const,
         };
@@ -620,7 +624,7 @@ describeSuite({
 
         const auth = await pointer.signAuthorization({
           contractAddress: ethReceiverAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -633,7 +637,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth],
           type: "eip7702" as const,
         };
@@ -659,7 +663,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
         };
 
         const sendEthSignature = await senderAccount.signTransaction(sendEthTx);
@@ -694,7 +698,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
         };
 
         const withdrawSignature = await senderAccount.signTransaction(withdrawTx);

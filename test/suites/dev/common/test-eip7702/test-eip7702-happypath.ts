@@ -20,8 +20,12 @@ describeSuite({
     let contractAddress: `0x${string}`;
     let contractAbi: Abi;
     let alithAccount: PrivateKeyAccount;
+    let chainId: number;
 
     beforeAll(async () => {
+      // Get the chainId from the RPC
+      chainId = await context.viem().getChainId();
+
       // Get ALITH's account info for signing
       alithAccount = privateKeyToAccount(ALITH_PRIVATE_KEY);
 
@@ -59,7 +63,7 @@ describeSuite({
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -105,7 +109,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: alithAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: authorizationList,
           type: "eip7702" as const,
         };
@@ -255,7 +259,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: alithAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
         };
 
         const signedIncrement = await alithAccount.signTransaction(incrementTx);
@@ -293,7 +297,7 @@ describeSuite({
         // Create authorization with incorrect nonce (using nonce 1 instead of 0)
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 1, // Wrong nonce - should be 0 for a fresh account
         });
 
@@ -312,7 +316,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: alithAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
@@ -343,7 +347,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: alithAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [], // Empty authorization list
           type: "eip7702" as const,
         };
@@ -385,7 +389,7 @@ describeSuite({
         // Set up initial delegation
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -404,7 +408,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: alithAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
@@ -432,7 +436,7 @@ describeSuite({
         // Now clear the delegation by authorizing to zero address
         const clearAuthorization = await delegatingEOA.signAuthorization({
           contractAddress: "0x0000000000000000000000000000000000000000",
-          chainId: 1281,
+          chainId: chainId,
           nonce: 1, // Nonce should be incremented
         });
 
@@ -445,7 +449,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: alithAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [clearAuthorization],
           type: "eip7702" as const,
         };
@@ -543,7 +547,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: alithAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };

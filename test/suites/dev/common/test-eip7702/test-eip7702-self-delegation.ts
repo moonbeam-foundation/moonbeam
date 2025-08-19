@@ -10,8 +10,12 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
+    let chainId: number;
 
     beforeAll(async () => {
+      // Get the chainId from the RPC
+      chainId = await context.viem().getChainId();
+
       const counter = await deployCreateCompiledContract(context, "Counter");
       counterAddress = counter.contractAddress;
       counterAbi = counter.abi;
@@ -50,7 +54,7 @@ describeSuite({
 
         const selfAuth = await selfDelegatingEOA.signAuthorization({
           contractAddress: counterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: currentNonce + 1, // current_nonce + 1 for self-authorizing transactions
         });
 
@@ -68,7 +72,7 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: currentNonce, // Current nonce for the transaction
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [selfAuth],
           type: "eip7702" as const,
         };

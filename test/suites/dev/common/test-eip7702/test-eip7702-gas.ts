@@ -13,6 +13,7 @@ describeSuite({
     let storageWriterAbi: Abi;
     let counterAddress: `0x${string}`;
     let counterAbi: Abi;
+    let chainId: number;
 
     // EIP-7702 gas costs (from EIP-7702 specification)
     const PER_AUTH_BASE_COST = 12500n; // Cost for processing each authorization
@@ -20,6 +21,9 @@ describeSuite({
     const PER_CONTRACT_CODE_BASE_COST = 2500n; // Moonbeam-specific implementation detail
 
     beforeAll(async () => {
+      // Get the chainId from the RPC
+      chainId = await context.viem().getChainId();
+
       const storageWriter = await deployCreateCompiledContract(context, "StorageWriter");
       storageWriterAddress = storageWriter.contractAddress;
       storageWriterAbi = storageWriter.abi;
@@ -38,7 +42,7 @@ describeSuite({
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: counterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -56,7 +60,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
@@ -87,19 +91,19 @@ describeSuite({
         // Create multiple authorizations
         const auth1 = await eoa1.signAuthorization({
           contractAddress: counterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
         const auth2 = await eoa2.signAuthorization({
           contractAddress: storageWriterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
         const auth3 = await eoa3.signAuthorization({
           contractAddress: counterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -116,7 +120,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth1, auth2, auth3],
           type: "eip7702" as const,
         };
@@ -147,13 +151,13 @@ describeSuite({
 
         const coldAuth = await coldEOA.signAuthorization({
           contractAddress: counterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
         const warmAuth = await warmEOA.signAuthorization({
           contractAddress: counterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -170,7 +174,7 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: senderNonce,
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [coldAuth],
           type: "eip7702" as const,
         };
@@ -183,7 +187,7 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: senderNonce + 1,
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [warmAuth],
           type: "eip7702" as const,
         };
@@ -221,7 +225,7 @@ describeSuite({
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: counterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -274,7 +278,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
@@ -370,7 +374,7 @@ describeSuite({
         });
         const selfAuth = await selfDelegatingEOA.signAuthorization({
           contractAddress: counterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: currentNonce + 1, // current_nonce + 1 for self-authorizing transactions
         });
 
@@ -416,7 +420,7 @@ describeSuite({
           maxFeePerGas: parseGwei("10"),
           maxPriorityFeePerGas: parseGwei("1"),
           nonce: currentNonce, // Current nonce for the transaction
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [selfAuth],
           type: "eip7702" as const,
         };
@@ -487,7 +491,7 @@ describeSuite({
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: storageWriterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -505,7 +509,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [authorization],
           type: "eip7702" as const,
         };
@@ -535,7 +539,7 @@ describeSuite({
         // First set a delegation
         const setAuth = await delegatingEOA.signAuthorization({
           contractAddress: counterAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -548,7 +552,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [setAuth],
           type: "eip7702" as const,
         };
@@ -565,7 +569,7 @@ describeSuite({
         // Now clear the delegation (delegate to zero address)
         const clearAuth = await delegatingEOA.signAuthorization({
           contractAddress: "0x0000000000000000000000000000000000000000",
-          chainId: 1281,
+          chainId: chainId,
           nonce: 1,
         });
 
@@ -578,7 +582,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [clearAuth],
           type: "eip7702" as const,
         };

@@ -12,8 +12,12 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let contractAddress: `0x${string}`;
     let contractAbi: Abi;
+    let chainId: number;
 
     beforeAll(async () => {
+      // Get the chainId from the RPC
+      chainId = await context.viem().getChainId();
+
       const contract = await deployCreateCompiledContract(context, "Counter");
       contractAddress = contract.contractAddress;
       contractAbi = contract.abi;
@@ -36,7 +40,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [],
           type: "eip7702" as const,
         };
@@ -67,7 +71,7 @@ describeSuite({
         // Create a valid authorization first
         const validAuth = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -88,7 +92,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [invalidAuth],
           type: "eip7702" as const,
         };
@@ -142,7 +146,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [invalidAuth],
           type: "eip7702" as const,
         };
@@ -182,7 +186,7 @@ describeSuite({
 
         const invalidAuth = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: wrongNonce,
         });
 
@@ -195,7 +199,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [invalidAuth],
           type: "eip7702" as const,
         };
@@ -233,7 +237,7 @@ describeSuite({
         // Create authorization with invalid contract address (not 20 bytes)
         const validAuth = await delegatingEOA.signAuthorization({
           contractAddress: "0x0000000000000000000000000000000000000000" as `0x${string}`, // Zero address
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -246,7 +250,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [validAuth],
           type: "eip7702" as const,
         };
@@ -280,7 +284,7 @@ describeSuite({
         // Sign authorization with EOA address directly
         const eoaAuth = await delegatingEOA.signAuthorization({
           contractAddress: senderAccount.address, // Use EOA address instead of contract
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -293,7 +297,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [eoaAuth],
           type: "eip7702" as const,
         };
@@ -335,7 +339,7 @@ describeSuite({
         // Create a valid authorization first
         const validAuth = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -355,7 +359,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [invalidAuth],
           type: "eip7702" as const,
         };
@@ -392,7 +396,7 @@ describeSuite({
 
         const auth = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -406,7 +410,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [auth, auth], // Duplicate
           type: "eip7702" as const,
         };
@@ -447,7 +451,7 @@ describeSuite({
         // Create a valid authorization first
         const validAuth = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -467,7 +471,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [invalidAuth],
           type: "eip7702" as const,
         };
@@ -505,7 +509,7 @@ describeSuite({
         // Create a valid authorization first
         const validAuth = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
-          chainId: 1281,
+          chainId: chainId,
           nonce: 0,
         });
 
@@ -525,7 +529,7 @@ describeSuite({
           nonce: await context.viem("public").getTransactionCount({
             address: senderAccount.address,
           }),
-          chainId: 1281,
+          chainId: chainId,
           authorizationList: [invalidAuth],
           type: "eip7702" as const,
         };
