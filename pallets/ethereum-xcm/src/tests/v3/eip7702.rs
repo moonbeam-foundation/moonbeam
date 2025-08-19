@@ -173,7 +173,7 @@ fn test_transact_xcm_evm_call_works() {
 		// Transaction is in Pending storage, with nonce 0 and status 1 (evm succeed).
 		let (transaction_0, _, receipt_0) = &pallet_ethereum::Pending::<Test>::get(0).unwrap();
 		match (transaction_0, receipt_0) {
-			(&crate::Transaction::EIP7702(ref t), &crate::Receipt::EIP7702(ref r)) => {
+			(&crate::Transaction::EIP1559(ref t), &crate::Receipt::EIP1559(ref r)) => {
 				assert!(t.nonce == U256::from(0u8));
 				assert!(r.status_code == 1u8);
 			}
@@ -183,7 +183,7 @@ fn test_transact_xcm_evm_call_works() {
 		// Transaction is in Pending storage, with nonce 1 and status 0 (evm failed).
 		let (transaction_1, _, receipt_1) = &pallet_ethereum::Pending::<Test>::get(1).unwrap();
 		match (transaction_1, receipt_1) {
-			(&crate::Transaction::EIP7702(ref t), &crate::Receipt::EIP7702(ref r)) => {
+			(&crate::Transaction::EIP1559(ref t), &crate::Receipt::EIP1559(ref r)) => {
 				assert!(t.nonce == U256::from(1u8));
 				assert!(r.status_code == 0u8);
 			}
