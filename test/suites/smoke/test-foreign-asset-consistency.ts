@@ -36,20 +36,14 @@ describeSuite({
       }, {});
 
       // Query all assets mapped by identifier
-      const legacyAssets = await apiAt.query.assetManager.assetIdType.entries();
       const evmForeignAssets = await apiAt.query.evmForeignAssets.assetsById.entries();
-      [...legacyAssets, ...evmForeignAssets].forEach(([key, exposure]) => {
+      [...evmForeignAssets].forEach(([key, exposure]) => {
         const assetId = key.args.toString();
         const location: any = exposure.unwrap().toJSON();
         foreignAssetIdType[assetId] = location.xcm || location;
       });
 
       // Query all assets mapped by location
-      const legacyAssetsByLocation = await apiAt.query.assetManager.assetTypeId.entries();
-      legacyAssetsByLocation.forEach(([key, exposure]) => {
-        const assetType: any = key.args[0].toJSON();
-        foreignAssetTypeId[JSON.stringify(assetType.xcm)] = exposure.unwrap().toString();
-      });
       const assetsByLocation = await apiAt.query.evmForeignAssets.assetsByLocation.entries();
       assetsByLocation.forEach(([key, exposure]) => {
         const assetType: any = key.args[0].toString();
