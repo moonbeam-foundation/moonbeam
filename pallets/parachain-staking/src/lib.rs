@@ -1594,11 +1594,15 @@ pub mod pallet {
 			};
 
 			if amount > BalanceOf::<T>::zero() {
-				// Remove any existing lock
-				T::Currency::remove_lock(lock_id, account);
+				// We need to use a transactional layer to ensure that the lock is restored
+				// if the freeze fail to be set.
+				frame_support::storage::transactional::with_storage_layer(|| {
+					// Remove any existing lock
+					T::Currency::remove_lock(lock_id, account);
 
-				// Set the freeze
-				T::Currency::set_freeze(&freeze_reason.into(), account, amount)?;
+					// Set the freeze
+					T::Currency::set_freeze(&freeze_reason.into(), account, amount)
+				})?;
 			}
 
 			if is_collator {
