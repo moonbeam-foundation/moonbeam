@@ -214,7 +214,8 @@ impl ExtBuilder {
 				Revert.into(),
 				hex_literal::hex!("1460006000fd").to_vec(),
 				None,
-			).expect("pallet_evm::create_account should succeed");
+			)
+			.expect("pallet_evm::create_account should succeed");
 		});
 		ext
 	}
