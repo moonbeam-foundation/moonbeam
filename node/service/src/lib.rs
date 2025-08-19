@@ -957,42 +957,6 @@ where
 			sync_service.clone(),
 			max_pov_percentage,
 		)?;
-		/*let parachain_consensus = build_consensus(
-			client.clone(),
-			backend,
-			block_import,
-			prometheus_registry.as_ref(),
-			telemetry.as_ref().map(|t| t.handle()),
-			&task_manager,
-			relay_chain_interface.clone(),
-			transaction_pool,
-			sync_service.clone(),
-			params.keystore_container.keystore(),
-			force_authoring,
-		)?;
-
-		let spawner = task_manager.spawn_handle();
-
-		let params = StartCollatorParams {
-			para_id,
-			block_status: client.clone(),
-			announce_block,
-			client: client.clone(),
-			task_manager: &mut task_manager,
-			relay_chain_interface,
-			spawner,
-			parachain_consensus,
-			import_queue: import_queue_service,
-			recovery_handle: Box::new(overseer_handle),
-			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
-				"Collator Key is None".to_string(),
-			))?,
-			relay_chain_slot_duration,
-			sync_service,
-		};
-
-		#[allow(deprecated)]
-		start_collator(params).await?;*/
 	}
 
 	start_network.start_network();
@@ -1251,13 +1215,6 @@ where
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
-		// TODO: Need to cherry-pick
-		//
-		// https://github.com/moonbeam-foundation/substrate/commit/
-		// d59476b362e38071d44d32c98c32fb35fd280930#diff-a1c022c97c7f9200cab161864c
-		// 06d204f0c8b689955e42177731e232115e9a6f
-		//
-		// env.enable_ensure_proof_size_limit_after_each_extrinsic();
 
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {
