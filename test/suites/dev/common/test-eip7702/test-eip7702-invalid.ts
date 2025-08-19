@@ -37,7 +37,7 @@ describeSuite({
           gas: 21000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -89,7 +89,7 @@ describeSuite({
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -101,13 +101,13 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // Check that delegation was not set
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");
@@ -143,7 +143,7 @@ describeSuite({
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -155,13 +155,13 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // Delegation should not be set due to chain ID mismatch
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");
@@ -196,7 +196,7 @@ describeSuite({
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -208,13 +208,13 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // Delegation should not be set due to wrong nonce
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");
@@ -247,7 +247,7 @@ describeSuite({
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -259,14 +259,14 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // Delegation may be set even with zero address - this is actually valid behavior
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         // Zero address delegation is actually allowed in the spec, but resets the delegation to empty code
         expect(code).toBeFalsy();
 
         // Verify transaction result - may revert when calling zero address delegation
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         // Transaction may revert when calling zero address after delegation
@@ -294,7 +294,7 @@ describeSuite({
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -306,14 +306,14 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // Verify transaction result - may revert when calling EOA after delegation
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         // Transaction may revert when calling EOA after delegation
         expect(["success", "reverted"]).toContain(receipt.status);
 
         // Check that delegation was set (EOA can be delegated to)
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         // EOA delegation should work, so code should be set
@@ -356,7 +356,7 @@ describeSuite({
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -368,13 +368,13 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // Delegation should not be set due to invalid signature
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");
@@ -407,7 +407,7 @@ describeSuite({
           gas: 150000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -419,12 +419,12 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // First authorization should succeed, second should be ignored
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
 
         // Transaction may succeed but only one delegation should be set
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: delegatingEOA.address,
         });
 
@@ -468,7 +468,7 @@ describeSuite({
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -480,13 +480,13 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // Invalid signature with zero r should not set delegation
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");
@@ -526,7 +526,7 @@ describeSuite({
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -538,13 +538,13 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // Invalid signature with zero s should not set delegation
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");

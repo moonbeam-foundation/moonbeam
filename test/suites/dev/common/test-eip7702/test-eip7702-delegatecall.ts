@@ -70,7 +70,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -82,7 +82,7 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
 
@@ -90,7 +90,7 @@ describeSuite({
         expect(receipt.status).toBe("success");
 
         // Verify delegation was set
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         expect(code?.startsWith("0xef0100")).toBe(true);
@@ -125,7 +125,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -136,7 +136,7 @@ describeSuite({
         const signature = await senderAccount.signTransaction(tx);
         const { result } = await context.createBlock(signature);
 
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");
@@ -178,7 +178,7 @@ describeSuite({
           gas: 300000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -189,7 +189,7 @@ describeSuite({
         const signature = await senderAccount.signTransaction(tx);
         const { result } = await context.createBlock(signature);
 
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");
@@ -226,7 +226,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -238,7 +238,7 @@ describeSuite({
         await expectOk(context.createBlock(signature));
 
         // Read the stored value
-        const storedValue = await context.viem("public").readContract({
+        const storedValue = await context.viem().readContract({
           address: delegatingEOA.address,
           abi: storageWriterAbi,
           functionName: "load",
@@ -274,7 +274,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -285,7 +285,7 @@ describeSuite({
         const signature = await senderAccount.signTransaction(tx);
         const { result } = await context.createBlock(signature);
 
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");
@@ -308,7 +308,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -320,14 +320,14 @@ describeSuite({
           const signature = await senderAccount.signTransaction(tx2);
           const { result } = await context.createBlock(signature);
 
-          const receipt = await context.viem("public").getTransactionReceipt({
+          const receipt = await context.viem().getTransactionReceipt({
             hash: result?.hash as `0x${string}`,
           });
           expect(receipt.status).toBe("success");
         }
 
         // Check counter value
-        const count = await context.viem("public").readContract({
+        const count = await context.viem().readContract({
           address: delegatingEOA.address,
           abi: counterAbi,
           functionName: "count",
@@ -358,7 +358,7 @@ describeSuite({
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -370,7 +370,7 @@ describeSuite({
         await expectOk(context.createBlock(signature));
 
         // Check ADDRESS opcode
-        const address = await context.viem("public").readContract({
+        const address = await context.viem().readContract({
           address: delegatingEOA.address,
           abi: contextCheckerAbi,
           functionName: "getAddress",
@@ -379,7 +379,7 @@ describeSuite({
         expect(address.toLowerCase()).toBe(delegatingEOA.address.toLowerCase());
 
         // Check BALANCE opcode
-        const balance = await context.viem("public").readContract({
+        const balance = await context.viem().readContract({
           address: delegatingEOA.address,
           abi: contextCheckerAbi,
           functionName: "getBalance",
@@ -388,7 +388,7 @@ describeSuite({
         expect(balance).toBeGreaterThan(0n);
 
         // Check CODESIZE opcode
-        const codeSize = await context.viem("public").readContract({
+        const codeSize = await context.viem().readContract({
           address: delegatingEOA.address,
           abi: contextCheckerAbi,
           functionName: "getCodeSize",
@@ -397,7 +397,7 @@ describeSuite({
         expect(codeSize).toBe(23n); // EIP-7702 delegation code size
 
         // Check CODEHASH opcode
-        const codeHash = await context.viem("public").readContract({
+        const codeHash = await context.viem().readContract({
           address: delegatingEOA.address,
           abi: contextCheckerAbi,
           functionName: "getCodeHash",
@@ -437,7 +437,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: senderAccount.address,
           }),
           chainId: chainId,
@@ -449,7 +449,7 @@ describeSuite({
         const { result } = await context.createBlock(signature);
 
         // Transaction should succeed (precompile returns zero address for invalid signature)
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");

@@ -106,7 +106,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: 0n,
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: alithAccount.address,
           }),
           chainId: chainId,
@@ -140,14 +140,14 @@ describeSuite({
 
         if (txHash) {
           // Check transaction receipt
-          const receipt = await context.viem("public").getTransactionReceipt({
+          const receipt = await context.viem().getTransactionReceipt({
             hash: txHash,
           });
           console.log(`Transaction receipt status: ${receipt.status}`);
           console.log(`Transaction receipt logs:`, receipt.logs);
 
           // Check the transaction details
-          const tx = await context.viem("public").getTransaction({
+          const tx = await context.viem().getTransaction({
             hash: txHash,
           });
           console.log(`Transaction type: ${tx.type}`);
@@ -160,13 +160,13 @@ describeSuite({
         }
 
         // Check if the delegating address now has delegated code
-        const codeAtDelegator = await context.viem("public").getCode({
+        const codeAtDelegator = await context.viem().getCode({
           address: delegatingAddress,
         });
         console.log(`Code at delegator address ${delegatingAddress}: ${codeAtDelegator}`);
 
         // Also check code at contract address for comparison
-        const codeAtContract = await context.viem("public").getCode({
+        const codeAtContract = await context.viem().getCode({
           address: contractAddress,
         });
         console.log(
@@ -191,7 +191,7 @@ describeSuite({
         );
 
         // Check storage at the delegating EOA's address
-        const storageAtDelegator = await context.viem("public").getStorageAt({
+        const storageAtDelegator = await context.viem().getStorageAt({
           address: delegatingAddress,
           slot: storageSlot,
         });
@@ -200,7 +200,7 @@ describeSuite({
         console.log(`Storage at delegating address ${delegatingAddress}: ${actualBalance}`);
 
         // Also check the contract storage (should be 0 if delegation worked properly)
-        const contractStorageBalance = await context.viem("public").readContract({
+        const contractStorageBalance = await context.viem().readContract({
           address: contractAddress!,
           abi: contractAbi,
           functionName: "getBalance",
@@ -211,7 +211,7 @@ describeSuite({
 
         // Let's check if we can read the balance through the delegated address
         try {
-          const delegatedBalance = await context.viem("public").readContract({
+          const delegatedBalance = await context.viem().readContract({
             address: delegatingAddress,
             abi: contractAbi,
             functionName: "getBalance",
@@ -229,7 +229,7 @@ describeSuite({
         expect(codeAtDelegator?.startsWith("0xef0100")).toBe(true);
 
         // Reading through the delegated address should return the correct balance
-        const delegatedBalance = await context.viem("public").readContract({
+        const delegatedBalance = await context.viem().readContract({
           address: delegatingAddress,
           abi: contractAbi,
           functionName: "getBalance",
@@ -256,7 +256,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: 0n,
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: alithAccount.address,
           }),
           chainId: chainId,
@@ -266,7 +266,7 @@ describeSuite({
         await expectOk(context.createBlock(signedIncrement));
 
         // Check updated balance through the delegated address
-        const updatedBalance = await context.viem("public").readContract({
+        const updatedBalance = await context.viem().readContract({
           address: delegatingAddress,
           abi: contractAbi,
           functionName: "getBalance",
@@ -313,7 +313,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: 0n,
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: alithAccount.address,
           }),
           chainId: chainId,
@@ -325,7 +325,7 @@ describeSuite({
         const result = await context.createBlock(signature);
 
         // Check that delegation did not occur due to invalid nonce
-        const codeAtDelegator = await context.viem("public").getCode({
+        const codeAtDelegator = await context.viem().getCode({
           address: delegatingEOA.address,
         });
 
@@ -344,7 +344,7 @@ describeSuite({
           gas: 21000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: 0n,
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: alithAccount.address,
           }),
           chainId: chainId,
@@ -364,7 +364,7 @@ describeSuite({
         }
 
         if (txHash) {
-          const receipt = await context.viem("public").getTransactionReceipt({
+          const receipt = await context.viem().getTransactionReceipt({
             hash: txHash,
           });
           expect(receipt.status).toBe("success");
@@ -405,7 +405,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: 0n,
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: alithAccount.address,
           }),
           chainId: chainId,
@@ -417,14 +417,14 @@ describeSuite({
         await context.createBlock(signature);
 
         // Verify delegation is set
-        const codeAfterDelegation = await context.viem("public").getCode({
+        const codeAfterDelegation = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         expect(codeAfterDelegation?.startsWith("0xef0100")).toBe(true);
         console.log(`Initial delegation code: ${codeAfterDelegation}`);
 
         // Verify the delegated address can be called successfully
-        const initialBalance = await context.viem("public").readContract({
+        const initialBalance = await context.viem().readContract({
           address: delegatingEOA.address,
           abi: contractAbi,
           functionName: "getBalance",
@@ -446,7 +446,7 @@ describeSuite({
           gas: 100000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: 0n,
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: alithAccount.address,
           }),
           chainId: chainId,
@@ -458,7 +458,7 @@ describeSuite({
         await context.createBlock(clearSignature);
 
         // Check that delegation should be cleared according to EIP-7702
-        const codeAfterClear = await context.viem("public").getCode({
+        const codeAfterClear = await context.viem().getCode({
           address: delegatingEOA.address,
         });
         console.log(`Code after clearing attempt: ${codeAfterClear}`);
@@ -469,7 +469,7 @@ describeSuite({
           console.log("✅ Delegation properly cleared to zero address");
           // Try to call - should fail
           await expect(
-            context.viem("public").readContract({
+            context.viem().readContract({
               address: delegatingEOA.address,
               abi: contractAbi,
               functionName: "getBalance",
@@ -495,7 +495,7 @@ describeSuite({
 
           // Try to call the delegated address
           try {
-            const balanceAfterClear = await context.viem("public").readContract({
+            const balanceAfterClear = await context.viem().readContract({
               address: delegatingEOA.address,
               abi: contractAbi,
               functionName: "getBalance",
@@ -544,7 +544,7 @@ describeSuite({
           gas: 200000n,
           maxFeePerGas: 10_000_000_000n,
           maxPriorityFeePerGas: 0n,
-          nonce: await context.viem("public").getTransactionCount({
+          nonce: await context.viem().getTransactionCount({
             address: alithAccount.address,
           }),
           chainId: chainId,
@@ -556,7 +556,7 @@ describeSuite({
         await context.createBlock(signature);
 
         // Check that delegation did not occur due to chain ID mismatch
-        const codeAtDelegator = await context.viem("public").getCode({
+        const codeAtDelegator = await context.viem().getCode({
           address: delegatingEOA.address,
         });
 

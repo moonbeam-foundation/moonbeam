@@ -26,7 +26,7 @@ describeSuite({
       title: "should test gas cost for self-delegation with correct nonce",
       test: async () => {
         // Check counter was incremented
-        const init_count = await context.viem("public").readContract({
+        const init_count = await context.viem().readContract({
           address: counterAddress,
           abi: counterAbi,
           functionName: "count",
@@ -46,7 +46,7 @@ describeSuite({
         // In EIP-7702, when the authorizing address is the same as the sender,
         // the authorization nonce should be current_nonce + 1 because the EVM
         // increments the nonce before processing the authorization list
-        const currentNonce = await context.viem("public").getTransactionCount({
+        const currentNonce = await context.viem().getTransactionCount({
           address: selfDelegatingEOA.address,
         });
 
@@ -86,7 +86,7 @@ describeSuite({
 
         // Send the self-signed transaction directly
         const { result } = await context.createBlock(signature);
-        const receipt = await context.viem("public").getTransactionReceipt({
+        const receipt = await context.viem().getTransactionReceipt({
           hash: result?.hash as `0x${string}`,
         });
         expect(receipt.status).toBe("success");
@@ -94,7 +94,7 @@ describeSuite({
         console.log(`Self-delegation gas used: ${receipt.gasUsed}`);
 
         // Verify delegation was set
-        const code = await context.viem("public").getCode({
+        const code = await context.viem().getCode({
           address: selfDelegatingEOA.address,
         });
         expect(code).toBeDefined();
@@ -103,7 +103,7 @@ describeSuite({
         console.log(`Delegation code set: ${code}`);
 
         // Check counter was incremented
-        const count = await context.viem("public").readContract({
+        const count = await context.viem().readContract({
           address: selfDelegatingEOA.address,
           abi: counterAbi,
           functionName: "count",
