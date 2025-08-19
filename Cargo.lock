@@ -7716,7 +7716,6 @@ dependencies = [
  "pallet-message-queue",
  "pallet-migrations",
  "pallet-moonbeam-foreign-assets",
- "pallet-transaction-payment",
  "pallet-treasury",
  "pallet-xcm",
  "pallet-xcm-bridge-hub",
@@ -7785,7 +7784,6 @@ dependencies = [
  "moonriver-runtime",
  "nimbus-consensus",
  "nimbus-primitives",
- "nix 0.28.0",
  "pallet-balances",
  "pallet-ethereum",
  "pallet-parachain-staking",
@@ -8346,18 +8344,6 @@ checksum = "598beaf3cc6fdd9a5dfb1630c2800c7acd31df7aaf0f565796fba2b53ca1af1b"
 dependencies = [
  "bitflags 1.3.2",
  "cfg-if",
- "libc",
-]
-
-[[package]]
-name = "nix"
-version = "0.28.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab2156c4fce2f8df6c499cc1c763e4394b7482525bf2a9701c9d79d215f519e4"
-dependencies = [
- "bitflags 2.9.0",
- "cfg-if",
- "cfg_aliases 0.1.1",
  "libc",
 ]
 

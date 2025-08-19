@@ -134,7 +134,6 @@ xcm-runtime-apis = { workspace = true }
 frame-benchmarking = { workspace = true, features = ["std"] }
 
 [dev-dependencies]
-nix = { workspace = true }
 prometheus = { workspace = true }
 rand = { workspace = true }
 sc-block-builder = { workspace = true }

@@ -194,7 +194,7 @@ impl ExtBuilder {
 				SmartContract.into(),
 				b"SmartContract".to_vec(),
 				None,
-			);
+			).expect("pallet_evm::create_account should succeed");
 		});
 		ext
 	}

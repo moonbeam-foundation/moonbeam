@@ -157,6 +157,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				let Ok(track_name) = from_utf8(&track.info.name) else {
 					return false;
 				};
+				let track_name = track_name.trim_end_matches('\0');
 				if let Ok(track_custom_origin) = custom_origins::Origin::from_str(track_name) {
 					track_custom_origin == custom_origin
 				} else {
@@ -193,10 +194,11 @@ fn all_tracks_have_origins() {
 	for track in TRACKS_DATA {
 		// check name.into() is successful either converts into "root" or custom origin
 		let track_is_root = track.info.name == s("root");
-		let track_has_custom_origin = custom_origins::Origin::from_str(
-			from_utf8(&track.info.name).expect("Track name is valid UTF-8"),
-		)
-		.is_ok();
+		let track_name = from_utf8(&track.info.name)
+			.expect("Track name is valid UTF-8")
+			.trim_end_matches('\0');
+		let track_has_custom_origin = custom_origins::Origin::from_str(track_name).is_ok();
+		println!("{:?}", from_utf8(&track.info.name).unwrap());
 		assert!(track_is_root || track_has_custom_origin);
 	}
 }
