@@ -12,7 +12,7 @@ jobs:
       - name: Install required dependencies
         run: |
           sudo apt-get install -y libprotobuf-dev protobuf-compiler
-          cargo install cargo-scout-audit
+          cargo install cargo-scout-audit@0.3.6
 
       - name: Checkout
         uses: actions/checkout@v5
