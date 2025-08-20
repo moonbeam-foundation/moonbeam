@@ -351,7 +351,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type XcmRecorder = PolkadotXcm;
-	type XcmEventEmitter = ();
+	type XcmEventEmitter = PolkadotXcm;
 }
 
 // Converts a Signed Local Origin into a Location

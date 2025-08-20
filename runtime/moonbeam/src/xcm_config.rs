@@ -312,7 +312,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type XcmRecorder = PolkadotXcm;
-	type XcmEventEmitter = ();
+	type XcmEventEmitter = PolkadotXcm;
 }
 
 pub type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
