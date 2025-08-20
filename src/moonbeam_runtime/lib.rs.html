@@ -3548,8 +3548,8 @@
 		</span>EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event&lt;T&gt;} = <span class="number">109</span>,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = <span class="number">110</span>,
 		MessageQueue: pallet_message_queue::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">111</span>,
-		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">114</span>,
-		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">115</span>,
+		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">114</span>,
+		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">115</span>,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = <span class="number">116</span>,
 		MultiBlockMigrations: pallet_migrations = <span class="number">117</span>,
 
@@ -3563,10 +3563,10 @@
 		</span>Randomness: pallet_randomness::{Pallet, Call, Storage, Event&lt;T&gt;, Inherent} = <span class="number">120</span>,
 
 		<span class="comment">// Bridge pallets (reserved indexes from 130 to 140)
-		</span>BridgeKusamaGrandpa: pallet_bridge_grandpa::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">130</span>,
-		BridgeKusamaParachains: pallet_bridge_parachains::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">131</span>,
-		BridgeKusamaMessages: pallet_bridge_messages::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">132</span>,
-		BridgeXcmOverMoonriver: pallet_xcm_bridge::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, HoldReason} = <span class="number">133</span>,
+		</span>BridgeKusamaGrandpa: pallet_bridge_grandpa::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">130</span>,
+		BridgeKusamaParachains: pallet_bridge_parachains::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">131</span>,
+		BridgeKusamaMessages: pallet_bridge_messages::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">132</span>,
+		BridgeXcmOverMoonriver: pallet_xcm_bridge::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, HoldReason, Config&lt;T&gt;} = <span class="number">133</span>,
 	}
 }
 

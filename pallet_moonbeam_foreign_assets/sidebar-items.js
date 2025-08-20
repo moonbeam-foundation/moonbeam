@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["AssetStatus","OriginType"],"mod":["pallet","weights"],"struct":["MapSuccessToGovernance","MapSuccessToXcm"],"trait":["ForeignAssetCreatedHook"]};
+window.SIDEBAR_ITEMS = {"enum":["AssetStatus","OriginType"],"mod":["pallet","weights"],"struct":["EvmForeignAssetInfo","MapSuccessToGovernance","MapSuccessToXcm"],"trait":["ForeignAssetCreatedHook"]};

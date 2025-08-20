@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["PALLET_ID"],"enum":["Call","Error","Event"],"mod":["dispatchables","storage_types"],"struct":["AssetDepositDetails","Pallet"],"trait":["Config"],"type":["AssetBalance","AssetId","AssetsById","AssetsByLocation","AssetsCreationDetails","Module"]};
+window.SIDEBAR_ITEMS = {"constant":["PALLET_ID"],"enum":["Call","Error","Event"],"mod":["dispatchables","storage_types"],"struct":["AssetDepositDetails","GenesisConfig","Pallet"],"trait":["Config"],"type":["AssetBalance","AssetId","AssetsById","AssetsByLocation","AssetsCreationDetails","Module"]};

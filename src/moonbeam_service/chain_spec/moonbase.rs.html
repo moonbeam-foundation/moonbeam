@@ -198,6 +198,7 @@
 <a href="#198" id="198">198</a>
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -222,6 +223,7 @@
 </span><span class="attr">#[cfg(test)]
 </span><span class="kw">use </span><span class="kw">crate</span>::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 <span class="kw">use </span><span class="kw">crate</span>::chain_spec::{generate_accounts, get_from_seed, Extensions};
+<span class="kw">use </span><span class="kw">crate</span>::HostFunctions;
 <span class="kw">use </span>cumulus_primitives_core::ParaId;
 <span class="kw">use </span>hex_literal::hex;
 <span class="kw">use </span>moonbase_runtime::{
@@ -233,7 +235,7 @@
 </span><span class="kw">use </span>sp_core::ecdsa;
 
 <span class="doccomment">/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-</span><span class="kw">pub type </span>ChainSpec = sc_service::GenericChainSpec&lt;Extensions&gt;;
+</span><span class="kw">pub type </span>ChainSpec = sc_service::GenericChainSpec&lt;Extensions, HostFunctions&gt;;
 
 <span class="doccomment">/// Generate a chain spec for use with the development service.
 </span><span class="kw">pub fn </span>development_chain_spec(mnemonic: <span class="prelude-ty">Option</span>&lt;String&gt;, num_accounts: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; ChainSpec {

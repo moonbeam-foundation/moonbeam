@@ -1752,7 +1752,7 @@
 	<span class="prelude-val">Ok</span>(task_manager)
 }
 
-<span class="kw">pub fn </span>spec_builder() -&gt; sc_chain_spec::ChainSpecBuilder&lt;Extensions&gt; {
+<span class="kw">pub fn </span>spec_builder() -&gt; sc_chain_spec::ChainSpecBuilder&lt;Extensions, HostFunctions&gt; {
 	<span class="kw">crate</span>::chain_spec::moonbeam::ChainSpec::builder(
 		moonbeam_runtime::WASM_BINARY.expect(<span class="string">"WASM binary was not build, please build it!"</span>),
 		Default::default(),

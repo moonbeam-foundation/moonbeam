@@ -782,6 +782,47 @@
 <a href="#782" id="782">782</a>
 <a href="#783" id="783">783</a>
 <a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam Foundation.
 // This file is part of Moonbeam.
 
@@ -836,10 +877,11 @@
 
 <span class="kw">use </span><span class="self">self</span>::evm::EvmCaller;
 <span class="kw">use </span>ethereum_types::{H160, U256};
-<span class="kw">use </span>frame_support::pallet;
 <span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>frame_support::traits::Contains;
+<span class="kw">use </span>frame_support::{pallet, Deserialize, Serialize};
 <span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>sp_std::{vec, vec::Vec};
 <span class="kw">use </span>xcm::latest::{
 	Asset, AssetId <span class="kw">as </span>XcmAssetId, Error <span class="kw">as </span>XcmError, Fungibility, Location, <span class="prelude-ty">Result </span><span class="kw">as </span>XcmResult,
 	XcmContext,
@@ -936,6 +978,15 @@
 	</span>FrozenXcmDepositAllowed,
 	<span class="doccomment">/// The asset is frozen, and deposit from XCM will fail
 	</span>FrozenXcmDepositForbidden,
+}
+
+<span class="attr">#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+</span><span class="kw">pub struct </span>EvmForeignAssetInfo {
+	<span class="kw">pub </span>asset_id: AssetId,
+	<span class="kw">pub </span>xcm_location: Location,
+	<span class="kw">pub </span>decimals: u8,
+	<span class="kw">pub </span>symbol: BoundedVec&lt;u8, ConstU32&lt;<span class="number">256</span>&gt;&gt;,
+	<span class="kw">pub </span>name: BoundedVec&lt;u8, ConstU32&lt;<span class="number">256</span>&gt;&gt;,
 }
 
 <span class="attr">#[pallet]
@@ -1101,6 +1152,37 @@
 	</span><span class="kw">pub struct </span>AssetDepositDetails&lt;T: Config&gt; {
 		<span class="kw">pub </span>deposit_account: T::AccountId,
 		<span class="kw">pub </span>deposit: BalanceOf&lt;T&gt;,
+	}
+
+	<span class="attr">#[pallet::genesis_config]
+	</span><span class="kw">pub struct </span>GenesisConfig&lt;T: Config&gt; {
+		<span class="kw">pub </span>assets: Vec&lt;EvmForeignAssetInfo&gt;,
+		<span class="kw">pub </span>_phantom: PhantomData&lt;T&gt;,
+	}
+
+	<span class="kw">impl</span>&lt;T: Config&gt; Default <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+		<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+			<span class="self">Self </span>{
+				assets: <span class="macro">vec!</span>[],
+				_phantom: Default::default(),
+			}
+		}
+	}
+
+	<span class="attr">#[pallet::genesis_build]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; BuildGenesisConfig <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+		<span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+			<span class="kw">for </span>asset <span class="kw">in </span><span class="self">self</span>.assets.clone() {
+				Pallet::&lt;T&gt;::register_foreign_asset(
+					asset.asset_id,
+					asset.xcm_location,
+					asset.decimals,
+					asset.symbol,
+					asset.name,
+				)
+				.expect(<span class="string">"couldn't register asset"</span>);
+			}
+		}
 	}
 
 	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
