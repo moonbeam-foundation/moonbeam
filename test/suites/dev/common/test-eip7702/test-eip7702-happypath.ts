@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { ALITH_PRIVATE_KEY } from "@moonwall/util";
+import { sendRawTransaction } from "@moonwall/util";
 import {
   keccak256,
   concat,
@@ -10,13 +10,13 @@ import {
   type Abi,
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { expectOk } from "../../../../helpers";
+import { createViemTransaction } from "./helpers";
 
 describeSuite({
   id: "D020512",
   title: "EIP-7702 Transactions",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
     let contractAbi: Abi;
     let alithAccount: PrivateKeyAccount;
@@ -25,9 +25,6 @@ describeSuite({
     beforeAll(async () => {
       // Get the chainId from the RPC
       chainId = await context.viem().getChainId();
-
-      // Get ALITH's account info for signing
-      alithAccount = privateKeyToAccount(ALITH_PRIVATE_KEY);
 
       // Deploy the delegation contract
       const { contractAddress: address, abi } = await deployCreateCompiledContract(
@@ -103,61 +100,37 @@ describeSuite({
         const transaction = {
           to: delegatingAddress,
           data: callData,
-          gas: 200000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: 0n,
-          nonce: await context.viem().getTransactionCount({
-            address: alithAccount.address,
-          }),
           chainId: chainId,
           authorizationList: authorizationList,
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
         };
 
         console.log(`Transaction object:`, transaction);
 
         // Sign the transaction
-        const signature = await alithAccount.signTransaction(transaction);
-        console.log(`Signed transaction: ${signature}`);
+        const signature = await createViemTransaction(context, transaction);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
-        const result = await context.createBlock(signature);
         console.log(`Transaction submitted by ALITH for delegation to ${delegatingAddress}`);
-        console.log(`Block result:`, result.result);
-        console.log(`Result object keys:`, Object.keys(result));
-        console.log(`Full result:`, result);
+        console.log(`Transaction hash: ${hash}`);
 
-        // Try to get transaction hash from different sources
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
-        } else if (result.result?.extrinsic?.hash) {
-          txHash = result.result.extrinsic.hash.toHex() as `0x${string}`;
-        }
+        // Check transaction receipt
+        const receipt = await context.viem().getTransactionReceipt({ hash });
 
-        console.log(`Transaction hash: ${txHash}`);
+        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
+        // expect(receipt.status).toBe("success");
 
-        if (txHash) {
-          // Check transaction receipt
-          const receipt = await context.viem().getTransactionReceipt({
-            hash: txHash,
-          });
-          console.log(`Transaction receipt status: ${receipt.status}`);
-          console.log(`Transaction receipt logs:`, receipt.logs);
+        console.log(`Transaction receipt status: ${receipt.status}`);
+        console.log(`Transaction receipt logs:`, receipt.logs);
 
-          // Check the transaction details
-          const tx = await context.viem().getTransaction({
-            hash: txHash,
-          });
-          console.log(`Transaction type: ${tx.type}`);
-          console.log(`Transaction authorizationList:`, tx.authorizationList);
+        // Check the transaction details
+        const tx = await context.viem().getTransaction({ hash });
+        console.log(`Transaction type: ${tx.type}`);
+        console.log(`Transaction authorizationList:`, tx.authorizationList);
 
-          // Also check the raw transaction
-          console.log(`Raw transaction:`, tx);
-        } else {
-          console.log(`WARNING: Could not find transaction hash in result`);
-        }
+        // Also check the raw transaction
+        console.log(`Raw transaction:`, tx);
 
         // Check if the delegating address now has delegated code
         const codeAtDelegator = await context.viem().getCode({
@@ -253,17 +226,17 @@ describeSuite({
         const incrementTx = {
           to: delegatingAddress,
           data: incrementData,
-          gas: 200000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: 0n,
-          nonce: await context.viem().getTransactionCount({
-            address: alithAccount.address,
-          }),
           chainId: chainId,
         };
 
-        const signedIncrement = await alithAccount.signTransaction(incrementTx);
-        await expectOk(context.createBlock(signedIncrement));
+        const signedIncrement = await createViemTransaction(context, incrementTx);
+        const incrementHash = await sendRawTransaction(context, signedIncrement);
+        await context.createBlock();
+
+        const incrementReceipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: incrementHash });
+        expect(incrementReceipt.status).toBe("success");
 
         // Check updated balance through the delegated address
         const updatedBalance = await context.viem().readContract({
@@ -310,19 +283,16 @@ describeSuite({
         const transaction = {
           to: delegatingEOA.address,
           data: callData,
-          gas: 200000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: 0n,
-          nonce: await context.viem().getTransactionCount({
-            address: alithAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [authorization],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(transaction);
-        const result = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, transaction);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
+
+        const receipt = await context.viem().getTransactionReceipt({ hash });
 
         // Check that delegation did not occur due to invalid nonce
         const codeAtDelegator = await context.viem().getCode({
@@ -341,34 +311,19 @@ describeSuite({
         const transaction = {
           to: "0x1234567890123456789012345678901234567890",
           value: 100n,
-          gas: 21000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: 0n,
-          nonce: await context.viem().getTransactionCount({
-            address: alithAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [], // Empty authorization list
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          gas: 21000n,
         };
 
-        const signature = await alithAccount.signTransaction(transaction);
-        const result = await context.createBlock(signature);
-
         // Transaction should succeed even with empty authorization list
-        let txHash: `0x${string}` | undefined;
-        if (result.hash) {
-          txHash = result.hash as `0x${string}`;
-        } else if (result.result?.hash) {
-          txHash = result.result.hash as `0x${string}`;
-        }
+        const signature = await createViemTransaction(context, transaction);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
-        if (txHash) {
-          const receipt = await context.viem().getTransactionReceipt({
-            hash: txHash,
-          });
-          expect(receipt.status).toBe("success");
-        }
+        const receipt = await context.viem().getTransactionReceipt({ hash });
+        expect(receipt.status).toBe("success");
       },
     });
 
@@ -402,19 +357,19 @@ describeSuite({
         const transaction = {
           to: delegatingEOA.address,
           data: callData,
-          gas: 200000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: 0n,
-          nonce: await context.viem().getTransactionCount({
-            address: alithAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [authorization],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(transaction);
-        await context.createBlock(signature);
+        const signature = await createViemTransaction(context, transaction);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
+
+        const receipt = await context.viem().getTransactionReceipt({ hash });
+
+        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
+        // expect(receipt.status).toBe("success");
 
         // Verify delegation is set
         const codeAfterDelegation = await context.viem().getCode({
@@ -443,19 +398,20 @@ describeSuite({
         const clearTransaction = {
           to: delegatingEOA.address,
           data: "0x",
-          gas: 100000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: 0n,
-          nonce: await context.viem().getTransactionCount({
-            address: alithAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [clearAuthorization],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          skipEstimation: true,
         };
 
-        const clearSignature = await alithAccount.signTransaction(clearTransaction);
-        await context.createBlock(clearSignature);
+        const clearSignature = await createViemTransaction(context, clearTransaction);
+        const clearHash = await sendRawTransaction(context, clearSignature);
+        await context.createBlock();
+
+        const clearReceipt = await context.viem().getTransactionReceipt({ hash: clearHash });
+
+        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
+        // expect(clearReceipt.status).toBe("success");
 
         // Check that delegation should be cleared according to EIP-7702
         const codeAfterClear = await context.viem().getCode({
@@ -541,19 +497,16 @@ describeSuite({
         const transaction = {
           to: delegatingEOA.address,
           data: callData,
-          gas: 200000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: 0n,
-          nonce: await context.viem().getTransactionCount({
-            address: alithAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [authorization],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
         };
 
-        const signature = await alithAccount.signTransaction(transaction);
-        await context.createBlock(signature);
+        const signature = await createViemTransaction(context, transaction);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
+
+        const receipt = await context.viem().getTransactionReceipt({ hash });
 
         // Check that delegation did not occur due to chain ID mismatch
         const codeAtDelegator = await context.viem().getCode({

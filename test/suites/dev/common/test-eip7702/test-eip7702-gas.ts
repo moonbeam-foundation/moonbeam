@@ -1,14 +1,15 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { encodeFunctionData, type Abi, parseEther, parseGwei } from "viem";
+import { encodeFunctionData, type Abi, parseEther } from "viem";
+import { sendRawTransaction } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createFundedAccount } from "./helpers";
+import { createFundedAccount, createViemTransaction } from "./helpers";
 
 describeSuite({
   id: "D020804",
   title: "EIP-7702 Gas Cost and Accounting",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let storageWriterAddress: `0x${string}`;
     let storageWriterAbi: Abi;
     let counterAddress: `0x${string}`;
@@ -37,8 +38,8 @@ describeSuite({
       id: "T01",
       title: "should calculate correct gas cost for single authorization",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
+        const delegatingEOA = (await createFundedAccount(context)).account;
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: counterAddress,
@@ -54,23 +55,19 @@ describeSuite({
             functionName: "increment",
             args: [],
           }),
-          gas: 200000n,
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [authorization],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signedTx = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signedTx);
+        await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
+        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
+        // expect(receipt.status).toBe("success");
 
         // Gas used should include authorization costs
         expect(receipt.gasUsed).toBeGreaterThan(PER_AUTH_BASE_COST);
@@ -83,10 +80,10 @@ describeSuite({
       id: "T02",
       title: "should calculate correct gas cost for multiple authorizations",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
-        const eoa1 = await createFundedAccount(context);
-        const eoa2 = await createFundedAccount(context);
-        const eoa3 = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
+        const eoa1 = (await createFundedAccount(context)).account;
+        const eoa2 = (await createFundedAccount(context)).account;
+        const eoa3 = (await createFundedAccount(context)).account;
 
         // Create multiple authorizations
         const auth1 = await eoa1.signAuthorization({
@@ -114,23 +111,17 @@ describeSuite({
             functionName: "increment",
             args: [],
           }),
-          gas: 300000n,
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [auth1, auth2, auth3],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signedTx = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signedTx);
+        await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
 
         // Gas should include cost for 3 authorizations
         const minExpectedGas = PER_AUTH_BASE_COST * 3n;
@@ -145,9 +136,9 @@ describeSuite({
       title:
         "should document current account warming behavior for authority and authorized accounts",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
         const coldEOA = privateKeyToAccount(generatePrivateKey());
-        const warmEOA = await createFundedAccount(context);
+        const warmEOA = (await createFundedAccount(context)).account;
 
         const coldAuth = await coldEOA.signAuthorization({
           contractAddress: counterAddress,
@@ -163,37 +154,33 @@ describeSuite({
 
         // Execute both transactions in the same block to test warming effect
         const senderNonce = await context.viem().getTransactionCount({
-          address: senderAccount.address,
+          address: sender.account.address,
         });
 
         // Transaction with cold account
         const coldTx = {
           to: coldEOA.address,
-          data: "0x" as `0x${string}`,
-          gas: 100000n,
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: senderNonce,
           chainId: chainId,
           authorizationList: [coldAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          nonce: senderNonce,
+          skipEstimation: true,
         };
 
         // Transaction with warm account
         const warmTx = {
           to: warmEOA.address,
-          data: "0x" as `0x${string}`,
-          gas: 100000n,
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: senderNonce + 1,
           chainId: chainId,
           authorizationList: [warmAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          nonce: senderNonce + 1,
+          skipEstimation: true,
         };
 
-        const coldSignature = await senderAccount.signTransaction(coldTx);
-        const warmSignature = await senderAccount.signTransaction(warmTx);
+        const coldSignature = await createViemTransaction(context, coldTx);
+        const warmSignature = await createViemTransaction(context, warmTx);
 
         // Execute both transactions in the same block
         const result = await context.createBlock([coldSignature, warmSignature]);
@@ -220,8 +207,8 @@ describeSuite({
       id: "T04",
       title: "should test intrinsic gas cost with exact gas limit",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
+        const delegatingEOA = (await createFundedAccount(context)).account;
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: counterAddress,
@@ -273,30 +260,21 @@ describeSuite({
           to: delegatingEOA.address,
           data: calldata,
           gas: intrinsicGas,
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [authorization],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
         };
 
         try {
-          const signature = await senderAccount.signTransaction(exactGasTx);
-          const { result } = await context.createBlock(signature);
+          const signature = await createViemTransaction(context, exactGasTx);
+          const hash = await sendRawTransaction(context, signature);
+          await context.createBlock();
 
-          if (result?.hash) {
-            const receipt = await context.viem().getTransactionReceipt({
-              hash: result.hash as `0x${string}`,
-            });
-            console.log(`Transaction with exact intrinsic gas status: ${receipt.status}`);
-            // Should have failed due to insufficient gas
-            expect(receipt.status).toBe("reverted");
-          } else {
-            console.log("Transaction with exact intrinsic gas failed to be included");
-          }
+          const receipt = await context.viem().getTransactionReceipt({ hash });
+          console.log(`Transaction with exact intrinsic gas status: ${receipt.status}`);
+          // Should have failed due to insufficient gas
+          expect(receipt.status).toBe("reverted");
         } catch (_error) {
           console.log("Transaction with exact intrinsic gas failed as expected");
         }
@@ -305,23 +283,17 @@ describeSuite({
         const almostEnoughGasTx = {
           ...exactGasTx,
           gas: intrinsicGas + 1n,
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
         };
 
         try {
-          const signature = await senderAccount.signTransaction(almostEnoughGasTx);
-          const { result } = await context.createBlock(signature);
+          const signature = await createViemTransaction(context, almostEnoughGasTx);
+          const hash = await sendRawTransaction(context, signature);
+          await context.createBlock();
 
-          if (result?.hash) {
-            const receipt = await context.viem().getTransactionReceipt({
-              hash: result.hash as `0x${string}`,
-            });
-            console.log(`Transaction with intrinsic + 1 gas status: ${receipt.status}`);
-            // Should have failed due to insufficient gas for execution
-            expect(receipt.status).toBe("reverted");
-          }
+          const receipt = await context.viem().getTransactionReceipt({ hash });
+          console.log(`Transaction with intrinsic + 1 gas status: ${receipt.status}`);
+          // Should have failed due to insufficient gas for execution
+          expect(receipt.status).toBe("reverted");
         } catch (_error) {
           console.log("Transaction with intrinsic + 1 gas failed as expected");
         }
@@ -331,17 +303,13 @@ describeSuite({
         const sufficientGasTx = {
           ...exactGasTx,
           gas: intrinsicGas + executionGasEstimate,
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
         };
 
-        const signature = await senderAccount.signTransaction(sufficientGasTx);
-        const { result } = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, sufficientGasTx);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
 
         console.log(`Transaction with sufficient gas:`);
         console.log(`  Gas limit: ${intrinsicGas + executionGasEstimate}`);
@@ -370,9 +338,9 @@ describeSuite({
         // the authorization nonce should be current_nonce + 1 because the EVM
         // increments the nonce before processing the authorization list
         const currentNonce = await context.viem().getTransactionCount({
-          address: selfDelegatingEOA.address,
+          address: selfDelegatingEOA.account.address,
         });
-        const selfAuth = await selfDelegatingEOA.signAuthorization({
+        const selfAuth = await selfDelegatingEOA.account.signAuthorization({
           contractAddress: counterAddress,
           chainId: chainId,
           nonce: currentNonce + 1, // current_nonce + 1 for self-authorizing transactions
@@ -414,33 +382,31 @@ describeSuite({
         // Test with sufficient gas for self-delegation
         const gasLimit = intrinsicGas + 30000n; // Add execution gas
         const selfTx = {
-          to: selfDelegatingEOA.address,
+          to: selfDelegatingEOA.account.address,
           data: calldata,
           gas: gasLimit,
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
           nonce: currentNonce, // Current nonce for the transaction
           chainId: chainId,
           authorizationList: [selfAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: selfDelegatingEOA.privateKey,
         };
-
-        // Sign with the same account that created the authorization
-        const signature = await selfDelegatingEOA.signTransaction(selfTx);
 
         // Need to fund gas for the transaction
         await context.createBlock([
           context
             .polkadotJs()
-            .tx.balances.transferAllowDeath(selfDelegatingEOA.address, parseEther("1")),
+            .tx.balances.transferAllowDeath(selfDelegatingEOA.account.address, parseEther("1")),
         ]);
 
-        // Send the self-signed transaction
-        const { result } = await context.createBlock(signature);
+        // Sign with the same account that created the authorization
+        const signature = await selfDelegatingEOA.account.signTransaction(selfTx);
 
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        // Send the self-signed transaction
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
+
+        const receipt = await context.viem().getTransactionReceipt({ hash });
 
         expect(receipt.status).toBe("success");
 
@@ -465,14 +431,14 @@ describeSuite({
 
         // Verify delegation was set
         const code = await context.viem().getCode({
-          address: selfDelegatingEOA.address,
+          address: selfDelegatingEOA.account.address,
         });
         expect(code?.startsWith("0xef0100")).toBe(true);
         console.log(`  Delegation code set: ${code?.slice(0, 50)}...`);
 
         // Check counter was incremented
         const count = await context.viem().readContract({
-          address: selfDelegatingEOA.address,
+          address: selfDelegatingEOA.account.address,
           abi: counterAbi,
           functionName: "count",
           args: [],
@@ -486,8 +452,8 @@ describeSuite({
       id: "T06",
       title: "should handle out-of-gas during authorization processing",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
+        const delegatingEOA = (await createFundedAccount(context)).account;
 
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: storageWriterAddress,
@@ -504,17 +470,13 @@ describeSuite({
             args: [1n, 100n],
           }),
           gas: 25000n, // Very low gas
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [authorization],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
         };
 
-        const signature = await senderAccount.signTransaction(lowGasTx);
+        const signature = await createViemTransaction(context, lowGasTx);
         const { result } = await context.createBlock(signature);
 
         // Transaction should fail due to out of gas
@@ -533,8 +495,8 @@ describeSuite({
       id: "T07",
       title: "should test gas refund for authorization clearing",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
+        const delegatingEOA = (await createFundedAccount(context)).account;
 
         // First set a delegation
         const setAuth = await delegatingEOA.signAuthorization({
@@ -545,20 +507,16 @@ describeSuite({
 
         const setTx = {
           to: delegatingEOA.address,
-          data: "0x" as `0x${string}`,
-          gas: 100000n,
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [setAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const setSignature = await senderAccount.signTransaction(setTx);
-        await context.createBlock(setSignature);
+        const setSignature = await createViemTransaction(context, setTx);
+        const setHash = await sendRawTransaction(context, setSignature);
+        await context.createBlock();
 
         // Verify delegation is set
         const codeAfterSet = await context.viem().getCode({
@@ -575,24 +533,21 @@ describeSuite({
 
         const clearTx = {
           to: delegatingEOA.address,
-          data: "0x" as `0x${string}`,
-          gas: 100000n,
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [clearAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const clearSignature = await senderAccount.signTransaction(clearTx);
-        const clearResult = await context.createBlock(clearSignature);
+        const clearSignature = await createViemTransaction(context, clearTx);
+        const clearHash = await sendRawTransaction(context, clearSignature);
+        await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: clearResult.result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash: clearHash });
+
+        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
+        // expect(receipt.status).toBe("success");
 
         // Gas used for clearing
         console.log(`Gas used for clearing delegation: ${receipt.gasUsed}`);

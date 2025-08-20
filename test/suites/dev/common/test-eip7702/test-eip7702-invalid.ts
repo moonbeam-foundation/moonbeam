@@ -1,15 +1,16 @@
 import "@moonbeam-network/api-augment";
 
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { type Abi, parseEther, parseGwei } from "viem";
+import { type Abi, parseEther } from "viem";
+import { sendRawTransaction } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createFundedAccount } from "./helpers";
+import { createFundedAccount, createViemTransaction } from "./helpers";
 
 describeSuite({
   id: "D020805",
   title: "EIP-7702 Invalid Transaction Handling",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
     let contractAbi: Abi;
     let chainId: number;
@@ -27,7 +28,7 @@ describeSuite({
       id: "T01",
       title: "should reject empty authorization list properly",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
         const receiverAccount = privateKeyToAccount(generatePrivateKey());
         // EIP-7702 transactions with empty authorization list should be valid
         // but behave like regular transactions
@@ -35,17 +36,13 @@ describeSuite({
           to: receiverAccount.address,
           data: "0x",
           gas: 21000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
+        const signature = await createViemTransaction(context, tx);
         const { result } = await context.createBlock(signature);
 
         // EIP-7702 transactions with empty authorization list must be rejected
@@ -59,7 +56,7 @@ describeSuite({
       id: "T02",
       title: "should reject authorization with invalid signature (s > secp256k1n/2)",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -86,19 +83,16 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: "0x",
-          gas: 100000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [invalidAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
         // Check that delegation was not set
         const code = await context.viem().getCode({
@@ -107,9 +101,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
         expect(receipt.status).toBe("success");
       },
     });
@@ -118,7 +110,7 @@ describeSuite({
       id: "T03",
       title: "should reject authorization with invalid chain ID",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -140,19 +132,16 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: "0x",
-          gas: 100000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [invalidAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
         // Delegation should not be set due to chain ID mismatch
         const code = await context.viem().getCode({
@@ -161,9 +150,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
         expect(receipt.status).toBe("success");
       },
     });
@@ -172,7 +159,7 @@ describeSuite({
       id: "T04",
       title: "should reject authorization with nonce overflow",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -193,19 +180,16 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: "0x" as `0x${string}`,
-          gas: 100000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [invalidAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
         // Delegation should not be set due to wrong nonce
         const code = await context.viem().getCode({
@@ -214,9 +198,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
         expect(receipt.status).toBe("success");
       },
     });
@@ -225,7 +207,7 @@ describeSuite({
       id: "T05",
       title: "should handle authorization with zero address",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -244,19 +226,16 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: "0x" as `0x${string}`,
-          gas: 100000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [validAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
         // Delegation may be set even with zero address - this is actually valid behavior
         const code = await context.viem().getCode({
@@ -266,9 +245,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction result - may revert when calling zero address delegation
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
         // Transaction may revert when calling zero address after delegation
         expect(["success", "reverted"]).toContain(receipt.status);
       },
@@ -278,12 +255,12 @@ describeSuite({
       id: "T06",
       title: "should handle authorization with EOA address",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
-        const delegatingEOA = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
+        const delegatingEOA = (await createFundedAccount(context)).account;
 
         // Sign authorization with EOA address directly
         const eoaAuth = await delegatingEOA.signAuthorization({
-          contractAddress: senderAccount.address, // Use EOA address instead of contract
+          contractAddress: sender.account.address, // Use EOA address instead of contract
           chainId: chainId,
           nonce: 0,
         });
@@ -291,24 +268,19 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           value: 1000n, // Send some value instead of calling
-          gas: 100000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [eoaAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
         // Verify transaction result - may revert when calling EOA after delegation
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
         // Transaction may revert when calling EOA after delegation
         expect(["success", "reverted"]).toContain(receipt.status);
 
@@ -327,7 +299,7 @@ describeSuite({
       id: "T07",
       title: "should reject authorization with invalid signature",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -353,19 +325,16 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: "0x",
-          gas: 100000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [invalidAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
         // Delegation should not be set due to invalid signature
         const code = await context.viem().getCode({
@@ -374,9 +343,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
         expect(receipt.status).toBe("success");
       },
     });
@@ -385,7 +352,7 @@ describeSuite({
       id: "T08",
       title: "should reject duplicate authorizations in same transaction",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -404,24 +371,19 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: "0x",
-          gas: 150000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [auth, auth], // Duplicate
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
         // First authorization should succeed, second should be ignored
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
 
         // Transaction may succeed but only one delegation should be set
         const code = await context.viem().getCode({
@@ -439,7 +401,7 @@ describeSuite({
       id: "T09",
       title: "should reject authorization with zero r value",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -465,19 +427,16 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: "0x",
-          gas: 100000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [invalidAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
         // Invalid signature with zero r should not set delegation
         const code = await context.viem().getCode({
@@ -486,9 +445,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
         expect(receipt.status).toBe("success");
       },
     });
@@ -497,7 +454,7 @@ describeSuite({
       id: "T10",
       title: "should reject authorization with zero s value",
       test: async () => {
-        const senderAccount = await createFundedAccount(context);
+        const sender = await createFundedAccount(context);
         const delegatingEOA = privateKeyToAccount(generatePrivateKey());
 
         await context.createBlock([
@@ -523,19 +480,16 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: "0x",
-          gas: 100000n,
-          maxFeePerGas: 10_000_000_000n,
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: await context.viem().getTransactionCount({
-            address: senderAccount.address,
-          }),
           chainId: chainId,
           authorizationList: [invalidAuth],
-          type: "eip7702" as const,
+          txnType: "eip7702" as const,
+          privateKey: sender.privateKey,
+          skipEstimation: true,
         };
 
-        const signature = await senderAccount.signTransaction(tx);
-        const { result } = await context.createBlock(signature);
+        const signature = await createViemTransaction(context, tx);
+        const hash = await sendRawTransaction(context, signature);
+        await context.createBlock();
 
         // Invalid signature with zero s should not set delegation
         const code = await context.viem().getCode({
@@ -544,9 +498,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({
-          hash: result?.hash as `0x${string}`,
-        });
+        const receipt = await context.viem().getTransactionReceipt({ hash });
         expect(receipt.status).toBe("success");
       },
     });
