@@ -24,10 +24,11 @@ use frame_support::{
 	weights::Weight,
 	BoundedVec,
 };
-use moonbase_runtime::xcm_config::AssetType;
+use moonbase_runtime::{xcm_config::AssetType};
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
 };
+use sp_core::U256;
 use sp_runtime::traits::Convert;
 use sp_std::boxed::Box;
 use xcm::{
@@ -50,14 +51,7 @@ mod common;
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
 use parachain::PolkadotXcm;
 
-fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128) -> Result<(), ()> {
-	let parachain::AssetType::Xcm(location_v3) = asset_type;
-	let VersionedLocation::V5(location_v5) = VersionedLocation::V3(location_v3)
-		.into_version(xcm::latest::VERSION)
-		.map_err(|_| ())?
-	else {
-		return Err(());
-	};
+fn add_supported_asset(location: Location, units_per_second: u128) -> Result<(), ()> {
 	use frame_support::weights::WeightToFee as _;
 	let native_amount_per_second: u128 =
 		<parachain::Runtime as pallet_xcm_weight_trader::Config>::WeightToFee::weight_to_fee(
@@ -77,7 +71,7 @@ fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128)
 		0u128
 	};
 	pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::insert(
-		location_v5,
+		location,
 		(true, relative_price),
 	);
 	Ok(())
@@ -95,27 +89,33 @@ fn currency_to_asset(currency_id: parachain::CurrencyId, amount: u128) -> Asset 
 	}
 }
 
+fn str_to_bounded_vec(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
+	BoundedVec::try_from(str_.as_bytes().to_vec()).expect("too long")
+}
+
 // Send a relay asset (like DOT) to a parachain A
 #[test]
 fn receive_relay_asset_from_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 	// register relay asset in parachain A
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
+
 		assert_ok!(add_supported_asset(source_location.clone(), 0));
 	});
 
@@ -139,7 +139,11 @@ fn receive_relay_asset_from_relay() {
 	// Verify that parachain received the asset
 	ParaA::execute_with(|| {
 		// free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+		assert_eq!(
+			EvmForeignAssets::balance(source_id, PARAALICE.into())
+				.expect("failed to get balance"), 
+			U256::from(123u128)
+		);
 	});
 }
 
@@ -148,26 +152,25 @@ fn receive_relay_asset_from_relay() {
 fn send_relay_asset_to_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
-
-	// Register relay asset in paraA
+	// register relay asset in parachain A
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
-		// Free execution
-		assert_ok!(add_supported_asset(source_location, 0));
+
+		assert_ok!(add_supported_asset(source_location.clone(), 0));
 	});
 
 	let dest: Location = Junction::AccountKey20 {
@@ -190,7 +193,11 @@ fn send_relay_asset_to_relay() {
 
 	ParaA::execute_with(|| {
 		// Free execution, full amount received
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 123);
+		assert_eq!(
+			EvmForeignAssets::balance(source_id, PARAALICE.into())
+				.expect("failed to get balance"), 
+			U256::from(123u128)
+		);
 	});
 
 	// Lets gather the balance before sending back money
@@ -239,37 +246,39 @@ fn send_relay_asset_to_relay() {
 fn send_relay_asset_to_para_b() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
-
-	// Register asset in paraA. Free execution
+	// register relay asset in parachain A
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata.clone(),
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
+
 		assert_ok!(add_supported_asset(source_location.clone(), 0));
 	});
 
 	// Register asset in paraB. Free execution
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
-		assert_ok!(add_supported_asset(source_location, 0));
+
+		assert_ok!(add_supported_asset(source_location.clone(), 0));
 	});
 
 	// First send relay chain asset to Parachain A like in previous test
@@ -336,28 +345,25 @@ fn send_para_a_asset_to_para_b() {
 	MockNet::reset();
 
 	// this represents the asset in paraA
-	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location: AssetType = para_a_balances
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"ParaAToken".to_vec(),
-		symbol: b"ParaA".to_vec(),
+		name: "ParaAToken".to_string(),
+		symbol: "ParaA".to_string(),
 		decimals: 18,
 	};
-
 	// Register asset in paraB. Free execution
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
-		assert_ok!(add_supported_asset(source_location, 0));
+
+		assert_ok!(add_supported_asset(source_location.clone(), 0));
 	});
 
 	// Send para A asset from para A to para B
@@ -407,38 +413,36 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	MockNet::reset();
 
 	// Represents para A asset
-	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location: AssetType = para_a_balances
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"ParaAToken".to_vec(),
-		symbol: b"ParaA".to_vec(),
+		name: "ParaAToken".to_string(),
+		symbol: "ParaA".to_string(),
 		decimals: 18,
 	};
 
 	// Register para A asset in parachain B. Free execution
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata.clone(),
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location.clone(), 0));
 	});
 
 	// Register para A asset in parachain C. Free execution
 	ParaC::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
@@ -521,26 +525,23 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	MockNet::reset();
 
 	// Para A asset
-	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location: AssetType = para_a_balances
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"ParaAToken".to_vec(),
-		symbol: b"ParaA".to_vec(),
+		name: "ParaAToken".to_string(),
+		symbol: "ParaA".to_string(),
 		decimals: 18,
 	};
 
 	// Register para A asset in para B
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
@@ -623,25 +624,22 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 	MockNet::reset();
 
-	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location: AssetType = para_a_balances
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"ParaAToken".to_vec(),
-		symbol: b"ParaA".to_vec(),
+		name: "ParaAToken".to_string(),
+		symbol: "ParaA".to_string(),
 		decimals: 18,
 	};
 
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
@@ -735,12 +733,11 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 fn receive_relay_asset_with_trader() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
@@ -748,12 +745,13 @@ fn receive_relay_asset_with_trader() {
 	// we know later we will divide by 1e12
 	// Lets put 1e6 as units per second
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 2_500_000_000_000));
 	});
@@ -792,25 +790,22 @@ fn receive_relay_asset_with_trader() {
 fn send_para_a_asset_to_para_b_with_trader() {
 	MockNet::reset();
 
-	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location: AssetType = para_a_balances
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"ParaAToken".to_vec(),
-		symbol: b"ParaA".to_vec(),
+		name: "ParaAToken".to_string(),
+		symbol: "ParaA".to_string(),
 		decimals: 18,
 	};
 
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 2500000000000));
 	});
@@ -867,25 +862,22 @@ fn send_para_a_asset_to_para_b_with_trader() {
 fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 	MockNet::reset();
 
-	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location: AssetType = para_a_balances
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"ParaAToken".to_vec(),
-		symbol: b"ParaA".to_vec(),
+		name: "ParaAToken".to_string(),
+		symbol: "ParaA".to_string(),
 		decimals: 18,
 	};
 
 	ParaB::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		// With these units per second, 80K weight convrets to 1 asset unit
 		assert_ok!(add_supported_asset(source_location, 12500000));
@@ -935,12 +927,11 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 fn error_when_not_paying_enough() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
@@ -953,12 +944,13 @@ fn error_when_not_paying_enough() {
 	// we know later we will divide by 1e12
 	// Lets put 1e6 as units per second
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 2500000000000));
 	});
@@ -992,22 +984,22 @@ fn error_when_not_paying_enough() {
 fn transact_through_derivative_multilocation() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 1));
 
@@ -1160,22 +1152,22 @@ fn transact_through_derivative_multilocation() {
 fn transact_through_derivative_with_custom_fee_weight() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 1));
 	});
@@ -1314,22 +1306,22 @@ fn transact_through_derivative_with_custom_fee_weight() {
 fn transact_through_derivative_with_custom_fee_weight_refund() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 1));
 	});
@@ -1467,22 +1459,22 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 fn transact_through_sovereign() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 1));
 
@@ -1738,22 +1730,22 @@ fn transact_through_sovereign_fee_payer_none() {
 fn transact_through_sovereign_with_custom_fee_weight() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 1));
 	});
@@ -1890,22 +1882,22 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 1));
 	});
@@ -2043,21 +2035,23 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	MockNet::reset();
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 	// register relay asset in parachain A and set XCM version to 1
 	ParaA::execute_with(|| {
 		parachain::XcmVersioner::set_version(1);
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
@@ -2169,15 +2163,11 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	MockNet::reset();
 
-	let para_a_balances = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
-	let source_location: AssetType = para_a_balances
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_location = Location::new(1, [Parachain(1), PalletInstance(1u8)]);
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"ParaAToken".to_vec(),
-		symbol: b"ParaA".to_vec(),
+		name: "ParaAToken".to_string(),
+		symbol: "ParaA".to_string(),
 		decimals: 18,
 	};
 	let response = Response::Version(2);
@@ -2201,12 +2191,13 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		// Let's try with v0
 		parachain::XcmVersioner::set_version(0);
 
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
@@ -2323,21 +2314,22 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	MockNet::reset();
 
 	let fresh_account = [2u8; 20];
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 	// register relay asset in parachain A
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			false
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
@@ -2398,21 +2390,22 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	MockNet::reset();
 
 	let fresh_account = [2u8; 20];
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 	// register relay asset in parachain A
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
@@ -2455,20 +2448,22 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 		assert_eq!(parachain::System::account(evm_account_id).sufficients, 1);
 	});
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 	// register relay asset in parachain A
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
@@ -2519,21 +2514,22 @@ fn empty_account_should_not_be_reset() {
 
 	let evm_account_id = parachain::AccountId::from(sufficient_account);
 
-	let source_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_id: parachain::AssetId = source_location.clone().into();
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 	// register relay asset in parachain A
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata,
-			1u128,
-			false
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
@@ -2613,7 +2609,8 @@ fn test_statemint_like() {
 	>::convert_location(&dest_para)
 	.unwrap();
 
-	let statemint_asset_a_balances = Location::new(
+
+	let source_location = Location::new(
 		1,
 		[
 			Parachain(1000),
@@ -2621,24 +2618,21 @@ fn test_statemint_like() {
 			xcm::latest::prelude::GeneralIndex(0u128),
 		],
 	);
-	let source_location: AssetType = statemint_asset_a_balances
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_id: parachain::AssetId = source_location.clone().into();
-
+	let source_id = 1;
 	let asset_metadata = parachain::AssetMetadata {
-		name: b"StatemintToken".to_vec(),
-		symbol: b"StatemintToken".to_vec(),
+		name: "StatemintToken".to_string(),
+		symbol: "StatemintToken".to_string(),
 		decimals: 12,
 	};
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			source_id,
 			source_location.clone(),
-			asset_metadata.clone(),
-			1u128,
-			true
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(source_location, 0));
 	});
@@ -2708,17 +2702,16 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	MockNet::reset();
 
 	// Relay asset
-	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_relay_id: parachain::AssetId = relay_location.clone().into();
-
+	let relay_location = Location::parent();
+	let relay_id: parachain::AssetId = 1;
 	let relay_asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
 	// Statemint asset
-	let statemint_asset = Location::new(
+	let statemint_location = Location::new(
 		1,
 		[
 			Parachain(1000u32),
@@ -2726,15 +2719,10 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemint_location_asset: AssetType = statemint_asset
-		.clone()
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
-
-	let asset_metadata_statemint_asset = parachain::AssetMetadata {
-		name: b"USDC".to_vec(),
-		symbol: b"USDC".to_vec(),
+	let statemint_id: parachain::AssetId = 2;
+	let statemint_asset_metadata = parachain::AssetMetadata {
+		name: "USDC".to_string(),
+		symbol: "USDC".to_string(),
 		decimals: 12,
 	};
 
@@ -2747,23 +2735,27 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	.unwrap();
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			relay_id,
 			relay_location.clone(),
-			relay_asset_metadata,
-			1u128,
-			true
+			relay_asset_metadata.decimals,
+			str_to_bounded_vec(&relay_asset_metadata.symbol),
+			str_to_bounded_vec(&relay_asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(relay_location, 0));
 
-		assert_ok!(AssetManager::register_foreign_asset(
+
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
-			statemint_location_asset.clone(),
-			asset_metadata_statemint_asset,
-			1u128,
-			true
+			statemint_id,
+			statemint_location.clone(),
+			statemint_asset_metadata.decimals,
+			str_to_bounded_vec(&statemint_asset_metadata.symbol),
+			str_to_bounded_vec(&statemint_asset_metadata.name)
 		));
-		assert_ok!(add_supported_asset(statemint_location_asset, 0));
+		assert_ok!(add_supported_asset(statemint_location, 0));
 	});
 
 	let parachain_beneficiary_from_relay: Location = Junction::AccountKey20 {
@@ -2864,12 +2856,12 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	ParaA::execute_with(|| {
 		// Alice has received 125 USDC
 		assert_eq!(
-			Assets::balance(source_statemint_asset_id, &PARAALICE.into()),
+			Assets::balance(statemint_id, &PARAALICE.into()),
 			125
 		);
 
 		// Alice has received 200 Relay assets
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 200);
 	});
 
 	Statemint::execute_with(|| {
@@ -2883,11 +2875,11 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	// Transfer USDC from Parachain A to Statemint using Relay asset as fee
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(
-			parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
+			parachain::CurrencyId::ForeignAsset(statemint_id),
 			100,
 		);
 		let asset_fee =
-			currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+			currency_to_asset(parachain::CurrencyId::ForeignAsset(relay_id), 100);
 		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
@@ -2901,12 +2893,12 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	ParaA::execute_with(|| {
 		// Alice has 100 USDC less
 		assert_eq!(
-			Assets::balance(source_statemint_asset_id, &PARAALICE.into()),
+			Assets::balance(statemint_id, &PARAALICE.into()),
 			25
 		);
 
 		// Alice has 100 relay asset less
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 100);
 	});
 
 	Statemint::execute_with(|| {
@@ -2920,12 +2912,11 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 	MockNet::reset();
 
 	// Relay asset
-	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_relay_id: parachain::AssetId = relay_location.clone().into();
-
-	let relay_asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
+	let asset_metadata = parachain::AssetMetadata {
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
@@ -2938,12 +2929,15 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 	.unwrap();
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+
+		
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
-			relay_location.clone(),
-			relay_asset_metadata,
-			1u128,
-			true
+			source_id,
+			source_location.clone(),
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 	});
@@ -3007,7 +3001,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 
 	ParaA::execute_with(|| {
 		// Alice should have received the DOTs
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 200);
 	});
 
 	let dest = Location::new(
@@ -3024,7 +3018,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
@@ -3034,7 +3028,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
 	Statemint::execute_with(|| {
@@ -3067,7 +3061,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 
 	ParaA::execute_with(|| {
 		// Alice should have received 100 DOTs
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 200);
 	});
 }
 
@@ -3076,12 +3070,11 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 	MockNet::reset();
 
 	// Relay asset
-	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_relay_id: parachain::AssetId = relay_location.clone().into();
-
-	let relay_asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
+	let asset_metadata = parachain::AssetMetadata {
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
@@ -3094,12 +3087,13 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 	.unwrap();
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
-			relay_location.clone(),
-			relay_asset_metadata,
-			1u128,
-			true
+			source_id,
+			source_location.clone(),
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 	});
@@ -3163,7 +3157,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 
 	ParaA::execute_with(|| {
 		// Alice should have received the DOTs
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 200);
 	});
 
 	let dest = Location::new(
@@ -3180,8 +3174,8 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
-		let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 10);
+		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
+		let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 10);
 		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
@@ -3191,7 +3185,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 90);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 90);
 	});
 
 	Statemint::execute_with(|| {
@@ -3227,7 +3221,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 
 	ParaA::execute_with(|| {
 		// Alice should have received 100 DOTs
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 190);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 190);
 	});
 }
 
@@ -3236,12 +3230,11 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 	MockNet::reset();
 
 	// Relay asset
-	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_relay_id: parachain::AssetId = relay_location.clone().into();
-
-	let relay_asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+	let source_location = Location::parent();
+	let source_id: parachain::AssetId = 1;
+	let asset_metadata = parachain::AssetMetadata {
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
@@ -3254,12 +3247,13 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 	.unwrap();
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
-			relay_location.clone(),
-			relay_asset_metadata,
-			1u128,
-			true
+			source_id,
+			source_location.clone(),
+			asset_metadata.decimals,
+			str_to_bounded_vec(&asset_metadata.symbol),
+			str_to_bounded_vec(&asset_metadata.name)
 		));
 		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 	});
@@ -3323,7 +3317,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 
 	ParaA::execute_with(|| {
 		// Alice should have received the DOTs
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 200);
 	});
 
 	let dest = Location::new(
@@ -3353,7 +3347,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
 	Statemint::execute_with(|| {
@@ -3386,7 +3380,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 
 	ParaA::execute_with(|| {
 		// Alice should have received 100 DOTs
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 200);
 	});
 }
 
@@ -3395,17 +3389,16 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 	MockNet::reset();
 
 	// Relay asset
-	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_relay_id: parachain::AssetId = relay_location.clone().into();
-
+	let relay_location = Location::parent();
+	let relay_id: parachain::AssetId = 1;
 	let relay_asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
 	// Statemint asset
-	let statemint_asset = Location::new(
+	let statemint_location = Location::new(
 		1,
 		[
 			Parachain(1000u32),
@@ -3413,15 +3406,12 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemint_location_asset: AssetType = statemint_asset
-		.clone()
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
 
-	let asset_metadata_statemint_asset = parachain::AssetMetadata {
-		name: b"USDC".to_vec(),
-		symbol: b"USDC".to_vec(),
+	let statemint_id: parachain::AssetId = 2;
+
+	let statemint_asset_metadata = parachain::AssetMetadata {
+		name: "USDC".to_string(),
+		symbol: "USDC".to_string(),
 		decimals: 12,
 	};
 
@@ -3434,23 +3424,25 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 	.unwrap();
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			relay_id,
 			relay_location.clone(),
-			relay_asset_metadata,
-			1u128,
-			true
+			relay_asset_metadata.decimals,
+			str_to_bounded_vec(&relay_asset_metadata.symbol),
+			str_to_bounded_vec(&relay_asset_metadata.name)
 		));
-		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
+		XcmWeightTrader::set_asset_price(relay_location, 0u128);
 
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
-			statemint_location_asset.clone(),
-			asset_metadata_statemint_asset,
-			1u128,
-			true
+			statemint_id,
+			statemint_location.clone(),
+			statemint_asset_metadata.decimals,
+			str_to_bounded_vec(&statemint_asset_metadata.symbol),
+			str_to_bounded_vec(&statemint_asset_metadata.name)
 		));
-		XcmWeightTrader::set_asset_price(statemint_asset, 0u128);
+		XcmWeightTrader::set_asset_price(statemint_location, 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -3555,11 +3547,11 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 
 	ParaA::execute_with(|| {
 		// Alice should have received the DOTs
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 200);
 
 		// Alice has received 125 USDC
 		assert_eq!(
-			Assets::balance(source_statemint_asset_id, &PARAALICE.into()),
+			Assets::balance(statemint_id, &PARAALICE.into()),
 			125
 		);
 	});
@@ -3579,11 +3571,11 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(
-			parachain::CurrencyId::ForeignAsset(source_statemint_asset_id),
+			parachain::CurrencyId::ForeignAsset(statemint_id),
 			100,
 		);
 		let asset_fee =
-			currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+			currency_to_asset(parachain::CurrencyId::ForeignAsset(relay_id), 100);
 		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
@@ -3593,7 +3585,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
 
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 100);
 	});
 
 	Statemint::execute_with(|| {
@@ -3634,7 +3626,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 
 	ParaA::execute_with(|| {
 		// Alice should have received 100 DOTs
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 200);
 	});
 }
 
@@ -3643,17 +3635,16 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 	MockNet::reset();
 
 	// Relay asset
-	let relay_location = parachain::AssetType::Xcm(xcm::v3::Location::parent());
-	let source_relay_id: parachain::AssetId = relay_location.clone().into();
-
+	let relay_location = Location::parent();
+	let relay_id: parachain::AssetId = 1;
 	let relay_asset_metadata = parachain::AssetMetadata {
-		name: b"RelayToken".to_vec(),
-		symbol: b"Relay".to_vec(),
+		name: "RelayToken".to_string(),
+		symbol: "Relay".to_string(),
 		decimals: 12,
 	};
 
 	// Statemint asset
-	let statemint_asset = Location::new(
+	let statemint_location = Location::new(
 		1,
 		[
 			Parachain(1000u32),
@@ -3661,15 +3652,11 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			GeneralIndex(10u128),
 		],
 	);
-	let statemint_location_asset: AssetType = statemint_asset
-		.clone()
-		.try_into()
-		.expect("Location convertion to AssetType should succeed");
-	let source_statemint_asset_id: parachain::AssetId = statemint_location_asset.clone().into();
+	let statemint_id: parachain::AssetId = 2;
 
-	let asset_metadata_statemint_asset = parachain::AssetMetadata {
-		name: b"USDC".to_vec(),
-		symbol: b"USDC".to_vec(),
+	let statemint_asset_metadata = parachain::AssetMetadata {
+		name: "USDC".to_string(),
+		symbol: "USDC".to_string(),
 		decimals: 12,
 	};
 
@@ -3682,23 +3669,25 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 	.unwrap();
 
 	ParaA::execute_with(|| {
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
+			relay_id,
 			relay_location.clone(),
-			relay_asset_metadata,
-			1u128,
-			true
+			relay_asset_metadata.decimals,
+			str_to_bounded_vec(&relay_asset_metadata.symbol),
+			str_to_bounded_vec(&relay_asset_metadata.name)
 		));
 		XcmWeightTrader::set_asset_price(Location::parent(), 0u128);
 
-		assert_ok!(AssetManager::register_foreign_asset(
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
-			statemint_location_asset.clone(),
-			asset_metadata_statemint_asset,
-			1u128,
-			true
+			statemint_id,
+			statemint_location.clone(),
+			statemint_asset_metadata.decimals,
+			str_to_bounded_vec(&statemint_asset_metadata.symbol),
+			str_to_bounded_vec(&statemint_asset_metadata.name)
 		));
-		XcmWeightTrader::set_asset_price(statemint_asset.clone(), 0u128);
+		XcmWeightTrader::set_asset_price(statemint_location.clone(), 0u128);
 	});
 
 	let parachain_beneficiary_absolute: Location = Junction::AccountKey20 {
@@ -3803,11 +3792,11 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 
 	ParaA::execute_with(|| {
 		// Alice should have received the DOTs
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 200);
 
 		// Alice has received 125 USDC
 		assert_eq!(
-			Assets::balance(source_statemint_asset_id, &PARAALICE.into()),
+			Assets::balance(statemint_id, &PARAALICE.into()),
 			125
 		);
 	});
@@ -3824,7 +3813,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 	);
 
 	let statemint_asset_to_send = Asset {
-		id: AssetId(statemint_asset),
+		id: AssetId(statemint_location),
 		fun: Fungibility::Fungible(100),
 	};
 
@@ -3852,7 +3841,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
 
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 100);
+		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 100);
 	});
 
 	Statemint::execute_with(|| {
@@ -3893,7 +3882,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 
 	ParaA::execute_with(|| {
 		// Alice should have received 100 DOTs
-		assert_eq!(Assets::balance(source_relay_id, &PARAALICE.into()), 200);
+		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 200);
 	});
 }
 

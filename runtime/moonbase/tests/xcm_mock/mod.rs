@@ -266,6 +266,7 @@ pub type StatemintAssets = pallet_assets::Pallet<statemint_like::Runtime>;
 
 pub type ParachainPalletXcm = pallet_xcm::Pallet<parachain::Runtime>;
 pub type Assets = pallet_assets::Pallet<parachain::Runtime, parachain::ForeignAssetInstance>;
+pub type EvmForeignAssets = pallet_moonbeam_foreign_assets::Pallet<parachain::Runtime>;
 
 pub type Treasury = pallet_treasury::Pallet<parachain::Runtime>;
 pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;

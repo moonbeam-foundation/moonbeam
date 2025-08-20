@@ -774,8 +774,8 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	DecodeWithMemTracking,
 )]
 pub struct AssetMetadata {
-	pub name: Vec<u8>,
-	pub symbol: Vec<u8>,
+	pub name: String,
+	pub symbol: String,
 	pub decimals: u8,
 }
 
