@@ -1900,94 +1900,6 @@
 <a href="#1900" id="1900">1900</a>
 <a href="#1901" id="1901">1901</a>
 <a href="#1902" id="1902">1902</a>
-<a href="#1903" id="1903">1903</a>
-<a href="#1904" id="1904">1904</a>
-<a href="#1905" id="1905">1905</a>
-<a href="#1906" id="1906">1906</a>
-<a href="#1907" id="1907">1907</a>
-<a href="#1908" id="1908">1908</a>
-<a href="#1909" id="1909">1909</a>
-<a href="#1910" id="1910">1910</a>
-<a href="#1911" id="1911">1911</a>
-<a href="#1912" id="1912">1912</a>
-<a href="#1913" id="1913">1913</a>
-<a href="#1914" id="1914">1914</a>
-<a href="#1915" id="1915">1915</a>
-<a href="#1916" id="1916">1916</a>
-<a href="#1917" id="1917">1917</a>
-<a href="#1918" id="1918">1918</a>
-<a href="#1919" id="1919">1919</a>
-<a href="#1920" id="1920">1920</a>
-<a href="#1921" id="1921">1921</a>
-<a href="#1922" id="1922">1922</a>
-<a href="#1923" id="1923">1923</a>
-<a href="#1924" id="1924">1924</a>
-<a href="#1925" id="1925">1925</a>
-<a href="#1926" id="1926">1926</a>
-<a href="#1927" id="1927">1927</a>
-<a href="#1928" id="1928">1928</a>
-<a href="#1929" id="1929">1929</a>
-<a href="#1930" id="1930">1930</a>
-<a href="#1931" id="1931">1931</a>
-<a href="#1932" id="1932">1932</a>
-<a href="#1933" id="1933">1933</a>
-<a href="#1934" id="1934">1934</a>
-<a href="#1935" id="1935">1935</a>
-<a href="#1936" id="1936">1936</a>
-<a href="#1937" id="1937">1937</a>
-<a href="#1938" id="1938">1938</a>
-<a href="#1939" id="1939">1939</a>
-<a href="#1940" id="1940">1940</a>
-<a href="#1941" id="1941">1941</a>
-<a href="#1942" id="1942">1942</a>
-<a href="#1943" id="1943">1943</a>
-<a href="#1944" id="1944">1944</a>
-<a href="#1945" id="1945">1945</a>
-<a href="#1946" id="1946">1946</a>
-<a href="#1947" id="1947">1947</a>
-<a href="#1948" id="1948">1948</a>
-<a href="#1949" id="1949">1949</a>
-<a href="#1950" id="1950">1950</a>
-<a href="#1951" id="1951">1951</a>
-<a href="#1952" id="1952">1952</a>
-<a href="#1953" id="1953">1953</a>
-<a href="#1954" id="1954">1954</a>
-<a href="#1955" id="1955">1955</a>
-<a href="#1956" id="1956">1956</a>
-<a href="#1957" id="1957">1957</a>
-<a href="#1958" id="1958">1958</a>
-<a href="#1959" id="1959">1959</a>
-<a href="#1960" id="1960">1960</a>
-<a href="#1961" id="1961">1961</a>
-<a href="#1962" id="1962">1962</a>
-<a href="#1963" id="1963">1963</a>
-<a href="#1964" id="1964">1964</a>
-<a href="#1965" id="1965">1965</a>
-<a href="#1966" id="1966">1966</a>
-<a href="#1967" id="1967">1967</a>
-<a href="#1968" id="1968">1968</a>
-<a href="#1969" id="1969">1969</a>
-<a href="#1970" id="1970">1970</a>
-<a href="#1971" id="1971">1971</a>
-<a href="#1972" id="1972">1972</a>
-<a href="#1973" id="1973">1973</a>
-<a href="#1974" id="1974">1974</a>
-<a href="#1975" id="1975">1975</a>
-<a href="#1976" id="1976">1976</a>
-<a href="#1977" id="1977">1977</a>
-<a href="#1978" id="1978">1978</a>
-<a href="#1979" id="1979">1979</a>
-<a href="#1980" id="1980">1980</a>
-<a href="#1981" id="1981">1981</a>
-<a href="#1982" id="1982">1982</a>
-<a href="#1983" id="1983">1983</a>
-<a href="#1984" id="1984">1984</a>
-<a href="#1985" id="1985">1985</a>
-<a href="#1986" id="1986">1986</a>
-<a href="#1987" id="1987">1987</a>
-<a href="#1988" id="1988">1988</a>
-<a href="#1989" id="1989">1989</a>
-<a href="#1990" id="1990">1990</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2646,7 +2558,6 @@
 	collator_options: CollatorOptions,
 	para_id: ParaId,
 	rpc_config: RpcConfig,
-	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
 	legacy_block_import_strategy: bool,
@@ -2929,7 +2840,6 @@
 
 	<span class="kw">if </span>collator {
 		start_consensus::&lt;RuntimeApi, <span class="kw">_</span>&gt;(
-			async_backing,
 			backend.clone(),
 			client.clone(),
 			block_import,
@@ -2949,43 +2859,7 @@
 			sync_service.clone(),
 			max_pov_percentage,
 		)<span class="question-mark">?</span>;
-		<span class="comment">/*let parachain_consensus = build_consensus(
-			client.clone(),
-			backend,
-			block_import,
-			prometheus_registry.as_ref(),
-			telemetry.as_ref().map(|t| t.handle()),
-			&amp;task_manager,
-			relay_chain_interface.clone(),
-			transaction_pool,
-			sync_service.clone(),
-			params.keystore_container.keystore(),
-			force_authoring,
-		)?;
-
-		let spawner = task_manager.spawn_handle();
-
-		let params = StartCollatorParams {
-			para_id,
-			block_status: client.clone(),
-			announce_block,
-			client: client.clone(),
-			task_manager: &amp;mut task_manager,
-			relay_chain_interface,
-			spawner,
-			parachain_consensus,
-			import_queue: import_queue_service,
-			recovery_handle: Box::new(overseer_handle),
-			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
-				"Collator Key is None".to_string(),
-			))?,
-			relay_chain_slot_duration,
-			sync_service,
-		};
-
-		#[allow(deprecated)]
-		start_collator(params).await?;*/
-	</span>}
+	}
 
 	start_network.start_network();
 
@@ -2993,7 +2867,6 @@
 }
 
 <span class="kw">fn </span>start_consensus&lt;RuntimeApi, SO&gt;(
-	async_backing: bool,
 	backend: Arc&lt;FullBackend&gt;,
 	client: Arc&lt;FullClient&lt;RuntimeApi&gt;&gt;,
 	block_import: ParachainBlockImport&lt;FullClient&lt;RuntimeApi&gt;, FullBackend&gt;,
@@ -3030,7 +2903,6 @@
 	);
 
 	<span class="kw">let </span>proposer = Proposer::new(proposer_factory);
-
 	<span class="kw">let </span>collator_service = CollatorService::new(
 		client.clone(),
 		Arc::new(task_manager.spawn_handle()),
@@ -3060,32 +2932,20 @@
 			)
 		};
 
-	<span class="kw">if </span>async_backing {
-		<span class="macro">log::info!</span>(<span class="string">"Collator started with asynchronous backing."</span>);
-		<span class="kw">let </span>client_clone = client.clone();
-		<span class="kw">let </span>code_hash_provider = <span class="kw">move </span>|block_hash| {
-			client_clone
-				.code_at(block_hash)
-				.ok()
-				.map(polkadot_primitives::ValidationCode)
-				.map(|c| c.hash())
-		};
-		task_manager.spawn_essential_handle().spawn(
-			<span class="string">"nimbus"</span>,
-			<span class="prelude-val">None</span>,
-			nimbus_consensus::collators::lookahead::run::&lt;
-				Block,
-				<span class="kw">_</span>,
-				<span class="kw">_</span>,
-				<span class="kw">_</span>,
-				FullBackend,
-				<span class="kw">_</span>,
-				<span class="kw">_</span>,
-				<span class="kw">_</span>,
-				<span class="kw">_</span>,
-				<span class="kw">_</span>,
-				<span class="kw">_</span>,
-			&gt;(nimbus_consensus::collators::lookahead::Params {
+	<span class="macro">log::info!</span>(<span class="string">"Collator started with asynchronous backing."</span>);
+	<span class="kw">let </span>client_clone = client.clone();
+	<span class="kw">let </span>code_hash_provider = <span class="kw">move </span>|block_hash| {
+		client_clone
+			.code_at(block_hash)
+			.ok()
+			.map(polkadot_primitives::ValidationCode)
+			.map(|c| c.hash())
+	};
+	task_manager.spawn_essential_handle().spawn(
+		<span class="string">"nimbus"</span>,
+		<span class="prelude-val">None</span>,
+		nimbus_consensus::collators::lookahead::run::&lt;Block, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, FullBackend, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(
+			nimbus_consensus::collators::lookahead::Params {
 				additional_digests_provider: maybe_provide_vrf_digest,
 				additional_relay_keys: <span class="macro">vec!</span>[
 					moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
@@ -3109,36 +2969,9 @@
 				sync_oracle,
 				reinitialize: <span class="bool-val">false</span>,
 				max_pov_percentage,
-			}),
-		);
-	} <span class="kw">else </span>{
-		<span class="macro">log::info!</span>(<span class="string">"Collator started without asynchronous backing."</span>);
-		task_manager.spawn_essential_handle().spawn(
-			<span class="string">"nimbus"</span>,
-			<span class="prelude-val">None</span>,
-			nimbus_consensus::collators::basic::run::&lt;Block, <span class="kw">_</span>, <span class="kw">_</span>, FullBackend, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(
-				nimbus_consensus::collators::basic::Params {
-					additional_digests_provider: maybe_provide_vrf_digest,
-					additional_relay_keys: <span class="macro">vec!</span>[
-						moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-					],
-					<span class="comment">//authoring_duration: Duration::from_millis(500),
-					</span>block_import,
-					collator_key,
-					collator_service,
-					create_inherent_data_providers,
-					force_authoring,
-					keystore,
-					overseer_handle,
-					para_id,
-					para_client: client,
-					proposer,
-					relay_client: relay_chain_interface,
-					max_pov_percentage,
-				},
-			),
-		);
-	};
+			},
+		),
+	);
 
 	<span class="prelude-val">Ok</span>(())
 }
@@ -3152,7 +2985,6 @@
 	collator_options: CollatorOptions,
 	para_id: ParaId,
 	rpc_config: RpcConfig,
-	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: <span class="prelude-ty">Option</span>&lt;sc_sysinfo::HwBench&gt;,
 	legacy_block_import_strategy: bool,
@@ -3171,7 +3003,6 @@
 		collator_options,
 		para_id,
 		rpc_config,
-		async_backing,
 		block_authoring_duration,
 		hwbench,
 		legacy_block_import_strategy,
@@ -3286,15 +3117,8 @@
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
-		<span class="comment">// TODO: Need to cherry-pick
-		//
-		// https://github.com/moonbeam-foundation/substrate/commit/
-		// d59476b362e38071d44d32c98c32fb35fd280930#diff-a1c022c97c7f9200cab161864c
-		// 06d204f0c8b689955e42177731e232115e9a6f
-		//
-		// env.enable_ensure_proof_size_limit_after_each_extrinsic();
 
-		</span><span class="kw">let </span>commands_stream: Box&lt;<span class="kw">dyn </span>Stream&lt;Item = EngineCommand&lt;H256&gt;&gt; + Send + Sync + Unpin&gt; =
+		<span class="kw">let </span>commands_stream: Box&lt;<span class="kw">dyn </span>Stream&lt;Item = EngineCommand&lt;H256&gt;&gt; + Send + Sync + Unpin&gt; =
 			<span class="kw">match </span>sealing {
 				moonbeam_cli_opt::Sealing::Instant =&gt; {
 					Box::new(
