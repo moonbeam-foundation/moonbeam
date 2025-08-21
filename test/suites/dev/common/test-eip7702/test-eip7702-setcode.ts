@@ -780,7 +780,7 @@ describeSuite({
         };
 
         {
-          const signedTx = await createViemTransaction(context, tx);
+          const signedTx = await createViemTransaction(context, chainCallTx);
           const hash = await sendRawTransaction(context, signedTx);
           await context.createBlock();
 
