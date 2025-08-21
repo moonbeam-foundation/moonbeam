@@ -306,16 +306,16 @@ describeSuite({
           chainId: chainId,
           authorizationList: [], // Empty authorization list
           txnType: "eip7702" as const,
-          gas: 21000n,
+          skipEstimation: true,
         };
 
-        // Transaction should succeed even with empty authorization list
         const signature = await createViemTransaction(context, transaction);
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
+        // Transaction with empty authorization list should fail
         const receipt = await context.viem().getTransactionReceipt({ hash });
-        expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("reverted");
       },
     });
 
