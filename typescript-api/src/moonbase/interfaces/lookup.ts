@@ -3028,9 +3028,6 @@ export default {
         candidateAutoCompoundingDelegationCountHint: "u32",
         delegationCountHint: "u32"
       },
-      hotfix_remove_delegation_requests_exited_candidates: {
-        candidates: "Vec<AccountId20>"
-      },
       notify_inactive_collator: {
         collator: "AccountId20"
       },
