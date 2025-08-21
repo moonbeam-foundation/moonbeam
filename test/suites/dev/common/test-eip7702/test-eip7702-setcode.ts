@@ -185,7 +185,8 @@ describeSuite({
       title: "should handle set-code with existing storage and non-zero nonce",
       test: async () => {
         const sender = await createFundedAccount(context);
-        const existingEOA = privateKeyToAccount(generatePrivateKey());
+        const existingEOAPrivateKey = generatePrivateKey();
+        const existingEOA = privateKeyToAccount(existingEOAPrivateKey);
 
         // Fund and use the account first
         await context.createBlock([
@@ -195,17 +196,20 @@ describeSuite({
         ]);
 
         // Make a transaction to increase nonce
-        const dummyTx = await existingEOA.signTransaction({
-          to: "0x1234567890123456789012345678901234567890",
-          value: parseEther("0.1"),
-          gas: 21000n,
-          maxFeePerGas: parseGwei("10"),
-          maxPriorityFeePerGas: parseGwei("1"),
-          nonce: 0,
-          chainId: chainId,
-        });
+        {
+          const dummyTx = {
+            to: "0x1234567890123456789012345678901234567890",
+            chainId: chainId,
+            privateKey: existingEOAPrivateKey,
+          };
 
-        await context.createBlock(dummyTx);
+          const signature = await createViemTransaction(context, dummyTx);
+          const hash = await sendRawTransaction(context, signature);
+          await context.createBlock();
+
+          const receipt = await context.viem().getTransactionReceipt({ hash });
+          expect(receipt.status).toBe("success");
+        }
 
         // Now the account has nonce = 1
         const currentNonce = await context.viem().getTransactionCount({
