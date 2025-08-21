@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { sendRawTransaction } from "@moonwall/util";
-import { encodeFunctionData, decodeFunctionResult, type Abi, parseEther, parseGwei } from "viem";
-import { expectOk } from "../../../../helpers";
+import { encodeFunctionData, decodeFunctionResult, type Abi, parseEther } from "viem";
 import { createFundedAccount, createViemTransaction } from "./helpers";
 
 describeSuite({
@@ -100,8 +99,7 @@ describeSuite({
           hash,
         });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Now test pointer chain: EOA1 calls EOA2
         const storeData = encodeFunctionData({
@@ -201,7 +199,6 @@ describeSuite({
           data: callData,
           chainId: chainId,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         {
@@ -239,7 +236,6 @@ describeSuite({
           authorizationList: [auth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signedTx = await createViemTransaction(context, setupTx);
@@ -311,7 +307,6 @@ describeSuite({
           authorizationList: [auth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signedTx = await createViemTransaction(context, setupTx);
@@ -376,7 +371,6 @@ describeSuite({
           authorizationList: [auth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signedTx = await createViemTransaction(context, setupTx);
@@ -475,7 +469,6 @@ describeSuite({
           authorizationList: [auth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signedTx = await createViemTransaction(context, setupTx);
@@ -538,7 +531,6 @@ describeSuite({
           authorizationList: [auth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signedTx = await createViemTransaction(context, setupTx);
@@ -563,7 +555,6 @@ describeSuite({
           }),
           chainId: chainId,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         {
@@ -590,7 +581,6 @@ describeSuite({
           }),
           chainId: chainId,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         {
@@ -635,7 +625,6 @@ describeSuite({
           authorizationList: [auth1, auth2],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signedTx = await createViemTransaction(context, tx);
@@ -682,7 +671,6 @@ describeSuite({
           authorizationList: [auth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signedTx = await createViemTransaction(context, setupTx);
@@ -711,7 +699,6 @@ describeSuite({
           value: parseEther("0.5"),
           chainId: chainId,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         {
@@ -753,7 +740,6 @@ describeSuite({
           }),
           chainId: chainId,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         {

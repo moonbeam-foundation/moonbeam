@@ -344,7 +344,6 @@ describeSuite({
           authorizationList: [authorization],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signedTx = await createViemTransaction(context, tx);

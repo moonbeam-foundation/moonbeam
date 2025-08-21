@@ -87,7 +87,6 @@ describeSuite({
           authorizationList: [invalidAuth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signature = await createViemTransaction(context, tx);
@@ -136,7 +135,6 @@ describeSuite({
           authorizationList: [invalidAuth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signature = await createViemTransaction(context, tx);
@@ -184,7 +182,6 @@ describeSuite({
           authorizationList: [invalidAuth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signature = await createViemTransaction(context, tx);
@@ -230,7 +227,6 @@ describeSuite({
           authorizationList: [validAuth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signature = await createViemTransaction(context, tx);
@@ -272,7 +268,6 @@ describeSuite({
           authorizationList: [eoaAuth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signature = await createViemTransaction(context, tx);
@@ -329,7 +324,6 @@ describeSuite({
           authorizationList: [invalidAuth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signature = await createViemTransaction(context, tx);
@@ -375,7 +369,6 @@ describeSuite({
           authorizationList: [auth, auth], // Duplicate
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signature = await createViemTransaction(context, tx);
@@ -431,7 +424,6 @@ describeSuite({
           authorizationList: [invalidAuth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signature = await createViemTransaction(context, tx);
@@ -484,7 +476,6 @@ describeSuite({
           authorizationList: [invalidAuth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const signature = await createViemTransaction(context, tx);

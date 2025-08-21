@@ -165,7 +165,6 @@ describeSuite({
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
           nonce: senderNonce,
-          skipEstimation: true,
         };
 
         // Transaction with warm account
@@ -176,7 +175,6 @@ describeSuite({
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
           nonce: senderNonce + 1,
-          skipEstimation: true,
         };
 
         const coldSignature = await createViemTransaction(context, coldTx);
@@ -511,7 +509,6 @@ describeSuite({
           authorizationList: [setAuth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const setSignature = await createViemTransaction(context, setTx);
@@ -537,7 +534,6 @@ describeSuite({
           authorizationList: [clearAuth],
           txnType: "eip7702" as const,
           privateKey: sender.privateKey,
-          skipEstimation: true,
         };
 
         const clearSignature = await createViemTransaction(context, clearTx);

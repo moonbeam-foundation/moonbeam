@@ -76,7 +76,6 @@ describeSuite({
           authorizationList: [selfAuth],
           txnType: "eip7702" as const,
           privateKey: eoaPrivateKey,
-          skipEstimation: true,
         };
 
         console.log(`Transaction will be sent with nonce: ${selfTx.nonce}`);

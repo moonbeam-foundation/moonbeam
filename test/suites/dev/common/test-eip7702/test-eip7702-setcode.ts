@@ -83,7 +83,7 @@ describeSuite({
         const tx = {
           to: selfSponsor.account.address, // Sending to self
           data: callData,
-          skipEstimation: true,
+
           nonce: 0, // First transaction from this account
           chainId: chainId,
           authorizationList: [authorization],
@@ -155,7 +155,7 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: callData,
-          skipEstimation: true,
+
           chainId: chainId,
           authorizationList: [authorization],
           txnType: "eip7702" as const,
@@ -237,7 +237,7 @@ describeSuite({
         const tx = {
           to: existingEOA.address,
           data: callData,
-          skipEstimation: true,
+
           chainId: chainId,
           authorizationList: [authorization],
           txnType: "eip7702" as const,
@@ -292,7 +292,7 @@ describeSuite({
             functionName: "store",
             args: [20n, 200n],
           }),
-          skipEstimation: true,
+
           chainId: chainId,
           authorizationList: [authorization],
           txnType: "eip7702" as const,
@@ -319,7 +319,7 @@ describeSuite({
             functionName: "load",
             args: [20n],
           }),
-          skipEstimation: true,
+
           chainId: chainId,
         };
 
@@ -374,7 +374,7 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: callData,
-          skipEstimation: true,
+
           chainId: chainId,
           authorizationList: [authorization],
           txnType: "eip7702" as const,
@@ -422,7 +422,7 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: callData,
-          skipEstimation: true,
+
           chainId: chainId,
           authorizationList: [authorization],
           txnType: "eip7702" as const,
@@ -490,7 +490,7 @@ describeSuite({
         const createTx = {
           to: delegatingEOA.address,
           data: createCallData,
-          skipEstimation: true,
+
           chainId: chainId,
           authorizationList: [authorization],
           txnType: "eip7702" as const,
@@ -528,7 +528,7 @@ describeSuite({
         const create2Tx = {
           to: delegatingEOA.address,
           data: create2CallData,
-          skipEstimation: true,
+
           chainId: chainId,
         };
 
@@ -579,7 +579,7 @@ describeSuite({
         const tx = {
           to: delegatingEOA.address,
           data: callData,
-          skipEstimation: true,
+
           chainId: chainId,
           authorizationList: [authorization],
           txnType: "eip7702" as const,
@@ -645,7 +645,7 @@ describeSuite({
         const setupTx = {
           to: eoa1.address,
           data: "0x" as `0x${string}`,
-          skipEstimation: true,
+
           chainId: chainId,
           authorizationList: [auth1, auth2],
           txnType: "eip7702" as const,
@@ -680,7 +680,7 @@ describeSuite({
         const crossCallTx = {
           to: eoa1.address,
           data: crossCallData,
-          skipEstimation: true,
+
           chainId: chainId,
         };
 
@@ -736,7 +736,7 @@ describeSuite({
         const setupTx = {
           to: eoa1.address,
           data: "0x" as `0x${string}`,
-          skipEstimation: true,
+
           chainId: chainId,
           authorizationList: [auth1, auth2],
           txnType: "eip7702" as const,
@@ -779,7 +779,7 @@ describeSuite({
         const chainCallTx = {
           to: eoa1.address,
           data: callData,
-          skipEstimation: true,
+
           chainId: chainId,
         };
 
@@ -871,7 +871,7 @@ describeSuite({
             functionName: "store",
             args: [1n, 100n],
           }),
-          skipEstimation: true,
+
           chainId: chainId,
           authorizationList: [auth1, auth2, auth3, auth4],
           txnType: "eip7702" as const,

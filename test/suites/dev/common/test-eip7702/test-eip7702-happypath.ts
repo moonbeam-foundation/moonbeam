@@ -306,7 +306,6 @@ describeSuite({
           chainId: chainId,
           authorizationList: [], // Empty authorization list
           txnType: "eip7702" as const,
-          skipEstimation: true,
         };
 
         const signature = await createViemTransaction(context, transaction);
@@ -393,7 +392,6 @@ describeSuite({
           chainId: chainId,
           authorizationList: [clearAuthorization],
           txnType: "eip7702" as const,
-          skipEstimation: true,
         };
 
         const clearSignature = await createViemTransaction(context, clearTransaction);
