@@ -1,14 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { sendRawTransaction } from "@moonwall/util";
-import {
-  keccak256,
-  concat,
-  encodeFunctionData,
-  numberToHex,
-  type PrivateKeyAccount,
-  type Abi,
-} from "viem";
+import { keccak256, concat, encodeFunctionData, numberToHex, type Abi } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createViemTransaction } from "./helpers";
 
@@ -19,7 +12,6 @@ describeSuite({
   testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
     let contractAbi: Abi;
-    let alithAccount: PrivateKeyAccount;
     let chainId: number;
 
     beforeAll(async () => {
