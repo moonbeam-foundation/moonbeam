@@ -219,6 +219,6 @@ impl<T: frame_system::Config> pallet_proxy::WeightInfo for WeightInfo<T> {
 
     fn poke_deposit() -> Weight {
         // TODO: regenerate weights
-        Weight::from_parts(1_533_606, 1587)
+        <()>::poke_deposit()
     }
 }

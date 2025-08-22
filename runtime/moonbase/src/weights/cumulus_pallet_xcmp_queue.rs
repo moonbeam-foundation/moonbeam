@@ -137,13 +137,26 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
 
-    fn enqueue_n_bytes_xcmp_message(_n: u32) -> Weight {
-        // TODO: regenerate weights
-        Weight::from_parts(1_540_000, 7)
+    fn enqueue_n_bytes_xcmp_message(n: u32, ) -> Weight {
+        // Proof Size summary in bytes:
+        //  Measured:  `115`
+        //  Estimated: `5487`
+        // Minimum execution time: 13_128_000 picoseconds.
+        Weight::from_parts(9_482_283, 0)
+            .saturating_add(Weight::from_parts(0, 5487))
+            // Standard Error: 6
+            .saturating_add(Weight::from_parts(950, 0).saturating_mul(n.into()))
+            .saturating_add(T::DbWeight::get().reads(4))
+            .saturating_add(T::DbWeight::get().writes(3))
     }
 
     fn enqueue_2_empty_xcmp_messages() -> Weight {
-        // TODO: regenerate weights
-        Weight::from_parts(1_540_000, 7)
+        // Proof Size summary in bytes:
+        //  Measured:  `151`
+        //  Estimated: `5487`
+        // Minimum execution time: 20_184_000 picoseconds.
+        Weight::from_parts(20_184_000, 5487)
+            .saturating_add(RocksDbWeight::get().reads(4_u64))
+            .saturating_add(RocksDbWeight::get().writes(3_u64))
     }
 }

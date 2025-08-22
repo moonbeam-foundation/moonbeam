@@ -109,11 +109,11 @@ impl<T: frame_system::Config> pallet_utility::WeightInfo for WeightInfo<T> {
 
     fn dispatch_as_fallible() -> Weight {
         // TODO: regenerate weights
-        Weight::from_parts(1_533_606, 1587)
+        <()>::dispatch_as_fallible()
     }
 
     fn if_else() -> Weight {
         // TODO: regenerate weights
-        Weight::from_parts(1_533_606, 1587)
+        <()>::if_else()
     }
 }

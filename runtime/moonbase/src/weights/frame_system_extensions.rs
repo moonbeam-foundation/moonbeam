@@ -117,6 +117,6 @@ impl<T: frame_system::Config> frame_system::ExtensionsWeightInfo for WeightInfo<
 
     fn weight_reclaim() -> Weight {
         // TODO: regenerate this file
-        Weight::from_parts(4_780_000, 1489)
+        <()>::weight_reclaim()
     }
 }

@@ -141,9 +141,7 @@ impl<T: frame_system::Config> pallet_message_queue::WeightInfo for WeightInfo<T>
 
     fn set_service_head() -> Weight {
         // TODO: regenerate this file
-        Weight::from_parts(28_499_000, 11171)
-            .saturating_add(T::DbWeight::get().reads(1_u64))
-            .saturating_add(T::DbWeight::get().writes(1_u64))
+        <()>::set_service_head()
     }
 
     /// Storage: `MessageQueue::BookStateFor` (r:1 w:1)

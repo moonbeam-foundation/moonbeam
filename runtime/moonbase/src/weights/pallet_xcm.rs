@@ -349,11 +349,11 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 
     fn add_authorized_alias() -> Weight {
         // TODO: regenerate this file
-        Weight::from_parts(5_692_179, 1834)
+        Weight::from_parts(100_000, 0)
     }
 
     fn remove_authorized_alias() -> Weight {
         // TODO: regenerate this file
-        Weight::from_parts(5_692_179, 1834)
+        Weight::from_parts(100_000, 0)
     }
 }

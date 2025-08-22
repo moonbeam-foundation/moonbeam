@@ -109,15 +109,11 @@ impl<T: frame_system::Config> pallet_utility::WeightInfo for WeightInfo<T> {
 
     fn dispatch_as_fallible() -> Weight {
         // TODO: regenerate this file
-        Weight::from_parts(28_499_000, 11171)
-            .saturating_add(T::DbWeight::get().reads(1_u64))
-            .saturating_add(T::DbWeight::get().writes(1_u64))
+        <()>::dispatch_as_fallible()
     }
 
     fn if_else() -> Weight {
         // TODO: regenerate this file
-        Weight::from_parts(28_499_000, 11171)
-            .saturating_add(T::DbWeight::get().reads(1_u64))
-            .saturating_add(T::DbWeight::get().writes(1_u64))
+        <()>::if_else()
     }
 }
