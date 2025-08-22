@@ -767,6 +767,7 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
 	type Currency = Balances;
 	type Balance = Balance;
+	type AssetHubLocation = AssetHubLocation;
 }
 
 pub struct AssetFeesFilter;
