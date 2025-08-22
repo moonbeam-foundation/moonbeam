@@ -9,7 +9,12 @@ import {
 } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { BN } from "@polkadot/util";
-import { addAssetToWeightTrader } from "../../../../helpers";
+import {
+  registerForeignAsset,
+  addAssetToWeightTrader,
+  PARA_2000_SOURCE_LOCATION,
+  foreignAssetBalance,
+} from "../../../../helpers";
 
 describeSuite({
   id: "D021903",
@@ -23,37 +28,24 @@ describeSuite({
       const assetMetadata = {
         name: "FOREIGN",
         symbol: "FOREIGN",
-        decimals: new BN(12),
-        isFroze: false,
+        decimals: 12n,
+        isFrozen: false,
       };
 
-      const sourceLocation = {
-        Xcm: { parents: 1, interior: { X1: { Parachain: foreignParaId } } },
-      };
+      const arbitraryAssetId = 42259045809535163221576417993425387649n; // Different from other tests
 
-      // registerForeignAsset
-      const { result } = await context.createBlock(
-        context
-          .polkadotJs()
-          .tx.sudo.sudo(
-            context
-              .polkadotJs()
-              .tx.assetManager.registerForeignAsset(sourceLocation, assetMetadata, new BN(1), true)
-          )
+      // Register foreign asset using the new system
+      const { registeredAssetId } = await registerForeignAsset(
+        context,
+        arbitraryAssetId,
+        PARA_2000_SOURCE_LOCATION,
+        assetMetadata
       );
 
-      const events = result?.events.find(
-        ({ event: { section } }) => section.toString() === "assetManager"
-      );
-
-      if (!events) {
-        throw new Error("Events Not Found!");
-      }
-
-      assetId = events.event.data[0].toHex().replace(/,/g, "");
+      assetId = registeredAssetId.toString();
 
       // set relative price in xcmWeightTrader
-      await addAssetToWeightTrader(sourceLocation, 0n, context);
+      await addAssetToWeightTrader(PARA_2000_SOURCE_LOCATION, 0n, context);
     });
 
     beforeEach(async () => {
@@ -75,11 +67,9 @@ describeSuite({
         await context.createBlock();
 
         // Make sure the state does not have ALITH's foreign asset tokens
-        let alithBalance = (await context
-          .polkadotJs()
-          .query.assets.account(assetId, ALITH_ADDRESS)) as any;
+        let alithBalance = await foreignAssetBalance(context, BigInt(assetId), ALITH_ADDRESS);
         // Alith balance is 0
-        expect(alithBalance.isNone).to.eq(true);
+        expect(alithBalance).to.eq(0n);
 
         // turn maintenance off
         await execOpenTechCommitteeProposal(
@@ -91,11 +81,9 @@ describeSuite({
         await context.createBlock();
 
         // Make sure the state has ALITH's to foreign assets tokens
-        alithBalance = (
-          await context.polkadotJs().query.assets.account(assetId, ALITH_ADDRESS)
-        ).unwrap();
+        alithBalance = await foreignAssetBalance(context, BigInt(assetId), ALITH_ADDRESS);
 
-        expect(alithBalance.balance.toBigInt()).to.eq(10000000000000n);
+        expect(alithBalance).to.eq(10000000000000n);
       },
     });
   },

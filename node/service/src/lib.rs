@@ -658,7 +658,6 @@ async fn start_node_impl<RuntimeApi, Customizations, Net>(
 	collator_options: CollatorOptions,
 	para_id: ParaId,
 	rpc_config: RpcConfig,
-	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
 	legacy_block_import_strategy: bool,
@@ -941,7 +940,6 @@ where
 
 	if collator {
 		start_consensus::<RuntimeApi, _>(
-			async_backing,
 			backend.clone(),
 			client.clone(),
 			block_import,
@@ -961,49 +959,12 @@ where
 			sync_service.clone(),
 			max_pov_percentage,
 		)?;
-		/*let parachain_consensus = build_consensus(
-			client.clone(),
-			backend,
-			block_import,
-			prometheus_registry.as_ref(),
-			telemetry.as_ref().map(|t| t.handle()),
-			&task_manager,
-			relay_chain_interface.clone(),
-			transaction_pool,
-			sync_service.clone(),
-			params.keystore_container.keystore(),
-			force_authoring,
-		)?;
-
-		let spawner = task_manager.spawn_handle();
-
-		let params = StartCollatorParams {
-			para_id,
-			block_status: client.clone(),
-			announce_block,
-			client: client.clone(),
-			task_manager: &mut task_manager,
-			relay_chain_interface,
-			spawner,
-			parachain_consensus,
-			import_queue: import_queue_service,
-			recovery_handle: Box::new(overseer_handle),
-			collator_key: collator_key.ok_or(sc_service::error::Error::Other(
-				"Collator Key is None".to_string(),
-			))?,
-			relay_chain_slot_duration,
-			sync_service,
-		};
-
-		#[allow(deprecated)]
-		start_collator(params).await?;*/
 	}
 
 	Ok((task_manager, client))
 }
 
 fn start_consensus<RuntimeApi, SO>(
-	async_backing: bool,
 	backend: Arc<FullBackend>,
 	client: Arc<FullClient<RuntimeApi>>,
 	block_import: ParachainBlockImport<FullClient<RuntimeApi>, FullBackend>,
@@ -1040,7 +1001,6 @@ where
 	);
 
 	let proposer = Proposer::new(proposer_factory);
-
 	let collator_service = CollatorService::new(
 		client.clone(),
 		Arc::new(task_manager.spawn_handle()),
@@ -1070,32 +1030,20 @@ where
 			)
 		};
 
-	if async_backing {
-		log::info!("Collator started with asynchronous backing.");
-		let client_clone = client.clone();
-		let code_hash_provider = move |block_hash| {
-			client_clone
-				.code_at(block_hash)
-				.ok()
-				.map(polkadot_primitives::ValidationCode)
-				.map(|c| c.hash())
-		};
-		task_manager.spawn_essential_handle().spawn(
-			"nimbus",
-			None,
-			nimbus_consensus::collators::lookahead::run::<
-				Block,
-				_,
-				_,
-				_,
-				FullBackend,
-				_,
-				_,
-				_,
-				_,
-				_,
-				_,
-			>(nimbus_consensus::collators::lookahead::Params {
+	log::info!("Collator started with asynchronous backing.");
+	let client_clone = client.clone();
+	let code_hash_provider = move |block_hash| {
+		client_clone
+			.code_at(block_hash)
+			.ok()
+			.map(polkadot_primitives::ValidationCode)
+			.map(|c| c.hash())
+	};
+	task_manager.spawn_essential_handle().spawn(
+		"nimbus",
+		None,
+		nimbus_consensus::collators::lookahead::run::<Block, _, _, _, FullBackend, _, _, _, _, _, _>(
+			nimbus_consensus::collators::lookahead::Params {
 				additional_digests_provider: maybe_provide_vrf_digest,
 				additional_relay_keys: vec![
 					moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
@@ -1120,37 +1068,9 @@ where
 				sync_oracle,
 				reinitialize: false,
 				max_pov_percentage,
-			}),
-		);
-	} else {
-		log::info!("Collator started without asynchronous backing.");
-		task_manager.spawn_essential_handle().spawn(
-			"nimbus",
-			None,
-			nimbus_consensus::collators::basic::run::<Block, _, _, FullBackend, _, _, _, _, _>(
-				nimbus_consensus::collators::basic::Params {
-					additional_digests_provider: maybe_provide_vrf_digest,
-					additional_relay_keys: vec![
-						moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-						relay_chain::well_known_keys::EPOCH_INDEX.to_vec(),
-					],
-					//authoring_duration: Duration::from_millis(500),
-					block_import,
-					collator_key,
-					collator_service,
-					create_inherent_data_providers,
-					force_authoring,
-					keystore,
-					overseer_handle,
-					para_id,
-					para_client: client,
-					proposer,
-					relay_client: relay_chain_interface,
-					max_pov_percentage,
-				},
-			),
-		);
-	};
+			},
+		),
+	);
 
 	Ok(())
 }
@@ -1164,7 +1084,6 @@ pub async fn start_node<RuntimeApi, Customizations>(
 	collator_options: CollatorOptions,
 	para_id: ParaId,
 	rpc_config: RpcConfig,
-	async_backing: bool,
 	block_authoring_duration: Duration,
 	hwbench: Option<sc_sysinfo::HwBench>,
 	legacy_block_import_strategy: bool,
@@ -1183,7 +1102,6 @@ where
 		collator_options,
 		para_id,
 		rpc_config,
-		async_backing,
 		block_authoring_duration,
 		hwbench,
 		legacy_block_import_strategy,
@@ -1298,13 +1216,6 @@ where
 			telemetry.as_ref().map(|x| x.handle()),
 		);
 		env.set_soft_deadline(SOFT_DEADLINE_PERCENT);
-		// TODO: Need to cherry-pick
-		//
-		// https://github.com/moonbeam-foundation/substrate/commit/
-		// d59476b362e38071d44d32c98c32fb35fd280930#diff-a1c022c97c7f9200cab161864c
-		// 06d204f0c8b689955e42177731e232115e9a6f
-		//
-		// env.enable_ensure_proof_size_limit_after_each_extrinsic();
 
 		let commands_stream: Box<dyn Stream<Item = EngineCommand<H256>> + Send + Sync + Unpin> =
 			match sealing {

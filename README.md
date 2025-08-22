@@ -10,6 +10,14 @@
 👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._<br>
 👉 _Reference our [crate-level docs (rustdocs)](https://moonbeam-foundation.github.io/moonbeam) to contribute._
 
+## Run Moonbeam with zombienet
+```bash
+# Start Polkadot relay with Moonbeam parachain
+make start-zombienet-moonbeam
+# Start Kusama relay with Moonriver parachain
+make start-zombienet-moonriver
+```
+
 ## Run a Moonbase Alpha (Moonbeam TestNet) Node with Docker
 
 Docker images are published for every tagged release. Learn more with `moonbeam --help`.
@@ -133,6 +141,11 @@ cargo test
 cd test
 pnpm i 
 pnpm moonwall test dev_moonbase
+```
+
+### Run bridge integration tests
+```bash
+make run-bridge-integration-tests
 ```
 
 ## Chain IDs
