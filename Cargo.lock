@@ -627,7 +627,7 @@ checksum = "9b34d609dfbaf33d6889b2b7106d3ca345eacad44200913df5ba02bfd31d2ba9"
 [[package]]
 name = "async-backing-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "sp-api",
  "sp-consensus-slots",
@@ -3490,14 +3490,13 @@ dependencies = [
 
 [[package]]
 name = "ethereum"
-version = "0.18.2"
-source = "git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f#cf3076f07e61102eec686f6816da668f97d94f1f"
+version = "0.15.0"
+source = "git+https://github.com/rust-ethereum/ethereum.git?rev=bbb544622208ef6e9890a2dbc224248f6dd13318#bbb544622208ef6e9890a2dbc224248f6dd13318"
 dependencies = [
  "bytes",
  "ethereum-types",
  "hash-db",
  "hash256-std-hasher",
- "k256",
  "parity-scale-codec",
  "rlp",
  "scale-info",
@@ -3563,7 +3562,7 @@ dependencies = [
 [[package]]
 name = "evm"
 version = "0.43.4"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503#57843f91cdd8694c2b01785e6940b1e64f93d424"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503-no-7702#78e31607956a4a4758c3c6e40a9ae686f43690e3"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -3583,7 +3582,7 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503#57843f91cdd8694c2b01785e6940b1e64f93d424"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503-no-7702#78e31607956a4a4758c3c6e40a9ae686f43690e3"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
@@ -3594,7 +3593,7 @@ dependencies = [
 [[package]]
 name = "evm-gasometer"
 version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503#57843f91cdd8694c2b01785e6940b1e64f93d424"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503-no-7702#78e31607956a4a4758c3c6e40a9ae686f43690e3"
 dependencies = [
  "environmental",
  "evm-core",
@@ -3605,7 +3604,7 @@ dependencies = [
 [[package]]
 name = "evm-runtime"
 version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503#57843f91cdd8694c2b01785e6940b1e64f93d424"
+source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503-no-7702#78e31607956a4a4758c3c6e40a9ae686f43690e3"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -3705,7 +3704,7 @@ dependencies = [
 [[package]]
 name = "fc-api"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "async-trait",
  "fp-storage",
@@ -3717,7 +3716,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "async-trait",
  "fp-consensus",
@@ -3733,7 +3732,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -3763,7 +3762,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "fc-db",
  "fc-storage",
@@ -3786,7 +3785,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3840,7 +3839,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3855,7 +3854,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-v2-api"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "ethereum-types",
  "fc-rpc-v2-types",
@@ -3865,7 +3864,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-v2-types"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "const-hex",
  "ethereum-types",
@@ -3876,7 +3875,7 @@ dependencies = [
 [[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4063,7 +4062,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "hex",
  "impl-serde",
@@ -4082,7 +4081,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -4093,7 +4092,7 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4105,7 +4104,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "environmental",
  "evm",
@@ -4121,7 +4120,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4137,7 +4136,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -4149,7 +4148,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -7125,6 +7124,7 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
+ "env_logger",
  "ethereum",
  "evm-tracing-events",
  "fp-evm",
@@ -8281,7 +8281,7 @@ dependencies = [
 [[package]]
 name = "nimbus-consensus"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "async-backing-primitives",
  "async-trait",
@@ -8321,7 +8321,7 @@ dependencies = [
 [[package]]
 name = "nimbus-primitives"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "async-trait",
  "frame-benchmarking",
@@ -8815,7 +8815,7 @@ dependencies = [
 [[package]]
 name = "pallet-async-backing"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -8835,7 +8835,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-inherent"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8854,7 +8854,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-mapping"
 version = "2.0.5"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8873,7 +8873,7 @@ dependencies = [
 [[package]]
 name = "pallet-author-slot-filter"
 version = "0.9.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9316,7 +9316,7 @@ dependencies = [
 [[package]]
 name = "pallet-emergency-para-xcm"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -9358,7 +9358,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "environmental",
  "ethereum",
@@ -9413,7 +9413,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "cumulus-primitives-storage-weight-reclaim",
  "environmental",
@@ -9438,7 +9438,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-chain-id"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -9517,7 +9517,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "fp-evm",
 ]
@@ -9525,7 +9525,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -9681,7 +9681,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "fp-evm",
  "num",
@@ -9882,7 +9882,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -9891,7 +9891,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -9901,7 +9901,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-xcm"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "cumulus-primitives-core",
  "evm",
@@ -10124,7 +10124,7 @@ dependencies = [
 [[package]]
 name = "pallet-maintenance-mode"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
@@ -10500,7 +10500,7 @@ dependencies = [
 [[package]]
 name = "pallet-randomness"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "environmental",
  "frame-benchmarking",
@@ -10575,7 +10575,7 @@ dependencies = [
 [[package]]
 name = "pallet-relay-storage-roots"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -11050,8 +11050,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -12590,7 +12590,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "derive_more 1.0.0",
  "environmental",
@@ -12619,7 +12619,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils-macro"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#06942bb7d80f20b965bfde3d68cc858aa2a42406"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503-no-7702#f6bcb02a2e378bdaf153260b83567db43156679d"
 dependencies = [
  "case",
  "num_enum 0.7.3",
@@ -15510,7 +15510,7 @@ dependencies = [
 [[package]]
 name = "session-keys-primitives"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "async-trait",
  "frame-support",
@@ -18240,7 +18240,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
@@ -19635,7 +19635,7 @@ dependencies = [
 [[package]]
 name = "xcm-primitives"
 version = "0.1.0"
-source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#acf6a9e1a179b96fc30fdbcd474da47801e8d35e"
+source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2503-no-7702#4d5689f3476ac03c48f5a38a8aa4f3d455e96eed"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
