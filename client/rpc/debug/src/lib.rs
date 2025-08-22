@@ -735,6 +735,7 @@ where
 						};
 
 						// The block is initialized inside "trace_transaction"
+						#[allow(deprecated)]
 						api.trace_transaction_before_version_7(
 							parent_block_hash,
 							exts,
