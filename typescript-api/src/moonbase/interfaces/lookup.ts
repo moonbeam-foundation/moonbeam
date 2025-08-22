@@ -3028,6 +3028,7 @@ export default {
         candidateAutoCompoundingDelegationCountHint: "u32",
         delegationCountHint: "u32"
       },
+      __Unused28: "Null",
       notify_inactive_collator: {
         collator: "AccountId20"
       },
