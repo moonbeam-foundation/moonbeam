@@ -133,7 +133,18 @@ impl<T: crate::Config> ForeignAssetsMatcher<T> {
 			_ => return Err(MatchError::AssetNotHandled),
 		};
 
-		if let Some((asset_id, asset_status)) = AssetsByLocation::<T>::get(&location) {
+		// TODO: Remove after migrating DOT/KSM location from Relay to AssetHub
+		let fallback_asset_hub_to_relay_location = || {
+			if location.clone() == T::AssetHubLocation::get() {
+				AssetsByLocation::<T>::get(&Location::parent())
+			} else {
+				None
+			}
+		};
+
+		if let Some((asset_id, asset_status)) =
+			AssetsByLocation::<T>::get(&location).or_else(fallback_asset_hub_to_relay_location)
+		{
 			Ok((
 				Pallet::<T>::contract_address_from_asset_id(asset_id),
 				U256::from(*amount),
@@ -237,6 +248,9 @@ pub mod pallet {
 
 		/// The currency type for locking funds
 		type Currency: ReservableCurrency<Self::AccountId>;
+
+		/// Combinations of (Asset, Location) pairs which we trust as reserves.
+		type AssetHubLocation: Get<Location>;
 	}
 
 	type BalanceOf<T> =
@@ -816,10 +830,26 @@ pub mod pallet {
 
 	impl<T: Config> sp_runtime::traits::MaybeEquivalence<Location, AssetId> for Pallet<T> {
 		fn convert(location: &Location) -> Option<AssetId> {
-			AssetsByLocation::<T>::get(location).map(|(asset_id, _)| asset_id)
+			AssetsByLocation::<T>::get(location)
+				.or_else(|| {
+					// TODO: Remove after migrating DOT/KSM location from Relay to AssetHub
+					if Location::parent() == location.clone() {
+						AssetsByLocation::<T>::get(location)
+					} else {
+						None
+					}
+				})
+				.map(|(asset_id, _)| asset_id)
 		}
 		fn convert_back(asset_id: &AssetId) -> Option<Location> {
-			AssetsById::<T>::get(asset_id)
+			let location = AssetsById::<T>::get(asset_id)?;
+
+			// TODO: Remove after migrating DOT/KSM location from Relay to AssetHub
+			if Location::parent() == location {
+				Some(T::AssetHubLocation::get())
+			} else {
+				Some(location)
+			}
 		}
 	}
 }
