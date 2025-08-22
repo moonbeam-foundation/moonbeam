@@ -1099,6 +1099,7 @@ where
 				additional_digests_provider: maybe_provide_vrf_digest,
 				additional_relay_keys: vec![
 					moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+					relay_chain::well_known_keys::EPOCH_INDEX.to_vec(),
 				],
 				authoring_duration: block_authoring_duration,
 				block_import,
@@ -1131,6 +1132,7 @@ where
 					additional_digests_provider: maybe_provide_vrf_digest,
 					additional_relay_keys: vec![
 						moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+						relay_chain::well_known_keys::EPOCH_INDEX.to_vec(),
 					],
 					//authoring_duration: Duration::from_millis(500),
 					block_import,
