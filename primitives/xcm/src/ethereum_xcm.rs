@@ -15,10 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum::{
-	eip1559::TransactionSignature as EIP1559TransactionSignature,
-	eip2930::TransactionSignature as EIP2930TransactionSignature,
-	legacy::TransactionSignature as LegacyTransactionSignature, AccessList, AccessListItem,
-	EIP1559Transaction, EIP2930Transaction, LegacyTransaction, TransactionAction, TransactionV2,
+	AccessList, AccessListItem, EIP1559Transaction, EIP2930Transaction, LegacyTransaction,
+	TransactionAction, TransactionSignature, TransactionV2,
 };
 use ethereum_types::{H160, H256, U256};
 use frame_support::{traits::ConstU32, BoundedVec};
@@ -167,7 +165,9 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 						value: self.value,
 						input: self.input.to_vec(),
 						access_list: from_tuple_to_access_list(access_list),
-						signature: EIP2930TransactionSignature::new(true, rs_id(), rs_id())?,
+						odd_y_parity: true,
+						r: rs_id(),
+						s: rs_id(),
 					}))
 				} else {
 					// Legacy
@@ -178,7 +178,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 						action: self.action,
 						value: self.value,
 						input: self.input.to_vec(),
-						signature: LegacyTransactionSignature::new(42, rs_id(), rs_id())?,
+						signature: TransactionSignature::new(42, rs_id(), rs_id())?,
 					}))
 				}
 			}
@@ -198,7 +198,9 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 					} else {
 						Vec::new()
 					},
-					signature: EIP1559TransactionSignature::new(true, rs_id(), rs_id())?,
+					odd_y_parity: true,
+					r: rs_id(),
+					s: rs_id(),
 				}))
 			}
 			_ => None,
@@ -240,7 +242,9 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 			} else {
 				Vec::new()
 			},
-			signature: EIP1559TransactionSignature::new(true, rs_id(), rs_id())?,
+			odd_y_parity: true,
+			r: rs_id(),
+			s: rs_id(),
 		}))
 	}
 }
@@ -270,12 +274,9 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
-			signature: EIP1559TransactionSignature::new(
-				true,
-				H256::from_low_u64_be(1u64),
-				H256::from_low_u64_be(1u64),
-			)
-			.unwrap(),
+			odd_y_parity: true,
+			r: H256::from_low_u64_be(1u64),
+			s: H256::from_low_u64_be(1u64),
 		}));
 
 		assert_eq!(
@@ -306,7 +307,7 @@ mod tests {
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
 			input: vec![1u8],
-			signature: LegacyTransactionSignature::new(42, rs_id(), rs_id()).unwrap(),
+			signature: TransactionSignature::new(42, rs_id(), rs_id()).unwrap(),
 		}));
 
 		assert_eq!(
@@ -349,12 +350,9 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: from_tuple_to_access_list(&access_list.unwrap()),
-			signature: EIP2930TransactionSignature::new(
-				true,
-				H256::from_low_u64_be(1u64),
-				H256::from_low_u64_be(1u64),
-			)
-			.unwrap(),
+			odd_y_parity: true,
+			r: H256::from_low_u64_be(1u64),
+			s: H256::from_low_u64_be(1u64),
 		}));
 
 		assert_eq!(
@@ -384,12 +382,9 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
-			signature: EIP1559TransactionSignature::new(
-				true,
-				H256::from_low_u64_be(1u64),
-				H256::from_low_u64_be(1u64),
-			)
-			.unwrap(),
+			odd_y_parity: true,
+			r: H256::from_low_u64_be(1u64),
+			s: H256::from_low_u64_be(1u64),
 		}));
 
 		assert_eq!(

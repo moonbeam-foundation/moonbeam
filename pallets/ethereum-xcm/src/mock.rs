@@ -16,11 +16,7 @@
 
 //! Test utilities
 
-use ethereum::{
-	eip1559::TransactionSignature as EIP1559TransactionSignature,
-	eip2930::TransactionSignature as EIP2930TransactionSignature,
-	legacy::TransactionSignature as LegacyTransactionSignature, TransactionAction,
-};
+use ethereum::{TransactionAction, TransactionSignature};
 use frame_support::{
 	parameter_types,
 	traits::{ConstU32, FindAuthor, InstanceFilter},
@@ -459,7 +455,7 @@ impl LegacyUnsignedTransaction {
 		);
 		let sig = s.0.serialize();
 
-		let sig = LegacyTransactionSignature::new(
+		let sig = TransactionSignature::new(
 			s.1.serialize() as u64 % 2 + chain_id * 2 + 35,
 			H256::from_slice(&sig[0..32]),
 			H256::from_slice(&sig[32..64]),
@@ -520,7 +516,9 @@ impl EIP2930UnsignedTransaction {
 			value: msg.value,
 			input: msg.input.clone(),
 			access_list: msg.access_list,
-			signature: EIP2930TransactionSignature::new(recid.serialize() != 0, r, s).unwrap(),
+			odd_y_parity: recid.serialize() != 0,
+			r,
+			s,
 		})
 	}
 }
@@ -570,7 +568,9 @@ impl EIP1559UnsignedTransaction {
 			value: msg.value,
 			input: msg.input.clone(),
 			access_list: msg.access_list,
-			signature: EIP1559TransactionSignature::new(recid.serialize() != 0, r, s).unwrap(),
+			odd_y_parity: recid.serialize() != 0,
+			r,
+			s,
 		})
 	}
 }
