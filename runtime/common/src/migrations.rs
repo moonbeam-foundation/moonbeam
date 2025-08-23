@@ -149,7 +149,9 @@ pub struct MigrateRelayLocationToAssetHub<R, Id, L>(PhantomData<(R, Id, L)>);
 impl<Runtime, RelayAssetId, AHLocation> OnRuntimeUpgrade
 	for MigrateRelayLocationToAssetHub<Runtime, RelayAssetId, AHLocation>
 where
-	Runtime: pallet_moonbeam_foreign_assets::Config + pallet_xcm_weight_trader::Config,
+	Runtime: frame_system::Config
+		+ pallet_moonbeam_foreign_assets::Config
+		+ pallet_xcm_weight_trader::Config,
 	RelayAssetId: Get<u128>,
 	AHLocation: Get<Location>,
 {
@@ -171,6 +173,7 @@ where
 			);
 		}
 
+		weight = weight.saturating_add(Runtime::DbWeight::get().reads(1));
 		let parent_relative_price =
 			pallet_xcm_weight_trader::Pallet::<Runtime>::get_asset_relative_price(
 				&Location::parent(),
