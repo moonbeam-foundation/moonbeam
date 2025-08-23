@@ -56,9 +56,7 @@ use moonbeam_vrf::VrfDigestsProvider;
 pub use moonriver_runtime;
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_primitives::{DigestsProvider, NimbusId};
-use polkadot_primitives::{
-	AbridgedHostConfiguration, AbridgedHrmpChannel, AsyncBackingParams, Slot, UpgradeGoAhead,
-};
+use polkadot_primitives::{AbridgedHostConfiguration, AsyncBackingParams, Slot, UpgradeGoAhead};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
@@ -1313,9 +1311,6 @@ where
 					// variable in closure below.
 					let client_for_xcm = client_for_cidp.clone();
 
-					let para_id = para_id.expect("para ID should be specified for dev service");
-					let ah_para_id = 1_000u32;
-
 					async move {
 						let time = MockTimestampInherentDataProvider;
 
@@ -1357,31 +1352,6 @@ where
 								}
 								.encode(),
 							),
-							(
-								// Mock egress channel with asset hub
-								relay_chain::well_known_keys::hrmp_egress_channel_index(
-									para_id.into(),
-								),
-								vec![ParaId::from(ah_para_id)].encode(),
-							),
-							(
-								// Mock egress channel with asset hub
-								relay_chain::well_known_keys::hrmp_channels(
-									relay_chain::HrmpChannelId {
-										sender: para_id.into(),
-										recipient: ah_para_id.into(),
-									},
-								),
-								AbridgedHrmpChannel {
-									max_capacity: u32::MAX,
-									max_total_size: u32::MAX,
-									max_message_size: u32::MAX,
-									msg_count: 0,
-									total_size: 0,
-									mqc_head: None,
-								}
-								.encode(),
-							),
 						];
 
 						let current_para_head = client_for_xcm
@@ -1404,7 +1374,9 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
-							para_id: para_id.into(),
+							para_id: para_id
+								.expect("para ID should be specified for dev service")
+								.into(),
 							upgrade_go_ahead: should_send_go_ahead.then(|| {
 								log::info!(
 									"Detected pending validation code, sending go-ahead signal."
