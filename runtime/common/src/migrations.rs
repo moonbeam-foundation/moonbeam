@@ -17,14 +17,19 @@
 //! # Common Moonbeam Migrations
 
 use core::marker::PhantomData;
+use cumulus_primitives_core::Weight;
 use frame_support::migrations::SteppedMigrationError;
+use frame_support::traits::OnRuntimeUpgrade;
 use frame_support::weights::WeightMeter;
 use frame_support::{migrations::SteppedMigration, parameter_types};
 use pallet_migrations::WeightInfo;
+use pallet_moonbeam_foreign_assets::WeightInfo as _;
+use pallet_xcm_weight_trader::WeightInfo as _;
 use parity_scale_codec::Encode;
 use sp_core::{twox_128, Get};
 use sp_io::{storage::clear_prefix, KillStorageResult};
 use sp_runtime::SaturatedConversion;
+use xcm::latest::Location;
 
 /// Remove all of a pallet's state and re-initializes it to the current in-code storage version.
 ///
@@ -139,16 +144,69 @@ where
 	}
 }
 
+pub struct MigrateRelayLocationToAssetHub<R, Id, L>(PhantomData<(R, Id, L)>);
+
+impl<Runtime, RelayAssetId, AHLocation> OnRuntimeUpgrade
+	for MigrateRelayLocationToAssetHub<Runtime, RelayAssetId, AHLocation>
+where
+	Runtime: pallet_moonbeam_foreign_assets::Config + pallet_xcm_weight_trader::Config,
+	RelayAssetId: Get<u128>,
+	AHLocation: Get<Location>,
+{
+	fn on_runtime_upgrade() -> Weight {
+		let mut weight = Weight::zero();
+
+		weight = weight.saturating_add(
+			<Runtime as pallet_moonbeam_foreign_assets::Config>::WeightInfo::change_xcm_location(),
+		);
+		let result = pallet_moonbeam_foreign_assets::Pallet::<Runtime>::do_change_xcm_location(
+			RelayAssetId::get(),
+			Location::parent(),
+			AHLocation::get(),
+		);
+		if let Err(e) = result {
+			log::error!(
+				"[MigrateRelayLocationToAssetHub] Could not change xcm_location: {:?}",
+				e
+			);
+		}
+
+		let parent_relative_price =
+			pallet_xcm_weight_trader::Pallet::<Runtime>::get_asset_relative_price(
+				&Location::parent(),
+			);
+		if let Some(relative_price) = parent_relative_price {
+			weight = weight.saturating_add(
+				<Runtime as pallet_xcm_weight_trader::Config>::WeightInfo::add_asset(),
+			);
+			let result = pallet_xcm_weight_trader::Pallet::<Runtime>::do_add_asset(
+				AHLocation::get(),
+				relative_price,
+			);
+
+			if let Err(e) = result {
+				log::error!(
+					"[MigrateRelayLocationToAssetHub] Could not add AssetHub asset: {:?}",
+					e
+				);
+			}
+		}
+
+		weight
+	}
+}
+
 /// Unreleased migrations. Add new ones here:
-pub type UnreleasedSingleBlockMigrations = ();
+pub type UnreleasedSingleBlockMigrations<Runtime, RelayAssetId, AHLocation> =
+	(MigrateRelayLocationToAssetHub<Runtime, RelayAssetId, AHLocation>,);
 
 /// Migrations/checks that do not need to be versioned and can run on every update.
 pub type PermanentSingleBlockMigrations<Runtime> =
 	(pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,);
 
 /// All migrations that will run on the next runtime upgrade.
-pub type SingleBlockMigrations<Runtime> = (
-	UnreleasedSingleBlockMigrations,
+pub type SingleBlockMigrations<Runtime, RelayAssetId, AHLocation> = (
+	UnreleasedSingleBlockMigrations<Runtime, RelayAssetId, AHLocation>,
 	PermanentSingleBlockMigrations<Runtime>,
 );
 

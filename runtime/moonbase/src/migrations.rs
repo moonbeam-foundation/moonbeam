@@ -16,12 +16,24 @@
 
 //! # Moonbase specific Migrations
 
+use crate::xcm_config::{AssetHubLocation, AssetType};
+use moonbeam_core_primitives::AssetId;
+use sp_core::parameter_types;
+
+parameter_types! {
+	pub RelayAssetId: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
+}
+
 type MoonbaseMigrations = ();
 
 /// List of single block migrations to be executed by frame executive.
 pub type SingleBlockMigrations<Runtime> = (
 	// Common migrations applied on all Moonbeam runtime
-	moonbeam_runtime_common::migrations::SingleBlockMigrations<Runtime>,
+	moonbeam_runtime_common::migrations::SingleBlockMigrations<
+		Runtime,
+		RelayAssetId,
+		AssetHubLocation,
+	>,
 	// Moonbase specific migrations
 	MoonbaseMigrations,
 );
