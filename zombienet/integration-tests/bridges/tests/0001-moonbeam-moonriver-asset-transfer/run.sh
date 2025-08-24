@@ -12,11 +12,11 @@ export ENV_PATH=`realpath ${BASH_SOURCE%/*}/../../environments/moonbeam-moonrive
 $ENV_PATH/spawn.sh --init --start-relayer &
 env_pid=$!
 
-ensure_process_file $env_pid $TEST_DIR/moonbeam.env 300
+ensure_process_file $env_pid $TEST_DIR/moonbeam.env 600
 moonbeam_dir=`cat $TEST_DIR/moonbeam.env`
 echo
 
-ensure_process_file $env_pid $TEST_DIR/moonriver.env 300
+ensure_process_file $env_pid $TEST_DIR/moonriver.env 600
 moonriver_dir=`cat $TEST_DIR/moonriver.env`
 echo
 
