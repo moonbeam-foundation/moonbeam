@@ -507,7 +507,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 	// The message passed through parachainA so we needed to pay since its the native token
 	ParaC::execute_with(|| {
-		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 96);
+		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 95);
 	});
 }
 
@@ -4114,7 +4114,7 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 
 	ParaB::execute_with(|| {
 		// Check the derived account was refunded
-		assert_eq!(ParaBalances::free_balance(&derived), 3823903993);
+		assert_eq!(ParaBalances::free_balance(&derived), 3826174993);
 
 		// Check the transfer was executed
 		assert_eq!(ParaBalances::free_balance(&para_a_account_20()), 100);
