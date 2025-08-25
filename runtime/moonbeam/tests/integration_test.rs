@@ -616,6 +616,7 @@ fn transfer_through_evm_to_stake() {
 				max_priority_fee_per_gas: None,
 				nonce: None,
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 			assert_eq!(
@@ -1051,6 +1052,7 @@ fn claim_via_precompile() {
 				max_priority_fee_per_gas: None,
 				nonce: None, // Use the next nonce
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -1294,6 +1296,7 @@ fn update_reward_address_via_precompile() {
 				max_priority_fee_per_gas: None,
 				nonce: None, // Use the next nonce
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -1477,6 +1480,7 @@ fn transfer_ed_0_evm() {
 				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 			// 1 WEI is left in the account
@@ -1508,6 +1512,7 @@ fn refund_ed_0_evm() {
 				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 			// ALICE is refunded
@@ -1546,6 +1551,7 @@ fn author_does_receive_priority_fee() {
 				max_priority_fee_per_gas: Some(U256::from(200 * GIGAWEI)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -1585,6 +1591,7 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 				max_priority_fee_per_gas: Some(U256::from(100 * GIGAWEI)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -1635,6 +1642,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 				max_priority_fee_per_gas: Some(BASE_FEE_GENESIS.into()),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -2817,6 +2825,7 @@ fn evm_revert_substrate_events() {
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -2856,6 +2865,7 @@ fn evm_success_keeps_substrate_events() {
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 

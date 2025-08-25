@@ -13,7 +13,7 @@ import {
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D024101",
+  id: "D024001",
   title: "Auto-pause XCM",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
 
 describeSuite({
-  id: "D024030",
+  id: "D024115",
   title: "Mock XCM - EthereumXcm only disable by root",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

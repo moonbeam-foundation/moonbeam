@@ -4,7 +4,7 @@ import { createViemTransaction } from "@moonwall/util";
 import { ConstantStore } from "../../../../helpers/constants";
 
 describeSuite({
-  id: "D021507",
+  id: "D021607",
   title: "Substrate Length Fees - Ethereum txn Interaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -350,12 +350,17 @@ import type {
   BlockV0,
   BlockV1,
   BlockV2,
+  BlockV3,
   EIP1559Transaction,
   EIP2930Transaction,
+  EIP7702Transaction,
   EthAccessList,
   EthAccessListItem,
   EthAccount,
   EthAddress,
+  EthAuthorizationList,
+  EthAuthorizationListItem,
+  EthAuthorizationSignature,
   EthBlock,
   EthBloom,
   EthCallRequest,
@@ -367,10 +372,12 @@ import type {
   EthFilterTopicEntry,
   EthFilterTopicInner,
   EthHeader,
+  EthLegacyTransactionSignature,
   EthLog,
   EthReceipt,
   EthReceiptV0,
   EthReceiptV3,
+  EthReceiptV4,
   EthRichBlock,
   EthRichHeader,
   EthStorageProof,
@@ -393,7 +400,8 @@ import type {
   LegacyTransaction,
   TransactionV0,
   TransactionV1,
-  TransactionV2
+  TransactionV2,
+  TransactionV3
 } from "@polkadot/types/interfaces/eth";
 import type {
   EvmAccount,
@@ -1495,6 +1503,7 @@ declare module "@polkadot/types/types/registry" {
     BlockV0: BlockV0;
     BlockV1: BlockV1;
     BlockV2: BlockV2;
+    BlockV3: BlockV3;
     BlockWeights: BlockWeights;
     BodyId: BodyId;
     BodyIdV2: BodyIdV2;
@@ -1696,6 +1705,7 @@ declare module "@polkadot/types/types/registry" {
     Ed25519Signature: Ed25519Signature;
     EIP1559Transaction: EIP1559Transaction;
     EIP2930Transaction: EIP2930Transaction;
+    EIP7702Transaction: EIP7702Transaction;
     ElectionCompute: ElectionCompute;
     ElectionPhase: ElectionPhase;
     ElectionResult: ElectionResult;
@@ -1725,6 +1735,9 @@ declare module "@polkadot/types/types/registry" {
     EthAccessListItem: EthAccessListItem;
     EthAccount: EthAccount;
     EthAddress: EthAddress;
+    EthAuthorizationList: EthAuthorizationList;
+    EthAuthorizationListItem: EthAuthorizationListItem;
+    EthAuthorizationSignature: EthAuthorizationSignature;
     EthBlock: EthBlock;
     EthBloom: EthBloom;
     EthCallRequest: EthCallRequest;
@@ -1740,10 +1753,12 @@ declare module "@polkadot/types/types/registry" {
     EthFilterTopicEntry: EthFilterTopicEntry;
     EthFilterTopicInner: EthFilterTopicInner;
     EthHeader: EthHeader;
+    EthLegacyTransactionSignature: EthLegacyTransactionSignature;
     EthLog: EthLog;
     EthReceipt: EthReceipt;
     EthReceiptV0: EthReceiptV0;
     EthReceiptV3: EthReceiptV3;
+    EthReceiptV4: EthReceiptV4;
     EthRichBlock: EthRichBlock;
     EthRichHeader: EthRichHeader;
     EthStorageProof: EthStorageProof;
@@ -2517,6 +2532,7 @@ declare module "@polkadot/types/types/registry" {
     TransactionV0: TransactionV0;
     TransactionV1: TransactionV1;
     TransactionV2: TransactionV2;
+    TransactionV3: TransactionV3;
     TransactionValidity: TransactionValidity;
     TransactionValidityError: TransactionValidityError;
     TransientValidationData: TransientValidationData;

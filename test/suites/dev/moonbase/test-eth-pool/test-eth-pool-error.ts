@@ -16,7 +16,7 @@ import { ALITH_GENESIS_TRANSFERABLE_BALANCE, ConstantStore } from "../../../../h
 import { UNIT } from "../test-parameters/test-parameters";
 
 describeSuite({
-  id: "D021002",
+  id: "D021102",
   title: "Ethereum Rpc pool errors",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -9,7 +9,7 @@ import {
 import { parseGwei } from "viem";
 
 describeSuite({
-  id: "D021104",
+  id: "D021204",
   title: "Ethereum RPC - eth_pendingTransactions",
   foundationMethods: "dev",
   testCases: ({ it, context }) => {
