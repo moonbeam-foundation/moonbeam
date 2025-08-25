@@ -144,7 +144,6 @@ fn receive_relay_asset_from_relay() {
 }
 
 // Send relay asset (like DOT) back from Parachain A to relaychain
-#[ignore]
 #[test]
 fn send_relay_asset_to_relay() {
 	MockNet::reset();
@@ -236,7 +235,6 @@ fn send_relay_asset_to_relay() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_relay_asset_to_para_b() {
 	MockNet::reset();
@@ -990,7 +988,6 @@ fn error_when_not_paying_enough() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_derivative_multilocation() {
 	MockNet::reset();
@@ -1159,7 +1156,6 @@ fn transact_through_derivative_multilocation() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_derivative_with_custom_fee_weight() {
 	MockNet::reset();
@@ -1314,7 +1310,6 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_derivative_with_custom_fee_weight_refund() {
 	MockNet::reset();
@@ -1468,7 +1463,6 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_sovereign() {
 	MockNet::reset();
@@ -1635,7 +1629,6 @@ fn transact_through_sovereign() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_sovereign_fee_payer_none() {
 	MockNet::reset();
@@ -1741,7 +1734,6 @@ fn transact_through_sovereign_fee_payer_none() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_sovereign_with_custom_fee_weight() {
 	MockNet::reset();
@@ -1894,7 +1886,6 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	MockNet::reset();
@@ -2712,7 +2703,6 @@ fn test_statemint_like() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	MockNet::reset();
@@ -2925,7 +2915,6 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 	MockNet::reset();
@@ -3082,7 +3071,6 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 	MockNet::reset();
@@ -3243,7 +3231,6 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_with_fee() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 	MockNet::reset();
@@ -3403,7 +3390,6 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiasset() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 	MockNet::reset();
@@ -3652,7 +3638,6 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 	MockNet::reset();
