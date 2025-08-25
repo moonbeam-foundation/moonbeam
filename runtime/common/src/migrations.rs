@@ -158,6 +158,7 @@ where
 	fn on_runtime_upgrade() -> Weight {
 		let mut weight = Weight::zero();
 
+		// Modify DOT/KSM asset location to be Asset Hub, the new reserve
 		weight = weight.saturating_add(
 			<Runtime as pallet_moonbeam_foreign_assets::Config>::WeightInfo::change_xcm_location(),
 		);
@@ -173,6 +174,8 @@ where
 			);
 		}
 
+		// Adds Asset Hub location as sufficient (It is the new reserve for DOT/KSM)
+		// The Relay location is kept as sufficient
 		weight = weight.saturating_add(Runtime::DbWeight::get().reads(1));
 		let parent_relative_price =
 			pallet_xcm_weight_trader::Pallet::<Runtime>::get_asset_relative_price(
