@@ -27,7 +27,7 @@ describeSuite({
         const trackName = "root";
         const tracksInfo = context.polkadotJs().consts.referenda.tracks;
         const trackInfo = tracksInfo.find((track) => track[1].name.toString() === trackName);
-        expect(trackInfo).to.not.be.empty;
+        expect(trackInfo.toString().replace(/\u0000+$/g, "")).to.not.be.empty;
 
         const { contractAddress: refUpgradeDemoV1Address, abi: refUpgradeDemoV1Abi } =
           await context.deployContract!("ReferendaAutoUpgradeDemoV1", {
