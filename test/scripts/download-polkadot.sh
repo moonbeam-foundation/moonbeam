@@ -6,6 +6,9 @@ set -e
 # Grab Polkadot version
 branch=$(egrep -o '/polkadot.*#([^\"]*)' $(dirname $0)/../../Cargo.lock | head -1 | sed 's/.*release-//#')
 polkadot_release=$(echo $branch | sed 's/#.*//' | sed 's/\/polkadot-sdk?branch=moonbeam-polkadot-//')
+# TODO: remove the line below once we upgrade to stable2506
+# https://github.com/paritytech/polkadot-sdk/pull/7760
+polkadot_release=stable2506
 
 # Always run the commands from the "test" dir
 cd $(dirname $0)/..
