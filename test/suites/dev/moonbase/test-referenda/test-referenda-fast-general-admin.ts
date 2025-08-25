@@ -55,7 +55,7 @@ describeSuite({
         const tracks = context.polkadotJs().consts.referenda.tracks;
         const trackName = tracks.find(([index, _info]) => index.toString() === track)![1].name;
 
-        expect(trackName.toString().replace(/\u0000+$/g, "")).to.be.eq("fast_general_admin");
+        expect(trackName.toHuman()).to.be.eq("fast_general_admin");
       },
     });
   },
