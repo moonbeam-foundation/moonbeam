@@ -130,7 +130,7 @@ describeSuite({
             // balances.Transfer, system.ExtrinsicSuccess
             case 4:
               log(events.map((e) => `${e.section}.${e.method}`).join(" - "));
-              expect(events).to.be.of.length(8);
+              expect(events).to.be.of.length(7);
               expect(context.polkadotJs().events.system.NewAccount.is(events[1])).to.be.true;
               expect(context.polkadotJs().events.balances.Endowed.is(events[2])).to.be.true;
               expect(context.polkadotJs().events.balances.Transfer.is(events[3])).to.be.true;

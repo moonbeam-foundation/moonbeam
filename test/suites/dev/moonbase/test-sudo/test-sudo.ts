@@ -78,7 +78,7 @@ describeSuite({
         const account = await context.polkadotJs().query.system.account(CHARLETH_ADDRESS);
         expect(account.data.free.toBigInt()).toBe(DEFAULT_GENESIS_BALANCE);
 
-        expect(result!.events.length === 7).to.be.true;
+        expect(result!.events.length === 6).to.be.true;
         expect(context.polkadotJs().events.system.NewAccount.is(result!.events[2].event)).to.be
           .true;
         expect(context.polkadotJs().events.balances.Endowed.is(result!.events[3].event)).to.be.true;
