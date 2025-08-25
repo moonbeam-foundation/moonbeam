@@ -7072,8 +7072,6 @@ fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
 
 #[test]
 fn locking_zero_amount_removes_lock() {
-	use frame_support::traits::{LockableCurrency, WithdrawReasons};
-
 	// this test demonstrates the behavior of fungible's freeze mechanism
 
 	ExtBuilder::default()

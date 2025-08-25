@@ -29,6 +29,8 @@ use crate::{
 	DELEGATOR_LOCK_ID,
 };
 use frame_support::assert_ok;
+use frame_support::traits::LockableCurrency;
+use frame_support::traits::WithdrawReasons;
 
 // Helper function to create a collator account with old-style locks
 fn setup_collator_with_lock(account: AccountId, bond: u128) {
