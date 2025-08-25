@@ -79,10 +79,10 @@ describeSuite({
         expect(account.data.free.toBigInt()).toBe(DEFAULT_GENESIS_BALANCE);
 
         expect(result!.events.length === 6).to.be.true;
-        expect(context.polkadotJs().events.system.NewAccount.is(result!.events[2].event)).to.be
+        expect(context.polkadotJs().events.system.NewAccount.is(result!.events[1].event)).to.be
           .true;
-        expect(context.polkadotJs().events.balances.Endowed.is(result!.events[3].event)).to.be.true;
-        expect(context.polkadotJs().events.system.ExtrinsicFailed.is(result!.events[6].event)).to.be
+        expect(context.polkadotJs().events.balances.Endowed.is(result!.events[2].event)).to.be.true;
+        expect(context.polkadotJs().events.system.ExtrinsicFailed.is(result!.events[5].event)).to.be
           .true;
       },
     });
