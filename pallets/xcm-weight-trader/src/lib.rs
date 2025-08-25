@@ -271,7 +271,7 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		fn do_add_asset(location: Location, relative_price: u128) -> DispatchResult {
+		pub fn do_add_asset(location: Location, relative_price: u128) -> DispatchResult {
 			ensure!(relative_price != 0, Error::<T>::PriceCannotBeZero);
 			ensure!(
 				!SupportedAssets::<T>::contains_key(&location),
