@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 #![cfg(feature = "runtime-benchmarks")]
+
 extern crate alloc;
 
 use crate::{AssetStatus, Call, Config, Pallet};
@@ -22,7 +23,7 @@ use alloc::format;
 use frame_benchmarking::v2::*;
 use frame_support::pallet_prelude::*;
 use frame_system::RawOrigin;
-use sp_runtime::traits::ConstU32;
+use sp_runtime::traits::{ConstU32, Convert};
 use sp_runtime::BoundedVec;
 use xcm::latest::prelude::*;
 
@@ -32,6 +33,63 @@ fn location_of(n: u128) -> Location {
 
 fn str_to_bv(str_: &str) -> BoundedVec<u8, ConstU32<256>> {
 	str_.as_bytes().to_vec().try_into().expect("too long")
+}
+
+pub fn default_asset_id<T: Config>() -> crate::AssetId {
+	0
+}
+
+pub fn create_default_foreign_asset<T: Config>(
+	asset_id: crate::AssetId,
+) -> (crate::AssetId, Location) {
+	let location = location_of(asset_id);
+	let symbol = format!("MT{}", asset_id);
+	let name = format!("Mytoken{}", asset_id);
+
+	assert!(Pallet::<T>::create_foreign_asset(
+		RawOrigin::Root.into(),
+		asset_id,
+		location.clone(),
+		18,
+		str_to_bv(&symbol),
+		str_to_bv(&name),
+	)
+	.is_ok());
+
+	(asset_id, location)
+}
+
+pub fn create_default_active_foreign_asset<T: Config>(
+	asset_id: crate::AssetId,
+) -> (crate::AssetId, Location) {
+	let (asset_id, location) = create_default_foreign_asset::<T>(asset_id);
+
+	assert_eq!(
+		Pallet::<T>::assets_by_location(&location),
+		Some((asset_id, crate::AssetStatus::Active))
+	);
+
+	(asset_id, location)
+}
+
+pub fn create_default_minted_foreign_asset<T: Config>(
+	asset_id: crate::AssetId,
+	amount: u128,
+) -> (crate::AssetId, Location, T::AccountId) {
+	let (asset_id, location) = create_default_active_foreign_asset::<T>(asset_id);
+	let beneficiary: T::AccountId = frame_benchmarking::whitelisted_caller();
+	let beneficiary_h160 = T::AccountIdToH160::convert(beneficiary.clone());
+	let contract_address = Pallet::<T>::contract_address_from_asset_id(asset_id);
+
+	// Mint tokens to the beneficiary
+	assert!(crate::evm::EvmCaller::<T>::erc20_mint_into(
+		contract_address,
+		beneficiary_h160,
+		amount.into(),
+	)
+	.is_ok());
+
+	(asset_id, location, beneficiary)
 }
 
 #[benchmarks(
