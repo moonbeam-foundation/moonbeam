@@ -293,7 +293,7 @@ describeSuite({
           })
         );
 
-        const _result = await context.createBlock();
+        const result = await context.createBlock();
 
         const account1Balance = (
           await context.polkadotJs().query.system.account(randomAccount.address.toString())

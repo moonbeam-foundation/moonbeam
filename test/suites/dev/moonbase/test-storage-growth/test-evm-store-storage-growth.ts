@@ -18,9 +18,9 @@ describeSuite({
     let storageLoopAddress: `0x${string}`;
     let storageLoopAbi: Abi;
     // Number of bytes added to storage for a new entry.
-    const _ACCOUNT_STORAGE_SIZE = 116;
+    const ACCOUNT_STORAGE_SIZE = 116;
     // Ratio of gas to storage growth. (BlockGasLimit (15_000_000) / BlockStorageLimit (40kb))
-    const _GAS_LIMIT_STORAGE_GROWTH_RATIO = 366;
+    const GAS_LIMIT_STORAGE_GROWTH_RATIO = 366;
     beforeAll(async () => {
       const { contractAddress, abi } = await deployCreateCompiledContract(context, "StorageLoop");
       storageLoopAddress = contractAddress;

@@ -16,7 +16,7 @@ describeSuite({
   id: "D010306",
   title: "Precompile Author Mapping - Update someone else nimbus key",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
     beforeAll(async function () {

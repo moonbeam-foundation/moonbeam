@@ -22,7 +22,7 @@ describeSuite({
   id: "D010304",
   title: "Precompile Author Mapping - Remove Faith keys",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     beforeAll(async function () {
       await setAuthorMappingKeysViaPrecompile(
         context,

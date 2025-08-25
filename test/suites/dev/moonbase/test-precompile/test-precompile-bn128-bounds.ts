@@ -43,7 +43,7 @@ describeSuite({
             "02020202020202020202020302020202020202020202020202020202020202020202020202020202" +
             "0302020202020202020202020202") as `0x${string}`;
 
-        const _tx = await createViemTransaction(context, {
+        const tx = await createViemTransaction(context, {
           to: "0x0000000000000000000000000000000000000007",
           data,
           skipEstimation: true,

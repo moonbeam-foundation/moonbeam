@@ -25,7 +25,7 @@ import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../../helpers";
 // };
 
 // Error(string)
-const _ABI_REVERT_SELECTOR = "0x08c379a0";
+const ABI_REVERT_SELECTOR = "0x08c379a0";
 
 describeSuite({
   id: "D022828",

@@ -8,6 +8,7 @@ import {
   DEFAULT_GENESIS_BALANCE,
 } from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
   id: "D022901",

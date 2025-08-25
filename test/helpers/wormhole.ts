@@ -91,7 +91,7 @@ export function genRegisterChainVAA(
     encode("address32", tokenEmitter),
   ];
   const emitter: `0x${string}` = `0x${"04".padStart(64, "0")}`;
-  const seconds = Math.floor(Date.now() / 1000.0);
+  const seconds = Math.floor(new Date().getTime() / 1000.0);
 
   return createSignedVAA(guardianSet, signers, seconds, nonce, 1, emitter, seq, 32, b.join(""));
 }
@@ -118,7 +118,7 @@ export async function genAssetMeta(
     encode("bytes32", `0x${Buffer.from(name).toString("hex")}`),
   ];
 
-  const seconds = Math.floor(Date.now() / 1000.0);
+  const seconds = Math.floor(new Date().getTime() / 1000.0);
 
   return createSignedVAA(
     guardianSet,
@@ -158,7 +158,7 @@ export function genTransferVAA(
     encode("uint256", Math.floor(fee * 100000000)),
   ];
 
-  const seconds = Math.floor(Date.now() / 1000.0);
+  const seconds = Math.floor(new Date().getTime() / 1000.0);
 
   return createSignedVAA(
     guardianSet,
@@ -200,7 +200,7 @@ export function genTransferWithPayloadVAA(
     payload.slice(2),
   ];
 
-  const seconds = Math.floor(Date.now() / 1000.0);
+  const seconds = Math.floor(new Date().getTime() / 1000.0);
 
   return createSignedVAA(
     guardianSet,

@@ -1,5 +1,5 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import type { ApiPromise } from "@polkadot/api";
+import { type ApiPromise, WsProvider } from "@polkadot/api";
 import {
   XcmFragment,
   registerForeignAsset,

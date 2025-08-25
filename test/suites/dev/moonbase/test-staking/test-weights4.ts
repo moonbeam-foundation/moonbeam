@@ -53,7 +53,7 @@ describeSuite({
 
         const nameParts = expect.getState().currentTestName!.split(" ");
         const methodName = nameParts[nameParts.length - 1];
-        const [numTransactions, _weightUtil, _proofUtil] = await countExtrinsics(
+        const [numTransactions, weightUtil, proofUtil] = await countExtrinsics(
           context,
           methodName,
           log

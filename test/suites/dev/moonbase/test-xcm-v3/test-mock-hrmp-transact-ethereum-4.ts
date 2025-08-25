@@ -20,12 +20,12 @@ describeSuite({
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
-    let _GAS_LIMIT_POV_RATIO: number;
+    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
       const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
       const constants = ConstantStore(context);
-      _GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
 
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;

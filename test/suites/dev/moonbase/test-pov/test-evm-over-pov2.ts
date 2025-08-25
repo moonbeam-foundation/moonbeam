@@ -12,7 +12,7 @@ describeSuite({
     let proxyAddress: `0x${string}`;
     let proxyAbi: Abi;
     let contracts: HeavyContract[];
-    let _callData: `0x${string}`;
+    let callData: `0x${string}`;
     let emptyBlockProofSize: bigint;
     const MAX_CONTRACTS = 20;
     let MAX_ETH_POV_PER_TX: bigint;
@@ -38,7 +38,7 @@ describeSuite({
         Number(6000n + MAX_ETH_POV_PER_TX / 24_000n + 1n)
       );
 
-      _callData = encodeFunctionData({
+      callData = encodeFunctionData({
         abi: proxyAbi,
         functionName: "callRange",
         args: [contracts[0].account, contracts[MAX_CONTRACTS].account],

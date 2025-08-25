@@ -13,8 +13,9 @@ describeSuite({
   id: "D020106",
   title: "XCM - Create new foreign asset",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     let address: string;
+    let assetId: bigint;
 
     beforeAll(async () => {
       const { registeredAssetId, contractAddress, registeredAssetLocation } =

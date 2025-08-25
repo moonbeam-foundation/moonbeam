@@ -19,7 +19,7 @@ describeSuite({
   id: "D017000",
   title: "XCM - Max Weight Instructions",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     let dotAsset: XcmFragmentConfig;
     let amount: bigint;
     const paraId: number = 888;

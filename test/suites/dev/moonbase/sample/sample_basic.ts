@@ -10,13 +10,13 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {
     let signer: Signer;
-    let _w3;
+    let w3;
     let polkadotJs: ApiPromise;
     const anotherLogger = setupLogger("anotherLogger");
 
     beforeAll(() => {
       signer = context.ethers();
-      _w3 = context.web3();
+      w3 = context.web3();
       polkadotJs = context.polkadotJs();
     });
 

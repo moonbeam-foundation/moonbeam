@@ -1,7 +1,8 @@
-import type { DevModeContext } from "@moonwall/cli";
+import { type DevModeContext, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, alith } from "@moonwall/util";
 import { keccak256 } from "viem";
 import type { PalletEvmCodeMetadata } from "@polkadot/types/lookup";
+import { DUMMY_REVERT_BYTECODE } from "./assets.ts";
 import { u8aToHex } from "@polkadot/util";
 
 export interface HeavyContract {

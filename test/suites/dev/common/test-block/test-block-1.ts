@@ -7,7 +7,7 @@ describeSuite({
   id: "D010101",
   title: "Block 1",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     let specVersion: number;
     beforeAll(async () => {
       await context.createBlock();

@@ -6,6 +6,7 @@ import {
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
 } from "@moonwall/util";
+import { parseGwei } from "viem";
 
 describeSuite({
   id: "D021104",

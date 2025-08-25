@@ -6,7 +6,7 @@ describeSuite({
   id: "D010105",
   title: "Block - Mocked relaychain block",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     beforeAll(async () => {
       expect(await context.viem().getBlockNumber()).toBe(0n);
     });

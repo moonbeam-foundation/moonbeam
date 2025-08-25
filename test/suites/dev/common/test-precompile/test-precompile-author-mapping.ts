@@ -15,7 +15,7 @@ describeSuite({
   id: "D010309",
   title: "Precompiles - author mapping",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     it({
       id: "T01",
       title: "allows to add association",

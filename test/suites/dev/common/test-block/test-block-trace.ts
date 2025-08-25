@@ -6,7 +6,7 @@ describeSuite({
   id: "D010406",
   title: "Block Trace - Substrate",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     let blockHash: string;
 
     beforeAll(async () => {

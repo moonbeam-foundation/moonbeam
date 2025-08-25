@@ -5,7 +5,7 @@ describeSuite({
   id: "D010102",
   title: "Block creation - suite 2",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     beforeAll(async () => {
       await context.createBlock();
       await context.createBlock();

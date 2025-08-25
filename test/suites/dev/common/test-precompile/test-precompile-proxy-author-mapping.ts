@@ -15,7 +15,7 @@ describeSuite({
   id: "D010314",
   title: "Proxy : Author Mapping - simple association",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     it({
       id: "T01",
       title: "should succeed in adding an association",

@@ -16,7 +16,7 @@ import type { AccountId20, Block } from "@polkadot/types/interfaces/runtime/type
 import chalk from "chalk";
 import type { Debugger } from "debug";
 import Debug from "debug";
-import { calculateFeePortions } from "./fees.ts";
+import { calculateFeePortions, split } from "./fees.ts";
 import { getFeesTreasuryProportion } from "./parameters.ts";
 
 const debug = Debug("test:blocks");

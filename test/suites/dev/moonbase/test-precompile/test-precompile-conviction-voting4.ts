@@ -34,7 +34,7 @@ describeSuite({
       convictionVoting = new ConvictionVoting(context);
       proposalIndex = await createProposal({ context, track: "generaladmin" });
 
-      const _block = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
+      const block = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
       // Verifies the setup is correct
       const referendum = await context
         .polkadotJs()

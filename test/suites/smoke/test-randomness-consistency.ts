@@ -115,7 +115,7 @@ describeSuite({
         }
 
         const query = await apiAt.query.randomness.randomnessResults.entries();
-        query.forEach(([key, _results]) => {
+        query.forEach(([key, results]) => {
           // offset is:
           // * 2 for "0x"
           // * 32 for module

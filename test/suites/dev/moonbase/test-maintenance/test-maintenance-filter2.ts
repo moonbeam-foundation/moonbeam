@@ -24,9 +24,9 @@ describeSuite({
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let _assetId: u128;
-    const _foreignParaId = 2000;
-    let _foreignAssetId: u128;
+    let assetId: u128;
+    const foreignParaId = 2000;
+    let foreignAssetId: u128;
 
     beforeAll(async () => {
       // registering asset using new foreign assets system
@@ -40,7 +40,7 @@ describeSuite({
         relayAssetMetadata
       );
 
-      _assetId = context.polkadotJs().createType("u128", registeredAssetId);
+      assetId = context.polkadotJs().createType("u128", registeredAssetId);
 
       // Mock asset balance for baltathar
       await mockAssetBalance(

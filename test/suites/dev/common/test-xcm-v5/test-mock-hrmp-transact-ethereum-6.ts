@@ -15,7 +15,7 @@ describeSuite({
   id: "D010710",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     let charlethBalance: bigint;
     let charlethNonce: number;
     let transferredBalance: bigint;

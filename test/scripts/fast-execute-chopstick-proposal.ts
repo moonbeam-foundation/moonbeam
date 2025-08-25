@@ -41,7 +41,7 @@ async function moveScheduledCallTo(
       if (scheduledEntry.isSome && verifier(scheduledEntry.unwrap().call)) {
         found = true;
         console.log(`${chalk.blue("SetStorage")} scheduler.agenda`);
-        const _result = await api.rpc("dev_setStorage", [
+        const result = await api.rpc("dev_setStorage", [
           [agendaEntry[0]], // require to ensure unique id
           [api.query.scheduler.agenda.key(blockNumber + blockCounts), agendaEntry[1].toHex()],
         ]);
@@ -53,12 +53,12 @@ async function moveScheduledCallTo(
           );
           if (lookup.isSome) {
             const lookupKey = api.query.scheduler.lookup.key(id);
-            const _lookupJson = lookup.unwrap().toJSON();
+            const lookupJson = lookup.unwrap().toJSON();
             const fastLookup = api.registry.createType("Option<(u32,u32)>", [
               blockNumber + blockCounts,
               0,
             ]);
-            const _result = await api.rpc("dev_setStorage", [[lookupKey, fastLookup.toHex()]]);
+            const result = await api.rpc("dev_setStorage", [[lookupKey, fastLookup.toHex()]]);
             debug(`Updated lookup to ${fastLookup.toJSON()}`);
           }
         }
@@ -191,7 +191,7 @@ const main = async () => {
       proposalIndex.toString()
     )} referendumKey ${referendumKey}`
   );
-  const _result = await api.rpc("dev_setStorage", [[referendumKey, fastProposal.toHex()]]);
+  const result = await api.rpc("dev_setStorage", [[referendumKey, fastProposal.toHex()]]);
 
   // Fast forward the nudge referendum to the next block to get the refendum to be scheduled
   console.log(

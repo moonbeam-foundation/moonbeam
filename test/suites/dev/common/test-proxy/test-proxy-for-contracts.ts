@@ -7,7 +7,7 @@ describeSuite({
   id: "D010403",
   title: "Proxy Call for Contract",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ context, it, log }) => {
     let contractAddress: `0x${string}`;
 
     beforeAll(async () => {
