@@ -16,6 +16,8 @@ moonbeam-core-primitives = { workspace = true }
 bp-bridge-hub-cumulus = { workspace = true }
 bp-messages = { workspace = true }
 bp-runtime = { workspace = true }
+bp-header-chain = { workspace = true }
+bp-polkadot-core = { workspace = true }
 
 # Polkadot Dependencies
 frame-support = { workspace = true }
@@ -26,9 +28,12 @@ xcm = { workspace = true }
 [features]
 default = ["std"]
 std = [
+    "moonbeam-core-primitives/std",
     "bp-bridge-hub-cumulus/std",
     "bp-messages/std",
     "bp-runtime/std",
+    "bp-header-chain/std",
+    "bp-polkadot-core/std",
     "frame-support/std",
     "sp-api/std",
     "sp-runtime/std",

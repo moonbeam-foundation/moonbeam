@@ -29,6 +29,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 extern crate alloc;
+extern crate core;
 
 use account::AccountId20;
 use alloc::borrow::Cow;
@@ -38,6 +39,7 @@ use cumulus_pallet_parachain_system::{
 use fp_rpc::TransactionStatus;
 
 // Re-export required by get! macro.
+use bp_moonriver::bp_polkadot;
 use cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
@@ -87,7 +89,7 @@ use pallet_evm::{
 pub use pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
 use parity_scale_codec as codec;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_slots::Slot;
@@ -538,6 +540,8 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = RelayTimestamp;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 	type WeightInfo = moonriver_weights::pallet_evm::WeightInfo<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -555,6 +559,7 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = moonriver_weights::pallet_scheduler::WeightInfo<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -931,6 +936,7 @@ impl pallet_author_mapping::Config for Runtime {
 	TypeInfo,
 	Serialize,
 	Deserialize,
+	DecodeWithMemTracking,
 )]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
@@ -1151,6 +1157,7 @@ impl pallet_proxy::Config for Runtime {
 	// - 32 bytes Hasher (Blake2256)
 	// - 4 bytes BlockNumber (u32)
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
+	type BlockNumberProvider = System;
 }
 
 pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
@@ -1260,6 +1267,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
 	type ProxyType = ProxyType;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -1372,6 +1380,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
 	type WeightInfo = moonriver_weights::pallet_multisig::WeightInfo<Runtime>;
+	type BlockNumberProvider = System;
 }
 
 impl pallet_relay_storage_roots::Config for Runtime {
@@ -1390,6 +1399,10 @@ impl pallet_parameters::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeParameters = RuntimeParameters;
 	type WeightInfo = moonriver_weights::pallet_parameters::WeightInfo<Runtime>;
+}
+
+impl cumulus_pallet_weight_reclaim::Config for Runtime {
+	type WeightInfo = moonriver_weights::cumulus_pallet_weight_reclaim::WeightInfo<Runtime>;
 }
 
 impl pallet_migrations::Config for Runtime {
@@ -1487,6 +1500,7 @@ construct_runtime! {
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>, Config<T>} = 115,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = 116,
 		MultiBlockMigrations: pallet_migrations = 117,
+		WeightReclaim: cumulus_pallet_weight_reclaim = 118,
 
 		// Utils
 		RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = 112,
@@ -1567,6 +1581,7 @@ mod benches {
 		[pallet_bridge_grandpa, BridgePolkadotGrandpa]
 		[pallet_bridge_parachains, pallet_bridge_parachains::benchmarking::Pallet::<Runtime, bridge_config::BridgeMoonbeamInstance>]
 		[pallet_bridge_messages, pallet_bridge_messages::benchmarking::Pallet::<Runtime, bridge_config::WithPolkadotMessagesInstance>]
+		[cumulus_pallet_weight_reclaim, WeightReclaim]
 	);
 }
 
@@ -1579,17 +1594,21 @@ pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
 pub type SignedExtra = (
-	frame_system::CheckNonZeroSender<Runtime>,
-	frame_system::CheckSpecVersion<Runtime>,
-	frame_system::CheckTxVersion<Runtime>,
-	frame_system::CheckGenesis<Runtime>,
-	frame_system::CheckEra<Runtime>,
-	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-	BridgeRejectObsoleteHeadersAndMessages,
-	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
+	cumulus_pallet_weight_reclaim::StorageWeightReclaim<
+		Runtime,
+		(
+			frame_system::CheckNonZeroSender<Runtime>,
+			frame_system::CheckSpecVersion<Runtime>,
+			frame_system::CheckTxVersion<Runtime>,
+			frame_system::CheckGenesis<Runtime>,
+			frame_system::CheckEra<Runtime>,
+			frame_system::CheckNonce<Runtime>,
+			frame_system::CheckWeight<Runtime>,
+			pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+			BridgeRejectObsoleteHeadersAndMessages,
+			frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
+		),
+	>,
 );
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -1660,7 +1679,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 							Preamble::Signed(_, _, signed_extra) => {
 								// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
 								// Get the 7th item from the tuple
-								let charge_transaction_payment = &signed_extra.7;
+								let charge_transaction_payment = &signed_extra.0.0.7;
 								charge_transaction_payment.tip()
 							},
 							Preamble::General(_, _) => 0,

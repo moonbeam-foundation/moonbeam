@@ -42,5 +42,12 @@ std = [
 	"xcm/std",
 ]
 
-runtime-benchmarks = [ "frame-benchmarking", "xcm-primitives/runtime-benchmarks" ]
+runtime-benchmarks = [
+	"frame-benchmarking",
+	"xcm-primitives/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+    "pallet-balances/frame-benchmarking",
+]
 try-runtime = [ "frame-support/try-runtime" ]

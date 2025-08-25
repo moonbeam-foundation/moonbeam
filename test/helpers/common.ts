@@ -135,3 +135,7 @@ export function chunk<T>(array: Array<T>, size: number): Array<Array<T>> {
 export async function sleep(durationMs: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, durationMs));
 }
+
+export function stripNulls(s: string) {
+  return s.replace(/\u0000+$/g, ""); // removes trailing nulls
+}

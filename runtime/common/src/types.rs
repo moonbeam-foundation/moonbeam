@@ -13,11 +13,13 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use parity_scale_codec::{Decode, Encode, EncodeLike, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, EncodeLike, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_std::prelude::*;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Encode, TypeInfo, MaxEncodedLen)]
+#[derive(
+	Debug, PartialEq, Eq, Clone, Copy, Encode, TypeInfo, MaxEncodedLen, DecodeWithMemTracking,
+)]
 #[scale_info(skip_type_params(LOWER, UPPER))]
 pub struct BoundedU128<const LOWER: u128, const UPPER: u128>(u128);
 

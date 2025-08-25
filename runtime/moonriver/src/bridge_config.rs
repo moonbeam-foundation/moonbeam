@@ -22,6 +22,7 @@ use crate::{
 	PolkadotXcm, Runtime, RuntimeEvent, RuntimeHoldReason,
 };
 use alloc::collections::btree_set::BTreeSet;
+use bp_moonriver::bp_polkadot;
 use bp_parachains::SingleParaStoredHeaderDataBuilder;
 use bridge_hub_common::xcm_version::XcmVersionOfDestAndRemoteBridge;
 use frame_support::pallet_prelude::PalletInfoAccess;

@@ -16,7 +16,7 @@
 
 use super::*;
 use crate as pallet_asset_manager;
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use frame_system::EnsureRoot;
@@ -112,7 +112,18 @@ parameter_types! {
 }
 
 pub type AssetId = u128;
-#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	RuntimeDebug,
+	TypeInfo,
+	DecodeWithMemTracking,
+)]
 pub enum MockAssetType {
 	Xcm(Location),
 	MockAsset(AssetId),
@@ -204,6 +215,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: self.balances,
+			dev_accounts: None,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

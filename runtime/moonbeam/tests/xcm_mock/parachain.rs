@@ -36,7 +36,7 @@ use moonbeam_runtime_common::{
 };
 use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use pallet_xcm::{migration::v1::VersionUncheckedMigrateToV1, EnsureXcm};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use sp_core::{H160, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup, MaybeEquivalence, Zero},
@@ -183,6 +183,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type AssetIdParameter = AssetId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
+	type Holder = ();
 	pallet_assets::runtime_benchmarks_enabled! {
 		type BenchmarkHelper = BenchmarkHelper;
 	}
@@ -379,6 +380,7 @@ impl Config for XcmConfig {
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type XcmRecorder = PolkadotXcm;
+	type XcmEventEmitter = ();
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -387,7 +389,9 @@ impl cumulus_pallet_xcm::Config for Runtime {
 }
 
 // Our currencyId. We distinguish for now between SelfReserve, and Others, defined by their Id.
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+#[derive(
+	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+)]
 pub enum CurrencyId {
 	SelfReserve,
 	ForeignAsset(AssetId),
@@ -695,6 +699,7 @@ impl pallet_xcm::Config for Runtime {
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
+	type AuthorizedAliasConsideration = Disabled;
 }
 
 // We instruct how to register the Assets
@@ -744,7 +749,19 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 	}
 }
 
-#[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+#[derive(
+	Clone,
+	Default,
+	Eq,
+	Debug,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	TypeInfo,
+	DecodeWithMemTracking,
+)]
 pub struct AssetMetadata {
 	pub name: Vec<u8>,
 	pub symbol: Vec<u8>,
@@ -909,6 +926,8 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 #[allow(dead_code)]
@@ -952,7 +971,9 @@ pub enum HrmpCall {
 	CancelOpenRequest(HrmpChannelId, u32),
 }
 
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+#[derive(
+	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+)]
 pub enum MockTransactors {
 	Relay,
 }
@@ -1021,7 +1042,18 @@ parameter_types! {
 }
 
 #[derive(
-	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	MaxEncodedLen,
+	TypeInfo,
+	DecodeWithMemTracking,
 )]
 pub enum ProxyType {
 	NotAllowed = 0,
@@ -1065,6 +1097,7 @@ impl pallet_proxy::Config for Runtime {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = ProxyCost;
 	type AnnouncementDepositFactor = ProxyCost;
+	type BlockNumberProvider = System;
 }
 
 pub struct EthereumXcmEnsureProxy;
@@ -1129,7 +1162,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::{OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
+use frame_support::traits::{Disabled, OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
 use moonbeam_runtime::{currency, xcm_config::LocationToH160, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
 use pallet_evm::FrameSystemAccountProvider;
 use sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND;

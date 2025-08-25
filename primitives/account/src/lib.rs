@@ -20,7 +20,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sha3::{Digest, Keccak256};
 use sp_core::{ecdsa, H160};
@@ -41,7 +41,18 @@ pub const SYSTEM_ACCOUNT_SIZE: u64 = 148;
 /// Polkadot JS.
 
 #[derive(
-	Eq, PartialEq, Copy, Clone, Encode, Decode, TypeInfo, MaxEncodedLen, Default, PartialOrd, Ord,
+	Eq,
+	PartialEq,
+	Copy,
+	Clone,
+	Encode,
+	Decode,
+	TypeInfo,
+	MaxEncodedLen,
+	Default,
+	PartialOrd,
+	Ord,
+	DecodeWithMemTracking,
 )]
 pub struct AccountId20(pub [u8; 20]);
 
@@ -116,7 +127,16 @@ impl std::str::FromStr for AccountId20 {
 }
 
 #[derive(
-	Eq, PartialEq, Clone, Encode, Decode, sp_core::RuntimeDebug, TypeInfo, Serialize, Deserialize,
+	Eq,
+	PartialEq,
+	Clone,
+	Encode,
+	Decode,
+	sp_core::RuntimeDebug,
+	TypeInfo,
+	Serialize,
+	Deserialize,
+	DecodeWithMemTracking,
 )]
 pub struct EthereumSignature(ecdsa::Signature);
 
@@ -168,7 +188,16 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 
 /// Public key for an Ethereum / Moonbeam compatible account
 #[derive(
-	Eq, PartialEq, Ord, PartialOrd, Clone, Encode, Decode, sp_core::RuntimeDebug, TypeInfo,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Clone,
+	Encode,
+	Decode,
+	sp_core::RuntimeDebug,
+	TypeInfo,
+	DecodeWithMemTracking,
 )]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct EthereumSigner([u8; 20]);

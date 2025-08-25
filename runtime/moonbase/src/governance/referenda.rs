@@ -41,6 +41,8 @@ impl pallet_conviction_voting::Config for Runtime {
 	type MaxVotes = ConstU32<20>;
 	// Minimum period of vote locking
 	type VoteLockingPeriod = VoteLockingPeriod;
+	type BlockNumberProvider = System;
+	type VotingHooks = ();
 }
 
 parameter_types! {
@@ -79,8 +81,6 @@ impl pallet_whitelist::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-pallet_referenda::impl_tracksinfo_get!(TracksInfo, Balance, BlockNumber);
-
 impl pallet_referenda::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_referenda::WeightInfo<Runtime>;
 	type RuntimeCall = RuntimeCall;
@@ -99,4 +99,5 @@ impl pallet_referenda::Config for Runtime {
 	type AlarmInterval = AlarmInterval;
 	type Tracks = TracksInfo;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }

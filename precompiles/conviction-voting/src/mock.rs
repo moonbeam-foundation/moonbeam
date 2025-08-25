@@ -155,6 +155,8 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -270,6 +272,8 @@ impl pallet_conviction_voting::Config for Runtime {
 	type WeightInfo = ();
 	type MaxTurnout = TotalIssuanceOf<Balances, Self::AccountId>;
 	type Polls = TestPolls;
+	type BlockNumberProvider = System;
+	type VotingHooks = ();
 }
 
 pub(crate) struct ExtBuilder {
@@ -298,6 +302,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances.clone(),
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

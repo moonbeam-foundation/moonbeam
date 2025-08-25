@@ -37,7 +37,7 @@ use frame_support::{
 };
 use frame_system::pallet_prelude::OriginFor;
 use pallet_evm::{AddressMapping, GasWeightMapping};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_runtime::{traits::UniqueSaturatedInto, DispatchErrorWithPostInfo, RuntimeDebug};
 use sp_std::{marker::PhantomData, prelude::*};
@@ -49,7 +49,17 @@ pub use ethereum::{
 pub use fp_rpc::TransactionStatus;
 pub use xcm_primitives::{EnsureProxy, EthereumXcmTransaction, XcmToEthereum};
 
-#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+#[derive(
+	PartialEq,
+	Eq,
+	Clone,
+	Encode,
+	Decode,
+	RuntimeDebug,
+	TypeInfo,
+	MaxEncodedLen,
+	DecodeWithMemTracking,
+)]
 pub enum RawOrigin {
 	XcmEthereumTransaction(H160),
 }

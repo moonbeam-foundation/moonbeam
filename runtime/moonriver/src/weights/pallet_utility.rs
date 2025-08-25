@@ -106,4 +106,14 @@ impl<T: frame_system::Config> pallet_utility::WeightInfo for WeightInfo<T> {
 			.saturating_add(Weight::from_parts(5_741_954, 0).saturating_mul(c.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 	}
+
+    fn dispatch_as_fallible() -> Weight {
+        // TODO: regenerate this file
+        <()>::dispatch_as_fallible()
+    }
+
+    fn if_else() -> Weight {
+        // TODO: regenerate this file
+        <()>::if_else()
+    }
 }

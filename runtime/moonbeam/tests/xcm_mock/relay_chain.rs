@@ -216,6 +216,7 @@ impl Config for XcmConfig {
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type XcmRecorder = XcmPallet;
+	type XcmEventEmitter = ();
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
@@ -245,6 +246,7 @@ impl pallet_xcm::Config for Runtime {
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
+	type AuthorizedAliasConsideration = Disabled;
 }
 
 parameter_types! {
@@ -385,7 +387,7 @@ pub(crate) fn relay_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::{OnFinalize, OnInitialize};
+use frame_support::traits::{Disabled, OnFinalize, OnInitialize};
 pub(crate) fn relay_roll_to(n: BlockNumber) {
 	while System::block_number() < n {
 		XcmPallet::on_finalize(System::block_number());
