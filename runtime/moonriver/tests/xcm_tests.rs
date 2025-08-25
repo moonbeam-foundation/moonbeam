@@ -143,7 +143,6 @@ fn receive_relay_asset_from_relay() {
 }
 
 // Send relay asset (like DOT) back from Parachain A to relaychain
-#[ignore]
 #[test]
 fn send_relay_asset_to_relay() {
 	MockNet::reset();
@@ -212,7 +211,7 @@ fn send_relay_asset_to_relay() {
 
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 123);
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -233,7 +232,6 @@ fn send_relay_asset_to_relay() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_relay_asset_to_para_b() {
 	MockNet::reset();
@@ -308,7 +306,7 @@ fn send_relay_asset_to_para_b() {
 
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -1034,7 +1032,6 @@ fn error_when_not_paying_enough() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_derivative_multilocation() {
 	MockNet::reset();
@@ -1124,7 +1121,7 @@ fn transact_through_derivative_multilocation() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -1193,7 +1190,6 @@ fn transact_through_derivative_multilocation() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_derivative_with_custom_fee_weight() {
 	MockNet::reset();
@@ -1267,7 +1263,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -1348,7 +1344,6 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_derivative_with_custom_fee_weight_refund() {
 	MockNet::reset();
@@ -1422,7 +1417,7 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -1502,7 +1497,6 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_sovereign() {
 	MockNet::reset();
@@ -1588,7 +1582,7 @@ fn transact_through_sovereign() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -1774,7 +1768,6 @@ fn transact_through_sovereign_fee_payer_none() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_sovereign_with_custom_fee_weight() {
 	MockNet::reset();
@@ -1844,7 +1837,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -1927,7 +1920,6 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	});
 }
 
-#[ignore]
 #[test]
 fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	MockNet::reset();
@@ -1997,7 +1989,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -2745,7 +2737,6 @@ fn test_statemine_like() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_statemine_asset_from_para_a_to_statemine_with_relay_fee() {
 	MockNet::reset();
@@ -2930,7 +2921,7 @@ fn send_statemine_asset_from_para_a_to_statemine_with_relay_fee() {
 		);
 		let asset_2 = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
 		let assets_to_send = vec![asset_1, asset_2];
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -2957,7 +2948,6 @@ fn send_statemine_asset_from_para_a_to_statemine_with_relay_fee() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer() {
 	MockNet::reset();
@@ -3067,7 +3057,7 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer() {
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -3113,9 +3103,9 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_with_fee() {
+	frame_support::__private::sp_tracing::init_for_tests();
 	MockNet::reset();
 
 	// Relay asset
@@ -3224,7 +3214,7 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_with_fee() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
 		let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 10);
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -3273,7 +3263,6 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_with_fee() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiasset() {
 	MockNet::reset();
@@ -3384,7 +3373,7 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiasset() {
 
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -3432,7 +3421,6 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiasset() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multicurrencies() {
 	MockNet::reset();
@@ -3627,7 +3615,7 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multicurrencies() {
 			100,
 		);
 		let asset_2 = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
@@ -3682,7 +3670,6 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multicurrencies() {
 	});
 }
 
-#[ignore]
 #[test]
 fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiassets() {
 	MockNet::reset();
@@ -3887,7 +3874,7 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiassets() {
 
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		assert_ok!(PolkadotXcm::transfer_assets(
+		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
 			Box::new(VersionedLocation::from(beneficiary)),
