@@ -3784,10 +3784,6 @@ declare module "@polkadot/types/lookup" {
       readonly candidateAutoCompoundingDelegationCountHint: u32;
       readonly delegationCountHint: u32;
     } & Struct;
-    readonly isHotfixRemoveDelegationRequestsExitedCandidates: boolean;
-    readonly asHotfixRemoveDelegationRequestsExitedCandidates: {
-      readonly candidates: Vec<AccountId20>;
-    } & Struct;
     readonly isNotifyInactiveCollator: boolean;
     readonly asNotifyInactiveCollator: {
       readonly collator: AccountId20;
@@ -3829,7 +3825,6 @@ declare module "@polkadot/types/lookup" {
       | "ExecuteDelegationRequest"
       | "CancelDelegationRequest"
       | "SetAutoCompound"
-      | "HotfixRemoveDelegationRequestsExitedCandidates"
       | "NotifyInactiveCollator"
       | "EnableMarkingOffline"
       | "ForceJoinCandidates"
