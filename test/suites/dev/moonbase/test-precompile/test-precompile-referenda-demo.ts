@@ -11,7 +11,7 @@ import { decodeEventLog, getAddress } from "viem";
 import {
   forceReducedReferendaExecution,
   expectSubstrateEvent,
-  expectSubstrateEvents,
+  expectSubstrateEvents, stripNulls,
 } from "../../../../helpers";
 
 describeSuite({
@@ -26,8 +26,11 @@ describeSuite({
         const setStorageCallIndex = u8aToHex(context.polkadotJs().tx.system.setStorage.callIndex);
         const trackName = "root";
         const tracksInfo = context.polkadotJs().consts.referenda.tracks;
-        const trackInfo = tracksInfo.find((track) => track[1].name.toString() === trackName);
-        expect(trackInfo.toHuman()).to.not.be.empty;
+        for (const track of tracksInfo) {
+          console.log("Track:", track.toJSON());
+        }
+        const trackInfo = tracksInfo.find((track) => stripNulls(track[1].name.toString()) === trackName);
+        expect(trackInfo?.toHuman()).to.not.be.empty;
 
         const { contractAddress: refUpgradeDemoV1Address, abi: refUpgradeDemoV1Abi } =
           await context.deployContract!("ReferendaAutoUpgradeDemoV1", {
