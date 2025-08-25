@@ -26,7 +26,7 @@ describeSuite({
       // https://github.com/etclabscore/core-geth/blob/master/params/vars/protocol_params.go
       const MAX_CONTRACT_SIZE_BYTES = 24576;
       const getBytecodeSize = (storageValue: Uint8Array) => {
-        const [len, bytecode] = compactStripLength(storageValue);
+        const [_len, bytecode] = compactStripLength(storageValue);
         const hex = u8aToHex(bytecode);
         return (hex.length - 2) / 2;
       };

@@ -16,7 +16,7 @@ describeSuite({
   id: "D010311",
   title: "Precompiles - author mapping",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let mappingAccount: KeyringPair;
 
     beforeAll(async () => {

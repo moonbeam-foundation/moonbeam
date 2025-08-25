@@ -132,7 +132,7 @@ interface InnerReceipt {
 }
 
 // This is incomplete
-function serializeReceipt(input: InnerReceipt) {
+function _serializeReceipt(input: InnerReceipt) {
   const logs = input.logs.map((item) => {
     const topics = item.topics.map((topic) => Buffer.from(topic));
     return [Buffer.from(item.address), topics, Buffer.from(item.data)];

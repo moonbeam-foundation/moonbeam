@@ -59,7 +59,7 @@ export const isMuted = (moonbeamNetworkName: MoonbeamNetworkName, paraId: ParaId
       return false;
     }
 
-    const currentTime = new Date().getTime();
+    const currentTime = Date.now();
     return match.mutedUntil && match.mutedUntil >= currentTime;
   }
   return false;

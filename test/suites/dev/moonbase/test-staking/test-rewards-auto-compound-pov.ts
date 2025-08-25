@@ -61,7 +61,7 @@ describeSuite({
       // we use a maxDelegationCount here, since the transactions can come out of order.
       for (const delChunk of chunk(otherDelegators, 8)) {
         await context.createBlock(
-          delChunk.map((d, i) =>
+          delChunk.map((d, _i) =>
             context
               .polkadotJs()
               .tx.parachainStaking.delegateWithAutoCompound(

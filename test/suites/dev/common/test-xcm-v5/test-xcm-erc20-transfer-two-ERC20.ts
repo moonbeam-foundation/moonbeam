@@ -16,7 +16,7 @@ describeSuite({
   id: "D010711",
   title: "Mock XCM - Send two local ERC20",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let erc20ContractAddress1: string;
     let erc20ContractAddress2: string;
 

@@ -10,7 +10,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let contractCallForwarderAddress: `0x${string}`;
     let contracts: HeavyContract[];
-    let callData: `0x${string}`;
+    let _callData: `0x${string}`;
     let proxyAbi: Abi;
 
     // The goal of this test is to fill the max PoV limit with normal transactions (75% of 10MB)

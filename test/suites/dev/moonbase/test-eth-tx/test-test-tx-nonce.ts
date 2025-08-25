@@ -67,7 +67,7 @@ describeSuite({
       id: "T05",
       title: "pending transaction nonce",
       test: async function () {
-        const blockNumber = await context.viem().getBlockNumber();
+        const _blockNumber = await context.viem().getBlockNumber();
         const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
         await customDevRpcRequest("eth_sendRawTransaction", [

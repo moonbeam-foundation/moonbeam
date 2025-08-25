@@ -17,7 +17,7 @@ describeSuite({
       id: "T01",
       title: "should fail with out of gas",
       test: async function () {
-        const bytecode = new Uint8Array([
+        const _bytecode = new Uint8Array([
           65, 65, 4, 97, 89, 134, 65, 65, 65, 65, 65, 52, 57, 51, 52, 51, 70, 70, 1, 0, 0, 0, 40,
           249, 0, 224, 111, 1, 0, 0, 0, 247, 30, 1, 0, 0, 0, 0, 0, 0,
         ]);

@@ -28,8 +28,8 @@ describeSuite({
 
         const accounts = new Array(numberOfAccounts)
           .fill(0)
-          .map((_, i) => privateKeyToAccount(generatePrivateKey()));
-        largInput = accounts.map((acc: PrivateKeyAccount, i: number) => {
+          .map((_, _i) => privateKeyToAccount(generatePrivateKey()));
+        largInput = accounts.map((acc: PrivateKeyAccount, _i: number) => {
           return [
             acc.address + "111111111111111111111111",
             acc.address,

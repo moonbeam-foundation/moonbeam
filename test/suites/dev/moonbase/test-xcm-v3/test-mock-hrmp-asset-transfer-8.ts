@@ -8,7 +8,6 @@ import {
   injectHrmpMessageAndSeal,
   registerForeignAsset,
   foreignAssetBalance,
-  addAssetToWeightTrader,
 } from "../../../../helpers";
 
 const statemint_para_id = 1001;

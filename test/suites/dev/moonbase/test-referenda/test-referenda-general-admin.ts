@@ -8,7 +8,7 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let refIndex: number;
-    let proposalHash: string;
+    let _proposalHash: string;
     beforeAll(async () => {
       // Just build the arguments. They dont matter that much though, since
       // we will not make sure it executes in the relay
@@ -41,7 +41,7 @@ describeSuite({
       );
 
       // The origin we want to use, post a referenda and deposit.
-      [refIndex, proposalHash] = await proposeReferendaAndDeposit(context, alith, proposal, {
+      [refIndex, _proposalHash] = await proposeReferendaAndDeposit(context, alith, proposal, {
         Origins: "GeneralAdmin",
       });
     });
@@ -53,7 +53,7 @@ describeSuite({
         const refInfo = await context.polkadotJs().query.referenda.referendumInfoFor(refIndex);
         const track = refInfo.unwrap().asOngoing.track.toString();
         const tracks = context.polkadotJs().consts.referenda.tracks;
-        const trackName = tracks.find(([index, info]) => index.toString() === track)![1].name;
+        const trackName = tracks.find(([index, _info]) => index.toString() === track)![1].name;
 
         expect(trackName.toString().replace(/\u0000+$/g, "")).to.be.eq("general_admin");
       },

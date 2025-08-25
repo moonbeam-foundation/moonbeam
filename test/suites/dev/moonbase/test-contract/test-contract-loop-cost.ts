@@ -25,7 +25,7 @@ describeSuite({
       },
     ];
 
-    TestParameters.forEach(({ loop, gas }, index) => {
+    TestParameters.forEach(({ loop, gas }, _index) => {
       for (const txnType of TransactionTypes) {
         testNumber++;
         it({

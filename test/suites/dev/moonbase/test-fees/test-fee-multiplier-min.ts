@@ -39,7 +39,7 @@ describeSuite({
       id: "T01",
       title: "should enforce lower bound",
       test: async function () {
-        const MULTIPLIER_STORAGE_KEY = context
+        const _MULTIPLIER_STORAGE_KEY = context
           .polkadotJs()
           .query.transactionPayment.nextFeeMultiplier.key(0)
           .toString();

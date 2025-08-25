@@ -134,7 +134,7 @@ describeSuite({
               expect(context.polkadotJs().events.system.NewAccount.is(events[1])).to.be.true;
               expect(context.polkadotJs().events.balances.Endowed.is(events[2])).to.be.true;
               expect(context.polkadotJs().events.balances.Transfer.is(events[3])).to.be.true;
-              expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(events[7])).to.be.true;
+              expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(events[6])).to.be.true;
               break;
             default:
               throw new Error(`Unexpected extrinsic`);

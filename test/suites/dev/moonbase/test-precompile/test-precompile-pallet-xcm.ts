@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, fetchCompiledContract, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createEthersTransaction } from "@moonwall/util";
+import { ALITH_ADDRESS, BALTATHAR_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { numberToHex } from "@polkadot/util";
 import { encodeFunctionData, erc20Abi } from "viem";
 import {

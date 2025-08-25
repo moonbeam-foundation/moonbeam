@@ -997,7 +997,7 @@ describeSuite({
         const failuresExpectedReserveMap: string[] = [];
         if (expectedReserveMap.size > 0) {
           log(`expectedReserveMap size: ${expectedReserveMap.size}`);
-          expectedReserveMap.forEach((value, key) => {
+          expectedReserveMap.forEach((_value, key) => {
             failuresExpectedReserveMap.push(`${base64ToHex(key)}`);
           });
         }

@@ -1,14 +1,12 @@
 import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { hexToNumber, parseEther } from "viem";
+import { parseEther } from "viem";
 import {
   ERC20_TOTAL_SUPPLY,
   XcmFragment,
   type XcmFragmentConfig,
   expectEVMResult,
-  injectEncodedHrmpMessageAndSeal,
   injectHrmpMessage,
-  injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../helpers";
 
@@ -19,7 +17,7 @@ describeSuite({
   testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
     let eventEmitterAddress: `0x${string}`;
-    let ethXcmTxHash: string;
+    let _ethXcmTxHash: string;
     let regularEthTxHash: string;
     beforeAll(async () => {
       const { contractAddress, status } = await context.deployContract!("ERC20WithInitialSupply", {

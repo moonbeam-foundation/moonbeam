@@ -9,7 +9,7 @@ const originalKeys = [
   "0x0000000000000000000000000000000000000000000000000000000000000002",
 ];
 // Concatenated keys
-const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
+const _concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
 describeSuite({
   id: "D020209",

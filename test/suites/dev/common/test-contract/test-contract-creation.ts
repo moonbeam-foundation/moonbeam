@@ -6,7 +6,7 @@ import {
   expect,
   fetchCompiledContract,
 } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS } from "@moonwall/util";
+import { ALITH_ADDRESS } from "@moonwall/util";
 import { hexToU8a } from "@polkadot/util";
 import { encodeDeployData, keccak256, numberToHex, toRlp } from "viem";
 import { deployedContractsInLatestBlock, verifyLatestBlockFees } from "../../../../helpers";
@@ -15,7 +15,7 @@ describeSuite({
   id: "D010201",
   title: "Contract creation",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     for (const txnType of TransactionTypes) {
       it({
         id: `T0-${TransactionTypes.indexOf(txnType) + 1}`,

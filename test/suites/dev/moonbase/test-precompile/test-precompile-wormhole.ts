@@ -385,7 +385,7 @@ describeSuite({
         });
 
         const whAmount = 999n;
-        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+        const _realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
 
         const transferVAA = await makeTestVAA(
           Number(whAmount),
@@ -423,7 +423,7 @@ describeSuite({
           .createType("VersionedMultiLocation", versionedMultiLocation);
 
         const whAmount = 999n;
-        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+        const _realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
         const fee = 1234500n;
 
         const userAction = new XcmRoutingUserActionWithFee(context.pjsApi.registry, {
@@ -527,7 +527,7 @@ describeSuite({
           .createType("VersionedMultiLocation", versionedMultiLocation);
 
         const whAmount = 100n;
-        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+        const _realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
         const fee = 0n;
 
         const userAction = new XcmRoutingUserActionWithFee(context.pjsApi.registry, {
@@ -648,7 +648,7 @@ describeSuite({
         });
 
         const whAmount = 42n;
-        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+        const _realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
 
         const transferVAA = await makeTestVAA(
           Number(whAmount),
@@ -706,7 +706,7 @@ describeSuite({
         });
 
         const whAmount = 999n;
-        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
+        const _realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
 
         const transferVAA = await makeTestVAA(
           Number(whAmount),

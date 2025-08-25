@@ -44,7 +44,7 @@ describeSuite({
           expect(propNum).toBe(0);
 
           // Balance after proposal
-          const balanceAfter = (
+          const _balanceAfter = (
             await context.polkadotJs().query.system.account(randomAccount.address)
           ).data.free.toBigInt();
 

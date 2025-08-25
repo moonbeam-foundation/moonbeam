@@ -11,11 +11,11 @@ describeSuite({
   foundationMethods: "zombie",
   testCases: ({ it, context, log }) => {
     let paraApi: ApiPromise;
-    let relayApi: ApiPromise;
+    let _relayApi: ApiPromise;
 
     beforeAll(async () => {
       paraApi = context.polkadotJs("parachain");
-      relayApi = context.polkadotJs("relaychain");
+      _relayApi = context.polkadotJs("relaychain");
 
       const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
       expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);

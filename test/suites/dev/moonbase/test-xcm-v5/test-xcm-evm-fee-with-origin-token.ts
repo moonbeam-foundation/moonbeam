@@ -62,7 +62,7 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
-    let api: ApiPromise;
+    let _api: ApiPromise;
 
     const initialBalance: bigint = 500_000_000_000_000n;
     const xcMaticToSend = 3_500_000_000n;
@@ -82,7 +82,7 @@ describeSuite({
     };
 
     beforeAll(async () => {
-      api = context.polkadotJs();
+      _api = context.polkadotJs();
 
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
         context,

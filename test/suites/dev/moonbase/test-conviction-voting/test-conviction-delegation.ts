@@ -8,12 +8,12 @@ describeSuite({
   title: "Conviction Voting - Delegation",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let refIndex: number;
-    let proposalHash: string;
+    let _refIndex: number;
+    let _proposalHash: string;
     beforeAll(async () => {
       // The proposal itself
       const proposal = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Me" } });
-      [refIndex, proposalHash] = await proposeReferendaAndDeposit(context, alith, proposal, {
+      [_refIndex, _proposalHash] = await proposeReferendaAndDeposit(context, alith, proposal, {
         System: "root",
       });
     });

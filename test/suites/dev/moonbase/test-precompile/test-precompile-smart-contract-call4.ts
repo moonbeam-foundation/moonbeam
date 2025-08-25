@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, baltathar } from "@moonwall/util";
+import { baltathar } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 

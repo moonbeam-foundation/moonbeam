@@ -8,14 +8,14 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let psTx: any;
-    let psQuery: any;
+    let _psQuery: any;
     let psConst: any;
     let sudo: any;
     let createBlock: any;
 
     beforeAll(async () => {
       psTx = context.polkadotJs().tx.parachainStaking;
-      psQuery = context.polkadotJs().query.parachainStaking;
+      _psQuery = context.polkadotJs().query.parachainStaking;
       psConst = context.polkadotJs().consts.parachainStaking;
       sudo = context.polkadotJs().tx.sudo.sudo;
       createBlock = context.createBlock;

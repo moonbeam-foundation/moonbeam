@@ -23,12 +23,12 @@ describeSuite({
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
     let STORAGE_READ_COST: bigint;
-    let GAS_LIMIT_POV_RATIO: number;
+    let _GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
       const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
       const constants = ConstantStore(context);
-      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
+      _GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
       STORAGE_READ_COST = constants.STORAGE_READ_COST;
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;

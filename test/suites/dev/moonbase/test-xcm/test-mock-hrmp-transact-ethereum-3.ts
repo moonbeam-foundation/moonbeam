@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import { type Abi, encodeFunctionData, parseAbi } from "viem";
 import { generateKeyringPair } from "@moonwall/util";
@@ -52,7 +51,7 @@ describeSuite({
     const assetId = 1n;
     let sendingAddress: `0x${string}`;
     let descendedAddress: `0x${string}`;
-    let random: KeyringPair;
+    let _random: KeyringPair;
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
 
@@ -75,7 +74,7 @@ describeSuite({
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendedAddress = descendOriginAddress;
-      random = generateKeyringPair();
+      _random = generateKeyringPair();
 
       const { contractAddress: assetAddress } = await registerForeignAsset(
         context,

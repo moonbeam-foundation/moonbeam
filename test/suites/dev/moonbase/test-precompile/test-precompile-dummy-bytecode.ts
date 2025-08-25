@@ -51,7 +51,7 @@ describeSuite({
         );
 
         const failures = matches.filter((match) => !match);
-        failures.forEach((failure, index) => {
+        failures.forEach((_failure, index) => {
           log(`Failure at address ${addresses[index]}`);
         });
 

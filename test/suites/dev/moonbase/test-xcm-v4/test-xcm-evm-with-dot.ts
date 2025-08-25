@@ -3,9 +3,6 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { alith } from "@moonwall/util";
 import type { ApiPromise } from "@polkadot/api";
-import type { u128 } from "@polkadot/types";
-import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
-import { hexToBigInt } from "@polkadot/util";
 import { type Abi, encodeFunctionData } from "viem";
 import {
   RELAY_SOURCE_LOCATION,

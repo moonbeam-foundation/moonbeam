@@ -63,7 +63,7 @@ describeSuite({
           `Unexpected number of locks: ${locks.map((l) => l.id.toString()).join(` - `)}`
         );
 
-        const txns = await [...additionalDelegators].map((account, i) =>
+        const txns = await [...additionalDelegators].map((account, _i) =>
           context
             .polkadotJs()
             .tx.parachainStaking.delegateWithAutoCompound(

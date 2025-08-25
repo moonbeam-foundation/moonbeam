@@ -51,7 +51,7 @@ describeSuite({
         let numDelegations = 0;
         for (const topDelegatorsChunk of chunk(topDelegators, 20)) {
           await context.createBlock(
-            [...topDelegatorsChunk].map((account, i) => {
+            [...topDelegatorsChunk].map((account, _i) => {
               // add a tip such that the delegation ordering will be preserved,
               // e.g. the first txns sent will have the highest tip
               const tip = BigInt(tipOrdering--) * MILLIGLMR;

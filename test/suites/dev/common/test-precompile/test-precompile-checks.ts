@@ -7,7 +7,7 @@ describeSuite({
   id: "D010313",
   title: "Precompiles - Validate PrecompileChecks",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let multiplyBy7Contract;
 
     beforeAll(async () => {

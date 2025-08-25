@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
 import { generateKeyringPair } from "@moonwall/util";
-import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
+import { expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D020114",

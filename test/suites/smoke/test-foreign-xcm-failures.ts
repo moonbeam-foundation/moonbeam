@@ -59,7 +59,7 @@ describeSuite({
       const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil = 0 }) => {
         let blockEvents: BlockEventsRecord[] = [];
 
-        if (mutedUntil && mutedUntil >= new Date().getTime()) {
+        if (mutedUntil && mutedUntil >= Date.now()) {
           log(`Network tests for ${name} has been muted, skipping.`);
           return { networkName: name, blockEvents: [] };
         }
@@ -113,7 +113,7 @@ describeSuite({
           blockEvents = await Promise.all(blockNumArray.map((num) => getEvents(num)));
           log(`Finished loading blocks for ${name}.`);
           api.disconnect();
-        } catch (e) {
+        } catch (_e) {
           blockEvents = [];
         } finally {
           result = { networkName: name, blockEvents };

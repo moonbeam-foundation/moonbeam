@@ -8,7 +8,6 @@ import {
   execOpenTechCommitteeProposal,
 } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import { BN } from "@polkadot/util";
 import {
   registerForeignAsset,
   addAssetToWeightTrader,

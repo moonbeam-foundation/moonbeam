@@ -14,7 +14,7 @@ describeSuite({
     let xcmTransactorV1: Contract;
     let xcmTransactorV2: Contract;
     let relayApi: ApiPromise;
-    let relayVersion: number;
+    let _relayVersion: number;
     let paraApiVersion: number;
 
     beforeAll(async function () {

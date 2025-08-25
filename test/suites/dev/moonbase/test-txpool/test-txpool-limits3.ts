@@ -65,7 +65,7 @@ describeSuite({
       timeout: 40_000,
       test: async function () {
         const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
-        const deployData = encodeDeployData({
+        const _deployData = encodeDeployData({
           abi,
           bytecode,
         });

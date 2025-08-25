@@ -6,12 +6,7 @@ import {
   describeSuite,
   expect,
 } from "@moonwall/cli";
-import {
-  CHARLETH_PRIVATE_KEY,
-  CHARLETH_ADDRESS,
-  createEthersTransaction,
-  ALITH_ADDRESS,
-} from "@moonwall/util";
+import { CHARLETH_PRIVATE_KEY, CHARLETH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { encodeFunctionData, type Abi } from "viem";
 import { verifyLatestBlockFees } from "../../../../helpers";
 

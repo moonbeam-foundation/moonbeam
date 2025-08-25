@@ -103,7 +103,7 @@ describeSuite({
       test: async () => {
         const results = await limiter.schedule(() => {
           const specVersion = paraApi.consts.system.version.specVersion.toNumber();
-          const allTasks = atStakeSnapshot.map(async (coll, index) => {
+          const allTasks = atStakeSnapshot.map(async (coll, _index) => {
             const [
               {
                 args: [_, accountId],
