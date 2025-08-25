@@ -35,6 +35,7 @@ use crate::{
 	EnableMarkingOffline, Error, Event, FreezeReason, InflationDistributionInfo, Range,
 	WasInactive,
 };
+use frame_support::traits::fungible::MutateFreeze;
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
