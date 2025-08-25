@@ -38,9 +38,7 @@ describeSuite({
         // Create a new EOA for delegation
         const privateKey = generatePrivateKey();
         const delegatingEOA = privateKeyToAccount(privateKey);
-
         const delegatingAddress = delegatingEOA.address;
-
         console.log(`Created EOA for delegation: ${delegatingAddress}`);
 
         // Fund the delegating EOA with some balance from ALITH
@@ -50,6 +48,7 @@ describeSuite({
             .tx.balances.transferAllowDeath(delegatingAddress, 1000000000000000000n),
         ]);
 
+        // Set up initial delegation
         const authorization = await delegatingEOA.signAuthorization({
           contractAddress: contractAddress,
           chainId: chainId,
@@ -93,7 +92,7 @@ describeSuite({
           to: delegatingAddress,
           data: callData,
           chainId: chainId,
-          authorizationList: authorizationList,
+          authorizationList,
           txnType: "eip7702" as const,
         };
 
@@ -303,7 +302,10 @@ describeSuite({
         // First, create a delegation
         const privateKey = generatePrivateKey();
         const delegatingEOA = privateKeyToAccount(privateKey);
+        const delegatingAddress = delegatingEOA.address;
+        console.log(`Created EOA for delegation: ${delegatingAddress}`);
 
+        // Fund the delegating EOA with some balance from ALITH
         await context.createBlock([
           context
             .polkadotJs()
@@ -317,18 +319,32 @@ describeSuite({
           nonce: 0,
         });
 
+        console.log(
+          `Authorization created for ${delegatingAddress} to delegate to ${contractAddress}`
+        );
+        console.log(`Authorization nonce: ${authorization.nonce}`);
+
+        // Create the authorization list
+        const authorizationList = [authorization];
+
+        // Use the delegation ABI from helpers
+
+        // Set balance for an arbitrary address
+        const targetAddress = "0x1234567890123456789012345678901234567890" as `0x${string}`;
+        const targetBalance = 1000n;
+
         const callData = encodeFunctionData({
           abi: contractAbi,
           functionName: "setBalance",
-          args: ["0x1234567890123456789012345678901234567890", 1000n],
+          args: [targetAddress, targetBalance],
         });
 
+        // Create the transaction object with authorizationList
         const transaction = {
-          to: delegatingEOA.address,
+          to: delegatingAddress,
           data: callData,
           chainId: chainId,
-          value: 0n,
-          authorizationList: [authorization],
+          authorizationList,
           txnType: "eip7702" as const,
         };
 
@@ -339,7 +355,7 @@ describeSuite({
         const receipt = await context.viem().getTransactionReceipt({ hash });
 
         // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Verify delegation is set
         const codeAfterDelegation = await context.viem().getCode({
@@ -365,22 +381,25 @@ describeSuite({
           nonce: 1, // Nonce should be incremented
         });
 
+        // Create the authorization list
+        const clearAuthorizationList = [clearAuthorization];
+
         const clearTransaction = {
-          to: delegatingEOA.address,
+          to: "0x0000000000000000000000000000000000000000", // any address without code work
           data: "0x",
           chainId: chainId,
-          authorizationList: [clearAuthorization],
+          authorizationList: clearAuthorizationList,
           txnType: "eip7702" as const,
         };
 
         const clearSignature = await createViemTransaction(context, clearTransaction);
-        /*const clearHash = await sendRawTransaction(context, clearSignature);
+        const clearHash = await sendRawTransaction(context, clearSignature);
         await context.createBlock();
 
         const clearReceipt = await context.viem().getTransactionReceipt({ hash: clearHash });
 
         // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(clearReceipt.status).toBe("success");
+        expect(clearReceipt.status).toBe("success");
 
         // Check that delegation should be cleared according to EIP-7702
         const codeAfterClear = await context.viem().getCode({
@@ -433,7 +452,7 @@ describeSuite({
           }
         }
 
-        expect(codeAfterClear).toBeFalsy();*/
+        expect(codeAfterClear).toBeFalsy();
       },
     });
 
