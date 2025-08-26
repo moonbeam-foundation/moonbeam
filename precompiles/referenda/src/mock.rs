@@ -17,6 +17,7 @@
 //! A minimal precompile runtime including the pallet-randomness pallet
 
 use super::*;
+use frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{ConstU32, EqualPrivilegeOnly, Everything, SortedMembers, VoteTally},
@@ -58,7 +59,10 @@ construct_runtime!(
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
-	pub const MaximumBlockWeight: Weight = Weight::from_parts(1024, 1);
+	pub const MaximumBlockWeight: Weight = Weight::from_parts(
+		WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
+		MAX_POV_SIZE as u64,
+	);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;

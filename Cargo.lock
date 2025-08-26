@@ -9457,7 +9457,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-balances",
  "pallet-evm",
- "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
