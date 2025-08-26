@@ -16,12 +16,7 @@
 
 //! Test utilities
 use super::*;
-use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{EqualPrivilegeOnly, Everything},
-	weights::Weight,
-};
-use frame_system::EnsureRoot;
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use pallet_evm::{
 	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
@@ -46,7 +41,6 @@ construct_runtime!(
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
 		AuthorMapping: pallet_author_mapping,
-		Scheduler: pallet_scheduler,
 	}
 );
 
@@ -179,20 +173,6 @@ impl pallet_author_mapping::Config for Runtime {
 	type DepositAmount = DepositAmount;
 	type Keys = nimbus_primitives::NimbusId;
 	type WeightInfo = ();
-}
-
-impl pallet_scheduler::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeOrigin = RuntimeOrigin;
-	type PalletsOrigin = OriginCaller;
-	type RuntimeCall = RuntimeCall;
-	type MaximumWeight = ();
-	type ScheduleOrigin = EnsureRoot<AccountId>;
-	type MaxScheduledPerBlock = ();
-	type WeightInfo = ();
-	type OriginPrivilegeCmp = EqualPrivilegeOnly; // TODO : Simplest type, maybe there is better ?
-	type Preimages = ();
-	type BlockNumberProvider = System;
 }
 
 pub(crate) struct ExtBuilder {
