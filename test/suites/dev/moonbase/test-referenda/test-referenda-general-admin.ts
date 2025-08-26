@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
-import {stripNulls} from "../../../../helpers";
+import { stripNulls } from "../../../../helpers";
 
 describeSuite({
   id: "D023302",

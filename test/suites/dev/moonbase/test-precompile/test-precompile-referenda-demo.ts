@@ -11,7 +11,8 @@ import { decodeEventLog, getAddress } from "viem";
 import {
   forceReducedReferendaExecution,
   expectSubstrateEvent,
-  expectSubstrateEvents, stripNulls,
+  expectSubstrateEvents,
+  stripNulls,
 } from "../../../../helpers";
 
 describeSuite({
@@ -29,7 +30,9 @@ describeSuite({
         for (const track of tracksInfo) {
           console.log("Track:", track.toJSON());
         }
-        const trackInfo = tracksInfo.find((track) => stripNulls(track[1].name.toString()) === trackName);
+        const trackInfo = tracksInfo.find(
+          (track) => stripNulls(track[1].name.toString()) === trackName
+        );
         expect(trackInfo?.toHuman()).to.not.be.empty;
 
         const { contractAddress: refUpgradeDemoV1Address, abi: refUpgradeDemoV1Abi } =
