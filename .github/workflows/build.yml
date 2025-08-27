@@ -891,3 +891,42 @@ jobs:
         with:
           name: failed-node-logs
           path: ${{ env.NODE_LOGS_ZIP }}
+
+  bridge-integration-tests:
+    needs: ["set-tags", "build"]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: "Download branch built runtime"
+        uses: actions/download-artifact@v4
+        with:
+          name: runtimes
+          path: target/release
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v4
+        with:
+          name: moonbeam
+          path: target/release
+      - name: Setup
+        run: |
+          # Install polkadot-js-api
+          # https://github.com/paritytech/polkadot-sdk/blob/56f683fabfc5a4554d4b9208e91103624264407c/bridges/testing/framework/utils/bridges.sh#L21
+          npm install -g @polkadot/api-cli
+          chmod uog+x ./target/release/moonbeam
+          # This command prepares all required binaries and runs the bridge integration tests
+          make run-bridge-integration-tests
+      - name: Zip and Upload Logs on Failure
+        if: failure()
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          export LOGS_ZIP="bridge_integration_tests_$TIMESTAMP.zip"
+          find /tmp/bridge-integration-tests -maxdepth 3 -type f -name '*.log' -exec zip -r $LOGS_ZIP {} \;
+          echo "LOGS_ZIP=${LOGS_ZIP}" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: bridge-integration-tests-logs
+          path: ${{ env.LOGS_ZIP }}

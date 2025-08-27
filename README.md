@@ -4,11 +4,19 @@
 
 [![Tests](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml?query=branch:master)
 
-**An Ethereum compatible [Parachain](https://polkadot.com/parachains/) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
+**An Ethereum compatible [Parachain](https://polkadot.com/rollups) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
 
 👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._<br>
 👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._<br>
 👉 _Reference our [crate-level docs (rustdocs)](https://moonbeam-foundation.github.io/moonbeam) to contribute._
+
+## Run Moonbeam with zombienet
+```bash
+# Start Polkadot relay with Moonbeam parachain
+make start-zombienet-moonbeam
+# Start Kusama relay with Moonriver parachain
+make start-zombienet-moonriver
+```
 
 ## Run a Moonbase Alpha (Moonbeam TestNet) Node with Docker
 
@@ -133,6 +141,11 @@ cargo test
 cd test
 pnpm i 
 pnpm moonwall test dev_moonbase
+```
+
+### Run bridge integration tests
+```bash
+make run-bridge-integration-tests
 ```
 
 ## Chain IDs

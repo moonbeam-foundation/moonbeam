@@ -3230,15 +3230,6 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       goOnline: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
-       * Hotfix to remove existing empty entries for candidates that have left.
-       **/
-      hotfixRemoveDelegationRequestsExitedCandidates: AugmentedSubmittable<
-        (
-          candidates: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[]
-        ) => SubmittableExtrinsic<ApiType>,
-        [Vec<AccountId20>]
-      >;
-      /**
        * Join the set of collator candidates
        **/
       joinCandidates: AugmentedSubmittable<
