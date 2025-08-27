@@ -25,7 +25,7 @@ describeSuite({
       title: "should be accessible from a smart contract",
       test: async function () {
         const setStorageCallIndex = u8aToHex(context.polkadotJs().tx.system.setStorage.callIndex);
-        const trackName = formatTrackName("root");
+        const trackName = "root";
         const tracksInfo = context.polkadotJs().consts.referenda.tracks;
         const trackInfo = tracksInfo.find(
           (track) => track[1].name.toString() === trackName
@@ -191,8 +191,7 @@ describeSuite({
           "referendum_killer",
         ];
         const failures: any[] = [];
-        for (let trackName of validTracks) {
-          trackName = formatTrackName(trackName);
+        for (const trackName of validTracks) {
           const setStorageCallIndex = u8aToHex(context.polkadotJs().tx.system.setStorage.callIndex);
 
           const {contractAddress} = await context.deployContract!("ReferendaAutoUpgradeDemoV1", {
