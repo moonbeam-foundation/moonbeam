@@ -482,7 +482,7 @@ describeSuite({
           privateKey: sender.privateKey,
         };
 
-        /*{
+        {
           const signedTx = await createViemTransaction(context, setRevertTx);
           const hash = await sendRawTransaction(context, signedTx);
           await context.createBlock();
@@ -506,6 +506,9 @@ describeSuite({
           }),
           chainId: chainId,
           privateKey: sender.privateKey,
+          // Gas estimation fail because the tx revert (that's the purpose of the test)
+          skipEstimation: true,
+          gas: 500_000,
         };
 
         {
@@ -519,7 +522,7 @@ describeSuite({
           });
 
           expect(receipt.status).toBe("reverted");
-        }*/
+        }
       },
     });
 
