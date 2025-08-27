@@ -12,7 +12,7 @@ import {
   forceReducedReferendaExecution,
   expectSubstrateEvent,
   expectSubstrateEvents,
-  formatTrackName,
+  formatTrackName, stripNulls,
 } from "../../../../helpers";
 
 describeSuite({
@@ -28,7 +28,7 @@ describeSuite({
         const trackName = "root";
         const tracksInfo = context.polkadotJs().consts.referenda.tracks;
         const trackInfo = tracksInfo.find(
-          (track) => track[1].name.toString() === trackName
+          (track) => stripNulls(track[1].name.toString()) === trackName
         );
         expect(trackInfo?.toHuman()).to.not.be.empty;
 
