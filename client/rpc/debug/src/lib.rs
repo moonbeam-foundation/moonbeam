@@ -630,8 +630,8 @@ where
 	/// In order to successfully reproduce the result of the original transaction we need a correct
 	/// state to replay over.
 	///
-	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlayed state.
-	/// These overlayed changes will live in-memory for the lifetime of the ApiRef.
+	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlaid state.
+	/// These overlaid changes will live in-memory for the lifetime of the ApiRef.
 	fn handle_transaction_request(
 		client: Arc<C>,
 		backend: Arc<BE>,
