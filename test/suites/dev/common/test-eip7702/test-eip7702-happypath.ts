@@ -405,7 +405,6 @@ describeSuite({
         console.log(`Code after clearing attempt: ${codeAfterClear}`);
 
         // According to EIP-7702, delegation to zero address should clear the code
-        // BUG: This test documents that Moonbeam doesn't properly clear delegations
         if (codeAfterClear === "0x" || !codeAfterClear) {
           console.log("✅ Delegation properly cleared to zero address");
           // Try to call - should fail
@@ -443,7 +442,7 @@ describeSuite({
               args: ["0x1234567890123456789012345678901234567890"],
             });
             console.log(`🐛 BUG: Balance still accessible after clear: ${balanceAfterClear}`);
-        expect.fail("🐛 BUG: Balance still accessible after clear: ${balanceAfterClear}");
+            expect.fail("🐛 BUG: Balance still accessible after clear: ${balanceAfterClear}");
           } catch (error) {
             console.log("✅ Function calls properly fail after clearing");
           }
