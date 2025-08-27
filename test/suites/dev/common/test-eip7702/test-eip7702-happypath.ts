@@ -418,7 +418,7 @@ describeSuite({
             })
           ).rejects.toThrow();
         } else {
-          console.log("🐛 BUG: Delegation not properly cleared - code still present");
+          expect.fail("🐛 BUG: Delegation not properly cleared - code still present");
           console.log(`Code after clear: ${codeAfterClear}`);
 
           // Extract delegated address from the code
@@ -430,7 +430,7 @@ describeSuite({
             if (delegatedAddress === "0x0000000000000000000000000000000000000000") {
               console.log("✅ Delegation points to zero address (partial fix)");
             } else {
-              console.log("🐛 BUG: Delegation still points to original contract");
+              expect.fail("🐛 BUG: Delegation still points to original contract");
             }
           }
 
