@@ -149,76 +149,6 @@ describeSuite({
 
     it({
       id: "T02",
-      title: "should handle delegation-to-delegation calls",
-      test: async () => {
-        const sender = await createFundedAccount(context);
-        const eoa1 = (await createFundedAccount(context)).account;
-        const eoa2 = (await createFundedAccount(context)).account;
-
-        // Both pointers delegate to caller contract
-        const auth1 = await eoa1.signAuthorization({
-          contractAddress: eoa2.address,
-          chainId: chainId,
-          nonce: 0,
-        });
-
-        const auth2 = await eoa2.signAuthorization({
-          contractAddress: callerAddress,
-          chainId: chainId,
-          nonce: 0,
-        });
-
-        const setupTx = {
-          to: eoa1.address,
-          chainId: chainId,
-          authorizationList: [auth1, auth2],
-          txnType: "eip7702" as const,
-        };
-
-        const signedTx = await createViemTransaction(context, setupTx);
-        const hash = await sendRawTransaction(context, signedTx);
-        await context.createBlock();
-
-        // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
-
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
-
-        // eoa1 calls eoa2
-        const callData = encodeFunctionData({
-          abi: callerAbi,
-          functionName: "callAddress",
-          args: [eoa2.address, "0x"],
-        });
-
-        const pointerTx = {
-          to: eoa1.address,
-          data: callData,
-          chainId: chainId,
-          privateKey: sender.privateKey,
-        };
-
-        {
-          const signedTx = await createViemTransaction(context, pointerTx);
-          const hash = await sendRawTransaction(context, signedTx);
-          await context.createBlock();
-
-          // Get transaction receipt to check for events and status
-          const receipt = await context.viem().getTransactionReceipt({
-            hash,
-          });
-
-          // TODO: this test misses proper assertions
-          // expect(receipt.status).toBe("success");
-        }
-      },
-    });
-
-    it({
-      id: "T03",
       title: "should test context opcodes with pointers (BALANCE, CODESIZE, etc.)",
       test: async () => {
         const sender = await createFundedAccount(context);
@@ -289,7 +219,7 @@ describeSuite({
     });
 
     it({
-      id: "T04",
+      id: "T03",
       title: "should test call to precompile in pointer context",
       test: async () => {
         const sender = await createFundedAccount(context);
@@ -352,7 +282,7 @@ describeSuite({
     });
 
     it({
-      id: "T05",
+      id: "T04",
       title: "should test gas difference between pointer and direct calls",
       test: async () => {
         const sender = await createFundedAccount(context);
@@ -451,7 +381,7 @@ describeSuite({
     });
 
     it({
-      id: "T06",
+      id: "T05",
       title: "should test static context preservation through pointers",
       test: async () => {
         const sender = await createFundedAccount(context);
@@ -513,7 +443,7 @@ describeSuite({
     });
 
     it({
-      id: "T07",
+      id: "T06",
       title: "should test pointer reverts and error propagation",
       test: async () => {
         const sender = await createFundedAccount(context);
@@ -542,8 +472,7 @@ describeSuite({
           hash,
         });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Set the contract to revert
         const setRevertTx = {
@@ -599,7 +528,7 @@ describeSuite({
     });
 
     it({
-      id: "T08",
+      id: "T07",
       title: "should test double authorization (last authorization wins)",
       test: async () => {
         const sender = await createFundedAccount(context);
@@ -653,7 +582,7 @@ describeSuite({
     });
 
     it({
-      id: "T09",
+      id: "T08",
       title: "should test pointer with ETH transfers",
       test: async () => {
         const sender = await createFundedAccount(context);
