@@ -218,7 +218,7 @@
 	/// Neither this RPC, nor the mock inherent data provider make any attempt to enforce this
 	/// constraint. In fact, violating it may be useful for testing.
 	/// The method accepts a sending paraId and a bytearray representing an arbitrary message as
-	/// parameters. If you provide an emtpy byte array, then a default message representing a
+	/// parameters. If you provide an empty byte array, then a default message representing a
 	/// transfer of the sending paraId's native token will be injected.
 	</span><span class="attr">#[method(name = <span class="string">"xcm_injectHrmpMessage"</span>)]
 	</span><span class="kw">async fn </span>inject_hrmp_message(<span class="kw-2">&amp;</span><span class="self">self</span>, sender: ParaId, message: Vec&lt;u8&gt;) -&gt; RpcResult&lt;()&gt;;
