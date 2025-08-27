@@ -809,6 +809,7 @@ describeSuite({
         } catch (error) {
           // Expected to fail since EOA1 has Caller code, not StorageWriter
           expect(error).toBeDefined();
+          expect(error.message).toContain("Contract does not have fallback nor receive functions");
         }
 
         console.log("Verified: Delegated calls do not follow chains");
