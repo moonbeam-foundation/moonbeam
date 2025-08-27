@@ -56,10 +56,10 @@ type ClassOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Polls as
 		<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
 	>,
 >>::Class;
-type VotingOf<Runtime> = Voting<
+type VotingOf<Runtime, Instance = ()> = Voting<
 	BalanceOf<Runtime>,
 	<Runtime as frame_system::Config>::AccountId,
-	pallet_conviction_voting::BlockNumberFor<Runtime, ()>,
+	pallet_conviction_voting::BlockNumberFor<Runtime, Instance>,
 	<<Runtime as pallet_conviction_voting::Config>::Polls as Polling<TallyOf<Runtime>>>::Index,
 	<Runtime as pallet_conviction_voting::Config>::MaxVotes,
 >;

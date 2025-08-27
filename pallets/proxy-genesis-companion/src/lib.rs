@@ -46,7 +46,7 @@ pub mod pallet {
 
 	/// This pallet requires
 	/// 1. pallet-proxy to be installed
-	/// 2. its ProxyType to be serializable when built to std.
+	/// 2. it's ProxyType and BlockNumberProvider to be serializable when built to std.
 	#[pallet::config]
 	pub trait Config:
 		frame_system::Config
