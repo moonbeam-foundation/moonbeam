@@ -185,7 +185,28 @@ describeSuite({
         expect(receipt.status).toBe("success");
 
         // Storage should be in the delegating EOA's context (via caller contract delegation)
-        // This is complex because of double delegation - may need to check actual storage slots
+        // Verify with a load storage call via delegatecall
+
+        // Delegatecall to load storage
+        const storeData2 = encodeFunctionData({
+          abi: storageWriterAbi,
+          functionName: "load",
+          args: [1n],
+        });
+
+        // Read the stored value
+        const storedValue = await context.viem().readContract({
+          address: delegatingEOA.address,
+          abi: callerAbi,
+          functionName: "delegatecallAddress",
+          args: [storageWriterAddress, storeData2],
+        });
+
+        expect(storedValue).toStrictEqual([
+          true,
+          // uint256 hex encoded (2a == 42)
+          "0x000000000000000000000000000000000000000000000000000000000000002a",
+        ]);
       },
     });
 
