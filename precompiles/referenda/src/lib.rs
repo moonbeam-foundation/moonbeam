@@ -231,9 +231,7 @@ where
 		// trim the nulls bytes at the end of the name
 		// caused by this https://github.com/paritytech/polkadot-sdk/pull/2072
 		let mut last_non_null_index = track_info.name.len();
-		while last_non_null_index > 0
-			&& track_info.name[last_non_null_index - 1] == 0u8
-		{
+		while last_non_null_index > 0 && track_info.name[last_non_null_index - 1] == 0u8 {
 			last_non_null_index -= 1;
 		}
 		let track_name_trimmed = &track_info.name[..last_non_null_index];
