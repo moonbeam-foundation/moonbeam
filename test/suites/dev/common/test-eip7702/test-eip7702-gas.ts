@@ -326,7 +326,7 @@ describeSuite({
     });
 
     it({
-      id: "T06",
+      id: "T05",
       title: "should handle out-of-gas during authorization processing",
       test: async () => {
         const sender = await createFundedAccount(context);
@@ -368,8 +368,8 @@ describeSuite({
       },
     });
 
-    /*it({
-      id: "T07",
+    it({
+      id: "T06",
       title: "should test gas refund for authorization clearing",
       test: async () => {
         const sender = await createFundedAccount(context);
@@ -408,7 +408,7 @@ describeSuite({
         });
 
         const clearTx = {
-          to: delegatingEOA.address,
+          to: "0x0000000000000000000000000000000000000000", // Any address without code
           chainId: chainId,
           authorizationList: [clearAuth],
           txnType: "eip7702" as const,
@@ -428,6 +428,6 @@ describeSuite({
         console.log(`Gas used for clearing delegation: ${receipt.gasUsed}`);
         expect(receipt.gasUsed).toBe(36800n);
       },
-    });*/
+    });
   },
 });
