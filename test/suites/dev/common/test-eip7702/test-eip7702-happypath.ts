@@ -443,7 +443,7 @@ describeSuite({
               args: ["0x1234567890123456789012345678901234567890"],
             });
             console.log(`🐛 BUG: Balance still accessible after clear: ${balanceAfterClear}`);
-            expect(true).toBe(false); // Should not reach here
+        expect.fail("🐛 BUG: Balance still accessible after clear: ${balanceAfterClear}");
           } catch (error) {
             console.log("✅ Function calls properly fail after clearing");
           }
