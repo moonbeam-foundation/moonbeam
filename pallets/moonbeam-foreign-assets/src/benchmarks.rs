@@ -18,8 +18,9 @@
 
 extern crate alloc;
 
-use crate::{AssetStatus, Call, Config, Pallet};
+use crate::{AssetStatus, AssetsById, Call, Config, Pallet};
 use alloc::format;
+use core::ops::Range;
 use frame_benchmarking::v2::*;
 use frame_support::pallet_prelude::*;
 use frame_system::RawOrigin;
@@ -98,11 +99,21 @@ pub fn create_default_minted_foreign_asset<T: Config>(
 mod benchmarks {
 	use super::*;
 
+	fn get_assets_to_mint<T>() -> u128
+	where
+		T: Config,
+	{
+		let max_assets = T::MaxForeignAssets::get() as u128;
+		let asset_count = AssetsById::<T>::count();
+		let last_asset = max_assets - asset_count as u128;
+		last_asset
+	}
+
 	#[benchmark]
 	fn create_foreign_asset() -> Result<(), BenchmarkError> {
-		let max_assets = T::MaxForeignAssets::get() as u128;
+		let last_asset = get_assets_to_mint::<T>();
 
-		for i in 1..max_assets {
+		for i in 1..last_asset {
 			let symbol = format!("MT{}", i);
 			let name = format!("Mytoken{}", i);
 			Pallet::<T>::create_foreign_asset(
@@ -115,7 +126,7 @@ mod benchmarks {
 			)?;
 		}
 
-		let asset_id = max_assets;
+		let asset_id = last_asset;
 		let symbol = format!("MT{}", asset_id);
 		let name = format!("Mytoken{}", asset_id);
 
@@ -139,8 +150,9 @@ mod benchmarks {
 
 	#[benchmark]
 	fn change_xcm_location() -> Result<(), BenchmarkError> {
-		let max_assets = T::MaxForeignAssets::get() as u128;
-		for i in 1..=max_assets {
+		let last_asset = get_assets_to_mint::<T>();
+
+		for i in 1..=last_asset {
 			let symbol = format!("MT{}", i);
 			let name = format!("Mytoken{}", i);
 			Pallet::<T>::create_foreign_asset(
@@ -153,7 +165,7 @@ mod benchmarks {
 			)?;
 		}
 
-		let asset_id = max_assets;
+		let asset_id = last_asset;
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id, Location::here());
@@ -165,8 +177,9 @@ mod benchmarks {
 
 	#[benchmark]
 	fn freeze_foreign_asset() -> Result<(), BenchmarkError> {
-		let max_assets = T::MaxForeignAssets::get() as u128;
-		for i in 1..=max_assets {
+		let last_asset = get_assets_to_mint::<T>();
+
+		for i in 1..=last_asset {
 			let symbol = format!("MT{}", i);
 			let name = format!("Mytoken{}", i);
 			Pallet::<T>::create_foreign_asset(
@@ -179,7 +192,7 @@ mod benchmarks {
 			)?;
 		}
 
-		let asset_id = max_assets;
+		let asset_id = last_asset;
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id, true);
@@ -194,8 +207,9 @@ mod benchmarks {
 
 	#[benchmark]
 	fn unfreeze_foreign_asset() -> Result<(), BenchmarkError> {
-		let max_assets = T::MaxForeignAssets::get() as u128;
-		for i in 1..=max_assets {
+		let last_asset = get_assets_to_mint::<T>();
+
+		for i in 1..=last_asset {
 			let symbol = format!("MT{}", i);
 			let name = format!("Mytoken{}", i);
 			Pallet::<T>::create_foreign_asset(
@@ -210,7 +224,7 @@ mod benchmarks {
 			let _ = Pallet::<T>::freeze_foreign_asset(RawOrigin::Root.into(), i, true);
 		}
 
-		let asset_id = max_assets;
+		let asset_id = last_asset;
 
 		#[extrinsic_call]
 		_(RawOrigin::Root, asset_id);
