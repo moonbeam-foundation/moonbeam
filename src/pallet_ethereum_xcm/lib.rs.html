@@ -394,6 +394,9 @@
 <a href="#394" id="394">394</a>
 <a href="#395" id="395">395</a>
 <a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -439,8 +442,8 @@
 <span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>};
 
 <span class="kw">pub use </span>ethereum::{
-	AccessListItem, BlockV2 <span class="kw">as </span>Block, LegacyTransactionMessage, Log, ReceiptV3 <span class="kw">as </span>Receipt,
-	TransactionAction, TransactionV2 <span class="kw">as </span>Transaction,
+	AccessListItem, BlockV3 <span class="kw">as </span>Block, LegacyTransactionMessage, Log, ReceiptV4 <span class="kw">as </span>Receipt,
+	TransactionAction, TransactionV3 <span class="kw">as </span>Transaction,
 };
 <span class="kw">pub use </span>fp_rpc::TransactionStatus;
 <span class="kw">pub use </span>xcm_primitives::{EnsureProxy, EthereumXcmTransaction, XcmToEthereum};
@@ -573,7 +576,8 @@
 			&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::gas_to_weight({
 				<span class="kw">match </span>xcm_transaction {
 					EthereumXcmTransaction::V1(v1_tx) =&gt;  v1_tx.gas_limit.unique_saturated_into(),
-					EthereumXcmTransaction::V2(v2_tx) =&gt;  v2_tx.gas_limit.unique_saturated_into()
+					EthereumXcmTransaction::V2(v2_tx) =&gt;  v2_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V3(v3_tx) =&gt;  v3_tx.gas_limit.unique_saturated_into(),
 				}
 			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 		})]
@@ -602,7 +606,8 @@
 			&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::gas_to_weight({
 				<span class="kw">match </span>xcm_transaction {
 					EthereumXcmTransaction::V1(v1_tx) =&gt;  v1_tx.gas_limit.unique_saturated_into(),
-					EthereumXcmTransaction::V2(v2_tx) =&gt;  v2_tx.gas_limit.unique_saturated_into()
+					EthereumXcmTransaction::V2(v2_tx) =&gt;  v2_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V3(v3_tx) =&gt;  v3_tx.gas_limit.unique_saturated_into(),
 				}
 			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(<span class="number">2</span>))
 		})]
@@ -668,8 +673,9 @@
 			<span class="kw">let </span>without_base_extrinsic_weight = <span class="bool-val">false</span>;
 			&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::gas_to_weight({
 				<span class="kw">match </span>xcm_transaction {
-					EthereumXcmTransaction::V1(v1_tx) =&gt;  v1_tx.gas_limit.unique_saturated_into(),
-					EthereumXcmTransaction::V2(v2_tx) =&gt;  v2_tx.gas_limit.unique_saturated_into()
+					EthereumXcmTransaction::V1(v1_tx) =&gt; v1_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V2(v2_tx) =&gt; v2_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V3(v3_tx) =&gt; v3_tx.gas_limit.unique_saturated_into(),
 				}
 			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(<span class="number">1</span>))
 		})]
@@ -720,7 +726,7 @@
 		<span class="kw">let </span>error_weight = T::DbWeight::get().reads(<span class="number">1</span>);
 
 		<span class="kw">let </span>transaction: <span class="prelude-ty">Option</span>&lt;Transaction&gt; =
-			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get(), allow_create);
+			xcm_transaction.into_transaction(current_nonce, T::ChainId::get(), allow_create);
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(transaction) = transaction {
 			<span class="kw">let </span>tx_hash = transaction.hash();
 			<span class="kw">let </span>transaction_data: TransactionData = (<span class="kw-2">&amp;</span>transaction).into();

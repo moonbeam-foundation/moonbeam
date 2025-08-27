@@ -1062,6 +1062,50 @@
 <a href="#1062" id="1062">1062</a>
 <a href="#1063" id="1063">1063</a>
 <a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a>
+<a href="#1089" id="1089">1089</a>
+<a href="#1090" id="1090">1090</a>
+<a href="#1091" id="1091">1091</a>
+<a href="#1092" id="1092">1092</a>
+<a href="#1093" id="1093">1093</a>
+<a href="#1094" id="1094">1094</a>
+<a href="#1095" id="1095">1095</a>
+<a href="#1096" id="1096">1096</a>
+<a href="#1097" id="1097">1097</a>
+<a href="#1098" id="1098">1098</a>
+<a href="#1099" id="1099">1099</a>
+<a href="#1100" id="1100">1100</a>
+<a href="#1101" id="1101">1101</a>
+<a href="#1102" id="1102">1102</a>
+<a href="#1103" id="1103">1103</a>
+<a href="#1104" id="1104">1104</a>
+<a href="#1105" id="1105">1105</a>
+<a href="#1106" id="1106">1106</a>
+<a href="#1107" id="1107">1107</a>
+<a href="#1108" id="1108">1108</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1086,6 +1130,7 @@
 	sync::{oneshot, Semaphore},
 };
 
+<span class="kw">use </span>ethereum;
 <span class="kw">use </span>ethereum_types::H256;
 <span class="kw">use </span>fc_rpc::{frontier_backend_client, internal_err};
 <span class="kw">use </span>fc_storage::StorageOverride;
@@ -1776,9 +1821,35 @@
 			<span class="kw">let </span>transactions = block.transactions;
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(transaction) = transactions.get(index) {
 				<span class="kw">let </span>f = || -&gt; RpcResult&lt;<span class="kw">_</span>&gt; {
-					<span class="kw">let </span>result = <span class="kw">if </span>trace_api_version &gt;= <span class="number">5 </span>{
+					<span class="kw">let </span>result = <span class="kw">if </span>trace_api_version &gt;= <span class="number">7 </span>{
 						<span class="comment">// The block is initialized inside "trace_transaction"
 						</span>api.trace_transaction(parent_block_hash, exts, <span class="kw-2">&amp;</span>transaction, <span class="kw-2">&amp;</span>header)
+					} <span class="kw">else if </span>trace_api_version == <span class="number">5 </span>|| trace_api_version == <span class="number">6 </span>{
+						<span class="comment">// API version 5 and 6 expect TransactionV2, so we need to convert from TransactionV3
+						</span><span class="kw">let </span>tx_v2 = <span class="kw">match </span>transaction {
+							ethereum::TransactionV3::Legacy(tx) =&gt; {
+								ethereum::TransactionV2::Legacy(tx.clone())
+							}
+							ethereum::TransactionV3::EIP2930(tx) =&gt; {
+								ethereum::TransactionV2::EIP2930(tx.clone())
+							}
+							ethereum::TransactionV3::EIP1559(tx) =&gt; {
+								ethereum::TransactionV2::EIP1559(tx.clone())
+							}
+							ethereum::TransactionV3::EIP7702(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(
+								<span class="string">"EIP-7702 transactions are supported starting from API version 7"
+									</span>.to_string(),
+							)),
+						};
+
+						<span class="comment">// The block is initialized inside "trace_transaction"
+						</span><span class="attr">#[allow(deprecated)]
+						</span>api.trace_transaction_before_version_7(
+							parent_block_hash,
+							exts,
+							<span class="kw-2">&amp;</span>tx_v2,
+							<span class="kw-2">&amp;</span>header,
+						)
 					} <span class="kw">else </span>{
 						<span class="comment">// Get core runtime api version
 						</span><span class="kw">let </span>core_api_version = <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(api_version)) =
@@ -1810,17 +1881,32 @@
 						}
 
 						<span class="kw">if </span>trace_api_version == <span class="number">4 </span>{
+							<span class="comment">// API version 4 expect TransactionV2, so we need to convert from TransactionV3
+							</span><span class="kw">let </span>tx_v2 = <span class="kw">match </span>transaction {
+								ethereum::TransactionV3::Legacy(tx) =&gt; {
+									ethereum::TransactionV2::Legacy(tx.clone())
+								}
+								ethereum::TransactionV3::EIP2930(tx) =&gt; {
+									ethereum::TransactionV2::EIP2930(tx.clone())
+								}
+								ethereum::TransactionV3::EIP1559(tx) =&gt; {
+									ethereum::TransactionV2::EIP1559(tx.clone())
+								}
+								ethereum::TransactionV3::EIP7702(<span class="kw">_</span>) =&gt; {
+									<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(
+										<span class="string">"EIP-7702 transactions are supported starting from API version 7"
+											</span>.to_string(),
+									))
+								}
+							};
+
 							<span class="comment">// Pre pallet-message-queue
 							</span><span class="attr">#[allow(deprecated)]
-							</span>api.trace_transaction_before_version_5(
-								parent_block_hash,
-								exts,
-								<span class="kw-2">&amp;</span>transaction,
-							)
+							</span>api.trace_transaction_before_version_5(parent_block_hash, exts, <span class="kw-2">&amp;</span>tx_v2)
 						} <span class="kw">else </span>{
 							<span class="comment">// Pre-london update, legacy transactions.
 							</span><span class="kw">match </span>transaction {
-								ethereum::TransactionV2::Legacy(tx) =&gt;
+								ethereum::TransactionV3::Legacy(tx) =&gt;
 								{
 									<span class="attr">#[allow(deprecated)]
 									</span>api.trace_transaction_before_version_4(
@@ -1992,6 +2078,7 @@
 			data,
 			nonce,
 			access_list,
+			authorization_list,
 			..
 		} = call_params;
 
@@ -2066,6 +2153,7 @@
 							.map(|item| (item.address, item.storage_keys))
 							.collect(),
 					),
+					authorization_list,
 				)
 				.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">"Runtime api access error: {:?}"</span>, e)))<span class="question-mark">?
 				</span>.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">"DispatchError: {:?}"</span>, e)))<span class="question-mark">?</span>;

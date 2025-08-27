@@ -85,6 +85,8 @@
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -101,7 +103,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="kw">use </span>ethereum::AccessListItem;
+</span><span class="kw">use </span>ethereum::{AccessListItem, AuthorizationList};
 <span class="kw">use </span>ethereum_types::{H160, H256, U256};
 <span class="kw">use </span>fc_rpc_core::types::Bytes;
 <span class="kw">use </span>jsonrpsee::{core::RpcResult, proc_macros::rpc};
@@ -144,6 +146,8 @@
 	</span><span class="kw">pub </span>nonce: <span class="prelude-ty">Option</span>&lt;U256&gt;,
 	<span class="doccomment">/// EIP-2930 access list
 	</span><span class="kw">pub </span>access_list: <span class="prelude-ty">Option</span>&lt;Vec&lt;AccessListItem&gt;&gt;,
+	<span class="doccomment">/// EIP-7702 authorization list
+	</span><span class="kw">pub </span>authorization_list: <span class="prelude-ty">Option</span>&lt;AuthorizationList&gt;,
 	<span class="doccomment">/// EIP-2718 type
 	</span><span class="attr">#[serde(rename = <span class="string">"type"</span>)]
 	</span><span class="kw">pub </span>transaction_type: <span class="prelude-ty">Option</span>&lt;U256&gt;,

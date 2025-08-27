@@ -91,6 +91,14 @@
 <a href="#91" id="91">91</a>
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -109,7 +117,7 @@
 
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
-</span><span class="kw">use </span>ethereum::{TransactionV0 <span class="kw">as </span>LegacyTransaction, TransactionV2 <span class="kw">as </span>Transaction};
+</span><span class="kw">use </span>ethereum::{AuthorizationList, LegacyTransaction, TransactionV2, TransactionV3};
 <span class="kw">use </span>ethereum_types::{H160, H256, U256};
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>sp_std::vec::Vec;
@@ -123,23 +131,30 @@
 	// In order to be able to use ApiExt as part of the RPC handler logic we need to be always
 	// above the version that exists on chain for this Api, even if this Api is only meant
 	// to be used overridden.
-	</span><span class="attr">#[api_version(<span class="number">6</span>)]
+	</span><span class="attr">#[api_version(<span class="number">7</span>)]
 	</span><span class="kw">pub trait </span>DebugRuntimeApi {
-		<span class="attr">#[changed_in(<span class="number">5</span>)]
-		</span><span class="kw">fn </span>trace_transaction(
-			extrinsics: Vec&lt;Block::Extrinsic&gt;,
-			transaction: <span class="kw-2">&amp;</span>Transaction,
-		) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt;;
-
 		<span class="attr">#[changed_in(<span class="number">4</span>)]
 		</span><span class="kw">fn </span>trace_transaction(
 			extrinsics: Vec&lt;Block::Extrinsic&gt;,
 			transaction: <span class="kw-2">&amp;</span>LegacyTransaction,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt;;
 
+		<span class="attr">#[changed_in(<span class="number">5</span>)]
+		</span><span class="kw">fn </span>trace_transaction(
+			extrinsics: Vec&lt;Block::Extrinsic&gt;,
+			transaction: <span class="kw-2">&amp;</span>TransactionV2,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt;;
+
+		<span class="attr">#[changed_in(<span class="number">7</span>)]
+		</span><span class="kw">fn </span>trace_transaction(
+			extrinsics: Vec&lt;Block::Extrinsic&gt;,
+			transaction: <span class="kw-2">&amp;</span>TransactionV2,
+			header: <span class="kw-2">&amp;</span>Block::Header,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt;;
+
 		<span class="kw">fn </span>trace_transaction(
 			extrinsics: Vec&lt;Block::Extrinsic&gt;,
-			transaction: <span class="kw-2">&amp;</span>Transaction,
+			transaction: <span class="kw-2">&amp;</span>TransactionV3,
 			header: <span class="kw-2">&amp;</span>Block::Header,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt;;
 
@@ -166,6 +181,7 @@
 			max_priority_fee_per_gas: <span class="prelude-ty">Option</span>&lt;U256&gt;,
 			nonce: <span class="prelude-ty">Option</span>&lt;U256&gt;,
 			access_list: <span class="prelude-ty">Option</span>&lt;Vec&lt;(H160, Vec&lt;H256&gt;)&gt;&gt;,
+			authorization_list: <span class="prelude-ty">Option</span>&lt;AuthorizationList&gt;,
 		) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_runtime::DispatchError&gt;;
 	}
 }

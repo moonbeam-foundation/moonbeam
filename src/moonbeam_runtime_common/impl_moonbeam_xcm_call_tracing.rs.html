@@ -205,7 +205,7 @@
 										<span class="comment">// Tracing a transaction, the one matching the trace request
 										// is done using environmental, the rest dispatched normally.
 										</span>EthereumTracingStatus::Transaction(traced_transaction_hash) =&gt; {
-											<span class="kw">let </span>transaction_hash = xcm_transaction.into_transaction_v2(
+											<span class="kw">let </span>transaction_hash = xcm_transaction.into_transaction(
 												EthereumXcm::nonce(),
 												&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::ChainId::get(),
 												<span class="bool-val">false
