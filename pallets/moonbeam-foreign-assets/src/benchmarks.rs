@@ -20,7 +20,6 @@ extern crate alloc;
 
 use crate::{AssetStatus, AssetsById, Call, Config, Pallet};
 use alloc::format;
-use core::ops::Range;
 use frame_benchmarking::v2::*;
 use frame_support::pallet_prelude::*;
 use frame_system::RawOrigin;
