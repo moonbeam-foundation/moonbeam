@@ -49,7 +49,7 @@ describeSuite({
 
         // Simple transaction with authorization
         const tx = {
-          to: delegatingEOA.address,
+          to: "0x0000000000000000000000000000000000000000", // Any recipient wihout code should work
           data: encodeFunctionData({
             abi: counterAbi,
             functionName: "increment",
@@ -66,8 +66,7 @@ describeSuite({
         await context.createBlock();
 
         const receipt = await context.viem().getTransactionReceipt({ hash });
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Gas used should include authorization costs
         expect(receipt.gasUsed).toBeGreaterThan(PER_AUTH_BASE_COST);
@@ -421,8 +420,7 @@ describeSuite({
 
         const receipt = await context.viem().getTransactionReceipt({ hash: clearHash });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Gas used for clearing
         console.log(`Gas used for clearing delegation: ${receipt.gasUsed}`);

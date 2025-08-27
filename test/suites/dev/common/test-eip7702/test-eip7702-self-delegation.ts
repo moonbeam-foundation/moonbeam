@@ -91,8 +91,7 @@ describeSuite({
           hash,
         });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         console.log(`Self-delegation gas used: ${receipt.gasUsed}`);
 

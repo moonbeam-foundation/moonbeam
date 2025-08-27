@@ -104,8 +104,7 @@ describeSuite({
         });
         console.log("Transaction receipt:", receipt);
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         expect(receipt.status).toBe("success");
 
@@ -250,8 +249,7 @@ describeSuite({
 
         const receipt = await context.viem().getTransactionReceipt({ hash });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Verify delegation was set despite non-zero account nonce
         const code = await context.viem().getCode({
@@ -308,8 +306,7 @@ describeSuite({
           hash,
         });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Second transaction: SLOAD (no authorization needed, already delegated)
         const loadTx = {
@@ -333,8 +330,7 @@ describeSuite({
             hash,
           });
 
-          // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-          // expect(receipt.status).toBe("success");
+          expect(receipt.status).toBe("success");
         }
 
         // Decode the return value from the transaction
@@ -506,8 +502,7 @@ describeSuite({
           hash,
         });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Check logs for ContractCreated event
         console.log(`Contract created via CREATE opcode`);
@@ -528,7 +523,6 @@ describeSuite({
         const create2Tx = {
           to: delegatingEOA.address,
           data: create2CallData,
-
           chainId: chainId,
         };
 
@@ -542,8 +536,7 @@ describeSuite({
             hash,
           });
 
-          // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-          // expect(receipt.status).toBe("success");
+          expect(receipt.status).toBe("success");
 
           // Check logs for ContractCreated event from CREATE2
           const created2Address = receipt.logs[0].topics[1]; // Indexed address parameter
@@ -643,9 +636,8 @@ describeSuite({
 
         // Set up both delegations
         const setupTx = {
-          to: eoa1.address,
+          to: "0x0000000000000000000000000000000000000000", // Any recipient wihout code should work
           data: "0x" as `0x${string}`,
-
           chainId: chainId,
           authorizationList: [auth1, auth2],
           txnType: "eip7702" as const,
@@ -661,8 +653,7 @@ describeSuite({
           hash,
         });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Now EOA1 (delegated to caller) calls EOA2 (delegated to storage writer)
         const storeData = encodeFunctionData({
@@ -694,8 +685,7 @@ describeSuite({
             hash,
           });
 
-          // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-          // expect(receipt.status).toBe("success");
+          expect(receipt.status).toBe("success");
         }
 
         // Verify storage was written in EOA2's context
@@ -734,9 +724,8 @@ describeSuite({
 
         // Set up both delegations in a single transaction
         const setupTx = {
-          to: eoa1.address,
+          to: "0x0000000000000000000000000000000000000000", // Any recipient wihout code should work
           data: "0x" as `0x${string}`,
-
           chainId: chainId,
           authorizationList: [auth1, auth2],
           txnType: "eip7702" as const,
@@ -752,8 +741,7 @@ describeSuite({
           hash,
         });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Verify both delegations are set
         const code1 = await context.viem().getCode({ address: eoa1.address });
@@ -793,8 +781,7 @@ describeSuite({
             hash,
           });
 
-          // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-          // expect(receipt.status).toBe("success");
+          expect(receipt.status).toBe("success");
         }
 
         // Verify that storage was written in EOA2's context

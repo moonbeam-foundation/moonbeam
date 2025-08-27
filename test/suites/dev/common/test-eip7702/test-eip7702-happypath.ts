@@ -109,8 +109,7 @@ describeSuite({
         // Check transaction receipt
         const receipt = await context.viem().getTransactionReceipt({ hash });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         console.log(`Transaction receipt status: ${receipt.status}`);
         console.log(`Transaction receipt logs:`, receipt.logs);
@@ -354,7 +353,6 @@ describeSuite({
 
         const receipt = await context.viem().getTransactionReceipt({ hash });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
         expect(receipt.status).toBe("success");
 
         // Verify delegation is set
@@ -398,7 +396,6 @@ describeSuite({
 
         const clearReceipt = await context.viem().getTransactionReceipt({ hash: clearHash });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
         expect(clearReceipt.status).toBe("success");
 
         // Check that delegation should be cleared according to EIP-7702

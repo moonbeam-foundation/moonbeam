@@ -339,7 +339,7 @@ describeSuite({
         });
 
         const tx = {
-          to: delegatingEOA.address,
+          to: "0x0000000000000000000000000000000000000000", // Any recipient wihout code should work
           chainId: chainId,
           authorizationList: [authorization],
           txnType: "eip7702" as const,
@@ -355,8 +355,7 @@ describeSuite({
           hash,
         });
 
-        // NOTE: can't manage to have this not reverting. The authorization is applied in any case.
-        // expect(receipt.status).toBe("success");
+        expect(receipt.status).toBe("success");
 
         // Check ADDRESS opcode
         const address = await context.viem().readContract({
