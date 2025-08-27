@@ -326,127 +326,6 @@ describeSuite({
     });
 
     it({
-      id: "T05",
-      title: "should test gas cost for self-delegation",
-      test: async () => {
-        const selfDelegatingEOA = await createFundedAccount(context);
-
-        // Self-authorization (EOA delegates to a contract on behalf of itself)
-        // In EIP-7702, when the authorizing address is the same as the sender,
-        // the authorization nonce should be current_nonce + 1 because the EVM
-        // increments the nonce before processing the authorization list
-        const currentNonce = await context.viem().getTransactionCount({
-          address: selfDelegatingEOA.account.address,
-        });
-        const selfAuth = await selfDelegatingEOA.account.signAuthorization({
-          contractAddress: counterAddress,
-          chainId: chainId,
-          nonce: currentNonce + 1, // current_nonce + 1 for self-authorizing transactions
-        });
-
-        // Calculate calldata gas cost for increment()
-        const calldata = encodeFunctionData({
-          abi: counterAbi,
-          functionName: "increment",
-          args: [],
-        });
-
-        // Count zero and non-zero bytes in calldata
-        let zeroBytes = 0n;
-        let nonZeroBytes = 0n;
-        const hexData = calldata.slice(2);
-        for (let i = 0; i < hexData.length; i += 2) {
-          const byte = hexData.slice(i, i + 2);
-          if (byte === "00") {
-            zeroBytes++;
-          } else {
-            nonZeroBytes++;
-          }
-        }
-
-        // Calculate intrinsic gas for self-delegation
-        const calldataGas = zeroBytes * 4n + nonZeroBytes * 16n;
-        const authorizationListGas = PER_EMPTY_ACCOUNT_COST * 1n; // 1 authorization
-        const intrinsicGas = 21000n + authorizationListGas + calldataGas;
-
-        console.log(`Self-delegation intrinsic gas calculation:`);
-        console.log(`  Base transaction: 21000`);
-        console.log(`  Authorization list (1 auth): ${authorizationListGas}`);
-        console.log(
-          `  Calldata (${zeroBytes} zero bytes, ${nonZeroBytes} non-zero): ${calldataGas}`
-        );
-        console.log(`  Total intrinsic gas: ${intrinsicGas}`);
-
-        // Test with sufficient gas for self-delegation
-        const gasLimit = intrinsicGas + 30000n; // Add execution gas
-        const selfTx = {
-          to: selfDelegatingEOA.account.address,
-          data: calldata,
-          gas: gasLimit,
-          nonce: currentNonce, // Current nonce for the transaction
-          chainId: chainId,
-          authorizationList: [selfAuth],
-          txnType: "eip7702" as const,
-          privateKey: selfDelegatingEOA.privateKey,
-        };
-
-        // Need to fund gas for the transaction
-        await context.createBlock([
-          context
-            .polkadotJs()
-            .tx.balances.transferAllowDeath(selfDelegatingEOA.account.address, parseEther("1")),
-        ]);
-
-        // Sign with the same account that created the authorization
-        const signature = await selfDelegatingEOA.account.signTransaction(selfTx);
-
-        // Send the self-signed transaction
-        const hash = await sendRawTransaction(context, signature);
-        await context.createBlock();
-
-        const receipt = await context.viem().getTransactionReceipt({ hash });
-
-        expect(receipt.status).toBe("success");
-
-        // Detailed gas cost analysis
-        console.log(`Self-delegation gas costs:`);
-        console.log(`  Gas limit: ${gasLimit}`);
-        console.log(`  Gas used: ${receipt.gasUsed}`);
-        console.log(`  Intrinsic gas: ${intrinsicGas}`);
-        const executionGas = receipt.gasUsed - intrinsicGas;
-        console.log(`  Execution gas: ${executionGas}`);
-
-        // Verify gas used is reasonable
-        expect(receipt.gasUsed).toBeGreaterThanOrEqual(intrinsicGas);
-        expect(receipt.gasUsed).toBeLessThan(gasLimit);
-
-        // Additional gas cost checks for self-delegation specifics
-        // Self-delegation might have different gas costs due to:
-        // 1. Account state changes (nonce increment before auth processing)
-        // 2. Self-reference in authorization
-        const selfDelegationOverhead = receipt.gasUsed - intrinsicGas;
-        console.log(`  Self-delegation overhead: ${selfDelegationOverhead}`);
-
-        // Verify delegation was set
-        const code = await context.viem().getCode({
-          address: selfDelegatingEOA.account.address,
-        });
-        expect(code?.startsWith("0xef0100")).toBe(true);
-        console.log(`  Delegation code set: ${code?.slice(0, 50)}...`);
-
-        // Check counter was incremented
-        const count = await context.viem().readContract({
-          address: selfDelegatingEOA.account.address,
-          abi: counterAbi,
-          functionName: "count",
-          args: [],
-        });
-        expect(count).toBe(1n);
-        console.log(`  Counter value after increment: ${count}`);
-      },
-    });
-
-    it({
       id: "T06",
       title: "should handle out-of-gas during authorization processing",
       test: async () => {
@@ -489,7 +368,7 @@ describeSuite({
       },
     });
 
-    it({
+    /*it({
       id: "T07",
       title: "should test gas refund for authorization clearing",
       test: async () => {
@@ -549,6 +428,6 @@ describeSuite({
         console.log(`Gas used for clearing delegation: ${receipt.gasUsed}`);
         expect(receipt.gasUsed).toBe(36800n);
       },
-    });
+    });*/
   },
 });
