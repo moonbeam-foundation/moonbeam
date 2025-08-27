@@ -83,7 +83,7 @@ describeSuite({
 
         // Set up all pointers in one transaction
         const setupTx = {
-          to: eoa1.address,
+          to: "0x0000000000000000000000000000000000000000", // Any recipient wihout code should work
           chainId: chainId,
           authorizationList: [auth1, auth2, auth3],
           txnType: "eip7702" as const,
