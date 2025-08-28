@@ -29,11 +29,7 @@ type MoonriverMigrations = ();
 /// List of single block migrations to be executed by frame executive.
 pub type SingleBlockMigrations<Runtime> = (
 	// Common migrations applied on all Moonbeam runtime
-	moonbeam_runtime_common::migrations::SingleBlockMigrations<
-		Runtime,
-		RelayAssetId,
-		AssetHubLocation,
-	>,
+	moonbeam_runtime_common::migrations::SingleBlockMigrations<Runtime, AssetHubLocation>,
 	// Moonriver specific migrations
 	MoonriverMigrations,
 );

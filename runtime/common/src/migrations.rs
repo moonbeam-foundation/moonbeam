@@ -23,7 +23,6 @@ use frame_support::traits::OnRuntimeUpgrade;
 use frame_support::weights::WeightMeter;
 use frame_support::{migrations::SteppedMigration, parameter_types};
 use pallet_migrations::WeightInfo;
-use pallet_moonbeam_foreign_assets::WeightInfo as _;
 use pallet_xcm_weight_trader::WeightInfo as _;
 use parity_scale_codec::Encode;
 use sp_core::{twox_128, Get};
@@ -144,35 +143,15 @@ where
 	}
 }
 
-pub struct MigrateRelayLocationToAssetHub<R, Id, L>(PhantomData<(R, Id, L)>);
+pub struct MigrateRelayLocationToAssetHub<R, L>(PhantomData<(R, L)>);
 
-impl<Runtime, RelayAssetId, AHLocation> OnRuntimeUpgrade
-	for MigrateRelayLocationToAssetHub<Runtime, RelayAssetId, AHLocation>
+impl<Runtime, AHLocation> OnRuntimeUpgrade for MigrateRelayLocationToAssetHub<Runtime, AHLocation>
 where
-	Runtime: frame_system::Config
-		+ pallet_moonbeam_foreign_assets::Config
-		+ pallet_xcm_weight_trader::Config,
-	RelayAssetId: Get<u128>,
+	Runtime: frame_system::Config + pallet_xcm_weight_trader::Config,
 	AHLocation: Get<Location>,
 {
 	fn on_runtime_upgrade() -> Weight {
 		let mut weight = Weight::zero();
-
-		// Modify DOT/KSM asset location to be Asset Hub, the new reserve
-		weight = weight.saturating_add(
-			<Runtime as pallet_moonbeam_foreign_assets::Config>::WeightInfo::change_xcm_location(),
-		);
-		let result = pallet_moonbeam_foreign_assets::Pallet::<Runtime>::do_change_xcm_location(
-			RelayAssetId::get(),
-			Location::parent(),
-			AHLocation::get(),
-		);
-		if let Err(e) = result {
-			log::error!(
-				"[MigrateRelayLocationToAssetHub] Could not change xcm_location: {:?}",
-				e
-			);
-		}
 
 		// Adds Asset Hub location as sufficient (It is the new reserve for DOT/KSM)
 		// The Relay location is kept as sufficient
@@ -203,16 +182,16 @@ where
 }
 
 /// Unreleased migrations. Add new ones here:
-pub type UnreleasedSingleBlockMigrations<Runtime, RelayAssetId, AHLocation> =
-	(MigrateRelayLocationToAssetHub<Runtime, RelayAssetId, AHLocation>,);
+pub type UnreleasedSingleBlockMigrations<Runtime, AHLocation> =
+	(MigrateRelayLocationToAssetHub<Runtime, AHLocation>,);
 
 /// Migrations/checks that do not need to be versioned and can run on every update.
 pub type PermanentSingleBlockMigrations<Runtime> =
 	(pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,);
 
 /// All migrations that will run on the next runtime upgrade.
-pub type SingleBlockMigrations<Runtime, RelayAssetId, AHLocation> = (
-	UnreleasedSingleBlockMigrations<Runtime, RelayAssetId, AHLocation>,
+pub type SingleBlockMigrations<Runtime, AHLocation> = (
+	UnreleasedSingleBlockMigrations<Runtime, AHLocation>,
 	PermanentSingleBlockMigrations<Runtime>,
 );
 
