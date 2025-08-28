@@ -230,7 +230,8 @@ where
 
 		// trim the nulls bytes at the end of the name
 		// caused by this https://github.com/paritytech/polkadot-sdk/pull/2072
-		let track_name_trimmed: &[u8] = track_info.name
+		let track_name_trimmed: &[u8] = track_info
+			.name
 			.iter()
 			.rposition(|&b| b != 0)
 			.map_or(&[], |pos| &track_info.name[..=pos]);
