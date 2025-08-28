@@ -104,7 +104,7 @@ pub struct EthereumXcmTransactionV2 {
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 pub struct EthereumXcmTransactionV3 {
 	/// Gas limit to be consumed by EVM execution.
 	pub gas_limit: U256,
