@@ -1168,6 +1168,7 @@
 <a href="#1168" id="1168">1168</a>
 <a href="#1169" id="1169">1169</a>
 <a href="#1170" id="1170">1170</a>
+<a href="#1171" id="1171">1171</a>
 </pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2102,15 +2103,16 @@
 							<span class="comment">// verify initial balance
 							</span><span class="macro">assert_eq!</span>(Balances::free_balance(<span class="kw-2">&amp;</span>who), balance);
 
-							<span class="comment">// set up local asset
+							<span class="comment">// set up foreign asset
 							</span><span class="kw">let </span>asset_amount: u128 = <span class="number">10u128</span>;
 							<span class="kw">let </span>initial_asset_amount: u128 = asset_amount * <span class="number">10</span>;
 
-							<span class="kw">let </span>(asset_id, <span class="kw">_</span>, <span class="kw">_</span>) = pallet_assets::benchmarking::create_default_minted_asset::&lt;
-								Runtime,
-								()
-							&gt;(<span class="bool-val">true</span>, initial_asset_amount);
-							<span class="kw">let </span>transfer_asset: Asset = (SelfReserve::get(), asset_amount).into();
+							<span class="kw">let </span>asset_id = pallet_moonbeam_foreign_assets::default_asset_id::&lt;Runtime&gt;() + <span class="number">1</span>;
+							<span class="kw">let </span>(<span class="kw">_</span>, location, <span class="kw">_</span>) = pallet_moonbeam_foreign_assets::create_default_minted_foreign_asset::&lt;Runtime&gt;(
+								asset_id,
+								initial_asset_amount,
+							);
+							<span class="kw">let </span>transfer_asset: Asset = (AssetId(location), asset_amount).into();
 
 							<span class="kw">let </span>assets: XcmAssets = <span class="macro">vec!</span>[fee_asset.clone(), transfer_asset].into();
 							<span class="kw">let </span>fee_index: u32 = <span class="number">0</span>;
