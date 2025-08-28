@@ -39,6 +39,8 @@
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 pub mod benchmarks;
+#[cfg(feature = "runtime-benchmarks")]
+pub use benchmarks::*;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]
