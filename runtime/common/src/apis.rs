@@ -876,6 +876,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						fn setup_benchmark_environment() {
 							let alice = AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
 							pallet_author_inherent::Author::<Runtime>::put(&alice);
+
+							let caller: AccountId = frame_benchmarking::account("caller", 0, 0);
+							let balance = 100_000_000_000_000u64.into();
+							<Balances as frame_support::traits::Currency<_>>::make_free_balance_be(&caller, balance);
 						}
 					}
 
