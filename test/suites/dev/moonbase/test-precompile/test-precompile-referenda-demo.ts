@@ -5,21 +5,22 @@ import {
   expect,
   fetchCompiledContract,
 } from "@moonwall/cli";
-import {GLMR} from "@moonwall/util";
-import {u8aToHex} from "@polkadot/util";
-import {decodeEventLog, getAddress} from "viem";
+import { GLMR } from "@moonwall/util";
+import { u8aToHex } from "@polkadot/util";
+import { decodeEventLog, getAddress } from "viem";
 import {
   forceReducedReferendaExecution,
   expectSubstrateEvent,
   expectSubstrateEvents,
-  formatTrackName, stripNulls,
+  formatTrackName,
+  stripNulls,
 } from "../../../../helpers";
 
 describeSuite({
   id: "D022856",
   title: "Precompiles - Referenda Auto Upgrade Demo",
   foundationMethods: "dev",
-  testCases: ({it, log, context}) => {
+  testCases: ({ it, log, context }) => {
     it({
       id: "T01",
       title: "should be accessible from a smart contract",
@@ -32,11 +33,11 @@ describeSuite({
         );
         expect(trackInfo?.toHuman()).to.not.be.empty;
 
-        const {contractAddress: refUpgradeDemoV1Address, abi: refUpgradeDemoV1Abi} =
+        const { contractAddress: refUpgradeDemoV1Address, abi: refUpgradeDemoV1Abi } =
           await context.deployContract!("ReferendaAutoUpgradeDemoV1", {
             args: [trackName, setStorageCallIndex],
           });
-        const {contractAddress: refUpgradeDemoV2Address, abi: refUpgradeDemoV2Abi} =
+        const { contractAddress: refUpgradeDemoV2Address, abi: refUpgradeDemoV2Abi } =
           await context.deployContract!("ReferendaAutoUpgradeDemoV2", {
             args: [trackName, setStorageCallIndex],
           });
@@ -65,10 +66,10 @@ describeSuite({
           context
             .polkadotJs()
             .tx.sudo.sudo(
-            context
-              .polkadotJs()
-              .tx.balances.forceSetBalance(refUpgradeDemoV1Address, 500_000_000n * GLMR)
-          )
+              context
+                .polkadotJs()
+                .tx.balances.forceSetBalance(refUpgradeDemoV1Address, 500_000_000n * GLMR)
+            )
         );
 
         const rawTxn = await context.writeContract!({
@@ -86,19 +87,19 @@ describeSuite({
         } = expectSubstrateEvent(result, "referenda", "Submitted");
         expectSubstrateEvent(result, "referenda", "DecisionDepositPlaced");
 
-        const {abi: preimageAbi} = fetchCompiledContract("Preimage");
-        const {abi: referendaAbi} = fetchCompiledContract("Referenda");
-        const {abi: convictionAbi} = fetchCompiledContract("ConvictionVoting");
+        const { abi: preimageAbi } = fetchCompiledContract("Preimage");
+        const { abi: referendaAbi } = fetchCompiledContract("Referenda");
+        const { abi: convictionAbi } = fetchCompiledContract("ConvictionVoting");
 
         // We all of the EVM Logs, but only some of their inputs, not all of them
         const evmEvents = expectSubstrateEvents(result, "evm", "Log");
         const expectedEvents = [
-          {interface: preimageAbi, name: "PreimageNoted"},
-          {interface: referendaAbi, name: "SubmittedAfter", inputs: {trackId: 0}},
+          { interface: preimageAbi, name: "PreimageNoted" },
+          { interface: referendaAbi, name: "SubmittedAfter", inputs: { trackId: 0 } },
           {
             interface: referendaAbi,
             name: "DecisionDepositPlaced",
-            inputs: {index: referendumIndex.toNumber()},
+            inputs: { index: referendumIndex.toNumber() },
           },
           {
             interface: convictionAbi,
@@ -194,7 +195,7 @@ describeSuite({
         for (const trackName of validTracks) {
           const setStorageCallIndex = u8aToHex(context.polkadotJs().tx.system.setStorage.callIndex);
 
-          const {contractAddress} = await context.deployContract!("ReferendaAutoUpgradeDemoV1", {
+          const { contractAddress } = await context.deployContract!("ReferendaAutoUpgradeDemoV1", {
             args: [trackName, setStorageCallIndex],
           });
 
@@ -219,7 +220,7 @@ describeSuite({
         for (const trackName of validTracks) {
           const setStorageCallIndex = u8aToHex(context.polkadotJs().tx.system.setStorage.callIndex);
 
-          const {contractAddress, status} = await deployCreateCompiledContract(
+          const { contractAddress, status } = await deployCreateCompiledContract(
             context,
             "ReferendaAutoUpgradeDemoV1",
             {

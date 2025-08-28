@@ -1,5 +1,5 @@
 import type { DevModeContext, GenericContext } from "@moonwall/cli";
-import { type TransactionSerializable } from "viem";
+import type { TransactionSerializable } from "viem";
 import { ALITH_PRIVATE_KEY } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { fundAccount } from "../../../../helpers";
