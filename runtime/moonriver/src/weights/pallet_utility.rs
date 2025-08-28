@@ -98,22 +98,28 @@ impl<T: frame_system::Config> pallet_utility::WeightInfo for WeightInfo<T> {
 	/// The range of component `c` is `[0, 1000]`.
 	fn force_batch(c: u32, ) -> Weight {
 		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `1565`
+		// Minimum execution time: 4_000_000 picoseconds.
+		Weight::from_parts(4_000_000, 1565)
+			// Standard Error: 7_071
+			.saturating_add(Weight::from_parts(3_074_000, 0).saturating_mul(c.into()))
+	}
+	fn dispatch_as_fallible() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 5_000_000 picoseconds.
+		Weight::from_parts(5_000_000, 0)
+	}
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	fn if_else() -> Weight {
+		// Proof Size summary in bytes:
 		//  Measured:  `80`
 		//  Estimated: `1565`
-		// Minimum execution time: 5_006_000 picoseconds.
-		Weight::from_parts(5_094_000, 1565)
-			// Standard Error: 20_082
-			.saturating_add(Weight::from_parts(5_741_954, 0).saturating_mul(c.into()))
+		// Minimum execution time: 10_000_000 picoseconds.
+		Weight::from_parts(10_000_000, 1565)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 	}
-
-    fn dispatch_as_fallible() -> Weight {
-        // TODO: regenerate this file
-        <()>::dispatch_as_fallible()
-    }
-
-    fn if_else() -> Weight {
-        // TODO: regenerate this file
-        <()>::if_else()
-    }
 }

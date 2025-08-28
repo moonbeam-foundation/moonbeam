@@ -138,13 +138,20 @@ impl<T: frame_system::Config> pallet_message_queue::WeightInfo for WeightInfo<T>
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-
-    fn set_service_head() -> Weight {
-        // TODO: regenerate this file
-        <()>::set_service_head()
-    }
-
-    /// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
+	/// Storage: `MessageQueue::BookStateFor` (r:1 w:0)
+	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
+	/// Storage: `MessageQueue::ServiceHead` (r:0 w:1)
+	/// Proof: `MessageQueue::ServiceHead` (`max_values`: Some(1), `max_size`: Some(5), added: 500, mode: `MaxEncodedLen`)
+	fn set_service_head() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `161`
+		//  Estimated: `3517`
+		// Minimum execution time: 4_000_000 picoseconds.
+		Weight::from_parts(4_000_000, 3517)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
 	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
 	/// Storage: `MessageQueue::Pages` (r:1 w:1)
 	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(105521), added: 107996, mode: `MaxEncodedLen`)
