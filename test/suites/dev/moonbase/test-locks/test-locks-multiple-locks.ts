@@ -10,8 +10,8 @@ import {
 import { createProposal, getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
-  id: "D021801",
-  title: "Locks - Voting and staking freezes are not mutually exclusive",
+  id: "D021901",
+  title: "Locks - Voting and staking locks are not mutually exclusive",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let proposalIndex: number;

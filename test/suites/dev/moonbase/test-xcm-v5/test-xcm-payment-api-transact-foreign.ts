@@ -22,7 +22,7 @@ import {
 } from "../../../../helpers/assets.js";
 
 describeSuite({
-  id: "D024220",
+  id: "D024311",
   title: "XCM - XcmPaymentApi - Transact",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

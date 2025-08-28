@@ -25,7 +25,7 @@ const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
 const ARBITRARY_VESTING_PERIOD = 201600n;
 
 describeSuite({
-  id: "D021901",
+  id: "D022001",
   title: "Maintenance Mode - Filter",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -70,6 +70,7 @@ describeSuite({
                   10_000_000_000n,
                   "0",
                   null,
+                  [],
                   []
                 )
             )
@@ -195,7 +196,14 @@ describeSuite({
                     V4: {
                       parents: 0n,
                       interior: {
-                        X1: [{ AccountKey20: { network: null, key: hexToU8a(baltathar.address) } }],
+                        X1: [
+                          {
+                            AccountKey20: {
+                              network: null,
+                              key: hexToU8a(baltathar.address),
+                            },
+                          },
+                        ],
                       },
                     },
                   } as any,
