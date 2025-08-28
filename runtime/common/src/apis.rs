@@ -17,6 +17,7 @@
 #[macro_export]
 macro_rules! impl_runtime_apis_plus_common {
     ({$($custom:tt)*} {$($bench_custom:tt)*}) => {
+    	use ethereum::AuthorizationList;
 
 		#[cfg(feature = "evm-tracing")]
 		// Helper function to replay the "on_idle" hook for all pallets, we need this for
@@ -325,6 +326,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					max_priority_fee_per_gas: Option<U256>,
 					nonce: Option<U256>,
 					access_list: Option<Vec<(H160, Vec<H256>)>>,
+					authorization_list: Option<AuthorizationList>,
 				) -> Result<(), sp_runtime::DispatchError> {
 					#[cfg(feature = "evm-tracing")]
 					{
@@ -349,6 +351,7 @@ macro_rules! impl_runtime_apis_plus_common {
 								value,
 								Some(<Runtime as pallet_evm::Config>::ChainId::get()),
 								access_list.clone().unwrap_or_default(),
+								authorization_list.clone().unwrap_or_default(),
 							);
 
 							let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
@@ -365,6 +368,7 @@ macro_rules! impl_runtime_apis_plus_common {
 								max_priority_fee_per_gas,
 								nonce,
 								access_list.unwrap_or_default(),
+								authorization_list.unwrap_or_default(),
 								is_transactional,
 								validate,
 								weight_limit,
@@ -444,6 +448,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					nonce: Option<U256>,
 					estimate: bool,
 					access_list: Option<Vec<(H160, Vec<H256>)>>,
+					authorization_list: Option<AuthorizationList>,
 				) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -466,6 +471,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						value,
 						Some(<Runtime as pallet_evm::Config>::ChainId::get()),
 						access_list.clone().unwrap_or_default(),
+						authorization_list.clone().unwrap_or_default(),
 					);
 
 					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
@@ -482,6 +488,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						max_priority_fee_per_gas,
 						nonce,
 						access_list.unwrap_or_default(),
+						authorization_list.unwrap_or_default(),
 						is_transactional,
 						validate,
 						weight_limit,
@@ -500,6 +507,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					nonce: Option<U256>,
 					estimate: bool,
 					access_list: Option<Vec<(H160, Vec<H256>)>>,
+					authorization_list: Option<AuthorizationList>,
 				) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -522,6 +530,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						value,
 						Some(<Runtime as pallet_evm::Config>::ChainId::get()),
 						access_list.clone().unwrap_or_default(),
+						authorization_list.clone().unwrap_or_default(),
 					);
 
 					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
@@ -538,6 +547,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						max_priority_fee_per_gas,
 						nonce,
 						access_list.unwrap_or_default(),
+						authorization_list.unwrap_or_default(),
 						is_transactional,
 						validate,
 						weight_limit,
@@ -923,15 +933,16 @@ macro_rules! impl_runtime_apis_plus_common {
 							// verify initial balance
 							assert_eq!(Balances::free_balance(&who), balance);
 
-							// set up local asset
+							// set up foreign asset
 							let asset_amount: u128 = 10u128;
 							let initial_asset_amount: u128 = asset_amount * 10;
 
-							let (asset_id, _, _) = pallet_assets::benchmarking::create_default_minted_asset::<
-								Runtime,
-								()
-							>(true, initial_asset_amount);
-							let transfer_asset: Asset = (SelfReserve::get(), asset_amount).into();
+							let asset_id = pallet_moonbeam_foreign_assets::default_asset_id::<Runtime>() + 1;
+							let (_, location, _) = pallet_moonbeam_foreign_assets::create_default_minted_foreign_asset::<Runtime>(
+								asset_id,
+								initial_asset_amount,
+							);
+							let transfer_asset: Asset = (AssetId(location), asset_amount).into();
 
 							let assets: XcmAssets = vec![fee_asset.clone(), transfer_asset].into();
 							let fee_index: u32 = 0;

@@ -24,6 +24,7 @@ strum_macros = { workspace = true }
 
 # Moonbeam
 account = { workspace = true }
+ethereum = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
@@ -227,6 +228,7 @@ std = [
 	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
 	"cumulus-primitives-storage-weight-reclaim/std",
+	"ethereum/std",
 	"cumulus-pallet-weight-reclaim/std",
 	"evm-tracing-events/std",
 	"fp-evm/std",
@@ -361,7 +363,7 @@ bridge-stagenet = [
 	"pallet-bridge-parachains",
 	"pallet-bridge-messages",
 	"pallet-xcm-bridge",
-	"bridge-hub-common"
+	"bridge-hub-common",
 ]
 bridge-betanet = [
 	"bridge-runtime-common",
@@ -375,7 +377,7 @@ bridge-betanet = [
 	"pallet-bridge-parachains",
 	"pallet-bridge-messages",
 	"pallet-xcm-bridge",
-	"bridge-hub-common"
+	"bridge-hub-common",
 ]
 
 # Must be enabled for tracing runtimes only

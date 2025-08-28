@@ -82,7 +82,7 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 										// Tracing a transaction, the one matching the trace request
 										// is done using environmental, the rest dispatched normally.
 										EthereumTracingStatus::Transaction(traced_transaction_hash) => {
-											let transaction_hash = xcm_transaction.into_transaction_v2(
+											let transaction_hash = xcm_transaction.into_transaction(
 												EthereumXcm::nonce(),
 												<Runtime as pallet_evm::Config>::ChainId::get(),
 												false
