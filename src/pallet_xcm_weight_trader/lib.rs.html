@@ -781,7 +781,7 @@
 	}
 
 	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
-		<span class="kw">fn </span>do_add_asset(location: Location, relative_price: u128) -&gt; DispatchResult {
+		<span class="kw">pub fn </span>do_add_asset(location: Location, relative_price: u128) -&gt; DispatchResult {
 			<span class="macro">ensure!</span>(relative_price != <span class="number">0</span>, Error::&lt;T&gt;::PriceCannotBeZero);
 			<span class="macro">ensure!</span>(
 				!SupportedAssets::&lt;T&gt;::contains_key(<span class="kw-2">&amp;</span>location),
