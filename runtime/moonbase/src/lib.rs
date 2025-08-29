@@ -1561,7 +1561,7 @@ pub type InnerSignedExtra = (
 );
 
 pub type SignedExtra =
-	(cumulus_pallet_weight_reclaim::StorageWeightReclaim<Runtime, InnerSignedExtra>,);
+	cumulus_pallet_weight_reclaim::StorageWeightReclaim<Runtime, InnerSignedExtra>;
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -1691,7 +1691,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 							Preamble::Bare(_) => 0,
 							Preamble::Signed(_, _, signed_extra) => {
 								// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
-								let charge_transaction_payment = &signed_extra.0.0.7;
+								let charge_transaction_payment = &signed_extra.0.7;
 								charge_transaction_payment.tip()
 							},
 							Preamble::General(_, _) => 0,
