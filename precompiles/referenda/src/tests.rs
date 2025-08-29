@@ -297,7 +297,7 @@ fn submit_track_id_oob_fails() {
 			let proposal = vec![1, 2, 3];
 			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 			let oob_track_id =
-				<crate::mock::Runtime as pallet_referenda::Config>::Tracks::tracks().len();
+				<crate::mock::Runtime as pallet_referenda::Config>::Tracks::tracks().count();
 
 			// submit with an invalid track_id
 			let input = PCall::submit_at {

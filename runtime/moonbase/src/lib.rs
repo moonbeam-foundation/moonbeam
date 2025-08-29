@@ -42,6 +42,7 @@ mod migrations;
 mod precompiles;
 
 extern crate alloc;
+extern crate core;
 
 use alloc::borrow::Cow;
 // Re-export required by get! macro.
@@ -82,7 +83,6 @@ use frame_support::{
 	},
 	PalletId,
 };
-
 use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
@@ -100,7 +100,7 @@ use pallet_evm::{
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use runtime_params::*;
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
@@ -542,6 +542,8 @@ impl pallet_evm::Config for Runtime {
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 
 	type WeightInfo = moonbase_weights::pallet_evm::WeightInfo<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -560,6 +562,7 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_scheduler::WeightInfo<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -951,6 +954,7 @@ impl pallet_author_mapping::Config for Runtime {
 	TypeInfo,
 	Serialize,
 	Deserialize,
+	DecodeWithMemTracking,
 )]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
@@ -1171,6 +1175,7 @@ impl pallet_proxy::Config for Runtime {
 	// - 32 bytes Hasher (Blake2256)
 	// - 4 bytes BlockNumber (u32)
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
+	type BlockNumberProvider = System;
 }
 
 pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
@@ -1272,6 +1277,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
 	type ProxyType = ProxyType;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -1384,6 +1390,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
 	type WeightInfo = moonbase_weights::pallet_multisig::WeightInfo<Runtime>;
+	type BlockNumberProvider = System;
 }
 
 impl pallet_relay_storage_roots::Config for Runtime {
@@ -1402,6 +1409,10 @@ impl pallet_parameters::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeParameters = RuntimeParameters;
 	type WeightInfo = moonbase_weights::pallet_parameters::WeightInfo<Runtime>;
+}
+
+impl cumulus_pallet_weight_reclaim::Config for Runtime {
+	type WeightInfo = moonbase_weights::cumulus_pallet_weight_reclaim::WeightInfo<Runtime>;
 }
 
 impl pallet_migrations::Config for Runtime {
@@ -1486,6 +1497,7 @@ construct_runtime! {
 		Parameters: pallet_parameters = 57,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 58,
 		MultiBlockMigrations: pallet_migrations = 117,
+		WeightReclaim: cumulus_pallet_weight_reclaim = 118,
 
 		// Bridge pallets (reserved indexes from 130 to 140)
 		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
@@ -1521,7 +1533,7 @@ pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
 #[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
-pub type SignedExtra = (
+pub type InnerSignedExtra = (
 	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
@@ -1531,12 +1543,11 @@ pub type SignedExtra = (
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 );
 
 /// The SignedExtension to the basic transaction logic.
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub type SignedExtra = (
+pub type InnerSignedExtra = (
 	frame_system::CheckNonZeroSender<Runtime>,
 	frame_system::CheckSpecVersion<Runtime>,
 	frame_system::CheckTxVersion<Runtime>,
@@ -1546,9 +1557,11 @@ pub type SignedExtra = (
 	frame_system::CheckWeight<Runtime>,
 	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
 	BridgeRejectObsoleteHeadersAndMessages,
 );
+
+pub type SignedExtra =
+	(cumulus_pallet_weight_reclaim::StorageWeightReclaim<Runtime, InnerSignedExtra>,);
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
@@ -1619,6 +1632,7 @@ mod benches {
 		[pallet_xcm_weight_trader, XcmWeightTrader]
 		[pallet_collective, TreasuryCouncilCollective]
 		[pallet_collective, OpenTechCommitteeCollective]
+		[cumulus_pallet_weight_reclaim, WeightReclaim]
 	);
 }
 
@@ -1677,7 +1691,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 							Preamble::Bare(_) => 0,
 							Preamble::Signed(_, _, signed_extra) => {
 								// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
-								let charge_transaction_payment = &signed_extra.7;
+								let charge_transaction_payment = &signed_extra.0.0.7;
 								charge_transaction_payment.tip()
 							},
 							Preamble::General(_, _) => 0,

@@ -23,7 +23,6 @@ pallet-xcm-bridge = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-balances = { workspace = true }
-pallet-transaction-payment = { workspace = true }
 pallet-treasury = { workspace = true }
 pallet-xcm = { workspace = true }
 sp-core = { workspace = true }
@@ -56,7 +55,6 @@ std = [
 	"moonbeam-core-primitives/std",
 	"pallet-author-inherent/std",
 	"pallet-migrations/std",
-	"pallet-transaction-payment/std",
 	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
 	"parity-scale-codec/std",
@@ -75,7 +73,6 @@ runtime-benchmarks = [
 	"pallet-message-queue/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
-	"pallet-transaction-payment/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 ]
@@ -83,5 +80,4 @@ try-runtime = [
 	"cumulus-pallet-parachain-system/try-runtime",
 	"frame-support/try-runtime",
 	"pallet-migrations/try-runtime",
-	"pallet-transaction-payment/try-runtime",
 ]

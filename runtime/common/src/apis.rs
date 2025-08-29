@@ -816,6 +816,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					return (list, storage_info)
 				}
 
+				#[allow(non_local_definitions)]
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
 				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
@@ -859,12 +860,12 @@ macro_rules! impl_runtime_apis_plus_common {
 							_fee_reason: xcm_executor::traits::FeeReason,
 						) -> (Option<xcm_executor::FeesMode>, Option<XcmAssets>) {
 							use xcm_executor::traits::ConvertLocation;
-							let account = xcm_config::LocationToH160::convert_location(origin_ref)
-								.expect("Invalid location");
-							// Give the existential deposit at least
-							let balance = ExistentialDeposit::get();
-							let _ = <Balances as frame_support::traits::Currency<_>>::
-								make_free_balance_be(&account.into(), balance);
+							if let Some(account) = xcm_config::LocationToH160::convert_location(origin_ref) {
+								// Give the existential deposit at least
+								let balance = ExistentialDeposit::get();
+								let _ = <Balances as frame_support::traits::Currency<_>>::
+									make_free_balance_be(&account.into(), balance);
+							}
 
 							(None, None)
 						}
@@ -875,6 +876,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						fn setup_benchmark_environment() {
 							let alice = AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
 							pallet_author_inherent::Author::<Runtime>::put(&alice);
+
+							let caller: AccountId = frame_benchmarking::account("caller", 0, 0);
+							let balance = 100_000_000_000_000u64.into();
+							<Balances as frame_support::traits::Currency<_>>::make_free_balance_be(&caller, balance);
 						}
 					}
 

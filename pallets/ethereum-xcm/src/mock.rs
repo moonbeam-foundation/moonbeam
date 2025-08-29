@@ -202,6 +202,8 @@ impl pallet_evm::Config for Test {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Test>;
 	type AccountProvider = FrameSystemAccountProvider<Test>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -220,7 +222,18 @@ parameter_types! {
 }
 
 #[derive(
-	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	Debug,
+	MaxEncodedLen,
+	TypeInfo,
+	DecodeWithMemTracking,
 )]
 pub enum ProxyType {
 	NotAllowed = 0,
@@ -264,6 +277,7 @@ impl pallet_proxy::Config for Test {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = ProxyCost;
 	type AnnouncementDepositFactor = ProxyCost;
+	type BlockNumberProvider = System;
 }
 
 pub struct EthereumXcmEnsureProxy;
@@ -389,9 +403,12 @@ pub fn new_test_ext(accounts_len: usize) -> (Vec<AccountInfo>, sp_io::TestExtern
 		.map(|i| (pairs[i].account_id.clone(), 10_000_000))
 		.collect();
 
-	pallet_balances::GenesisConfig::<Test> { balances }
-		.assimilate_storage(&mut ext)
-		.unwrap();
+	pallet_balances::GenesisConfig::<Test> {
+		balances,
+		dev_accounts: Default::default(),
+	}
+	.assimilate_storage(&mut ext)
+	.unwrap();
 
 	(pairs, ext.into())
 }

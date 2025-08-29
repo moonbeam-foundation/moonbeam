@@ -133,7 +133,6 @@ sp-genesis-builder = { workspace = true }
 
 # Bridge
 bridge-runtime-common = { workspace = true }
-bp-polkadot = { workspace = true }
 bp-runtime = { workspace = true }
 bp-header-chain = { workspace = true }
 bp-parachains = { workspace = true }
@@ -172,6 +171,7 @@ pallet-message-queue = { workspace = true }
 
 # Cumulus
 cumulus-pallet-parachain-system = { workspace = true }
+cumulus-pallet-weight-reclaim = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true, features = ["bridging"] }
 cumulus-primitives-core = { workspace = true }
@@ -226,6 +226,7 @@ std = [
 	"cumulus-primitives-utility/std",
 	"cumulus-primitives-storage-weight-reclaim/std",
 	"ethereum/std",
+	"cumulus-pallet-weight-reclaim/std",
 	"evm-tracing-events/std",
 	"fp-evm/std",
 	"fp-rpc/std",
@@ -334,7 +335,6 @@ std = [
 	"xcm-runtime-apis/std",
 	"xcm-primitives/std",
 	"xcm/std",
-	"bp-polkadot/std",
 	"bp-runtime/std",
 	"bp-header-chain/std",
 	"bp-parachains/std",
@@ -374,6 +374,7 @@ runtime-benchmarks = [
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"cumulus-primitives-core/runtime-benchmarks",
+	"cumulus-pallet-weight-reclaim/runtime-benchmarks",
 	"frame-benchmarking",
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",

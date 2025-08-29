@@ -105,12 +105,23 @@ impl<T: frame_system::Config> frame_system::ExtensionsWeightInfo for WeightInfo<
 	}
 	/// Storage: `System::AllExtrinsicsLen` (r:1 w:1)
 	/// Proof: `System::AllExtrinsicsLen` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
-	fn check_weight() -> Weight {
+    fn check_weight() -> Weight {
+        // Proof Size summary in bytes:
+        //  Measured:  `24`
+        //  Estimated: `1489`
+        // Minimum execution time: 4_600_000 picoseconds.
+        Weight::from_parts(4_780_000, 1489)
+            .saturating_add(T::DbWeight::get().reads(1_u64))
+            .saturating_add(T::DbWeight::get().writes(1_u64))
+    }
+	/// Storage: `System::ExtrinsicWeightReclaimed` (r:1 w:1)
+	/// Proof: `System::ExtrinsicWeightReclaimed` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
+	fn weight_reclaim() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `24`
-		//  Estimated: `1489`
-		// Minimum execution time: 4_600_000 picoseconds.
-		Weight::from_parts(4_780_000, 1489)
+		//  Measured:  `0`
+		//  Estimated: `1501`
+		// Minimum execution time: 4_000_000 picoseconds.
+		Weight::from_parts(4_000_000, 1501)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
