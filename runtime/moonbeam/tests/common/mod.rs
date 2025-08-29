@@ -34,11 +34,12 @@ use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
-use std::collections::BTreeMap;
-
+use cumulus_pallet_parachain_system::MessagingStateSnapshot;
+use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
 use moonbeam_runtime::bridge_config::XcmOverKusamaInstance;
 use moonbeam_runtime::{EvmForeignAssets, XcmWeightTrader};
+use std::collections::BTreeMap;
 use xcm::latest::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
@@ -321,6 +322,26 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		let xcm_assets = self.xcm_assets.clone();
 		ext.execute_with(|| {
+			// Mock hrmp egress_channels
+			cumulus_pallet_parachain_system::RelevantMessagingState::<Runtime>::put(
+				MessagingStateSnapshot {
+					dmq_mqc_head: Default::default(),
+					relay_dispatch_queue_remaining_capacity: Default::default(),
+					ingress_channels: vec![],
+					egress_channels: vec![(
+						1_000.into(),
+						AbridgedHrmpChannel {
+							max_capacity: u32::MAX,
+							max_total_size: u32::MAX,
+							max_message_size: u32::MAX,
+							msg_count: 0,
+							total_size: 0,
+							mqc_head: None,
+						},
+					)],
+				},
+			);
+
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
