@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["moonbeam_runtime",[["impl&lt;__SrApiBlock__: BlockT, RuntimeApiImplCall: CallApiAt&lt;__SrApiBlock__&gt; + 'static&gt; <a class=\"trait\" href=\"bp_moonbeam/bp_kusama/kusama_finality_api/trait.KusamaFinalityApi.html\" title=\"trait bp_moonbeam::bp_kusama::kusama_finality_api::KusamaFinalityApi\">KusamaFinalityApi</a>&lt;__SrApiBlock__&gt; for <a class=\"struct\" href=\"moonbeam_runtime/struct.RuntimeApiImpl.html\" title=\"struct moonbeam_runtime::RuntimeApiImpl\">RuntimeApiImpl</a>&lt;__SrApiBlock__, RuntimeApiImplCall&gt;<div class=\"where\">where\n    RuntimeApiImplCall::StateBackend: StateBackend&lt;HashingFor&lt;__SrApiBlock__&gt;&gt;,\n    <a class=\"primitive\" href=\"https://doc.rust-lang.org/1.84.1/std/primitive.reference.html\">&amp;'static RuntimeApiImplCall</a>: <a class=\"trait\" href=\"https://doc.rust-lang.org/1.84.1/core/marker/trait.Send.html\" title=\"trait core::marker::Send\">Send</a>,</div>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[929]}

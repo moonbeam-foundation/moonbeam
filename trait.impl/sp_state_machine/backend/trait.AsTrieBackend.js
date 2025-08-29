@@ -1,3 +1,9 @@
-(function() {var implementors = {
-"moonbeam_service":[["impl&lt;B: BlockT&gt; AsTrieBackend&lt;&lt;&lt;B as Block&gt;::Header as Header&gt;::Hashing&gt; for <a class=\"struct\" href=\"moonbeam_service/lazy_loading/substrate_backend/struct.ForkedLazyBackend.html\" title=\"struct moonbeam_service::lazy_loading::substrate_backend::ForkedLazyBackend\">ForkedLazyBackend</a>&lt;B&gt;"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {
+    var implementors = Object.fromEntries([["moonbeam_service",[["impl&lt;B: BlockT&gt; AsTrieBackend&lt;&lt;&lt;B as Block&gt;::Header as Header&gt;::Hashing&gt; for <a class=\"struct\" href=\"moonbeam_service/lazy_loading/substrate_backend/struct.ForkedLazyBackend.html\" title=\"struct moonbeam_service::lazy_loading::substrate_backend::ForkedLazyBackend\">ForkedLazyBackend</a>&lt;B&gt;"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[351]}

@@ -1,3 +1,9 @@
-(function() {var implementors = {
-"account":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.81.0/core/fmt/trait.Display.html\" title=\"trait core::fmt::Display\">Display</a> for <a class=\"struct\" href=\"account/struct.AccountId20.html\" title=\"struct account::AccountId20\">AccountId20</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.81.0/core/fmt/trait.Display.html\" title=\"trait core::fmt::Display\">Display</a> for <a class=\"struct\" href=\"account/struct.EthereumSigner.html\" title=\"struct account::EthereumSigner\">EthereumSigner</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {
+    var implementors = Object.fromEntries([["account",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.84.1/core/fmt/trait.Display.html\" title=\"trait core::fmt::Display\">Display</a> for <a class=\"struct\" href=\"account/struct.AccountId20.html\" title=\"struct account::AccountId20\">AccountId20</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.84.1/core/fmt/trait.Display.html\" title=\"trait core::fmt::Display\">Display</a> for <a class=\"struct\" href=\"account/struct.EthereumSigner.html\" title=\"struct account::EthereumSigner\">EthereumSigner</a>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[550]}

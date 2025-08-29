@@ -1,3 +1,9 @@
-(function() {var implementors = {
-"pallet_xcm_weight_trader":[["impl&lt;T: <a class=\"trait\" href=\"pallet_xcm_weight_trader/pallet/trait.Config.html\" title=\"trait pallet_xcm_weight_trader::pallet::Config\">Config</a>&gt; WeightTrader for <a class=\"struct\" href=\"pallet_xcm_weight_trader/struct.Trader.html\" title=\"struct pallet_xcm_weight_trader::Trader\">Trader</a>&lt;T&gt;"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {
+    var implementors = Object.fromEntries([["pallet_xcm_weight_trader",[["impl&lt;T: <a class=\"trait\" href=\"pallet_xcm_weight_trader/pallet/trait.Config.html\" title=\"trait pallet_xcm_weight_trader::pallet::Config\">Config</a>&gt; WeightTrader for <a class=\"struct\" href=\"pallet_xcm_weight_trader/struct.Trader.html\" title=\"struct pallet_xcm_weight_trader::Trader\">Trader</a>&lt;T&gt;"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[355]}

@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/referenda/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_referenda" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/referenda/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="pallet_evm_precompile_referenda" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.1 (e71f9a9a9 2025-01-27)" data-channel="1.84.1" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">pallet_evm_precompile_referenda/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -671,7 +672,16 @@
 <a href="#671" id="671">671</a>
 <a href="#672" id="672">672</a>
 <a href="#673" id="673">673</a>
-</pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -694,7 +704,6 @@
 <span class="kw">use </span>frame_support::traits::{
 	schedule::DispatchTime, Bounded, Currency, Get, OriginTrait, VoteTally,
 };
-<span class="kw">use </span>frame_system::pallet_prelude::BlockNumberFor;
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>pallet_referenda::{
 	Call <span class="kw">as </span>ReferendaCall, DecidingCount, Deposit, Pallet <span class="kw">as </span>Referenda, ReferendumCount,
@@ -703,7 +712,9 @@
 <span class="kw">use </span>parity_scale_codec::{Encode, MaxEncodedLen};
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, H256, U256};
+<span class="kw">use </span>sp_runtime::str_array;
 <span class="kw">use </span>sp_runtime::traits::Dispatchable;
+<span class="kw">use </span>sp_std::str;
 <span class="kw">use </span>sp_std::{boxed::Box, marker::PhantomData, str::FromStr, vec::Vec};
 
 <span class="attr">#[cfg(test)]
@@ -713,6 +724,7 @@
 
 <span class="kw">pub const </span>CALL_DATA_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 
+<span class="kw">type </span>BlockNumberFor&lt;T&gt; = pallet_referenda::BlockNumberFor&lt;T, ()&gt;;
 <span class="kw">type </span>BalanceOf&lt;Runtime&gt; = &lt;&lt;Runtime <span class="kw">as </span>pallet_referenda::Config&gt;::Currency <span class="kw">as </span>Currency&lt;
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::AccountId,
 &gt;&gt;::Balance;
@@ -875,8 +887,8 @@
 	</span><span class="kw">fn </span>track_ids(_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;u16&gt;&gt; {
 		<span class="kw">let </span>track_ids: Vec&lt;u16&gt; = Runtime::Tracks::tracks()
 			.into_iter()
-			.filter_map(|(id, <span class="kw">_</span>)| {
-				<span class="kw">if let </span><span class="prelude-val">Ok</span>(track_id) = (<span class="kw-2">*</span>id).try_into() {
+			.filter_map(|track| {
+				<span class="kw">if let </span><span class="prelude-val">Ok</span>(track_id) = track.id.try_into() {
 					<span class="prelude-val">Some</span>(track_id)
 				} <span class="kw">else </span>{
 					<span class="prelude-val">None
@@ -895,13 +907,20 @@
 			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">"Track id type"</span>).into())
 			.in_field(<span class="string">"trackId"</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>track = Runtime::Tracks::tracks()
-			.iter()
-			.find(|(id, <span class="kw">_</span>)| <span class="kw-2">*</span>id == track_id)
+			.find(|track| track.id == track_id)
 			.ok_or(RevertReason::custom(<span class="string">"No such track"</span>).in_field(<span class="string">"trackId"</span>))<span class="question-mark">?</span>;
-		<span class="kw">let </span>track_info = <span class="kw-2">&amp;</span>track.<span class="number">1</span>;
+		<span class="kw">let </span>track_info = <span class="kw-2">&amp;</span>track.info;
+
+		<span class="comment">// trim the nulls bytes at the end of the name
+		// caused by this https://github.com/paritytech/polkadot-sdk/pull/2072
+		</span><span class="kw">let </span>track_name_trimmed: <span class="kw-2">&amp;</span>[u8] = track_info
+			.name
+			.iter()
+			.rposition(|<span class="kw-2">&amp;</span>b| b != <span class="number">0</span>)
+			.map_or(<span class="kw-2">&amp;</span>[], |pos| <span class="kw-2">&amp;</span>track_info.name[..=pos]);
 
 		<span class="prelude-val">Ok</span>(TrackInfo {
-			name: track_info.name.into(),
+			name: track_name_trimmed.into(),
 			max_deciding: track_info.max_deciding.into(),
 			decision_deposit: track_info.decision_deposit.into(),
 			prepare_period: track_info.prepare_period.into(),
@@ -916,19 +935,20 @@
 	<span class="doccomment">/// Use Runtime::Tracks::tracks to get the origin for input trackId
 	</span><span class="kw">fn </span>track_id_to_origin(track_id: TrackIdOf&lt;Runtime&gt;) -&gt; EvmResult&lt;Box&lt;OriginOf&lt;Runtime&gt;&gt;&gt; {
 		<span class="kw">let </span>track = Runtime::Tracks::tracks()
-			.iter()
-			.find(|(id, <span class="kw">_</span>)| <span class="kw-2">*</span>id == track_id)
+			.find(|track| track.id == track_id)
 			.ok_or(RevertReason::custom(<span class="string">"No such track"</span>).in_field(<span class="string">"trackId"</span>))<span class="question-mark">?</span>;
-		<span class="kw">let </span>track_info = <span class="kw-2">&amp;</span>track.<span class="number">1</span>;
-		<span class="kw">let </span>origin = <span class="kw">if </span>track_info.name == <span class="string">"root" </span>{
+		<span class="kw">let </span>track_info = <span class="kw-2">&amp;</span>track.info;
+		<span class="kw">let </span>origin = <span class="kw">if </span>track_info.name == str_array(<span class="string">"root"</span>) {
 			frame_system::RawOrigin::Root.into()
 		} <span class="kw">else </span>{
-			GovOrigin::from_str(track_info.name)
-				.map_err(|<span class="kw">_</span>| {
-					RevertReason::custom(<span class="string">"Custom origin does not exist for {track_info.name}"</span>)
-						.in_field(<span class="string">"trackId"</span>)
-				})<span class="question-mark">?
-				</span>.into()
+			GovOrigin::from_str(str::from_utf8(<span class="kw-2">&amp;</span>track_info.name).map_err(|<span class="kw">_</span>| {
+				RevertReason::custom(<span class="string">"Track name is not valid UTF-8"</span>).in_field(<span class="string">"trackId"</span>)
+			})<span class="question-mark">?</span>)
+			.map_err(|<span class="kw">_</span>| {
+				RevertReason::custom(<span class="string">"Custom origin does not exist for {track_info.name}"</span>)
+					.in_field(<span class="string">"trackId"</span>)
+			})<span class="question-mark">?
+			</span>.into()
 		};
 		<span class="prelude-val">Ok</span>(Box::new(origin))
 	}

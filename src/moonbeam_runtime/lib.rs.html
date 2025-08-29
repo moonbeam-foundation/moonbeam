@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbeam/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c5d6553a23f1e5a6.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0 (eeb90cda1 2024-09-04)" data-channel="1.81.0" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-d2fab2bf619172d3.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonbeam/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.1 (e71f9a9a9 2025-01-27)" data-channel="1.84.1" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">moonbeam_runtime/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -2067,7 +2068,25 @@
 <a href="#2067" id="2067">2067</a>
 <a href="#2068" id="2068">2068</a>
 <a href="#2069" id="2069">2069</a>
-</pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#2070" id="2070">2070</a>
+<a href="#2071" id="2071">2071</a>
+<a href="#2072" id="2072">2072</a>
+<a href="#2073" id="2073">2073</a>
+<a href="#2074" id="2074">2074</a>
+<a href="#2075" id="2075">2075</a>
+<a href="#2076" id="2076">2076</a>
+<a href="#2077" id="2077">2077</a>
+<a href="#2078" id="2078">2078</a>
+<a href="#2079" id="2079">2079</a>
+<a href="#2080" id="2080">2080</a>
+<a href="#2081" id="2081">2081</a>
+<a href="#2082" id="2082">2082</a>
+<a href="#2083" id="2083">2083</a>
+<a href="#2084" id="2084">2084</a>
+<a href="#2085" id="2085">2085</a>
+<a href="#2086" id="2086">2086</a>
+<a href="#2087" id="2087">2087</a>
+<a href="#2088" id="2088">2088</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -2098,6 +2117,7 @@
 </span><span class="macro">include!</span>(<span class="macro">concat!</span>(<span class="macro">env!</span>(<span class="string">"OUT_DIR"</span>), <span class="string">"/wasm_binary.rs"</span>));
 
 <span class="kw">extern crate </span>alloc;
+<span class="kw">extern crate </span>core;
 
 <span class="kw">use </span>account::AccountId20;
 <span class="kw">use </span>alloc::borrow::Cow;
@@ -2106,6 +2126,7 @@
 };
 <span class="kw">use </span>fp_rpc::TransactionStatus;
 
+<span class="kw">use </span>bp_moonbeam::bp_kusama;
 <span class="kw">use </span>cumulus_primitives_core::{relay_chain, AggregateMessageOrigin};
 <span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">pub use </span>fp_evm::GenesisAccount;
@@ -2150,7 +2171,7 @@
 <span class="kw">pub use </span>pallet_parachain_staking::{weights::WeightInfo, InflationInfo, Range};
 <span class="kw">use </span>pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
 <span class="kw">use </span>parity_scale_codec <span class="kw">as </span>codec;
-<span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+<span class="kw">use </span>parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>serde::{Deserialize, Serialize};
 <span class="kw">use </span>smallvec::smallvec;
@@ -2598,6 +2619,8 @@
 	<span class="kw">type </span>GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	<span class="kw">type </span>Timestamp = RelayTimestamp;
 	<span class="kw">type </span>AccountProvider = FrameSystemAccountProvider&lt;Runtime&gt;;
+	<span class="kw">type </span>CreateOriginFilter = ();
+	<span class="kw">type </span>CreateInnerOriginFilter = ();
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_evm::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -2616,6 +2639,7 @@
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_scheduler::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>OriginPrivilegeCmp = EqualPrivilegeOnly;
 	<span class="kw">type </span>Preimages = Preimage;
+	<span class="kw">type </span>BlockNumberProvider = System;
 }
 
 <span class="macro">parameter_types!</span> {
@@ -2994,6 +3018,7 @@
 	TypeInfo,
 	Serialize,
 	Deserialize,
+	DecodeWithMemTracking,
 )]
 </span><span class="kw">pub enum </span>ProxyType {
 	<span class="doccomment">/// All calls can be proxied. This is the trivial/most permissive filter.
@@ -3214,6 +3239,7 @@
 	// - 32 bytes Hasher (Blake2256)
 	// - 4 bytes BlockNumber (u32)
 	</span><span class="kw">type </span>AnnouncementDepositFactor = ConstU128&lt;{ currency::deposit(<span class="number">0</span>, <span class="number">56</span>) }&gt;;
+	<span class="kw">type </span>BlockNumberProvider = System;
 }
 
 <span class="kw">pub type </span>ForeignAssetMigratorOrigin = EitherOfDiverse&lt;
@@ -3324,6 +3350,7 @@
 
 <span class="kw">impl </span>pallet_proxy_genesis_companion::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>ProxyType = ProxyType;
+	<span class="kw">type </span>BlockNumberProvider = System;
 }
 
 <span class="macro">parameter_types!</span> {
@@ -3436,6 +3463,7 @@
 	<span class="kw">type </span>DepositFactor = DepositFactor;
 	<span class="kw">type </span>MaxSignatories = MaxSignatories;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_multisig::WeightInfo&lt;Runtime&gt;;
+	<span class="kw">type </span>BlockNumberProvider = System;
 }
 
 <span class="kw">impl </span>pallet_relay_storage_roots::Config <span class="kw">for </span>Runtime {
@@ -3454,6 +3482,10 @@
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>RuntimeParameters = RuntimeParameters;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_parameters::WeightInfo&lt;Runtime&gt;;
+}
+
+<span class="kw">impl </span>cumulus_pallet_weight_reclaim::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>WeightInfo = moonbeam_weights::cumulus_pallet_weight_reclaim::WeightInfo&lt;Runtime&gt;;
 }
 
 <span class="kw">impl </span>pallet_migrations::Config <span class="kw">for </span>Runtime {
@@ -3552,6 +3584,7 @@
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">115</span>,
 		EmergencyParaXcm: pallet_emergency_para_xcm::{Pallet, Call, Storage, Event} = <span class="number">116</span>,
 		MultiBlockMigrations: pallet_migrations = <span class="number">117</span>,
+		WeightReclaim: cumulus_pallet_weight_reclaim = <span class="number">118</span>,
 
 		<span class="comment">// Utils
 		</span>RelayStorageRoots: pallet_relay_storage_roots::{Pallet, Storage} = <span class="number">112</span>,
@@ -3636,6 +3669,7 @@
 		[pallet_bridge_grandpa, BridgeKusamaGrandpa]
 		[pallet_bridge_parachains, pallet_bridge_parachains::benchmarking::Pallet::&lt;Runtime, bridge_config::BridgeMoonriverInstance&gt;]
 		[pallet_bridge_messages, pallet_bridge_messages::benchmarking::Pallet::&lt;Runtime, bridge_config::WithKusamaMessagesInstance&gt;]
+		[cumulus_pallet_weight_reclaim, WeightReclaim]
 	);
 }
 
@@ -3648,17 +3682,21 @@
 
 <span class="doccomment">/// The SignedExtension to the basic transaction logic.
 </span><span class="kw">pub type </span>SignedExtra = (
-	frame_system::CheckNonZeroSender&lt;Runtime&gt;,
-	frame_system::CheckSpecVersion&lt;Runtime&gt;,
-	frame_system::CheckTxVersion&lt;Runtime&gt;,
-	frame_system::CheckGenesis&lt;Runtime&gt;,
-	frame_system::CheckEra&lt;Runtime&gt;,
-	frame_system::CheckNonce&lt;Runtime&gt;,
-	frame_system::CheckWeight&lt;Runtime&gt;,
-	pallet_transaction_payment::ChargeTransactionPayment&lt;Runtime&gt;,
-	BridgeRejectObsoleteHeadersAndMessages,
-	frame_metadata_hash_extension::CheckMetadataHash&lt;Runtime&gt;,
-	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim&lt;Runtime&gt;,
+	cumulus_pallet_weight_reclaim::StorageWeightReclaim&lt;
+		Runtime,
+		(
+			frame_system::CheckNonZeroSender&lt;Runtime&gt;,
+			frame_system::CheckSpecVersion&lt;Runtime&gt;,
+			frame_system::CheckTxVersion&lt;Runtime&gt;,
+			frame_system::CheckGenesis&lt;Runtime&gt;,
+			frame_system::CheckEra&lt;Runtime&gt;,
+			frame_system::CheckNonce&lt;Runtime&gt;,
+			frame_system::CheckWeight&lt;Runtime&gt;,
+			pallet_transaction_payment::ChargeTransactionPayment&lt;Runtime&gt;,
+			BridgeRejectObsoleteHeadersAndMessages,
+			frame_metadata_hash_extension::CheckMetadataHash&lt;Runtime&gt;,
+		),
+	&gt;,
 );
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
 </span><span class="kw">pub type </span>UncheckedExtrinsic =
@@ -3729,7 +3767,7 @@
 							Preamble::Signed(<span class="kw">_</span>, <span class="kw">_</span>, signed_extra) =&gt; {
 								<span class="comment">// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
 								// Get the 7th item from the tuple
-								</span><span class="kw">let </span>charge_transaction_payment = <span class="kw-2">&amp;</span>signed_extra.<span class="number">7</span>;
+								</span><span class="kw">let </span>charge_transaction_payment = <span class="kw-2">&amp;</span>signed_extra.<span class="number">0.0</span>.<span class="number">7</span>;
 								charge_transaction_payment.tip()
 							},
 							Preamble::General(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="number">0</span>,

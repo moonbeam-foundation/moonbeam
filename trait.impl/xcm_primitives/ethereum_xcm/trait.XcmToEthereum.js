@@ -1,4 +1,9 @@
-(function() {var implementors = {
-"pallet_ethereum_xcm":[],
-"xcm_primitives":[]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {
+    var implementors = Object.fromEntries([["pallet_ethereum_xcm",[]],["xcm_primitives",[]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[26,22]}
