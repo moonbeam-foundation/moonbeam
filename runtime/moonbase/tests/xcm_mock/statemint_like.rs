@@ -350,7 +350,7 @@ impl Config for XcmConfig {
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type XcmRecorder = PolkadotXcm;
-	type XcmEventEmitter = ();
+	type XcmEventEmitter = PolkadotXcm;
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.
