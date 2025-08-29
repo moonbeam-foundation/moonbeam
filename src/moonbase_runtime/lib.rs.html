@@ -3579,7 +3579,7 @@
 );
 
 <span class="kw">pub type </span>SignedExtra =
-	(cumulus_pallet_weight_reclaim::StorageWeightReclaim&lt;Runtime, InnerSignedExtra&gt;,);
+	cumulus_pallet_weight_reclaim::StorageWeightReclaim&lt;Runtime, InnerSignedExtra&gt;;
 
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
 </span><span class="kw">pub type </span>UncheckedExtrinsic =
@@ -3709,7 +3709,7 @@
 							Preamble::Bare(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
 							Preamble::Signed(<span class="kw">_</span>, <span class="kw">_</span>, signed_extra) =&gt; {
 								<span class="comment">// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
-								</span><span class="kw">let </span>charge_transaction_payment = <span class="kw-2">&amp;</span>signed_extra.<span class="number">0.0</span>.<span class="number">7</span>;
+								</span><span class="kw">let </span>charge_transaction_payment = <span class="kw-2">&amp;</span>signed_extra.<span class="number">0.7</span>;
 								charge_transaction_payment.tip()
 							},
 							Preamble::General(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="number">0</span>,

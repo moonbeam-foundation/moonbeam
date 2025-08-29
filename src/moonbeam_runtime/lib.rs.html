@@ -2084,9 +2084,7 @@
 <a href="#2083" id="2083">2083</a>
 <a href="#2084" id="2084">2084</a>
 <a href="#2085" id="2085">2085</a>
-<a href="#2086" id="2086">2086</a>
-<a href="#2087" id="2087">2087</a>
-<a href="#2088" id="2088">2088</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#2086" id="2086">2086</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -3681,23 +3679,21 @@
 </span><span class="kw">pub type </span>BlockId = generic::BlockId&lt;Block&gt;;
 
 <span class="doccomment">/// The SignedExtension to the basic transaction logic.
-</span><span class="kw">pub type </span>SignedExtra = (
-	cumulus_pallet_weight_reclaim::StorageWeightReclaim&lt;
-		Runtime,
-		(
-			frame_system::CheckNonZeroSender&lt;Runtime&gt;,
-			frame_system::CheckSpecVersion&lt;Runtime&gt;,
-			frame_system::CheckTxVersion&lt;Runtime&gt;,
-			frame_system::CheckGenesis&lt;Runtime&gt;,
-			frame_system::CheckEra&lt;Runtime&gt;,
-			frame_system::CheckNonce&lt;Runtime&gt;,
-			frame_system::CheckWeight&lt;Runtime&gt;,
-			pallet_transaction_payment::ChargeTransactionPayment&lt;Runtime&gt;,
-			BridgeRejectObsoleteHeadersAndMessages,
-			frame_metadata_hash_extension::CheckMetadataHash&lt;Runtime&gt;,
-		),
-	&gt;,
-);
+</span><span class="kw">pub type </span>SignedExtra = cumulus_pallet_weight_reclaim::StorageWeightReclaim&lt;
+	Runtime,
+	(
+		frame_system::CheckNonZeroSender&lt;Runtime&gt;,
+		frame_system::CheckSpecVersion&lt;Runtime&gt;,
+		frame_system::CheckTxVersion&lt;Runtime&gt;,
+		frame_system::CheckGenesis&lt;Runtime&gt;,
+		frame_system::CheckEra&lt;Runtime&gt;,
+		frame_system::CheckNonce&lt;Runtime&gt;,
+		frame_system::CheckWeight&lt;Runtime&gt;,
+		pallet_transaction_payment::ChargeTransactionPayment&lt;Runtime&gt;,
+		BridgeRejectObsoleteHeadersAndMessages,
+		frame_metadata_hash_extension::CheckMetadataHash&lt;Runtime&gt;,
+	),
+&gt;;
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
 </span><span class="kw">pub type </span>UncheckedExtrinsic =
 	fp_self_contained::UncheckedExtrinsic&lt;Address, RuntimeCall, Signature, SignedExtra&gt;;
@@ -3767,7 +3763,7 @@
 							Preamble::Signed(<span class="kw">_</span>, <span class="kw">_</span>, signed_extra) =&gt; {
 								<span class="comment">// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
 								// Get the 7th item from the tuple
-								</span><span class="kw">let </span>charge_transaction_payment = <span class="kw-2">&amp;</span>signed_extra.<span class="number">0.0</span>.<span class="number">7</span>;
+								</span><span class="kw">let </span>charge_transaction_payment = <span class="kw-2">&amp;</span>signed_extra.<span class="number">0.7</span>;
 								charge_transaction_payment.tip()
 							},
 							Preamble::General(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="number">0</span>,
