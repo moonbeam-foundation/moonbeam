@@ -1593,23 +1593,21 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
-pub type SignedExtra = (
-	cumulus_pallet_weight_reclaim::StorageWeightReclaim<
-		Runtime,
-		(
-			frame_system::CheckNonZeroSender<Runtime>,
-			frame_system::CheckSpecVersion<Runtime>,
-			frame_system::CheckTxVersion<Runtime>,
-			frame_system::CheckGenesis<Runtime>,
-			frame_system::CheckEra<Runtime>,
-			frame_system::CheckNonce<Runtime>,
-			frame_system::CheckWeight<Runtime>,
-			pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-			BridgeRejectObsoleteHeadersAndMessages,
-			frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-		),
-	>,
-);
+pub type SignedExtra = cumulus_pallet_weight_reclaim::StorageWeightReclaim<
+	Runtime,
+	(
+		frame_system::CheckNonZeroSender<Runtime>,
+		frame_system::CheckSpecVersion<Runtime>,
+		frame_system::CheckTxVersion<Runtime>,
+		frame_system::CheckGenesis<Runtime>,
+		frame_system::CheckEra<Runtime>,
+		frame_system::CheckNonce<Runtime>,
+		frame_system::CheckWeight<Runtime>,
+		pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+		BridgeRejectObsoleteHeadersAndMessages,
+		frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
+	),
+>;
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
 	fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
@@ -1679,7 +1677,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 							Preamble::Signed(_, _, signed_extra) => {
 								// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
 								// Get the 7th item from the tuple
-								let charge_transaction_payment = &signed_extra.0.0.7;
+								let charge_transaction_payment = &signed_extra.0.7;
 								charge_transaction_payment.tip()
 							},
 							Preamble::General(_, _) => 0,
