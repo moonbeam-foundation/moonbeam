@@ -8,15 +8,16 @@ import "@polkadot/api-base/types/consts";
 import type { ApiTypes, AugmentedConst } from "@polkadot/api-base/types";
 import type { Bytes, Option, Vec, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec, ITuple } from "@polkadot/types-codec/types";
-import type { Perbill, Permill } from "@polkadot/types/interfaces/runtime";
+import type { AccountId20, Perbill, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
   FrameSupportPalletId,
   FrameSystemLimitsBlockLength,
   FrameSystemLimitsBlockWeights,
-  PalletReferendaTrackInfo,
+  PalletReferendaTrackDetails,
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
+  StagingXcmV5Junctions,
   StagingXcmV5Location
 } from "@polkadot/types/lookup";
 
@@ -401,6 +402,29 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       [key: string]: Codec;
     };
+    polkadotXcm: {
+      /**
+       * The latest supported version that we advertise. Generally just set it to
+       * `pallet_xcm::CurrentXcmVersion`.
+       **/
+      advertisedXcmVersion: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of local XCM locks that a single account may have.
+       **/
+      maxLockers: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of consumers a single remote lock may have.
+       **/
+      maxRemoteLockConsumers: u32 & AugmentedConst<ApiType>;
+      /**
+       * This chain's Universal Location.
+       **/
+      universalLocation: StagingXcmV5Junctions & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
     proxy: {
       /**
        * The base amount of currency needed to reserve for creating an announcement.
@@ -492,9 +516,11 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       submissionDeposit: u128 & AugmentedConst<ApiType>;
       /**
-       * Information concerning the different referendum tracks.
+       * A list of tracks.
+       *
+       * Note: if the tracks are dynamic, the value in the static metadata might be inaccurate.
        **/
-      tracks: Vec<ITuple<[u16, PalletReferendaTrackInfo]>> & AugmentedConst<ApiType>;
+      tracks: Vec<ITuple<[u16, PalletReferendaTrackDetails]>> & AugmentedConst<ApiType>;
       /**
        * The number of blocks after submission that a referendum must begin being decided by.
        * Once this passes, then anyone may cancel the referendum.
@@ -637,6 +663,10 @@ declare module "@polkadot/api-base/types/consts" {
        * The period during which an approved treasury spend has to be claimed.
        **/
       payoutPeriod: u32 & AugmentedConst<ApiType>;
+      /**
+       * Gets this pallet's derived pot account.
+       **/
+      potAccount: AccountId20 & AugmentedConst<ApiType>;
       /**
        * Period between successive spends.
        **/

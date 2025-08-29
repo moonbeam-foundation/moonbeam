@@ -47,6 +47,7 @@ import type {
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
   PalletParachainStakingInflationDistributionConfig,
+  PalletProxyDepositKind,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
@@ -59,6 +60,7 @@ import type {
   StagingXcmV5Response,
   StagingXcmV5TraitsOutcome,
   StagingXcmV5Xcm,
+  XcmV3TraitsSendError,
   XcmV5TraitsError,
   XcmVersionedAssets,
   XcmVersionedLocation
@@ -720,7 +722,7 @@ declare module "@polkadot/api-base/types/events" {
        **/
       Undelegated: AugmentedEvent<ApiType, [AccountId20]>;
       /**
-       * An account that has voted
+       * An account has voted
        **/
       Voted: AugmentedEvent<
         ApiType,
@@ -728,12 +730,20 @@ declare module "@polkadot/api-base/types/events" {
         { who: AccountId20; vote: PalletConvictionVotingVoteAccountVote }
       >;
       /**
-       * A vote that been removed
+       * A vote has been removed
        **/
       VoteRemoved: AugmentedEvent<
         ApiType,
         [who: AccountId20, vote: PalletConvictionVotingVoteAccountVote],
         { who: AccountId20; vote: PalletConvictionVotingVoteAccountVote }
+      >;
+      /**
+       * The lockup period of a conviction vote expired, and the funds have been unlocked.
+       **/
+      VoteUnlocked: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, class_: u16],
+        { who: AccountId20; class: u16 }
       >;
       /**
        * Generic event
@@ -1296,6 +1306,14 @@ declare module "@polkadot/api-base/types/events" {
     };
     multisig: {
       /**
+       * The deposit for a multisig operation has been updated/poked.
+       **/
+      DepositPoked: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, callHash: U8aFixed, oldDeposit: u128, newDeposit: u128],
+        { who: AccountId20; callHash: U8aFixed; oldDeposit: u128; newDeposit: u128 }
+      >;
+      /**
        * A multisig operation has been approved by someone.
        **/
       MultisigApproval: AugmentedEvent<
@@ -1844,6 +1862,31 @@ declare module "@polkadot/api-base/types/events" {
     };
     polkadotXcm: {
       /**
+       * `target` removed alias authorization for `aliaser`.
+       **/
+      AliasAuthorizationRemoved: AugmentedEvent<
+        ApiType,
+        [aliaser: StagingXcmV5Location, target: StagingXcmV5Location],
+        { aliaser: StagingXcmV5Location; target: StagingXcmV5Location }
+      >;
+      /**
+       * An `aliaser` location was authorized by `target` to alias it, authorization valid until
+       * `expiry` block number.
+       **/
+      AliasAuthorized: AugmentedEvent<
+        ApiType,
+        [aliaser: StagingXcmV5Location, target: StagingXcmV5Location, expiry: Option<u64>],
+        { aliaser: StagingXcmV5Location; target: StagingXcmV5Location; expiry: Option<u64> }
+      >;
+      /**
+       * `target` removed all alias authorizations.
+       **/
+      AliasesAuthorizationsRemoved: AugmentedEvent<
+        ApiType,
+        [target: StagingXcmV5Location],
+        { target: StagingXcmV5Location }
+      >;
+      /**
        * Some assets have been claimed from an asset trap
        **/
       AssetsClaimed: AugmentedEvent<
@@ -2010,6 +2053,14 @@ declare module "@polkadot/api-base/types/events" {
         { location: StagingXcmV5Location; queryId: u64; error: XcmV5TraitsError }
       >;
       /**
+       * An XCM message failed to process.
+       **/
+      ProcessXcmError: AugmentedEvent<
+        ApiType,
+        [origin: StagingXcmV5Location, error: XcmV5TraitsError, messageId: U8aFixed],
+        { origin: StagingXcmV5Location; error: XcmV5TraitsError; messageId: U8aFixed }
+      >;
+      /**
        * Query response has been received and is ready for taking with `take_response`. There is
        * no registered notification call.
        **/
@@ -2023,7 +2074,25 @@ declare module "@polkadot/api-base/types/events" {
        **/
       ResponseTaken: AugmentedEvent<ApiType, [queryId: u64], { queryId: u64 }>;
       /**
-       * A XCM message was sent.
+       * An XCM message failed to send.
+       **/
+      SendFailed: AugmentedEvent<
+        ApiType,
+        [
+          origin: StagingXcmV5Location,
+          destination: StagingXcmV5Location,
+          error: XcmV3TraitsSendError,
+          messageId: U8aFixed
+        ],
+        {
+          origin: StagingXcmV5Location;
+          destination: StagingXcmV5Location;
+          error: XcmV3TraitsSendError;
+          messageId: U8aFixed;
+        }
+      >;
+      /**
+       * An XCM message was sent.
        **/
       Sent: AugmentedEvent<
         ApiType,
@@ -2140,6 +2209,14 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [real: AccountId20, proxy: AccountId20, callHash: H256],
         { real: AccountId20; proxy: AccountId20; callHash: H256 }
+      >;
+      /**
+       * A deposit stored for proxies or announcements was poked / updated.
+       **/
+      DepositPoked: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, kind: PalletProxyDepositKind, oldDeposit: u128, newDeposit: u128],
+        { who: AccountId20; kind: PalletProxyDepositKind; oldDeposit: u128; newDeposit: u128 }
       >;
       /**
        * A proxy was added.
@@ -2402,6 +2479,10 @@ declare module "@polkadot/api-base/types/events" {
     };
     scheduler: {
       /**
+       * Agenda is incomplete from `when`.
+       **/
+      AgendaIncomplete: AugmentedEvent<ApiType, [when: u32], { when: u32 }>;
+      /**
        * The call for the provided hash was not found so the task has been aborted.
        **/
       CallUnavailable: AugmentedEvent<
@@ -2508,6 +2589,14 @@ declare module "@polkadot/api-base/types/events" {
        * A new account was created.
        **/
       NewAccount: AugmentedEvent<ApiType, [account: AccountId20], { account: AccountId20 }>;
+      /**
+       * An invalid authorized upgrade was rejected while trying to apply it.
+       **/
+      RejectedInvalidAuthorizedUpgrade: AugmentedEvent<
+        ApiType,
+        [codeHash: H256, error: SpRuntimeDispatchError],
+        { codeHash: H256; error: SpRuntimeDispatchError }
+      >;
       /**
        * On on-chain remark happened.
        **/
@@ -2735,6 +2824,18 @@ declare module "@polkadot/api-base/types/events" {
         [result: Result<Null, SpRuntimeDispatchError>],
         { result: Result<Null, SpRuntimeDispatchError> }
       >;
+      /**
+       * The fallback call was dispatched.
+       **/
+      IfElseFallbackCalled: AugmentedEvent<
+        ApiType,
+        [mainError: SpRuntimeDispatchError],
+        { mainError: SpRuntimeDispatchError }
+      >;
+      /**
+       * Main call was dispatched.
+       **/
+      IfElseMainSuccess: AugmentedEvent<ApiType, []>;
       /**
        * A single item within a Batch of dispatches has completed with no error.
        **/
