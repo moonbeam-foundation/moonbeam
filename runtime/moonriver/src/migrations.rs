@@ -16,7 +16,7 @@
 
 //! # Moonriver specific Migrations
 
-use crate::xcm_config::{AssetHubLocation, AssetType};
+use crate::xcm_config::AssetType;
 use moonbeam_core_primitives::AssetId;
 use sp_core::parameter_types;
 
