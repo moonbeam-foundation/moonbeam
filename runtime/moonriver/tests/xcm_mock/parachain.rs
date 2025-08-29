@@ -377,7 +377,7 @@ impl Config for XcmConfig {
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type XcmRecorder = PolkadotXcm;
-	type XcmEventEmitter = ();
+	type XcmEventEmitter = PolkadotXcm;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
