@@ -1496,8 +1496,8 @@ construct_runtime! {
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
 		Parameters: pallet_parameters = 57,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 58,
-		WeightReclaim: cumulus_pallet_weight_reclaim = 59,
 		MultiBlockMigrations: pallet_migrations = 117,
+		WeightReclaim: cumulus_pallet_weight_reclaim = 118,
 
 		// Bridge pallets (reserved indexes from 130 to 140)
 		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
