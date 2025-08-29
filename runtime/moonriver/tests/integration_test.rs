@@ -38,7 +38,7 @@ use frame_support::{
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::runtime_params::dynamic_params;
-use moonriver_runtime::xcm_config::XcmExecutor;
+use moonriver_runtime::xcm_config::{AssetHubLocation, XcmExecutor};
 use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	moonriver_xcm_weights,
@@ -1651,13 +1651,19 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 
 #[test]
 fn root_can_change_default_xcm_vers() {
+	let asset_type = AssetType::Xcm(
+		VersionedLocation::from(AssetHubLocation::get())
+			.try_into()
+			.unwrap(),
+	);
+
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
+			asset_type: asset_type.clone(),
 			metadata: AssetRegistrarMetadata {
 				name: b"RelayToken".to_vec(),
 				symbol: b"Relay".to_vec(),
@@ -1669,7 +1675,6 @@ fn root_can_change_default_xcm_vers() {
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {
@@ -1678,7 +1683,7 @@ fn root_can_change_default_xcm_vers() {
 				}]
 				.into(),
 			};
-			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+			let source_id: moonriver_runtime::AssetId = asset_type.clone().into();
 			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
 			let (chain_part, beneficiary) =
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
@@ -1693,7 +1698,7 @@ fn root_can_change_default_xcm_vers() {
 					0,
 					WeightLimit::Limited(4000000000.into())
 				),
-				pallet_xcm::Error::<Runtime>::SendFailure
+				pallet_xcm::Error::<Runtime>::LocalExecutionIncomplete
 			);
 
 			// Root sets the defaultXcm
@@ -1948,126 +1953,126 @@ fn xcm_asset_erc20_precompiles_approve() {
 
 #[test]
 fn xtokens_precompiles_transfer() {
-	fn run_test_variant(evm_native: bool) {
-		let mut builder = ExtBuilder::default();
+	let asset_type = AssetType::Xcm(
+		VersionedLocation::from(AssetHubLocation::get())
+			.try_into()
+			.unwrap(),
+	);
 
-		if evm_native {
-			builder = builder.with_evm_native_foreign_assets();
-		}
+	ExtBuilder::default()
+		.with_evm_native_foreign_assets()
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: asset_type.clone(),
+			metadata: AssetRegistrarMetadata {
+				name: b"DOT".to_vec(),
+				symbol: b"DOT".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(3)
+		.build()
+		.execute_with(|| {
+			let xtokens_precompile_address = H160::from_low_u64_be(2052);
 
-		let asset_type = AssetType::Xcm(xcm::v3::Location::parent());
-		builder
-			.with_xcm_assets(vec![XcmAssetInitialization {
-				asset_type: asset_type.clone(),
-				metadata: AssetRegistrarMetadata {
-					name: b"RelayToken".to_vec(),
-					symbol: b"Relay".to_vec(),
-					decimals: 12,
-					is_frozen: false,
-				},
-				balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-				is_sufficient: true,
-			}])
-			.with_balances(vec![
-				(AccountId::from(ALICE), 2_000 * MOVR),
-				(AccountId::from(BOB), 1_000 * MOVR),
-			])
-			.with_safe_xcm_version(3)
-			.build()
-			.execute_with(|| {
-				let xtokens_precompile_address = H160::from_low_u64_be(2052);
+			// We have the assetId that corresponds to the relay chain registered
+			let asset_id: AssetId = asset_type.clone().into();
 
-				// We have the assetId that corresponds to the relay chain registered
-				let relay_asset_id: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
+			// Its address is
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset_id);
 
-				// Its address is
-				let asset_precompile_address = Runtime::asset_id_to_account(
-					FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-					relay_asset_id,
-				);
+			// Alice has 1000 tokens. She should be able to send through precompile
+			let destination = Location::new(
+				1,
+				[Junction::AccountId32 {
+					network: None,
+					id: [1u8; 32],
+				}],
+			);
 
-				// Alice has 1000 tokens. She should be able to send through precompile
-				let destination = Location::new(
-					1,
-					[Junction::AccountId32 {
-						network: None,
-						id: [1u8; 32],
-					}],
-				);
+			let inside = Rc::new(Cell::new(false));
+			let inside2 = inside.clone();
 
-				let inside = Rc::new(Cell::new(false));
-				let inside2 = inside.clone();
+			// We use the address of the asset as an identifier of the asset we want to transfer
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xtokens_precompile_address,
+					XtokensPCall::transfer {
+						currency_address: Address(asset_precompile_address.into()),
+						amount: 500_000_000_000_000u128.into(),
+						destination,
+						weight: 4_000_000,
+					},
+				)
+				.expect_cost(178365)
+				.expect_no_logs()
+				// We expect an evm subcall ERC20.burnFrom
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas: _,
+						is_static,
+						context,
+					} = subcall;
 
-				// We use the address of the asset as an identifier of the asset we want to transfer
-				Precompiles::new()
-					.prepare_test(
-						ALICE,
-						xtokens_precompile_address,
-						XtokensPCall::transfer {
-							currency_address: Address(asset_precompile_address.into()),
-							amount: 500_000_000_000_000u128.into(),
-							destination,
-							weight: 4_000_000,
-						},
+					assert_eq!(context.caller, EvmForeignAssets::account_id().into());
+
+					let asset_id: u128 = asset_type.clone().into();
+					let expected_address: H160 = Runtime::asset_id_to_account(
+						FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+						asset_id,
 					)
-					.expect_cost(if evm_native { 178365 } else { 26765 })
-					.expect_no_logs()
-					// We expect an evm subcall ERC20.burnFrom
-					.with_subcall_handle(move |subcall| {
-						let Subcall {
-							address,
-							transfer,
-							input,
-							target_gas: _,
-							is_static,
-							context,
-						} = subcall;
+					.into();
+					assert_eq!(address, expected_address);
+					assert_eq!(is_static, false);
 
-						assert_eq!(context.caller, EvmForeignAssets::account_id().into());
+					assert!(transfer.is_none());
 
-						let asset_id: u128 = asset_type.clone().into();
-						let expected_address: H160 = Runtime::asset_id_to_account(
-							FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-							asset_id,
-						)
-						.into();
-						assert_eq!(address, expected_address);
-						assert_eq!(is_static, false);
+					assert_eq!(context.address, expected_address);
+					assert_eq!(context.apparent_value, 0u8.into());
 
-						assert!(transfer.is_none());
+					assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
+					assert_eq!(&input[4..16], &[0u8; 12]);
+					assert_eq!(&input[16..36], ALICE);
 
-						assert_eq!(context.address, expected_address);
-						assert_eq!(context.apparent_value, 0u8.into());
+					inside2.set(true);
 
-						assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
-						assert_eq!(&input[4..16], &[0u8; 12]);
-						assert_eq!(&input[16..36], ALICE);
-
-						inside2.set(true);
-
-						SubcallOutput {
-							output: Default::default(),
-							cost: 149_000,
-							logs: vec![],
-							..SubcallOutput::succeed()
-						}
-					})
-					.execute_returns(())
-			})
-	}
-
-	run_test_variant(false);
-	run_test_variant(true);
+					SubcallOutput {
+						output: Default::default(),
+						cost: 149_000,
+						logs: vec![],
+						..SubcallOutput::succeed()
+					}
+				})
+				.execute_returns(())
+		})
 }
 
 #[test]
 fn xtokens_precompiles_transfer_multiasset() {
+	let asset_type = AssetType::Xcm(
+		VersionedLocation::from(AssetHubLocation::get())
+			.try_into()
+			.unwrap(),
+	);
+
 	ExtBuilder::default()
+		.with_evm_native_foreign_assets()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
+			asset_type: asset_type.clone(),
 			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
+				name: b"DOT".to_vec(),
+				symbol: b"DOT".to_vec(),
 				decimals: 12,
 				is_frozen: false,
 			},
@@ -2092,6 +2097,9 @@ fn xtokens_precompiles_transfer_multiasset() {
 				}],
 			);
 
+			let inside = Rc::new(Cell::new(false));
+			let inside2 = inside.clone();
+
 			// This time we transfer it through TransferMultiAsset
 			// Instead of the address, we encode directly the multilocation referencing the asset
 			Precompiles::new()
@@ -2099,15 +2107,55 @@ fn xtokens_precompiles_transfer_multiasset() {
 					ALICE,
 					xtokens_precompile_address,
 					XtokensPCall::transfer_multiasset {
-						// We want to transfer the relay token
-						asset: Location::parent(),
+						// We want to transfer DOT
+						asset: AssetHubLocation::get(),
 						amount: 500_000_000_000_000u128.into(),
 						destination,
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(26765)
+				.expect_cost(178365)
 				.expect_no_logs()
+				// We expect an evm subcall ERC20.burnFrom
+				.with_subcall_handle(move |subcall| {
+					let Subcall {
+						address,
+						transfer,
+						input,
+						target_gas: _,
+						is_static,
+						context,
+					} = subcall;
+
+					assert_eq!(context.caller, EvmForeignAssets::account_id().into());
+
+					let asset_id: u128 = asset_type.clone().into();
+					let expected_address: H160 = Runtime::asset_id_to_account(
+						FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+						asset_id,
+					)
+					.into();
+					assert_eq!(address, expected_address);
+					assert_eq!(is_static, false);
+
+					assert!(transfer.is_none());
+
+					assert_eq!(context.address, expected_address);
+					assert_eq!(context.apparent_value, 0u8.into());
+
+					assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
+					assert_eq!(&input[4..16], &[0u8; 12]);
+					assert_eq!(&input[16..36], ALICE);
+
+					inside2.set(true);
+
+					SubcallOutput {
+						output: Default::default(),
+						cost: 149_000,
+						logs: vec![],
+						..SubcallOutput::succeed()
+					}
+				})
 				.execute_returns(());
 		})
 }
@@ -2328,17 +2376,24 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 
 #[test]
 fn call_xtokens_with_fee() {
+	let asset_type = AssetType::Xcm(
+		VersionedLocation::from(AssetHubLocation::get())
+			.try_into()
+			.unwrap(),
+	);
+
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_safe_xcm_version(3)
+		.with_evm_native_foreign_assets()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
+			asset_type: asset_type.clone(),
 			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
+				name: b"DOT".to_vec(),
+				symbol: b"DOT".to_vec(),
 				decimals: 12,
 				is_frozen: false,
 			},
@@ -2347,7 +2402,6 @@ fn call_xtokens_with_fee() {
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {
@@ -2356,15 +2410,18 @@ fn call_xtokens_with_fee() {
 				}]
 				.into(),
 			};
-			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+			let source_id: moonriver_runtime::AssetId = asset_type.clone().into();
 
 			let before_balance =
-				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
-
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
-			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
+				EvmForeignAssets::balance(source_id, AccountId::from(ALICE)).unwrap();
 			let (chain_part, beneficiary) =
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
+			let asset_amount = 100_000_000_000_000u128;
+			let asset_fee_amount = 100u128;
+
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), asset_amount);
+			let asset_fee =
+				currency_to_asset(CurrencyId::ForeignAsset(source_id), asset_fee_amount);
 
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
@@ -2377,9 +2434,14 @@ fn call_xtokens_with_fee() {
 			),);
 
 			let after_balance =
-				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(source_id, AccountId::from(ALICE)).unwrap();
 			// At least these much (plus fees) should have been charged
-			assert_eq!(before_balance - 100_000_000_000_000 - 100, after_balance);
+			assert_eq!(
+				before_balance
+					.saturating_sub(asset_amount.into())
+					.saturating_sub(asset_fee_amount.into()),
+				after_balance
+			);
 		});
 }
 

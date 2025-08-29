@@ -33,11 +33,12 @@ use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
-use std::collections::BTreeMap;
-
+use cumulus_pallet_parachain_system::MessagingStateSnapshot;
+use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
 use moonbase_runtime::XcmWeightTrader;
 use pallet_transaction_payment::Multiplier;
+use std::collections::BTreeMap;
 use xcm::prelude::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
@@ -67,8 +68,6 @@ pub fn rpc_run_to_block(n: u32) {
 /// Utility function that advances the chain to the desired block number.
 /// If an author is provided, that author information is injected to all the blocks in the meantime.
 pub fn run_to_block(n: u32, author: Option<NimbusId>) {
-	// Finalize the first block
-	Ethereum::on_finalize(System::block_number());
 	while System::block_number() < n {
 		// Set the new block number and author
 		match author {
@@ -96,7 +95,6 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 		Ethereum::on_initialize(System::block_number());
 
 		// Finalize the block
-		Ethereum::on_finalize(System::block_number());
 		ParachainStaking::on_finalize(System::block_number());
 	}
 }
@@ -323,6 +321,26 @@ impl ExtBuilder {
 		let xcm_assets = self.xcm_assets.clone();
 
 		ext.execute_with(|| {
+			// Mock hrmp egress_channels
+			cumulus_pallet_parachain_system::RelevantMessagingState::<Runtime>::put(
+				MessagingStateSnapshot {
+					dmq_mqc_head: Default::default(),
+					relay_dispatch_queue_remaining_capacity: Default::default(),
+					ingress_channels: vec![],
+					egress_channels: vec![(
+						1_001.into(),
+						AbridgedHrmpChannel {
+							max_capacity: u32::MAX,
+							max_total_size: u32::MAX,
+							max_message_size: u32::MAX,
+							msg_count: 0,
+							total_size: 0,
+							mqc_head: None,
+						},
+					)],
+				},
+			);
+
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id = xcm_asset_initialization.asset_id;

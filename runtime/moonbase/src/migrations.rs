@@ -16,6 +16,14 @@
 
 //! # Moonbase specific Migrations
 
+use crate::xcm_config::AssetType;
+use moonbeam_core_primitives::AssetId;
+use sp_core::parameter_types;
+
+parameter_types! {
+	pub RelayAssetId: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
+}
+
 type MoonbaseMigrations = ();
 
 /// List of single block migrations to be executed by frame executive.

@@ -17,15 +17,17 @@ import {
 import { encodeFunctionData, erc20Abi } from "viem";
 import {
   expectEVMResult,
-  PARA_1000_SOURCE_LOCATION,
   mockHrmpChannelExistanceTx,
   ARBITRARY_ASSET_ID,
   relayAssetMetadata,
-  RELAY_SOURCE_LOCATION_V4,
   registerAndFundAsset,
+  ASSET_HUB_LOCATION,
+  PARA_2000_SOURCE_LOCATION,
+  ASSET_HUB_PARACHAIN_ID,
 } from "../../../../helpers";
 import type { AssetMetadata } from "../../../../helpers";
 import { ethers } from "ethers";
+import { numberToHex } from "@polkadot/util";
 
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
@@ -41,22 +43,22 @@ describeSuite({
   title: "Precompiles - PalletXcm: Native fee",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let foreignRelayAssetContract: ethers.Contract;
+    let foreignAHAssetContract: ethers.Contract;
     let foreignParaAssetContract: ethers.Contract;
 
-    const destinationPara = 1000;
+    const destinationPara = 2000;
     const amountToSend = 100n;
 
     beforeAll(async () => {
       const balance = 200000000000000n;
 
       // Register the asset
-      const { registeredAssetId: relayAssetId, contractAddress: relayAssetAddress } =
+      const { registeredAssetId: ahAssetId, contractAddress: ahAssetAddress } =
         await registerAndFundAsset(
           context,
           {
             id: ARBITRARY_ASSET_ID,
-            location: RELAY_SOURCE_LOCATION_V4,
+            location: ASSET_HUB_LOCATION,
             metadata: relayAssetMetadata,
             relativePrice: 1_000_000_000_000_000_000n,
           },
@@ -65,14 +67,10 @@ describeSuite({
           false
         );
 
-      console.log("Foreign Relay asset address: ", relayAssetAddress);
-      console.log("Foreign Relay asset id: ", relayAssetId);
+      console.log("Foreign Relay asset address: ", ahAssetAddress);
+      console.log("Foreign Relay asset id: ", ahAssetId);
 
-      foreignRelayAssetContract = new ethers.Contract(
-        relayAssetAddress,
-        erc20Abi,
-        context.ethers()
-      );
+      foreignAHAssetContract = new ethers.Contract(ahAssetAddress, erc20Abi, context.ethers());
 
       // Register the asset
       const { registeredAssetId: paraAssetId, contractAddress: paraAssetAddress } =
@@ -80,7 +78,7 @@ describeSuite({
           context,
           {
             id: ARBITRARY_ASSET_ID + 1n,
-            location: PARA_1000_SOURCE_LOCATION,
+            location: PARA_2000_SOURCE_LOCATION,
             metadata: para1000AssetMetadata,
             relativePrice: 1_000_000_000_000_000_000n,
           },
@@ -103,9 +101,11 @@ describeSuite({
       title: "transferAssetsLocation: allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceBefore = await foreignAHAssetContract.balanceOf(ALITH_ADDRESS);
 
-        const dest: [number, any[]] = [1, []];
+        const paraIdInHex = numberToHex(ASSET_HUB_PARACHAIN_ID, 32);
+        const parachain_enum_selector = "0x00";
+        const dest: [number, any[]] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
 
         const destinationAddress =
           "0101010101010101010101010101010101010101010101010101010101010101";
@@ -128,7 +128,10 @@ describeSuite({
           [x1_pallet_instance_enum_selector + x1_instance],
         ];
 
-        const nonFeeAssetLocation: [number, any[]] = [1, []];
+        const nonFeeAssetLocation: [number, any] = [
+          1,
+          [parachain_enum_selector + paraIdInHex.slice(2)],
+        ];
         const assetLocationInfo = [
           [nonFeeAssetLocation, amountToSend],
           [nativeAssetLocation, 100n],
@@ -144,10 +147,21 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        const mockHrmpTx = context
+          .polkadotJs()
+          .tx.sudo.sudo(
+            mockHrmpChannelExistanceTx(context, ASSET_HUB_PARACHAIN_ID, 1000, 102400, 102400)
+          );
 
-        const assetBalanceAfter = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
+        // Insert the two txs in the same block.
+        await mockHrmpTx.signAndSend(baltathar);
+        await customDevRpcRequest("eth_sendRawTransaction", [rawTxn]);
+        await context.createBlock();
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
+
+        const assetBalanceAfter = await foreignAHAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -158,8 +172,6 @@ describeSuite({
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
         const assetBalanceBefore = await foreignParaAssetContract.balanceOf(ALITH_ADDRESS);
-
-        const paraId = destinationPara;
 
         // Assets must be sorted, so we put the native one first as it has a lower "parents" field.
         const assetAddressInfo = [
@@ -178,7 +190,7 @@ describeSuite({
           to: PRECOMPILE_PALLET_XCM_ADDRESS,
           data: encodeFunctionData({
             abi: xcmInterface,
-            args: [paraId, BALTATHAR_ADDRESS, assetAddressInfo, 0],
+            args: [destinationPara, BALTATHAR_ADDRESS, assetAddressInfo, 0],
             functionName: "transferAssetsToPara20",
           }),
           gasLimit: 500_000n,
@@ -253,15 +265,11 @@ describeSuite({
       title: "transferAssetsToRelay: allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
 
         // Assets must be sorted, so we put the native one first as it has a lower "parents" field.
-        const assetAddressInfo = [
-          [PRECOMPILE_NATIVE_ERC20_ADDRESS, amountToSend],
-          [await foreignRelayAssetContract.getAddress(), amountToSend],
-        ];
+        const assetAddressInfo = [[PRECOMPILE_NATIVE_ERC20_ADDRESS, amountToSend]];
 
-        const mockHrmp1000Tx = context
+        const mockHrmpTx = context
           .polkadotJs()
           .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, destinationPara, 1000, 102400, 102400));
 
@@ -284,15 +292,12 @@ describeSuite({
 
         // Insert the two txs in the same block.
         // First one with baltathar as sudo.
-        await mockHrmp1000Tx.signAndSend(baltathar);
+        await mockHrmpTx.signAndSend(baltathar);
         await customDevRpcRequest("eth_sendRawTransaction", [rawTxn]);
         await context.createBlock();
 
         const events = await context.polkadotJs().query.system.events();
         expectEVMResult(events, "Succeed");
-
-        const assetBalanceAfter = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
-        expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
 
@@ -302,10 +307,12 @@ describeSuite({
         "transferAssetsUsingTypeAndThenLocation (8425d893): allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceBefore = await foreignAHAssetContract.balanceOf(ALITH_ADDRESS);
 
-        const dest: [number, any[]] = [1, []];
-        const assetLocation: [number, any[]] = [1, []];
+        const paraIdInHex = numberToHex(ASSET_HUB_PARACHAIN_ID, 32);
+        const parachain_enum_selector = "0x00";
+        const assetLocation: [number, any] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
+        const dest: [number, any[]] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
 
         const x1_pallet_instance_enum_selector = "0x04";
         const x1_instance = "03";
@@ -355,10 +362,21 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        const mockHrmpTx = context
+          .polkadotJs()
+          .tx.sudo.sudo(
+            mockHrmpChannelExistanceTx(context, ASSET_HUB_PARACHAIN_ID, 1000, 102400, 102400)
+          );
 
-        const assetBalanceAfter = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
+        // Insert the two txs in the same block.
+        await mockHrmpTx.signAndSend(baltathar);
+        await customDevRpcRequest("eth_sendRawTransaction", [rawTxn]);
+        await context.createBlock();
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
+
+        const assetBalanceAfter = await foreignAHAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
@@ -369,13 +387,15 @@ describeSuite({
         "transferAssetsUsingTypeAndThenAddress (8425d893): allows to pay fees with native asset",
       test: async function () {
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
-        const assetBalanceBefore = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
+        const assetBalanceBefore = await foreignAHAssetContract.balanceOf(ALITH_ADDRESS);
 
         // Relay as destination
-        const dest: [number, any[]] = [1, []];
+        const paraIdInHex = numberToHex(ASSET_HUB_PARACHAIN_ID, 32);
+        const parachain_enum_selector = "0x00";
+        const dest: [number, any[]] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
         const assetAddressInfo = [
           [PRECOMPILE_NATIVE_ERC20_ADDRESS, amountToSend],
-          [await foreignRelayAssetContract.getAddress(), amountToSend],
+          [await foreignAHAssetContract.getAddress(), amountToSend],
         ];
 
         // LocalReserve
@@ -410,10 +430,21 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        const mockHrmpTx = context
+          .polkadotJs()
+          .tx.sudo.sudo(
+            mockHrmpChannelExistanceTx(context, ASSET_HUB_PARACHAIN_ID, 1000, 102400, 102400)
+          );
 
-        const assetBalanceAfter = await foreignRelayAssetContract.balanceOf(ALITH_ADDRESS);
+        // Insert the two txs in the same block.
+        await mockHrmpTx.signAndSend(baltathar);
+        await customDevRpcRequest("eth_sendRawTransaction", [rawTxn]);
+        await context.createBlock();
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
+
+        const assetBalanceAfter = await foreignAHAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
       },
     });
