@@ -24,7 +24,7 @@ jobs:
               uses: actions/checkout@v5
 
             - name: Install subweight
-              run: cargo install subweight
+              run: cargo install subweight --locked
 
             - name: Get changed files
               id: changed-files-yaml
