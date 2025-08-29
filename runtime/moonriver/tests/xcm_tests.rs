@@ -3105,7 +3105,6 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer() {
 
 #[test]
 fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_with_fee() {
-	frame_support::__private::sp_tracing::init_for_tests();
 	MockNet::reset();
 
 	// Relay asset

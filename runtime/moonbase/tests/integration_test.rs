@@ -3319,8 +3319,6 @@ mod treasury_tests {
 
 	#[test]
 	fn test_treasury_spend_foreign_asset_with_council_origin() {
-		frame_support::__private::sp_tracing::init_for_tests();
-
 		let initial_treasury_balance = 1_000 * UNIT;
 		let asset_id = 1000100010001000u128;
 		ExtBuilder::default()
