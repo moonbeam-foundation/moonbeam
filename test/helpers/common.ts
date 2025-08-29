@@ -139,4 +139,3 @@ export async function sleep(durationMs: number): Promise<void> {
 export function stripNulls(s: string) {
   return s.replaceAll("\x00", ""); // removes trailing nulls
 }
-
