@@ -216,7 +216,7 @@ impl Config for XcmConfig {
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type XcmRecorder = XcmPallet;
-	type XcmEventEmitter = ();
+	type XcmEventEmitter = XcmPallet;
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, KusamaNetwork>;
