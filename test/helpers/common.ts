@@ -140,10 +140,3 @@ export function stripNulls(s: string) {
   return s.replaceAll("\x00", ""); // removes trailing nulls
 }
 
-// appends \x00 to make the string length = maxLength
-export function formatTrackName(trackName: string, maxLength = 25) {
-  if (trackName.length > maxLength) {
-    throw new Error(`Track name ${trackName} is too long, max length is ${maxLength}`);
-  }
-  return trackName + "\x00".repeat(maxLength - trackName.length);
-}
