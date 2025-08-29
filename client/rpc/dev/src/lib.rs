@@ -48,7 +48,7 @@ pub trait DevApi {
 	/// Neither this RPC, nor the mock inherent data provider make any attempt to enforce this
 	/// constraint. In fact, violating it may be useful for testing.
 	/// The method accepts a sending paraId and a bytearray representing an arbitrary message as
-	/// parameters. If you provide an emtpy byte array, then a default message representing a
+	/// parameters. If you provide an empty byte array, then a default message representing a
 	/// transfer of the sending paraId's native token will be injected.
 	#[method(name = "xcm_injectHrmpMessage")]
 	async fn inject_hrmp_message(&self, sender: ParaId, message: Vec<u8>) -> RpcResult<()>;

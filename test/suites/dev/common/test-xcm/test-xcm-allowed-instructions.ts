@@ -16,7 +16,7 @@ import type { ApiPromise } from "@polkadot/api";
 // the important thing (and what we are testing) is that they are
 // executed and are not blocked with 'WeightNotComputable' due to using max weight.
 describeSuite({
-  id: "D017000",
+  id: "D010602",
   title: "XCM - Max Weight Instructions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

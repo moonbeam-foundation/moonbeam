@@ -71,7 +71,7 @@ pub mod pallet {
 			_asset: T::AssetId,
 			_min_balance: T::Balance,
 			_metadata: T::AssetRegistrarMetadata,
-			// Wether or not an asset-receiving account increments the sufficient counter
+			// Whether or not an asset-receiving account increments the sufficient counter
 			_is_sufficient: bool,
 		) -> DispatchResult {
 			unimplemented!()

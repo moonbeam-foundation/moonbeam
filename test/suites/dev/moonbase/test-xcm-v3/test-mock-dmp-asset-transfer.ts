@@ -13,7 +13,7 @@ import {
 const RELAY_TOKEN = 1_000_000_000_000n;
 
 describeSuite({
-  id: "D024001",
+  id: "D024101",
   title: "Mock XCM - receive downward transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

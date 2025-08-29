@@ -137,6 +137,7 @@ mod tests {
 					Some(U256::one()),
 					None,
 					None,
+					None,
 				)
 				.is_ok());
 			});

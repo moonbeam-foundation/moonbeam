@@ -5,7 +5,7 @@ import type { Result } from "@polkadot/types";
 import type { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
 describeSuite({
-  id: "D021904",
+  id: "D022004",
   title: "Maintenance Mode - General",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
