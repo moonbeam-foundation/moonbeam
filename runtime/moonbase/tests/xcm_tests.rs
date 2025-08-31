@@ -37,10 +37,10 @@ use xcm::{
 		Location, OriginKind, PalletInstance, Parachain, QueryResponse, Reanchorable, Response,
 		WeightLimit, WithdrawAsset, Xcm,
 	},
-	VersionedAssets,
+	VersionedAssets, VersionedXcm,
 };
 use xcm::{IntoVersion, VersionedLocation, WrapVersion};
-use xcm_executor::traits::ConvertLocation;
+use xcm_executor::traits::{ConvertLocation, TransferType};
 use xcm_mock::*;
 use xcm_primitives::{
 	split_location_into_chain_part_and_beneficiary, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
@@ -48,6 +48,7 @@ use xcm_primitives::{
 use xcm_simulator::TestExt;
 mod common;
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
+use cumulus_primitives_core::AllCounted;
 use parachain::PolkadotXcm;
 
 fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128) -> Result<(), ()> {
@@ -2991,18 +2992,22 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 		));
 
 		// Now send those tokens to ParaA
-		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
-			statemint_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute.clone())
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 200).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		assert_ok!(
+			StatemintChainPalletXcm::transfer_assets_using_type_and_then(
+				statemint_like::RuntimeOrigin::signed(RELAYALICE),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 200).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(Location::parent().into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::from(
+					Xcm::<()>::builder_unsafe()
+						.deposit_asset(AllCounted(2), parachain_beneficiary_absolute.clone())
+						.build()
+				)),
+				WeightLimit::Unlimited
+			)
+		);
 	});
 
 	ParaA::execute_with(|| {
@@ -3025,12 +3030,18 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
-			Box::new(VersionedAssets::from(vec![asset])),
-			0,
+			Box::new(VersionedAssets::from(vec![asset.clone()])),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(asset.id.into()),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::from(
+				Xcm::<()>::builder_unsafe()
+					.deposit_asset(AllCounted(2), beneficiary.clone())
+					.build()
+			)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 
@@ -3048,18 +3059,22 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 	// Send back tokens from AH to ParaA from Bob's account
 	Statemint::execute_with(|| {
 		// Now send those tokens to ParaA
-		assert_ok!(StatemintChainPalletXcm::limited_reserve_transfer_assets(
-			statemint_like::RuntimeOrigin::signed(RELAYBOB),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute)
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 100).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		assert_ok!(
+			StatemintChainPalletXcm::transfer_assets_using_type_and_then(
+				statemint_like::RuntimeOrigin::signed(RELAYBOB),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 100).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(Location::parent().into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::from(
+					Xcm::<()>::builder_unsafe()
+						.deposit_asset(AllCounted(2), parachain_beneficiary_absolute.clone())
+						.build()
+				)),
+				WeightLimit::Unlimited
+			)
+		);
 
 		// 100 DOTs were deducted from Bob's account
 		assert_eq!(StatemintBalances::free_balance(RELAYBOB), INITIAL_BALANCE);
