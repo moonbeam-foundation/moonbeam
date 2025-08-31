@@ -16,6 +16,7 @@ import type {
   CumulusPalletParachainSystemUnincludedSegmentHrmpChannelUpdate,
   CumulusPalletParachainSystemUnincludedSegmentSegmentTracker,
   CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth,
+  CumulusPalletWeightReclaimStorageWeightReclaim,
   CumulusPalletXcmEvent,
   CumulusPalletXcmOrigin,
   CumulusPalletXcmpQueueCall,
@@ -26,7 +27,6 @@ import type {
   CumulusPalletXcmpQueueQueueConfigData,
   CumulusPrimitivesCoreAggregateMessageOrigin,
   CumulusPrimitivesParachainInherentParachainInherentData,
-  CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim,
   EthbloomBloom,
   EthereumBlock,
   EthereumHeader,
@@ -64,6 +64,7 @@ import type {
   FrameSupportPalletId,
   FrameSupportPreimagesBounded,
   FrameSupportScheduleDispatchTime,
+  FrameSupportStorageDisabled,
   FrameSupportTokensFungibleUnionOfNativeOrWithId,
   FrameSupportTokensMiscBalanceStatus,
   FrameSupportTokensMiscIdAmount,
@@ -252,6 +253,7 @@ import type {
   PalletPreimageRequestStatus,
   PalletProxyAnnouncement,
   PalletProxyCall,
+  PalletProxyDepositKind,
   PalletProxyError,
   PalletProxyEvent,
   PalletProxyProxyDefinition,
@@ -271,7 +273,7 @@ import type {
   PalletReferendaEvent,
   PalletReferendaReferendumInfo,
   PalletReferendaReferendumStatus,
-  PalletReferendaTrackInfo,
+  PalletReferendaTrackDetails,
   PalletRootTestingCall,
   PalletRootTestingEvent,
   PalletSchedulerCall,
@@ -298,10 +300,12 @@ import type {
   PalletWhitelistCall,
   PalletWhitelistError,
   PalletWhitelistEvent,
+  PalletXcmAuthorizedAliasesEntry,
   PalletXcmBridgeHubHoldReason,
   PalletXcmCall,
   PalletXcmError,
   PalletXcmEvent,
+  PalletXcmMaxAuthorizedAliases,
   PalletXcmOrigin,
   PalletXcmQueryStatus,
   PalletXcmRemoteLockedFungibleRecord,
@@ -391,6 +395,7 @@ import type {
   XcmPrimitivesEthereumXcmEthereumXcmTransactionV2,
   XcmPrimitivesEthereumXcmEthereumXcmTransactionV3,
   XcmPrimitivesEthereumXcmManualEthereumXcmFee,
+  XcmRuntimeApisAuthorizedAliasesOriginAliaser,
   XcmV3Instruction,
   XcmV3Junction,
   XcmV3JunctionBodyId,
@@ -411,6 +416,7 @@ import type {
   XcmV3QueryResponseInfo,
   XcmV3Response,
   XcmV3TraitsError,
+  XcmV3TraitsSendError,
   XcmV3WeightLimit,
   XcmV3Xcm,
   XcmV5TraitsError,
@@ -433,6 +439,7 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletParachainSystemUnincludedSegmentHrmpChannelUpdate: CumulusPalletParachainSystemUnincludedSegmentHrmpChannelUpdate;
     CumulusPalletParachainSystemUnincludedSegmentSegmentTracker: CumulusPalletParachainSystemUnincludedSegmentSegmentTracker;
     CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth: CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth;
+    CumulusPalletWeightReclaimStorageWeightReclaim: CumulusPalletWeightReclaimStorageWeightReclaim;
     CumulusPalletXcmEvent: CumulusPalletXcmEvent;
     CumulusPalletXcmOrigin: CumulusPalletXcmOrigin;
     CumulusPalletXcmpQueueCall: CumulusPalletXcmpQueueCall;
@@ -443,7 +450,6 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletXcmpQueueQueueConfigData: CumulusPalletXcmpQueueQueueConfigData;
     CumulusPrimitivesCoreAggregateMessageOrigin: CumulusPrimitivesCoreAggregateMessageOrigin;
     CumulusPrimitivesParachainInherentParachainInherentData: CumulusPrimitivesParachainInherentParachainInherentData;
-    CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim: CumulusPrimitivesStorageWeightReclaimStorageWeightReclaim;
     EthbloomBloom: EthbloomBloom;
     EthereumBlock: EthereumBlock;
     EthereumHeader: EthereumHeader;
@@ -481,6 +487,7 @@ declare module "@polkadot/types/types/registry" {
     FrameSupportPalletId: FrameSupportPalletId;
     FrameSupportPreimagesBounded: FrameSupportPreimagesBounded;
     FrameSupportScheduleDispatchTime: FrameSupportScheduleDispatchTime;
+    FrameSupportStorageDisabled: FrameSupportStorageDisabled;
     FrameSupportTokensFungibleUnionOfNativeOrWithId: FrameSupportTokensFungibleUnionOfNativeOrWithId;
     FrameSupportTokensMiscBalanceStatus: FrameSupportTokensMiscBalanceStatus;
     FrameSupportTokensMiscIdAmount: FrameSupportTokensMiscIdAmount;
@@ -669,6 +676,7 @@ declare module "@polkadot/types/types/registry" {
     PalletPreimageRequestStatus: PalletPreimageRequestStatus;
     PalletProxyAnnouncement: PalletProxyAnnouncement;
     PalletProxyCall: PalletProxyCall;
+    PalletProxyDepositKind: PalletProxyDepositKind;
     PalletProxyError: PalletProxyError;
     PalletProxyEvent: PalletProxyEvent;
     PalletProxyProxyDefinition: PalletProxyProxyDefinition;
@@ -688,7 +696,7 @@ declare module "@polkadot/types/types/registry" {
     PalletReferendaEvent: PalletReferendaEvent;
     PalletReferendaReferendumInfo: PalletReferendaReferendumInfo;
     PalletReferendaReferendumStatus: PalletReferendaReferendumStatus;
-    PalletReferendaTrackInfo: PalletReferendaTrackInfo;
+    PalletReferendaTrackDetails: PalletReferendaTrackDetails;
     PalletRootTestingCall: PalletRootTestingCall;
     PalletRootTestingEvent: PalletRootTestingEvent;
     PalletSchedulerCall: PalletSchedulerCall;
@@ -715,10 +723,12 @@ declare module "@polkadot/types/types/registry" {
     PalletWhitelistCall: PalletWhitelistCall;
     PalletWhitelistError: PalletWhitelistError;
     PalletWhitelistEvent: PalletWhitelistEvent;
+    PalletXcmAuthorizedAliasesEntry: PalletXcmAuthorizedAliasesEntry;
     PalletXcmBridgeHubHoldReason: PalletXcmBridgeHubHoldReason;
     PalletXcmCall: PalletXcmCall;
     PalletXcmError: PalletXcmError;
     PalletXcmEvent: PalletXcmEvent;
+    PalletXcmMaxAuthorizedAliases: PalletXcmMaxAuthorizedAliases;
     PalletXcmOrigin: PalletXcmOrigin;
     PalletXcmQueryStatus: PalletXcmQueryStatus;
     PalletXcmRemoteLockedFungibleRecord: PalletXcmRemoteLockedFungibleRecord;
@@ -808,6 +818,7 @@ declare module "@polkadot/types/types/registry" {
     XcmPrimitivesEthereumXcmEthereumXcmTransactionV2: XcmPrimitivesEthereumXcmEthereumXcmTransactionV2;
     XcmPrimitivesEthereumXcmEthereumXcmTransactionV3: XcmPrimitivesEthereumXcmEthereumXcmTransactionV3;
     XcmPrimitivesEthereumXcmManualEthereumXcmFee: XcmPrimitivesEthereumXcmManualEthereumXcmFee;
+    XcmRuntimeApisAuthorizedAliasesOriginAliaser: XcmRuntimeApisAuthorizedAliasesOriginAliaser;
     XcmV3Instruction: XcmV3Instruction;
     XcmV3Junction: XcmV3Junction;
     XcmV3JunctionBodyId: XcmV3JunctionBodyId;
@@ -828,6 +839,7 @@ declare module "@polkadot/types/types/registry" {
     XcmV3QueryResponseInfo: XcmV3QueryResponseInfo;
     XcmV3Response: XcmV3Response;
     XcmV3TraitsError: XcmV3TraitsError;
+    XcmV3TraitsSendError: XcmV3TraitsSendError;
     XcmV3WeightLimit: XcmV3WeightLimit;
     XcmV3Xcm: XcmV3Xcm;
     XcmV5TraitsError: XcmV5TraitsError;

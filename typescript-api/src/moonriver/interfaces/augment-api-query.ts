@@ -113,6 +113,7 @@ import type {
   PalletTransactionPaymentReleases,
   PalletTreasuryProposal,
   PalletTreasurySpendStatus,
+  PalletXcmAuthorizedAliasesEntry,
   PalletXcmQueryStatus,
   PalletXcmRemoteLockedFungibleRecord,
   PalletXcmTransactorRelayIndicesRelayChainIndices,
@@ -1691,6 +1692,19 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, [H256]>;
       /**
+       * Map of authorized aliasers of local origins. Each local location can authorize a list of
+       * other locations to alias into it. Each aliaser is only valid until its inner `expiry`
+       * block number.
+       **/
+      authorizedAliases: AugmentedQuery<
+        ApiType,
+        (
+          arg: XcmVersionedLocation | { V3: any } | { V4: any } | { V5: any } | string | Uint8Array
+        ) => Observable<Option<PalletXcmAuthorizedAliasesEntry>>,
+        [XcmVersionedLocation]
+      > &
+        QueryableStorageEntry<ApiType, [XcmVersionedLocation]>;
+      /**
        * The current migration's stage, if any.
        **/
       currentMigration: AugmentedQuery<
@@ -2043,6 +2057,9 @@ declare module "@polkadot/api-base/types/storage" {
         [u32]
       > &
         QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * Block number at which the agenda began incomplete execution.
+       **/
       incompleteSince: AugmentedQuery<ApiType, () => Observable<Option<u32>>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
@@ -2173,6 +2190,21 @@ declare module "@polkadot/api-base/types/storage" {
         [u32]
       > &
         QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * The weight reclaimed for the extrinsic.
+       *
+       * This information is available until the end of the extrinsic execution.
+       * More precisely this information is removed in `note_applied_extrinsic`.
+       *
+       * Logic doing some post dispatch weight reduction must update this storage to avoid duplicate
+       * reduction.
+       **/
+      extrinsicWeightReclaimed: AugmentedQuery<
+        ApiType,
+        () => Observable<SpWeightsWeightV2Weight>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
       /**
        * Whether all inherents have been applied.
        **/
