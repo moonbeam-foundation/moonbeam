@@ -61,6 +61,7 @@ pub mod xcm;
 
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 mod bridge_weights;
+pub mod cumulus_pallet_weight_reclaim;
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
 pub mod pallet_bridge_grandpa;
 #[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]

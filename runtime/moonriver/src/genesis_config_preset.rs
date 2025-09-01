@@ -102,6 +102,7 @@ pub fn testnet_genesis(
 				.cloned()
 				.map(|k| (k, 1 << 80))
 				.collect(),
+			dev_accounts: Default::default(),
 		},
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,

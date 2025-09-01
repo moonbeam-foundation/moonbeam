@@ -20,7 +20,7 @@ use ethereum::{
 };
 use ethereum_types::{H160, H256, U256};
 use frame_support::{traits::ConstU32, BoundedVec};
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
@@ -42,7 +42,7 @@ pub trait EnsureProxy<AccountId> {
 	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str>;
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 /// Manually sets a gas fee.
 pub struct ManualEthereumXcmFee {
 	/// Legacy or Eip-2930, all fee will be used.
@@ -53,7 +53,7 @@ pub struct ManualEthereumXcmFee {
 }
 
 /// Xcm transact's Ethereum transaction configurable fee.
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 pub enum EthereumXcmFee {
 	/// Manually set gas fee.
 	Manual(ManualEthereumXcmFee),
@@ -62,7 +62,7 @@ pub enum EthereumXcmFee {
 }
 
 /// Xcm transact's Ethereum transaction.
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 pub enum EthereumXcmTransaction {
 	V1(EthereumXcmTransactionV1),
 	V2(EthereumXcmTransactionV2),
@@ -74,7 +74,7 @@ pub fn rs_id() -> H256 {
 	H256::from_low_u64_be(1u64)
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 pub struct EthereumXcmTransactionV1 {
 	/// Gas limit to be consumed by EVM execution.
 	pub gas_limit: U256,
@@ -90,7 +90,7 @@ pub struct EthereumXcmTransactionV1 {
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 pub struct EthereumXcmTransactionV2 {
 	/// Gas limit to be consumed by EVM execution.
 	pub gas_limit: U256,
@@ -104,7 +104,7 @@ pub struct EthereumXcmTransactionV2 {
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
 pub struct EthereumXcmTransactionV3 {
 	/// Gas limit to be consumed by EVM execution.
 	pub gas_limit: U256,

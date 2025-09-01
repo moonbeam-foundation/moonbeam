@@ -26,6 +26,7 @@ function transfer_assets() {
         --ws "${url?}" \
         --seed "${seed?}" \
         --sign ethereum \
+        --noWait \
         tx.polkadotXcm.transferAssets \
             "${destination}" \
             "${beneficiary}" \
@@ -60,7 +61,7 @@ function init_kusama_to_moonbeam() {
         --target-signer $ALITH_PRIVATE_KEY
 }
 
-function run_relay() {
+function relay_headers_and_messages() {
     local relayer_path=$(ensure_relayer)
 
     RUST_LOG=runtime=trace,rpc=trace,bridge=trace \
@@ -69,13 +70,13 @@ function run_relay() {
         --polkadot-version-mode Auto \
         --moonbeam-uri ws://localhost:8800 \
         --moonbeam-version-mode Auto \
-        --moonbeam-signer $ALITH_PRIVATE_KEY \
+        --moonbeam-signer $CHARLETH_PRIVATE_KEY \
         --moonbeam-transactions-mortality 4 \
         --kusama-uri ws://localhost:9901 \
         --kusama-version-mode Auto \
         --moonriver-uri ws://localhost:8801 \
         --moonriver-version-mode Auto \
-        --moonriver-signer $ALITH_PRIVATE_KEY \
+        --moonriver-signer $CHARLETH_PRIVATE_KEY \
         --moonriver-transactions-mortality 4 \
         --lane "${LANE_ID}"
 }
@@ -104,74 +105,14 @@ function run_finality_relay() {
         --target-transactions-mortality 4
 }
 
-function run_parachains_relay() {
-    local relayer_path=$(ensure_relayer)
-
-    RUST_LOG=runtime=trace,rpc=trace,bridge=trace \
-        $relayer_path relay-parachains moonbeam-to-moonriver \
-        --only-free-headers \
-        --source-uri ws://localhost:9900 \
-        --source-version-mode Auto \
-        --target-uri ws://localhost:8801 \
-        --target-version-mode Auto \
-        --target-signer $BALTATHAR_PRIVATE_KEY \
-        --target-transactions-mortality 4&
-
-    RUST_LOG=runtime=trace,rpc=trace,bridge=trace \
-        $relayer_path relay-parachains moonriver-to-moonbeam \
-        --only-free-headers \
-        --source-uri ws://localhost:9901 \
-        --source-version-mode Auto \
-        --target-uri ws://localhost:8800 \
-        --target-version-mode Auto \
-        --target-signer $BALTATHAR_PRIVATE_KEY \
-        --target-transactions-mortality 4
-}
-
-function run_messages_relay() {
-    local relayer_path=$(ensure_relayer)
-
-    RUST_LOG=runtime=trace,rpc=trace,bridge=trace \
-        $relayer_path relay-messages moonbeam-to-moonriver \
-        --source-uri ws://localhost:8800 \
-        --source-version-mode Auto \
-        --source-signer $BALTATHAR_PRIVATE_KEY \
-        --source-transactions-mortality 4 \
-        --target-uri ws://localhost:8801 \
-        --target-version-mode Auto \
-        --target-signer $BALTATHAR_PRIVATE_KEY \
-        --target-transactions-mortality 4 \
-        --lane $LANE_ID&
-
-    RUST_LOG=runtime=trace,rpc=trace,bridge=trace \
-        $relayer_path relay-messages moonriver-to-moonbeam \
-        --source-uri ws://localhost:8801 \
-        --source-version-mode Auto \
-        --source-signer $BALTATHAR_PRIVATE_KEY \
-        --source-transactions-mortality 4 \
-        --target-uri ws://localhost:8800 \
-        --target-version-mode Auto \
-        --target-signer $BALTATHAR_PRIVATE_KEY \
-        --target-transactions-mortality 4 \
-        --lane $LANE_ID
-}
-
 case "$1" in
-  run-relay)
+  relay-headers-and-messages)
     init_kusama_to_moonbeam
     init_polkadot_to_moonriver
-    run_relay
+    relay_headers_and_messages
     ;;
   run-finality-relay)
-    init_kusama_to_moonbeam
-    init_polkadot_to_moonriver
     run_finality_relay
-    ;;
-  run-parachains-relay)
-    run_parachains_relay
-    ;;
-  run-messages-relay)
-    run_messages_relay
     ;;
   reserve-transfer-assets-from-moonbeam-local)
       amount=$2
@@ -202,11 +143,10 @@ case "$1" in
   *)
     echo "A command is require. Supported commands for:
     Local (zombienet) run:
-          - run-relay
+          - relay-headers-and-messages
           - run-finality-relay
-          - run-parachains-relay
-          - run-messages-relay
-          - reserve-transfer-assets-from-moonbeam-local";
+          - reserve-transfer-assets-from-moonbeam-local
+          - reserve-transfer-assets-from-moonriver-local";
     exit 1
     ;;
 esac

@@ -42,6 +42,7 @@ AUTHORS=(
     "Moonsong-Labs"
     "Moonsong Labs"
     "moonbeam-foundation"
+    "Frontier developers <legal@bitarray.dev>"
 )
 NAMES=(
     "webpki"

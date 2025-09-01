@@ -36,7 +36,7 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
-use moonbase_runtime::xcm_config::XcmExecutor;
+use moonbase_runtime::xcm_config::{AssetHubLocation, XcmExecutor};
 use moonbase_runtime::{
 	moonbase_xcm_weights, xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards,
 	EvmForeignAssets, Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm,
@@ -1565,7 +1565,7 @@ fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v5::Location::parent(),
+			xcm_location: AssetHubLocation::get(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1581,13 +1581,11 @@ fn xtokens_precompiles_transfer() {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
 
 			// We have the assetId that corresponds to the relay chain registered
-			let relay_asset_id: AssetId = 1;
+			let asset_id: AssetId = 1;
 
 			// Its address is
-			let asset_precompile_address = Runtime::asset_id_to_account(
-				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-				relay_asset_id,
-			);
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset_id);
 
 			// Alice has 1000 tokens. She should be able to send through precompile
 			let destination = Location::new(
@@ -1663,9 +1661,9 @@ fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v5::Location::parent(),
-			name: "RelayToken",
-			symbol: "Relay",
+			xcm_location: AssetHubLocation::get(),
+			name: "DOT",
+			symbol: "DOT",
 			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000 * UNIT)],
 		}])
@@ -1697,8 +1695,8 @@ fn xtokens_precompiles_transfer_multiasset() {
 					ALICE,
 					xtokens_precompile_address,
 					XtokensPCall::transfer_multiasset {
-						// We want to transfer the relay token
-						asset: Location::parent(),
+						// We want to transfer DOT
+						asset: AssetHubLocation::get(),
 						amount: 500_000_000_000_000u128.into(),
 						destination,
 						weight: 4_000_000,
@@ -2134,9 +2132,9 @@ fn root_can_change_default_xcm_vers() {
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v5::Location::parent(),
-			name: "RelayToken",
-			symbol: "Relay",
+			xcm_location: AssetHubLocation::get(),
+			name: "Dot",
+			symbol: "Dot",
 			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
 		}])
@@ -2171,7 +2169,7 @@ fn root_can_change_default_xcm_vers() {
 					0,
 					WeightLimit::Unlimited
 				),
-				pallet_xcm::Error::<Runtime>::SendFailure
+				pallet_xcm::Error::<Runtime>::LocalExecutionIncomplete
 			);
 
 			// Root sets the defaultXcm

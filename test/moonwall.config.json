@@ -394,6 +394,9 @@
               "--tmp",
               "--max-pov-percentage=100"
             ],
+            "ports": {
+              "rpcPort": 9944
+            },
             "defaultForkConfig": {
               "url": "https://trace.api.moonbeam.network",
               "stateOverridePath": "tmp/lazyLoadingStateOverrides.json",
@@ -401,7 +404,14 @@
             }
           }
         ]
-      }
+      },
+      "connections": [
+        {
+          "name": "parachain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:9944"]
+        }
+      ]
     },
     {
       "name": "dev_moonbeam",

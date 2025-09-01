@@ -96,14 +96,31 @@ impl<T: frame_system::Config> pallet_utility::WeightInfo for WeightInfo<T> {
 	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
 	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// The range of component `c` is `[0, 1000]`.
-	fn force_batch(c: u32, ) -> Weight {
+    fn force_batch(c: u32, ) -> Weight {
+        // Proof Size summary in bytes:
+        //  Measured:  `42`
+        //  Estimated: `1527`
+        // Minimum execution time: 4_861_000 picoseconds.
+        Weight::from_parts(4_918_000, 1527)
+            // Standard Error: 18_646
+            .saturating_add(Weight::from_parts(5_619_091, 0).saturating_mul(c.into()))
+            .saturating_add(T::DbWeight::get().reads(1_u64))
+    }
+	fn dispatch_as_fallible() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 5_000_000 picoseconds.
+		Weight::from_parts(5_000_000, 0)
+	}
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	fn if_else() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `42`
 		//  Estimated: `1527`
-		// Minimum execution time: 4_861_000 picoseconds.
-		Weight::from_parts(4_918_000, 1527)
-			// Standard Error: 18_646
-			.saturating_add(Weight::from_parts(5_619_091, 0).saturating_mul(c.into()))
+		// Minimum execution time: 8_000_000 picoseconds.
+		Weight::from_parts(8_000_000, 1527)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 	}
 }
