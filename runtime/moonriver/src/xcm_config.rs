@@ -351,6 +351,43 @@ pub type XcmRouter = WithUniqueTopic<(
 	>,
 )>;
 
+parameter_types! {
+	/// Conservative estimation for when AssetHub migration will start on Kusama
+	///
+	/// # Calculation Details
+	/// - **Computation date**: 2025-09-01 16:29:48 UTC
+	/// - **Reference block**: 29_913_400
+	/// - **Reference timestamp**: 1_756_740_588 (2025-09-01 16:29:48 UTC)
+	/// - **Target date**: 2025-10-07 00:00:00 UTC
+	/// - **Target timestamp**: 1_759_791_600
+	///
+	/// # Block Estimation
+	/// ```text
+	/// Time difference: 1_759_791_600 - 1_756_740_588 = 3_051_012 seconds
+	/// Estimated blocks: 3_051_012 ÷ 6 = 508_502 blocks (assuming 6s block time)
+	/// Target block: 29_913_400 + 508_502 = 30_421_902
+	/// ```
+	///
+	/// **Note**: This assumes consistent 6-second block times and no network delays.
+	/// The actual migration is guaranteed to start no earlier than this block.
+	///
+	/// If the timeline changes, this value can be updated through a governance proposal.
+	pub storage AssetHubMigrationStartsAtRelayBlock: u32 = 30_421_902;
+}
+
+pub struct AssetHubMigrationStarted;
+impl Get<bool> for AssetHubMigrationStarted {
+	fn get() -> bool {
+		use cumulus_pallet_parachain_system::RelaychainDataProvider;
+		use sp_runtime::traits::BlockNumberProvider;
+
+		let ahm_relay_block = AssetHubMigrationStartsAtRelayBlock::get();
+		let current_relay_block_number = RelaychainDataProvider::<Runtime>::current_block_number();
+
+		current_relay_block_number >= ahm_relay_block
+	}
+}
+
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
@@ -376,6 +413,22 @@ impl pallet_xcm::Config for Runtime {
 	type WeightInfo = moonriver_weights::pallet_xcm::WeightInfo<Runtime>;
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
+	/// Configuration for pallet-xcm AssetHub migration timing
+	///
+	/// This type alias informs pallet-xcm when to enable KSM reserve checks
+	/// introduced in [PR #9137](https://github.com/paritytech/polkadot-sdk/pull/9137).
+	///
+	/// # Migration Strategy
+	/// Rather than immediately enforcing strict reserve checks (which would cause
+	/// hard failures), this provides a grace period for dApps to update their
+	/// implementations and adapt to the new reserve validation requirements.
+	///
+	/// # Behavior
+	/// - **Before migration**: Permissive reserve handling (legacy behavior)
+	/// - **After migration**: Strict KSM reserve checks enforced
+	///
+	/// The migration timing is controlled by [`AssetHubMigrationStartsAtRelayBlock`].
+	type AssetHubMigrationStarted = AssetHubMigrationStarted;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -847,5 +900,17 @@ mod testing {
 
 			CurrencyId::ForeignAsset(asset_id)
 		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::AssetHubMigrationStartsAtRelayBlock;
+
+	#[test]
+	fn check_type_parameter_key() {
+		let implicit_key = AssetHubMigrationStartsAtRelayBlock::key();
+		let explicit_key = sp_core::twox_128(b":AssetHubMigrationStartsAtRelayBlock:");
+		assert_eq!(implicit_key, explicit_key);
 	}
 }
