@@ -1822,7 +1822,7 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       claim: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
-       * This extrinsic completes the initialization if some checks are fullfiled. These checks are:
+       * This extrinsic completes the initialization if some checks are fulfilled. These checks are:
        * -The reward contribution money matches the crowdloan pot
        * -The end vesting block is higher than the init vesting block
        * -The initialization has not complete yet
@@ -5399,7 +5399,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * May be called from any origin except `None`.
        *
        * This function first attempts to dispatch the `main` call.
-       * If the `main` call fails, the `fallback` is attemted.
+       * If the `main` call fails, the `fallback` is attempted.
        * if the fallback is successfully dispatched, the weights of both calls
        * are accumulated and an event containing the main call error is deposited.
        *
