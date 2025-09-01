@@ -18,10 +18,10 @@
 //!
 
 use super::{
-	bridge_config, governance, AccountId, AssetId, Balance, Balances,
-	BridgeXcmOverMoonriver, EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode,
-	MessageQueue, OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm,
-	Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	bridge_config, governance, AccountId, AssetId, Balance, Balances, BridgeXcmOverMoonriver,
+	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
+	OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 use super::moonbeam_weights;
@@ -142,11 +142,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 >;
 
 // We use all transactors
-pub type AssetTransactors = (
-	LocalAssetTransactor,
-	EvmForeignAssets,
-	Erc20XcmBridge,
-);
+pub type AssetTransactors = (LocalAssetTransactor, EvmForeignAssets, Erc20XcmBridge);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -644,9 +640,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type SovereignAccountDispatcherOrigin = EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = AccountIdToLocation<AccountId>;
-	type CurrencyIdToLocation = CurrencyIdToLocation<(
-		EvmForeignAssets,
-	)>;
+	type CurrencyIdToLocation = CurrencyIdToLocation<(EvmForeignAssets,)>;
 	type XcmSender = XcmRouter;
 	type SelfLocation = SelfLocation;
 	type Weigher = XcmWeigher;
@@ -689,7 +683,6 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 		account_id.into()
 	}
 }
-
 
 pub type ForeignAssetManagerOrigin = EitherOf<
 	MapSuccessToXcm<EnsureXcm<AllowSiblingParachains>>,
@@ -790,11 +783,12 @@ mod testing {
 				asset_id
 			} else {
 				// Generate asset ID from location hash (similar to old AssetManager approach)
-				let hash: H256 = location.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
+				let hash: H256 =
+					location.using_encoded(<Runtime as frame_system::Config>::Hashing::hash);
 				let mut result: [u8; 16] = [0u8; 16];
 				result.copy_from_slice(&hash.as_fixed_bytes()[0..16]);
 				let asset_id = u128::from_le_bytes(result);
-				
+
 				EvmForeignAssets::set_asset(location, asset_id);
 				asset_id
 			};

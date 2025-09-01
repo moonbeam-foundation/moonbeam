@@ -54,6 +54,7 @@ use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
+use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_parachain_staking::InflationDistributionAccount;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
@@ -1665,33 +1666,32 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 
 #[test]
 fn root_can_change_default_xcm_vers() {
-	let asset_type = AssetType::Xcm(
-		VersionedLocation::from(AssetHubLocation::get())
-			.try_into()
-			.unwrap(),
-	);
-
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
-		.with_evm_native_foreign_assets()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: asset_type.clone(),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id: 1,
+			xcm_location: AssetHubLocation::get(),
+			name: "Dot",
+			symbol: "Dot",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_id: moonbeam_runtime::AssetId = asset_type.clone().into();
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
+			let source_id: moonbeam_runtime::AssetId = 1;
+			let currency_id = moonbeam_runtime::xcm_config::CurrencyId::ForeignAsset(source_id);
+			let asset = Asset {
+				id: AssetId(
+					<Runtime as pallet_xcm_transactor::Config>::CurrencyIdToLocation::convert(
+						currency_id,
+					)
+					.unwrap(),
+				),
+				fun: Fungibility::Fungible(100_000_000_000_000),
+			};
 			// Default XCM version is not set yet, so xtokens should fail because it does not
 			// know with which version to send
 			assert_noop!(
@@ -1716,7 +1716,7 @@ fn root_can_change_default_xcm_vers() {
 			// Root sets the defaultXcm
 			assert_ok!(PolkadotXcm::force_default_xcm_version(
 				root_origin(),
-				Some(3)
+				Some(5)
 			));
 
 			// Now transferring does not fail
@@ -1731,7 +1731,7 @@ fn root_can_change_default_xcm_vers() {
 					}]
 					.into(),
 				})),
-				Box::new(VersionedAssets::from(asset.clone())),
+				Box::new(VersionedAssets::from(asset)),
 				0,
 				WeightLimit::Unlimited
 			));
@@ -1741,25 +1741,34 @@ fn root_can_change_default_xcm_vers() {
 #[test]
 fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = AssetType::Xcm(xcm::v3::Location::parent());
-		let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
-		let asset_metadata = AssetRegistrarMetadata {
-			name: b"RelayToken".to_vec(),
-			symbol: b"Relay".to_vec(),
-			decimals: 12,
-			is_frozen: false,
-		};
-		assert_ok!(AssetManager::register_foreign_asset(
+		let source_location = Location::parent();
+		let source_id = 1;
+
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			moonbeam_runtime::RuntimeOrigin::root(),
-			source_location,
-			asset_metadata,
-			1u128,
-			true
+			source_id,
+			source_location.clone(),
+			12,
+			b"Relay".to_vec().try_into().unwrap(),
+			b"RelayToken".to_vec().try_into().unwrap(),
 		));
-		assert!(AssetManager::asset_id_type(source_id).is_some());
+
+		// Check that the asset was created
+		// First check if the asset ID exists
+		let location = EvmForeignAssets::assets_by_id(source_id).expect("Asset should exist");
+		assert_eq!(location.clone(), source_location);
+
+		// Then check the status using AssetsByLocation
+		let (asset_id, status) =
+			EvmForeignAssets::assets_by_location(&location).expect("Asset location should exist");
+		assert_eq!(asset_id, source_id);
+		assert_eq!(status, AssetStatus::Active);
 	});
 }
 
+// The precoompile asset-erc20 is deprecated and not used anymore for new evm foreign assets
+// We don't have testing tools in rust test to call real evm smart contract, so we rely on ts tests.
+/*
 #[test]
 fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
@@ -1971,208 +1980,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * GLMR));
 		});
-}
-
-#[test]
-fn xtokens_precompile_transfer() {
-	let asset_type = AssetType::Xcm(
-		VersionedLocation::from(AssetHubLocation::get())
-			.try_into()
-			.unwrap(),
-	);
-	ExtBuilder::default()
-		.with_evm_native_foreign_assets()
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: asset_type.clone(),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.with_safe_xcm_version(3)
-		.build()
-		.execute_with(|| {
-			let xtokens_precompile_address = H160::from_low_u64_be(2052);
-
-			// We have the assetId that corresponds to the relay chain registered
-			let asset_id: moonbeam_runtime::AssetId = asset_type.into();
-
-			// Its address is
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset_id);
-
-			// Alice has 1000 tokens. She should be able to send through precompile
-			let destination = Location::new(
-				1,
-				[Junction::AccountId32 {
-					network: None,
-					id: [1u8; 32],
-				}],
-			);
-
-			let inside = Rc::new(Cell::new(false));
-			let inside2 = inside.clone();
-
-			// We use the address of the asset as an identifier of the asset we want to transfer
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					xtokens_precompile_address,
-					XtokensPCall::transfer {
-						currency_address: Address(asset_precompile_address.into()),
-						amount: 500_000_000_000_000u128.into(),
-						destination,
-						weight: 4_000_000,
-					},
-				)
-				.expect_cost(178453)
-				.expect_no_logs()
-				// We expect an evm subcall ERC20.burnFrom
-				.with_subcall_handle(move |subcall| {
-					let Subcall {
-						address,
-						transfer,
-						input,
-						target_gas: _,
-						is_static,
-						context,
-					} = subcall;
-
-					assert_eq!(context.caller, EvmForeignAssets::account_id().into());
-
-					let expected_address: H160 = Runtime::asset_id_to_account(
-						FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-						asset_id,
-					)
-					.into();
-					assert_eq!(address, expected_address);
-					assert_eq!(is_static, false);
-
-					assert!(transfer.is_none());
-
-					assert_eq!(context.address, expected_address);
-					assert_eq!(context.apparent_value, 0u8.into());
-
-					assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
-					assert_eq!(&input[4..16], &[0u8; 12]);
-					assert_eq!(&input[16..36], ALICE);
-
-					inside2.set(true);
-
-					SubcallOutput {
-						output: Default::default(),
-						cost: 149_000,
-						logs: vec![],
-						..SubcallOutput::succeed()
-					}
-				})
-				.execute_returns(());
-
-			// Ensure that the subcall was actually called.
-			assert!(inside.get(), "subcall not called");
-		})
-}
-
-#[test]
-fn xtokens_precompile_transfer_multiasset() {
-	ExtBuilder::default()
-		.with_evm_native_foreign_assets()
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(
-				VersionedLocation::from(AssetHubLocation::get())
-					.try_into()
-					.unwrap(),
-			),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.with_safe_xcm_version(3)
-		.build()
-		.execute_with(|| {
-			let xtokens_precompile_address = H160::from_low_u64_be(2052);
-
-			// Alice has 1000 tokens. She should be able to send through precompile
-			let destination = Location::new(
-				1,
-				[Junction::AccountId32 {
-					network: None,
-					id: [1u8; 32],
-				}],
-			);
-
-			let inside = Rc::new(Cell::new(false));
-			let inside2 = inside.clone();
-
-			// This time we transfer it through TransferMultiAsset
-			// Instead of the address, we encode directly the multilocation referencing the asset
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					xtokens_precompile_address,
-					XtokensPCall::transfer_multiasset {
-						// We want to transfer the relay token
-						asset: AssetHubLocation::get(),
-						amount: 500_000_000_000_000u128.into(),
-						destination,
-						weight: 4_000_000,
-					},
-				)
-				.expect_cost(178453)
-				.expect_no_logs()
-				.with_subcall_handle(move |subcall| {
-					let Subcall {
-						transfer,
-						input,
-						target_gas: _,
-						is_static,
-						context,
-						..
-					} = subcall;
-
-					assert_eq!(context.caller, EvmForeignAssets::account_id().into());
-					assert_eq!(is_static, false);
-
-					assert!(transfer.is_none());
-
-					assert_eq!(context.apparent_value, 0u8.into());
-
-					assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
-					assert_eq!(&input[4..16], &[0u8; 12]);
-					assert_eq!(&input[16..36], ALICE);
-
-					inside2.set(true);
-
-					SubcallOutput {
-						output: Default::default(),
-						cost: 149_000,
-						logs: vec![],
-						..SubcallOutput::succeed()
-					}
-				})
-				.execute_returns(());
-
-			// Ensure that the subcall was actually called.
-			assert!(inside.get(), "subcall not called");
-		})
-}
+}*/
 
 #[test]
 fn make_sure_glmr_can_be_transferred_precompile() {
@@ -2381,20 +2189,16 @@ fn transactor_cannot_use_more_than_max_weight() {
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id: 1,
+			xcm_location: xcm::v5::Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
-			let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
+			let source_id: moonbeam_runtime::AssetId = 1;
 			assert_ok!(XcmTransactor::register(
 				root_origin(),
 				AccountId::from(ALICE),
@@ -2410,7 +2214,6 @@ fn transactor_cannot_use_more_than_max_weight() {
 				20000.into(),
 				None
 			));
-
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
@@ -2430,7 +2233,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 						fee_amount: None
 					},
 					vec![],
-					// 2000 is the max
+					// 20000 is the max
 					TransactWeights {
 						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
@@ -2445,7 +2248,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonbeam_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsCurrencyId(CurrencyId::ForeignAsset(source_id)),
+						currency: Currency::AsCurrencyId(
+							moonbeam_runtime::xcm_config::CurrencyId::ForeignAsset(source_id)
+						),
 						fee_amount: None
 					},
 					vec![],
@@ -2459,75 +2264,6 @@ fn transactor_cannot_use_more_than_max_weight() {
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 		})
-}
-
-#[test]
-fn call_xtokens_with_fee() {
-	let asset_type = AssetType::Xcm(
-		VersionedLocation::from(AssetHubLocation::get())
-			.try_into()
-			.unwrap(),
-	);
-
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.with_safe_xcm_version(3)
-		.with_evm_native_foreign_assets()
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: asset_type.clone(),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.build()
-		.execute_with(|| {
-			let dest = Location {
-				parents: 1,
-				interior: [AccountId32 {
-					network: None,
-					id: [1u8; 32],
-				}]
-				.into(),
-			};
-			let source_id: moonbeam_runtime::AssetId = asset_type.clone().into();
-
-			let before_balance =
-				EvmForeignAssets::balance(source_id, AccountId::from(ALICE)).unwrap();
-			let (chain_part, beneficiary) =
-				split_location_into_chain_part_and_beneficiary(dest).unwrap();
-			let asset_amount = 100_000_000_000_000u128;
-			let asset_fee_amount = 100u128;
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), asset_amount);
-			let asset_fee =
-				currency_to_asset(CurrencyId::ForeignAsset(source_id), asset_fee_amount);
-			// We are able to transfer with fee
-			assert_ok!(PolkadotXcm::transfer_assets(
-				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::from(chain_part)),
-				Box::new(VersionedLocation::from(beneficiary)),
-				Box::new(VersionedAssets::from(vec![asset_fee, asset])),
-				0,
-				WeightLimit::Limited(4000000000.into())
-			));
-
-			let after_balance =
-				EvmForeignAssets::balance(source_id, AccountId::from(ALICE)).unwrap();
-			// At least these much (plus fees) should have been charged
-			assert_eq!(
-				before_balance
-					.saturating_sub(asset_amount.into())
-					.saturating_sub(asset_fee_amount.into()),
-				after_balance
-			);
-		});
 }
 
 #[test]
@@ -2945,7 +2681,6 @@ mod bridge_tests {
 	use frame_support::assert_ok;
 	use frame_support::pallet_prelude::{Hooks, PalletInfoAccess};
 	use moonbeam_core_primitives::AccountId;
-	use moonbeam_runtime::asset_config::AssetRegistrarMetadata;
 	use moonbeam_runtime::bridge_config::{
 		KusamaGlobalConsensusNetwork, WithKusamaMessagesInstance,
 	};
@@ -3106,24 +2841,20 @@ mod bridge_tests {
 				(AccountId::from(ALICE), 2_000 * GLMR),
 				(AccountId::from(BOB), 1_000 * GLMR),
 			])
-			.with_evm_native_foreign_assets()
 			.with_xcm_assets(vec![XcmAssetInitialization {
-				asset_type: AssetType::Xcm(xcm::VersionedLocation::from(Location::new(
+				asset_id: 1,
+				xcm_location: Location::new(
 					2,
 					[
 						GlobalConsensus(KusamaGlobalConsensusNetwork::get()),
 						Parachain(<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID),
 						PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 					]
-				)).try_into().unwrap()),
-				metadata: AssetRegistrarMetadata {
-					name: b"xcMOVR".to_vec(),
-					symbol: b"xcMOVR".to_vec(),
-					decimals: 18,
-					is_frozen: false,
-				},
+				),
+				name: "xcMOVR",
+				symbol: "xcMOVR",
+				decimals: 18,
 				balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-				is_sufficient: true,
 			}])
 			.with_safe_xcm_version(XCM_VERSION)
 			.with_open_bridges(vec![(
