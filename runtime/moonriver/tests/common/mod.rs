@@ -23,8 +23,7 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 pub use moonriver_runtime::{
-	asset_config::AssetRegistrarMetadata, currency::MOVR, xcm_config::AssetType, AccountId,
-	AssetId, AssetManager, AsyncBacking, AuthorInherent, Balance, Ethereum, InflationInfo,
+	currency::MOVR, AccountId, AsyncBacking, AuthorInherent, Balance, Ethereum, InflationInfo,
 	ParachainStaking, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
 	UncheckedExtrinsic, HOURS,
 };
@@ -38,7 +37,7 @@ use cumulus_pallet_parachain_system::MessagingStateSnapshot;
 use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
 use moonriver_runtime::bridge_config::XcmOverPolkadotInstance;
-use moonriver_runtime::{Assets, EvmForeignAssets, XcmWeightTrader};
+use moonriver_runtime::{EvmForeignAssets, XcmWeightTrader};
 use pallet_transaction_payment::Multiplier;
 use std::collections::BTreeMap;
 use xcm::latest::{InteriorLocation, Location};
@@ -118,10 +117,12 @@ pub fn evm_test_context() -> fp_evm::Context {
 // Test struct with the purpose of initializing xcm assets
 #[derive(Clone)]
 pub struct XcmAssetInitialization {
-	pub asset_type: AssetType,
-	pub metadata: AssetRegistrarMetadata,
+	pub asset_id: u128,
+	pub xcm_location: xcm::v5::Location,
+	pub decimals: u8,
+	pub name: &'static str,
+	pub symbol: &'static str,
 	pub balances: Vec<(AccountId, Balance)>,
-	pub is_sufficient: bool,
 }
 
 pub struct ExtBuilder {
@@ -143,7 +144,6 @@ pub struct ExtBuilder {
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
 	// [assettype, metadata, Vec<Account, Balance,>, is_sufficient]
 	xcm_assets: Vec<XcmAssetInitialization>,
-	evm_native_foreign_assets: bool,
 	safe_xcm_version: Option<u32>,
 	opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbeam::LaneId>)>,
 }
@@ -178,7 +178,6 @@ impl Default for ExtBuilder {
 			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
 			xcm_assets: vec![],
-			evm_native_foreign_assets: false,
 			safe_xcm_version: None,
 			opened_bridges: vec![],
 		}
@@ -227,11 +226,6 @@ impl ExtBuilder {
 
 	pub fn with_xcm_assets(mut self, xcm_assets: Vec<XcmAssetInitialization>) -> Self {
 		self.xcm_assets = xcm_assets;
-		self
-	}
-
-	pub fn with_evm_native_foreign_assets(mut self) -> Self {
-		self.evm_native_foreign_assets = true;
 		self
 	}
 
@@ -351,49 +345,37 @@ impl ExtBuilder {
 
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
-				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
-				if self.evm_native_foreign_assets {
-					let AssetType::Xcm(location) = xcm_asset_initialization.asset_type;
-					let metadata = xcm_asset_initialization.metadata.clone();
-					EvmForeignAssets::register_foreign_asset(
-						asset_id,
-						xcm::VersionedLocation::from(location).try_into().unwrap(),
-						metadata.decimals,
-						metadata.symbol.try_into().unwrap(),
-						metadata.name.try_into().unwrap(),
-					)
-					.expect("register evm native foreign asset");
+				let asset_id = xcm_asset_initialization.asset_id;
+				EvmForeignAssets::create_foreign_asset(
+					root_origin(),
+					asset_id,
+					xcm_asset_initialization.xcm_location.clone(),
+					xcm_asset_initialization.decimals,
+					xcm_asset_initialization
+						.symbol
+						.as_bytes()
+						.to_vec()
+						.try_into()
+						.expect("too long"),
+					xcm_asset_initialization
+						.name
+						.as_bytes()
+						.to_vec()
+						.try_into()
+						.expect("too long"),
+				)
+				.expect("fail to create foreign asset");
 
-					if xcm_asset_initialization.is_sufficient {
-						XcmWeightTrader::add_asset(
-							root_origin(),
-							xcm::VersionedLocation::from(location).try_into().unwrap(),
-							MOVR, // 1 to 1 ratio
-						)
-						.expect("register evm native foreign asset as sufficient");
-					}
+				XcmWeightTrader::add_asset(
+					root_origin(),
+					xcm_asset_initialization.xcm_location,
+					MOVR,
+				)
+				.expect("register evm native foreign asset as sufficient");
 
-					for (account, balance) in xcm_asset_initialization.balances {
-						EvmForeignAssets::mint_into(asset_id.into(), account, balance.into())
-							.expect("mint evm native foreign asset");
-					}
-				} else {
-					AssetManager::register_foreign_asset(
-						root_origin(),
-						xcm_asset_initialization.asset_type,
-						xcm_asset_initialization.metadata,
-						1,
-						xcm_asset_initialization.is_sufficient,
-					)
-					.unwrap();
-					for (account, balance) in xcm_asset_initialization.balances {
-						Assets::mint(
-							origin_of(AssetManager::account_id()),
-							asset_id.into(),
-							account,
-							balance,
-						)
-						.unwrap();
+				for (account, balance) in xcm_asset_initialization.balances {
+					if EvmForeignAssets::mint_into(asset_id, account, balance.into()).is_err() {
+						panic!("fail to mint foreign asset");
 					}
 				}
 			}
