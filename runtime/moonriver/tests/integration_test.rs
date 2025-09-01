@@ -153,7 +153,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::CumulusXcm>("CumulusXcm");
 	is_pallet_prefix::<moonriver_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonriver_runtime::Assets>("Assets");
-	is_pallet_prefix::<moonriver_runtime::AssetManager>("AssetManager");
 	is_pallet_prefix::<moonriver_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonriver_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonriver_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -459,7 +458,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::CumulusXcm>(101);
 	is_pallet_index::<moonriver_runtime::PolkadotXcm>(103);
 	is_pallet_index::<moonriver_runtime::Assets>(104);
-	is_pallet_index::<moonriver_runtime::AssetManager>(105);
+	// is_pallet_index::<moonriver_runtime::AssetManager>(105);
 	// is_pallet_index::<moonriver_runtime::XTokens>(106); Removed
 	is_pallet_index::<moonriver_runtime::XcmTransactor>(107);
 	is_pallet_index::<moonriver_runtime::BridgePolkadotGrandpa>(130);
@@ -2859,7 +2858,6 @@ mod bridge_tests {
 	use frame_support::assert_ok;
 	use frame_support::pallet_prelude::{Hooks, PalletInfoAccess};
 	use moonbeam_core_primitives::AccountId;
-	use moonriver_runtime::asset_config::AssetRegistrarMetadata;
 	use moonriver_runtime::bridge_config::{
 		PolkadotGlobalConsensusNetwork, WithPolkadotMessagesInstance,
 	};

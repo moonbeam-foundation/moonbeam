@@ -153,7 +153,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::CumulusXcm>("CumulusXcm");
 	is_pallet_prefix::<moonbeam_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonbeam_runtime::Assets>("Assets");
-	is_pallet_prefix::<moonbeam_runtime::AssetManager>("AssetManager");
 	is_pallet_prefix::<moonbeam_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbeam_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonbeam_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -460,7 +459,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::CumulusXcm>(101);
 	is_pallet_index::<moonbeam_runtime::PolkadotXcm>(103);
 	is_pallet_index::<moonbeam_runtime::Assets>(104);
-	is_pallet_index::<moonbeam_runtime::AssetManager>(105);
+	// is_pallet_index::<moonbeam_runtime::AssetManager>(105);
 	// is_pallet_index::<moonbeam_runtime::XTokens>(106); Removed
 	is_pallet_index::<moonbeam_runtime::XcmTransactor>(107);
 	is_pallet_index::<moonbeam_runtime::BridgeKusamaGrandpa>(130);
