@@ -24,7 +24,7 @@ use frame_support::{
 	weights::Weight,
 	BoundedVec,
 };
-use moonbase_runtime::{xcm_config::AssetType};
+use moonbase_runtime::xcm_config::AssetType;
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
 };
@@ -140,8 +140,7 @@ fn receive_relay_asset_from_relay() {
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_eq!(
-			EvmForeignAssets::balance(source_id, PARAALICE.into())
-				.expect("failed to get balance"), 
+			EvmForeignAssets::balance(source_id, PARAALICE.into()).expect("failed to get balance"),
 			U256::from(123u128)
 		);
 	});
@@ -194,8 +193,7 @@ fn send_relay_asset_to_relay() {
 	ParaA::execute_with(|| {
 		// Free execution, full amount received
 		assert_eq!(
-			EvmForeignAssets::balance(source_id, PARAALICE.into())
-				.expect("failed to get balance"), 
+			EvmForeignAssets::balance(source_id, PARAALICE.into()).expect("failed to get balance"),
 			U256::from(123u128)
 		);
 	});
@@ -2609,7 +2607,6 @@ fn test_statemint_like() {
 	>::convert_location(&dest_para)
 	.unwrap();
 
-
 	let source_location = Location::new(
 		1,
 		[
@@ -2735,7 +2732,6 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 	.unwrap();
 
 	ParaA::execute_with(|| {
-
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
 			relay_id,
@@ -2745,7 +2741,6 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 			str_to_bounded_vec(&relay_asset_metadata.name)
 		));
 		assert_ok!(add_supported_asset(relay_location, 0));
-
 
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
@@ -2855,10 +2850,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 
 	ParaA::execute_with(|| {
 		// Alice has received 125 USDC
-		assert_eq!(
-			Assets::balance(statemint_id, &PARAALICE.into()),
-			125
-		);
+		assert_eq!(Assets::balance(statemint_id, &PARAALICE.into()), 125);
 
 		// Alice has received 200 Relay assets
 		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 200);
@@ -2874,12 +2866,8 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 
 	// Transfer USDC from Parachain A to Statemint using Relay asset as fee
 	ParaA::execute_with(|| {
-		let asset = currency_to_asset(
-			parachain::CurrencyId::ForeignAsset(statemint_id),
-			100,
-		);
-		let asset_fee =
-			currency_to_asset(parachain::CurrencyId::ForeignAsset(relay_id), 100);
+		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(statemint_id), 100);
+		let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(relay_id), 100);
 		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
@@ -2892,10 +2880,7 @@ fn send_statemint_asset_from_para_a_to_statemint_with_relay_fee() {
 
 	ParaA::execute_with(|| {
 		// Alice has 100 USDC less
-		assert_eq!(
-			Assets::balance(statemint_id, &PARAALICE.into()),
-			25
-		);
+		assert_eq!(Assets::balance(statemint_id, &PARAALICE.into()), 25);
 
 		// Alice has 100 relay asset less
 		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 100);
@@ -2929,8 +2914,6 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer() {
 	.unwrap();
 
 	ParaA::execute_with(|| {
-
-		
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			parachain::RuntimeOrigin::root(),
 			source_id,
@@ -3550,10 +3533,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 200);
 
 		// Alice has received 125 USDC
-		assert_eq!(
-			Assets::balance(statemint_id, &PARAALICE.into()),
-			125
-		);
+		assert_eq!(Assets::balance(statemint_id, &PARAALICE.into()), 125);
 	});
 
 	let dest = Location::new(
@@ -3570,12 +3550,8 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multicurrencies() {
 	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		let asset = currency_to_asset(
-			parachain::CurrencyId::ForeignAsset(statemint_id),
-			100,
-		);
-		let asset_fee =
-			currency_to_asset(parachain::CurrencyId::ForeignAsset(relay_id), 100);
+		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(statemint_id), 100);
+		let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(relay_id), 100);
 		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
@@ -3795,10 +3771,7 @@ fn send_dot_from_moonbeam_to_statemint_via_xtokens_transfer_multiassets() {
 		assert_eq!(Assets::balance(relay_id, &PARAALICE.into()), 200);
 
 		// Alice has received 125 USDC
-		assert_eq!(
-			Assets::balance(statemint_id, &PARAALICE.into()),
-			125
-		);
+		assert_eq!(Assets::balance(statemint_id, &PARAALICE.into()), 125);
 	});
 
 	let dest = Location::new(
