@@ -21,7 +21,7 @@ use crate::{
 	OpenTechCommitteeInstance, TreasuryCouncilInstance,
 };
 use crate::{
-	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160,
+	AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160,
 };
 use frame_support::parameter_types;
 use moonkit_xcm_primitives::{
@@ -114,7 +114,6 @@ type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, Callab
 // Pallet-xcm precompile types.
 // Type that converts AssetId into Location
 type AssetIdToLocationManager = (
-	AsAssetType<AssetId, AssetType, AssetManager>,
 	EvmForeignAssets,
 );
 

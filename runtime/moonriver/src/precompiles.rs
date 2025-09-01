@@ -18,7 +18,7 @@ use super::moonriver_weights;
 use crate::{
 	asset_config::ForeignAssetInstance,
 	xcm_config::{AssetType, XcmExecutorConfig},
-	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, EvmForeignAssets,
+	AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets,
 	OpenTechCommitteeInstance, Runtime, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
@@ -106,7 +106,6 @@ type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, Callab
 // Pallet-xcm precompile types.
 // Type that converts AssetId into Location
 type AssetIdToLocationManager = (
-	AsAssetType<AssetId, AssetType, AssetManager>,
 	EvmForeignAssets,
 );
 
