@@ -350,21 +350,21 @@ parameter_types! {
 	/// - **Computation date**: 2025-09-01 16:43:54 UTC
 	/// - **Reference block**: 27_580_400
 	/// - **Reference timestamp**: 1_756_741_434 (2025-09-01 16:43:54 UTC)
-	/// - **Target date**: 2025-11-04 00:00:00 UTC
-	/// - **Target timestamp**: 1_762_214_400
+	/// - **Target date**: 2025-11-03 00:00:00 UTC (1 day before the migration)
+	/// - **Target timestamp**: 1_762_128_000
 	///
 	/// # Block Estimation
 	/// ```text
-	/// Time difference: 1_762_214_400 - 1_756_741_434 = 5_472_966 seconds
-	/// Estimated blocks: 5_472_966 ÷ 6 = 912_161 blocks (assuming 6s block time)
-	/// Target block: 27_580_400 + 912_161 = 28_492_561
+	/// Time difference: 1_762_128_000 - 1_756_741_434 = 5_386_566 seconds
+	/// Estimated blocks: 5_386_566 ÷ 6 = 897_761 blocks (assuming 6s block time)
+	/// Target block: 27_580_400 + 897_761 = 28_478_161
 	/// ```
 	///
 	/// **Note**: This assumes consistent 6-second block times and no network delays.
 	/// The actual migration is guaranteed to start no earlier than this block.
 	///
 	/// If the timeline changes, this value can be updated through a governance proposal.
-	pub storage AssetHubMigrationStartsAtRelayBlock: u32 = 28_492_561;
+	pub storage AssetHubMigrationStartsAtRelayBlock: u32 = 28_478_161;
 }
 
 pub struct AssetHubMigrationStarted;
