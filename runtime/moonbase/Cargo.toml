@@ -417,7 +417,6 @@ runtime-benchmarks = [
 	"moonbeam-relay-encoder/runtime-benchmarks",
 	"moonbeam-runtime-common/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
-	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",

@@ -95,11 +95,6 @@ pub mod pallet {
 		fn get_asset_id(asset_type: T::ForeignAssetType) -> Option<T::AssetId> {
 			AssetTypeId::<T>::get(asset_type)
 		}
-		#[cfg(feature = "runtime-benchmarks")]
-		fn set_asset_type_asset_id(asset_type: T::ForeignAssetType, asset_id: T::AssetId) {
-			AssetTypeId::<T>::insert(&asset_type, asset_id);
-			AssetIdType::<T>::insert(&asset_id, asset_type);
-		}
 	}
 
 	#[pallet::config]
