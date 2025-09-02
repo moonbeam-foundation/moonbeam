@@ -157,6 +157,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Composable",
         paraId: 2019,
+        mutedUntil: new Date("2025-10-01").getTime(), // Remove this channel on October 1st
       },
       {
         name: "Nodle",
