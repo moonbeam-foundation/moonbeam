@@ -845,8 +845,6 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 					}
 
-					use pallet_asset_manager::Config as PalletAssetManagerConfig;
-
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
 					parameter_types! {
 						pub const RandomParaId: ParaId = ParaId::new(43211234);

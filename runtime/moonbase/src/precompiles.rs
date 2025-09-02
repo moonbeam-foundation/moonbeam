@@ -16,13 +16,10 @@
 
 use super::moonbase_weights;
 use crate::{
-	asset_config::ForeignAssetInstance,
-	xcm_config::{AssetType, XcmExecutorConfig},
-	OpenTechCommitteeInstance, TreasuryCouncilInstance,
+	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
+	TreasuryCouncilInstance,
 };
-use crate::{
-	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160,
-};
+use crate::{AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160};
 use frame_support::parameter_types;
 use moonkit_xcm_primitives::{
 	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
@@ -65,7 +62,6 @@ use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_precompile_benchmarks::WeightInfo;
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
-use xcm_primitives::AsAssetType;
 
 parameter_types! {
 	pub P256VerifyWeight: frame_support::weights::Weight =
@@ -117,10 +113,7 @@ type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, Callab
 
 // Pallet-xcm precompile types.
 // Type that converts AssetId into Location
-type AssetIdToLocationManager = (
-	AsAssetType<AssetId, AssetType, AssetManager>,
-	EvmForeignAssets,
-);
+type AssetIdToLocationManager = (EvmForeignAssets,);
 
 // The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
 type SingleAddressMatch = SingleAddressMatcher<AccountId, ERC20_BALANCES_PRECOMPILE, Balances>;

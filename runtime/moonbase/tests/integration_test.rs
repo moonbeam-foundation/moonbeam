@@ -144,7 +144,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::CumulusXcm>("CumulusXcm");
 	is_pallet_prefix::<moonbase_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonbase_runtime::Assets>("Assets");
-	is_pallet_prefix::<moonbase_runtime::AssetManager>("AssetManager");
 	is_pallet_prefix::<moonbase_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbase_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonbase_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -424,7 +423,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::PolkadotXcm>(28);
 	is_pallet_index::<moonbase_runtime::Assets>(29);
 	// is_pallet_index::<moonbase_runtime::XTokens>(30); Removed
-	is_pallet_index::<moonbase_runtime::AssetManager>(31);
+	// is_pallet_index::<moonbase_runtime::AssetManager>(31);
 	is_pallet_index::<moonbase_runtime::XcmTransactor>(33);
 	is_pallet_index::<moonbase_runtime::ProxyGenesisCompanion>(34);
 	is_pallet_index::<moonbase_runtime::MoonbeamOrbiters>(37);

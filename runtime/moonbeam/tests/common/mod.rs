@@ -23,8 +23,7 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 pub use moonbeam_runtime::{
-	asset_config::AssetRegistrarMetadata, currency::GLMR, xcm_config::AssetType, AccountId,
-	AssetId, AssetManager, AsyncBacking, AuthorInherent, Balance, Ethereum, InflationInfo,
+	currency::GLMR, AccountId, AsyncBacking, AuthorInherent, Balance, Ethereum, InflationInfo,
 	ParachainStaking, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
 	UncheckedExtrinsic, HOURS,
 };
@@ -114,13 +113,15 @@ pub fn evm_test_context() -> fp_evm::Context {
 	}
 }
 
-// Test struct with the purpose of initializing xcm assets
+// Test struct with the purpose of initializing x─cm assets
 #[derive(Clone)]
 pub struct XcmAssetInitialization {
-	pub asset_type: AssetType,
-	pub metadata: AssetRegistrarMetadata,
+	pub asset_id: u128,
+	pub xcm_location: xcm::v5::Location,
+	pub decimals: u8,
+	pub name: &'static str,
+	pub symbol: &'static str,
 	pub balances: Vec<(AccountId, Balance)>,
-	pub is_sufficient: bool,
 }
 
 pub struct ExtBuilder {
@@ -362,49 +363,37 @@ impl ExtBuilder {
 
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
-				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
-				if self.evm_native_foreign_assets {
-					let AssetType::Xcm(location) = xcm_asset_initialization.asset_type;
-					let metadata = xcm_asset_initialization.metadata.clone();
-					EvmForeignAssets::register_foreign_asset(
-						asset_id,
-						xcm::VersionedLocation::from(location).try_into().unwrap(),
-						metadata.decimals,
-						metadata.symbol.try_into().unwrap(),
-						metadata.name.try_into().unwrap(),
-					)
-					.expect("register evm native foreign asset");
+				let asset_id = xcm_asset_initialization.asset_id;
+				EvmForeignAssets::create_foreign_asset(
+					root_origin(),
+					asset_id,
+					xcm_asset_initialization.xcm_location.clone(),
+					xcm_asset_initialization.decimals,
+					xcm_asset_initialization
+						.symbol
+						.as_bytes()
+						.to_vec()
+						.try_into()
+						.expect("too long"),
+					xcm_asset_initialization
+						.name
+						.as_bytes()
+						.to_vec()
+						.try_into()
+						.expect("too long"),
+				)
+				.expect("failed to create foreign asset");
 
-					if xcm_asset_initialization.is_sufficient {
-						XcmWeightTrader::add_asset(
-							root_origin(),
-							xcm::VersionedLocation::from(location).try_into().unwrap(),
-							GLMR,
-						)
-						.expect("register evm native foreign asset as sufficient");
-					}
+				XcmWeightTrader::add_asset(
+					root_origin(),
+					xcm_asset_initialization.xcm_location,
+					GLMR,
+				)
+				.expect("failed to register asset in weight trader");
 
-					for (account, balance) in xcm_asset_initialization.balances {
-						EvmForeignAssets::mint_into(asset_id.into(), account, balance.into())
-							.expect("mint evm native foreign asset");
-					}
-				} else {
-					AssetManager::register_foreign_asset(
-						root_origin(),
-						xcm_asset_initialization.asset_type,
-						xcm_asset_initialization.metadata,
-						1,
-						xcm_asset_initialization.is_sufficient,
-					)
-					.unwrap();
-					for (account, balance) in xcm_asset_initialization.balances {
-						moonbeam_runtime::Assets::mint(
-							origin_of(AssetManager::account_id()),
-							asset_id.into(),
-							account,
-							balance,
-						)
-						.unwrap();
+				for (account, balance) in xcm_asset_initialization.balances {
+					if EvmForeignAssets::mint_into(asset_id, account, balance.into()).is_err() {
+						panic!("failed to mint foreign asset");
 					}
 				}
 			}

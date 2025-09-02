@@ -21,8 +21,6 @@
 mod common;
 
 use common::*;
-use std::cell::Cell;
-use std::rc::Rc;
 
 use fp_evm::{Context, IsPrecompileResult};
 use frame_support::{
@@ -35,23 +33,20 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
-use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::runtime_params::dynamic_params;
-use moonriver_runtime::xcm_config::{AssetHubLocation, XcmExecutor};
+use moonriver_runtime::xcm_config::{AssetHubLocation, LocationToAccountId, XcmExecutor};
 use moonriver_runtime::{
-	asset_config::ForeignAssetInstance,
 	moonriver_xcm_weights,
 	xcm_config::{CurrencyId, SelfReserve},
-	AssetId, Balances, CrowdloanRewards, EvmForeignAssets, Executive, OpenTechCommitteeCollective,
+	Balances, CrowdloanRewards, EvmForeignAssets, Executive, OpenTechCommitteeCollective,
 	PolkadotXcm, Precompiles, RuntimeBlockWeights, TransactionPayment,
-	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor, WEEKS,
 };
 use moonriver_xcm_weights::XcmWeight;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
+use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_parachain_staking::InflationDistributionAccount;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
@@ -63,7 +58,7 @@ use precompile_utils::{
 	testing::*,
 };
 use sha3::{Digest, Keccak256};
-use sp_core::{ByteArray, Get, Pair, H160, U256};
+use sp_core::{bounded_vec, ByteArray, Get, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, Dispatchable},
 	BuildStorage, DispatchError, ModuleError, Percent,
@@ -81,11 +76,6 @@ type CrowdloanRewardsPCall =
 type XcmUtilsPCall = pallet_evm_precompile_xcm_utils::XcmUtilsPrecompileCall<
 	Runtime,
 	moonriver_runtime::xcm_config::XcmExecutorConfig,
->;
-type XtokensPCall = pallet_evm_precompile_xtokens::XtokensPrecompileCall<Runtime>;
-type ForeignAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSetCall<
-	Runtime,
-	ForeignAssetInstance,
 >;
 type XcmTransactorV2PCall =
 	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
@@ -153,7 +143,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::CumulusXcm>("CumulusXcm");
 	is_pallet_prefix::<moonriver_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonriver_runtime::Assets>("Assets");
-	is_pallet_prefix::<moonriver_runtime::AssetManager>("AssetManager");
 	is_pallet_prefix::<moonriver_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonriver_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonriver_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -459,7 +448,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::CumulusXcm>(101);
 	is_pallet_index::<moonriver_runtime::PolkadotXcm>(103);
 	is_pallet_index::<moonriver_runtime::Assets>(104);
-	is_pallet_index::<moonriver_runtime::AssetManager>(105);
+	// is_pallet_index::<moonriver_runtime::AssetManager>(105); Removed
 	// is_pallet_index::<moonriver_runtime::XTokens>(106); Removed
 	is_pallet_index::<moonriver_runtime::XcmTransactor>(107);
 	is_pallet_index::<moonriver_runtime::BridgePolkadotGrandpa>(130);
@@ -1651,52 +1640,49 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 
 #[test]
 fn root_can_change_default_xcm_vers() {
-	let asset_type = AssetType::Xcm(
-		VersionedLocation::from(AssetHubLocation::get())
-			.try_into()
-			.unwrap(),
-	);
-
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: asset_type.clone(),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id: 1,
+			xcm_location: AssetHubLocation::get(),
+			name: "Dot",
+			symbol: "Dot",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let dest = Location {
-				parents: 1,
-				interior: [AccountId32 {
-					network: None,
-					id: [1u8; 32],
-				}]
-				.into(),
+			let source_id: moonriver_runtime::AssetId = 1;
+			let currency_id = moonriver_runtime::xcm_config::CurrencyId::ForeignAsset(source_id);
+			let asset = Asset {
+				id: AssetId(
+					<Runtime as pallet_xcm_transactor::Config>::CurrencyIdToLocation::convert(
+						currency_id,
+					)
+					.unwrap(),
+				),
+				fun: Fungibility::Fungible(100_000_000_000_000),
 			};
-			let source_id: moonriver_runtime::AssetId = asset_type.clone().into();
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
-			let (chain_part, beneficiary) =
-				split_location_into_chain_part_and_beneficiary(dest).unwrap();
 			// Default XCM version is not set yet, so xtokens should fail because it does not
 			// know with which version to send
 			assert_noop!(
 				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
-					Box::new(xcm::VersionedLocation::from(chain_part.clone())),
-					Box::new(xcm::VersionedLocation::from(beneficiary.clone())),
+					Box::new(VersionedLocation::from(Location::parent())),
+					Box::new(VersionedLocation::from(Location {
+						parents: 0,
+						interior: [AccountId32 {
+							network: None,
+							id: [1u8; 32],
+						}]
+						.into(),
+					})),
 					Box::new(VersionedAssets::from(asset.clone())),
 					0,
-					WeightLimit::Limited(4000000000.into())
+					WeightLimit::Unlimited
 				),
 				pallet_xcm::Error::<Runtime>::LocalExecutionIncomplete
 			);
@@ -1710,11 +1696,18 @@ fn root_can_change_default_xcm_vers() {
 			// Now transferring does not fail
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(xcm::VersionedLocation::from(chain_part)),
-				Box::new(xcm::VersionedLocation::from(beneficiary)),
-				Box::new(VersionedAssets::from(asset.clone())),
+				Box::new(VersionedLocation::from(Location::parent())),
+				Box::new(VersionedLocation::from(Location {
+					parents: 0,
+					interior: [AccountId32 {
+						network: None,
+						id: [1u8; 32],
+					}]
+					.into(),
+				})),
+				Box::new(VersionedAssets::from(asset)),
 				0,
-				WeightLimit::Limited(4000000000.into())
+				WeightLimit::Unlimited
 			));
 		})
 }
@@ -1722,25 +1715,136 @@ fn root_can_change_default_xcm_vers() {
 #[test]
 fn asset_can_be_registered() {
 	ExtBuilder::default().build().execute_with(|| {
-		let source_location = AssetType::Xcm(xcm::v3::Location::parent());
-		let source_id: moonriver_runtime::AssetId = source_location.clone().into();
-		let asset_metadata = AssetRegistrarMetadata {
-			name: b"RelayToken".to_vec(),
-			symbol: b"Relay".to_vec(),
-			decimals: 12,
-			is_frozen: false,
-		};
-		assert_ok!(AssetManager::register_foreign_asset(
+		let source_location = Location::parent();
+		let source_id = 1;
+
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
 			moonriver_runtime::RuntimeOrigin::root(),
-			source_location,
-			asset_metadata,
-			1u128,
-			true
+			source_id,
+			source_location.clone(),
+			12,
+			b"Relay".to_vec().try_into().unwrap(),
+			b"RelayToken".to_vec().try_into().unwrap(),
 		));
-		assert!(AssetManager::asset_id_type(source_id).is_some());
+
+		// Check that the asset was created
+		// First check if the asset ID exists
+		let location = EvmForeignAssets::assets_by_id(source_id).expect("Asset should exist");
+		assert_eq!(location.clone(), source_location);
+
+		// Then check the status using AssetsByLocation
+		let (asset_id, status) =
+			EvmForeignAssets::assets_by_location(&location).expect("Asset location should exist");
+		assert_eq!(asset_id, source_id);
+		assert_eq!(status, AssetStatus::Active);
 	});
 }
 
+#[test]
+fn create_and_manipulate_foreign_asset_using_root() {
+	ExtBuilder::default().build().execute_with(|| {
+		let source_location = Location::parent();
+
+		// Create foreign asset
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			moonriver_runtime::RuntimeOrigin::root(),
+			1,
+			source_location.clone(),
+			12,
+			bounded_vec![b'M', b'T'],
+			bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(1),
+			Some(source_location.clone())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&source_location),
+			Some((1, AssetStatus::Active))
+		);
+
+		// Freeze foreign asset
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			moonriver_runtime::RuntimeOrigin::root(),
+			1,
+			true
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&source_location),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+
+		// Unfreeze foreign asset
+		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+			moonriver_runtime::RuntimeOrigin::root(),
+			1,
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&source_location),
+			Some((1, AssetStatus::Active))
+		);
+	});
+}
+
+#[test]
+fn create_and_manipulate_foreign_asset_using_sibling() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_location: Location = (Parent, Parachain(1), PalletInstance(3)).into();
+		let para_location = asset_location.chain_location();
+		let para_account =
+			LocationToAccountId::convert_location(&para_location).expect("Cannot convert location");
+
+		let deposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit::get();
+		Balances::make_free_balance_be(&para_account, deposit * 2);
+
+		// Create foreign asset
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			pallet_xcm::Origin::Xcm(para_location.clone()).into(),
+			1,
+			asset_location.clone(),
+			12,
+			bounded_vec![b'M', b'T'],
+			bounded_vec![b'M', b'y', b'T', b'o', b'k'],
+		));
+
+		// deposit is taken from the account
+		assert_eq!(Balances::free_balance(&para_account), deposit);
+
+		assert_eq!(
+			EvmForeignAssets::assets_by_id(1),
+			Some(asset_location.clone())
+		);
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
+			Some((1, AssetStatus::Active))
+		);
+
+		// Freeze foreign asset
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			pallet_xcm::Origin::Xcm(para_location.clone()).into(),
+			1,
+			true
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+
+		// Unfreeze foreign asset
+		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+			pallet_xcm::Origin::Xcm(para_location.clone()).into(),
+			1,
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
+			Some((1, AssetStatus::Active))
+		);
+	});
+}
+
+// The precoompile asset-erc20 is deprecated and not used anymore for new evm foreign assets
+// We don't have testing tools in rust test to call real evm smart contract, so we rely on ts tests.
+/*
 #[test]
 fn xcm_asset_erc20_precompiles_supply_and_balance() {
 	ExtBuilder::default()
@@ -1949,216 +2053,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 				.expect_no_logs()
 				.execute_returns(U256::from(400 * MOVR));
 		});
-}
-
-#[test]
-fn xtokens_precompiles_transfer() {
-	let asset_type = AssetType::Xcm(
-		VersionedLocation::from(AssetHubLocation::get())
-			.try_into()
-			.unwrap(),
-	);
-
-	ExtBuilder::default()
-		.with_evm_native_foreign_assets()
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: asset_type.clone(),
-			metadata: AssetRegistrarMetadata {
-				name: b"DOT".to_vec(),
-				symbol: b"DOT".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_safe_xcm_version(3)
-		.build()
-		.execute_with(|| {
-			let xtokens_precompile_address = H160::from_low_u64_be(2052);
-
-			// We have the assetId that corresponds to the relay chain registered
-			let asset_id: AssetId = asset_type.clone().into();
-
-			// Its address is
-			let asset_precompile_address =
-				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset_id);
-
-			// Alice has 1000 tokens. She should be able to send through precompile
-			let destination = Location::new(
-				1,
-				[Junction::AccountId32 {
-					network: None,
-					id: [1u8; 32],
-				}],
-			);
-
-			let inside = Rc::new(Cell::new(false));
-			let inside2 = inside.clone();
-
-			// We use the address of the asset as an identifier of the asset we want to transfer
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					xtokens_precompile_address,
-					XtokensPCall::transfer {
-						currency_address: Address(asset_precompile_address.into()),
-						amount: 500_000_000_000_000u128.into(),
-						destination,
-						weight: 4_000_000,
-					},
-				)
-				.expect_cost(178365)
-				.expect_no_logs()
-				// We expect an evm subcall ERC20.burnFrom
-				.with_subcall_handle(move |subcall| {
-					let Subcall {
-						address,
-						transfer,
-						input,
-						target_gas: _,
-						is_static,
-						context,
-					} = subcall;
-
-					assert_eq!(context.caller, EvmForeignAssets::account_id().into());
-
-					let asset_id: u128 = asset_type.clone().into();
-					let expected_address: H160 = Runtime::asset_id_to_account(
-						FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-						asset_id,
-					)
-					.into();
-					assert_eq!(address, expected_address);
-					assert_eq!(is_static, false);
-
-					assert!(transfer.is_none());
-
-					assert_eq!(context.address, expected_address);
-					assert_eq!(context.apparent_value, 0u8.into());
-
-					assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
-					assert_eq!(&input[4..16], &[0u8; 12]);
-					assert_eq!(&input[16..36], ALICE);
-
-					inside2.set(true);
-
-					SubcallOutput {
-						output: Default::default(),
-						cost: 149_000,
-						logs: vec![],
-						..SubcallOutput::succeed()
-					}
-				})
-				.execute_returns(())
-		})
-}
-
-#[test]
-fn xtokens_precompiles_transfer_multiasset() {
-	let asset_type = AssetType::Xcm(
-		VersionedLocation::from(AssetHubLocation::get())
-			.try_into()
-			.unwrap(),
-	);
-
-	ExtBuilder::default()
-		.with_evm_native_foreign_assets()
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: asset_type.clone(),
-			metadata: AssetRegistrarMetadata {
-				name: b"DOT".to_vec(),
-				symbol: b"DOT".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * MOVR),
-			(AccountId::from(BOB), 1_000 * MOVR),
-		])
-		.with_safe_xcm_version(3)
-		.build()
-		.execute_with(|| {
-			let xtokens_precompile_address = H160::from_low_u64_be(2052);
-
-			// Alice has 1000 tokens. She should be able to send through precompile
-			let destination = Location::new(
-				1,
-				[Junction::AccountId32 {
-					network: None,
-					id: [1u8; 32],
-				}],
-			);
-
-			let inside = Rc::new(Cell::new(false));
-			let inside2 = inside.clone();
-
-			// This time we transfer it through TransferMultiAsset
-			// Instead of the address, we encode directly the multilocation referencing the asset
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					xtokens_precompile_address,
-					XtokensPCall::transfer_multiasset {
-						// We want to transfer DOT
-						asset: AssetHubLocation::get(),
-						amount: 500_000_000_000_000u128.into(),
-						destination,
-						weight: 4_000_000,
-					},
-				)
-				.expect_cost(178365)
-				.expect_no_logs()
-				// We expect an evm subcall ERC20.burnFrom
-				.with_subcall_handle(move |subcall| {
-					let Subcall {
-						address,
-						transfer,
-						input,
-						target_gas: _,
-						is_static,
-						context,
-					} = subcall;
-
-					assert_eq!(context.caller, EvmForeignAssets::account_id().into());
-
-					let asset_id: u128 = asset_type.clone().into();
-					let expected_address: H160 = Runtime::asset_id_to_account(
-						FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-						asset_id,
-					)
-					.into();
-					assert_eq!(address, expected_address);
-					assert_eq!(is_static, false);
-
-					assert!(transfer.is_none());
-
-					assert_eq!(context.address, expected_address);
-					assert_eq!(context.apparent_value, 0u8.into());
-
-					assert_eq!(&input[..4], &keccak256!("burnFrom(address,uint256)")[..4]);
-					assert_eq!(&input[4..16], &[0u8; 12]);
-					assert_eq!(&input[16..36], ALICE);
-
-					inside2.set(true);
-
-					SubcallOutput {
-						output: Default::default(),
-						cost: 149_000,
-						logs: vec![],
-						..SubcallOutput::succeed()
-					}
-				})
-				.execute_returns(());
-		})
-}
+}*/
 
 #[test]
 fn make_sure_polkadot_xcm_cannot_be_called() {
@@ -2211,20 +2106,16 @@ fn transactor_cannot_use_more_than_max_weight() {
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id: 1,
+			xcm_location: xcm::v5::Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
-			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+			let source_id: moonriver_runtime::AssetId = 1;
 			assert_ok!(XcmTransactor::register(
 				root_origin(),
 				AccountId::from(ALICE),
@@ -2240,12 +2131,11 @@ fn transactor_cannot_use_more_than_max_weight() {
 				20000.into(),
 				None
 			));
-
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
 				root_origin(),
 				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
+				1,
 			));
 
 			assert_noop!(
@@ -2260,7 +2150,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 						fee_amount: None
 					},
 					vec![],
-					// 2000 is the max
+					// 20000 is the max
 					TransactWeights {
 						transact_required_weight_at_most: 17001.into(),
 						overall_weight: None
@@ -2275,7 +2165,9 @@ fn transactor_cannot_use_more_than_max_weight() {
 					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
 					CurrencyPayment {
-						currency: Currency::AsCurrencyId(CurrencyId::ForeignAsset(source_id)),
+						currency: Currency::AsCurrencyId(
+							moonriver_runtime::xcm_config::CurrencyId::ForeignAsset(source_id)
+						),
 						fee_amount: None
 					},
 					vec![],
@@ -2377,29 +2269,20 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 // TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee() {
-	let asset_type = AssetType::Xcm(
-		VersionedLocation::from(AssetHubLocation::get())
-			.try_into()
-			.unwrap(),
-	);
-
+	let asset_id = 1;
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
 			(AccountId::from(BOB), 1_000 * MOVR),
 		])
 		.with_safe_xcm_version(3)
-		.with_evm_native_foreign_assets()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: asset_type.clone(),
-			metadata: AssetRegistrarMetadata {
-				name: b"DOT".to_vec(),
-				symbol: b"DOT".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id,
+			xcm_location: AssetHubLocation::get(),
+			name: "Dot",
+			symbol: "Dot",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
@@ -2411,18 +2294,16 @@ fn call_pallet_xcm_with_fee() {
 				}]
 				.into(),
 			};
-			let source_id: moonriver_runtime::AssetId = asset_type.clone().into();
 
 			let before_balance =
-				EvmForeignAssets::balance(source_id, AccountId::from(ALICE)).unwrap();
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			let (chain_part, beneficiary) =
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
 			let asset_amount = 100_000_000_000_000u128;
 			let asset_fee_amount = 100u128;
 
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), asset_amount);
-			let asset_fee =
-				currency_to_asset(CurrencyId::ForeignAsset(source_id), asset_fee_amount);
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), asset_amount);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), asset_fee_amount);
 
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
@@ -2435,7 +2316,7 @@ fn call_pallet_xcm_with_fee() {
 			),);
 
 			let after_balance =
-				EvmForeignAssets::balance(source_id, AccountId::from(ALICE)).unwrap();
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			// At least these much (plus fees) should have been charged
 			assert_eq!(
 				before_balance
@@ -2449,6 +2330,7 @@ fn call_pallet_xcm_with_fee() {
 // TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee_after_ahm() {
+	let asset_id = 1;
 	ExtBuilder::default()
 		.asset_hub_migration_has_started()
 		.with_balances(vec![
@@ -2457,19 +2339,15 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 		])
 		.with_safe_xcm_version(3)
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id,
+			xcm_location: Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {
@@ -2478,14 +2356,13 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 				}]
 				.into(),
 			};
-			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
 
 			let before_balance =
-				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			let (chain_part, beneficiary) =
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
-			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100_000_000_000_000);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100);
 
 			// Once the AH migration starts, we should no longer be able to use the parent location as reserve.
 			assert_noop!(
@@ -2501,7 +2378,7 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 			);
 
 			let after_balance =
-				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			// At least these much (plus fees) should have been charged
 			assert_eq!(before_balance, after_balance);
 		});
@@ -2510,6 +2387,7 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 // TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee_before_ahm() {
+	let asset_id = 1;
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
@@ -2517,19 +2395,15 @@ fn call_pallet_xcm_with_fee_before_ahm() {
 		])
 		.with_safe_xcm_version(3)
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id,
+			xcm_location: Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {
@@ -2538,14 +2412,13 @@ fn call_pallet_xcm_with_fee_before_ahm() {
 				}]
 				.into(),
 			};
-			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
 
 			let before_balance =
-				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			let (chain_part, beneficiary) =
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
-			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100_000_000_000_000);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100);
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
@@ -2557,9 +2430,12 @@ fn call_pallet_xcm_with_fee_before_ahm() {
 			));
 
 			let after_balance =
-				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			// At least these much (plus fees) should have been charged
-			assert_eq!(before_balance - 100_000_000_000_000 - 100, after_balance);
+			assert_eq!(
+				before_balance - 100_000_000_000_000u128 - 100u128,
+				after_balance
+			);
 		});
 }
 
@@ -2977,12 +2853,11 @@ mod bridge_tests {
 	use frame_support::assert_ok;
 	use frame_support::pallet_prelude::{Hooks, PalletInfoAccess};
 	use moonbeam_core_primitives::AccountId;
-	use moonriver_runtime::asset_config::AssetRegistrarMetadata;
 	use moonriver_runtime::bridge_config::{
 		PolkadotGlobalConsensusNetwork, WithPolkadotMessagesInstance,
 	};
 	use moonriver_runtime::currency::MOVR;
-	use moonriver_runtime::xcm_config::{AssetType, CurrencyId};
+	use moonriver_runtime::xcm_config::CurrencyId;
 	use moonriver_runtime::{
 		Balances, BridgePolkadotMessages, BridgeXcmOverMoonbeam, MessageQueue, PolkadotXcm,
 		Runtime, RuntimeEvent, System,
@@ -3087,24 +2962,20 @@ mod bridge_tests {
 				(AccountId::from(ALICE), 2_000 * MOVR),
 				(AccountId::from(BOB), 1_000 * MOVR),
 			])
-			.with_evm_native_foreign_assets()
 			.with_xcm_assets(vec![XcmAssetInitialization {
-				asset_type: AssetType::Xcm(xcm::VersionedLocation::from(Location::new(
+				asset_id: 1,
+				xcm_location: Location::new(
 					2,
 					[
 						GlobalConsensus(PolkadotGlobalConsensusNetwork::get()),
 						Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
 						PalletInstance(<Balances as PalletInfoAccess>::index() as u8)
 					]
-				)).try_into().unwrap()),
-				metadata: AssetRegistrarMetadata {
-					name: b"xcGLMR".to_vec(),
-					symbol: b"xcGLMR".to_vec(),
-					decimals: 18,
-					is_frozen: false,
-				},
+				),
+				name: "xcGLMR",
+				symbol: "xcGLMR",
+				decimals: 18,
 				balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-				is_sufficient: true,
 			}])
 			.with_safe_xcm_version(XCM_VERSION)
 			.with_open_bridges(vec![(
