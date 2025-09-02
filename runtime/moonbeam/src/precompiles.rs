@@ -16,10 +16,9 @@
 
 use super::moonbeam_weights;
 use crate::{
-	asset_config::ForeignAssetInstance,
-	xcm_config::{AssetType, XcmExecutorConfig},
-	AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets, OpenTechCommitteeInstance,
-	Runtime, TreasuryCouncilInstance, H160,
+	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, AccountId, AssetId,
+	Balances, Erc20XcmBridge, EvmForeignAssets, OpenTechCommitteeInstance, Runtime,
+	TreasuryCouncilInstance, H160,
 };
 use frame_support::parameter_types;
 use moonkit_xcm_primitives::{
@@ -59,7 +58,6 @@ use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_precompile_benchmarks::WeightInfo;
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
-use xcm_primitives::AsAssetType;
 
 parameter_types! {
 	pub P256VerifyWeight: frame_support::weights::Weight =

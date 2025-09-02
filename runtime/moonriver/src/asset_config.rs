@@ -18,8 +18,7 @@
 //!
 
 use super::{
-	currency, governance, xcm_config, AccountId, AssetId, Assets, Balance, Balances,
-	OpenTechCommitteeInstance, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+	currency, governance, AccountId, AssetId, Balance, Balances, Runtime, RuntimeEvent,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
@@ -27,16 +26,13 @@ use super::moonriver_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
 use frame_support::{
-	dispatch::GetDispatchInfo,
 	parameter_types,
 	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, EitherOfDiverse},
-	weights::Weight,
 };
 use frame_system::{EnsureNever, EnsureRoot};
 use sp_core::H160;
 
-use parity_scale_codec::{Compact, Decode, DecodeWithMemTracking, Encode};
-use scale_info::TypeInfo;
+use parity_scale_codec::Compact;
 
 use sp_std::{
 	convert::{From, Into},

@@ -41,10 +41,9 @@ use sp_core::{ConstU32, H160, H256};
 
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
-	EnsureXcmOrigin, FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter,
-	GlobalConsensusParachainConvertsFor, HashedDescription, NoChecking, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	AllowTopLevelPaidExecutionFrom, Case, DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin,
+	FungibleAdapter as XcmCurrencyAdapter, GlobalConsensusParachainConvertsFor, HashedDescription,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
 	WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
 };
@@ -58,13 +57,13 @@ use xcm::{
 	IntoVersion,
 };
 
-use xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
+use xcm_executor::traits::{CallDispatcher, ConvertLocation};
 
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::Disabled;
 use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
-	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
+	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation,
 	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
 	UtilityEncodeCall, XcmTransact,
 };
