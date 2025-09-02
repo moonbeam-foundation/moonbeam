@@ -876,7 +876,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							pallet_author_inherent::Author::<Runtime>::put(&alice);
 
 							let caller: AccountId = frame_benchmarking::account("caller", 0, 0);
-							let balance = 100_000_000_000_000u64.into();
+							let balance = 1_000_000_000_000_000_000u64.into(); // 1 UNIT
 							<Balances as frame_support::traits::Currency<_>>::make_free_balance_be(&caller, balance);
 						}
 					}
