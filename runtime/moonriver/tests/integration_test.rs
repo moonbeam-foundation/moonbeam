@@ -37,7 +37,6 @@ use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::runtime_params::dynamic_params;
 use moonriver_runtime::xcm_config::{AssetHubLocation, LocationToAccountId, XcmExecutor};
 use moonriver_runtime::{
-	asset_config::ForeignAssetInstance,
 	moonriver_xcm_weights,
 	xcm_config::{CurrencyId, SelfReserve},
 	Balances, CrowdloanRewards, EvmForeignAssets, Executive, OpenTechCommitteeCollective,

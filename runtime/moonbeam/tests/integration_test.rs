@@ -21,8 +21,6 @@
 mod common;
 
 use common::*;
-use std::cell::Cell;
-use std::rc::Rc;
 
 use fp_evm::{Context, IsPrecompileResult};
 use frame_support::{
@@ -46,14 +44,11 @@ use moonbeam_runtime::{
 	AccountId, Balances, CrowdloanRewards, EvmForeignAssets, Executive,
 	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
 	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
-	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor, WEEKS,
 };
 use moonbeam_xcm_weights::XcmWeight;
-use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
 use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_parachain_staking::InflationDistributionAccount;
 use pallet_transaction_payment::Multiplier;
@@ -75,7 +70,6 @@ use std::str::from_utf8;
 use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
-use xcm_primitives::split_location_into_chain_part_and_beneficiary;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
 type CrowdloanRewardsPCall =
@@ -83,11 +77,6 @@ type CrowdloanRewardsPCall =
 type XcmUtilsPCall = pallet_evm_precompile_xcm_utils::XcmUtilsPrecompileCall<
 	Runtime,
 	moonbeam_runtime::xcm_config::XcmExecutorConfig,
->;
-type XtokensPCall = pallet_evm_precompile_xtokens::XtokensPrecompileCall<Runtime>;
-type ForeignAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSetCall<
-	Runtime,
-	ForeignAssetInstance,
 >;
 type XcmTransactorV2PCall =
 	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
@@ -2685,7 +2674,7 @@ mod bridge_tests {
 		KusamaGlobalConsensusNetwork, WithKusamaMessagesInstance,
 	};
 	use moonbeam_runtime::currency::GLMR;
-	use moonbeam_runtime::xcm_config::{AssetType, CurrencyId};
+	use moonbeam_runtime::xcm_config::CurrencyId;
 	use moonbeam_runtime::{
 		Balances, BridgeKusamaMessages, BridgeXcmOverMoonriver, MessageQueue, PolkadotXcm, Runtime,
 		RuntimeEvent, System,
