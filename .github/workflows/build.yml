@@ -484,7 +484,7 @@ jobs:
           edit-mode: replace
 
   check-unused-dependencies:
-    runs-on: moonbeam-release-medium
+    runs-on: bare-metal
     permissions:
       contents: read
     steps:
@@ -495,7 +495,7 @@ jobs:
           toolchain: nightly
           override: true
           components: rust-src
-          target: wasm32-unknown-unknown
+          target: wasm32v1-none
       - name: Install required dependencies
         run: |
           sudo apt-get install -y libprotobuf-dev protobuf-compiler
@@ -542,7 +542,7 @@ jobs:
           fi
           rustup override unset
           rustup show
-          rustup target add wasm32-unknown-unknown
+          rustup target add wasm32v1-none
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
