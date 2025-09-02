@@ -313,14 +313,5 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 	(
 		// Skip precompiles if out of range.
 		PrecompilesInRangeInclusive<(AddressU64<1>, AddressU64<4095>), MoonriverPrecompilesAt<R>>,
-		// Prefixed precompile sets (XC20)
-		PrecompileSetStartingWith<
-			ForeignAssetPrefix,
-			Erc20AssetsPrecompileSet<R, ForeignAssetInstance>,
-			CallableByContract,
-		>,
-		// Moonriver never had any local assets (No blacklist needed
-		// https://moonriver.subscan.io/event?module=localassets&event_id=created
-		// https://moonriver.subscan.io/event?module=localassets&event_id=forcecreated
 	),
 >;
