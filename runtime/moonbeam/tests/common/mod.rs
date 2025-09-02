@@ -34,7 +34,7 @@ use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
-use cumulus_pallet_parachain_system::MessagingStateSnapshot;
+use cumulus_pallet_parachain_system::{MessagingStateSnapshot, Pallet, ValidationData};
 use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
 use moonbeam_runtime::bridge_config::XcmOverKusamaInstance;
@@ -124,6 +124,7 @@ pub struct XcmAssetInitialization {
 }
 
 pub struct ExtBuilder {
+	asset_hub_migration_started: bool,
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
@@ -150,6 +151,7 @@ pub struct ExtBuilder {
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
+			asset_hub_migration_started: false,
 			balances: vec![],
 			delegations: vec![],
 			collators: vec![],
@@ -185,6 +187,11 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
+	pub fn asset_hub_migration_has_started(mut self) -> Self {
+		self.asset_hub_migration_started = true;
+		self
+	}
+
 	pub fn with_evm_accounts(mut self, accounts: BTreeMap<H160, GenesisAccount>) -> Self {
 		self.evm_accounts = accounts;
 		self
@@ -322,6 +329,17 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		let xcm_assets = self.xcm_assets.clone();
 		ext.execute_with(|| {
+			if self.asset_hub_migration_started {
+				// Indicate that the asset-hub migration has already started
+				moonbeam_runtime::xcm_config::AssetHubMigrationStartsAtRelayBlock::set(&0);
+
+				let mut validation_data = ValidationData::<Runtime>::get().unwrap_or_default();
+
+				validation_data.relay_parent_number =
+					moonbeam_runtime::xcm_config::AssetHubMigrationStartsAtRelayBlock::get();
+				ValidationData::<Runtime>::set(Some(validation_data));
+			}
+
 			// Mock hrmp egress_channels
 			cumulus_pallet_parachain_system::RelevantMessagingState::<Runtime>::put(
 				MessagingStateSnapshot {

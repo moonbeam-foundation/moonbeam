@@ -2375,7 +2375,7 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 }
 
 #[test]
-fn call_xtokens_with_fee() {
+fn call_pallet_xcm_with_fee() {
 	let asset_type = AssetType::Xcm(
 		VersionedLocation::from(AssetHubLocation::get())
 			.try_into()
@@ -2442,6 +2442,120 @@ fn call_xtokens_with_fee() {
 					.saturating_sub(asset_fee_amount.into()),
 				after_balance
 			);
+		});
+}
+
+#[test]
+fn call_pallet_xcm_with_fee_after_ahm() {
+	ExtBuilder::default()
+		.asset_hub_migration_has_started()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(3)
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
+		.build()
+		.execute_with(|| {
+			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
+			let dest = Location {
+				parents: 1,
+				interior: [AccountId32 {
+					network: None,
+					id: [1u8; 32],
+				}]
+				.into(),
+			};
+			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+
+			let before_balance =
+				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+			let (chain_part, beneficiary) =
+				split_location_into_chain_part_and_beneficiary(dest).unwrap();
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
+			// We are able to transfer with fee
+			assert_noop!(
+				PolkadotXcm::transfer_assets(
+					origin_of(AccountId::from(ALICE)),
+					Box::new(VersionedLocation::from(chain_part)),
+					Box::new(VersionedLocation::from(beneficiary)),
+					Box::new(VersionedAssets::from(vec![asset_fee, asset])),
+					0,
+					WeightLimit::Limited(4000000000.into())
+				),
+				pallet_xcm::Error::<Runtime>::InvalidAssetUnknownReserve
+			);
+
+			let after_balance =
+				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+			// At least these much (plus fees) should have been charged
+			assert_eq!(before_balance, after_balance);
+		});
+}
+
+#[test]
+fn call_pallet_xcm_with_fee_before_ahm() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(3)
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
+			metadata: AssetRegistrarMetadata {
+				name: b"RelayToken".to_vec(),
+				symbol: b"Relay".to_vec(),
+				decimals: 12,
+				is_frozen: false,
+			},
+			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
+			is_sufficient: true,
+		}])
+		.build()
+		.execute_with(|| {
+			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
+			let dest = Location {
+				parents: 1,
+				interior: [AccountId32 {
+					network: None,
+					id: [1u8; 32],
+				}]
+				.into(),
+			};
+			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
+
+			let before_balance =
+				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+			let (chain_part, beneficiary) =
+				split_location_into_chain_part_and_beneficiary(dest).unwrap();
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
+			// We are able to transfer with fee
+			assert_ok!(PolkadotXcm::transfer_assets(
+				origin_of(AccountId::from(ALICE)),
+				Box::new(VersionedLocation::from(chain_part)),
+				Box::new(VersionedLocation::from(beneficiary)),
+				Box::new(VersionedAssets::from(vec![asset_fee, asset])),
+				0,
+				WeightLimit::Limited(4000000000.into())
+			));
+
+			let after_balance =
+				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+			// At least these much (plus fees) should have been charged
+			assert_eq!(before_balance - 100_000_000_000_000 - 100, after_balance);
 		});
 }
 
