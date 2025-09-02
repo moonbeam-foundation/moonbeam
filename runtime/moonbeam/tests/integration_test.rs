@@ -2462,6 +2462,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 		})
 }
 
+// TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee() {
 	let asset_type = AssetType::Xcm(
@@ -2531,6 +2532,7 @@ fn call_pallet_xcm_with_fee() {
 		});
 }
 
+// TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee_after_ahm() {
 	ExtBuilder::default()
@@ -2570,7 +2572,8 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
 			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
 			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
-			// We are able to transfer with fee
+
+			// Once the AH migration starts, we should no longer be able to use the parent location as reserve.
 			assert_noop!(
 				PolkadotXcm::transfer_assets(
 					origin_of(AccountId::from(ALICE)),
@@ -2590,6 +2593,7 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 		});
 }
 
+// TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee_before_ahm() {
 	ExtBuilder::default()
