@@ -78,32 +78,6 @@ pallet_assets::runtime_benchmarks_enabled! {
 	}
 }
 
-// Foreign assets
-impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
-	type WeightInfo = moonbase_weights::pallet_assets::WeightInfo<Runtime>;
-	type RemoveItemsLimit = ConstU32<{ REMOVE_ITEMS_LIMIT }>;
-	type AssetIdParameter = Compact<AssetId>;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
-	type CallbackHandle = ();
-	type Holder = ();
-	pallet_assets::runtime_benchmarks_enabled! {
-		type BenchmarkHelper = BenchmarkHelper;
-	}
-}
-
 // Instruct how to go from an H160 to an AssetID
 // We just take the lowest 128 bits
 impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {

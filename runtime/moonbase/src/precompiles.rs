@@ -367,12 +367,5 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 	(
 		// Skip precompiles if out of range.
 		PrecompilesInRangeInclusive<(AddressU64<1>, AddressU64<4095>), MoonbasePrecompilesAt<R>>,
-		// Prefixed precompile sets (XC20)
-		PrecompileSetStartingWith<
-			ForeignAssetPrefix,
-			Erc20AssetsPrecompileSet<R, ForeignAssetInstance>,
-			(CallableByContract, CallableByPrecompile),
-		>,
-		RemovedPrecompilesAt<DisabledLocalAssets<R>>,
 	),
 >;
