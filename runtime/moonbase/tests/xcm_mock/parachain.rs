@@ -54,7 +54,7 @@ use xcm::latest::{
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, Case, EnsureXcmOrigin, FixedWeightBounds,
-	FungibleAdapter as XcmCurrencyAdapter, IsConcrete, NoChecking, ParentAsSuperuser,
+	FungibleAdapter as XcmCurrencyAdapter, IsConcrete, ParentAsSuperuser,
 	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
