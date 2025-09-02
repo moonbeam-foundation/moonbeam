@@ -35,7 +35,6 @@ bp-moonbeam = { workspace = true }
 bp-moonriver = { workspace = true }
 
 # Moonbeam pallets
-pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
 pallet-emergency-para-xcm = { workspace = true }
@@ -207,6 +206,7 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 sp-timestamp = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
+pallet-asset-manager = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 
@@ -383,7 +383,6 @@ runtime-benchmarks = [
 	"hex-literal",
 	"moonbeam-runtime-common/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
-	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
@@ -438,7 +437,6 @@ try-runtime = [
 	"frame-system/try-runtime",
 	"frame-try-runtime",
 	"moonbeam-runtime-common/try-runtime",
-	"pallet-asset-manager/try-runtime",
 	"pallet-author-mapping/try-runtime",
 	"pallet-author-slot-filter/try-runtime",
 	"pallet-balances/try-runtime",
