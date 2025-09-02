@@ -37,7 +37,6 @@ use moonbeam_runtime::currency::{GIGAWEI, WEI};
 use moonbeam_runtime::runtime_params::dynamic_params;
 use moonbeam_runtime::xcm_config::{AssetHubLocation, XcmExecutor};
 use moonbeam_runtime::{
-	asset_config::ForeignAssetInstance,
 	currency::GLMR,
 	moonbeam_xcm_weights,
 	xcm_config::{CurrencyId, SelfReserve},
