@@ -882,7 +882,35 @@
 <a href="#881" id="881">881</a>
 <a href="#882" id="882">882</a>
 <a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
+<a href="#886" id="886">886</a>
+<a href="#887" id="887">887</a>
+<a href="#888" id="888">888</a>
+<a href="#889" id="889">889</a>
+<a href="#890" id="890">890</a>
+<a href="#891" id="891">891</a>
+<a href="#892" id="892">892</a>
+<a href="#893" id="893">893</a>
+<a href="#894" id="894">894</a>
+<a href="#895" id="895">895</a>
+<a href="#896" id="896">896</a>
+<a href="#897" id="897">897</a>
+<a href="#898" id="898">898</a>
+<a href="#899" id="899">899</a>
+<a href="#900" id="900">900</a>
+<a href="#901" id="901">901</a>
+<a href="#902" id="902">902</a>
+<a href="#903" id="903">903</a>
+<a href="#904" id="904">904</a>
+<a href="#905" id="905">905</a>
+<a href="#906" id="906">906</a>
+<a href="#907" id="907">907</a>
+<a href="#908" id="908">908</a>
+<a href="#909" id="909">909</a>
+<a href="#910" id="910">910</a>
+<a href="#911" id="911">911</a>
+<a href="#912" id="912">912</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -1271,6 +1299,33 @@
 	xcm_executor::XcmExecutor&lt;XcmExecutorConfig&gt;,
 &gt;;
 
+<span class="macro">parameter_types!</span> {
+	<span class="doccomment">/// AssetHub migration start block for development/testing environments
+	///
+	/// Set to 0 by default since Moonbase is not affected by the actual AssetHub migration.
+	/// This can be overridden for testing migration scenarios in development.
+	</span><span class="kw">pub </span>storage AssetHubMigrationStartsAtRelayBlock: u32 = <span class="number">0</span>;
+}
+
+<span class="doccomment">/// AssetHub migration status provider for Moonbase
+///
+/// # Purpose
+/// While Moonbase will not be affected by the actual AssetHub migration on Polkadot,
+/// this implementation allows simulation and testing of migration behavior in
+/// development environments.
+</span><span class="kw">pub struct </span>AssetHubMigrationStarted;
+<span class="kw">impl </span>Get&lt;bool&gt; <span class="kw">for </span>AssetHubMigrationStarted {
+	<span class="kw">fn </span>get() -&gt; bool {
+		<span class="kw">use </span>cumulus_pallet_parachain_system::RelaychainDataProvider;
+		<span class="kw">use </span>sp_runtime::traits::BlockNumberProvider;
+
+		<span class="kw">let </span>ahm_relay_block = AssetHubMigrationStartsAtRelayBlock::get();
+		<span class="kw">let </span>current_relay_block_number = RelaychainDataProvider::&lt;Runtime&gt;::current_block_number();
+
+		current_relay_block_number &gt;= ahm_relay_block
+	}
+}
+
 <span class="kw">impl </span>pallet_xcm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>SendXcmOrigin = EnsureXcmOrigin&lt;RuntimeOrigin, LocalOriginToLocation&gt;;
@@ -1296,6 +1351,7 @@
 	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_xcm::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>AdminOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>AuthorizedAliasConsideration = Disabled;
+	<span class="kw">type </span>AssetHubMigrationStarted = AssetHubMigrationStarted;
 }
 
 <span class="kw">impl </span>cumulus_pallet_xcm::Config <span class="kw">for </span>Runtime {
