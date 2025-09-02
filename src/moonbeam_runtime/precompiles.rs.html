@@ -343,7 +343,19 @@
 <a href="#342" id="342">342</a>
 <a href="#343" id="343">343</a>
 <a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -375,6 +387,10 @@
 <span class="kw">use </span>pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 <span class="kw">use </span>pallet_evm_precompile_batch::BatchPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_blake2::Blake2F;
+<span class="kw">use </span>pallet_evm_precompile_bls12381::{
+	Bls12381G1Add, Bls12381G1MultiExp, Bls12381G2Add, Bls12381G2MultiExp, Bls12381MapG1,
+	Bls12381MapG2, Bls12381Pairing,
+};
 <span class="kw">use </span>pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 <span class="kw">use </span>pallet_evm_precompile_call_permit::CallPermitPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_collective::CollectivePrecompile;
@@ -483,6 +499,14 @@
 	PrecompileAt&lt;AddressU64&lt;<span class="number">7</span>&gt;, Bn128Mul, EthereumPrecompilesChecks&gt;,
 	PrecompileAt&lt;AddressU64&lt;<span class="number">8</span>&gt;, Bn128Pairing, EthereumPrecompilesChecks&gt;,
 	PrecompileAt&lt;AddressU64&lt;<span class="number">9</span>&gt;, Blake2F, EthereumPrecompilesChecks&gt;,
+	<span class="comment">// 10 is not implemented, Ethereum uses this slot for Point Evaluation
+	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">11</span>&gt;, Bls12381G1Add, EthereumPrecompilesChecks&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">12</span>&gt;, Bls12381G1MultiExp, EthereumPrecompilesChecks&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">13</span>&gt;, Bls12381G2Add, EthereumPrecompilesChecks&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">14</span>&gt;, Bls12381G2MultiExp, EthereumPrecompilesChecks&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">15</span>&gt;, Bls12381Pairing, EthereumPrecompilesChecks&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">16</span>&gt;, Bls12381MapG1, EthereumPrecompilesChecks&gt;,
+	PrecompileAt&lt;AddressU64&lt;<span class="number">17</span>&gt;, Bls12381MapG2, EthereumPrecompilesChecks&gt;,
 	<span class="comment">// (0x100 =&gt; 256) https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
 	</span>PrecompileAt&lt;AddressU64&lt;<span class="number">256</span>&gt;, P256Verify&lt;P256VerifyWeight&gt;, EthereumPrecompilesChecks&gt;,
 	<span class="comment">// Non-Moonbeam specific nor Ethereum precompiles :
