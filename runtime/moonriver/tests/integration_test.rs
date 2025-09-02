@@ -142,7 +142,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::XcmpQueue>("XcmpQueue");
 	is_pallet_prefix::<moonriver_runtime::CumulusXcm>("CumulusXcm");
 	is_pallet_prefix::<moonriver_runtime::PolkadotXcm>("PolkadotXcm");
-	is_pallet_prefix::<moonriver_runtime::Assets>("Assets");
 	is_pallet_prefix::<moonriver_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonriver_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonriver_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -447,7 +446,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::XcmpQueue>(100);
 	is_pallet_index::<moonriver_runtime::CumulusXcm>(101);
 	is_pallet_index::<moonriver_runtime::PolkadotXcm>(103);
-	is_pallet_index::<moonriver_runtime::Assets>(104);
+	// is_pallet_index::<moonriver_runtime::Assets>(104);
 	// is_pallet_index::<moonriver_runtime::AssetManager>(105); Removed
 	// is_pallet_index::<moonriver_runtime::XTokens>(106); Removed
 	is_pallet_index::<moonriver_runtime::XcmTransactor>(107);
