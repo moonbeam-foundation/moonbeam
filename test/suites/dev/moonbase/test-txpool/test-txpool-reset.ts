@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D013909",
+  id: "D023909",
   title: "TxPool - Genesis",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Upload scripts
         uses: actions/upload-artifact@v4
         with:
@@ -38,7 +38,7 @@ jobs:
     outputs:
       rust_version: ${{ steps.get-version.outputs.rust_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: get-version
         run: |
           RUST_VERSION=$(cat rust-toolchain | grep channel | grep --only-matching --perl-regexp "(\d+\.){2}\d+(-nightly)?")
@@ -57,7 +57,7 @@ jobs:
         srtool_image_tag:
           - ${{ needs.read-rust-version.outputs.rust_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
@@ -111,7 +111,7 @@ jobs:
       asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0

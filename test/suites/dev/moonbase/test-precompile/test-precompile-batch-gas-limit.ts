@@ -7,7 +7,7 @@ import { extractRevertReason } from "../../../../helpers";
 // Casting of type in solidity is performing truncation:
 // https://docs.soliditylang.org/en/latest/types.html#conversions-between-elementary-types
 describeSuite({
-  id: "D012821",
+  id: "D022810",
   title: "Precompile Batch - Overflowing gasLimit",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

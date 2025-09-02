@@ -1,9 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
 import { alith } from "@moonwall/util";
+import { stripNulls } from "../../../../helpers";
 
 describeSuite({
-  id: "D013301",
+  id: "D023301",
   title: "Referenda - FastGeneralAdmin",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -55,7 +56,7 @@ describeSuite({
         const tracks = context.polkadotJs().consts.referenda.tracks;
         const trackName = tracks.find(([index, info]) => index.toString() === track)![1].name;
 
-        expect(trackName.toString()).to.be.eq("fast_general_admin");
+        expect(stripNulls(trackName.toString())).to.be.eq("fast_general_admin");
       },
     });
   },

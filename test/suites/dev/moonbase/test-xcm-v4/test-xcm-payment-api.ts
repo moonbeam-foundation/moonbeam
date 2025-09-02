@@ -1,104 +1,32 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ApiPromise, WsProvider } from "@polkadot/api";
+import { type ApiPromise, WsProvider } from "@polkadot/api";
 import {
   XcmFragment,
-  registerOldForeignAsset,
+  registerForeignAsset,
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION,
+  addAssetToWeightTrader,
 } from "../../../../helpers";
 
-// TODO: remove once we upgrade @polkadot/api to v12.1.1
-const runtimeApi = {
-  runtime: {
-    XcmPaymentApi: [
-      {
-        methods: {
-          query_acceptable_payment_assets: {
-            description: "The API to query acceptable payment assets",
-            params: [
-              {
-                name: "version",
-                type: "u32",
-              },
-            ],
-            type: "Result<Vec<XcmVersionedAssetId>, XcmPaymentApiError>",
-          },
-          query_weight_to_asset_fee: {
-            description: "",
-            params: [
-              {
-                name: "weight",
-                type: "WeightV2",
-              },
-              {
-                name: "asset",
-                type: "XcmVersionedAssetId",
-              },
-            ],
-            type: "Result<u128, XcmPaymentApiError>",
-          },
-          query_xcm_weight: {
-            description: "",
-            params: [
-              {
-                name: "message",
-                type: "XcmVersionedXcm",
-              },
-            ],
-            type: "Result<WeightV2, XcmPaymentApiError>",
-          },
-          query_delivery_fees: {
-            description: "",
-            params: [
-              {
-                name: "destination",
-                type: "XcmVersionedLocation",
-              },
-              {
-                name: "message",
-                type: "XcmVersionedXcm",
-              },
-            ],
-            type: "Result<XcmVersionedAssets, XcmPaymentApiError>",
-          },
-        },
-        version: 1,
-      },
-    ],
-  },
-  types: {
-    XcmPaymentApiError: {
-      _enum: {
-        Unimplemented: "Null",
-        VersionedConversionFailed: "Null",
-        WeightNotComputable: "Null",
-        UnhandledXcmVersion: "Null",
-        AssetNotFound: "Null",
-      },
-    },
-  },
-};
-
 describeSuite({
-  id: "D014131",
+  id: "D024220",
   title: "XCM - XcmPaymentApi",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let polkadotJs: ApiPromise;
+    const assetId = 1n;
 
     beforeAll(async function () {
-      // TODO: this won't be needed after we upgrade @polkadot/api to v12.1.1
-      polkadotJs = await ApiPromise.create({
-        provider: new WsProvider(`ws://localhost:${process.env.MOONWALL_RPC_PORT}/`),
-        ...runtimeApi,
-      });
+      polkadotJs = context.polkadotJs();
 
-      await registerOldForeignAsset(
+      await registerForeignAsset(
         context,
+        assetId,
         RELAY_SOURCE_LOCATION,
-        relayAssetMetadata as any,
-        20000000000
+        relayAssetMetadata as any
       );
+
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 1_000_000_000_000_000_000n, context);
     });
 
     it({
@@ -151,9 +79,8 @@ describeSuite({
 
         expect(weightToForeignFee.isOk).to.be.true;
 
-        // (unitsPerSec * weight.ref_time()) / WEIGHT_REF_TIME_PER_SECOND
-        // (20_000_000_000 * 10_000_000_000) / 1_000_000_000_000
-        expect(BigInt(weightToForeignFee.asOk.toJSON())).to.eq(200_000_000n);
+        // Foreign asset registered in Weight Trader with a 1-1 relative price to the native asset
+        expect(BigInt(weightToForeignFee.asOk.toJSON())).to.eq(125_000_000_000_000n);
 
         const transactWeightAtMost = {
           refTime: 500_000_000n,
@@ -184,7 +111,9 @@ describeSuite({
               originKind: "SovereignAccount",
               requireWeightAtMost: transactWeightAtMost,
               call: {
-                encoded: "0x",
+                encoded: polkadotJs.tx.balances
+                  .transferAllowDeath("0x0000000000000000000000000000000000000000", 1000000000n)
+                  .method.toHex(),
               },
             },
           })
@@ -196,7 +125,7 @@ describeSuite({
         expect(weightMessage.asOk.proofSize.toBigInt() > transactWeightAtMost.proofSize).to.be.true;
 
         const dest = {
-          V2: {
+          V3: {
             parents: 1,
             interior: "Here",
           },

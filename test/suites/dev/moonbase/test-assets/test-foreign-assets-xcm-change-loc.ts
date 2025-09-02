@@ -7,7 +7,7 @@ import type { AnyJson } from "@polkadot/types-codec/types";
 import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
-  id: "D014113",
+  id: "D020111",
   title: "Changing a Foreign Asset XCM Location via XCM",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

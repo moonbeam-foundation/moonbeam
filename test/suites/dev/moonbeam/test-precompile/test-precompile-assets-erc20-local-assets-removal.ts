@@ -3,7 +3,7 @@ import { ALITH_ADDRESS } from "@moonwall/util";
 import type { Abi } from "viem";
 
 describeSuite({
-  id: "D020101",
+  id: "D030101",
   title: "Precompiles - Assets-ERC20 (LocalAssets Removal)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

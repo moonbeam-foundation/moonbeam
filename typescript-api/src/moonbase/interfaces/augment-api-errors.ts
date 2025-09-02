@@ -55,6 +55,14 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       CallbackFailed: AugmentedError<ApiType>;
       /**
+       * The asset cannot be destroyed because some accounts for this asset contain freezes.
+       **/
+      ContainsFreezes: AugmentedError<ApiType>;
+      /**
+       * The asset cannot be destroyed because some accounts for this asset contain holds.
+       **/
+      ContainsHolds: AugmentedError<ApiType>;
+      /**
        * The origin account is frozen.
        **/
       Frozen: AugmentedError<ApiType>;
@@ -394,6 +402,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       BalanceLow: AugmentedError<ApiType>;
       /**
+       * Address not allowed to deploy contracts either via CREATE or CALL(CREATE).
+       **/
+      CreateOriginNotAllowed: AugmentedError<ApiType>;
+      /**
        * Calculating total fee overflowed
        **/
       FeeOverflow: AugmentedError<ApiType>;
@@ -452,14 +464,23 @@ declare module "@polkadot/api-base/types/errors" {
       AssetDoesNotExist: AugmentedError<ApiType>;
       AssetIdFiltered: AugmentedError<ApiType>;
       AssetNotFrozen: AugmentedError<ApiType>;
+      AssetNotInSiblingPara: AugmentedError<ApiType>;
+      CannotConvertLocationToAccount: AugmentedError<ApiType>;
       CorruptedStorageOrphanLocation: AugmentedError<ApiType>;
       Erc20ContractCreationFail: AugmentedError<ApiType>;
+      EvmCallMintIntoFail: AugmentedError<ApiType>;
       EvmCallPauseFail: AugmentedError<ApiType>;
+      EvmCallTransferFail: AugmentedError<ApiType>;
       EvmCallUnpauseFail: AugmentedError<ApiType>;
       EvmInternalError: AugmentedError<ApiType>;
+      /**
+       * Account has insufficient balance for locking
+       **/
+      InsufficientBalance: AugmentedError<ApiType>;
       InvalidSymbol: AugmentedError<ApiType>;
       InvalidTokenName: AugmentedError<ApiType>;
       LocationAlreadyExists: AugmentedError<ApiType>;
+      LocationOutsideOfOrigin: AugmentedError<ApiType>;
       TooManyForeignAssets: AugmentedError<ApiType>;
       /**
        * Generic error
@@ -472,6 +493,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       AlreadyClaimed: AugmentedError<ApiType>;
       /**
+       * The username cannot be unbound because it is already unbinding.
+       **/
+      AlreadyUnbinding: AugmentedError<ApiType>;
+      /**
        * Empty index.
        **/
       EmptyIndex: AugmentedError<ApiType>;
@@ -479,6 +504,11 @@ declare module "@polkadot/api-base/types/errors" {
        * Fee is changed.
        **/
       FeeChanged: AugmentedError<ApiType>;
+      /**
+       * The action cannot be performed because of insufficient privileges (e.g. authority
+       * trying to unbind a username provided by the system).
+       **/
+      InsufficientPrivileges: AugmentedError<ApiType>;
       /**
        * The index is invalid.
        **/
@@ -544,6 +574,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       NotSub: AugmentedError<ApiType>;
       /**
+       * The username cannot be removed because it is not unbinding.
+       **/
+      NotUnbinding: AugmentedError<ApiType>;
+      /**
        * The sender does not have permission to issue a username.
        **/
       NotUsernameAuthority: AugmentedError<ApiType>;
@@ -559,6 +593,10 @@ declare module "@polkadot/api-base/types/errors" {
        * Sticky judgement.
        **/
       StickyJudgement: AugmentedError<ApiType>;
+      /**
+       * The username cannot be removed because it's still in the grace period.
+       **/
+      TooEarly: AugmentedError<ApiType>;
       /**
        * Maximum amount of registrars reached. Cannot add any more.
        **/
@@ -638,41 +676,7 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       [key: string]: AugmentedError<ApiType>;
     };
-    migrations: {
-      /**
-       * Preimage already exists in the new storage.
-       **/
-      PreimageAlreadyExists: AugmentedError<ApiType>;
-      /**
-       * Preimage is larger than the new max size.
-       **/
-      PreimageIsTooBig: AugmentedError<ApiType>;
-      /**
-       * Missing preimage in original democracy storage
-       **/
-      PreimageMissing: AugmentedError<ApiType>;
-      /**
-       * Provided upper bound is too low.
-       **/
-      WrongUpperBound: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       **/
-      [key: string]: AugmentedError<ApiType>;
-    };
     moonbeamLazyMigrations: {
-      /**
-       * Fail to add an approval
-       **/
-      ApprovalFailed: AugmentedError<ApiType>;
-      /**
-       * Asset not found
-       **/
-      AssetNotFound: AugmentedError<ApiType>;
-      /**
-       * The asset type was not found
-       **/
-      AssetTypeNotFound: AugmentedError<ApiType>;
       /**
        * The contract already have metadata
        **/
@@ -681,34 +685,6 @@ declare module "@polkadot/api-base/types/errors" {
        * Contract not exist
        **/
       ContractNotExist: AugmentedError<ApiType>;
-      /**
-       * The limit cannot be zero
-       **/
-      LimitCannotBeZero: AugmentedError<ApiType>;
-      /**
-       * The location of the asset was not found
-       **/
-      LocationNotFound: AugmentedError<ApiType>;
-      /**
-       * Migration is not finished yet
-       **/
-      MigrationNotFinished: AugmentedError<ApiType>;
-      /**
-       * Fail to mint the foreign asset
-       **/
-      MintFailed: AugmentedError<ApiType>;
-      /**
-       * The name length exceeds the maximum allowed
-       **/
-      NameTooLong: AugmentedError<ApiType>;
-      /**
-       * No migration in progress
-       **/
-      NoMigrationInProgress: AugmentedError<ApiType>;
-      /**
-       * The symbol length exceeds the maximum allowed
-       **/
-      SymbolTooLong: AugmentedError<ApiType>;
       /**
        * Generic error
        **/
@@ -757,6 +733,16 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       [key: string]: AugmentedError<ApiType>;
     };
+    multiBlockMigrations: {
+      /**
+       * The operation cannot complete since some MBMs are ongoing.
+       **/
+      Ongoing: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       **/
+      [key: string]: AugmentedError<ApiType>;
+    };
     multisig: {
       /**
        * Call is already approved by this signatory.
@@ -779,7 +765,7 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       NoApprovalsNeeded: AugmentedError<ApiType>;
       /**
-       * Multisig operation not found when attempting to cancel.
+       * Multisig operation not found in storage.
        **/
       NotFound: AugmentedError<ApiType>;
       /**
@@ -787,7 +773,8 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       NoTimepoint: AugmentedError<ApiType>;
       /**
-       * Only the account that originally created the multisig is able to cancel it.
+       * Only the account that originally created the multisig is able to cancel it or update
+       * its deposits.
        **/
       NotOwner: AugmentedError<ApiType>;
       /**
@@ -840,6 +827,10 @@ declare module "@polkadot/api-base/types/errors" {
        * Prime account is not a member
        **/
       PrimeAccountNotMember: AugmentedError<ApiType>;
+      /**
+       * Proposal is still active.
+       **/
+      ProposalActive: AugmentedError<ApiType>;
       /**
        * Proposal must exist
        **/
@@ -909,7 +900,6 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestDNE: AugmentedError<ApiType>;
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
-      RemovedCall: AugmentedError<ApiType>;
       RoundLengthMustBeGreaterThanTotalSelectedCollators: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
@@ -937,10 +927,6 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       HostConfigurationNotAvailable: AugmentedError<ApiType>;
       /**
-       * No code upgrade has been authorized.
-       **/
-      NothingAuthorized: AugmentedError<ApiType>;
-      /**
        * No validation function upgrade is currently scheduled.
        **/
       NotScheduled: AugmentedError<ApiType>;
@@ -958,10 +944,6 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       TooBig: AugmentedError<ApiType>;
       /**
-       * The given code upgrade has not been authorized.
-       **/
-      Unauthorized: AugmentedError<ApiType>;
-      /**
        * The inherent which supplies the validation data did not run this block.
        **/
       ValidationDataNotAvailable: AugmentedError<ApiType>;
@@ -975,6 +957,10 @@ declare module "@polkadot/api-base/types/errors" {
        * The given account is not an identifiable sovereign account for any location.
        **/
       AccountNotSovereign: AugmentedError<ApiType>;
+      /**
+       * The alias to remove authorization for was not found.
+       **/
+      AliasNotFound: AugmentedError<ApiType>;
       /**
        * The location is invalid since it already has a subscription from us.
        **/
@@ -1004,6 +990,10 @@ declare module "@polkadot/api-base/types/errors" {
        * The assets to be sent are empty.
        **/
       Empty: AugmentedError<ApiType>;
+      /**
+       * Expiry block number is in the past.
+       **/
+      ExpiresInPast: AugmentedError<ApiType>;
       /**
        * The operation required fees to be paid which the initiator could not meet.
        **/
@@ -1054,6 +1044,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       TooManyAssets: AugmentedError<ApiType>;
       /**
+       * Too many locations authorized to alias origin.
+       **/
+      TooManyAuthorizedAliases: AugmentedError<ApiType>;
+      /**
        * The asset owner has too many locks on the asset.
        **/
       TooManyLocks: AugmentedError<ApiType>;
@@ -1070,13 +1064,6 @@ declare module "@polkadot/api-base/types/errors" {
        * The message's weight could not be determined.
        **/
       UnweighableMessage: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       **/
-      [key: string]: AugmentedError<ApiType>;
-    };
-    precompileBenchmarks: {
-      BenchmarkError: AugmentedError<ApiType>;
       /**
        * Generic error
        **/
@@ -1393,6 +1380,10 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       PrimeAccountNotMember: AugmentedError<ApiType>;
       /**
+       * Proposal is still active.
+       **/
+      ProposalActive: AugmentedError<ApiType>;
+      /**
        * Proposal must exist
        **/
       ProposalMissing: AugmentedError<ApiType>;
@@ -1537,6 +1528,10 @@ declare module "@polkadot/api-base/types/errors" {
        * The relative price cannot be zero
        **/
       PriceCannotBeZero: AugmentedError<ApiType>;
+      /**
+       * The relative price calculation overflowed
+       **/
+      PriceOverflow: AugmentedError<ApiType>;
       /**
        * XCM location filtered
        **/

@@ -6,7 +6,7 @@ import { fundAccount, getReservedBalance } from "../../../../helpers/balances.js
 import { expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
-  id: "D014111",
+  id: "D020109",
   title: "Creation Deposits for Foreign Assets via XCM",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

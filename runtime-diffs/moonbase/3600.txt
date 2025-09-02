@@ -1,0 +1,68 @@
+Pallets:
+    ~ Ethereum
+        Storage Entries:
+            + CounterForPending
+            ~ Pending (Changed: key type, value type, modifier)
+    ~ EvmForeignAssets
+        Calls:
+            ~ create_foreign_asset
+        Storage Entries:
+            + AssetsCreationDetails
+    ~ Multisig
+        Calls:
+            ~ as_multi
+            ~ as_multi_threshold_1
+    ~ OpenTechCommitteeCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: )
+    ~ ParachainStaking
+        Calls:
+            - delegate
+            - removed_call_19
+            - removed_call_20
+            - removed_call_21
+    ~ Parameters
+        Calls:
+            ~ set_parameter
+        Storage Entries:
+            ~ Parameters (Changed: key type, value type)
+    ~ Proxy
+        Calls:
+            ~ proxy
+            ~ proxy_announced
+    ~ Scheduler
+        Calls:
+            ~ schedule
+            ~ schedule_after
+            ~ schedule_named
+            ~ schedule_named_after
+    ~ Sudo
+        Calls:
+            ~ sudo
+            ~ sudo_as
+            ~ sudo_unchecked_weight
+    ~ System
+        Storage Entries:
+            ~ Events (Changed: )
+    ~ TreasuryCouncilCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: )
+    ~ Utility
+        Calls:
+            ~ as_derivative
+            ~ batch
+            ~ batch_all
+            ~ dispatch_as
+            ~ force_batch
+            ~ with_weight
+    ~ Whitelist
+        Calls:
+            ~ dispatch_whitelisted_call_with_preimage
+Runtime APIs:
+    ~ DryRunApi

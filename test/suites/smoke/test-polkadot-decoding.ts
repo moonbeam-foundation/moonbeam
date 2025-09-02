@@ -20,7 +20,7 @@ const randomHex = (nBytes) =>
 
 // TODO: This test case really spams the logs, we should find a way to make it less verbose
 describeSuite({
-  id: "S16",
+  id: "S17",
   title: "Polkadot API - Storage items",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

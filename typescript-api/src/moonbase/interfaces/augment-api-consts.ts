@@ -8,16 +8,17 @@ import "@polkadot/api-base/types/consts";
 import type { ApiTypes, AugmentedConst } from "@polkadot/api-base/types";
 import type { Bytes, Option, Vec, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec, ITuple } from "@polkadot/types-codec/types";
-import type { Perbill, Permill } from "@polkadot/types/interfaces/runtime";
+import type { AccountId20, Perbill, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
   FrameSupportPalletId,
   FrameSystemLimitsBlockLength,
   FrameSystemLimitsBlockWeights,
-  PalletReferendaTrackInfo,
+  PalletReferendaTrackDetails,
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
-  StagingXcmV4Location
+  StagingXcmV5Junctions,
+  StagingXcmV5Location
 } from "@polkadot/types/lookup";
 
 export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
@@ -185,6 +186,16 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       subAccountDeposit: u128 & AugmentedConst<ApiType>;
       /**
+       * The amount held on deposit per registered username. This value should change only in
+       * runtime upgrades with proper migration of existing deposits.
+       **/
+      usernameDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * The number of blocks that must pass to enable the permanent deletion of a username by
+       * its respective authority.
+       **/
+      usernameGracePeriod: u32 & AugmentedConst<ApiType>;
+      /**
        * Generic const
        **/
       [key: string]: Codec;
@@ -241,6 +252,26 @@ declare module "@polkadot/api-base/types/consts" {
        * `ForceRotation` to true to avoid holes in `OrbiterPerRound`.
        **/
       rotatePeriod: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
+    multiBlockMigrations: {
+      /**
+       * The maximal length of an encoded cursor.
+       *
+       * A good default needs to selected such that no migration will ever have a cursor with MEL
+       * above this limit. This is statically checked in `integrity_test`.
+       **/
+      cursorMaxLen: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximal length of an encoded identifier.
+       *
+       * A good default needs to selected such that no migration will ever have an identifier
+       * with MEL above this limit. This is statically checked in `integrity_test`.
+       **/
+      identifierMaxLen: u32 & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/
@@ -303,6 +334,11 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       leaveDelegatorsDelay: u32 & AugmentedConst<ApiType>;
       /**
+       * Threshold after which inflation become linear
+       * If you don't want to use it, set it to `()`
+       **/
+      linearInflationThreshold: Option<u128> & AugmentedConst<ApiType>;
+      /**
        * Maximum bottom delegations (not counted) per candidate
        **/
       maxBottomDelegationsPerCandidate: u32 & AugmentedConst<ApiType>;
@@ -361,6 +397,29 @@ declare module "@polkadot/api-base/types/consts" {
        * Returns the parachain ID we are running with.
        **/
       selfParaId: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
+    polkadotXcm: {
+      /**
+       * The latest supported version that we advertise. Generally just set it to
+       * `pallet_xcm::CurrentXcmVersion`.
+       **/
+      advertisedXcmVersion: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of local XCM locks that a single account may have.
+       **/
+      maxLockers: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of consumers a single remote lock may have.
+       **/
+      maxRemoteLockConsumers: u32 & AugmentedConst<ApiType>;
+      /**
+       * This chain's Universal Location.
+       **/
+      universalLocation: StagingXcmV5Junctions & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/
@@ -457,9 +516,11 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       submissionDeposit: u128 & AugmentedConst<ApiType>;
       /**
-       * Information concerning the different referendum tracks.
+       * A list of tracks.
+       *
+       * Note: if the tracks are dynamic, the value in the static metadata might be inaccurate.
        **/
-      tracks: Vec<ITuple<[u16, PalletReferendaTrackInfo]>> & AugmentedConst<ApiType>;
+      tracks: Vec<ITuple<[u16, PalletReferendaTrackDetails]>> & AugmentedConst<ApiType>;
       /**
        * The number of blocks after submission that a referendum must begin being decided by.
        * Once this passes, then anyone may cancel the referendum.
@@ -586,6 +647,9 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       burn: Permill & AugmentedConst<ApiType>;
       /**
+       * DEPRECATED: associated with `spend_local` call and will be removed in May 2025.
+       * Refer to <https://github.com/paritytech/polkadot-sdk/pull/5961> for migration to `spend`.
+       *
        * The maximum number of approvals that can wait in the spending queue.
        *
        * NOTE: This parameter is also used within the Bounties Pallet extension if enabled.
@@ -599,6 +663,10 @@ declare module "@polkadot/api-base/types/consts" {
        * The period during which an approved treasury spend has to be claimed.
        **/
       payoutPeriod: u32 & AugmentedConst<ApiType>;
+      /**
+       * Gets this pallet's derived pot account.
+       **/
+      potAccount: AccountId20 & AugmentedConst<ApiType>;
       /**
        * Period between successive spends.
        **/
@@ -671,7 +739,7 @@ declare module "@polkadot/api-base/types/consts" {
       /**
        * Self chain location.
        **/
-      selfLocation: StagingXcmV4Location & AugmentedConst<ApiType>;
+      selfLocation: StagingXcmV5Location & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/

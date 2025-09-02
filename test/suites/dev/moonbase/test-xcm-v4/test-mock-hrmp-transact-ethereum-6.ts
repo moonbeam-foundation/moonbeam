@@ -8,11 +8,11 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
-  id: "D014122",
+  id: "D024209",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -137,7 +137,7 @@ describeSuite({
             ],
             weight_limit: {
               refTime: targetXcmWeight,
-              proofSize: 120_000n,
+              proofSize: 120_583n,
             },
             descend_origin: sendingAddress,
           })

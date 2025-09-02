@@ -6,7 +6,6 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-log = { workspace = true }
 
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }

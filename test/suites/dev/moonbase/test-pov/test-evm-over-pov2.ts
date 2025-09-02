@@ -2,12 +2,11 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
 import { createEthersTransaction } from "@moonwall/util";
 import { type Abi, encodeFunctionData } from "viem";
-import { type HeavyContract, deployHeavyContracts } from "../../../../helpers";
-import { MAX_ETH_POV_PER_TX } from "../../../../helpers/constants";
+import { type HeavyContract, deployHeavyContracts, ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D012702",
-  title: "PoV Limit (3.5Mb in Dev)",
+  id: "D022702",
+  title: "PoV Limit (7.5Mb in Dev)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let proxyAddress: `0x${string}`;
@@ -16,8 +15,13 @@ describeSuite({
     let callData: `0x${string}`;
     let emptyBlockProofSize: bigint;
     const MAX_CONTRACTS = 20;
+    let MAX_ETH_POV_PER_TX: bigint;
 
     beforeAll(async () => {
+      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
+      const constants = ConstantStore(context);
+      MAX_ETH_POV_PER_TX = constants.MAX_ETH_POV_PER_TX.get(specVersion);
+
       // Create an empty block to estimate empty block proof size
       const { block } = await context.createBlock();
       // Empty blocks usually do not exceed 50kb
@@ -63,8 +67,8 @@ describeSuite({
         const { result, block } = await context.createBlock(rawSigned);
 
         log(`block.proofSize: ${block.proofSize} (successful: ${result?.successful})`);
-        expect(block.proofSize).toBeGreaterThanOrEqual(15_000);
-        expect(block.proofSize).toBeLessThanOrEqual(25_000n + emptyBlockProofSize);
+        expect(block.proofSize).toBeGreaterThanOrEqual(105_000n);
+        expect(block.proofSize).toBeLessThanOrEqual(105_000n + emptyBlockProofSize);
         expect(result?.successful).to.equal(true);
       },
     });
@@ -92,7 +96,7 @@ describeSuite({
 
         log(`block.proofSize: ${block.proofSize} (successful: ${result?.successful})`);
         // Empty blocks usually do not exceed 10kb, picking 50kb as a safe limit
-        expect(block.proofSize).to.be.at.most(25_000);
+        expect(block.proofSize).to.be.at.most(50_000);
         expect(result?.successful).to.equal(false);
       },
     });

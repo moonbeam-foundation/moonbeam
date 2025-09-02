@@ -31,12 +31,12 @@
     "nodes": [
       {
         "name": "alice",
-        "ws_port": 33346,
+        "rpc_port": 33346,
         "validator": true
       },
       {
         "name": "bob",
-        "ws_port": 33347,
+        "rpc_port": 33347,
         "validator": true
       }
     ]
@@ -47,13 +47,14 @@
       "chain": "moonbase-local",
       "collator": {
         "name": "alith",
-        "ws_port": 33345,
+        "rpc_port": 33345,
         "command": "../target/release/moonbeam",
         "args": [
           "--no-hardware-benchmarks",
           "--force-authoring",
           "-lparachain=debug",
-          "--database=paritydb"
+          "--database=paritydb",
+          "--pool-type=fork-aware"
         ]
       }
     }

@@ -7,25 +7,39 @@ import {
   maximizeConvictionVotingOf,
   whiteListTrackNoSend,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, type KeyringPair, ethan, generateKeyringPair } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  type KeyringPair,
+  ethan,
+  generateKeyringPair,
+  BALTATHAR_ADDRESS,
+} from "@moonwall/util";
 
 describeSuite({
-  id: "D013303",
+  id: "D023303",
   title: "Referenda - Submit",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let whitelistedHash: string;
     let currentRef: number;
     let randomAddress: string;
     let randomAccount: KeyringPair;
-    let randBlocksPerRound: number;
 
     beforeEach(async () => {
-      randBlocksPerRound = Math.floor(Math.random() * 1000) + 200;
       randomAccount = generateKeyringPair();
       randomAddress = randomAccount.address;
 
-      const proposal = context.pjsApi.tx.parachainStaking.setParachainBondAccount(randomAddress);
+      const proposal = context.pjsApi.tx.parachainStaking.setInflationDistributionConfig([
+        {
+          account: randomAddress,
+          percent: 30,
+        },
+        {
+          account: BALTATHAR_ADDRESS,
+          percent: 0,
+        },
+      ]);
 
       const { whitelistedHash: wlHash } = await whiteListTrackNoSend(context, proposal);
       whitelistedHash = wlHash;
@@ -144,7 +158,7 @@ describeSuite({
         await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(ALITH_ADDRESS, 90n * GLMR, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(ALITH_ADDRESS, 90n * GLMR, 0, 0, 0, 0)
             .signAsync(randomAccount)
         );
         currentRef = (await context.polkadotJs().query.referenda.referendumCount()).toNumber() - 1;

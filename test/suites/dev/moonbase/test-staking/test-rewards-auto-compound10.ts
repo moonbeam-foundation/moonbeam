@@ -13,7 +13,7 @@ import {
 import { chunk } from "../../../../helpers";
 
 describeSuite({
-  id: "D013452",
+  id: "D023453",
   title: "Staking - Rewards Auto-Compound - bottom delegation kick",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -40,7 +40,14 @@ describeSuite({
             .signAsync(baltathar),
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              alith.address,
+              MIN_GLMR_DELEGATOR,
+              0,
+              0,
+              0,
+              0
+            )
             .signAsync(ethan),
         ],
         { allowFailures: false }
@@ -68,7 +75,14 @@ describeSuite({
       await context.createBlock(
         context
           .polkadotJs()
-          .tx.parachainStaking.delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 1)
+          .tx.parachainStaking.delegateWithAutoCompound(
+            baltathar.address,
+            MIN_GLMR_DELEGATOR,
+            0,
+            0,
+            0,
+            1
+          )
           .signAsync(ethan),
         { allowFailures: false }
       );
@@ -80,10 +94,12 @@ describeSuite({
           delChunk.map((d) =>
             context
               .polkadotJs()
-              .tx.parachainStaking.delegate(
+              .tx.parachainStaking.delegateWithAutoCompound(
                 alith.address,
                 MIN_GLMR_DELEGATOR + 10n * GLMR,
+                0,
                 maxDelegationCount,
+                0,
                 1
               )
               .signAsync(d)
@@ -128,10 +144,12 @@ describeSuite({
         await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(
+            .tx.parachainStaking.delegateWithAutoCompound(
               alith.address,
               MIN_GLMR_DELEGATOR + 10n * GLMR,
+              0,
               maxDelegationCount,
+              0,
               0
             )
             .signAsync(newDelegator),

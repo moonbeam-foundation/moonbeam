@@ -4,7 +4,7 @@ import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D013461",
+  id: "D023462",
   title: "Staking - Rewards - no scheduled requests",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -17,7 +17,14 @@ describeSuite({
             .signAsync(alith),
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(alith.address, MIN_GLMR_STAKING, 0, 0)
+            .tx.parachainStaking.delegateWithAutoCompound(
+              alith.address,
+              MIN_GLMR_STAKING,
+              0,
+              0,
+              0,
+              0
+            )
             .signAsync(ethan),
         ],
         { allowFailures: false }

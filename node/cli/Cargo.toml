@@ -2,7 +2,7 @@
 name = "moonbeam-cli"
 authors = { workspace = true }
 edition = "2021"
-version = "0.44.0"
+version = "0.47.0"
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
@@ -10,6 +10,7 @@ clap-num = { workspace = true }
 log = { workspace = true }
 parity-scale-codec = { workspace = true }
 url = { workspace = true }
+ansi_term = { workspace = true }
 
 # Moonbeam
 moonbeam-cli-opt = { workspace = true }
@@ -17,30 +18,21 @@ moonbeam-service = { workspace = true }
 
 # Substrate
 frame-benchmarking-cli = { workspace = true }
-sc-chain-spec = { workspace = true }
 sc-cli = { workspace = true }
-sc-client-api = { workspace = true }
-sc-consensus-grandpa = { workspace = true }
 sc-network = { workspace = true }
 sc-service = { workspace = true }
 sc-sysinfo = { workspace = true }
-sc-telemetry = { workspace = true }
 sc-tracing = { workspace = true }
 sp-core = { workspace = true, features = ["std"] }
-sp-io = { workspace = true }
 sp-runtime = { workspace = true, features = ["std"] }
-sp-wasm-interface = { workspace = true }
-substrate-prometheus-endpoint = { workspace = true }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { workspace = true }
-cumulus-client-service = { workspace = true }
 cumulus-primitives-core = { workspace = true, features = ["std"] }
 nimbus-primitives = { workspace = true, features = ["std"] }
 
 # Polkadot
 polkadot-cli = { workspace = true }
-polkadot-parachain = { workspace = true, features = ["std"] }
 polkadot-primitives = { workspace = true }
 polkadot-service = { workspace = true }
 
@@ -51,15 +43,14 @@ substrate-build-script-utils = { workspace = true }
 default = [
     "moonbase-native",
     "moonbeam-native",
-    "moonriver-native",
-    "westend-native",
+    "moonriver-native"
 ]
 
-lazy-loading = ["sc-service/test-helpers", "moonbeam-service/lazy-loading"]
+lazy-loading = ["moonbeam-service/lazy-loading"]
 
-westend-native = ["polkadot-service/westend-native"]
+metadata-hash = ["moonbeam-service/metadata-hash"]
 
-moonbase-native = ["moonbeam-service/moonbase-native", "westend-native"]
+moonbase-native = ["moonbeam-service/moonbase-native"]
 moonbeam-native = ["moonbeam-service/moonbeam-native"]
 moonriver-native = ["moonbeam-service/moonriver-native"]
 

@@ -12,7 +12,7 @@ import {
 import { chunk } from "../../../../helpers";
 
 describeSuite({
-  id: "D013471",
+  id: "D023473",
   title: "Staking - Consts - MaxDelegationsPerDelegator",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -97,10 +97,12 @@ describeSuite({
         const { result } = await context.createBlock(
           context
             .polkadotJs()
-            .tx.parachainStaking.delegate(
+            .tx.parachainStaking.delegateWithAutoCompound(
               alith.address,
               MIN_GLMR_DELEGATOR,
+              0,
               1,
+              0,
               maxDelegationsPerDelegator + 1n
             )
             .signAsync(randomAccount)

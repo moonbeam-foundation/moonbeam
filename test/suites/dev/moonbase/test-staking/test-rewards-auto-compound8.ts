@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, baltathar, ethan } from "@
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D013459",
+  id: "D023460",
   title: "Staking - Rewards Auto-Compound - delegator revoke",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -1,0 +1,161 @@
+Pallets:
+    ~ CumulusXcm
+    ~ EVM
+        Storage Entries:
+            - Suicided
+    ~ EvmForeignAssets
+        Calls:
+            ~ change_xcm_location
+            ~ create_foreign_asset
+        Storage Entries:
+            ~ AssetsById (Changed: value type)
+            ~ AssetsByLocation (Changed: key type, value type)
+    ~ Identity
+        Calls:
+            + kill_username
+            - remove_dangling_username
+            + remove_username
+            ~ remove_username_authority
+            ~ set_username_for
+            + unbind_username
+        Constants:
+            + UsernameDeposit
+            + UsernameGracePeriod
+        Storage Entries:
+            - AccountOfUsername
+            + AuthorityOf
+            ~ IdentityOf (Changed: value type)
+            ~ PendingUsernames (Changed: value type)
+            + UnbindingUsernames
+            - UsernameAuthorities
+            + UsernameInfoOf
+            + UsernameOf
+    ~ MaintenanceMode
+    ~ Migrations
+    ~ MoonbeamLazyMigrations
+        Storage Entries:
+            - StateMigrationStatusValue
+    + MultiBlockMigrations
+    ~ Multisig
+        Calls:
+            ~ as_multi
+            ~ as_multi_threshold_1
+    ~ OpenTechCommitteeCollective
+        Calls:
+            ~ execute
+            + kill
+            ~ propose
+            + release_proposal_cost
+        Storage Entries:
+            + CostOf
+            ~ ProposalOf (Changed: value type)
+    ~ PolkadotXcm
+        Calls:
+            ~ claim_assets
+            ~ execute
+            ~ force_subscribe_version_notify
+            ~ force_unsubscribe_version_notify
+            ~ force_xcm_version
+            ~ limited_reserve_transfer_assets
+            ~ limited_teleport_assets
+            ~ reserve_transfer_assets
+            ~ send
+            ~ teleport_assets
+            ~ transfer_assets
+            ~ transfer_assets_using_type_and_then
+        Storage Entries:
+            ~ LockedFungibles (Changed: value type)
+            ~ Queries (Changed: value type)
+            ~ RecordedXcm (Changed: value type)
+            ~ RemoteLockedFungibles (Changed: key type, value type)
+            ~ SupportedVersion (Changed: key type)
+            ~ VersionDiscoveryQueue (Changed: value type)
+            ~ VersionNotifiers (Changed: key type)
+            ~ VersionNotifyTargets (Changed: key type, value type)
+    ~ Proxy
+        Calls:
+            ~ proxy
+            ~ proxy_announced
+    ~ Referenda
+        Calls:
+            ~ submit
+        Storage Entries:
+            ~ ReferendumInfoFor (Changed: value type)
+    ~ Scheduler
+        Calls:
+            ~ schedule
+            ~ schedule_after
+            ~ schedule_named
+            ~ schedule_named_after
+        Storage Entries:
+            ~ Agenda (Changed: value type)
+    ~ Sudo
+        Calls:
+            ~ sudo
+            ~ sudo_as
+            ~ sudo_unchecked_weight
+    ~ System
+        Constants:
+            ~ Version
+        Storage Entries:
+            ~ Events (Changed: )
+            ~ LastRuntimeUpgrade (Changed: value type)
+    ~ Treasury
+        Calls:
+            ~ spend
+        Storage Entries:
+            + LastSpendPeriod
+            ~ Spends (Changed: value type)
+    ~ TreasuryCouncilCollective
+        Calls:
+            ~ execute
+            + kill
+            ~ propose
+            + release_proposal_cost
+        Storage Entries:
+            + CostOf
+            ~ ProposalOf (Changed: value type)
+    ~ Utility
+        Calls:
+            ~ as_derivative
+            ~ batch
+            ~ batch_all
+            ~ dispatch_as
+            ~ force_batch
+            ~ with_weight
+    ~ Whitelist
+        Calls:
+            ~ dispatch_whitelisted_call_with_preimage
+    ~ XcmTransactor
+        Calls:
+            ~ hrmp_manage
+            ~ remove_fee_per_second
+            ~ remove_transact_info
+            ~ set_fee_per_second
+            ~ set_transact_info
+            ~ transact_through_derivative
+            ~ transact_through_signed
+            ~ transact_through_sovereign
+        Constants:
+            ~ SelfLocation
+        Storage Entries:
+            ~ DestinationAssetFeePerSecond (Changed: key type)
+            ~ TransactInfoWithWeightLimit (Changed: key type, value type)
+    ~ XcmWeightTrader
+        Calls:
+            ~ add_asset
+            ~ edit_asset
+            ~ pause_asset_support
+            ~ remove_asset
+            ~ resume_asset_support
+        Storage Entries:
+            ~ SupportedAssets (Changed: key type, value type)
+Runtime APIs:
+    ~ BlockBuilder
+    ~ Core
+    ~ DebugRuntimeApi
+    ~ DryRunApi
+    ~ EthereumRuntimeRPCApi
+    ~ LocationToAccountApi
+    ~ TaggedTransactionQueue
+    ~ XcmPaymentApi

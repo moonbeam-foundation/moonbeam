@@ -9,7 +9,7 @@ import {
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D010403",
+  id: "D010103",
   title: "Block creation - suite 2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

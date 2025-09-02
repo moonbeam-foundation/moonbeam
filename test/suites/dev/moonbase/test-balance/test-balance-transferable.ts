@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, GLMR, baltathar, checkBalance, generateKeyringPair } fro
 import { createProposal } from "../../../../helpers/voting.ts";
 
 describeSuite({
-  id: "D010307",
+  id: "D020307",
   title: "Balance - Transferable",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -34,7 +34,7 @@ describeSuite({
           const { result: res } = await context.createBlock(
             context
               .polkadotJs()
-              .tx.parachainStaking.delegate(ALITH_ADDRESS, 20n * GLMR, 10, 10)
+              .tx.parachainStaking.delegateWithAutoCompound(ALITH_ADDRESS, 20n * GLMR, 0, 10, 0, 10)
               .signAsync(randomAccount)
           );
           expect(res!.successful).to.be.true;

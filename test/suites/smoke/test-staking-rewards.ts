@@ -37,7 +37,7 @@ interface PaymentRounds {
 }
 
 describeSuite({
-  id: "S22",
+  id: "S23",
   title: "When verifying ParachainStaking rewards",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

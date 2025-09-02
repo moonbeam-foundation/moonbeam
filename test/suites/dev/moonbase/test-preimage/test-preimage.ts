@@ -1,11 +1,17 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect, notePreimage } from "@moonwall/cli";
-import { ALITH_ADDRESS, MICROGLMR, alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  MICROGLMR,
+  alith,
+  BALTATHAR_ADDRESS,
+  DEFAULT_GENESIS_BALANCE,
+} from "@moonwall/util";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
-  id: "D012901",
+  id: "D022901",
   title: "Preimage - general",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -16,9 +22,7 @@ describeSuite({
         const encodedProposal =
           context
             .polkadotJs()
-            .tx.parachainStaking.setParachainBondAccount(
-              privateKeyToAccount(generatePrivateKey()).address
-            )
+            .tx.balances.forceSetBalance(BALTATHAR_ADDRESS, DEFAULT_GENESIS_BALANCE)
             .method.toHex() || "";
         const encodedHash = blake2AsHex(encodedProposal);
         await context.createBlock(context.polkadotJs().tx.preimage.notePreimage(encodedProposal));
@@ -32,7 +36,7 @@ describeSuite({
         const proposer = preimageStatus.unwrap().asUnrequested.ticket[0].toString();
         const balance = preimageStatus.unwrap().asUnrequested.ticket[1].toBigInt();
         expect(proposer.toLowerCase()).to.eq(ALITH_ADDRESS.toLowerCase());
-        expect(balance).to.eq(5002200n * MICROGLMR);
+        expect(balance).to.eq(5003400n * MICROGLMR);
       },
     });
 
@@ -44,9 +48,7 @@ describeSuite({
           context,
           context
             .polkadotJs()
-            .tx.parachainStaking.setParachainBondAccount(
-              privateKeyToAccount(generatePrivateKey()).address
-            ),
+            .tx.balances.forceSetBalance(BALTATHAR_ADDRESS, DEFAULT_GENESIS_BALANCE),
           alith
         );
 

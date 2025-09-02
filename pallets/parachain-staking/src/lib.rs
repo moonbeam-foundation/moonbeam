@@ -82,7 +82,6 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
-	use frame_support::fail;
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
@@ -193,6 +192,10 @@ pub mod pallet {
 		/// Maximum candidates
 		#[pallet::constant]
 		type MaxCandidates: Get<u32>;
+		/// Threshold after which inflation become linear
+		/// If you don't want to use it, set it to `()`
+		#[pallet::constant]
+		type LinearInflationThreshold: Get<Option<BalanceOf<Self>>>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}
@@ -252,7 +255,6 @@ pub mod pallet {
 		TooLowCandidateCountWeightHintGoOffline,
 		CandidateLimitReached,
 		CannotSetAboveMaxCandidates,
-		RemovedCall,
 		MarkingOfflineNotEnabled,
 		CurrentRoundTooLow,
 	}
@@ -892,42 +894,6 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// Deprecated: please use `set_inflation_distribution_config` instead.
-		///
-		///  Set the account that will hold funds set aside for parachain bond
-		#[pallet::call_index(2)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_account())]
-		pub fn set_parachain_bond_account(
-			origin: OriginFor<T>,
-			new: T::AccountId,
-		) -> DispatchResultWithPostInfo {
-			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
-			let old = <InflationDistributionInfo<T>>::get().0;
-			let new = InflationDistributionAccount {
-				account: new,
-				percent: old[0].percent.clone(),
-			};
-			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()].into())
-		}
-
-		/// Deprecated: please use `set_inflation_distribution_config` instead.
-		///
-		/// Set the percent of inflation set aside for parachain bond
-		#[pallet::call_index(3)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_reserve_percent())]
-		pub fn set_parachain_bond_reserve_percent(
-			origin: OriginFor<T>,
-			new: Percent,
-		) -> DispatchResultWithPostInfo {
-			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
-			let old = <InflationDistributionInfo<T>>::get().0;
-			let new = InflationDistributionAccount {
-				account: old[0].account.clone(),
-				percent: new,
-			};
-			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()].into())
-		}
-
 		/// Set the total number of collator candidates selected per round
 		/// - changes are not applied until the start of the next round
 		#[pallet::call_index(4)]
@@ -1169,32 +1135,6 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// DEPRECATED use delegateWithAutoCompound
-		/// If caller is not a delegator and not a collator, then join the set of delegators
-		/// If caller is a delegator, then makes delegation to change their delegation state
-		#[pallet::call_index(17)]
-		#[pallet::weight(
-			<T as Config>::WeightInfo::delegate_with_auto_compound_worst()
-		)]
-		pub fn delegate(
-			origin: OriginFor<T>,
-			candidate: T::AccountId,
-			amount: BalanceOf<T>,
-			candidate_delegation_count: u32,
-			delegation_count: u32,
-		) -> DispatchResultWithPostInfo {
-			let delegator = ensure_signed(origin)?;
-			<AutoCompoundDelegations<T>>::delegate_with_auto_compound(
-				candidate,
-				delegator,
-				amount,
-				Percent::zero(),
-				candidate_delegation_count,
-				0,
-				delegation_count,
-			)
-		}
-
 		/// If caller is not a delegator and not a collator, then join the set of delegators
 		/// If caller is a delegator, then makes delegation to change their delegation state
 		/// Sets the auto-compound config for the delegation
@@ -1225,27 +1165,6 @@ pub mod pallet {
 				candidate_auto_compounding_delegation_count,
 				delegation_count,
 			)
-		}
-
-		/// REMOVED, was schedule_leave_delegators
-		#[pallet::call_index(19)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
-		pub fn removed_call_19(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			fail!(Error::<T>::RemovedCall)
-		}
-
-		/// REMOVED, was execute_leave_delegators
-		#[pallet::call_index(20)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
-		pub fn removed_call_20(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			fail!(Error::<T>::RemovedCall)
-		}
-
-		/// REMOVED, was cancel_leave_delegators
-		#[pallet::call_index(21)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_staking_expectations())]
-		pub fn removed_call_21(_origin: OriginFor<T>) -> DispatchResultWithPostInfo {
-			fail!(Error::<T>::RemovedCall)
 		}
 
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
@@ -1350,35 +1269,6 @@ pub mod pallet {
 				candidate_auto_compounding_delegation_count_hint,
 				delegation_count_hint,
 			)
-		}
-
-		/// Hotfix to remove existing empty entries for candidates that have left.
-		#[pallet::call_index(28)]
-		#[pallet::weight(
-			T::DbWeight::get().reads_writes(2 * candidates.len() as u64, candidates.len() as u64)
-		)]
-		pub fn hotfix_remove_delegation_requests_exited_candidates(
-			origin: OriginFor<T>,
-			candidates: Vec<T::AccountId>,
-		) -> DispatchResult {
-			ensure_signed(origin)?;
-			ensure!(candidates.len() < 100, <Error<T>>::InsufficientBalance);
-			for candidate in &candidates {
-				ensure!(
-					<CandidateInfo<T>>::get(&candidate).is_none(),
-					<Error<T>>::CandidateNotLeaving
-				);
-				ensure!(
-					<DelegationScheduledRequests<T>>::get(&candidate).is_empty(),
-					<Error<T>>::CandidateNotLeaving
-				);
-			}
-
-			for candidate in candidates {
-				<DelegationScheduledRequests<T>>::remove(candidate);
-			}
-
-			Ok(().into())
 		}
 
 		/// Notify a collator is inactive during MaxOfflineRounds

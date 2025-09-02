@@ -6,10 +6,7 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-log = { workspace = true }
-num_enum = { workspace = true }
 paste = { workspace = true }
-slices = { workspace = true }
 
 # Moonbeam
 account = { workspace = true }
@@ -18,7 +15,6 @@ account = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-balances = { workspace = true }
-pallet-timestamp = { workspace = true }
 parity-scale-codec = { workspace = true, features = ["max-encoded-len"] }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
@@ -31,10 +27,8 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 precompile-utils = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
 hex-literal = { workspace = true }
 libsecp256k1 = { workspace = true }
-serde = { workspace = true }
 sha3 = { workspace = true }
 
 # Moonbeam

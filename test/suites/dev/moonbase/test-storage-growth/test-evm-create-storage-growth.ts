@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { expectEVMResult } from "helpers/eth-transactions";
 
 describeSuite({
-  id: "D013502",
+  id: "D023502",
   title: "Storage growth limit - Contract Creation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

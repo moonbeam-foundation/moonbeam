@@ -8,7 +8,7 @@ import {
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../../helpers";
 
 describeSuite({
-  id: "D010303",
+  id: "D020303",
   title: "Balance genesis",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -12,7 +12,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D010109",
+  id: "D020104",
   title: "XCM - Create new foreign asset",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

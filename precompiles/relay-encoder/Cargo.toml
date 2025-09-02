@@ -6,9 +6,6 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-log = { workspace = true }
-num_enum = { workspace = true }
-rustc-hex = { workspace = true }
 
 # Moonbeam
 pallet-xcm-transactor = { workspace = true }
@@ -32,10 +29,6 @@ precompile-utils = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
-hex-literal = { workspace = true }
-serde = { workspace = true }
-sha3 = { workspace = true }
 
 # Moonbeam
 precompile-utils = { workspace = true, features = ["std", "testing"] }

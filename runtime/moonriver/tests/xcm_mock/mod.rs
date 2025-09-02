@@ -148,6 +148,7 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![(PARAALICE.into(), INITIAL_BALANCE)],
+		dev_accounts: None,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -207,6 +208,7 @@ pub fn statemine_ext(para_id: u32) -> sp_io::TestExternalities {
 			(RELAYALICE.into(), INITIAL_BALANCE),
 			(RELAYBOB.into(), INITIAL_BALANCE),
 		],
+		dev_accounts: None,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -228,6 +230,7 @@ pub fn relay_ext(paras: Vec<u32>) -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![(RELAYALICE, INITIAL_BALANCE)],
+		dev_accounts: None,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();

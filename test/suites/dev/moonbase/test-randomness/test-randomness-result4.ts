@@ -6,7 +6,7 @@ import type { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { jumpBlocks, SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
-  id: "D013110",
+  id: "D023110",
   title: "Randomness Result - Passing targetted block",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -35,7 +35,7 @@ use frame_support::{
 use frame_system::{EnsureNever, EnsureRoot};
 use sp_core::H160;
 
-use parity_scale_codec::{Compact, Decode, Encode};
+use parity_scale_codec::{Compact, Decode, DecodeWithMemTracking, Encode};
 use scale_info::TypeInfo;
 
 use sp_std::{
@@ -102,6 +102,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 	type AssetIdParameter = Compact<AssetId>;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
 	type CallbackHandle = ();
+	type Holder = ();
 	pallet_assets::runtime_benchmarks_enabled! {
 		type BenchmarkHelper = BenchmarkHelper;
 	}
@@ -158,11 +159,23 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 			},
 		)
 		.get_dispatch_info()
-		.weight
+		.total_weight()
 	}
 }
 
-#[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+#[derive(
+	Clone,
+	Default,
+	Eq,
+	Debug,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	TypeInfo,
+	DecodeWithMemTracking,
+)]
 pub struct AssetRegistrarMetadata {
 	pub name: Vec<u8>,
 	pub symbol: Vec<u8>,

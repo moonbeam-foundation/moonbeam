@@ -21,6 +21,7 @@ use precompile_utils::prelude::PrecompileHandle;
 use sp_core::{H160, H256};
 use sp_std::{boxed::Box, vec, vec::Vec};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Subcall {
 	pub address: H160,
@@ -87,7 +88,7 @@ impl PrecompileHandle for MockHandle {
 		if self
 			.record_cost(precompile_utils::evm::costs::call_cost(
 				context.apparent_value,
-				&evm::Config::cancun(),
+				&evm::Config::pectra(),
 			))
 			.is_err()
 		{
@@ -182,5 +183,13 @@ impl PrecompileHandle for MockHandle {
 	/// Retreive the gas limit of this call.
 	fn gas_limit(&self) -> Option<u64> {
 		Some(self.gas_limit)
+	}
+
+	fn origin(&self) -> H160 {
+		unimplemented!()
+	}
+
+	fn is_contract_being_constructed(&self, _address: H160) -> bool {
+		false
 	}
 }

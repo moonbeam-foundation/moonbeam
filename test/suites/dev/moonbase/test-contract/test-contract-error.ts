@@ -17,7 +17,7 @@ import { verifyLatestBlockFees } from "../../../../helpers";
 
 // TODO: expand these tests to do multiple txn types when added to viem
 describeSuite({
-  id: "D010603",
+  id: "D020502",
   title: "Contract loop error",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

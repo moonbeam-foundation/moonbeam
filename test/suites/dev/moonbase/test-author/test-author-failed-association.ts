@@ -11,7 +11,7 @@ import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D010202",
+  id: "D020202",
   title: "Author Mapping - Fail to reassociate alice",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -42,9 +42,9 @@ describeSuite({
 
         // should check events for failure
         expect(result?.events.length === 6);
-        expect(api.events.system.NewAccount.is(result?.events[2].event)).to.be.true;
-        expect(api.events.balances.Endowed.is(result?.events[3].event)).to.be.true;
-        expect(api.events.system.ExtrinsicFailed.is(result?.events[6].event)).to.be.true;
+        expect(api.events.system.NewAccount.is(result?.events[1].event)).to.be.true;
+        expect(api.events.balances.Endowed.is(result?.events[2].event)).to.be.true;
+        expect(api.events.system.ExtrinsicFailed.is(result?.events[5].event)).to.be.true;
 
         //check state
         expect((await api.query.system.account(BALTATHAR_ADDRESS)).data.free.toBigInt()).to.eq(

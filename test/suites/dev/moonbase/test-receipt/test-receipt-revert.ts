@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { getAddress } from "viem";
 
 describeSuite({
-  id: "D013201",
+  id: "D023201",
   title: "Receipt - Revert",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -19,11 +19,11 @@ describeSuite({
         expect(getAddress(receipt.contractAddress!)).toBe(
           getAddress("0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3")
         );
-        expect(receipt.cumulativeGasUsed).toBe(54605n);
+        expect(receipt.cumulativeGasUsed).toBe(54604n);
         expect(getAddress(receipt.from!)).toBe(
           getAddress("0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac")
         );
-        expect(receipt.gasUsed).toBe(54605n);
+        expect(receipt.gasUsed).toBe(54604n);
         expect(receipt.logs).toStrictEqual([]);
         expect(receipt.transactionHash).toBe(hash);
         expect(receipt.to).toBe(null);

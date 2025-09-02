@@ -6,7 +6,7 @@ import { ALITH_ADDRESS, GLMR, generateKeyringPair } from "@moonwall/util";
 // A signed call cannot make a transfer directly in pallet_evm
 
 describeSuite({
-  id: "D011501",
+  id: "D021501",
   title: "Pallet EVM - Transfering",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -30,6 +30,7 @@ describeSuite({
                   1_000_000_000n,
                   "0",
                   null,
+                  [],
                   []
                 )
             )

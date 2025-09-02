@@ -13,7 +13,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Local build new Node
         uses: ./.github/workflow-templates/cargo-build
       - name: Upload Node
@@ -24,13 +24,13 @@ jobs:
 
   update-typescript-api:
     needs: build
-    runs-on: moonbeam-release-medium
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Download Node
         uses: actions/download-artifact@v4
         with:

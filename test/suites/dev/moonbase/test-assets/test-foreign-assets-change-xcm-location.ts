@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import type { ApiPromise } from "@polkadot/api";
 import {
-  PARA_1000_SOURCE_LOCATION_V4,
+  ASSET_HUB_LOCATION,
   RELAY_SOURCE_LOCATION_V4,
   registerForeignAsset,
   relayAssetMetadata,
@@ -10,7 +10,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D010106",
+  id: "D020105",
   title: "XCM - Change existing asset's XCM location",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -34,9 +34,7 @@ describeSuite({
       title: "should change the asset location",
       test: async function () {
         const { result } = await context.createBlock(
-          api.tx.sudo.sudo(
-            api.tx.evmForeignAssets.changeXcmLocation(assetId, PARA_1000_SOURCE_LOCATION_V4)
-          )
+          api.tx.sudo.sudo(api.tx.evmForeignAssets.changeXcmLocation(assetId, ASSET_HUB_LOCATION))
         );
 
         const locationChangeEvent = (result as any).events.find(
@@ -51,7 +49,7 @@ describeSuite({
           JSON.stringify(RELAY_SOURCE_LOCATION_V4).toLowerCase()
         );
         expect(JSON.stringify(newLocation).toLowerCase()).to.eq(
-          JSON.stringify(PARA_1000_SOURCE_LOCATION_V4).toLowerCase()
+          JSON.stringify(ASSET_HUB_LOCATION).toLowerCase()
         );
         expect(BigInt(id)).to.eq(BigInt(assetId));
       },

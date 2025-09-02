@@ -20,9 +20,11 @@ use super::*;
 use crate as pallet_xcm_transactor;
 use cumulus_primitives_core::Assets;
 use frame_support::traits::PalletInfo as PalletInfoTrait;
-use frame_support::{construct_runtime, parameter_types, weights::Weight};
+use frame_support::{
+	construct_runtime, dispatch::GetDispatchInfo, parameter_types, weights::Weight,
+};
 use frame_system::EnsureRoot;
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 
 use sp_core::{H160, H256};
 use sp_io;
@@ -97,6 +99,7 @@ impl frame_system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -115,6 +118,7 @@ impl pallet_balances::Config for Test {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {
@@ -132,7 +136,7 @@ const XCM_VERSION_ROOT_KEY: &'static [u8] = b"XCM_VERSION_ROOT_KEY";
 
 pub struct CustomVersionWrapper;
 impl WrapVersion for CustomVersionWrapper {
-	fn wrap_version<RuntimeCall>(
+	fn wrap_version<RuntimeCall: Decode + GetDispatchInfo>(
 		_dest: &xcm::latest::Location,
 		xcm: impl Into<VersionedXcm<RuntimeCall>>,
 	) -> Result<VersionedXcm<RuntimeCall>, ()> {
@@ -203,7 +207,7 @@ impl<C: Decode> WeightBounds<C> for DummyWeigher<C> {
 	fn weight(_message: &mut Xcm<C>) -> Result<Weight, ()> {
 		Ok(Weight::zero())
 	}
-	fn instr_weight(_instruction: &Instruction<C>) -> Result<Weight, ()> {
+	fn instr_weight(_instruction: &mut Instruction<C>) -> Result<Weight, ()> {
 		Ok(Weight::zero())
 	}
 }
@@ -273,7 +277,18 @@ pub enum HrmpCall {
 }
 
 // Transactors for the mock runtime. Only relay chain
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
+#[derive(
+	Clone,
+	Eq,
+	Debug,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	scale_info::TypeInfo,
+	DecodeWithMemTracking,
+)]
 pub enum Transactors {
 	Relay,
 }
@@ -309,7 +324,18 @@ impl UtilityEncodeCall for Transactors {
 }
 
 pub type AssetId = u128;
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
+#[derive(
+	Clone,
+	Eq,
+	Debug,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	scale_info::TypeInfo,
+	DecodeWithMemTracking,
+)]
 pub enum CurrencyId {
 	SelfReserve,
 	OtherReserve(AssetId),
@@ -432,6 +458,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: self.balances,
+			dev_accounts: None,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

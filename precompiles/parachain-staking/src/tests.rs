@@ -42,6 +42,7 @@ fn evm_call(source: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None, // Use the next nonce
 		access_list: Vec::new(),
+		authorization_list: Vec::new(),
 	}
 }
 
@@ -73,7 +74,7 @@ fn selectors() {
 	assert!(PCall::schedule_candidate_bond_less_selectors().contains(&0x60744ae0));
 	assert!(PCall::execute_candidate_bond_less_selectors().contains(&0x2e290290));
 	assert!(PCall::cancel_candidate_bond_less_selectors().contains(&0xb5ad5f07));
-	assert!(PCall::delegate_selectors().contains(&0x829f5ee3));
+	assert!(PCall::delegate_with_auto_compound_selectors().contains(&0x4b8bc9bf));
 	assert!(PCall::schedule_revoke_delegation_selectors().contains(&0x1a1c740c));
 	assert!(PCall::delegator_bond_more_selectors().contains(&0x0465135b));
 	assert!(PCall::schedule_delegator_bond_less_selectors().contains(&0xc172fd2b));
@@ -113,7 +114,7 @@ fn modifiers() {
 		tester.test_default_modifier(PCall::schedule_candidate_bond_less_selectors());
 		tester.test_default_modifier(PCall::execute_candidate_bond_less_selectors());
 		tester.test_default_modifier(PCall::cancel_candidate_bond_less_selectors());
-		tester.test_default_modifier(PCall::delegate_selectors());
+		tester.test_default_modifier(PCall::delegate_with_auto_compound_selectors());
 		tester.test_default_modifier(PCall::schedule_revoke_delegation_selectors());
 		tester.test_default_modifier(PCall::delegator_bond_more_selectors());
 		tester.test_default_modifier(PCall::schedule_delegator_bond_less_selectors());
@@ -685,7 +686,7 @@ fn delegation_request_is_pending_works() {
 						candidate: Address(Alice.into()),
 					},
 				)
-				.expect_cost(285706258)
+				.expect_cost(272791237)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -753,7 +754,7 @@ fn candidate_exit_is_pending_works() {
 						candidate_count: 1.into(),
 					},
 				)
-				.expect_cost(284172042)
+				.expect_cost(264694393)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -817,7 +818,7 @@ fn candidate_request_is_pending_works() {
 					Precompile1,
 					PCall::schedule_candidate_bond_less { less: 0.into() },
 				)
-				.expect_cost(146735000)
+				.expect_cost(136000000)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -1198,10 +1199,12 @@ fn delegate_works() {
 		.with_candidates(vec![(Alice.into(), 1_000)])
 		.build()
 		.execute_with(|| {
-			let input_data = PCall::delegate {
+			let input_data = PCall::delegate_with_auto_compound {
 				candidate: Address(Alice.into()),
 				amount: 1_000.into(),
+				auto_compound: 0.into(),
 				candidate_delegation_count: 0.into(),
+				candidate_auto_compounding_delegation_count: 0.into(),
 				delegator_delegation_count: 0.into(),
 			}
 			.into();

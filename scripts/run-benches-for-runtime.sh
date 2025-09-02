@@ -41,8 +41,15 @@ for PALLET in "${PALLETS[@]}"; do
     output_file="${PALLET//::/_}.rs"
   fi
 
+  # TODO: Remove once this issue has been fixed: https://github.com/paritytech/polkadot-sdk/issues/8993
+  if [[ $PALLET == "pallet_bridge_messages" ]]; then
+    export RUST_LOG="runtime::bridge-xcm=off"
+  else
+    unset RUST_LOG
+  fi
+
   OUTPUT=$(
-    ./target/${profile}/moonbeam benchmark pallet \
+    ./frame-omni-bencher v1 benchmark pallet \
       --runtime="./target/${profile}/wbuild/${runtime}-runtime/${runtime}_runtime.wasm" \
       --genesis-builder=runtime \
       --genesis-builder-preset=development \
@@ -53,7 +60,7 @@ for PALLET in "${PALLETS[@]}"; do
       --wasm-execution=compiled \
       --header=./file_header.txt \
       --template=./benchmarking/frame-weight-template.hbs \
-      --output="./runtime/${output}/src/weights/${output_file}" 2>&1
+      --output="./runtime/${output}/src/weights" 2>&1
   )
   if [ $? -ne 0 ]; then
     echo "$OUTPUT" >> "$ERR_FILE"

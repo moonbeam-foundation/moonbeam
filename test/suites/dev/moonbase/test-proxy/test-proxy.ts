@@ -12,7 +12,7 @@ import {
 // Charleth is used as a target account when making transfers.
 
 describeSuite({
-  id: "D013006",
+  id: "D023002",
   title: "Proxy - proxy",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

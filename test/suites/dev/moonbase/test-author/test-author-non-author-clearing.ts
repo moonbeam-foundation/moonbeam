@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, baltathar, BALTATHAR_SESSION_ADDRESS } from "@moonwall/u
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D010205",
+  id: "D020205",
   title: "Author Mapping - non author clearing",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -24,7 +24,7 @@ describeSuite({
         );
 
         expect(result?.events.length === 4);
-        expect(api.events.system.ExtrinsicFailed.is(result?.events[4].event)).to.be.true;
+        expect(api.events.system.ExtrinsicFailed.is(result?.events[3].event)).to.be.true;
       },
     });
   },

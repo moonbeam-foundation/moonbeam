@@ -1,0 +1,5 @@
+Network: ../../../../configs/moonriver-kusama.toml
+Creds: config
+
+# relay is already started - let's wait until with-Polkadot GRANPDA pallet is initialized at Moonriver
+alith: js-script {{FRAMEWORK_PATH}}/js-helpers/best-finalized-header-at-bridged-chain.js with "Polkadot,0" within 400 seconds
