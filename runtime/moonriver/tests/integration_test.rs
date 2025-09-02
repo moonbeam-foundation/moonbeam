@@ -2330,6 +2330,7 @@ fn call_pallet_xcm_with_fee() {
 // TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee_after_ahm() {
+	let asset_id = 1;
 	ExtBuilder::default()
 		.asset_hub_migration_has_started()
 		.with_balances(vec![
@@ -2338,19 +2339,15 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 		])
 		.with_safe_xcm_version(3)
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id,
+			xcm_location: Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {
@@ -2359,14 +2356,13 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 				}]
 				.into(),
 			};
-			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
 
 			let before_balance =
-				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			let (chain_part, beneficiary) =
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
-			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100_000_000_000_000);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100);
 
 			// Once the AH migration starts, we should no longer be able to use the parent location as reserve.
 			assert_noop!(
@@ -2382,7 +2378,7 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 			);
 
 			let after_balance =
-				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			// At least these much (plus fees) should have been charged
 			assert_eq!(before_balance, after_balance);
 		});
@@ -2391,6 +2387,7 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 // TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee_before_ahm() {
+	let asset_id = 1;
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
@@ -2398,19 +2395,15 @@ fn call_pallet_xcm_with_fee_before_ahm() {
 		])
 		.with_safe_xcm_version(3)
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id,
+			xcm_location: Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {
@@ -2419,14 +2412,13 @@ fn call_pallet_xcm_with_fee_before_ahm() {
 				}]
 				.into(),
 			};
-			let source_id: moonriver_runtime::AssetId = source_location.clone().into();
 
 			let before_balance =
-				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			let (chain_part, beneficiary) =
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
-			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100_000_000_000_000);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100);
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
@@ -2438,9 +2430,12 @@ fn call_pallet_xcm_with_fee_before_ahm() {
 			));
 
 			let after_balance =
-				moonriver_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			// At least these much (plus fees) should have been charged
-			assert_eq!(before_balance - 100_000_000_000_000 - 100, after_balance);
+			assert_eq!(
+				before_balance - 100_000_000_000_000u128 - 100u128,
+				after_balance
+			);
 		});
 }
 

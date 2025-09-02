@@ -69,6 +69,7 @@ use std::str::from_utf8;
 use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::ConvertLocation;
+use xcm_primitives::split_location_into_chain_part_and_beneficiary;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
 type CrowdloanRewardsPCall =
@@ -2257,11 +2258,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 // TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee() {
-	let asset_type = AssetType::Xcm(
-		VersionedLocation::from(AssetHubLocation::get())
-			.try_into()
-			.unwrap(),
-	);
+	let asset_id = 1;
 
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -2269,17 +2266,13 @@ fn call_pallet_xcm_with_fee() {
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
 		.with_safe_xcm_version(3)
-		.with_evm_native_foreign_assets()
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: asset_type.clone(),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id,
+			xcm_location: Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
@@ -2291,17 +2284,15 @@ fn call_pallet_xcm_with_fee() {
 				}]
 				.into(),
 			};
-			let source_id: moonbeam_runtime::AssetId = asset_type.clone().into();
 
 			let before_balance =
-				EvmForeignAssets::balance(source_id, AccountId::from(ALICE)).unwrap();
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			let (chain_part, beneficiary) =
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
 			let asset_amount = 100_000_000_000_000u128;
 			let asset_fee_amount = 100u128;
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), asset_amount);
-			let asset_fee =
-				currency_to_asset(CurrencyId::ForeignAsset(source_id), asset_fee_amount);
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), asset_amount);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), asset_fee_amount);
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
@@ -2313,7 +2304,7 @@ fn call_pallet_xcm_with_fee() {
 			));
 
 			let after_balance =
-				EvmForeignAssets::balance(source_id, AccountId::from(ALICE)).unwrap();
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			// At least these much (plus fees) should have been charged
 			assert_eq!(
 				before_balance
@@ -2327,6 +2318,7 @@ fn call_pallet_xcm_with_fee() {
 // TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee_after_ahm() {
+	let asset_id = 1;
 	ExtBuilder::default()
 		.asset_hub_migration_has_started()
 		.with_balances(vec![
@@ -2335,19 +2327,15 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 		])
 		.with_safe_xcm_version(3)
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id,
+			xcm_location: Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {
@@ -2356,14 +2344,13 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 				}]
 				.into(),
 			};
-			let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
 
 			let before_balance =
-				moonbeam_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			let (chain_part, beneficiary) =
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
-			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100_000_000_000_000);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100);
 
 			// Once the AH migration starts, we should no longer be able to use the parent location as reserve.
 			assert_noop!(
@@ -2379,7 +2366,7 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 			);
 
 			let after_balance =
-				moonbeam_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			// At least these much (plus fees) should have been charged
 			assert_eq!(before_balance, after_balance);
 		});
@@ -2388,6 +2375,7 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 // TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee_before_ahm() {
+	let asset_id = 1;
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
@@ -2395,19 +2383,15 @@ fn call_pallet_xcm_with_fee_before_ahm() {
 		])
 		.with_safe_xcm_version(3)
 		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(xcm::v3::Location::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
+			asset_id,
+			xcm_location: Location::parent(),
+			name: "RelayToken",
+			symbol: "Relay",
+			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
 		}])
 		.build()
 		.execute_with(|| {
-			let source_location = AssetType::Xcm(xcm::v3::Location::parent());
 			let dest = Location {
 				parents: 1,
 				interior: [AccountId32 {
@@ -2416,14 +2400,12 @@ fn call_pallet_xcm_with_fee_before_ahm() {
 				}]
 				.into(),
 			};
-			let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
-
 			let before_balance =
-				moonbeam_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			let (chain_part, beneficiary) =
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100_000_000_000_000);
-			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(source_id), 100);
+			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100_000_000_000_000);
+			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100);
 			// We are able to transfer with fee
 			assert_ok!(PolkadotXcm::transfer_assets(
 				origin_of(AccountId::from(ALICE)),
@@ -2435,9 +2417,12 @@ fn call_pallet_xcm_with_fee_before_ahm() {
 			));
 
 			let after_balance =
-				moonbeam_runtime::Assets::balance(source_id, &AccountId::from(ALICE));
+				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
 			// At least these much (plus fees) should have been charged
-			assert_eq!(before_balance - 100_000_000_000_000 - 100, after_balance);
+			assert_eq!(
+				before_balance - 100_000_000_000_000u128 - 100u128,
+				after_balance
+			);
 		});
 }
 
