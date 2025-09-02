@@ -61,23 +61,6 @@ parameter_types! {
 	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
 }
 
-/// We allow Root and General Admin to execute privileged asset operations.
-pub type AssetsForceOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
-
-// Required for runtime benchmarks
-pallet_assets::runtime_benchmarks_enabled! {
-	pub struct BenchmarkHelper;
-	impl<AssetIdParameter> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper
-	where
-		AssetIdParameter: From<u128>,
-	{
-		fn create_asset_id_parameter(id: u32) -> AssetIdParameter {
-			(id as u128).into()
-		}
-	}
-}
-
 // Instruct how to go from an H160 to an AssetID
 // We just take the lowest 128 bits
 impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {

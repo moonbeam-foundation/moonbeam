@@ -61,49 +61,6 @@ parameter_types! {
 	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
 }
 
-/// We allow Root and General Admin to execute privileged asset operations.
-pub type AssetsForceOrigin =
-	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
-
-// Required for runtime benchmarks
-pallet_assets::runtime_benchmarks_enabled! {
-	pub struct BenchmarkHelper;
-	impl<AssetIdParameter> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper
-	where
-		AssetIdParameter: From<u128>,
-	{
-		fn create_asset_id_parameter(id: u32) -> AssetIdParameter {
-			(id as u128).into()
-		}
-	}
-}
-
-// Foreign assets
-impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = AssetsForceOrigin;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = ConstU128<{ currency::deposit(1, 18) }>;
-	type WeightInfo = moonbeam_weights::pallet_assets::WeightInfo<Runtime>;
-	type RemoveItemsLimit = ConstU32<{ REMOVE_ITEMS_LIMIT }>;
-	type AssetIdParameter = Compact<AssetId>;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
-	type CallbackHandle = ();
-	type Holder = ();
-	pallet_assets::runtime_benchmarks_enabled! {
-		type BenchmarkHelper = BenchmarkHelper;
-	}
-}
-
 // Instruct how to go from an H160 to an AssetID
 // We just take the lowest 128 bits
 impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
