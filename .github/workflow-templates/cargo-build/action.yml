@@ -39,7 +39,7 @@ runs:
         fi
         rustup override unset
         rustup show
-        rustup target add wasm32v1-none
+        rustup target add wasm32-unknown-unknown
     - name: Build Node
       shell: bash
       run: |

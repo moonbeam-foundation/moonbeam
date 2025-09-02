@@ -61,7 +61,7 @@ jobs:
           fi
           rustup override unset
           rustup show
-          rustup target add wasm32v1-none
+          rustup target add wasm32-unknown-unknown
       - name: Install frame-omni-bencher
         shell: bash
         run: |
