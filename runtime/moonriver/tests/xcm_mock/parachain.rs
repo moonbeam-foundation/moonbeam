@@ -702,6 +702,7 @@ impl pallet_xcm::Config for Runtime {
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
+	type AssetHubMigrationStarted = ConstBool<false>;
 }
 
 // We instruct how to register the Assets
@@ -1165,7 +1166,9 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::{Disabled, OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
+use frame_support::traits::{
+	ConstBool, Disabled, OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade,
+};
 use moonriver_runtime::{currency, xcm_config::LocationToH160, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
 use pallet_evm::FrameSystemAccountProvider;
 use xcm_primitives::AsAssetType;
