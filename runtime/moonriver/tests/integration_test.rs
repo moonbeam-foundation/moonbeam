@@ -21,8 +21,6 @@
 mod common;
 
 use common::*;
-use std::cell::Cell;
-use std::rc::Rc;
 
 use fp_evm::{Context, IsPrecompileResult};
 use frame_support::{
@@ -35,7 +33,6 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
-use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use moonriver_runtime::currency::{GIGAWEI, WEI};
 use moonriver_runtime::runtime_params::dynamic_params;
 use moonriver_runtime::xcm_config::{AssetHubLocation, LocationToAccountId, XcmExecutor};
@@ -43,15 +40,13 @@ use moonriver_runtime::{
 	asset_config::ForeignAssetInstance,
 	moonriver_xcm_weights,
 	xcm_config::{CurrencyId, SelfReserve},
-	AssetId, Balances, CrowdloanRewards, EvmForeignAssets, Executive, OpenTechCommitteeCollective,
+	Balances, CrowdloanRewards, EvmForeignAssets, Executive, OpenTechCommitteeCollective,
 	PolkadotXcm, Precompiles, RuntimeBlockWeights, TransactionPayment,
-	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor, WEEKS,
 };
 use moonriver_xcm_weights::XcmWeight;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
-use pallet_evm_precompileset_assets_erc20::{SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER};
 use pallet_moonbeam_foreign_assets::AssetStatus;
 use pallet_parachain_staking::InflationDistributionAccount;
 use pallet_transaction_payment::Multiplier;
@@ -82,11 +77,6 @@ type CrowdloanRewardsPCall =
 type XcmUtilsPCall = pallet_evm_precompile_xcm_utils::XcmUtilsPrecompileCall<
 	Runtime,
 	moonriver_runtime::xcm_config::XcmExecutorConfig,
->;
-type XtokensPCall = pallet_evm_precompile_xtokens::XtokensPrecompileCall<Runtime>;
-type ForeignAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSetCall<
-	Runtime,
-	ForeignAssetInstance,
 >;
 type XcmTransactorV2PCall =
 	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;

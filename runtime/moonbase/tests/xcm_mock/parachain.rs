@@ -17,9 +17,7 @@
 //! Parachain runtime mock.
 
 use frame_support::{
-	construct_runtime,
-	dispatch::GetDispatchInfo,
-	ensure, parameter_types,
+	construct_runtime, ensure, parameter_types,
 	traits::{
 		fungible::NativeOrWithId, AsEnsureOriginWithArg, ConstU32, EitherOf, Everything, Get,
 		InstanceFilter, Nothing, PalletInfoAccess,
@@ -56,14 +54,12 @@ use xcm::latest::{
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, EnsureXcmOrigin, FixedWeightBounds,
-	FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, IsConcrete, NoChecking,
-	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, WithComputedOrigin,
+	FungibleAdapter as XcmCurrencyAdapter, IsConcrete, NoChecking, ParentAsSuperuser,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
-use xcm_executor::{traits::JustTry, Config, XcmExecutor};
+use xcm_executor::{Config, XcmExecutor};
 
-pub use moonbase_runtime::xcm_config::AssetType;
 #[cfg(feature = "runtime-benchmarks")]
 use moonbeam_runtime_common::benchmarking::BenchmarkHelper as ArgumentsBenchmarkHelper;
 use scale_info::TypeInfo;
@@ -1081,7 +1077,6 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 use frame_support::traits::{Disabled, OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
 use moonbase_runtime::{currency, xcm_config::LocationToH160, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
 use pallet_evm::FrameSystemAccountProvider;
-use xcm_primitives::AsAssetType;
 
 pub(crate) fn on_runtime_upgrade() {
 	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();

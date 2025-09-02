@@ -23,9 +23,9 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 pub use moonbeam_runtime::{
-	currency::GLMR, xcm_config::AssetType, AccountId, AssetId, AsyncBacking, AuthorInherent,
-	Balance, Ethereum, InflationInfo, ParachainStaking, Range, Runtime, RuntimeCall, RuntimeEvent,
-	System, TransactionConverter, UncheckedExtrinsic, HOURS,
+	currency::GLMR, AccountId, AsyncBacking, AuthorInherent, Balance, Ethereum, InflationInfo,
+	ParachainStaking, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
+	UncheckedExtrinsic, HOURS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use polkadot_parachain::primitives::HeadData;
@@ -38,7 +38,6 @@ use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
 use moonbeam_runtime::bridge_config::XcmOverKusamaInstance;
 use moonbeam_runtime::{EvmForeignAssets, XcmWeightTrader};
-use pallet_transaction_payment::Multiplier;
 use std::collections::BTreeMap;
 use xcm::latest::{InteriorLocation, Location};
 

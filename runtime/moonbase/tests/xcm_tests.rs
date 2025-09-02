@@ -24,7 +24,6 @@ use frame_support::{
 	weights::Weight,
 	BoundedVec,
 };
-use moonbase_runtime::xcm_config::AssetType;
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, HrmpInitParams, HrmpOperation, TransactWeights,
 };
@@ -40,7 +39,7 @@ use xcm::{
 	},
 	VersionedAssets,
 };
-use xcm::{IntoVersion, VersionedLocation, WrapVersion};
+use xcm::{VersionedLocation, WrapVersion};
 use xcm_executor::traits::ConvertLocation;
 use xcm_mock::*;
 use xcm_primitives::{

@@ -269,7 +269,6 @@ pub type Assets = pallet_assets::Pallet<parachain::Runtime, parachain::ForeignAs
 pub type EvmForeignAssets = pallet_moonbeam_foreign_assets::Pallet<parachain::Runtime>;
 
 pub type Treasury = pallet_treasury::Pallet<parachain::Runtime>;
-pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
 pub type XcmTransactor = pallet_xcm_transactor::Pallet<parachain::Runtime>;
