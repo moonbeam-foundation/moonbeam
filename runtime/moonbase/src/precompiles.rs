@@ -144,6 +144,7 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<AddressU64<7>, Bn128Mul, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<8>, Bn128Pairing, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<9>, Blake2F, EthereumPrecompilesChecks>,
+	// 10 is not implemented, Ethereum uses this slot for Point Evaluation
 	PrecompileAt<AddressU64<11>, Bls12381G1Add, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<12>, Bls12381G1MultiExp, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<13>, Bls12381G2Add, EthereumPrecompilesChecks>,

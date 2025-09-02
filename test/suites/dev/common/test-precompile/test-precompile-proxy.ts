@@ -513,7 +513,6 @@ describeSuite({
         expectEVMResult(result!.events, "Succeed");
 
         const { abi: ierc20Abi } = fetchCompiledContract("IERC20");
-
         expect(
           async () =>
             await context.writePrecompile!({
