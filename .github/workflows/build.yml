@@ -498,7 +498,6 @@ jobs:
           target: wasm32v1-none
       - name: Install required dependencies
         run: |
-          sudo apt-get install -y libprotobuf-dev protobuf-compiler
           cargo +nightly install cargo-udeps
       - name: Check for unused dependencies
         run: |
