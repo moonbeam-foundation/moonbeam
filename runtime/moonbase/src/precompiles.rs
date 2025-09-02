@@ -15,10 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::moonbase_weights;
-use crate::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
-	TreasuryCouncilInstance,
-};
+use crate::{xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance, TreasuryCouncilInstance};
 use crate::{AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160};
 use frame_support::parameter_types;
 use moonkit_xcm_primitives::{
@@ -58,7 +55,6 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_precompile_benchmarks::WeightInfo;
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;

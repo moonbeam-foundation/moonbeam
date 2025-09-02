@@ -18,21 +18,13 @@
 //!
 
 use super::{
-	currency, governance, AccountId, AssetId, Balance, Balances, Runtime, RuntimeEvent,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	currency, AccountId, AssetId, Balance, Runtime, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-use super::moonriver_weights;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
-use frame_support::{
-	parameter_types,
-	traits::{AsEnsureOriginWithArg, ConstU128, ConstU32, EitherOfDiverse},
-};
-use frame_system::{EnsureNever, EnsureRoot};
+use frame_support::parameter_types;
 use sp_core::H160;
-
-use parity_scale_codec::Compact;
 
 use sp_std::{
 	convert::{From, Into},
