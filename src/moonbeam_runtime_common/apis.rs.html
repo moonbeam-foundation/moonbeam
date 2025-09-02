@@ -2054,8 +2054,8 @@
 							pallet_author_inherent::Author::&lt;Runtime&gt;::put(<span class="kw-2">&amp;</span>alice);
 
 							<span class="kw">let </span>caller: AccountId = frame_benchmarking::account(<span class="string">"caller"</span>, <span class="number">0</span>, <span class="number">0</span>);
-							<span class="kw">let </span>balance = <span class="number">100_000_000_000_000u64</span>.into();
-							&lt;Balances <span class="kw">as </span>frame_support::traits::Currency&lt;<span class="kw">_</span>&gt;&gt;::make_free_balance_be(<span class="kw-2">&amp;</span>caller, balance);
+							<span class="kw">let </span>balance = <span class="number">1_000_000_000_000_000_000u64</span>.into(); <span class="comment">// 1 UNIT
+							</span>&lt;Balances <span class="kw">as </span>frame_support::traits::Currency&lt;<span class="kw">_</span>&gt;&gt;::make_free_balance_be(<span class="kw-2">&amp;</span>caller, balance);
 						}
 					}
 
