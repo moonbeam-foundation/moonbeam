@@ -873,48 +873,7 @@
 <a href="#872" id="872">872</a>
 <a href="#873" id="873">873</a>
 <a href="#874" id="874">874</a>
-<a href="#875" id="875">875</a>
-<a href="#876" id="876">876</a>
-<a href="#877" id="877">877</a>
-<a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a>
-<a href="#885" id="885">885</a>
-<a href="#886" id="886">886</a>
-<a href="#887" id="887">887</a>
-<a href="#888" id="888">888</a>
-<a href="#889" id="889">889</a>
-<a href="#890" id="890">890</a>
-<a href="#891" id="891">891</a>
-<a href="#892" id="892">892</a>
-<a href="#893" id="893">893</a>
-<a href="#894" id="894">894</a>
-<a href="#895" id="895">895</a>
-<a href="#896" id="896">896</a>
-<a href="#897" id="897">897</a>
-<a href="#898" id="898">898</a>
-<a href="#899" id="899">899</a>
-<a href="#900" id="900">900</a>
-<a href="#901" id="901">901</a>
-<a href="#902" id="902">902</a>
-<a href="#903" id="903">903</a>
-<a href="#904" id="904">904</a>
-<a href="#905" id="905">905</a>
-<a href="#906" id="906">906</a>
-<a href="#907" id="907">907</a>
-<a href="#908" id="908">908</a>
-<a href="#909" id="909">909</a>
-<a href="#910" id="910">910</a>
-<a href="#911" id="911">911</a>
-<a href="#912" id="912">912</a>
-<a href="#913" id="913">913</a>
-<a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#875" id="875">875</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -934,10 +893,10 @@
 //!
 
 </span><span class="kw">use super</span>::{
-	bridge_config, governance, AccountId, AssetId, AssetManager, Balance, Balances,
-	BridgeXcmOverMoonbeam, EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode,
-	MessageQueue, OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm,
-	Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	bridge_config, governance, AccountId, AssetId, Balance, Balances, BridgeXcmOverMoonbeam,
+	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
+	OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
 };
 
 <span class="kw">use </span><span class="kw">super</span>::moonriver_weights;
@@ -957,10 +916,9 @@
 
 <span class="kw">use </span>xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, DescribeAllTerminal, DescribeFamily,
-	EnsureXcmOrigin, FungibleAdapter <span class="kw">as </span>XcmCurrencyAdapter, FungiblesAdapter,
-	GlobalConsensusParachainConvertsFor, HashedDescription, NoChecking, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	AllowTopLevelPaidExecutionFrom, Case, DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin,
+	FungibleAdapter <span class="kw">as </span>XcmCurrencyAdapter, GlobalConsensusParachainConvertsFor, HashedDescription,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
 	WeightInfoBounds, WithComputedOrigin, WithUniqueTopic,
 };
@@ -974,13 +932,13 @@
 	IntoVersion,
 };
 
-<span class="kw">use </span>xcm_executor::traits::{CallDispatcher, ConvertLocation, JustTry};
+<span class="kw">use </span>xcm_executor::traits::{CallDispatcher, ConvertLocation};
 
 <span class="kw">use </span>cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 <span class="kw">use </span>frame_support::traits::Disabled;
 <span class="kw">use </span>pallet_xcm::EnsureXcm;
 <span class="kw">use </span>xcm_primitives::{
-	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation, AsAssetType,
+	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation,
 	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
 	UtilityEncodeCall, XcmTransact,
 };
@@ -1044,30 +1002,6 @@
 	}
 }
 
-<span class="comment">// The non-reserve fungible transactor type
-// It will use pallet-assets, and the Id will be matched against AsAssetType
-</span><span class="kw">pub type </span>ForeignFungiblesTransactor = FungiblesAdapter&lt;
-	<span class="comment">// Use this fungibles implementation:
-	</span><span class="kw">super</span>::Assets,
-	<span class="comment">// Use this currency when it is a fungible asset matching the given location or name:
-	</span>(
-		ConvertedConcreteId&lt;
-			AssetId,
-			Balance,
-			AsAssetType&lt;AssetId, AssetType, AssetManager&gt;,
-			JustTry,
-		&gt;,
-	),
-	<span class="comment">// Do a simple punn to convert an AccountId20 Location into a native chain account ID:
-	</span>LocationToAccountId,
-	<span class="comment">// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	</span>AccountId,
-	<span class="comment">// We dont allow teleports.
-	</span>NoChecking,
-	<span class="comment">// We dont track any teleports
-	</span>(),
-&gt;;
-
 <span class="doccomment">/// The transactor for our own chain currency.
 </span><span class="kw">pub type </span>LocalAssetTransactor = XcmCurrencyAdapter&lt;
 	<span class="comment">// Use this currency:
@@ -1090,12 +1024,7 @@
 // Local assets, both pre and post 0.9.16
 // We can remove the Old reanchor once
 // we import https://github.com/open-web3-stack/open-runtime-module-library/pull/708
-</span><span class="kw">pub type </span>AssetTransactors = (
-	LocalAssetTransactor,
-	EvmForeignAssets,
-	ForeignFungiblesTransactor,
-	Erc20XcmBridge,
-);
+</span><span class="kw">pub type </span>AssetTransactors = (LocalAssetTransactor, EvmForeignAssets, Erc20XcmBridge);
 
 <span class="doccomment">/// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -1651,10 +1580,7 @@
 	<span class="kw">type </span>SovereignAccountDispatcherOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>CurrencyId = CurrencyId;
 	<span class="kw">type </span>AccountIdToLocation = AccountIdToLocation&lt;AccountId&gt;;
-	<span class="kw">type </span>CurrencyIdToLocation = CurrencyIdToLocation&lt;(
-		EvmForeignAssets,
-		AsAssetType&lt;AssetId, AssetType, AssetManager&gt;,
-	)&gt;;
+	<span class="kw">type </span>CurrencyIdToLocation = CurrencyIdToLocation&lt;(EvmForeignAssets,)&gt;;
 	<span class="kw">type </span>XcmSender = XcmRouter;
 	<span class="kw">type </span>SelfLocation = SelfLocation;
 	<span class="kw">type </span>Weigher = XcmWeigher;
@@ -1698,15 +1624,6 @@
 	}
 }
 
-<span class="kw">pub struct </span>EvmForeignAssetIdFilter;
-<span class="kw">impl </span>frame_support::traits::Contains&lt;AssetId&gt; <span class="kw">for </span>EvmForeignAssetIdFilter {
-	<span class="kw">fn </span>contains(asset_id: <span class="kw-2">&amp;</span>AssetId) -&gt; bool {
-		<span class="kw">use </span>xcm_primitives::AssetTypeGetter <span class="kw">as _</span>;
-		<span class="comment">// We should return true only if the AssetId doesn't exist in AssetManager
-		</span>AssetManager::get_asset_type(<span class="kw-2">*</span>asset_id).is_none()
-	}
-}
-
 <span class="kw">pub type </span>ForeignAssetManagerOrigin = EitherOf&lt;
 	MapSuccessToXcm&lt;EnsureXcm&lt;AllowSiblingParachains&gt;&gt;,
 	MapSuccessToGovernance&lt;
@@ -1729,7 +1646,7 @@
 &gt;;
 <span class="kw">impl </span>pallet_moonbeam_foreign_assets::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>AccountIdToH160 = AccountIdToH160;
-	<span class="kw">type </span>AssetIdFilter = EvmForeignAssetIdFilter;
+	<span class="kw">type </span>AssetIdFilter = Everything;
 	<span class="kw">type </span>EvmRunner = EvmRunnerPrecompileOrEthXcm&lt;MoonbeamCall, <span class="self">Self</span>&gt;;
 	<span class="kw">type </span>ConvertLocation =
 		SiblingParachainConvertsVia&lt;polkadot_parachain::primitives::Sibling, AccountId&gt;;
@@ -1795,22 +1712,23 @@
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
 	<span class="doccomment">/// This From exists for benchmarking purposes. It has the potential side-effect of calling
-	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
+	/// EvmForeignAssets::set_asset() and should NOT be used in any production code.
 	</span><span class="kw">impl </span>From&lt;Location&gt; <span class="kw">for </span>CurrencyId {
 		<span class="kw">fn </span>from(location: Location) -&gt; CurrencyId {
-			<span class="kw">use </span>xcm_primitives::AssetTypeGetter;
+			<span class="kw">use </span>sp_runtime::traits::MaybeEquivalence;
 
 			<span class="comment">// If it does not exist, for benchmarking purposes, we create the association
-			</span><span class="kw">let </span>asset_id = <span class="kw">if let </span><span class="prelude-val">Some</span>(asset_id) =
-				AsAssetType::&lt;AssetId, AssetType, AssetManager&gt;::convert_location(<span class="kw-2">&amp;</span>location)
-			{
+			</span><span class="kw">let </span>asset_id = <span class="kw">if let </span><span class="prelude-val">Some</span>(asset_id) = EvmForeignAssets::convert(<span class="kw-2">&amp;</span>location) {
 				asset_id
 			} <span class="kw">else </span>{
-				<span class="kw">let </span>asset_type: AssetType = location
-					.try_into()
-					.expect(<span class="string">"Location convertion to AssetType should succeed"</span>);
-				<span class="kw">let </span>asset_id: AssetId = asset_type.clone().into();
-				AssetManager::set_asset_type_asset_id(asset_type, asset_id);
+				<span class="comment">// Generate asset ID from location hash (similar to old AssetManager approach)
+				</span><span class="kw">let </span>hash: H256 =
+					location.using_encoded(&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash);
+				<span class="kw">let </span><span class="kw-2">mut </span>result: [u8; <span class="number">16</span>] = [<span class="number">0u8</span>; <span class="number">16</span>];
+				result.copy_from_slice(<span class="kw-2">&amp;</span>hash.as_fixed_bytes()[<span class="number">0</span>..<span class="number">16</span>]);
+				<span class="kw">let </span>asset_id = u128::from_le_bytes(result);
+
+				EvmForeignAssets::set_asset(location, asset_id);
 				asset_id
 			};
 

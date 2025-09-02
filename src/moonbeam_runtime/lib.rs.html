@@ -2083,8 +2083,7 @@
 <a href="#2082" id="2082">2082</a>
 <a href="#2083" id="2083">2083</a>
 <a href="#2084" id="2084">2084</a>
-<a href="#2085" id="2085">2085</a>
-<a href="#2086" id="2086">2086</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#2085" id="2085">2085</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -3571,8 +3570,8 @@
 		<span class="comment">// Previously 102: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event&lt;T&gt;}
 		</span>PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event&lt;T&gt;, Origin, Config&lt;T&gt;} = <span class="number">103</span>,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">104</span>,
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">105</span>,
-		<span class="comment">// Previously 106: XTokens
+		<span class="comment">// Previously 105: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event&lt;T&gt;}
+		// Previously 106: XTokens
 		</span>XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">107</span>,
 		<span class="comment">// Previously 108: pallet_assets::&lt;Instance1&gt;
 		</span>EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event&lt;T&gt;} = <span class="number">109</span>,
@@ -3645,7 +3644,6 @@
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_message_queue, MessageQueue]
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::&lt;Runtime&gt;]
-		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
 		[pallet_moonbeam_foreign_assets, EvmForeignAssets]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]

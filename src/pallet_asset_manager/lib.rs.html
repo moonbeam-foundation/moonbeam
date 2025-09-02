@@ -328,12 +328,7 @@
 <a href="#327" id="327">327</a>
 <a href="#328" id="328">328</a>
 <a href="#329" id="329">329</a>
-<a href="#330" id="330">330</a>
-<a href="#331" id="331">331</a>
-<a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
-<a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#330" id="330">330</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -429,11 +424,6 @@
 
 		<span class="kw">fn </span>get_asset_id(asset_type: T::ForeignAssetType) -&gt; <span class="prelude-ty">Option</span>&lt;T::AssetId&gt; {
 			AssetTypeId::&lt;T&gt;::get(asset_type)
-		}
-		<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
-		</span><span class="kw">fn </span>set_asset_type_asset_id(asset_type: T::ForeignAssetType, asset_id: T::AssetId) {
-			AssetTypeId::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>asset_type, asset_id);
-			AssetIdType::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>asset_id, asset_type);
 		}
 	}
 

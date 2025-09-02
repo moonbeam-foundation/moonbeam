@@ -96,11 +96,7 @@
 <a href="#95" id="95">95</a>
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#98" id="98">98</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -190,10 +186,6 @@
 
 	<span class="comment">// Get assetId from assetType
 	</span><span class="kw">fn </span>get_asset_id(asset_type: AssetType) -&gt; <span class="prelude-ty">Option</span>&lt;AssetId&gt;;
-
-	<span class="comment">// Set assetId and assetType
-	</span><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
-	</span><span class="kw">fn </span>set_asset_type_asset_id(asset_type: AssetType, asset_id: AssetId);
 }
 
 <span class="doccomment">/// This trait ensure we can convert AccountIds to CurrencyIds

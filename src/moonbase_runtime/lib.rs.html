@@ -2014,9 +2014,7 @@
 <a href="#2013" id="2013">2013</a>
 <a href="#2014" id="2014">2014</a>
 <a href="#2015" id="2015">2015</a>
-<a href="#2016" id="2016">2016</a>
-<a href="#2017" id="2017">2017</a>
-<a href="#2018" id="2018">2018</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#2016" id="2016">2016</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -3481,8 +3479,8 @@
 		</span>PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event&lt;T&gt;, Origin, Config&lt;T&gt;} = <span class="number">28</span>,
 		Assets: pallet_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">29</span>,
 		<span class="comment">// Previously 30: XTokens
-		</span>AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">31</span>,
-		<span class="comment">// [Removed] Migrations: pallet_migrations::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = 32,
+		// Previously 31: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event&lt;T&gt;}
+		// [Removed] Migrations: pallet_migrations::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;} = 32,
 		</span>XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config&lt;T&gt;, Storage, Event&lt;T&gt;} = <span class="number">33</span>,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config&lt;T&gt;} = <span class="number">34</span>,
 		<span class="comment">// Previously 35: BaseFee
@@ -3631,7 +3629,6 @@
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_message_queue, MessageQueue]
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::&lt;Runtime&gt;]
-		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
 		[pallet_moonbeam_foreign_assets, EvmForeignAssets]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
@@ -3880,7 +3877,6 @@
 		<span class="macro">assert!</span>(
 			std::mem::size_of::&lt;pallet_maintenance_mode::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize
 		);
-		<span class="macro">assert!</span>(std::mem::size_of::&lt;pallet_asset_manager::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize);
 		<span class="macro">assert!</span>(std::mem::size_of::&lt;pallet_migrations::Call&lt;Runtime&gt;&gt;() &lt;= CALL_ALIGN <span class="kw">as </span>usize);
 		<span class="macro">assert!</span>(
 			std::mem::size_of::&lt;pallet_moonbeam_lazy_migrations::Call&lt;Runtime&gt;&gt;()
