@@ -425,7 +425,7 @@ jobs:
           get_status_emoji() {
             local size=$1
             local diff=$2
-            if [ $size -gt 3200 ]; then
+            if [ $size -gt 3000 ]; then
               echo "🚨"
             elif [ $diff -gt 0 ]; then
               echo "⚠️"
