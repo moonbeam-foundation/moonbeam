@@ -45,11 +45,9 @@ import type {
   FrameSupportPreimagesBounded,
   FrameSupportScheduleDispatchTime,
   FrameSupportTokensFungibleUnionOfNativeOrWithId,
-  MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbaseRuntimeOriginCaller,
   MoonbaseRuntimeProxyType,
   MoonbaseRuntimeRuntimeParamsRuntimeParameters,
-  MoonbaseRuntimeXcmConfigAssetType,
   MoonbaseRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletBalancesAdjustmentDirection,
@@ -84,69 +82,6 @@ export type __SubmittableExtrinsicFunction<ApiType extends ApiTypes> =
 
 declare module "@polkadot/api-base/types/submittable" {
   interface AugmentedSubmittables<ApiType extends ApiTypes> {
-    assetManager: {
-      /**
-       * Change the xcm type mapping for a given assetId
-       * We also change this if the previous units per second where pointing at the old
-       * assetType
-       **/
-      changeExistingAssetType: AugmentedSubmittable<
-        (
-          assetId: u128 | AnyNumber | Uint8Array,
-          newAssetType: MoonbaseRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
-          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [u128, MoonbaseRuntimeXcmConfigAssetType, u32]
-      >;
-      /**
-       * Destroy a given foreign assetId
-       * The weight in this case is the one returned by the trait
-       * plus the db writes and reads from removing all the associated
-       * data
-       **/
-      destroyForeignAsset: AugmentedSubmittable<
-        (
-          assetId: u128 | AnyNumber | Uint8Array,
-          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [u128, u32]
-      >;
-      /**
-       * Register new asset with the asset manager
-       **/
-      registerForeignAsset: AugmentedSubmittable<
-        (
-          asset: MoonbaseRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array,
-          metadata:
-            | MoonbaseRuntimeAssetConfigAssetRegistrarMetadata
-            | { name?: any; symbol?: any; decimals?: any; isFrozen?: any }
-            | string
-            | Uint8Array,
-          minAmount: u128 | AnyNumber | Uint8Array,
-          isSufficient: bool | boolean | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [
-          MoonbaseRuntimeXcmConfigAssetType,
-          MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
-          u128,
-          bool
-        ]
-      >;
-      /**
-       * Remove a given assetId -> assetType association
-       **/
-      removeExistingAssetType: AugmentedSubmittable<
-        (
-          assetId: u128 | AnyNumber | Uint8Array,
-          numAssetsWeightHint: u32 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [u128, u32]
-      >;
-      /**
-       * Generic tx
-       **/
-      [key: string]: SubmittableExtrinsicFunction<ApiType>;
-    };
     assets: {
       /**
        * Approve an amount of asset for transfer by a delegated third-party account.

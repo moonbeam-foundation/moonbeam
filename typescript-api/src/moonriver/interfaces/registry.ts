@@ -118,7 +118,6 @@ import type {
   FrameSystemLimitsBlockWeights,
   FrameSystemLimitsWeightsPerClass,
   FrameSystemPhase,
-  MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
   MoonriverRuntimeBridgeRejectObsoleteHeadersAndMessages,
   MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin,
   MoonriverRuntimeOriginCaller,
@@ -140,13 +139,9 @@ import type {
   MoonriverRuntimeRuntimeParamsRuntimeParameters,
   MoonriverRuntimeRuntimeParamsRuntimeParametersKey,
   MoonriverRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonriverRuntimeXcmConfigAssetType,
   MoonriverRuntimeXcmConfigCurrencyId,
   MoonriverRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
-  PalletAssetManagerCall,
-  PalletAssetManagerError,
-  PalletAssetManagerEvent,
   PalletAssetsAccountStatus,
   PalletAssetsApproval,
   PalletAssetsAssetAccount,
@@ -591,7 +586,6 @@ declare module "@polkadot/types/types/registry" {
     FrameSystemLimitsBlockWeights: FrameSystemLimitsBlockWeights;
     FrameSystemLimitsWeightsPerClass: FrameSystemLimitsWeightsPerClass;
     FrameSystemPhase: FrameSystemPhase;
-    MoonriverRuntimeAssetConfigAssetRegistrarMetadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata;
     MoonriverRuntimeBridgeRejectObsoleteHeadersAndMessages: MoonriverRuntimeBridgeRejectObsoleteHeadersAndMessages;
     MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin: MoonriverRuntimeGovernanceOriginsCustomOriginsOrigin;
     MoonriverRuntimeOriginCaller: MoonriverRuntimeOriginCaller;
@@ -613,13 +607,9 @@ declare module "@polkadot/types/types/registry" {
     MoonriverRuntimeRuntimeParamsRuntimeParameters: MoonriverRuntimeRuntimeParamsRuntimeParameters;
     MoonriverRuntimeRuntimeParamsRuntimeParametersKey: MoonriverRuntimeRuntimeParamsRuntimeParametersKey;
     MoonriverRuntimeRuntimeParamsRuntimeParametersValue: MoonriverRuntimeRuntimeParamsRuntimeParametersValue;
-    MoonriverRuntimeXcmConfigAssetType: MoonriverRuntimeXcmConfigAssetType;
     MoonriverRuntimeXcmConfigCurrencyId: MoonriverRuntimeXcmConfigCurrencyId;
     MoonriverRuntimeXcmConfigTransactors: MoonriverRuntimeXcmConfigTransactors;
     NimbusPrimitivesNimbusCryptoPublic: NimbusPrimitivesNimbusCryptoPublic;
-    PalletAssetManagerCall: PalletAssetManagerCall;
-    PalletAssetManagerError: PalletAssetManagerError;
-    PalletAssetManagerEvent: PalletAssetManagerEvent;
     PalletAssetsAccountStatus: PalletAssetsAccountStatus;
     PalletAssetsApproval: PalletAssetsApproval;
     PalletAssetsAssetAccount: PalletAssetsAssetAccount;

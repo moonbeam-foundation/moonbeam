@@ -11,20 +11,6 @@ export type __AugmentedError<ApiType extends ApiTypes> = AugmentedError<ApiType>
 
 declare module "@polkadot/api-base/types/errors" {
   interface AugmentedErrors<ApiType extends ApiTypes> {
-    assetManager: {
-      AssetAlreadyExists: AugmentedError<ApiType>;
-      AssetDoesNotExist: AugmentedError<ApiType>;
-      ErrorCreatingAsset: AugmentedError<ApiType>;
-      ErrorDestroyingAsset: AugmentedError<ApiType>;
-      LocalAssetLimitReached: AugmentedError<ApiType>;
-      NonExistentLocalAsset: AugmentedError<ApiType>;
-      NotSufficientDeposit: AugmentedError<ApiType>;
-      TooLowNumAssetsWeightHint: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       **/
-      [key: string]: AugmentedError<ApiType>;
-    };
     assets: {
       /**
        * The asset-account already exists.

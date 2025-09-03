@@ -86,7 +86,6 @@ import type {
   FrameSystemLimitsBlockWeights,
   FrameSystemLimitsWeightsPerClass,
   FrameSystemPhase,
-  MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin,
   MoonbaseRuntimeOriginCaller,
   MoonbaseRuntimeProxyType,
@@ -107,13 +106,9 @@ import type {
   MoonbaseRuntimeRuntimeParamsRuntimeParameters,
   MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
   MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonbaseRuntimeXcmConfigAssetType,
   MoonbaseRuntimeXcmConfigCurrencyId,
   MoonbaseRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
-  PalletAssetManagerCall,
-  PalletAssetManagerError,
-  PalletAssetManagerEvent,
   PalletAssetsAccountStatus,
   PalletAssetsApproval,
   PalletAssetsAssetAccount,
@@ -509,7 +504,6 @@ declare module "@polkadot/types/types/registry" {
     FrameSystemLimitsBlockWeights: FrameSystemLimitsBlockWeights;
     FrameSystemLimitsWeightsPerClass: FrameSystemLimitsWeightsPerClass;
     FrameSystemPhase: FrameSystemPhase;
-    MoonbaseRuntimeAssetConfigAssetRegistrarMetadata: MoonbaseRuntimeAssetConfigAssetRegistrarMetadata;
     MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin: MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin;
     MoonbaseRuntimeOriginCaller: MoonbaseRuntimeOriginCaller;
     MoonbaseRuntimeProxyType: MoonbaseRuntimeProxyType;
@@ -530,13 +524,9 @@ declare module "@polkadot/types/types/registry" {
     MoonbaseRuntimeRuntimeParamsRuntimeParameters: MoonbaseRuntimeRuntimeParamsRuntimeParameters;
     MoonbaseRuntimeRuntimeParamsRuntimeParametersKey: MoonbaseRuntimeRuntimeParamsRuntimeParametersKey;
     MoonbaseRuntimeRuntimeParamsRuntimeParametersValue: MoonbaseRuntimeRuntimeParamsRuntimeParametersValue;
-    MoonbaseRuntimeXcmConfigAssetType: MoonbaseRuntimeXcmConfigAssetType;
     MoonbaseRuntimeXcmConfigCurrencyId: MoonbaseRuntimeXcmConfigCurrencyId;
     MoonbaseRuntimeXcmConfigTransactors: MoonbaseRuntimeXcmConfigTransactors;
     NimbusPrimitivesNimbusCryptoPublic: NimbusPrimitivesNimbusCryptoPublic;
-    PalletAssetManagerCall: PalletAssetManagerCall;
-    PalletAssetManagerError: PalletAssetManagerError;
-    PalletAssetManagerEvent: PalletAssetManagerEvent;
     PalletAssetsAccountStatus: PalletAssetsAccountStatus;
     PalletAssetsApproval: PalletAssetsApproval;
     PalletAssetsAssetAccount: PalletAssetsAssetAccount;
