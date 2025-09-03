@@ -63,7 +63,7 @@ describeSuite({
         .viem()
         .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
-      expect(fulFillReceipt.gasUsed).to.equal(86096n);
+      expect(fulFillReceipt.gasUsed).to.equal(86140n);
     });
     it({
       id: "T01",
