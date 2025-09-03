@@ -53,7 +53,6 @@ import type {
   MoonbaseRuntimeRuntimeHoldReason,
   MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
   MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonbaseRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletAssetsApproval,
   PalletAssetsAssetAccount,
@@ -130,38 +129,6 @@ export type __QueryableStorageEntry<ApiType extends ApiTypes> = QueryableStorage
 
 declare module "@polkadot/api-base/types/storage" {
   interface AugmentedQueries<ApiType extends ApiTypes> {
-    assetManager: {
-      /**
-       * Mapping from an asset id to asset type.
-       * This is mostly used when receiving transaction specifying an asset directly,
-       * like transferring an asset from this chain to another.
-       **/
-      assetIdType: AugmentedQuery<
-        ApiType,
-        (
-          arg: u128 | AnyNumber | Uint8Array
-        ) => Observable<Option<MoonbaseRuntimeXcmConfigAssetType>>,
-        [u128]
-      > &
-        QueryableStorageEntry<ApiType, [u128]>;
-      /**
-       * Reverse mapping of AssetIdType. Mapping from an asset type to an asset id.
-       * This is mostly used when receiving a multilocation XCM message to retrieve
-       * the corresponding asset in which tokens should me minted.
-       **/
-      assetTypeId: AugmentedQuery<
-        ApiType,
-        (
-          arg: MoonbaseRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array
-        ) => Observable<Option<u128>>,
-        [MoonbaseRuntimeXcmConfigAssetType]
-      > &
-        QueryableStorageEntry<ApiType, [MoonbaseRuntimeXcmConfigAssetType]>;
-      /**
-       * Generic query
-       **/
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
     assets: {
       /**
        * The holdings of a specific account for a specific asset.
