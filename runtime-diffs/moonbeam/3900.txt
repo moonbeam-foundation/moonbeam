@@ -1,0 +1,96 @@
+Pallets:
+    - AssetManager
+    ~ Assets
+    ~ ConvictionVoting
+    ~ EVM
+        Calls:
+            ~ call
+            ~ create
+            ~ create2
+    ~ Ethereum
+        Calls:
+            ~ transact
+        Storage Entries:
+            ~ CurrentBlock (Changed: value type)
+            ~ CurrentReceipts (Changed: value type)
+            ~ Pending (Changed: value type)
+    ~ EthereumXcm
+        Calls:
+            ~ force_transact_as
+            ~ transact
+            ~ transact_through_proxy
+    - Migrations
+    ~ Multisig
+        Calls:
+            ~ as_multi
+            ~ as_multi_threshold_1
+            + poke_deposit
+    ~ OpenTechCommitteeCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: )
+    ~ ParachainStaking
+        Calls:
+            - hotfix_remove_delegation_requests_exited_candidates
+            - set_parachain_bond_account
+            - set_parachain_bond_reserve_percent
+    ~ ParachainSystem
+    ~ PolkadotXcm
+        Calls:
+            + add_authorized_alias
+            + remove_all_authorized_aliases
+            + remove_authorized_alias
+        Constants:
+            + AdvertisedXcmVersion
+            + MaxLockers
+            + MaxRemoteLockConsumers
+            + UniversalLocation
+        Storage Entries:
+            + AuthorizedAliases
+    - PrecompileBenchmarks
+    ~ Proxy
+        Calls:
+            + poke_deposit
+            ~ proxy
+            ~ proxy_announced
+    ~ Scheduler
+        Calls:
+            ~ schedule
+            ~ schedule_after
+            ~ schedule_named
+            ~ schedule_named_after
+    ~ System
+        Storage Entries:
+            ~ Events (Changed: )
+            + ExtrinsicWeightReclaimed
+    ~ Treasury
+        Constants:
+            + pot_account
+    ~ TreasuryCouncilCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: )
+    ~ Utility
+        Calls:
+            ~ as_derivative
+            ~ batch
+            ~ batch_all
+            ~ dispatch_as
+            + dispatch_as_fallible
+            ~ force_batch
+            + if_else
+            ~ with_weight
+    + WeightReclaim
+    ~ Whitelist
+        Calls:
+            ~ dispatch_whitelisted_call_with_preimage
+Runtime APIs:
+    ~ ConvertTransactionRuntimeApi
+    ~ DebugRuntimeApi
+    ~ DryRunApi
+    ~ EthereumRuntimeRPCApi
+    ~ TxPoolRuntimeApi
