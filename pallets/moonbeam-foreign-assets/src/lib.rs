@@ -39,8 +39,6 @@
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 pub mod benchmarks;
-#[cfg(feature = "runtime-benchmarks")]
-pub use benchmarks::*;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]
@@ -54,11 +52,11 @@ pub use weights::WeightInfo;
 
 use self::evm::EvmCaller;
 use ethereum_types::{H160, U256};
+use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::Contains;
-use frame_support::{pallet, Deserialize, Serialize};
+
 use frame_system::pallet_prelude::*;
-use sp_std::{vec, vec::Vec};
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
 	XcmContext,
@@ -157,15 +155,6 @@ pub enum AssetStatus {
 	FrozenXcmDepositForbidden,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct EvmForeignAssetInfo {
-	pub asset_id: AssetId,
-	pub xcm_location: Location,
-	pub decimals: u8,
-	pub symbol: BoundedVec<u8, ConstU32<256>>,
-	pub name: BoundedVec<u8, ConstU32<256>>,
-}
-
 #[pallet]
 pub mod pallet {
 	use super::*;
@@ -212,7 +201,7 @@ pub mod pallet {
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
 
-		/// Maximum numbers of different foreign assets
+		/// Maximum numbers of differnt foreign assets
 		type MaxForeignAssets: Get<u32>;
 
 		/// The overarching event type.
@@ -331,37 +320,6 @@ pub mod pallet {
 		pub deposit: BalanceOf<T>,
 	}
 
-	#[pallet::genesis_config]
-	pub struct GenesisConfig<T: Config> {
-		pub assets: Vec<EvmForeignAssetInfo>,
-		pub _phantom: PhantomData<T>,
-	}
-
-	impl<T: Config> Default for GenesisConfig<T> {
-		fn default() -> Self {
-			Self {
-				assets: vec![],
-				_phantom: Default::default(),
-			}
-		}
-	}
-
-	#[pallet::genesis_build]
-	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
-		fn build(&self) {
-			for asset in self.assets.clone() {
-				Pallet::<T>::register_foreign_asset(
-					asset.asset_id,
-					asset.xcm_location,
-					asset.decimals,
-					asset.symbol,
-					asset.name,
-				)
-				.expect("couldn't register asset");
-			}
-		}
-	}
-
 	impl<T: Config> Pallet<T> {
 		/// The account ID of this pallet
 		#[inline]
@@ -427,12 +385,42 @@ pub mod pallet {
 			.map_err(Into::into)
 		}
 
+		/// Returns the ERC20-like token balance for `who` of the foreign asset identified by `asset_id`.
+		///
+		/// Queries the asset's EVM contract and returns the balance as a `U256`. The provided `who`
+		/// AccountId is converted to an H160 address using the pallet's `AccountIdToH160` converter.
+		/// Returns an `evm::EvmError` if the underlying EVM query fails.
+		///
+		/// # Examples
+		///
+		/// ```
+		/// // `Pallet` here refers to the pallet type implementing this method.
+		/// let balance = Pallet::balance(42u128, alice_account.clone()).expect("EVM query failed");
+		/// assert!(balance > U256::zero());
+		/// ```
 		pub fn balance(asset_id: AssetId, who: T::AccountId) -> Result<U256, evm::EvmError> {
 			EvmCaller::<T>::erc20_balance_of(asset_id, T::AccountIdToH160::convert(who))
 				.map_err(Into::into)
 		}
 
-		/// Approve a spender to spend a certain amount of tokens from the owner account
+		/// Approves a spender to transfer up to `amount` tokens from `owner` for the given `asset_id`.
+		///
+		/// The approval is performed by invoking the asset's ERC20 `approve` on the EVM contract that backs
+		/// the foreign asset. The EVM call is executed inside a storage transaction: if the call fails,
+		/// any contract storage changes are rolled back.
+		///
+		/// Returns `Ok(())` on success or an `evm::EvmError` if the underlying EVM call fails.
+		///
+		/// # Examples
+		///
+		/// ```
+		/// // Approve `spender` to spend `100` units of asset `42` from `owner`.
+		/// let asset_id: super::AssetId = 42;
+		/// let owner: RuntimeAccountId = /* ... */;
+		/// let spender: RuntimeAccountId = /* ... */;
+		/// let amount = ethnum::U256::from(100u64);
+		/// Pallet::<Runtime>::approve(asset_id, owner, spender, amount).expect("approve succeeds");
+		/// ```
 		pub fn approve(
 			asset_id: AssetId,
 			owner: T::AccountId,

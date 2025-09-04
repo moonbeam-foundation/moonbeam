@@ -50,6 +50,38 @@ pub mod tracer {
 
 	struct ListenerProxy<T>(pub Rc<RefCell<T>>);
 	impl<T: GasometerListener> GasometerListener for ListenerProxy<T> {
+		/// Forwards a gasometer tracing event to the wrapped listener.
+		///
+		/// This method delegates the received `evm_gasometer::tracing::Event` to the inner
+		/// listener by mutably borrowing it and calling its `event` handler.
+		///
+		/// # Examples
+		///
+		/// ```
+		/// use std::rc::Rc;
+		/// use std::cell::RefCell;
+		///
+		/// struct Sink {
+		///     called: bool,
+		/// }
+		///
+		/// impl Sink {
+		///     fn new() -> Self { Self { called: false } }
+		/// }
+		///
+		/// impl evm_gasometer::tracing::GasometerListener for Sink {
+		///     fn event(&mut self, _event: evm_gasometer::tracing::Event) {
+		///         self.called = true;
+		///     }
+		/// }
+		///
+		/// let sink = Rc::new(RefCell::new(Sink::new()));
+		/// let proxy = crate::tracer::ListenerProxy(sink.clone());
+		/// // simulate an event (use a default or constructed Event appropriate for your env)
+		/// let evt = evm_gasometer::tracing::Event::default();
+		/// proxy.event(evt);
+		/// assert!(sink.borrow().called);
+		/// ```
 		fn event(&mut self, event: evm_gasometer::tracing::Event) {
 			self.0.borrow_mut().event(event);
 		}
@@ -62,6 +94,18 @@ pub mod tracer {
 	}
 
 	impl<T: EvmListener> EvmListener for ListenerProxy<T> {
+		/// Forwards an EVM tracing event to the wrapped listener.
+		///
+		/// Delegates the provided `evm::tracing::Event` to the inner listener held by this proxy.
+		///
+		/// # Examples
+		///
+		/// ```no_run
+		/// // Given a `ListenerProxy` wrapping a listener that implements `EvmListener`,
+		/// // calling `event` forwards the event to the inner listener:
+		/// // let mut proxy: ListenerProxy<YourListener> = ...;
+		/// // proxy.event(evm::tracing::Event::SomeVariant);
+		/// ```
 		fn event(&mut self, event: evm::tracing::Event) {
 			self.0.borrow_mut().event(event);
 		}
@@ -70,6 +114,24 @@ pub mod tracer {
 	pub struct EthereumTracer;
 
 	impl EthereumTracer {
+		/// Run a closure with the Ethereum tracing status set to a specific transaction hash.
+		///
+		/// Sets the thread-local `ETHEREUM_TRACING_STATUS` to `EthereumTracingStatus::Transaction(tx_hash)`
+		/// for the duration of `func` and then restores the previous status. Returns whatever `func` returns.
+		///
+		/// # Examples
+		///
+		/// ```
+		/// use ethereum_types::H256;
+		/// use sp_runtime::DispatchError;
+		///
+		/// let tx_hash = H256::zero();
+		/// let res: Result<(), DispatchError> = tracer::EthereumTracer::transaction(tx_hash, || {
+		///     // code executed with tracing status set to the given transaction hash
+		///     Ok(())
+		/// });
+		/// assert!(res.is_ok());
+		/// ```
 		pub fn transaction(
 			tx_hash: H256,
 			func: impl FnOnce() -> Result<(), DispatchError>,
@@ -77,18 +139,65 @@ pub mod tracer {
 			ETHEREUM_TRACING_STATUS::using(&mut EthereumTracingStatus::Transaction(tx_hash), func)
 		}
 
+		/// Run `func` with the global Ethereum tracing status set to `Block`.
+		///
+		/// While `func` executes, the thread-local `ETHEREUM_TRACING_STATUS` is set to
+		/// `EthereumTracingStatus::Block`. The previous status is restored after `func`
+		/// returns. The function returns the `Result` produced by `func`.
+		///
+		/// # Examples
+		///
+		/// ```
+		/// use crate::tracer::{EthereumTracer, EthereumTracingStatus};
+		/// use sp_runtime::DispatchError;
+		///
+		/// let res = EthereumTracer::block(|| -> Result<(), DispatchError> {
+		///     // code executed with tracing status = Block
+		///     Ok(())
+		/// });
+		/// assert!(res.is_ok());
+		/// ```
 		pub fn block(
 			func: impl FnOnce() -> Result<(), DispatchError>,
 		) -> Result<(), DispatchError> {
 			ETHEREUM_TRACING_STATUS::using(&mut EthereumTracingStatus::Block, func)
 		}
 
+		/// Mark the current tracing scope as having exited a transaction.
+		///
+		/// Sets the global `ETHEREUM_TRACING_STATUS` to `EthereumTracingStatus::TransactionExited`.
+		///
+		/// # Examples
+		///
+		/// ```
+		/// use crate::tracer::{EthereumTracer, EthereumTracingStatus};
+		///
+		/// EthereumTracer::transaction_exited();
+		/// assert_eq!(EthereumTracer::status(), Some(EthereumTracingStatus::TransactionExited));
+		/// ```
 		pub fn transaction_exited() {
 			ETHEREUM_TRACING_STATUS::with(|state| {
 				*state = EthereumTracingStatus::TransactionExited
 			});
 		}
 
+		/// Returns the current Ethereum tracing status, if any.
+		///
+		/// Reads the thread-local `ETHEREUM_TRACING_STATUS` and returns a cloned copy of its
+		/// current `EthereumTracingStatus` value wrapped in `Some`, or `None` if no status is set.
+		///
+		/// # Examples
+		///
+		/// ```
+		/// // Query current tracing state (may be `None` when tracing is not active).
+		/// if let Some(status) = tracer::status() {
+		///     match status {
+		///         tracer::EthereumTracingStatus::Block => { /* block tracing active */ }
+		///         tracer::EthereumTracingStatus::Transaction(tx_hash) => { /* tracing tx_hash */ }
+		///         tracer::EthereumTracingStatus::TransactionExited => { /* tracing ended */ }
+		///     }
+		/// }
+		/// ```
 		pub fn status() -> Option<EthereumTracingStatus> {
 			ETHEREUM_TRACING_STATUS::with(|state| state.clone())
 		}
