@@ -844,14 +844,8 @@ describeSuite({
         (context as any).migrationStats = stats;
 
         expect(stats.totalProcessed).to.be.greaterThan(0);
-      },
-    });
 
-    it({
-      id: "T3",
-      timeout: 1200000,
-      title: "Should verify staking operations work after migration",
-      test: async () => {
+        // Verify staking system continues to produce blocks after migration
         const currentHeight = (await api.rpc.chain.getBlock()).block.header.number.toNumber();
 
         // Create a few blocks to ensure system continues working
