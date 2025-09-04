@@ -236,16 +236,6 @@ impl ExtBuilder {
 			.build_storage()
 			.unwrap();
 
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		parachain_info::GenesisConfig::<Runtime> {
-			parachain_id:
-				<moonbase_runtime::bridge_config::ThisChain as bp_runtime::Parachain>::PARACHAIN_ID
-					.into(),
-			_config: Default::default(),
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
 			dev_accounts: None,
@@ -273,17 +263,6 @@ impl ExtBuilder {
 
 		pallet_author_mapping::GenesisConfig::<Runtime> {
 			mappings: self.mappings,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		pallet_xcm_bridge::GenesisConfig::<
-			Runtime,
-			moonbase_runtime::bridge_config::XcmBridgeInstance,
-		> {
-			opened_bridges: self.opened_bridges,
-			_phantom: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

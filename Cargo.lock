@@ -1271,19 +1271,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bp-moonbase"
-version = "0.0.1"
-dependencies = [
- "bp-bridge-hub-cumulus",
- "bp-messages",
- "bp-runtime",
- "frame-support",
- "moonbeam-core-primitives",
- "sp-api",
- "sp-runtime",
-]
-
-[[package]]
 name = "bp-moonbeam"
 version = "0.0.1"
 dependencies = [
@@ -7108,7 +7095,6 @@ dependencies = [
  "async-backing-primitives",
  "bp-header-chain",
  "bp-messages",
- "bp-moonbase",
  "bp-parachains",
  "bp-polkadot-core",
  "bp-runtime",

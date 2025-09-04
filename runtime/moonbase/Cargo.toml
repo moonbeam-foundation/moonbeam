@@ -31,9 +31,6 @@ moonbeam-runtime-common = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
 
-# Bridge primitives
-bp-moonbase = { workspace = true }
-
 # Moonbeam pallets
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
@@ -342,7 +339,6 @@ std = [
 	"xcm-runtime-apis/std",
 	"xcm-primitives/std",
 	"xcm/std",
-	"bp-moonbase/std",
 	"bp-westend/std",
 	"bp-runtime/std",
 	"bp-header-chain/std",
@@ -350,35 +346,6 @@ std = [
 	"bp-messages/std",
 	"bp-polkadot-core/std",
 	"bridge-runtime-common/std",
-]
-
-bridge-stagenet = [
-	"bridge-runtime-common",
-	"bp-westend",
-	"bp-runtime",
-	"bp-header-chain",
-	"bp-parachains",
-	"bp-messages",
-	"bp-polkadot-core",
-	"pallet-bridge-grandpa",
-	"pallet-bridge-parachains",
-	"pallet-bridge-messages",
-	"pallet-xcm-bridge",
-	"bridge-hub-common",
-]
-bridge-betanet = [
-	"bridge-runtime-common",
-	"bp-westend",
-	"bp-runtime",
-	"bp-header-chain",
-	"bp-parachains",
-	"bp-messages",
-	"bp-polkadot-core",
-	"pallet-bridge-grandpa",
-	"pallet-bridge-parachains",
-	"pallet-bridge-messages",
-	"pallet-xcm-bridge",
-	"bridge-hub-common",
 ]
 
 # Must be enabled for tracing runtimes only
