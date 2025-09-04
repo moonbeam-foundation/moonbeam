@@ -305,27 +305,6 @@ type MoonbeamPrecompilesAt<R> = (
 	>,
 );
 
-pub struct DisabledLocalAssets<Runtime>(sp_std::marker::PhantomData<Runtime>);
-
-impl<Runtime> sp_core::Get<Vec<H160>> for DisabledLocalAssets<Runtime>
-where
-	Runtime: frame_system::Config,
-	Runtime::AccountId: Into<H160>,
-	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
-{
-	fn get() -> Vec<H160> {
-		vec![
-			337110116006454532607322340792629567158u128,
-			278750993613512357835566279094880339619,
-			228256396637196286254896220398224702687,
-			270195117769614861929703564202131636628,
-		]
-		.iter()
-		.map(|id| Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, *id).into())
-		.collect()
-	}
-}
-
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)

@@ -31,14 +31,6 @@ use sp_std::{
 	prelude::*,
 };
 
-// Number of items that can be destroyed with our configured max extrinsic proof size.
-// x = (a - b) / c where:
-// 		a: maxExtrinsic proof size
-// 		b: base proof size for destroy_accounts in pallet_assets weights
-// 		c: proof size for each item
-// 		656.87 = (3_407_872 - 8232) / 5180
-const REMOVE_ITEMS_LIMIT: u32 = 656;
-
 // Not to disrupt the previous asset instance, we assign () to Foreign
 pub type ForeignAssetInstance = ();
 
