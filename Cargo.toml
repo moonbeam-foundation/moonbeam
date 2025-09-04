@@ -36,7 +36,6 @@ members = [
     "precompiles/xtokens",
     "precompiles/p256verify",
     "primitives/storage-proof",
-    "primitives/bridge/moonbase",
     "primitives/bridge/moonbeam",
     "primitives/bridge/moonriver",
     "runtime/moonbase",
@@ -115,7 +114,6 @@ pallet-crowdloan-rewards = { git = "https://github.com/moonbeam-foundation/crowd
 # Local bridge crates
 bp-moonbeam = { path = "primitives/bridge/moonbeam", default-features = false }
 bp-moonriver = { path = "primitives/bridge/moonriver", default-features = false }
-bp-moonbase = { path = "primitives/bridge/moonbase", default-features = false }
 
 # Moonbeam (client)
 moonbeam-cli = { path = "node/cli", default-features = false }
