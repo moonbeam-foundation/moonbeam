@@ -1495,8 +1495,6 @@ construct_runtime! {
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 58,
 		MultiBlockMigrations: pallet_migrations = 117,
 		WeightReclaim: cumulus_pallet_weight_reclaim = 118,
-
-		// Bridge pallets (reserved indexes from 130 to 140)
 	}
 }
 

@@ -127,20 +127,6 @@ sp-version = { workspace = true }
 sp-weights = { workspace = true }
 sp-genesis-builder = { workspace = true }
 
-# Bridge
-bridge-runtime-common = { workspace = true, optional = true }
-bp-westend = { workspace = true, optional = true }
-bp-runtime = { workspace = true, optional = true }
-bp-header-chain = { workspace = true, optional = true }
-bp-parachains = { workspace = true, optional = true }
-bp-messages = { workspace = true, optional = true }
-bp-polkadot-core = { workspace = true, optional = true }
-pallet-bridge-grandpa = { workspace = true, optional = true }
-pallet-bridge-parachains = { workspace = true, optional = true }
-pallet-bridge-messages = { workspace = true, optional = true }
-pallet-xcm-bridge = { workspace = true, optional = true }
-bridge-hub-common = { workspace = true, optional = true }
-
 # Frontier
 fp-evm = { workspace = true }
 fp-rpc = { workspace = true }
@@ -308,11 +294,6 @@ std = [
 	"pallet-xcm-transactor/std",
 	"pallet-xcm/std",
 	"pallet-xcm-weight-trader/std",
-	"pallet-bridge-grandpa/std",
-	"pallet-bridge-parachains/std",
-	"pallet-bridge-messages/std",
-	"pallet-xcm-bridge/std",
-	"bridge-hub-common/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"parity-scale-codec/std",
@@ -339,13 +320,6 @@ std = [
 	"xcm-runtime-apis/std",
 	"xcm-primitives/std",
 	"xcm/std",
-	"bp-westend/std",
-	"bp-runtime/std",
-	"bp-header-chain/std",
-	"bp-parachains/std",
-	"bp-messages/std",
-	"bp-polkadot-core/std",
-	"bridge-runtime-common/std",
 ]
 
 # Must be enabled for tracing runtimes only
@@ -422,15 +396,10 @@ runtime-benchmarks = [
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"pallet-xcm-weight-trader/runtime-benchmarks",
-	"pallet-bridge-grandpa/runtime-benchmarks",
-	"pallet-bridge-parachains/runtime-benchmarks",
-	"pallet-bridge-messages/runtime-benchmarks",
-	"pallet-xcm-bridge/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"xcm-runtime-apis/runtime-benchmarks",
-	"bridge-runtime-common/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -486,8 +455,4 @@ try-runtime = [
 	"pallet-multisig/try-runtime",
 	"pallet-async-backing/try-runtime",
 	"pallet-precompile-benchmarks/try-runtime",
-	"pallet-bridge-grandpa/try-runtime",
-	"pallet-bridge-parachains/try-runtime",
-	"pallet-bridge-messages/try-runtime",
-	"pallet-xcm-bridge/try-runtime",
 ]

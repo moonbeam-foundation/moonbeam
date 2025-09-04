@@ -1398,19 +1398,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bp-westend"
-version = "0.16.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#e9a1fe13c79b545e7904d99a9f52a0cf56c6b769"
-dependencies = [
- "bp-header-chain",
- "bp-polkadot-core",
- "bp-runtime",
- "frame-support",
- "sp-api",
- "sp-std",
-]
-
-[[package]]
 name = "bp-xcm-bridge-hub"
 version = "0.6.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#e9a1fe13c79b545e7904d99a9f52a0cf56c6b769"
@@ -7093,14 +7080,6 @@ version = "0.8.4"
 dependencies = [
  "account",
  "async-backing-primitives",
- "bp-header-chain",
- "bp-messages",
- "bp-parachains",
- "bp-polkadot-core",
- "bp-runtime",
- "bp-westend",
- "bridge-hub-common",
- "bridge-runtime-common",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-weight-reclaim",
  "cumulus-pallet-xcm",
@@ -7143,9 +7122,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-bridge-grandpa",
- "pallet-bridge-messages",
- "pallet-bridge-parachains",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -7212,7 +7188,6 @@ dependencies = [
  "pallet-whitelist",
  "pallet-xcm",
  "pallet-xcm-benchmarks",
- "pallet-xcm-bridge-hub",
  "pallet-xcm-transactor",
  "pallet-xcm-weight-trader",
  "parachains-common",
