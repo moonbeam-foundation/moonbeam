@@ -16,7 +16,7 @@
 
 //! Relay chain runtime mock.
 
-use frame_support::traits::Disabled;
+use frame_support::traits::{ConstBool, Disabled};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{AsEnsureOriginWithArg, Contains, ContainsPair, Everything, Get, Nothing},
@@ -383,6 +383,7 @@ impl pallet_xcm::Config for Runtime {
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
+	type AssetHubMigrationStarted = ConstBool<false>;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {

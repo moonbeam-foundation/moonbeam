@@ -16,10 +16,9 @@
 
 use super::moonbeam_weights;
 use crate::{
-	asset_config::ForeignAssetInstance,
-	xcm_config::{AssetType, XcmExecutorConfig},
-	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, EvmForeignAssets,
-	OpenTechCommitteeInstance, Runtime, TreasuryCouncilInstance, H160,
+	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, AccountId, AssetId,
+	Balances, Erc20XcmBridge, EvmForeignAssets, OpenTechCommitteeInstance, Runtime,
+	TreasuryCouncilInstance, H160,
 };
 use frame_support::parameter_types;
 use moonkit_xcm_primitives::{
@@ -30,6 +29,10 @@ use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
 use pallet_evm_precompile_blake2::Blake2F;
+use pallet_evm_precompile_bls12381::{
+	Bls12381G1Add, Bls12381G1MultiExp, Bls12381G2Add, Bls12381G2MultiExp, Bls12381MapG1,
+	Bls12381MapG2, Bls12381Pairing,
+};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_call_permit::CallPermitPrecompile;
 use pallet_evm_precompile_collective::CollectivePrecompile;
@@ -59,7 +62,6 @@ use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_precompile_benchmarks::WeightInfo;
 use precompile_utils::precompile_set::*;
 use sp_std::prelude::*;
-use xcm_primitives::AsAssetType;
 
 parameter_types! {
 	pub P256VerifyWeight: frame_support::weights::Weight =
@@ -111,10 +113,7 @@ type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, Callab
 
 // Pallet-xcm precompile types.
 // Type that converts AssetId into Location
-type AssetIdToLocationManager = (
-	AsAssetType<AssetId, AssetType, AssetManager>,
-	EvmForeignAssets,
-);
+type AssetIdToLocationManager = (EvmForeignAssets,);
 
 // The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
 type SingleAddressMatch = SingleAddressMatcher<AccountId, ERC20_BALANCES_PRECOMPILE, Balances>;
@@ -138,6 +137,14 @@ type MoonbeamPrecompilesAt<R> = (
 	PrecompileAt<AddressU64<7>, Bn128Mul, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<8>, Bn128Pairing, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<9>, Blake2F, EthereumPrecompilesChecks>,
+	// 10 is not implemented, Ethereum uses this slot for Point Evaluation
+	PrecompileAt<AddressU64<11>, Bls12381G1Add, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<12>, Bls12381G1MultiExp, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<13>, Bls12381G2Add, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<14>, Bls12381G2MultiExp, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<15>, Bls12381Pairing, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<16>, Bls12381MapG1, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<17>, Bls12381MapG2, EthereumPrecompilesChecks>,
 	// (0x100 => 256) https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
 	PrecompileAt<AddressU64<256>, P256Verify<P256VerifyWeight>, EthereumPrecompilesChecks>,
 	// Non-Moonbeam specific nor Ethereum precompiles :

@@ -35,11 +35,9 @@ import type {
   FrameSupportTokensFungibleUnionOfNativeOrWithId,
   FrameSupportTokensMiscBalanceStatus,
   FrameSystemDispatchEventInfo,
-  MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
   MoonriverRuntimeProxyType,
   MoonriverRuntimeRuntimeParamsRuntimeParametersKey,
   MoonriverRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonriverRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletConvictionVotingTally,
   PalletConvictionVotingVoteAccountVote,
@@ -70,68 +68,6 @@ export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>
 
 declare module "@polkadot/api-base/types/events" {
   interface AugmentedEvents<ApiType extends ApiTypes> {
-    assetManager: {
-      /**
-       * Removed all information related to an assetId and destroyed asset
-       **/
-      ForeignAssetDestroyed: AugmentedEvent<
-        ApiType,
-        [assetId: u128, assetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetId: u128; assetType: MoonriverRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * New asset with the asset manager is registered
-       **/
-      ForeignAssetRegistered: AugmentedEvent<
-        ApiType,
-        [
-          assetId: u128,
-          asset: MoonriverRuntimeXcmConfigAssetType,
-          metadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata
-        ],
-        {
-          assetId: u128;
-          asset: MoonriverRuntimeXcmConfigAssetType;
-          metadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata;
-        }
-      >;
-      /**
-       * Removed all information related to an assetId
-       **/
-      ForeignAssetRemoved: AugmentedEvent<
-        ApiType,
-        [assetId: u128, assetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetId: u128; assetType: MoonriverRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * Changed the xcm type mapping for a given asset id
-       **/
-      ForeignAssetXcmLocationChanged: AugmentedEvent<
-        ApiType,
-        [assetId: u128, newAssetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetId: u128; newAssetType: MoonriverRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * Removed all information related to an assetId and destroyed asset
-       **/
-      LocalAssetDestroyed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * Supported asset type for fee payment removed
-       **/
-      SupportedAssetRemoved: AugmentedEvent<
-        ApiType,
-        [assetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetType: MoonriverRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * Changed the amount of units we are charging per execution second for a given asset
-       **/
-      UnitsPerSecondChanged: AugmentedEvent<ApiType, []>;
-      /**
-       * Generic event
-       **/
-      [key: string]: AugmentedEvent<ApiType>;
-    };
     assets: {
       /**
        * Accounts were destroyed for given asset.

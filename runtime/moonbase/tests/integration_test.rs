@@ -144,7 +144,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::CumulusXcm>("CumulusXcm");
 	is_pallet_prefix::<moonbase_runtime::PolkadotXcm>("PolkadotXcm");
 	is_pallet_prefix::<moonbase_runtime::Assets>("Assets");
-	is_pallet_prefix::<moonbase_runtime::AssetManager>("AssetManager");
 	is_pallet_prefix::<moonbase_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbase_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonbase_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -424,7 +423,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::PolkadotXcm>(28);
 	is_pallet_index::<moonbase_runtime::Assets>(29);
 	// is_pallet_index::<moonbase_runtime::XTokens>(30); Removed
-	is_pallet_index::<moonbase_runtime::AssetManager>(31);
+	// is_pallet_index::<moonbase_runtime::AssetManager>(31);
 	is_pallet_index::<moonbase_runtime::XcmTransactor>(33);
 	is_pallet_index::<moonbase_runtime::ProxyGenesisCompanion>(34);
 	is_pallet_index::<moonbase_runtime::MoonbeamOrbiters>(37);
@@ -1611,7 +1610,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(178255)
+				.expect_cost(238472)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1702,7 +1701,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(178255)
+				.expect_cost(238472)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1786,7 +1785,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(26655)
+				.expect_cost(86872)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -2362,7 +2361,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(25190)
+				.expect_cost(23418)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2402,7 +2401,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(25190)
+				.expect_cost(23418)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2484,7 +2483,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(16024)
+				.expect_cost(16017)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2506,7 +2505,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15552)
+				.expect_cost(15532)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2527,7 +2526,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(16038)
+				.expect_cost(16037)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2570,7 +2569,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(17829)
+				.expect_cost(17820)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2595,7 +2594,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(17829)
+				.expect_cost(17820)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2764,9 +2763,9 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 256, 1024, 1025, 1026, 1027, 2048, 2049, 2050, 2051, 2052,
-			2053, 2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066,
-			2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 256, 1024, 1025, 1026, 1027,
+			2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061,
+			2062, 2063, 2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

@@ -35,11 +35,9 @@ import type {
   FrameSupportTokensFungibleUnionOfNativeOrWithId,
   FrameSupportTokensMiscBalanceStatus,
   FrameSystemDispatchEventInfo,
-  MoonbeamRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbeamRuntimeProxyType,
   MoonbeamRuntimeRuntimeParamsRuntimeParametersKey,
   MoonbeamRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonbeamRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletConvictionVotingTally,
   PalletConvictionVotingVoteAccountVote,
@@ -70,68 +68,6 @@ export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>
 
 declare module "@polkadot/api-base/types/events" {
   interface AugmentedEvents<ApiType extends ApiTypes> {
-    assetManager: {
-      /**
-       * Removed all information related to an assetId and destroyed asset
-       **/
-      ForeignAssetDestroyed: AugmentedEvent<
-        ApiType,
-        [assetId: u128, assetType: MoonbeamRuntimeXcmConfigAssetType],
-        { assetId: u128; assetType: MoonbeamRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * New asset with the asset manager is registered
-       **/
-      ForeignAssetRegistered: AugmentedEvent<
-        ApiType,
-        [
-          assetId: u128,
-          asset: MoonbeamRuntimeXcmConfigAssetType,
-          metadata: MoonbeamRuntimeAssetConfigAssetRegistrarMetadata
-        ],
-        {
-          assetId: u128;
-          asset: MoonbeamRuntimeXcmConfigAssetType;
-          metadata: MoonbeamRuntimeAssetConfigAssetRegistrarMetadata;
-        }
-      >;
-      /**
-       * Removed all information related to an assetId
-       **/
-      ForeignAssetRemoved: AugmentedEvent<
-        ApiType,
-        [assetId: u128, assetType: MoonbeamRuntimeXcmConfigAssetType],
-        { assetId: u128; assetType: MoonbeamRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * Changed the xcm type mapping for a given asset id
-       **/
-      ForeignAssetXcmLocationChanged: AugmentedEvent<
-        ApiType,
-        [assetId: u128, newAssetType: MoonbeamRuntimeXcmConfigAssetType],
-        { assetId: u128; newAssetType: MoonbeamRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * Removed all information related to an assetId and destroyed asset
-       **/
-      LocalAssetDestroyed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * Supported asset type for fee payment removed
-       **/
-      SupportedAssetRemoved: AugmentedEvent<
-        ApiType,
-        [assetType: MoonbeamRuntimeXcmConfigAssetType],
-        { assetType: MoonbeamRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * Changed the amount of units we are charging per execution second for a given asset
-       **/
-      UnitsPerSecondChanged: AugmentedEvent<ApiType, []>;
-      /**
-       * Generic event
-       **/
-      [key: string]: AugmentedEvent<ApiType>;
-    };
     assets: {
       /**
        * Accounts were destroyed for given asset.

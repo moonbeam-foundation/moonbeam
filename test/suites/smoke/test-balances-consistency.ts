@@ -42,7 +42,7 @@ enum ReserveType {
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
 type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 
-// This test attemps to reconcile the total amount of locked tokens across the entire
+// This test attempts to reconcile the total amount of locked tokens across the entire
 // chain by ensuring that individual storages match the reserved balances and locks.
 // In order to not exhaust memory, the expected results are calculated first and then
 // All system accounts are iterated over, without storing them, to ensure memory
