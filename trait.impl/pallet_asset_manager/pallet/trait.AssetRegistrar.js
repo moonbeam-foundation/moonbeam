@@ -1,9 +1,0 @@
-(function() {
-    var implementors = Object.fromEntries([["moonbase_runtime",[["impl <a class=\"trait\" href=\"pallet_asset_manager/pallet/trait.AssetRegistrar.html\" title=\"trait pallet_asset_manager::pallet::AssetRegistrar\">AssetRegistrar</a>&lt;<a class=\"struct\" href=\"moonbase_runtime/struct.Runtime.html\" title=\"struct moonbase_runtime::Runtime\">Runtime</a>&gt; for <a class=\"struct\" href=\"moonbase_runtime/asset_config/struct.AssetRegistrar.html\" title=\"struct moonbase_runtime::asset_config::AssetRegistrar\">AssetRegistrar</a>"]]],["moonbeam_runtime",[["impl <a class=\"trait\" href=\"pallet_asset_manager/pallet/trait.AssetRegistrar.html\" title=\"trait pallet_asset_manager::pallet::AssetRegistrar\">AssetRegistrar</a>&lt;<a class=\"struct\" href=\"moonbeam_runtime/struct.Runtime.html\" title=\"struct moonbeam_runtime::Runtime\">Runtime</a>&gt; for <a class=\"struct\" href=\"moonbeam_runtime/asset_config/struct.AssetRegistrar.html\" title=\"struct moonbeam_runtime::asset_config::AssetRegistrar\">AssetRegistrar</a>"]]],["moonriver_runtime",[["impl <a class=\"trait\" href=\"pallet_asset_manager/pallet/trait.AssetRegistrar.html\" title=\"trait pallet_asset_manager::pallet::AssetRegistrar\">AssetRegistrar</a>&lt;<a class=\"struct\" href=\"moonriver_runtime/struct.Runtime.html\" title=\"struct moonriver_runtime::Runtime\">Runtime</a>&gt; for <a class=\"struct\" href=\"moonriver_runtime/asset_config/struct.AssetRegistrar.html\" title=\"struct moonriver_runtime::asset_config::AssetRegistrar\">AssetRegistrar</a>"]]]]);
-    if (window.register_implementors) {
-        window.register_implementors(implementors);
-    } else {
-        window.pending_implementors = implementors;
-    }
-})()
-//{"start":57,"fragment_lengths":[494,495,500]}
