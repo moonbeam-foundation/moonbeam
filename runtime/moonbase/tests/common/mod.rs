@@ -134,7 +134,6 @@ pub struct ExtBuilder {
 	// [assettype, metadata, Vec<Account, Balance>]
 	xcm_assets: Vec<XcmAssetInitialization>,
 	safe_xcm_version: Option<u32>,
-	opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbase::LaneId>)>,
 }
 
 impl Default for ExtBuilder {
@@ -168,7 +167,6 @@ impl Default for ExtBuilder {
 			evm_accounts: BTreeMap::new(),
 			xcm_assets: vec![],
 			safe_xcm_version: None,
-			opened_bridges: vec![],
 		}
 	}
 }
@@ -181,14 +179,6 @@ impl ExtBuilder {
 
 	pub fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
-		self
-	}
-
-	pub fn with_open_bridges(
-		mut self,
-		opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbase::LaneId>)>,
-	) -> Self {
-		self.opened_bridges = opened_bridges;
 		self
 	}
 

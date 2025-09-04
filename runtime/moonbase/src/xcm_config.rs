@@ -92,8 +92,6 @@ parameter_types! {
 	// The universal location within the global consensus system
 	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())].into();
-
-
 	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a Location: (Self Balances pallet index)
