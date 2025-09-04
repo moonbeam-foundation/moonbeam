@@ -16,9 +16,8 @@
 
 use super::moonriver_weights;
 use crate::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, AccountId, AssetId,
-	Balances, Erc20XcmBridge, EvmForeignAssets, OpenTechCommitteeInstance, Runtime,
-	TreasuryCouncilInstance,
+	xcm_config::XcmExecutorConfig, AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets,
+	OpenTechCommitteeInstance, Runtime, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
 use moonkit_xcm_primitives::location_matcher::{
@@ -57,7 +56,6 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_precompile_benchmarks::WeightInfo;
 use precompile_utils::precompile_set::*;
 
@@ -313,14 +311,5 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 	(
 		// Skip precompiles if out of range.
 		PrecompilesInRangeInclusive<(AddressU64<1>, AddressU64<4095>), MoonriverPrecompilesAt<R>>,
-		// Prefixed precompile sets (XC20)
-		PrecompileSetStartingWith<
-			ForeignAssetPrefix,
-			Erc20AssetsPrecompileSet<R, ForeignAssetInstance>,
-			CallableByContract,
-		>,
-		// Moonriver never had any local assets (No blacklist needed
-		// https://moonriver.subscan.io/event?module=localassets&event_id=created
-		// https://moonriver.subscan.io/event?module=localassets&event_id=forcecreated
 	),
 >;

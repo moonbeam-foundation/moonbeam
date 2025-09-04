@@ -16,14 +16,12 @@
 
 use super::moonbeam_weights;
 use crate::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, AccountId, AssetId,
-	Balances, Erc20XcmBridge, EvmForeignAssets, OpenTechCommitteeInstance, Runtime,
-	TreasuryCouncilInstance, H160,
+	xcm_config::XcmExecutorConfig, AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets,
+	OpenTechCommitteeInstance, Runtime, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
-use moonkit_xcm_primitives::{
-	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
-	AccountIdAssetIdConversion,
+use moonkit_xcm_primitives::location_matcher::{
+	Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher,
 };
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
@@ -58,10 +56,8 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_precompile_benchmarks::WeightInfo;
 use precompile_utils::precompile_set::*;
-use sp_std::prelude::*;
 
 parameter_types! {
 	pub P256VerifyWeight: frame_support::weights::Weight =
@@ -307,27 +303,6 @@ type MoonbeamPrecompilesAt<R> = (
 	>,
 );
 
-pub struct DisabledLocalAssets<Runtime>(sp_std::marker::PhantomData<Runtime>);
-
-impl<Runtime> sp_core::Get<Vec<H160>> for DisabledLocalAssets<Runtime>
-where
-	Runtime: frame_system::Config,
-	Runtime::AccountId: Into<H160>,
-	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
-{
-	fn get() -> Vec<H160> {
-		vec![
-			337110116006454532607322340792629567158u128,
-			278750993613512357835566279094880339619,
-			228256396637196286254896220398224702687,
-			270195117769614861929703564202131636628,
-		]
-		.iter()
-		.map(|id| Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, *id).into())
-		.collect()
-	}
-}
-
 /// The PrecompileSet installed in the Moonbeam runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -341,12 +316,5 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 	(
 		// Skip precompiles if out of range.
 		PrecompilesInRangeInclusive<(AddressU64<1>, AddressU64<4095>), MoonbeamPrecompilesAt<R>>,
-		// Prefixed precompile sets (XC20)
-		PrecompileSetStartingWith<
-			ForeignAssetPrefix,
-			Erc20AssetsPrecompileSet<R, ForeignAssetInstance>,
-			(CallableByContract, CallableByPrecompile),
-		>,
-		RemovedPrecompilesAt<DisabledLocalAssets<R>>,
 	),
 >;
