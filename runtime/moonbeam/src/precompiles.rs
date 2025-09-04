@@ -17,12 +17,11 @@
 use super::moonbeam_weights;
 use crate::{
 	xcm_config::XcmExecutorConfig, AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets,
-	OpenTechCommitteeInstance, Runtime, TreasuryCouncilInstance, H160,
+	OpenTechCommitteeInstance, Runtime, TreasuryCouncilInstance,
 };
 use frame_support::parameter_types;
-use moonkit_xcm_primitives::{
-	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
-	AccountIdAssetIdConversion,
+use moonkit_xcm_primitives::location_matcher::{
+	Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher,
 };
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
@@ -59,7 +58,6 @@ use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
 use pallet_precompile_benchmarks::WeightInfo;
 use precompile_utils::precompile_set::*;
-use sp_std::prelude::*;
 
 parameter_types! {
 	pub P256VerifyWeight: frame_support::weights::Weight =
