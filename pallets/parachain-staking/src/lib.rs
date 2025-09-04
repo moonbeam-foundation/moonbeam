@@ -1453,22 +1453,14 @@ pub mod pallet {
 			let mut candidates = 0u32;
 
 			for (account, is_collator) in accounts.iter() {
-				if let Ok(migrated) = Self::check_and_migrate_lock(account, *is_collator) {
-					if migrated {
-						successful_migrations = successful_migrations.saturating_add(1);
-					}
+				if Self::check_and_migrate_lock(account, *is_collator)? {
+					successful_migrations = successful_migrations.saturating_add(1);
+				}
 
-					if *is_collator {
-						candidates = candidates.saturating_add(1);
-					} else {
-						delegators = delegators.saturating_add(1);
-					}
+				if *is_collator {
+					candidates = candidates.saturating_add(1);
 				} else {
-					log::debug!(
-						"Failed to migrate lock for account {:?}, is_collator {:?}",
-						account,
-						is_collator
-					);
+					delegators = delegators.saturating_add(1);
 				}
 			}
 
