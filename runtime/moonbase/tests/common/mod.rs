@@ -39,7 +39,6 @@ use fp_rpc::ConvertTransaction;
 use moonbase_runtime::XcmWeightTrader;
 use pallet_transaction_payment::Multiplier;
 use std::collections::BTreeMap;
-use xcm::prelude::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
