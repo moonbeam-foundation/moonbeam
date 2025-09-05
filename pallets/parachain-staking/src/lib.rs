@@ -1453,7 +1453,7 @@ pub mod pallet {
 			let mut candidates = 0u32;
 
 			for (account, is_collator) in accounts.iter() {
-				if Self::check_and_migrate_lock(account, *is_collator)? {
+				if Self::check_and_migrate_lock(account, *is_collator) {
 					successful_migrations = successful_migrations.saturating_add(1);
 				}
 
@@ -1517,20 +1517,17 @@ pub mod pallet {
 		/// Returns `true` if migration was performed, `false` if already migrated or is not a collator/delegator
 		///
 		/// `is_collator` determines whether the account is a collator or delegator
-		fn check_and_migrate_lock(
-			account: &T::AccountId,
-			is_collator: bool,
-		) -> Result<bool, DispatchError> {
+		fn check_and_migrate_lock(account: &T::AccountId, is_collator: bool) -> bool {
 			use frame_support::traits::{fungible::MutateFreeze, LockableCurrency};
 
 			// Check if already migrated
 			if is_collator {
 				if <MigratedCandidates<T>>::contains_key(account) {
-					return Ok(false);
+					return false;
 				}
 			} else {
 				if <MigratedDelegators<T>>::contains_key(account) {
-					return Ok(false);
+					return false;
 				}
 			}
 
@@ -1546,26 +1543,31 @@ pub mod pallet {
 				// For collators, get the bond amount from storage
 				match <CandidateInfo<T>>::get(account) {
 					Some(info) => info.bond,
-					None => return Ok(false),
+					None => return false,
 				}
 			} else {
 				// For delegators, get the total delegated amount from storage
 				match <DelegatorState<T>>::get(account) {
 					Some(state) => state.total,
-					None => return Ok(false),
+					None => return false,
 				}
 			};
 
 			if amount > BalanceOf::<T>::zero() {
-				// We need to use a transactional layer to ensure that the lock is restored
-				// if the freeze fail to be set.
-				frame_support::storage::transactional::with_storage_layer(|| {
-					// Remove any existing lock
-					T::Currency::remove_lock(lock_id, account);
+				// Remove any existing lock
+				T::Currency::remove_lock(lock_id, account);
 
-					// Set the freeze
-					T::Currency::set_freeze(&freeze_reason.into(), account, amount)
-				})?;
+				// Set the freeze
+				if T::Currency::set_freeze(&freeze_reason.into(), account, amount).is_err() {
+					// set_freeze should be infallible as long a s the runtime use pallet balmance implementation and
+					// set `MaxFreezes = VariantCountOf<RuntimeFreezeReason>`.
+					log::error!(
+						"Failed to set freeze for account {:?}, amount {:?}",
+						account,
+						amount
+					);
+					return false;
+				}
 			}
 
 			if is_collator {
@@ -1574,7 +1576,7 @@ pub mod pallet {
 				<MigratedDelegators<T>>::insert(account, ());
 			}
 
-			Ok(true)
+			true
 		}
 
 		/// Set freeze with lazy migration support
@@ -1589,7 +1591,7 @@ pub mod pallet {
 			use frame_support::traits::fungible::MutateFreeze;
 
 			// First check and migrate any existing lock
-			let _ = Self::check_and_migrate_lock(account, is_collator)?;
+			let _ = Self::check_and_migrate_lock(account, is_collator);
 
 			// Now set the freeze
 			let freeze_reason = if is_collator {
