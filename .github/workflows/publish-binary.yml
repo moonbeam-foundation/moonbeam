@@ -54,23 +54,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: "test/.nvmrc"
+      - name: Prepare moonbeam binary for release body generation
+        working-directory: build
+        run: |
+          cp moonbeam-x86-64 moonbeam
       - name: Generate release body
         id: generate-release-body
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: tools
         run: |
-          mv ../build/moonbeam-x86-64 ../build/moonbeam 
           yarn
           yarn -s run ts-node github/generate-release-body.ts --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
       - name: Prepare binary assets
+        working-directory: build
         run: |
           # Prepare binaries for upload
           # x86-64 binary gets renamed to just "moonbeam"
-          cp build/moonbeam-x86-64 moonbeam
+          cp moonbeam-x86-64 ../moonbeam
           # Other architectures keep their suffix
-          cp build/moonbeam-skylake moonbeam-skylake
-          cp build/moonbeam-znver3 moonbeam-znver3
+          cp moonbeam-skylake ../moonbeam-skylake
+          cp moonbeam-znver3 ../moonbeam-znver3
       - name: Create draft release with binaries
         id: create-release
         uses: softprops/action-gh-release@v2
@@ -99,15 +103,16 @@ jobs:
           pattern: binaries-*
           merge-multiple: true
           path: build
-      - name: Prepare
+      - name: Rename binary for Docker
+        working-directory: build
+        run: |
+          mv moonbeam-x86-64 moonbeam
+      - name: Prepare Docker metadata
         id: prep
         run: |
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           VERSION="${{ github.event.inputs.to }}"
           TAG="${VERSION}-rc"
-
-          # Rename binary
-          mv build/moonbeam-x86-64 build/moonbeam
 
           echo "tags=${DOCKER_IMAGE}:${TAG}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT

@@ -146,26 +146,34 @@ jobs:
         run: |
           yarn
           yarn -s run ts-node github/generate-runtimes-body.ts --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
-      - name: Get runtime version
+      - name: Get runtime versions
         id: get-runtime-ver
         run: |
           runtime_moonbase_ver="$(cat ./runtime/moonbase/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "runtime_moonbase_ver=$runtime_moonbase_ver" >> $GITHUB_OUTPUT
-          mv build/moonbase-runtime.compact.compressed.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
-          # Fix the srtool digest filename to match expected format
-          mv build/moonbase-srtool-digest.json moonbase-runtime-${runtime_moonbase_ver}.srtool-digest.json
-
+          
           runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "runtime_moonriver_ver=$runtime_moonriver_ver" >> $GITHUB_OUTPUT
-          mv build/moonriver-runtime.compact.compressed.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
-          # Fix the srtool digest filename to match expected format
-          mv build/moonriver-srtool-digest.json moonriver-runtime-${runtime_moonriver_ver}.srtool-digest.json
-
+          
           runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "runtime_moonbeam_ver=$runtime_moonbeam_ver" >> $GITHUB_OUTPUT
-          mv build/moonbeam-runtime.compact.compressed.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
-          # Fix the srtool digest filename to match expected format
-          mv build/moonbeam-srtool-digest.json moonbeam-runtime-${runtime_moonbeam_ver}.srtool-digest.json
+      - name: Prepare runtime assets
+        working-directory: build
+        run: |
+          # Get runtime versions from the previous step
+          runtime_moonbase_ver="${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}"
+          runtime_moonriver_ver="${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}"
+          runtime_moonbeam_ver="${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}"
+          
+          # Rename files with version numbers
+          mv moonbase-runtime.compact.compressed.wasm ../moonbase-runtime-${runtime_moonbase_ver}.wasm
+          mv moonbase-srtool-digest.json ../moonbase-runtime-${runtime_moonbase_ver}.srtool-digest.json
+          
+          mv moonriver-runtime.compact.compressed.wasm ../moonriver-runtime-${runtime_moonriver_ver}.wasm
+          mv moonriver-srtool-digest.json ../moonriver-runtime-${runtime_moonriver_ver}.srtool-digest.json
+          
+          mv moonbeam-runtime.compact.compressed.wasm ../moonbeam-runtime-${runtime_moonbeam_ver}.wasm
+          mv moonbeam-srtool-digest.json ../moonbeam-runtime-${runtime_moonbeam_ver}.srtool-digest.json
 
       - name: Create draft release with runtime assets
         id: create-release
