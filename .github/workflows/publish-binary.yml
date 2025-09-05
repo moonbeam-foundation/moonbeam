@@ -57,7 +57,7 @@ jobs:
       - name: Prepare moonbeam binary for release body generation
         working-directory: build
         run: |
-          cp moonbeam-x86-64 moonbeam
+          mv moonbeam-x86-64 moonbeam
       - name: Generate release body
         id: generate-release-body
         env:
@@ -70,9 +70,7 @@ jobs:
         working-directory: build
         run: |
           # Prepare binaries for upload
-          # x86-64 binary gets renamed to just "moonbeam"
-          cp moonbeam-x86-64 ../moonbeam
-          # Other architectures keep their suffix
+          cp moonbeam ../moonbeam
           cp moonbeam-skylake ../moonbeam-skylake
           cp moonbeam-znver3 ../moonbeam-znver3
       - name: Create draft release with binaries
