@@ -14,35 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::mock::{
-	events, roll_to, AccountId, Crowdloan, ExtBuilder, PCall, Precompiles, PrecompilesValue,
-	Runtime, RuntimeCall, RuntimeOrigin,
-};
-use frame_support::assert_ok;
-use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
+use crate::mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime};
 use pallet_evm::Call as EvmCall;
 use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::U256;
-use sp_runtime::traits::Dispatchable;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
-}
-
-fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
-	EvmCall::call {
-		source: Alice.into(),
-		target: Precompile1.into(),
-		input,
-		value: U256::zero(), // No value sent in EVM
-		gas_limit: u64::max_value(),
-		max_fee_per_gas: 0.into(),
-		max_priority_fee_per_gas: Some(U256::zero()),
-		nonce: None, // Use the next nonce
-		access_list: Vec::new(),
-		authorization_list: Vec::new(),
-	}
 }
 
 #[test]
