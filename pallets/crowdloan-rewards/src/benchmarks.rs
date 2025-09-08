@@ -29,7 +29,7 @@ fn fund_specific_account<T: Config>(pallet_account: T::AccountId, extra: Balance
 	let default_balance = default_balance::<T>();
 	let total = default_balance + extra;
 	T::RewardCurrency::make_free_balance_be(&pallet_account, total);
-	T::RewardCurrency::issue(total);
+	let _ = T::RewardCurrency::issue(total);
 }
 
 /// Create a funded user.
@@ -43,29 +43,8 @@ fn create_funded_user<T: Config>(
 	let default_balance = default_balance::<T>();
 	let total = default_balance + extra;
 	T::RewardCurrency::make_free_balance_be(&user, total);
-	T::RewardCurrency::issue(total);
+	let _ = T::RewardCurrency::issue(total);
 	user
-}
-
-/// Create contributors.
-fn create_contributors<T: Config>(
-	total_number: u32,
-	seed_offset: u32,
-) -> Vec<(T::RelayChainAccountId, Option<T::AccountId>, BalanceOf<T>)> {
-	let mut contribution_vec = Vec::new();
-	for i in 0..total_number {
-		let seed = SEED - seed_offset - i;
-		let mut account: [u8; 32] = [0u8; 32];
-		let seed_as_slice = seed.to_be_bytes();
-		for j in 0..seed_as_slice.len() {
-			account[j] = seed_as_slice[j]
-		}
-		let relay_chain_account: AccountId32 = account.into();
-		let user = create_funded_user::<T>("user", seed, 0u32.into());
-		let contribution: BalanceOf<T> = 100u32.into();
-		contribution_vec.push((relay_chain_account.into(), Some(user.clone()), contribution));
-	}
-	contribution_vec
 }
 
 /// Insert contributors.
@@ -117,8 +96,6 @@ fn max_batch_contributors<T: Config>() -> u32 {
 	T::MaxInitContributors::get()
 }
 
-// This is our current number of contributors
-const MAX_ALREADY_USERS: u32 = 5799;
 const SEED: u32 = 999999999;
 
 benchmarks! {
