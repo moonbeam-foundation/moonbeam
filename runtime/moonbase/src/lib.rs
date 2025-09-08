@@ -1446,7 +1446,7 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
 		// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 28,
-		// Previously 29 Assets: pallet_assets::{Pallet, Call, Storage, Event<T>}
+		// [Removed] Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
 		// Previously 30: XTokens
 		// Previously 31: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>}
 		// [Removed] Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,

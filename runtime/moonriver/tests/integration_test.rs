@@ -446,7 +446,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::XcmpQueue>(100);
 	is_pallet_index::<moonriver_runtime::CumulusXcm>(101);
 	is_pallet_index::<moonriver_runtime::PolkadotXcm>(103);
-	// is_pallet_index::<moonriver_runtime::Assets>(104);
+	// is_pallet_index::<moonriver_runtime::Assets>(104); Removed
 	// is_pallet_index::<moonriver_runtime::AssetManager>(105); Removed
 	// is_pallet_index::<moonriver_runtime::XTokens>(106); Removed
 	is_pallet_index::<moonriver_runtime::XcmTransactor>(107);

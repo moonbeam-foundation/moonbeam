@@ -420,9 +420,9 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::XcmpQueue>(25);
 	is_pallet_index::<moonbase_runtime::CumulusXcm>(26);
 	is_pallet_index::<moonbase_runtime::PolkadotXcm>(28);
-	// is_pallet_index::<moonbase_runtime::Assets>(29);
+	// is_pallet_index::<moonbase_runtime::Assets>(29); Removed
 	// is_pallet_index::<moonbase_runtime::XTokens>(30); Removed
-	// is_pallet_index::<moonbase_runtime::AssetManager>(31);
+	// is_pallet_index::<moonbase_runtime::AssetManager>(31); Removed
 	is_pallet_index::<moonbase_runtime::XcmTransactor>(33);
 	is_pallet_index::<moonbase_runtime::ProxyGenesisCompanion>(34);
 	is_pallet_index::<moonbase_runtime::MoonbeamOrbiters>(37);
