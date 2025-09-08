@@ -122,50 +122,6 @@ const MAX_ALREADY_USERS: u32 = 5799;
 const SEED: u32 = 999999999;
 
 benchmarks! {
-	initialize_reward_vec {
-		let x in 1..max_batch_contributors::<T>();
-		let y = MAX_ALREADY_USERS;
-
-		let total_pot = 100u32*(x+y);
-		// We probably need to assume we have N contributors already in
-		// Fund pallet account
-		fund_specific_account::<T>(Pallet::<T>::account_id(), total_pot.into());
-
-		// Create y contributors
-		let contributors = create_contributors::<T>(y, 0);
-
-		// Insert them
-		insert_contributors::<T>(contributors)?;
-
-		// This X new contributors are the ones we will count
-		let new_contributors = create_contributors::<T>(x, y);
-
-		let verifier = create_funded_user::<T>("user", SEED, 0u32.into());
-
-	}:  _(RawOrigin::Root, new_contributors)
-	verify {
-		assert!(Pallet::<T>::accounts_payable(&verifier).is_some());
-	}
-
-	complete_initialization {
-		// Fund pallet account
-		let total_pot = 100u32;
-		fund_specific_account::<T>(Pallet::<T>::account_id(), total_pot.into());
-		// 1 contributor is enough
-		let contributors = create_contributors::<T>(1, 0);
-
-		// Insert them
-		insert_contributors::<T>(contributors)?;
-
-		// We need to create the first block inherent, to initialize the initRelayBlock
-		T::VestingBlockProvider::set_block_number(1u32.into());
-		Pallet::<T>::on_finalize(BlockNumberFor::<T>::one());
-
-	}:  _(RawOrigin::Root, 10u32.into())
-	verify {
-	  assert!(Pallet::<T>::initialized());
-	}
-
 	claim {
 		// Fund pallet account
 		let total_pot = 100u32;
