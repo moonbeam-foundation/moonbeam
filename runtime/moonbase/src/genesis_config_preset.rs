@@ -18,11 +18,11 @@ extern crate alloc;
 
 use crate::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
-	InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
-	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
-	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
+	EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig, InflationInfo,
+	MaintenanceModeConfig, MoonbeamOrbitersConfig, OpenTechCommitteeCollectiveConfig,
+	ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range,
+	RuntimeGenesisConfig, SudoConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
+	XcmTransactorConfig, HOURS,
 };
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;

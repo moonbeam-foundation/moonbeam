@@ -23,8 +23,8 @@ extern crate alloc;
 use crate::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, Balances,
 	BalancesConfig, BridgePolkadotGrandpaConfig, BridgePolkadotMessagesConfig,
-	BridgePolkadotParachainsConfig, BridgeXcmOverMoonbeamConfig, EVMConfig,
-	EligibilityValue, EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
+	BridgePolkadotParachainsConfig, BridgeXcmOverMoonbeamConfig, EVMConfig, EligibilityValue,
+	EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
 	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
 	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
 	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmWeightTraderConfig, HOURS,

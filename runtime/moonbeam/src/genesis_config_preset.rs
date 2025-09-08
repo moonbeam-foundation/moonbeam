@@ -19,8 +19,8 @@ extern crate alloc;
 use crate::{
 	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
 	Balance, Balances, BalancesConfig, BridgeKusamaGrandpaConfig, BridgeKusamaMessagesConfig,
-	BridgeKusamaParachainsConfig, BridgeXcmOverMoonriverConfig, EVMConfig,
-	EligibilityValue, EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
+	BridgeKusamaParachainsConfig, BridgeXcmOverMoonriverConfig, EVMConfig, EligibilityValue,
+	EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
 	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
 	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
 	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmWeightTraderConfig, HOURS,
