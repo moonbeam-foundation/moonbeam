@@ -40,9 +40,11 @@ pub mod pallet {
 	use super::*;
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{Currency, ExistenceRequirement::AllowDeath, WithdrawReasons},
+		traits::{Currency, ExistenceRequirement::AllowDeath},
 		PalletId,
 	};
+	#[cfg(any(test, feature = "runtime-benchmarks"))]
+	use frame_support::traits::WithdrawReasons;
 	use frame_system::pallet_prelude::*;
 	use sp_core::crypto::AccountId32;
 	use sp_runtime::traits::{
