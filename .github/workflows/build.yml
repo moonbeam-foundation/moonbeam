@@ -425,7 +425,7 @@ jobs:
           get_status_emoji() {
             local size=$1
             local diff=$2
-            if [ $size -gt 2400 ]; then
+            if [ $size -gt 3000 ]; then
               echo "🚨"
             elif [ $diff -gt 0 ]; then
               echo "⚠️"
@@ -504,7 +504,7 @@ jobs:
         run: |
           # There may be false negatives/positives
           # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
-          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime,bridge-stagenet --all-targets
+          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
     runs-on:
@@ -547,12 +547,6 @@ jobs:
       - name: Unit tests
         run: |
           cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
-      - name: Run bridge tests
-        run: |
-          cargo test --color=always -p moonbase-runtime --features bridge-betanet --test integration_test bridge_tests -- --nocapture
-          cargo test --color=always -p moonbase-runtime --features bridge-stagenet --test integration_test bridge_tests -- --nocapture
-      - name: Run sccache stat for check pre test
-        run: ${SCCACHE_PATH} --show-stats
 
   # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 

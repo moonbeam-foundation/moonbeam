@@ -39,7 +39,6 @@ use fp_rpc::ConvertTransaction;
 use moonbase_runtime::XcmWeightTrader;
 use pallet_transaction_payment::Multiplier;
 use std::collections::BTreeMap;
-use xcm::prelude::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
@@ -134,7 +133,6 @@ pub struct ExtBuilder {
 	// [assettype, metadata, Vec<Account, Balance>]
 	xcm_assets: Vec<XcmAssetInitialization>,
 	safe_xcm_version: Option<u32>,
-	opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbase::LaneId>)>,
 }
 
 impl Default for ExtBuilder {
@@ -168,7 +166,6 @@ impl Default for ExtBuilder {
 			evm_accounts: BTreeMap::new(),
 			xcm_assets: vec![],
 			safe_xcm_version: None,
-			opened_bridges: vec![],
 		}
 	}
 }
@@ -181,14 +178,6 @@ impl ExtBuilder {
 
 	pub fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
-		self
-	}
-
-	pub fn with_open_bridges(
-		mut self,
-		opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbase::LaneId>)>,
-	) -> Self {
-		self.opened_bridges = opened_bridges;
 		self
 	}
 
@@ -236,16 +225,6 @@ impl ExtBuilder {
 			.build_storage()
 			.unwrap();
 
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		parachain_info::GenesisConfig::<Runtime> {
-			parachain_id:
-				<moonbase_runtime::bridge_config::ThisChain as bp_runtime::Parachain>::PARACHAIN_ID
-					.into(),
-			_config: Default::default(),
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
 			dev_accounts: None,
@@ -273,17 +252,6 @@ impl ExtBuilder {
 
 		pallet_author_mapping::GenesisConfig::<Runtime> {
 			mappings: self.mappings,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		pallet_xcm_bridge::GenesisConfig::<
-			Runtime,
-			moonbase_runtime::bridge_config::XcmBridgeInstance,
-		> {
-			opened_bridges: self.opened_bridges,
-			_phantom: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
