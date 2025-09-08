@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["PARACHAIN_ID","WITH_BRIDGE_MESSAGES_PALLET_NAME"],"struct":["Betanet"],"type":["AccountId","Balance","BlockNumber","Hash","Header","Signature"]};

@@ -3676,8 +3676,8 @@
 <span class="doccomment">/// BlockId type as expected by this runtime.
 </span><span class="kw">pub type </span>BlockId = generic::BlockId&lt;Block&gt;;
 
-<span class="doccomment">/// The SignedExtension to the basic transaction logic.
-</span><span class="kw">pub type </span>SignedExtra = cumulus_pallet_weight_reclaim::StorageWeightReclaim&lt;
+<span class="doccomment">/// The TransactionExtension to the basic transaction logic.
+</span><span class="kw">pub type </span>TxExtension = cumulus_pallet_weight_reclaim::StorageWeightReclaim&lt;
 	Runtime,
 	(
 		frame_system::CheckNonZeroSender&lt;Runtime&gt;,
@@ -3694,10 +3694,10 @@
 &gt;;
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
 </span><span class="kw">pub type </span>UncheckedExtrinsic =
-	fp_self_contained::UncheckedExtrinsic&lt;Address, RuntimeCall, Signature, SignedExtra&gt;;
+	fp_self_contained::UncheckedExtrinsic&lt;Address, RuntimeCall, Signature, TxExtension&gt;;
 <span class="doccomment">/// Extrinsic type that has already been checked.
 </span><span class="kw">pub type </span>CheckedExtrinsic =
-	fp_self_contained::CheckedExtrinsic&lt;AccountId, RuntimeCall, SignedExtra, H160&gt;;
+	fp_self_contained::CheckedExtrinsic&lt;AccountId, RuntimeCall, TxExtension, H160&gt;;
 <span class="doccomment">/// Executive: handles dispatch to the various pallets.
 </span><span class="kw">pub type </span>Executive = frame_executive::Executive&lt;
 	Runtime,
@@ -3759,7 +3759,7 @@
 						<span class="kw">let </span>tip = <span class="kw">match </span><span class="kw-2">&amp;</span>xt.<span class="number">0</span>.preamble {
 							Preamble::Bare(<span class="kw">_</span>) =&gt; <span class="number">0</span>,
 							Preamble::Signed(<span class="kw">_</span>, <span class="kw">_</span>, signed_extra) =&gt; {
-								<span class="comment">// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
+								<span class="comment">// Yuck, this depends on the index of ChargeTransactionPayment in TxExtension
 								// Get the 7th item from the tuple
 								</span><span class="kw">let </span>charge_transaction_payment = <span class="kw-2">&amp;</span>signed_extra.<span class="number">0.7</span>;
 								charge_transaction_payment.tip()
