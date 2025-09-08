@@ -3,7 +3,7 @@
 use crate::Config;
 use crate::{BalanceOf, Call, Pallet, WRAPPED_BYTES_POSTFIX, WRAPPED_BYTES_PREFIX};
 use ed25519_dalek::Signer;
-use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
+use frame_benchmarking::{account, benchmarks};
 use frame_support::traits::{Currency, Get, OnFinalize};
 use frame_system::pallet_prelude::*;
 use frame_system::RawOrigin;
