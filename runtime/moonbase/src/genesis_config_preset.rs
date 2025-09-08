@@ -18,7 +18,7 @@ extern crate alloc;
 
 use crate::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
+	EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
 	InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
 	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig,
@@ -73,7 +73,6 @@ pub fn testnet_genesis(
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	endowed_accounts: Vec<AccountId>,
-	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
 ) -> serde_json::Value {
@@ -92,9 +91,6 @@ pub fn testnet_genesis(
 				.map(|k| (k, 1 << 80))
 				.collect(),
 			dev_accounts: Default::default(),
-		},
-		crowdloan_rewards: CrowdloanRewardsConfig {
-			funded_amount: crowdloan_fund_pot,
 		},
 		sudo: SudoConfig {
 			key: Some(root_key),
@@ -237,7 +233,6 @@ pub fn development() -> serde_json::Value {
 				"773539d4Ac0e786233D90A233654ccEE26a613D9"
 			)),
 		],
-		3_000_000 * UNIT,
 		Default::default(), // para_id
 		1280,               //ChainId
 	)

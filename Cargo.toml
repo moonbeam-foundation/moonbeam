@@ -7,6 +7,7 @@ members = [
     "node/cli",
     "node/service",
     "pallets/asset-manager",
+    "pallets/crowdloan-rewards",
     "pallets/erc20-xcm-bridge",
     "pallets/ethereum-xcm",
     "pallets/moonbeam-foreign-assets",
@@ -74,6 +75,7 @@ moonbeam-relay-encoder = { path = "runtime/relay-encoder", default-features = fa
 moonbeam-runtime-common = { path = "runtime/common", default-features = false }
 
 pallet-asset-manager = { path = "pallets/asset-manager", default-features = false }
+pallet-crowdloan-rewards = { path = "pallets/crowdloan-rewards", default-features = false }
 pallet-erc20-xcm-bridge = { path = "pallets/erc20-xcm-bridge", default-features = false }
 pallet-ethereum-xcm = { path = "pallets/ethereum-xcm", default-features = false }
 pallet-moonbeam-foreign-assets = { path = "pallets/moonbeam-foreign-assets", default-features = false }
@@ -108,8 +110,6 @@ pallet-proxy-genesis-companion = { path = "pallets/proxy-genesis-companion", def
 pallet-xcm-transactor = { path = "pallets/xcm-transactor", default-features = false }
 pallet-xcm-weight-trader = { path = "pallets/xcm-weight-trader", default-features = false }
 xcm-primitives = { path = "primitives/xcm", default-features = false }
-
-pallet-crowdloan-rewards = { git = "https://github.com/moonbeam-foundation/crowdloan-rewards", branch = "moonbeam-polkadot-stable2503", default-features = false }
 
 # Local bridge crates
 bp-moonbeam = { path = "primitives/bridge/moonbeam", default-features = false }
