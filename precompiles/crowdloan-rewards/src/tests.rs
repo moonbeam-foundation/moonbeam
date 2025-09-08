@@ -15,10 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime};
-use pallet_evm::Call as EvmCall;
 use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
-use sp_core::U256;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()

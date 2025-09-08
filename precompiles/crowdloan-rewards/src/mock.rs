@@ -16,20 +16,14 @@
 
 //! Test utilities
 use super::*;
-use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayChainBlockNumber, AggregateMessageOrigin,
-	PersistedValidationData,
-};
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::{
 	construct_runtime,
-	inherent::{InherentData, ProvideInherent},
 	parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize, UnfilteredDispatchable},
+	traits::Everything,
 	weights::Weight,
 };
-use frame_system::{pallet_prelude::BlockNumberFor, EnsureSigned, RawOrigin};
+use frame_system::EnsureSigned;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
