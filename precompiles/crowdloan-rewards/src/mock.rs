@@ -17,12 +17,7 @@
 //! Test utilities
 use super::*;
 use cumulus_primitives_core::AggregateMessageOrigin;
-use frame_support::{
-	construct_runtime,
-	parameter_types,
-	traits::Everything,
-	weights::Weight,
-};
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use frame_system::EnsureSigned;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
