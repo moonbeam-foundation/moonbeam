@@ -81,13 +81,6 @@ use sp_std::{
 	prelude::*,
 };
 
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-parameter_types! {
-	// The network Id of the relay
-	pub RelayNetwork: NetworkId = crate::bridge_config::SourceGlobalConsensusNetwork::get();
-}
-
-#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
 parameter_types! {
 	// The network Id of the relay
 	pub RelayNetwork: NetworkId = NetworkId::ByGenesis(xcm::v5::WESTEND_GENESIS_HASH);
@@ -99,8 +92,6 @@ parameter_types! {
 	// The universal location within the global consensus system
 	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into())].into();
-
-
 	// Self Reserve location, defines the multilocation identifiying the self-reserve currency
 	// This is used to match it also against our Balances pallet when we receive such
 	// a Location: (Self Balances pallet index)
@@ -252,14 +243,6 @@ parameter_types! {
 	pub const MaxAssetsIntoHolding: u32 = xcm_primitives::MAX_ASSETS;
 }
 
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-type BridgedReserves = (
-	// Assets held in reserve on Asset Hub.
-	IsBridgedConcreteAssetFrom<AssetHubLocation>,
-	// Assets bridged from TargetBridgeLocation
-	IsBridgedConcreteAssetFrom<crate::bridge_config::TargetBridgeLocation>,
-);
-#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
 type BridgedReserves = (
 	// Assets held in reserve on Asset Hub.
 	IsBridgedConcreteAssetFrom<AssetHubLocation>,
@@ -305,13 +288,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type AssetExchanger = ();
 	type FeeManager = ();
 
-	#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-	type MessageExporter = super::BridgeXcmOver;
-	#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
 	type MessageExporter = ();
-	#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-	type UniversalAliases = crate::bridge_config::UniversalAliases;
-	#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
 	type UniversalAliases = Nothing;
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
@@ -336,19 +313,6 @@ pub type LocalXcmRouter = (
 
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub type XcmRouter = WithUniqueTopic<(
-	// For routing XCM messages which do not cross local consensus boundary.
-	LocalXcmRouter,
-	// Router that exports messages to be delivered to the bridge destination
-	moonbeam_runtime_common::bridge::BridgeXcmRouter<
-		xcm_builder::LocalExporter<crate::BridgeXcmOver, UniversalLocation>,
-	>,
-)>;
-
-/// The means for routing XCM messages which are not for local execution into the right message
-/// queues.
-#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
 pub type XcmRouter = WithUniqueTopic<LocalXcmRouter>;
 
 pub type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
