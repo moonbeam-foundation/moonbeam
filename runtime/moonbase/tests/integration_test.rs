@@ -30,19 +30,19 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo,
-		StorageInfo, StorageInfoTrait,
+		Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo, StorageInfo,
+		StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::xcm_config::{AssetHubLocation, XcmExecutor};
 use moonbase_runtime::{
-	moonbase_xcm_weights, xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards,
-	EvmForeignAssets, Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
-	TransactionPayment, TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective,
-	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	moonbase_xcm_weights, xcm_config::SelfReserve, AccountId, AssetId, Balances, EvmForeignAssets,
+	Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
+	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -66,8 +66,7 @@ use pallet_parachain_staking::InflationDistributionAccount;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
-use sha3::{Digest, Keccak256};
-use sp_core::{crypto::UncheckedFrom, ByteArray, Get, Pair, H160, H256, U256};
+use sp_core::{crypto::UncheckedFrom, ByteArray, Get, H160, H256, U256};
 use sp_runtime::{bounded_vec, DispatchError, ModuleError};
 use std::cell::Cell;
 use std::rc::Rc;
@@ -76,8 +75,6 @@ use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
 type AuthorMappingPCall =
 	pallet_evm_precompile_author_mapping::AuthorMappingPrecompileCall<Runtime>;
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
-type CrowdloanRewardsPCall =
-	pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompileCall<Runtime>;
 type XcmUtilsPCall = pallet_evm_precompile_xcm_utils::XcmUtilsPrecompileCall<
 	Runtime,
 	moonbase_runtime::xcm_config::XcmExecutorConfig,
