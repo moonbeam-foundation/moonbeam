@@ -17,33 +17,16 @@
 //! Asset configuration for Moonbase.
 //!
 
-use super::{
-	currency, AccountId, AssetId, Balance, Runtime, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-};
+use super::{AccountId, AssetId, Runtime, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX};
 
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 
-use frame_support::parameter_types;
 use sp_core::H160;
 
 use sp_std::{
 	convert::{From, Into},
 	prelude::*,
 };
-
-// Not to disrupt the previous asset instance, we assign () to Foreign
-pub type ForeignAssetInstance = ();
-
-// For foreign assets, these parameters dont matter much
-// as this will only be called by root with the forced arguments
-// No deposit is substracted with those methods
-parameter_types! {
-	pub const AssetDeposit: Balance = 100 * currency::MOVR * currency::SUPPLY_FACTOR;
-	pub const ApprovalDeposit: Balance = 0;
-	pub const AssetsStringLimit: u32 = 50;
-	pub const MetadataDepositBase: Balance = currency::deposit(1,68);
-	pub const MetadataDepositPerByte: Balance = currency::deposit(0, 1);
-}
 
 // Instruct how to go from an H160 to an AssetID
 // We just take the lowest 128 bits
