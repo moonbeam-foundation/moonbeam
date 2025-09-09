@@ -7115,7 +7115,6 @@ dependencies = [
  "moonbeam-runtime-common",
  "nimbus-primitives",
  "num_enum 0.5.11",
- "pallet-asset-manager",
  "pallet-assets",
  "pallet-async-backing",
  "pallet-author-inherent",
