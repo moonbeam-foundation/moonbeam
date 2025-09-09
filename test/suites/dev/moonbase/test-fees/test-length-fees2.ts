@@ -2,6 +2,39 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { createViemTransaction } from "@moonwall/util";
 import { ConstantStore } from "../../../../helpers/constants";
+import { hexToU8a } from "@polkadot/util";
+
+// EIP-7623 constants
+const TOTAL_COST_FLOOR_PER_TOKEN = 10n;
+const COST_FLOOR_PER_ZERO_BYTE = TOTAL_COST_FLOOR_PER_TOKEN;
+const COST_FLOOR_PER_NON_ZERO_BYTE = 4n * TOTAL_COST_FLOOR_PER_TOKEN;
+const STANDARD_COST_PER_ZERO_BYTE = 4n;
+const STANDARD_COST_PER_NON_ZERO_BYTE = 16n;
+const BASE_TX_COST = 21000n;
+
+/**
+ * Calculate expected gas with EIP-7623 floor cost mechanism
+ */
+function calculateExpectedGas(
+  numZeroBytes: number,
+  numNonZeroBytes: number,
+  executionGas: bigint
+): bigint {
+  // Floor cost calculation
+  const floorCost =
+    BigInt(numNonZeroBytes) * COST_FLOOR_PER_NON_ZERO_BYTE +
+    BigInt(numZeroBytes) * COST_FLOOR_PER_ZERO_BYTE +
+    BASE_TX_COST;
+
+  // Standard cost + execution
+  const standardCalldataCost =
+    BigInt(numNonZeroBytes) * STANDARD_COST_PER_NON_ZERO_BYTE +
+    BigInt(numZeroBytes) * STANDARD_COST_PER_ZERO_BYTE;
+  const standardCostPlusExecution = standardCalldataCost + BASE_TX_COST + executionGas;
+
+  // Return the maximum of floor cost and standard cost + execution
+  return floorCost > standardCostPlusExecution ? floorCost : standardCostPlusExecution;
+}
 
 describeSuite({
   id: "D021607",
@@ -28,15 +61,18 @@ describeSuite({
         // byte). What we want to show is that this length fee is applied but our exponential
         // LengthToFee (part of our Substrate-based fees) is not applied.
 
+        const inputData =
+          "0x0000000000000000000000000000000000000000000000000000000000000004" + // base
+          "0000000000000000000000000000000000000000000000000000000000000004" + // exp
+          "0000000000000000000000000000000000000000000000000000000000000004" + // mod
+          "0".repeat(2048) + // 2048 hex nibbles -> 1024 bytes
+          "0".repeat(2048) +
+          "0".repeat(2048);
+
         const tx = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           gas: BigInt(constants.EXTRINSIC_GAS_LIMIT.get(specVersion.toNumber())),
-          data: ("0x0000000000000000000000000000000000000000000000000000000000000004" + // base
-            "0000000000000000000000000000000000000000000000000000000000000004" + // exp
-            "0000000000000000000000000000000000000000000000000000000000000004" + // mod
-            "0".repeat(2048) + // 2048 hex nibbles -> 1024 bytes
-            "0".repeat(2048) +
-            "0".repeat(2048)) as `0x${string}`,
+          data: inputData as `0x${string}`,
         });
 
         const { result } = await context.createBlock(tx);
@@ -45,6 +81,11 @@ describeSuite({
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         expect(receipt.status).toBe("success");
+
+        // Calculate byte counts for EIP-7623
+        const byteArray = hexToU8a(inputData);
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
+        const numNonZeroBytes = byteArray.length - numZeroBytes;
 
         // rough math on what the exponential LengthToFee modifier would do to this:
         // * input data alone is (3 * 1024) + (3 * 32) = 3168
@@ -56,26 +97,23 @@ describeSuite({
           1_271_790n
         );
 
-        // furthermore, we can account for the entire fee:
-        const non_zero_byte_fee = 3n * 40n; // floor calldata gas applied
-        const zero_byte_fee = 3165n * 10n; // floor calldata gas applied
-        const base_ethereum_fee = 21000n;
+        // Calculate execution gas costs
         const is_precompile_check_gas = 1669n;
         const modexp_min_cost = 200n * 20n; // see MIN_GAS_COST in frontier's modexp precompile
-        const entire_fee =
-          non_zero_byte_fee +
-          zero_byte_fee +
-          base_ethereum_fee +
-          modexp_min_cost +
-          is_precompile_check_gas;
+        const executionGas = modexp_min_cost + is_precompile_check_gas;
+
+        // Calculate expected gas with EIP-7623
+        const expectedGasUsed = calculateExpectedGas(numZeroBytes, numNonZeroBytes, executionGas);
+
         // the gas used should be the maximum of the legacy gas and the pov gas
-        const expected = BigInt(
+        const expectedWithPov = BigInt(
           Math.max(
-            Number(entire_fee),
+            Number(expectedGasUsed),
             3821 * Number(constants.GAS_PER_POV_BYTES.get(specVersion.toNumber()))
           )
         );
-        expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBe(expected);
+
+        expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBe(expectedWithPov);
       },
     });
   },
