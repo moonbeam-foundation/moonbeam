@@ -1195,7 +1195,6 @@ pub struct MaintenanceFilter;
 impl Contains<RuntimeCall> for MaintenanceFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			RuntimeCall::Assets(_) => false,
 			RuntimeCall::Balances(_) => false,
 			RuntimeCall::CrowdloanRewards(_) => false,
 			RuntimeCall::Ethereum(_) => false,
@@ -1221,17 +1220,6 @@ pub struct NormalFilter;
 impl Contains<RuntimeCall> for NormalFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			RuntimeCall::Assets(method) => match method {
-				pallet_assets::Call::transfer { .. } => true,
-				pallet_assets::Call::transfer_keep_alive { .. } => true,
-				pallet_assets::Call::approve_transfer { .. } => true,
-				pallet_assets::Call::transfer_approved { .. } => true,
-				pallet_assets::Call::cancel_approval { .. } => true,
-				pallet_assets::Call::destroy_accounts { .. } => true,
-				pallet_assets::Call::destroy_approvals { .. } => true,
-				pallet_assets::Call::finish_destroy { .. } => true,
-				_ => false,
-			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			RuntimeCall::Proxy(method) => match method {
@@ -1458,7 +1446,7 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
 		// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 28,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
+		// [Removed] Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
 		// Previously 30: XTokens
 		// Previously 31: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>}
 		// [Removed] Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
@@ -1556,7 +1544,6 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_sudo, Sudo]
 		[pallet_evm, EVM]
-		[pallet_assets, Assets]
 		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
 		[pallet_treasury, Treasury]
