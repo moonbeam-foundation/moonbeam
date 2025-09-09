@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["ApprovalDeposit","AssetDeposit","AssetsStringLimit","MetadataDepositBase","MetadataDepositPerByte"],"type":["AssetsForceOrigin","ForeignAssetInstance"]};
+window.SIDEBAR_ITEMS = {};

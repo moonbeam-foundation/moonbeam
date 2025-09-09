@@ -313,18 +313,7 @@
 <a href="#312" id="312">312</a>
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
-<a href="#326" id="326">326</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#315" id="315">315</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -342,9 +331,8 @@
 
 </span><span class="kw">use </span><span class="kw">super</span>::moonriver_weights;
 <span class="kw">use crate</span>::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, AccountId, AssetId,
-	Balances, Erc20XcmBridge, EvmForeignAssets, OpenTechCommitteeInstance, Runtime,
-	TreasuryCouncilInstance,
+	xcm_config::XcmExecutorConfig, AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets,
+	OpenTechCommitteeInstance, Runtime, TreasuryCouncilInstance,
 };
 <span class="kw">use </span>frame_support::parameter_types;
 <span class="kw">use </span>moonkit_xcm_primitives::location_matcher::{
@@ -383,7 +371,6 @@
 };
 <span class="kw">use </span>pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_xtokens::XtokensPrecompile;
-<span class="kw">use </span>pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 <span class="kw">use </span>pallet_precompile_benchmarks::WeightInfo;
 <span class="kw">use </span>precompile_utils::precompile_set::<span class="kw-2">*</span>;
 
@@ -639,15 +626,6 @@
 	(
 		<span class="comment">// Skip precompiles if out of range.
 		</span>PrecompilesInRangeInclusive&lt;(AddressU64&lt;<span class="number">1</span>&gt;, AddressU64&lt;<span class="number">4095</span>&gt;), MoonriverPrecompilesAt&lt;R&gt;&gt;,
-		<span class="comment">// Prefixed precompile sets (XC20)
-		</span>PrecompileSetStartingWith&lt;
-			ForeignAssetPrefix,
-			Erc20AssetsPrecompileSet&lt;R, ForeignAssetInstance&gt;,
-			CallableByContract,
-		&gt;,
-		<span class="comment">// Moonriver never had any local assets (No blacklist needed
-		// https://moonriver.subscan.io/event?module=localassets&amp;event_id=created
-		// https://moonriver.subscan.io/event?module=localassets&amp;event_id=forcecreated
-	</span>),
+	),
 &gt;;
 </code></pre></div></section></main></body></html>

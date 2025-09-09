@@ -316,67 +316,7 @@
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
-<a href="#326" id="326">326</a>
-<a href="#327" id="327">327</a>
-<a href="#328" id="328">328</a>
-<a href="#329" id="329">329</a>
-<a href="#330" id="330">330</a>
-<a href="#331" id="331">331</a>
-<a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
-<a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
-<a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a>
-<a href="#374" id="374">374</a>
-<a href="#375" id="375">375</a>
-<a href="#376" id="376">376</a>
-<a href="#377" id="377">377</a>
-<a href="#378" id="378">378</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#318" id="318">318</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -393,15 +333,11 @@
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
 </span><span class="kw">use </span><span class="kw">super</span>::moonbase_weights;
-<span class="kw">use crate</span>::{
-	asset_config::ForeignAssetInstance, xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance,
-	TreasuryCouncilInstance,
-};
-<span class="kw">use crate</span>::{AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160};
+<span class="kw">use crate</span>::{xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance, TreasuryCouncilInstance};
+<span class="kw">use crate</span>::{AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime};
 <span class="kw">use </span>frame_support::parameter_types;
-<span class="kw">use </span>moonkit_xcm_primitives::{
-	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
-	AccountIdAssetIdConversion,
+<span class="kw">use </span>moonkit_xcm_primitives::location_matcher::{
+	Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher,
 };
 <span class="kw">use </span>pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 <span class="kw">use </span>pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
@@ -436,10 +372,8 @@
 };
 <span class="kw">use </span>pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 <span class="kw">use </span>pallet_evm_precompile_xtokens::XtokensPrecompile;
-<span class="kw">use </span>pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 <span class="kw">use </span>pallet_precompile_benchmarks::WeightInfo;
 <span class="kw">use </span>precompile_utils::precompile_set::<span class="kw-2">*</span>;
-<span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
 
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub </span>P256VerifyWeight: frame_support::weights::Weight =
@@ -686,53 +620,6 @@
 	&gt;,
 );
 
-<span class="kw">pub struct </span>DisabledLocalAssets&lt;Runtime&gt;(sp_std::marker::PhantomData&lt;Runtime&gt;);
-
-<span class="kw">impl</span>&lt;Runtime&gt; sp_core::Get&lt;Vec&lt;H160&gt;&gt; <span class="kw">for </span>DisabledLocalAssets&lt;Runtime&gt;
-<span class="kw">where
-	</span>Runtime: frame_system::Config,
-	Runtime::AccountId: Into&lt;H160&gt;,
-	Runtime: AccountIdAssetIdConversion&lt;Runtime::AccountId, AssetId&gt;,
-{
-	<span class="kw">fn </span>get() -&gt; Vec&lt;H160&gt; {
-		<span class="macro">vec!</span>[
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/5245322-6?event=5245322-22
-			</span><span class="number">182085191673801920759598290391359780050u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/3244752-4?event=3244752-9
-			</span><span class="number">282223684955665977914983262584256755878u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/3158280-4?event=3158280-9
-			</span><span class="number">235962050501460763853961856666389569138u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/block/3045900?tab=event&amp;&amp;event=3045900-4
-			</span><span class="number">45350527686064227409532032051821627910u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/3024306-4?event=3024306-9
-			</span><span class="number">199439015574556113723291251263369885338u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/2921640-4?event=2921640-9
-			</span><span class="number">236426850287284823323011839750645103615u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/2748867-4?event=2748867-9
-			</span><span class="number">14626673838203901761839010613793775004u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/2709788-4?event=2709788-9
-			</span><span class="number">95328064580428769161981851380106820590u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/2670844-4?event=2670844-9
-			</span><span class="number">339028723712074529056817184013808486301u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/2555083-4?event=2555083-9
-			</span><span class="number">100481493116602214283160747599845770751u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/2473880-3?event=2473880-8
-			</span><span class="number">319515966007349957795820176952936446433u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/2346438-3?event=2346438-6
-			</span><span class="number">337110116006454532607322340792629567158u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/2239102-3?event=2239102-6
-			</span><span class="number">255225902946708983196362678630947296516u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/2142964-4?event=2142964-12
-			</span><span class="number">3356866138193769031598374869367363824u128</span>,
-			<span class="comment">// https://moonbase.subscan.io/extrinsic/1967538-6?event=1967538-28
-			</span><span class="number">144992676743556815849525085098140609495u128</span>,
-		]
-		.iter()
-		.map(|id| Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, <span class="kw-2">*</span>id).into())
-		.collect()
-	}
-}
-
 <span class="doccomment">/// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -745,13 +632,6 @@
 	(
 		<span class="comment">// Skip precompiles if out of range.
 		</span>PrecompilesInRangeInclusive&lt;(AddressU64&lt;<span class="number">1</span>&gt;, AddressU64&lt;<span class="number">4095</span>&gt;), MoonbasePrecompilesAt&lt;R&gt;&gt;,
-		<span class="comment">// Prefixed precompile sets (XC20)
-		</span>PrecompileSetStartingWith&lt;
-			ForeignAssetPrefix,
-			Erc20AssetsPrecompileSet&lt;R, ForeignAssetInstance&gt;,
-			(CallableByContract, CallableByPrecompile),
-		&gt;,
-		RemovedPrecompilesAt&lt;DisabledLocalAssets&lt;R&gt;&gt;,
 	),
 &gt;;
 </code></pre></div></section></main></body></html>

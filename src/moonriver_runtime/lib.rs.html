@@ -2070,20 +2070,7 @@
 <a href="#2069" id="2069">2069</a>
 <a href="#2070" id="2070">2070</a>
 <a href="#2071" id="2071">2071</a>
-<a href="#2072" id="2072">2072</a>
-<a href="#2073" id="2073">2073</a>
-<a href="#2074" id="2074">2074</a>
-<a href="#2075" id="2075">2075</a>
-<a href="#2076" id="2076">2076</a>
-<a href="#2077" id="2077">2077</a>
-<a href="#2078" id="2078">2078</a>
-<a href="#2079" id="2079">2079</a>
-<a href="#2080" id="2080">2080</a>
-<a href="#2081" id="2081">2081</a>
-<a href="#2082" id="2082">2082</a>
-<a href="#2083" id="2083">2083</a>
-<a href="#2084" id="2084">2084</a>
-<a href="#2085" id="2085">2085</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#2072" id="2072">2072</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -3265,7 +3252,6 @@
 <span class="kw">impl </span>Contains&lt;RuntimeCall&gt; <span class="kw">for </span>MaintenanceFilter {
 	<span class="kw">fn </span>contains(c: <span class="kw-2">&amp;</span>RuntimeCall) -&gt; bool {
 		<span class="kw">match </span>c {
-			RuntimeCall::Assets(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::Balances(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::CrowdloanRewards(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			RuntimeCall::Ethereum(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
@@ -3291,17 +3277,6 @@
 <span class="kw">impl </span>Contains&lt;RuntimeCall&gt; <span class="kw">for </span>NormalFilter {
 	<span class="kw">fn </span>contains(c: <span class="kw-2">&amp;</span>RuntimeCall) -&gt; bool {
 		<span class="kw">match </span>c {
-			RuntimeCall::Assets(method) =&gt; <span class="kw">match </span>method {
-				pallet_assets::Call::transfer { .. } =&gt; <span class="bool-val">true</span>,
-				pallet_assets::Call::transfer_keep_alive { .. } =&gt; <span class="bool-val">true</span>,
-				pallet_assets::Call::approve_transfer { .. } =&gt; <span class="bool-val">true</span>,
-				pallet_assets::Call::transfer_approved { .. } =&gt; <span class="bool-val">true</span>,
-				pallet_assets::Call::cancel_approval { .. } =&gt; <span class="bool-val">true</span>,
-				pallet_assets::Call::destroy_accounts { .. } =&gt; <span class="bool-val">true</span>,
-				pallet_assets::Call::destroy_approvals { .. } =&gt; <span class="bool-val">true</span>,
-				pallet_assets::Call::finish_destroy { .. } =&gt; <span class="bool-val">true</span>,
-				<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-			},
 			<span class="comment">// We just want to enable this in case of live chains, since the default version
 			// is populated at genesis
 			</span>RuntimeCall::PolkadotXcm(method) =&gt; <span class="kw">match </span>method {
@@ -3573,8 +3548,8 @@
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event&lt;T&gt;, Origin} = <span class="number">101</span>,
 		<span class="comment">// Previously 102: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event&lt;T&gt;}
 		</span>PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event&lt;T&gt;, Origin, Config&lt;T&gt;} = <span class="number">103</span>,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">104</span>,
-		<span class="comment">// Previously 105: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event&lt;T&gt;}
+		<span class="comment">// [Removed] Assets: pallet_assets::{Pallet, Call, Storage, Event&lt;T&gt;} = 104,
+		// Previously 105: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event&lt;T&gt;}
 		// Previously 106: XTokens
 		</span>XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">107</span>,
 		<span class="comment">// Previously 108: pallet_assets::&lt;Instance1&gt;
@@ -3629,7 +3604,6 @@
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
 		[pallet_evm, EVM]
-		[pallet_assets, Assets]
 		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
 		[pallet_treasury, Treasury]
