@@ -7,14 +7,20 @@ describeSuite({
   title: "Ethereum Transaction - Large Transaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
+    // With EIP-7623, non-zero bytes cost 40 gas (floor cost) instead of 16
+    // Calculate max size based on floor cost
+    const COST_FLOOR_PER_NON_ZERO_BYTE = 40n;
+    const BASE_TX_COST = 21000n;
     // TODO: I'm not sure where this 2000 came from...
-    const maxSize = (BigInt(EXTRINSIC_GAS_LIMIT) - 21000n) / 16n - 2000n;
+    const maxSize =
+      (BigInt(EXTRINSIC_GAS_LIMIT) - BASE_TX_COST) / COST_FLOOR_PER_NON_ZERO_BYTE - 2000n;
 
     it({
       id: "T01",
       title: "should accept txns up to known size",
       test: async function () {
-        expect(maxSize).to.equal(809187n); // our max Ethereum TXN size in bytes
+        // With EIP-7623 floor cost of 40 per non-zero byte: (13000000 - 21000) / 40 - 2000 = 322475
+        expect(maxSize).to.equal(322475n); // our max Ethereum TXN size in bytes with EIP-7623
         // max_size - shanghai init cost - create cost
         const maxSizeShanghai = maxSize - 6474n;
         const data = ("0x" + "FF".repeat(Number(maxSizeShanghai))) as `0x${string}`;
