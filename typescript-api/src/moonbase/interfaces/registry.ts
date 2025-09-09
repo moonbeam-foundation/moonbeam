@@ -296,7 +296,6 @@ import type {
   PalletWhitelistError,
   PalletWhitelistEvent,
   PalletXcmAuthorizedAliasesEntry,
-  PalletXcmBridgeHubHoldReason,
   PalletXcmCall,
   PalletXcmError,
   PalletXcmEvent,
@@ -714,7 +713,6 @@ declare module "@polkadot/types/types/registry" {
     PalletWhitelistError: PalletWhitelistError;
     PalletWhitelistEvent: PalletWhitelistEvent;
     PalletXcmAuthorizedAliasesEntry: PalletXcmAuthorizedAliasesEntry;
-    PalletXcmBridgeHubHoldReason: PalletXcmBridgeHubHoldReason;
     PalletXcmCall: PalletXcmCall;
     PalletXcmError: PalletXcmError;
     PalletXcmEvent: PalletXcmEvent;
