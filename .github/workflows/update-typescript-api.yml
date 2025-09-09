@@ -42,7 +42,7 @@ jobs:
           version: 9
           run_install: false
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
           cache: pnpm
