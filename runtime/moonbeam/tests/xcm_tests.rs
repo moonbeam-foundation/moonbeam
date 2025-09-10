@@ -4921,6 +4921,7 @@ fn hrmp_close_works() {
 	});
 }
 
+use crate::xcm_mock::parachain::XcmWeightTrader;
 use parity_scale_codec::{Decode, Encode};
 use sp_io::hashing::blake2_256;
 

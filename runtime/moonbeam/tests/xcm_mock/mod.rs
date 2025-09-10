@@ -269,4 +269,3 @@ pub type StatemintAssets = pallet_assets::Pallet<statemint_like::Runtime>;
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
 pub type XcmTransactor = pallet_xcm_transactor::Pallet<parachain::Runtime>;
-pub type XcmWeightTrader = pallet_xcm_weight_trader::Pallet<parachain::Runtime>;

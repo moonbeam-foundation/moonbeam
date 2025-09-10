@@ -267,9 +267,6 @@ pub type StatemintAssets = pallet_assets::Pallet<statemint_like::Runtime>;
 
 pub type ParachainPalletXcm = pallet_xcm::Pallet<parachain::Runtime>;
 
-pub type Treasury = pallet_treasury::Pallet<parachain::Runtime>;
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
 pub type XcmTransactor = pallet_xcm_transactor::Pallet<parachain::Runtime>;
-pub type XcmWeightTrader = pallet_xcm_weight_trader::Pallet<parachain::Runtime>;
-pub type EvmForeignAssets = pallet_moonbeam_foreign_assets::Pallet<parachain::Runtime>;
