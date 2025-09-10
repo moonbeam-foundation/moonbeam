@@ -6,7 +6,6 @@ members = [
     "node",
     "node/cli",
     "node/service",
-    "pallets/asset-manager",
     "pallets/erc20-xcm-bridge",
     "pallets/ethereum-xcm",
     "pallets/moonbeam-foreign-assets",
@@ -73,7 +72,6 @@ moonbeam-evm-tracer = { path = "runtime/evm_tracer", default-features = false }
 moonbeam-relay-encoder = { path = "runtime/relay-encoder", default-features = false }
 moonbeam-runtime-common = { path = "runtime/common", default-features = false }
 
-pallet-asset-manager = { path = "pallets/asset-manager", default-features = false }
 pallet-erc20-xcm-bridge = { path = "pallets/erc20-xcm-bridge", default-features = false }
 pallet-ethereum-xcm = { path = "pallets/ethereum-xcm", default-features = false }
 pallet-moonbeam-foreign-assets = { path = "pallets/moonbeam-foreign-assets", default-features = false }

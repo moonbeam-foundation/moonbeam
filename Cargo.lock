@@ -7540,7 +7540,6 @@ dependencies = [
  "moonbeam-runtime-common",
  "nimbus-primitives",
  "num_enum 0.5.11",
- "pallet-asset-manager",
  "pallet-assets",
  "pallet-async-backing",
  "pallet-author-inherent",
@@ -7876,7 +7875,6 @@ dependencies = [
  "moonbeam-runtime-common",
  "nimbus-primitives",
  "num_enum 0.5.11",
- "pallet-asset-manager",
  "pallet-assets",
  "pallet-async-backing",
  "pallet-author-inherent",
@@ -8706,24 +8704,6 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
-]
-
-[[package]]
-name = "pallet-asset-manager"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "pallet-balances",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "staging-xcm",
- "xcm-primitives 0.1.1",
 ]
 
 [[package]]
