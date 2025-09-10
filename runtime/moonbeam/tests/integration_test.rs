@@ -3565,37 +3565,48 @@ mod fee_tests {
 
 #[cfg(test)]
 mod balance_tests {
-	use crate::common::{ExtBuilder, ALICE, BOB};
-	use frame_support::__private::sp_tracing::{tracing, tracing_subscriber};
+	use crate::common::{ExtBuilder, ALICE};
 	use frame_support::assert_ok;
-	use frame_support::traits::fungible::Inspect;
-	use frame_support::traits::tokens::{Fortitude, Preservation};
-	use frame_support::traits::ReservableCurrency;
+	use frame_support::traits::LockableCurrency;
+	use frame_support::traits::{LockIdentifier, ReservableCurrency, WithdrawReasons};
 	use moonbeam_core_primitives::AccountId;
-	use moonbeam_runtime::currency::GLMR;
-	use moonbeam_runtime::{Balances, ParachainStaking, Proxy, ProxyType, Runtime, System};
+	use moonbeam_runtime::{Balances, System};
 
 	#[test]
-	fn test_usable_balance() {
-		frame_support::__private::sp_tracing::init_for_tests();
-
+	fn reserve_should_work_for_frozen_balance() {
 		let alice = AccountId::from(ALICE);
-		let bob = AccountId::from(BOB);
+		const ID_1: LockIdentifier = *b"1       ";
 
 		ExtBuilder::default()
-			.with_balances(vec![(alice, 2_000_000 * GLMR)])
-			.with_collators(vec![(alice, 1_000_000 * GLMR)])
+			.with_balances(vec![(alice, 10)])
 			.build()
 			.execute_with(|| {
-				assert_ok!(Balances::reserve(&alice, 1_000_000 * GLMR));
+				// Check balances
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 10);
+				assert_eq!(account.frozen, 0);
+				assert_eq!(account.reserved, 0);
 
-				// Check usable balance
-				// usable_balance = free - max(frozen - reserved, ExistentialDeposit)
-				let usable_balance = Balances::usable_balance(alice);
-				assert_eq!(usable_balance, 1_000_000 * GLMR);
+				Balances::set_lock(ID_1, &alice, 9, WithdrawReasons::RESERVE);
 
-				// Should be possible to reserve balance
-				assert_ok!(Balances::reserve(&alice, 1 * GLMR));
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 10);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(account.reserved, 0);
+
+				assert_ok!(Balances::reserve(&alice, 5));
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 5);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(account.reserved, 5);
+
+				assert_ok!(Balances::reserve(&alice, 5));
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 0);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(account.reserved, 10);
 			});
 	}
 }
