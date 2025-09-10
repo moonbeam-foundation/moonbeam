@@ -83,7 +83,9 @@ describeSuite({
       title: "Can connect to parachain and execute a transaction",
       timeout: 240000,
       test: async () => {
-        const balBefore = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
+        const balBefore = (
+          await paraApi.query.system.account(BALTATHAR_ADDRESS)
+        ).data.free.toBigInt();
 
         log("Please wait, this will take at least 30s for transaction to complete");
 
@@ -91,11 +93,10 @@ describeSuite({
           .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
           .signAndSend(charleth);
 
-        const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
-        expect(
-          balBefore.toBigInt().lt(balAfter.toBigInt()),
-          `${balBefore.toHuman()} is not less than ${balAfter.toHuman()}`
-        ).to.be.true;
+        const balAfter = (
+          await paraApi.query.system.account(BALTATHAR_ADDRESS)
+        ).data.free.toBigInt();
+        expect(balBefore, `${balBefore} is not less than ${balAfter}`).to.be.lessThan(balAfter);
       },
     });
 
