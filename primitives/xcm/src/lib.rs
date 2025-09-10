@@ -24,9 +24,6 @@ pub use asset_id_conversions::*;
 mod constants;
 pub use constants::*;
 
-pub mod get_by_key;
-pub use get_by_key::*;
-
 mod ethereum_xcm;
 pub use ethereum_xcm::*;
 

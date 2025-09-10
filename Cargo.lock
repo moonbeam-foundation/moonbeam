@@ -7159,7 +7159,6 @@ dependencies = [
  "pallet-evm-precompile-xcm-transactor",
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
- "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
@@ -7589,7 +7588,6 @@ dependencies = [
  "pallet-evm-precompile-xcm-transactor",
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
- "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
@@ -7926,7 +7924,6 @@ dependencies = [
  "pallet-evm-precompile-xcm-transactor",
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
- "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-message-queue",
@@ -9978,32 +9975,6 @@ dependencies = [
  "staging-xcm-builder",
  "staging-xcm-executor",
  "xcm-primitives 0.1.1",
-]
-
-[[package]]
-name = "pallet-evm-precompileset-assets-erc20"
-version = "0.1.0"
-dependencies = [
- "account",
- "fp-evm",
- "frame-support",
- "frame-system",
- "hex-literal",
- "libsecp256k1",
- "pallet-assets",
- "pallet-balances",
- "pallet-evm",
- "pallet-timestamp",
- "parity-scale-codec",
- "paste",
- "precompile-utils",
- "scale-info",
- "sha3",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "xcm-primitives 0.1.0",
 ]
 
 [[package]]

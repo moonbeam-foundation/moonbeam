@@ -109,16 +109,6 @@ import type {
   MoonbaseRuntimeXcmConfigCurrencyId,
   MoonbaseRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
-  PalletAssetsAccountStatus,
-  PalletAssetsApproval,
-  PalletAssetsAssetAccount,
-  PalletAssetsAssetDetails,
-  PalletAssetsAssetMetadata,
-  PalletAssetsAssetStatus,
-  PalletAssetsCall,
-  PalletAssetsError,
-  PalletAssetsEvent,
-  PalletAssetsExistenceReason,
   PalletAuthorInherentCall,
   PalletAuthorInherentError,
   PalletAuthorMappingCall,
@@ -296,7 +286,6 @@ import type {
   PalletWhitelistError,
   PalletWhitelistEvent,
   PalletXcmAuthorizedAliasesEntry,
-  PalletXcmBridgeHubHoldReason,
   PalletXcmCall,
   PalletXcmError,
   PalletXcmEvent,
@@ -527,16 +516,6 @@ declare module "@polkadot/types/types/registry" {
     MoonbaseRuntimeXcmConfigCurrencyId: MoonbaseRuntimeXcmConfigCurrencyId;
     MoonbaseRuntimeXcmConfigTransactors: MoonbaseRuntimeXcmConfigTransactors;
     NimbusPrimitivesNimbusCryptoPublic: NimbusPrimitivesNimbusCryptoPublic;
-    PalletAssetsAccountStatus: PalletAssetsAccountStatus;
-    PalletAssetsApproval: PalletAssetsApproval;
-    PalletAssetsAssetAccount: PalletAssetsAssetAccount;
-    PalletAssetsAssetDetails: PalletAssetsAssetDetails;
-    PalletAssetsAssetMetadata: PalletAssetsAssetMetadata;
-    PalletAssetsAssetStatus: PalletAssetsAssetStatus;
-    PalletAssetsCall: PalletAssetsCall;
-    PalletAssetsError: PalletAssetsError;
-    PalletAssetsEvent: PalletAssetsEvent;
-    PalletAssetsExistenceReason: PalletAssetsExistenceReason;
     PalletAuthorInherentCall: PalletAuthorInherentCall;
     PalletAuthorInherentError: PalletAuthorInherentError;
     PalletAuthorMappingCall: PalletAuthorMappingCall;
@@ -714,7 +693,6 @@ declare module "@polkadot/types/types/registry" {
     PalletWhitelistError: PalletWhitelistError;
     PalletWhitelistEvent: PalletWhitelistEvent;
     PalletXcmAuthorizedAliasesEntry: PalletXcmAuthorizedAliasesEntry;
-    PalletXcmBridgeHubHoldReason: PalletXcmBridgeHubHoldReason;
     PalletXcmCall: PalletXcmCall;
     PalletXcmError: PalletXcmError;
     PalletXcmEvent: PalletXcmEvent;
