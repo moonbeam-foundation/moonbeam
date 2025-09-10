@@ -14,7 +14,7 @@ describeSuite({
         args: [false],
       });
       await context.deployContract!("TraceFilter", {
-        gas: 90_000n,
+        gas: 150_000n, // Increased for EIP-7623 floor cost
         args: [true],
       });
 
