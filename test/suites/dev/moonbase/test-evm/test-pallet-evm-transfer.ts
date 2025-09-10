@@ -11,7 +11,7 @@ import {
 // A signed call cannot make a transfer directly in pallet_evm
 
 describeSuite({
-  id: "D011502",
+  id: "D021502",
   title: "Pallet EVM - call",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -33,6 +33,7 @@ describeSuite({
                   1_000_000_000n,
                   "0",
                   null,
+                  [],
                   []
                 )
             )
@@ -64,6 +65,7 @@ describeSuite({
                   100_000_000_000_000n,
                   "0",
                   null,
+                  [],
                   []
                 )
             )

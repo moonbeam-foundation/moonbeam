@@ -17,7 +17,7 @@ import { type Abi, encodeFunctionData, fromHex } from "viem";
 import { expectEVMResult, getSignatureParameters } from "../../../../helpers";
 
 describeSuite({
-  id: "D012828",
+  id: "D022816",
   title: "Precompile - Call Permit - foo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

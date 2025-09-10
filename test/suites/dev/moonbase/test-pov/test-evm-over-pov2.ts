@@ -5,7 +5,7 @@ import { type Abi, encodeFunctionData } from "viem";
 import { type HeavyContract, deployHeavyContracts, ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D012702",
+  id: "D022702",
   title: "PoV Limit (7.5Mb in Dev)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -67,8 +67,8 @@ describeSuite({
         const { result, block } = await context.createBlock(rawSigned);
 
         log(`block.proofSize: ${block.proofSize} (successful: ${result?.successful})`);
-        expect(block.proofSize).toBeGreaterThanOrEqual(15_000);
-        expect(block.proofSize).toBeLessThanOrEqual(25_000n + emptyBlockProofSize);
+        expect(block.proofSize).toBeGreaterThanOrEqual(105_000n);
+        expect(block.proofSize).toBeLessThanOrEqual(105_000n + emptyBlockProofSize);
         expect(result?.successful).to.equal(true);
       },
     });
@@ -96,7 +96,7 @@ describeSuite({
 
         log(`block.proofSize: ${block.proofSize} (successful: ${result?.successful})`);
         // Empty blocks usually do not exceed 10kb, picking 50kb as a safe limit
-        expect(block.proofSize).to.be.at.most(25_000);
+        expect(block.proofSize).to.be.at.most(50_000);
         expect(result?.successful).to.equal(false);
       },
     });

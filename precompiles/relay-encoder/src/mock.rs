@@ -26,7 +26,7 @@ use frame_support::{
 use pallet_evm::{
 	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
 use sp_core::{H160, H256};
@@ -90,6 +90,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 parameter_types! {
@@ -109,6 +110,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
 	type WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight<Runtime>;
+	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
 }
 
 parameter_types! {
@@ -148,11 +150,14 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 pub type AssetId = u128;
 
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+#[derive(
+	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+)]
 pub enum CurrencyId {
 	SelfReserve,
 	OtherReserve(AssetId),
@@ -245,7 +250,9 @@ pub enum UtilityCall {
 	AsDerivative(u16),
 }
 
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+#[derive(
+	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+)]
 pub enum MockTransactors {
 	Relay,
 }
@@ -370,11 +377,12 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -418,6 +426,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

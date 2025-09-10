@@ -39,6 +39,8 @@
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 pub mod benchmarks;
+#[cfg(feature = "runtime-benchmarks")]
+pub use benchmarks::*;
 #[cfg(test)]
 pub mod mock;
 #[cfg(test)]
@@ -52,10 +54,11 @@ pub use weights::WeightInfo;
 
 use self::evm::EvmCaller;
 use ethereum_types::{H160, U256};
-use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::Contains;
+use frame_support::{pallet, Deserialize, Serialize};
 use frame_system::pallet_prelude::*;
+use sp_std::{vec, vec::Vec};
 use xcm::latest::{
 	Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, Result as XcmResult,
 	XcmContext,
@@ -154,6 +157,15 @@ pub enum AssetStatus {
 	FrozenXcmDepositForbidden,
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct EvmForeignAssetInfo {
+	pub asset_id: AssetId,
+	pub xcm_location: Location,
+	pub decimals: u8,
+	pub symbol: BoundedVec<u8, ConstU32<256>>,
+	pub name: BoundedVec<u8, ConstU32<256>>,
+}
+
 #[pallet]
 pub mod pallet {
 	use super::*;
@@ -200,7 +212,7 @@ pub mod pallet {
 		/// Hook to be called when new foreign asset is registered.
 		type OnForeignAssetCreated: ForeignAssetCreatedHook<Location>;
 
-		/// Maximum numbers of differnt foreign assets
+		/// Maximum numbers of different foreign assets
 		type MaxForeignAssets: Get<u32>;
 
 		/// The overarching event type.
@@ -247,6 +259,8 @@ pub mod pallet {
 		Erc20ContractCreationFail,
 		EvmCallPauseFail,
 		EvmCallUnpauseFail,
+		EvmCallMintIntoFail,
+		EvmCallTransferFail,
 		EvmInternalError,
 		/// Account has insufficient balance for locking
 		InsufficientBalance,
@@ -317,6 +331,37 @@ pub mod pallet {
 		pub deposit: BalanceOf<T>,
 	}
 
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T: Config> {
+		pub assets: Vec<EvmForeignAssetInfo>,
+		pub _phantom: PhantomData<T>,
+	}
+
+	impl<T: Config> Default for GenesisConfig<T> {
+		fn default() -> Self {
+			Self {
+				assets: vec![],
+				_phantom: Default::default(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
+		fn build(&self) {
+			for asset in self.assets.clone() {
+				Pallet::<T>::register_foreign_asset(
+					asset.asset_id,
+					asset.xcm_location,
+					asset.decimals,
+					asset.symbol,
+					asset.name,
+				)
+				.expect("couldn't register asset");
+			}
+		}
+	}
+
 	impl<T: Config> Pallet<T> {
 		/// The account ID of this pallet
 		#[inline]
@@ -364,7 +409,30 @@ pub mod pallet {
 			.map_err(Into::into)
 		}
 
-		/// Aprrove a spender to spend a certain amount of tokens from the owner account
+		/// Transfer an asset from an account to another one
+		pub fn transfer(
+			asset_id: AssetId,
+			from: T::AccountId,
+			to: T::AccountId,
+			amount: U256,
+		) -> Result<(), evm::EvmError> {
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_transfer(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(from),
+					T::AccountIdToH160::convert(to),
+					amount,
+				)
+			})
+			.map_err(Into::into)
+		}
+
+		pub fn balance(asset_id: AssetId, who: T::AccountId) -> Result<U256, evm::EvmError> {
+			EvmCaller::<T>::erc20_balance_of(asset_id, T::AccountIdToH160::convert(who))
+				.map_err(Into::into)
+		}
+
+		/// Approve a spender to spend a certain amount of tokens from the owner account
 		pub fn approve(
 			asset_id: AssetId,
 			owner: T::AccountId,
@@ -373,12 +441,14 @@ pub mod pallet {
 		) -> Result<(), evm::EvmError> {
 			// We perform the evm call in a storage transaction to ensure that if it fail
 			// any contract storage changes are rolled back.
-			EvmCaller::<T>::erc20_approve(
-				Self::contract_address_from_asset_id(asset_id),
-				T::AccountIdToH160::convert(owner),
-				T::AccountIdToH160::convert(spender),
-				amount,
-			)
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_approve(
+					Self::contract_address_from_asset_id(asset_id),
+					T::AccountIdToH160::convert(owner),
+					T::AccountIdToH160::convert(spender),
+					amount,
+				)
+			})
 			.map_err(Into::into)
 		}
 

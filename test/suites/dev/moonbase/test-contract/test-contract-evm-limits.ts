@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
-  id: "D010605",
+  id: "D020504",
   title: "Contract - Excessive memory allocation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -3,7 +3,7 @@ import { describeSuite, expect, beforeEach } from "@moonwall/cli";
 import { u8aToHex } from "@polkadot/util";
 
 describeSuite({
-  id: "D012839",
+  id: "D022825",
   title: "Precompiles - ecPairing",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

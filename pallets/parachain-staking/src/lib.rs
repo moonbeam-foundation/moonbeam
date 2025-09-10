@@ -192,6 +192,10 @@ pub mod pallet {
 		/// Maximum candidates
 		#[pallet::constant]
 		type MaxCandidates: Get<u32>;
+		/// Threshold after which inflation become linear
+		/// If you don't want to use it, set it to `()`
+		#[pallet::constant]
+		type LinearInflationThreshold: Get<Option<BalanceOf<Self>>>;
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
 	}
@@ -890,42 +894,6 @@ pub mod pallet {
 			Ok(().into())
 		}
 
-		/// Deprecated: please use `set_inflation_distribution_config` instead.
-		///
-		///  Set the account that will hold funds set aside for parachain bond
-		#[pallet::call_index(2)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_account())]
-		pub fn set_parachain_bond_account(
-			origin: OriginFor<T>,
-			new: T::AccountId,
-		) -> DispatchResultWithPostInfo {
-			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
-			let old = <InflationDistributionInfo<T>>::get().0;
-			let new = InflationDistributionAccount {
-				account: new,
-				percent: old[0].percent.clone(),
-			};
-			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()].into())
-		}
-
-		/// Deprecated: please use `set_inflation_distribution_config` instead.
-		///
-		/// Set the percent of inflation set aside for parachain bond
-		#[pallet::call_index(3)]
-		#[pallet::weight(<T as Config>::WeightInfo::set_parachain_bond_reserve_percent())]
-		pub fn set_parachain_bond_reserve_percent(
-			origin: OriginFor<T>,
-			new: Percent,
-		) -> DispatchResultWithPostInfo {
-			T::MonetaryGovernanceOrigin::ensure_origin(origin.clone())?;
-			let old = <InflationDistributionInfo<T>>::get().0;
-			let new = InflationDistributionAccount {
-				account: old[0].account.clone(),
-				percent: new,
-			};
-			Pallet::<T>::set_inflation_distribution_config(origin, [new, old[1].clone()].into())
-		}
-
 		/// Set the total number of collator candidates selected per round
 		/// - changes are not applied until the start of the next round
 		#[pallet::call_index(4)]
@@ -1301,35 +1269,6 @@ pub mod pallet {
 				candidate_auto_compounding_delegation_count_hint,
 				delegation_count_hint,
 			)
-		}
-
-		/// Hotfix to remove existing empty entries for candidates that have left.
-		#[pallet::call_index(28)]
-		#[pallet::weight(
-			T::DbWeight::get().reads_writes(2 * candidates.len() as u64, candidates.len() as u64)
-		)]
-		pub fn hotfix_remove_delegation_requests_exited_candidates(
-			origin: OriginFor<T>,
-			candidates: Vec<T::AccountId>,
-		) -> DispatchResult {
-			ensure_signed(origin)?;
-			ensure!(candidates.len() < 100, <Error<T>>::InsufficientBalance);
-			for candidate in &candidates {
-				ensure!(
-					<CandidateInfo<T>>::get(&candidate).is_none(),
-					<Error<T>>::CandidateNotLeaving
-				);
-				ensure!(
-					<DelegationScheduledRequests<T>>::get(&candidate).is_empty(),
-					<Error<T>>::CandidateNotLeaving
-				);
-			}
-
-			for candidate in candidates {
-				<DelegationScheduledRequests<T>>::remove(candidate);
-			}
-
-			Ok(().into())
 		}
 
 		/// Notify a collator is inactive during MaxOfflineRounds

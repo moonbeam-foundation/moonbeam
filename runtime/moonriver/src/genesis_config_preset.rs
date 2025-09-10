@@ -21,20 +21,29 @@
 extern crate alloc;
 
 use crate::{
-	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
-	InflationInfo, MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
+	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, Balances,
+	BalancesConfig, BridgePolkadotGrandpaConfig, BridgePolkadotMessagesConfig,
+	BridgePolkadotParachainsConfig, BridgeXcmOverMoonbeamConfig, CrowdloanRewardsConfig, EVMConfig,
+	EligibilityValue, EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
+	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
 	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS,
+	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmWeightTraderConfig, HOURS,
 };
 use alloc::{vec, vec::Vec};
+use bp_messages::MessagesOperatingMode;
+use bp_runtime::BasicOperatingMode;
 use cumulus_primitives_core::ParaId;
 use fp_evm::GenesisAccount;
+use frame_support::pallet_prelude::PalletInfoAccess;
 use nimbus_primitives::NimbusId;
+use pallet_moonbeam_foreign_assets::EvmForeignAssetInfo;
 use pallet_transaction_payment::Multiplier;
-use parachains_common::genesis_config_helpers::get_from_seed;
+use pallet_xcm_weight_trader::XcmWeightTraderAssetInfo;
 use sp_genesis_builder::PresetId;
+use sp_keyring::Sr25519Keyring;
 use sp_runtime::{Perbill, Percent};
+use xcm::latest::{Junctions, Location, NetworkId};
+use xcm::prelude::{GlobalConsensus, PalletInstance, Parachain};
 
 const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
 const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
@@ -93,6 +102,7 @@ pub fn testnet_genesis(
 				.cloned()
 				.map(|k| (k, 1 << 80))
 				.collect(),
+			dev_accounts: Default::default(),
 		},
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
@@ -160,16 +170,85 @@ pub fn testnet_genesis(
 		},
 		proxy_genesis_companion: Default::default(),
 		treasury: Default::default(),
-		migrations: Default::default(),
 		maintenance_mode: MaintenanceModeConfig {
 			start_in_maintenance_mode: false,
 			..Default::default()
 		},
-		// This should initialize it to whatever we have set in the pallet
-		polkadot_xcm: PolkadotXcmConfig::default(),
+		polkadot_xcm: PolkadotXcmConfig {
+			supported_version: vec![
+				// Required for bridging Moonriver with Moonbeam
+				(
+					bp_moonbeam::GlobalConsensusLocation::get(),
+					xcm::latest::VERSION,
+				),
+			],
+			..Default::default()
+		},
 		transaction_payment: TransactionPaymentConfig {
 			multiplier: Multiplier::from(10u128),
 			..Default::default()
+		},
+		evm_foreign_assets: EvmForeignAssetsConfig {
+			assets: vec![EvmForeignAssetInfo {
+				asset_id: 1001,
+				name: b"xcGLMR".to_vec().try_into().expect("Invalid asset name"),
+				symbol: b"xcGLMR".to_vec().try_into().expect("Invalid asset symbol"),
+				decimals: 18,
+				xcm_location: Location::new(
+					2,
+					[
+						GlobalConsensus(crate::bridge_config::PolkadotGlobalConsensusNetwork::get()),
+						Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
+						PalletInstance(<Balances as PalletInfoAccess>::index() as u8),
+					],
+				),
+			}],
+			_phantom: Default::default(),
+		},
+		xcm_weight_trader: XcmWeightTraderConfig {
+			assets: vec![XcmWeightTraderAssetInfo {
+				location: Location::new(
+					2,
+					[
+						GlobalConsensus(crate::bridge_config::PolkadotGlobalConsensusNetwork::get()),
+						Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
+						PalletInstance(<Balances as PalletInfoAccess>::index() as u8),
+					],
+				),
+				relative_price: MOVR,
+			}],
+			_phantom: Default::default(),
+		},
+		bridge_polkadot_grandpa: BridgePolkadotGrandpaConfig {
+			owner: Some(endowed_accounts[0]),
+			init_data: None,
+		},
+		bridge_polkadot_parachains: BridgePolkadotParachainsConfig {
+			owner: Some(endowed_accounts[0]),
+			operating_mode: BasicOperatingMode::Normal,
+			_phantom: Default::default(),
+		},
+		bridge_polkadot_messages: BridgePolkadotMessagesConfig {
+			owner: Some(endowed_accounts[0]),
+			opened_lanes: vec![],
+			operating_mode: MessagesOperatingMode::Basic(BasicOperatingMode::Normal),
+			_phantom: Default::default(),
+		},
+		bridge_xcm_over_moonbeam: BridgeXcmOverMoonbeamConfig {
+			opened_bridges: vec![(
+				Location::new(
+					1,
+					[Parachain(
+						<bp_moonriver::Moonriver as bp_runtime::Parachain>::PARACHAIN_ID,
+					)],
+				),
+				Junctions::from([
+					NetworkId::Polkadot.into(),
+					Parachain(<bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID),
+				]),
+				Some(Default::default()),
+			)],
+			_phantom: Default::default(),
 		},
 	};
 
@@ -205,7 +284,7 @@ pub fn development() -> serde_json::Value {
 			AccountId::from(sp_core::hex2array!(
 				"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
 			)),
-			get_from_seed::<NimbusId>("Alice"),
+			NimbusId::from(Sr25519Keyring::Alice.public()),
 			100_000 * MOVR,
 		)],
 		// Delegations
@@ -232,8 +311,8 @@ pub fn development() -> serde_json::Value {
 
 /// Provides the JSON representation of predefined genesis config for given `id`.
 pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
-	let patch = match id.try_into() {
-		Ok(sp_genesis_builder::DEV_RUNTIME_PRESET) => development(),
+	let patch = match id.as_str() {
+		sp_genesis_builder::DEV_RUNTIME_PRESET => development(),
 		_ => return None,
 	};
 	Some(

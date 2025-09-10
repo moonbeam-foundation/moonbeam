@@ -4,7 +4,7 @@ import { GLMR, alith } from "@moonwall/util";
 import { SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
-  id: "D013105",
+  id: "D023105",
   title: "Randomness Babe - Requesting a random number",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

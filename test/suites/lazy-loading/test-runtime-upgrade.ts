@@ -8,7 +8,7 @@ import assert from "node:assert";
 import type { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
 describeSuite({
-  id: "LD01",
+  id: "L01",
   title: "Lazy Loading - Runtime Upgrade",
   foundationMethods: "dev",
   options: {
@@ -51,7 +51,7 @@ describeSuite({
         .map(
           ({
             event: {
-              data: [error, info],
+              data: [error],
             },
           }) => {
             const dispatchError = error as SpRuntimeDispatchError;
@@ -76,11 +76,6 @@ describeSuite({
       // The next block will process the runtime upgrade
       await context.createBlock();
 
-      const events = (await api.query.system.events()).filter(({ event }) =>
-        api.events.migrations.RuntimeUpgradeCompleted.is(event)
-      );
-      expect(events.length > 0, "Migrations should complete").to.be.true;
-
       const rtAfter = api.consts.system.version.specVersion.toNumber();
       log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtAfter}`);
 
@@ -92,9 +87,39 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Validate new applied runtime",
+      title: "Ensure migrations are executed",
       test: async function () {
-        // TODO
+        // Ensure multi block migrations started
+        const upgradeStartedEvt = (await api.query.system.events()).find(({ event }) =>
+          api.events.multiBlockMigrations.UpgradeStarted.is(event)
+        );
+        expect(!!upgradeStartedEvt, "Upgrade Started").to.be.true;
+        const migrationAdvancedEvt = (await api.query.system.events()).find(({ event }) =>
+          api.events.multiBlockMigrations.MigrationAdvanced.is(event)
+        );
+        expect(!!migrationAdvancedEvt, "Migration Advanced").to.be.true;
+
+        // Ensure single block migrations were executed
+        const versionMigrationFinishedEvt = (await api.query.system.events()).find(({ event }) =>
+          api.events.polkadotXcm.VersionMigrationFinished.is(event)
+        );
+        expect(!!versionMigrationFinishedEvt, "Permanent XCM migration was executed").to.be.true;
+
+        // Ensure multi block migrations completed in less than 10 blocks
+        let events = [];
+        let attempts = 0;
+        for (; attempts < 10; attempts++) {
+          events = (await api.query.system.events()).filter(
+            ({ event }) =>
+              api.events.multiBlockMigrations.MigrationCompleted.is(event) ||
+              api.events.multiBlockMigrations.UpgradeCompleted.is(event)
+          );
+          if (events.length === 2) {
+            break;
+          }
+          await context.createBlock();
+        }
+        expect(events.length === 2, "Migrations should have completed").to.be.true;
       },
     });
   },

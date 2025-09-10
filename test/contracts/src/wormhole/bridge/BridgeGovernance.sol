@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
 import "../libraries/external/BytesLib.sol";
 
@@ -20,7 +20,7 @@ import "./token/TokenImplementation.sol";
 import "../interfaces/IWormhole.sol";
 
 // Crystalin: Custom version (less functions) to reduce Bytecode size while enabling debug
-contract BridgeGovernance is BridgeGetters, BridgeSetters, ERC1967Upgrade {
+contract BridgeGovernance is BridgeGetters, BridgeSetters {
     using BytesLib for bytes;
 
     // "TokenBridge" (left padded)

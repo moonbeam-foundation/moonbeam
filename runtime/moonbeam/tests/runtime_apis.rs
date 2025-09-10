@@ -167,6 +167,7 @@ fn ethereum_runtime_rpc_api_call() {
 				None,                  // nonce
 				false,                 // estimate
 				None,                  // access_list
+				None,                  // authorization_list
 			);
 			assert!(execution_result.is_ok());
 		});
@@ -188,6 +189,7 @@ fn ethereum_runtime_rpc_api_create() {
 				None,                  // nonce
 				false,                 // estimate
 				None,                  // access_list
+				None,                  // authorization_list
 			);
 			assert!(execution_result.is_ok());
 		});
@@ -291,7 +293,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 #[test]
 fn txpool_runtime_api_extrinsic_filter() {
 	ExtBuilder::default().build().execute_with(|| {
-		let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
+		let non_eth_uxt = UncheckedExtrinsic::new_bare(
 			pallet_balances::Call::<Runtime>::transfer_allow_death {
 				dest: AccountId::from(BOB),
 				value: 1 * GLMR,

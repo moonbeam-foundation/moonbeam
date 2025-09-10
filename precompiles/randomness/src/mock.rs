@@ -82,6 +82,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 parameter_types! {
@@ -101,6 +102,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 pub type TestPrecompiles<R> = PrecompileSetBuilder<
@@ -145,8 +147,9 @@ impl pallet_evm::Config for Runtime {
 	type GasLimitStorageGrowthRatio = ();
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
-	type SuicideQuickClearLimit = SuicideQuickClearLimit;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -239,6 +242,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

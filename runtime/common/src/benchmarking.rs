@@ -15,16 +15,22 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use account::AccountId20;
+use frame_support::traits::fungible::NativeOrWithId;
+use moonbeam_core_primitives::AssetId;
 use pallet_treasury::ArgumentsFactory;
 
 pub struct BenchmarkHelper;
 
-impl ArgumentsFactory<(), AccountId20> for BenchmarkHelper {
-	fn create_asset_kind(_seed: u32) -> () {
-		()
+impl ArgumentsFactory<NativeOrWithId<AssetId>, AccountId20> for BenchmarkHelper {
+	fn create_asset_kind(seed: u32) -> NativeOrWithId<AssetId> {
+		NativeOrWithId::WithId(seed.into())
 	}
 
 	fn create_beneficiary(seed: [u8; 32]) -> AccountId20 {
+		// Avoid generating a zero address
+		if seed == [0; 32] {
+			return AccountId20::from([1; 32]);
+		}
 		AccountId20::from(seed)
 	}
 }

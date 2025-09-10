@@ -8,12 +8,12 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D014109",
+  id: "D024202",
   title: "Mock XCM - receive horizontal transfer of DEV",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

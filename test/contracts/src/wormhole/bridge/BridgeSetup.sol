@@ -6,9 +6,9 @@ pragma experimental ABIEncoderV2;
 
 import "./BridgeGovernance.sol";
 
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
-contract BridgeSetup is BridgeSetters, ERC1967Upgrade {
+contract BridgeSetup is BridgeSetters {
     function setup(
         address implementation,
         uint16 chainId,
@@ -35,7 +35,7 @@ contract BridgeSetup is BridgeSetters, ERC1967Upgrade {
 
         setEvmChainId(evmChainId);
 
-        _upgradeTo(implementation);
+        ERC1967Utils.upgradeToAndCall(implementation, "");
 
         // See https://github.com/wormhole-foundation/wormhole/issues/1930 for
         // why we set this here

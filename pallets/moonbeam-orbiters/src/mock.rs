@@ -84,6 +84,7 @@ impl frame_system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 // Pallet balances configuration
@@ -106,6 +107,7 @@ impl pallet_balances::Config for Test {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 // Pallet moonbeam-orbiters configuration
@@ -175,6 +177,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: self.balances,
+			dev_accounts: None,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

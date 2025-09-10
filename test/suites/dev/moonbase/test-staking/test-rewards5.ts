@@ -13,7 +13,7 @@ import { jumpBlocks } from "../../../../helpers";
 import { BN } from "@polkadot/util";
 
 describeSuite({
-  id: "D0134655",
+  id: "D023466",
   title: "Staking - Rewards - Bond + Treasury",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

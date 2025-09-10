@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, GLMR, baltathar, checkBalance, generateKeyringPair } fro
 import { createProposal } from "../../../../helpers/voting.ts";
 
 describeSuite({
-  id: "D010307",
+  id: "D020307",
   title: "Balance - Transferable",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -1,23 +1,20 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "root": true,
+  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
   "files": {
-    "include": [
-      "*.js",
-      "*.ts",
-      "*.yml",
-      "*.md"
-    ],
-    "ignore": [
-      "./node_modules/*",
-      "./dist/*",
-      "./target/*",
-      "**/tmp/*",
-      "*.spec.json"
+    "includes": [
+      "**/*.js",
+      "**/*.ts",
+      "**/*.yml",
+      "**/*.md",
+      "!**/dist/*",
+      "!**/html/*",
+      "!./target/*",
+      "!**/tmp/*",
+      "!*.spec.json"
     ]
   },
-  "organizeImports": {
-    "enabled": false
-  },
+  "assist": { "actions": { "source": { "organizeImports": "off" } } },
   "formatter": {
     "enabled": true,
     "lineWidth": 100,

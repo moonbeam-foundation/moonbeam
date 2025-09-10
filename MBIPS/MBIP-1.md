@@ -92,7 +92,7 @@ This proposal impacts mostly projects deploying smart contracts. Users however c
 
 ## Security Considerations
 
-A possible attack from a bad actor could be done by tricking a user to send a transaction to a smart contract which would trigger many CREATE to drain the user account into the deposit that the user won't be able to retrieve. (see [Addition 1](#addition-1-deposit-from-the-value) for a possible solution)
+A possible attack from a bad actor could be done by tricking a user to send a transaction to a smart contract which would trigger many CREATE to drain the user account into the deposit that the user won't be able to retrieve. (see [Addition 1](#addition-1---deposit-from-the-value) for a possible solution)
 
 ## Addition 1 - Deposit from the "Value"
 

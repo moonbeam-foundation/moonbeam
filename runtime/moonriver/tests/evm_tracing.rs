@@ -44,7 +44,7 @@ mod tests {
 			])
 			.build()
 			.execute_with(|| {
-				let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
+				let non_eth_uxt = UncheckedExtrinsic::new_bare(
 					pallet_balances::Call::<Runtime>::transfer_allow_death {
 						dest: AccountId::from(BOB),
 						value: 1 * MOVR,
@@ -83,7 +83,7 @@ mod tests {
 			])
 			.build()
 			.execute_with(|| {
-				let non_eth_uxt = UncheckedExtrinsic::new_unsigned(
+				let non_eth_uxt = UncheckedExtrinsic::new_bare(
 					pallet_balances::Call::<Runtime>::transfer_allow_death {
 						dest: AccountId::from(BOB),
 						value: 1 * MOVR,
@@ -135,6 +135,7 @@ mod tests {
 					U256::max_value(),
 					Some(U256::one()),
 					Some(U256::one()),
+					None,
 					None,
 					None,
 				)

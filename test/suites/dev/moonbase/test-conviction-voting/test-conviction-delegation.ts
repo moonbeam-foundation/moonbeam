@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, alith, baltathar, faith } from "@moonwall/util";
-import { expectSubstrateEvent } from "../../../../helpers";
+import { expectSubstrateEvent, stripNulls } from "../../../../helpers";
 
 describeSuite({
-  id: "D010704",
+  id: "D020604",
   title: "Conviction Voting - Delegation",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -24,7 +24,9 @@ describeSuite({
       test: async function () {
         const rootTrack = context
           .polkadotJs()
-          .consts.referenda.tracks.find(([, track]) => track.name.eq("root"))!;
+          .consts.referenda.tracks.find(
+            ([, track]) => stripNulls(track.name.toString()) === "root"
+          )!;
 
         const blockResult = await context.createBlock(
           context
@@ -48,7 +50,9 @@ describeSuite({
       test: async function () {
         const rootTrack = context
           .polkadotJs()
-          .consts.referenda.tracks.find(([, track]) => track.name.eq("root"))!;
+          .consts.referenda.tracks.find(
+            ([, track]) => stripNulls(track.name.toString()) === "root"
+          )!;
 
         const blockResult = await context.createBlock(
           context
@@ -66,10 +70,12 @@ describeSuite({
       test: async function () {
         const rootTrack = context
           .polkadotJs()
-          .consts.referenda.tracks.find(([, track]) => track.name.eq("root"))!;
+          .consts.referenda.tracks.find(
+            ([, track]) => stripNulls(track.name.toString()) === "root"
+          )!;
 
         const blockResult = await context.createBlock(
-          await context.polkadotJs().tx.convictionVoting.undelegate(rootTrack[0])
+          context.polkadotJs().tx.convictionVoting.undelegate(rootTrack[0])
         );
 
         expectSubstrateEvent(blockResult, "convictionVoting", "Undelegated");

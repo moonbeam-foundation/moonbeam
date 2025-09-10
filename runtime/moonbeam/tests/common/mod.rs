@@ -23,8 +23,7 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 pub use moonbeam_runtime::{
-	asset_config::AssetRegistrarMetadata, currency::GLMR, xcm_config::AssetType, AccountId,
-	AssetId, AssetManager, AsyncBacking, AuthorInherent, Balance, Ethereum, InflationInfo,
+	currency::GLMR, AccountId, AsyncBacking, AuthorInherent, Balance, Ethereum, InflationInfo,
 	ParachainStaking, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
 	UncheckedExtrinsic, HOURS,
 };
@@ -34,11 +33,13 @@ use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
-use std::collections::BTreeMap;
-
+use cumulus_pallet_parachain_system::{MessagingStateSnapshot, ValidationData};
+use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
-use moonbeam_runtime::EvmForeignAssets;
-use sp_runtime::traits::MaybeEquivalence;
+use moonbeam_runtime::bridge_config::XcmOverKusamaInstance;
+use moonbeam_runtime::{EvmForeignAssets, XcmWeightTrader};
+use std::collections::BTreeMap;
+use xcm::latest::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
@@ -67,8 +68,6 @@ pub fn rpc_run_to_block(n: u32) {
 /// Utility function that advances the chain to the desired block number.
 /// If an author is provided, that author information is injected to all the blocks in the meantime.
 pub fn run_to_block(n: u32, author: Option<NimbusId>) {
-	// Finalize the first block
-	Ethereum::on_finalize(System::block_number());
 	while System::block_number() < n {
 		// Set the new block number and author
 		match author {
@@ -93,10 +92,8 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 		// Initialize the new block
 		AuthorInherent::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
-		Ethereum::on_initialize(System::block_number());
 
 		// Finalize the block
-		Ethereum::on_finalize(System::block_number());
 		ParachainStaking::on_finalize(System::block_number());
 	}
 }
@@ -116,16 +113,19 @@ pub fn evm_test_context() -> fp_evm::Context {
 	}
 }
 
-// Test struct with the purpose of initializing xcm assets
+// Test struct with the purpose of initializing x─cm assets
 #[derive(Clone)]
 pub struct XcmAssetInitialization {
-	pub asset_type: AssetType,
-	pub metadata: AssetRegistrarMetadata,
+	pub asset_id: u128,
+	pub xcm_location: xcm::v5::Location,
+	pub decimals: u8,
+	pub name: &'static str,
+	pub symbol: &'static str,
 	pub balances: Vec<(AccountId, Balance)>,
-	pub is_sufficient: bool,
 }
 
 pub struct ExtBuilder {
+	asset_hub_migration_started: bool,
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
@@ -146,11 +146,13 @@ pub struct ExtBuilder {
 	xcm_assets: Vec<XcmAssetInitialization>,
 	evm_native_foreign_assets: bool,
 	safe_xcm_version: Option<u32>,
+	opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbeam::LaneId>)>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
+			asset_hub_migration_started: false,
 			balances: vec![],
 			delegations: vec![],
 			collators: vec![],
@@ -180,11 +182,17 @@ impl Default for ExtBuilder {
 			xcm_assets: vec![],
 			evm_native_foreign_assets: false,
 			safe_xcm_version: None,
+			opened_bridges: vec![],
 		}
 	}
 }
 
 impl ExtBuilder {
+	pub fn asset_hub_migration_has_started(mut self) -> Self {
+		self.asset_hub_migration_started = true;
+		self
+	}
+
 	pub fn with_evm_accounts(mut self, accounts: BTreeMap<H160, GenesisAccount>) -> Self {
 		self.evm_accounts = accounts;
 		self
@@ -233,6 +241,14 @@ impl ExtBuilder {
 		self
 	}
 
+	pub fn with_open_bridges(
+		mut self,
+		opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbeam::LaneId>)>,
+	) -> Self {
+		self.opened_bridges = opened_bridges;
+		self
+	}
+
 	#[allow(dead_code)]
 	pub fn with_inflation(mut self, inflation: InflationInfo<Balance>) -> Self {
 		self.inflation = inflation;
@@ -244,8 +260,16 @@ impl ExtBuilder {
 			.build_storage()
 			.unwrap();
 
+		parachain_info::GenesisConfig::<Runtime> {
+			parachain_id: <bp_moonbeam::Moonbeam as bp_runtime::Parachain>::PARACHAIN_ID.into(),
+			_config: Default::default(),
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
+			dev_accounts: None,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
@@ -297,45 +321,79 @@ impl ExtBuilder {
 		};
 		genesis_config.assimilate_storage(&mut t).unwrap();
 
+		let genesis_config = pallet_xcm_bridge::GenesisConfig::<Runtime, XcmOverKusamaInstance> {
+			opened_bridges: self.opened_bridges,
+			_phantom: Default::default(),
+		};
+		genesis_config.assimilate_storage(&mut t).unwrap();
+
 		let mut ext = sp_io::TestExternalities::new(t);
 		let xcm_assets = self.xcm_assets.clone();
 		ext.execute_with(|| {
+			if self.asset_hub_migration_started {
+				// Indicate that the asset-hub migration has already started
+				moonbeam_runtime::xcm_config::AssetHubMigrationStartsAtRelayBlock::set(&0);
+
+				let mut validation_data = ValidationData::<Runtime>::get().unwrap_or_default();
+
+				validation_data.relay_parent_number =
+					moonbeam_runtime::xcm_config::AssetHubMigrationStartsAtRelayBlock::get();
+				ValidationData::<Runtime>::set(Some(validation_data));
+			}
+
+			// Mock hrmp egress_channels
+			cumulus_pallet_parachain_system::RelevantMessagingState::<Runtime>::put(
+				MessagingStateSnapshot {
+					dmq_mqc_head: Default::default(),
+					relay_dispatch_queue_remaining_capacity: Default::default(),
+					ingress_channels: vec![],
+					egress_channels: vec![(
+						1_000.into(),
+						AbridgedHrmpChannel {
+							max_capacity: u32::MAX,
+							max_total_size: u32::MAX,
+							max_message_size: u32::MAX,
+							msg_count: 0,
+							total_size: 0,
+							mqc_head: None,
+						},
+					)],
+				},
+			);
+
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
-				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
-				if self.evm_native_foreign_assets {
-					let AssetType::Xcm(location) = xcm_asset_initialization.asset_type;
-					let metadata = xcm_asset_initialization.metadata.clone();
-					EvmForeignAssets::register_foreign_asset(
-						asset_id,
-						xcm_builder::WithLatestLocationConverter::convert_back(&location).unwrap(),
-						metadata.decimals,
-						metadata.symbol.try_into().unwrap(),
-						metadata.name.try_into().unwrap(),
-					)
-					.expect("register evm native foreign asset");
+				let asset_id = xcm_asset_initialization.asset_id;
+				EvmForeignAssets::create_foreign_asset(
+					root_origin(),
+					asset_id,
+					xcm_asset_initialization.xcm_location.clone(),
+					xcm_asset_initialization.decimals,
+					xcm_asset_initialization
+						.symbol
+						.as_bytes()
+						.to_vec()
+						.try_into()
+						.expect("too long"),
+					xcm_asset_initialization
+						.name
+						.as_bytes()
+						.to_vec()
+						.try_into()
+						.expect("too long"),
+				)
+				.expect("failed to create foreign asset");
 
-					for (account, balance) in xcm_asset_initialization.balances {
-						EvmForeignAssets::mint_into(asset_id.into(), account, balance.into())
-							.expect("mint evm native foreign asset");
-					}
-				} else {
-					AssetManager::register_foreign_asset(
-						root_origin(),
-						xcm_asset_initialization.asset_type,
-						xcm_asset_initialization.metadata,
-						1,
-						xcm_asset_initialization.is_sufficient,
-					)
-					.unwrap();
-					for (account, balance) in xcm_asset_initialization.balances {
-						moonbeam_runtime::Assets::mint(
-							origin_of(AssetManager::account_id()),
-							asset_id.into(),
-							account,
-							balance,
-						)
-						.unwrap();
+				XcmWeightTrader::add_asset(
+					root_origin(),
+					xcm_asset_initialization.xcm_location,
+					GLMR,
+				)
+				.expect("failed to register asset in weight trader");
+
+				for (account, balance) in xcm_asset_initialization.balances {
+					if EvmForeignAssets::mint_into(asset_id, account, balance.into()).is_err() {
+						panic!("failed to mint foreign asset");
 					}
 				}
 			}
@@ -376,7 +434,7 @@ pub fn set_parachain_inherent_data() {
 	pallet_author_inherent::Author::<Runtime>::put(author);
 
 	let mut relay_sproof = RelayStateSproofBuilder::default();
-	relay_sproof.para_id = 100u32.into();
+	relay_sproof.para_id = bp_moonbeam::PARACHAIN_ID.into();
 	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
 
 	let additional_key_values = vec![(

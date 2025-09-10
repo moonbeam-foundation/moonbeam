@@ -33,8 +33,11 @@ pub use pallet::*;
 #[pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::*;
+	use sp_runtime::traits::BlockNumberProvider;
 	use sp_std::vec::Vec;
+
+	type BlockNumberFor<T> =
+		<<T as Config>::BlockNumberProvider as BlockNumberProvider>::BlockNumber;
 
 	/// Pallet for configuring proxy at genesis
 	#[pallet::pallet]
@@ -43,13 +46,21 @@ pub mod pallet {
 
 	/// This pallet requires
 	/// 1. pallet-proxy to be installed
-	/// 2. its ProxyType to be serializable when built to std.
+	/// 2. it's ProxyType and BlockNumberProvider to be serializable when built to std.
 	#[pallet::config]
 	pub trait Config:
-		frame_system::Config + pallet_proxy::Config<ProxyType = <Self as Config>::ProxyType>
+		frame_system::Config
+		+ pallet_proxy::Config<
+			ProxyType = <Self as Config>::ProxyType,
+			BlockNumberProvider = <Self as Config>::BlockNumberProvider,
+		>
 	{
 		/// This MUST be the same as in pallet_proxy or it won't compile
 		type ProxyType: MaybeSerializeDeserialize + Clone;
+
+		type BlockNumberProvider: BlockNumberProvider<
+			BlockNumber: MaybeSerializeDeserialize + Clone,
+		>;
 	}
 
 	#[pallet::genesis_config]

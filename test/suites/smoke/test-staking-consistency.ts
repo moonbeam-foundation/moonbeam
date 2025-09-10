@@ -13,7 +13,7 @@ import { describeSuite, expect, beforeAll } from "@moonwall/cli";
 import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "S21",
+  id: "S22",
   title: "Verify staking consistency",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

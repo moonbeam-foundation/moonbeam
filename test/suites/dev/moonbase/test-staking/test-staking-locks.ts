@@ -4,7 +4,7 @@ import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/
 import { fromBytes } from "viem";
 
 describeSuite({
-  id: "D013472",
+  id: "D023474",
   title: "Staking - Locks - join delegators",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

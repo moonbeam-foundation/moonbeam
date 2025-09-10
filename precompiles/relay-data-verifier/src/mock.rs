@@ -85,6 +85,7 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 parameter_types! {
@@ -105,6 +106,7 @@ impl pallet_balances::Config for Runtime {
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {
@@ -123,11 +125,6 @@ pub struct PersistedValidationDataGetter;
 impl RelaychainStateProvider for PersistedValidationDataGetter {
 	fn current_relay_chain_state() -> RelayChainState {
 		frame_support::storage::unhashed::get(b"MOCK_PERSISTED_VALIDATION_DATA").unwrap()
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	fn set_current_relay_chain_state(state: RelayChainState) {
-		frame_support::storage::unhashed::put(b"MOCK_PERSISTED_VALIDATION_DATA", &state);
 	}
 }
 
@@ -210,11 +207,12 @@ impl pallet_evm::Config for Runtime {
 	type FindAuthor = ();
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
-	type SuicideQuickClearLimit = ConstU32<0>;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 impl pallet_precompile_benchmarks::Config for Runtime {
@@ -245,6 +243,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

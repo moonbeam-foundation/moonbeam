@@ -49,7 +49,7 @@ export async function processAllStorage(
     await Promise.all(
       prefixes.map(async (prefix) =>
         limiter.schedule(async () => {
-          let startKey: string | undefined = undefined;
+          let startKey: string | undefined;
           for (;;) {
             // @ts-expect-error _rpcCore is not yet exposed
             const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [
@@ -122,7 +122,7 @@ export async function processRandomStoragePrefixes(
     await Promise.all(
       prefixes.map(async (prefix) =>
         limiter.schedule(async () => {
-          let startKey: string | undefined = undefined;
+          let startKey: string | undefined;
           while (true) {
             // @ts-expect-error _rpcCore is not yet exposed
             const keys: string = await api._rpcCore.provider.send("state_getKeysPaged", [

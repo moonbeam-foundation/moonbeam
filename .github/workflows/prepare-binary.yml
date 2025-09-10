@@ -23,7 +23,10 @@ jobs:
         cpu: ["x86-64", "skylake", "znver3"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.sha }}
+          fetch-depth: 0
       - name: Cargo build
         uses: ./.github/workflow-templates/build-prod-binary
         with:
@@ -37,8 +40,8 @@ jobs:
     needs: ["build-binary"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+        uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
         with:
           pattern: binaries-*
           merge-multiple: true

@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D012601",
+  id: "D022601",
   title: "Polkadot API",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -130,11 +130,12 @@ describeSuite({
             // balances.Transfer, system.ExtrinsicSuccess
             case 4:
               log(events.map((e) => `${e.section}.${e.method}`).join(" - "));
-              expect(events).to.be.of.length(8);
+              expect(events).to.be.of.length(7);
               expect(context.polkadotJs().events.system.NewAccount.is(events[1])).to.be.true;
               expect(context.polkadotJs().events.balances.Endowed.is(events[2])).to.be.true;
               expect(context.polkadotJs().events.balances.Transfer.is(events[3])).to.be.true;
-              expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(events[7])).to.be.true;
+
+              expect(context.polkadotJs().events.system.ExtrinsicSuccess.is(events[6])).to.be.true;
               break;
             default:
               throw new Error(`Unexpected extrinsic`);

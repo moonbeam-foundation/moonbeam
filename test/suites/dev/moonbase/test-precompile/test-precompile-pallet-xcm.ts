@@ -1,20 +1,45 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, fetchCompiledContract, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith, createEthersTransaction } from "@moonwall/util";
+import {
+  beforeAll,
+  describeSuite,
+  fetchCompiledContract,
+  expect,
+  customDevRpcRequest,
+} from "@moonwall/cli";
+import {
+  alith,
+  ALITH_ADDRESS,
+  baltathar,
+  BALTATHAR_ADDRESS,
+  createEthersTransaction,
+} from "@moonwall/util";
 import { numberToHex } from "@polkadot/util";
 import { encodeFunctionData, erc20Abi } from "viem";
 import {
   expectEVMResult,
   relayAssetMetadata,
   ARBITRARY_ASSET_ID,
-  RELAY_SOURCE_LOCATION_V4,
   registerAndFundAsset,
+  ASSET_HUB_LOCATION,
+  ASSET_HUB_PARACHAIN_ID,
+  mockHrmpChannelExistanceTx,
 } from "../../../../helpers";
 import { ethers } from "ethers";
 const PRECOMPILE_PALLET_XCM_ADDRESS: `0x${string}` = "0x000000000000000000000000000000000000081A";
 
+async function createBlockWithMockedHrmpChannel(context, paraId: number, rawTxs: string[]) {
+  const mockHrmpTx = context
+    .polkadotJs()
+    .tx.sudo.sudo(mockHrmpChannelExistanceTx(context, paraId, 1000, 102400, 102400));
+
+  // Insert the two txs in the same block.
+  await mockHrmpTx.signAndSend(baltathar);
+  await customDevRpcRequest("eth_sendRawTransaction", rawTxs);
+  await context.createBlock();
+}
+
 describeSuite({
-  id: "D012900",
+  id: "D022847",
   title: "Precompiles - PalletXcm",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -29,7 +54,7 @@ describeSuite({
         context,
         {
           id: ARBITRARY_ASSET_ID,
-          location: RELAY_SOURCE_LOCATION_V4,
+          location: ASSET_HUB_LOCATION,
           metadata: relayAssetMetadata,
           relativePrice: 1_000_000_000_000_000_000n,
         },
@@ -42,6 +67,10 @@ describeSuite({
       console.log("asset id: ", registeredAssetId);
 
       foreignAssetContract = new ethers.Contract(contractAddress, erc20Abi, context.ethers());
+
+      // Change the sudo key so that we avoid nonce issues.
+      const sudoKeyTx = context.polkadotJs().tx.sudo.setKey(baltathar.address);
+      await context.createBlock(await sudoKeyTx.signAsync(alith), { allowFailures: false });
     });
 
     it({
@@ -63,8 +92,9 @@ describeSuite({
           // junction: AccountId32 enum (01) + the 32 byte account + Any network selector(00)
           ["0x01" + destinationAddress + destinationNetworkId],
         ];
-
-        const assetLocation: [number, any[]] = [1, []];
+        const paraIdInHex = numberToHex(ASSET_HUB_PARACHAIN_ID, 32);
+        const parachain_enum_selector = "0x00";
+        const assetLocation: [number, any] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
         const assetLocationInfo = [[assetLocation, amountToSend]];
 
         const rawTxn = await createEthersTransaction(context, {
@@ -77,8 +107,10 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        await createBlockWithMockedHrmpChannel(context, ASSET_HUB_PARACHAIN_ID, [rawTxn]);
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
 
         const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
@@ -92,7 +124,7 @@ describeSuite({
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
         const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
 
-        const paraId = 1000n;
+        const paraId = ASSET_HUB_PARACHAIN_ID;
         const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
 
         const rawTxn = await createEthersTransaction(context, {
@@ -105,8 +137,10 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        await createBlockWithMockedHrmpChannel(context, ASSET_HUB_PARACHAIN_ID, [rawTxn]);
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
 
         const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
@@ -120,7 +154,7 @@ describeSuite({
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
         const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
 
-        const paraId = 1000n;
+        const paraId = ASSET_HUB_PARACHAIN_ID;
         const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
         const beneficiaryAddress = "01010101010101010101010101010101";
 
@@ -134,8 +168,10 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        await createBlockWithMockedHrmpChannel(context, ASSET_HUB_PARACHAIN_ID, [rawTxn]);
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
 
         const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
@@ -162,8 +198,10 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        await createBlockWithMockedHrmpChannel(context, ASSET_HUB_PARACHAIN_ID, [rawTxn]);
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
 
         const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
@@ -177,8 +215,12 @@ describeSuite({
         const { abi: xcmInterface } = fetchCompiledContract("XCM");
         const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
 
-        const dest: [number, any[]] = [1, []];
-        const assetLocation: [number, any[]] = [1, []];
+        const parachain_enum_selector = "0x00";
+        const ahIdInHex = numberToHex(ASSET_HUB_PARACHAIN_ID, 32);
+        const dest: [number, any] = [1, [parachain_enum_selector + ahIdInHex.slice(2)]];
+
+        const paraIdInHex = numberToHex(ASSET_HUB_PARACHAIN_ID, 32);
+        const assetLocation: [number, any] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
         const assetLocationInfo = [[assetLocation, amountToSend]];
 
         // DestinationReserve
@@ -210,8 +252,10 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        await createBlockWithMockedHrmpChannel(context, ASSET_HUB_PARACHAIN_ID, [rawTxn]);
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
 
         const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
@@ -231,8 +275,9 @@ describeSuite({
         // This represents X2(Parent, Parachain(2000))
         const dest: [number, any[]] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
 
-        const remoteReserve: [number, any[]] = [1, []];
-        const assetLocation: [number, any[]] = [1, []];
+        const ahIdInHex = numberToHex(ASSET_HUB_PARACHAIN_ID, 32);
+        const remoteReserve: [number, any] = [1, [parachain_enum_selector + ahIdInHex.slice(2)]];
+        const assetLocation: [number, any] = [1, [parachain_enum_selector + ahIdInHex.slice(2)]];
         const assetLocationInfo = [[assetLocation, amountToSend]];
 
         const message = {
@@ -254,8 +299,10 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        await createBlockWithMockedHrmpChannel(context, ASSET_HUB_PARACHAIN_ID, [rawTxn]);
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
 
         const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
@@ -270,7 +317,9 @@ describeSuite({
         const assetBalanceBefore = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
 
         // Relay as destination
-        const dest: [number, any[]] = [1, []];
+        const parachain_enum_selector = "0x00";
+        const ahIdInHex = numberToHex(ASSET_HUB_PARACHAIN_ID, 32);
+        const dest: [number, any] = [1, [parachain_enum_selector + ahIdInHex.slice(2)]];
         const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
 
         // DestinationReserve
@@ -302,8 +351,10 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        await createBlockWithMockedHrmpChannel(context, ASSET_HUB_PARACHAIN_ID, [rawTxn]);
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
 
         const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);
@@ -323,7 +374,8 @@ describeSuite({
         // This represents X2(Parent, Parachain(2000))
         const dest: [number, any[]] = [1, [parachain_enum_selector + paraIdInHex.slice(2)]];
         const assetAddressInfo = [[await foreignAssetContract.getAddress(), amountToSend]];
-        const remoteReserve: [number, any[]] = [1, []];
+        const ahIdInHex = numberToHex(ASSET_HUB_PARACHAIN_ID, 32);
+        const remoteReserve: [number, any] = [1, [parachain_enum_selector + ahIdInHex.slice(2)]];
 
         const message = {
           V3: [
@@ -344,8 +396,10 @@ describeSuite({
           gasLimit: 500_000n,
         });
 
-        const result = await context.createBlock(rawTxn);
-        expectEVMResult(result.result!.events, "Succeed");
+        await createBlockWithMockedHrmpChannel(context, ASSET_HUB_PARACHAIN_ID, [rawTxn]);
+
+        const events = await context.polkadotJs().query.system.events();
+        expectEVMResult(events, "Succeed");
 
         const assetBalanceAfter = await foreignAssetContract.balanceOf(ALITH_ADDRESS);
         expect(assetBalanceAfter).to.equal(assetBalanceBefore - amountToSend);

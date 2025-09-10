@@ -111,7 +111,7 @@ library BytesLib {
             let newlength := add(slength, mlength)
             // slength can contain both the length and contents of the array
             // if length < 32 bytes so let's prepare for that
-            // v. http://solidity.readthedocs.io/en/latest/miscellaneous.html#layout-of-state-variables-in-storage
+            // v. docs.soliditylang.org/en/latest/internals/layout_in_storage.html
             switch add(lt(slength, 32), lt(newlength, 32))
             case 2 {
                 // Since the new array still fits in the slot, we just need to
@@ -500,7 +500,7 @@ library BytesLib {
             case 1 {
                 // slength can contain both the length and contents of the array
                 // if length < 32 bytes so let's prepare for that
-                // v. http://solidity.readthedocs.io/en/latest/miscellaneous.html#layout-of-state-variables-in-storage
+                // v. docs.soliditylang.org/en/latest/internals/layout_in_storage.html
                 if iszero(iszero(slength)) {
                     switch lt(slength, 32)
                     case 1 {

@@ -10,7 +10,7 @@ import chalk from "chalk";
 const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
 
 describeSuite({
-  id: "S18",
+  id: "S19",
   title: "Verify randomness consistency",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {

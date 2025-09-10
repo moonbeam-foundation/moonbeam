@@ -18,7 +18,7 @@ automatically built and reflects the latest `master` commit.
 ### Code style
 
 Moonbeam is following the
-[Substrate code style](https://github.com/paritytech/substrate/blob/master/docs/STYLE_GUIDE.md).
+[Substrate code style](https://github.com/paritytech/polkadot-sdk/blob/master/docs/contributor/STYLE_GUIDE.md).
 
 In addition, we incorporate several tools to improve code quality. These are integrated into our CI
 and are expected to pass before a PR is considered mergeable. They can also be run locally.

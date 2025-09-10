@@ -159,7 +159,7 @@ describeSuite({
         // Detailed in MOON-2702
         const badTxHash = "0xd91d98b539720d8a42069268126d366fd29165e487d94b165a97e0158842657b";
 
-        const traceData = await context.viem().request<TraceTransactionSchema>({
+        const traceData = await context.viem("tracing").request<TraceTransactionSchema>({
           method: "debug_traceTransaction",
           params: [badTxHash, { tracer: "callTracer" }],
         });
@@ -195,7 +195,7 @@ describeSuite({
           }
 
           log(`Testing sample: ${JSON.stringify(sample.txHash)}`);
-          const traceData = await context.viem().request<TraceTransactionSchema>({
+          const traceData = await context.viem("tracing").request<TraceTransactionSchema>({
             method: "debug_traceTransaction",
             params: [sample.txHash as `0x${string}`, { tracer: "callTracer" }],
           });
@@ -222,7 +222,7 @@ describeSuite({
         );
 
         // Original case identified at this particular block height
-        const logs = await context.viem().getLogs({
+        const logs = await context.viem("tracing").getLogs({
           fromBlock: 7970232n,
           toBlock: 7970232n,
           address: addresses,

@@ -44,7 +44,6 @@ use sc_network::service::traits::NetworkService;
 use sc_network_sync::SyncingService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_service::TaskManager;
-use sc_transaction_pool::{ChainApi, Pool};
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::{CallApiAt, ProvideRuntimeApi};
 use sp_blockchain::{
@@ -97,13 +96,13 @@ where
 }
 
 /// Full client dependencies.
-pub struct FullDeps<C, P, A: ChainApi, BE> {
+pub struct FullDeps<C, P, BE> {
 	/// The client instance to use.
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
 	/// Graph pool instance.
-	pub graph: Arc<Pool<A>>,
+	pub graph: Arc<P>,
 	/// The Node authority flag
 	pub is_authority: bool,
 	/// Network service
@@ -122,6 +121,8 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub command_sink: Option<futures::channel::mpsc::Sender<EngineCommand<Hash>>>,
 	/// Maximum number of logs in a query.
 	pub max_past_logs: u32,
+	/// Maximum block range in a query.
+	pub max_block_range: u32,
 	/// Maximum fee history cache size.
 	pub fee_history_limit: u64,
 	/// Fee history cache.
@@ -146,8 +147,8 @@ pub struct TracingConfig {
 }
 
 /// Instantiate all Full RPC extensions.
-pub fn create_full<C, P, BE, A>(
-	deps: FullDeps<C, P, A, BE>,
+pub fn create_full<C, P, BE>(
+	deps: FullDeps<C, P, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
 	maybe_tracing_config: Option<TracingConfig>,
 	pubsub_notification_sinks: Arc<
@@ -166,9 +167,8 @@ where
 	C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
 	C: CallApiAt<Block>,
 	C: Send + Sync + 'static,
-	A: ChainApi<Block = Block> + 'static,
 	C::Api: RuntimeApiCollection,
-	P: TransactionPool<Block = Block> + 'static,
+	P: TransactionPool<Block = Block, Hash = <Block as BlockT>::Hash> + 'static,
 {
 	use fc_rpc::{
 		Eth, EthApiServer, EthFilter, EthFilterApiServer, EthPubSub, EthPubSubApiServer, Net,
@@ -195,6 +195,7 @@ where
 		frontier_backend,
 		backend: _,
 		max_past_logs,
+		max_block_range,
 		fee_history_limit,
 		fee_history_cache,
 		dev_rpc_data,
@@ -244,7 +245,7 @@ where
 	};
 
 	io.merge(
-		Eth::<_, _, _, _, _, _, _, MoonbeamEthConfig<_, _>>::new(
+		Eth::<_, _, _, _, _, _, MoonbeamEthConfig<_, _>>::new(
 			Arc::clone(&client),
 			Arc::clone(&pool),
 			graph.clone(),
@@ -275,6 +276,7 @@ where
 				filter_pool,
 				500_usize, // max stored filters
 				max_past_logs,
+				max_block_range,
 				block_data_cache,
 			)
 			.into_rpc(),

@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 // Based on the OpenZepplin ERC20 implementation, licensed under MIT
 contract TokenImplementation is TokenState, Context {
@@ -265,7 +266,7 @@ contract TokenImplementation is TokenState, Context {
      * ```
      */
     function _hashTypedDataV4(bytes32 structHash) internal view returns (bytes32) {
-        return ECDSA.toTypedDataHash(_domainSeparatorV4(), structHash);
+        return MessageHashUtils.toTypedDataHash(_domainSeparatorV4(), structHash);
     }
 
     /**

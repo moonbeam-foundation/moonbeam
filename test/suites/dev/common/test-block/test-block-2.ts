@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 describeSuite({
-  id: "D010402",
+  id: "D010102",
   title: "Block creation - suite 2",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

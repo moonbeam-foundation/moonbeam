@@ -22,7 +22,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Install Subxt-cli
@@ -35,18 +35,18 @@ jobs:
         id: previous-runtime
         run: |
           COMMIT=`git rev-list -n 1 'runtime-${{ github.event.inputs.last_spec_version }}'`
-          PREVIOUS_RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=500 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -1)
+          PREVIOUS_RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=500 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\") | .databaseId" | head -1)
           echo "Latest build for runtime-${{ github.event.inputs.last_spec_version }}: $PREVIOUS_RUNTIME_BUILD"
           echo "PREVIOUS_RUNTIME_BUILD=$PREVIOUS_RUNTIME_BUILD" >> $GITHUB_OUTPUT
       - name: Lookup next runtime release build
         id: next-runtime
         run: |
           COMMIT=`git rev-list -n 1 'runtime-${{ github.event.inputs.spec_version }}'`
-          RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\" and .conclusion == \"success\") | .databaseId" | head -1)
+          RUNTIME_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,status,conclusion,headSha --jq ".[] | select(.headSha == \"$COMMIT\" and .status == \"completed\") | .databaseId" | head -1)
           echo "Latest build for runtime-${{ github.event.inputs.spec_version }}: $RUNTIME_BUILD"
           echo "NEXT_RUNTIME_BUILD=$RUNTIME_BUILD" >> $GITHUB_OUTPUT
       - name: "Download previous runtime release binary"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: previous-runtime-release
@@ -54,7 +54,7 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ steps.previous-runtime.outputs.PREVIOUS_RUNTIME_BUILD }}
       - name: "Download next runtime release binary"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: next-runtime-release
@@ -126,20 +126,20 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       # Download artifacts from the local-diff job
       - name: Download diff artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtime-diff-moonbase-${{ github.event.inputs.spec_version }}
           path: runtime-diffs/moonbase
       - name: Download diff artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtime-diff-moonbeam-${{ github.event.inputs.spec_version }}
           path: runtime-diffs/moonbeam
       - name: Download diff artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtime-diff-moonriver-${{ github.event.inputs.spec_version }}
           path: runtime-diffs/moonriver

@@ -42,7 +42,7 @@ enum ReserveType {
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
 type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
 
-// This test attemps to reconcile the total amount of locked tokens across the entire
+// This test attempts to reconcile the total amount of locked tokens across the entire
 // chain by ensuring that individual storages match the reserved balances and locks.
 // In order to not exhaust memory, the expected results are calculated first and then
 // All system accounts are iterated over, without storing them, to ensure memory
@@ -309,8 +309,16 @@ describeSuite({
           .entries()
           .then((identities) => {
             identities.forEach((identity) => {
-              const storageValue =
-                specVersion >= 2900 ? identity[1].unwrap()[0] : identity[1].unwrap();
+              const storageValue = (() => {
+                if (specVersion < 2900) {
+                  return identity[1].unwrap();
+                }
+                if (specVersion < 3700) {
+                  return identity[1].unwrap()[0];
+                }
+
+                return identity[1].unwrap();
+              })();
               updateReserveMap(identity[0].toHex().slice(-40), {
                 [ReserveType.Identity]: storageValue.deposit.toBigInt(),
               });

@@ -9,7 +9,7 @@ import "./GovernanceStructs.sol";
 import "./Messages.sol";
 import "./Setters.sol";
 
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
 /**
  * @dev `Governance` defines a means to enacting changes to the core bridge contract,
@@ -18,8 +18,7 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 abstract contract Governance is
     GovernanceStructs,
     Messages,
-    Setters,
-    ERC1967Upgrade
+    Setters
 {
     event ContractUpgraded(
         address indexed oldContract,
@@ -205,9 +204,9 @@ abstract contract Governance is
      * @dev Upgrades the `currentImplementation` with a `newImplementation`
      */
     function upgradeImplementation(address newImplementation) internal {
-        address currentImplementation = _getImplementation();
+        address currentImplementation = ERC1967Utils.getImplementation();
 
-        _upgradeTo(newImplementation);
+        ERC1967Utils.upgradeToAndCall(newImplementation, "");
 
         // Call initialize function of the new implementation
         (bool success, bytes memory reason) = newImplementation.delegatecall(

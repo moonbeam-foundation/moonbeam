@@ -31,17 +31,23 @@ pub mod weights;
 pub use pallet::*;
 pub use weights::WeightInfo;
 
-use frame_support::pallet;
 use frame_support::pallet_prelude::*;
 use frame_support::traits::Contains;
 use frame_support::weights::WeightToFee;
+use frame_support::{pallet, Deserialize, Serialize};
 use frame_system::pallet_prelude::*;
 use sp_runtime::traits::{Convert, Zero};
-use sp_std::vec::Vec;
-use xcm::v4::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
+use sp_std::{vec, vec::Vec};
+use xcm::v5::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
 use xcm::{IntoVersion, VersionedAssetId};
 use xcm_executor::traits::{TransactAsset, WeightTrader};
 use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct XcmWeightTraderAssetInfo {
+	pub location: Location,
+	pub relative_price: u128,
+}
 
 pub const RELATIVE_PRICE_DECIMALS: u32 = 18;
 
@@ -125,6 +131,8 @@ pub mod pallet {
 		XcmLocationFiltered,
 		/// The relative price cannot be zero
 		PriceCannotBeZero,
+		/// The relative price calculation overflowed
+		PriceOverflow,
 	}
 
 	#[pallet::event]
@@ -148,6 +156,31 @@ pub mod pallet {
 		SupportedAssetRemoved { location: Location },
 	}
 
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T: Config> {
+		pub assets: Vec<XcmWeightTraderAssetInfo>,
+		pub _phantom: PhantomData<T>,
+	}
+
+	impl<T: Config> Default for GenesisConfig<T> {
+		fn default() -> Self {
+			Self {
+				assets: vec![],
+				_phantom: Default::default(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
+		fn build(&self) {
+			for asset in self.assets.clone() {
+				Pallet::<T>::do_add_asset(asset.location, asset.relative_price)
+					.expect("couldn't add asset");
+			}
+		}
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		#[pallet::call_index(0)]
@@ -159,28 +192,11 @@ pub mod pallet {
 		) -> DispatchResult {
 			T::AddSupportedAssetOrigin::ensure_origin(origin)?;
 
-			ensure!(relative_price != 0, Error::<T>::PriceCannotBeZero);
-			ensure!(
-				!SupportedAssets::<T>::contains_key(&location),
-				Error::<T>::AssetAlreadyAdded
-			);
-			ensure!(
-				T::AssetLocationFilter::contains(&location),
-				Error::<T>::XcmLocationFiltered
-			);
-
-			SupportedAssets::<T>::insert(&location, (true, relative_price));
-
-			Self::deposit_event(Event::SupportedAssetAdded {
-				location,
-				relative_price,
-			});
-
-			Ok(())
+			Self::do_add_asset(location, relative_price)
 		}
 
 		#[pallet::call_index(1)]
-		#[pallet::weight(T::WeightInfo::edit_asset())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::edit_asset())]
 		pub fn edit_asset(
 			origin: OriginFor<T>,
 			location: Location,
@@ -205,7 +221,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(2)]
-		#[pallet::weight(T::WeightInfo::pause_asset_support())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::pause_asset_support())]
 		pub fn pause_asset_support(origin: OriginFor<T>, location: Location) -> DispatchResult {
 			T::PauseSupportedAssetOrigin::ensure_origin(origin)?;
 
@@ -221,7 +237,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(3)]
-		#[pallet::weight(T::WeightInfo::resume_asset_support())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::resume_asset_support())]
 		pub fn resume_asset_support(origin: OriginFor<T>, location: Location) -> DispatchResult {
 			T::ResumeSupportedAssetOrigin::ensure_origin(origin)?;
 
@@ -237,7 +253,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(4)]
-		#[pallet::weight(T::WeightInfo::remove_asset())]
+		#[pallet::weight(<T as pallet::Config>::WeightInfo::remove_asset())]
 		pub fn remove_asset(origin: OriginFor<T>, location: Location) -> DispatchResult {
 			T::RemoveSupportedAssetOrigin::ensure_origin(origin)?;
 
@@ -255,6 +271,27 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		pub fn do_add_asset(location: Location, relative_price: u128) -> DispatchResult {
+			ensure!(relative_price != 0, Error::<T>::PriceCannotBeZero);
+			ensure!(
+				!SupportedAssets::<T>::contains_key(&location),
+				Error::<T>::AssetAlreadyAdded
+			);
+			ensure!(
+				T::AssetLocationFilter::contains(&location),
+				Error::<T>::XcmLocationFiltered
+			);
+
+			SupportedAssets::<T>::insert(&location, (true, relative_price));
+
+			Self::deposit_event(Event::SupportedAssetAdded {
+				location,
+				relative_price,
+			});
+
+			Ok(())
+		}
+
 		pub fn get_asset_relative_price(location: &Location) -> Option<u128> {
 			if let Some((true, ratio)) = SupportedAssets::<T>::get(location) {
 				Some(ratio)
@@ -265,37 +302,38 @@ pub mod pallet {
 		pub fn query_acceptable_payment_assets(
 			xcm_version: xcm::Version,
 		) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
-			if !matches!(xcm_version, 3 | 4) {
-				return Err(XcmPaymentApiError::UnhandledXcmVersion);
-			}
-
-			let v4_assets = [VersionedAssetId::V4(XcmAssetId::from(
+			let v5_assets = [VersionedAssetId::from(XcmAssetId::from(
 				T::NativeLocation::get(),
 			))]
 			.into_iter()
 			.chain(
 				SupportedAssets::<T>::iter().filter_map(|(asset_location, (enabled, _))| {
-					enabled.then(|| VersionedAssetId::V4(XcmAssetId(asset_location)))
+					enabled.then(|| VersionedAssetId::from(XcmAssetId(asset_location)))
 				}),
 			)
 			.collect::<Vec<_>>();
 
-			if xcm_version == 3 {
-				v4_assets
+			match xcm_version {
+				xcm::v3::VERSION => v5_assets
 					.into_iter()
-					.map(|v4_asset| v4_asset.into_version(3))
+					.map(|v5_asset| v5_asset.into_version(xcm::v3::VERSION))
 					.collect::<Result<_, _>>()
-					.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)
-			} else {
-				Ok(v4_assets)
+					.map_err(|_| XcmPaymentApiError::VersionedConversionFailed),
+				xcm::v4::VERSION => v5_assets
+					.into_iter()
+					.map(|v5_asset| v5_asset.into_version(xcm::v4::VERSION))
+					.collect::<Result<_, _>>()
+					.map_err(|_| XcmPaymentApiError::VersionedConversionFailed),
+				xcm::v5::VERSION => Ok(v5_assets),
+				_ => Err(XcmPaymentApiError::UnhandledXcmVersion),
 			}
 		}
 		pub fn query_weight_to_asset_fee(
 			weight: Weight,
 			asset: VersionedAssetId,
 		) -> Result<u128, XcmPaymentApiError> {
-			if let VersionedAssetId::V4(XcmAssetId(asset_location)) = asset
-				.into_version(4)
+			if let VersionedAssetId::V5(XcmAssetId(asset_location)) = asset
+				.into_version(xcm::latest::VERSION)
 				.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?
 			{
 				Trader::<T>::compute_amount_to_charge(&weight, &asset_location).map_err(|e| match e

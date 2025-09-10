@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, BALTATHAR_ADDRESS, createRawTransfer } from "@moonwall/u
 import { type PublicClient, createPublicClient, webSocket } from "viem";
 
 describeSuite({
-  id: "D013605",
+  id: "D023605",
   title: "Subscription - Block headers",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

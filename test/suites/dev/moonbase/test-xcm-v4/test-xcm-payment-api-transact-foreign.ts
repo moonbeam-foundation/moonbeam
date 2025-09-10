@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ApiPromise, WsProvider } from "@polkadot/api";
+import { type ApiPromise, WsProvider } from "@polkadot/api";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import type { u128 } from "@polkadot/types";
 import { hexToBigInt } from "@polkadot/util";
@@ -13,95 +13,24 @@ import {
   descendOriginFromAddress20,
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION,
-  registerOldForeignAsset,
-  mockOldAssetBalance,
+  registerForeignAsset,
+  mockAssetBalance,
+  foreignAssetBalance,
+  addAssetToWeightTrader,
 } from "../../../../helpers";
 
-// TODO: remove once we upgrade @polkadot/api to v12.1.1
-const runtimeApi = {
-  runtime: {
-    XcmPaymentApi: [
-      {
-        methods: {
-          query_acceptable_payment_assets: {
-            description: "The API to query acceptable payment assets",
-            params: [
-              {
-                name: "version",
-                type: "u32",
-              },
-            ],
-            type: "Result<Vec<XcmVersionedAssetId>, XcmPaymentApiError>",
-          },
-          query_weight_to_asset_fee: {
-            description: "",
-            params: [
-              {
-                name: "weight",
-                type: "WeightV2",
-              },
-              {
-                name: "asset",
-                type: "XcmVersionedAssetId",
-              },
-            ],
-            type: "Result<u128, XcmPaymentApiError>",
-          },
-          query_xcm_weight: {
-            description: "",
-            params: [
-              {
-                name: "message",
-                type: "XcmVersionedXcm",
-              },
-            ],
-            type: "Result<WeightV2, XcmPaymentApiError>",
-          },
-          query_delivery_fees: {
-            description: "",
-            params: [
-              {
-                name: "destination",
-                type: "XcmVersionedLocation",
-              },
-              {
-                name: "message",
-                type: "XcmVersionedXcm",
-              },
-            ],
-            type: "Result<XcmVersionedAssets, XcmPaymentApiError>",
-          },
-        },
-        version: 1,
-      },
-    ],
-  },
-  types: {
-    XcmPaymentApiError: {
-      _enum: {
-        Unimplemented: "Null",
-        VersionedConversionFailed: "Null",
-        WeightNotComputable: "Null",
-        UnhandledXcmVersion: "Null",
-        AssetNotFound: "Null",
-      },
-    },
-  },
-};
-
 describeSuite({
-  id: "D014133",
+  id: "D024218",
   title: "XCM - XcmPaymentApi - Transact",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let polkadotJs: ApiPromise;
     let amountForFees: bigint;
     let amountForTransfer: bigint;
-    let assetId: u128;
+    const assetId = 1n;
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
-    let foreignAssetId: string;
     const weightLimit = {
       refTime: 40_000_000_000n,
       proofSize: 120_583n,
@@ -109,20 +38,16 @@ describeSuite({
     let weightToForeignFee: any;
 
     beforeAll(async () => {
-      // TODO: remove once we upgrade @polkadot/api to v12.1.1
-      polkadotJs = await ApiPromise.create({
-        provider: new WsProvider(`ws://localhost:${process.env.MOONWALL_RPC_PORT}/`),
-        ...runtimeApi,
-      });
+      polkadotJs = context.polkadotJs();
 
-      const { registeredAssetId } = await registerOldForeignAsset(
+      await registerForeignAsset(
         context,
+        assetId,
         RELAY_SOURCE_LOCATION,
-        relayAssetMetadata as any,
-        20000000000
+        relayAssetMetadata as any
       );
 
-      foreignAssetId = registeredAssetId;
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 1_000_000_000_000_000_000n, context);
 
       // Fetch the exact amount of foreign fees that we will use given
       // the indicated weightLimit
@@ -144,31 +69,8 @@ describeSuite({
       // Amount to transfer to random address
       amountForTransfer = 1_000_000_000_000_000_000n;
 
-      const balance = polkadotJs.createType("Balance", amountForFees);
-      assetId = polkadotJs.createType("u128", hexToBigInt(foreignAssetId as `0x${string}`));
-
-      const assetBalance: PalletAssetsAssetAccount = polkadotJs.createType(
-        "PalletAssetsAssetAccount",
-        {
-          balance: balance,
-        }
-      );
-      const assetDetails: PalletAssetsAssetDetails = polkadotJs.createType(
-        "PalletAssetsAssetDetails",
-        {
-          supply: balance,
-        }
-      );
-
       // Fund descendAddress with enough xcDOTs to pay XCM execution fees
-      await mockOldAssetBalance(
-        context,
-        assetBalance,
-        assetDetails,
-        alith,
-        assetId,
-        descendAddress
-      );
+      await mockAssetBalance(context, amountForFees, assetId, alith, descendAddress);
 
       // We need to fund the descendAddress with both amounts.
       // This account takes care of paying the foreign fees and also transfering the
@@ -178,11 +80,7 @@ describeSuite({
         { allowFailures: false }
       );
 
-      const descendForeignBalance = (
-        await polkadotJs.query.assets.account(foreignAssetId, descendAddress)
-      )
-        .unwrap()
-        .balance.toBigInt();
+      const descendForeignBalance = await foreignAssetBalance(context, assetId, descendAddress);
 
       const descendNativeBalance = (
         await polkadotJs.query.system.account(descendAddress)
@@ -245,11 +143,7 @@ describeSuite({
         ).data.free.toBigInt();
 
         // Make sure the descendOrigin address has zero foreign balance now
-        const testDescendBalance = (
-          await polkadotJs.query.assets.account(foreignAssetId, descendAddress)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const testDescendBalance = await foreignAssetBalance(context, assetId, descendAddress);
 
         expect(testAccountBalance).to.eq(amountForTransfer);
         expect(testDescendBalance).to.eq(0n);

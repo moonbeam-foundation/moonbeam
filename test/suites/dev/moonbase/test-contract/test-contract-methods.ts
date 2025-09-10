@@ -4,7 +4,7 @@ import { ALITH_ADDRESS } from "@moonwall/util";
 import { encodeFunctionData, type Abi } from "viem";
 
 describeSuite({
-  id: "D010609",
+  id: "D020508",
   title: "Contract creation",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

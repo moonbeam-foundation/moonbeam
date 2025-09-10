@@ -42,6 +42,7 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None,
 		access_list: Vec::new(),
+		authorization_list: Vec::new(),
 	}
 }
 
@@ -296,7 +297,7 @@ fn submit_track_id_oob_fails() {
 			let proposal = vec![1, 2, 3];
 			let proposal_hash = sp_runtime::traits::BlakeTwo256::hash(&proposal);
 			let oob_track_id =
-				<crate::mock::Runtime as pallet_referenda::Config>::Tracks::tracks().len();
+				<crate::mock::Runtime as pallet_referenda::Config>::Tracks::tracks().count();
 
 			// submit with an invalid track_id
 			let input = PCall::submit_at {

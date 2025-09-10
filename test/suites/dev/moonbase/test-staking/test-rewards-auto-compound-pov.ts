@@ -11,7 +11,7 @@ import {
 import { chunk, jumpRounds } from "../../../../helpers";
 
 describeSuite({
-  id: "D013450",
+  id: "D023451",
   title: "Staking - Rewards Auto-Compound - PoV Size",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

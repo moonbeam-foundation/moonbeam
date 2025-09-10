@@ -12,7 +12,7 @@ import {
 import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
-  id: "D014023",
+  id: "D024109",
   title: "Mock XCM - receive horizontal transact ETHEREUM (transfer)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -86,7 +86,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmWeight = GAS_LIMIT * 25000n + STORAGE_READ_COST + 4_250_000_000n;
+        const targetXcmWeight = GAS_LIMIT * 25000n + STORAGE_READ_COST + 4_750_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {

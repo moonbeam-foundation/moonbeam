@@ -17,7 +17,7 @@
 //! Helper methods for computing issuance based on inflation
 use crate::pallet::{BalanceOf, Config, Pallet};
 use frame_support::traits::{Currency, Get};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_runtime::PerThing;
@@ -41,6 +41,7 @@ fn rounds_per_year<T: Config>() -> u32 {
 	Copy,
 	Encode,
 	Decode,
+	DecodeWithMemTracking,
 	Default,
 	Deserialize,
 	RuntimeDebug,
@@ -100,7 +101,11 @@ pub fn annual_to_round<T: Config>(annual: Range<Perbill>) -> Range<Perbill> {
 
 /// Compute round issuance range from round inflation range and current total issuance
 pub fn round_issuance_range<T: Config>(round: Range<Perbill>) -> Range<BalanceOf<T>> {
-	let circulating = T::Currency::total_issuance();
+	let circulating = if let Some(threshold) = T::LinearInflationThreshold::get() {
+		core::cmp::min(T::Currency::total_issuance(), threshold)
+	} else {
+		T::Currency::total_issuance()
+	};
 	Range {
 		min: round.min * circulating,
 		ideal: round.ideal * circulating,
