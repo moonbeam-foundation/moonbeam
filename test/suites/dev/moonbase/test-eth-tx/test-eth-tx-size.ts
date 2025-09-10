@@ -7,20 +7,30 @@ describeSuite({
   title: "Ethereum Transaction - Large Transaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    // With EIP-7623, non-zero bytes cost 40 gas (floor cost) instead of 16
-    // Calculate max size based on floor cost
-    const COST_FLOOR_PER_NON_ZERO_BYTE = 40n;
+    // EIP-7623 gas calculation: gas = max(standard_cost, floor_cost)
+    // Standard: 21000 + (zero_bytes * 4 + nonzero_bytes * 16) + execution_gas
+    // Floor: 21000 + tokens * 10, where tokens = zero_bytes + nonzero_bytes * 4
+    // For all 0xFF bytes (non-zero): tokens = nonzero_bytes * 4
+    // Floor becomes: 21000 + nonzero_bytes * 40
+    // Since we're sending pure data with no execution, floor cost dominates
+
     const BASE_TX_COST = 21000n;
+    const TOKENS_PER_NONZERO_BYTE = 4n;
+    const FLOOR_COST_PER_TOKEN = 10n;
+    const FLOOR_COST_PER_NONZERO_BYTE = TOKENS_PER_NONZERO_BYTE * FLOOR_COST_PER_TOKEN; // 40
+
+    // Calculate exact max size that fits within gas limit
+    const exactMaxSize = (BigInt(EXTRINSIC_GAS_LIMIT) - BASE_TX_COST) / FLOOR_COST_PER_NONZERO_BYTE;
+
     // TODO: I'm not sure where this 2000 came from...
-    const maxSize =
-      (BigInt(EXTRINSIC_GAS_LIMIT) - BASE_TX_COST) / COST_FLOOR_PER_NON_ZERO_BYTE - 2000n;
+    const maxSize = exactMaxSize - 2000n;
 
     it({
       id: "T01",
       title: "should accept txns up to known size",
       test: async function () {
-        // With EIP-7623 floor cost of 40 per non-zero byte: (13000000 - 21000) / 40 - 2000 = 322475
-        expect(maxSize).to.equal(322475n); // our max Ethereum TXN size in bytes with EIP-7623
+        // Dynamically calculated: (13000000 - 21000) / 40 - 2000 = 322475
+        expect(maxSize).to.equal(322475n); // max Ethereum TXN size with EIP-7623 floor cost
         // max_size - shanghai init cost - create cost
         const maxSizeShanghai = maxSize - 6474n;
         const data = ("0x" + "FF".repeat(Number(maxSizeShanghai))) as `0x${string}`;
@@ -44,7 +54,8 @@ describeSuite({
       id: "T02",
       title: "should reject txns which are too large to pay for",
       test: async function () {
-        const data = ("0x" + "FF".repeat(Number(maxSize) + 1)) as `0x${string}`;
+        // Use exactMaxSize + 1 to ensure we exceed the gas limit
+        const data = ("0x" + "FF".repeat(Number(exactMaxSize) + 1)) as `0x${string}`;
 
         const rawSigned = await createEthersTransaction(context, {
           value: 0n,
