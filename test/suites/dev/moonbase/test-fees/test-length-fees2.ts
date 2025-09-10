@@ -3,38 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { createViemTransaction } from "@moonwall/util";
 import { ConstantStore } from "../../../../helpers/constants";
 import { hexToU8a } from "@polkadot/util";
-
-// EIP-7623 constants
-const TOTAL_COST_FLOOR_PER_TOKEN = 10n;
-const COST_FLOOR_PER_ZERO_BYTE = TOTAL_COST_FLOOR_PER_TOKEN;
-const COST_FLOOR_PER_NON_ZERO_BYTE = 4n * TOTAL_COST_FLOOR_PER_TOKEN;
-const STANDARD_COST_PER_ZERO_BYTE = 4n;
-const STANDARD_COST_PER_NON_ZERO_BYTE = 16n;
-const BASE_TX_COST = 21000n;
-
-/**
- * Calculate expected gas with EIP-7623 floor cost mechanism
- */
-function calculateExpectedGas(
-  numZeroBytes: number,
-  numNonZeroBytes: number,
-  executionGas: bigint
-): bigint {
-  // Floor cost calculation
-  const floorCost =
-    BigInt(numNonZeroBytes) * COST_FLOOR_PER_NON_ZERO_BYTE +
-    BigInt(numZeroBytes) * COST_FLOOR_PER_ZERO_BYTE +
-    BASE_TX_COST;
-
-  // Standard cost + execution
-  const standardCalldataCost =
-    BigInt(numNonZeroBytes) * STANDARD_COST_PER_NON_ZERO_BYTE +
-    BigInt(numZeroBytes) * STANDARD_COST_PER_ZERO_BYTE;
-  const standardCostPlusExecution = standardCalldataCost + BASE_TX_COST + executionGas;
-
-  // Return the maximum of floor cost and standard cost + execution
-  return floorCost > standardCostPlusExecution ? floorCost : standardCostPlusExecution;
-}
+import { calculateEIP7623Gas } from "../../../../helpers/fees";
 
 describeSuite({
   id: "D021607",
@@ -103,7 +72,7 @@ describeSuite({
         const executionGas = modexp_min_cost + is_precompile_check_gas;
 
         // Calculate expected gas with EIP-7623
-        const expectedGasUsed = calculateExpectedGas(numZeroBytes, numNonZeroBytes, executionGas);
+        const expectedGasUsed = calculateEIP7623Gas(numZeroBytes, numNonZeroBytes, executionGas);
 
         // the gas used should be the maximum of the legacy gas and the pov gas
         const expectedWithPov = BigInt(

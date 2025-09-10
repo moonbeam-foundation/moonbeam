@@ -1,26 +1,20 @@
 import "@moonbeam-network/api-augment";
 import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import { EXTRINSIC_GAS_LIMIT, createEthersTransaction } from "@moonwall/util";
+import { EIP7623_GAS_CONSTANTS } from "../../../../helpers/fees";
 
 describeSuite({
   id: "D021303",
   title: "Ethereum Transaction - Large Transaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    // EIP-7623 gas calculation: gas = max(standard_cost, floor_cost)
-    // Standard: 21000 + (zero_bytes * 4 + nonzero_bytes * 16) + execution_gas
-    // Floor: 21000 + tokens * 10, where tokens = zero_bytes + nonzero_bytes * 4
-    // For all 0xFF bytes (non-zero): tokens = nonzero_bytes * 4
-    // Floor becomes: 21000 + nonzero_bytes * 40
-    // Since we're sending pure data with no execution, floor cost dominates
-
-    const BASE_TX_COST = 21000n;
-    const TOKENS_PER_NONZERO_BYTE = 4n;
-    const FLOOR_COST_PER_TOKEN = 10n;
-    const FLOOR_COST_PER_NONZERO_BYTE = TOKENS_PER_NONZERO_BYTE * FLOOR_COST_PER_TOKEN; // 40
+    // EIP-7623: When sending pure data (all 0xFF bytes) with no execution,
+    // the floor cost dominates: 21000 + nonzero_bytes * 40
+    const { BASE_TX_COST, COST_FLOOR_PER_NON_ZERO_BYTE } = EIP7623_GAS_CONSTANTS;
 
     // Calculate exact max size that fits within gas limit
-    const exactMaxSize = (BigInt(EXTRINSIC_GAS_LIMIT) - BASE_TX_COST) / FLOOR_COST_PER_NONZERO_BYTE;
+    const exactMaxSize =
+      (BigInt(EXTRINSIC_GAS_LIMIT) - BASE_TX_COST) / COST_FLOOR_PER_NON_ZERO_BYTE;
 
     // TODO: I'm not sure where this 2000 came from...
     const maxSize = exactMaxSize - 2000n;

@@ -3,45 +3,9 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { EXTRINSIC_GAS_LIMIT, createViemTransaction } from "@moonwall/util";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import { expectEVMResult, testVectors } from "../../../../helpers";
+import { calculateEIP7623Gas } from "../../../../helpers/fees";
 
 const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
-
-const TOTAL_COST_FLOOR_PER_TOKEN = 10n;
-const COST_FLOOR_PER_ZERO_BYTE = TOTAL_COST_FLOOR_PER_TOKEN;
-const COST_FLOOR_PER_NON_ZERO_BYTE = 4n * TOTAL_COST_FLOOR_PER_TOKEN;
-
-// Standard gas costs (pre-EIP-7623)
-const STANDARD_COST_PER_ZERO_BYTE = 4n;
-const STANDARD_COST_PER_NON_ZERO_BYTE = 16n;
-const BASE_TX_COST = 21000n;
-
-/**
- * Calculate the expected gas cost with EIP-7623 floor cost mechanism
- * @param numZeroBytes Number of zero bytes in calldata
- * @param numNonZeroBytes Number of non-zero bytes in calldata
- * @param executionGas Gas cost for the execution (e.g., modexp operation)
- * @returns Expected total gas used
- */
-function calculateExpectedGas(
-  numZeroBytes: number,
-  numNonZeroBytes: number,
-  executionGas: bigint
-): bigint {
-  // Floor cost calculation
-  const floorCost =
-    BigInt(numNonZeroBytes) * COST_FLOOR_PER_NON_ZERO_BYTE +
-    BigInt(numZeroBytes) * COST_FLOOR_PER_ZERO_BYTE +
-    BASE_TX_COST;
-
-  // Standard cost + execution
-  const standardCalldataCost =
-    BigInt(numNonZeroBytes) * STANDARD_COST_PER_NON_ZERO_BYTE +
-    BigInt(numZeroBytes) * STANDARD_COST_PER_ZERO_BYTE;
-  const standardCostPlusExecution = standardCalldataCost + BASE_TX_COST + executionGas;
-
-  // Return the maximum of floor cost and standard cost + execution
-  return floorCost > standardCostPlusExecution ? floorCost : standardCostPlusExecution;
-}
 
 describeSuite({
   id: "D022843",
@@ -126,7 +90,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -188,7 +152,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -226,7 +190,7 @@ describeSuite({
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -263,7 +227,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -300,7 +264,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -337,7 +301,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -374,7 +338,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -411,7 +375,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -448,7 +412,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -485,7 +449,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -522,7 +486,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -559,7 +523,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -596,7 +560,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -633,7 +597,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -670,7 +634,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -707,7 +671,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -744,7 +708,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost
@@ -800,7 +764,7 @@ describeSuite({
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
         const isPrecompileCheckGas = 1669n;
-        const expectedGasUsed = calculateExpectedGas(
+        const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
           expectedModExpGasCost + isPrecompileCheckGas
