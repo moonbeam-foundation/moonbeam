@@ -205,7 +205,6 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 sp-timestamp = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
-pallet-asset-manager = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 
