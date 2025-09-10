@@ -586,7 +586,7 @@
 </span><span class="kw">const </span>ERC20_UNPAUSE_GAS_LIMIT: u64 = <span class="number">160_000</span>; <span class="comment">// highest failure: 149_500
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>ERC20_BALANCE_OF_GAS_LIMIT: u64 = <span class="number">160_000</span>; <span class="comment">// Calculated effective gas: max(used: 24276, pov: 150736, storage: 0) = 150736
 
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub enum </span>EvmError {
 	BurnFromFail(String),
 	BalanceOfFail(String),

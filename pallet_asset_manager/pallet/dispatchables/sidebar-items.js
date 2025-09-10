@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["change_existing_asset_type","destroy_foreign_asset","register_foreign_asset","remove_existing_asset_type"]};
