@@ -89,9 +89,28 @@ describeSuite({
 
         log("Please wait, this will take at least 30s for transaction to complete");
 
-        await paraApi.tx.balances
-          .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
-          .signAndSend(charleth);
+        await new Promise((resolve, reject) => {
+          paraApi.tx.balances
+            .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
+            .signAndSend(charleth, ({ status, events }) => {
+              log("Transaction status: ", status.toHuman());
+
+              if (status.isFinalized) {
+                log("Transaction is finalized!");
+                resolve(events);
+              }
+
+              if (
+                status.isDropped ||
+                status.isInvalid ||
+                status.isUsurped ||
+                status.isFinalityTimeout
+              ) {
+                reject("transaction failed!");
+                throw new Error("Transaction failed");
+              }
+            });
+        });
 
         const balAfter = (
           await paraApi.query.system.account(BALTATHAR_ADDRESS)
