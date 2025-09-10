@@ -267,7 +267,6 @@ pub type StatemineChainPalletXcm = pallet_xcm::Pallet<statemine_like::Runtime>;
 pub type StatemineAssets = pallet_assets::Pallet<statemine_like::Runtime>;
 
 pub type ParachainPalletXcm = pallet_xcm::Pallet<parachain::Runtime>;
-pub type EvmForeignAssets = pallet_moonbeam_foreign_assets::Pallet<parachain::Runtime>;
 
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
