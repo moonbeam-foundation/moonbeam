@@ -142,16 +142,6 @@ import type {
   MoonriverRuntimeXcmConfigCurrencyId,
   MoonriverRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
-  PalletAssetsAccountStatus,
-  PalletAssetsApproval,
-  PalletAssetsAssetAccount,
-  PalletAssetsAssetDetails,
-  PalletAssetsAssetMetadata,
-  PalletAssetsAssetStatus,
-  PalletAssetsCall,
-  PalletAssetsError,
-  PalletAssetsEvent,
-  PalletAssetsExistenceReason,
   PalletAuthorInherentCall,
   PalletAuthorInherentError,
   PalletAuthorMappingCall,
@@ -610,16 +600,6 @@ declare module "@polkadot/types/types/registry" {
     MoonriverRuntimeXcmConfigCurrencyId: MoonriverRuntimeXcmConfigCurrencyId;
     MoonriverRuntimeXcmConfigTransactors: MoonriverRuntimeXcmConfigTransactors;
     NimbusPrimitivesNimbusCryptoPublic: NimbusPrimitivesNimbusCryptoPublic;
-    PalletAssetsAccountStatus: PalletAssetsAccountStatus;
-    PalletAssetsApproval: PalletAssetsApproval;
-    PalletAssetsAssetAccount: PalletAssetsAssetAccount;
-    PalletAssetsAssetDetails: PalletAssetsAssetDetails;
-    PalletAssetsAssetMetadata: PalletAssetsAssetMetadata;
-    PalletAssetsAssetStatus: PalletAssetsAssetStatus;
-    PalletAssetsCall: PalletAssetsCall;
-    PalletAssetsError: PalletAssetsError;
-    PalletAssetsEvent: PalletAssetsEvent;
-    PalletAssetsExistenceReason: PalletAssetsExistenceReason;
     PalletAuthorInherentCall: PalletAuthorInherentCall;
     PalletAuthorInherentError: PalletAuthorInherentError;
     PalletAuthorMappingCall: PalletAuthorMappingCall;
