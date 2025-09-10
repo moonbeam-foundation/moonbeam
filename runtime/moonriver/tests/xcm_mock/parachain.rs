@@ -17,17 +17,15 @@
 //! Parachain runtime mock.
 
 use frame_support::{
-	construct_runtime,
-	dispatch::GetDispatchInfo,
-	ensure, parameter_types,
+	construct_runtime, ensure, parameter_types,
 	traits::{
-		fungible::NativeOrWithId, AsEnsureOriginWithArg, ConstU32, EitherOf, Everything, Get,
-		InstanceFilter, Nothing, PalletInfoAccess,
+		fungible::NativeOrWithId, ConstU32, EitherOf, Everything, Get, InstanceFilter, Nothing,
+		PalletInfoAccess,
 	},
 	weights::Weight,
 	PalletId,
 };
-use frame_system::{pallet_prelude::BlockNumberFor, EnsureNever, EnsureRoot};
+use frame_system::{pallet_prelude::BlockNumberFor, EnsureRoot};
 use moonbeam_runtime_common::{
 	impl_asset_conversion::AssetRateConverter, impl_multiasset_paymaster::MultiAssetPaymaster,
 	xcm_origins::AllowSiblingParachains,
@@ -54,13 +52,12 @@ use xcm::latest::{
 };
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
-	AllowTopLevelPaidExecutionFrom, Case, ConvertedConcreteId, EnsureXcmOrigin, FixedWeightBounds,
-	FungibleAdapter as XcmCurrencyAdapter, FungiblesAdapter, IsConcrete, NoChecking,
-	ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
+	AllowTopLevelPaidExecutionFrom, Case, EnsureXcmOrigin, FixedWeightBounds, FungibleAdapter,
+	IsConcrete, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
 	TakeWeightCredit, WithComputedOrigin,
 };
-use xcm_executor::{traits::JustTry, Config, XcmExecutor};
+use xcm_executor::{Config, XcmExecutor};
 
 #[cfg(feature = "runtime-benchmarks")]
 use moonbeam_runtime_common::benchmarking::BenchmarkHelper as ArgumentsBenchmarkHelper;
@@ -136,55 +133,6 @@ impl pallet_balances::Config for Runtime {
 	type DoneSlashHandler = ();
 }
 
-pub type ForeignAssetInstance = ();
-
-// Required for runtime benchmarks
-pallet_assets::runtime_benchmarks_enabled! {
-	pub struct BenchmarkHelper;
-	impl<AssetIdParameter> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper
-	where
-		AssetIdParameter: From<u128>,
-	{
-		fn create_asset_id_parameter(id: u32) -> AssetIdParameter {
-			(id as u128).into()
-		}
-	}
-}
-
-parameter_types! {
-	pub const AssetDeposit: Balance = 1; // Does not really matter as this will be only called by root
-	pub const ApprovalDeposit: Balance = 0;
-	pub const AssetsStringLimit: u32 = 50;
-	pub const MetadataDepositBase: Balance = 0;
-	pub const MetadataDepositPerByte: Balance = 0;
-	pub const AssetAccountDeposit: Balance = 0;
-}
-
-impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type Currency = Balances;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ApprovalDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	type AssetAccountDeposit = AssetAccountDeposit;
-	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
-	type RemoveItemsLimit = ConstU32<656>;
-	type AssetIdParameter = AssetId;
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureNever<AccountId>>;
-	type CallbackHandle = ();
-	type Holder = ();
-	pallet_assets::runtime_benchmarks_enabled! {
-		type BenchmarkHelper = BenchmarkHelper;
-	}
-}
-
 /// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
@@ -228,30 +176,7 @@ parameter_types! {
 	pub MaxInstructions: u32 = 100;
 }
 
-// Instructing how incoming xcm assets will be handled
-pub type ForeignFungiblesTransactor = FungiblesAdapter<
-	// Use this fungibles implementation:
-	Assets,
-	// Use this currency when it is a fungible asset matching the given location or name:
-	(
-		ConvertedConcreteId<
-			AssetId,
-			Balance,
-			xcm_primitives::AsAssetType<AssetId, AssetType, AssetManager>,
-			JustTry,
-		>,
-	),
-	// Do a simple punn to convert an AccountId32 Location into a native chain account ID:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We dont allow teleports.
-	NoChecking,
-	// We dont track any teleports
-	(),
->;
-
-pub type LocalAssetTransactor = XcmCurrencyAdapter<
+pub type LocalAssetTransactor = FungibleAdapter<
 	// Use this currency:
 	Balances,
 	// Use this currency when it is a fungible asset matching any of the locations in
@@ -266,7 +191,7 @@ pub type LocalAssetTransactor = XcmCurrencyAdapter<
 >;
 
 // We use both transactors
-pub type AssetTransactors = (LocalAssetTransactor, ForeignFungiblesTransactor);
+pub type AssetTransactors = (LocalAssetTransactor, EvmForeignAssets);
 
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
@@ -307,7 +232,7 @@ impl sp_weights::WeightToFee for WeightToFee {
 }
 
 parameter_types! {
-	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
+	pub RelayNetwork: NetworkId = moonriver_runtime::xcm_config::RelayNetwork::get();
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get()), Parachain(MsgQueue::parachain_id().into())].into();
@@ -705,53 +630,6 @@ impl pallet_xcm::Config for Runtime {
 	type AssetHubMigrationStarted = ConstBool<false>;
 }
 
-// We instruct how to register the Assets
-// In this case, we tell it to Create an Asset in pallet-assets
-pub struct AssetRegistrar;
-use frame_support::pallet_prelude::DispatchResult;
-impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
-	fn create_foreign_asset(
-		asset: AssetId,
-		min_balance: Balance,
-		metadata: AssetMetadata,
-		is_sufficient: bool,
-	) -> DispatchResult {
-		Assets::force_create(
-			RuntimeOrigin::root(),
-			asset,
-			AssetManager::account_id(),
-			is_sufficient,
-			min_balance,
-		)?;
-
-		Assets::force_set_metadata(
-			RuntimeOrigin::root(),
-			asset,
-			metadata.name,
-			metadata.symbol,
-			metadata.decimals,
-			false,
-		)
-	}
-
-	fn destroy_foreign_asset(asset: AssetId) -> DispatchResult {
-		// Mark the asset as destroying
-		Assets::start_destroy(RuntimeOrigin::root(), asset.into())?;
-
-		Ok(())
-	}
-
-	fn destroy_asset_dispatch_info_weight(asset: AssetId) -> Weight {
-		RuntimeCall::Assets(
-			pallet_assets::Call::<Runtime, ForeignAssetInstance>::start_destroy {
-				id: asset.into(),
-			},
-		)
-		.get_dispatch_info()
-		.total_weight()
-	}
-}
-
 #[derive(
 	Clone,
 	Default,
@@ -771,17 +649,6 @@ pub struct AssetMetadata {
 	pub decimals: u8,
 }
 
-impl pallet_asset_manager::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type AssetId = AssetId;
-	type AssetRegistrarMetadata = AssetMetadata;
-	type ForeignAssetType = AssetType;
-	type AssetRegistrar = AssetRegistrar;
-	type ForeignAssetModifierOrigin = EnsureRoot<AccountId>;
-	type WeightInfo = ();
-}
-
 pub struct AccountIdToH160;
 impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 	fn convert(account_id: AccountId) -> H160 {
@@ -791,10 +658,8 @@ impl sp_runtime::traits::Convert<AccountId, H160> for AccountIdToH160 {
 
 pub struct EvmForeignAssetIdFilter;
 impl frame_support::traits::Contains<AssetId> for EvmForeignAssetIdFilter {
-	fn contains(asset_id: &AssetId) -> bool {
-		use xcm_primitives::AssetTypeGetter as _;
-		// We should return true only if the AssetId doesn't exist in AssetManager
-		AssetManager::get_asset_type(*asset_id).is_none()
+	fn contains(_asset_id: &AssetId) -> bool {
+		true
 	}
 }
 
@@ -842,10 +707,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
 	type AccountIdToLocation = xcm_primitives::AccountIdToLocation<AccountId>;
-	type CurrencyIdToLocation = CurrencyIdToLocation<(
-		EvmForeignAssets,
-		AsAssetType<moonbeam_core_primitives::AssetId, AssetType, AssetManager>,
-	)>;
+	type CurrencyIdToLocation = CurrencyIdToLocation<EvmForeignAssets>;
 	type SelfLocation = SelfLocation;
 	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type UniversalLocation = UniversalLocation;
@@ -893,14 +755,10 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 parameter_types! {
-	pub BlockGasLimit: U256 = U256::from(u64::MAX);
-	pub WeightPerGas: Weight = Weight::from_parts(1, 0);
-	pub GasLimitPovSizeRatio: u64 = {
-		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
-		block_gas_limit.saturating_div(MAX_POV_SIZE as u64)
-	};
-	pub GasLimitStorageGrowthRatio: u64 =
-		BlockGasLimit::get().min(u64::MAX.into()).low_u64().saturating_div(BLOCK_STORAGE_LIMIT);
+	pub BlockGasLimit: U256 = moonriver_runtime::BlockGasLimit::get();
+	pub WeightPerGas: Weight = moonriver_runtime::WeightPerGas::get();
+	pub const GasLimitPovSizeRatio: u64 = moonriver_runtime::GasLimitPovSizeRatio::get();
+	pub GasLimitStorageGrowthRatio: u64 = moonriver_runtime::GasLimitStorageGrowthRatio::get();
 }
 
 impl pallet_evm::Config for Runtime {
@@ -1142,9 +1000,7 @@ construct_runtime!(
 		XcmVersioner: mock_version_changer,
 
 		PolkadotXcm: pallet_xcm,
-		Assets: pallet_assets,
 		CumulusXcm: cumulus_pallet_xcm,
-		AssetManager: pallet_asset_manager,
 		XcmTransactor: pallet_xcm_transactor,
 		XcmWeightTrader: pallet_xcm_weight_trader,
 		Treasury: pallet_treasury,
@@ -1171,7 +1027,6 @@ use frame_support::traits::{
 };
 use moonriver_runtime::{currency, xcm_config::LocationToH160, BLOCK_STORAGE_LIMIT, MAX_POV_SIZE};
 use pallet_evm::FrameSystemAccountProvider;
-use xcm_primitives::AsAssetType;
 
 pub(crate) fn on_runtime_upgrade() {
 	VersionUncheckedMigrateToV1::<Runtime>::on_runtime_upgrade();
