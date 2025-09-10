@@ -11,11 +11,9 @@ describeSuite({
   foundationMethods: "zombie",
   testCases: ({ it, context, log }) => {
     let paraApi: ApiPromise;
-    let relayApi: ApiPromise;
 
     beforeAll(async () => {
       paraApi = context.polkadotJs("parachain");
-      relayApi = context.polkadotJs("relaychain");
 
       const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
       expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);
@@ -89,43 +87,13 @@ describeSuite({
 
         log("Please wait, this will take at least 30s for transaction to complete");
 
-        // TODO: Renable the below when we are using polkadot 1.7.0
-        //       There is a discrepancy with polkadotJs and 1.3.0
-        //
-        // await new Promise((resolve, reject) => {
-        //   paraApi.tx.balances
-        //     .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
-        //     .signAndSend(charleth, ({ status, events }) => {
-        //       if (status.isInBlock) {
-        //         log("Transaction is in block");
-        //       }
-        //       if (status.isFinalized) {
-        //         log("Transaction is finalized!");
-        //         resolve(events);
-        //       }
-
-        //       if (
-        //         status.isDropped ||
-        //         status.isInvalid ||
-        //         status.isUsurped ||
-        //         status.isFinalityTimeout
-        //       ) {
-        //         reject("transaction failed!");
-        //         throw new Error("Transaction failed");
-        //       }
-        //     });
-        // })
-
         await paraApi.tx.balances
           .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
           .signAndSend(charleth);
 
-        // TODO: Remove waitBlock below when we are using polkadot 1.7.0
-        await context.waitBlock(6);
-
         const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
         expect(
-          balBefore.lt(balAfter),
+          balBefore.toBigInt().lt(balAfter.toBigInt()),
           `${balBefore.toHuman()} is not less than ${balAfter.toHuman()}`
         ).to.be.true;
       },
@@ -147,11 +115,6 @@ describeSuite({
           (await context.ethers().provider?.getBlock("latest"))?.number,
           "Latest tag is not present"
         ).to.be.greaterThan(0);
-        // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "latest"));
-        // await context
-        //   .ethers()
-        //   .sendTransaction({ to: BALTATHAR_ADDRESS, value: ethers.parseEther("1") });
-        // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "pending"));
       },
     });
   },
