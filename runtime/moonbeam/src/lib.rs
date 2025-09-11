@@ -1174,7 +1174,6 @@ pub struct MaintenanceFilter;
 impl Contains<RuntimeCall> for MaintenanceFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			RuntimeCall::Assets(_) => false,
 			RuntimeCall::Balances(_) => false,
 			RuntimeCall::CrowdloanRewards(_) => false,
 			RuntimeCall::Ethereum(_) => false,
@@ -1192,26 +1191,11 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 }
 
 /// Normal Call Filter
-/// We dont allow to create nor mint assets, this for now is disabled
-/// We only allow transfers. For now creation of assets will go through
-/// asset-manager, while minting/burning only happens through xcm messages
-/// This can change in the future
 pub struct NormalFilter;
 
 impl Contains<RuntimeCall> for NormalFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			RuntimeCall::Assets(method) => match method {
-				pallet_assets::Call::transfer { .. } => true,
-				pallet_assets::Call::transfer_keep_alive { .. } => true,
-				pallet_assets::Call::approve_transfer { .. } => true,
-				pallet_assets::Call::transfer_approved { .. } => true,
-				pallet_assets::Call::cancel_approval { .. } => true,
-				pallet_assets::Call::destroy_accounts { .. } => true,
-				pallet_assets::Call::destroy_approvals { .. } => true,
-				pallet_assets::Call::finish_destroy { .. } => true,
-				_ => false,
-			},
 			// We just want to enable this in case of live chains, since the default version
 			// is populated at genesis
 			RuntimeCall::PolkadotXcm(method) => match method {
@@ -1484,7 +1468,7 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 101,
 		// Previously 102: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>}
 		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config<T>} = 103,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
+		// [Removed] Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		// Previously 105: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>}
 		// Previously 106: XTokens
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
@@ -1544,7 +1528,6 @@ mod benches {
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
 		[pallet_evm, EVM]
-		[pallet_assets, Assets]
 		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
 		[pallet_treasury, Treasury]

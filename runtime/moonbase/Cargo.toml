@@ -70,7 +70,6 @@ pallet-evm-precompile-relay-verifier = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
-pallet-evm-precompileset-assets-erc20 = { workspace = true }
 pallet-evm-precompile-p256verify = { workspace = true }
 
 # Moonbeam tracing
@@ -85,7 +84,6 @@ frame-metadata-hash-extension = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-rpc-runtime-api = { workspace = true }
-pallet-assets = { workspace = true }
 pallet-balances = { workspace = true, features = ["insecure_zero_ed"] }
 pallet-collective = { workspace = true }
 pallet-conviction-voting = { workspace = true }
@@ -193,7 +191,7 @@ frame-metadata = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 sp-timestamp = { workspace = true }
 xcm-simulator = { workspace = true }
-pallet-asset-manager = { workspace = true }
+pallet-assets = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 
@@ -232,7 +230,6 @@ std = [
 	"moonbeam-runtime-common/std",
 	"moonkit-xcm-primitives/std",
 	"nimbus-primitives/std",
-	"pallet-assets/std",
 	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
@@ -263,7 +260,6 @@ std = [
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
-	"pallet-evm-precompileset-assets-erc20/std",
 	"pallet-evm-precompile-p256verify/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
@@ -360,7 +356,6 @@ runtime-benchmarks = [
 	"moonbeam-relay-encoder/runtime-benchmarks",
 	"moonbeam-runtime-common/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
-	"pallet-assets/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-author-slot-filter/runtime-benchmarks",
@@ -444,7 +439,6 @@ try-runtime = [
 	"pallet-crowdloan-rewards/try-runtime",
 	"pallet-proxy/try-runtime",
 	"pallet-identity/try-runtime",
-	"pallet-assets/try-runtime",
 	"pallet-xcm-transactor/try-runtime",
 	"pallet-proxy-genesis-companion/try-runtime",
 	"pallet-moonbeam-orbiters/try-runtime",

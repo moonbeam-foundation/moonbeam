@@ -173,7 +173,7 @@ jobs:
         with:
           version: 9
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
@@ -562,7 +562,7 @@ jobs:
   #     - uses: pnpm/action-setup@v4
   #       with:
   #         version: 9
-  #     - uses: actions/setup-node@v4
+  #     - uses: actions/setup-node@v5
   #       with:
   #         node-version-file: "test/.nvmrc"
   #         cache: "pnpm"
@@ -676,7 +676,7 @@ jobs:
         with:
           version: 9
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
@@ -730,7 +730,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
       - name: Create local folders
@@ -785,7 +785,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
@@ -834,7 +834,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
       - name: Create local folders

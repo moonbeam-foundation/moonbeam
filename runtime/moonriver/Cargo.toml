@@ -74,7 +74,6 @@ pallet-evm-precompile-relay-verifier = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
-pallet-evm-precompileset-assets-erc20 = { workspace = true }
 pallet-evm-precompile-p256verify = { workspace = true }
 
 # Moonbeam tracing
@@ -207,7 +206,6 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 sp-timestamp = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
-pallet-asset-manager = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 
