@@ -9,10 +9,15 @@ import {
   baltathar,
   createRawTransfer,
 } from "@moonwall/util";
-import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import { hexToU8a } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { mockOldAssetBalance } from "../../../../helpers";
+import {
+  registerForeignAsset,
+  addAssetToWeightTrader,
+  mockAssetBalance,
+  RELAY_SOURCE_LOCATION,
+  relayAssetMetadata,
+} from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
@@ -20,7 +25,7 @@ const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
 const ARBITRARY_VESTING_PERIOD = 201600n;
 
 describeSuite({
-  id: "D021901",
+  id: "D022001",
   title: "Maintenance Mode - Filter",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -65,6 +70,7 @@ describeSuite({
                   10_000_000_000n,
                   "0",
                   null,
+                  [],
                   []
                 )
             )
@@ -114,35 +120,55 @@ describeSuite({
       id: "T04",
       title: "should forbid assets transfer",
       test: async () => {
-        const balance = context.polkadotJs().createType("Balance", 100000000000000);
-        const assetBalance: PalletAssetsAssetAccount = context
-          .polkadotJs()
-          .createType("PalletAssetsAssetAccount", {
-            balance: balance,
-          });
+        const balance = 100000000000000n;
 
-        const newAssetId = context.polkadotJs().createType("u128", ARBITRARY_ASSET_ID);
-        const assetDetails: PalletAssetsAssetDetails = context
-          .polkadotJs()
-          .createType("PalletAssetsAssetDetails", {
-            supply: balance,
-          });
-
-        await mockOldAssetBalance(
+        // Register foreign asset using the new system
+        const { contractAddress } = await registerForeignAsset(
           context,
-          assetBalance,
-          assetDetails,
-          alith,
-          newAssetId,
-          ALITH_ADDRESS
+          ARBITRARY_ASSET_ID,
+          RELAY_SOURCE_LOCATION,
+          relayAssetMetadata
         );
+
+        // Add asset to weight trader with free execution
+        await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 0n, context);
+
+        // Mock asset balance using the new system
+        await mockAssetBalance(context, balance, ARBITRARY_ASSET_ID, alith, ALITH_ADDRESS);
 
         expect(
           async () =>
             await context.createBlock(
-              context.polkadotJs().tx.assets.transfer(newAssetId, BALTATHAR_ADDRESS, 1000)
+              context.viem().writeContract({
+                address: contractAddress,
+                abi: [
+                  {
+                    type: "function",
+                    name: "transfer",
+                    inputs: [
+                      { type: "address", name: "to" },
+                      { type: "uint256", name: "amount" },
+                    ],
+                  },
+                ],
+                functionName: "transfer",
+                args: [BALTATHAR_ADDRESS, 1000n],
+                account: ALITH_ADDRESS,
+              })
             )
-        ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          [ContractFunctionExecutionError: The contract function "transfer" reverted with the following reason:
+          no signer available
+
+          Contract Call:
+            address:   0xffffffff1fcacbd218edc0eba20fc2308c778080
+            function:  transfer(address to, uint256 amount)
+            args:              (0x3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0, 1000)
+            sender:    0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
+
+          Docs: https://viem.sh/docs/contract/writeContract
+          Version: viem@2.29.4]
+        `);
       },
     });
 
@@ -170,7 +196,14 @@ describeSuite({
                     V4: {
                       parents: 0n,
                       interior: {
-                        X1: [{ AccountKey20: { network: null, key: hexToU8a(baltathar.address) } }],
+                        X1: [
+                          {
+                            AccountKey20: {
+                              network: null,
+                              key: hexToU8a(baltathar.address),
+                            },
+                          },
+                        ],
                       },
                     },
                   } as any,

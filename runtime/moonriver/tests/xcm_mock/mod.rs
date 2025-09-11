@@ -34,6 +34,7 @@ use sp_core::{H160, U256};
 use std::{collections::BTreeMap, str::FromStr};
 
 pub const PARAALICE: [u8; 20] = [1u8; 20];
+pub const PARABOB: [u8; 20] = [2u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
 pub const RELAYBOB: AccountId32 = AccountId32::new([2u8; 32]);
 
@@ -68,7 +69,7 @@ pub fn mock_relay_config() -> HostConfiguration<relay_chain::BlockNumber> {
 		hrmp_max_parachain_inbound_channels: 10,
 		hrmp_max_parachain_outbound_channels: 10,
 		hrmp_channel_max_message_size: u32::MAX,
-		// Changed to avoid aritmetic errors within hrmp_close
+		// Changed to avoid arithmetic errors within hrmp_close
 		max_downward_message_size: 100_000u32,
 		..Default::default()
 	}
@@ -148,6 +149,7 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![(PARAALICE.into(), INITIAL_BALANCE)],
+		dev_accounts: None,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -207,6 +209,7 @@ pub fn statemine_ext(para_id: u32) -> sp_io::TestExternalities {
 			(RELAYALICE.into(), INITIAL_BALANCE),
 			(RELAYBOB.into(), INITIAL_BALANCE),
 		],
+		dev_accounts: None,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -228,6 +231,7 @@ pub fn relay_ext(paras: Vec<u32>) -> sp_io::TestExternalities {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![(RELAYALICE, INITIAL_BALANCE)],
+		dev_accounts: None,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -263,11 +267,7 @@ pub type StatemineChainPalletXcm = pallet_xcm::Pallet<statemine_like::Runtime>;
 pub type StatemineAssets = pallet_assets::Pallet<statemine_like::Runtime>;
 
 pub type ParachainPalletXcm = pallet_xcm::Pallet<parachain::Runtime>;
-pub type Assets = pallet_assets::Pallet<parachain::Runtime, parachain::ForeignAssetInstance>;
 
-pub type Treasury = pallet_treasury::Pallet<parachain::Runtime>;
-pub type AssetManager = pallet_asset_manager::Pallet<parachain::Runtime>;
 pub type RelayBalances = pallet_balances::Pallet<relay_chain::Runtime>;
 pub type ParaBalances = pallet_balances::Pallet<parachain::Runtime>;
 pub type XcmTransactor = pallet_xcm_transactor::Pallet<parachain::Runtime>;
-pub type XcmWeightTrader = pallet_xcm_weight_trader::Pallet<parachain::Runtime>;

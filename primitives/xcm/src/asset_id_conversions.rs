@@ -88,10 +88,6 @@ pub trait AssetTypeGetter<AssetId, AssetType> {
 
 	// Get assetId from assetType
 	fn get_asset_id(asset_type: AssetType) -> Option<AssetId>;
-
-	// Set assetId and assetType
-	#[cfg(feature = "runtime-benchmarks")]
-	fn set_asset_type_asset_id(asset_type: AssetType, asset_id: AssetId);
 }
 
 /// This trait ensure we can convert AccountIds to CurrencyIds

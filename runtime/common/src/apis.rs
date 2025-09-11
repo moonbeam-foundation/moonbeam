@@ -17,6 +17,7 @@
 #[macro_export]
 macro_rules! impl_runtime_apis_plus_common {
     ({$($custom:tt)*} {$($bench_custom:tt)*}) => {
+    	use ethereum::AuthorizationList;
 
 		#[cfg(feature = "evm-tracing")]
 		// Helper function to replay the "on_idle" hook for all pallets, we need this for
@@ -115,18 +116,27 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			#[cfg(not(feature = "disable-genesis-builder"))]
 			impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
 				fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
 					frame_support::genesis_builder_helper::build_state::<RuntimeGenesisConfig>(config)
 				}
 
+				#[cfg(not(feature = "disable-genesis-builder"))]
 				fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
 					frame_support::genesis_builder_helper::get_preset::<RuntimeGenesisConfig>(id, genesis_config_preset::get_preset)
 				}
+				#[cfg(feature = "disable-genesis-builder")]
+				fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+					None
+				}
 
+				#[cfg(not(feature = "disable-genesis-builder"))]
 				fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
 					genesis_config_preset::preset_names()
+				}
+				#[cfg(feature = "disable-genesis-builder")]
+				fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+					Default::default()
 				}
 			}
 
@@ -316,6 +326,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					max_priority_fee_per_gas: Option<U256>,
 					nonce: Option<U256>,
 					access_list: Option<Vec<(H160, Vec<H256>)>>,
+					authorization_list: Option<AuthorizationList>,
 				) -> Result<(), sp_runtime::DispatchError> {
 					#[cfg(feature = "evm-tracing")]
 					{
@@ -340,6 +351,7 @@ macro_rules! impl_runtime_apis_plus_common {
 								value,
 								Some(<Runtime as pallet_evm::Config>::ChainId::get()),
 								access_list.clone().unwrap_or_default(),
+								authorization_list.clone().unwrap_or_default(),
 							);
 
 							let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
@@ -356,6 +368,7 @@ macro_rules! impl_runtime_apis_plus_common {
 								max_priority_fee_per_gas,
 								nonce,
 								access_list.unwrap_or_default(),
+								authorization_list.unwrap_or_default(),
 								is_transactional,
 								validate,
 								weight_limit,
@@ -435,6 +448,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					nonce: Option<U256>,
 					estimate: bool,
 					access_list: Option<Vec<(H160, Vec<H256>)>>,
+					authorization_list: Option<AuthorizationList>,
 				) -> Result<pallet_evm::CallInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -457,6 +471,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						value,
 						Some(<Runtime as pallet_evm::Config>::ChainId::get()),
 						access_list.clone().unwrap_or_default(),
+						authorization_list.clone().unwrap_or_default(),
 					);
 
 					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
@@ -473,6 +488,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						max_priority_fee_per_gas,
 						nonce,
 						access_list.unwrap_or_default(),
+						authorization_list.unwrap_or_default(),
 						is_transactional,
 						validate,
 						weight_limit,
@@ -491,6 +507,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					nonce: Option<U256>,
 					estimate: bool,
 					access_list: Option<Vec<(H160, Vec<H256>)>>,
+					authorization_list: Option<AuthorizationList>,
 				) -> Result<pallet_evm::CreateInfo, sp_runtime::DispatchError> {
 					let config = if estimate {
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
@@ -513,6 +530,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						value,
 						Some(<Runtime as pallet_evm::Config>::ChainId::get()),
 						access_list.clone().unwrap_or_default(),
+						authorization_list.clone().unwrap_or_default(),
 					);
 
 					let gas_limit = gas_limit.min(u64::MAX.into()).low_u64();
@@ -529,6 +547,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						max_priority_fee_per_gas,
 						nonce,
 						access_list.unwrap_or_default(),
+						authorization_list.unwrap_or_default(),
 						is_transactional,
 						validate,
 						weight_limit,
@@ -797,6 +816,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					return (list, storage_info)
 				}
 
+				#[allow(non_local_definitions)]
 				fn dispatch_benchmark(
 					config: frame_benchmarking::BenchmarkConfig,
 				) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
@@ -825,8 +845,6 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 					}
 
-					use pallet_asset_manager::Config as PalletAssetManagerConfig;
-
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
 					parameter_types! {
 						pub const RandomParaId: ParaId = ParaId::new(43211234);
@@ -840,12 +858,12 @@ macro_rules! impl_runtime_apis_plus_common {
 							_fee_reason: xcm_executor::traits::FeeReason,
 						) -> (Option<xcm_executor::FeesMode>, Option<XcmAssets>) {
 							use xcm_executor::traits::ConvertLocation;
-							let account = xcm_config::LocationToH160::convert_location(origin_ref)
-								.expect("Invalid location");
-							// Give the existential deposit at least
-							let balance = ExistentialDeposit::get();
-							let _ = <Balances as frame_support::traits::Currency<_>>::
-								make_free_balance_be(&account.into(), balance);
+							if let Some(account) = xcm_config::LocationToH160::convert_location(origin_ref) {
+								// Give the existential deposit at least
+								let balance = ExistentialDeposit::get();
+								let _ = <Balances as frame_support::traits::Currency<_>>::
+									make_free_balance_be(&account.into(), balance);
+							}
 
 							(None, None)
 						}
@@ -856,6 +874,10 @@ macro_rules! impl_runtime_apis_plus_common {
 						fn setup_benchmark_environment() {
 							let alice = AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
 							pallet_author_inherent::Author::<Runtime>::put(&alice);
+
+							let caller: AccountId = frame_benchmarking::account("caller", 0, 0);
+							let balance = 1_000_000_000_000_000_000u64.into(); // 1 UNIT
+							<Balances as frame_support::traits::Currency<_>>::make_free_balance_be(&caller, balance);
 						}
 					}
 
@@ -913,15 +935,16 @@ macro_rules! impl_runtime_apis_plus_common {
 							// verify initial balance
 							assert_eq!(Balances::free_balance(&who), balance);
 
-							// set up local asset
+							// set up foreign asset
 							let asset_amount: u128 = 10u128;
 							let initial_asset_amount: u128 = asset_amount * 10;
 
-							let (asset_id, _, _) = pallet_assets::benchmarking::create_default_minted_asset::<
-								Runtime,
-								()
-							>(true, initial_asset_amount);
-							let transfer_asset: Asset = (SelfReserve::get(), asset_amount).into();
+							let asset_id = pallet_moonbeam_foreign_assets::default_asset_id::<Runtime>() + 1;
+							let (_, location, _) = pallet_moonbeam_foreign_assets::create_default_minted_foreign_asset::<Runtime>(
+								asset_id,
+								initial_asset_amount,
+							);
+							let transfer_asset: Asset = (AssetId(location), asset_amount).into();
 
 							let assets: XcmAssets = vec![fee_asset.clone(), transfer_asset].into();
 							let fee_index: u32 = 0;

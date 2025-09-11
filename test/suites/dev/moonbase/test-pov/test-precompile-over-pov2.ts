@@ -11,7 +11,7 @@ import { type Abi, encodeFunctionData } from "viem";
 import { type HeavyContract, deployHeavyContracts, ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D022704",
+  id: "D022705",
   title: "PoV precompile test - PoV Limit (6.5Mb in Dev)",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {
@@ -72,7 +72,7 @@ describeSuite({
         });
 
         const { result, block } = await context.createBlock(rawSigned);
-        expect(block.proofSize).toMatchInlineSnapshot(`109200`);
+        expect(block.proofSize).toMatchInlineSnapshot(`107860`);
         expect(result?.successful).to.equal(true);
       },
     });

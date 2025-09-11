@@ -1100,7 +1100,7 @@ impl<
 
 /// Convey relevant information describing if a delegator was added to the top or bottom
 /// Delegations added to the top yield a new total
-#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(Clone, Copy, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, DecodeWithMemTracking)]
 pub enum DelegatorAdded<B> {
 	AddedToTop { new_total: B },
 	AddedToBottom,
@@ -1430,7 +1430,7 @@ impl<
 }
 
 // Type which encapsulates the configuration for the inflation distribution.
-#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo, DecodeWithMemTracking)]
 pub struct InflationDistributionConfig<AccountId>(
 	pub(crate) [InflationDistributionAccount<AccountId>; 2],
 );
@@ -1460,7 +1460,7 @@ impl<AccountId: Decode> Default for InflationDistributionConfig<AccountId> {
 	}
 }
 
-#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo)]
+#[derive(Clone, PartialEq, Eq, Encode, Decode, RuntimeDebug, TypeInfo, DecodeWithMemTracking)]
 /// Reserve information { account, percent_of_inflation }
 pub struct InflationDistributionAccount<AccountId> {
 	/// Account which receives funds
