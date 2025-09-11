@@ -51,8 +51,6 @@ use sp_std::marker::PhantomData;
 
 /// Weight functions needed for pallet_crowdloan_rewards.
 pub trait WeightInfo {
-	fn initialize_reward_vec(x: u32) -> Weight;
-	fn complete_initialization() -> Weight;
 	fn claim() -> Weight;
 	fn update_reward_address() -> Weight;
 	fn associate_native_identity() -> Weight;
@@ -102,20 +100,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
-	fn initialize_reward_vec(x: u32) -> Weight {
-		Weight::from_all(143_109_000)
-			// Standard Error: 21_000
-			.saturating_add(Weight::from_all(72_298_000_u64.saturating_mul(x as u64)))
-			.saturating_add(RocksDbWeight::get().reads(8))
-			.saturating_add(RocksDbWeight::get().reads(x as u64))
-			.saturating_add(RocksDbWeight::get().writes(5))
-			.saturating_add(RocksDbWeight::get().writes(x as u64))
-	}
-	fn complete_initialization() -> Weight {
-		Weight::from_all(51_047_000)
-			.saturating_add(RocksDbWeight::get().reads(6))
-			.saturating_add(RocksDbWeight::get().writes(3))
-	}
 	fn claim() -> Weight {
 		Weight::from_all(101_484_000)
 			.saturating_add(RocksDbWeight::get().reads(11))
