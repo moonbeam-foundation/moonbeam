@@ -3570,7 +3570,7 @@ mod balance_tests {
 	use frame_support::traits::LockableCurrency;
 	use frame_support::traits::{LockIdentifier, ReservableCurrency, WithdrawReasons};
 	use moonbeam_core_primitives::AccountId;
-	use moonbeam_runtime::{Balances, System};
+	use moonbeam_runtime::{Balances, Runtime, System};
 
 	#[test]
 	fn reserve_should_work_for_frozen_balance() {
@@ -3601,12 +3601,18 @@ mod balance_tests {
 				assert_eq!(account.frozen, 9);
 				assert_eq!(account.reserved, 5);
 
-				assert_ok!(Balances::reserve(&alice, 5));
+				let previous_reserved_amount = account.reserved;
+				let ed: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
+				let next_reserve = account.free.saturating_sub(ed);
+				assert_ok!(Balances::reserve(&alice, next_reserve));
 
 				let account = System::account(&alice).data;
-				assert_eq!(account.free, 0);
+				assert_eq!(account.free, ed);
 				assert_eq!(account.frozen, 9);
-				assert_eq!(account.reserved, 10);
+				assert_eq!(
+					account.reserved,
+					previous_reserved_amount.saturating_add(next_reserve)
+				);
 			});
 	}
 }
