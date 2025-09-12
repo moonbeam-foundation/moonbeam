@@ -17,7 +17,13 @@ It is written in typescript, using the [Moonwall](https://moonsong-labs.github.i
 > PNPM is the package manager of choice for this repo, due to its superior handling of heavily nested dependencies.
 There are [various](https://pnpm.io/installation) ways to install it, but perhaps the easiest is `sudo npm -g i pnpm`
 
-Before running tests always install and update the package dependencies:
+Build the node before running tests (`metadata-hash` feature is required to run `/test-transaction/test-transaction-with-metadata-hash.ts`):
+
+```
+cargo build --release --features metadata-hash 
+```
+
+Always install and update the package dependencies:
 
 ```bash
 cd test
