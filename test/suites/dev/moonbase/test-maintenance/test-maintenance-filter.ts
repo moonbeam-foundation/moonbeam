@@ -167,7 +167,7 @@ describeSuite({
             sender:    0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
 
           Docs: https://viem.sh/docs/contract/writeContract
-          Version: viem@2.29.4]
+          Version: viem@2.31.7]
         `);
       },
     });
