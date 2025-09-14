@@ -63,7 +63,7 @@ fn note_unnote_preimage_logs_work() {
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			// Assert note preimage event is emited and matching frame event preimage hash.
+			// Assert note preimage event is emitted and matching frame event preimage hash.
 			assert!(vec![
 				EvmEvent::Log {
 					log: log1(
@@ -87,7 +87,7 @@ fn note_unnote_preimage_logs_work() {
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			// Assert unnote preimage is emited
+			// Assert unnote preimage is emitted
 			assert!(events().contains(
 				&EvmEvent::Log {
 					log: log1(
