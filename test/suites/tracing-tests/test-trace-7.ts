@@ -36,7 +36,7 @@ describeSuite({
         const data = await customDevRpcRequest("eth_sendRawTransaction", [callTx]);
         await context.createBlock();
 
-        expect(
+        await expect(
           async () => await customDevRpcRequest("debug_traceTransaction", [data]),
           "Trace should be reverted but it worked instead"
         ).rejects.toThrowError(

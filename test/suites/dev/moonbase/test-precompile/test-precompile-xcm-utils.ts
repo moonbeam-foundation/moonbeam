@@ -334,7 +334,7 @@ describeSuite({
 
         const { result: localResult } = await context.createBlock(localRawTxn);
         expectEVMResult(localResult!.events, "Revert");
-        expect(
+        await expect(
           async () =>
             await context.writePrecompile!({
               precompileName: "XcmUtils",
@@ -357,7 +357,7 @@ describeSuite({
         const { result: paraResult } = await context.createBlock(paraRawTxn);
 
         expectEVMResult(paraResult!.events, "Revert");
-        expect(
+        await expect(
           async () =>
             await context.writePrecompile!({
               precompileName: "XcmUtils",
@@ -380,7 +380,7 @@ describeSuite({
         const { result: paraResult2 } = await context.createBlock(paraRawTxn2);
 
         expectEVMResult(paraResult2!.events, "Revert");
-        expect(
+        await expect(
           async () =>
             await context.writePrecompile!({
               precompileName: "XcmUtils",

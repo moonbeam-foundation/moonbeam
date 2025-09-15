@@ -82,7 +82,7 @@ describeSuite({
       test: async function () {
         const call = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Repeated" } });
         await preimage.notePreimage(call.toHex()).block();
-        expect(
+        await expect(
           async () => await preimage.notePreimage(call.toHex()).block(),
           "Transaction should be reverted but instead preimage noted"
         ).rejects.toThrowError("AlreadyNoted");
@@ -96,7 +96,7 @@ describeSuite({
         const call = context
           .polkadotJs()
           .tx.identity.setIdentity({ display: { raw: "Missing Preimage" } });
-        expect(
+        await expect(
           async () => await preimage.unnotePreimage(call.hash.toHex()).block(),
           "Transaction should be reverted but instead preimage unnoted"
         ).rejects.toThrowError("NotNoted");

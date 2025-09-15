@@ -18,7 +18,7 @@ describeSuite({
       id: `T01`,
       title: `evm should return invalid opcode`,
       test: async function () {
-        expect(
+        await expect(
           async () =>
             await customDevRpcRequest("eth_estimateGas", [
               {
@@ -153,7 +153,7 @@ describeSuite({
       test: async function () {
         const { contractAddress, abi } = await deployCreateCompiledContract(context, "Looper");
 
-        expect(
+        await expect(
           async () =>
             await customDevRpcRequest("eth_estimateGas", [
               {

@@ -28,7 +28,7 @@ describeSuite({
       id: "T01",
       title: "should fail",
       test: async () => {
-        expect(
+        await expect(
           async () =>
             await context.createBlock(
               await context

@@ -83,7 +83,7 @@ describeSuite({
             .block();
 
           expectEVMResult(block.result!.events, "Revert");
-          expect(
+          await expect(
             async () => await referenda.reset().placeDecisionDeposit(proposalIndex).tx()
           ).rejects.toThrowError("NotOngoing");
         }
@@ -106,7 +106,7 @@ describeSuite({
           .placeDecisionDeposit(proposalIndex)
           .block();
 
-        expect(
+        await expect(
           async () => await referenda.reset().placeDecisionDeposit(proposalIndex).tx()
         ).rejects.toThrowError("HasDeposit");
         expectEVMResult(result!.events, "Revert");

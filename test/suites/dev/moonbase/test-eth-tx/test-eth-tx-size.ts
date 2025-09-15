@@ -57,7 +57,7 @@ describeSuite({
           gasLimit: EXTRINSIC_GAS_LIMIT,
         });
 
-        expect(
+        await expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [rawSigned]),
           "RPC must reject before gossiping to prevent spam"
         ).rejects.toThrowError("intrinsic gas too low");
