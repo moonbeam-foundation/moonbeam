@@ -1767,7 +1767,7 @@
 		substrate_hash: H256,
 		overrides: Arc&lt;<span class="kw">dyn </span>StorageOverride&lt;B&gt;&gt;,
 	) -&gt; TxsTraceRes {
-		<span class="comment">// Get Subtrate block data.
+		<span class="comment">// Get Substrate block data.
 		</span><span class="kw">let </span>api = client.runtime_api();
 		<span class="kw">let </span>block_header = client
 			.header(substrate_hash)
