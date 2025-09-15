@@ -276,7 +276,7 @@ declare module "@polkadot/api-base/types/consts" {
     };
     parachainStaking: {
       /**
-       * Get the average time beetween 2 blocks in milliseconds
+       * Get the average time between 2 blocks in milliseconds
        **/
       blockTime: u64 & AugmentedConst<ApiType>;
       /**
