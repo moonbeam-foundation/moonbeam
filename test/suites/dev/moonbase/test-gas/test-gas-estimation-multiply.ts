@@ -102,7 +102,7 @@ describeSuite({
       id: "T05",
       title: "should not work with a lower gas limit",
       test: async function () {
-        expect(
+        await expect(
           async () =>
             await context.viem().estimateContractGas({
               account: "0x0000000000000000000000000000000000000000",
