@@ -18,7 +18,8 @@ use crate::chain_spec::Extensions;
 use crate::{
 	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
 	ClientCustomizations, FrontierBlockImport, HostFunctions, PartialComponentsResult,
-	PendingConsensusDataProvider, RuntimeApiCollection, SOFT_DEADLINE_PERCENT,
+	PendingConsensusDataProvider, RuntimeApiCollection, RELAY_CHAIN_SLOT_DURATION_MILLIS,
+	SOFT_DEADLINE_PERCENT,
 };
 use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 use cumulus_primitives_core::{relay_chain, BlockT, CollectCollationInfo, ParaId};
@@ -610,6 +611,11 @@ where
 					async move {
 						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
+						// Get the mocked timestamp
+						let timestamp = time.timestamp().as_millis();
+						// Calculate mocked relay chain slot
+						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
+
 						let current_para_block = maybe_current_para_block?
 							.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))?;
 
@@ -645,7 +651,7 @@ where
 							// Override current slot number
 							(
 								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
-								Slot::from(u64::from(current_para_block)).encode(),
+								Slot::from(slot).encode(),
 							),
 						];
 
@@ -675,9 +681,8 @@ where
 								UpgradeGoAhead::GoAhead
 							}),
 							current_para_block_head,
-							relay_offset: 1000,
-							relay_blocks_per_para_block: 2,
-							// TODO: Recheck
+							relay_offset: 0,
+							relay_blocks_per_para_block: 1,
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
 							xcm_config: MockXcmConfig::new(
