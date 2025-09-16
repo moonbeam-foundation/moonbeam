@@ -4,6 +4,7 @@ import { encodeFunctionData, type Abi, parseEther } from "viem";
 import { sendRawTransaction } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createViemTransaction } from "./helpers";
+import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D020806",
@@ -87,9 +88,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         expect(receipt.status).toBe("success");
 

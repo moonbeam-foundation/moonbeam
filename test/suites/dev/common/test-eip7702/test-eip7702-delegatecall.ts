@@ -4,6 +4,7 @@ import { encodeFunctionData, type Abi } from "viem";
 import { sendRawTransaction } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount, createViemTransaction } from "./helpers";
+import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D020803",
@@ -78,9 +79,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         // Verify transaction succeeded
         expect(receipt.status).toBe("success");
@@ -129,9 +128,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signedTx);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
       },
     });
@@ -179,9 +176,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signedTx);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
 
         // Storage should be in the delegating EOA's context (via caller contract delegation)
@@ -245,9 +240,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
 
         // Read the stored value
@@ -295,9 +288,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
 
         // Now call the delegated EOA from another contract
@@ -327,9 +318,7 @@ describeSuite({
           await context.createBlock();
 
           // Get transaction receipt to check for events and status
-          const receipt = await context.viem().getTransactionReceipt({
-            hash,
-          });
+          const receipt = await getTransactionReceiptWithRetry(context, hash);
           expect(receipt.status).toBe("success");
         }
 
@@ -372,9 +361,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         expect(receipt.status).toBe("success");
 
@@ -454,9 +441,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
       },
     });
