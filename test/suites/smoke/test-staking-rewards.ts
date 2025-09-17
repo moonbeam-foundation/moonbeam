@@ -655,7 +655,7 @@ describeSuite({
       // total expected staking reward minus the amount reserved for parachain bond
       let totalStakingReward = totalRoundIssuance;
       inflationDistributionConfig.forEach((config) => {
-        if (config.account.toHex() == "0x0000000000000000000000000000000000000000") {
+        if (config.account.toHex() === "0x0000000000000000000000000000000000000000") {
           return;
         }
         const distribution = new Percent(config.percent.toBn()).of(totalRoundIssuance);
