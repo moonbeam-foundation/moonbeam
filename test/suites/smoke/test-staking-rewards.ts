@@ -555,6 +555,20 @@ describeSuite({
 
       // calculate reward amounts
       let totalRoundIssuance: BN;
+      const linearInflationThreshold =
+        payment.delayedPayoutRound.priorBlockApi.consts.parachainStaking.linearInflationThreshold;
+
+      const totalIssuance =
+        await payment.delayedPayoutRound.priorBlockApi.query.balances.totalIssuance();
+
+      const effectiveTotalIssuance = (() => {
+        if (linearInflationThreshold.isSome && totalIssuance > linearInflationThreshold) {
+          return linearInflationThreshold.unwrap();
+        } else {
+          return totalIssuance;
+        }
+      })();
+
       if (payment.asyncBackingEnabled) {
         // Formula:
         //   totalRoundIssuance = (roundDuration / idealDuration) * idealIssuance
@@ -573,12 +587,10 @@ describeSuite({
           await payment.delayedPayoutRound.priorBlockApi.query.parachainStaking.round()
         ).length.mul(payment.delayedPayoutRound.priorBlockApi.consts.parachainStaking.blockTime);
 
-        const totalIssuance =
-          await payment.delayedPayoutRound.priorBlockApi.query.balances.totalIssuance();
         const idealInflation = (
           await payment.delayedPayoutRound.priorBlockApi.query.parachainStaking.inflationConfig()
         ).round.ideal;
-        const idealIssuance = new Perbill(idealInflation).of(totalIssuance);
+        const idealIssuance = new Perbill(idealInflation).of(effectiveTotalIssuance);
 
         totalRoundIssuance = roundDuration.mul(idealIssuance).div(idealDuration);
       } else {
@@ -586,15 +598,12 @@ describeSuite({
         // It works because the total staked amount is already 1000 times more than the max on
         // production, so it's very unlikely to change before RT2801 deployment on moonbeam
 
-        const totalIssuance =
-          await payment.delayedPayoutRound.priorBlockApi.query.balances.totalIssuance();
-
         const inflation =
           await payment.delayedPayoutRound.priorBlockApi.query.parachainStaking.inflationConfig();
         const range = {
-          min: new Perbill(inflation.round.min).of(totalIssuance),
-          ideal: new Perbill(inflation.round.ideal).of(totalIssuance),
-          max: new Perbill(inflation.round.max).of(totalIssuance),
+          min: new Perbill(inflation.round.min).of(effectiveTotalIssuance),
+          ideal: new Perbill(inflation.round.ideal).of(effectiveTotalIssuance),
+          max: new Perbill(inflation.round.max).of(effectiveTotalIssuance),
         };
 
         totalRoundIssuance = range.max;
@@ -646,6 +655,9 @@ describeSuite({
       // total expected staking reward minus the amount reserved for parachain bond
       let totalStakingReward = totalRoundIssuance;
       inflationDistributionConfig.forEach((config) => {
+        if (config.account.toHex() == "0x0000000000000000000000000000000000000000") {
+          return;
+        }
         const distribution = new Percent(config.percent.toBn()).of(totalRoundIssuance);
         totalStakingReward = totalStakingReward.sub(distribution);
         reservedReward = reservedReward.add(distribution);
