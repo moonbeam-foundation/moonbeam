@@ -304,7 +304,10 @@ impl frame_system::Config for Runtime {
 	type SingleBlockMigrations = migrations::SingleBlockMigrations<Runtime>;
 	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
-	type PostInherents = ();
+	type PostInherents = (
+		// Validate timestamp provided by the consensus client
+		AsyncBacking,
+	);
 	type PostTransactions = ();
 	type ExtensionsWeightInfo = moonbeam_weights::frame_system_extensions::WeightInfo<Runtime>;
 }
@@ -320,7 +323,7 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
-	type MinimumPeriod = ConstU64<3000>;
+	type MinimumPeriod = ConstU64<{ RELAY_CHAIN_SLOT_DURATION_MILLIS as u64 / 2 }>;
 	type WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
@@ -686,6 +689,8 @@ impl pallet_ethereum::Config for Runtime {
 	type ExtraDataLength = ConstU32<30>;
 }
 
+/// Relay chain slot duration, in milliseconds.
+const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
 /// into the relay chain.
 const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
@@ -695,6 +700,7 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 
 type ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook<
 	Runtime,
+	RELAY_CHAIN_SLOT_DURATION_MILLIS,
 	BLOCK_PROCESSING_VELOCITY,
 	UNINCLUDED_SEGMENT_CAPACITY,
 >;
@@ -856,8 +862,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	type SlotProvider = RelayChainSlotProvider;
 	type WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
-	type SlotDuration = ConstU64<6_000>;
-	type BlockTime = ConstU64<6_000>;
+	type SlotDuration = ConstU64<MILLISECS_PER_BLOCK>;
+	type BlockTime = ConstU64<MILLISECS_PER_BLOCK>;
 	type LinearInflationThreshold = LinearInflationThreshold;
 }
 
@@ -879,7 +885,8 @@ impl pallet_author_slot_filter::Config for Runtime {
 impl pallet_async_backing::Config for Runtime {
 	type AllowMultipleBlocksPerSlot = ConstBool<true>;
 	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
-	type ExpectedBlockTime = ConstU64<6000>;
+	type SlotDuration = ConstU64<MILLISECS_PER_BLOCK>;
+	type ExpectedBlockTime = ConstU64<MILLISECS_PER_BLOCK>;
 }
 
 parameter_types! {

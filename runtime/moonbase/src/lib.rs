@@ -308,7 +308,10 @@ impl frame_system::Config for Runtime {
 	type SingleBlockMigrations = migrations::SingleBlockMigrations<Runtime>;
 	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
-	type PostInherents = ();
+	type PostInherents = (
+		// Validate timestamp provided by the consensus client
+		AsyncBacking,
+	);
 	type PostTransactions = ();
 	type ExtensionsWeightInfo = moonbase_weights::frame_system_extensions::WeightInfo<Runtime>;
 }
@@ -324,7 +327,7 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
-	type MinimumPeriod = ConstU64<3000>;
+	type MinimumPeriod = ConstU64<{ RELAY_CHAIN_SLOT_DURATION_MILLIS as u64 / 2 }>;
 	type WeightInfo = moonbase_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
@@ -730,6 +733,8 @@ parameter_types! {
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
+/// Relay chain slot duration, in milliseconds.
+const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
 /// into the relay chain.
 const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
@@ -739,6 +744,7 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 
 type ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook<
 	Runtime,
+	RELAY_CHAIN_SLOT_DURATION_MILLIS,
 	BLOCK_PROCESSING_VELOCITY,
 	UNINCLUDED_SEGMENT_CAPACITY,
 >;
@@ -861,8 +867,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	type SlotProvider = RelayChainSlotProvider;
 	type WeightInfo = moonbase_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
-	type SlotDuration = ConstU64<6_000>;
-	type BlockTime = ConstU64<6_000>;
+	type SlotDuration = ConstU64<MILLISECS_PER_BLOCK>;
+	type BlockTime = ConstU64<MILLISECS_PER_BLOCK>;
 	type LinearInflationThreshold = ();
 }
 
@@ -898,7 +904,8 @@ impl pallet_author_slot_filter::Config for Runtime {
 impl pallet_async_backing::Config for Runtime {
 	type AllowMultipleBlocksPerSlot = ConstBool<true>;
 	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
-	type ExpectedBlockTime = ConstU64<6000>;
+	type SlotDuration = ConstU64<MILLISECS_PER_BLOCK>;
+	type ExpectedBlockTime = ConstU64<MILLISECS_PER_BLOCK>;
 }
 
 parameter_types! {
@@ -1414,12 +1421,12 @@ construct_runtime! {
 	pub enum Runtime
 	{
 		System: frame_system::{Pallet, Call, Storage, Config<T>, Event<T>} = 0,
-		Utility: pallet_utility::{Pallet, Call, Event} = 1,
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 2,
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 3,
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
 		// Previously 5: pallet_randomness_collective_flip
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
+		Utility: pallet_utility::{Pallet, Call, Event} = 6,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config<T>, Event<T>} = 7,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config<T>} = 8,
 		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config<T>} = 9,
