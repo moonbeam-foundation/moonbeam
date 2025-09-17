@@ -561,13 +561,15 @@ describeSuite({
       const totalIssuance =
         await payment.delayedPayoutRound.priorBlockApi.query.balances.totalIssuance();
 
-      const effectiveTotalIssuance = (() => {
-        if (linearInflationThreshold.isSome && totalIssuance > linearInflationThreshold) {
-          return linearInflationThreshold.unwrap();
-        } else {
-          return totalIssuance;
-        }
-      })();
+const thresholdValue = linearInflationThreshold.isSome
+  ? linearInflationThreshold.unwrap()
+  : null;
+
+const effectiveTotalIssuance = (
+  thresholdValue && totalIssuance.gt(thresholdValue)
+)
+  ? thresholdValue
+  : totalIssuance;
 
       if (payment.asyncBackingEnabled) {
         // Formula:
