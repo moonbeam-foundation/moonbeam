@@ -28,9 +28,6 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub mod bridge_config;
-
 pub mod asset_config;
 #[cfg(not(feature = "disable-genesis-builder"))]
 pub mod genesis_config_preset;
@@ -215,7 +212,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("moonbase"),
 	impl_name: Cow::Borrowed("moonbase"),
 	authoring_version: 4,
-	spec_version: 3900,
+	spec_version: 4000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -1198,7 +1195,6 @@ pub struct MaintenanceFilter;
 impl Contains<RuntimeCall> for MaintenanceFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			RuntimeCall::Assets(_) => false,
 			RuntimeCall::Balances(_) => false,
 			RuntimeCall::CrowdloanRewards(_) => false,
 			RuntimeCall::Ethereum(_) => false,
@@ -1216,25 +1212,10 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 }
 
 /// Normal Call Filter
-/// We dont allow to create nor mint assets, this for now is disabled
-/// We only allow transfers. For now creation of assets will go through
-/// asset-manager, while minting/burning only happens through xcm messages
-/// This can change in the future
 pub struct NormalFilter;
 impl Contains<RuntimeCall> for NormalFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			RuntimeCall::Assets(method) => match method {
-				pallet_assets::Call::transfer { .. } => true,
-				pallet_assets::Call::transfer_keep_alive { .. } => true,
-				pallet_assets::Call::approve_transfer { .. } => true,
-				pallet_assets::Call::transfer_approved { .. } => true,
-				pallet_assets::Call::cancel_approval { .. } => true,
-				pallet_assets::Call::destroy_accounts { .. } => true,
-				pallet_assets::Call::destroy_approvals { .. } => true,
-				pallet_assets::Call::finish_destroy { .. } => true,
-				_ => false,
-			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			RuntimeCall::Proxy(method) => match method {
@@ -1461,9 +1442,9 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
 		// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 28,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
+		// [Removed] Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
 		// Previously 30: XTokens
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
+		// Previously 31: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>}
 		// [Removed] Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
@@ -1498,30 +1479,7 @@ construct_runtime! {
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 58,
 		MultiBlockMigrations: pallet_migrations = 117,
 		WeightReclaim: cumulus_pallet_weight_reclaim = 118,
-
-		// Bridge pallets (reserved indexes from 130 to 140)
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		BridgeWestendGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		BridgeParachains: pallet_bridge_parachains::<Instance1>::{Pallet, Call, Storage, Event<T>} = 131,
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		BridgeMessages: pallet_bridge_messages::<Instance1>::{Pallet, Call, Storage, Event<T>} = 132,
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		BridgeXcmOver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason} = 133
 	}
-}
-
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-use parity_scale_codec as codec;
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
-	RuntimeCall, AccountId,
-	// Grandpa
-	BridgeWestendGrandpa,
-	// Parachains
-	BridgeParachains,
-	// Messages
-	BridgeMessages
 }
 
 /// Block type as expected by this runtime.
@@ -1531,44 +1489,28 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
 
-/// The SignedExtension to the basic transaction logic.
-#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
-pub type InnerSignedExtra = (
-	frame_system::CheckNonZeroSender<Runtime>,
-	frame_system::CheckSpecVersion<Runtime>,
-	frame_system::CheckTxVersion<Runtime>,
-	frame_system::CheckGenesis<Runtime>,
-	frame_system::CheckEra<Runtime>,
-	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-);
-
-/// The SignedExtension to the basic transaction logic.
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub type InnerSignedExtra = (
-	frame_system::CheckNonZeroSender<Runtime>,
-	frame_system::CheckSpecVersion<Runtime>,
-	frame_system::CheckTxVersion<Runtime>,
-	frame_system::CheckGenesis<Runtime>,
-	frame_system::CheckEra<Runtime>,
-	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-	BridgeRejectObsoleteHeadersAndMessages,
-);
-
-pub type SignedExtra =
-	cumulus_pallet_weight_reclaim::StorageWeightReclaim<Runtime, InnerSignedExtra>;
+/// The TransactionExtension to the basic transaction logic.
+pub type TxExtension = cumulus_pallet_weight_reclaim::StorageWeightReclaim<
+	Runtime,
+	(
+		frame_system::CheckNonZeroSender<Runtime>,
+		frame_system::CheckSpecVersion<Runtime>,
+		frame_system::CheckTxVersion<Runtime>,
+		frame_system::CheckGenesis<Runtime>,
+		frame_system::CheckEra<Runtime>,
+		frame_system::CheckNonce<Runtime>,
+		frame_system::CheckWeight<Runtime>,
+		pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+		frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
+	),
+>;
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
-	fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+	fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, TxExtension>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic =
-	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
+	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, TxExtension, H160>;
 /// Executive: handles dispatch to the various pallets.
 pub type Executive = frame_executive::Executive<
 	Runtime,
@@ -1598,7 +1540,6 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_sudo, Sudo]
 		[pallet_evm, EVM]
-		[pallet_assets, Assets]
 		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
 		[pallet_treasury, Treasury]
@@ -1613,7 +1554,6 @@ mod benches {
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_message_queue, MessageQueue]
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::<Runtime>]
-		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
 		[pallet_moonbeam_foreign_assets, EvmForeignAssets]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
@@ -1690,7 +1630,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 						let tip = match &xt.0.preamble {
 							Preamble::Bare(_) => 0,
 							Preamble::Signed(_, _, signed_extra) => {
-								// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
+								// Yuck, this depends on the index of ChargeTransactionPayment in TxExtension
 								let charge_transaction_payment = &signed_extra.0.7;
 								charge_transaction_payment.tip()
 							},
@@ -1724,67 +1664,6 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 			}
 		}
 
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		impl bp_westend::WestendFinalityApi<Block> for Runtime {
-			fn best_finalized() -> Option<bp_runtime::HeaderId<bp_westend::Hash, bp_westend::BlockNumber>> {
-				BridgeWestendGrandpa::best_finalized()
-			}
-			fn free_headers_interval() -> Option<bp_westend::BlockNumber> {
-				<Runtime as pallet_bridge_grandpa::Config<
-					bridge_config::BridgeGrandpaInstance
-				>>::FreeHeadersInterval::get()
-			}
-			fn synced_headers_grandpa_info(
-			) -> Vec<bp_header_chain::StoredHeaderGrandpaInfo<bp_westend::Header>> {
-				BridgeWestendGrandpa::synced_headers_grandpa_info()
-			}
-		}
-
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		impl bp_moonbase::MoonbaseWestendFinalityApi<Block> for Runtime {
-			fn best_finalized() -> Option<bp_runtime::HeaderId<bp_moonbase::Hash, bp_moonbase::BlockNumber>> {
-				if cfg!(feature = "bridge-stagenet") {
-					BridgeParachains::best_parachain_head_id::<
-						bp_moonbase::betanet::Betanet
-					>().unwrap_or(None)
-				} else {
-					BridgeParachains::best_parachain_head_id::<
-						bp_moonbase::stagenet::Stagenet
-					>().unwrap_or(None)
-				}
-			}
-			fn free_headers_interval() -> Option<bp_moonbase::BlockNumber> {
-				// "free interval" is not currently used for parachains
-				None
-			}
-		}
-
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		impl bp_moonbase::ToMoonbaseWestendOutboundLaneApi<Block> for Runtime {
-			fn message_details(
-				lane: bp_moonbase::LaneId,
-				begin: bp_messages::MessageNonce,
-				end: bp_messages::MessageNonce,
-			) -> Vec<bp_messages::OutboundMessageDetails> {
-				bridge_runtime_common::messages_api::outbound_message_details::<
-					Runtime,
-					bridge_config::WithMessagesInstance,
-				>(lane, begin, end)
-			}
-		}
-
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		impl bp_moonbase::FromMoonbaseWestendInboundLaneApi<Block> for Runtime {
-			fn message_details(
-				lane: bp_moonbase::LaneId,
-				messages: Vec<(bp_messages::MessagePayload, bp_messages::OutboundMessageDetails)>,
-			) -> Vec<bp_messages::InboundMessageDetails> {
-				bridge_runtime_common::messages_api::inbound_message_details::<
-					Runtime,
-					bridge_config::WithMessagesInstance,
-				>(lane, messages)
-			}
-		}
 	}
 
 	// Benchmark customizations
@@ -1862,7 +1741,6 @@ mod tests {
 		assert!(
 			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
-		assert!(std::mem::size_of::<pallet_asset_manager::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(
 			std::mem::size_of::<pallet_moonbeam_lazy_migrations::Call<Runtime>>()

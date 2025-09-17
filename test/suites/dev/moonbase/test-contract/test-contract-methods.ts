@@ -62,7 +62,7 @@ describeSuite({
       id: "T04",
       title: "should fail for call method with missing parameters",
       test: async function () {
-        expect(
+        await expect(
           async () =>
             await context.viem().call({
               account: ALITH_ADDRESS as `0x${string}`,
@@ -82,7 +82,7 @@ describeSuite({
       id: "T05",
       title: "should fail for too many parameters",
       test: async function () {
-        expect(
+        await expect(
           async () =>
             await context.viem().call({
               account: ALITH_ADDRESS as `0x${string}`,
@@ -110,7 +110,7 @@ describeSuite({
       id: "T06",
       title: "should fail for invalid parameters",
       test: async function () {
-        expect(
+        await expect(
           async () =>
             await context.viem().call({
               account: ALITH_ADDRESS as `0x${string}`,

@@ -173,7 +173,7 @@ jobs:
         with:
           version: 9
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
@@ -331,7 +331,7 @@ jobs:
           LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$TARGET_BRANCH\" and .event == \"push\" and .status == \"completed\") | .databaseId" | head -n 1)
           echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
       - name: "Download runtimes from target branch"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: runtimes-target-branch
@@ -339,7 +339,7 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
       - name: "Download uncompressed-runtimes from target branch"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-target-branch
@@ -355,13 +355,13 @@ jobs:
           echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
           echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: runtimes-current-branch
           merge-multiple: true
       - name: "Download branch built uncompressed-runtimes"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-current-branch
@@ -425,7 +425,7 @@ jobs:
           get_status_emoji() {
             local size=$1
             local diff=$2
-            if [ $size -gt 2400 ]; then
+            if [ $size -gt 3000 ]; then
               echo "🚨"
             elif [ $diff -gt 0 ]; then
               echo "⚠️"
@@ -504,7 +504,7 @@ jobs:
         run: |
           # There may be false negatives/positives
           # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
-          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime,bridge-stagenet --all-targets
+          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
     runs-on:
@@ -547,12 +547,6 @@ jobs:
       - name: Unit tests
         run: |
           cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
-      - name: Run bridge tests
-        run: |
-          cargo test --color=always -p moonbase-runtime --features bridge-betanet --test integration_test bridge_tests -- --nocapture
-          cargo test --color=always -p moonbase-runtime --features bridge-stagenet --test integration_test bridge_tests -- --nocapture
-      - name: Run sccache stat for check pre test
-        run: ${SCCACHE_PATH} --show-stats
 
   # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 
@@ -568,13 +562,13 @@ jobs:
   #     - uses: pnpm/action-setup@v4
   #       with:
   #         version: 9
-  #     - uses: actions/setup-node@v4
+  #     - uses: actions/setup-node@v5
   #       with:
   #         node-version-file: "test/.nvmrc"
   #         cache: "pnpm"
   #         cache-dependency-path: pnpm-lock.yaml
   #     - name: "Download branch built node"
-  #       uses: actions/download-artifact@v4
+  #       uses: actions/download-artifact@v5
   #       with:
   #         name: moonbeam
   #         path: target/release
@@ -620,12 +614,12 @@ jobs:
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release
@@ -673,7 +667,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: build
@@ -682,7 +676,7 @@ jobs:
         with:
           version: 9
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
@@ -690,7 +684,7 @@ jobs:
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release
@@ -736,7 +730,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
       - name: Create local folders
@@ -744,12 +738,12 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release
@@ -791,7 +785,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
@@ -801,7 +795,7 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp/node_logs
       - name: "Download runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -840,7 +834,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
       - name: Create local folders
@@ -848,12 +842,12 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release
@@ -899,14 +893,14 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release

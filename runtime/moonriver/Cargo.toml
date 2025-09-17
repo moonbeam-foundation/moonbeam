@@ -35,7 +35,6 @@ bp-moonbeam = { workspace = true }
 bp-moonriver = { workspace = true }
 
 # Moonbeam pallets
-pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
 pallet-emergency-para-xcm = { workspace = true }
@@ -75,7 +74,6 @@ pallet-evm-precompile-relay-verifier = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
-pallet-evm-precompileset-assets-erc20 = { workspace = true }
 pallet-evm-precompile-p256verify = { workspace = true }
 
 # Moonbeam tracing
@@ -151,6 +149,7 @@ fp-self-contained = { workspace = true, features = ["serde"] }
 pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm-precompile-blake2 = { workspace = true }
+pallet-evm-precompile-bls12381 = {workspace = true}
 pallet-evm-precompile-bn128 = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
@@ -244,7 +243,6 @@ std = [
 	"moonbeam-runtime-common/std",
 	"moonkit-xcm-primitives/std",
 	"nimbus-primitives/std",
-	"pallet-asset-manager/std",
 	"pallet-assets/std",
 	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
@@ -262,6 +260,7 @@ std = [
 	"pallet-evm-precompile-author-mapping/std",
 	"pallet-evm-precompile-balances-erc20/std",
 	"pallet-evm-precompile-batch/std",
+	"pallet-evm-precompile-bls12381/std",
 	"pallet-evm-precompile-call-permit/std",
 	"pallet-evm-precompile-collective/std",
 	"pallet-evm-precompile-conviction-voting/std",
@@ -383,7 +382,6 @@ runtime-benchmarks = [
 	"hex-literal",
 	"moonbeam-runtime-common/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
-	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
@@ -438,7 +436,6 @@ try-runtime = [
 	"frame-system/try-runtime",
 	"frame-try-runtime",
 	"moonbeam-runtime-common/try-runtime",
-	"pallet-asset-manager/try-runtime",
 	"pallet-author-mapping/try-runtime",
 	"pallet-author-slot-filter/try-runtime",
 	"pallet-balances/try-runtime",

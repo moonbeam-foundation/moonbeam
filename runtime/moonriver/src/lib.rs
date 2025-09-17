@@ -220,7 +220,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("moonriver"),
 	impl_name: Cow::Borrowed("moonriver"),
 	authoring_version: 3,
-	spec_version: 3900,
+	spec_version: 4000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -474,7 +474,7 @@ impl FeeCalculator for TransactionPaymentAsGasPrice {
 }
 
 /// Parameterized slow adjusting fee updated based on
-/// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html#-2.-slow-adjusting-mechanism // editorconfig-checker-disable-line
+/// https://research.web3.foundation/Polkadot/overview/token-economics#2-slow-adjusting-mechanism // editorconfig-checker-disable-line
 ///
 /// The adjustment algorithm boils down to:
 ///
@@ -1180,7 +1180,6 @@ pub struct MaintenanceFilter;
 impl Contains<RuntimeCall> for MaintenanceFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			RuntimeCall::Assets(_) => false,
 			RuntimeCall::Balances(_) => false,
 			RuntimeCall::CrowdloanRewards(_) => false,
 			RuntimeCall::Ethereum(_) => false,
@@ -1198,25 +1197,10 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 }
 
 /// Normal Call Filter
-/// We dont allow to create nor mint assets, this for now is disabled
-/// We only allow transfers. For now creation of assets will go through
-/// asset-manager, while minting/burning only happens through xcm messages
-/// This can change in the future
 pub struct NormalFilter;
 impl Contains<RuntimeCall> for NormalFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			RuntimeCall::Assets(method) => match method {
-				pallet_assets::Call::transfer { .. } => true,
-				pallet_assets::Call::transfer_keep_alive { .. } => true,
-				pallet_assets::Call::approve_transfer { .. } => true,
-				pallet_assets::Call::transfer_approved { .. } => true,
-				pallet_assets::Call::cancel_approval { .. } => true,
-				pallet_assets::Call::destroy_accounts { .. } => true,
-				pallet_assets::Call::destroy_approvals { .. } => true,
-				pallet_assets::Call::finish_destroy { .. } => true,
-				_ => false,
-			},
 			// We just want to enable this in case of live chains, since the default version
 			// is populated at genesis
 			RuntimeCall::PolkadotXcm(method) => match method {
@@ -1488,8 +1472,8 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 101,
 		// Previously 102: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>}
 		PolkadotXcm: pallet_xcm::{Pallet, Storage, Call, Event<T>, Origin, Config<T>} = 103,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 105,
+		// [Removed] Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
+		// Previously 105: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>}
 		// Previously 106: XTokens
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		// Previously 108: pallet_assets::<Instance1>
@@ -1544,7 +1528,6 @@ mod benches {
 		[pallet_timestamp, Timestamp]
 		[pallet_balances, Balances]
 		[pallet_evm, EVM]
-		[pallet_assets, Assets]
 		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
 		[pallet_treasury, Treasury]
@@ -1559,7 +1542,6 @@ mod benches {
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_message_queue, MessageQueue]
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::<Runtime>]
-		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
 		[pallet_moonbeam_foreign_assets, EvmForeignAssets]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
@@ -1592,8 +1574,8 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
 
-/// The SignedExtension to the basic transaction logic.
-pub type SignedExtra = cumulus_pallet_weight_reclaim::StorageWeightReclaim<
+/// The TransactionExtension to the basic transaction logic.
+pub type TxExtension = cumulus_pallet_weight_reclaim::StorageWeightReclaim<
 	Runtime,
 	(
 		frame_system::CheckNonZeroSender<Runtime>,
@@ -1610,10 +1592,10 @@ pub type SignedExtra = cumulus_pallet_weight_reclaim::StorageWeightReclaim<
 >;
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
-	fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+	fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, TxExtension>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic =
-	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
+	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, TxExtension, H160>;
 /// Executive: handles dispatch to the various pallets.
 pub type Executive = frame_executive::Executive<
 	Runtime,
@@ -1675,7 +1657,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 						let tip = match &xt.0.preamble {
 							Preamble::Bare(_) => 0,
 							Preamble::Signed(_, _, signed_extra) => {
-								// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
+								// Yuck, this depends on the index of ChargeTransactionPayment in TxExtension
 								// Get the 7th item from the tuple
 								let charge_transaction_payment = &signed_extra.0.7;
 								charge_transaction_payment.tip()

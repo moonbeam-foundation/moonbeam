@@ -2,6 +2,8 @@ import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { createViemTransaction } from "@moonwall/util";
 import { ConstantStore } from "../../../../helpers/constants";
+import { hexToU8a } from "@polkadot/util";
+import { calculateEIP7623Gas } from "../../../../helpers/fees";
 
 describeSuite({
   id: "D021607",
@@ -28,15 +30,18 @@ describeSuite({
         // byte). What we want to show is that this length fee is applied but our exponential
         // LengthToFee (part of our Substrate-based fees) is not applied.
 
+        const inputData =
+          "0x0000000000000000000000000000000000000000000000000000000000000004" + // base
+          "0000000000000000000000000000000000000000000000000000000000000004" + // exp
+          "0000000000000000000000000000000000000000000000000000000000000004" + // mod
+          "0".repeat(2048) + // 2048 hex nibbles -> 1024 bytes
+          "0".repeat(2048) +
+          "0".repeat(2048);
+
         const tx = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           gas: BigInt(constants.EXTRINSIC_GAS_LIMIT.get(specVersion.toNumber())),
-          data: ("0x0000000000000000000000000000000000000000000000000000000000000004" + // base
-            "0000000000000000000000000000000000000000000000000000000000000004" + // exp
-            "0000000000000000000000000000000000000000000000000000000000000004" + // mod
-            "0".repeat(2048) + // 2048 hex nibbles -> 1024 bytes
-            "0".repeat(2048) +
-            "0".repeat(2048)) as `0x${string}`,
+          data: inputData as `0x${string}`,
         });
 
         const { result } = await context.createBlock(tx);
@@ -45,6 +50,11 @@ describeSuite({
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         expect(receipt.status).toBe("success");
+
+        // Calculate byte counts for EIP-7623
+        const byteArray = hexToU8a(inputData);
+        const numZeroBytes = byteArray.filter((a) => a === 0).length;
+        const numNonZeroBytes = byteArray.length - numZeroBytes;
 
         // rough math on what the exponential LengthToFee modifier would do to this:
         // * input data alone is (3 * 1024) + (3 * 32) = 3168
@@ -56,26 +66,23 @@ describeSuite({
           1_271_790n
         );
 
-        // furthermore, we can account for the entire fee:
-        const non_zero_byte_fee = 3n * 16n;
-        const zero_byte_fee = 3165n * 4n;
-        const base_ethereum_fee = 21000n;
+        // Calculate execution gas costs
         const is_precompile_check_gas = 1669n;
         const modexp_min_cost = 200n * 20n; // see MIN_GAS_COST in frontier's modexp precompile
-        const entire_fee =
-          non_zero_byte_fee +
-          zero_byte_fee +
-          base_ethereum_fee +
-          modexp_min_cost +
-          is_precompile_check_gas;
+        const executionGas = modexp_min_cost + is_precompile_check_gas;
+
+        // Calculate expected gas with EIP-7623
+        const expectedGasUsed = calculateEIP7623Gas(numZeroBytes, numNonZeroBytes, executionGas);
+
         // the gas used should be the maximum of the legacy gas and the pov gas
-        const expected = BigInt(
+        const expectedWithPov = BigInt(
           Math.max(
-            Number(entire_fee),
+            Number(expectedGasUsed),
             3821 * Number(constants.GAS_PER_POV_BYTES.get(specVersion.toNumber()))
           )
         );
-        expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBe(expected);
+
+        expect(receipt.gasUsed, "gasUsed does not match manual calculation").toBe(expectedWithPov);
       },
     });
   },

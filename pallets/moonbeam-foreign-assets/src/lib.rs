@@ -33,7 +33,7 @@
 //!
 //! Each asset has a unique identifier that can never change.
 //! This identifier is named "AssetId", it's an integer (u128).
-//! This pallet maintain a two-way mapping beetween each AssetId the XCM Location of the asset.
+//! This pallet maintain a two-way mapping between each AssetId the XCM Location of the asset.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 

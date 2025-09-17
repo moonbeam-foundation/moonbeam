@@ -53,12 +53,7 @@ import type {
   MoonbaseRuntimeRuntimeHoldReason,
   MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
   MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonbaseRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
-  PalletAssetsApproval,
-  PalletAssetsAssetAccount,
-  PalletAssetsAssetDetails,
-  PalletAssetsAssetMetadata,
   PalletAuthorMappingRegistrationInfo,
   PalletBalancesAccountData,
   PalletBalancesBalanceLock,
@@ -130,102 +125,6 @@ export type __QueryableStorageEntry<ApiType extends ApiTypes> = QueryableStorage
 
 declare module "@polkadot/api-base/types/storage" {
   interface AugmentedQueries<ApiType extends ApiTypes> {
-    assetManager: {
-      /**
-       * Mapping from an asset id to asset type.
-       * This is mostly used when receiving transaction specifying an asset directly,
-       * like transferring an asset from this chain to another.
-       **/
-      assetIdType: AugmentedQuery<
-        ApiType,
-        (
-          arg: u128 | AnyNumber | Uint8Array
-        ) => Observable<Option<MoonbaseRuntimeXcmConfigAssetType>>,
-        [u128]
-      > &
-        QueryableStorageEntry<ApiType, [u128]>;
-      /**
-       * Reverse mapping of AssetIdType. Mapping from an asset type to an asset id.
-       * This is mostly used when receiving a multilocation XCM message to retrieve
-       * the corresponding asset in which tokens should me minted.
-       **/
-      assetTypeId: AugmentedQuery<
-        ApiType,
-        (
-          arg: MoonbaseRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array
-        ) => Observable<Option<u128>>,
-        [MoonbaseRuntimeXcmConfigAssetType]
-      > &
-        QueryableStorageEntry<ApiType, [MoonbaseRuntimeXcmConfigAssetType]>;
-      /**
-       * Generic query
-       **/
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
-    assets: {
-      /**
-       * The holdings of a specific account for a specific asset.
-       **/
-      account: AugmentedQuery<
-        ApiType,
-        (
-          arg1: u128 | AnyNumber | Uint8Array,
-          arg2: AccountId20 | string | Uint8Array
-        ) => Observable<Option<PalletAssetsAssetAccount>>,
-        [u128, AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [u128, AccountId20]>;
-      /**
-       * Approved balance transfers. First balance is the amount approved for transfer. Second
-       * is the amount of `T::Currency` reserved for storing this.
-       * First key is the asset ID, second key is the owner and third key is the delegate.
-       **/
-      approvals: AugmentedQuery<
-        ApiType,
-        (
-          arg1: u128 | AnyNumber | Uint8Array,
-          arg2: AccountId20 | string | Uint8Array,
-          arg3: AccountId20 | string | Uint8Array
-        ) => Observable<Option<PalletAssetsApproval>>,
-        [u128, AccountId20, AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [u128, AccountId20, AccountId20]>;
-      /**
-       * Details of an asset.
-       **/
-      asset: AugmentedQuery<
-        ApiType,
-        (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<PalletAssetsAssetDetails>>,
-        [u128]
-      > &
-        QueryableStorageEntry<ApiType, [u128]>;
-      /**
-       * Metadata of an asset.
-       **/
-      metadata: AugmentedQuery<
-        ApiType,
-        (arg: u128 | AnyNumber | Uint8Array) => Observable<PalletAssetsAssetMetadata>,
-        [u128]
-      > &
-        QueryableStorageEntry<ApiType, [u128]>;
-      /**
-       * The asset ID enforced for the next asset creation, if any present. Otherwise, this storage
-       * item has no effect.
-       *
-       * This can be useful for setting up constraints for IDs of the new assets. For example, by
-       * providing an initial [`NextAssetId`] and using the [`crate::AutoIncAssetId`] callback, an
-       * auto-increment model can be applied to all new asset IDs.
-       *
-       * The initial next asset ID can be set using the [`GenesisConfig`] or the
-       * [SetNextAssetId](`migration::next_asset_id::SetNextAssetId`) migration.
-       **/
-      nextAssetId: AugmentedQuery<ApiType, () => Observable<Option<u128>>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /**
-       * Generic query
-       **/
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
     asyncBacking: {
       /**
        * First tuple element is the highest slot that has been seen in the history of this chain.

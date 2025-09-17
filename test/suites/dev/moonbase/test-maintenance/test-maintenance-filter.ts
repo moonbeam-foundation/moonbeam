@@ -41,7 +41,7 @@ describeSuite({
       title: "should forbid transferring tokens",
       test: async () => {
         await context.createBlock(await createRawTransfer(context, CHARLETH_ADDRESS, 512));
-        expect(
+        await expect(
           async () =>
             await context.createBlock(
               context.polkadotJs().tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1n * GLMR)
@@ -110,7 +110,7 @@ describeSuite({
             )
         );
 
-        expect(
+        await expect(
           async () => await context.createBlock(context.polkadotJs().tx.crowdloanRewards.claim())
         ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
       },
@@ -136,7 +136,7 @@ describeSuite({
         // Mock asset balance using the new system
         await mockAssetBalance(context, balance, ARBITRARY_ASSET_ID, alith, ALITH_ADDRESS);
 
-        expect(
+        await expect(
           async () =>
             await context.createBlock(
               context.viem().writeContract({
@@ -167,7 +167,7 @@ describeSuite({
             sender:    0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
 
           Docs: https://viem.sh/docs/contract/writeContract
-          Version: viem@2.29.4]
+          Version: viem@2.31.7]
         `);
       },
     });
@@ -176,7 +176,7 @@ describeSuite({
       id: "T05",
       title: "should forbid xcm transfer",
       test: async () => {
-        expect(
+        await expect(
           async () =>
             await context.createBlock(
               context
@@ -254,7 +254,7 @@ describeSuite({
           feeAmount: null,
         });
 
-        expect(
+        await expect(
           async () =>
             await context.createBlock(
               context

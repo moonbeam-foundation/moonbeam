@@ -153,9 +153,13 @@ pub type SingleBlockMigrations<Runtime> = (
 );
 
 parameter_types! {
-	pub const MigrationsPalletName: &'static str = "Migrations";
+	pub const AssetManagerPalletName: &'static str = "AssetManager";
+	pub const AssetsPalletName: &'static str = "Assets";
 }
 
 /// List of common multiblock migrations to be executed by the pallet_multiblock_migrations.
 /// The migrations listed here are common to every moonbeam runtime.
-pub type MultiBlockMigrations<Runtime> = (RemovePallet<Runtime, MigrationsPalletName>,);
+pub type MultiBlockMigrations<Runtime> = (
+	RemovePallet<Runtime, AssetManagerPalletName>,
+	RemovePallet<Runtime, AssetsPalletName>,
+);

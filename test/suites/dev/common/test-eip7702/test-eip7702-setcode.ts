@@ -4,6 +4,7 @@ import { sendRawTransaction } from "@moonwall/util";
 import { encodeFunctionData, type Abi, parseEther, parseGwei, keccak256 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount, createViemTransaction } from "./helpers";
+import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D020807",
@@ -99,9 +100,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         console.log("Transaction receipt:", receipt);
 
         expect(receipt.status).toBe("success");
@@ -165,7 +164,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
 
         // Verify storage was written
@@ -206,7 +205,7 @@ describeSuite({
           const hash = await sendRawTransaction(context, signature);
           await context.createBlock();
 
-          const receipt = await context.viem().getTransactionReceipt({ hash });
+          const receipt = await getTransactionReceiptWithRetry(context, hash);
           expect(receipt.status).toBe("success");
         }
 
@@ -247,7 +246,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         expect(receipt.status).toBe("success");
 
@@ -302,9 +301,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         expect(receipt.status).toBe("success");
 
@@ -326,9 +323,7 @@ describeSuite({
           await context.createBlock();
 
           // Get transaction receipt to check for events and status
-          const receipt = await context.viem().getTransactionReceipt({
-            hash,
-          });
+          const receipt = await getTransactionReceiptWithRetry(context, hash);
 
           expect(receipt.status).toBe("success");
         }
@@ -381,7 +376,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
       },
     });
@@ -429,7 +424,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
 
         // After EIP-6780, SELFDESTRUCT only transfers balance in same transaction
@@ -498,9 +493,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         expect(receipt.status).toBe("success");
 
@@ -532,9 +525,7 @@ describeSuite({
           await context.createBlock();
 
           // Get transaction receipt to check for events and status
-          const receipt = await context.viem().getTransactionReceipt({
-            hash,
-          });
+          const receipt = await getTransactionReceiptWithRetry(context, hash);
 
           expect(receipt.status).toBe("success");
 
@@ -584,7 +575,7 @@ describeSuite({
         await context.createBlock();
 
         // Check if transaction succeeded or failed due to stack depth
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         console.log(`Re-entry test status: ${receipt.status}`);
 
@@ -649,9 +640,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         expect(receipt.status).toBe("success");
 
@@ -681,9 +670,7 @@ describeSuite({
           await context.createBlock();
 
           // Get transaction receipt to check for events and status
-          const receipt = await context.viem().getTransactionReceipt({
-            hash,
-          });
+          const receipt = await getTransactionReceiptWithRetry(context, hash);
 
           expect(receipt.status).toBe("success");
         }
@@ -737,9 +724,7 @@ describeSuite({
         await context.createBlock();
 
         // Get transaction receipt to check for events and status
-        const receipt = await context.viem().getTransactionReceipt({
-          hash,
-        });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         expect(receipt.status).toBe("success");
 
@@ -777,9 +762,7 @@ describeSuite({
           await context.createBlock();
 
           // Get transaction receipt to check for events and status
-          const receipt = await context.viem().getTransactionReceipt({
-            hash,
-          });
+          const receipt = await getTransactionReceiptWithRetry(context, hash);
 
           expect(receipt.status).toBe("success");
         }
@@ -870,7 +853,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
 
         // Verify all delegations were set

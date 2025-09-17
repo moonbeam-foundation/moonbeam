@@ -101,7 +101,7 @@ describeSuite({
           newSigner.address
         );
 
-        expect(
+        await expect(
           async () =>
             await context.createBlock(
               context

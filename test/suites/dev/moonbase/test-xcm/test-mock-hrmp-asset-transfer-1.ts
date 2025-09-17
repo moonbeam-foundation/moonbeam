@@ -119,7 +119,7 @@ describeSuite({
 
           // We are going to test that, using the prefix prior to
           // https://github.com/paritytech/cumulus/pull/831
-          // we cannot receive the tokens on the assetId registed with the old prefix
+          // we cannot receive the tokens on the assetId registered with the old prefix
 
           // Old prefix:
           // Parachain(Statemint parachain)

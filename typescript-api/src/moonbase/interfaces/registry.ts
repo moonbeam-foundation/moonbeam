@@ -86,7 +86,6 @@ import type {
   FrameSystemLimitsBlockWeights,
   FrameSystemLimitsWeightsPerClass,
   FrameSystemPhase,
-  MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin,
   MoonbaseRuntimeOriginCaller,
   MoonbaseRuntimeProxyType,
@@ -107,23 +106,9 @@ import type {
   MoonbaseRuntimeRuntimeParamsRuntimeParameters,
   MoonbaseRuntimeRuntimeParamsRuntimeParametersKey,
   MoonbaseRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonbaseRuntimeXcmConfigAssetType,
   MoonbaseRuntimeXcmConfigCurrencyId,
   MoonbaseRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
-  PalletAssetManagerCall,
-  PalletAssetManagerError,
-  PalletAssetManagerEvent,
-  PalletAssetsAccountStatus,
-  PalletAssetsApproval,
-  PalletAssetsAssetAccount,
-  PalletAssetsAssetDetails,
-  PalletAssetsAssetMetadata,
-  PalletAssetsAssetStatus,
-  PalletAssetsCall,
-  PalletAssetsError,
-  PalletAssetsEvent,
-  PalletAssetsExistenceReason,
   PalletAuthorInherentCall,
   PalletAuthorInherentError,
   PalletAuthorMappingCall,
@@ -301,7 +286,6 @@ import type {
   PalletWhitelistError,
   PalletWhitelistEvent,
   PalletXcmAuthorizedAliasesEntry,
-  PalletXcmBridgeHubHoldReason,
   PalletXcmCall,
   PalletXcmError,
   PalletXcmEvent,
@@ -509,7 +493,6 @@ declare module "@polkadot/types/types/registry" {
     FrameSystemLimitsBlockWeights: FrameSystemLimitsBlockWeights;
     FrameSystemLimitsWeightsPerClass: FrameSystemLimitsWeightsPerClass;
     FrameSystemPhase: FrameSystemPhase;
-    MoonbaseRuntimeAssetConfigAssetRegistrarMetadata: MoonbaseRuntimeAssetConfigAssetRegistrarMetadata;
     MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin: MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin;
     MoonbaseRuntimeOriginCaller: MoonbaseRuntimeOriginCaller;
     MoonbaseRuntimeProxyType: MoonbaseRuntimeProxyType;
@@ -530,23 +513,9 @@ declare module "@polkadot/types/types/registry" {
     MoonbaseRuntimeRuntimeParamsRuntimeParameters: MoonbaseRuntimeRuntimeParamsRuntimeParameters;
     MoonbaseRuntimeRuntimeParamsRuntimeParametersKey: MoonbaseRuntimeRuntimeParamsRuntimeParametersKey;
     MoonbaseRuntimeRuntimeParamsRuntimeParametersValue: MoonbaseRuntimeRuntimeParamsRuntimeParametersValue;
-    MoonbaseRuntimeXcmConfigAssetType: MoonbaseRuntimeXcmConfigAssetType;
     MoonbaseRuntimeXcmConfigCurrencyId: MoonbaseRuntimeXcmConfigCurrencyId;
     MoonbaseRuntimeXcmConfigTransactors: MoonbaseRuntimeXcmConfigTransactors;
     NimbusPrimitivesNimbusCryptoPublic: NimbusPrimitivesNimbusCryptoPublic;
-    PalletAssetManagerCall: PalletAssetManagerCall;
-    PalletAssetManagerError: PalletAssetManagerError;
-    PalletAssetManagerEvent: PalletAssetManagerEvent;
-    PalletAssetsAccountStatus: PalletAssetsAccountStatus;
-    PalletAssetsApproval: PalletAssetsApproval;
-    PalletAssetsAssetAccount: PalletAssetsAssetAccount;
-    PalletAssetsAssetDetails: PalletAssetsAssetDetails;
-    PalletAssetsAssetMetadata: PalletAssetsAssetMetadata;
-    PalletAssetsAssetStatus: PalletAssetsAssetStatus;
-    PalletAssetsCall: PalletAssetsCall;
-    PalletAssetsError: PalletAssetsError;
-    PalletAssetsEvent: PalletAssetsEvent;
-    PalletAssetsExistenceReason: PalletAssetsExistenceReason;
     PalletAuthorInherentCall: PalletAuthorInherentCall;
     PalletAuthorInherentError: PalletAuthorInherentError;
     PalletAuthorMappingCall: PalletAuthorMappingCall;
@@ -724,7 +693,6 @@ declare module "@polkadot/types/types/registry" {
     PalletWhitelistError: PalletWhitelistError;
     PalletWhitelistEvent: PalletWhitelistEvent;
     PalletXcmAuthorizedAliasesEntry: PalletXcmAuthorizedAliasesEntry;
-    PalletXcmBridgeHubHoldReason: PalletXcmBridgeHubHoldReason;
     PalletXcmCall: PalletXcmCall;
     PalletXcmError: PalletXcmError;
     PalletXcmEvent: PalletXcmEvent;

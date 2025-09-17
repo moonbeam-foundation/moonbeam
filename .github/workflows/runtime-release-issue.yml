@@ -35,11 +35,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
       - name: Download Original Tools
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: original-tools
           path: original-tools

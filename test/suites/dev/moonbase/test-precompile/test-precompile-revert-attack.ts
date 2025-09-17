@@ -47,7 +47,7 @@ describeSuite({
           "balance dif should only be tx fee, not MIN_GLMR_STAKING"
         ).toBeLessThan(MIN_GLMR_STAKING);
 
-        expect(
+        await expect(
           async () =>
             await context.writeContract!({
               contractAddress,

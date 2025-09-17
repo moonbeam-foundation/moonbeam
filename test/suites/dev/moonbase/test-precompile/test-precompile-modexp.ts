@@ -3,6 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { EXTRINSIC_GAS_LIMIT, createViemTransaction } from "@moonwall/util";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import { expectEVMResult, testVectors } from "../../../../helpers";
+import { calculateEIP7623Gas } from "../../../../helpers/fees";
 
 const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
 
@@ -89,9 +90,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -148,9 +152,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").toBe(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -183,9 +190,12 @@ describeSuite({
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -217,9 +227,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -251,9 +264,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -285,9 +301,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -319,9 +338,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -353,9 +375,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -387,9 +412,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -421,9 +449,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -455,9 +486,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -489,9 +523,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -523,9 +560,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -557,9 +597,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -591,9 +634,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -625,9 +671,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -659,9 +708,12 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const modExpGas =
-          receipt.gasUsed - BigInt(numNonZeroBytes) * 16n - BigInt(numZeroBytes) * 4n - 21000n;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 
@@ -712,13 +764,12 @@ describeSuite({
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
         const isPrecompileCheckGas = 1669n;
-        const modExpGas =
-          receipt.gasUsed -
-          BigInt(numNonZeroBytes) * 16n -
-          BigInt(numZeroBytes) * 4n -
-          21000n -
-          isPrecompileCheckGas;
-        expect(modExpGas, "ModExp gas pricing mismatch").to.equal(expectedModExpGasCost);
+        const expectedGasUsed = calculateEIP7623Gas(
+          numZeroBytes,
+          numNonZeroBytes,
+          expectedModExpGasCost + isPrecompileCheckGas
+        );
+        expect(receipt.gasUsed, "ModExp gas pricing mismatch").to.equal(expectedGasUsed);
       },
     });
 

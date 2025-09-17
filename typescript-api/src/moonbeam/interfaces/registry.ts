@@ -118,7 +118,6 @@ import type {
   FrameSystemLimitsBlockWeights,
   FrameSystemLimitsWeightsPerClass,
   FrameSystemPhase,
-  MoonbeamRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbeamRuntimeBridgeRejectObsoleteHeadersAndMessages,
   MoonbeamRuntimeGovernanceOriginsCustomOriginsOrigin,
   MoonbeamRuntimeOriginCaller,
@@ -140,23 +139,9 @@ import type {
   MoonbeamRuntimeRuntimeParamsRuntimeParameters,
   MoonbeamRuntimeRuntimeParamsRuntimeParametersKey,
   MoonbeamRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonbeamRuntimeXcmConfigAssetType,
   MoonbeamRuntimeXcmConfigCurrencyId,
   MoonbeamRuntimeXcmConfigTransactors,
   NimbusPrimitivesNimbusCryptoPublic,
-  PalletAssetManagerCall,
-  PalletAssetManagerError,
-  PalletAssetManagerEvent,
-  PalletAssetsAccountStatus,
-  PalletAssetsApproval,
-  PalletAssetsAssetAccount,
-  PalletAssetsAssetDetails,
-  PalletAssetsAssetMetadata,
-  PalletAssetsAssetStatus,
-  PalletAssetsCall,
-  PalletAssetsError,
-  PalletAssetsEvent,
-  PalletAssetsExistenceReason,
   PalletAuthorInherentCall,
   PalletAuthorInherentError,
   PalletAuthorMappingCall,
@@ -591,7 +576,6 @@ declare module "@polkadot/types/types/registry" {
     FrameSystemLimitsBlockWeights: FrameSystemLimitsBlockWeights;
     FrameSystemLimitsWeightsPerClass: FrameSystemLimitsWeightsPerClass;
     FrameSystemPhase: FrameSystemPhase;
-    MoonbeamRuntimeAssetConfigAssetRegistrarMetadata: MoonbeamRuntimeAssetConfigAssetRegistrarMetadata;
     MoonbeamRuntimeBridgeRejectObsoleteHeadersAndMessages: MoonbeamRuntimeBridgeRejectObsoleteHeadersAndMessages;
     MoonbeamRuntimeGovernanceOriginsCustomOriginsOrigin: MoonbeamRuntimeGovernanceOriginsCustomOriginsOrigin;
     MoonbeamRuntimeOriginCaller: MoonbeamRuntimeOriginCaller;
@@ -613,23 +597,9 @@ declare module "@polkadot/types/types/registry" {
     MoonbeamRuntimeRuntimeParamsRuntimeParameters: MoonbeamRuntimeRuntimeParamsRuntimeParameters;
     MoonbeamRuntimeRuntimeParamsRuntimeParametersKey: MoonbeamRuntimeRuntimeParamsRuntimeParametersKey;
     MoonbeamRuntimeRuntimeParamsRuntimeParametersValue: MoonbeamRuntimeRuntimeParamsRuntimeParametersValue;
-    MoonbeamRuntimeXcmConfigAssetType: MoonbeamRuntimeXcmConfigAssetType;
     MoonbeamRuntimeXcmConfigCurrencyId: MoonbeamRuntimeXcmConfigCurrencyId;
     MoonbeamRuntimeXcmConfigTransactors: MoonbeamRuntimeXcmConfigTransactors;
     NimbusPrimitivesNimbusCryptoPublic: NimbusPrimitivesNimbusCryptoPublic;
-    PalletAssetManagerCall: PalletAssetManagerCall;
-    PalletAssetManagerError: PalletAssetManagerError;
-    PalletAssetManagerEvent: PalletAssetManagerEvent;
-    PalletAssetsAccountStatus: PalletAssetsAccountStatus;
-    PalletAssetsApproval: PalletAssetsApproval;
-    PalletAssetsAssetAccount: PalletAssetsAssetAccount;
-    PalletAssetsAssetDetails: PalletAssetsAssetDetails;
-    PalletAssetsAssetMetadata: PalletAssetsAssetMetadata;
-    PalletAssetsAssetStatus: PalletAssetsAssetStatus;
-    PalletAssetsCall: PalletAssetsCall;
-    PalletAssetsError: PalletAssetsError;
-    PalletAssetsEvent: PalletAssetsEvent;
-    PalletAssetsExistenceReason: PalletAssetsExistenceReason;
     PalletAuthorInherentCall: PalletAuthorInherentCall;
     PalletAuthorInherentError: PalletAuthorInherentError;
     PalletAuthorMappingCall: PalletAuthorMappingCall;
