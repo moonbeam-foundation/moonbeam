@@ -561,15 +561,12 @@ describeSuite({
       const totalIssuance =
         await payment.delayedPayoutRound.priorBlockApi.query.balances.totalIssuance();
 
-const thresholdValue = linearInflationThreshold.isSome
-  ? linearInflationThreshold.unwrap()
-  : null;
+      const thresholdValue = linearInflationThreshold.isSome
+        ? linearInflationThreshold.unwrap()
+        : null;
 
-const effectiveTotalIssuance = (
-  thresholdValue && totalIssuance.gt(thresholdValue)
-)
-  ? thresholdValue
-  : totalIssuance;
+      const effectiveTotalIssuance =
+        thresholdValue && totalIssuance.gt(thresholdValue) ? thresholdValue : totalIssuance;
 
       if (payment.asyncBackingEnabled) {
         // Formula:
@@ -656,14 +653,19 @@ const effectiveTotalIssuance = (
       let reservedReward = new BN(0);
       // total expected staking reward minus the amount reserved for parachain bond
       let totalStakingReward = totalRoundIssuance;
-      inflationDistributionConfig.forEach((config) => {
-        if (config.account.toHex() === "0x0000000000000000000000000000000000000000") {
+      for (let i = 0; i < inflationDistributionConfig.length; i++) {
+        const config = inflationDistributionConfig[i];
+        const res = await api.query.system.account(config.account);
+        const doesntExist = res.data.free.isZero() && res.providers.isZero();
+        // we use deposit_into_existing, so if the account doesn't exist, it will
+        // have no effect on the distribution
+        if (doesntExist) {
           return;
         }
         const distribution = new Percent(config.percent.toBn()).of(totalRoundIssuance);
         totalStakingReward = totalStakingReward.sub(distribution);
         reservedReward = reservedReward.add(distribution);
-      });
+      }
 
       if (!reservedInflation.isZero()) {
         expect(
