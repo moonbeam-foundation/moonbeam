@@ -18,13 +18,15 @@
 
 //! Benchmarking
 use crate::{
-	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
-	DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
+	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, CandidatePool,
+	Config, DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
 	InflationDistributionConfig, InflationDistributionInfo, Pallet, Points, Range, RewardPayment,
-	Round, ScheduledRequest, TopDelegations,
+	Round, ScheduledRequest, TopDelegations, MAX_ACCOUNTS_PER_MIGRATION_BATCH,
 };
 use frame_benchmarking::v2::*;
+use frame_support::traits::tokens::fungible::{Inspect, Mutate};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
+use frame_support::{traits::ConstU32, BoundedVec};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
 use sp_runtime::{traits::Zero, Perbill, Percent};
 use sp_std::vec::Vec;
@@ -51,8 +53,8 @@ fn create_funded_user<T: Config>(
 	let user = account(string, n, SEED);
 	let min_candidate_stk = min_candidate_stk::<T>();
 	let total = min_candidate_stk + extra;
-	let _ = T::Currency::make_free_balance_be(&user, total);
-	let _ = T::Currency::issue(total);
+	// Use set_balance to set the user's balance directly
+	let _ = T::Currency::set_balance(&user, total);
 	(user, total)
 }
 
@@ -71,6 +73,8 @@ fn create_funded_delegator<T: Config>(
 	} else {
 		total
 	};
+
+	// Always create normally first using pallet extrinsics
 	Pallet::<T>::delegate_with_auto_compound(
 		RawOrigin::Signed(user.clone()).into(),
 		collator,
@@ -80,6 +84,35 @@ fn create_funded_delegator<T: Config>(
 		0u32,
 		0u32, // first delegation for all calls
 	)?;
+
+	// TODO: Remove this once the lazy migration is complete.
+	{
+		// Downgrade to pre-migration state for lazy migration benchmarking
+		use crate::{FreezeReason, MigratedDelegators, DELEGATOR_LOCK_ID};
+		use frame_support::traits::{
+			fungible::{InspectFreeze, MutateFreeze},
+			LockableCurrency, WithdrawReasons,
+		};
+
+		// 1. Get the frozen amount
+		let frozen_amount =
+			T::Currency::balance_frozen(&FreezeReason::StakingDelegator.into(), &user);
+
+		// 2. Thaw the freeze
+		let _ = T::Currency::thaw(&FreezeReason::StakingDelegator.into(), &user);
+
+		// 3. Set old-style lock
+		T::Currency::set_lock(
+			DELEGATOR_LOCK_ID,
+			&user,
+			frozen_amount,
+			WithdrawReasons::all(),
+		);
+
+		// 4. Remove from migration tracking to trigger migration on next operation
+		MigratedDelegators::<T>::remove(&user);
+	}
+
 	Ok(user)
 }
 
@@ -126,8 +159,8 @@ fn create_account<T: Config>(
 		AccountBalance::Value(v) => v,
 	};
 
-	let _ = T::Currency::make_free_balance_be(&acc, initial_balance);
-	let _ = T::Currency::issue(initial_balance);
+	// Use set_balance to set the account's balance directly
+	let _ = T::Currency::set_balance(&acc, initial_balance);
 
 	match action {
 		AccountAction::None => (),
@@ -187,11 +220,42 @@ fn create_funded_collator<T: Config>(
 	} else {
 		total
 	};
+
+	// Always create normally first using pallet extrinsics
 	Pallet::<T>::join_candidates(
 		RawOrigin::Signed(user.clone()).into(),
 		bond,
 		candidate_count,
 	)?;
+
+	// TODO: Remove this once the lazy migration is complete.
+	{
+		// Downgrade to pre-migration state for lazy migration benchmarking
+		use crate::{FreezeReason, MigratedCandidates, COLLATOR_LOCK_ID};
+		use frame_support::traits::{
+			fungible::{InspectFreeze, MutateFreeze},
+			LockableCurrency, WithdrawReasons,
+		};
+
+		// 1. Get the frozen amount
+		let frozen_amount =
+			T::Currency::balance_frozen(&FreezeReason::StakingCollator.into(), &user);
+
+		// 2. Thaw the freeze
+		let _ = T::Currency::thaw(&FreezeReason::StakingCollator.into(), &user);
+
+		// 3. Set old-style lock
+		T::Currency::set_lock(
+			COLLATOR_LOCK_ID,
+			&user,
+			frozen_amount,
+			WithdrawReasons::all(),
+		);
+
+		// 4. Remove from migration tracking to trigger migration on next operation
+		MigratedCandidates::<T>::remove(&user);
+	}
+
 	Ok(user)
 }
 
@@ -1197,40 +1261,6 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn execute_revoke_delegation() -> Result<(), BenchmarkError> {
-		let collator: T::AccountId =
-			create_funded_collator::<T>("collator", USER_SEED, 0u32.into(), true, 1u32)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let bond = <<T as Config>::MinDelegation as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate_with_auto_compound(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-			bond,
-			Percent::zero(),
-			0u32,
-			0u32,
-			0u32,
-		)?;
-		Pallet::<T>::schedule_revoke_delegation(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-		)?;
-		roll_to_and_author::<T>(T::RevokeDelegationDelay::get(), collator.clone());
-
-		#[block]
-		{
-			Pallet::<T>::execute_delegation_request(
-				RawOrigin::Signed(caller.clone()).into(),
-				caller.clone(),
-				collator.clone(),
-			)?;
-		}
-
-		assert!(!Pallet::<T>::is_delegator(&caller));
-		Ok(())
-	}
-
-	#[benchmark]
 	fn execute_delegator_revoke_delegation_worst() -> Result<(), BenchmarkError> {
 		// We assume delegator has auto-compound set, collator has max scheduled requests, and delegator
 		// will be kicked from delegator pool, and a bottom delegator will be bumped to top.
@@ -1866,7 +1896,7 @@ mod benchmarks {
 
 		for BondWithAutoCompound { owner, .. } in &delegations {
 			assert!(
-				T::Currency::free_balance(&owner) > initial_delegator_balance,
+				<T::Currency as Inspect<T::AccountId>>::balance(&owner) > initial_delegator_balance,
 				"delegator should have been paid in pay_one_collator_reward"
 			);
 		}
@@ -1959,13 +1989,13 @@ mod benchmarks {
 
 		// collator should have been paid
 		assert!(
-			T::Currency::free_balance(&sole_collator) > initial_stake_amount,
+			<T::Currency as Inspect<T::AccountId>>::balance(&sole_collator) > initial_stake_amount,
 			"collator should have been paid in pay_one_collator_reward"
 		);
 		// nominators should have been paid
 		for delegator in &delegators {
 			assert!(
-				T::Currency::free_balance(&delegator) > initial_stake_amount,
+				<T::Currency as Inspect<T::AccountId>>::balance(&delegator) > initial_stake_amount,
 				"delegator should have been paid in pay_one_collator_reward"
 			);
 		}
@@ -2458,6 +2488,130 @@ mod benchmarks {
 		Ok(())
 	}
 
+	#[benchmark]
+	fn migrate_locks_to_freezes_batch_delegators(
+		x: Linear<1, MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
+	) -> Result<(), BenchmarkError> {
+		use crate::MigratedDelegators;
+		use frame_benchmarking::whitelisted_caller;
+
+		let mut seed = Seed::new();
+		let mut delegator_accounts = Vec::new();
+		let mut collators = Vec::new();
+
+		// Maximum delegations per collator (top + bottom)
+		let max_delegations_per_collator =
+			T::MaxTopDelegationsPerCandidate::get() + T::MaxBottomDelegationsPerCandidate::get();
+
+		// Create x delegator accounts with locks to migrate
+		for i in 0..x {
+			// Create a new collator every max_delegations_per_collator delegators
+			let collator = if i % max_delegations_per_collator == 0 {
+				let new_collator = create_funded_collator::<T>(
+					"collator",
+					seed.take(),
+					min_candidate_stk::<T>(),
+					true,
+					collators.len() as u32 + 1,
+				)?;
+				collators.push(new_collator.clone());
+				new_collator
+			} else {
+				// Use the last created collator
+				collators
+					.last()
+					.expect("collators vec should have at least one element; qed")
+					.clone()
+			};
+
+			// Add extra amount to ensure each delegation is unique and larger than previous ones
+			// This prevents hitting the CannotDelegateLessThanOrEqualToLowestBottomWhenFull error
+			let extra_amount = BalanceOf::<T>::from(i.saturating_mul(100u32));
+			let delegation_count_for_collator = i % max_delegations_per_collator;
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				seed.take(),
+				extra_amount,
+				collator.clone(),
+				false,
+				delegation_count_for_collator,
+			)?;
+
+			delegator_accounts.push((delegator, false));
+		}
+
+		let caller: T::AccountId = whitelisted_caller();
+
+		// Convert Vec to BoundedVec
+		let bounded_accounts =
+			BoundedVec::<(T::AccountId, bool), ConstU32<100>>::try_from(delegator_accounts)
+				.expect("delegator_accounts should not exceed 100 items");
+
+		#[extrinsic_call]
+		migrate_locks_to_freezes_batch(RawOrigin::Signed(caller), bounded_accounts.clone());
+
+		// Verify that migration tracking storage was updated
+		// Check that all delegator accounts have been marked as migrated
+		for (account, _) in bounded_accounts.iter() {
+			assert!(
+				<MigratedDelegators<T>>::contains_key(account),
+				"Delegator should be marked as migrated"
+			);
+		}
+
+		Ok(())
+	}
+
+	#[benchmark]
+	fn migrate_locks_to_freezes_batch_candidates(
+		x: Linear<1, MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
+	) -> Result<(), BenchmarkError> {
+		use crate::MigratedCandidates;
+		use frame_benchmarking::whitelisted_caller;
+
+		let mut seed = Seed::new();
+		let mut candidate_accounts = Vec::new();
+
+		// Get current candidate count to avoid conflicts
+		let initial_candidate_count = <CandidatePool<T>>::get().0.len() as u32;
+
+		// Create x candidate accounts with existing locks to migrate
+		for i in 0..x {
+			// Add extra amount to ensure each candidate has a unique stake
+			let extra_amount = BalanceOf::<T>::from(i.saturating_mul(100u32));
+			let candidate = create_funded_collator::<T>(
+				"candidate",
+				seed.take(),
+				min_candidate_stk::<T>() + extra_amount,
+				true,
+				initial_candidate_count + i,
+			)?;
+
+			candidate_accounts.push((candidate, true));
+		}
+
+		let caller: T::AccountId = whitelisted_caller();
+
+		// Convert Vec to BoundedVec
+		let bounded_accounts =
+			BoundedVec::<(T::AccountId, bool), ConstU32<100>>::try_from(candidate_accounts)
+				.expect("candidate_accounts should not exceed 100 items");
+
+		#[extrinsic_call]
+		migrate_locks_to_freezes_batch(RawOrigin::Signed(caller), bounded_accounts.clone());
+
+		// Verify that migration tracking storage was updated
+		// Check that all candidate accounts have been marked as migrated
+		for (account, _) in bounded_accounts.iter() {
+			assert!(
+				<MigratedCandidates<T>>::contains_key(account),
+				"Candidate should be marked as migrated"
+			);
+		}
+
+		Ok(())
+	}
+
 	impl_benchmark_test_suite!(
 		Pallet,
 		crate::benchmarks::tests::new_test_ext(),
@@ -2474,7 +2628,7 @@ mod tests {
 	pub fn new_test_ext() -> TestExternalities {
 		let t = frame_system::GenesisConfig::<Test>::default()
 			.build_storage()
-			.unwrap();
+			.expect("Failed to build test storage");
 		TestExternalities::new(t)
 	}
 }
