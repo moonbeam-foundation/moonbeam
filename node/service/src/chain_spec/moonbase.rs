@@ -86,7 +86,6 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		// Delegations
 		vec![],
 		accounts.clone(),
-		3_000_000 * UNIT,
 		Default::default(), // para_id
 		1281,               //ChainId
 	))
@@ -153,7 +152,6 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 			AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
 			AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
 		],
-		3_000_000 * UNIT,
 		para_id,
 		1280, //ChainId
 	))

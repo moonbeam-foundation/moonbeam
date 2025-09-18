@@ -16,20 +16,9 @@
 
 //! Test utilities
 use super::*;
-use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayChainBlockNumber, AggregateMessageOrigin,
-	PersistedValidationData,
-};
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-use frame_support::{
-	construct_runtime,
-	inherent::{InherentData, ProvideInherent},
-	parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize, UnfilteredDispatchable},
-	weights::Weight,
-};
-use frame_system::{pallet_prelude::BlockNumberFor, EnsureSigned, RawOrigin};
+use cumulus_primitives_core::AggregateMessageOrigin;
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
+use frame_system::EnsureSigned;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
@@ -43,7 +32,6 @@ pub type AccountId = MockAccount;
 pub type Balance = u128;
 
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
-pub type BlockNumber = BlockNumberFor<Runtime>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -277,65 +265,8 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
 
-		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
-			funded_amount: self.crowdloan_pot,
-		}
-		.assimilate_storage(&mut t)
-		.expect("Crowdloan Rewards storage can be assimilated");
-
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
-}
-
-//TODO Add pallets here if necessary
-pub(crate) fn roll_to(n: BlockNumber) {
-	while System::block_number() < n {
-		// Relay chain Stuff. I might actually set this to a number different than N
-		let sproof_builder = RelayStateSproofBuilder::default();
-		let (relay_parent_storage_root, relay_chain_state) =
-			sproof_builder.into_state_root_and_proof();
-		let vfp = PersistedValidationData {
-			relay_parent_number: (System::block_number() + 1) as RelayChainBlockNumber,
-			relay_parent_storage_root,
-			..Default::default()
-		};
-		let inherent_data = {
-			let mut inherent_data = InherentData::default();
-			let system_inherent_data = ParachainInherentData {
-				validation_data: vfp.clone(),
-				relay_chain_state,
-				downward_messages: Default::default(),
-				horizontal_messages: Default::default(),
-			};
-			inherent_data
-				.put_data(
-					cumulus_primitives_parachain_inherent::INHERENT_IDENTIFIER,
-					&system_inherent_data,
-				)
-				.expect("failed to put VFP inherent");
-			inherent_data
-		};
-
-		ParachainSystem::on_initialize(System::block_number());
-		ParachainSystem::create_inherent(&inherent_data)
-			.expect("got an inherent")
-			.dispatch_bypass_filter(RawOrigin::None.into())
-			.expect("dispatch succeeded");
-		ParachainSystem::on_finalize(System::block_number());
-
-		Balances::on_finalize(System::block_number());
-		System::on_finalize(System::block_number());
-		System::set_block_number(System::block_number() + 1);
-		System::on_initialize(System::block_number());
-		Balances::on_initialize(System::block_number());
-	}
-}
-
-pub(crate) fn events() -> Vec<RuntimeEvent> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.collect::<Vec<_>>()
 }
