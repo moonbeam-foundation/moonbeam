@@ -83,7 +83,7 @@ describeSuite({
               log(`Could not connect to ${name}.`);
               errorListenerUnsubscribe();
               await provider.disconnect();
-              expect(false, `Could not connect to ${name} at provided endpoints.`).to.equal(true);
+              expect.fail(`Could not connect to ${name} at provided endpoints.`);
               reject();
             });
           });
