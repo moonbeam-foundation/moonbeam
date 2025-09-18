@@ -65,8 +65,10 @@ describeSuite({
         }
         let result;
         try {
-          const api: ApiPromise = await new Promise((resolve, reject) => {
-            const provider = new WsProvider(endpoints);
+          const api: ApiPromise = await new Promise(async (resolve, reject) => {
+            log(`Connecting to ${name}...`);
+            const provider = new WsProvider(endpoints, false /*Auto Connect/Retry*/);
+            await provider.connect();
             provider.on("connected", async () => {
               const api = await ApiPromise.create({
                 provider,
@@ -76,9 +78,12 @@ describeSuite({
               log(`Connected to ${api.consts.system.version.specName.toString()}.`);
               resolve(api);
             });
-            provider.on("error", async () => {
-              log(`Could not connect to ${name}, skipping.`);
-              provider.disconnect();
+
+            const errorListenerUnsubscribe = provider.on("error", async () => {
+              log(`Could not connect to ${name}.`);
+              errorListenerUnsubscribe();
+              await provider.disconnect();
+              expect(false, `Could not connect to ${name} at provided endpoints.`).to.equal(true);
               reject();
             });
           });
