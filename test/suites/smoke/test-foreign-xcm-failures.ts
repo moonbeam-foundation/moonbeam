@@ -83,13 +83,12 @@ describeSuite({
               log(`Could not connect to ${name}.`);
               errorListenerUnsubscribe();
               await provider.disconnect();
-              expect.fail(`Could not connect to ${name} at provided endpoints.`);
-              reject();
+              reject(`Could not connect to ${name}`);
             });
           });
 
           if (api == null) {
-            throw new Error("Cannot Connect");
+            throw "Could not connect to ${name}";
           }
 
           const blockNumArray = await getBlockArray(api, timePeriod);
@@ -104,7 +103,7 @@ describeSuite({
             log(
               `Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping chain.`
             );
-            api.disconnect();
+            await api.disconnect();
             return { networkName: name, blockEvents: [] };
           }
 
@@ -117,8 +116,11 @@ describeSuite({
 
           blockEvents = await Promise.all(blockNumArray.map((num) => getEvents(num)));
           log(`Finished loading blocks for ${name}.`);
-          api.disconnect();
+          await api.disconnect();
         } catch (e) {
+          if (`${e}`.toLowerCase().includes("could not connect to")) {
+            expect.fail(e);
+          }
           blockEvents = [];
         } finally {
           result = { networkName: name, blockEvents };
