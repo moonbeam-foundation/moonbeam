@@ -51,10 +51,23 @@ describeSuite({
           : networkName === "Moonriver"
             ? "Kusama"
             : "Unsupported";
-      const chainsWithRpcs = foreignChainInfos.foreignChains.map((chain) => {
+      let chainsWithRpcs = foreignChainInfos.foreignChains.map((chain) => {
         const endpoints = getEndpoints(relayName, chain.paraId);
         return { ...chain, endpoints };
       });
+
+      chainsWithRpcs = chainsWithRpcs.map((chain) => {
+        return {
+          ...chain,
+          endpoints: chain.endpoints.filter(value => value.startsWith("ws://") || value.startsWith("wss://")),
+        };
+      });
+
+      for (const chain of chainsWithRpcs) {
+        if (chain.endpoints.length === 0) {
+          expect.fail(`No valid endpoints for ${chain.name} (paraId: ${chain.paraId}) on network ${networkName}`);
+        }
+      }
 
       const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil = 0 }) => {
         let blockEvents: BlockEventsRecord[] = [];

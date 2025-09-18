@@ -82,7 +82,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Bifrost",
         paraId: 2001,
-        mutedUntil: new Date("2025-11-01").getTime(), // Remove this channel on November 1st
+        // mutedUntil: new Date("2025-11-01").getTime(), // Remove this channel on November 1st
       },
       {
         name: "Shiden",
@@ -101,14 +101,6 @@ export const ForeignChainsEndpoints = [
         paraId: 2048,
       },
       {
-        name: "Calamari",
-        paraId: 2084,
-      },
-      {
-        name: "Heiko",
-        paraId: 2085,
-      },
-      {
         name: "Picasso",
         paraId: 2087,
       },
@@ -124,10 +116,6 @@ export const ForeignChainsEndpoints = [
         name: "Mangata",
         paraId: 2110,
         mutedUntil: new Date("2025-11-01").getTime(), // Remove this channel on November 1st
-      },
-      {
-        name: "Turing",
-        paraId: 2114,
       },
     ],
   },
