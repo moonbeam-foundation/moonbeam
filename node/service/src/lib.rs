@@ -78,7 +78,6 @@ use sp_consensus::SyncOracle;
 use sp_core::{ByteArray, Encode, H256};
 use sp_keystore::{Keystore, KeystorePtr};
 use std::str::FromStr;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::{collections::BTreeMap, path::Path, sync::Mutex, time::Duration};
 use substrate_prometheus_endpoint::Registry;
@@ -116,34 +115,6 @@ type PartialComponentsResult<Client, Backend> = Result<
 >;
 
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u64 = 6_000;
-
-static TIMESTAMP: AtomicU64 = AtomicU64::new(0);
-
-/// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
-/// Each call will increment timestamp by slot_duration making Aura think time has passed.
-struct MockTimestampInherentDataProvider;
-#[async_trait::async_trait]
-impl sp_inherents::InherentDataProvider for MockTimestampInherentDataProvider {
-	async fn provide_inherent_data(
-		&self,
-		inherent_data: &mut sp_inherents::InherentData,
-	) -> Result<(), sp_inherents::Error> {
-		TIMESTAMP.fetch_add(RELAY_CHAIN_SLOT_DURATION_MILLIS, Ordering::SeqCst);
-		inherent_data.put_data(
-			sp_timestamp::INHERENT_IDENTIFIER,
-			&TIMESTAMP.load(Ordering::SeqCst),
-		)
-	}
-
-	async fn try_handle_error(
-		&self,
-		_identifier: &sp_inherents::InherentIdentifier,
-		_error: &[u8],
-	) -> Option<Result<(), sp_inherents::Error>> {
-		// The pallet never reports error.
-		None
-	}
-}
 
 #[cfg(feature = "runtime-benchmarks")]
 pub type HostFunctions = (
@@ -1305,7 +1276,6 @@ where
 					let maybe_current_para_head = client_for_cidp.expect_header(block);
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
-					let additional_relay_offset = additional_relay_offset.clone();
 					let relay_slot_key = well_known_keys::CURRENT_SLOT.to_vec();
 
 					// Need to clone it and store here to avoid moving of `client`
@@ -1313,7 +1283,7 @@ where
 					let client_for_xcm = client_for_cidp.clone();
 
 					async move {
-						let time = MockTimestampInherentDataProvider;
+						let time = sp_timestamp::InherentDataProvider::from_system_time();
 
 						let current_para_block = maybe_current_para_block?
 							.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))?;
@@ -1323,7 +1293,7 @@ where
 						));
 
 						// Get the mocked timestamp
-						let timestamp = TIMESTAMP.load(Ordering::SeqCst);
+						let timestamp = time.timestamp().as_millis();
 						// Calculate mocked slot number (should be consecutively 1, 2, ...)
 						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
@@ -1331,7 +1301,7 @@ where
 							(
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
-								sp_timestamp::Timestamp::current().encode(),
+								timestamp.encode(),
 							),
 							(relay_slot_key, Slot::from(slot).encode()),
 							(
@@ -1386,10 +1356,8 @@ where
 								UpgradeGoAhead::GoAhead
 							}),
 							current_para_block_head,
-							relay_offset: 1000
-								+ additional_relay_offset.load(std::sync::atomic::Ordering::SeqCst),
-							relay_blocks_per_para_block: 2,
-							// TODO: Recheck
+							relay_offset: 0,
+							relay_blocks_per_para_block: 1,
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
 							xcm_config: MockXcmConfig::new(
