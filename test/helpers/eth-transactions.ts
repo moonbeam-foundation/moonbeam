@@ -78,8 +78,53 @@ export function expectEVMResult<T extends Errors, Type extends keyof T>(
   }
 }
 
+export async function getTransactionReceiptWithRetry(
+  context: DevModeContext,
+  hash: `0x${string}`,
+  options?: {
+    maxAttempts?: number;
+    delayMs?: number;
+    exponentialBackoff?: boolean;
+  }
+) {
+  const maxAttempts = options?.maxAttempts ?? 4;
+  const delayMs = options?.delayMs ?? 2000;
+  const exponentialBackoff = options?.exponentialBackoff ?? true;
+
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const receipt = await context.viem().getTransactionReceipt({ hash });
+      return receipt;
+    } catch (error: any) {
+      lastError = error;
+
+      // Check if it's the specific error we want to retry
+      if (
+        error.name === "TransactionReceiptNotFoundError" ||
+        error.message?.includes("Transaction receipt with hash") ||
+        error.message?.includes("could not be found")
+      ) {
+        if (attempt < maxAttempts) {
+          const delay = exponentialBackoff ? delayMs * 1.5 ** (attempt - 1) : delayMs;
+
+          await new Promise((resolve) => setTimeout(resolve, Math.min(delay, 10000)));
+          continue;
+        }
+      }
+
+      // If it's a different error, throw immediately
+      throw error;
+    }
+  }
+
+  // If we've exhausted all attempts, throw the last error
+  throw lastError || new Error(`Failed to get transaction receipt after ${maxAttempts} attempts`);
+}
+
 export async function getTransactionFees(context: DevModeContext, hash: string): Promise<bigint> {
-  const receipt = await context.viem().getTransactionReceipt({ hash: hash as `0x${string}` });
+  const receipt = await getTransactionReceiptWithRetry(context, hash as `0x${string}`);
 
   return receipt.gasUsed * receipt.effectiveGasPrice;
 }
