@@ -397,10 +397,10 @@ fn verify_pallet_indices() {
 		);
 	}
 	is_pallet_index::<moonbase_runtime::System>(0);
-	is_pallet_index::<moonbase_runtime::Utility>(1);
+	is_pallet_index::<moonbase_runtime::ParachainSystem>(1);
 	is_pallet_index::<moonbase_runtime::Balances>(3);
 	is_pallet_index::<moonbase_runtime::Sudo>(4);
-	is_pallet_index::<moonbase_runtime::ParachainSystem>(6);
+	is_pallet_index::<moonbase_runtime::Utility>(6);
 	is_pallet_index::<moonbase_runtime::TransactionPayment>(7);
 	is_pallet_index::<moonbase_runtime::ParachainInfo>(8);
 	is_pallet_index::<moonbase_runtime::EthereumChainId>(9);
