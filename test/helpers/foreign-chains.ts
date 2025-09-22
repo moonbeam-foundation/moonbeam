@@ -82,7 +82,9 @@ export const ForeignChainsEndpoints = [
       {
         name: "Bifrost",
         paraId: 2001,
-        // mutedUntil: new Date("2025-11-01").getTime(), // Remove this channel on November 1st
+        // Seems like there's an issue with Bifrost connectivity, so we mute it for now
+        // check again in a month
+        mutedUntil: new Date("2025-10-22").getTime(),
       },
       {
         name: "Shiden",

@@ -59,13 +59,17 @@ describeSuite({
       chainsWithRpcs = chainsWithRpcs.map((chain) => {
         return {
           ...chain,
-          endpoints: chain.endpoints.filter(value => value.startsWith("ws://") || value.startsWith("wss://")),
+          endpoints: chain.endpoints.filter(
+            (value) => value.startsWith("ws://") || value.startsWith("wss://")
+          ),
         };
       });
 
       for (const chain of chainsWithRpcs) {
         if (chain.endpoints.length === 0) {
-          expect.fail(`No valid endpoints for ${chain.name} (paraId: ${chain.paraId}) on network ${networkName}`);
+          expect.fail(
+            `No valid endpoints for ${chain.name} (paraId: ${chain.paraId}) on network ${networkName}`
+          );
         }
       }
 
