@@ -627,7 +627,7 @@ where
 							(
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
-								sp_timestamp::Timestamp::current().encode(),
+								timestamp.encode(),
 							),
 							(
 								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),

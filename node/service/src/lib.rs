@@ -78,6 +78,7 @@ use sp_consensus::SyncOracle;
 use sp_core::{ByteArray, Encode, H256};
 use sp_keystore::{Keystore, KeystorePtr};
 use std::str::FromStr;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::{collections::BTreeMap, path::Path, sync::Mutex, time::Duration};
 use substrate_prometheus_endpoint::Registry;
@@ -115,6 +116,48 @@ type PartialComponentsResult<Client, Backend> = Result<
 >;
 
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u64 = 6_000;
+
+static TIMESTAMP: AtomicU64 = AtomicU64::new(0);
+
+/// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
+/// Each call will increment timestamp by slot_duration making Aura think time has passed.
+struct MockTimestampInherentDataProvider;
+
+impl MockTimestampInherentDataProvider {
+	fn advance_timestamp(slot_duration: u64) {
+		if TIMESTAMP.load(Ordering::SeqCst) == 0 {
+			// Initialize timestamp inherent provider
+			TIMESTAMP.store(
+				sp_timestamp::Timestamp::current().as_millis(),
+				Ordering::SeqCst,
+			);
+		} else {
+			TIMESTAMP.fetch_add(slot_duration, Ordering::SeqCst);
+		}
+	}
+}
+
+#[async_trait::async_trait]
+impl sp_inherents::InherentDataProvider for MockTimestampInherentDataProvider {
+	async fn provide_inherent_data(
+		&self,
+		inherent_data: &mut sp_inherents::InherentData,
+	) -> Result<(), sp_inherents::Error> {
+		inherent_data.put_data(
+			sp_timestamp::INHERENT_IDENTIFIER,
+			&TIMESTAMP.load(Ordering::SeqCst),
+		)
+	}
+
+	async fn try_handle_error(
+		&self,
+		_identifier: &sp_inherents::InherentIdentifier,
+		_error: &[u8],
+	) -> Option<Result<(), sp_inherents::Error>> {
+		// The pallet never reports error.
+		None
+	}
+}
 
 #[cfg(feature = "runtime-benchmarks")]
 pub type HostFunctions = (
@@ -1283,7 +1326,9 @@ where
 					let client_for_xcm = client_for_cidp.clone();
 
 					async move {
-						let time = sp_timestamp::InherentDataProvider::from_system_time();
+						MockTimestampInherentDataProvider::advance_timestamp(
+							RELAY_CHAIN_SLOT_DURATION_MILLIS,
+						);
 
 						let current_para_block = maybe_current_para_block?
 							.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))?;
@@ -1293,8 +1338,8 @@ where
 						));
 
 						// Get the mocked timestamp
-						let timestamp = time.timestamp().as_millis();
-						// Calculate mocked slot number (should be consecutively 1, 2, ...)
+						let timestamp = TIMESTAMP.load(Ordering::SeqCst);
+						// Calculate mocked slot number
 						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
 						let additional_key_values = vec![
@@ -1372,7 +1417,11 @@ where
 
 						let randomness = session_keys_primitives::InherentDataProvider;
 
-						Ok((time, mocked_parachain, randomness))
+						Ok((
+							MockTimestampInherentDataProvider,
+							mocked_parachain,
+							randomness,
+						))
 					}
 				},
 			}),
