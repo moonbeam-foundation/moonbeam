@@ -1421,12 +1421,12 @@ construct_runtime! {
 	pub enum Runtime
 	{
 		System: frame_system::{Pallet, Call, Storage, Config<T>, Event<T>} = 0,
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 1,
+		Utility: pallet_utility::{Pallet, Call, Event} = 1,
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent} = 2,
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 3,
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
 		// Previously 5: pallet_randomness_collective_flip
-		Utility: pallet_utility::{Pallet, Call, Event} = 6,
+		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Config<T>, Event<T>} = 7,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config<T>} = 8,
 		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config<T>} = 9,
