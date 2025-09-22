@@ -204,31 +204,29 @@ export default {
     ]
   },
   /**
-   * Lookup33: pallet_utility::pallet::Event
+   * Lookup33: cumulus_pallet_parachain_system::pallet::Event<T>
    **/
-  PalletUtilityEvent: {
+  CumulusPalletParachainSystemEvent: {
     _enum: {
-      BatchInterrupted: {
-        index: "u32",
-        error: "SpRuntimeDispatchError"
+      ValidationFunctionStored: "Null",
+      ValidationFunctionApplied: {
+        relayChainBlockNum: "u32"
       },
-      BatchCompleted: "Null",
-      BatchCompletedWithErrors: "Null",
-      ItemCompleted: "Null",
-      ItemFailed: {
-        error: "SpRuntimeDispatchError"
+      ValidationFunctionDiscarded: "Null",
+      DownwardMessagesReceived: {
+        count: "u32"
       },
-      DispatchedAs: {
-        result: "Result<Null, SpRuntimeDispatchError>"
+      DownwardMessagesProcessed: {
+        weightUsed: "SpWeightsWeightV2Weight",
+        dmqHead: "H256"
       },
-      IfElseMainSuccess: "Null",
-      IfElseFallbackCalled: {
-        mainError: "SpRuntimeDispatchError"
+      UpwardMessageSent: {
+        messageHash: "Option<[u8;32]>"
       }
     }
   },
   /**
-   * Lookup36: pallet_balances::pallet::Event<T, I>
+   * Lookup35: pallet_balances::pallet::Event<T, I>
    **/
   PalletBalancesEvent: {
     _enum: {
@@ -326,13 +324,13 @@ export default {
     }
   },
   /**
-   * Lookup37: frame_support::traits::tokens::misc::BalanceStatus
+   * Lookup36: frame_support::traits::tokens::misc::BalanceStatus
    **/
   FrameSupportTokensMiscBalanceStatus: {
     _enum: ["Free", "Reserved"]
   },
   /**
-   * Lookup38: pallet_sudo::pallet::Event<T>
+   * Lookup37: pallet_sudo::pallet::Event<T>
    **/
   PalletSudoEvent: {
     _enum: {
@@ -353,24 +351,26 @@ export default {
     }
   },
   /**
-   * Lookup40: cumulus_pallet_parachain_system::pallet::Event<T>
+   * Lookup41: pallet_utility::pallet::Event
    **/
-  CumulusPalletParachainSystemEvent: {
+  PalletUtilityEvent: {
     _enum: {
-      ValidationFunctionStored: "Null",
-      ValidationFunctionApplied: {
-        relayChainBlockNum: "u32"
+      BatchInterrupted: {
+        index: "u32",
+        error: "SpRuntimeDispatchError"
       },
-      ValidationFunctionDiscarded: "Null",
-      DownwardMessagesReceived: {
-        count: "u32"
+      BatchCompleted: "Null",
+      BatchCompletedWithErrors: "Null",
+      ItemCompleted: "Null",
+      ItemFailed: {
+        error: "SpRuntimeDispatchError"
       },
-      DownwardMessagesProcessed: {
-        weightUsed: "SpWeightsWeightV2Weight",
-        dmqHead: "H256"
+      DispatchedAs: {
+        result: "Result<Null, SpRuntimeDispatchError>"
       },
-      UpwardMessageSent: {
-        messageHash: "Option<[u8;32]>"
+      IfElseMainSuccess: "Null",
+      IfElseFallbackCalled: {
+        mainError: "SpRuntimeDispatchError"
       }
     }
   },
@@ -2401,7 +2401,144 @@ export default {
     }
   },
   /**
-   * Lookup195: pallet_utility::pallet::Call<T>
+   * Lookup195: cumulus_pallet_parachain_system::pallet::Call<T>
+   **/
+  CumulusPalletParachainSystemCall: {
+    _enum: {
+      set_validation_data: {
+        data: "CumulusPrimitivesParachainInherentParachainInherentData"
+      },
+      sudo_send_upward_message: {
+        message: "Bytes"
+      }
+    }
+  },
+  /**
+   * Lookup196: cumulus_primitives_parachain_inherent::ParachainInherentData
+   **/
+  CumulusPrimitivesParachainInherentParachainInherentData: {
+    validationData: "PolkadotPrimitivesV8PersistedValidationData",
+    relayChainState: "SpTrieStorageProof",
+    downwardMessages: "Vec<PolkadotCorePrimitivesInboundDownwardMessage>",
+    horizontalMessages: "BTreeMap<u32, Vec<PolkadotCorePrimitivesInboundHrmpMessage>>"
+  },
+  /**
+   * Lookup197: polkadot_primitives::v8::PersistedValidationData<primitive_types::H256, N>
+   **/
+  PolkadotPrimitivesV8PersistedValidationData: {
+    parentHead: "Bytes",
+    relayParentNumber: "u32",
+    relayParentStorageRoot: "H256",
+    maxPovSize: "u32"
+  },
+  /**
+   * Lookup199: sp_trie::storage_proof::StorageProof
+   **/
+  SpTrieStorageProof: {
+    trieNodes: "BTreeSet<Bytes>"
+  },
+  /**
+   * Lookup202: polkadot_core_primitives::InboundDownwardMessage<BlockNumber>
+   **/
+  PolkadotCorePrimitivesInboundDownwardMessage: {
+    sentAt: "u32",
+    msg: "Bytes"
+  },
+  /**
+   * Lookup205: polkadot_core_primitives::InboundHrmpMessage<BlockNumber>
+   **/
+  PolkadotCorePrimitivesInboundHrmpMessage: {
+    sentAt: "u32",
+    data: "Bytes"
+  },
+  /**
+   * Lookup208: pallet_timestamp::pallet::Call<T>
+   **/
+  PalletTimestampCall: {
+    _enum: {
+      set: {
+        now: "Compact<u64>"
+      }
+    }
+  },
+  /**
+   * Lookup209: pallet_balances::pallet::Call<T, I>
+   **/
+  PalletBalancesCall: {
+    _enum: {
+      transfer_allow_death: {
+        dest: "AccountId20",
+        value: "Compact<u128>"
+      },
+      __Unused1: "Null",
+      force_transfer: {
+        source: "AccountId20",
+        dest: "AccountId20",
+        value: "Compact<u128>"
+      },
+      transfer_keep_alive: {
+        dest: "AccountId20",
+        value: "Compact<u128>"
+      },
+      transfer_all: {
+        dest: "AccountId20",
+        keepAlive: "bool"
+      },
+      force_unreserve: {
+        who: "AccountId20",
+        amount: "u128"
+      },
+      upgrade_accounts: {
+        who: "Vec<AccountId20>"
+      },
+      __Unused7: "Null",
+      force_set_balance: {
+        who: "AccountId20",
+        newFree: "Compact<u128>"
+      },
+      force_adjust_total_issuance: {
+        direction: "PalletBalancesAdjustmentDirection",
+        delta: "Compact<u128>"
+      },
+      burn: {
+        value: "Compact<u128>",
+        keepAlive: "bool"
+      }
+    }
+  },
+  /**
+   * Lookup211: pallet_balances::types::AdjustmentDirection
+   **/
+  PalletBalancesAdjustmentDirection: {
+    _enum: ["Increase", "Decrease"]
+  },
+  /**
+   * Lookup212: pallet_sudo::pallet::Call<T>
+   **/
+  PalletSudoCall: {
+    _enum: {
+      sudo: {
+        call: "Call"
+      },
+      sudo_unchecked_weight: {
+        call: "Call",
+        weight: "SpWeightsWeightV2Weight"
+      },
+      set_key: {
+        _alias: {
+          new_: "new"
+        },
+        new_: "AccountId20"
+      },
+      sudo_as: {
+        who: "AccountId20",
+        call: "Call"
+      },
+      remove_key: "Null"
+    }
+  },
+  /**
+   * Lookup213: pallet_utility::pallet::Call<T>
    **/
   PalletUtilityCall: {
     _enum: {
@@ -2437,7 +2574,7 @@ export default {
     }
   },
   /**
-   * Lookup197: moonbase_runtime::OriginCaller
+   * Lookup215: moonbase_runtime::OriginCaller
    **/
   MoonbaseRuntimeOriginCaller: {
     _enum: {
@@ -2491,7 +2628,7 @@ export default {
     }
   },
   /**
-   * Lookup198: frame_support::dispatch::RawOrigin<account::AccountId20>
+   * Lookup216: frame_support::dispatch::RawOrigin<account::AccountId20>
    **/
   FrameSupportDispatchRawOrigin: {
     _enum: {
@@ -2501,7 +2638,7 @@ export default {
     }
   },
   /**
-   * Lookup199: pallet_ethereum::RawOrigin
+   * Lookup217: pallet_ethereum::RawOrigin
    **/
   PalletEthereumRawOrigin: {
     _enum: {
@@ -2509,7 +2646,7 @@ export default {
     }
   },
   /**
-   * Lookup200: cumulus_pallet_xcm::pallet::Origin
+   * Lookup218: cumulus_pallet_xcm::pallet::Origin
    **/
   CumulusPalletXcmOrigin: {
     _enum: {
@@ -2518,7 +2655,7 @@ export default {
     }
   },
   /**
-   * Lookup201: pallet_xcm::pallet::Origin
+   * Lookup219: pallet_xcm::pallet::Origin
    **/
   PalletXcmOrigin: {
     _enum: {
@@ -2527,7 +2664,7 @@ export default {
     }
   },
   /**
-   * Lookup202: pallet_ethereum_xcm::RawOrigin
+   * Lookup220: pallet_ethereum_xcm::RawOrigin
    **/
   PalletEthereumXcmRawOrigin: {
     _enum: {
@@ -2535,7 +2672,7 @@ export default {
     }
   },
   /**
-   * Lookup203: pallet_collective::RawOrigin<account::AccountId20, I>
+   * Lookup221: pallet_collective::RawOrigin<account::AccountId20, I>
    **/
   PalletCollectiveRawOrigin: {
     _enum: {
@@ -2545,7 +2682,7 @@ export default {
     }
   },
   /**
-   * Lookup204: moonbase_runtime::governance::origins::custom_origins::Origin
+   * Lookup222: moonbase_runtime::governance::origins::custom_origins::Origin
    **/
   MoonbaseRuntimeGovernanceOriginsCustomOriginsOrigin: {
     _enum: [
@@ -2555,143 +2692,6 @@ export default {
       "ReferendumKiller",
       "FastGeneralAdmin"
     ]
-  },
-  /**
-   * Lookup206: pallet_timestamp::pallet::Call<T>
-   **/
-  PalletTimestampCall: {
-    _enum: {
-      set: {
-        now: "Compact<u64>"
-      }
-    }
-  },
-  /**
-   * Lookup207: pallet_balances::pallet::Call<T, I>
-   **/
-  PalletBalancesCall: {
-    _enum: {
-      transfer_allow_death: {
-        dest: "AccountId20",
-        value: "Compact<u128>"
-      },
-      __Unused1: "Null",
-      force_transfer: {
-        source: "AccountId20",
-        dest: "AccountId20",
-        value: "Compact<u128>"
-      },
-      transfer_keep_alive: {
-        dest: "AccountId20",
-        value: "Compact<u128>"
-      },
-      transfer_all: {
-        dest: "AccountId20",
-        keepAlive: "bool"
-      },
-      force_unreserve: {
-        who: "AccountId20",
-        amount: "u128"
-      },
-      upgrade_accounts: {
-        who: "Vec<AccountId20>"
-      },
-      __Unused7: "Null",
-      force_set_balance: {
-        who: "AccountId20",
-        newFree: "Compact<u128>"
-      },
-      force_adjust_total_issuance: {
-        direction: "PalletBalancesAdjustmentDirection",
-        delta: "Compact<u128>"
-      },
-      burn: {
-        value: "Compact<u128>",
-        keepAlive: "bool"
-      }
-    }
-  },
-  /**
-   * Lookup209: pallet_balances::types::AdjustmentDirection
-   **/
-  PalletBalancesAdjustmentDirection: {
-    _enum: ["Increase", "Decrease"]
-  },
-  /**
-   * Lookup210: pallet_sudo::pallet::Call<T>
-   **/
-  PalletSudoCall: {
-    _enum: {
-      sudo: {
-        call: "Call"
-      },
-      sudo_unchecked_weight: {
-        call: "Call",
-        weight: "SpWeightsWeightV2Weight"
-      },
-      set_key: {
-        _alias: {
-          new_: "new"
-        },
-        new_: "AccountId20"
-      },
-      sudo_as: {
-        who: "AccountId20",
-        call: "Call"
-      },
-      remove_key: "Null"
-    }
-  },
-  /**
-   * Lookup211: cumulus_pallet_parachain_system::pallet::Call<T>
-   **/
-  CumulusPalletParachainSystemCall: {
-    _enum: {
-      set_validation_data: {
-        data: "CumulusPrimitivesParachainInherentParachainInherentData"
-      },
-      sudo_send_upward_message: {
-        message: "Bytes"
-      }
-    }
-  },
-  /**
-   * Lookup212: cumulus_primitives_parachain_inherent::ParachainInherentData
-   **/
-  CumulusPrimitivesParachainInherentParachainInherentData: {
-    validationData: "PolkadotPrimitivesV8PersistedValidationData",
-    relayChainState: "SpTrieStorageProof",
-    downwardMessages: "Vec<PolkadotCorePrimitivesInboundDownwardMessage>",
-    horizontalMessages: "BTreeMap<u32, Vec<PolkadotCorePrimitivesInboundHrmpMessage>>"
-  },
-  /**
-   * Lookup213: polkadot_primitives::v8::PersistedValidationData<primitive_types::H256, N>
-   **/
-  PolkadotPrimitivesV8PersistedValidationData: {
-    parentHead: "Bytes",
-    relayParentNumber: "u32",
-    relayParentStorageRoot: "H256",
-    maxPovSize: "u32"
-  },
-  /**
-   * Lookup215: sp_trie::storage_proof::StorageProof
-   **/
-  SpTrieStorageProof: {
-    trieNodes: "BTreeSet<Bytes>"
-  },
-  /**
-   * Lookup218: polkadot_core_primitives::InboundDownwardMessage<BlockNumber>
-   **/
-  PolkadotCorePrimitivesInboundDownwardMessage: {
-    sentAt: "u32",
-    msg: "Bytes"
-  },
-  /**
-   * Lookup221: polkadot_core_primitives::InboundHrmpMessage<BlockNumber>
-   **/
-  PolkadotCorePrimitivesInboundHrmpMessage: {
-    sentAt: "u32",
-    data: "Bytes"
   },
   /**
    * Lookup224: pallet_evm::pallet::Call<T>
@@ -5021,13 +5021,120 @@ export default {
     ]
   },
   /**
-   * Lookup454: pallet_utility::pallet::Error<T>
+   * Lookup455: cumulus_pallet_parachain_system::unincluded_segment::Ancestor<primitive_types::H256>
    **/
-  PalletUtilityError: {
-    _enum: ["TooManyCalls"]
+  CumulusPalletParachainSystemUnincludedSegmentAncestor: {
+    usedBandwidth: "CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth",
+    paraHeadHash: "Option<H256>",
+    consumedGoAheadSignal: "Option<PolkadotPrimitivesV8UpgradeGoAhead>"
   },
   /**
-   * Lookup456: pallet_balances::types::BalanceLock<Balance>
+   * Lookup456: cumulus_pallet_parachain_system::unincluded_segment::UsedBandwidth
+   **/
+  CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth: {
+    umpMsgCount: "u32",
+    umpTotalBytes: "u32",
+    hrmpOutgoing: "BTreeMap<u32, CumulusPalletParachainSystemUnincludedSegmentHrmpChannelUpdate>"
+  },
+  /**
+   * Lookup458: cumulus_pallet_parachain_system::unincluded_segment::HrmpChannelUpdate
+   **/
+  CumulusPalletParachainSystemUnincludedSegmentHrmpChannelUpdate: {
+    msgCount: "u32",
+    totalBytes: "u32"
+  },
+  /**
+   * Lookup462: polkadot_primitives::v8::UpgradeGoAhead
+   **/
+  PolkadotPrimitivesV8UpgradeGoAhead: {
+    _enum: ["Abort", "GoAhead"]
+  },
+  /**
+   * Lookup463: cumulus_pallet_parachain_system::unincluded_segment::SegmentTracker<primitive_types::H256>
+   **/
+  CumulusPalletParachainSystemUnincludedSegmentSegmentTracker: {
+    usedBandwidth: "CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth",
+    hrmpWatermark: "Option<u32>",
+    consumedGoAheadSignal: "Option<PolkadotPrimitivesV8UpgradeGoAhead>"
+  },
+  /**
+   * Lookup465: polkadot_primitives::v8::UpgradeRestriction
+   **/
+  PolkadotPrimitivesV8UpgradeRestriction: {
+    _enum: ["Present"]
+  },
+  /**
+   * Lookup466: cumulus_pallet_parachain_system::relay_state_snapshot::MessagingStateSnapshot
+   **/
+  CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot: {
+    dmqMqcHead: "H256",
+    relayDispatchQueueRemainingCapacity:
+      "CumulusPalletParachainSystemRelayStateSnapshotRelayDispatchQueueRemainingCapacity",
+    ingressChannels: "Vec<(u32,PolkadotPrimitivesV8AbridgedHrmpChannel)>",
+    egressChannels: "Vec<(u32,PolkadotPrimitivesV8AbridgedHrmpChannel)>"
+  },
+  /**
+   * Lookup467: cumulus_pallet_parachain_system::relay_state_snapshot::RelayDispatchQueueRemainingCapacity
+   **/
+  CumulusPalletParachainSystemRelayStateSnapshotRelayDispatchQueueRemainingCapacity: {
+    remainingCount: "u32",
+    remainingSize: "u32"
+  },
+  /**
+   * Lookup470: polkadot_primitives::v8::AbridgedHrmpChannel
+   **/
+  PolkadotPrimitivesV8AbridgedHrmpChannel: {
+    maxCapacity: "u32",
+    maxTotalSize: "u32",
+    maxMessageSize: "u32",
+    msgCount: "u32",
+    totalSize: "u32",
+    mqcHead: "Option<H256>"
+  },
+  /**
+   * Lookup471: polkadot_primitives::v8::AbridgedHostConfiguration
+   **/
+  PolkadotPrimitivesV8AbridgedHostConfiguration: {
+    maxCodeSize: "u32",
+    maxHeadDataSize: "u32",
+    maxUpwardQueueCount: "u32",
+    maxUpwardQueueSize: "u32",
+    maxUpwardMessageSize: "u32",
+    maxUpwardMessageNumPerCandidate: "u32",
+    hrmpMaxMessageNumPerCandidate: "u32",
+    validationUpgradeCooldown: "u32",
+    validationUpgradeDelay: "u32",
+    asyncBackingParams: "PolkadotPrimitivesV8AsyncBackingAsyncBackingParams"
+  },
+  /**
+   * Lookup472: polkadot_primitives::v8::async_backing::AsyncBackingParams
+   **/
+  PolkadotPrimitivesV8AsyncBackingAsyncBackingParams: {
+    maxCandidateDepth: "u32",
+    allowedAncestryLen: "u32"
+  },
+  /**
+   * Lookup478: polkadot_core_primitives::OutboundHrmpMessage<polkadot_parachain_primitives::primitives::Id>
+   **/
+  PolkadotCorePrimitivesOutboundHrmpMessage: {
+    recipient: "u32",
+    data: "Bytes"
+  },
+  /**
+   * Lookup480: cumulus_pallet_parachain_system::pallet::Error<T>
+   **/
+  CumulusPalletParachainSystemError: {
+    _enum: [
+      "OverlappingUpgrades",
+      "ProhibitedByPolkadot",
+      "TooBig",
+      "ValidationDataNotAvailable",
+      "HostConfigurationNotAvailable",
+      "NotScheduled"
+    ]
+  },
+  /**
+   * Lookup482: pallet_balances::types::BalanceLock<Balance>
    **/
   PalletBalancesBalanceLock: {
     id: "[u8;8]",
@@ -5035,20 +5142,20 @@ export default {
     reasons: "PalletBalancesReasons"
   },
   /**
-   * Lookup457: pallet_balances::types::Reasons
+   * Lookup483: pallet_balances::types::Reasons
    **/
   PalletBalancesReasons: {
     _enum: ["Fee", "Misc", "All"]
   },
   /**
-   * Lookup460: pallet_balances::types::ReserveData<ReserveIdentifier, Balance>
+   * Lookup486: pallet_balances::types::ReserveData<ReserveIdentifier, Balance>
    **/
   PalletBalancesReserveData: {
     id: "[u8;4]",
     amount: "u128"
   },
   /**
-   * Lookup464: moonbase_runtime::RuntimeHoldReason
+   * Lookup490: moonbase_runtime::RuntimeHoldReason
    **/
   MoonbaseRuntimeRuntimeHoldReason: {
     _enum: {
@@ -5100,20 +5207,20 @@ export default {
     }
   },
   /**
-   * Lookup465: pallet_preimage::pallet::HoldReason
+   * Lookup491: pallet_preimage::pallet::HoldReason
    **/
   PalletPreimageHoldReason: {
     _enum: ["Preimage"]
   },
   /**
-   * Lookup468: frame_support::traits::tokens::misc::IdAmount<Id, Balance>
+   * Lookup494: frame_support::traits::tokens::misc::IdAmount<Id, Balance>
    **/
   FrameSupportTokensMiscIdAmount: {
     id: "Null",
     amount: "u128"
   },
   /**
-   * Lookup470: pallet_balances::pallet::Error<T, I>
+   * Lookup496: pallet_balances::pallet::Error<T, I>
    **/
   PalletBalancesError: {
     _enum: [
@@ -5132,123 +5239,16 @@ export default {
     ]
   },
   /**
-   * Lookup471: pallet_sudo::pallet::Error<T>
+   * Lookup497: pallet_sudo::pallet::Error<T>
    **/
   PalletSudoError: {
     _enum: ["RequireSudo"]
   },
   /**
-   * Lookup473: cumulus_pallet_parachain_system::unincluded_segment::Ancestor<primitive_types::H256>
+   * Lookup498: pallet_utility::pallet::Error<T>
    **/
-  CumulusPalletParachainSystemUnincludedSegmentAncestor: {
-    usedBandwidth: "CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth",
-    paraHeadHash: "Option<H256>",
-    consumedGoAheadSignal: "Option<PolkadotPrimitivesV8UpgradeGoAhead>"
-  },
-  /**
-   * Lookup474: cumulus_pallet_parachain_system::unincluded_segment::UsedBandwidth
-   **/
-  CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth: {
-    umpMsgCount: "u32",
-    umpTotalBytes: "u32",
-    hrmpOutgoing: "BTreeMap<u32, CumulusPalletParachainSystemUnincludedSegmentHrmpChannelUpdate>"
-  },
-  /**
-   * Lookup476: cumulus_pallet_parachain_system::unincluded_segment::HrmpChannelUpdate
-   **/
-  CumulusPalletParachainSystemUnincludedSegmentHrmpChannelUpdate: {
-    msgCount: "u32",
-    totalBytes: "u32"
-  },
-  /**
-   * Lookup480: polkadot_primitives::v8::UpgradeGoAhead
-   **/
-  PolkadotPrimitivesV8UpgradeGoAhead: {
-    _enum: ["Abort", "GoAhead"]
-  },
-  /**
-   * Lookup481: cumulus_pallet_parachain_system::unincluded_segment::SegmentTracker<primitive_types::H256>
-   **/
-  CumulusPalletParachainSystemUnincludedSegmentSegmentTracker: {
-    usedBandwidth: "CumulusPalletParachainSystemUnincludedSegmentUsedBandwidth",
-    hrmpWatermark: "Option<u32>",
-    consumedGoAheadSignal: "Option<PolkadotPrimitivesV8UpgradeGoAhead>"
-  },
-  /**
-   * Lookup483: polkadot_primitives::v8::UpgradeRestriction
-   **/
-  PolkadotPrimitivesV8UpgradeRestriction: {
-    _enum: ["Present"]
-  },
-  /**
-   * Lookup484: cumulus_pallet_parachain_system::relay_state_snapshot::MessagingStateSnapshot
-   **/
-  CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot: {
-    dmqMqcHead: "H256",
-    relayDispatchQueueRemainingCapacity:
-      "CumulusPalletParachainSystemRelayStateSnapshotRelayDispatchQueueRemainingCapacity",
-    ingressChannels: "Vec<(u32,PolkadotPrimitivesV8AbridgedHrmpChannel)>",
-    egressChannels: "Vec<(u32,PolkadotPrimitivesV8AbridgedHrmpChannel)>"
-  },
-  /**
-   * Lookup485: cumulus_pallet_parachain_system::relay_state_snapshot::RelayDispatchQueueRemainingCapacity
-   **/
-  CumulusPalletParachainSystemRelayStateSnapshotRelayDispatchQueueRemainingCapacity: {
-    remainingCount: "u32",
-    remainingSize: "u32"
-  },
-  /**
-   * Lookup488: polkadot_primitives::v8::AbridgedHrmpChannel
-   **/
-  PolkadotPrimitivesV8AbridgedHrmpChannel: {
-    maxCapacity: "u32",
-    maxTotalSize: "u32",
-    maxMessageSize: "u32",
-    msgCount: "u32",
-    totalSize: "u32",
-    mqcHead: "Option<H256>"
-  },
-  /**
-   * Lookup489: polkadot_primitives::v8::AbridgedHostConfiguration
-   **/
-  PolkadotPrimitivesV8AbridgedHostConfiguration: {
-    maxCodeSize: "u32",
-    maxHeadDataSize: "u32",
-    maxUpwardQueueCount: "u32",
-    maxUpwardQueueSize: "u32",
-    maxUpwardMessageSize: "u32",
-    maxUpwardMessageNumPerCandidate: "u32",
-    hrmpMaxMessageNumPerCandidate: "u32",
-    validationUpgradeCooldown: "u32",
-    validationUpgradeDelay: "u32",
-    asyncBackingParams: "PolkadotPrimitivesV8AsyncBackingAsyncBackingParams"
-  },
-  /**
-   * Lookup490: polkadot_primitives::v8::async_backing::AsyncBackingParams
-   **/
-  PolkadotPrimitivesV8AsyncBackingAsyncBackingParams: {
-    maxCandidateDepth: "u32",
-    allowedAncestryLen: "u32"
-  },
-  /**
-   * Lookup496: polkadot_core_primitives::OutboundHrmpMessage<polkadot_parachain_primitives::primitives::Id>
-   **/
-  PolkadotCorePrimitivesOutboundHrmpMessage: {
-    recipient: "u32",
-    data: "Bytes"
-  },
-  /**
-   * Lookup498: cumulus_pallet_parachain_system::pallet::Error<T>
-   **/
-  CumulusPalletParachainSystemError: {
-    _enum: [
-      "OverlappingUpgrades",
-      "ProhibitedByPolkadot",
-      "TooBig",
-      "ValidationDataNotAvailable",
-      "HostConfigurationNotAvailable",
-      "NotScheduled"
-    ]
+  PalletUtilityError: {
+    _enum: ["TooManyCalls"]
   },
   /**
    * Lookup499: pallet_transaction_payment::Releases
