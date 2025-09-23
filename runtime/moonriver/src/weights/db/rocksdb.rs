@@ -14,80 +14,81 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 32.0.0
-//! DATE: 2024-04-27 (Y/M/D)
+//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 48.0.0
+//! DATE: 2025-09-22 (Y/M/D)
 //! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
 //!
 //! DATABASE: `RocksDb`, RUNTIME: `Moonbeam`
-//! BLOCK-NUM: `BlockId::Number(5962022)`
+//! BLOCK-NUM: `BlockId::Number(12630729)`
 //! SKIP-WRITE: `false`, SKIP-READ: `false`, WARMUPS: `1`
-//! STATE-VERSION: `V0`, STATE-CACHE-SIZE: ``
-//! WEIGHT-PATH: `/home/ubuntu/projects/moonbeam/weights-rocksdb-moonbeam.rs`
+//! STATE-VERSION: `V1`, STATE-CACHE-SIZE: ``
+//! WEIGHT-PATH: `./benchmarks/storage/20250922-082315/disk-weights-rocksdb-moonbeam.rs`
 //! METRIC: `Average`, WEIGHT-MUL: `1.1`, WEIGHT-ADD: `0`
 
 // Executed Command:
-//   /home/ubuntu/projects/moonbeam/target/release/moonbeam
+//   ./moonbeam
 //   benchmark
 //   storage
 //   --db=rocksdb
-//   --state-version=0
+//   --state-version=1
 //   --mul=1.1
 //   --weight-path
-//   /home/ubuntu/projects/moonbeam/weights-rocksdb-moonbeam.rs
+//   ./benchmarks/storage/20250922-082315/disk-weights-rocksdb-moonbeam.rs
 //   --chain
 //   moonbeam
 //   --base-path
-//   /var/lib/rocksdb-moonbeam-data
+//   /mnt/disk3-6000-256/rocksdb-moonbeam-data
 //   --keys-limit
-//   10000000
+//   50000000
 //   --random-seed
 //   1024
 
 /// Storage DB weights for the `Moonbeam` runtime and `RocksDb`.
 pub mod constants {
-	use frame_support::weights::{constants, RuntimeDbWeight};
+	use frame_support::weights::constants;
 	use sp_core::parameter_types;
+	use sp_weights::RuntimeDbWeight;
 
 	parameter_types! {
 		/// By default, Substrate uses `RocksDB`, so this will be the weight used throughout
 		/// the runtime.
 		pub const RocksDbWeight: RuntimeDbWeight = RuntimeDbWeight {
-			// Time to read one storage item.
-			// Calculated by multiplying the *Average* of all values with `1.1` and adding `0`.
-			//
-			// Stats nanoseconds:
-			//   Min, Max: 2_300, 2_841_169
-			//   Average:  37_947
-			//   Median:   38_669
-			//   Std-Dev:  7331.86
-			//
-			// Percentiles nanoseconds:
-			//   99th: 55_974
-			//   95th: 49_824
-			//   75th: 42_570
-			read: 41_742 * constants::WEIGHT_REF_TIME_PER_NANOS,
+			/// Time to read one storage item.
+			/// Calculated by multiplying the *Average* of all values with `1.1` and adding `0`.
+			///
+			/// Stats nanoseconds:
+			///   Min, Max: 1_774, 4_131_758
+			///   Average:  53_833
+			///   Median:   47_991
+			///   Std-Dev:  44586.1
+			///
+			/// Percentiles nanoseconds:
+			///   99th: 236_090
+			///   95th: 67_897
+			///   75th: 54_501
+			read: 59_217 * constants::WEIGHT_REF_TIME_PER_NANOS,
 
-			// Time to write one storage item.
-			// Calculated by multiplying the *Average* of all values with `1.1` and adding `0`.
-			//
-			// Stats nanoseconds:
-			//   Min, Max: 18_981, 16_772_373
-			//   Average:  73_893
-			//   Median:   72_807
-			//   Std-Dev:  24543.58
-			//
-			// Percentiles nanoseconds:
-			//   99th: 97_152
-			//   95th: 85_751
-			//   75th: 77_392
-			write: 81_283 * constants::WEIGHT_REF_TIME_PER_NANOS,
+			/// Time to write one storage item.
+			/// Calculated by multiplying the *Average* of all values with `1.1` and adding `0`.
+			///
+			/// Stats nanoseconds:
+			///   Min, Max: 10_807, 13_782_646
+			///   Average:  87_559
+			///   Median:   73_293
+			///   Std-Dev:  191482.81
+			///
+			/// Percentiles nanoseconds:
+			///   99th: 212_681
+			///   95th: 111_877
+			///   75th: 82_079
+			write: 96_315 * constants::WEIGHT_REF_TIME_PER_NANOS,
 		};
 	}
 
 	#[cfg(test)]
 	mod test_db_weights {
 		use super::constants::RocksDbWeight as W;
-		use frame_support::weights::constants;
+		use sp_weights::constants;
 
 		/// Checks that all weights exist and have sane values.
 		// NOTE: If this test fails but you are sure that the generated values are fine,
