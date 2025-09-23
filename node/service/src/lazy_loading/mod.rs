@@ -17,14 +17,12 @@
 use crate::chain_spec::Extensions;
 use crate::{
 	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
-	ClientCustomizations, FrontierBlockImport, HostFunctions, PartialComponentsResult,
-	PendingConsensusDataProvider, RuntimeApiCollection, RELAY_CHAIN_SLOT_DURATION_MILLIS,
-	SOFT_DEADLINE_PERCENT,
+	ClientCustomizations, FrontierBlockImport, HostFunctions, MockTimestampInherentDataProvider,
+	PartialComponentsResult, PendingConsensusDataProvider, RuntimeApiCollection,
+	RELAY_CHAIN_SLOT_DURATION_MILLIS, SOFT_DEADLINE_PERCENT, TIMESTAMP,
 };
 use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 use cumulus_primitives_core::{relay_chain, BlockT, CollectCollationInfo, ParaId};
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_rpc::StorageOverrideHandler;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use frontier_backend::LazyLoadingFrontierBackend;
@@ -34,9 +32,7 @@ use moonbeam_core_primitives::{Block, Hash};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_primitives::NimbusId;
 use parity_scale_codec::Encode;
-use polkadot_primitives::{
-	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
-};
+use polkadot_primitives::{AbridgedHostConfiguration, AsyncBackingParams, Slot, UpgradeGoAhead};
 use sc_chain_spec::{get_extension, BuildGenesisBlock, ChainType, GenesisBlockBuilder};
 use sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks};
 use sc_executor::{HeapAllocStrategy, RuntimeVersionOf, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
@@ -56,6 +52,7 @@ use sp_core::H256;
 use sp_runtime::traits::NumberFor;
 use std::collections::BTreeMap;
 use std::str::FromStr;
+use std::sync::atomic::Ordering;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -315,28 +312,7 @@ where
 	let frontier_backend = Arc::new(open_frontier_backend(client.clone(), config, rpc_config)?);
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
-	let create_inherent_data_providers = move |_, _| async move {
-		let time = sp_timestamp::InherentDataProvider::from_system_time();
-		// Create a dummy parachain inherent data provider which is required to pass
-		// the checks by the para chain system. We use dummy values because in the 'pending context'
-		// neither do we have access to the real values nor do we need them.
-		let (relay_parent_storage_root, relay_chain_state) =
-			RelayStateSproofBuilder::default().into_state_root_and_proof();
-		let vfp = PersistedValidationData {
-			// This is a hack to make `cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases`
-			// happy. Relay parent number can't be bigger than u32::MAX.
-			relay_parent_number: u32::MAX,
-			relay_parent_storage_root,
-			..Default::default()
-		};
-		let parachain_inherent_data = ParachainInherentData {
-			validation_data: vfp,
-			relay_chain_state,
-			downward_messages: Default::default(),
-			horizontal_messages: Default::default(),
-		};
-		Ok((time, parachain_inherent_data))
-	};
+	let create_inherent_data_providers = move |_, _| async move { Ok(()) };
 
 	let import_queue = nimbus_consensus::import_queue(
 		client.clone(),
@@ -557,7 +533,7 @@ where
 		dev_rpc_data = Some((
 			downward_xcm_sender,
 			hrmp_xcm_sender,
-			additional_relay_offset,
+			additional_relay_offset.clone(),
 		));
 
 		// Need to clone it and store here to avoid moving of `client`
@@ -603,17 +579,20 @@ where
 					let maybe_current_para_head = client_for_cidp.expect_header(block);
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
+					let additional_relay_offset = additional_relay_offset.clone();
 
 					// Need to clone it and store here to avoid moving of `client`
 					// variable in closure below.
 					let client_for_xcm = client_for_cidp.clone();
 
 					async move {
-						let time = sp_timestamp::InherentDataProvider::from_system_time();
+						MockTimestampInherentDataProvider::advance_timestamp(
+							RELAY_CHAIN_SLOT_DURATION_MILLIS,
+						);
 
 						// Get the mocked timestamp
-						let timestamp = time.timestamp().as_millis();
-						// Calculate mocked relay chain slot
+						let timestamp = TIMESTAMP.load(Ordering::SeqCst);
+						// Calculate mocked slot number
 						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
 						let current_para_block = maybe_current_para_block?
@@ -624,10 +603,17 @@ where
 						));
 
 						let additional_key_values = vec![
+							// TODO: TIMESTAMP_NOW can be removed after runtime 4000
 							(
+								#[allow(deprecated)]
 								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
 								timestamp.encode(),
+							),
+							// Override current slot number
+							(
+								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
+								Slot::from(slot).encode(),
 							),
 							(
 								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),
@@ -647,11 +633,6 @@ where
 									},
 								}
 								.encode(),
-							),
-							// Override current slot number
-							(
-								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
-								Slot::from(slot).encode(),
 							),
 						];
 
@@ -681,7 +662,7 @@ where
 								UpgradeGoAhead::GoAhead
 							}),
 							current_para_block_head,
-							relay_offset: 0,
+							relay_offset: additional_relay_offset.load(Ordering::SeqCst),
 							relay_blocks_per_para_block: 1,
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
@@ -697,7 +678,11 @@ where
 
 						let randomness = session_keys_primitives::InherentDataProvider;
 
-						Ok((time, mocked_parachain, randomness))
+						Ok((
+							MockTimestampInherentDataProvider,
+							mocked_parachain,
+							randomness,
+						))
 					}
 				},
 			}),

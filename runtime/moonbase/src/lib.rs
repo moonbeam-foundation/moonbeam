@@ -84,9 +84,7 @@ use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::{
-	impl_asset_conversion::AssetRateConverter,
-	impl_multiasset_paymaster::MultiAssetPaymaster,
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+	impl_asset_conversion::AssetRateConverter, impl_multiasset_paymaster::MultiAssetPaymaster,
 };
 use nimbus_primitives::CanAuthor;
 use pallet_ethereum::Call::transact;
@@ -538,7 +536,7 @@ impl pallet_evm::Config for Runtime {
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	type Timestamp = RelayTimestamp;
+	type Timestamp = Timestamp;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 
 	type WeightInfo = moonbase_weights::pallet_evm::WeightInfo<Runtime>;
@@ -758,7 +756,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = EmergencyParaXcm;
-	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
+	type ConsensusHook = ConsensusHook;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = moonbase_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;

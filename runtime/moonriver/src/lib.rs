@@ -68,15 +68,12 @@ pub use moonbeam_core_primitives::{
 	Index, Signature,
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
+use moonbeam_runtime_common::impl_asset_conversion::AssetRateConverter;
 use moonbeam_runtime_common::{
 	deal_with_fees::{
 		DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
 	},
 	impl_multiasset_paymaster::MultiAssetPaymaster,
-};
-use moonbeam_runtime_common::{
-	impl_asset_conversion::AssetRateConverter,
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
 };
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_ethereum::Call::transact;
@@ -540,7 +537,7 @@ impl pallet_evm::Config for Runtime {
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	type Timestamp = RelayTimestamp;
+	type Timestamp = Timestamp;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 	type WeightInfo = moonriver_weights::pallet_evm::WeightInfo<Runtime>;
 	type CreateOriginFilter = ();
@@ -758,7 +755,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = EmergencyParaXcm;
-	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
+	type ConsensusHook = ConsensusHook;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = moonriver_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;

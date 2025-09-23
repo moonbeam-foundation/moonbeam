@@ -223,11 +223,17 @@ where
 
 	let pending_create_inherent_data_providers = move |_, _| async move {
 		let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+
+		let builder = RelayStateSproofBuilder {
+			current_slot: polkadot_primitives::Slot::from(u64::MAX),
+			..Default::default()
+		};
+
 		// Create a dummy parachain inherent data provider which is required to pass
 		// the checks by the para chain system. We use dummy values because in the 'pending context'
 		// neither do we have access to the real values nor do we need them.
-		let (relay_parent_storage_root, relay_chain_state) =
-			RelayStateSproofBuilder::default().into_state_root_and_proof();
+		let (relay_parent_storage_root, relay_chain_state) = builder.into_state_root_and_proof();
+
 		let vfp = PersistedValidationData {
 			// This is a hack to make `cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases`
 			// happy. Relay parent number can't be bigger than u32::MAX.

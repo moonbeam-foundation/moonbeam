@@ -571,8 +571,8 @@ where
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
 	let create_inherent_data_providers = move |_, _| async move {
-		let time = sp_timestamp::InherentDataProvider::from_system_time();
-		Ok((time,))
+		// The timestamp inherent will be provided by the collator
+		Ok(())
 	};
 
 	let (import_queue, block_import) = if dev_service {
@@ -1023,13 +1023,11 @@ where
 	);
 
 	let create_inherent_data_providers = |_, _| async move {
-		let time = sp_timestamp::InherentDataProvider::from_system_time();
-
 		let author = nimbus_primitives::InherentDataProvider;
 
 		let randomness = session_keys_primitives::InherentDataProvider;
 
-		Ok((time, author, randomness))
+		Ok((author, randomness))
 	};
 
 	let client_clone = client.clone();
@@ -1060,6 +1058,8 @@ where
 			nimbus_consensus::collators::lookahead::Params {
 				additional_digests_provider: maybe_provide_vrf_digest,
 				additional_relay_keys: vec![
+					// TODO: Can be removed after runtime 4000
+					#[allow(deprecated)]
 					moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
 					relay_chain::well_known_keys::EPOCH_INDEX.to_vec(),
 				],
@@ -1319,6 +1319,7 @@ where
 					let maybe_current_para_head = client_for_cidp.expect_header(block);
 					let downward_xcm_receiver = downward_xcm_receiver.clone();
 					let hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
+					let additional_relay_offset = additional_relay_offset.clone();
 					let relay_slot_key = well_known_keys::CURRENT_SLOT.to_vec();
 
 					// Need to clone it and store here to avoid moving of `client`
@@ -1343,11 +1344,6 @@ where
 						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
 						let additional_key_values = vec![
-							(
-								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
-									.to_vec(),
-								timestamp.encode(),
-							),
 							(relay_slot_key, Slot::from(slot).encode()),
 							(
 								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),
@@ -1380,7 +1376,6 @@ where
 							.collect_collation_info(block, &current_para_head)
 						{
 							Ok(info) => info.new_validation_code.is_some(),
-
 							Err(e) => {
 								log::error!("Failed to collect collation info: {:?}", e);
 
@@ -1401,7 +1396,7 @@ where
 								UpgradeGoAhead::GoAhead
 							}),
 							current_para_block_head,
-							relay_offset: 0,
+							relay_offset: additional_relay_offset.load(Ordering::SeqCst),
 							relay_blocks_per_para_block: 1,
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
