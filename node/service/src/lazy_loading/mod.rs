@@ -478,6 +478,10 @@ where
 	let mut dev_rpc_data = None;
 	let collator = config.role.is_authority();
 
+	let parachain_id: ParaId = helpers::get_parachain_id(backend.rpc_client.clone())
+		.unwrap_or_else(|| panic!("Could not get parachain identifier for lazy loading mode."))
+		.into();
+
 	if collator {
 		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
@@ -550,9 +554,6 @@ where
 					parent,
 				)
 			};
-
-		let parachain_id = helpers::get_parachain_id(backend.rpc_client.clone())
-			.unwrap_or_else(|| panic!("Could not get parachain identifier for lazy loading mode."));
 
 		// Need to clone it and store here to avoid moving of `client`
 		// variable in closure below.
@@ -654,7 +655,7 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
-							para_id: ParaId::new(parachain_id),
+							para_id: parachain_id,
 							upgrade_go_ahead: should_send_go_ahead.then(|| {
 								log::info!(
 									"Detected pending validation code, sending go-ahead signal."
@@ -808,6 +809,7 @@ where
 					}),
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					parachain_id,
 				)
 				.map_err(Into::into)
 			} else {
@@ -817,6 +819,7 @@ where
 					None,
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					parachain_id,
 				)
 				.map_err(Into::into)
 			}

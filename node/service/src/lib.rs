@@ -732,7 +732,7 @@ where
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue: params.import_queue,
-			para_id,
+			para_id: para_id.clone(),
 			relay_chain_interface: relay_chain_interface.clone(),
 			net_config,
 			sybil_resistance_level: CollatorSybilResistance::Resistant,
@@ -876,6 +876,7 @@ where
 					}),
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					para_id,
 				)
 				.map_err(Into::into)
 			} else {
@@ -885,6 +886,7 @@ where
 					None,
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					para_id,
 				)
 				.map_err(Into::into)
 			}
@@ -1221,6 +1223,10 @@ where
 	let mut dev_rpc_data = None;
 	let collator = config.role.is_authority();
 
+	let parachain_id: ParaId = para_id
+		.expect("para ID should be specified for dev service")
+		.into();
+
 	if collator {
 		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
@@ -1385,9 +1391,7 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
-							para_id: para_id
-								.expect("para ID should be specified for dev service")
-								.into(),
+							para_id: parachain_id,
 							upgrade_go_ahead: should_send_go_ahead.then(|| {
 								log::info!(
 									"Detected pending validation code, sending go-ahead signal."
@@ -1535,6 +1539,7 @@ where
 					}),
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					parachain_id,
 				)
 				.map_err(Into::into)
 			} else {
@@ -1544,6 +1549,7 @@ where
 					None,
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					parachain_id,
 				)
 				.map_err(Into::into)
 			}
