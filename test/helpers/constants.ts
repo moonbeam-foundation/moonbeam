@@ -106,7 +106,7 @@ export const RUNTIME_CONSTANTS = {
     // MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES
     MAX_ETH_POV_PER_TX: new RuntimeConstant({ 3600: 6_500_000n, 0: 3_250_000n }),
     // Storage read/write costs
-    STORAGE_READ_COST: 41_742_000n,
+    STORAGE_READ_COST: 59_217_000n,
     // Weight to gas conversion ratio
     WEIGHT_TO_GAS_RATIO: 25_000n,
 
@@ -152,7 +152,7 @@ export const RUNTIME_CONSTANTS = {
     // MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES
     MAX_ETH_POV_PER_TX: new RuntimeConstant({ 3600: 6_500_000n, 0: 3_250_000n }),
     // Storage read/write costs
-    STORAGE_READ_COST: 41_742_000n,
+    STORAGE_READ_COST: 59_217_000n,
     // Weight to gas conversion ratio
     WEIGHT_TO_GAS_RATIO: 25_000n,
 
@@ -198,7 +198,7 @@ export const RUNTIME_CONSTANTS = {
     // MAX_ETH_POV_PER_TX = EXTRINSIC_GAS_LIMIT / GAS_PER_POV_BYTES
     MAX_ETH_POV_PER_TX: new RuntimeConstant({ 3700: 6_500_000n, 0: 3_250_000n }),
     // Storage read/write costs
-    STORAGE_READ_COST: 41_742_000n,
+    STORAGE_READ_COST: 59_217_000n,
     // Weight to gas conversion ratio
     WEIGHT_TO_GAS_RATIO: 25_000n,
 
