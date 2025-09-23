@@ -571,8 +571,8 @@ where
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
 	let create_inherent_data_providers = move |_, _| async move {
-		// The timestamp inherent will be provided by the collator
-		Ok(())
+		let time = sp_timestamp::InherentDataProvider::from_system_time();
+		Ok((time,))
 	};
 
 	let (import_queue, block_import) = if dev_service {
