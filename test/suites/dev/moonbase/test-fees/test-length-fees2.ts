@@ -67,7 +67,7 @@ describeSuite({
         );
 
         // Calculate execution gas costs
-        const is_precompile_check_gas = 1669n;
+        const is_precompile_check_gas = 2368n;
         const modexp_min_cost = 200n * 20n; // see MIN_GAS_COST in frontier's modexp precompile
         const executionGas = modexp_min_cost + is_precompile_check_gas;
 
