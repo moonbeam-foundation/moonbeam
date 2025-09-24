@@ -12,6 +12,7 @@ jobs:
       - name: Install required dependencies
         run: |
           sudo apt-get install -y libprotobuf-dev protobuf-compiler
+          cargo +nightly component add rust-src rustc-dev llvm-tools-preview
           cargo +nightly install cargo-scout-audit
 
       - name: Checkout
