@@ -4,6 +4,7 @@ import { encodeFunctionData, type Abi, parseEther } from "viem";
 import { sendRawTransaction } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount, createViemTransaction } from "./helpers";
+import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D020804",
@@ -65,7 +66,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signedTx);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
 
         // Gas used should include authorization costs
@@ -120,7 +121,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signedTx);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         // Gas should include cost for 3 authorizations
         const minExpectedGas = PER_AUTH_BASE_COST * 3n;
@@ -184,12 +185,8 @@ describeSuite({
 
         // Get gas used for both transactions
         const receipts = await Promise.all([
-          context.viem().getTransactionReceipt({
-            hash: result.result![0].hash as `0x${string}`,
-          }),
-          context.viem().getTransactionReceipt({
-            hash: result.result![1].hash as `0x${string}`,
-          }),
+          getTransactionReceiptWithRetry(context, result.result![0].hash as `0x${string}`),
+          getTransactionReceiptWithRetry(context, result.result![1].hash as `0x${string}`),
         ]);
 
         const coldGas = receipts[0].gasUsed;
@@ -268,7 +265,7 @@ describeSuite({
           const hash = await sendRawTransaction(context, signature);
           await context.createBlock();
 
-          const receipt = await context.viem().getTransactionReceipt({ hash });
+          const receipt = await getTransactionReceiptWithRetry(context, hash);
           console.log(`Transaction with exact intrinsic gas status: ${receipt.status}`);
           // Should have failed due to insufficient gas
           expect(receipt.status).toBe("reverted");
@@ -287,7 +284,7 @@ describeSuite({
           const hash = await sendRawTransaction(context, signature);
           await context.createBlock();
 
-          const receipt = await context.viem().getTransactionReceipt({ hash });
+          const receipt = await getTransactionReceiptWithRetry(context, hash);
           console.log(`Transaction with intrinsic + 1 gas status: ${receipt.status}`);
           // Should have failed due to insufficient gas for execution
           expect(receipt.status).toBe("reverted");
@@ -306,7 +303,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         console.log(`Transaction with sufficient gas:`);
         console.log(`  Gas limit: ${intrinsicGas + executionGasEstimate}`);
@@ -418,7 +415,7 @@ describeSuite({
         const clearHash = await sendRawTransaction(context, clearSignature);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash: clearHash });
+        const receipt = await getTransactionReceiptWithRetry(context, clearHash);
 
         expect(receipt.status).toBe("success");
 

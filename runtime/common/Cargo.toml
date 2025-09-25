@@ -66,6 +66,7 @@ std = [
 	"cumulus-primitives-core/std",
 	"xcm/std",
 	"account/std",
+	"pallet-xcm-bridge/std",
 ]
 runtime-benchmarks = [
 	"cumulus-primitives-core/runtime-benchmarks",

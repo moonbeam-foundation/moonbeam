@@ -198,7 +198,7 @@ pub mod pallet {
 		/// Get the slot duration in milliseconds
 		#[pallet::constant]
 		type SlotDuration: Get<u64>;
-		/// Get the average time beetween 2 blocks in milliseconds
+		/// Get the average time between 2 blocks in milliseconds
 		#[pallet::constant]
 		type BlockTime: Get<u64>;
 		/// Maximum candidates

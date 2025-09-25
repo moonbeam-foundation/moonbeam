@@ -21,7 +21,6 @@ pub mod cumulus_pallet_xcmp_queue;
 pub mod db;
 pub mod frame_system;
 pub mod frame_system_extensions;
-pub mod pallet_assets;
 pub mod pallet_author_inherent;
 pub mod pallet_author_mapping;
 pub mod pallet_author_slot_filter;
@@ -58,12 +57,4 @@ pub mod pallet_xcm_transactor;
 pub mod pallet_xcm_weight_trader;
 pub mod xcm;
 
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-mod bridge_weights;
 pub mod cumulus_pallet_weight_reclaim;
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub mod pallet_bridge_grandpa;
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub mod pallet_bridge_messages;
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub mod pallet_bridge_parachains;

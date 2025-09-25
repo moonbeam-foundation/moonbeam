@@ -142,7 +142,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::XcmpQueue>("XcmpQueue");
 	is_pallet_prefix::<moonbeam_runtime::CumulusXcm>("CumulusXcm");
 	is_pallet_prefix::<moonbeam_runtime::PolkadotXcm>("PolkadotXcm");
-	is_pallet_prefix::<moonbeam_runtime::Assets>("Assets");
 	is_pallet_prefix::<moonbeam_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbeam_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonbeam_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -448,8 +447,8 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::XcmpQueue>(100);
 	is_pallet_index::<moonbeam_runtime::CumulusXcm>(101);
 	is_pallet_index::<moonbeam_runtime::PolkadotXcm>(103);
-	is_pallet_index::<moonbeam_runtime::Assets>(104);
-	// is_pallet_index::<moonbeam_runtime::AssetManager>(105);
+	// is_pallet_index::<moonbeam_runtime::Assets>(104); Removed
+	// is_pallet_index::<moonbeam_runtime::AssetManager>(105); Removed
 	// is_pallet_index::<moonbeam_runtime::XTokens>(106); Removed
 	is_pallet_index::<moonbeam_runtime::XcmTransactor>(107);
 	is_pallet_index::<moonbeam_runtime::BridgeKusamaGrandpa>(130);
@@ -3561,5 +3560,59 @@ mod fee_tests {
 				U256::from(3_125_000_000_000_000u128), // upper bound enforced
 			);
 		});
+	}
+}
+
+#[cfg(test)]
+mod balance_tests {
+	use crate::common::{ExtBuilder, ALICE};
+	use frame_support::assert_ok;
+	use frame_support::traits::LockableCurrency;
+	use frame_support::traits::{LockIdentifier, ReservableCurrency, WithdrawReasons};
+	use moonbeam_core_primitives::AccountId;
+	use moonbeam_runtime::{Balances, Runtime, System};
+
+	#[test]
+	fn reserve_should_work_for_frozen_balance() {
+		let alice = AccountId::from(ALICE);
+		const ID_1: LockIdentifier = *b"1       ";
+
+		ExtBuilder::default()
+			.with_balances(vec![(alice, 10)])
+			.build()
+			.execute_with(|| {
+				// Check balances
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 10);
+				assert_eq!(account.frozen, 0);
+				assert_eq!(account.reserved, 0);
+
+				Balances::set_lock(ID_1, &alice, 9, WithdrawReasons::RESERVE);
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 10);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(account.reserved, 0);
+
+				assert_ok!(Balances::reserve(&alice, 5));
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 5);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(account.reserved, 5);
+
+				let previous_reserved_amount = account.reserved;
+				let ed: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
+				let next_reserve = account.free.saturating_sub(ed);
+				assert_ok!(Balances::reserve(&alice, next_reserve));
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, ed);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(
+					account.reserved,
+					previous_reserved_amount.saturating_add(next_reserve)
+				);
+			});
 	}
 }
