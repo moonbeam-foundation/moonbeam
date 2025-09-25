@@ -1,9 +1,9 @@
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS, BALTATHAR_ADDRESS, generateKeyringPair } from "@moonwall/util";
-import type { ApiPromise } from "@polkadot/api";
-import { u8aToHex } from "@polkadot/util";
+import {beforeAll, describeSuite, expect} from "@moonwall/cli";
+import {alith, ALITH_ADDRESS, BALTATHAR_ADDRESS, generateKeyringPair} from "@moonwall/util";
+import type {ApiPromise} from "@polkadot/api";
+import {u8aToHex} from "@polkadot/util";
 import {
-  convertXcmFragmentToVersion,
+  convertXcmFragmentToVersion, ERC20_TOTAL_SUPPLY,
   wrapWithXcmVersion,
   XCM_VERSIONS,
   XcmFragment,
@@ -13,7 +13,7 @@ describeSuite({
   id: "D024016",
   title: "XCM - DryRunApi",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({context, it}) => {
     let polkadotJs: ApiPromise;
 
     beforeAll(async function () {
@@ -27,7 +27,7 @@ describeSuite({
         test: async function () {
           const metadata = await context.polkadotJs().rpc.state.getMetadata();
           const balancesPalletIndex = metadata.asLatest.pallets
-            .find(({ name }) => name.toString() === "Balances")!
+            .find(({name}) => name.toString() === "Balances")!
             .index.toNumber();
 
           const randomReceiver =
@@ -56,7 +56,7 @@ describeSuite({
                   Concrete: {
                     parents: 0,
                     interior: {
-                      X1: { PalletInstance: Number(balancesPalletIndex) },
+                      X1: {PalletInstance: Number(balancesPalletIndex)},
                     },
                   },
                 },
@@ -86,7 +86,7 @@ describeSuite({
           );
 
           const dryRunCall = await polkadotJs.call.dryRunApi.dryRunCall(
-            { System: { signed: alith.address } },
+            {System: {signed: alith.address}},
             polkadotXcmTx,
             xcmVersion
           );
@@ -102,7 +102,7 @@ describeSuite({
         test: async function () {
           const metadata = await context.polkadotJs().rpc.state.getMetadata();
           const balancesPalletIndex = metadata.asLatest.pallets
-            .find(({ name }) => name.toString() === "Balances")!
+            .find(({name}) => name.toString() === "Balances")!
             .index.toNumber();
           const randomKeyPair = generateKeyringPair();
 
@@ -113,7 +113,7 @@ describeSuite({
                 multilocation: {
                   parents: 0,
                   interior: {
-                    X1: { PalletInstance: Number(balancesPalletIndex) },
+                    X1: {PalletInstance: Number(balancesPalletIndex)},
                   },
                 },
                 fungible: 1_000_000_000_000_000n,
@@ -132,7 +132,7 @@ describeSuite({
           const dryRunXcm = await polkadotJs.call.dryRunApi.dryRunXcm(
             wrapWithXcmVersion(
               {
-                Concrete: { parent: 1, interior: { Here: null } },
+                Concrete: {parent: 1, interior: {Here: null}},
               },
               xcmVersion
             ),
@@ -148,9 +148,17 @@ describeSuite({
         id: "T03",
         title: "Dry run api should work with erc20 bridget tokens",
         test: async function () {
+          const {
+            contractAddress,
+            status
+          } = await context.deployContract!("ERC20WithInitialSupply", {
+            args: ["ERC20", "20S", ALITH_ADDRESS, ERC20_TOTAL_SUPPLY],
+          });
+          expect(status).eq("success");
+
           const origin = wrapWithXcmVersion(
             {
-              Concrete: { parent: 1, interior: { X1: { Parachain: 2034 } } },
+              Concrete: {parent: 1, interior: {X1: {Parachain: 2034}}},
             },
             xcmVersion
           );
@@ -161,7 +169,7 @@ describeSuite({
                 multilocation: {
                   parents: 0,
                   interior: {
-                    X1: { PalletInstance: 10 },
+                    X1: {PalletInstance: 10}, // Balances
                   },
                 },
                 fungible: 800_000_000_000_000_000n,
@@ -171,11 +179,11 @@ describeSuite({
                   parents: 0,
                   interior: {
                     X2: [
-                      { PalletInstance: 110 },
+                      {PalletInstance: 110}, // Erc20XcmBridge
                       {
                         AccountKey20: {
                           network: null,
-                          key: ALITH_ADDRESS,
+                          key: contractAddress,
                         },
                       },
                     ],
@@ -194,13 +202,8 @@ describeSuite({
           xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
           const dryRunXcm = await polkadotJs.call.dryRunApi.dryRunXcm(
-            wrapWithXcmVersion(
-              {
-                Concrete: { parent: 1, interior: { Here: null } },
-              },
-              xcmVersion
-            ),
-            xcmMessage
+            origin,
+            xcmMessage,
           );
 
           expect(dryRunXcm.isOk).to.be.true;
