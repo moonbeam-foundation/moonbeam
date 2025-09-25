@@ -1,7 +1,7 @@
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { alith, generateKeyringPair } from "@moonwall/util";
-import type { ApiPromise } from "@polkadot/api";
-import { u8aToHex } from "@polkadot/util";
+import {beforeAll, describeSuite, expect} from "@moonwall/cli";
+import {alith, ALITH_ADDRESS, BALTATHAR_ADDRESS, generateKeyringPair} from "@moonwall/util";
+import type {ApiPromise} from "@polkadot/api";
+import {u8aToHex} from "@polkadot/util";
 import {
   convertXcmFragmentToVersion,
   wrapWithXcmVersion,
@@ -13,7 +13,7 @@ describeSuite({
   id: "D024016",
   title: "XCM - DryRunApi",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({context, it}) => {
     let polkadotJs: ApiPromise;
 
     beforeAll(async function () {
@@ -27,7 +27,7 @@ describeSuite({
         test: async function () {
           const metadata = await context.polkadotJs().rpc.state.getMetadata();
           const balancesPalletIndex = metadata.asLatest.pallets
-            .find(({ name }) => name.toString() === "Balances")!
+            .find(({name}) => name.toString() === "Balances")!
             .index.toNumber();
 
           const randomReceiver =
@@ -56,7 +56,7 @@ describeSuite({
                   Concrete: {
                     parents: 0,
                     interior: {
-                      X1: { PalletInstance: Number(balancesPalletIndex) },
+                      X1: {PalletInstance: Number(balancesPalletIndex)},
                     },
                   },
                 },
@@ -86,7 +86,7 @@ describeSuite({
           );
 
           const dryRunCall = await polkadotJs.call.dryRunApi.dryRunCall(
-            { System: { signed: alith.address } },
+            {System: {signed: alith.address}},
             polkadotXcmTx,
             xcmVersion
           );
@@ -102,7 +102,7 @@ describeSuite({
         test: async function () {
           const metadata = await context.polkadotJs().rpc.state.getMetadata();
           const balancesPalletIndex = metadata.asLatest.pallets
-            .find(({ name }) => name.toString() === "Balances")!
+            .find(({name}) => name.toString() === "Balances")!
             .index.toNumber();
           const randomKeyPair = generateKeyringPair();
 
@@ -113,7 +113,7 @@ describeSuite({
                 multilocation: {
                   parents: 0,
                   interior: {
-                    X1: { PalletInstance: Number(balancesPalletIndex) },
+                    X1: {PalletInstance: Number(balancesPalletIndex)},
                   },
                 },
                 fungible: 1_000_000_000_000_000n,
@@ -132,7 +132,7 @@ describeSuite({
           const dryRunXcm = await polkadotJs.call.dryRunApi.dryRunXcm(
             wrapWithXcmVersion(
               {
-                Concrete: { parent: 1, interior: { Here: null } },
+                Concrete: {parent: 1, interior: {Here: null}},
               },
               xcmVersion
             ),
@@ -143,6 +143,69 @@ describeSuite({
           expect(dryRunXcm.asOk.executionResult.isComplete).be.true;
         },
       });
+
+      it({
+        id: "T03",
+        title: "Dry run api should work with erc20 bridget tokens",
+        test: async function () {
+          const origin = wrapWithXcmVersion({
+              Concrete: {parent: 1, interior: {X1: {Parachain: 2034}}},
+            },
+            xcmVersion,
+          );
+          let xcmMessage = new XcmFragment({
+            beneficiary: BALTATHAR_ADDRESS,
+            assets: [
+              {
+                multilocation: {
+                  parents: 0,
+                  interior: {
+                    X1: {PalletInstance: 10},
+                  }
+                },
+                fungible: 800_000_000_000_000_000n,
+              },
+              {
+                multilocation: {
+                  parents: 0,
+                  interior: {
+                    X2: [
+                      {PalletInstance: 110},
+                      {
+                        AccountKey20: {
+                          network: null,
+                          key: ALITH_ADDRESS,
+                        }
+                      }
+                    ]
+                  }
+                },
+                fungible: 3_053_014_345_811_929n,
+              }
+            ]
+          })
+            .withdraw_asset()
+            .clear_origin()
+            .buy_execution()
+            .deposit_asset()
+            .set_topic();
+
+          xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
+
+          const dryRunXcm = await polkadotJs.call.dryRunApi.dryRunXcm(
+            wrapWithXcmVersion(
+              {
+                Concrete: {parent: 1, interior: {Here: null}},
+              },
+              xcmVersion
+            ),
+            xcmMessage
+          );
+
+          expect(dryRunXcm.isOk).to.be.true;
+          expect(dryRunXcm.asOk.executionResult.isComplete).be.true;
+        }
+      })
     }
   },
 });
