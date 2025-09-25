@@ -674,6 +674,7 @@ const executeBatchMigrationWithRetry = async (
 
 describeSuite({
   id: "C02",
+  timeout: 3600000,
   title: "Chopsticks Staking Migration",
   foundationMethods: "chopsticks",
   testCases: ({ it, context, log }) => {
