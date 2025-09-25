@@ -42,7 +42,7 @@ use moonbase_runtime::{
 	EvmForeignAssets, Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm,
 	Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
 	TransactionPayment, TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective,
-	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS, WEIGHT_PER_GAS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -1078,7 +1078,12 @@ fn is_contributor_via_precompile() {
 						contributor: Address(BOB.into()),
 					},
 				)
-				.expect_cost(4736)
+				.expect_cost(
+					<Runtime as frame_system::Config>::DbWeight::get()
+						.read
+						.saturating_div(WEIGHT_PER_GAS)
+						.saturating_mul(2),
+				)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1091,7 +1096,12 @@ fn is_contributor_via_precompile() {
 						contributor: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(4736)
+				.expect_cost(
+					<Runtime as frame_system::Config>::DbWeight::get()
+						.read
+						.saturating_div(WEIGHT_PER_GAS)
+						.saturating_mul(2),
+				)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1162,7 +1172,12 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(4736)
+				.expect_cost(
+					<Runtime as frame_system::Config>::DbWeight::get()
+						.read
+						.saturating_div(WEIGHT_PER_GAS)
+						.saturating_mul(2),
+				)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -2624,7 +2639,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(4736)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2644,7 +2664,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(4736)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2674,7 +2699,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(4736)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2732,7 +2762,11 @@ fn test_xcm_utils_weight_message() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(2368)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS),
+			)
 			.expect_no_logs()
 			.execute_returns(expected_weight);
 	});
@@ -2751,7 +2785,12 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(4736)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});
