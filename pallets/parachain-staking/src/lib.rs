@@ -1559,7 +1559,7 @@ pub mod pallet {
 
 				// Set the freeze
 				if T::Currency::set_freeze(&freeze_reason.into(), account, amount).is_err() {
-					// set_freeze should be infallible as long a s the runtime use pallet balmance implementation and
+					// set_freeze should be infallible as long as the runtime use pallet balance implementation and
 					// set `MaxFreezes = VariantCountOf<RuntimeFreezeReason>`.
 					log::error!(
 						"Failed to set freeze for account {:?}, amount {:?}",
