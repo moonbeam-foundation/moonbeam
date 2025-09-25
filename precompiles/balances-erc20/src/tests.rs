@@ -602,7 +602,7 @@ fn deposit(data: Vec<u8>) {
 						to: CryptoAlith.into(),
 						amount: 500
 					}),
-					// Log is correctly emited.
+					// Log is correctly emitted.
 					RuntimeEvent::Evm(pallet_evm::Event::Log {
 						log: log2(
 							Precompile1,

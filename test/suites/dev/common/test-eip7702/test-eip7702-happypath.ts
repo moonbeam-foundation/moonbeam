@@ -4,6 +4,7 @@ import { sendRawTransaction } from "@moonwall/util";
 import { keccak256, concat, encodeFunctionData, numberToHex, type Abi } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createViemTransaction } from "./helpers";
+import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D020512",
@@ -107,7 +108,7 @@ describeSuite({
         console.log(`Transaction hash: ${hash}`);
 
         // Check transaction receipt
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         expect(receipt.status).toBe("success");
 
@@ -223,9 +224,7 @@ describeSuite({
         const incrementHash = await sendRawTransaction(context, signedIncrement);
         await context.createBlock();
 
-        const incrementReceipt = await context
-          .viem()
-          .getTransactionReceipt({ hash: incrementHash });
+        const incrementReceipt = await getTransactionReceiptWithRetry(context, incrementHash);
         expect(incrementReceipt.status).toBe("success");
 
         // Check updated balance through the delegated address
@@ -282,7 +281,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         // Check that delegation did not occur due to invalid nonce
         const codeAtDelegator = await context.viem().getCode({
@@ -351,7 +350,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         expect(receipt.status).toBe("success");
 
@@ -394,7 +393,7 @@ describeSuite({
         const clearHash = await sendRawTransaction(context, clearSignature);
         await context.createBlock();
 
-        const clearReceipt = await context.viem().getTransactionReceipt({ hash: clearHash });
+        const clearReceipt = await getTransactionReceiptWithRetry(context, clearHash);
 
         expect(clearReceipt.status).toBe("success");
 
@@ -490,7 +489,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         // Check that delegation did not occur due to chain ID mismatch
         const codeAtDelegator = await context.viem().getCode({

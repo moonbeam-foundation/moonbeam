@@ -37,7 +37,7 @@ describeSuite({
         id: `T0${TransactionTypes.indexOf(txnType) * 2 + 1}`,
         title: `${txnType} should fail setting it over the max block gas`,
         test: async function () {
-          expect(
+          await expect(
             async () =>
               await deployCreateCompiledContract(context, "MultiplyBy7", {
                 type: txnType,

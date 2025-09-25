@@ -3107,3 +3107,57 @@ mod fee_tests {
 		});
 	}
 }
+
+#[cfg(test)]
+mod balance_tests {
+	use crate::common::{ExtBuilder, ALICE};
+	use frame_support::assert_ok;
+	use frame_support::traits::LockableCurrency;
+	use frame_support::traits::{LockIdentifier, ReservableCurrency, WithdrawReasons};
+	use moonbase_runtime::{Balances, Runtime, System};
+	use moonbeam_core_primitives::AccountId;
+
+	#[test]
+	fn reserve_should_work_for_frozen_balance() {
+		let alice = AccountId::from(ALICE);
+		const ID_1: LockIdentifier = *b"1       ";
+
+		ExtBuilder::default()
+			.with_balances(vec![(alice, 10)])
+			.build()
+			.execute_with(|| {
+				// Check balances
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 10);
+				assert_eq!(account.frozen, 0);
+				assert_eq!(account.reserved, 0);
+
+				Balances::set_lock(ID_1, &alice, 9, WithdrawReasons::RESERVE);
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 10);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(account.reserved, 0);
+
+				assert_ok!(Balances::reserve(&alice, 5));
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 5);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(account.reserved, 5);
+
+				let previous_reserved_amount = account.reserved;
+				let ed: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
+				let next_reserve = account.free.saturating_sub(ed);
+				assert_ok!(Balances::reserve(&alice, next_reserve));
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, ed);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(
+					account.reserved,
+					previous_reserved_amount.saturating_add(next_reserve)
+				);
+			});
+	}
+}
