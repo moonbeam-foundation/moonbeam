@@ -98,7 +98,7 @@ describeSuite({
       });
 
       it({
-        id: "T02",
+        id: `T02-XCM-v${xcmVersion}`,
         title: "Should succeed calling DryRunApi::dryRunXcm",
         test: async function () {
           const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -146,7 +146,7 @@ describeSuite({
       });
 
       it({
-        id: "T03",
+        id: `T03-XCM-v${xcmVersion}`,
         title: "Dry run api should work with erc20 bridget tokens",
         test: async function () {
           const { contractAddress, status } = await context.deployContract!(
@@ -156,6 +156,11 @@ describeSuite({
             }
           );
           expect(status).eq("success");
+
+          const metadata = await context.polkadotJs().rpc.state.getMetadata();
+          const erc20XcmBridgePalletIndex = metadata.asLatest.pallets
+            .find(({ name }) => name.toString() === "Erc20XcmBridge")!
+            .index.toNumber();
 
           const origin = wrapWithXcmVersion(
             {
@@ -180,7 +185,7 @@ describeSuite({
                   parents: 0,
                   interior: {
                     X2: [
-                      { PalletInstance: 110 }, // Erc20XcmBridge
+                      { PalletInstance: erc20XcmBridgePalletIndex }, // Erc20XcmBridge
                       {
                         AccountKey20: {
                           network: null,
