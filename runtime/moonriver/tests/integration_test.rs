@@ -1385,7 +1385,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				3_125_000_000u128.into(),
-				Weight::from_parts(59_217_000u64, 0)
+				Weight::from_parts(<Runtime as frame_system::Config>::DbWeight::get().read, 0)
 			)
 		);
 	});
@@ -1405,7 +1405,10 @@ fn min_gas_fee_is_correct() {
 
 		assert_eq!(
 			TransactionPaymentAsGasPrice::min_gas_price(),
-			(312_500_000u128.into(), Weight::from_parts(59_217_000u64, 0))
+			(
+				312_500_000u128.into(),
+				Weight::from_parts(<Runtime as frame_system::Config>::DbWeight::get().read, 0)
+			)
 		);
 	});
 }
