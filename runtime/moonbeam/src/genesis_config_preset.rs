@@ -19,8 +19,8 @@ extern crate alloc;
 use crate::{
 	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
 	Balance, Balances, BalancesConfig, BridgeKusamaGrandpaConfig, BridgeKusamaMessagesConfig,
-	BridgeKusamaParachainsConfig, BridgeXcmOverMoonriverConfig, CrowdloanRewardsConfig, EVMConfig,
-	EligibilityValue, EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
+	BridgeKusamaParachainsConfig, BridgeXcmOverMoonriverConfig, EVMConfig, EligibilityValue,
+	EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
 	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
 	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
 	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmWeightTraderConfig, HOURS,
@@ -79,7 +79,6 @@ pub fn testnet_genesis(
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	endowed_accounts: Vec<AccountId>,
-	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
 ) -> serde_json::Value {
@@ -98,9 +97,6 @@ pub fn testnet_genesis(
 				.map(|k| (k, 1 << 110))
 				.collect(),
 			dev_accounts: Default::default(),
-		},
-		crowdloan_rewards: CrowdloanRewardsConfig {
-			funded_amount: crowdloan_fund_pot,
 		},
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
@@ -298,7 +294,6 @@ pub fn development() -> serde_json::Value {
 				"773539d4Ac0e786233D90A233654ccEE26a613D9"
 			)),
 		],
-		1_500_000 * GLMR * SUPPLY_FACTOR,
 		Default::default(), // para_id
 		1281,               //ChainId
 	)
