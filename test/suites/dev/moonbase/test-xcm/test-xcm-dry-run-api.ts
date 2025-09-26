@@ -4,11 +4,25 @@ import type { ApiPromise } from "@polkadot/api";
 import { u8aToHex } from "@polkadot/util";
 import {
   convertXcmFragmentToVersion,
+  descendOriginFromAddress20,
   ERC20_TOTAL_SUPPLY,
+  mockHrmpChannelExistanceTx,
+  sovereignAccountOfSibling,
   wrapWithXcmVersion,
   XCM_VERSIONS,
   XcmFragment,
 } from "../../../../helpers";
+import { parseEther } from "ethers";
+
+declare global {
+  interface BigInt {
+    toJSON(): string;
+  }
+}
+
+BigInt.prototype.toJSON = function () {
+  return this.toString();
+};
 
 describeSuite({
   id: "D024016",
@@ -131,12 +145,7 @@ describeSuite({
           xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
           const dryRunXcm = await polkadotJs.call.dryRunApi.dryRunXcm(
-            wrapWithXcmVersion(
-              {
-                Concrete: { parent: 1, interior: { Here: null } },
-              },
-              xcmVersion
-            ),
+            wrapWithXcmVersion({ parents: 1, interior: { Here: null } }, xcmVersion),
             xcmMessage
           );
 
@@ -149,23 +158,41 @@ describeSuite({
         id: `T03-XCM-v${xcmVersion}`,
         title: "Dry run api should work with erc20 bridget tokens",
         test: async function () {
+          const totalErc20Supply = 1_000_000_000_000_000_000n;
           const { contractAddress, status } = await context.deployContract!(
             "ERC20WithInitialSupply",
             {
-              args: ["ERC20", "20S", ALITH_ADDRESS, ERC20_TOTAL_SUPPLY],
+              args: ["ERC20", "20S", ALITH_ADDRESS, totalErc20Supply],
             }
           );
           expect(status).eq("success");
 
           const metadata = await context.polkadotJs().rpc.state.getMetadata();
+          const balancesPalletIndex = metadata.asLatest.pallets
+            .find(({ name }) => name.toString() === "Balances")!
+            .index.toNumber();
           const erc20XcmBridgePalletIndex = metadata.asLatest.pallets
             .find(({ name }) => name.toString() === "Erc20XcmBridge")!
             .index.toNumber();
 
+          const nativeAmountTransferred = 800_000_000_000_000_000n;
+          const erc20AmountTransferred = 3_053_014_345_811_929n;
+          const paraId = 2034;
+          const paraSovereign = sovereignAccountOfSibling(context, paraId);
+          await polkadotJs.tx.balances
+            .transferAllowDeath(paraSovereign, nativeAmountTransferred + parseEther("1"))
+            .signAndSend(alith);
+          const rawTx = await context.writeContract!({
+            contractName: "ERC20WithInitialSupply",
+            contractAddress: contractAddress as `0x${string}`,
+            functionName: "transfer",
+            args: [paraSovereign, erc20AmountTransferred + 1_000_000_000_000n],
+            rawTxOnly: true,
+          });
+          await context.createBlock([rawTx]);
+
           const origin = wrapWithXcmVersion(
-            {
-              Concrete: { parent: 1, interior: { X1: { Parachain: 2034 } } },
-            },
+            { parents: 1, interior: { X1: { Parachain: paraId } } },
             xcmVersion
           );
           let xcmMessage = new XcmFragment({
@@ -175,10 +202,10 @@ describeSuite({
                 multilocation: {
                   parents: 0,
                   interior: {
-                    X1: { PalletInstance: 10 }, // Balances
+                    X1: { PalletInstance: balancesPalletIndex }, // Balances
                   },
                 },
-                fungible: 800_000_000_000_000_000n,
+                fungible: nativeAmountTransferred,
               },
               {
                 multilocation: {
@@ -195,7 +222,7 @@ describeSuite({
                     ],
                   },
                 },
-                fungible: 3_053_014_345_811_929n,
+                fungible: erc20AmountTransferred,
               },
             ],
           })
@@ -208,6 +235,8 @@ describeSuite({
           xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
           const dryRunXcm = await polkadotJs.call.dryRunApi.dryRunXcm(origin, xcmMessage);
+
+          console.log(dryRunXcm.asOk.executionResult.toJSON());
 
           expect(dryRunXcm.isOk).to.be.true;
           expect(dryRunXcm.asOk.executionResult.isComplete).be.true;
