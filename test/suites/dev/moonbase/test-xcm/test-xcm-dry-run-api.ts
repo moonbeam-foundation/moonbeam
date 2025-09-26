@@ -145,7 +145,7 @@ describeSuite({
           xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
           const dryRunXcm = await polkadotJs.call.dryRunApi.dryRunXcm(
-            wrapWithXcmVersion({ parents: 1, interior: { Here: null } }, xcmVersion),
+            wrapWithXcmVersion({ parents: 0, interior: { Here: null } }, xcmVersion),
             xcmMessage
           );
 
