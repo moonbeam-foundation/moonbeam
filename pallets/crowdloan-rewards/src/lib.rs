@@ -225,7 +225,6 @@ pub mod pallet {
 		///
 		/// The number of valid proofs needs to be bigger than 'RewardAddressRelayVoteThreshold'
 		/// The account to be changed needs to be submitted as 'previous_account'
-
 		/// Origin must be RewardAddressChangeOrigin
 		#[pallet::call_index(1)]
 		#[pallet::weight(T::WeightInfo::change_association_with_relay_keys(proofs.len() as u32))]
@@ -391,7 +390,7 @@ pub mod pallet {
 			let mut voted: BTreeMap<T::RelayChainAccountId, ()> = BTreeMap::new();
 			for (relay_account, signature) in proofs {
 				// We just count votes that we have not seen
-				if voted.get(&relay_account).is_none() {
+				if !voted.contains_key(&relay_account) {
 					// Maybe I should not error here?
 					ensure!(
 						reward_info
