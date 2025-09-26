@@ -42,6 +42,7 @@ use moonriver_runtime::{
 	Balances, CrowdloanRewards, EvmForeignAssets, Executive, OpenTechCommitteeCollective,
 	PolkadotXcm, Precompiles, RuntimeBlockWeights, TransactionPayment,
 	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor, WEEKS,
+	WEIGHT_PER_GAS,
 };
 use moonriver_xcm_weights::XcmWeight;
 use nimbus_primitives::NimbusId;
@@ -1107,7 +1108,12 @@ fn is_contributor_via_precompile() {
 						contributor: Address(AccountId::from(BOB).into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(
+					<Runtime as frame_system::Config>::DbWeight::get()
+						.read
+						.saturating_div(WEIGHT_PER_GAS)
+						.saturating_mul(2),
+				)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1120,7 +1126,12 @@ fn is_contributor_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(
+					<Runtime as frame_system::Config>::DbWeight::get()
+						.read
+						.saturating_div(WEIGHT_PER_GAS)
+						.saturating_mul(2),
+				)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1192,7 +1203,12 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(
+					<Runtime as frame_system::Config>::DbWeight::get()
+						.read
+						.saturating_div(WEIGHT_PER_GAS)
+						.saturating_mul(2),
+				)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1385,7 +1401,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				3_125_000_000u128.into(),
-				Weight::from_parts(41_742_000u64, 0)
+				Weight::from_parts(<Runtime as frame_system::Config>::DbWeight::get().read, 0)
 			)
 		);
 	});
@@ -1405,7 +1421,10 @@ fn min_gas_fee_is_correct() {
 
 		assert_eq!(
 			TransactionPaymentAsGasPrice::min_gas_price(),
-			(312_500_000u128.into(), Weight::from_parts(41_742_000u64, 0))
+			(
+				312_500_000u128.into(),
+				Weight::from_parts(<Runtime as frame_system::Config>::DbWeight::get().read, 0)
+			)
 		);
 	});
 }
@@ -2216,7 +2235,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23525)
+				.expect_cost(31019)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2455,7 +2474,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2475,7 +2499,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2505,7 +2534,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_location,
 				},
 			)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2563,7 +2597,11 @@ fn test_xcm_utils_weight_message() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1669)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS),
+			)
 			.expect_no_logs()
 			.execute_returns(expected_weight);
 	});
@@ -2582,7 +2620,12 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});

@@ -66,7 +66,7 @@ describeSuite({
       id: "T03",
       title: "EIP example 1 - gas",
       test: async function () {
-        const expectedModExpGasCost = 3029n;
+        const expectedModExpGasCost = 3728n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000001" + // base length
           "0000000000000000000000000000000000000000000000000000000000000020" + // exponent length
@@ -129,7 +129,7 @@ describeSuite({
       id: "T05",
       title: "EIP example 2 - gas",
       test: async function () {
-        const expectedModExpGasCost = 3029n;
+        const expectedModExpGasCost = 3728n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000000" + // base length
           "0000000000000000000000000000000000000000000000000000000000000020" + // exponent length
@@ -684,7 +684,7 @@ describeSuite({
       id: "T20",
       title: "nagydani-5-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 89050n;
+        const expectedModExpGasCost = 89749n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000400" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -763,7 +763,7 @@ describeSuite({
           .viem()
           .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         expect(receipt.status).toBe("success");
-        const isPrecompileCheckGas = 1669n;
+        const isPrecompileCheckGas = 2368n;
         const expectedGasUsed = calculateEIP7623Gas(
           numZeroBytes,
           numNonZeroBytes,
