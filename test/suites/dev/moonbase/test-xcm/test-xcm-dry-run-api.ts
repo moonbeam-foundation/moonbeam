@@ -14,16 +14,6 @@ import {
 } from "../../../../helpers";
 import { parseEther } from "ethers";
 
-declare global {
-  interface BigInt {
-    toJSON(): string;
-  }
-}
-
-BigInt.prototype.toJSON = function () {
-  return this.toString();
-};
-
 describeSuite({
   id: "D024016",
   title: "XCM - DryRunApi",
@@ -235,8 +225,6 @@ describeSuite({
           xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
           const dryRunXcm = await polkadotJs.call.dryRunApi.dryRunXcm(origin, xcmMessage);
-
-          console.log(dryRunXcm.asOk.executionResult.toJSON());
 
           expect(dryRunXcm.isOk).to.be.true;
           expect(dryRunXcm.asOk.executionResult.isComplete).be.true;
