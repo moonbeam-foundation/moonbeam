@@ -115,7 +115,8 @@
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -131,39 +132,40 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-</span><span class="doccomment">//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 32.0.0
-//! DATE: 2024-04-27 (Y/M/D)
+</span><span class="doccomment">//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 48.0.0
+//! DATE: 2025-09-22 (Y/M/D)
 //! HOSTNAME: `ip-10-0-0-176`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
 //!
 //! DATABASE: `RocksDb`, RUNTIME: `Moonbeam`
-//! BLOCK-NUM: `BlockId::Number(5962022)`
+//! BLOCK-NUM: `BlockId::Number(12630729)`
 //! SKIP-WRITE: `false`, SKIP-READ: `false`, WARMUPS: `1`
-//! STATE-VERSION: `V0`, STATE-CACHE-SIZE: ``
-//! WEIGHT-PATH: `/home/ubuntu/projects/moonbeam/weights-rocksdb-moonbeam.rs`
+//! STATE-VERSION: `V1`, STATE-CACHE-SIZE: ``
+//! WEIGHT-PATH: `./benchmarks/storage/20250922-082315/disk-weights-rocksdb-moonbeam.rs`
 //! METRIC: `Average`, WEIGHT-MUL: `1.1`, WEIGHT-ADD: `0`
 
 </span><span class="comment">// Executed Command:
-//   /home/ubuntu/projects/moonbeam/target/release/moonbeam
+//   ./moonbeam
 //   benchmark
 //   storage
 //   --db=rocksdb
-//   --state-version=0
+//   --state-version=1
 //   --mul=1.1
 //   --weight-path
-//   /home/ubuntu/projects/moonbeam/weights-rocksdb-moonbeam.rs
+//   ./benchmarks/storage/20250922-082315/disk-weights-rocksdb-moonbeam.rs
 //   --chain
 //   moonbeam
 //   --base-path
-//   /var/lib/rocksdb-moonbeam-data
+//   /mnt/disk3-6000-256/rocksdb-moonbeam-data
 //   --keys-limit
-//   10000000
+//   50000000
 //   --random-seed
 //   1024
 
 </span><span class="doccomment">/// Storage DB weights for the `Moonbeam` runtime and `RocksDb`.
 </span><span class="kw">pub mod </span>constants {
-	<span class="kw">use </span>frame_support::weights::{constants, RuntimeDbWeight};
+	<span class="kw">use </span>frame_support::weights::constants;
 	<span class="kw">use </span>sp_core::parameter_types;
+	<span class="kw">use </span>sp_weights::RuntimeDbWeight;
 
 	<span class="macro">parameter_types!</span> {
 		<span class="doccomment">/// By default, Substrate uses `RocksDB`, so this will be the weight used throughout
@@ -173,38 +175,38 @@
 			// Calculated by multiplying the *Average* of all values with `1.1` and adding `0`.
 			//
 			// Stats nanoseconds:
-			//   Min, Max: 2_300, 2_841_169
-			//   Average:  37_947
-			//   Median:   38_669
-			//   Std-Dev:  7331.86
+			//   Min, Max: 1_774, 4_131_758
+			//   Average:  53_833
+			//   Median:   47_991
+			//   Std-Dev:  44586.1
 			//
 			// Percentiles nanoseconds:
-			//   99th: 55_974
-			//   95th: 49_824
-			//   75th: 42_570
-			</span>read: <span class="number">41_742 </span>* constants::WEIGHT_REF_TIME_PER_NANOS,
+			//   99th: 236_090
+			//   95th: 67_897
+			//   75th: 54_501
+			</span>read: <span class="number">59_217 </span>* constants::WEIGHT_REF_TIME_PER_NANOS,
 
 			<span class="comment">// Time to write one storage item.
 			// Calculated by multiplying the *Average* of all values with `1.1` and adding `0`.
 			//
 			// Stats nanoseconds:
-			//   Min, Max: 18_981, 16_772_373
-			//   Average:  73_893
-			//   Median:   72_807
-			//   Std-Dev:  24543.58
+			//   Min, Max: 10_807, 13_782_646
+			//   Average:  87_559
+			//   Median:   73_293
+			//   Std-Dev:  191482.81
 			//
 			// Percentiles nanoseconds:
-			//   99th: 97_152
-			//   95th: 85_751
-			//   75th: 77_392
-			</span>write: <span class="number">81_283 </span>* constants::WEIGHT_REF_TIME_PER_NANOS,
+			//   99th: 212_681
+			//   95th: 111_877
+			//   75th: 82_079
+			</span>write: <span class="number">96_315 </span>* constants::WEIGHT_REF_TIME_PER_NANOS,
 		};
 	}
 
 	<span class="attr">#[cfg(test)]
 	</span><span class="kw">mod </span>test_db_weights {
 		<span class="kw">use </span><span class="kw">super</span>::constants::RocksDbWeight <span class="kw">as </span>W;
-		<span class="kw">use </span>frame_support::weights::constants;
+		<span class="kw">use </span>sp_weights::constants;
 
 		<span class="doccomment">/// Checks that all weights exist and have sane values.
 		</span><span class="comment">// NOTE: If this test fails but you are sure that the generated values are fine,
