@@ -174,7 +174,7 @@ describeSuite({
 
           // Verify each delegation amount matches
           // It is not possible to verify the account as there is no deterministic
-          // way to differenciate the order of 2 delegators with same amount
+          // way to differentiate the order of 2 delegators with same amount
           for (const index in topDelegators) {
             expect(
               topDelegators[index].delegation.amount.toBigInt(),
