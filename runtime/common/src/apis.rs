@@ -774,11 +774,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						origin_location: VersionedLocation,
 						xcm: VersionedXcm<RuntimeCall>
 					) -> Result<XcmDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
-						PolkadotXcm::dry_run_xcm::<
-							Runtime,
-							xcm_config::XcmRouter,
-							RuntimeCall,
-							xcm_config::XcmExecutorConfig>(origin_location, xcm)
+						PolkadotXcm::dry_run_xcm::<xcm_config::XcmRouter>(origin_location, xcm)
 					}
 				}
 
