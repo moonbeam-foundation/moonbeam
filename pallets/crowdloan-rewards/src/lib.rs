@@ -33,6 +33,10 @@ pub use pallet::*;
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
 pub mod weights;
 
 #[pallet]
@@ -655,13 +659,14 @@ pub mod pallet {
 	#[pallet::storage_prefix = "InitRelayBlock"]
 	#[pallet::getter(fn init_vesting_block)]
 	/// Vesting block height at the initialization of the pallet
-	type InitVestingBlock<T: Config> = StorageValue<_, T::VestingBlockNumber, ValueQuery>;
+	pub(crate) type InitVestingBlock<T: Config> =
+		StorageValue<_, T::VestingBlockNumber, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::storage_prefix = "EndRelayBlock"]
 	#[pallet::getter(fn end_vesting_block)]
 	/// Vesting block height at the initialization of the pallet
-	type EndVestingBlock<T: Config> = StorageValue<_, T::VestingBlockNumber, ValueQuery>;
+	pub(crate) type EndVestingBlock<T: Config> = StorageValue<_, T::VestingBlockNumber, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn init_reward_amount)]

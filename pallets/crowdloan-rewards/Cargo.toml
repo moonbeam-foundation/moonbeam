@@ -21,6 +21,9 @@ sp-io = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-f
 frame-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, optional = true, branch = "moonbeam-polkadot-stable2503" }
 sp-trie = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, optional = true, branch = "moonbeam-polkadot-stable2503" }
 
+[dev-dependencies]
+pallet-balances = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
+
 [features]
 default = ["std"]
 std = [
@@ -36,6 +39,7 @@ std = [
     "sp-io/std",
     "scale-info/std",
     "ed25519-dalek/std",
+    "pallet-balances/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking",
