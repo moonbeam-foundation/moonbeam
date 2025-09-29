@@ -1767,7 +1767,6 @@ mod tests {
 				vec![],
 				vec![],
 				vec![],
-				1000 * UNIT,
 				ParaId::new(0),
 				0,
 			))
