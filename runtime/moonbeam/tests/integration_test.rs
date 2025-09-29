@@ -27,8 +27,8 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo,
-		StorageInfo, StorageInfoTrait,
+		Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo, StorageInfo,
+		StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
@@ -40,11 +40,10 @@ use moonbeam_runtime::{
 	currency::GLMR,
 	moonbeam_xcm_weights,
 	xcm_config::{CurrencyId, SelfReserve},
-	AccountId, Balances, CrowdloanRewards, EvmForeignAssets, Executive,
-	OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
-	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor, WEEKS,
-	WEIGHT_PER_GAS,
+	AccountId, Balances, EvmForeignAssets, Executive, OpenTechCommitteeCollective,
+	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
+	RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice, Treasury,
+	TreasuryCouncilCollective, XcmTransactor, WEIGHT_PER_GAS,
 };
 use moonbeam_xcm_weights::XcmWeight;
 use nimbus_primitives::NimbusId;
@@ -60,8 +59,7 @@ use precompile_utils::{
 	prelude::*,
 	testing::*,
 };
-use sha3::{Digest, Keccak256};
-use sp_core::{ByteArray, Get, Pair, H160, U256};
+use sp_core::{ByteArray, Get, H160, U256};
 use sp_runtime::{
 	traits::{Convert, Dispatchable},
 	BuildStorage, DispatchError, ModuleError, Percent,
@@ -73,8 +71,6 @@ use xcm_executor::traits::ConvertLocation;
 use xcm_primitives::split_location_into_chain_part_and_beneficiary;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
-type CrowdloanRewardsPCall =
-	pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompileCall<Runtime>;
 type XcmUtilsPCall = pallet_evm_precompile_xcm_utils::XcmUtilsPrecompileCall<
 	Runtime,
 	moonbeam_runtime::xcm_config::XcmExecutorConfig,
