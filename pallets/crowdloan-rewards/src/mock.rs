@@ -16,14 +16,13 @@
 
 //! Test utilities for crowdloan-rewards pallet
 
-use crate::{self as pallet_crowdloan_rewards, BalanceOf, Config, Event as CrowdloanRewardsEvent};
+use crate::{self as pallet_crowdloan_rewards, Config};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Get, OnFinalize, OnInitialize},
+	traits::{Everything, OnFinalize, OnInitialize},
 	weights::{constants::RocksDbWeight, Weight},
 	PalletId,
 };
-use frame_system::pallet_prelude::BlockNumberFor;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
@@ -179,21 +178,4 @@ pub fn run_to_block(n: u32) {
 		Balances::on_initialize(System::block_number());
 		CrowdloanRewards::on_initialize(System::block_number());
 	}
-}
-
-pub fn events() -> Vec<RuntimeEvent> {
-	let evt = System::events()
-		.into_iter()
-		.map(|evt| evt.event)
-		.collect::<Vec<_>>();
-	System::reset_events();
-	evt
-}
-
-pub fn expect_event<E: Into<RuntimeEvent>>(e: E) {
-	assert!(events().contains(&e.into()));
-}
-
-pub fn last_event() -> RuntimeEvent {
-	System::events().pop().expect("Event expected").event
 }

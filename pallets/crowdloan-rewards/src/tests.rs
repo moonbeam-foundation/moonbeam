@@ -21,10 +21,7 @@ use crate::mock::*;
 use crate::pallet::{EndVestingBlock, InitVestingBlock, Initialized};
 use frame_support::{assert_noop, assert_ok, traits::Currency};
 use sp_core::crypto::AccountId32;
-use sp_runtime::{
-	traits::{AccountIdConversion, BlockNumberProvider},
-	MultiSignature, Perbill,
-};
+use sp_runtime::traits::AccountIdConversion;
 
 // Helper function to create a test account
 fn account(id: u8) -> AccountId32 {
