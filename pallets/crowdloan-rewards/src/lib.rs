@@ -46,6 +46,7 @@ pub mod pallet {
 		PalletId,
 	};
 	use frame_system::pallet_prelude::*;
+	use parity_scale_codec::{Decode, Encode};
 	use sp_core::crypto::AccountId32;
 	use sp_runtime::traits::{
 		AccountIdConversion, AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Verify,
