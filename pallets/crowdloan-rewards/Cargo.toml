@@ -18,17 +18,13 @@ sp-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default
 sp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
 sp-std = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
 sp-io = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
-pallet-balances = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
-pallet-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
 frame-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, optional = true, branch = "moonbeam-polkadot-stable2503" }
 sp-trie = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, optional = true, branch = "moonbeam-polkadot-stable2503" }
 
 [features]
 default = ["std"]
 std = [
-    "pallet-balances/std",
     "parity-scale-codec/std",
-    "pallet-utility/std",
     "frame-benchmarking/std",
     "frame-support/std",
     "frame-system/std",
