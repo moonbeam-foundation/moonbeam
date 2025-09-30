@@ -94,7 +94,9 @@ pub mod pallet {
 			//TODO these AccountId32 bounds feel a little extraneous. I wonder if we can remove them.
 			+ Into<AccountId32>
 			+ From<AccountId32>
-			+ Ord;
+			+ Ord
+			+ sp_runtime::serde::Serialize
+			+ for<'a> sp_runtime::serde::Deserialize<'a>;
 
 		// The origin that is allowed to change the reward address with relay signatures
 		type RewardAddressChangeOrigin: EnsureOrigin<Self::RuntimeOrigin>;
@@ -108,7 +110,12 @@ pub mod pallet {
 		type RewardAddressAssociateOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// The type that will be used to track vesting progress
-		type VestingBlockNumber: AtLeast32BitUnsigned + Parameter + Default + Into<BalanceOf<Self>>;
+		type VestingBlockNumber: AtLeast32BitUnsigned
+			+ Parameter
+			+ Default
+			+ Into<BalanceOf<Self>>
+			+ sp_runtime::serde::Serialize
+			+ for<'a> sp_runtime::serde::Deserialize<'a>;
 
 		/// The notion of time that will be used for vesting. Probably
 		/// either the relay chain or sovereign chain block number.
@@ -514,13 +521,10 @@ pub mod pallet {
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		/// List of contributors with their relay account, optional native account, and reward amount
-		#[serde(skip)]
 		pub funded_accounts: Vec<ContributorData<T>>,
 		/// Initial vesting block number
-		#[serde(skip)]
 		pub init_vesting_block: T::VestingBlockNumber,
 		/// End vesting block number
-		#[serde(skip)]
 		pub end_vesting_block: T::VestingBlockNumber,
 	}
 
