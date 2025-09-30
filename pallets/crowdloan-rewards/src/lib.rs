@@ -553,7 +553,17 @@ pub mod pallet {
 
 				// Calculate the initial payment
 				let initial_payment = if native_account_opt.is_some() {
-					T::InitializationPayment::get() * (*reward)
+					let payment = T::InitializationPayment::get() * (*reward);
+					// Transfer the initial payment to the native account
+					if let Some(native_account) = native_account_opt {
+						let _ = T::RewardCurrency::transfer(
+							&PALLET_ID.into_account_truncating(),
+							native_account,
+							payment,
+							AllowDeath,
+						);
+					}
+					payment
 				} else {
 					BalanceOf::<T>::default()
 				};
