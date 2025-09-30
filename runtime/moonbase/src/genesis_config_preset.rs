@@ -18,15 +18,16 @@ extern crate alloc;
 
 use crate::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig, InflationInfo,
-	MaintenanceModeConfig, MoonbeamOrbitersConfig, OpenTechCommitteeCollectiveConfig,
-	ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range,
-	RuntimeGenesisConfig, SudoConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig,
-	XcmTransactorConfig, HOURS,
+	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
+	InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
+	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
+	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig,
+	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
 };
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
 use fp_evm::GenesisAccount;
+use frame_support::PalletId;
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
 use sp_genesis_builder::PresetId;
@@ -82,14 +83,23 @@ pub fn testnet_genesis(
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 
+	// Fund the crowdloan pallet account with enough balance for rewards
+	let crowdloan_pallet_account: AccountId =
+		sp_runtime::traits::AccountIdConversion::into_account_truncating(&PalletId(*b"Crowdloa"));
+
+	let mut balances: Vec<(AccountId, Balance)> = endowed_accounts
+		.iter()
+		.cloned()
+		.map(|k| (k, 1 << 80))
+		.collect();
+
+	// Add crowdloan pallet account with sufficient funds for all rewards
+	balances.push((crowdloan_pallet_account, 100_000_000 * UNIT));
+
 	let config = RuntimeGenesisConfig {
 		system: Default::default(),
 		balances: BalancesConfig {
-			balances: endowed_accounts
-				.iter()
-				.cloned()
-				.map(|k| (k, 1 << 80))
-				.collect(),
+			balances,
 			dev_accounts: Default::default(),
 		},
 		sudo: SudoConfig {
@@ -174,6 +184,24 @@ pub fn testnet_genesis(
 		xcm_transactor: XcmTransactorConfig {
 			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
 			..Default::default()
+		},
+		crowdloan_rewards: CrowdloanRewardsConfig {
+			funded_accounts: vec![
+				// Alith account with test rewards
+				(
+					[
+						0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
+						0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
+						0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
+					],
+					Some(AccountId::from(sp_core::hex2array!(
+						"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+					))),
+					3_000_000 * UNIT,
+				),
+			],
+			init_vesting_block: 0u32,
+			end_vesting_block: 201600u32,
 		},
 	};
 
