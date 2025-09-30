@@ -66,8 +66,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `868`
 		//  Estimated: `6172`
-		// Minimum execution time: 66_718_000 picoseconds.
-		Weight::from_parts(68_734_000, 6172)
+		// Minimum execution time: 48_000_000 picoseconds.
+		Weight::from_parts(49_000_000, 6172)
 			.saturating_add(T::DbWeight::get().reads(7_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -77,8 +77,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `364`
 		//  Estimated: `6304`
-		// Minimum execution time: 19_266_000 picoseconds.
-		Weight::from_parts(20_159_000, 6304)
+		// Minimum execution time: 13_000_000 picoseconds.
+		Weight::from_parts(13_000_000, 6304)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -94,8 +94,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `736`
 		//  Estimated: `6172`
-		// Minimum execution time: 114_032_000 picoseconds.
-		Weight::from_parts(116_472_000, 6172)
+		// Minimum execution time: 83_000_000 picoseconds.
+		Weight::from_parts(84_000_000, 6172)
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -106,10 +106,10 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `333 + x * (32 ±0)`
 		//  Estimated: `6273 + x * (32 ±0)`
-		// Minimum execution time: 66_741_000 picoseconds.
-		Weight::from_parts(67_014_000, 6273)
-			// Standard Error: 7_380
-			.saturating_add(Weight::from_parts(45_206_288, 0).saturating_mul(x.into()))
+		// Minimum execution time: 44_000_000 picoseconds.
+		Weight::from_parts(44_000_000, 6273)
+			// Standard Error: 9_795
+			.saturating_add(Weight::from_parts(29_497_776, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(x.into()))

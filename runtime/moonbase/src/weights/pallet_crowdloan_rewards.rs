@@ -64,10 +64,10 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	fn claim() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1000`
+		//  Measured:  `901`
 		//  Estimated: `6172`
-		// Minimum execution time: 68_029_000 picoseconds.
-		Weight::from_parts(69_865_000, 6172)
+		// Minimum execution time: 48_000_000 picoseconds.
+		Weight::from_parts(49_000_000, 6172)
 			.saturating_add(T::DbWeight::get().reads(7_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -77,8 +77,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `397`
 		//  Estimated: `6337`
-		// Minimum execution time: 19_849_000 picoseconds.
-		Weight::from_parts(20_489_000, 6337)
+		// Minimum execution time: 13_000_000 picoseconds.
+		Weight::from_parts(14_000_000, 6337)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -92,10 +92,10 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	fn associate_native_identity() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `868`
+		//  Measured:  `769`
 		//  Estimated: `6172`
-		// Minimum execution time: 111_349_000 picoseconds.
-		Weight::from_parts(113_216_000, 6172)
+		// Minimum execution time: 79_000_000 picoseconds.
+		Weight::from_parts(80_000_000, 6172)
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -106,10 +106,10 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `366 + x * (32 ±0)`
 		//  Estimated: `6306 + x * (32 ±0)`
-		// Minimum execution time: 60_771_000 picoseconds.
-		Weight::from_parts(61_562_000, 6306)
-			// Standard Error: 6_179
-			.saturating_add(Weight::from_parts(38_354_900, 0).saturating_mul(x.into()))
+		// Minimum execution time: 43_000_000 picoseconds.
+		Weight::from_parts(44_000_000, 6306)
+			// Standard Error: 10_157
+			.saturating_add(Weight::from_parts(29_256_399, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(x.into()))
