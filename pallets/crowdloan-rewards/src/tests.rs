@@ -33,57 +33,32 @@ fn fund_pallet(amount: Balance) {
 	let _ = Balances::make_free_balance_be(&CrowdloanRewards::account_id(), amount);
 }
 
-// Helper function to setup initial reward data using direct storage
-fn setup_reward_data(
-	relay_account: AccountId32,
-	reward_account: Option<AccountId32>,
-	total_reward: Balance,
-) {
-	let claimed_reward = if reward_account.is_some() {
-		InitializationPayment::get() * total_reward
-	} else {
-		0
+// Helper function to create a test externalities with custom rewards
+fn new_test_ext_with_rewards(
+	rewards: Vec<(AccountId32, Option<AccountId32>, Balance)>,
+) -> sp_io::TestExternalities {
+	let config = crate::GenesisConfig {
+		funded_accounts: rewards,
+		init_vesting_block: 1u32,
+		end_vesting_block: 100u32,
 	};
-
-	let reward_info = RewardInfo {
-		total_reward,
-		claimed_reward,
-		contributed_relay_addresses: vec![relay_account.clone()],
-	};
-
-	if let Some(reward_account) = reward_account {
-		// Associated contribution
-		AccountsPayable::<Test>::insert(&reward_account, &reward_info);
-		ClaimedRelayChainIds::<Test>::insert(&relay_account, ());
-	} else {
-		// Unassociated contribution
-		UnassociatedContributions::<Test>::insert(&relay_account, &reward_info);
-	}
-
-	// Set up vesting blocks
-	InitVestingBlock::<Test>::put(1u32);
-	EndVestingBlock::<Test>::put(100u32);
-
-	// Mark as initialized
-	Initialized::<Test>::put(true);
+	new_test_ext_with_config(config)
 }
 
 #[test]
 fn test_claim_works_with_full_vesting() {
-	new_test_ext().execute_with(|| {
-		let reward_account = account(1);
-		let relay_account = account(10);
-		let total_reward = 10_000u128;
+	let reward_account = account(1);
+	let relay_account = account(10);
+	let total_reward = 10_000u128;
 
+	new_test_ext_with_rewards(vec![(
+		relay_account.clone(),
+		Some(reward_account.clone()),
+		total_reward,
+	)])
+	.execute_with(|| {
 		// Fund the pallet
 		fund_pallet(1_000_000);
-
-		// Setup reward data
-		setup_reward_data(
-			relay_account.clone(),
-			Some(reward_account.clone()),
-			total_reward,
-		);
 
 		// Move to end of vesting period
 		run_to_block(100);
@@ -119,20 +94,18 @@ fn test_claim_works_with_full_vesting() {
 
 #[test]
 fn test_claim_works_with_partial_vesting() {
-	new_test_ext().execute_with(|| {
-		let reward_account = account(1);
-		let relay_account = account(10);
-		let total_reward = 10_000u128;
+	let reward_account = account(1);
+	let relay_account = account(10);
+	let total_reward = 10_000u128;
 
+	new_test_ext_with_rewards(vec![(
+		relay_account.clone(),
+		Some(reward_account.clone()),
+		total_reward,
+	)])
+	.execute_with(|| {
 		// Fund the pallet
 		fund_pallet(1_000_000);
-
-		// Setup reward data
-		setup_reward_data(
-			relay_account.clone(),
-			Some(reward_account.clone()),
-			total_reward,
-		);
 
 		// Move to 50% of vesting period (block 50 out of 100)
 		run_to_block(50);
@@ -165,7 +138,7 @@ fn test_claim_works_with_partial_vesting() {
 
 #[test]
 fn test_claim_fails_when_no_rewards() {
-	new_test_ext().execute_with(|| {
+	new_test_ext_with_config(empty_crowdloan_genesis_config()).execute_with(|| {
 		let reward_account = account(1);
 
 		// Try to claim without having any rewards
@@ -178,17 +151,21 @@ fn test_claim_fails_when_no_rewards() {
 
 #[test]
 fn test_claim_fails_when_not_initialized() {
-	new_test_ext().execute_with(|| {
+	// Use empty genesis config which will still set Initialized to true
+	// We need to manually set it to false after
+	new_test_ext_with_config(empty_crowdloan_genesis_config()).execute_with(|| {
 		let reward_account = account(1);
 		let relay_account = account(10);
 		let total_reward = 10_000u128;
 
-		// Setup reward data but mark as not initialized
-		setup_reward_data(
-			relay_account.clone(),
-			Some(reward_account.clone()),
+		// Manually insert reward data and mark as not initialized
+		let reward_info = RewardInfo {
 			total_reward,
-		);
+			claimed_reward: InitializationPayment::get() * total_reward,
+			contributed_relay_addresses: vec![relay_account.clone()],
+		};
+		AccountsPayable::<Test>::insert(&reward_account, &reward_info);
+		ClaimedRelayChainIds::<Test>::insert(&relay_account, ());
 		Initialized::<Test>::put(false);
 
 		// Try to claim
@@ -232,19 +209,17 @@ fn test_claim_fails_when_all_rewards_claimed() {
 
 #[test]
 fn test_update_reward_address_works() {
-	new_test_ext().execute_with(|| {
-		let old_reward_account = account(1);
-		let new_reward_account = account(2);
-		let relay_account = account(10);
-		let total_reward = 10_000u128;
+	let old_reward_account = account(1);
+	let new_reward_account = account(2);
+	let relay_account = account(10);
+	let total_reward = 10_000u128;
 
-		// Setup reward data
-		setup_reward_data(
-			relay_account.clone(),
-			Some(old_reward_account.clone()),
-			total_reward,
-		);
-
+	new_test_ext_with_rewards(vec![(
+		relay_account.clone(),
+		Some(old_reward_account.clone()),
+		total_reward,
+	)])
+	.execute_with(|| {
 		// Update reward address
 		assert_ok!(CrowdloanRewards::update_reward_address(
 			RuntimeOrigin::signed(old_reward_account.clone()),
@@ -264,7 +239,7 @@ fn test_update_reward_address_works() {
 
 #[test]
 fn test_update_reward_address_fails_when_no_rewards() {
-	new_test_ext().execute_with(|| {
+	new_test_ext_with_config(empty_crowdloan_genesis_config()).execute_with(|| {
 		let old_reward_account = account(1);
 		let new_reward_account = account(2);
 
@@ -281,25 +256,25 @@ fn test_update_reward_address_fails_when_no_rewards() {
 
 #[test]
 fn test_update_reward_address_fails_when_new_account_already_has_rewards() {
-	new_test_ext().execute_with(|| {
-		let old_reward_account = account(1);
-		let new_reward_account = account(2);
-		let relay_account1 = account(10);
-		let relay_account2 = account(11);
-		let total_reward = 10_000u128;
+	let old_reward_account = account(1);
+	let new_reward_account = account(2);
+	let relay_account1 = account(10);
+	let relay_account2 = account(11);
+	let total_reward = 10_000u128;
 
-		// Setup reward data for both accounts
-		setup_reward_data(
+	new_test_ext_with_rewards(vec![
+		(
 			relay_account1.clone(),
 			Some(old_reward_account.clone()),
 			total_reward,
-		);
-		setup_reward_data(
+		),
+		(
 			relay_account2.clone(),
 			Some(new_reward_account.clone()),
 			total_reward,
-		);
-
+		),
+	])
+	.execute_with(|| {
 		// Try to update address to an account that already has rewards
 		assert_noop!(
 			CrowdloanRewards::update_reward_address(
@@ -369,20 +344,18 @@ fn test_vesting_calculation_with_zero_period() {
 
 #[test]
 fn test_multiple_claims_during_vesting() {
-	new_test_ext().execute_with(|| {
-		let reward_account = account(1);
-		let relay_account = account(10);
-		let total_reward = 10_000u128;
+	let reward_account = account(1);
+	let relay_account = account(10);
+	let total_reward = 10_000u128;
 
+	new_test_ext_with_rewards(vec![(
+		relay_account.clone(),
+		Some(reward_account.clone()),
+		total_reward,
+	)])
+	.execute_with(|| {
 		// Fund the pallet
 		fund_pallet(1_000_000);
-
-		// Setup reward data
-		setup_reward_data(
-			relay_account.clone(),
-			Some(reward_account.clone()),
-			total_reward,
-		);
 
 		let initialization_payment = InitializationPayment::get() * total_reward;
 		let initial_balance = Balances::free_balance(&reward_account);

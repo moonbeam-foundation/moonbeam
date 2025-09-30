@@ -436,10 +436,7 @@ pub mod pallet {
 			let initialized = <Initialized<T>>::get();
 
 			// This ensures there was no prior initialization
-			ensure!(
-				initialized == false,
-				Error::<T>::RewardVecAlreadyInitialized
-			);
+			ensure!(!initialized, Error::<T>::RewardVecAlreadyInitialized);
 
 			// This ensures the end vesting block (when all funds are fully vested)
 			// is bigger than the init vesting block
@@ -483,10 +480,7 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			ensure_root(origin)?;
 			let initialized = <Initialized<T>>::get();
-			ensure!(
-				initialized == false,
-				Error::<T>::RewardVecAlreadyInitialized
-			);
+			ensure!(!initialized, Error::<T>::RewardVecAlreadyInitialized);
 
 			// Ensure we are below the max number of contributors
 			ensure!(
@@ -513,8 +507,8 @@ pub mod pallet {
 			);
 
 			for (relay_account, native_account, reward) in &rewards {
-				if ClaimedRelayChainIds::<T>::get(&relay_account).is_some()
-					|| UnassociatedContributions::<T>::get(&relay_account).is_some()
+				if ClaimedRelayChainIds::<T>::get(relay_account).is_some()
+					|| UnassociatedContributions::<T>::get(relay_account).is_some()
 				{
 					// Dont fail as this is supposed to be called with batch calls and we
 					// dont want to stall the rest of the contributions
@@ -542,7 +536,7 @@ pub mod pallet {
 					let first_payment = T::InitializationPayment::get() * (*reward);
 					T::RewardCurrency::transfer(
 						&PALLET_ID.into_account_truncating(),
-						&native_account,
+						native_account,
 						first_payment,
 						AllowDeath,
 					)?;
@@ -678,6 +672,81 @@ pub mod pallet {
 	#[pallet::getter(fn total_contributors)]
 	/// Total number of contributors to aid hinting benchmarking
 	type TotalContributors<T: Config> = StorageValue<_, u32, ValueQuery>;
+
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T: Config> {
+		/// List of contributors with their relay account, optional native account, and reward amount
+		#[serde(skip)]
+		pub funded_accounts: Vec<(T::RelayChainAccountId, Option<T::AccountId>, BalanceOf<T>)>,
+		/// Initial vesting block number
+		#[serde(skip)]
+		pub init_vesting_block: T::VestingBlockNumber,
+		/// End vesting block number
+		#[serde(skip)]
+		pub end_vesting_block: T::VestingBlockNumber,
+	}
+
+	impl<T: Config> Default for GenesisConfig<T> {
+		fn default() -> Self {
+			Self {
+				funded_accounts: vec![],
+				init_vesting_block: Default::default(),
+				end_vesting_block: Default::default(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
+		fn build(&self) {
+			// Set the vesting blocks
+			InitVestingBlock::<T>::put(self.init_vesting_block.clone());
+			EndVestingBlock::<T>::put(self.end_vesting_block.clone());
+
+			let mut total_contributors = 0u32;
+			let mut total_rewards = BalanceOf::<T>::default();
+
+			// Process each funded account
+			for (relay_account, native_account_opt, reward) in &self.funded_accounts {
+				// Skip if reward is less than minimum
+				if *reward < T::MinimumReward::get() {
+					continue;
+				}
+
+				// Calculate the initial payment
+				let initial_payment = if native_account_opt.is_some() {
+					T::InitializationPayment::get() * (*reward)
+				} else {
+					BalanceOf::<T>::default()
+				};
+
+				// Create reward info
+				let reward_info = RewardInfo {
+					total_reward: *reward,
+					claimed_reward: initial_payment,
+					contributed_relay_addresses: vec![relay_account.clone()],
+				};
+
+				// Store the reward info based on whether account is associated
+				if let Some(native_account) = native_account_opt {
+					AccountsPayable::<T>::insert(native_account, &reward_info);
+					ClaimedRelayChainIds::<T>::insert(relay_account, ());
+				} else {
+					UnassociatedContributions::<T>::insert(relay_account, &reward_info);
+				}
+
+				total_contributors += 1;
+				total_rewards += *reward - initial_payment;
+			}
+
+			// Update total contributors and initialized reward amount
+			TotalContributors::<T>::put(total_contributors);
+			InitializedRewardAmount::<T>::put(total_rewards);
+
+			// Mark as initialized
+			<Initialized<T>>::put(true);
+		}
+	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(fn deposit_event)]

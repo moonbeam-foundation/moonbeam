@@ -146,6 +146,13 @@ impl Config for Test {
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
+	new_test_ext_with_config(default_crowdloan_genesis_config())
+}
+
+// Build genesis with custom crowdloan config
+pub fn new_test_ext_with_config(
+	crowdloan_config: crate::GenesisConfig<Test>,
+) -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::<Test>::default()
 		.build_storage()
 		.unwrap();
@@ -164,7 +171,34 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
+	crowdloan_config.assimilate_storage(&mut t).unwrap();
+
 	t.into()
+}
+
+// Default crowdloan genesis config with some initialized state
+pub fn default_crowdloan_genesis_config() -> crate::GenesisConfig<Test> {
+	crate::GenesisConfig {
+		funded_accounts: vec![
+			// Associated account with rewards
+			(
+				AccountId::from([10u8; 32]),      // relay account
+				Some(AccountId::from([1u8; 32])), // native account
+				10_000u128,                       // reward
+			),
+		],
+		init_vesting_block: 1u32,
+		end_vesting_block: 100u32,
+	}
+}
+
+// Empty crowdloan genesis config
+pub fn empty_crowdloan_genesis_config() -> crate::GenesisConfig<Test> {
+	crate::GenesisConfig {
+		funded_accounts: vec![],
+		init_vesting_block: 1u32,
+		end_vesting_block: 100u32,
+	}
 }
 
 // Helper functions for test setup
