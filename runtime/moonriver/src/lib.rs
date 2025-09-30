@@ -1209,11 +1209,7 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_xcm::Call::transfer_assets_using_type_and_then { .. } => true,
 				_ => false,
 			},
-			// We filter anonymous proxy as they make "reserve" inconsistent
-			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			RuntimeCall::Proxy(method) => match method {
-				pallet_proxy::Call::create_pure { .. } => false,
-				pallet_proxy::Call::kill_pure { .. } => false,
 				pallet_proxy::Call::proxy { real, .. } => {
 					!pallet_evm::AccountCodes::<Runtime>::contains_key(H160::from(*real))
 				}
