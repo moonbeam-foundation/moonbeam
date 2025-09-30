@@ -17,7 +17,11 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 use crate::Config;
-use crate::{BalanceOf, Call, Pallet, WRAPPED_BYTES_POSTFIX, WRAPPED_BYTES_PREFIX};
+use crate::{
+	AccountsPayable, BalanceOf, Call, ClaimedRelayChainIds, EndVestingBlock, InitVestingBlock,
+	Initialized, InitializedRewardAmount, Pallet, RewardInfo, TotalContributors,
+	UnassociatedContributions, PALLET_ID, WRAPPED_BYTES_POSTFIX, WRAPPED_BYTES_PREFIX,
+};
 use ed25519_dalek::Signer;
 use frame_benchmarking::{account, benchmarks};
 use frame_support::traits::{Currency, Get, OnFinalize};
@@ -29,11 +33,18 @@ use sp_core::{
 	ed25519,
 };
 use sp_runtime::{
-	traits::{BlockNumberProvider, One},
+	traits::{AccountIdConversion, BlockNumberProvider, One},
 	MultiSignature,
 };
 use sp_std::vec;
 use sp_std::vec::Vec;
+
+/// Type alias for contributor data: (relay_account, optional_native_account, reward)
+type ContributorData<T> = (
+	<T as Config>::RelayChainAccountId,
+	Option<<T as frame_system::Config>::AccountId>,
+	BalanceOf<T>,
+);
 
 /// Default balance amount is minimum contribution
 fn default_balance<T: Config>() -> BalanceOf<T> {
@@ -63,40 +74,98 @@ fn create_funded_user<T: Config>(
 	user
 }
 
-/// Insert contributors.
+/// Insert contributors directly into storage.
 fn insert_contributors<T: Config>(
-	contributors: Vec<(T::RelayChainAccountId, Option<T::AccountId>, BalanceOf<T>)>,
+	contributors: Vec<ContributorData<T>>,
 ) -> Result<(), &'static str> {
-	let mut sub_vec = Vec::new();
-	let batch = max_batch_contributors::<T>();
-	// Due to the MaxInitContributors associated type, we need ton insert them in batches
-	// When we reach the batch size, we insert them
-	for i in 0..contributors.len() {
-		sub_vec.push(contributors[i].clone());
-		// If we reached the batch size, we should insert them
-		if i as u32 % batch == batch - 1 || i == contributors.len() - 1 {
-			Pallet::<T>::initialize_reward_vec(RawOrigin::Root.into(), sub_vec.clone())?;
-			sub_vec.clear()
+	let mut total_contributors = TotalContributors::<T>::get();
+	let mut current_initialized_rewards = InitializedRewardAmount::<T>::get();
+
+	for (relay_account, native_account, reward) in contributors {
+		if reward < T::MinimumReward::get() {
+			continue;
+		}
+
+		// Calculate the initial payment
+		let initial_payment = if native_account.is_some() {
+			let first_payment = T::InitializationPayment::get() * reward;
+			T::RewardCurrency::transfer(
+				&PALLET_ID.into_account_truncating(),
+				native_account.as_ref().unwrap(),
+				first_payment,
+				frame_support::traits::ExistenceRequirement::AllowDeath,
+			)?;
+			first_payment
+		} else {
+			0u32.into()
+		};
+
+		// Create reward info
+		let reward_info = RewardInfo {
+			total_reward: reward,
+			claimed_reward: initial_payment,
+			contributed_relay_addresses: vec![relay_account.clone()],
+		};
+
+		current_initialized_rewards += reward - initial_payment;
+		total_contributors += 1;
+
+		// Store the reward info based on whether account is associated
+		if let Some(native_account) = native_account {
+			if let Some(mut inserted_reward_info) = AccountsPayable::<T>::get(&native_account) {
+				// the native account has already some rewards in, we add the new ones
+				inserted_reward_info
+					.contributed_relay_addresses
+					.push(relay_account.clone());
+				AccountsPayable::<T>::insert(
+					&native_account,
+					RewardInfo {
+						total_reward: inserted_reward_info.total_reward + reward_info.total_reward,
+						claimed_reward: inserted_reward_info.claimed_reward
+							+ reward_info.claimed_reward,
+						contributed_relay_addresses: inserted_reward_info
+							.contributed_relay_addresses,
+					},
+				);
+			} else {
+				// First reward association
+				AccountsPayable::<T>::insert(&native_account, reward_info);
+			}
+			ClaimedRelayChainIds::<T>::insert(&relay_account, ());
+		} else {
+			UnassociatedContributions::<T>::insert(&relay_account, reward_info);
 		}
 	}
+
+	InitializedRewardAmount::<T>::put(current_initialized_rewards);
+	TotalContributors::<T>::put(total_contributors);
+
 	Ok(())
 }
 
-/// Create a Contributor.
+/// Complete initialization by setting the end vesting block.
 fn close_initialization<T: Config>(
 	end_vesting_block: T::VestingBlockNumber,
 ) -> Result<(), &'static str> {
-	Pallet::<T>::complete_initialization(RawOrigin::Root.into(), end_vesting_block)?;
+	// Set the init vesting block if not set
+	if InitVestingBlock::<T>::get() == Default::default() {
+		InitVestingBlock::<T>::put(T::VestingBlockProvider::current_block_number());
+	}
+
+	// Set the end vesting block
+	EndVestingBlock::<T>::put(end_vesting_block);
+
+	// Mark as initialized
+	Initialized::<T>::put(true);
+
 	Ok(())
 }
 
-fn create_sig<T: Config>(seed: u32, payload: Vec<u8>) -> (AccountId32, MultiSignature) {
+fn create_sig(seed: u32, payload: Vec<u8>) -> (AccountId32, MultiSignature) {
 	// Crate seed
 	let mut seed_32: [u8; 32] = [0u8; 32];
 	let seed_as_slice = seed.to_be_bytes();
-	for j in 0..seed_as_slice.len() {
-		seed_32[j] = seed_as_slice[j]
-	}
+	seed_32[..seed_as_slice.len()].copy_from_slice(&seed_as_slice[..]);
 
 	let signing_key = ed25519_dalek::SigningKey::from_bytes(&seed_32);
 	let public = signing_key.verifying_key();
@@ -105,7 +174,7 @@ fn create_sig<T: Config>(seed: u32, payload: Vec<u8>) -> (AccountId32, MultiSign
 
 	let ed_public: ed25519::Public = ed25519::Public::unchecked_from(public.to_bytes());
 	let account: AccountId32 = ed_public.into();
-	(account, signature.into())
+	(account, signature)
 }
 
 fn max_batch_contributors<T: Config>() -> u32 {
@@ -125,7 +194,7 @@ benchmarks! {
 
 		// We verified there is no dependency of the number of contributors already inserted in claim
 		// Create 1 contributor
-		let contributors: Vec<(T::RelayChainAccountId, Option<T::AccountId>, BalanceOf<T>)> =
+		let contributors: Vec<ContributorData<T>> =
 			vec![(AccountId32::from([1u8;32]).into(), Some(caller.clone()), total_pot.into())];
 
 		// Insert them
@@ -156,7 +225,7 @@ benchmarks! {
 		let relay_account: T::RelayChainAccountId = AccountId32::from([1u8;32]).into();
 		// We verified there is no dependency of the number of contributors already inserted in update_reward_address
 		// Create 1 contributor
-		let contributors: Vec<(T::RelayChainAccountId, Option<T::AccountId>, BalanceOf<T>)> =
+		let contributors: Vec<ContributorData<T>> =
 			vec![(relay_account.clone(), Some(caller.clone()), total_pot.into())];
 
 		// Insert them
@@ -197,11 +266,11 @@ benchmarks! {
 		payload.append(&mut WRAPPED_BYTES_POSTFIX.to_vec());
 
 		// Create a fake sig for such an account
-		let (relay_account, signature) = create_sig::<T>(SEED, payload);
+		let (relay_account, signature) = create_sig(SEED, payload);
 
 		// We verified there is no dependency of the number of contributors already inserted in associate_native_identity
 		// Create 1 contributor
-		let contributors: Vec<(T::RelayChainAccountId, Option<T::AccountId>, BalanceOf<T>)> =
+		let contributors: Vec<ContributorData<T>> =
 		vec![(relay_account.clone().into(), None, total_pot.into())];
 
 		// Insert them
@@ -247,13 +316,13 @@ benchmarks! {
 
 		// Create N sigs for N accounts
 		for i in 0..x {
-			let (relay_account, signature) = create_sig::<T>(SEED-i, payload.clone());
+			let (relay_account, signature) = create_sig(SEED-i, payload.clone());
 			proofs.push((relay_account.into(), signature));
 		}
 
 		// Create x contributors
 		// All of them map to the same account
-		let mut contributors: Vec<(T::RelayChainAccountId, Option<T::AccountId>, BalanceOf<T>)> = Vec::new();
+		let mut contributors: Vec<ContributorData<T>> = Vec::new();
 		for (relay_account, _) in proofs.clone() {
 			contributors.push((relay_account, Some(first_reward_account.clone()), 100u32.into()));
 		}

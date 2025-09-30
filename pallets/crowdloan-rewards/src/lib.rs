@@ -42,8 +42,6 @@ pub mod weights;
 #[pallet]
 pub mod pallet {
 	use super::*;
-	#[cfg(any(test, feature = "runtime-benchmarks"))]
-	use frame_support::traits::WithdrawReasons;
 	use frame_support::{
 		pallet_prelude::*,
 		traits::{Currency, ExistenceRequirement::AllowDeath},
@@ -122,6 +120,13 @@ pub mod pallet {
 	pub type BalanceOf<T> = <<T as Config>::RewardCurrency as Currency<
 		<T as frame_system::Config>::AccountId,
 	>>::Balance;
+
+	/// Type alias for contributor data: (relay_account, optional_native_account, reward)
+	pub type ContributorData<T> = (
+		<T as Config>::RelayChainAccountId,
+		Option<<T as frame_system::Config>::AccountId>,
+		BalanceOf<T>,
+	);
 
 	/// Stores info about the rewards owed as well as how much has been vested so far.
 	/// For a primer on this kind of design, see the recipe on compounding interest
@@ -381,6 +386,7 @@ pub mod pallet {
 		/// We could do something more efficient like count as we verify
 		/// In any of the cases the weight will need to account for all the signatures,
 		/// as we dont know beforehand whether they will be valid
+		#[allow(clippy::map_entry)] // Cannot use entry API due to ensure! checks before insert
 		fn verify_signatures(
 			proofs: Vec<(T::RelayChainAccountId, MultiSignature)>,
 			reward_info: RewardInfo<T>,
@@ -423,174 +429,6 @@ pub mod pallet {
 				Error::<T>::InsufficientNumberOfValidProofs
 			);
 			Ok(())
-		}
-
-		#[cfg(any(test, feature = "runtime-benchmarks"))]
-		/// USED ONLY FOR BENCHMARKS SETUP
-		pub fn complete_initialization(
-			origin: OriginFor<T>,
-			lease_ending_block: T::VestingBlockNumber,
-		) -> DispatchResultWithPostInfo {
-			ensure_root(origin)?;
-
-			let initialized = <Initialized<T>>::get();
-
-			// This ensures there was no prior initialization
-			ensure!(!initialized, Error::<T>::RewardVecAlreadyInitialized);
-
-			// This ensures the end vesting block (when all funds are fully vested)
-			// is bigger than the init vesting block
-			ensure!(
-				lease_ending_block > InitVestingBlock::<T>::get(),
-				Error::<T>::VestingPeriodNonValid
-			);
-
-			let current_initialized_rewards = InitializedRewardAmount::<T>::get();
-
-			let reward_difference = Self::pot().saturating_sub(current_initialized_rewards);
-
-			// Ensure the difference is not bigger than the total number of contributors
-			ensure!(
-				reward_difference < TotalContributors::<T>::get().into(),
-				Error::<T>::RewardsDoNotMatchFund
-			);
-
-			// Burn the difference
-			let imbalance = T::RewardCurrency::withdraw(
-				&PALLET_ID.into_account_truncating(),
-				reward_difference,
-				WithdrawReasons::TRANSFER,
-				AllowDeath,
-			)
-			.expect("Shouldnt fail, as the fund should be enough to burn and nothing is locked");
-			drop(imbalance);
-
-			EndVestingBlock::<T>::put(lease_ending_block);
-
-			<Initialized<T>>::put(true);
-
-			Ok(Default::default())
-		}
-
-		#[cfg(any(test, feature = "runtime-benchmarks"))]
-		/// USED ONLY FOR BENCHMARKS SETUP
-		pub fn initialize_reward_vec(
-			origin: OriginFor<T>,
-			rewards: Vec<(T::RelayChainAccountId, Option<T::AccountId>, BalanceOf<T>)>,
-		) -> DispatchResultWithPostInfo {
-			ensure_root(origin)?;
-			let initialized = <Initialized<T>>::get();
-			ensure!(!initialized, Error::<T>::RewardVecAlreadyInitialized);
-
-			// Ensure we are below the max number of contributors
-			ensure!(
-				rewards.len() as u32 <= T::MaxInitContributors::get(),
-				Error::<T>::TooManyContributors
-			);
-
-			// What is the amount initialized so far?
-			let mut current_initialized_rewards = InitializedRewardAmount::<T>::get();
-
-			// Total number of contributors
-			let mut total_contributors = TotalContributors::<T>::get();
-
-			let incoming_rewards: BalanceOf<T> = rewards
-				.iter()
-				.fold(0u32.into(), |acc: BalanceOf<T>, (_, _, reward)| {
-					acc + *reward
-				});
-
-			// Ensure we dont go over funds
-			ensure!(
-				current_initialized_rewards + incoming_rewards <= Self::pot(),
-				Error::<T>::BatchBeyondFundPot
-			);
-
-			for (relay_account, native_account, reward) in &rewards {
-				if ClaimedRelayChainIds::<T>::get(relay_account).is_some()
-					|| UnassociatedContributions::<T>::get(relay_account).is_some()
-				{
-					// Dont fail as this is supposed to be called with batch calls and we
-					// dont want to stall the rest of the contributions
-					Self::deposit_event(Event::InitializedAlreadyInitializedAccount(
-						relay_account.clone(),
-						native_account.clone(),
-						*reward,
-					));
-					continue;
-				}
-
-				if *reward < T::MinimumReward::get() {
-					// Don't fail as this is supposed to be called with batch calls and we
-					// dont want to stall the rest of the contributions
-					Self::deposit_event(Event::InitializedAccountWithNotEnoughContribution(
-						relay_account.clone(),
-						native_account.clone(),
-						*reward,
-					));
-					continue;
-				}
-
-				// If we have a native_account, we make the payment
-				let initial_payment = if let Some(native_account) = native_account {
-					let first_payment = T::InitializationPayment::get() * (*reward);
-					T::RewardCurrency::transfer(
-						&PALLET_ID.into_account_truncating(),
-						native_account,
-						first_payment,
-						AllowDeath,
-					)?;
-					Self::deposit_event(Event::InitialPaymentMade(
-						native_account.clone(),
-						first_payment,
-					));
-					first_payment
-				} else {
-					0u32.into()
-				};
-
-				// Calculate the reward info to store after the initial payment has been made.
-				let mut reward_info = RewardInfo {
-					total_reward: *reward,
-					claimed_reward: initial_payment,
-					contributed_relay_addresses: vec![relay_account.clone()],
-				};
-
-				current_initialized_rewards += *reward - initial_payment;
-				total_contributors += 1;
-
-				if let Some(native_account) = native_account {
-					if let Some(mut inserted_reward_info) =
-						AccountsPayable::<T>::get(native_account)
-					{
-						inserted_reward_info
-							.contributed_relay_addresses
-							.append(&mut reward_info.contributed_relay_addresses);
-						// the native account has already some rewards in, we add the new ones
-						AccountsPayable::<T>::insert(
-							native_account,
-							RewardInfo {
-								total_reward: inserted_reward_info.total_reward
-									+ reward_info.total_reward,
-								claimed_reward: inserted_reward_info.claimed_reward
-									+ reward_info.claimed_reward,
-								contributed_relay_addresses: inserted_reward_info
-									.contributed_relay_addresses,
-							},
-						);
-					} else {
-						// First reward association
-						AccountsPayable::<T>::insert(native_account, reward_info);
-					}
-					ClaimedRelayChainIds::<T>::insert(relay_account, ());
-				} else {
-					UnassociatedContributions::<T>::insert(relay_account, reward_info);
-				}
-			}
-			InitializedRewardAmount::<T>::put(current_initialized_rewards);
-			TotalContributors::<T>::put(total_contributors);
-
-			Ok(Default::default())
 		}
 	}
 
@@ -666,18 +504,18 @@ pub mod pallet {
 	#[pallet::getter(fn init_reward_amount)]
 	/// Total initialized amount so far. We store this to make pallet funds == contributors reward
 	/// check easier and more efficient
-	type InitializedRewardAmount<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
+	pub(crate) type InitializedRewardAmount<T: Config> = StorageValue<_, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn total_contributors)]
 	/// Total number of contributors to aid hinting benchmarking
-	type TotalContributors<T: Config> = StorageValue<_, u32, ValueQuery>;
+	pub(crate) type TotalContributors<T: Config> = StorageValue<_, u32, ValueQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		/// List of contributors with their relay account, optional native account, and reward amount
 		#[serde(skip)]
-		pub funded_accounts: Vec<(T::RelayChainAccountId, Option<T::AccountId>, BalanceOf<T>)>,
+		pub funded_accounts: Vec<ContributorData<T>>,
 		/// Initial vesting block number
 		#[serde(skip)]
 		pub init_vesting_block: T::VestingBlockNumber,
