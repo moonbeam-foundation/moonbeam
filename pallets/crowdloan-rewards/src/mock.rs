@@ -120,7 +120,7 @@ impl BlockNumberProvider for MockVestingBlockNumberProvider {
 
 parameter_types! {
 	pub const Initialized: bool = false;
-	pub const InitializationPayment: Perbill = Perbill::from_percent(25);
+	pub const InitializationPayment: Perbill = Perbill::from_percent(20);
 	pub const MaxInitContributors: u32 = 8;
 	pub const MinimumReward: Balance = 0;
 	pub const RewardAddressRelayVoteThreshold: Perbill = Perbill::from_percent(60);
@@ -137,9 +137,9 @@ impl Config for Test {
 	type RewardAddressRelayVoteThreshold = RewardAddressRelayVoteThreshold;
 	type RewardCurrency = Balances;
 	type RelayChainAccountId = AccountId;
-	type RewardAddressChangeOrigin = frame_system::EnsureRoot<AccountId>;
+	type RewardAddressChangeOrigin = frame_system::EnsureSigned<AccountId>;
 	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
-	type RewardAddressAssociateOrigin = frame_system::EnsureRoot<AccountId>;
+	type RewardAddressAssociateOrigin = frame_system::EnsureSigned<AccountId>;
 	type VestingBlockNumber = u32;
 	type VestingBlockProvider = MockVestingBlockNumberProvider;
 	type WeightInfo = ();
@@ -250,20 +250,6 @@ pub(crate) fn roll_to(n: u32) {
 		CrowdloanRewards::on_finalize(System::block_number());
 		current_block_number = current_block_number.saturating_add(1);
 	}
-}
-
-pub(crate) fn batch_events() -> Vec<pallet_utility::Event> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.filter_map(|e| {
-			if let RuntimeEvent::Utility(inner) = e {
-				Some(inner)
-			} else {
-				None
-			}
-		})
-		.collect::<Vec<_>>()
 }
 
 pub(crate) fn events() -> Vec<super::Event<Test>> {

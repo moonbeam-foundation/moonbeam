@@ -287,7 +287,8 @@ fn test_update_reward_address_fails_when_new_account_already_has_rewards() {
 fn test_pot_returns_correct_balance() {
 	new_test_ext().execute_with(|| {
 		// Total rewards minus the initial payment to the native accounts
-		let expected_balance = 1_000_000_000u128 - 2500u128;
+		// Default genesis has 10_000 reward with 20% initial payment = 2000
+		let expected_balance = 1_000_000_000u128 - 2000u128;
 		assert_eq!(CrowdloanRewards::pot(), expected_balance);
 	});
 }

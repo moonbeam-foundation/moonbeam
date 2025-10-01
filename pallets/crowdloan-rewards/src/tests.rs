@@ -92,10 +92,16 @@ fn proving_assignation_works() {
 	let pairs = get_ed25519_pairs(3);
 	let mut payload = WRAPPED_BYTES_PREFIX.to_vec();
 	payload.append(&mut SignatureNetworkIdentifier::get().to_vec());
-	payload.append(&mut 3u64.encode());
+	payload.append(&mut account(3).encode());
 	payload.append(&mut WRAPPED_BYTES_POSTFIX.to_vec());
 	let signature: MultiSignature = pairs[0].sign(&payload).into();
-	let alread_associated_signature: MultiSignature = pairs[0].sign(&1u64.encode()).into();
+
+	let mut already_associated_payload = WRAPPED_BYTES_PREFIX.to_vec();
+	already_associated_payload.append(&mut SignatureNetworkIdentifier::get().to_vec());
+	already_associated_payload.append(&mut account(1).encode());
+	already_associated_payload.append(&mut WRAPPED_BYTES_POSTFIX.to_vec());
+	let alread_associated_signature: MultiSignature =
+		pairs[0].sign(&already_associated_payload).into();
 	new_test_ext_with_config(empty_crowdloan_genesis_config()).execute_with(|| {
 		// Insert contributors
 		let pairs = get_ed25519_pairs(3);
@@ -179,9 +185,8 @@ fn proving_assignation_works() {
 				.is_some()
 		);
 
+		// Only events from current block (after roll_to(4)) are preserved
 		let expected = vec![
-			crate::Event::InitialPaymentMade(account(1), 100),
-			crate::Event::InitialPaymentMade(account(2), 100),
 			crate::Event::InitialPaymentMade(account(3), 100),
 			crate::Event::NativeIdentityAssociated(pairs[0].public().into(), account(3), 500),
 		];
@@ -428,7 +433,7 @@ fn paying_late_joiner_works() {
 	let pairs = get_ed25519_pairs(3);
 	let mut payload = WRAPPED_BYTES_PREFIX.to_vec();
 	payload.append(&mut SignatureNetworkIdentifier::get().to_vec());
-	payload.append(&mut 3u64.encode());
+	payload.append(&mut account(3).encode());
 	payload.append(&mut WRAPPED_BYTES_POSTFIX.to_vec());
 	let signature: MultiSignature = pairs[0].sign(&payload).into();
 	new_test_ext_with_config(empty_crowdloan_genesis_config()).execute_with(|| {
@@ -460,9 +465,10 @@ fn paying_late_joiner_works() {
 				.claimed_reward,
 			500
 		);
+		// Note: account(1) and account(2) don't get InitialPaymentMade events during initialization
+		// because they are already associated with native accounts. Only account(3) gets it
+		// when associate_native_identity is called.
 		let expected = vec![
-			crate::Event::InitialPaymentMade(account(1), 100),
-			crate::Event::InitialPaymentMade(account(2), 100),
 			crate::Event::InitialPaymentMade(account(3), 100),
 			crate::Event::NativeIdentityAssociated(pairs[0].public().into(), account(3), 500),
 			crate::Event::RewardsPaid(account(3), 400),
