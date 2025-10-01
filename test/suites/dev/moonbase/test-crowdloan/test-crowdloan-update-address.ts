@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, alith } from "@moonwall/util";
+import { DOROTHY_ADDRESS, BALTATHAR_ADDRESS, dorothy } from "@moonwall/util";
 import { getAccountPayable } from "../../../../helpers/crowdloan.js";
 import { jumpBlocks } from "../../../../helpers/block.js";
 
@@ -13,8 +13,8 @@ describeSuite({
       id: "T01",
       title: "should allow updating reward address from current account",
       test: async () => {
-        // Verify Alith has rewards from genesis
-        const initialPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        // Verify Dorothy has rewards from genesis
+        const initialPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
         expect(initialPayable).not.toBeNull();
 
         const totalReward = initialPayable!.totalReward.toBigInt();
@@ -25,11 +25,11 @@ describeSuite({
           context
             .polkadotJs()
             .tx.crowdloanRewards.updateRewardAddress(BALTATHAR_ADDRESS)
-            .signAsync(alith)
+            .signAsync(dorothy)
         );
 
         // Verify old address no longer has rewards
-        const oldPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        const oldPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
         expect(oldPayable).toBeNull();
 
         // Verify new address has the rewards
@@ -66,16 +66,16 @@ describeSuite({
       id: "T03",
       title: "should fail when caller has no associated rewards",
       test: async () => {
-        // After T01, Alith no longer has rewards
-        const alithPayable = await getAccountPayable(context, ALITH_ADDRESS);
-        expect(alithPayable).toBeNull();
+        // After T01, Dorothy no longer has rewards
+        const dorothyPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
+        expect(dorothyPayable).toBeNull();
 
-        // Try to update from Alith who has no rewards (should fail)
+        // Try to update from Dorothy who has no rewards (should fail)
         const result = await context.createBlock(
           context
             .polkadotJs()
             .tx.crowdloanRewards.updateRewardAddress(BALTATHAR_ADDRESS)
-            .signAsync(alith)
+            .signAsync(dorothy)
         );
 
         expect(result.result?.successful).toBe(false);
@@ -93,16 +93,16 @@ describeSuite({
         const relayAddresses = initialPayable!.contributedRelayAddresses;
         const { baltathar } = await import("@moonwall/util");
 
-        // Update address back to Alith
+        // Update address back to Dorothy
         await context.createBlock(
           context
             .polkadotJs()
-            .tx.crowdloanRewards.updateRewardAddress(ALITH_ADDRESS)
+            .tx.crowdloanRewards.updateRewardAddress(DOROTHY_ADDRESS)
             .signAsync(baltathar)
         );
 
         // Check relay addresses are preserved
-        const newPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        const newPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
         expect(newPayable).not.toBeNull();
         expect(newPayable!.contributedRelayAddresses.length).toBe(relayAddresses.length);
         expect(newPayable!.contributedRelayAddresses[0].toString()).toBe(
@@ -115,16 +115,16 @@ describeSuite({
       id: "T05",
       title: "should emit RewardAddressUpdated event",
       test: async () => {
-        // After T04, Alith should have the rewards again
-        const alithPayable = await getAccountPayable(context, ALITH_ADDRESS);
-        expect(alithPayable).not.toBeNull();
+        // After T04, Dorothy should have the rewards again
+        const dorothyPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
+        expect(dorothyPayable).not.toBeNull();
 
         // Update to Baltathar and check event
         const result = await context.createBlock(
           context
             .polkadotJs()
             .tx.crowdloanRewards.updateRewardAddress(BALTATHAR_ADDRESS)
-            .signAsync(alith)
+            .signAsync(dorothy)
         );
 
         const events = result.result?.events || [];
@@ -136,7 +136,7 @@ describeSuite({
 
         if (updateEvent) {
           const [oldAddress, newAddress] = updateEvent.event.data;
-          expect(oldAddress.toString()).toBe(ALITH_ADDRESS);
+          expect(oldAddress.toString()).toBe(DOROTHY_ADDRESS);
           expect(newAddress.toString()).toBe(BALTATHAR_ADDRESS);
         }
       },

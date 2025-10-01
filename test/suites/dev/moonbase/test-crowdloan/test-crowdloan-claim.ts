@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite } from "@moonwall/cli";
-import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import { DOROTHY_ADDRESS, dorothy } from "@moonwall/util";
 import { calculate_vested_amount, getAccountPayable } from "../../../../helpers/crowdloan.js";
 import { jumpBlocks } from "../../../../helpers/block.js";
 
@@ -17,7 +17,7 @@ describeSuite({
       title: "should allow claiming vested rewards after blocks pass",
       test: async () => {
         // Get initial state
-        const initialPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        const initialPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
         const initialClaimed = initialPayable!.claimedReward.toBigInt();
 
         // Wait for some blocks to pass
@@ -34,19 +34,19 @@ describeSuite({
 
         // Claim rewards
         const balanceBefore = (
-          await context.polkadotJs().query.system.account(ALITH_ADDRESS)
+          await context.polkadotJs().query.system.account(DOROTHY_ADDRESS)
         ).data.free.toBigInt();
 
         await context.createBlock(
-          context.polkadotJs().tx.crowdloanRewards.claim().signAsync(alith)
+          context.polkadotJs().tx.crowdloanRewards.claim().signAsync(dorothy)
         );
 
         const balanceAfter = (
-          await context.polkadotJs().query.system.account(ALITH_ADDRESS)
+          await context.polkadotJs().query.system.account(DOROTHY_ADDRESS)
         ).data.free.toBigInt();
 
         // Verify the claim
-        const finalPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        const finalPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
         const claimedAmount = finalPayable!.claimedReward.toBigInt() - initialClaimed;
 
         expect(claimedAmount).toBeGreaterThan(0n);
@@ -62,15 +62,15 @@ describeSuite({
         // Each createBlock advances relay block by 2, which vests more rewards
         // This test verifies that even small time increments allow claiming
 
-        const payableBefore = await getAccountPayable(context, ALITH_ADDRESS);
+        const payableBefore = await getAccountPayable(context, DOROTHY_ADDRESS);
         const claimedBefore = payableBefore!.claimedReward.toBigInt();
 
         // Advance just one block (which increases relay block by 2)
         await context.createBlock(
-          context.polkadotJs().tx.crowdloanRewards.claim().signAsync(alith)
+          context.polkadotJs().tx.crowdloanRewards.claim().signAsync(dorothy)
         );
 
-        const payableAfter = await getAccountPayable(context, ALITH_ADDRESS);
+        const payableAfter = await getAccountPayable(context, DOROTHY_ADDRESS);
         const claimedAfter = payableAfter!.claimedReward.toBigInt();
 
         // Should be able to claim at least something since relay blocks advanced
@@ -88,14 +88,14 @@ describeSuite({
         for (let i = 0; i < 3; i++) {
           await jumpBlocks(context, 5);
 
-          const payableBefore = await getAccountPayable(context, ALITH_ADDRESS);
+          const payableBefore = await getAccountPayable(context, DOROTHY_ADDRESS);
           const claimedBefore = payableBefore!.claimedReward.toBigInt();
 
           await context.createBlock(
-            context.polkadotJs().tx.crowdloanRewards.claim().signAsync(alith)
+            context.polkadotJs().tx.crowdloanRewards.claim().signAsync(dorothy)
           );
 
-          const payableAfter = await getAccountPayable(context, ALITH_ADDRESS);
+          const payableAfter = await getAccountPayable(context, DOROTHY_ADDRESS);
           const claimedAfter = payableAfter!.claimedReward.toBigInt();
 
           const claimAmount = claimedAfter - claimedBefore;
@@ -117,10 +117,10 @@ describeSuite({
         await jumpBlocks(context, 100);
 
         await context.createBlock(
-          context.polkadotJs().tx.crowdloanRewards.claim().signAsync(alith)
+          context.polkadotJs().tx.crowdloanRewards.claim().signAsync(dorothy)
         );
 
-        const payable = await getAccountPayable(context, ALITH_ADDRESS);
+        const payable = await getAccountPayable(context, DOROTHY_ADDRESS);
 
         expect(payable!.claimedReward.toBigInt()).toBeLessThanOrEqual(
           payable!.totalReward.toBigInt()
@@ -135,7 +135,7 @@ describeSuite({
         await jumpBlocks(context, 10);
 
         const result = await context.createBlock(
-          context.polkadotJs().tx.crowdloanRewards.claim().signAsync(alith)
+          context.polkadotJs().tx.crowdloanRewards.claim().signAsync(dorothy)
         );
 
         const events = result.result?.events || [];

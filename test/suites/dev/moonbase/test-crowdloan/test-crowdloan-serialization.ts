@@ -27,10 +27,10 @@ describeSuite({
       test: async () => {
         // Verify that the ContributorData tuple was correctly serialized/deserialized
         // by checking that accounts have reward info
-        const ALITH_ADDRESS = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
+        const DOROTHY_ADDRESS = "0x773539d4Ac0e786233D90A233654ccEE26a613D9";
         const accountPayable = await context
           .polkadotJs()
-          .query.crowdloanRewards.accountsPayable(ALITH_ADDRESS);
+          .query.crowdloanRewards.accountsPayable(DOROTHY_ADDRESS);
 
         // If we have account payable data, the Vec<ContributorData<T>> was properly deserialized
         expect(accountPayable.isSome).toBe(true);
@@ -58,10 +58,10 @@ describeSuite({
       title: "should have balance types properly deserialized",
       test: async () => {
         // Verify that BalanceOf<T> was correctly handled in serialization
-        const ALITH_ADDRESS = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
+        const DOROTHY_ADDRESS = "0x773539d4Ac0e786233D90A233654ccEE26a613D9";
         const accountPayable = await context
           .polkadotJs()
-          .query.crowdloanRewards.accountsPayable(ALITH_ADDRESS);
+          .query.crowdloanRewards.accountsPayable(DOROTHY_ADDRESS);
 
         expect(accountPayable.isSome).toBe(true);
         const data = accountPayable.unwrap();
@@ -78,11 +78,11 @@ describeSuite({
       title: "should have account ID properly deserialized in AccountsPayable",
       test: async () => {
         // Verify that T::AccountId was correctly serialized/deserialized
-        const ALITH_ADDRESS = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
+        const DOROTHY_ADDRESS = "0x773539d4Ac0e786233D90A233654ccEE26a613D9";
 
         const accountPayable = await context
           .polkadotJs()
-          .query.crowdloanRewards.accountsPayable(ALITH_ADDRESS);
+          .query.crowdloanRewards.accountsPayable(DOROTHY_ADDRESS);
 
         // If this works, the AccountId in ContributorData was properly handled
         expect(accountPayable.isSome).toBe(true);
@@ -103,12 +103,12 @@ describeSuite({
         // This test verifies it was handled correctly by checking both
         // AccountsPayable (for Some(AccountId)) and UnassociatedContributions (for None)
 
-        const ALITH_ADDRESS = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
+        const DOROTHY_ADDRESS = "0x773539d4Ac0e786233D90A233654ccEE26a613D9";
         const accountPayable = await context
           .polkadotJs()
-          .query.crowdloanRewards.accountsPayable(ALITH_ADDRESS);
+          .query.crowdloanRewards.accountsPayable(DOROTHY_ADDRESS);
 
-        // Alith should have an associated account (Some(AccountId) in genesis)
+        // Dorothy should have an associated account (Some(AccountId) in genesis)
         expect(accountPayable.isSome).toBe(true);
       },
     });

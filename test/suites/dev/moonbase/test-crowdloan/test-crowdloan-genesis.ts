@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { expect, describeSuite } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import { DOROTHY_ADDRESS } from "@moonwall/util";
 import { getAccountPayable } from "../../../../helpers/crowdloan.js";
 import { VESTING_PERIOD } from "../../../../helpers/constants.js";
 
@@ -28,7 +28,7 @@ describeSuite({
       test: async () => {
         // Instead of checking internal vesting blocks, verify that the account
         // was properly set up with rewards which indicates genesis config worked
-        const accountPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        const accountPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
 
         expect(accountPayable).not.toBeNull();
         expect(accountPayable!.totalReward.toBigInt()).toBeGreaterThan(0n);
@@ -38,9 +38,9 @@ describeSuite({
 
     it({
       id: "T03",
-      title: "should have Alith account with crowdloan rewards",
+      title: "should have Dorothy account with crowdloan rewards",
       test: async () => {
-        const accountPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        const accountPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
 
         expect(accountPayable).not.toBeNull();
         expect(accountPayable!.totalReward.toBigInt()).toBe(EXPECTED_TOTAL_REWARD);
@@ -51,7 +51,7 @@ describeSuite({
       id: "T04",
       title: "should have correct initial payment claimed",
       test: async () => {
-        const accountPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        const accountPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
         const expectedInitialPayment = (EXPECTED_TOTAL_REWARD * INIT_PAYMENT_PERCENTAGE) / 100n;
 
         expect(accountPayable).not.toBeNull();
@@ -75,7 +75,7 @@ describeSuite({
       id: "T06",
       title: "should have correct relay account associated",
       test: async () => {
-        const accountPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        const accountPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
 
         expect(accountPayable).not.toBeNull();
         expect(accountPayable!.contributedRelayAddresses.length).toBe(1);
@@ -88,7 +88,7 @@ describeSuite({
       title: "should have genesis payment sent to account",
       test: async () => {
         // Verify that the initial payment was transferred during genesis
-        const accountPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        const accountPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
         const expectedInitialPayment = (EXPECTED_TOTAL_REWARD * INIT_PAYMENT_PERCENTAGE) / 100n;
 
         expect(accountPayable).not.toBeNull();
@@ -101,7 +101,7 @@ describeSuite({
       title: "should have proper reward calculation setup",
       test: async () => {
         // Verify the rewards are set up correctly by checking total vs claimed
-        const accountPayable = await getAccountPayable(context, ALITH_ADDRESS);
+        const accountPayable = await getAccountPayable(context, DOROTHY_ADDRESS);
         const expectedInitialPayment = (EXPECTED_TOTAL_REWARD * INIT_PAYMENT_PERCENTAGE) / 100n;
 
         expect(accountPayable).not.toBeNull();

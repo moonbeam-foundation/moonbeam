@@ -187,7 +187,7 @@ pub fn testnet_genesis(
 		},
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_accounts: vec![
-				// Alith account with test rewards
+				// Dorothy account with test rewards
 				(
 					[
 						0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
@@ -195,7 +195,7 @@ pub fn testnet_genesis(
 						0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
 					],
 					Some(AccountId::from(sp_core::hex2array!(
-						"f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"
+						"773539d4Ac0e786233D90A233654ccEE26a613D9"
 					))),
 					3_000_000 * UNIT,
 				),
