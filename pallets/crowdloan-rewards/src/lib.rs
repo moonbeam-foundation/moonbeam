@@ -483,13 +483,10 @@ pub mod pallet {
 		}
 
 		pub fn initialize_reward_vec(
-			rewards: Vec<(T::RelayChainAccountId, Option<T::AccountId>, BalanceOf<T>)>,
+			rewards: Vec<ContributorData<T>>,
 		) -> DispatchResultWithPostInfo {
 			let initialized = <Initialized<T>>::get();
-			ensure!(
-				initialized == false,
-				Error::<T>::RewardVecAlreadyInitialized
-			);
+			ensure!(!initialized, Error::<T>::RewardVecAlreadyInitialized);
 
 			// Ensure we are below the max number of contributors
 			ensure!(
@@ -516,8 +513,8 @@ pub mod pallet {
 			);
 
 			for (relay_account, native_account, reward) in &rewards {
-				if ClaimedRelayChainIds::<T>::get(&relay_account).is_some()
-					|| UnassociatedContributions::<T>::get(&relay_account).is_some()
+				if ClaimedRelayChainIds::<T>::get(relay_account).is_some()
+					|| UnassociatedContributions::<T>::get(relay_account).is_some()
 				{
 					// Dont fail as this is supposed to be called with batch calls and we
 					// dont want to stall the rest of the contributions
@@ -545,7 +542,7 @@ pub mod pallet {
 					let first_payment = T::InitializationPayment::get() * (*reward);
 					T::RewardCurrency::transfer(
 						&PALLET_ID.into_account_truncating(),
-						&native_account,
+						native_account,
 						first_payment,
 						AllowDeath,
 					)?;
