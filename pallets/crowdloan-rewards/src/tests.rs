@@ -289,7 +289,8 @@ fn test_update_reward_address_fails_when_new_account_already_has_rewards() {
 #[test]
 fn test_pot_returns_correct_balance() {
 	new_test_ext().execute_with(|| {
-		let expected_balance = 1_000_000_000u128;
+		// Total rewards minus the initial payment to the native accounts
+		let expected_balance = 1_000_000_000u128 - 2500u128;
 		assert_eq!(CrowdloanRewards::pot(), expected_balance);
 	});
 }
