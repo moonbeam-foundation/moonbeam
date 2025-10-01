@@ -23,6 +23,7 @@ sp-trie = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default
 
 [dev-dependencies]
 pallet-balances = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
+pallet-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
 
 [features]
 default = ["std"]

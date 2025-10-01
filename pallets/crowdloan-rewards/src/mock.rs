@@ -23,7 +23,7 @@ use frame_support::{
 	weights::{constants::RocksDbWeight, Weight},
 	PalletId,
 };
-use sp_core::{crypto::AccountId32, H256};
+use sp_core::{crypto::AccountId32, ed25519, Pair, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
 	BuildStorage, Perbill,
@@ -39,6 +39,7 @@ construct_runtime!(
 		System: frame_system,
 		Balances: pallet_balances,
 		CrowdloanRewards: pallet_crowdloan_rewards,
+		Utility: pallet_utility,
 	}
 );
 
@@ -144,6 +145,13 @@ impl Config for Test {
 	type WeightInfo = ();
 }
 
+impl pallet_utility::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type WeightInfo = ();
+	type PalletsOrigin = OriginCaller;
+}
+
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	new_test_ext_with_config(default_crowdloan_genesis_config())
@@ -212,4 +220,62 @@ pub fn run_to_block(n: u32) {
 		Balances::on_initialize(System::block_number());
 		CrowdloanRewards::on_initialize(System::block_number());
 	}
+}
+
+pub(crate) fn get_ed25519_pairs(num: u32) -> Vec<ed25519::Pair> {
+	let seed: u128 = 12345678901234567890123456789012;
+	let mut pairs = Vec::new();
+	for i in 0..num {
+		pairs.push(ed25519::Pair::from_seed(
+			(seed.clone() + i as u128)
+				.to_string()
+				.as_bytes()
+				.try_into()
+				.unwrap(),
+		))
+	}
+	pairs
+}
+
+// Helper function to create a test account
+pub(crate) fn account(id: u8) -> AccountId32 {
+	AccountId32::from([id; 32])
+}
+
+pub(crate) fn roll_to(n: u32) {
+	let mut current_block_number = System::block_number();
+	while current_block_number < n {
+		CrowdloanRewards::on_initialize(System::block_number());
+		System::set_block_number(current_block_number);
+		CrowdloanRewards::on_finalize(System::block_number());
+		current_block_number = current_block_number.saturating_add(1);
+	}
+}
+
+pub(crate) fn batch_events() -> Vec<pallet_utility::Event> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| {
+			if let RuntimeEvent::Utility(inner) = e {
+				Some(inner)
+			} else {
+				None
+			}
+		})
+		.collect::<Vec<_>>()
+}
+
+pub(crate) fn events() -> Vec<super::Event<Test>> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.filter_map(|e| {
+			if let RuntimeEvent::CrowdloanRewards(inner) = e {
+				Some(inner)
+			} else {
+				None
+			}
+		})
+		.collect::<Vec<_>>()
 }
