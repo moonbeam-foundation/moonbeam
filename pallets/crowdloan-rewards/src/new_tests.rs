@@ -19,26 +19,8 @@
 use super::*;
 use crate::mock::*;
 use crate::pallet::{EndVestingBlock, InitVestingBlock, Initialized};
-use frame_support::{assert_noop, assert_ok, traits::Currency};
-use sp_core::crypto::AccountId32;
+use frame_support::{assert_noop, assert_ok};
 use sp_runtime::traits::AccountIdConversion;
-
-// Helper function to fund the pallet account
-fn fund_pallet(amount: Balance) {
-	let _ = Balances::make_free_balance_be(&CrowdloanRewards::account_id(), amount);
-}
-
-// Helper function to create a test externalities with custom rewards
-fn new_test_ext_with_rewards(
-	rewards: Vec<(AccountId32, Option<AccountId32>, Balance)>,
-) -> sp_io::TestExternalities {
-	let config = crate::GenesisConfig {
-		funded_accounts: rewards,
-		init_vesting_block: 1u32,
-		end_vesting_block: 100u32,
-	};
-	new_test_ext_with_config(config)
-}
 
 #[test]
 fn test_claim_works_with_full_vesting() {
@@ -46,45 +28,44 @@ fn test_claim_works_with_full_vesting() {
 	let relay_account = account(10);
 	let total_reward = 10_000u128;
 
-	new_test_ext_with_rewards(vec![(
-		relay_account.clone(),
-		Some(reward_account.clone()),
-		total_reward,
-	)])
-	.execute_with(|| {
-		// Fund the pallet
-		fund_pallet(1_000_000);
+	ExtBuilder::default()
+		.with_funded_accounts(vec![(
+			relay_account.clone(),
+			Some(reward_account.clone()),
+			total_reward,
+		)])
+		.build()
+		.execute_with(|| {
+			// Move to end of vesting period
+			run_to_block(100);
 
-		// Move to end of vesting period
-		run_to_block(100);
+			let initial_balance = Balances::free_balance(&reward_account);
+			let pallet_initial_balance = Balances::free_balance(&CrowdloanRewards::account_id());
 
-		let initial_balance = Balances::free_balance(&reward_account);
-		let pallet_initial_balance = Balances::free_balance(&CrowdloanRewards::account_id());
+			// Claim rewards
+			assert_ok!(CrowdloanRewards::claim(RuntimeOrigin::signed(
+				reward_account.clone()
+			)));
 
-		// Claim rewards
-		assert_ok!(CrowdloanRewards::claim(RuntimeOrigin::signed(
-			reward_account.clone()
-		)));
+			// Check that rewards were paid
+			let reward_info = AccountsPayable::<Test>::get(&reward_account).unwrap();
+			assert_eq!(reward_info.claimed_reward, total_reward);
 
-		// Check that rewards were paid
-		let reward_info = AccountsPayable::<Test>::get(&reward_account).unwrap();
-		assert_eq!(reward_info.claimed_reward, total_reward);
+			// Check balances
+			let final_balance = Balances::free_balance(&reward_account);
+			let pallet_final_balance = Balances::free_balance(&CrowdloanRewards::account_id());
 
-		// Check balances
-		let final_balance = Balances::free_balance(&reward_account);
-		let pallet_final_balance = Balances::free_balance(&CrowdloanRewards::account_id());
+			// Should have received remaining vested amount
+			let initialization_payment = InitializationPayment::get() * total_reward;
+			let expected_claim = total_reward - initialization_payment;
+			assert_eq!(final_balance, initial_balance + expected_claim);
+			assert_eq!(
+				pallet_final_balance,
+				pallet_initial_balance - expected_claim
+			);
 
-		// Should have received remaining vested amount
-		let initialization_payment = InitializationPayment::get() * total_reward;
-		let expected_claim = total_reward - initialization_payment;
-		assert_eq!(final_balance, initial_balance + expected_claim);
-		assert_eq!(
-			pallet_final_balance,
-			pallet_initial_balance - expected_claim
-		);
-
-		// Note: Event checking could be added here if needed
-	});
+			// Note: Event checking could be added here if needed
+		});
 }
 
 #[test]
@@ -93,49 +74,49 @@ fn test_claim_works_with_partial_vesting() {
 	let relay_account = account(10);
 	let total_reward = 10_000u128;
 
-	new_test_ext_with_rewards(vec![(
-		relay_account.clone(),
-		Some(reward_account.clone()),
-		total_reward,
-	)])
-	.execute_with(|| {
-		// Fund the pallet
-		fund_pallet(1_000_000);
+	ExtBuilder::default()
+		.with_funded_accounts(vec![(
+			relay_account.clone(),
+			Some(reward_account.clone()),
+			total_reward,
+		)])
+		.build()
+		.execute_with(|| {
+			// Move to 50% of vesting period (block 50 out of 100)
+			run_to_block(50);
 
-		// Move to 50% of vesting period (block 50 out of 100)
-		run_to_block(50);
+			let initial_balance = Balances::free_balance(&reward_account);
 
-		let initial_balance = Balances::free_balance(&reward_account);
+			// Claim rewards
+			assert_ok!(CrowdloanRewards::claim(RuntimeOrigin::signed(
+				reward_account.clone()
+			)));
 
-		// Claim rewards
-		assert_ok!(CrowdloanRewards::claim(RuntimeOrigin::signed(
-			reward_account.clone()
-		)));
+			// Check that partial rewards were paid
+			let reward_info = AccountsPayable::<Test>::get(&reward_account).unwrap();
 
-		// Check that partial rewards were paid
-		let reward_info = AccountsPayable::<Test>::get(&reward_account).unwrap();
+			// Calculate expected vested amount
+			let initialization_payment = InitializationPayment::get() * total_reward;
+			let remaining_to_vest = total_reward - initialization_payment;
+			let vesting_period = 100u32 - 1u32; // 99 blocks
+			let elapsed_period = 50u32 - 1u32; // 49 blocks
+			let expected_vested =
+				remaining_to_vest * elapsed_period as u128 / vesting_period as u128;
+			let expected_total_claimed = initialization_payment + expected_vested;
 
-		// Calculate expected vested amount
-		let initialization_payment = InitializationPayment::get() * total_reward;
-		let remaining_to_vest = total_reward - initialization_payment;
-		let vesting_period = 100u32 - 1u32; // 99 blocks
-		let elapsed_period = 50u32 - 1u32; // 49 blocks
-		let expected_vested = remaining_to_vest * elapsed_period as u128 / vesting_period as u128;
-		let expected_total_claimed = initialization_payment + expected_vested;
+			assert_eq!(reward_info.claimed_reward, expected_total_claimed);
 
-		assert_eq!(reward_info.claimed_reward, expected_total_claimed);
-
-		// Check balance increased by the vested amount
-		let final_balance = Balances::free_balance(&reward_account);
-		assert_eq!(final_balance, initial_balance + expected_vested);
-	});
+			// Check balance increased by the vested amount
+			let final_balance = Balances::free_balance(&reward_account);
+			assert_eq!(final_balance, initial_balance + expected_vested);
+		});
 }
 
 #[test]
 fn test_claim_fails_when_no_rewards() {
 	// Use default genesis which initializes with account(1) having rewards
 	// But we'll try to claim with a different account
-	new_test_ext().execute_with(|| {
+	ExtBuilder::default().build().execute_with(|| {
 		let reward_account = account(2);
 
 		// Try to claim without having any rewards
@@ -150,7 +131,7 @@ fn test_claim_fails_when_no_rewards() {
 fn test_claim_fails_when_not_initialized() {
 	// Use empty genesis config which will still set Initialized to true
 	// We need to manually set it to false after
-	new_test_ext_with_config(empty_crowdloan_genesis_config()).execute_with(|| {
+	ExtBuilder::empty().build().execute_with(|| {
 		let reward_account = account(1);
 		let relay_account = account(10);
 		let total_reward = 10_000u128;
@@ -175,13 +156,10 @@ fn test_claim_fails_when_not_initialized() {
 
 #[test]
 fn test_claim_fails_when_all_rewards_claimed() {
-	new_test_ext().execute_with(|| {
+	ExtBuilder::default().build().execute_with(|| {
 		let reward_account = account(1);
 		let relay_account = account(10);
 		let total_reward = 10_000u128;
-
-		// Fund the pallet
-		fund_pallet(1_000_000);
 
 		// Setup reward data with all rewards already claimed
 		let reward_info = RewardInfo {
@@ -211,32 +189,34 @@ fn test_update_reward_address_works() {
 	let relay_account = account(10);
 	let total_reward = 10_000u128;
 
-	new_test_ext_with_rewards(vec![(
-		relay_account.clone(),
-		Some(old_reward_account.clone()),
-		total_reward,
-	)])
-	.execute_with(|| {
-		// Update reward address
-		assert_ok!(CrowdloanRewards::update_reward_address(
-			RuntimeOrigin::signed(old_reward_account.clone()),
-			new_reward_account.clone()
-		));
+	ExtBuilder::default()
+		.with_funded_accounts(vec![(
+			relay_account.clone(),
+			Some(old_reward_account.clone()),
+			total_reward,
+		)])
+		.build()
+		.execute_with(|| {
+			// Update reward address
+			assert_ok!(CrowdloanRewards::update_reward_address(
+				RuntimeOrigin::signed(old_reward_account.clone()),
+				new_reward_account.clone()
+			));
 
-		// Check that old account no longer has rewards
-		assert!(AccountsPayable::<Test>::get(&old_reward_account).is_none());
+			// Check that old account no longer has rewards
+			assert!(AccountsPayable::<Test>::get(&old_reward_account).is_none());
 
-		// Check that new account has the rewards
-		let reward_info = AccountsPayable::<Test>::get(&new_reward_account).unwrap();
-		assert_eq!(reward_info.total_reward, total_reward);
+			// Check that new account has the rewards
+			let reward_info = AccountsPayable::<Test>::get(&new_reward_account).unwrap();
+			assert_eq!(reward_info.total_reward, total_reward);
 
-		// Note: Event checking could be added here if needed
-	});
+			// Note: Event checking could be added here if needed
+		});
 }
 
 #[test]
 fn test_update_reward_address_fails_when_no_rewards() {
-	new_test_ext_with_config(empty_crowdloan_genesis_config()).execute_with(|| {
+	ExtBuilder::empty().build().execute_with(|| {
 		let old_reward_account = account(1);
 		let new_reward_account = account(2);
 
@@ -259,43 +239,46 @@ fn test_update_reward_address_fails_when_new_account_already_has_rewards() {
 	let relay_account2 = account(11);
 	let total_reward = 10_000u128;
 
-	new_test_ext_with_rewards(vec![
-		(
-			relay_account1.clone(),
-			Some(old_reward_account.clone()),
-			total_reward,
-		),
-		(
-			relay_account2.clone(),
-			Some(new_reward_account.clone()),
-			total_reward,
-		),
-	])
-	.execute_with(|| {
-		// Try to update address to an account that already has rewards
-		assert_noop!(
-			CrowdloanRewards::update_reward_address(
-				RuntimeOrigin::signed(old_reward_account),
-				new_reward_account
+	ExtBuilder::default()
+		.with_funded_accounts(vec![
+			(
+				relay_account1.clone(),
+				Some(old_reward_account.clone()),
+				total_reward,
 			),
-			Error::<Test>::AlreadyAssociated
-		);
-	});
+			(
+				relay_account2.clone(),
+				Some(new_reward_account.clone()),
+				total_reward,
+			),
+		])
+		.build()
+		.execute_with(|| {
+			// Try to update address to an account that already has rewards
+			assert_noop!(
+				CrowdloanRewards::update_reward_address(
+					RuntimeOrigin::signed(old_reward_account),
+					new_reward_account
+				),
+				Error::<Test>::AlreadyAssociated
+			);
+		});
 }
 
 #[test]
 fn test_pot_returns_correct_balance() {
-	new_test_ext().execute_with(|| {
+	ExtBuilder::default().build().execute_with(|| {
 		// Total rewards minus the initial payment to the native accounts
 		// Default genesis has 10_000 reward with 20% initial payment = 2000
-		let expected_balance = 1_000_000_000u128 - 2000u128;
+		// Pot is set to total_rewards + 1 (dust) = 10_001
+		let expected_balance = 10_001u128 - 2000u128;
 		assert_eq!(CrowdloanRewards::pot(), expected_balance);
 	});
 }
 
 #[test]
 fn test_account_id_returns_correct_account() {
-	new_test_ext().execute_with(|| {
+	ExtBuilder::default().build().execute_with(|| {
 		let expected_account = CrowdloanPalletId::get().into_account_truncating();
 		assert_eq!(CrowdloanRewards::account_id(), expected_account);
 	});
@@ -303,13 +286,10 @@ fn test_account_id_returns_correct_account() {
 
 #[test]
 fn test_vesting_calculation_with_zero_period() {
-	new_test_ext().execute_with(|| {
+	ExtBuilder::default().build().execute_with(|| {
 		let reward_account = account(1);
 		let relay_account = account(10);
 		let total_reward = 10_000u128;
-
-		// Fund the pallet
-		fund_pallet(1_000_000);
 
 		// Setup with zero vesting period
 		let reward_info = RewardInfo {
@@ -347,55 +327,54 @@ fn test_multiple_claims_during_vesting() {
 	let relay_account = account(10);
 	let total_reward = 10_000u128;
 
-	new_test_ext_with_rewards(vec![(
-		relay_account.clone(),
-		Some(reward_account.clone()),
-		total_reward,
-	)])
-	.execute_with(|| {
-		// Fund the pallet
-		fund_pallet(1_000_000);
+	ExtBuilder::default()
+		.with_funded_accounts(vec![(
+			relay_account.clone(),
+			Some(reward_account.clone()),
+			total_reward,
+		)])
+		.build()
+		.execute_with(|| {
+			let initialization_payment = InitializationPayment::get() * total_reward;
+			let initial_balance = Balances::free_balance(&reward_account);
 
-		let initialization_payment = InitializationPayment::get() * total_reward;
-		let initial_balance = Balances::free_balance(&reward_account);
+			// First claim at 25% vesting
+			run_to_block(25);
+			assert_ok!(CrowdloanRewards::claim(RuntimeOrigin::signed(
+				reward_account.clone()
+			)));
 
-		// First claim at 25% vesting
-		run_to_block(25);
-		assert_ok!(CrowdloanRewards::claim(RuntimeOrigin::signed(
-			reward_account.clone()
-		)));
+			let balance_after_first = Balances::free_balance(&reward_account);
 
-		let balance_after_first = Balances::free_balance(&reward_account);
+			// Second claim at 50% vesting
+			run_to_block(50);
+			assert_ok!(CrowdloanRewards::claim(RuntimeOrigin::signed(
+				reward_account.clone()
+			)));
 
-		// Second claim at 50% vesting
-		run_to_block(50);
-		assert_ok!(CrowdloanRewards::claim(RuntimeOrigin::signed(
-			reward_account.clone()
-		)));
+			let balance_after_second = Balances::free_balance(&reward_account);
 
-		let balance_after_second = Balances::free_balance(&reward_account);
+			// Third claim at 100% vesting
+			run_to_block(100);
+			assert_ok!(CrowdloanRewards::claim(RuntimeOrigin::signed(
+				reward_account.clone()
+			)));
 
-		// Third claim at 100% vesting
-		run_to_block(100);
-		assert_ok!(CrowdloanRewards::claim(RuntimeOrigin::signed(
-			reward_account.clone()
-		)));
+			let final_balance = Balances::free_balance(&reward_account);
 
-		let final_balance = Balances::free_balance(&reward_account);
+			// Should have received all rewards by the end
+			assert_eq!(
+				final_balance,
+				initial_balance + total_reward - initialization_payment
+			);
 
-		// Should have received all rewards by the end
-		assert_eq!(
-			final_balance,
-			initial_balance + total_reward - initialization_payment
-		);
+			// Each claim should increase balance
+			assert!(balance_after_first > initial_balance);
+			assert!(balance_after_second > balance_after_first);
+			assert!(final_balance > balance_after_second);
 
-		// Each claim should increase balance
-		assert!(balance_after_first > initial_balance);
-		assert!(balance_after_second > balance_after_first);
-		assert!(final_balance > balance_after_second);
-
-		// Final check: all rewards should be claimed
-		let reward_info = AccountsPayable::<Test>::get(&reward_account).unwrap();
-		assert_eq!(reward_info.claimed_reward, total_reward);
-	});
+			// Final check: all rewards should be claimed
+			let reward_info = AccountsPayable::<Test>::get(&reward_account).unwrap();
+			assert_eq!(reward_info.claimed_reward, total_reward);
+		});
 }

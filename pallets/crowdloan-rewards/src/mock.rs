@@ -152,60 +152,89 @@ impl pallet_utility::Config for Test {
 	type PalletsOrigin = OriginCaller;
 }
 
-// Build genesis storage according to the mock runtime.
-pub fn new_test_ext() -> sp_io::TestExternalities {
-	new_test_ext_with_config(default_crowdloan_genesis_config())
+pub(crate) struct ExtBuilder {
+	funded_accounts: Vec<(AccountId, Option<AccountId>, Balance)>,
+	init_vesting_block: u32,
+	end_vesting_block: u32,
 }
 
-// Build genesis with custom crowdloan config
-pub fn new_test_ext_with_config(
-	crowdloan_config: crate::GenesisConfig<Test>,
-) -> sp_io::TestExternalities {
-	let mut t = frame_system::GenesisConfig::<Test>::default()
-		.build_storage()
+impl Default for ExtBuilder {
+	fn default() -> Self {
+		Self {
+			funded_accounts: vec![
+				// Associated account with rewards
+				(
+					AccountId::from([10u8; 32]),      // relay account
+					Some(AccountId::from([1u8; 32])), // native account
+					10_000u128,                       // reward
+				),
+			],
+			init_vesting_block: 1u32,
+			end_vesting_block: 100u32,
+		}
+	}
+}
+
+impl ExtBuilder {
+	pub(crate) fn empty() -> Self {
+		Self {
+			funded_accounts: vec![],
+			init_vesting_block: 1u32,
+			end_vesting_block: 100u32,
+		}
+	}
+
+	pub(crate) fn with_funded_accounts(
+		mut self,
+		funded_accounts: Vec<(AccountId, Option<AccountId>, Balance)>,
+	) -> Self {
+		self.funded_accounts = funded_accounts;
+		self
+	}
+
+	pub(crate) fn build(self) -> sp_io::TestExternalities {
+		let mut t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
+			.unwrap();
+
+		// Calculate pot size based on genesis rewards
+		let total_rewards: Balance = self
+			.funded_accounts
+			.iter()
+			.map(|(_, _, amount)| *amount)
+			.sum();
+
+		let pot_size = if total_rewards > 0 {
+			// Add small dust for funded genesis (dust must be < contributors for validation)
+			total_rewards + 1
+		} else {
+			// Default for empty genesis (enough for typical manual initialization tests)
+			2501
+		};
+
+		pallet_balances::GenesisConfig::<Test> {
+			balances: vec![
+				// Pallet account with initial funds
+				(CrowdloanRewards::account_id(), pot_size),
+				// Test accounts
+				(AccountId::from([1u8; 32]), 100_000),
+				(AccountId::from([2u8; 32]), 100_000),
+				(AccountId::from([3u8; 32]), 100_000),
+			],
+			dev_accounts: None,
+		}
+		.assimilate_storage(&mut t)
 		.unwrap();
 
-	pallet_balances::GenesisConfig::<Test> {
-		balances: vec![
-			// Pallet account with initial funds
-			(CrowdloanRewards::account_id(), 1_000_000_000),
-			// Test accounts
-			(AccountId::from([1u8; 32]), 100_000),
-			(AccountId::from([2u8; 32]), 100_000),
-			(AccountId::from([3u8; 32]), 100_000),
-		],
-		dev_accounts: None,
-	}
-	.assimilate_storage(&mut t)
-	.unwrap();
+		crate::GenesisConfig::<Test> {
+			funded_accounts: self.funded_accounts,
+			init_vesting_block: self.init_vesting_block,
+			end_vesting_block: self.end_vesting_block,
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
 
-	crowdloan_config.assimilate_storage(&mut t).unwrap();
-
-	t.into()
-}
-
-// Default crowdloan genesis config with some initialized state
-pub fn default_crowdloan_genesis_config() -> crate::GenesisConfig<Test> {
-	crate::GenesisConfig {
-		funded_accounts: vec![
-			// Associated account with rewards
-			(
-				AccountId::from([10u8; 32]),      // relay account
-				Some(AccountId::from([1u8; 32])), // native account
-				10_000u128,                       // reward
-			),
-		],
-		init_vesting_block: 1u32,
-		end_vesting_block: 100u32,
-	}
-}
-
-// Empty crowdloan genesis config
-pub fn empty_crowdloan_genesis_config() -> crate::GenesisConfig<Test> {
-	crate::GenesisConfig {
-		funded_accounts: vec![],
-		init_vesting_block: 1u32,
-		end_vesting_block: 100u32,
+		t.into()
 	}
 }
 
