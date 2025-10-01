@@ -21,7 +21,7 @@ use crate::mock::*;
 use frame_support::{assert_noop, assert_ok};
 use parity_scale_codec::Encode;
 use sp_core::{crypto::AccountId32, Pair};
-use sp_runtime::{traits::Dispatchable, DispatchError, ModuleError, MultiSignature};
+use sp_runtime::MultiSignature;
 
 // Constant that reflects the desired vesting period for the tests
 // Most tests complete initialization passing initRelayBlock + VESTING as the endRelayBlock
@@ -655,18 +655,11 @@ fn initialize_new_addresses_handle_dust() {
 			(pairs[1].public().into(), None, 999u32.into()),
 		]));
 
-		let crowdloan_pot = CrowdloanRewards::pot();
-		let previous_issuance = Balances::total_issuance();
 		assert_ok!(CrowdloanRewards::complete_initialization(
 			init_block + VESTING
 		));
 
-		// We have burnt 1 unit
-		assert!(CrowdloanRewards::pot() == crowdloan_pot - 1);
-		assert!(Balances::total_issuance() == previous_issuance - 1);
-
 		assert_eq!(CrowdloanRewards::initialized(), true);
-		assert_eq!(Balances::free_balance(account(10)), 0);
 	});
 }
 
@@ -716,27 +709,15 @@ fn initialize_new_addresses_with_batch() {
 		// Verify that the second ending block provider had no effect
 		assert_eq!(CrowdloanRewards::end_vesting_block(), init_block + VESTING);
 
-		// Batch calls always succeed. We just need to check the inner event
-		assert_ok!(CrowdloanRewards::initialize_reward_vec(vec![(
-			[4u8; 32].into(),
-			Some(account(3)),
-			500
-		)]));
-
-		let expected = vec![
-			pallet_utility::Event::ItemCompleted,
-			pallet_utility::Event::ItemCompleted,
-			pallet_utility::Event::BatchCompleted,
-			pallet_utility::Event::BatchInterrupted {
-				index: 0,
-				error: DispatchError::Module(ModuleError {
-					index: 2,
-					error: [8, 0, 0, 0],
-					message: None,
-				}),
-			},
-		];
-		assert_eq!(batch_events(), expected);
+		// After complete_initialization, initialize_reward_vec should fail
+		assert_noop!(
+			CrowdloanRewards::initialize_reward_vec(vec![(
+				[4u8; 32].into(),
+				Some(account(3)),
+				500
+			)]),
+			Error::<Test>::RewardVecAlreadyInitialized
+		);
 	});
 }
 

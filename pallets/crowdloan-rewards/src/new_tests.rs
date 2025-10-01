@@ -133,8 +133,10 @@ fn test_claim_works_with_partial_vesting() {
 
 #[test]
 fn test_claim_fails_when_no_rewards() {
-	new_test_ext_with_config(empty_crowdloan_genesis_config()).execute_with(|| {
-		let reward_account = account(1);
+	// Use default genesis which initializes with account(1) having rewards
+	// But we'll try to claim with a different account
+	new_test_ext().execute_with(|| {
+		let reward_account = account(2);
 
 		// Try to claim without having any rewards
 		assert_noop!(

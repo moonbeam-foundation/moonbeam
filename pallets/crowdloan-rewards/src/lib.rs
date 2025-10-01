@@ -759,8 +759,10 @@ pub mod pallet {
 			TotalContributors::<T>::put(total_contributors);
 			InitializedRewardAmount::<T>::put(total_rewards);
 
-			// Mark as initialized
-			<Initialized<T>>::put(true);
+			// Mark as initialized only if there are funded accounts
+			if !self.funded_accounts.is_empty() {
+				<Initialized<T>>::put(true);
+			}
 		}
 	}
 

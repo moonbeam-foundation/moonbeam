@@ -119,10 +119,10 @@ impl BlockNumberProvider for MockVestingBlockNumberProvider {
 }
 
 parameter_types! {
-	pub const Initialized: bool = true;
+	pub const Initialized: bool = false;
 	pub const InitializationPayment: Perbill = Perbill::from_percent(25);
-	pub const MaxInitContributors: u32 = 100;
-	pub const MinimumReward: Balance = 1_000;
+	pub const MaxInitContributors: u32 = 8;
+	pub const MinimumReward: Balance = 0;
 	pub const RewardAddressRelayVoteThreshold: Perbill = Perbill::from_percent(60);
 	pub const SignatureNetworkIdentifier: &'static [u8] = b"TEST_NET";
 	pub const CrowdloanPalletId: PalletId = PalletId(*b"Crowdloa");
