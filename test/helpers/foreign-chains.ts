@@ -141,6 +141,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Equilibrium",
         paraId: 2011,
+        mutedUntil: new Date("2025-11-01").getTime(), // Remove this channel on November 1st
       },
       {
         name: "Parallel",
@@ -149,7 +150,7 @@ export const ForeignChainsEndpoints = [
       {
         name: "Composable",
         paraId: 2019,
-        mutedUntil: new Date("2025-10-01").getTime(), // Remove this channel on October 1st
+        mutedUntil: new Date("2025-11-01").getTime(), // Remove this channel on November 1st
       },
       {
         name: "Nodle",

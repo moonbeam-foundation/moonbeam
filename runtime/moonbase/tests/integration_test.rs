@@ -42,7 +42,7 @@ use moonbase_runtime::{
 	EvmForeignAssets, Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm,
 	Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
 	TransactionPayment, TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective,
-	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS, WEIGHT_PER_GAS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -1078,7 +1078,12 @@ fn is_contributor_via_precompile() {
 						contributor: Address(BOB.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(
+					<Runtime as frame_system::Config>::DbWeight::get()
+						.read
+						.saturating_div(WEIGHT_PER_GAS)
+						.saturating_mul(2),
+				)
 				.expect_no_logs()
 				.execute_returns(false);
 
@@ -1091,7 +1096,12 @@ fn is_contributor_via_precompile() {
 						contributor: Address(CHARLIE.into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(
+					<Runtime as frame_system::Config>::DbWeight::get()
+						.read
+						.saturating_div(WEIGHT_PER_GAS)
+						.saturating_mul(2),
+				)
 				.expect_no_logs()
 				.execute_returns(true);
 		})
@@ -1162,7 +1172,12 @@ fn reward_info_via_precompile() {
 						contributor: Address(AccountId::from(CHARLIE).into()),
 					},
 				)
-				.expect_cost(3338)
+				.expect_cost(
+					<Runtime as frame_system::Config>::DbWeight::get()
+						.read
+						.saturating_div(WEIGHT_PER_GAS)
+						.saturating_mul(2),
+				)
 				.expect_no_logs()
 				.execute_returns((expected_total, expected_claimed));
 		})
@@ -1609,7 +1624,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(238472)
+				.expect_cost(262854)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1700,7 +1715,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(238472)
+				.expect_cost(262854)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1784,7 +1799,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(86872)
+				.expect_cost(111254)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -1909,7 +1924,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				2_500_000_000u128.into(),
-				Weight::from_parts(41_742_000u64, 0)
+				Weight::from_parts(<Runtime as frame_system::Config>::DbWeight::get().read, 0)
 			)
 		);
 	});
@@ -2361,7 +2376,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(23418)
+				.expect_cost(30911)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2401,7 +2416,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(23418)
+				.expect_cost(30911)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2483,7 +2498,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(16017)
+				.expect_cost(19918)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2505,7 +2520,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15532)
+				.expect_cost(19433)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2526,7 +2541,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(16037)
+				.expect_cost(19938)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2569,7 +2584,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(17820)
+				.expect_cost(22420)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2594,7 +2609,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(17820)
+				.expect_cost(22420)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2625,7 +2640,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2645,7 +2665,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2675,7 +2700,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2733,7 +2763,11 @@ fn test_xcm_utils_weight_message() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1669)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS),
+			)
 			.expect_no_logs()
 			.execute_returns(expected_weight);
 	});
@@ -2752,7 +2786,12 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});
