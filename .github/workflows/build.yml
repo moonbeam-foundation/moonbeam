@@ -630,7 +630,7 @@ jobs:
           shard: ${{ matrix.shard }}
           shard-count: 4
       - name: Upload HTML report to s3
-        if: ${{ !github.event.pull_request.head.repo.fork}}
+        if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
         uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
         with:
