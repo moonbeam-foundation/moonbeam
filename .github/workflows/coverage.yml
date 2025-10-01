@@ -100,7 +100,7 @@ jobs:
       contents: read
       pull-requests: write
     needs: ["set-tags"]
-    if: ${{ !github.event.pull_request.head.repo.fork }}
+    if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
     timeout-minutes: 90
     env:
       RUSTC_WRAPPER: "sccache"
@@ -200,7 +200,7 @@ jobs:
           name: coverage
           path: coverage
       - name: Upload coverage s3
-        uses: mario-sangar/upload-s3-action@master
+        uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
         with:
           aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
