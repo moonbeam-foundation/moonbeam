@@ -82,9 +82,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Bifrost",
         paraId: 2001,
-        // Seems like there's an issue with Bifrost connectivity, so we mute it for now
-        // check again in a month
-        mutedUntil: new Date("2025-10-22").getTime(),
       },
       {
         name: "Shiden",
@@ -103,21 +100,12 @@ export const ForeignChainsEndpoints = [
         paraId: 2048,
       },
       {
-        name: "Picasso",
-        paraId: 2087,
-      },
-      {
         name: "Kintsugi",
         paraId: 2092,
       },
       {
         name: "Darwinia Crab",
         paraId: 2105,
-      },
-      {
-        name: "Mangata",
-        paraId: 2110,
-        mutedUntil: new Date("2025-11-01").getTime(), // Remove this channel on November 1st
       },
     ],
   },
@@ -137,20 +125,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Astar",
         paraId: 2006,
-      },
-      {
-        name: "Equilibrium",
-        paraId: 2011,
-        mutedUntil: new Date("2025-11-01").getTime(), // Remove this channel on November 1st
-      },
-      {
-        name: "Parallel",
-        paraId: 2012,
-      },
-      {
-        name: "Composable",
-        paraId: 2019,
-        mutedUntil: new Date("2025-11-01").getTime(), // Remove this channel on November 1st
       },
       {
         name: "Nodle",
@@ -195,11 +169,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Pendulum",
         paraId: 2094,
-      },
-      {
-        name: "Subsocial",
-        paraId: 2101,
-        mutedUntil: new Date("2025-10-01").getTime(), // Remove this channel on October 1st
       },
       {
         name: "Manta",
