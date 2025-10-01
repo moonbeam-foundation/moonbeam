@@ -176,12 +176,14 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
-	pub(crate) fn empty() -> Self {
+	pub(crate) fn empty() -> sp_io::TestExternalities {
+		// Default for empty genesis (enough for typical manual initialization tests)
 		Self {
 			funded_accounts: vec![],
 			init_vesting_block: 1u32,
 			end_vesting_block: 100u32,
 		}
+		.inner_build(2501)
 	}
 
 	pub(crate) fn with_funded_accounts(
@@ -193,10 +195,6 @@ impl ExtBuilder {
 	}
 
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::<Test>::default()
-			.build_storage()
-			.unwrap();
-
 		// Calculate pot size based on genesis rewards
 		let total_rewards: Balance = self
 			.funded_accounts
@@ -204,13 +202,14 @@ impl ExtBuilder {
 			.map(|(_, _, amount)| *amount)
 			.sum();
 
-		let pot_size = if total_rewards > 0 {
-			// Add small dust for funded genesis (dust must be < contributors for validation)
-			total_rewards + 1
-		} else {
-			// Default for empty genesis (enough for typical manual initialization tests)
-			2501
-		};
+		// Add small dust for funded genesis (dust must be < contributors for validation)
+		self.inner_build(total_rewards + 1)
+	}
+
+	fn inner_build(self, pot_size: u128) -> sp_io::TestExternalities {
+		let mut t = frame_system::GenesisConfig::<Test>::default()
+			.build_storage()
+			.unwrap();
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: vec![

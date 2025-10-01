@@ -131,7 +131,7 @@ fn test_claim_fails_when_no_rewards() {
 fn test_claim_fails_when_not_initialized() {
 	// Use empty genesis config which will still set Initialized to true
 	// We need to manually set it to false after
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		let reward_account = account(1);
 		let relay_account = account(10);
 		let total_reward = 10_000u128;
@@ -216,7 +216,7 @@ fn test_update_reward_address_works() {
 
 #[test]
 fn test_update_reward_address_fails_when_no_rewards() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		let old_reward_account = account(1);
 		let new_reward_account = account(2);
 

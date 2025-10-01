@@ -29,7 +29,7 @@ const VESTING: u32 = 8;
 
 #[test]
 fn geneses() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// Fund pallet with exact amount needed (total rewards + small dust)
 		assert!(System::events().is_empty());
 		// Insert contributors
@@ -103,7 +103,7 @@ fn proving_assignation_works() {
 	already_associated_payload.append(&mut WRAPPED_BYTES_POSTFIX.to_vec());
 	let alread_associated_signature: MultiSignature =
 		pairs[0].sign(&already_associated_payload).into();
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// Insert contributors
 		let pairs = get_ed25519_pairs(3);
 		let init_block = CrowdloanRewards::init_vesting_block();
@@ -197,7 +197,7 @@ fn proving_assignation_works() {
 
 #[test]
 fn initializing_multi_relay_to_single_native_address_works() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// Insert contributors
 		let pairs = get_ed25519_pairs(3);
 		// The init relay block gets inserted
@@ -246,7 +246,7 @@ fn initializing_multi_relay_to_single_native_address_works() {
 
 #[test]
 fn paying_works_step_by_step() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// Insert contributors
 		let pairs = get_ed25519_pairs(3);
 		// The init relay block gets inserted
@@ -347,7 +347,7 @@ fn paying_works_step_by_step() {
 
 #[test]
 fn paying_works_after_unclaimed_period() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// Insert contributors
 		let pairs = get_ed25519_pairs(3);
 		// The init relay block gets inserted
@@ -437,7 +437,7 @@ fn paying_late_joiner_works() {
 	payload.append(&mut account(3).encode());
 	payload.append(&mut WRAPPED_BYTES_POSTFIX.to_vec());
 	let signature: MultiSignature = pairs[0].sign(&payload).into();
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// Insert contributors
 		let pairs = get_ed25519_pairs(3);
 		let init_block = CrowdloanRewards::init_vesting_block();
@@ -480,7 +480,7 @@ fn paying_late_joiner_works() {
 
 #[test]
 fn update_address_works() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// Insert contributors
 		let pairs = get_ed25519_pairs(3);
 		// The init relay block gets inserted
@@ -535,7 +535,7 @@ fn update_address_works() {
 
 #[test]
 fn update_address_with_existing_address_fails() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// Insert contributors
 		let pairs = get_ed25519_pairs(3);
 		// The init relay block gets inserted
@@ -564,7 +564,7 @@ fn update_address_with_existing_address_fails() {
 
 #[test]
 fn update_address_with_existing_with_multi_address_works() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// Insert contributors
 		let pairs = get_ed25519_pairs(3);
 		// The init relay block gets inserted
@@ -611,7 +611,7 @@ fn update_address_with_existing_with_multi_address_works() {
 
 #[test]
 fn initialize_new_addresses() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// The init relay block gets inserted
 		roll_to(2);
 		// Insert contributors
@@ -649,7 +649,7 @@ fn initialize_new_addresses() {
 
 #[test]
 fn initialize_new_addresses_handle_dust() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// The init relay block gets inserted
 		roll_to(2);
 		// Insert contributors
@@ -672,7 +672,7 @@ fn initialize_new_addresses_handle_dust() {
 
 #[test]
 fn initialize_new_addresses_not_matching_funds() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// The init relay block gets inserted
 		roll_to(2);
 		// Insert contributors
@@ -694,7 +694,7 @@ fn initialize_new_addresses_not_matching_funds() {
 
 #[test]
 fn initialize_new_addresses_with_batch() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// This time should succeed trully
 		roll_to(10);
 		let init_block = CrowdloanRewards::init_vesting_block();
@@ -730,7 +730,7 @@ fn initialize_new_addresses_with_batch() {
 
 #[test]
 fn floating_point_arithmetic_works() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// The init relay block gets inserted
 		roll_to(2);
 		let init_block = CrowdloanRewards::init_vesting_block();
@@ -811,7 +811,7 @@ fn floating_point_arithmetic_works() {
 
 #[test]
 fn reward_below_vesting_period_works() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// The init relay block gets inserted
 		roll_to(2);
 		let init_block = CrowdloanRewards::init_vesting_block();
@@ -907,7 +907,7 @@ fn reward_below_vesting_period_works() {
 
 #[test]
 fn test_initialization_errors() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// The init relay block gets inserted
 		roll_to(2);
 		let init_block = CrowdloanRewards::init_vesting_block();
@@ -980,7 +980,7 @@ fn test_initialization_errors() {
 
 #[test]
 fn test_relay_signatures_can_change_reward_addresses() {
-	ExtBuilder::empty().build().execute_with(|| {
+	ExtBuilder::empty().execute_with(|| {
 		// 5 relay keys
 		let pairs = get_ed25519_pairs(5);
 
