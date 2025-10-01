@@ -24,6 +24,7 @@ jobs:
         uses: ./.github/workflow-templates/build-prod-binary
         with:
           target: "x86-64"
+          ref: ${{ github.event.inputs.tag }}
 
   publish-docker:
     runs-on: ubuntu-latest
