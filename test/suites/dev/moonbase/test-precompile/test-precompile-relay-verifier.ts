@@ -129,7 +129,7 @@ describeSuite({
             functionName: "latestRelayBlockNumber",
             args: [],
           })
-        ).toBe(1002);
+        ).toBe(1);
       },
     });
   },

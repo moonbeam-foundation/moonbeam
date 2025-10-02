@@ -86,9 +86,9 @@ describeSuite({
       timeout: 60000,
       title: "Can create new blocks",
       test: async () => {
-        const currentHeight = (await api.rpc.chain.getBlock()).block.header.number.toNumber();
+        const currentHeight = (await api.rpc.chain.getHeader()).number.toNumber();
         await context.createBlock({ count: 2 });
-        const newHeight = (await api.rpc.chain.getBlock()).block.header.number.toNumber();
+        const newHeight = (await api.rpc.chain.getHeader()).number.toNumber();
         expect(newHeight - currentHeight).to.be.equal(2);
       },
     });

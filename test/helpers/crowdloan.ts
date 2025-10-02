@@ -8,9 +8,8 @@ export async function calculate_vested_amount(
   numberOfBlocks: bigint
 ) {
   const amountToVest = totalReward - initialPayment;
-  // On average a parachain only gets a candidate into every other relay chain block.
-  // In the dev service, where the relay block number is mocked, we get exactly two relay blocks.
-  const elapsedRelayBlocks = numberOfBlocks * 2n;
+  // We have a parachain block per relay block
+  const elapsedRelayBlocks = numberOfBlocks;
   const amountForBlocks = (amountToVest * elapsedRelayBlocks) / VESTING_PERIOD;
   const shouldHaveVested = initialPayment + amountForBlocks;
   return shouldHaveVested;
