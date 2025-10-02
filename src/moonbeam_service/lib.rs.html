@@ -1899,8 +1899,7 @@
 <a href="#1898" id="1898">1898</a>
 <a href="#1899" id="1899">1899</a>
 <a href="#1900" id="1900">1900</a>
-<a href="#1901" id="1901">1901</a>
-<a href="#1902" id="1902">1902</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#1901" id="1901">1901</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -3478,7 +3477,7 @@
 	<span class="kw">use </span><span class="kw">crate</span>::chain_spec::moonbase::ChainSpec;
 	<span class="kw">use </span><span class="kw">crate</span>::chain_spec::Extensions;
 	<span class="kw">use </span>jsonrpsee::server::BatchRequestConfig;
-	<span class="kw">use </span>moonbase_runtime::{currency::UNIT, AccountId};
+	<span class="kw">use </span>moonbase_runtime::AccountId;
 	<span class="kw">use </span>prometheus::{proto::LabelPair, Counter};
 	<span class="kw">use </span>sc_network::config::NetworkConfiguration;
 	<span class="kw">use </span>sc_service::config::RpcConfiguration;
@@ -3669,7 +3668,6 @@
 				<span class="macro">vec!</span>[],
 				<span class="macro">vec!</span>[],
 				<span class="macro">vec!</span>[],
-				<span class="number">1000 </span>* UNIT,
 				ParaId::new(<span class="number">0</span>),
 				<span class="number">0</span>,
 			))

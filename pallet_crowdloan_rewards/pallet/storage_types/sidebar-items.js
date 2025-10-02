@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["AccountsPayable","ClaimedRelayChainIds","EndVestingBlock","InitVestingBlock","Initialized","InitializedRewardAmount","TotalContributors","UnassociatedContributions"]};

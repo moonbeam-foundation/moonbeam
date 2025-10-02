@@ -260,7 +260,30 @@
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
 <a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -289,6 +312,7 @@
 <span class="kw">use </span>alloc::{vec, vec::Vec};
 <span class="kw">use </span>cumulus_primitives_core::ParaId;
 <span class="kw">use </span>fp_evm::GenesisAccount;
+<span class="kw">use </span>frame_support::PalletId;
 <span class="kw">use </span>nimbus_primitives::NimbusId;
 <span class="kw">use </span>pallet_transaction_payment::Multiplier;
 <span class="kw">use </span>sp_genesis_builder::PresetId;
@@ -335,7 +359,6 @@
 	candidates: Vec&lt;(AccountId, NimbusId, Balance)&gt;,
 	delegations: Vec&lt;(AccountId, AccountId, Balance, Percent)&gt;,
 	endowed_accounts: Vec&lt;AccountId&gt;,
-	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
 ) -&gt; serde_json::Value {
@@ -345,18 +368,24 @@
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	</span><span class="kw">let </span>revert_bytecode = <span class="macro">vec!</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xFD</span>];
 
+	<span class="comment">// Fund the crowdloan pallet account with enough balance for rewards
+	</span><span class="kw">let </span>crowdloan_pallet_account: AccountId =
+		sp_runtime::traits::AccountIdConversion::into_account_truncating(<span class="kw-2">&amp;</span>PalletId(<span class="kw-2">*</span><span class="string">b"Crowdloa"</span>));
+
+	<span class="kw">let </span><span class="kw-2">mut </span>balances: Vec&lt;(AccountId, Balance)&gt; = endowed_accounts
+		.iter()
+		.cloned()
+		.map(|k| (k, <span class="number">1 </span>&lt;&lt; <span class="number">80</span>))
+		.collect();
+
+	<span class="comment">// Add crowdloan pallet account with sufficient funds for all rewards
+	</span>balances.push((crowdloan_pallet_account, <span class="number">100_000_000 </span>* UNIT));
+
 	<span class="kw">let </span>config = RuntimeGenesisConfig {
 		system: Default::default(),
 		balances: BalancesConfig {
-			balances: endowed_accounts
-				.iter()
-				.cloned()
-				.map(|k| (k, <span class="number">1 </span>&lt;&lt; <span class="number">80</span>))
-				.collect(),
+			balances,
 			dev_accounts: Default::default(),
-		},
-		crowdloan_rewards: CrowdloanRewardsConfig {
-			funded_amount: crowdloan_fund_pot,
 		},
 		sudo: SudoConfig {
 			key: <span class="prelude-val">Some</span>(root_key),
@@ -441,6 +470,24 @@
 			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
 			..Default::default()
 		},
+		crowdloan_rewards: CrowdloanRewardsConfig {
+			funded_accounts: <span class="macro">vec!</span>[
+				<span class="comment">// Dorothy account with test rewards
+				</span>(
+					[
+						<span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>,
+						<span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>,
+						<span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>, <span class="number">0x11</span>,
+					],
+					<span class="prelude-val">Some</span>(AccountId::from(<span class="macro">sp_core::hex2array!</span>(
+						<span class="string">"773539d4Ac0e786233D90A233654ccEE26a613D9"
+					</span>))),
+					<span class="number">3_000_000 </span>* UNIT,
+				),
+			],
+			init_vesting_block: <span class="number">0u32</span>,
+			end_vesting_block: <span class="number">201600u32</span>,
+		},
 	};
 
 	serde_json::to_value(<span class="kw-2">&amp;</span>config).expect(<span class="string">"Could not build genesis config."</span>)
@@ -499,7 +546,6 @@
 				<span class="string">"773539d4Ac0e786233D90A233654ccEE26a613D9"
 			</span>)),
 		],
-		<span class="number">3_000_000 </span>* UNIT,
 		Default::default(), <span class="comment">// para_id
 		</span><span class="number">1280</span>,               <span class="comment">//ChainId
 	</span>)

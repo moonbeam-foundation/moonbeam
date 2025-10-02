@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["PALLET_ID","WRAPPED_BYTES_POSTFIX","WRAPPED_BYTES_PREFIX"],"enum":["Call","Error","Event"],"mod":["dispatchables","storage_types"],"struct":["GenesisConfig","Pallet","RewardInfo"],"trait":["Config"],"type":["AccountsPayable","BalanceOf","ClaimedRelayChainIds","ContributorData","Initialized","Module","UnassociatedContributions"]};

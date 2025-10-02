@@ -321,12 +321,7 @@
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
 <a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
-<a href="#326" id="326">326</a>
-<a href="#327" id="327">327</a>
-<a href="#328" id="328">328</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#323" id="323">323</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -351,8 +346,8 @@
 <span class="kw">use crate</span>::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, Balances,
 	BalancesConfig, BridgePolkadotGrandpaConfig, BridgePolkadotMessagesConfig,
-	BridgePolkadotParachainsConfig, BridgeXcmOverMoonbeamConfig, CrowdloanRewardsConfig, EVMConfig,
-	EligibilityValue, EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
+	BridgePolkadotParachainsConfig, BridgeXcmOverMoonbeamConfig, EVMConfig, EligibilityValue,
+	EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
 	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
 	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
 	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmWeightTraderConfig, HOURS,
@@ -412,7 +407,6 @@
 	candidates: Vec&lt;(AccountId, NimbusId, Balance)&gt;,
 	delegations: Vec&lt;(AccountId, AccountId, Balance, Percent)&gt;,
 	endowed_accounts: Vec&lt;AccountId&gt;,
-	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
 ) -&gt; serde_json::Value {
@@ -431,9 +425,6 @@
 				.map(|k| (k, <span class="number">1 </span>&lt;&lt; <span class="number">80</span>))
 				.collect(),
 			dev_accounts: Default::default(),
-		},
-		crowdloan_rewards: CrowdloanRewardsConfig {
-			funded_amount: crowdloan_fund_pot,
 		},
 		parachain_info: ParachainInfoConfig {
 			parachain_id: para_id,
@@ -631,7 +622,6 @@
 				<span class="string">"773539d4Ac0e786233D90A233654ccEE26a613D9"
 			</span>)),
 		],
-		<span class="number">3_000_000 </span>* MOVR,
 		Default::default(), <span class="comment">// para_id
 		</span><span class="number">1281</span>,               <span class="comment">//ChainId
 	</span>)
