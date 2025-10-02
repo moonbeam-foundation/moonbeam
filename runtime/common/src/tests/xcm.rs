@@ -56,7 +56,6 @@ macro_rules! generate_common_xcm_tests {
 
 				ExtBuilder::default()
 					.with_balances(balances)
-					.with_trace_logs()
 					.build()
 					.execute_with(|| {
 						let assets = XcmAssets::from((SelfReserve::get(), SEND_AMOUNT));
