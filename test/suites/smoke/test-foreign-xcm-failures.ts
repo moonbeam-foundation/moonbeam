@@ -29,7 +29,7 @@ describeSuite({
   foundationMethods: "read_only",
   notChainType: "moonbase",
   testCases: ({ context, it, log }) => {
-    let networkBlockEvents: NetworkBlockEvents[];
+    const networkBlockEvents: NetworkBlockEvents[] = [];
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
@@ -65,48 +65,35 @@ describeSuite({
         };
       });
 
-      for (const chain of chainsWithRpcs) {
-        if (chain.endpoints.length === 0) {
-          expect.fail(
-            `No valid endpoints for ${chain.name} (paraId: ${chain.paraId}) on network ${networkName}`
-          );
-        }
-      }
-
-      const promises = chainsWithRpcs.map(async ({ name, endpoints, mutedUntil = 0 }) => {
+      for (const { name, endpoints, mutedUntil = 0 } of chainsWithRpcs) {
         let blockEvents: BlockEventsRecord[] = [];
+
+        if (!endpoints.length) {
+          console.warn(`Parachain ${name} did not provide any public endpoints`);
+          continue;
+        }
 
         if (mutedUntil && mutedUntil >= new Date().getTime()) {
           log(`Network tests for ${name} has been muted, skipping.`);
           return { networkName: name, blockEvents: [] };
         }
-        let result;
+
+        let api: ApiPromise;
         try {
-          const api: ApiPromise = await new Promise(async (resolve, reject) => {
-            log(`Connecting to ${name}...`);
-            const provider = new WsProvider(endpoints, false /*Auto Connect/Retry*/);
-            await provider.connect();
-            provider.on("connected", async () => {
-              const api = await ApiPromise.create({
-                provider,
-                noInitWarn: true,
-              });
-
-              log(`Connected to ${api.consts.system.version.specName.toString()}.`);
-              resolve(api);
-            });
-
-            const errorListenerUnsubscribe = provider.on("error", async () => {
-              log(`Could not connect to ${name}.`);
-              errorListenerUnsubscribe();
-              await provider.disconnect();
-              reject(`Could not connect to ${name}`);
-            });
-          });
-
-          if (api == null) {
-            throw "Could not connect to ${name}";
+          log(`Connecting to ${name}...`);
+          console.debug(`Endpoints: `, endpoints);
+          for (const endpoint of endpoints) {
+            const provider = new WsProvider(endpoint);
+            await provider.connectWithRetry();
+            api = new ApiPromise({ provider });
+            // INFO: api.isReady can get stuck, while api.isReadyOrError does not
+            if (await api.isReadyOrError.then(() => true).catch(() => false)) {
+              break;
+            }
           }
+          // Make sure the connection is ready
+          await api.isReadyOrError;
+          console.debug(`Connected to ${name}...`);
 
           const blockNumArray = await getBlockArray(api, timePeriod);
 
@@ -120,8 +107,7 @@ describeSuite({
             log(
               `Time slice of blocks intersects with upgrade from RT ${onChainRt}, skipping chain.`
             );
-            await api.disconnect();
-            return { networkName: name, blockEvents: [] };
+            continue;
           }
 
           const getEvents = async (blockNum: number) => {
@@ -133,18 +119,13 @@ describeSuite({
 
           blockEvents = await Promise.all(blockNumArray.map((num) => getEvents(num)));
           log(`Finished loading blocks for ${name}.`);
-          await api.disconnect();
         } catch (e) {
-          if (`${e}`.toLowerCase().includes("could not connect to")) {
-            expect.fail(e);
-          }
-          blockEvents = [];
+          expect.fail(`Could not connect to parachain: ${name}`);
         } finally {
-          result = { networkName: name, blockEvents };
+          await api.disconnect();
+          networkBlockEvents.push({ networkName: name, blockEvents });
         }
-        return result;
-      });
-      networkBlockEvents = await Promise.all(promises);
+      }
     }, TEN_MINS);
 
     it({
