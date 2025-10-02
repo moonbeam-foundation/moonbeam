@@ -17,12 +17,17 @@
 //! Test utilities
 use super::*;
 use cumulus_primitives_core::AggregateMessageOrigin;
-use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
-use frame_system::EnsureSigned;
+use frame_support::{
+	construct_runtime, parameter_types,
+	traits::{Everything, OnFinalize, OnInitialize},
+	weights::Weight,
+};
+use frame_system::{pallet_prelude::BlockNumberFor, EnsureSigned};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_io;
+use sp_runtime::traits::BlockNumberProvider;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,
@@ -32,6 +37,7 @@ pub type AccountId = MockAccount;
 pub type Balance = u128;
 
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
+pub type BlockNumber = BlockNumberFor<Runtime>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -122,8 +128,17 @@ impl frame_system::Config for Runtime {
 	type PostTransactions = ();
 	type ExtensionsWeightInfo = ();
 }
+pub struct MockVestingBlockNumberProvider;
+impl BlockNumberProvider for MockVestingBlockNumberProvider {
+	type BlockNumber = u32;
+
+	fn current_block_number() -> Self::BlockNumber {
+		System::block_number()
+	}
+}
+
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 0;
+	pub const ExistentialDeposit: u128 = 1;
 }
 impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
@@ -225,8 +240,8 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type SignatureNetworkIdentifier = TestSignatureNetworkIdentifier;
 
-	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
-	type VestingBlockProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
+	type VestingBlockNumber = u32;
+	type VestingBlockProvider = MockVestingBlockNumberProvider;
 	type WeightInfo = ();
 }
 pub(crate) struct ExtBuilder {
@@ -258,15 +273,47 @@ impl ExtBuilder {
 			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
+		let mut balances = self.balances;
+		if self.crowdloan_pot > 0 {
+			balances.push((Crowdloan::account_id(), self.crowdloan_pot));
+		}
+
 		pallet_balances::GenesisConfig::<Runtime> {
-			balances: self.balances,
+			balances,
 			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
 
+		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
+			funded_accounts: vec![],
+			init_vesting_block: 1u32,
+			end_vesting_block: 100u32,
+		}
+		.assimilate_storage(&mut t)
+		.expect("Crowdloan Rewards storage can be assimilated");
+
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
+}
+
+pub(crate) fn roll_to(n: BlockNumber) {
+	while System::block_number() < n {
+		Crowdloan::on_finalize(System::block_number());
+		Balances::on_finalize(System::block_number());
+		System::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		System::on_initialize(System::block_number());
+		Balances::on_initialize(System::block_number());
+		Crowdloan::on_initialize(System::block_number());
+	}
+}
+
+pub(crate) fn events() -> Vec<RuntimeEvent> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.collect::<Vec<_>>()
 }
