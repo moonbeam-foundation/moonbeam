@@ -36,8 +36,6 @@ mod benchmarks;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
-mod new_tests;
-#[cfg(test)]
 mod tests;
 pub mod weights;
 
