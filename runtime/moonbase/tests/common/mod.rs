@@ -249,12 +249,6 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
-			funded_amount: self.crowdloan_fund,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
 		pallet_author_mapping::GenesisConfig::<Runtime> {
 			mappings: self.mappings,
 		}
