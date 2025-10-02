@@ -181,6 +181,11 @@ impl ExtBuilder {
 		self
 	}
 
+	pub fn with_trace_logs(self) -> Self {
+		frame_support::__private::sp_tracing::init_for_tests();
+		self
+	}
+
 	pub fn with_collators(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
 		self.collators = collators;
 		self
