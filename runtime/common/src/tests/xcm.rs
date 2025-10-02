@@ -24,16 +24,20 @@ macro_rules! generate_common_xcm_tests {
 		#[cfg(test)]
 		pub mod common_xcm_tests {
 			use crate::common::{ExtBuilder, ALICE};
+			use cumulus_primitives_core::ExecuteXcm;
 			use frame_support::assert_ok;
 			use frame_support::traits::fungible::Inspect;
+			use frame_support::traits::EnsureOrigin;
 			use moonbeam_core_primitives::{AccountId, Balance};
+			use parity_scale_codec::Encode;
 			use sp_weights::Weight;
 			use xcm::{
 				latest::{prelude::AccountKey20, Assets as XcmAssets, Xcm},
 				VersionedAssets, VersionedLocation, VersionedXcm,
 			};
 			use $runtime::{
-				xcm_config::SelfReserve, Balances, PolkadotXcm, RuntimeEvent, RuntimeOrigin, System,
+				xcm_config::SelfReserve, Balances, PolkadotXcm, Runtime, RuntimeEvent,
+				RuntimeOrigin, System,
 			};
 
 			pub(crate) fn last_events(n: usize) -> Vec<RuntimeEvent> {
@@ -63,11 +67,21 @@ macro_rules! generate_common_xcm_tests {
 						let trapping_program =
 							Xcm::builder_unsafe().withdraw_asset(assets.clone()).build();
 						// Even though assets are trapped, the extrinsic returns success.
-						assert_ok!(PolkadotXcm::execute(
-							RuntimeOrigin::signed(alice),
-							Box::new(VersionedXcm::V5(trapping_program)),
+						let origin_location =
+							<Runtime as pallet_xcm::Config>::ExecuteXcmOrigin::ensure_origin(
+								RuntimeOrigin::signed(alice),
+							)
+							.expect("qed");
+						let message = Box::new(VersionedXcm::V5(trapping_program));
+						let mut hash = message.using_encoded(sp_io::hashing::blake2_256);
+						let message = (*message).try_into().expect("qed");
+						let _ = <Runtime as pallet_xcm::Config>::XcmExecutor::prepare_and_execute(
+							origin_location,
+							message,
+							&mut hash,
 							Weight::MAX,
-						));
+							Weight::MAX,
+						);
 						assert_eq!(
 							Balances::total_balance(&alice),
 							INITIAL_BALANCE - SEND_AMOUNT
