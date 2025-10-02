@@ -52,56 +52,6 @@ pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInfo<T> {
 	/// Storage: `CrowdloanRewards::Initialized` (r:1 w:0)
 	/// Proof: `CrowdloanRewards::Initialized` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `CrowdloanRewards::InitializedRewardAmount` (r:1 w:1)
-	/// Proof: `CrowdloanRewards::InitializedRewardAmount` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `CrowdloanRewards::TotalContributors` (r:1 w:1)
-	/// Proof: `CrowdloanRewards::TotalContributors` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `System::Account` (r:501 w:501)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `CrowdloanRewards::ClaimedRelayChainIds` (r:500 w:500)
-	/// Proof: `CrowdloanRewards::ClaimedRelayChainIds` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `CrowdloanRewards::UnassociatedContributions` (r:500 w:0)
-	/// Proof: `CrowdloanRewards::UnassociatedContributions` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `CrowdloanRewards::AccountsPayable` (r:500 w:500)
-	/// Proof: `CrowdloanRewards::AccountsPayable` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// The range of component `x` is `[1, 500]`.
-	fn initialize_reward_vec(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `76114 + x * (550 ±0)`
-		//  Estimated: `66108 + x * (3052 ±5)`
-		// Minimum execution time: 115_602_000 picoseconds.
-		Weight::from_parts(312_106_411, 66108)
-			// Standard Error: 32_170
-			.saturating_add(Weight::from_parts(54_725_354, 0).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(4_u64))
-			.saturating_add(T::DbWeight::get().reads((4_u64).saturating_mul(x.into())))
-			.saturating_add(T::DbWeight::get().writes(3_u64))
-			.saturating_add(T::DbWeight::get().writes((3_u64).saturating_mul(x.into())))
-			.saturating_add(Weight::from_parts(0, 3052).saturating_mul(x.into()))
-	}
-	/// Storage: `CrowdloanRewards::Initialized` (r:1 w:1)
-	/// Proof: `CrowdloanRewards::Initialized` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `CrowdloanRewards::InitRelayBlock` (r:1 w:0)
-	/// Proof: `CrowdloanRewards::InitRelayBlock` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `CrowdloanRewards::InitializedRewardAmount` (r:1 w:0)
-	/// Proof: `CrowdloanRewards::InitializedRewardAmount` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `System::Account` (r:1 w:0)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `CrowdloanRewards::TotalContributors` (r:1 w:0)
-	/// Proof: `CrowdloanRewards::TotalContributors` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `CrowdloanRewards::EndRelayBlock` (r:0 w:1)
-	/// Proof: `CrowdloanRewards::EndRelayBlock` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	fn complete_initialization() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `447`
-		//  Estimated: `3581`
-		// Minimum execution time: 18_508_000 picoseconds.
-		Weight::from_parts(19_052_000, 3581)
-			.saturating_add(T::DbWeight::get().reads(5_u64))
-			.saturating_add(T::DbWeight::get().writes(2_u64))
-	}
-	/// Storage: `CrowdloanRewards::Initialized` (r:1 w:0)
-	/// Proof: `CrowdloanRewards::Initialized` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `CrowdloanRewards::AccountsPayable` (r:1 w:1)
 	/// Proof: `CrowdloanRewards::AccountsPayable` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainSystem::ValidationData` (r:1 w:0)
@@ -116,8 +66,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `868`
 		//  Estimated: `6172`
-		// Minimum execution time: 64_921_000 picoseconds.
-		Weight::from_parts(66_672_000, 6172)
+		// Minimum execution time: 47_000_000 picoseconds.
+		Weight::from_parts(49_000_000, 6172)
 			.saturating_add(T::DbWeight::get().reads(7_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -127,8 +77,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `364`
 		//  Estimated: `6304`
-		// Minimum execution time: 19_390_000 picoseconds.
-		Weight::from_parts(19_993_000, 6304)
+		// Minimum execution time: 13_000_000 picoseconds.
+		Weight::from_parts(14_000_000, 6304)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -144,8 +94,8 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `736`
 		//  Estimated: `6172`
-		// Minimum execution time: 108_779_000 picoseconds.
-		Weight::from_parts(111_972_000, 6172)
+		// Minimum execution time: 83_000_000 picoseconds.
+		Weight::from_parts(84_000_000, 6172)
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -156,10 +106,10 @@ impl<T: frame_system::Config> pallet_crowdloan_rewards::WeightInfo for WeightInf
 		// Proof Size summary in bytes:
 		//  Measured:  `333 + x * (32 ±0)`
 		//  Estimated: `6273 + x * (32 ±0)`
-		// Minimum execution time: 59_945_000 picoseconds.
-		Weight::from_parts(60_565_000, 6273)
-			// Standard Error: 6_935
-			.saturating_add(Weight::from_parts(38_436_727, 0).saturating_mul(x.into()))
+		// Minimum execution time: 44_000_000 picoseconds.
+		Weight::from_parts(44_000_000, 6273)
+			// Standard Error: 8_116
+			.saturating_add(Weight::from_parts(29_430_696, 0).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(x.into()))

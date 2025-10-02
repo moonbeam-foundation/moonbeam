@@ -20,9 +20,6 @@ import {
 } from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
-const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
-  "0x1111111111111111111111111111111111111111111111111111111111111111";
-const ARBITRARY_VESTING_PERIOD = 201600n;
 
 describeSuite({
   id: "D022001",
@@ -86,30 +83,13 @@ describeSuite({
       id: "T03",
       title: "should forbid crowdloan rewards claim",
       test: async () => {
-        await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context
-                .polkadotJs()
-                .tx.crowdloanRewards.initializeRewardVec([
-                  [RELAYCHAIN_ARBITRARY_ADDRESS_1, CHARLETH_ADDRESS, 3_000_000n * GLMR],
-                ])
-            )
-        );
-        const initBlock = await context.polkadotJs().query.crowdloanRewards.initRelayBlock();
-        await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context
-                .polkadotJs()
-                .tx.crowdloanRewards.completeInitialization(
-                  initBlock.toBigInt() + ARBITRARY_VESTING_PERIOD
-                )
-            )
-        );
+        // We can't initialize rewards anymore, but we can test that if someone
+        // had rewards, they wouldn't be able to claim during maintenance mode.
+        // This test verifies the maintenance mode filter works for crowdloan claims.
 
+        // Note: Since we can't initialize rewards in the new pallet version,
+        // we're testing that the claim transaction itself is blocked.
+        // In a real scenario with existing rewards, this would prevent claiming.
         await expect(
           async () => await context.createBlock(context.polkadotJs().tx.crowdloanRewards.claim())
         ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
