@@ -34,6 +34,7 @@ LICENSES=(
     "MPL-2.0"
     "Zlib"
     "Unicode-3.0"
+    "(Apache-2.0 OR MIT) AND Unicode-3.0"
 )
 AUTHORS=(
     "PureStake"
@@ -41,6 +42,7 @@ AUTHORS=(
     "Moonsong-Labs"
     "Moonsong Labs"
     "moonbeam-foundation"
+    "Frontier developers <legal@bitarray.dev>"
 )
 NAMES=(
     "webpki"

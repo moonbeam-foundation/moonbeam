@@ -36,18 +36,40 @@
         "zombieSpec": {
           "configPath": "./configs/zombieMoonbeam.json"
         }
-      }
+      },
+      "connections": [
+        {
+          "name": "ethers",
+          "type": "ethers",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "parachain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33048"]
+        },
+        {
+          "name": "relaychain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:33356"]
+        }
+      ]
     },
     {
-      "name": "zombie_moonbeam_rpc",
+      "name": "zombie_moonriver",
       "testFileDir": ["suites/zombie"],
       "multiThreads": false,
       "runScripts": ["download-polkadot.sh"],
       "foundation": {
-        "rtUpgradePath": "../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm",
+        "rtUpgradePath": "../target/release/wbuild/moonriver-runtime/moonriver_runtime.compact.compressed.wasm",
         "type": "zombie",
         "zombieSpec": {
-          "configPath": "./configs/zombieMoonbeamRpc.json"
+          "configPath": "./configs/zombieMoonriver.json"
         }
       },
       "connections": [
@@ -83,19 +105,6 @@
         "type": "zombie",
         "zombieSpec": {
           "configPath": "./configs/zombieAlphanet.json"
-        }
-      }
-    },
-    {
-      "name": "zombie_moonbase_rpc",
-      "testFileDir": ["suites/zombie"],
-      "multiThreads": false,
-      "runScripts": ["download-polkadot.sh"],
-      "foundation": {
-        "rtUpgradePath": "../target/release/wbuild/moonbase-runtime/moonbase_runtime.compact.compressed.wasm",
-        "type": "zombie",
-        "zombieSpec": {
-          "configPath": "./configs/zombieAlphanetRpc.json"
         }
       },
       "connections": [
@@ -385,6 +394,9 @@
               "--tmp",
               "--max-pov-percentage=100"
             ],
+            "ports": {
+              "rpcPort": 9944
+            },
             "defaultForkConfig": {
               "url": "https://trace.api.moonbeam.network",
               "stateOverridePath": "tmp/lazyLoadingStateOverrides.json",
@@ -392,7 +404,14 @@
             }
           }
         ]
-      }
+      },
+      "connections": [
+        {
+          "name": "parachain",
+          "type": "polkadotJs",
+          "endpoints": ["ws://127.0.0.1:9944"]
+        }
+      ]
     },
     {
       "name": "dev_moonbeam",

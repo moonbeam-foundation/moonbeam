@@ -7,8 +7,6 @@ version = "0.6.0"
 
 [dependencies]
 log = { workspace = true }
-num_enum = { workspace = true }
-rustc-hex = { workspace = true }
 
 # Moonbeam
 pallet-crowdloan-rewards = { workspace = true }
@@ -26,8 +24,6 @@ pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 precompile-utils = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
-serde = { workspace = true }
 sha3 = { workspace = true }
 
 # Frontier
@@ -35,7 +31,6 @@ precompile-utils = { workspace = true, features = ["std", "testing"] }
 
 # Substrate
 pallet-balances = { workspace = true, features = ["std"] }
-pallet-scheduler = { workspace = true, features = ["std"] }
 pallet-timestamp = { workspace = true, features = ["std"] }
 parity-scale-codec = { workspace = true, features = ["max-encoded-len", "std"] }
 scale-info = { workspace = true, features = ["derive", "std"] }
@@ -47,7 +42,6 @@ pallet-message-queue = { workspace = true, features = ["std"] }
 cumulus-pallet-parachain-system = { workspace = true, features = ["std"] }
 cumulus-primitives-core = { workspace = true, features = ["std"] }
 cumulus-primitives-parachain-inherent = { workspace = true, features = ["std"] }
-cumulus-test-relay-sproof-builder = { workspace = true, features = ["std"] }
 
 [features]
 default = ["std"]
@@ -55,7 +49,6 @@ std = [
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives-core/std",
 	"cumulus-primitives-parachain-inherent/std",
-	"cumulus-test-relay-sproof-builder/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",

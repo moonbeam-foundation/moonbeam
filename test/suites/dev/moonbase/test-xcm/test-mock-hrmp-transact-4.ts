@@ -10,10 +10,10 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
   convertXcmFragmentToVersion,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 describeSuite({
-  id: "D024018",
+  id: "D024012",
   title: "Mock XCM - receive horizontal transact without buy execution",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

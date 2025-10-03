@@ -15,7 +15,9 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! A minimal precompile runtime including the pallet-randomness pallet
+
 use super::*;
+use frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{ConstU32, EqualPrivilegeOnly, Everything, SortedMembers, VoteTally},
@@ -23,16 +25,18 @@ use frame_support::{
 };
 use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy, RawOrigin};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
-use pallet_referenda::{impl_tracksinfo_get, Curve, TrackInfo};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use pallet_referenda::{Curve, Track, TrackInfo};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use precompile_utils::{precompile_set::*, testing::*};
 use scale_info::TypeInfo;
 use sp_core::H256;
+use sp_runtime::str_array as s;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,
 };
 use sp_std::convert::{TryFrom, TryInto};
+use std::borrow::Cow;
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
@@ -55,7 +59,10 @@ construct_runtime!(
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
-	pub const MaximumBlockWeight: Weight = Weight::from_parts(1024, 1);
+	pub const MaximumBlockWeight: Weight = Weight::from_parts(
+		WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
+		MAX_POV_SIZE as u64,
+	);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -164,6 +171,8 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -194,6 +203,7 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = ();
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -218,12 +228,12 @@ pub struct TestTracksInfo;
 impl TracksInfo<u128, u32> for TestTracksInfo {
 	type Id = u8;
 	type RuntimeOrigin = <RuntimeOrigin as OriginTrait>::PalletsOrigin;
-	fn tracks() -> &'static [(Self::Id, TrackInfo<u128, u32>)] {
-		static DATA: [(u8, TrackInfo<u128, u32>); 2] = [
-			(
-				0u8,
-				TrackInfo {
-					name: "root",
+	fn tracks() -> impl Iterator<Item = Cow<'static, Track<Self::Id, Balance, u32>>> {
+		static DATA: [Track<u8, u128, u32>; 2] = [
+			Track {
+				id: 0u8,
+				info: TrackInfo {
+					name: s("root"),
 					max_deciding: 1,
 					decision_deposit: 10,
 					prepare_period: 4,
@@ -241,11 +251,11 @@ impl TracksInfo<u128, u32> for TestTracksInfo {
 						ceil: Perbill::from_percent(100),
 					},
 				},
-			),
-			(
-				1u8,
-				TrackInfo {
-					name: "none",
+			},
+			Track {
+				id: 1u8,
+				info: TrackInfo {
+					name: s("none"),
 					max_deciding: 3,
 					decision_deposit: 1,
 					prepare_period: 2,
@@ -263,9 +273,9 @@ impl TracksInfo<u128, u32> for TestTracksInfo {
 						ceil: Perbill::from_percent(100),
 					},
 				},
-			),
+			},
 		];
-		&DATA[..]
+		DATA.iter().map(Cow::Borrowed)
 	}
 	fn track_for(id: &Self::RuntimeOrigin) -> Result<Self::Id, ()> {
 		if let Ok(system_origin) = frame_system::RawOrigin::try_from(id.clone()) {
@@ -279,9 +289,10 @@ impl TracksInfo<u128, u32> for TestTracksInfo {
 		}
 	}
 }
-impl_tracksinfo_get!(TestTracksInfo, u128, u32);
 
-#[derive(Encode, Debug, Decode, TypeInfo, Eq, PartialEq, Clone, MaxEncodedLen)]
+#[derive(
+	Encode, Debug, Decode, TypeInfo, Eq, PartialEq, Clone, MaxEncodedLen, DecodeWithMemTracking,
+)]
 pub struct Tally {
 	pub ayes: u32,
 	pub nays: u32,
@@ -349,6 +360,7 @@ impl pallet_referenda::Config for Runtime {
 	type AlarmInterval = AlarmInterval;
 	type Tracks = TestTracksInfo;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 pub struct GovOrigin;
@@ -394,6 +406,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

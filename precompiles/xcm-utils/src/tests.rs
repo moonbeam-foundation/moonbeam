@@ -199,7 +199,7 @@ fn test_executor_transact() {
 
 			precompiles()
 				.prepare_test(CryptoAlith, Precompile1, input)
-				.expect_cost(276106001)
+				.expect_cost(273835001)
 				.expect_no_logs()
 				.execute_returns(());
 

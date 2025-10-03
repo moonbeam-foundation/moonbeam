@@ -15,23 +15,20 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::moonbase_weights;
-use crate::{
-	asset_config::ForeignAssetInstance,
-	xcm_config::{AssetType, XcmExecutorConfig},
-	OpenTechCommitteeInstance, TreasuryCouncilInstance,
-};
-use crate::{
-	AccountId, AssetId, AssetManager, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime, H160,
-};
+use crate::{xcm_config::XcmExecutorConfig, OpenTechCommitteeInstance, TreasuryCouncilInstance};
+use crate::{AccountId, AssetId, Balances, Erc20XcmBridge, EvmForeignAssets, Runtime};
 use frame_support::parameter_types;
-use moonkit_xcm_primitives::{
-	location_matcher::{Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher},
-	AccountIdAssetIdConversion,
+use moonkit_xcm_primitives::location_matcher::{
+	Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher,
 };
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
 use pallet_evm_precompile_blake2::Blake2F;
+use pallet_evm_precompile_bls12381::{
+	Bls12381G1Add, Bls12381G1MultiExp, Bls12381G2Add, Bls12381G2MultiExp, Bls12381MapG1,
+	Bls12381MapG2, Bls12381Pairing,
+};
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_call_permit::CallPermitPrecompile;
 use pallet_evm_precompile_collective::CollectivePrecompile;
@@ -57,11 +54,8 @@ use pallet_evm_precompile_xcm_transactor::{
 };
 use pallet_evm_precompile_xcm_utils::{AllExceptXcmExecute, XcmUtilsPrecompile};
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
-use pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecompileSet;
 use pallet_precompile_benchmarks::WeightInfo;
 use precompile_utils::precompile_set::*;
-use sp_std::prelude::*;
-use xcm_primitives::AsAssetType;
 
 parameter_types! {
 	pub P256VerifyWeight: frame_support::weights::Weight =
@@ -113,10 +107,7 @@ type EthereumPrecompilesChecks = (AcceptDelegateCall, CallableByContract, Callab
 
 // Pallet-xcm precompile types.
 // Type that converts AssetId into Location
-type AssetIdToLocationManager = (
-	AsAssetType<AssetId, AssetType, AssetManager>,
-	EvmForeignAssets,
-);
+type AssetIdToLocationManager = (EvmForeignAssets,);
 
 // The pallet-balances address is identified by ERC20_BALANCES_PRECOMPILE const
 type SingleAddressMatch = SingleAddressMatcher<AccountId, ERC20_BALANCES_PRECOMPILE, Balances>;
@@ -140,6 +131,14 @@ type MoonbasePrecompilesAt<R> = (
 	PrecompileAt<AddressU64<7>, Bn128Mul, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<8>, Bn128Pairing, EthereumPrecompilesChecks>,
 	PrecompileAt<AddressU64<9>, Blake2F, EthereumPrecompilesChecks>,
+	// 10 is not implemented, Ethereum uses this slot for Point Evaluation
+	PrecompileAt<AddressU64<11>, Bls12381G1Add, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<12>, Bls12381G1MultiExp, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<13>, Bls12381G2Add, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<14>, Bls12381G2MultiExp, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<15>, Bls12381Pairing, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<16>, Bls12381MapG1, EthereumPrecompilesChecks>,
+	PrecompileAt<AddressU64<17>, Bls12381MapG2, EthereumPrecompilesChecks>,
 	// (0x100 => 256) https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
 	PrecompileAt<AddressU64<256>, P256Verify<P256VerifyWeight>, EthereumPrecompilesChecks>,
 	// Non-Moonbeam specific nor Ethereum precompiles :
@@ -303,53 +302,6 @@ type MoonbasePrecompilesAt<R> = (
 	>,
 );
 
-pub struct DisabledLocalAssets<Runtime>(sp_std::marker::PhantomData<Runtime>);
-
-impl<Runtime> sp_core::Get<Vec<H160>> for DisabledLocalAssets<Runtime>
-where
-	Runtime: frame_system::Config,
-	Runtime::AccountId: Into<H160>,
-	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetId>,
-{
-	fn get() -> Vec<H160> {
-		vec![
-			// https://moonbase.subscan.io/extrinsic/5245322-6?event=5245322-22
-			182085191673801920759598290391359780050u128,
-			// https://moonbase.subscan.io/extrinsic/3244752-4?event=3244752-9
-			282223684955665977914983262584256755878u128,
-			// https://moonbase.subscan.io/extrinsic/3158280-4?event=3158280-9
-			235962050501460763853961856666389569138u128,
-			// https://moonbase.subscan.io/block/3045900?tab=event&&event=3045900-4
-			45350527686064227409532032051821627910u128,
-			// https://moonbase.subscan.io/extrinsic/3024306-4?event=3024306-9
-			199439015574556113723291251263369885338u128,
-			// https://moonbase.subscan.io/extrinsic/2921640-4?event=2921640-9
-			236426850287284823323011839750645103615u128,
-			// https://moonbase.subscan.io/extrinsic/2748867-4?event=2748867-9
-			14626673838203901761839010613793775004u128,
-			// https://moonbase.subscan.io/extrinsic/2709788-4?event=2709788-9
-			95328064580428769161981851380106820590u128,
-			// https://moonbase.subscan.io/extrinsic/2670844-4?event=2670844-9
-			339028723712074529056817184013808486301u128,
-			// https://moonbase.subscan.io/extrinsic/2555083-4?event=2555083-9
-			100481493116602214283160747599845770751u128,
-			// https://moonbase.subscan.io/extrinsic/2473880-3?event=2473880-8
-			319515966007349957795820176952936446433u128,
-			// https://moonbase.subscan.io/extrinsic/2346438-3?event=2346438-6
-			337110116006454532607322340792629567158u128,
-			// https://moonbase.subscan.io/extrinsic/2239102-3?event=2239102-6
-			255225902946708983196362678630947296516u128,
-			// https://moonbase.subscan.io/extrinsic/2142964-4?event=2142964-12
-			3356866138193769031598374869367363824u128,
-			// https://moonbase.subscan.io/extrinsic/1967538-6?event=1967538-28
-			144992676743556815849525085098140609495u128,
-		]
-		.iter()
-		.map(|id| Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, *id).into())
-		.collect()
-	}
-}
-
 /// The PrecompileSet installed in the Moonbase runtime.
 /// We include the nine Istanbul precompiles
 /// (https://github.com/ethereum/go-ethereum/blob/3c46f557/core/vm/contracts.go#L69)
@@ -362,12 +314,5 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 	(
 		// Skip precompiles if out of range.
 		PrecompilesInRangeInclusive<(AddressU64<1>, AddressU64<4095>), MoonbasePrecompilesAt<R>>,
-		// Prefixed precompile sets (XC20)
-		PrecompileSetStartingWith<
-			ForeignAssetPrefix,
-			Erc20AssetsPrecompileSet<R, ForeignAssetInstance>,
-			(CallableByContract, CallableByPrecompile),
-		>,
-		RemovedPrecompilesAt<DisabledLocalAssets<R>>,
 	),
 >;

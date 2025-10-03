@@ -24,8 +24,8 @@ strum_macros = { workspace = true }
 
 # Moonbeam
 account = { workspace = true }
+ethereum = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
-moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
@@ -35,7 +35,6 @@ bp-moonriver = { workspace = true }
 bp-moonbeam = { workspace = true }
 
 # Moonbeam pallets
-pallet-asset-manager = { workspace = true }
 pallet-author-mapping = { workspace = true }
 pallet-crowdloan-rewards = { workspace = true }
 pallet-emergency-para-xcm = { workspace = true }
@@ -44,7 +43,6 @@ pallet-ethereum-xcm = { workspace = true }
 pallet-evm-chain-id = { workspace = true }
 pallet-maintenance-mode = { workspace = true, features = ["xcm-support"] }
 pallet-migrations = { workspace = true }
-pallet-multiblock-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-moonbeam-lazy-migrations = { workspace = true }
 pallet-moonbeam-orbiters = { workspace = true }
@@ -76,7 +74,6 @@ pallet-evm-precompile-relay-verifier = { workspace = true }
 pallet-evm-precompile-xcm-transactor = { workspace = true }
 pallet-evm-precompile-xcm-utils = { workspace = true }
 pallet-evm-precompile-xtokens = { workspace = true }
-pallet-evm-precompileset-assets-erc20 = { workspace = true }
 pallet-evm-precompile-p256verify = { workspace = true }
 
 # Moonbeam tracing
@@ -103,7 +100,6 @@ pallet-proxy = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-root-testing = { workspace = true }
 pallet-scheduler = { workspace = true }
-pallet-society = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
@@ -134,7 +130,6 @@ sp-genesis-builder = { workspace = true }
 
 # Bridge
 bridge-runtime-common = { workspace = true }
-bp-kusama = { workspace = true }
 bp-runtime = { workspace = true }
 bp-header-chain = { workspace = true }
 bp-parachains = { workspace = true }
@@ -153,8 +148,8 @@ fp-self-contained = { workspace = true, features = ["serde"] }
 pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm-precompile-blake2 = { workspace = true }
+pallet-evm-precompile-bls12381 = {workspace = true}
 pallet-evm-precompile-bn128 = { workspace = true }
-pallet-evm-precompile-dispatch = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
@@ -173,8 +168,8 @@ xcm-executor = { workspace = true }
 xcm-runtime-apis = { workspace = true }
 
 # Cumulus
-cumulus-pallet-dmp-queue = { workspace = true }
 cumulus-pallet-parachain-system = { workspace = true }
+cumulus-pallet-weight-reclaim = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true, features = ["bridging"] }
 cumulus-primitives-core = { workspace = true }
@@ -200,7 +195,6 @@ frame-system-benchmarking = { workspace = true, optional = true }
 frame-try-runtime = { workspace = true, optional = true }
 
 [dev-dependencies]
-ethereum = { workspace = true }
 frame-metadata = { workspace = true }
 hex = { workspace = true, features = ["std"] }
 sha3 = { workspace = true, features = ["std"] }
@@ -222,7 +216,6 @@ default = ["std"]
 std = [
 	"account/std",
 	"async-backing-primitives/std",
-	"cumulus-pallet-dmp-queue/std",
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-pallet-xcm/std",
 	"cumulus-pallet-xcmp-queue/std",
@@ -230,6 +223,8 @@ std = [
 	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
 	"cumulus-primitives-storage-weight-reclaim/std",
+	"ethereum/std",
+	"cumulus-pallet-weight-reclaim/std",
 	"evm-tracing-events/std",
 	"fp-evm/std",
 	"fp-rpc/std",
@@ -242,13 +237,11 @@ std = [
 	"frame-system/std",
 	"moonbeam-core-primitives/std",
 	"moonbeam-evm-tracer/std",
-	"moonbeam-relay-encoder/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"moonbeam-runtime-common/std",
 	"moonkit-xcm-primitives/std",
 	"nimbus-primitives/std",
-	"pallet-asset-manager/std",
 	"pallet-assets/std",
 	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
@@ -266,6 +259,7 @@ std = [
 	"pallet-evm-precompile-author-mapping/std",
 	"pallet-evm-precompile-balances-erc20/std",
 	"pallet-evm-precompile-batch/std",
+	"pallet-evm-precompile-bls12381/std",
 	"pallet-evm-precompile-call-permit/std",
 	"pallet-evm-precompile-collective/std",
 	"pallet-evm-precompile-conviction-voting/std",
@@ -279,13 +273,11 @@ std = [
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
-	"pallet-evm-precompileset-assets-erc20/std",
 	"pallet-evm-precompile-p256verify/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
 	"pallet-maintenance-mode/std",
 	"pallet-migrations/std",
-	"pallet-multiblock-migrations/std",
 	"pallet-moonbeam-foreign-assets/std",
 	"pallet-moonbeam-lazy-migrations/std",
 	"pallet-moonbeam-orbiters/std",
@@ -301,7 +293,6 @@ std = [
 	"pallet-relay-storage-roots/std",
 	"pallet-root-testing/std",
 	"pallet-scheduler/std",
-	"pallet-society/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
@@ -342,7 +333,6 @@ std = [
 	"xcm-runtime-apis/std",
 	"xcm-primitives/std",
 	"xcm/std",
-	"bp-kusama/std",
 	"bp-runtime/std",
 	"bp-header-chain/std",
 	"bp-parachains/std",
@@ -374,18 +364,18 @@ on-chain-release-build = [
 disable-genesis-builder = []
 
 runtime-benchmarks = [
+	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"cumulus-primitives-core/runtime-benchmarks",
+	"cumulus-pallet-weight-reclaim/runtime-benchmarks",
 	"frame-benchmarking",
 	"frame-benchmarking/runtime-benchmarks",
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"hex-literal",
-	"moonbeam-relay-encoder/runtime-benchmarks",
 	"moonbeam-runtime-common/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
-	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
@@ -399,7 +389,6 @@ runtime-benchmarks = [
 	"pallet-evm/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-migrations/runtime-benchmarks",
-	"pallet-multiblock-migrations/runtime-benchmarks",
 	"pallet-moonbeam-foreign-assets/runtime-benchmarks",
 	"pallet-moonbeam-lazy-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
@@ -413,7 +402,6 @@ runtime-benchmarks = [
 	"pallet-referenda/runtime-benchmarks",
 	"pallet-relay-storage-roots/runtime-benchmarks",
 	"pallet-scheduler/runtime-benchmarks",
-	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
@@ -438,13 +426,11 @@ try-runtime = [
 	"cumulus-pallet-parachain-system/try-runtime",
 	"cumulus-pallet-xcmp-queue/try-runtime",
 	"cumulus-pallet-xcm/try-runtime",
-	"cumulus-pallet-dmp-queue/try-runtime",
 	"fp-self-contained/try-runtime",
 	"frame-executive/try-runtime",
 	"frame-system/try-runtime",
 	"frame-try-runtime",
 	"moonbeam-runtime-common/try-runtime",
-	"pallet-asset-manager/try-runtime",
 	"pallet-async-backing/try-runtime",
 	"pallet-author-mapping/try-runtime",
 	"pallet-author-slot-filter/try-runtime",
@@ -453,7 +439,6 @@ try-runtime = [
 	"pallet-conviction-voting/try-runtime",
 	"pallet-maintenance-mode/try-runtime",
 	"pallet-migrations/try-runtime",
-	"pallet-multiblock-migrations/try-runtime",
 	"pallet-moonbeam-lazy-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
 	"pallet-precompile-benchmarks/try-runtime",
@@ -463,7 +448,6 @@ try-runtime = [
 	"pallet-relay-storage-roots/try-runtime",
 	"pallet-root-testing/try-runtime",
 	"pallet-scheduler/try-runtime",
-	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-whitelist/try-runtime",
 	"pallet-xcm/try-runtime",

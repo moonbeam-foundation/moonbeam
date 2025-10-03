@@ -7,8 +7,10 @@ import {
   XcmFragment,
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
-} from "../../../../helpers/xcm.js";
-import { registerOldForeignAsset } from "../../../../helpers/assets.js";
+  registerForeignAsset,
+  foreignAssetBalance,
+  addAssetToWeightTrader,
+} from "../../../../helpers";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -48,25 +50,21 @@ const STATEMINT_ASSET_ONE_LOCATION = {
 };
 
 describeSuite({
-  id: "D024112",
+  id: "D024204",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
-    let assetIdZero: string;
-    let assetIdOne: string;
+  testCases: ({ context, it }) => {
+    const assetIdZero = 1n;
+    const assetIdOne = 2n;
 
     beforeAll(async () => {
-      // registerOldForeignAsset 0
-      const { registeredAssetId: registeredAssetIdZero, registeredAsset: registeredAssetZero } =
-        await registerOldForeignAsset(context, STATEMINT_LOCATION, assetMetadata);
-      assetIdZero = registeredAssetIdZero;
-      // registerOldForeignAsset 1
-      const { registeredAssetId: registeredAssetIdOne, registeredAsset: registeredAssetOne } =
-        await registerOldForeignAsset(context, STATEMINT_ASSET_ONE_LOCATION, assetMetadata, 0, 1);
-      assetIdOne = registeredAssetIdOne;
+      // Register foreign asset 0
+      await registerForeignAsset(context, assetIdZero, STATEMINT_LOCATION, assetMetadata);
+      // Register foreign asset 1
+      await registerForeignAsset(context, assetIdOne, STATEMINT_ASSET_ONE_LOCATION, assetMetadata);
 
-      expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());
-      expect(registeredAssetOne.owner.toHex()).to.eq(palletId.toLowerCase());
+      await addAssetToWeightTrader(STATEMINT_LOCATION, 0n, context);
+      await addAssetToWeightTrader(STATEMINT_ASSET_ONE_LOCATION, 0n, context);
     });
 
     it({
@@ -123,11 +121,11 @@ describeSuite({
         } as RawXcmMessage);
 
         // Make sure the state has ALITH's foreign parachain tokens
-        const alithAssetZeroBalance = (
-          await context.polkadotJs().query.assets.account(assetIdZero, alith.address)
-        )
-          .unwrap()
-          .balance.toBigInt();
+        const alithAssetZeroBalance = await foreignAssetBalance(
+          context,
+          assetIdZero,
+          alith.address as `0x{string}`
+        );
 
         expect(alithAssetZeroBalance).to.eq(10n * FOREIGN_TOKEN);
       },

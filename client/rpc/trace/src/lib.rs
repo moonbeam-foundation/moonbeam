@@ -793,7 +793,7 @@ where
 		substrate_hash: H256,
 		overrides: Arc<dyn StorageOverride<B>>,
 	) -> TxsTraceRes {
-		// Get Subtrate block data.
+		// Get Substrate block data.
 		let api = client.runtime_api();
 		let block_header = client
 			.header(substrate_hash)

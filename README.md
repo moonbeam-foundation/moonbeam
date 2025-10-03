@@ -4,11 +4,19 @@
 
 [![Tests](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml?query=branch:master)
 
-**An Ethereum compatible [Parachain](https://polkadot.com/parachains/) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
+**An Ethereum compatible [Parachain](https://polkadot.com/rollups) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
 
 👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._<br>
 👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._<br>
 👉 _Reference our [crate-level docs (rustdocs)](https://moonbeam-foundation.github.io/moonbeam) to contribute._
+
+## Run Moonbeam with zombienet
+```bash
+# Start Polkadot relay with Moonbeam parachain
+make start-zombienet-moonbeam
+# Start Kusama relay with Moonriver parachain
+make start-zombienet-moonriver
+```
 
 ## Run a Moonbase Alpha (Moonbeam TestNet) Node with Docker
 
@@ -16,7 +24,7 @@ Docker images are published for every tagged release. Learn more with `moonbeam 
 
 ```bash
 # Join the public testnet
-docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --chain alphanet
+docker run --network="host" moonbeamfoundation/moonbeam:v0.47.1 --chain alphanet
 ```
 
 You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/run-a-node/overview/)
@@ -28,7 +36,7 @@ locally. You can quickly set up a single node without a relay chain backing it u
 
 ```bash
 # Run a dev service node
-docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev
+docker run --network="host" moonbeamfoundation/moonbeam:v0.47.1 --dev
 ```
 
 For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/)
@@ -39,10 +47,10 @@ The above command will start the node in instant seal mode. It creates a block w
 
 ```bash
 # Author a block every 6 seconds.
-docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev --sealing 6000
+docker run --network="host" moonbeamfoundation/moonbeam:v0.47.1 --dev --sealing 6000
 
 # Manually control the block authorship and finality
-docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev --sealing manual
+docker run --network="host" moonbeamfoundation/moonbeam:v0.47.1 --dev --sealing manual
 ```
 
 ### Prefunded Development Addresses
@@ -133,6 +141,11 @@ cargo test
 cd test
 pnpm i 
 pnpm moonwall test dev_moonbase
+```
+
+### Run bridge integration tests
+```bash
+make run-bridge-integration-tests
 ```
 
 ## Chain IDs

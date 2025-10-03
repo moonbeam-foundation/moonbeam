@@ -6,8 +6,6 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-log = { workspace = true }
-num_enum = { workspace = true }
 
 # Moonbeam
 pallet-randomness = { workspace = true }
@@ -17,7 +15,6 @@ precompile-utils = { workspace = true }
 fp-evm = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
-parity-scale-codec = { workspace = true }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-std = { workspace = true }
@@ -30,8 +27,6 @@ pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 nimbus-primitives = { workspace = true }
 
 [dev-dependencies]
-derive_more = { workspace = true }
-hex-literal = { workspace = true }
 
 # Moonbeam
 pallet-author-mapping = { workspace = true, features = [ "std" ] }
@@ -40,10 +35,10 @@ session-keys-primitives = { workspace = true, features = [ "std" ] }
 
 # Substrate
 pallet-balances = { workspace = true, features = [ "std" ] }
-pallet-scheduler = { workspace = true, features = [ "std" ] }
 pallet-timestamp = { workspace = true, features = [ "std" ] }
-scale-info = { workspace = true, features = [ "derive", "std" ] }
 sp-runtime = { workspace = true, features = [ "std" ] }
+parity-scale-codec = { workspace = true, features = ["max-encoded-len", "std"] }
+scale-info = { workspace = true, features = ["derive", "std"] }
 
 [features]
 default = [ "std" ]

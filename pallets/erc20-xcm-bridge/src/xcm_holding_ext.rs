@@ -20,7 +20,8 @@ use core::marker::PhantomData;
 use sp_core::{H160, U256};
 use sp_std::collections::btree_map::BTreeMap;
 use sp_std::vec::Vec;
-use xcm_executor::traits::XcmAssetTransfers;
+use xcm::prelude::*;
+use xcm_executor::traits::{FeeManager, FeeReason, XcmAssetTransfers};
 
 environmental::environmental!(XCM_HOLDING_ERC20_ORIGINS: XcmHoldingErc20sOrigins);
 
@@ -138,6 +139,20 @@ where
 	type IsReserve = Config::IsReserve;
 	type IsTeleporter = Config::IsTeleporter;
 	type AssetTransactor = Config::AssetTransactor;
+}
+
+impl<Config, InnerXcmExecutor> FeeManager for XcmExecutorWrapper<Config, InnerXcmExecutor>
+where
+	Config: xcm_executor::Config,
+	InnerXcmExecutor: FeeManager,
+{
+	fn is_waived(origin: Option<&Location>, r: FeeReason) -> bool {
+		InnerXcmExecutor::is_waived(origin, r)
+	}
+
+	fn handle_fee(fee: Assets, context: Option<&XcmContext>, r: FeeReason) {
+		InnerXcmExecutor::handle_fee(fee, context, r)
+	}
 }
 
 #[cfg(test)]

@@ -22,6 +22,7 @@ use tokio::{
 	sync::{oneshot, Semaphore},
 };
 
+use ethereum;
 use ethereum_types::H256;
 use fc_rpc::{frontier_backend_client, internal_err};
 use fc_storage::StorageOverride;
@@ -630,8 +631,8 @@ where
 	/// In order to successfully reproduce the result of the original transaction we need a correct
 	/// state to replay over.
 	///
-	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlayed state.
-	/// These overlayed changes will live in-memory for the lifetime of the ApiRef.
+	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlaid state.
+	/// These overlaid changes will live in-memory for the lifetime of the ApiRef.
 	fn handle_transaction_request(
 		client: Arc<C>,
 		backend: Arc<BE>,
@@ -712,9 +713,35 @@ where
 			let transactions = block.transactions;
 			if let Some(transaction) = transactions.get(index) {
 				let f = || -> RpcResult<_> {
-					let result = if trace_api_version >= 5 {
+					let result = if trace_api_version >= 7 {
 						// The block is initialized inside "trace_transaction"
 						api.trace_transaction(parent_block_hash, exts, &transaction, &header)
+					} else if trace_api_version == 5 || trace_api_version == 6 {
+						// API version 5 and 6 expect TransactionV2, so we need to convert from TransactionV3
+						let tx_v2 = match transaction {
+							ethereum::TransactionV3::Legacy(tx) => {
+								ethereum::TransactionV2::Legacy(tx.clone())
+							}
+							ethereum::TransactionV3::EIP2930(tx) => {
+								ethereum::TransactionV2::EIP2930(tx.clone())
+							}
+							ethereum::TransactionV3::EIP1559(tx) => {
+								ethereum::TransactionV2::EIP1559(tx.clone())
+							}
+							ethereum::TransactionV3::EIP7702(_) => return Err(internal_err(
+								"EIP-7702 transactions are supported starting from API version 7"
+									.to_string(),
+							)),
+						};
+
+						// The block is initialized inside "trace_transaction"
+						#[allow(deprecated)]
+						api.trace_transaction_before_version_7(
+							parent_block_hash,
+							exts,
+							&tx_v2,
+							&header,
+						)
 					} else {
 						// Get core runtime api version
 						let core_api_version = if let Ok(Some(api_version)) =
@@ -746,17 +773,32 @@ where
 						}
 
 						if trace_api_version == 4 {
+							// API version 4 expect TransactionV2, so we need to convert from TransactionV3
+							let tx_v2 = match transaction {
+								ethereum::TransactionV3::Legacy(tx) => {
+									ethereum::TransactionV2::Legacy(tx.clone())
+								}
+								ethereum::TransactionV3::EIP2930(tx) => {
+									ethereum::TransactionV2::EIP2930(tx.clone())
+								}
+								ethereum::TransactionV3::EIP1559(tx) => {
+									ethereum::TransactionV2::EIP1559(tx.clone())
+								}
+								ethereum::TransactionV3::EIP7702(_) => {
+									return Err(internal_err(
+										"EIP-7702 transactions are supported starting from API version 7"
+											.to_string(),
+									))
+								}
+							};
+
 							// Pre pallet-message-queue
 							#[allow(deprecated)]
-							api.trace_transaction_before_version_5(
-								parent_block_hash,
-								exts,
-								&transaction,
-							)
+							api.trace_transaction_before_version_5(parent_block_hash, exts, &tx_v2)
 						} else {
 							// Pre-london update, legacy transactions.
 							match transaction {
-								ethereum::TransactionV2::Legacy(tx) =>
+								ethereum::TransactionV3::Legacy(tx) =>
 								{
 									#[allow(deprecated)]
 									api.trace_transaction_before_version_4(
@@ -928,6 +970,7 @@ where
 			data,
 			nonce,
 			access_list,
+			authorization_list,
 			..
 		} = call_params;
 
@@ -1002,6 +1045,7 @@ where
 							.map(|item| (item.address, item.storage_keys))
 							.collect(),
 					),
+					authorization_list,
 				)
 				.map_err(|e| internal_err(format!("Runtime api access error: {:?}", e)))?
 				.map_err(|e| internal_err(format!("DispatchError: {:?}", e)))?;

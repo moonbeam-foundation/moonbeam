@@ -26,7 +26,10 @@ export const getEndpoints = (relay: "Polkadot" | "Kusama" | "Unsupported", paraI
         return Object.values(commonGoodPolka!.providers);
       }
       const polkaPara = prodParasPolkadot.find((a) => a.paraId === paraId);
-      return Object.values(polkaPara!.providers);
+      if (polkaPara) {
+        return Object.values(polkaPara.providers);
+      }
+      throw new Error("Unknown chain with paraId: " + paraId);
     }
     case "Kusama": {
       if (paraId < 2000) {
@@ -34,7 +37,10 @@ export const getEndpoints = (relay: "Polkadot" | "Kusama" | "Unsupported", paraI
         return Object.values(commonGoodKusama!.providers);
       }
       const kusamaPara = prodParasKusama.find((a) => a.paraId === paraId);
-      return Object.values(kusamaPara!.providers);
+      if (kusamaPara) {
+        return Object.values(kusamaPara.providers);
+      }
+      throw new Error("Unknown chain with paraId: " + paraId);
     }
     case "Unsupported":
       throw new Error("Unsupported chain.");
@@ -94,39 +100,12 @@ export const ForeignChainsEndpoints = [
         paraId: 2048,
       },
       {
-        name: "Calamari",
-        paraId: 2084,
-      },
-      {
-        name: "Heiko",
-        paraId: 2085,
-        mutedUntil: new Date("2025-02-28").getTime(),
-      },
-      {
-        name: "Picasso",
-        paraId: 2087,
-      },
-      {
         name: "Kintsugi",
         paraId: 2092,
       },
       {
         name: "Darwinia Crab",
         paraId: 2105,
-      },
-      {
-        name: "Mangata",
-        paraId: 2110,
-      },
-      {
-        name: "Turing",
-        paraId: 2114,
-      },
-      // Litmus has become a para-thread
-      {
-        name: "Litmus",
-        paraId: 2106,
-        mutedUntil: new Date("2025-01-30").getTime(),
       },
     ],
   },
@@ -146,19 +125,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Astar",
         paraId: 2006,
-      },
-      {
-        name: "Equilibrium",
-        paraId: 2011,
-      },
-      {
-        name: "Parallel",
-        paraId: 2012,
-      },
-      {
-        name: "Composable",
-        paraId: 2019,
-        mutedUntil: new Date("2025-01-27").getTime(),
       },
       {
         name: "Nodle",
@@ -203,10 +169,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Pendulum",
         paraId: 2094,
-      },
-      {
-        name: "Subsocial",
-        paraId: 2101,
       },
       {
         name: "Manta",

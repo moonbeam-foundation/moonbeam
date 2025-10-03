@@ -12,10 +12,11 @@ jobs:
       - name: Install required dependencies
         run: |
           sudo apt-get install -y libprotobuf-dev protobuf-compiler
-          cargo install cargo-scout-audit
+          rustup component add rust-src rustc-dev llvm-tools-preview --toolchain nightly-2025-08-07
+          cargo +nightly-2025-08-07 install cargo-scout-audit
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -47,7 +48,7 @@ jobs:
           mkdir -p "$REPORT_DIR"
 
           section "Running Security Analysis"
-          cargo scout-audit --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
+          cargo +nightly-2025-08-07 scout-audit --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
           
           if [ ! -f "$REPORT_PATH" ]; then
             echo "[ERROR] Scout analysis failed!"

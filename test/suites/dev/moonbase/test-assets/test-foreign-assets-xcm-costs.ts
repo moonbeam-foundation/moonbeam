@@ -13,7 +13,7 @@ describeSuite({
     const paraId = 4444;
     let paraSovereignAccount;
     // Previous feeAmount: 139_608_625_000_000n;
-    const feeLimit = 140_000_000_000_000n;
+    const feeLimit = 147_000_000_000_000n;
     const depositAmount = 100_000_000_000_000_000_000n; // 100 tokens
     const fundAmount = feeLimit + depositAmount;
 
@@ -55,7 +55,7 @@ describeSuite({
         );
 
         const balanceAfter = await getFreeBalance(paraSovereignAccount, context);
-        expect(balanceAfter).toMatchInlineSnapshot(`2227512500000n`);
+        expect(balanceAfter).toMatchInlineSnapshot(`506662500000n`);
       },
     });
   },

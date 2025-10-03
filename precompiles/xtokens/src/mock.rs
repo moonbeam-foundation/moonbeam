@@ -18,11 +18,12 @@
 use super::*;
 use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 use frame_support::traits::{
-	ConstU32, EnsureOrigin, Everything, Nothing, OriginTrait, PalletInfo as PalletInfoTrait,
+	ConstBool, ConstU32, Disabled, EnsureOrigin, Everything, Nothing, OriginTrait,
+	PalletInfo as PalletInfoTrait,
 };
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
-use parity_scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use precompile_utils::{
 	mock_account,
 	precompile_set::*,
@@ -180,6 +181,8 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -286,6 +289,8 @@ impl pallet_xcm::Config for Runtime {
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
+	type AuthorizedAliasConsideration = Disabled;
+	type AssetHubMigrationStarted = ConstBool<false>;
 }
 
 #[derive(Encode, Decode)]
@@ -317,7 +322,9 @@ pub enum HrmpCall {
 	CancelOpenRequest(HrmpChannelId, u32),
 }
 
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+#[derive(
+	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+)]
 pub enum MockTransactors {
 	Relay,
 }
@@ -405,9 +412,12 @@ impl xcm_executor::Config for XcmConfig {
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type XcmRecorder = ();
+	type XcmEventEmitter = ();
 }
 
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+#[derive(
+	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+)]
 pub enum CurrencyId {
 	SelfReserve,
 	OtherReserve(AssetId),
@@ -505,6 +515,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
+			dev_accounts: None,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

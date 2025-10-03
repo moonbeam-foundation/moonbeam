@@ -194,9 +194,12 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 		.unwrap();
 
 	let balances = vec![(1, 100), (2, 100), (3, 100), (4, 100), (5, 100)];
-	pallet_balances::GenesisConfig::<Test> { balances }
-		.assimilate_storage(&mut t)
-		.unwrap();
+	pallet_balances::GenesisConfig::<Test> {
+		balances,
+		dev_accounts: None,
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
 
 	t.into()
 }

@@ -1,0 +1,51 @@
+[package]
+authors = ["PureStake"]
+edition = "2021"
+name = "pallet-crowdloan-rewards"
+version = '0.6.0'
+description = "Reward citizens who participated in a crowdloan to acquire a parachain slot o nthe backing relay chain."
+
+[dependencies]
+ed25519-dalek = { version = "2.1", default-features = false, features = ["alloc"], optional = true }
+log = { version = "0.4.22", default-features = false }
+parity-scale-codec = { version = "3.6.12", default-features = false}
+scale-info = { version = "2.10.0", default-features = false, features = ["derive"] }
+serde = { version = "1.0.188", optional = true, features = ["derive"], default-features = false }
+
+frame-support = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
+frame-system = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
+sp-core = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
+sp-runtime = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
+sp-std = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
+sp-io = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
+frame-benchmarking = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, optional = true, branch = "moonbeam-polkadot-stable2503" }
+sp-trie = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, optional = true, branch = "moonbeam-polkadot-stable2503" }
+
+[dev-dependencies]
+pallet-balances = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
+pallet-utility = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", default-features = false, branch = "moonbeam-polkadot-stable2503" }
+
+[features]
+default = ["std"]
+std = [
+    "parity-scale-codec/std",
+    "frame-benchmarking/std",
+    "frame-support/std",
+    "frame-system/std",
+    "sp-core/std",
+    "sp-runtime/std",
+    "serde",
+    "log/std",
+    "sp-std/std",
+    "sp-io/std",
+    "scale-info/std",
+    "ed25519-dalek/std",
+    "pallet-balances/std",
+]
+runtime-benchmarks = [
+    "frame-benchmarking",
+    "sp-trie",
+    "ed25519-dalek",
+    "sp-runtime/runtime-benchmarks",
+]
+try-runtime = ["frame-support/try-runtime"]

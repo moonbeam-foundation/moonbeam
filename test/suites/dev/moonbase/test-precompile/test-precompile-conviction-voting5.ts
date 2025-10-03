@@ -30,8 +30,9 @@ describeSuite({
       await convictionVoting
         .voteYes(proposalIndex, alithAccount.data.free.toBigInt() - 20n * 10n ** 18n, 1n)
         .block();
-      // 20 minutes jump
-      await jumpBlocks(context, (20 * 60) / 6);
+      // 100 minutes jump to ensure support threshold decays below Alith's 1.153% support
+      // (crowdloan pallet's 100M UNIT in genesis increased total issuance, tightening support threshold)
+      await jumpBlocks(context, (100 * 60) / 6);
 
       // Verifies the setup is correct
       const referendum = await context

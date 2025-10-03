@@ -11,7 +11,7 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D010714",
+  id: "D010708",
   title: "XCM - XcmPaymentApi - Transact",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -63,7 +63,7 @@ describeSuite({
       amountForTransfer = 1_000_000_000_000_000_000n;
 
       // We need to fund the descendAddress with both amounts.
-      // This account takes care of paying the fees and also transfering the
+      // This account takes care of paying the fees and also transferring the
       // tokens to the random address.
       await context.createBlock(
         polkadotJs.tx.balances.transferAllowDeath(

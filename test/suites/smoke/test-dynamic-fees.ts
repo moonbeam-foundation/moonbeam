@@ -591,7 +591,7 @@ describeSuite({
               return [];
             });
 
-            expect(fees.length, "More eth reciepts than expected, this test needs fixing").to.equal(
+            expect(fees.length, "More eth receipts than expected, this test needs fixing").to.equal(
               gasUsed.length
             );
 

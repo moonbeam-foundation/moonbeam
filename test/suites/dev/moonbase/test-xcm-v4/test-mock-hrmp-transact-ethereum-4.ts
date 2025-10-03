@@ -8,10 +8,10 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 describeSuite({
-  id: "D024121",
+  id: "D024207",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
