@@ -23,7 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          ref: perm-client-v0.47.1
+          ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
       - name: Cargo build
         uses: ./.github/workflow-templates/build-prod-binary

@@ -24,8 +24,6 @@ ENV PATH="/root/.cargo/bin:$PATH"
 RUN rustup default stable
 # rustup version are pinned in the rust-toolchain file
 
-ENV COMMIT="0b11a0e1a40421d1b35170bd2bbd94e3748f9188"
-
 # Clone the Moonbeam repository
 RUN echo "*** Cloning Moonbeam ***" && \
 	if git ls-remote --heads https://github.com/moonbeam-foundation/moonbeam.git $COMMIT | grep -q $COMMIT; then \
