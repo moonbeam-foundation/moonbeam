@@ -19,7 +19,7 @@ use crate::mock::{
 	Runtime, RuntimeCall, RuntimeOrigin,
 };
 use frame_support::assert_ok;
-use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
+use pallet_crowdloan_rewards::Event as CrowdloanEvent;
 use pallet_evm::Call as EvmCall;
 use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
@@ -116,20 +116,12 @@ fn is_contributor_returns_true() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(
-				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
-					rewards: vec![
-						([1u8; 32], Some(Alice.into()), 50u32.into()),
-						([2u8; 32], Some(Bob.into()), 50u32.into()),
-					]
-				})
-				.dispatch(RuntimeOrigin::root())
-			);
+			assert_ok!(Crowdloan::initialize_reward_vec(vec![
+				([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+				([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
+			]));
 
-			assert_ok!(Crowdloan::complete_initialization(
-				RuntimeOrigin::root(),
-				init_block + VESTING
-			));
+			assert_ok!(Crowdloan::complete_initialization(init_block + VESTING));
 
 			// Assert that no props have been opened.
 			precompiles()
@@ -158,20 +150,12 @@ fn claim_works() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(
-				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
-					rewards: vec![
-						([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
-						([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
-					]
-				})
-				.dispatch(RuntimeOrigin::root())
-			);
+			assert_ok!(Crowdloan::initialize_reward_vec(vec![
+				([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+				([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
+			]));
 
-			assert_ok!(Crowdloan::complete_initialization(
-				RuntimeOrigin::root(),
-				init_block + VESTING
-			));
+			assert_ok!(Crowdloan::complete_initialization(init_block + VESTING));
 
 			roll_to(5);
 
@@ -181,7 +165,7 @@ fn claim_works() {
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
 			let expected: crate::mock::RuntimeEvent =
-				CrowdloanEvent::RewardsPaid(Alice.into(), 25).into();
+				CrowdloanEvent::RewardsPaid(Alice.into(), 20).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -199,20 +183,12 @@ fn reward_info_works() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(
-				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
-					rewards: vec![
-						([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
-						([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
-					]
-				})
-				.dispatch(RuntimeOrigin::root())
-			);
+			assert_ok!(Crowdloan::initialize_reward_vec(vec![
+				([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+				([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
+			]));
 
-			assert_ok!(Crowdloan::complete_initialization(
-				RuntimeOrigin::root(),
-				init_block + VESTING
-			));
+			assert_ok!(Crowdloan::complete_initialization(init_block + VESTING));
 
 			roll_to(5);
 
@@ -243,20 +219,12 @@ fn update_reward_address_works() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(
-				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
-					rewards: vec![
-						([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
-						([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
-					]
-				})
-				.dispatch(RuntimeOrigin::root())
-			);
+			assert_ok!(Crowdloan::initialize_reward_vec(vec![
+				([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+				([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
+			]));
 
-			assert_ok!(Crowdloan::complete_initialization(
-				RuntimeOrigin::root(),
-				init_block + VESTING
-			));
+			assert_ok!(Crowdloan::complete_initialization(init_block + VESTING));
 
 			roll_to(5);
 

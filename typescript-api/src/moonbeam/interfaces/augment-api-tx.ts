@@ -996,33 +996,6 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       claim: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
-       * This extrinsic completes the initialization if some checks are fullfiled. These checks are:
-       * -The reward contribution money matches the crowdloan pot
-       * -The end vesting block is higher than the init vesting block
-       * -The initialization has not complete yet
-       **/
-      completeInitialization: AugmentedSubmittable<
-        (leaseEndingBlock: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u32]
-      >;
-      /**
-       * Initialize the reward distribution storage. It shortcuts whenever an error is found
-       * This does not enforce any checks other than making sure we dont go over funds
-       * complete_initialization should perform any additional
-       **/
-      initializeRewardVec: AugmentedSubmittable<
-        (
-          rewards:
-            | Vec<ITuple<[U8aFixed, Option<AccountId20>, u128]>>
-            | [
-                U8aFixed | string | Uint8Array,
-                Option<AccountId20> | null | Uint8Array | AccountId20 | string,
-                u128 | AnyNumber | Uint8Array
-              ][]
-        ) => SubmittableExtrinsic<ApiType>,
-        [Vec<ITuple<[U8aFixed, Option<AccountId20>, u128]>>]
-      >;
-      /**
        * Update reward address, proving that the caller owns the current native key
        **/
       updateRewardAddress: AugmentedSubmittable<

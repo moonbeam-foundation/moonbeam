@@ -1461,7 +1461,7 @@ construct_runtime! {
 		Treasury: pallet_treasury::{Pallet, Storage, Config<T>, Event<T>, Call} = 80,
 
 		// Crowdloan stuff.
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 90,
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>} = 90,
 
 		// XCM Stuff
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>} = 100,
