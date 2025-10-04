@@ -307,7 +307,7 @@ jobs:
       actions: read
       contents: read
       pull-requests: write
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]'  }}
     needs: ["set-tags", "build"]
     env:
       GH_TOKEN: ${{ github.token }}
@@ -654,9 +654,6 @@ jobs:
       #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
 
   typescript-tracing-tests:
-    if: >
-      (github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork) || 
-      (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on:
       labels: bare-metal
     permissions:
