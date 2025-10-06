@@ -376,7 +376,7 @@
             "name": "moonbeam",
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
-            "legacy": true,
+            "legacy": false,
             "options": [
               "--lazy-loading-delay-between-requests=10",
               "--lazy-loading-max-retries-per-request=5",
@@ -437,7 +437,7 @@
             "name": "moonbeam",
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
-            "legacy": true,
+            "legacy": false,
             "options": [
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
@@ -527,7 +527,7 @@
             "name": "moonbeam",
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
-            "legacy": true,
+            "legacy": false,
             "options": [
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
