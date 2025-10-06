@@ -3079,3 +3079,5 @@ mod balance_tests {
 			});
 	}
 }
+
+moonbeam_runtime_common::generate_common_xcm_tests!(moonbeam_runtime);
