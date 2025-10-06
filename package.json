@@ -50,7 +50,24 @@
       "@polkadot/util-crypto": "13.5.3",
       "ethers": "6.15.0",
       "tsup": "8.5.0"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "bufferutil",
+      "cpu-features",
+      "es5-ext",
+      "esbuild",
+      "keccak",
+      "msgpackr-extract",
+      "protobufjs",
+      "secp256k1",
+      "sqlite3",
+      "ssh2",
+      "utf-8-validate",
+      "web3",
+      "web3-bzz",
+      "web3-shh"
+    ]
   },
   "keywords": [],
   "author": "",
