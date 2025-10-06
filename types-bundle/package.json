@@ -54,12 +54,12 @@
   },
   "dependencies": {
     "@biomejs/biome": "^2.2.5",
-    "@polkadot/api": "16.4.3",
+    "@polkadot/api": "16.4.8",
     "@polkadot/api-base": "^16.4.8",
     "@polkadot/rpc-core": "^16.4.8",
-    "@polkadot/typegen": "16.4.3",
-    "@polkadot/types": "16.4.3",
-    "@polkadot/types-codec": "16.4.3",
+    "@polkadot/typegen": "16.4.8",
+    "@polkadot/types": "16.4.8",
+    "@polkadot/types-codec": "16.4.8",
     "tsup": "8.5.0",
     "typescript": "^5.9.3"
   }
