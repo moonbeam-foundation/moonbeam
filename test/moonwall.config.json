@@ -482,7 +482,7 @@
             "name": "moonbeam",
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
-            "legacy": true,
+            "legacy": false,
             "options": [
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
