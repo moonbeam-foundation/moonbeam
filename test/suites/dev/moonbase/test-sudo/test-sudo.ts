@@ -7,7 +7,7 @@ import {
   generateKeyringPair,
 } from "@moonwall/util";
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../../../../helpers";
-import { CHARLETH_ADDRESS, DOROTHY_ADDRESS, ETHAN_ADDRESS } from "@moonwall/util";
+import { CHARLETH_ADDRESS, ETHAN_ADDRESS } from "@moonwall/util";
 
 describeSuite({
   id: "D023701",
@@ -53,7 +53,7 @@ describeSuite({
             .tx.sudo.sudo(
               context
                 .polkadotJs()
-                .tx.balances.forceSetBalance(DOROTHY_ADDRESS, DEFAULT_GENESIS_BALANCE)
+                .tx.balances.forceSetBalance(CHARLETH_ADDRESS, DEFAULT_GENESIS_BALANCE)
             )
         );
 
@@ -106,14 +106,14 @@ describeSuite({
             await context.createBlock(
               context
                 .polkadotJs()
-                .tx.sudo.sudo(context.polkadotJs().tx.balances.forceSetBalance(DOROTHY_ADDRESS, 0))
+                .tx.sudo.sudo(context.polkadotJs().tx.balances.forceSetBalance(CHARLETH_ADDRESS, 0))
                 .signAsync(newSigner)
             )
         ).rejects.toThrowError(
           "1010: Invalid Transaction: Inability to pay some fees , e.g. account balance too low"
         );
 
-        expect(await context.viem().getBalance({ address: DOROTHY_ADDRESS })).to.equal(
+        expect(await context.viem().getBalance({ address: CHARLETH_ADDRESS })).to.equal(
           DEFAULT_GENESIS_BALANCE
         );
       },

@@ -1594,7 +1594,7 @@ mod tests {
 	use crate::chain_spec::moonbase::ChainSpec;
 	use crate::chain_spec::Extensions;
 	use jsonrpsee::server::BatchRequestConfig;
-	use moonbase_runtime::{currency::UNIT, AccountId};
+	use moonbase_runtime::AccountId;
 	use prometheus::{proto::LabelPair, Counter};
 	use sc_network::config::NetworkConfiguration;
 	use sc_service::config::RpcConfiguration;
@@ -1785,7 +1785,6 @@ mod tests {
 				vec![],
 				vec![],
 				vec![],
-				1000 * UNIT,
 				ParaId::new(0),
 				0,
 			))

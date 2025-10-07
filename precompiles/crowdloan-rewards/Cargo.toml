@@ -42,7 +42,6 @@ pallet-message-queue = { workspace = true, features = ["std"] }
 cumulus-pallet-parachain-system = { workspace = true, features = ["std"] }
 cumulus-primitives-core = { workspace = true, features = ["std"] }
 cumulus-primitives-parachain-inherent = { workspace = true, features = ["std"] }
-cumulus-test-relay-sproof-builder = { workspace = true, features = ["std"] }
 
 [features]
 default = ["std"]
@@ -50,7 +49,6 @@ std = [
 	"cumulus-pallet-parachain-system/std",
 	"cumulus-primitives-core/std",
 	"cumulus-primitives-parachain-inherent/std",
-	"cumulus-test-relay-sproof-builder/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",

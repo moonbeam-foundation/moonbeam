@@ -11,13 +11,6 @@ describeSuite({
   id: "L01",
   title: "Lazy Loading - Runtime Upgrade",
   foundationMethods: "dev",
-  options: {
-    forkConfig: {
-      url: process.env.FORK_URL ?? "https://trace.api.moonbeam.network",
-      stateOverridePath: "tmp/lazyLoadingStateOverrides.json",
-      verbose: true,
-    },
-  },
   testCases: ({ it, context, log }) => {
     let api: ApiPromise;
 

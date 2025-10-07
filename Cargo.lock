@@ -9138,7 +9138,6 @@ dependencies = [
 [[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
-source = "git+https://github.com/moonbeam-foundation/crowdloan-rewards?branch=moonbeam-polkadot-stable2503#0a6af90ab0cc714ba8dca9cc392f1bf179718990"
 dependencies = [
  "ed25519-dalek",
  "frame-benchmarking",
@@ -9548,7 +9547,6 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
- "cumulus-test-relay-sproof-builder",
  "fp-evm",
  "frame-support",
  "frame-system",
