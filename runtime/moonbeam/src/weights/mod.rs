@@ -18,12 +18,11 @@
 
 mod bridge;
 pub mod cumulus_pallet_parachain_system;
+pub mod cumulus_pallet_weight_reclaim;
 pub mod cumulus_pallet_xcmp_queue;
 pub mod db;
 pub mod frame_system;
 pub mod frame_system_extensions;
-pub mod pallet_asset_manager;
-pub mod pallet_assets;
 pub mod pallet_author_inherent;
 pub mod pallet_author_mapping;
 pub mod pallet_author_slot_filter;
@@ -38,10 +37,10 @@ pub mod pallet_crowdloan_rewards;
 pub mod pallet_evm;
 pub mod pallet_identity;
 pub mod pallet_message_queue;
+pub mod pallet_migrations;
 pub mod pallet_moonbeam_foreign_assets;
 pub mod pallet_moonbeam_lazy_migrations;
 pub mod pallet_moonbeam_orbiters;
-pub mod pallet_multiblock_migrations;
 pub mod pallet_multisig;
 pub mod pallet_parachain_staking;
 pub mod pallet_parameters;

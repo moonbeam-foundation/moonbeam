@@ -49,7 +49,7 @@ describeSuite({
         });
         const { result } = await context.createBlock(rawTxn);
         expectEVMResult(result!.events, "Revert");
-        expect(
+        await expect(
           async () =>
             await context.writePrecompile!({
               precompileName: "Proxy",
@@ -109,7 +109,7 @@ describeSuite({
         const { result } = await context.createBlock(rawTxn);
         expectEVMResult(result!.events, "Revert");
 
-        expect(
+        await expect(
           async () =>
             await context.writePrecompile!({
               precompileName: "Proxy",
@@ -305,7 +305,7 @@ describeSuite({
         const { result } = await context.createBlock(rawTxn);
         expectEVMResult(result!.events, "Revert");
 
-        expect(
+        await expect(
           async () =>
             await context.writePrecompile!({
               precompileName: "Proxy",
@@ -390,7 +390,7 @@ describeSuite({
         const { result: result3 } = await context.createBlock(rawTxn3);
         expectEVMResult(result3!.events, "Revert");
 
-        expect(
+        await expect(
           async () =>
             await createViemTransaction(context, {
               to: PRECOMPILE_PROXY_ADDRESS,
@@ -434,7 +434,7 @@ describeSuite({
         const { result: result2 } = await context.createBlock(rawTxn2);
         expectEVMResult(result2!.events, "Revert");
 
-        expect(
+        await expect(
           async () =>
             await createViemTransaction(context, {
               to: PRECOMPILE_PROXY_ADDRESS,
@@ -513,7 +513,7 @@ describeSuite({
         expectEVMResult(result!.events, "Succeed");
 
         const { abi: ierc20Abi } = fetchCompiledContract("IERC20");
-        expect(
+        await expect(
           async () =>
             await context.writePrecompile!({
               precompileName: "Proxy",

@@ -24,7 +24,7 @@
 //! multilocation-based derived accounts. The first is the account the parachain controls
 //! in the destination chain, the second is an account derived from the
 //! sovereign account itself, e.g., by hashing it with an index, while the third is an account
-//! derived from the multilocation of a use in this chain (tipically, hashing the ML).
+//! derived from the multilocation of a use in this chain (typically, hashing the ML).
 //! Such distinction is important since we want to keep the integrity of the sovereign account
 //!
 //! This pallet provides three ways of sending Transact operations to another chain
@@ -200,6 +200,7 @@ pub mod pallet {
 		Eq,
 		PartialEq,
 		scale_info::TypeInfo,
+		DecodeWithMemTracking,
 	)]
 	pub struct RemoteTransactInfoWithMaxWeight {
 		/// Extra weight that transacting a call in a destination chain adds
@@ -218,7 +219,16 @@ pub mod pallet {
 	}
 
 	/// Enum defining the way to express a Currency.
-	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
+	#[derive(
+		Clone,
+		Encode,
+		Decode,
+		Eq,
+		PartialEq,
+		RuntimeDebug,
+		scale_info::TypeInfo,
+		DecodeWithMemTracking,
+	)]
 	pub enum Currency<CurrencyId> {
 		// Express the Currency as a CurrencyId
 		AsCurrencyId(CurrencyId),
@@ -232,7 +242,16 @@ pub mod pallet {
 		}
 	}
 
-	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
+	#[derive(
+		Clone,
+		Encode,
+		Decode,
+		Eq,
+		PartialEq,
+		RuntimeDebug,
+		scale_info::TypeInfo,
+		DecodeWithMemTracking,
+	)]
 	pub struct HrmpInitParams {
 		pub para_id: ParaId,
 		pub proposed_max_capacity: u32,
@@ -240,7 +259,16 @@ pub mod pallet {
 	}
 
 	/// Enum defining the way to express a Currency.
-	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
+	#[derive(
+		Clone,
+		Encode,
+		Decode,
+		Eq,
+		PartialEq,
+		RuntimeDebug,
+		scale_info::TypeInfo,
+		DecodeWithMemTracking,
+	)]
 	pub enum HrmpOperation {
 		InitOpen(HrmpInitParams),
 		Accept {
@@ -263,6 +291,7 @@ pub mod pallet {
 		RuntimeDebug,
 		MaxEncodedLen,
 		scale_info::TypeInfo,
+		DecodeWithMemTracking,
 	)]
 
 	/// Struct that defines how to express the payment in a particular currency
@@ -280,7 +309,16 @@ pub mod pallet {
 		pub fee_amount: Option<u128>,
 	}
 
-	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+	#[derive(
+		Default,
+		Clone,
+		Encode,
+		Decode,
+		RuntimeDebug,
+		PartialEq,
+		scale_info::TypeInfo,
+		DecodeWithMemTracking,
+	)]
 	/// Struct tindicating information about transact weights
 	/// It allows to specify:
 	/// - transact_required_weight_at_most: the amount of weight the Transact instruction

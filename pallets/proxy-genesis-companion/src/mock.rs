@@ -159,10 +159,12 @@ impl pallet_proxy::Config for Test {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+	type BlockNumberProvider = System;
 }
 
 impl Config for Test {
 	type ProxyType = ();
+	type BlockNumberProvider = System;
 }
 
 /// Externality builder for pallet maintenance mode's mock runtime
@@ -198,6 +200,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: self.balances,
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

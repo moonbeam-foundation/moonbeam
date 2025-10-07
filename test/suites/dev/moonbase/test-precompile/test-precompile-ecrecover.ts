@@ -60,7 +60,7 @@ describeSuite({
         const sig = context.web3().eth.accounts.sign(msg!, ALITH_PRIVATE_KEY);
         const v = "0x565656ff5656ffffffffffff3d3d02000000000040003dffff565656560f0000";
 
-        expect(
+        await expect(
           async () =>
             await context.readContract!({
               contractAddress,

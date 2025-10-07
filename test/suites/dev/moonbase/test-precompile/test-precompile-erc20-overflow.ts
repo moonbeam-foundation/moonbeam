@@ -12,7 +12,7 @@ describeSuite({
       id: "T01",
       title: "should not allow overflowing the value",
       test: async function () {
-        expect(
+        await expect(
           async () =>
             await context.writePrecompile!({
               precompileName: "Batch",

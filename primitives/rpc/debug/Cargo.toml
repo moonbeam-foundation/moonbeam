@@ -18,13 +18,13 @@ sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
-	"ethereum-types/std",
-	"ethereum/std",
-	"parity-scale-codec/std",
-	"sp-api/std",
-	"sp-runtime/std",
-	"sp-std/std",
+    "ethereum-types/std",
+    "ethereum/std",
+    "parity-scale-codec/std",
+    "sp-api/std",
+    "sp-runtime/std",
+    "sp-std/std",
 ]
-runtime-3000 = []
+runtime-3900 = []

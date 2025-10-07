@@ -19,12 +19,32 @@ use bip32::{
 	PublicKey as PublicKeyT, PublicKeyBytes,
 };
 use bip39::{Language, Mnemonic, MnemonicType, Seed};
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use libsecp256k1::{PublicKey, SecretKey};
 use primitive_types::H256;
 use sp_runtime::traits::IdentifyAccount;
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Clone, ValueEnum)]
+pub enum Network {
+	Moonbeam,
+	Moonriver,
+	Moonbase,
+	Ethereum,
+}
+
+impl Network {
+	/// Returns the coin type for the derivation path
+	pub fn coin_type(&self) -> u32 {
+		match self {
+			Network::Moonbeam => 1284,
+			Network::Moonriver => 1285,
+			Network::Moonbase => 1287,
+			Network::Ethereum => 60,
+		}
+	}
+}
+
+#[derive(Debug, Clone, Parser)]
 pub struct GenerateAccountKey {
 	/// Generate 12 words mnemonic instead of 24
 	#[clap(long, short = 'w')]
@@ -37,6 +57,10 @@ pub struct GenerateAccountKey {
 	/// The account index to use in the derivation path
 	#[clap(long = "account-index", short = 'a')]
 	account_index: Option<u32>,
+
+	/// The network to use for derivation path
+	#[clap(long, short = 'n', default_value = "moonbeam")]
+	pub network: Network,
 }
 
 impl GenerateAccountKey {
@@ -53,7 +77,12 @@ impl GenerateAccountKey {
 
 		// Retrieves the seed from the mnemonic
 		let seed = Seed::new(&mnemonic, "");
-		let derivation_path = format!("m/44'/60'/0'/0/{}", self.account_index.unwrap_or(0));
+		// Use network parameter to determine chain ID for derivation path
+		let derivation_path = format!(
+			"m/44'/{}'/0'/0/{}",
+			self.network.coin_type(),
+			self.account_index.unwrap_or(0)
+		);
 		let private_key = if let Some(private_key) =
 			derivation_path.parse().ok().and_then(|derivation_path| {
 				let extended = ExtendedPrivateKey::<Secp256k1SecretKey>::derive_from_path(

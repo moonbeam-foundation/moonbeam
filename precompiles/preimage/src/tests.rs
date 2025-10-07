@@ -34,6 +34,7 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None,
 		access_list: Vec::new(),
+		authorization_list: Vec::new(),
 	}
 }
 
@@ -62,7 +63,7 @@ fn note_unnote_preimage_logs_work() {
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			// Assert note preimage event is emited and matching frame event preimage hash.
+			// Assert note preimage event is emitted and matching frame event preimage hash.
 			assert!(vec![
 				EvmEvent::Log {
 					log: log1(
@@ -86,7 +87,7 @@ fn note_unnote_preimage_logs_work() {
 			.into();
 			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			// Assert unnote preimage is emited
+			// Assert unnote preimage is emitted
 			assert!(events().contains(
 				&EvmEvent::Log {
 					log: log1(

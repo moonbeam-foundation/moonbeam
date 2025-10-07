@@ -1,7 +1,7 @@
 import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
 
 describeSuite({
-  id: "D021101",
+  id: "D021201",
   title: "RPC Constants",
   foundationMethods: "dev",
   testCases: ({ it, context }) => {

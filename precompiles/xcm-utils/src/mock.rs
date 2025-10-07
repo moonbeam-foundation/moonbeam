@@ -16,6 +16,7 @@
 
 //! Test utilities
 use super::*;
+use frame_support::traits::{ConstBool, Disabled};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{ConstU32, Everything, Nothing, OriginTrait, PalletInfo as _},
@@ -219,6 +220,8 @@ impl pallet_xcm::Config for Runtime {
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
+	type AuthorizedAliasConsideration = Disabled;
+	type AssetHubMigrationStarted = ConstBool<false>;
 }
 pub type Precompiles<R> = PrecompileSetBuilder<
 	R,
@@ -286,6 +289,8 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -426,6 +431,7 @@ impl xcm_executor::Config for XcmConfig {
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type XcmRecorder = ();
+	type XcmEventEmitter = ();
 }
 
 pub(crate) struct ExtBuilder {
@@ -452,6 +458,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
+			dev_accounts: None,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

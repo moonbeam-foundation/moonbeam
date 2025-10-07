@@ -8,15 +8,16 @@ import "@polkadot/api-base/types/consts";
 import type { ApiTypes, AugmentedConst } from "@polkadot/api-base/types";
 import type { Bytes, Option, Vec, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec, ITuple } from "@polkadot/types-codec/types";
-import type { Perbill, Permill } from "@polkadot/types/interfaces/runtime";
+import type { AccountId20, Perbill, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
   FrameSupportPalletId,
   FrameSystemLimitsBlockLength,
   FrameSystemLimitsBlockWeights,
-  PalletReferendaTrackInfo,
+  PalletReferendaTrackDetails,
   SpVersionRuntimeVersion,
   SpWeightsRuntimeDbWeight,
   SpWeightsWeightV2Weight,
+  StagingXcmV5Junctions,
   StagingXcmV5Location
 } from "@polkadot/types/lookup";
 
@@ -24,44 +25,6 @@ export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>
 
 declare module "@polkadot/api-base/types/consts" {
   interface AugmentedConsts<ApiType extends ApiTypes> {
-    assets: {
-      /**
-       * The amount of funds that must be reserved when creating a new approval.
-       **/
-      approvalDeposit: u128 & AugmentedConst<ApiType>;
-      /**
-       * The amount of funds that must be reserved for a non-provider asset account to be
-       * maintained.
-       **/
-      assetAccountDeposit: u128 & AugmentedConst<ApiType>;
-      /**
-       * The basic amount of funds that must be reserved for an asset.
-       **/
-      assetDeposit: u128 & AugmentedConst<ApiType>;
-      /**
-       * The basic amount of funds that must be reserved when adding metadata to your asset.
-       **/
-      metadataDepositBase: u128 & AugmentedConst<ApiType>;
-      /**
-       * The additional funds that must be reserved for the number of bytes you store in your
-       * metadata.
-       **/
-      metadataDepositPerByte: u128 & AugmentedConst<ApiType>;
-      /**
-       * Max number of items to destroy per `destroy_accounts` and `destroy_approvals` call.
-       *
-       * Must be configured to result in a weight that makes each call fit in a block.
-       **/
-      removeItemsLimit: u32 & AugmentedConst<ApiType>;
-      /**
-       * The maximum length of a name or symbol stored on-chain.
-       **/
-      stringLimit: u32 & AugmentedConst<ApiType>;
-      /**
-       * Generic const
-       **/
-      [key: string]: Codec;
-    };
     asyncBacking: {
       /**
        * Purely informative, but used by mocking tools like chospticks to allow knowing how to mock
@@ -313,7 +276,7 @@ declare module "@polkadot/api-base/types/consts" {
     };
     parachainStaking: {
       /**
-       * Get the average time beetween 2 blocks in milliseconds
+       * Get the average time between 2 blocks in milliseconds
        **/
       blockTime: u64 & AugmentedConst<ApiType>;
       /**
@@ -396,6 +359,29 @@ declare module "@polkadot/api-base/types/consts" {
        * Returns the parachain ID we are running with.
        **/
       selfParaId: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       **/
+      [key: string]: Codec;
+    };
+    polkadotXcm: {
+      /**
+       * The latest supported version that we advertise. Generally just set it to
+       * `pallet_xcm::CurrentXcmVersion`.
+       **/
+      advertisedXcmVersion: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of local XCM locks that a single account may have.
+       **/
+      maxLockers: u32 & AugmentedConst<ApiType>;
+      /**
+       * The maximum number of consumers a single remote lock may have.
+       **/
+      maxRemoteLockConsumers: u32 & AugmentedConst<ApiType>;
+      /**
+       * This chain's Universal Location.
+       **/
+      universalLocation: StagingXcmV5Junctions & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/
@@ -492,9 +478,11 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       submissionDeposit: u128 & AugmentedConst<ApiType>;
       /**
-       * Information concerning the different referendum tracks.
+       * A list of tracks.
+       *
+       * Note: if the tracks are dynamic, the value in the static metadata might be inaccurate.
        **/
-      tracks: Vec<ITuple<[u16, PalletReferendaTrackInfo]>> & AugmentedConst<ApiType>;
+      tracks: Vec<ITuple<[u16, PalletReferendaTrackDetails]>> & AugmentedConst<ApiType>;
       /**
        * The number of blocks after submission that a referendum must begin being decided by.
        * Once this passes, then anyone may cancel the referendum.
@@ -637,6 +625,10 @@ declare module "@polkadot/api-base/types/consts" {
        * The period during which an approved treasury spend has to be claimed.
        **/
       payoutPeriod: u32 & AugmentedConst<ApiType>;
+      /**
+       * Gets this pallet's derived pot account.
+       **/
+      potAccount: AccountId20 & AugmentedConst<ApiType>;
       /**
        * Period between successive spends.
        **/

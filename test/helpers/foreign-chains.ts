@@ -100,32 +100,12 @@ export const ForeignChainsEndpoints = [
         paraId: 2048,
       },
       {
-        name: "Calamari",
-        paraId: 2084,
-      },
-      {
-        name: "Heiko",
-        paraId: 2085,
-      },
-      {
-        name: "Picasso",
-        paraId: 2087,
-      },
-      {
         name: "Kintsugi",
         paraId: 2092,
       },
       {
         name: "Darwinia Crab",
         paraId: 2105,
-      },
-      {
-        name: "Mangata",
-        paraId: 2110,
-      },
-      {
-        name: "Turing",
-        paraId: 2114,
       },
     ],
   },
@@ -145,18 +125,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Astar",
         paraId: 2006,
-      },
-      {
-        name: "Equilibrium",
-        paraId: 2011,
-      },
-      {
-        name: "Parallel",
-        paraId: 2012,
-      },
-      {
-        name: "Composable",
-        paraId: 2019,
       },
       {
         name: "Nodle",
@@ -201,10 +169,6 @@ export const ForeignChainsEndpoints = [
       {
         name: "Pendulum",
         paraId: 2094,
-      },
-      {
-        name: "Subsocial",
-        paraId: 2101,
       },
       {
         name: "Manta",

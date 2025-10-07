@@ -1,16 +1,21 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { alith, generateKeyringPair } from "@moonwall/util";
+import { alith, ALITH_ADDRESS, BALTATHAR_ADDRESS, generateKeyringPair } from "@moonwall/util";
 import type { ApiPromise } from "@polkadot/api";
 import { u8aToHex } from "@polkadot/util";
 import {
   convertXcmFragmentToVersion,
+  descendOriginFromAddress20,
+  ERC20_TOTAL_SUPPLY,
+  mockHrmpChannelExistanceTx,
+  sovereignAccountOfSibling,
   wrapWithXcmVersion,
   XCM_VERSIONS,
   XcmFragment,
 } from "../../../../helpers";
+import { parseEther } from "ethers";
 
 describeSuite({
-  id: "D024217",
+  id: "D024016",
   title: "XCM - DryRunApi",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -97,7 +102,7 @@ describeSuite({
       });
 
       it({
-        id: "T02",
+        id: `T02-XCM-v${xcmVersion}`,
         title: "Should succeed calling DryRunApi::dryRunXcm",
         test: async function () {
           const metadata = await context.polkadotJs().rpc.state.getMetadata();
@@ -130,14 +135,96 @@ describeSuite({
           xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
 
           const dryRunXcm = await polkadotJs.call.dryRunApi.dryRunXcm(
-            wrapWithXcmVersion(
-              {
-                Concrete: { parent: 1, interior: { Here: null } },
-              },
-              xcmVersion
-            ),
+            wrapWithXcmVersion({ parents: 0, interior: { Here: null } }, xcmVersion),
             xcmMessage
           );
+
+          expect(dryRunXcm.isOk).to.be.true;
+          expect(dryRunXcm.asOk.executionResult.isComplete).be.true;
+        },
+      });
+
+      it({
+        id: `T03-XCM-v${xcmVersion}`,
+        title: "Dry run api should work with erc20 bridget tokens",
+        test: async function () {
+          const totalErc20Supply = 1_000_000_000_000_000_000n;
+          const { contractAddress, status } = await context.deployContract!(
+            "ERC20WithInitialSupply",
+            {
+              args: ["ERC20", "20S", ALITH_ADDRESS, totalErc20Supply],
+            }
+          );
+          expect(status).eq("success");
+
+          const metadata = await context.polkadotJs().rpc.state.getMetadata();
+          const balancesPalletIndex = metadata.asLatest.pallets
+            .find(({ name }) => name.toString() === "Balances")!
+            .index.toNumber();
+          const erc20XcmBridgePalletIndex = metadata.asLatest.pallets
+            .find(({ name }) => name.toString() === "Erc20XcmBridge")!
+            .index.toNumber();
+
+          const nativeAmountTransferred = 800_000_000_000_000_000n;
+          const erc20AmountTransferred = 3_053_014_345_811_929n;
+          const paraId = 2034;
+          const paraSovereign = sovereignAccountOfSibling(context, paraId);
+          await polkadotJs.tx.balances
+            .transferAllowDeath(paraSovereign, nativeAmountTransferred + parseEther("1"))
+            .signAndSend(alith);
+          const rawTx = await context.writeContract!({
+            contractName: "ERC20WithInitialSupply",
+            contractAddress: contractAddress as `0x${string}`,
+            functionName: "transfer",
+            args: [paraSovereign, erc20AmountTransferred + 1_000_000_000_000n],
+            rawTxOnly: true,
+          });
+          await context.createBlock([rawTx]);
+
+          const origin = wrapWithXcmVersion(
+            { parents: 1, interior: { X1: { Parachain: paraId } } },
+            xcmVersion
+          );
+          let xcmMessage = new XcmFragment({
+            beneficiary: BALTATHAR_ADDRESS,
+            assets: [
+              {
+                multilocation: {
+                  parents: 0,
+                  interior: {
+                    X1: { PalletInstance: balancesPalletIndex }, // Balances
+                  },
+                },
+                fungible: nativeAmountTransferred,
+              },
+              {
+                multilocation: {
+                  parents: 0,
+                  interior: {
+                    X2: [
+                      { PalletInstance: erc20XcmBridgePalletIndex }, // Erc20XcmBridge
+                      {
+                        AccountKey20: {
+                          network: null,
+                          key: contractAddress,
+                        },
+                      },
+                    ],
+                  },
+                },
+                fungible: erc20AmountTransferred,
+              },
+            ],
+          })
+            .withdraw_asset()
+            .clear_origin()
+            .buy_execution()
+            .deposit_asset()
+            .set_topic();
+
+          xcmMessage = convertXcmFragmentToVersion(xcmMessage, xcmVersion);
+
+          const dryRunXcm = await polkadotJs.call.dryRunApi.dryRunXcm(origin, xcmMessage);
 
           expect(dryRunXcm.isOk).to.be.true;
           expect(dryRunXcm.asOk.executionResult.isComplete).be.true;

@@ -4,7 +4,7 @@ import { ALITH_ADDRESS } from "@moonwall/util";
 import type { Abi } from "viem";
 
 describeSuite({
-  id: "D021704",
+  id: "D021804",
   title: "Estimate Gas - Multiply",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -102,7 +102,7 @@ describeSuite({
       id: "T05",
       title: "should not work with a lower gas limit",
       test: async function () {
-        expect(
+        await expect(
           async () =>
             await context.viem().estimateContractGas({
               account: "0x0000000000000000000000000000000000000000",

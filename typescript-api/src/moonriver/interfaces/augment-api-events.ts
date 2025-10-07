@@ -35,11 +35,9 @@ import type {
   FrameSupportTokensFungibleUnionOfNativeOrWithId,
   FrameSupportTokensMiscBalanceStatus,
   FrameSystemDispatchEventInfo,
-  MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
   MoonriverRuntimeProxyType,
   MoonriverRuntimeRuntimeParamsRuntimeParametersKey,
   MoonriverRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonriverRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
   PalletConvictionVotingTally,
   PalletConvictionVotingVoteAccountVote,
@@ -47,6 +45,7 @@ import type {
   PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
   PalletParachainStakingDelegatorAdded,
   PalletParachainStakingInflationDistributionConfig,
+  PalletProxyDepositKind,
   PalletXcmTransactorHrmpOperation,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
@@ -59,6 +58,7 @@ import type {
   StagingXcmV5Response,
   StagingXcmV5TraitsOutcome,
   StagingXcmV5Xcm,
+  XcmV3TraitsSendError,
   XcmV5TraitsError,
   XcmVersionedAssets,
   XcmVersionedLocation
@@ -68,271 +68,6 @@ export type __AugmentedEvent<ApiType extends ApiTypes> = AugmentedEvent<ApiType>
 
 declare module "@polkadot/api-base/types/events" {
   interface AugmentedEvents<ApiType extends ApiTypes> {
-    assetManager: {
-      /**
-       * Removed all information related to an assetId and destroyed asset
-       **/
-      ForeignAssetDestroyed: AugmentedEvent<
-        ApiType,
-        [assetId: u128, assetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetId: u128; assetType: MoonriverRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * New asset with the asset manager is registered
-       **/
-      ForeignAssetRegistered: AugmentedEvent<
-        ApiType,
-        [
-          assetId: u128,
-          asset: MoonriverRuntimeXcmConfigAssetType,
-          metadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata
-        ],
-        {
-          assetId: u128;
-          asset: MoonriverRuntimeXcmConfigAssetType;
-          metadata: MoonriverRuntimeAssetConfigAssetRegistrarMetadata;
-        }
-      >;
-      /**
-       * Removed all information related to an assetId
-       **/
-      ForeignAssetRemoved: AugmentedEvent<
-        ApiType,
-        [assetId: u128, assetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetId: u128; assetType: MoonriverRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * Changed the xcm type mapping for a given asset id
-       **/
-      ForeignAssetXcmLocationChanged: AugmentedEvent<
-        ApiType,
-        [assetId: u128, newAssetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetId: u128; newAssetType: MoonriverRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * Removed all information related to an assetId and destroyed asset
-       **/
-      LocalAssetDestroyed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * Supported asset type for fee payment removed
-       **/
-      SupportedAssetRemoved: AugmentedEvent<
-        ApiType,
-        [assetType: MoonriverRuntimeXcmConfigAssetType],
-        { assetType: MoonriverRuntimeXcmConfigAssetType }
-      >;
-      /**
-       * Changed the amount of units we are charging per execution second for a given asset
-       **/
-      UnitsPerSecondChanged: AugmentedEvent<ApiType, []>;
-      /**
-       * Generic event
-       **/
-      [key: string]: AugmentedEvent<ApiType>;
-    };
-    assets: {
-      /**
-       * Accounts were destroyed for given asset.
-       **/
-      AccountsDestroyed: AugmentedEvent<
-        ApiType,
-        [assetId: u128, accountsDestroyed: u32, accountsRemaining: u32],
-        { assetId: u128; accountsDestroyed: u32; accountsRemaining: u32 }
-      >;
-      /**
-       * An approval for account `delegate` was cancelled by `owner`.
-       **/
-      ApprovalCancelled: AugmentedEvent<
-        ApiType,
-        [assetId: u128, owner: AccountId20, delegate: AccountId20],
-        { assetId: u128; owner: AccountId20; delegate: AccountId20 }
-      >;
-      /**
-       * Approvals were destroyed for given asset.
-       **/
-      ApprovalsDestroyed: AugmentedEvent<
-        ApiType,
-        [assetId: u128, approvalsDestroyed: u32, approvalsRemaining: u32],
-        { assetId: u128; approvalsDestroyed: u32; approvalsRemaining: u32 }
-      >;
-      /**
-       * (Additional) funds have been approved for transfer to a destination account.
-       **/
-      ApprovedTransfer: AugmentedEvent<
-        ApiType,
-        [assetId: u128, source: AccountId20, delegate: AccountId20, amount: u128],
-        { assetId: u128; source: AccountId20; delegate: AccountId20; amount: u128 }
-      >;
-      /**
-       * Some asset `asset_id` was frozen.
-       **/
-      AssetFrozen: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * The min_balance of an asset has been updated by the asset owner.
-       **/
-      AssetMinBalanceChanged: AugmentedEvent<
-        ApiType,
-        [assetId: u128, newMinBalance: u128],
-        { assetId: u128; newMinBalance: u128 }
-      >;
-      /**
-       * An asset has had its attributes changed by the `Force` origin.
-       **/
-      AssetStatusChanged: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * Some asset `asset_id` was thawed.
-       **/
-      AssetThawed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * Some account `who` was blocked.
-       **/
-      Blocked: AugmentedEvent<
-        ApiType,
-        [assetId: u128, who: AccountId20],
-        { assetId: u128; who: AccountId20 }
-      >;
-      /**
-       * Some assets were destroyed.
-       **/
-      Burned: AugmentedEvent<
-        ApiType,
-        [assetId: u128, owner: AccountId20, balance: u128],
-        { assetId: u128; owner: AccountId20; balance: u128 }
-      >;
-      /**
-       * Some asset class was created.
-       **/
-      Created: AugmentedEvent<
-        ApiType,
-        [assetId: u128, creator: AccountId20, owner: AccountId20],
-        { assetId: u128; creator: AccountId20; owner: AccountId20 }
-      >;
-      /**
-       * Some assets were deposited (e.g. for transaction fees).
-       **/
-      Deposited: AugmentedEvent<
-        ApiType,
-        [assetId: u128, who: AccountId20, amount: u128],
-        { assetId: u128; who: AccountId20; amount: u128 }
-      >;
-      /**
-       * An asset class was destroyed.
-       **/
-      Destroyed: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * An asset class is in the process of being destroyed.
-       **/
-      DestructionStarted: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * Some asset class was force-created.
-       **/
-      ForceCreated: AugmentedEvent<
-        ApiType,
-        [assetId: u128, owner: AccountId20],
-        { assetId: u128; owner: AccountId20 }
-      >;
-      /**
-       * Some account `who` was frozen.
-       **/
-      Frozen: AugmentedEvent<
-        ApiType,
-        [assetId: u128, who: AccountId20],
-        { assetId: u128; who: AccountId20 }
-      >;
-      /**
-       * Some assets were issued.
-       **/
-      Issued: AugmentedEvent<
-        ApiType,
-        [assetId: u128, owner: AccountId20, amount: u128],
-        { assetId: u128; owner: AccountId20; amount: u128 }
-      >;
-      /**
-       * Metadata has been cleared for an asset.
-       **/
-      MetadataCleared: AugmentedEvent<ApiType, [assetId: u128], { assetId: u128 }>;
-      /**
-       * New metadata has been set for an asset.
-       **/
-      MetadataSet: AugmentedEvent<
-        ApiType,
-        [assetId: u128, name: Bytes, symbol_: Bytes, decimals: u8, isFrozen: bool],
-        { assetId: u128; name: Bytes; symbol: Bytes; decimals: u8; isFrozen: bool }
-      >;
-      /**
-       * The owner changed.
-       **/
-      OwnerChanged: AugmentedEvent<
-        ApiType,
-        [assetId: u128, owner: AccountId20],
-        { assetId: u128; owner: AccountId20 }
-      >;
-      /**
-       * The management team changed.
-       **/
-      TeamChanged: AugmentedEvent<
-        ApiType,
-        [assetId: u128, issuer: AccountId20, admin: AccountId20, freezer: AccountId20],
-        { assetId: u128; issuer: AccountId20; admin: AccountId20; freezer: AccountId20 }
-      >;
-      /**
-       * Some account `who` was thawed.
-       **/
-      Thawed: AugmentedEvent<
-        ApiType,
-        [assetId: u128, who: AccountId20],
-        { assetId: u128; who: AccountId20 }
-      >;
-      /**
-       * Some account `who` was created with a deposit from `depositor`.
-       **/
-      Touched: AugmentedEvent<
-        ApiType,
-        [assetId: u128, who: AccountId20, depositor: AccountId20],
-        { assetId: u128; who: AccountId20; depositor: AccountId20 }
-      >;
-      /**
-       * Some assets were transferred.
-       **/
-      Transferred: AugmentedEvent<
-        ApiType,
-        [assetId: u128, from: AccountId20, to: AccountId20, amount: u128],
-        { assetId: u128; from: AccountId20; to: AccountId20; amount: u128 }
-      >;
-      /**
-       * An `amount` was transferred in its entirety from `owner` to `destination` by
-       * the approved `delegate`.
-       **/
-      TransferredApproved: AugmentedEvent<
-        ApiType,
-        [
-          assetId: u128,
-          owner: AccountId20,
-          delegate: AccountId20,
-          destination: AccountId20,
-          amount: u128
-        ],
-        {
-          assetId: u128;
-          owner: AccountId20;
-          delegate: AccountId20;
-          destination: AccountId20;
-          amount: u128;
-        }
-      >;
-      /**
-       * Some assets were withdrawn from the account (e.g. for transaction fees).
-       **/
-      Withdrawn: AugmentedEvent<
-        ApiType,
-        [assetId: u128, who: AccountId20, amount: u128],
-        { assetId: u128; who: AccountId20; amount: u128 }
-      >;
-      /**
-       * Generic event
-       **/
-      [key: string]: AugmentedEvent<ApiType>;
-    };
     authorFilter: {
       /**
        * The amount of eligible authors for the filter to select has been changed.
@@ -720,7 +455,7 @@ declare module "@polkadot/api-base/types/events" {
        **/
       Undelegated: AugmentedEvent<ApiType, [AccountId20]>;
       /**
-       * An account that has voted
+       * An account has voted
        **/
       Voted: AugmentedEvent<
         ApiType,
@@ -728,12 +463,20 @@ declare module "@polkadot/api-base/types/events" {
         { who: AccountId20; vote: PalletConvictionVotingVoteAccountVote }
       >;
       /**
-       * A vote that been removed
+       * A vote has been removed
        **/
       VoteRemoved: AugmentedEvent<
         ApiType,
         [who: AccountId20, vote: PalletConvictionVotingVoteAccountVote],
         { who: AccountId20; vote: PalletConvictionVotingVoteAccountVote }
+      >;
+      /**
+       * The lockup period of a conviction vote expired, and the funds have been unlocked.
+       **/
+      VoteUnlocked: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, class_: u16],
+        { who: AccountId20; class: u16 }
       >;
       /**
        * Generic event
@@ -1185,52 +928,6 @@ declare module "@polkadot/api-base/types/events" {
        **/
       [key: string]: AugmentedEvent<ApiType>;
     };
-    migrations: {
-      /**
-       * XCM execution resume failed with inner error
-       **/
-      FailedToResumeIdleXcmExecution: AugmentedEvent<
-        ApiType,
-        [error: SpRuntimeDispatchError],
-        { error: SpRuntimeDispatchError }
-      >;
-      /**
-       * XCM execution suspension failed with inner error
-       **/
-      FailedToSuspendIdleXcmExecution: AugmentedEvent<
-        ApiType,
-        [error: SpRuntimeDispatchError],
-        { error: SpRuntimeDispatchError }
-      >;
-      /**
-       * Migration completed
-       **/
-      MigrationCompleted: AugmentedEvent<
-        ApiType,
-        [migrationName: Bytes, consumedWeight: SpWeightsWeightV2Weight],
-        { migrationName: Bytes; consumedWeight: SpWeightsWeightV2Weight }
-      >;
-      /**
-       * Migration started
-       **/
-      MigrationStarted: AugmentedEvent<ApiType, [migrationName: Bytes], { migrationName: Bytes }>;
-      /**
-       * Runtime upgrade completed
-       **/
-      RuntimeUpgradeCompleted: AugmentedEvent<
-        ApiType,
-        [weight: SpWeightsWeightV2Weight],
-        { weight: SpWeightsWeightV2Weight }
-      >;
-      /**
-       * Runtime upgrade started
-       **/
-      RuntimeUpgradeStarted: AugmentedEvent<ApiType, []>;
-      /**
-       * Generic event
-       **/
-      [key: string]: AugmentedEvent<ApiType>;
-    };
     moonbeamOrbiters: {
       /**
        * An orbiter join a collator pool
@@ -1341,6 +1038,14 @@ declare module "@polkadot/api-base/types/events" {
       [key: string]: AugmentedEvent<ApiType>;
     };
     multisig: {
+      /**
+       * The deposit for a multisig operation has been updated/poked.
+       **/
+      DepositPoked: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, callHash: U8aFixed, oldDeposit: u128, newDeposit: u128],
+        { who: AccountId20; callHash: U8aFixed; oldDeposit: u128; newDeposit: u128 }
+      >;
       /**
        * A multisig operation has been approved by someone.
        **/
@@ -1890,6 +1595,31 @@ declare module "@polkadot/api-base/types/events" {
     };
     polkadotXcm: {
       /**
+       * `target` removed alias authorization for `aliaser`.
+       **/
+      AliasAuthorizationRemoved: AugmentedEvent<
+        ApiType,
+        [aliaser: StagingXcmV5Location, target: StagingXcmV5Location],
+        { aliaser: StagingXcmV5Location; target: StagingXcmV5Location }
+      >;
+      /**
+       * An `aliaser` location was authorized by `target` to alias it, authorization valid until
+       * `expiry` block number.
+       **/
+      AliasAuthorized: AugmentedEvent<
+        ApiType,
+        [aliaser: StagingXcmV5Location, target: StagingXcmV5Location, expiry: Option<u64>],
+        { aliaser: StagingXcmV5Location; target: StagingXcmV5Location; expiry: Option<u64> }
+      >;
+      /**
+       * `target` removed all alias authorizations.
+       **/
+      AliasesAuthorizationsRemoved: AugmentedEvent<
+        ApiType,
+        [target: StagingXcmV5Location],
+        { target: StagingXcmV5Location }
+      >;
+      /**
        * Some assets have been claimed from an asset trap
        **/
       AssetsClaimed: AugmentedEvent<
@@ -2056,6 +1786,14 @@ declare module "@polkadot/api-base/types/events" {
         { location: StagingXcmV5Location; queryId: u64; error: XcmV5TraitsError }
       >;
       /**
+       * An XCM message failed to process.
+       **/
+      ProcessXcmError: AugmentedEvent<
+        ApiType,
+        [origin: StagingXcmV5Location, error: XcmV5TraitsError, messageId: U8aFixed],
+        { origin: StagingXcmV5Location; error: XcmV5TraitsError; messageId: U8aFixed }
+      >;
+      /**
        * Query response has been received and is ready for taking with `take_response`. There is
        * no registered notification call.
        **/
@@ -2069,7 +1807,25 @@ declare module "@polkadot/api-base/types/events" {
        **/
       ResponseTaken: AugmentedEvent<ApiType, [queryId: u64], { queryId: u64 }>;
       /**
-       * A XCM message was sent.
+       * An XCM message failed to send.
+       **/
+      SendFailed: AugmentedEvent<
+        ApiType,
+        [
+          origin: StagingXcmV5Location,
+          destination: StagingXcmV5Location,
+          error: XcmV3TraitsSendError,
+          messageId: U8aFixed
+        ],
+        {
+          origin: StagingXcmV5Location;
+          destination: StagingXcmV5Location;
+          error: XcmV3TraitsSendError;
+          messageId: U8aFixed;
+        }
+      >;
+      /**
+       * An XCM message was sent.
        **/
       Sent: AugmentedEvent<
         ApiType,
@@ -2186,6 +1942,14 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [real: AccountId20, proxy: AccountId20, callHash: H256],
         { real: AccountId20; proxy: AccountId20; callHash: H256 }
+      >;
+      /**
+       * A deposit stored for proxies or announcements was poked / updated.
+       **/
+      DepositPoked: AugmentedEvent<
+        ApiType,
+        [who: AccountId20, kind: PalletProxyDepositKind, oldDeposit: u128, newDeposit: u128],
+        { who: AccountId20; kind: PalletProxyDepositKind; oldDeposit: u128; newDeposit: u128 }
       >;
       /**
        * A proxy was added.
@@ -2448,6 +2212,10 @@ declare module "@polkadot/api-base/types/events" {
     };
     scheduler: {
       /**
+       * Agenda is incomplete from `when`.
+       **/
+      AgendaIncomplete: AugmentedEvent<ApiType, [when: u32], { when: u32 }>;
+      /**
        * The call for the provided hash was not found so the task has been aborted.
        **/
       CallUnavailable: AugmentedEvent<
@@ -2554,6 +2322,14 @@ declare module "@polkadot/api-base/types/events" {
        * A new account was created.
        **/
       NewAccount: AugmentedEvent<ApiType, [account: AccountId20], { account: AccountId20 }>;
+      /**
+       * An invalid authorized upgrade was rejected while trying to apply it.
+       **/
+      RejectedInvalidAuthorizedUpgrade: AugmentedEvent<
+        ApiType,
+        [codeHash: H256, error: SpRuntimeDispatchError],
+        { codeHash: H256; error: SpRuntimeDispatchError }
+      >;
       /**
        * On on-chain remark happened.
        **/
@@ -2781,6 +2557,18 @@ declare module "@polkadot/api-base/types/events" {
         [result: Result<Null, SpRuntimeDispatchError>],
         { result: Result<Null, SpRuntimeDispatchError> }
       >;
+      /**
+       * The fallback call was dispatched.
+       **/
+      IfElseFallbackCalled: AugmentedEvent<
+        ApiType,
+        [mainError: SpRuntimeDispatchError],
+        { mainError: SpRuntimeDispatchError }
+      >;
+      /**
+       * Main call was dispatched.
+       **/
+      IfElseMainSuccess: AugmentedEvent<ApiType, []>;
       /**
        * A single item within a Batch of dispatches has completed with no error.
        **/

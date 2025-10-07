@@ -22,7 +22,7 @@ describeSuite({
         );
         expect(result!.events[2].event.method).to.be.eq("ProxyAdded");
         expect(result!.events[2].event.data[2].toString()).to.be.eq("AuthorMapping"); //ProxyType
-        expect(result!.events[8].event.method).to.be.eq("ExtrinsicSuccess");
+        expect(result!.events[7].event.method).to.be.eq("ExtrinsicSuccess");
         const { result: result2 } = await context.createBlock(
           context
             .polkadotJs()
@@ -36,7 +36,7 @@ describeSuite({
 
         expect(result2!.events[3].event.method).to.be.eq("ProxyExecuted");
         expect(result2!.events[3].event.data[0].toString()).to.be.eq("Ok");
-        expect(result2!.events[7].event.method).to.be.eq("ExtrinsicSuccess");
+        expect(result2!.events[6].event.method).to.be.eq("ExtrinsicSuccess");
 
         expect(
           (await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))?.account,

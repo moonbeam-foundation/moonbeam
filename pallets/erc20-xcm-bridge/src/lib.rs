@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Pallet that allow to transact erc20 tokens trought xcm directly.
+//! Pallet that allow to transact erc20 tokens through xcm directly.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -122,6 +122,7 @@ pub mod pallet {
 				None,
 				None,
 				None,
+				Default::default(),
 				Default::default(),
 				false,
 				false,

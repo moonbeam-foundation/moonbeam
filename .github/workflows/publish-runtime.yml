@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Upload scripts
         uses: actions/upload-artifact@v4
         with:
@@ -38,7 +38,7 @@ jobs:
     outputs:
       rust_version: ${{ steps.get-version.outputs.rust_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: get-version
         run: |
           RUST_VERSION=$(cat rust-toolchain | grep channel | grep --only-matching --perl-regexp "(\d+\.){2}\d+(-nightly)?")
@@ -57,7 +57,7 @@ jobs:
         srtool_image_tag:
           - ${{ needs.read-rust-version.outputs.rust_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
@@ -68,7 +68,7 @@ jobs:
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
           registry: index.docker.io
       - name: Download original scripts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: original-scripts
           path: original-scripts
@@ -108,34 +108,33 @@ jobs:
     needs: ["setup-scripts", "build-srtool-runtimes"]
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
-      asset_upload_url: ${{ steps.create-release.outputs.upload_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
       - name: Download moonbase runtime
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbase-runtime
           path: build
       - name: Download moonriver runtime
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonriver-runtime
           path: build
       - name: Download moonbeam runtime
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam-runtime
           path: build
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
       - name: Download Original Tools
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: original-tools
           path: original-tools
@@ -147,85 +146,47 @@ jobs:
         run: |
           yarn
           yarn -s run ts-node github/generate-runtimes-body.ts --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
-      - name: Get runtime version
+      - name: Get runtime versions
         id: get-runtime-ver
         run: |
           runtime_moonbase_ver="$(cat ./runtime/moonbase/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "runtime_moonbase_ver=$runtime_moonbase_ver" >> $GITHUB_OUTPUT
-          mv build/moonbase-runtime.compact.compressed.wasm moonbase-runtime-${runtime_moonbase_ver}.wasm
-          mv build/moonbase-srtool-digest.json moonbase-runtime-${runtime_moonbase_ver}-srtool-digest.json
-
+          
           runtime_moonriver_ver="$(cat ./runtime/moonriver/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "runtime_moonriver_ver=$runtime_moonriver_ver" >> $GITHUB_OUTPUT
-          mv build/moonriver-runtime.compact.compressed.wasm moonriver-runtime-${runtime_moonriver_ver}.wasm
-          mv build/moonriver-srtool-digest.json moonriver-runtime-${runtime_moonriver_ver}-srtool-digest.json
-
+          
           runtime_moonbeam_ver="$(cat ./runtime/moonbeam/src/lib.rs | grep -o 'spec_version: [0-9]*' | tail -1 | grep -o '[0-9]*')"
           echo "runtime_moonbeam_ver=$runtime_moonbeam_ver" >> $GITHUB_OUTPUT
-          mv build/moonbeam-runtime.compact.compressed.wasm moonbeam-runtime-${runtime_moonbeam_ver}.wasm
-          mv build/moonbeam-srtool-digest.json moonbeam-runtime-${runtime_moonbeam_ver}-srtool-digest.json
+      - name: Prepare runtime assets
+        working-directory: build
+        run: |
+          # Get runtime versions from the previous step
+          runtime_moonbase_ver="${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}"
+          runtime_moonriver_ver="${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}"
+          runtime_moonbeam_ver="${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}"
+          
+          # Rename files with version numbers
+          mv moonbase-runtime.compact.compressed.wasm ../moonbase-runtime-${runtime_moonbase_ver}.wasm
+          mv moonbase-srtool-digest.json ../moonbase-runtime-${runtime_moonbase_ver}.srtool-digest.json
+          
+          mv moonriver-runtime.compact.compressed.wasm ../moonriver-runtime-${runtime_moonriver_ver}.wasm
+          mv moonriver-srtool-digest.json ../moonriver-runtime-${runtime_moonriver_ver}.srtool-digest.json
+          
+          mv moonbeam-runtime.compact.compressed.wasm ../moonbeam-runtime-${runtime_moonbeam_ver}.wasm
+          mv moonbeam-srtool-digest.json ../moonbeam-runtime-${runtime_moonbeam_ver}.srtool-digest.json
 
-      - name: Create draft release
+      - name: Create draft release with runtime assets
         id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.to }}
-          release_name: Runtime ${{ github.event.inputs.to }}
+          name: Runtime ${{ github.event.inputs.to }}
           body_path: body.md
           draft: true
-      - name: Upload moonbase wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
-          asset_name: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
-          asset_content_type: application/octet-stream
-      - name: Upload moonbase srtool digest
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}-srtool-digest.json
-          asset_name: moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.srtool-digest.json
-          asset_content_type: application/json
-      - name: Upload moonriver wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
-          asset_name: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
-          asset_content_type: application/octet-stream
-      - name: Upload moonriver srtool digest
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}-srtool-digest.json
-          asset_name: moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.srtool-digest.json
-          asset_content_type: application/json
-      - name: Upload moonbeam wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
-          asset_name: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
-          asset_content_type: application/octet-stream
-      - name: Upload moonbeam srtool digest
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}-srtool-digest.json
-          asset_name: moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.srtool-digest.json
-          asset_content_type: application/json
+          files: |
+            moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.wasm
+            moonbase-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbase_ver }}.srtool-digest.json
+            moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.wasm
+            moonriver-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonriver_ver }}.srtool-digest.json
+            moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.wasm
+            moonbeam-runtime-${{ steps.get-runtime-ver.outputs.runtime_moonbeam_ver }}.srtool-digest.json

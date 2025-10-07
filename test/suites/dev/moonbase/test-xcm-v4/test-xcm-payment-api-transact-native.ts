@@ -8,10 +8,10 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 describeSuite({
-  id: "D024134",
+  id: "D024219",
   title: "XCM - XcmPaymentApi - Transact",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
