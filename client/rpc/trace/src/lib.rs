@@ -103,7 +103,7 @@ where
 			}
 			Some(RequestBlockId::Tag(RequestBlockTag::Earliest)) => Ok(0),
 			Some(RequestBlockId::Tag(RequestBlockTag::Finalized)) => {
-				Ok(self.client.info().finalized_hash)
+				Ok(self.client.info().finalized_number)
 			}
 			Some(RequestBlockId::Tag(RequestBlockTag::Pending)) => {
 				Err("'pending' is not supported")
