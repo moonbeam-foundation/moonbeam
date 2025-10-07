@@ -972,7 +972,10 @@
 <a href="#971" id="971">971</a>
 <a href="#972" id="972">972</a>
 <a href="#973" id="973">973</a>
-<a href="#974" id="974">974</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -1076,6 +1079,9 @@
 				<span class="prelude-val">Ok</span>(<span class="self">self</span>.client.info().best_number)
 			}
 			<span class="prelude-val">Some</span>(RequestBlockId::Tag(RequestBlockTag::Earliest)) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+			<span class="prelude-val">Some</span>(RequestBlockId::Tag(RequestBlockTag::Finalized)) =&gt; {
+				<span class="prelude-val">Ok</span>(<span class="self">self</span>.client.info().finalized_number)
+			}
 			<span class="prelude-val">Some</span>(RequestBlockId::Tag(RequestBlockTag::Pending)) =&gt; {
 				<span class="prelude-val">Err</span>(<span class="string">"'pending' is not supported"</span>)
 			}

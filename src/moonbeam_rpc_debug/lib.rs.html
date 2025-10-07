@@ -1106,7 +1106,13 @@
 <a href="#1105" id="1105">1105</a>
 <a href="#1106" id="1106">1106</a>
 <a href="#1107" id="1107">1107</a>
-<a href="#1108" id="1108">1108</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#1108" id="1108">1108</a>
+<a href="#1109" id="1109">1109</a>
+<a href="#1110" id="1110">1110</a>
+<a href="#1111" id="1111">1111</a>
+<a href="#1112" id="1112">1112</a>
+<a href="#1113" id="1113">1113</a>
+<a href="#1114" id="1114">1114</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -1486,6 +1492,9 @@
 			RequestBlockId::Number(n) =&gt; <span class="prelude-val">Ok</span>(BlockId::Number(n.unique_saturated_into())),
 			RequestBlockId::Tag(RequestBlockTag::Latest) =&gt; {
 				<span class="prelude-val">Ok</span>(BlockId::Number(client.info().best_number))
+			}
+			RequestBlockId::Tag(RequestBlockTag::Finalized) =&gt; {
+				<span class="prelude-val">Ok</span>(BlockId::Hash(client.info().finalized_hash))
 			}
 			RequestBlockId::Tag(RequestBlockTag::Earliest) =&gt; {
 				<span class="prelude-val">Ok</span>(BlockId::Number(<span class="number">0u32</span>.unique_saturated_into()))
@@ -2009,6 +2018,9 @@
 			RequestBlockId::Number(n) =&gt; <span class="prelude-val">Ok</span>(BlockId::Number(n.unique_saturated_into())),
 			RequestBlockId::Tag(RequestBlockTag::Latest) =&gt; {
 				<span class="prelude-val">Ok</span>(BlockId::Number(client.info().best_number))
+			}
+			RequestBlockId::Tag(RequestBlockTag::Finalized) =&gt; {
+				<span class="prelude-val">Ok</span>(BlockId::Hash(client.info().finalized_hash))
 			}
 			RequestBlockId::Tag(RequestBlockTag::Earliest) =&gt; {
 				<span class="prelude-val">Ok</span>(BlockId::Number(<span class="number">0u32</span>.unique_saturated_into()))
