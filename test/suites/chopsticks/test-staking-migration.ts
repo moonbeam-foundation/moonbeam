@@ -679,7 +679,6 @@ describeSuite({
   foundationMethods: "chopsticks",
   testCases: ({ it, context, log }) => {
     let api: ApiPromise;
-    const specName = api.consts.system.version.specName.toString();
 
     // NOTE: This test suite limits the number of accounts checked to 10 candidates and 10 delegators
     // for performance reasons. In a production environment, you may want to:
@@ -690,7 +689,7 @@ describeSuite({
 
     beforeAll(async () => {
       // Execute migration test only on moonbeam
-      if (specName !== "moonbeam") {
+      if (api.consts.system.version.specName.toString() !== "moonbeam") {
         log("Skipping staking migration test on non-moonbeam network");
         return;
       }
@@ -724,7 +723,7 @@ describeSuite({
       title: "Should discover non-migrated candidates and delegators",
       test: async () => {
         // Execute migration test only on moonbeam
-        if (specName !== "moonbeam") {
+        if (api.consts.system.version.specName.toString() !== "moonbeam") {
           log("Skipping staking migration test on non-moonbeam network");
           return;
         }
@@ -772,7 +771,7 @@ describeSuite({
       title: "Should migrate candidates and delegators recursively in batches",
       test: async () => {
         // Execute migration test only on moonbeam
-        if (specName !== "moonbeam") {
+        if (api.consts.system.version.specName.toString() !== "moonbeam") {
           log("Skipping staking migration test on non-moonbeam network");
           return;
         }
