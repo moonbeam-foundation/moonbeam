@@ -157,10 +157,12 @@ impl<T: Config> Pallet<T> {
 			scheduled_requests.len() as u32,
 		);
 
+		// Allow multiple decrease requests but not if there's a revoke request
 		ensure!(
 			!scheduled_requests
 				.iter()
-				.any(|req| req.delegator == delegator),
+				.any(|req| req.delegator == delegator
+					&& matches!(req.action, DelegationAction::Revoke(_))),
 			DispatchErrorWithPostInfo {
 				post_info: Some(actual_weight).into(),
 				error: <Error<T>>::PendingDelegationRequestAlreadyExists.into(),
@@ -173,14 +175,29 @@ impl<T: Config> Pallet<T> {
 				post_info: Some(actual_weight).into(),
 				error: <Error<T>>::DelegationDNE.into(),
 			})?;
+
+		// Calculate total pending decrease amount for this delegator-collator pair
+		let total_pending_decrease: BalanceOf<T> = scheduled_requests
+			.iter()
+			.filter(|req| req.delegator == delegator)
+			.filter_map(|req| match &req.action {
+				DelegationAction::Decrease(amount) => Some(*amount),
+				_ => None,
+			})
+			.fold(BalanceOf::<T>::default(), |acc, amount| {
+				acc.saturating_add(amount)
+			});
+
+		let total_decrease = total_pending_decrease.saturating_add(decrease_amount);
+
 		ensure!(
-			bonded_amount > decrease_amount,
+			bonded_amount > total_decrease,
 			DispatchErrorWithPostInfo {
 				post_info: Some(actual_weight).into(),
 				error: <Error<T>>::DelegatorBondBelowMin.into(),
 			},
 		);
-		let new_amount: BalanceOf<T> = (bonded_amount - decrease_amount).into();
+		let new_amount: BalanceOf<T> = bonded_amount.saturating_sub(total_decrease);
 		ensure!(
 			new_amount >= T::MinDelegation::get(),
 			DispatchErrorWithPostInfo {
@@ -227,6 +244,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Cancels the delegator's existing [ScheduledRequest] towards a given collator.
+	/// If there are multiple requests, cancels the oldest one (FIFO).
 	pub(crate) fn delegation_cancel_request(
 		collator: T::AccountId,
 		delegator: T::AccountId,
@@ -273,23 +291,22 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Executes the delegator's existing [ScheduledRequest] towards a given collator.
+	/// If there are multiple decrease requests, executes the oldest executable one (FIFO).
 	pub(crate) fn delegation_execute_scheduled_request(
 		collator: T::AccountId,
 		delegator: T::AccountId,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
-		let request_idx = scheduled_requests
-			.iter()
-			.position(|req| req.delegator == delegator)
-			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
-		let request = &scheduled_requests[request_idx];
 
 		let now = <Round<T>>::get().current;
-		ensure!(
-			request.when_executable <= now,
-			<Error<T>>::PendingDelegationRequestNotDueYet
-		);
+
+		// Find the first (oldest) executable request for this delegator
+		let request_idx = scheduled_requests
+			.iter()
+			.position(|req| req.delegator == delegator && req.when_executable <= now)
+			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
+		let request = &scheduled_requests[request_idx];
 
 		match request.action {
 			DelegationAction::Revoke(amount) => {
@@ -425,7 +442,7 @@ impl<T: Config> Pallet<T> {
 		}
 	}
 
-	/// Removes the delegator's existing [ScheduledRequest] towards a given collator, if exists.
+	/// Removes all of the delegator's existing [ScheduledRequest]s towards a given collator.
 	/// The state needs to be persisted by the caller of this function.
 	pub(crate) fn delegation_remove_request_with_state(
 		collator: &T::AccountId,
@@ -434,14 +451,19 @@ impl<T: Config> Pallet<T> {
 	) {
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(collator);
 
-		let maybe_request_idx = scheduled_requests
-			.iter()
-			.position(|req| &req.delegator == delegator);
+		// Remove all requests for this delegator (there could be multiple decrease requests)
+		let mut total_cancelled = BalanceOf::<T>::default();
+		scheduled_requests.retain(|req| {
+			if &req.delegator == delegator {
+				total_cancelled = total_cancelled.saturating_add(req.action.amount());
+				false
+			} else {
+				true
+			}
+		});
 
-		if let Some(request_idx) = maybe_request_idx {
-			let request = scheduled_requests.remove(request_idx);
-			let amount = request.action.amount();
-			state.less_total = state.less_total.saturating_sub(amount);
+		if total_cancelled != BalanceOf::<T>::default() {
+			state.less_total = state.less_total.saturating_sub(total_cancelled);
 			<DelegationScheduledRequests<T>>::insert(collator, scheduled_requests);
 		}
 	}
