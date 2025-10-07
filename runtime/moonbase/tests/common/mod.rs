@@ -181,6 +181,11 @@ impl ExtBuilder {
 		self
 	}
 
+	pub fn with_trace_logs(self) -> Self {
+		frame_support::__private::sp_tracing::init_for_tests();
+		self
+	}
+
 	pub fn with_collators(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
 		self.collators = collators;
 		self
@@ -240,12 +245,6 @@ impl ExtBuilder {
 			parachain_bond_reserve_percent: Percent::from_percent(30),
 			blocks_per_round: 2 * HOURS,
 			num_selected_candidates: 8,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
-			funded_amount: self.crowdloan_fund,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

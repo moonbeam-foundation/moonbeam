@@ -1202,12 +1202,18 @@ pub struct NormalFilter;
 impl Contains<RuntimeCall> for NormalFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			// We just want to enable this in case of live chains, since the default version
-			// is populated at genesis
 			RuntimeCall::PolkadotXcm(method) => match method {
-				pallet_xcm::Call::force_default_xcm_version { .. } => true,
-				pallet_xcm::Call::transfer_assets { .. } => true,
-				pallet_xcm::Call::transfer_assets_using_type_and_then { .. } => true,
+				// User Operations (Anyone can call these extrinsics)
+				pallet_xcm::Call::send { .. }
+				| pallet_xcm::Call::claim_assets { .. }
+				| pallet_xcm::Call::transfer_assets { .. }
+				| pallet_xcm::Call::transfer_assets_using_type_and_then { .. } => true,
+				// Administrative operations (Only AdminOrigin can call these extrinsics)
+				pallet_xcm::Call::force_xcm_version { .. }
+				| pallet_xcm::Call::force_default_xcm_version { .. }
+				| pallet_xcm::Call::force_subscribe_version_notify { .. }
+				| pallet_xcm::Call::force_unsubscribe_version_notify { .. } => true,
+				// Anything else is disallowed
 				_ => false,
 			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
@@ -1466,7 +1472,7 @@ construct_runtime! {
 		Treasury: pallet_treasury::{Pallet, Storage, Config<T>, Event<T>, Call} = 80,
 
 		// Crowdloan stuff.
-		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Config<T>, Storage, Event<T>} = 90,
+		CrowdloanRewards: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>} = 90,
 
 		// XCM Stuff
 		XcmpQueue: cumulus_pallet_xcmp_queue::{Pallet, Storage, Event<T>} = 100,

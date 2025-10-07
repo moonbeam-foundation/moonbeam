@@ -150,7 +150,7 @@ describeSuite({
               const RNGDetails = `using startKey "${currentStartKey}" at block ${atBlockNumber}`;
               const msg = chalk.red(`${failMsg} ${RNGDetails}`);
               log(msg, e);
-              const reproducing = `To reproduce this failled case, set the STARTING_KEY_OVERRIDE 
+              const reproducing = `To reproduce this failed case, set the STARTING_KEY_OVERRIDE 
               variable to "${currentStartKey}" at the top of the test file and run the test again.`;
               log(chalk.red(reproducing));
               fail(msg);
