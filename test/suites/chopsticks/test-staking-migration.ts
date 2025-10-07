@@ -679,6 +679,7 @@ describeSuite({
   foundationMethods: "chopsticks",
   testCases: ({ it, context, log }) => {
     let api: ApiPromise;
+    const specName = api.consts.system.version.specName.toString();
 
     // NOTE: This test suite limits the number of accounts checked to 10 candidates and 10 delegators
     // for performance reasons. In a production environment, you may want to:
@@ -688,6 +689,12 @@ describeSuite({
     // 4. Focus on specific test accounts rather than all mainnet accounts
 
     beforeAll(async () => {
+      // Execute migration test only on moonbeam
+      if (specName !== "moonbeam") {
+        log("Skipping staking migration test on non-moonbeam network");
+        return;
+      }
+
       api = context.polkadotJs();
       log("Setting up chopsticks test for staking migration...");
 
@@ -716,6 +723,12 @@ describeSuite({
       timeout: 3600000, // Increase to 60 minutes
       title: "Should discover non-migrated candidates and delegators",
       test: async () => {
+        // Execute migration test only on moonbeam
+        if (specName !== "moonbeam") {
+          log("Skipping staking migration test on non-moonbeam network");
+          return;
+        }
+
         let allNonMigratedAccounts: [string, boolean][];
 
         // Check if specific accounts are provided via environment variables
@@ -758,6 +771,12 @@ describeSuite({
       timeout: 7200000, // 2 hour timeout for complete migration
       title: "Should migrate candidates and delegators recursively in batches",
       test: async () => {
+        // Execute migration test only on moonbeam
+        if (specName !== "moonbeam") {
+          log("Skipping staking migration test on non-moonbeam network");
+          return;
+        }
+
         const accountsToMigrate = (context as any).allNonMigratedAccounts || [];
         const batchSize = 100;
         const stats: MigrationStats = {
