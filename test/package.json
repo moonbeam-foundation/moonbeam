@@ -16,13 +16,15 @@
     "lint": "biome lint .",
     "compile-solidity": "tsx scripts/compile-contracts.ts compile",
     "typecheck": "pnpm tsc --noEmit",
-    "print-failed-tests": "tsx scripts/print-failed-tests.ts"
+    "print-failed-tests": "tsx scripts/print-failed-tests.ts",
+    "vitest": "vitest run --dir suites/simple"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@acala-network/chopsticks": "1.1.1",
+    "@acala-network/chopsticks": "1.2.2",
+    "@acala-network/chopsticks-testing": "1.2.2",
     "@biomejs/biome": "*",
     "@moonbeam-network/api-augment": "workspace:*",
     "@moonbeam-network/types-bundle": "workspace:*",
