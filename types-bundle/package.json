@@ -33,7 +33,7 @@
     "tsc": "tsc --noEmit --pretty",
     "build": "tsup src --format cjs,esm --dts --no-splitting",
     "publish-package": "npm run build && npm publish",
-    "check":"biome check .",
+    "check": "biome check .",
     "check:fix": "biome check . --write"
   },
   "keywords": [
@@ -53,14 +53,14 @@
     "directory": "typescript-api"
   },
   "dependencies": {
-    "@biomejs/biome": "*",
-    "@polkadot/api": "*",
-    "@polkadot/api-base": "*",
-    "@polkadot/rpc-core": "*",
-    "@polkadot/typegen": "*",
-    "@polkadot/types": "*",
-    "@polkadot/types-codec": "*",
-    "tsup": "*",
-    "typescript": "*"
+    "@biomejs/biome": "^2.2.5",
+    "@polkadot/api": "16.4.8",
+    "@polkadot/api-base": "^16.4.8",
+    "@polkadot/rpc-core": "^16.4.8",
+    "@polkadot/typegen": "16.4.8",
+    "@polkadot/types": "16.4.8",
+    "@polkadot/types-codec": "16.4.8",
+    "tsup": "8.5.0",
+    "typescript": "^5.9.3"
   }
 }

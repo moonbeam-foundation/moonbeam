@@ -1,6 +1,6 @@
 {
   "root": true,
-  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
   "files": {
     "includes": [
       "**/*.js",
@@ -41,7 +41,8 @@
       "suspicious": {
         "noExplicitAny": "off",
         "noImplicitAnyLet": "off",
-        "noAsyncPromiseExecutor": "off"
+        "noAsyncPromiseExecutor": "off",
+        "useIterableCallbackReturn": "warn"
       },
       "performance": {
         "noAccumulatingSpread": "off",
@@ -56,6 +57,11 @@
         "noNonNullAssertion": "off",
         "noUnusedTemplateLiteral": "off",
         "useTemplate": "off"
+      },
+      "correctness":{
+        "noUnusedFunctionParameters":"warn",
+        "noUnusedVariables":"warn",
+        "noUnusedImports":"warn"
       }
     }
   }
