@@ -24,9 +24,9 @@ dependencies = [
  "scale-info",
  "serde",
  "sha3",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -847,7 +847,7 @@ name = "async-backing-primitives"
 version = "0.9.0"
 source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2506#94e3cb9dec9a42e8b641a74ef12cfe340495aab4"
 dependencies = [
- "sp-api 37.0.0",
+ "sp-api",
  "sp-consensus-slots",
 ]
 
@@ -1198,16 +1198,6 @@ checksum = "89e25b6adfb930f02d1981565a6e5d9c547ac15a96606256d3b59040e5cd4ca3"
 [[package]]
 name = "binary-merkle-tree"
 version = "16.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "hash-db",
- "log",
- "parity-scale-codec",
-]
-
-[[package]]
-name = "binary-merkle-tree"
-version = "16.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "hash-db",
@@ -1473,12 +1463,12 @@ dependencies = [
  "bp-messages",
  "bp-polkadot-core",
  "bp-runtime",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "parachains-common",
  "polkadot-primitives",
- "sp-api 37.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-api",
+ "sp-std",
 ]
 
 [[package]]
@@ -1488,14 +1478,14 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "bp-runtime",
  "finality-grandpa",
- "frame-support 41.0.0",
+ "frame-support",
  "parity-scale-codec",
  "scale-info",
  "serde",
  "sp-consensus-grandpa",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -1505,13 +1495,13 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "bp-header-chain",
  "bp-runtime",
- "frame-support 41.0.0",
+ "frame-support",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-std",
 ]
 
 [[package]]
@@ -1523,10 +1513,10 @@ dependencies = [
  "bp-messages",
  "bp-polkadot-core",
  "bp-runtime",
- "frame-support 41.0.0",
+ "frame-support",
  "moonbeam-core-primitives",
- "sp-api 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-runtime",
  "staging-xcm",
 ]
 
@@ -1539,10 +1529,10 @@ dependencies = [
  "bp-messages",
  "bp-polkadot-core",
  "bp-runtime",
- "frame-support 41.0.0",
+ "frame-support",
  "moonbeam-core-primitives",
- "sp-api 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-runtime",
  "staging-xcm",
 ]
 
@@ -1554,13 +1544,13 @@ dependencies = [
  "bp-header-chain",
  "bp-polkadot-core",
  "bp-runtime",
- "frame-support 41.0.0",
+ "frame-support",
  "impl-trait-for-tuples",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -1570,14 +1560,14 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "bp-messages",
  "bp-runtime",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -1589,13 +1579,13 @@ dependencies = [
  "bp-messages",
  "bp-parachains",
  "bp-runtime",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-utility 41.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-utility",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -1603,8 +1593,8 @@ name = "bp-runtime"
 version = "0.21.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "hash-db",
  "impl-trait-for-tuples",
  "log",
@@ -1612,12 +1602,12 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+ "sp-trie",
  "trie-db",
 ]
 
@@ -1633,12 +1623,12 @@ dependencies = [
  "ed25519-dalek",
  "finality-grandpa",
  "parity-scale-codec",
- "sp-application-crypto 41.0.0",
+ "sp-application-crypto",
  "sp-consensus-grandpa",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
@@ -1648,13 +1638,13 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "bp-messages",
  "bp-runtime",
- "frame-support 41.0.0",
+ "frame-support",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-std",
  "staging-xcm",
 ]
 
@@ -1665,8 +1655,8 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "staging-xcm",
 ]
 
@@ -1676,14 +1666,14 @@ version = "0.14.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "cumulus-primitives-core",
- "frame-support 41.0.0",
+ "frame-support",
  "pallet-message-queue",
  "parity-scale-codec",
  "scale-info",
  "snowbridge-core",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -1700,22 +1690,22 @@ dependencies = [
  "bp-polkadot-core",
  "bp-relayers",
  "bp-runtime",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-bridge-grandpa",
  "pallet-bridge-messages",
  "pallet-bridge-parachains",
  "pallet-bridge-relayers",
  "pallet-transaction-payment",
- "pallet-utility 41.0.0",
+ "pallet-utility",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
- "sp-weights 32.0.0",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
+ "sp-weights",
  "staging-xcm",
  "tuplex",
 ]
@@ -2537,7 +2527,7 @@ dependencies = [
  "sc-network",
  "sc-service",
  "sp-consensus-babe",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "tokio",
 ]
 
@@ -2553,8 +2543,8 @@ dependencies = [
  "sc-client-api",
  "sc-service",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "url",
 ]
 
@@ -2574,10 +2564,10 @@ dependencies = [
  "polkadot-overseer",
  "polkadot-primitives",
  "sc-client-api",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "tracing",
 ]
 
@@ -2604,11 +2594,11 @@ dependencies = [
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "sp-timestamp",
- "sp-trie 40.0.0",
- "sp-version 40.0.0",
+ "sp-trie",
+ "sp-version",
  "substrate-prometheus-endpoint",
  "tracing",
 ]
@@ -2622,9 +2612,9 @@ dependencies = [
  "async-trait",
  "cumulus-primitives-parachain-inherent",
  "sp-consensus",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-state-machine",
  "thiserror 1.0.69",
 ]
 
@@ -2645,13 +2635,13 @@ dependencies = [
  "polkadot-primitives",
  "sc-client-api",
  "sc-network",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-version 40.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-version",
  "tracing",
 ]
 
@@ -2669,10 +2659,10 @@ dependencies = [
  "sc-client-api",
  "sc-consensus-babe",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-storage",
  "tracing",
 ]
 
@@ -2696,11 +2686,11 @@ dependencies = [
  "sc-client-api",
  "sc-consensus",
  "sc-network",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-consensus",
  "sp-maybe-compressed-blob",
- "sp-runtime 42.0.0",
- "sp-version 40.0.0",
+ "sp-runtime",
+ "sp-version",
  "tracing",
 ]
 
@@ -2735,12 +2725,12 @@ dependencies = [
  "sc-telemetry",
  "sc-transaction-pool",
  "sc-utils",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "sp-transaction-pool",
 ]
 
@@ -2755,9 +2745,9 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-proof-size-hostfunction",
  "environmental",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "hashbrown 0.15.3",
  "impl-trait-for-tuples",
  "log",
@@ -2767,15 +2757,15 @@ dependencies = [
  "polkadot-runtime-parachains",
  "scale-info",
  "sp-consensus-babe",
- "sp-core 37.0.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
- "sp-version 40.0.0",
+ "sp-core",
+ "sp-externalities",
+ "sp-inherents",
+ "sp-io",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+ "sp-trie",
+ "sp-version",
  "staging-xcm",
  "staging-xcm-builder",
  "trie-db",
@@ -2800,15 +2790,15 @@ dependencies = [
  "cumulus-primitives-storage-weight-reclaim",
  "derive-where",
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-trie 40.0.0",
+ "sp-io",
+ "sp-runtime",
+ "sp-trie",
 ]
 
 [[package]]
@@ -2817,12 +2807,12 @@ version = "0.20.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "cumulus-primitives-core",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-io",
+ "sp-runtime",
  "staging-xcm",
 ]
 
@@ -2835,18 +2825,18 @@ dependencies = [
  "bounded-collections",
  "bp-xcm-bridge-hub-router",
  "cumulus-primitives-core",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-message-queue",
  "parity-scale-codec",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -2862,9 +2852,9 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-primitives",
  "scale-info",
- "sp-api 37.0.0",
- "sp-runtime 42.0.0",
- "sp-trie 40.0.0",
+ "sp-api",
+ "sp-runtime",
+ "sp-trie",
  "staging-xcm",
  "tracing",
 ]
@@ -2878,9 +2868,9 @@ dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-trie 40.0.0",
+ "sp-core",
+ "sp-inherents",
+ "sp-trie",
 ]
 
 [[package]]
@@ -2888,9 +2878,9 @@ name = "cumulus-primitives-proof-size-hostfunction"
 version = "0.13.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-runtime-interface 30.0.0",
- "sp-trie 40.0.0",
+ "sp-externalities",
+ "sp-runtime-interface",
+ "sp-trie",
 ]
 
 [[package]]
@@ -2901,13 +2891,13 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-proof-size-hostfunction",
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -2916,7 +2906,7 @@ version = "0.20.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "cumulus-primitives-core",
- "sp-inherents 37.0.0",
+ "sp-inherents",
  "sp-timestamp",
 ]
 
@@ -2926,12 +2916,12 @@ version = "0.21.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "cumulus-primitives-core",
- "frame-support 41.0.0",
+ "frame-support",
  "log",
  "pallet-asset-conversion",
  "parity-scale-codec",
  "polkadot-runtime-common",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -2958,11 +2948,11 @@ dependencies = [
  "sc-sysinfo",
  "sc-telemetry",
  "sc-tracing",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-state-machine",
 ]
 
 [[package]]
@@ -2978,10 +2968,10 @@ dependencies = [
  "polkadot-overseer",
  "sc-client-api",
  "sc-network",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
- "sp-state-machine 0.46.0",
- "sp-version 40.0.0",
+ "sp-state-machine",
+ "sp-version",
  "thiserror 1.0.69",
 ]
 
@@ -3012,11 +3002,11 @@ dependencies = [
  "sc-service",
  "sc-tracing",
  "sc-utils",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-babe",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "tracing",
 ]
@@ -3049,11 +3039,11 @@ dependencies = [
  "smoldot-light 0.9.0",
  "sp-authority-discovery",
  "sp-consensus-babe",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-version 40.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-storage",
+ "sp-version",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
  "tokio",
@@ -3071,7 +3061,7 @@ dependencies = [
  "futures 0.3.31",
  "polkadot-node-subsystem",
  "polkadot-primitives",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-consensus",
  "tracing",
 ]
@@ -3084,9 +3074,9 @@ dependencies = [
  "cumulus-primitives-core",
  "parity-scale-codec",
  "polkadot-primitives",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-trie 40.0.0",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-trie",
 ]
 
 [[package]]
@@ -3853,24 +3843,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ethereum"
-version = "0.18.2"
-source = "git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f#cf3076f07e61102eec686f6816da668f97d94f1f"
-dependencies = [
- "bytes",
- "ethereum-types",
- "hash-db",
- "hash256-std-hasher",
- "k256",
- "parity-scale-codec",
- "rlp 0.6.1",
- "scale-info",
- "serde",
- "sha3",
- "trie-root",
-]
-
-[[package]]
 name = "ethereum-standards"
 version = "0.1.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
@@ -3939,7 +3911,7 @@ source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkado
 dependencies = [
  "auto_impl",
  "environmental",
- "ethereum 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
  "evm-core",
  "evm-gasometer",
  "evm-runtime",
@@ -3996,7 +3968,7 @@ dependencies = [
  "evm-gasometer",
  "evm-runtime",
  "parity-scale-codec",
- "sp-runtime-interface 30.0.0",
+ "sp-runtime-interface",
 ]
 
 [[package]]
@@ -4104,8 +4076,8 @@ dependencies = [
  "async-trait",
  "fp-storage",
  "parity-scale-codec",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -4117,10 +4089,10 @@ dependencies = [
  "fp-consensus",
  "fp-rpc",
  "sc-consensus",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-consensus",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "thiserror 2.0.12",
 ]
 
@@ -4130,7 +4102,7 @@ version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
  "async-trait",
- "ethereum 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
  "fc-api",
  "fc-storage",
  "fp-consensus",
@@ -4145,11 +4117,11 @@ dependencies = [
  "sc-client-api",
  "sc-client-db",
  "smallvec",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-database",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sqlx",
  "tokio",
 ]
@@ -4169,11 +4141,11 @@ dependencies = [
  "parking_lot 0.12.3",
  "sc-client-api",
  "sc-utils",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "tokio",
 ]
 
@@ -4182,7 +4154,7 @@ name = "fc-rpc"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
- "ethereum 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
  "ethereum-types",
  "evm",
  "fc-api",
@@ -4212,20 +4184,20 @@ dependencies = [
  "sc-utils",
  "schnellru",
  "serde",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-aura",
- "sp-core 37.0.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-externalities",
+ "sp-inherents",
+ "sp-io",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-storage",
  "sp-timestamp",
- "sp-trie 40.0.0",
+ "sp-trie",
  "substrate-prometheus-endpoint",
  "thiserror 2.0.12",
  "tokio",
@@ -4236,14 +4208,14 @@ name = "fc-rpc-core"
 version = "1.1.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
- "ethereum 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
  "ethereum-types",
  "jsonrpsee",
  "rlp 0.6.1",
  "rustc-hex",
  "serde",
  "serde_json",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
 ]
 
@@ -4273,16 +4245,16 @@ name = "fc-storage"
 version = "1.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
- "ethereum 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
  "ethereum-types",
  "fp-rpc",
  "fp-storage",
  "parity-scale-codec",
  "sc-client-api",
- "sp-api 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-api",
+ "sp-io",
+ "sp-runtime",
+ "sp-storage",
 ]
 
 [[package]]
@@ -4473,9 +4445,9 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "staging-xcm",
 ]
 
@@ -4484,10 +4456,10 @@ name = "fp-consensus"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
- "ethereum 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
  "parity-scale-codec",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -4495,10 +4467,10 @@ name = "fp-ethereum"
 version = "1.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
- "ethereum 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
  "ethereum-types",
  "fp-evm",
- "frame-support 41.0.0",
+ "frame-support",
  "parity-scale-codec",
 ]
 
@@ -4509,13 +4481,13 @@ source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-po
 dependencies = [
  "environmental",
  "evm",
- "frame-support 41.0.0",
+ "frame-support",
  "num_enum 0.7.3",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -4523,15 +4495,15 @@ name = "fp-rpc"
 version = "3.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
- "ethereum 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
  "ethereum-types",
  "fp-evm",
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
+ "sp-api",
+ "sp-core",
+ "sp-runtime",
+ "sp-state-machine",
 ]
 
 [[package]]
@@ -4539,11 +4511,11 @@ name = "fp-self-contained"
 version = "1.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
- "frame-support 41.0.0",
+ "frame-support",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -4563,49 +4535,25 @@ checksum = "28dd6caf6059519a65843af8fe2a3ae298b14b80179855aeb4adc2c1934ee619"
 
 [[package]]
 name = "frame-benchmarking"
-version = "40.2.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "frame-support 40.1.0",
- "frame-support-procedural 33.0.1",
- "frame-system 40.2.0",
- "linregress",
- "log",
- "parity-scale-codec",
- "paste",
- "scale-info",
- "serde",
- "sp-api 36.0.1",
- "sp-application-crypto 40.1.0",
- "sp-core 36.1.0",
- "sp-io 40.0.1",
- "sp-runtime 41.1.0",
- "sp-runtime-interface 29.0.1",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "static_assertions",
-]
-
-[[package]]
-name = "frame-benchmarking"
 version = "41.0.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-support-procedural 34.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-support-procedural",
+ "frame-system",
  "linregress",
  "log",
  "parity-scale-codec",
  "paste",
  "scale-info",
  "serde",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-runtime-interface 30.0.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-runtime-interface",
+ "sp-storage",
  "static_assertions",
 ]
 
@@ -4622,10 +4570,10 @@ dependencies = [
  "cumulus-client-parachain-inherent",
  "cumulus-primitives-proof-size-hostfunction",
  "env_filter",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-storage-access-test-runtime",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "gethostname",
  "handlebars",
  "itertools 0.11.0",
@@ -4649,25 +4597,25 @@ dependencies = [
  "sc-sysinfo",
  "serde",
  "serde_json",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-blockchain",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-database",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
- "sp-runtime-interface 30.0.0",
- "sp-state-machine 0.46.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-externalities",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
+ "sp-keystore",
+ "sp-runtime",
+ "sp-runtime-interface",
+ "sp-state-machine",
+ "sp-storage",
  "sp-timestamp",
  "sp-transaction-pool",
- "sp-trie 40.0.0",
- "sp-version 40.0.0",
- "sp-wasm-interface 22.0.0",
+ "sp-trie",
+ "sp-version",
+ "sp-wasm-interface",
  "subxt",
  "subxt-signer",
  "thiserror 1.0.69",
@@ -4705,15 +4653,15 @@ version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "frame-election-provider-solution-type",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
+ "sp-arithmetic",
+ "sp-core",
  "sp-npos-elections",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -4722,16 +4670,16 @@ version = "41.0.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "aquamarine",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "frame-try-runtime",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-tracing",
 ]
 
 [[package]]
@@ -4766,12 +4714,12 @@ dependencies = [
  "array-bytes 6.2.3",
  "const-hex",
  "docify",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -4781,52 +4729,11 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "cumulus-pallet-parachain-system",
  "parity-scale-codec",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-trie 40.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-trie",
  "substrate-wasm-builder",
-]
-
-[[package]]
-name = "frame-support"
-version = "40.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "aquamarine",
- "array-bytes 6.2.3",
- "binary-merkle-tree 16.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "bitflags 1.3.2",
- "docify",
- "environmental",
- "frame-metadata 20.0.0",
- "frame-support-procedural 33.0.1",
- "impl-trait-for-tuples",
- "k256",
- "log",
- "macro_magic",
- "parity-scale-codec",
- "paste",
- "scale-info",
- "serde",
- "serde_json",
- "sp-api 36.0.1",
- "sp-arithmetic 26.1.0",
- "sp-core 36.1.0",
- "sp-crypto-hashing-proc-macro 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-genesis-builder 0.17.0",
- "sp-inherents 36.0.0",
- "sp-io 40.0.1",
- "sp-metadata-ir 0.10.0",
- "sp-runtime 41.1.0",
- "sp-staking 38.0.0",
- "sp-state-machine 0.45.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-trie 39.1.0",
- "sp-weights 31.1.0",
- "tt-call",
 ]
 
 [[package]]
@@ -4836,12 +4743,12 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "aquamarine",
  "array-bytes 6.2.3",
- "binary-merkle-tree 16.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "binary-merkle-tree",
  "bitflags 1.3.2",
  "docify",
  "environmental",
  "frame-metadata 23.0.0",
- "frame-support-procedural 34.0.0",
+ "frame-support-procedural",
  "impl-trait-for-tuples",
  "k256",
  "log",
@@ -4851,43 +4758,23 @@ dependencies = [
  "scale-info",
  "serde",
  "serde_json",
- "sp-api 37.0.0",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-crypto-hashing-proc-macro 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
- "sp-metadata-ir 0.11.0",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
- "sp-state-machine 0.46.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
- "sp-weights 32.0.0",
+ "sp-api",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-crypto-hashing-proc-macro",
+ "sp-debug-derive",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
+ "sp-metadata-ir",
+ "sp-runtime",
+ "sp-staking",
+ "sp-state-machine",
+ "sp-std",
+ "sp-tracing",
+ "sp-trie",
+ "sp-weights",
  "tt-call",
-]
-
-[[package]]
-name = "frame-support-procedural"
-version = "33.0.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "Inflector",
- "cfg-expr",
- "derive-syn-parse",
- "docify",
- "expander",
- "frame-support-procedural-tools 13.0.1 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "itertools 0.11.0",
- "macro_magic",
- "proc-macro-warning",
- "proc-macro2",
- "quote",
- "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "syn 2.0.101",
 ]
 
 [[package]]
@@ -4900,7 +4787,7 @@ dependencies = [
  "derive-syn-parse",
  "docify",
  "expander",
- "frame-support-procedural-tools 13.0.1 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "frame-support-procedural-tools",
  "itertools 0.11.0",
  "macro_magic",
  "proc-macro-warning",
@@ -4913,32 +4800,10 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools"
 version = "13.0.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "frame-support-procedural-tools-derive 12.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "proc-macro-crate 3.3.0",
- "proc-macro2",
- "quote",
- "syn 2.0.101",
-]
-
-[[package]]
-name = "frame-support-procedural-tools"
-version = "13.0.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support-procedural-tools-derive 12.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "frame-support-procedural-tools-derive",
  "proc-macro-crate 3.3.0",
- "proc-macro2",
- "quote",
- "syn 2.0.101",
-]
-
-[[package]]
-name = "frame-support-procedural-tools-derive"
-version = "12.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.101",
@@ -4952,25 +4817,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.101",
-]
-
-[[package]]
-name = "frame-system"
-version = "40.2.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "cfg-if",
- "docify",
- "frame-support 40.1.0",
- "log",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core 36.1.0",
- "sp-io 40.0.1",
- "sp-runtime 41.1.0",
- "sp-version 39.0.0",
- "sp-weights 31.1.0",
 ]
 
 [[package]]
@@ -4980,16 +4826,16 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "cfg-if",
  "docify",
- "frame-support 41.0.0",
+ "frame-support",
  "log",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-version 40.0.0",
- "sp-weights 32.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-version",
+ "sp-weights",
 ]
 
 [[package]]
@@ -4997,13 +4843,13 @@ name = "frame-system-benchmarking"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -5013,7 +4859,7 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "docify",
  "parity-scale-codec",
- "sp-api 37.0.0",
+ "sp-api",
 ]
 
 [[package]]
@@ -5021,10 +4867,10 @@ name = "frame-try-runtime"
 version = "0.47.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
+ "frame-support",
  "parity-scale-codec",
- "sp-api 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -7534,15 +7380,6 @@ dependencies = [
 
 [[package]]
 name = "memory-db"
-version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "808b50db46293432a45e63bc15ea51e0ab4c0a1647b8eb114e31a3e698dd6fbe"
-dependencies = [
- "hash-db",
-]
-
-[[package]]
-name = "memory-db"
 version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e300c54e3239a86f9c61cc63ab0f03862eb40b1c6e065dc6fd6ceaeff6da93d"
@@ -7639,13 +7476,13 @@ dependencies = [
  "parity-scale-codec",
  "sc-client-api",
  "sc-offchain",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-beefy",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-mmr-primitives",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -7656,11 +7493,11 @@ dependencies = [
  "jsonrpsee",
  "parity-scale-codec",
  "serde",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-mmr-primitives",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -7724,17 +7561,17 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
- "ethereum 0.18.2 (git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f)",
+ "ethereum",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
  "fp-self-contained",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-executive",
  "frame-metadata 20.0.0",
  "frame-metadata-hash-extension",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
@@ -7754,7 +7591,7 @@ dependencies = [
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -7816,7 +7653,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility 41.0.0",
+ "pallet-utility",
  "pallet-whitelist",
  "pallet-xcm",
  "pallet-xcm-benchmarks",
@@ -7836,23 +7673,23 @@ dependencies = [
  "session-keys-primitives",
  "sha3",
  "smallvec",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
+ "sp-core",
+ "sp-debug-derive",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
  "sp-keyring",
  "sp-offchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-std",
  "sp-timestamp",
  "sp-transaction-pool",
- "sp-version 40.0.0",
- "sp-weights 32.0.0",
+ "sp-version",
+ "sp-weights",
  "staging-parachain-info",
  "staging-xcm",
  "staging-xcm-builder",
@@ -7896,8 +7733,8 @@ dependencies = [
  "sc-service",
  "sc-sysinfo",
  "sc-tracing",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "substrate-build-script-utils",
  "url",
 ]
@@ -7911,7 +7748,7 @@ dependencies = [
  "clap",
  "libsecp256k1",
  "primitive-types 0.13.1",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "tiny-bip39",
  "url",
 ]
@@ -7926,8 +7763,8 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "serde",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -7936,8 +7773,8 @@ version = "0.1.1"
 dependencies = [
  "account",
  "hex-literal",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -7965,8 +7802,8 @@ dependencies = [
  "evm-tracing-events",
  "moonbeam-primitives-ext",
  "parity-scale-codec",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -7978,8 +7815,8 @@ dependencies = [
  "fc-rpc",
  "jsonrpsee",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -7988,8 +7825,8 @@ version = "0.1.0"
 dependencies = [
  "evm-tracing-events",
  "parity-scale-codec",
- "sp-runtime-interface 30.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime-interface",
+ "sp-std",
 ]
 
 [[package]]
@@ -7997,17 +7834,17 @@ name = "moonbeam-relay-encoder"
 version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "moonbase-runtime",
  "pallet-staking",
- "pallet-utility 41.0.0",
+ "pallet-utility",
  "pallet-xcm-transactor",
  "parity-scale-codec",
  "polkadot-runtime-parachains",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "westend-runtime",
  "xcm-primitives 0.1.1",
@@ -8017,7 +7854,7 @@ dependencies = [
 name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.18.2 (git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f)",
+ "ethereum",
  "ethereum-types",
  "fc-rpc-core",
  "jsonrpsee",
@@ -8049,7 +7886,7 @@ dependencies = [
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.18.2 (git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f)",
+ "ethereum",
  "ethereum-types",
  "fc-api",
  "fc-rpc",
@@ -8065,13 +7902,13 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
  "sc-utils",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-trie 40.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-trie",
  "tokio",
 ]
 
@@ -8079,24 +7916,24 @@ dependencies = [
 name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.18.2 (git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f)",
+ "ethereum",
  "ethereum-types",
  "parity-scale-codec",
- "sp-api 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
 name = "moonbeam-rpc-primitives-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.18.2 (git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f)",
+ "ethereum",
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -8116,10 +7953,10 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
  "sc-utils",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-blockchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "tokio",
  "tracing",
@@ -8150,17 +7987,17 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
- "ethereum 0.18.2 (git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f)",
+ "ethereum",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
  "fp-self-contained",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-executive",
  "frame-metadata 20.0.0",
  "frame-metadata-hash-extension",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
@@ -8179,7 +8016,7 @@ dependencies = [
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-bridge-grandpa",
  "pallet-bridge-messages",
  "pallet-bridge-parachains",
@@ -8243,7 +8080,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility 41.0.0",
+ "pallet-utility",
  "pallet-whitelist",
  "pallet-xcm",
  "pallet-xcm-benchmarks",
@@ -8264,22 +8101,22 @@ dependencies = [
  "session-keys-primitives",
  "sha3",
  "smallvec",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
+ "sp-core",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
  "sp-keyring",
  "sp-offchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-std",
  "sp-timestamp",
  "sp-transaction-pool",
- "sp-version 40.0.0",
- "sp-weights 32.0.0",
+ "sp-version",
+ "sp-weights",
  "staging-parachain-info",
  "staging-xcm",
  "staging-xcm-builder",
@@ -8300,13 +8137,13 @@ dependencies = [
  "account",
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
- "ethereum 0.18.2 (git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f)",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "ethereum",
+ "frame-support",
+ "frame-system",
  "log",
  "moonbeam-core-primitives",
  "pallet-author-inherent",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-message-queue",
  "pallet-migrations",
  "pallet-moonbeam-foreign-assets",
@@ -8316,10 +8153,10 @@ dependencies = [
  "pallet-xcm-weight-trader",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-builder",
 ]
@@ -8354,8 +8191,8 @@ dependencies = [
  "fc-rpc-v2-api",
  "flume 0.10.14",
  "fp-rpc",
- "frame-benchmarking 41.0.1",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-system",
  "futures 0.3.31",
  "hex",
  "hex-literal",
@@ -8378,7 +8215,7 @@ dependencies = [
  "moonriver-runtime",
  "nimbus-consensus",
  "nimbus-primitives",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-ethereum",
  "pallet-parachain-staking",
  "pallet-sudo",
@@ -8413,25 +8250,25 @@ dependencies = [
  "serde_json",
  "session-keys-primitives",
  "sha3",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-blockchain",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
- "sp-keystore 0.43.0",
+ "sp-core",
+ "sp-externalities",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
+ "sp-keystore",
  "sp-offchain",
  "sp-rpc",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
- "sp-state-machine 0.46.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-state-machine",
+ "sp-storage",
  "sp-timestamp",
  "sp-transaction-pool",
- "sp-trie 40.0.0",
+ "sp-trie",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
@@ -8453,11 +8290,11 @@ dependencies = [
  "nimbus-primitives",
  "schnorrkel 0.11.4",
  "session-keys-primitives",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-core",
+ "sp-keystore",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -8485,17 +8322,17 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
- "ethereum 0.18.2 (git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f)",
+ "ethereum",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
  "fp-self-contained",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-executive",
  "frame-metadata 20.0.0",
  "frame-metadata-hash-extension",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
@@ -8514,7 +8351,7 @@ dependencies = [
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-bridge-grandpa",
  "pallet-bridge-messages",
  "pallet-bridge-parachains",
@@ -8578,7 +8415,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility 41.0.0",
+ "pallet-utility",
  "pallet-whitelist",
  "pallet-xcm",
  "pallet-xcm-benchmarks",
@@ -8599,23 +8436,23 @@ dependencies = [
  "session-keys-primitives",
  "sha3",
  "smallvec",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
+ "sp-core",
+ "sp-debug-derive",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
  "sp-keyring",
  "sp-offchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-std",
  "sp-timestamp",
  "sp-transaction-pool",
- "sp-version 40.0.0",
- "sp-weights 32.0.0",
+ "sp-version",
+ "sp-weights",
  "staging-parachain-info",
  "staging-xcm",
  "staging-xcm-builder",
@@ -8896,18 +8733,18 @@ dependencies = [
  "sc-client-api",
  "sc-consensus",
  "sc-consensus-manual-seal",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
+ "sp-api",
+ "sp-application-crypto",
  "sp-block-builder",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-inherents",
+ "sp-keystore",
+ "sp-runtime",
  "sp-timestamp",
- "sp-version 40.0.0",
+ "sp-version",
  "substrate-prometheus-endpoint",
  "tracing",
 ]
@@ -8918,17 +8755,17 @@ version = "0.9.0"
 source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2506#94e3cb9dec9a42e8b641a74ef12cfe340495aab4"
 dependencies = [
  "async-trait",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -9338,17 +9175,17 @@ name = "pallet-asset-conversion"
 version = "23.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9356,13 +9193,13 @@ name = "pallet-asset-rate"
 version = "20.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9370,15 +9207,15 @@ name = "pallet-asset-tx-payment"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "pallet-transaction-payment",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9387,16 +9224,16 @@ version = "43.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "ethereum-standards",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "log",
  "pallet-revive",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9406,17 +9243,17 @@ source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "nimbus-primitives",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -9424,18 +9261,18 @@ name = "pallet-author-inherent"
 version = "0.9.0"
 source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2506#94e3cb9dec9a42e8b641a74ef12cfe340495aab4"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "nimbus-primitives",
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -9443,18 +9280,18 @@ name = "pallet-author-mapping"
 version = "2.0.5"
 source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2506#94e3cb9dec9a42e8b641a74ef12cfe340495aab4"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "nimbus-primitives",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
  "serde",
  "session-keys-primitives",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -9462,17 +9299,17 @@ name = "pallet-author-slot-filter"
 version = "0.9.0"
 source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2506#94e3cb9dec9a42e8b641a74ef12cfe340495aab4"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "nimbus-primitives",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -9480,14 +9317,14 @@ name = "pallet-authority-discovery"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "pallet-session",
  "parity-scale-codec",
  "scale-info",
- "sp-application-crypto 41.0.0",
+ "sp-application-crypto",
  "sp-authority-discovery",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9495,12 +9332,12 @@ name = "pallet-authorship"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9508,22 +9345,22 @@ name = "pallet-babe"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-authorship",
  "pallet-session",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
- "sp-application-crypto 41.0.0",
+ "sp-application-crypto",
  "sp-consensus-babe",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "sp-session",
- "sp-staking 39.0.0",
+ "sp-staking",
 ]
 
 [[package]]
@@ -9533,34 +9370,18 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "aquamarine",
  "docify",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-election-provider-support",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
-]
-
-[[package]]
-name = "pallet-balances"
-version = "41.1.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "docify",
- "frame-benchmarking 40.2.1",
- "frame-support 40.1.0",
- "frame-system 40.2.0",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core 36.1.0",
- "sp-runtime 41.1.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-tracing",
 ]
 
 [[package]]
@@ -9569,14 +9390,14 @@ version = "42.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9584,8 +9405,8 @@ name = "pallet-beefy"
 version = "42.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-authorship",
  "pallet-session",
@@ -9593,9 +9414,9 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-consensus-beefy",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
- "sp-staking 39.0.0",
+ "sp-staking",
 ]
 
 [[package]]
@@ -9604,10 +9425,10 @@ version = "42.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "array-bytes 6.2.3",
- "binary-merkle-tree 16.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "binary-merkle-tree",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-beefy",
  "pallet-mmr",
@@ -9615,12 +9436,12 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-consensus-beefy",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-state-machine",
 ]
 
 [[package]]
@@ -9628,16 +9449,16 @@ name = "pallet-bounties"
 version = "40.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-treasury",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9648,15 +9469,15 @@ dependencies = [
  "bp-header-chain",
  "bp-runtime",
  "bp-test-utils",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
  "sp-consensus-grandpa",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -9667,15 +9488,15 @@ dependencies = [
  "bp-header-chain",
  "bp-messages",
  "bp-runtime",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
@@ -9687,15 +9508,15 @@ dependencies = [
  "bp-parachains",
  "bp-polkadot-core",
  "bp-runtime",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-bridge-grandpa",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -9707,9 +9528,9 @@ dependencies = [
  "bp-messages",
  "bp-relayers",
  "bp-runtime",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-bridge-grandpa",
  "pallet-bridge-messages",
@@ -9717,8 +9538,8 @@ dependencies = [
  "pallet-transaction-payment",
  "parity-scale-codec",
  "scale-info",
- "sp-arithmetic 27.0.0",
- "sp-runtime 42.0.0",
+ "sp-arithmetic",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9727,16 +9548,16 @@ version = "0.20.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "bitvec",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9744,17 +9565,17 @@ name = "pallet-child-bounties"
 version = "40.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-bounties",
  "pallet-treasury",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9762,18 +9583,18 @@ name = "pallet-collator-selection"
 version = "22.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-authorship",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-session",
  "parity-scale-codec",
  "rand 0.8.5",
  "scale-info",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
+ "sp-runtime",
+ "sp-staking",
 ]
 
 [[package]]
@@ -9782,15 +9603,15 @@ version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9799,14 +9620,14 @@ version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "assert_matches",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9814,20 +9635,20 @@ name = "pallet-crowdloan-rewards"
 version = "0.6.0"
 dependencies = [
  "ed25519-dalek",
- "frame-benchmarking 40.2.1",
- "frame-support 40.1.0",
- "frame-system 40.2.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
- "pallet-balances 41.1.1",
- "pallet-utility 40.0.0",
+ "pallet-balances",
+ "pallet-utility",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 36.1.0",
- "sp-io 40.0.1",
- "sp-runtime 41.1.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-trie 39.1.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
@@ -9835,14 +9656,14 @@ name = "pallet-delegated-staking"
 version = "8.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
 ]
 
 [[package]]
@@ -9850,16 +9671,16 @@ name = "pallet-democracy"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9867,19 +9688,19 @@ name = "pallet-election-provider-multi-phase"
 version = "40.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-election-provider-support",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "rand 0.8.5",
  "scale-info",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
  "sp-npos-elections",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "strum 0.26.3",
 ]
 
@@ -9888,12 +9709,12 @@ name = "pallet-election-provider-support-benchmarking"
 version = "40.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-election-provider-support",
- "frame-system 41.0.0",
+ "frame-system",
  "parity-scale-codec",
  "sp-npos-elections",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9901,17 +9722,17 @@ name = "pallet-elections-phragmen"
 version = "42.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
+ "sp-core",
+ "sp-io",
  "sp-npos-elections",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
+ "sp-runtime",
+ "sp-staking",
 ]
 
 [[package]]
@@ -9921,15 +9742,15 @@ source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-message-queue",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
  "scale-info",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-std",
  "xcm-primitives 0.1.0",
 ]
 
@@ -9940,18 +9761,18 @@ dependencies = [
  "environmental",
  "ethereum-types",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-executor",
 ]
@@ -9962,7 +9783,7 @@ version = "4.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
  "environmental",
- "ethereum 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
  "ethereum-types",
  "evm",
  "fp-consensus",
@@ -9970,14 +9791,14 @@ dependencies = [
  "fp-evm",
  "fp-rpc",
  "fp-storage",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "pallet-evm",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-version 40.0.0",
+ "sp-io",
+ "sp-runtime",
+ "sp-version",
 ]
 
 [[package]]
@@ -9985,17 +9806,17 @@ name = "pallet-ethereum-xcm"
 version = "1.0.0-dev"
 dependencies = [
  "environmental",
- "ethereum 0.18.2 (git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f)",
+ "ethereum",
  "ethereum-types",
  "fp-ethereum",
  "fp-evm",
  "fp-rpc",
  "fp-self-contained",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "hex",
  "libsecp256k1",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-ethereum",
  "pallet-evm",
  "pallet-evm-precompile-proxy",
@@ -10004,10 +9825,10 @@ dependencies = [
  "parity-scale-codec",
  "rlp 0.6.1",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "xcm-primitives 0.1.1",
 ]
 
@@ -10018,22 +9839,22 @@ source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-po
 dependencies = [
  "cumulus-primitives-storage-weight-reclaim",
  "environmental",
- "ethereum 0.18.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ethereum",
  "evm",
  "fp-account",
  "fp-evm",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "hash-db",
  "hex-literal",
  "impl-trait-for-tuples",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -10041,8 +9862,8 @@ name = "pallet-evm-chain-id"
 version = "1.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
 ]
@@ -10052,21 +9873,21 @@ name = "pallet-evm-precompile-author-mapping"
 version = "0.2.0"
 dependencies = [
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "nimbus-primitives",
  "pallet-author-mapping",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10075,11 +9896,11 @@ version = "0.1.0"
 dependencies = [
  "account",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "hex-literal",
  "libsecp256k1",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
@@ -10087,10 +9908,10 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "sha3",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10099,19 +9920,19 @@ version = "0.1.0"
 dependencies = [
  "evm",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "hex-literal",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10140,7 +9961,7 @@ version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
  "fp-evm",
- "sp-core 37.0.0",
+ "sp-core",
  "substrate-bn",
 ]
 
@@ -10150,20 +9971,20 @@ version = "0.1.0"
 dependencies = [
  "evm",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "hex-literal",
  "libsecp256k1",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10173,9 +9994,9 @@ dependencies = [
  "account",
  "evm",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-collective",
  "pallet-evm",
  "pallet-timestamp",
@@ -10184,10 +10005,10 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "similar-asserts",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "xcm-primitives 0.1.1",
 ]
 
@@ -10197,20 +10018,20 @@ version = "0.1.0"
 dependencies = [
  "account",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-conviction-voting",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10221,10 +10042,10 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-crowdloan-rewards",
  "pallet-evm",
  "pallet-message-queue",
@@ -10233,10 +10054,10 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "sha3",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10247,11 +10068,11 @@ dependencies = [
  "cumulus-primitives-core",
  "evm",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "hex",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
@@ -10259,10 +10080,10 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -10274,19 +10095,19 @@ name = "pallet-evm-precompile-identity"
 version = "0.1.0"
 dependencies = [
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-evm",
  "pallet-identity",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10303,7 +10124,7 @@ name = "pallet-evm-precompile-p256verify"
 version = "0.1.0"
 dependencies = [
  "fp-evm",
- "frame-support 41.0.0",
+ "frame-support",
  "hex-literal",
  "p256",
  "precompile-utils",
@@ -10314,10 +10135,10 @@ name = "pallet-evm-precompile-parachain-staking"
 version = "1.0.0"
 dependencies = [
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-evm",
  "pallet-parachain-staking",
  "pallet-timestamp",
@@ -10325,10 +10146,10 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10336,19 +10157,19 @@ name = "pallet-evm-precompile-preimage"
 version = "0.1.0"
 dependencies = [
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-evm",
  "pallet-preimage",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10358,19 +10179,19 @@ dependencies = [
  "account",
  "evm",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-evm",
  "pallet-proxy",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10378,11 +10199,11 @@ name = "pallet-evm-precompile-randomness"
 version = "0.1.0"
 dependencies = [
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "nimbus-primitives",
  "pallet-author-mapping",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-evm",
  "pallet-randomness",
  "pallet-timestamp",
@@ -10390,10 +10211,10 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "session-keys-primitives",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10401,10 +10222,10 @@ name = "pallet-evm-precompile-referenda"
 version = "0.1.0"
 dependencies = [
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-evm",
  "pallet-preimage",
  "pallet-referenda",
@@ -10413,10 +10234,10 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10424,17 +10245,17 @@ name = "pallet-evm-precompile-registry"
 version = "0.1.0"
 dependencies = [
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -10444,9 +10265,9 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-evm",
  "pallet-message-queue",
  "pallet-staking",
@@ -10455,10 +10276,10 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -10472,10 +10293,10 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "hex",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-evm",
  "pallet-precompile-benchmarks",
  "pallet-relay-storage-roots",
@@ -10483,10 +10304,10 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "storage-proof-primitives",
 ]
 
@@ -10496,7 +10317,7 @@ version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#388d33ed0a0890a8fca5214cc3db999f36fafd45"
 dependencies = [
  "fp-evm",
- "frame-support 41.0.0",
+ "frame-support",
  "pallet-evm",
  "tiny-keccak",
 ]
@@ -10508,7 +10329,7 @@ source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-po
 dependencies = [
  "fp-evm",
  "ripemd",
- "sp-io 41.0.1",
+ "sp-io",
 ]
 
 [[package]]
@@ -10519,8 +10340,8 @@ dependencies = [
  "cumulus-primitives-core",
  "evm",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "num_enum 0.7.3",
  "pallet-evm",
@@ -10528,10 +10349,10 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-weights 32.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "sp-weights",
  "staging-xcm",
  "staging-xcm-executor",
  "xcm-primitives 0.1.0",
@@ -10543,20 +10364,20 @@ version = "0.2.0"
 dependencies = [
  "cumulus-primitives-core",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm-transactor",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-weights 32.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-weights",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -10569,20 +10390,20 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-weights 32.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-weights",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -10596,9 +10417,9 @@ dependencies = [
  "account",
  "cumulus-primitives-core",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
@@ -10606,11 +10427,11 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-weights 32.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-weights",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -10623,16 +10444,16 @@ version = "40.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "docify",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-election-provider-support",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
 ]
 
 [[package]]
@@ -10640,21 +10461,21 @@ name = "pallet-grandpa"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-authorship",
  "pallet-session",
  "parity-scale-codec",
  "scale-info",
- "sp-application-crypto 41.0.0",
+ "sp-application-crypto",
  "sp-consensus-grandpa",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "sp-session",
- "sp-staking 39.0.0",
+ "sp-staking",
 ]
 
 [[package]]
@@ -10663,14 +10484,14 @@ version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "enumflags2",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -10678,18 +10499,18 @@ name = "pallet-im-online"
 version = "40.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-authorship",
  "parity-scale-codec",
  "scale-info",
- "sp-application-crypto 41.0.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
+ "sp-application-crypto",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
 ]
 
 [[package]]
@@ -10697,14 +10518,14 @@ name = "pallet-indices"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -10713,13 +10534,13 @@ version = "0.1.0"
 source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2506#94e3cb9dec9a42e8b641a74ef12cfe340495aab4"
 dependencies = [
  "cumulus-primitives-core",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-std",
  "xcm-primitives 0.1.0",
 ]
 
@@ -10729,17 +10550,17 @@ version = "44.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "environmental",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-weights",
 ]
 
 [[package]]
@@ -10748,16 +10569,16 @@ version = "0.3.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10766,17 +10587,17 @@ version = "11.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "log",
  "parity-scale-codec",
  "polkadot-sdk-frame",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -10797,12 +10618,12 @@ version = "0.1.0"
 dependencies = [
  "ethereum-types",
  "fp-evm",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "hex",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-ethereum",
  "pallet-evm",
  "pallet-timestamp",
@@ -10811,10 +10632,10 @@ dependencies = [
  "precompile-utils-macro",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-executor",
 ]
@@ -10823,37 +10644,37 @@ dependencies = [
 name = "pallet-moonbeam-lazy-migrations"
 version = "0.1.0"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
  "rlp 0.6.1",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
 name = "pallet-moonbeam-orbiters"
 version = "0.1.0"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "nimbus-primitives",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -10882,17 +10703,17 @@ name = "pallet-nomination-pools"
 version = "39.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
+ "sp-tracing",
 ]
 
 [[package]]
@@ -10900,19 +10721,19 @@ name = "pallet-nomination-pools-benchmarking"
 version = "39.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-election-provider-support",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "pallet-bags-list",
  "pallet-delegated-staking",
  "pallet-nomination-pools",
  "pallet-staking",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
- "sp-runtime-interface 30.0.0",
- "sp-staking 39.0.0",
+ "sp-runtime",
+ "sp-runtime-interface",
+ "sp-staking",
 ]
 
 [[package]]
@@ -10922,7 +10743,7 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "pallet-nomination-pools",
  "parity-scale-codec",
- "sp-api 37.0.0",
+ "sp-api",
 ]
 
 [[package]]
@@ -10930,14 +10751,14 @@ name = "pallet-offences"
 version = "40.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
+ "sp-runtime",
+ "sp-staking",
 ]
 
 [[package]]
@@ -10945,13 +10766,13 @@ name = "pallet-offences-benchmarking"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-election-provider-support",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-babe",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-grandpa",
  "pallet-im-online",
  "pallet-offences",
@@ -10959,29 +10780,29 @@ dependencies = [
  "pallet-staking",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
+ "sp-runtime",
+ "sp-staking",
 ]
 
 [[package]]
 name = "pallet-parachain-staking"
 version = "3.0.0"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "nimbus-primitives",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
  "serde",
  "similar-asserts",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "substrate-fixed",
 ]
 
@@ -10992,15 +10813,15 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "cumulus-primitives-storage-weight-reclaim",
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "paste",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11010,16 +10831,16 @@ dependencies = [
  "cumulus-primitives-core",
  "evm",
  "fp-evm",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "pallet-evm-precompile-p256verify",
  "pallet-relay-storage-roots",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "sp-core 37.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-std",
  "storage-proof-primitives",
 ]
 
@@ -11028,15 +10849,15 @@ name = "pallet-preimage"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11053,18 +10874,18 @@ dependencies = [
 name = "pallet-proxy-genesis-companion"
 version = "0.1.0"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-evm-precompile-proxy",
  "pallet-proxy",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -11073,23 +10894,23 @@ version = "0.1.0"
 source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2506#94e3cb9dec9a42e8b641a74ef12cfe340495aab4"
 dependencies = [
  "environmental",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "hex",
  "log",
  "nimbus-primitives",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
  "schnorrkel 0.11.4",
  "serde",
  "session-keys-primitives",
  "sp-consensus-babe",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -11097,17 +10918,17 @@ name = "pallet-ranked-collective"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11126,16 +10947,16 @@ version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "assert_matches",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-arithmetic 27.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-arithmetic",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11146,19 +10967,19 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "environmental",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "hex",
  "log",
  "nimbus-primitives",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -11171,9 +10992,9 @@ dependencies = [
  "environmental",
  "ethereum-standards",
  "ethereum-types",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "hex-literal",
  "humantime-serde",
  "impl-trait-for-tuples",
@@ -11195,14 +11016,14 @@ dependencies = [
  "rlp 0.6.1",
  "scale-info",
  "serde",
- "sp-api 37.0.0",
- "sp-arithmetic 27.0.0",
+ "sp-api",
+ "sp-arithmetic",
  "sp-consensus-aura",
  "sp-consensus-babe",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "substrate-bn",
  "subxt-signer",
 ]
@@ -11216,8 +11037,8 @@ dependencies = [
  "cargo_metadata",
  "pallet-revive-uapi",
  "polkavm-linker 0.21.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
+ "sp-core",
+ "sp-io",
  "toml 0.8.22",
 ]
 
@@ -11248,12 +11069,12 @@ name = "pallet-root-testing"
 version = "17.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11262,15 +11083,15 @@ version = "42.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-io",
+ "sp-runtime",
+ "sp-weights",
 ]
 
 [[package]]
@@ -11278,20 +11099,20 @@ name = "pallet-session"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "log",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "sp-session",
- "sp-staking 39.0.0",
- "sp-state-machine 0.46.0",
- "sp-trie 40.0.0",
+ "sp-staking",
+ "sp-state-machine",
+ "sp-trie",
 ]
 
 [[package]]
@@ -11299,14 +11120,14 @@ name = "pallet-session-benchmarking"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "pallet-session",
  "pallet-staking",
  "parity-scale-codec",
  "rand 0.8.5",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
 ]
 
@@ -11315,16 +11136,16 @@ name = "pallet-society"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "rand_chacha 0.3.1",
  "scale-info",
- "sp-arithmetic 27.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-arithmetic",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11332,10 +11153,10 @@ name = "pallet-staking"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-election-provider-support",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-authorship",
  "pallet-session",
@@ -11343,10 +11164,10 @@ dependencies = [
  "rand_chacha 0.3.1",
  "scale-info",
  "serde",
- "sp-application-crypto 41.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
+ "sp-application-crypto",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
 ]
 
 [[package]]
@@ -11354,8 +11175,8 @@ name = "pallet-staking-async-ah-client"
 version = "0.2.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-authorship",
  "pallet-session",
@@ -11363,9 +11184,9 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-staking",
 ]
 
 [[package]]
@@ -11373,15 +11194,15 @@ name = "pallet-staking-async-rc-client"
 version = "0.2.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-staking",
  "staging-xcm",
 ]
 
@@ -11391,7 +11212,7 @@ version = "23.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "log",
- "sp-arithmetic 27.0.0",
+ "sp-arithmetic",
 ]
 
 [[package]]
@@ -11400,8 +11221,8 @@ version = "27.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "parity-scale-codec",
- "sp-api 37.0.0",
- "sp-staking 39.0.0",
+ "sp-api",
+ "sp-staking",
 ]
 
 [[package]]
@@ -11409,15 +11230,15 @@ name = "pallet-state-trie-migration"
 version = "46.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11426,13 +11247,13 @@ version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11441,15 +11262,15 @@ version = "40.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-storage",
  "sp-timestamp",
 ]
 
@@ -11458,17 +11279,17 @@ name = "pallet-tips"
 version = "40.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-treasury",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11476,14 +11297,14 @@ name = "pallet-transaction-payment"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11494,12 +11315,12 @@ dependencies = [
  "jsonrpsee",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-rpc",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-runtime",
+ "sp-weights",
 ]
 
 [[package]]
@@ -11509,9 +11330,9 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "pallet-transaction-payment",
  "parity-scale-codec",
- "sp-api 37.0.0",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-api",
+ "sp-runtime",
+ "sp-weights",
 ]
 
 [[package]]
@@ -11520,31 +11341,17 @@ version = "40.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "docify",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
-]
-
-[[package]]
-name = "pallet-utility"
-version = "40.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "frame-support 40.1.0",
- "frame-system 40.2.0",
- "parity-scale-codec",
- "scale-info",
- "sp-core 36.1.0",
- "sp-io 40.0.1",
- "sp-runtime 41.1.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11552,14 +11359,14 @@ name = "pallet-utility"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11567,14 +11374,14 @@ name = "pallet-verify-signature"
 version = "0.4.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-io",
+ "sp-runtime",
+ "sp-weights",
 ]
 
 [[package]]
@@ -11582,13 +11389,13 @@ name = "pallet-vesting"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -11607,18 +11414,18 @@ version = "20.1.3"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "bounded-collections",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "hex-literal",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -11631,13 +11438,13 @@ name = "pallet-xcm-benchmarks"
 version = "21.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-io",
+ "sp-runtime",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -11651,15 +11458,15 @@ dependencies = [
  "bp-messages",
  "bp-runtime",
  "bp-xcm-bridge-hub",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-bridge-messages",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -11670,18 +11477,18 @@ name = "pallet-xcm-transactor"
 version = "0.2.0"
 dependencies = [
  "cumulus-primitives-core",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
- "pallet-balances 42.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -11692,19 +11499,19 @@ dependencies = [
 name = "pallet-xcm-weight-trader"
 version = "0.1.0"
 dependencies = [
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
  "log",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-tracing",
  "staging-xcm",
  "staging-xcm-executor",
  "xcm-runtime-apis",
@@ -11717,13 +11524,13 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-utility",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "log",
  "pallet-asset-tx-payment",
  "pallet-assets",
  "pallet-authorship",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-collator-selection",
  "pallet-message-queue",
  "pallet-xcm",
@@ -11731,9 +11538,9 @@ dependencies = [
  "polkadot-primitives",
  "scale-info",
  "sp-consensus-aura",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "staging-parachain-info",
  "staging-xcm",
  "staging-xcm-executor",
@@ -12091,8 +11898,8 @@ dependencies = [
  "rand 0.8.5",
  "sc-network",
  "schnellru",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
+ "sp-core",
+ "sp-keystore",
  "thiserror 1.0.69",
  "tracing-gum",
 ]
@@ -12147,9 +11954,9 @@ dependencies = [
  "sc-storage-monitor",
  "sc-sysinfo",
  "sc-tracing",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-keyring",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "substrate-build-script-utils",
  "thiserror 1.0.69",
 ]
@@ -12169,9 +11976,9 @@ dependencies = [
  "polkadot-node-subsystem-util",
  "polkadot-primitives",
  "schnellru",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-keystore",
+ "sp-runtime",
  "thiserror 1.0.69",
  "tokio-util",
  "tracing-gum",
@@ -12184,8 +11991,8 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -12204,8 +12011,8 @@ dependencies = [
  "polkadot-node-subsystem-util",
  "polkadot-primitives",
  "sc-network",
- "sp-application-crypto 41.0.0",
- "sp-keystore 0.43.0",
+ "sp-application-crypto",
+ "sp-keystore",
  "thiserror 1.0.69",
  "tracing-gum",
 ]
@@ -12219,8 +12026,8 @@ dependencies = [
  "polkadot-node-primitives",
  "polkadot-primitives",
  "reed-solomon-novelpoly",
- "sp-core 37.0.0",
- "sp-trie 40.0.0",
+ "sp-core",
+ "sp-trie",
  "thiserror 1.0.69",
 ]
 
@@ -12238,10 +12045,10 @@ dependencies = [
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "sc-network",
- "sp-application-crypto 41.0.0",
- "sp-core 37.0.0",
+ "sp-application-crypto",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-keystore 0.43.0",
+ "sp-keystore",
  "tracing-gum",
 ]
 
@@ -12281,7 +12088,7 @@ dependencies = [
  "polkadot-node-subsystem-util",
  "polkadot-primitives",
  "schnellru",
- "sp-core 37.0.0",
+ "sp-core",
  "thiserror 1.0.69",
  "tracing-gum",
 ]
@@ -12310,10 +12117,10 @@ dependencies = [
  "sc-keystore",
  "schnellru",
  "schnorrkel 0.11.4",
- "sp-application-crypto 41.0.0",
+ "sp-application-crypto",
  "sp-consensus",
  "sp-consensus-slots",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "thiserror 1.0.69",
  "tracing-gum",
 ]
@@ -12377,7 +12184,7 @@ dependencies = [
  "polkadot-primitives",
  "polkadot-statement-table",
  "schnellru",
- "sp-keystore 0.43.0",
+ "sp-keystore",
  "thiserror 1.0.69",
  "tracing-gum",
 ]
@@ -12391,7 +12198,7 @@ dependencies = [
  "polkadot-node-subsystem",
  "polkadot-node-subsystem-util",
  "polkadot-primitives",
- "sp-keystore 0.43.0",
+ "sp-keystore",
  "thiserror 1.0.69",
  "tracing-gum",
  "wasm-timer",
@@ -12414,8 +12221,8 @@ dependencies = [
  "polkadot-overseer",
  "polkadot-parachain-primitives",
  "polkadot-primitives",
- "sp-application-crypto 41.0.0",
- "sp-keystore 0.43.0",
+ "sp-application-crypto",
+ "sp-keystore",
  "tracing-gum",
 ]
 
@@ -12479,7 +12286,7 @@ dependencies = [
  "polkadot-overseer",
  "polkadot-primitives",
  "sp-blockchain",
- "sp-inherents 37.0.0",
+ "sp-inherents",
  "thiserror 1.0.69",
  "tracing-gum",
 ]
@@ -12535,7 +12342,7 @@ dependencies = [
  "rand 0.8.5",
  "sc-tracing",
  "slotmap",
- "sp-core 37.0.0",
+ "sp-core",
  "strum 0.26.3",
  "tempfile",
  "thiserror 1.0.69",
@@ -12552,7 +12359,7 @@ dependencies = [
  "polkadot-node-subsystem",
  "polkadot-node-subsystem-util",
  "polkadot-primitives",
- "sp-keystore 0.43.0",
+ "sp-keystore",
  "tracing-gum",
 ]
 
@@ -12573,11 +12380,11 @@ dependencies = [
  "sc-executor-common",
  "sc-executor-wasmtime",
  "seccompiler",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-io 41.0.1",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-externalities",
+ "sp-io",
+ "sp-tracing",
  "thiserror 1.0.69",
  "tracing-gum",
 ]
@@ -12633,7 +12440,7 @@ dependencies = [
  "sc-authority-discovery",
  "sc-network",
  "sc-network-types",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "strum 0.26.3",
  "thiserror 1.0.69",
  "tracing-gum",
@@ -12654,10 +12461,10 @@ dependencies = [
  "sc-keystore",
  "schnorrkel 0.11.4",
  "serde",
- "sp-application-crypto 41.0.0",
+ "sp-application-crypto",
  "sp-consensus-babe",
  "sp-consensus-slots",
- "sp-keystore 0.43.0",
+ "sp-keystore",
  "sp-maybe-compressed-blob",
  "thiserror 1.0.69",
  "zstd 0.12.4",
@@ -12691,11 +12498,11 @@ dependencies = [
  "sc-network-types",
  "sc-transaction-pool-api",
  "smallvec",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-authority-discovery",
  "sp-blockchain",
  "sp-consensus-babe",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
 ]
@@ -12724,9 +12531,9 @@ dependencies = [
  "rand 0.8.5",
  "sc-keystore",
  "schnellru",
- "sp-application-crypto 41.0.0",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
+ "sp-application-crypto",
+ "sp-core",
+ "sp-keystore",
  "thiserror 1.0.69",
  "tracing-gum",
 ]
@@ -12746,7 +12553,7 @@ dependencies = [
  "polkadot-node-subsystem-types",
  "polkadot-primitives",
  "sc-client-api",
- "sp-core 37.0.0",
+ "sp-core",
  "tikv-jemalloc-ctl",
  "tracing-gum",
 ]
@@ -12762,9 +12569,9 @@ dependencies = [
  "polkadot-core-primitives",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-weights",
 ]
 
 [[package]]
@@ -12781,18 +12588,18 @@ dependencies = [
  "polkadot-parachain-primitives",
  "scale-info",
  "serde",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-arithmetic 27.0.0",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-arithmetic",
  "sp-authority-discovery",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-keystore",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
  "thiserror 1.0.69",
 ]
 
@@ -12816,15 +12623,15 @@ dependencies = [
  "sc-rpc",
  "sc-sync-state-rpc",
  "sc-transaction-pool-api",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
+ "sp-api",
+ "sp-application-crypto",
  "sp-block-builder",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-babe",
  "sp-consensus-beefy",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-keystore",
+ "sp-runtime",
  "substrate-frame-rpc-system",
  "substrate-state-trie-migration-rpc",
 ]
@@ -12835,17 +12642,17 @@ version = "20.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "bitvec",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-election-provider-support",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "libsecp256k1",
  "log",
  "pallet-asset-rate",
  "pallet-authorship",
  "pallet-babe",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-broker",
  "pallet-election-provider-multi-phase",
  "pallet-fast-unstake",
@@ -12864,15 +12671,15 @@ dependencies = [
  "scale-info",
  "serde",
  "slot-range-helper",
- "sp-api 37.0.0",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
+ "sp-api",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
  "sp-keyring",
  "sp-npos-elections",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
- "sp-staking 39.0.0",
+ "sp-staking",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -12885,10 +12692,10 @@ version = "21.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "bs58",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "parity-scale-codec",
  "polkadot-primitives",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-tracing",
 ]
 
 [[package]]
@@ -12898,16 +12705,16 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "bitflags 1.3.2",
  "bitvec",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-election-provider-support",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "log",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-broker",
  "pallet-message-queue",
  "pallet-mmr",
@@ -12923,17 +12730,17 @@ dependencies = [
  "rand_chacha 0.3.1",
  "scale-info",
  "serde",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-inherents",
+ "sp-io",
+ "sp-keystore",
+ "sp-runtime",
  "sp-session",
- "sp-staking 39.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-staking",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-executor",
  "static_assertions",
@@ -12945,10 +12752,10 @@ version = "0.10.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "docify",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-executive",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
@@ -12956,22 +12763,22 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-api 37.0.0",
- "sp-arithmetic 27.0.0",
+ "sp-api",
+ "sp-arithmetic",
  "sp-block-builder",
  "sp-consensus-aura",
  "sp-consensus-grandpa",
- "sp-core 37.0.0",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
+ "sp-core",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
  "sp-keyring",
  "sp-offchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-storage",
  "sp-transaction-pool",
- "sp-version 40.0.0",
+ "sp-version",
 ]
 
 [[package]]
@@ -12980,9 +12787,9 @@ version = "25.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "async-trait",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-benchmarking-cli",
- "frame-system 41.0.0",
+ "frame-system",
  "frame-system-rpc-runtime-api",
  "futures 0.3.31",
  "is_executable",
@@ -13053,7 +12860,7 @@ dependencies = [
  "sc-transaction-pool-api",
  "serde",
  "serde_json",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-authority-discovery",
  "sp-block-builder",
  "sp-blockchain",
@@ -13061,19 +12868,19 @@ dependencies = [
  "sp-consensus-babe",
  "sp-consensus-beefy",
  "sp-consensus-grandpa",
- "sp-core 37.0.0",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
+ "sp-core",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
  "sp-keyring",
  "sp-mmr-primitives",
  "sp-offchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
  "sp-timestamp",
  "sp-transaction-pool",
- "sp-version 40.0.0",
- "sp-weights 32.0.0",
+ "sp-version",
+ "sp-weights",
  "staging-xcm",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
@@ -13097,7 +12904,7 @@ dependencies = [
  "polkadot-node-subsystem",
  "polkadot-node-subsystem-util",
  "polkadot-primitives",
- "sp-keystore 0.43.0",
+ "sp-keystore",
  "thiserror 1.0.69",
  "tracing-gum",
 ]
@@ -13158,12 +12965,6 @@ dependencies = [
 
 [[package]]
 name = "polkavm-common"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31ff33982a807d8567645d4784b9b5d7ab87bcb494f534a57cadd9012688e102"
-
-[[package]]
-name = "polkavm-common"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c16b809cfd398f861261c045a8745e6c78b71ea7e0d3ef6f7cc553eb27bc17e"
@@ -13185,15 +12986,6 @@ dependencies = [
 
 [[package]]
 name = "polkavm-derive"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2eb703f3b6404c13228402e98a5eae063fd16b8f58afe334073ec105ee4117e"
-dependencies = [
- "polkavm-derive-impl-macro 0.18.0",
-]
-
-[[package]]
-name = "polkavm-derive"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "47239245f87329541932c0d7fec750a66a75b13aa87dfe4fbfd637bab86ad387"
@@ -13208,18 +13000,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "176144f8661117ea95fa7cf868c9a62d6b143e8a2ebcb7582464c3faade8669a"
 dependencies = [
  "polkavm-derive-impl-macro 0.24.0",
-]
-
-[[package]]
-name = "polkavm-derive-impl"
-version = "0.18.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f2116a92e6e96220a398930f4c8a6cda1264206f3e2034fc9982bfd93f261f7"
-dependencies = [
- "polkavm-common 0.18.0",
- "proc-macro2",
- "quote",
- "syn 2.0.101",
 ]
 
 [[package]]
@@ -13243,16 +13023,6 @@ dependencies = [
  "polkavm-common 0.24.0",
  "proc-macro2",
  "quote",
- "syn 2.0.101",
-]
-
-[[package]]
-name = "polkavm-derive-impl-macro"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48c16669ddc7433e34c1007d31080b80901e3e8e523cb9d4b441c3910cf9294b"
-dependencies = [
- "polkavm-derive-impl 0.18.1",
  "syn 2.0.101",
 ]
 
@@ -13404,8 +13174,8 @@ dependencies = [
  "environmental",
  "evm",
  "fp-evm",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "hex",
  "hex-literal",
  "impl-trait-for-tuples",
@@ -13417,10 +13187,10 @@ dependencies = [
  "scale-info",
  "serde",
  "similar-asserts",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-weights",
  "staging-xcm",
 ]
 
@@ -14273,13 +14043,13 @@ name = "rococo-runtime"
 version = "24.0.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "binary-merkle-tree 16.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "binary-merkle-tree",
  "bitvec",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-executive",
  "frame-metadata-hash-extension",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
@@ -14289,7 +14059,7 @@ dependencies = [
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-beefy",
  "pallet-beefy-mmr",
  "pallet-bounties",
@@ -14324,7 +14094,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility 41.0.0",
+ "pallet-utility",
  "pallet-vesting",
  "pallet-whitelist",
  "pallet-xcm",
@@ -14339,26 +14109,26 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
- "sp-api 37.0.0",
- "sp-arithmetic 27.0.0",
+ "sp-api",
+ "sp-arithmetic",
  "sp-authority-discovery",
  "sp-block-builder",
  "sp-consensus-babe",
  "sp-consensus-beefy",
  "sp-consensus-grandpa",
- "sp-core 37.0.0",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
+ "sp-core",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
  "sp-keyring",
  "sp-mmr-primitives",
  "sp-offchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
- "sp-staking 39.0.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-staking",
+ "sp-storage",
  "sp-transaction-pool",
- "sp-version 40.0.0",
+ "sp-version",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -14371,13 +14141,13 @@ name = "rococo-runtime-constants"
 version = "21.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
+ "frame-support",
  "polkadot-primitives",
  "polkadot-runtime-common",
  "smallvec",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-weights",
  "staging-xcm",
  "staging-xcm-builder",
 ]
@@ -14735,8 +14505,8 @@ version = "32.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "log",
- "sp-core 37.0.0",
- "sp-wasm-interface 22.0.0",
+ "sp-core",
+ "sp-wasm-interface",
  "thiserror 1.0.69",
 ]
 
@@ -14760,12 +14530,12 @@ dependencies = [
  "sc-network-types",
  "serde",
  "serde_json",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-authority-discovery",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-keystore",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
  "tokio",
@@ -14783,12 +14553,12 @@ dependencies = [
  "sc-proposer-metrics",
  "sc-telemetry",
  "sc-transaction-pool-api",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
 ]
 
@@ -14798,13 +14568,13 @@ version = "0.45.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "parity-scale-codec",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
- "sp-trie 40.0.0",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-trie",
 ]
 
 [[package]]
@@ -14824,13 +14594,13 @@ dependencies = [
  "serde",
  "serde_json",
  "sp-blockchain",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-genesis-builder 0.18.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-genesis-builder",
+ "sp-io",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-tracing",
 ]
 
 [[package]]
@@ -14877,14 +14647,14 @@ dependencies = [
  "serde",
  "serde_json",
  "sp-blockchain",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-keyring",
- "sp-keystore 0.43.0",
- "sp-panic-handler 13.0.2 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-version 40.0.0",
+ "sp-keystore",
+ "sp-panic-handler",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-storage",
+ "sp-version",
  "thiserror 1.0.69",
  "tokio",
 ]
@@ -14902,16 +14672,16 @@ dependencies = [
  "sc-executor",
  "sc-transaction-pool-api",
  "sc-utils",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
  "sp-consensus",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-database",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
+ "sp-externalities",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-storage",
+ "sp-trie",
  "substrate-prometheus-endpoint",
 ]
 
@@ -14932,13 +14702,13 @@ dependencies = [
  "sc-client-api",
  "sc-state-db",
  "schnellru",
- "sp-arithmetic 27.0.0",
+ "sp-arithmetic",
  "sp-blockchain",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-database",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-trie 40.0.0",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-trie",
  "substrate-prometheus-endpoint",
  "sysinfo",
 ]
@@ -14959,9 +14729,9 @@ dependencies = [
  "serde",
  "sp-blockchain",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-state-machine",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
 ]
@@ -14980,17 +14750,17 @@ dependencies = [
  "sc-consensus",
  "sc-consensus-slots",
  "sc-telemetry",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
+ "sp-api",
+ "sp-application-crypto",
  "sp-block-builder",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-aura",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-inherents",
+ "sp-keystore",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
 ]
@@ -15015,18 +14785,18 @@ dependencies = [
  "sc-consensus-slots",
  "sc-telemetry",
  "sc-transaction-pool-api",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
+ "sp-api",
+ "sp-application-crypto",
  "sp-block-builder",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-babe",
  "sp-consensus-slots",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-inherents 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-inherents",
+ "sp-keystore",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
 ]
@@ -15042,14 +14812,14 @@ dependencies = [
  "sc-consensus-epochs",
  "sc-rpc-api",
  "serde",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
+ "sp-api",
+ "sp-application-crypto",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-babe",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-keystore",
+ "sp-runtime",
  "thiserror 1.0.69",
 ]
 
@@ -15072,15 +14842,15 @@ dependencies = [
  "sc-network-sync",
  "sc-network-types",
  "sc-utils",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-arithmetic 27.0.0",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-arithmetic",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-beefy",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-keystore",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
  "tokio",
@@ -15100,10 +14870,10 @@ dependencies = [
  "sc-consensus-beefy",
  "sc-rpc",
  "serde",
- "sp-application-crypto 41.0.0",
+ "sp-application-crypto",
  "sp-consensus-beefy",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "thiserror 1.0.69",
 ]
 
@@ -15117,7 +14887,7 @@ dependencies = [
  "sc-client-api",
  "sc-consensus",
  "sp-blockchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -15150,16 +14920,16 @@ dependencies = [
  "sc-transaction-pool-api",
  "sc-utils",
  "serde_json",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-arithmetic 27.0.0",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-arithmetic",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-grandpa",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-keystore",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
 ]
@@ -15179,8 +14949,8 @@ dependencies = [
  "sc-rpc",
  "serde",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "thiserror 1.0.69",
 ]
 
@@ -15204,16 +14974,16 @@ dependencies = [
  "sc-transaction-pool",
  "sc-transaction-pool-api",
  "serde",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-aura",
  "sp-consensus-babe",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-inherents",
+ "sp-keystore",
+ "sp-runtime",
  "sp-timestamp",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
@@ -15232,14 +15002,14 @@ dependencies = [
  "sc-client-api",
  "sc-consensus",
  "sc-telemetry",
- "sp-arithmetic 27.0.0",
+ "sp-arithmetic",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-state-machine",
 ]
 
 [[package]]
@@ -15254,15 +15024,15 @@ dependencies = [
  "sc-executor-polkavm",
  "sc-executor-wasmtime",
  "schnellru",
- "sp-api 37.0.0",
- "sp-core 37.0.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-io 41.0.1",
- "sp-panic-handler 13.0.2 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-runtime-interface 30.0.0",
- "sp-trie 40.0.0",
- "sp-version 40.0.0",
- "sp-wasm-interface 22.0.0",
+ "sp-api",
+ "sp-core",
+ "sp-externalities",
+ "sp-io",
+ "sp-panic-handler",
+ "sp-runtime-interface",
+ "sp-trie",
+ "sp-version",
+ "sp-wasm-interface",
  "tracing",
 ]
 
@@ -15275,7 +15045,7 @@ dependencies = [
  "polkavm 0.24.0",
  "sc-allocator",
  "sp-maybe-compressed-blob",
- "sp-wasm-interface 22.0.0",
+ "sp-wasm-interface",
  "thiserror 1.0.69",
  "wasm-instrument",
 ]
@@ -15288,7 +15058,7 @@ dependencies = [
  "log",
  "polkavm 0.24.0",
  "sc-executor-common",
- "sp-wasm-interface 22.0.0",
+ "sp-wasm-interface",
 ]
 
 [[package]]
@@ -15303,8 +15073,8 @@ dependencies = [
  "rustix 0.36.17",
  "sc-allocator",
  "sc-executor-common",
- "sp-runtime-interface 30.0.0",
- "sp-wasm-interface 22.0.0",
+ "sp-runtime-interface",
+ "sp-wasm-interface",
  "wasmtime",
 ]
 
@@ -15321,7 +15091,7 @@ dependencies = [
  "sc-network",
  "sc-network-sync",
  "sp-blockchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -15332,9 +15102,9 @@ dependencies = [
  "array-bytes 6.2.3",
  "parking_lot 0.12.3",
  "serde_json",
- "sp-application-crypto 41.0.0",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
+ "sp-application-crypto",
+ "sp-core",
+ "sp-keystore",
  "thiserror 1.0.69",
 ]
 
@@ -15357,12 +15127,12 @@ dependencies = [
  "sc-network",
  "sc-network-types",
  "sc-transaction-pool-api",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
+ "sp-core",
+ "sp-keystore",
  "sp-mixnet",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "thiserror 1.0.69",
 ]
 
@@ -15402,10 +15172,10 @@ dependencies = [
  "serde",
  "serde_json",
  "smallvec",
- "sp-arithmetic 27.0.0",
+ "sp-arithmetic",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
  "tokio",
@@ -15423,7 +15193,7 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "bitflags 1.3.2",
  "parity-scale-codec",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -15440,7 +15210,7 @@ dependencies = [
  "sc-network-sync",
  "sc-network-types",
  "schnellru",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "tracing",
 ]
@@ -15461,8 +15231,8 @@ dependencies = [
  "sc-network",
  "sc-network-types",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "thiserror 1.0.69",
 ]
 
@@ -15489,12 +15259,12 @@ dependencies = [
  "sc-utils",
  "schnellru",
  "smallvec",
- "sp-arithmetic 27.0.0",
+ "sp-arithmetic",
  "sp-blockchain",
  "sp-consensus",
  "sp-consensus-grandpa",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
  "tokio",
@@ -15516,7 +15286,7 @@ dependencies = [
  "sc-network-types",
  "sc-utils",
  "sp-consensus",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "substrate-prometheus-endpoint",
 ]
 
@@ -15565,12 +15335,12 @@ dependencies = [
  "sc-network-types",
  "sc-transaction-pool-api",
  "sc-utils",
- "sp-api 37.0.0",
- "sp-core 37.0.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-keystore 0.43.0",
+ "sp-api",
+ "sp-core",
+ "sp-externalities",
+ "sp-keystore",
  "sp-offchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "threadpool",
  "tracing",
 ]
@@ -15603,16 +15373,16 @@ dependencies = [
  "sc-transaction-pool-api",
  "sc-utils",
  "serde_json",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
+ "sp-core",
+ "sp-keystore",
  "sp-offchain",
  "sp-rpc",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
  "sp-statement-store",
- "sp-version 40.0.0",
+ "sp-version",
  "tokio",
 ]
 
@@ -15629,10 +15399,10 @@ dependencies = [
  "scale-info",
  "serde",
  "serde_json",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-rpc",
- "sp-runtime 42.0.0",
- "sp-version 40.0.0",
+ "sp-runtime",
+ "sp-version",
  "thiserror 1.0.69",
 ]
 
@@ -15681,12 +15451,12 @@ dependencies = [
  "sc-transaction-pool-api",
  "schnellru",
  "serde",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-rpc",
- "sp-runtime 42.0.0",
- "sp-version 40.0.0",
+ "sp-runtime",
+ "sp-version",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
  "tokio",
@@ -15701,10 +15471,10 @@ dependencies = [
  "parity-scale-codec",
  "sc-executor",
  "sc-executor-common",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-state-machine 0.46.0",
- "sp-wasm-interface 22.0.0",
+ "sp-state-machine",
+ "sp-wasm-interface",
  "thiserror 1.0.69",
 ]
 
@@ -15749,20 +15519,20 @@ dependencies = [
  "schnellru",
  "serde",
  "serde_json",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-externalities",
+ "sp-keystore",
+ "sp-runtime",
  "sp-session",
- "sp-state-machine 0.46.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-state-machine",
+ "sp-storage",
  "sp-transaction-pool",
  "sp-transaction-storage-proof",
- "sp-trie 40.0.0",
- "sp-version 40.0.0",
+ "sp-trie",
+ "sp-version",
  "static_init",
  "substrate-prometheus-endpoint",
  "tempfile",
@@ -15780,7 +15550,7 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "parking_lot 0.12.3",
- "sp-core 37.0.0",
+ "sp-core",
 ]
 
 [[package]]
@@ -15791,7 +15561,7 @@ dependencies = [
  "clap",
  "fs4",
  "log",
- "sp-core 37.0.0",
+ "sp-core",
  "thiserror 1.0.69",
  "tokio",
 ]
@@ -15811,7 +15581,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sp-blockchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "thiserror 1.0.69",
 ]
 
@@ -15830,9 +15600,9 @@ dependencies = [
  "sc-telemetry",
  "serde",
  "serde_json",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-io 41.0.1",
+ "sp-io",
 ]
 
 [[package]]
@@ -15870,13 +15640,13 @@ dependencies = [
  "sc-client-api",
  "sc-tracing-proc-macro",
  "serde",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-rpc",
- "sp-runtime 42.0.0",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
+ "sp-runtime",
+ "sp-tracing",
+ "sp-trie",
  "thiserror 1.0.69",
  "tracing",
  "tracing-log",
@@ -15911,12 +15681,12 @@ dependencies = [
  "sc-transaction-pool-api",
  "sc-utils",
  "serde",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-runtime 42.0.0",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-tracing",
  "sp-transaction-pool",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
@@ -15937,8 +15707,8 @@ dependencies = [
  "parity-scale-codec",
  "serde",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "thiserror 1.0.69",
 ]
 
@@ -15953,7 +15723,7 @@ dependencies = [
  "log",
  "parking_lot 0.12.3",
  "prometheus",
- "sp-arithmetic 27.0.0",
+ "sp-arithmetic",
 ]
 
 [[package]]
@@ -16446,18 +16216,18 @@ version = "0.1.0"
 source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2506#94e3cb9dec9a42e8b641a74ef12cfe340495aab4"
 dependencies = [
  "async-trait",
- "frame-support 41.0.0",
+ "frame-support",
  "nimbus-primitives",
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
+ "sp-api",
+ "sp-application-crypto",
  "sp-consensus-babe",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-inherents",
+ "sp-keystore",
+ "sp-runtime",
+ "sp-std",
 ]
 
 [[package]]
@@ -16645,7 +16415,7 @@ dependencies = [
  "enumn",
  "parity-scale-codec",
  "paste",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -16906,19 +16676,19 @@ version = "0.14.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "bp-relayers",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "hex-literal",
  "log",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
  "scale-info",
  "serde",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -16987,28 +16757,6 @@ dependencies = [
 
 [[package]]
 name = "sp-api"
-version = "36.0.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "docify",
- "hash-db",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-api-proc-macro 22.0.1",
- "sp-core 36.1.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-metadata-ir 0.10.0",
- "sp-runtime 41.1.0",
- "sp-runtime-interface 29.0.1",
- "sp-state-machine 0.45.0",
- "sp-trie 39.1.0",
- "sp-version 39.0.0",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "sp-api"
 version = "37.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
@@ -17017,30 +16765,16 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "scale-info",
- "sp-api-proc-macro 23.0.0",
- "sp-core 37.0.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-metadata-ir 0.11.0",
- "sp-runtime 42.0.0",
- "sp-runtime-interface 30.0.0",
- "sp-state-machine 0.46.0",
- "sp-trie 40.0.0",
- "sp-version 40.0.0",
+ "sp-api-proc-macro",
+ "sp-core",
+ "sp-externalities",
+ "sp-metadata-ir",
+ "sp-runtime",
+ "sp-runtime-interface",
+ "sp-state-machine",
+ "sp-trie",
+ "sp-version",
  "thiserror 1.0.69",
-]
-
-[[package]]
-name = "sp-api-proc-macro"
-version = "22.0.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "Inflector",
- "blake2 0.10.6",
- "expander",
- "proc-macro-crate 3.3.0",
- "proc-macro2",
- "quote",
- "syn 2.0.101",
 ]
 
 [[package]]
@@ -17059,40 +16793,14 @@ dependencies = [
 
 [[package]]
 name = "sp-application-crypto"
-version = "40.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core 36.1.0",
- "sp-io 40.0.1",
-]
-
-[[package]]
-name = "sp-application-crypto"
 version = "41.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
-]
-
-[[package]]
-name = "sp-arithmetic"
-version = "26.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "docify",
- "integer-sqrt",
- "num-traits",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "static_assertions",
+ "sp-core",
+ "sp-io",
 ]
 
 [[package]]
@@ -17116,9 +16824,9 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -17126,9 +16834,9 @@ name = "sp-block-builder"
 version = "37.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "sp-api 37.0.0",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-inherents",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -17140,12 +16848,12 @@ dependencies = [
  "parity-scale-codec",
  "parking_lot 0.12.3",
  "schnellru",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-consensus",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-database",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
+ "sp-runtime",
+ "sp-state-machine",
  "thiserror 1.0.69",
  "tracing",
 ]
@@ -17158,9 +16866,9 @@ dependencies = [
  "async-trait",
  "futures 0.3.31",
  "log",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-state-machine",
  "thiserror 1.0.69",
 ]
 
@@ -17172,11 +16880,11 @@ dependencies = [
  "async-trait",
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
+ "sp-api",
+ "sp-application-crypto",
  "sp-consensus-slots",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-inherents",
+ "sp-runtime",
  "sp-timestamp",
 ]
 
@@ -17189,12 +16897,12 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
+ "sp-api",
+ "sp-application-crypto",
  "sp-consensus-slots",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
  "sp-timestamp",
 ]
 
@@ -17206,15 +16914,15 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-core 37.0.0",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-io 41.0.1",
- "sp-keystore 0.43.0",
+ "sp-io",
+ "sp-keystore",
  "sp-mmr-primitives",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-runtime",
+ "sp-weights",
  "strum 0.26.3",
 ]
 
@@ -17228,11 +16936,11 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-core",
+ "sp-keystore",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -17244,53 +16952,6 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-timestamp",
-]
-
-[[package]]
-name = "sp-core"
-version = "36.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "ark-vrf",
- "array-bytes 6.2.3",
- "bitflags 1.3.2",
- "blake2 0.10.6",
- "bounded-collections",
- "bs58",
- "dyn-clonable",
- "ed25519-zebra",
- "futures 0.3.31",
- "hash-db",
- "hash256-std-hasher",
- "impl-serde",
- "itertools 0.11.0",
- "k256",
- "libsecp256k1",
- "log",
- "merlin",
- "parity-bip39",
- "parity-scale-codec",
- "parking_lot 0.12.3",
- "paste",
- "primitive-types 0.13.1",
- "rand 0.8.5",
- "scale-info",
- "schnorrkel 0.11.4",
- "secp256k1 0.28.2",
- "secrecy 0.8.0",
- "serde",
- "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-runtime-interface 29.0.1",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "ss58-registry",
- "substrate-bip39 0.6.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "thiserror 1.0.69",
- "tracing",
- "w3f-bls",
- "zeroize",
 ]
 
 [[package]]
@@ -17328,13 +16989,13 @@ dependencies = [
  "serde",
  "sha2 0.10.9",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-runtime-interface 30.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-debug-derive",
+ "sp-externalities",
+ "sp-runtime-interface",
+ "sp-std",
+ "sp-storage",
  "ss58-registry",
- "substrate-bip39 0.6.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "substrate-bip39",
  "thiserror 1.0.69",
  "tracing",
  "w3f-bls",
@@ -17358,19 +17019,6 @@ dependencies = [
 [[package]]
 name = "sp-crypto-hashing"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "blake2b_simd",
- "byteorder",
- "digest 0.10.7",
- "sha2 0.10.9",
- "sha3",
- "twox-hash",
-]
-
-[[package]]
-name = "sp-crypto-hashing"
-version = "0.1.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "blake2b_simd",
@@ -17379,16 +17027,6 @@ dependencies = [
  "sha2 0.10.9",
  "sha3",
  "twox-hash",
-]
-
-[[package]]
-name = "sp-crypto-hashing-proc-macro"
-version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "quote",
- "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "syn 2.0.101",
 ]
 
 [[package]]
@@ -17413,16 +17051,6 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "14.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.101",
-]
-
-[[package]]
-name = "sp-debug-derive"
-version = "14.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "proc-macro2",
@@ -17433,33 +17061,11 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.30.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "environmental",
- "parity-scale-codec",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
-]
-
-[[package]]
-name = "sp-externalities"
-version = "0.30.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "environmental",
  "parity-scale-codec",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
-]
-
-[[package]]
-name = "sp-genesis-builder"
-version = "0.17.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "parity-scale-codec",
- "scale-info",
- "serde_json",
- "sp-api 36.0.1",
- "sp-runtime 41.1.0",
+ "sp-storage",
 ]
 
 [[package]]
@@ -17470,21 +17076,8 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde_json",
- "sp-api 37.0.0",
- "sp-runtime 42.0.0",
-]
-
-[[package]]
-name = "sp-inherents"
-version = "36.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "async-trait",
- "impl-trait-for-tuples",
- "parity-scale-codec",
- "scale-info",
- "sp-runtime 41.1.0",
- "thiserror 1.0.69",
+ "sp-api",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -17496,34 +17089,8 @@ dependencies = [
  "impl-trait-for-tuples",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "thiserror 1.0.69",
-]
-
-[[package]]
-name = "sp-io"
-version = "40.0.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "bytes",
- "docify",
- "ed25519-dalek",
- "libsecp256k1",
- "log",
- "parity-scale-codec",
- "polkavm-derive 0.18.0",
- "rustversion",
- "secp256k1 0.28.2",
- "sp-core 36.1.0",
- "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-keystore 0.42.0",
- "sp-runtime-interface 29.0.1",
- "sp-state-machine 0.45.0",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-trie 39.1.0",
- "tracing",
- "tracing-core",
 ]
 
 [[package]]
@@ -17540,14 +17107,14 @@ dependencies = [
  "polkavm-derive 0.24.0",
  "rustversion",
  "secp256k1 0.28.2",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-keystore 0.43.0",
- "sp-runtime-interface 30.0.0",
- "sp-state-machine 0.46.0",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
+ "sp-externalities",
+ "sp-keystore",
+ "sp-runtime-interface",
+ "sp-state-machine",
+ "sp-tracing",
+ "sp-trie",
  "tracing",
  "tracing-core",
 ]
@@ -17557,20 +17124,9 @@ name = "sp-keyring"
 version = "42.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "strum 0.26.3",
-]
-
-[[package]]
-name = "sp-keystore"
-version = "0.42.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "parity-scale-codec",
- "parking_lot 0.12.3",
- "sp-core 36.1.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
 ]
 
 [[package]]
@@ -17580,8 +17136,8 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "parity-scale-codec",
  "parking_lot 0.12.3",
- "sp-core 37.0.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-externalities",
 ]
 
 [[package]]
@@ -17591,16 +17147,6 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "thiserror 1.0.69",
  "zstd 0.12.4",
-]
-
-[[package]]
-name = "sp-metadata-ir"
-version = "0.10.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "frame-metadata 20.0.0",
- "parity-scale-codec",
- "scale-info",
 ]
 
 [[package]]
@@ -17620,8 +17166,8 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
+ "sp-api",
+ "sp-application-crypto",
 ]
 
 [[package]]
@@ -17634,10 +17180,10 @@ dependencies = [
  "polkadot-ckb-merkle-mountain-range",
  "scale-info",
  "serde",
- "sp-api 37.0.0",
- "sp-core 37.0.0",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-core",
+ "sp-debug-derive",
+ "sp-runtime",
  "thiserror 1.0.69",
 ]
 
@@ -17649,9 +17195,9 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -17659,18 +17205,9 @@ name = "sp-offchain"
 version = "37.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "sp-api 37.0.0",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
-]
-
-[[package]]
-name = "sp-panic-handler"
-version = "13.0.2"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "backtrace",
- "regex",
+ "sp-api",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -17689,36 +17226,7 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "rustc-hash 1.1.0",
  "serde",
- "sp-core 37.0.0",
-]
-
-[[package]]
-name = "sp-runtime"
-version = "41.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "binary-merkle-tree 16.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "docify",
- "either",
- "hash256-std-hasher",
- "impl-trait-for-tuples",
- "log",
- "num-traits",
- "parity-scale-codec",
- "paste",
- "rand 0.8.5",
- "scale-info",
- "serde",
- "simple-mermaid",
- "sp-application-crypto 40.1.0",
- "sp-arithmetic 26.1.0",
- "sp-core 36.1.0",
- "sp-io 40.0.1",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-trie 39.1.0",
- "sp-weights 31.1.0",
- "tracing",
- "tuplex",
+ "sp-core",
 ]
 
 [[package]]
@@ -17726,7 +17234,7 @@ name = "sp-runtime"
 version = "42.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "binary-merkle-tree 16.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "binary-merkle-tree",
  "docify",
  "either",
  "hash256-std-hasher",
@@ -17739,34 +17247,15 @@ dependencies = [
  "scale-info",
  "serde",
  "simple-mermaid",
- "sp-application-crypto 41.0.0",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
- "sp-weights 32.0.0",
+ "sp-application-crypto",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-std",
+ "sp-trie",
+ "sp-weights",
  "tracing",
  "tuplex",
-]
-
-[[package]]
-name = "sp-runtime-interface"
-version = "29.0.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "bytes",
- "impl-trait-for-tuples",
- "parity-scale-codec",
- "polkavm-derive 0.18.0",
- "primitive-types 0.13.1",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-runtime-interface-proc-macro 18.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-wasm-interface 21.0.1",
- "static_assertions",
 ]
 
 [[package]]
@@ -17779,26 +17268,13 @@ dependencies = [
  "parity-scale-codec",
  "polkavm-derive 0.24.0",
  "primitive-types 0.13.1",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-runtime-interface-proc-macro 19.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-wasm-interface 22.0.0",
+ "sp-externalities",
+ "sp-runtime-interface-proc-macro",
+ "sp-std",
+ "sp-storage",
+ "sp-tracing",
+ "sp-wasm-interface",
  "static_assertions",
-]
-
-[[package]]
-name = "sp-runtime-interface-proc-macro"
-version = "18.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "Inflector",
- "expander",
- "proc-macro-crate 3.3.0",
- "proc-macro2",
- "quote",
- "syn 2.0.101",
 ]
 
 [[package]]
@@ -17821,24 +17297,11 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-core 37.0.0",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
- "sp-staking 39.0.0",
-]
-
-[[package]]
-name = "sp-staking"
-version = "38.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "impl-trait-for-tuples",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core 36.1.0",
- "sp-runtime 41.1.0",
+ "sp-api",
+ "sp-core",
+ "sp-keystore",
+ "sp-runtime",
+ "sp-staking",
 ]
 
 [[package]]
@@ -17850,28 +17313,8 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
-]
-
-[[package]]
-name = "sp-state-machine"
-version = "0.45.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "hash-db",
- "log",
- "parity-scale-codec",
- "parking_lot 0.12.3",
- "rand 0.8.5",
- "smallvec",
- "sp-core 36.1.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-panic-handler 13.0.2 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-trie 39.1.0",
- "thiserror 1.0.69",
- "tracing",
- "trie-db",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -17885,10 +17328,10 @@ dependencies = [
  "parking_lot 0.12.3",
  "rand 0.8.5",
  "smallvec",
- "sp-core 37.0.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-panic-handler 13.0.2 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
+ "sp-core",
+ "sp-externalities",
+ "sp-panic-handler",
+ "sp-trie",
  "thiserror 1.0.69",
  "tracing",
  "trie-db",
@@ -17907,13 +17350,13 @@ dependencies = [
  "rand 0.8.5",
  "scale-info",
  "sha2 0.10.9",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-core 37.0.0",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-runtime 42.0.0",
- "sp-runtime-interface 30.0.0",
+ "sp-externalities",
+ "sp-runtime",
+ "sp-runtime-interface",
  "thiserror 1.0.69",
  "x25519-dalek",
 ]
@@ -17921,24 +17364,7 @@ dependencies = [
 [[package]]
 name = "sp-std"
 version = "14.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-
-[[package]]
-name = "sp-std"
-version = "14.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
-
-[[package]]
-name = "sp-storage"
-version = "22.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "impl-serde",
- "parity-scale-codec",
- "ref-cast",
- "serde",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
-]
 
 [[package]]
 name = "sp-storage"
@@ -17949,7 +17375,7 @@ dependencies = [
  "parity-scale-codec",
  "ref-cast",
  "serde",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-debug-derive",
 ]
 
 [[package]]
@@ -17959,20 +17385,9 @@ source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbea
 dependencies = [
  "async-trait",
  "parity-scale-codec",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-inherents",
+ "sp-runtime",
  "thiserror 1.0.69",
-]
-
-[[package]]
-name = "sp-tracing"
-version = "17.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "parity-scale-codec",
- "tracing",
- "tracing-core",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -17991,8 +17406,8 @@ name = "sp-transaction-pool"
 version = "37.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "sp-api 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-api",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -18003,32 +17418,10 @@ dependencies = [
  "async-trait",
  "parity-scale-codec",
  "scale-info",
- "sp-core 37.0.0",
- "sp-inherents 37.0.0",
- "sp-runtime 42.0.0",
- "sp-trie 40.0.0",
-]
-
-[[package]]
-name = "sp-trie"
-version = "39.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "ahash",
- "hash-db",
- "memory-db 0.32.0",
- "nohash-hasher",
- "parity-scale-codec",
- "parking_lot 0.12.3",
- "rand 0.8.5",
- "scale-info",
- "schnellru",
- "sp-core 36.1.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "thiserror 1.0.69",
- "tracing",
- "trie-db",
- "trie-root",
+ "sp-core",
+ "sp-inherents",
+ "sp-runtime",
+ "sp-trie",
 ]
 
 [[package]]
@@ -18040,37 +17433,20 @@ dependencies = [
  "foldhash 0.1.5",
  "hash-db",
  "hashbrown 0.15.3",
- "memory-db 0.34.0",
+ "memory-db",
  "nohash-hasher",
  "parity-scale-codec",
  "parking_lot 0.12.3",
  "rand 0.8.5",
  "scale-info",
  "schnellru",
- "sp-core 37.0.0",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-externalities",
  "substrate-prometheus-endpoint",
  "thiserror 1.0.69",
  "tracing",
  "trie-db",
  "trie-root",
-]
-
-[[package]]
-name = "sp-version"
-version = "39.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "impl-serde",
- "parity-scale-codec",
- "parity-wasm",
- "scale-info",
- "serde",
- "sp-crypto-hashing-proc-macro 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-runtime 41.1.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "sp-version-proc-macro 15.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -18083,23 +17459,11 @@ dependencies = [
  "parity-wasm",
  "scale-info",
  "serde",
- "sp-crypto-hashing-proc-macro 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-version-proc-macro 15.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-crypto-hashing-proc-macro",
+ "sp-runtime",
+ "sp-std",
+ "sp-version-proc-macro",
  "thiserror 1.0.69",
-]
-
-[[package]]
-name = "sp-version-proc-macro"
-version = "15.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "parity-scale-codec",
- "proc-macro-warning",
- "proc-macro2",
- "quote",
- "syn 2.0.101",
 ]
 
 [[package]]
@@ -18112,17 +17476,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.101",
-]
-
-[[package]]
-name = "sp-wasm-interface"
-version = "21.0.1"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "anyhow",
- "impl-trait-for-tuples",
- "log",
- "parity-scale-codec",
 ]
 
 [[package]]
@@ -18139,20 +17492,6 @@ dependencies = [
 
 [[package]]
 name = "sp-weights"
-version = "31.1.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "bounded-collections",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "smallvec",
- "sp-arithmetic 26.1.0",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
-]
-
-[[package]]
-name = "sp-weights"
 version = "32.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
@@ -18161,8 +17500,8 @@ dependencies = [
  "scale-info",
  "serde",
  "smallvec",
- "sp-arithmetic 27.0.0",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-arithmetic",
+ "sp-debug-derive",
 ]
 
 [[package]]
@@ -18346,11 +17685,11 @@ version = "0.21.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "cumulus-primitives-core",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -18362,15 +17701,15 @@ dependencies = [
  "bounded-collections",
  "derive-where",
  "environmental",
- "frame-support 41.0.0",
+ "frame-support",
  "hex-literal",
  "impl-trait-for-tuples",
  "log",
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-runtime",
+ "sp-weights",
  "xcm-procedural",
 ]
 
@@ -18380,19 +17719,19 @@ version = "21.1.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "environmental",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "pallet-asset-conversion",
  "pallet-transaction-payment",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
  "scale-info",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-weights",
  "staging-xcm",
  "staging-xcm-executor",
  "tracing",
@@ -18404,16 +17743,16 @@ version = "20.0.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "environmental",
- "frame-benchmarking 41.0.1",
- "frame-support 41.0.0",
+ "frame-benchmarking",
+ "frame-support",
  "impl-trait-for-tuples",
  "parity-scale-codec",
  "scale-info",
- "sp-arithmetic 27.0.0",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-weights",
  "staging-xcm",
  "tracing",
 ]
@@ -18457,14 +17796,14 @@ name = "storage-proof-primitives"
 version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
- "frame-support 41.0.0",
+ "frame-support",
  "hex",
  "parity-scale-codec",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-trie 40.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-std",
+ "sp-trie",
 ]
 
 [[package]]
@@ -18527,18 +17866,6 @@ dependencies = [
 [[package]]
 name = "substrate-bip39"
 version = "0.6.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#0f69fab280f4865fe0e674e2842b2801c34ff880"
-dependencies = [
- "hmac 0.12.1",
- "pbkdf2 0.12.2",
- "schnorrkel 0.11.4",
- "sha2 0.10.9",
- "zeroize",
-]
-
-[[package]]
-name = "substrate-bip39"
-version = "0.6.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
  "hmac 0.12.1",
@@ -18589,11 +17916,11 @@ dependencies = [
  "parity-scale-codec",
  "sc-rpc-api",
  "sc-transaction-pool-api",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-block-builder",
  "sp-blockchain",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -18620,7 +17947,7 @@ dependencies = [
  "log",
  "sc-rpc-api",
  "serde",
- "sp-runtime 42.0.0",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -18633,10 +17960,10 @@ dependencies = [
  "sc-client-api",
  "sc-rpc-api",
  "serde",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-state-machine 0.46.0",
- "sp-trie 40.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-state-machine",
+ "sp-trie",
  "trie-db",
 ]
 
@@ -18658,10 +17985,10 @@ dependencies = [
  "serde_json",
  "sp-blockchain",
  "sp-consensus",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-keyring",
- "sp-keystore 0.43.0",
- "sp-runtime 42.0.0",
+ "sp-keystore",
+ "sp-runtime",
  "tokio",
 ]
 
@@ -18673,39 +18000,39 @@ dependencies = [
  "array-bytes 6.2.3",
  "frame-executive",
  "frame-metadata-hash-extension",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "frame-system-rpc-runtime-api",
  "log",
  "pallet-babe",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-timestamp",
- "pallet-utility 41.0.0",
+ "pallet-utility",
  "parity-scale-codec",
  "sc-service",
  "scale-info",
  "serde_json",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
+ "sp-api",
+ "sp-application-crypto",
  "sp-block-builder",
  "sp-consensus-aura",
  "sp-consensus-babe",
  "sp-consensus-grandpa",
- "sp-core 37.0.0",
+ "sp-core",
  "sp-crypto-hashing 0.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-debug-derive 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-externalities 0.30.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
+ "sp-debug-derive",
+ "sp-externalities",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
  "sp-keyring",
  "sp-offchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
- "sp-state-machine 0.46.0",
+ "sp-state-machine",
  "sp-transaction-pool",
- "sp-trie 40.0.0",
- "sp-version 40.0.0",
+ "sp-trie",
+ "sp-version",
  "substrate-wasm-builder",
  "tracing",
  "trie-db",
@@ -18720,11 +18047,11 @@ dependencies = [
  "sc-block-builder",
  "sc-client-api",
  "sc-consensus",
- "sp-api 37.0.0",
+ "sp-api",
  "sp-blockchain",
  "sp-consensus",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
+ "sp-core",
+ "sp-runtime",
  "substrate-test-client",
  "substrate-test-runtime",
 ]
@@ -18757,11 +18084,11 @@ dependencies = [
  "polkavm-linker 0.24.0",
  "sc-executor",
  "shlex",
- "sp-core 37.0.0",
- "sp-io 41.0.1",
+ "sp-core",
+ "sp-io",
  "sp-maybe-compressed-blob",
- "sp-tracing 17.1.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
- "sp-version 40.0.0",
+ "sp-tracing",
+ "sp-version",
  "strum 0.26.3",
  "tempfile",
  "toml 0.8.22",
@@ -20478,14 +19805,14 @@ name = "westend-runtime"
 version = "24.0.1"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "binary-merkle-tree 16.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "binary-merkle-tree",
  "bitvec",
- "frame-benchmarking 41.0.1",
+ "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
  "frame-metadata-hash-extension",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
@@ -20496,7 +19823,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-babe",
  "pallet-bags-list",
- "pallet-balances 42.0.0",
+ "pallet-balances",
  "pallet-beefy",
  "pallet-beefy-mmr",
  "pallet-conviction-voting",
@@ -20535,7 +19862,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
- "pallet-utility 41.0.0",
+ "pallet-utility",
  "pallet-verify-signature",
  "pallet-vesting",
  "pallet-whitelist",
@@ -20550,28 +19877,28 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
- "sp-api 37.0.0",
- "sp-application-crypto 41.0.0",
- "sp-arithmetic 27.0.0",
+ "sp-api",
+ "sp-application-crypto",
+ "sp-arithmetic",
  "sp-authority-discovery",
  "sp-block-builder",
  "sp-consensus-babe",
  "sp-consensus-beefy",
  "sp-consensus-grandpa",
- "sp-core 37.0.0",
- "sp-genesis-builder 0.18.0",
- "sp-inherents 37.0.0",
- "sp-io 41.0.1",
+ "sp-core",
+ "sp-genesis-builder",
+ "sp-inherents",
+ "sp-io",
  "sp-keyring",
  "sp-mmr-primitives",
  "sp-npos-elections",
  "sp-offchain",
- "sp-runtime 42.0.0",
+ "sp-runtime",
  "sp-session",
- "sp-staking 39.0.0",
- "sp-storage 22.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-staking",
+ "sp-storage",
  "sp-transaction-pool",
- "sp-version 40.0.0",
+ "sp-version",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -20585,13 +19912,13 @@ name = "westend-runtime-constants"
 version = "21.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
+ "frame-support",
  "polkadot-primitives",
  "polkadot-runtime-common",
  "smallvec",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-weights 32.0.0",
+ "sp-core",
+ "sp-runtime",
+ "sp-weights",
  "staging-xcm",
  "staging-xcm-builder",
 ]
@@ -21106,14 +20433,14 @@ name = "xcm-primitives"
 version = "0.1.0"
 source = "git+https://github.com/Moonsong-Labs/moonkit?branch=moonbeam-polkadot-stable2506#94e3cb9dec9a42e8b641a74ef12cfe340495aab4"
 dependencies = [
- "frame-support 41.0.0",
+ "frame-support",
  "impl-trait-for-tuples",
  "log",
  "parity-scale-codec",
  "primitive-types 0.13.1",
- "sp-core 37.0.0",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-core",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
 ]
 
@@ -21122,17 +20449,17 @@ name = "xcm-primitives"
 version = "0.1.1"
 dependencies = [
  "cumulus-primitives-core",
- "ethereum 0.18.2 (git+https://github.com/rust-ethereum/ethereum.git?rev=cf3076f07e61102eec686f6816da668f97d94f1f)",
+ "ethereum",
  "ethereum-types",
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "impl-trait-for-tuples",
  "log",
  "pallet-staking",
  "parity-scale-codec",
  "scale-info",
- "sp-runtime 42.0.0",
- "sp-std 14.0.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506)",
+ "sp-runtime",
+ "sp-std",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
@@ -21154,11 +20481,11 @@ name = "xcm-runtime-apis"
 version = "0.8.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
+ "frame-support",
  "parity-scale-codec",
  "scale-info",
- "sp-api 37.0.0",
- "sp-weights 32.0.0",
+ "sp-api",
+ "sp-weights",
  "staging-xcm",
  "staging-xcm-executor",
 ]
@@ -21168,8 +20495,8 @@ name = "xcm-simulator"
 version = "21.0.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#c5698d1a20558313657b45fc56dc1582772e2d1d"
 dependencies = [
- "frame-support 41.0.0",
- "frame-system 41.0.0",
+ "frame-support",
+ "frame-system",
  "parity-scale-codec",
  "paste",
  "polkadot-core-primitives",
@@ -21177,8 +20504,8 @@ dependencies = [
  "polkadot-primitives",
  "polkadot-runtime-parachains",
  "scale-info",
- "sp-io 41.0.1",
- "sp-runtime 42.0.0",
+ "sp-io",
+ "sp-runtime",
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
