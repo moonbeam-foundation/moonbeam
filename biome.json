@@ -59,9 +59,9 @@
         "useTemplate": "off"
       },
       "correctness":{
-        "noUnusedFunctionParameters":"off",
-        "noUnusedVariables":"off",
-        "noUnusedImports":"off"
+        "noUnusedFunctionParameters":"warn",
+        "noUnusedVariables":"warn",
+        "noUnusedImports":"warn"
       }
     }
   }
