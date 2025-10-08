@@ -1254,9 +1254,8 @@ pub mod pallet {
 					xcm: Xcm(vec![]),
 				},
 			]);
-			T::Weigher::weight(&mut xcm.into()).map_or(Weight::max_value(), |w| {
-				T::BaseXcmWeight::get().saturating_add(w)
-			})
+			T::Weigher::weight(&mut xcm.into(), Weight::MAX)
+				.map_or(Weight::MAX, |w| T::BaseXcmWeight::get().saturating_add(w))
 		}
 
 		/// Returns the fee for a given set of parameters

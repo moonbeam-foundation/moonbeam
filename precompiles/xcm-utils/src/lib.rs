@@ -193,9 +193,8 @@ where
 			.map(Xcm::<<XcmConfig as xcm_executor::Config>::RuntimeCall>::try_from);
 
 		let result = match msg {
-			Ok(Ok(mut x)) => {
-				XcmConfig::Weigher::weight(&mut x).map_err(|_| revert("failed weighting"))
-			}
+			Ok(Ok(mut x)) => XcmConfig::Weigher::weight(&mut x, Weight::MAX)
+				.map_err(|_| revert("failed weighting")),
 			_ => Err(RevertReason::custom("Failed decoding")
 				.in_field("message")
 				.into()),
