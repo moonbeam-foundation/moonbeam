@@ -23,3 +23,6 @@ tools/build
 # IDEs
 .idea/
 .vscode/
+
+.github/instructions/kluster-code-verify.instructions.md
+.kluster
