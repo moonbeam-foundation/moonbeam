@@ -22,7 +22,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@acala-network/chopsticks": "1.2.2",
+    "@acala-network/chopsticks": "1.2.1",
     "@biomejs/biome": "^2.2.5",
     "@moonbeam-network/api-augment": "workspace:*",
     "@moonbeam-network/types-bundle": "workspace:*",
