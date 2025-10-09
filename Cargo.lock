@@ -8679,7 +8679,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-conversion"
 version = "22.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#ecc531bc4d1c62dbdf1567b888a31910b15b3765"
+source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#f1c87aa36c6cc49ae5e010bdaed36f39e10e6096"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
