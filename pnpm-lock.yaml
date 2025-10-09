@@ -17,6 +17,9 @@ importers:
       '@acala-network/chopsticks':
         specifier: 1.2.2
         version: 1.2.2(bufferutil@4.0.9)(debug@4.4.3)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)
+      '@acala-network/chopsticks-testing':
+        specifier: 1.2.2
+        version: 1.2.2(@polkadot/util-crypto@13.5.6(@polkadot/util@13.5.6))(bufferutil@4.0.9)(debug@4.4.3)(postcss@8.5.6)(rxjs@7.8.2)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(tsx@4.20.6)(utf-8-validate@5.0.10)(yaml@2.8.1)
       '@biomejs/biome':
         specifier: ^2.2.5
         version: 2.2.5
@@ -247,6 +250,14 @@ packages:
 
   '@acala-network/chopsticks-executor@1.2.2':
     resolution: {integrity: sha512-py+0rOYz+kAs6RGVRwu+mDX89x2CYv27oMy6/anh2wrfo88xPHjr1y8hOapDpRU5ynBW8Klx+z6rA3c2PrgB8g==}
+
+  '@acala-network/chopsticks-testing@1.2.2':
+    resolution: {integrity: sha512-X+1cYLxkPgFjahV/GRcNhOLuxkv7LVEbv+3rp9pm5UOQKQm1WmTCCUCfuldizivOI3l2sWJLiBxgqE/wWPjuSw==}
+    engines: {node: '>=v22'}
+
+  '@acala-network/chopsticks-utils@1.2.2':
+    resolution: {integrity: sha512-IQCez/h2MtsitzQTLgPaMZiGDYy78fQFsgfHg8NXRMFL7N54sRqREkb/XdlGU/QefFlZy96IsJxd6XfIQg2FGA==}
+    engines: {node: '>=v22'}
 
   '@acala-network/chopsticks@1.2.2':
     resolution: {integrity: sha512-LIzzyErMW+nf5oD64ST4rvK5DVLV99umy3Xr7pkU3KkdHjklF1bkuj3u6nqC7I4qna7/PukDcV02xcoqThjSPw==}
@@ -1420,6 +1431,12 @@ packages:
   '@polkadot-api/ws-provider@0.6.2':
     resolution: {integrity: sha512-YCllTdysvh30t4YWJubS1G8ULCZTOXGC+x8evbuFUNM1d70gpD98+zi4ba4lZGd1IlZ8v0zJuvC7G+/9Jcrm4w==}
 
+  '@polkadot-labs/hdkd-helpers@0.0.19':
+    resolution: {integrity: sha512-xo0by/TpjRbAQKZGTZbw1PQ/OnRlXz8iV+wWQIztShfTCvvtCP+R1QnfdJSCKk7u4CMtsRiaSp1EM0Oh9cJiSg==}
+
+  '@polkadot-labs/hdkd@0.0.19':
+    resolution: {integrity: sha512-/MeAHXSpfsachcm1KXustsjzRFE8d6cgz0bmWWCa6tR6e0hkoGHMo82O+0dq8C2axumNz40eahznn8QYgQf7mg==}
+
   '@polkadot/api-augment@10.13.1':
     resolution: {integrity: sha512-IAKaCp19QxgOG4HKk9RAgUgC/VNVqymZ2GXfMNOZWImZhxRIbrK+raH5vN2MbWwtVHpjxyXvGsd1RRhnohI33A==}
     engines: {node: '>=18'}
@@ -2326,6 +2343,9 @@ packages:
 
   '@scure/bip39@1.6.0':
     resolution: {integrity: sha512-+lF0BbLiJNwVlev4eKelw1WWLaiKXw7sSl8T6FvBlWkdX+94aGJ4o8XjUdlyhTCjd8c+B3KT3JfS8P0bLRNU6A==}
+
+  '@scure/sr25519@0.2.0':
+    resolution: {integrity: sha512-uUuLP7Z126XdSizKtrCGqYyR3b3hYtJ6Fg/XFUXmc2//k2aXHDLqZwFeXxL97gg4XydPROPVnuaHGF2+xriSKg==}
 
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
@@ -6633,6 +6653,85 @@ snapshots:
       '@polkadot/util': 13.5.6
       '@polkadot/wasm-util': 7.5.1(@polkadot/util@13.5.6)
 
+  '@acala-network/chopsticks-testing@1.2.2(@polkadot/util-crypto@13.5.6(@polkadot/util@13.5.6))(bufferutil@4.0.9)(debug@4.4.3)(postcss@8.5.6)(rxjs@7.8.2)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(tsx@4.20.6)(utf-8-validate@5.0.10)(yaml@2.8.1)':
+    dependencies:
+      '@acala-network/chopsticks-utils': 1.2.2(@polkadot/util-crypto@13.5.6(@polkadot/util@13.5.6))(bufferutil@4.0.9)(debug@4.4.3)(postcss@8.5.6)(rxjs@7.8.2)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(tsx@4.20.6)(utf-8-validate@5.0.10)(yaml@2.8.1)
+      '@polkadot/api': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@polkadot/types': 16.4.8
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@microsoft/api-extractor'
+      - '@polkadot/util-crypto'
+      - '@sap/hana-client'
+      - '@swc/core'
+      - babel-plugin-macros
+      - better-sqlite3
+      - bluebird
+      - bufferutil
+      - debug
+      - ioredis
+      - jiti
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - postcss
+      - redis
+      - rxjs
+      - sql.js
+      - supports-color
+      - ts-node
+      - tsx
+      - typeorm-aurora-data-api-driver
+      - utf-8-validate
+      - yaml
+
+  '@acala-network/chopsticks-utils@1.2.2(@polkadot/util-crypto@13.5.6(@polkadot/util@13.5.6))(bufferutil@4.0.9)(debug@4.4.3)(postcss@8.5.6)(rxjs@7.8.2)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(tsx@4.20.6)(utf-8-validate@5.0.10)(yaml@2.8.1)':
+    dependencies:
+      '@acala-network/chopsticks': 1.2.2(bufferutil@4.0.9)(debug@4.4.3)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)
+      '@acala-network/chopsticks-core': 1.2.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@polkadot-labs/hdkd': 0.0.19
+      '@polkadot-labs/hdkd-helpers': 0.0.19
+      '@polkadot/api': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@polkadot/api-base': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@polkadot/keyring': 13.5.6(@polkadot/util-crypto@13.5.6(@polkadot/util@13.5.6))(@polkadot/util@13.5.6)
+      '@polkadot/types': 16.4.8
+      '@polkadot/util': 13.5.6
+      polkadot-api: 1.19.2(bufferutil@4.0.9)(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(utf-8-validate@5.0.10)(yaml@2.8.1)
+    transitivePeerDependencies:
+      - '@google-cloud/spanner'
+      - '@microsoft/api-extractor'
+      - '@polkadot/util-crypto'
+      - '@sap/hana-client'
+      - '@swc/core'
+      - babel-plugin-macros
+      - better-sqlite3
+      - bluebird
+      - bufferutil
+      - debug
+      - ioredis
+      - jiti
+      - mongodb
+      - mssql
+      - mysql2
+      - oracledb
+      - pg
+      - pg-native
+      - pg-query-stream
+      - postcss
+      - redis
+      - rxjs
+      - sql.js
+      - supports-color
+      - ts-node
+      - tsx
+      - typeorm-aurora-data-api-driver
+      - utf-8-validate
+      - yaml
+
   '@acala-network/chopsticks@1.2.2(bufferutil@4.0.9)(debug@4.4.3)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)':
     dependencies:
       '@acala-network/chopsticks-core': 1.2.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -8195,6 +8294,18 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+
+  '@polkadot-labs/hdkd-helpers@0.0.19':
+    dependencies:
+      '@noble/curves': 1.9.7
+      '@noble/hashes': 1.8.0
+      '@scure/base': 1.2.6
+      '@scure/sr25519': 0.2.0
+      scale-ts: 1.6.1
+
+  '@polkadot-labs/hdkd@0.0.19':
+    dependencies:
+      '@polkadot-labs/hdkd-helpers': 0.0.19
 
   '@polkadot/api-augment@10.13.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
@@ -9963,6 +10074,11 @@ snapshots:
     dependencies:
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
+
+  '@scure/sr25519@0.2.0':
+    dependencies:
+      '@noble/curves': 1.9.7
+      '@noble/hashes': 1.8.0
 
   '@sec-ant/readable-stream@0.4.1': {}
 

@@ -38,6 +38,7 @@ runs:
         cd test
         pnpm install
         pnpm compile-solidity
+        pnpm vitest
         pnpm moonwall test ${{ inputs.moonwall_environment }} --ts ${{ inputs.shard }}/${{inputs.shard-count}} || [[ '${{ inputs.force-pass }}' == 'true' ]]
     - name: Upload HTML report
       if: always()
