@@ -805,6 +805,7 @@ fn multiplier_can_grow_from_zero() {
 #[test]
 fn ethereum_invalid_transaction() {
 	ExtBuilder::default().build().execute_with(|| {
+		set_parachain_inherent_data();
 		// Ensure an extrinsic not containing enough gas limit to store the transaction
 		// on chain is rejected.
 		assert_eq!(

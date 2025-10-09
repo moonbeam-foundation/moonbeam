@@ -44,12 +44,10 @@ scale-info = { workspace = true }
 account = { workspace = true }
 
 # Cumulus
-cumulus-pallet-parachain-system = { workspace = true }
 cumulus-primitives-core = { workspace = true, default-features = false }
 
 [features]
 std = [
-	"cumulus-pallet-parachain-system/std",
 	"ethereum/std",
 	"frame-support/std",
 	"moonbeam-core-primitives/std",
@@ -70,7 +68,6 @@ std = [
 ]
 runtime-benchmarks = [
 	"cumulus-primitives-core/runtime-benchmarks",
-	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
@@ -78,7 +75,6 @@ runtime-benchmarks = [
 	"pallet-xcm/runtime-benchmarks",
 ]
 try-runtime = [
-	"cumulus-pallet-parachain-system/try-runtime",
 	"frame-support/try-runtime",
 	"pallet-migrations/try-runtime",
 ]
