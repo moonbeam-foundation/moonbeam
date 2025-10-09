@@ -875,14 +875,7 @@
 <a href="#874" id="874">874</a>
 <a href="#875" id="875">875</a>
 <a href="#876" id="876">876</a>
-<a href="#877" id="877">877</a>
-<a href="#878" id="878">878</a>
-<a href="#879" id="879">879</a>
-<a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a>
-<a href="#882" id="882">882</a>
-<a href="#883" id="883">883</a>
-<a href="#884" id="884">884</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
+<a href="#877" id="877">877</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2024 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -901,13 +894,12 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::chain_spec::Extensions;
 <span class="kw">use crate</span>::{
 	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
-	ClientCustomizations, FrontierBlockImport, HostFunctions, PartialComponentsResult,
-	PendingConsensusDataProvider, RuntimeApiCollection, SOFT_DEADLINE_PERCENT,
+	ClientCustomizations, FrontierBlockImport, HostFunctions, MockTimestampInherentDataProvider,
+	PartialComponentsResult, PendingConsensusDataProvider, RuntimeApiCollection,
+	RELAY_CHAIN_SLOT_DURATION_MILLIS, SOFT_DEADLINE_PERCENT, TIMESTAMP,
 };
 <span class="kw">use </span>cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 <span class="kw">use </span>cumulus_primitives_core::{relay_chain, BlockT, CollectCollationInfo, ParaId};
-<span class="kw">use </span>cumulus_primitives_parachain_inherent::ParachainInherentData;
-<span class="kw">use </span>cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 <span class="kw">use </span>fc_rpc::StorageOverrideHandler;
 <span class="kw">use </span>fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 <span class="kw">use </span>frontier_backend::LazyLoadingFrontierBackend;
@@ -917,9 +909,7 @@
 <span class="kw">use </span>nimbus_consensus::NimbusManualSealConsensusDataProvider;
 <span class="kw">use </span>nimbus_primitives::NimbusId;
 <span class="kw">use </span>parity_scale_codec::Encode;
-<span class="kw">use </span>polkadot_primitives::{
-	AbridgedHostConfiguration, AsyncBackingParams, PersistedValidationData, Slot, UpgradeGoAhead,
-};
+<span class="kw">use </span>polkadot_primitives::{AbridgedHostConfiguration, AsyncBackingParams, Slot, UpgradeGoAhead};
 <span class="kw">use </span>sc_chain_spec::{get_extension, BuildGenesisBlock, ChainType, GenesisBlockBuilder};
 <span class="kw">use </span>sc_client_api::{Backend, BadBlocks, ExecutorProvider, ForkBlocks};
 <span class="kw">use </span>sc_executor::{HeapAllocStrategy, RuntimeVersionOf, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
@@ -939,6 +929,7 @@
 <span class="kw">use </span>sp_runtime::traits::NumberFor;
 <span class="kw">use </span>std::collections::BTreeMap;
 <span class="kw">use </span>std::str::FromStr;
+<span class="kw">use </span>std::sync::atomic::Ordering;
 <span class="kw">use </span>std::sync::{Arc, Mutex};
 <span class="kw">use </span>std::time::Duration;
 
@@ -1198,28 +1189,7 @@
 	<span class="kw">let </span>frontier_backend = Arc::new(open_frontier_backend(client.clone(), config, rpc_config)<span class="question-mark">?</span>);
 	<span class="kw">let </span>frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
-	<span class="kw">let </span>create_inherent_data_providers = <span class="kw">move </span>|<span class="kw">_</span>, <span class="kw">_</span>| <span class="kw">async move </span>{
-		<span class="kw">let </span>time = sp_timestamp::InherentDataProvider::from_system_time();
-		<span class="comment">// Create a dummy parachain inherent data provider which is required to pass
-		// the checks by the para chain system. We use dummy values because in the 'pending context'
-		// neither do we have access to the real values nor do we need them.
-		</span><span class="kw">let </span>(relay_parent_storage_root, relay_chain_state) =
-			RelayStateSproofBuilder::default().into_state_root_and_proof();
-		<span class="kw">let </span>vfp = PersistedValidationData {
-			<span class="comment">// This is a hack to make `cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases`
-			// happy. Relay parent number can't be bigger than u32::MAX.
-			</span>relay_parent_number: u32::MAX,
-			relay_parent_storage_root,
-			..Default::default()
-		};
-		<span class="kw">let </span>parachain_inherent_data = ParachainInherentData {
-			validation_data: vfp,
-			relay_chain_state,
-			downward_messages: Default::default(),
-			horizontal_messages: Default::default(),
-		};
-		<span class="prelude-val">Ok</span>((time, parachain_inherent_data))
-	};
+	<span class="kw">let </span>create_inherent_data_providers = <span class="kw">move </span>|<span class="kw">_</span>, <span class="kw">_</span>| <span class="kw">async move </span>{ <span class="prelude-val">Ok</span>(()) };
 
 	<span class="kw">let </span>import_queue = nimbus_consensus::import_queue(
 		client.clone(),
@@ -1385,6 +1355,10 @@
 	<span class="kw">let </span><span class="kw-2">mut </span>dev_rpc_data = <span class="prelude-val">None</span>;
 	<span class="kw">let </span>collator = config.role.is_authority();
 
+	<span class="kw">let </span>parachain_id: ParaId = helpers::get_parachain_id(backend.rpc_client.clone())
+		.unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"Could not get parachain identifier for lazy loading mode."</span>))
+		.into();
+
 	<span class="kw">if </span>collator {
 		<span class="kw">let </span><span class="kw-2">mut </span>env = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
@@ -1440,7 +1414,7 @@
 		dev_rpc_data = <span class="prelude-val">Some</span>((
 			downward_xcm_sender,
 			hrmp_xcm_sender,
-			additional_relay_offset,
+			additional_relay_offset.clone(),
 		));
 
 		<span class="comment">// Need to clone it and store here to avoid moving of `client`
@@ -1457,9 +1431,6 @@
 					parent,
 				)
 			};
-
-		<span class="kw">let </span>parachain_id = helpers::get_parachain_id(backend.rpc_client.clone())
-			.unwrap_or_else(|| <span class="macro">panic!</span>(<span class="string">"Could not get parachain identifier for lazy loading mode."</span>));
 
 		<span class="comment">// Need to clone it and store here to avoid moving of `client`
 		// variable in closure below.
@@ -1486,13 +1457,21 @@
 					<span class="kw">let </span>maybe_current_para_head = client_for_cidp.expect_header(block);
 					<span class="kw">let </span>downward_xcm_receiver = downward_xcm_receiver.clone();
 					<span class="kw">let </span>hrmp_xcm_receiver = hrmp_xcm_receiver.clone();
+					<span class="kw">let </span>additional_relay_offset = additional_relay_offset.clone();
 
 					<span class="comment">// Need to clone it and store here to avoid moving of `client`
 					// variable in closure below.
 					</span><span class="kw">let </span>client_for_xcm = client_for_cidp.clone();
 
 					<span class="kw">async move </span>{
-						<span class="kw">let </span>time = sp_timestamp::InherentDataProvider::from_system_time();
+						MockTimestampInherentDataProvider::advance_timestamp(
+							RELAY_CHAIN_SLOT_DURATION_MILLIS,
+						);
+
+						<span class="comment">// Get the mocked timestamp
+						</span><span class="kw">let </span>timestamp = TIMESTAMP.load(Ordering::SeqCst);
+						<span class="comment">// Calculate mocked slot number
+						</span><span class="kw">let </span>slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
 						<span class="kw">let </span>current_para_block = maybe_current_para_block<span class="question-mark">?
 							</span>.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))<span class="question-mark">?</span>;
@@ -1502,10 +1481,17 @@
 						));
 
 						<span class="kw">let </span>additional_key_values = <span class="macro">vec!</span>[
-							(
-								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
+							<span class="comment">// TODO: TIMESTAMP_NOW can be removed after runtime 4000
+							</span>(
+								<span class="attr">#[allow(deprecated)]
+								</span>moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
 									.to_vec(),
-								sp_timestamp::Timestamp::current().encode(),
+								timestamp.encode(),
+							),
+							<span class="comment">// Override current slot number
+							</span>(
+								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
+								Slot::from(slot).encode(),
 							),
 							(
 								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),
@@ -1525,11 +1511,6 @@
 									},
 								}
 								.encode(),
-							),
-							<span class="comment">// Override current slot number
-							</span>(
-								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
-								Slot::from(u64::from(current_para_block)).encode(),
 							),
 						];
 
@@ -1551,7 +1532,7 @@
 
 						<span class="kw">let </span>mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
-							para_id: ParaId::new(parachain_id),
+							para_id: parachain_id,
 							upgrade_go_ahead: should_send_go_ahead.then(|| {
 								<span class="macro">log::info!</span>(
 									<span class="string">"Detected pending validation code, sending go-ahead signal."
@@ -1559,10 +1540,9 @@
 								UpgradeGoAhead::GoAhead
 							}),
 							current_para_block_head,
-							relay_offset: <span class="number">1000</span>,
-							relay_blocks_per_para_block: <span class="number">2</span>,
-							<span class="comment">// TODO: Recheck
-							</span>para_blocks_per_relay_epoch: <span class="number">10</span>,
+							relay_offset: additional_relay_offset.load(Ordering::SeqCst),
+							relay_blocks_per_para_block: <span class="number">1</span>,
+							para_blocks_per_relay_epoch: <span class="number">10</span>,
 							relay_randomness_config: (),
 							xcm_config: MockXcmConfig::new(
 								<span class="kw-2">&amp;*</span>client_for_xcm,
@@ -1576,7 +1556,11 @@
 
 						<span class="kw">let </span>randomness = session_keys_primitives::InherentDataProvider;
 
-						<span class="prelude-val">Ok</span>((time, mocked_parachain, randomness))
+						<span class="prelude-val">Ok</span>((
+							MockTimestampInherentDataProvider,
+							mocked_parachain,
+							randomness,
+						))
 					}
 				},
 			}),
@@ -1702,6 +1686,7 @@
 					}),
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					parachain_id,
 				)
 				.map_err(Into::into)
 			} <span class="kw">else </span>{
@@ -1711,6 +1696,7 @@
 					<span class="prelude-val">None</span>,
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					parachain_id,
 				)
 				.map_err(Into::into)
 			}

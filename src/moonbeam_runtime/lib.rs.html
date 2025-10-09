@@ -2051,28 +2051,7 @@
 <a href="#2050" id="2050">2050</a>
 <a href="#2051" id="2051">2051</a>
 <a href="#2052" id="2052">2052</a>
-<a href="#2053" id="2053">2053</a>
-<a href="#2054" id="2054">2054</a>
-<a href="#2055" id="2055">2055</a>
-<a href="#2056" id="2056">2056</a>
-<a href="#2057" id="2057">2057</a>
-<a href="#2058" id="2058">2058</a>
-<a href="#2059" id="2059">2059</a>
-<a href="#2060" id="2060">2060</a>
-<a href="#2061" id="2061">2061</a>
-<a href="#2062" id="2062">2062</a>
-<a href="#2063" id="2063">2063</a>
-<a href="#2064" id="2064">2064</a>
-<a href="#2065" id="2065">2065</a>
-<a href="#2066" id="2066">2066</a>
-<a href="#2067" id="2067">2067</a>
-<a href="#2068" id="2068">2068</a>
-<a href="#2069" id="2069">2069</a>
-<a href="#2070" id="2070">2070</a>
-<a href="#2071" id="2071">2071</a>
-<a href="#2072" id="2072">2072</a>
-<a href="#2073" id="2073">2073</a>
-<a href="#2074" id="2074">2074</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#2053" id="2053">2053</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -2142,9 +2121,7 @@
 };
 <span class="kw">use </span>moonbeam_rpc_primitives_txpool::TxPoolResponse;
 <span class="kw">use </span>moonbeam_runtime_common::{
-	impl_asset_conversion::AssetRateConverter,
-	impl_multiasset_paymaster::MultiAssetPaymaster,
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+	impl_asset_conversion::AssetRateConverter, impl_multiasset_paymaster::MultiAssetPaymaster,
 };
 <span class="kw">pub use </span>pallet_author_slot_filter::EligibilityValue;
 <span class="kw">use </span>pallet_ethereum::Call::transact;
@@ -2378,7 +2355,10 @@
 	<span class="kw">type </span>SingleBlockMigrations = migrations::SingleBlockMigrations&lt;Runtime&gt;;
 	<span class="kw">type </span>MultiBlockMigrator = MultiBlockMigrations;
 	<span class="kw">type </span>PreInherents = ();
-	<span class="kw">type </span>PostInherents = ();
+	<span class="kw">type </span>PostInherents = (
+		<span class="comment">// Validate timestamp provided by the consensus client
+		</span>AsyncBacking,
+	);
 	<span class="kw">type </span>PostTransactions = ();
 	<span class="kw">type </span>ExtensionsWeightInfo = moonbeam_weights::frame_system_extensions::WeightInfo&lt;Runtime&gt;;
 }
@@ -2394,7 +2374,7 @@
 	<span class="doccomment">/// A timestamp: milliseconds since the unix epoch.
 	</span><span class="kw">type </span>Moment = u64;
 	<span class="kw">type </span>OnTimestampSet = ();
-	<span class="kw">type </span>MinimumPeriod = ConstU64&lt;<span class="number">3000</span>&gt;;
+	<span class="kw">type </span>MinimumPeriod = ConstU64&lt;{ RELAY_CHAIN_SLOT_DURATION_MILLIS <span class="kw">as </span>u64 / <span class="number">2 </span>}&gt;;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_timestamp::WeightInfo&lt;Runtime&gt;;
 }
 
@@ -2603,7 +2583,7 @@
 	<span class="kw">type </span>OnCreate = ();
 	<span class="kw">type </span>GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	<span class="kw">type </span>GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	<span class="kw">type </span>Timestamp = RelayTimestamp;
+	<span class="kw">type </span>Timestamp = Timestamp;
 	<span class="kw">type </span>AccountProvider = FrameSystemAccountProvider&lt;Runtime&gt;;
 	<span class="kw">type </span>CreateOriginFilter = ();
 	<span class="kw">type </span>CreateInnerOriginFilter = ();
@@ -2760,6 +2740,8 @@
 	<span class="kw">type </span>ExtraDataLength = ConstU32&lt;<span class="number">30</span>&gt;;
 }
 
+<span class="doccomment">/// Relay chain slot duration, in milliseconds.
+</span><span class="kw">const </span>RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = <span class="number">6000</span>;
 <span class="doccomment">/// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
 /// into the relay chain.
 </span><span class="kw">const </span>UNINCLUDED_SEGMENT_CAPACITY: u32 = <span class="number">3</span>;
@@ -2769,6 +2751,7 @@
 
 <span class="kw">type </span>ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook&lt;
 	Runtime,
+	RELAY_CHAIN_SLOT_DURATION_MILLIS,
 	BLOCK_PROCESSING_VELOCITY,
 	UNINCLUDED_SEGMENT_CAPACITY,
 &gt;;
@@ -2782,7 +2765,7 @@
 	<span class="kw">type </span>XcmpMessageHandler = XcmpQueue;
 	<span class="kw">type </span>ReservedXcmpWeight = ReservedXcmpWeight;
 	<span class="kw">type </span>CheckAssociatedRelayNumber = EmergencyParaXcm;
-	<span class="kw">type </span>ConsensusHook = ConsensusHookWrapperForRelayTimestamp&lt;Runtime, ConsensusHook&gt;;
+	<span class="kw">type </span>ConsensusHook = ConsensusHook;
 	<span class="kw">type </span>DmpQueue = frame_support::traits::EnqueueWithOrigin&lt;MessageQueue, RelayOrigin&gt;;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::cumulus_pallet_parachain_system::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector&lt;Runtime&gt;;
@@ -2930,8 +2913,8 @@
 	<span class="kw">type </span>SlotProvider = RelayChainSlotProvider;
 	<span class="kw">type </span>WeightInfo = moonbeam_weights::pallet_parachain_staking::WeightInfo&lt;Runtime&gt;;
 	<span class="kw">type </span>MaxCandidates = ConstU32&lt;<span class="number">200</span>&gt;;
-	<span class="kw">type </span>SlotDuration = ConstU64&lt;<span class="number">6_000</span>&gt;;
-	<span class="kw">type </span>BlockTime = ConstU64&lt;<span class="number">6_000</span>&gt;;
+	<span class="kw">type </span>SlotDuration = ConstU64&lt;MILLISECS_PER_BLOCK&gt;;
+	<span class="kw">type </span>BlockTime = ConstU64&lt;MILLISECS_PER_BLOCK&gt;;
 	<span class="kw">type </span>LinearInflationThreshold = LinearInflationThreshold;
 }
 
@@ -2953,7 +2936,8 @@
 <span class="kw">impl </span>pallet_async_backing::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>AllowMultipleBlocksPerSlot = ConstBool&lt;<span class="bool-val">true</span>&gt;;
 	<span class="kw">type </span>GetAndVerifySlot = pallet_async_backing::RelaySlot;
-	<span class="kw">type </span>ExpectedBlockTime = ConstU64&lt;<span class="number">6000</span>&gt;;
+	<span class="kw">type </span>SlotDuration = ConstU64&lt;MILLISECS_PER_BLOCK&gt;;
+	<span class="kw">type </span>ExpectedBlockTime = ConstU64&lt;MILLISECS_PER_BLOCK&gt;;
 }
 
 <span class="macro">parameter_types!</span> {
@@ -3946,36 +3930,10 @@
 	}
 );
 
-<span class="attr">#[allow(dead_code)]
-</span><span class="kw">struct </span>CheckInherents;
-
-<span class="comment">// Parity has decided to depreciate this trait, but does not offer a satisfactory replacement,
-// see issue: https://github.com/paritytech/polkadot-sdk/issues/2841
-</span><span class="attr">#[allow(deprecated)]
-</span><span class="kw">impl </span>cumulus_pallet_parachain_system::CheckInherents&lt;Block&gt; <span class="kw">for </span>CheckInherents {
-	<span class="kw">fn </span>check_inherents(
-		block: <span class="kw-2">&amp;</span>Block,
-		relay_state_proof: <span class="kw-2">&amp;</span>cumulus_pallet_parachain_system::RelayChainStateProof,
-	) -&gt; sp_inherents::CheckInherentsResult {
-		<span class="kw">let </span>relay_chain_slot = relay_state_proof
-			.read_slot()
-			.expect(<span class="string">"Could not read the relay chain slot from the proof"</span>);
-		<span class="kw">let </span>inherent_data =
-			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-				relay_chain_slot,
-				sp_std::time::Duration::from_secs(<span class="number">6</span>),
-			)
-			.create_inherent_data()
-			.expect(<span class="string">"Could not create the timestamp inherent data"</span>);
-		inherent_data.check_extrinsics(block)
-	}
-}
-
 <span class="comment">// Nimbus's Executive wrapper allows relay validators to verify the seal digest
 </span><span class="macro">cumulus_pallet_parachain_system::register_validate_block!</span>(
 	Runtime = Runtime,
 	BlockExecutor = pallet_author_inherent::BlockExecutor::&lt;Runtime, Executive&gt;,
-	CheckInherents = CheckInherents,
 );
 
 <span class="macro">moonbeam_runtime_common::impl_self_contained_call!</span>();

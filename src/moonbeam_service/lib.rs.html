@@ -1899,7 +1899,25 @@
 <a href="#1898" id="1898">1898</a>
 <a href="#1899" id="1899">1899</a>
 <a href="#1900" id="1900">1900</a>
-<a href="#1901" id="1901">1901</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -2023,13 +2041,27 @@
 <span class="doccomment">/// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
 /// Each call will increment timestamp by slot_duration making Aura think time has passed.
 </span><span class="kw">struct </span>MockTimestampInherentDataProvider;
+
+<span class="kw">impl </span>MockTimestampInherentDataProvider {
+	<span class="kw">fn </span>advance_timestamp(slot_duration: u64) {
+		<span class="kw">if </span>TIMESTAMP.load(Ordering::SeqCst) == <span class="number">0 </span>{
+			<span class="comment">// Initialize timestamp inherent provider
+			</span>TIMESTAMP.store(
+				sp_timestamp::Timestamp::current().as_millis(),
+				Ordering::SeqCst,
+			);
+		} <span class="kw">else </span>{
+			TIMESTAMP.fetch_add(slot_duration, Ordering::SeqCst);
+		}
+	}
+}
+
 <span class="attr">#[async_trait::async_trait]
 </span><span class="kw">impl </span>sp_inherents::InherentDataProvider <span class="kw">for </span>MockTimestampInherentDataProvider {
 	<span class="kw">async fn </span>provide_inherent_data(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		inherent_data: <span class="kw-2">&amp;mut </span>sp_inherents::InherentData,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;(), sp_inherents::Error&gt; {
-		TIMESTAMP.fetch_add(RELAY_CHAIN_SLOT_DURATION_MILLIS, Ordering::SeqCst);
 		inherent_data.put_data(
 			sp_timestamp::INHERENT_IDENTIFIER,
 			<span class="kw-2">&amp;</span>TIMESTAMP.load(Ordering::SeqCst),
@@ -2619,7 +2651,7 @@
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue: params.import_queue,
-			para_id,
+			para_id: para_id.clone(),
 			relay_chain_interface: relay_chain_interface.clone(),
 			net_config,
 			sybil_resistance_level: CollatorSybilResistance::Resistant,
@@ -2763,6 +2795,7 @@
 					}),
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					para_id,
 				)
 				.map_err(Into::into)
 			} <span class="kw">else </span>{
@@ -2772,6 +2805,7 @@
 					<span class="prelude-val">None</span>,
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					para_id,
 				)
 				.map_err(Into::into)
 			}
@@ -2910,13 +2944,11 @@
 	);
 
 	<span class="kw">let </span>create_inherent_data_providers = |<span class="kw">_</span>, <span class="kw">_</span>| <span class="kw">async move </span>{
-		<span class="kw">let </span>time = sp_timestamp::InherentDataProvider::from_system_time();
-
 		<span class="kw">let </span>author = nimbus_primitives::InherentDataProvider;
 
 		<span class="kw">let </span>randomness = session_keys_primitives::InherentDataProvider;
 
-		<span class="prelude-val">Ok</span>((time, author, randomness))
+		<span class="prelude-val">Ok</span>((author, randomness))
 	};
 
 	<span class="kw">let </span>client_clone = client.clone();
@@ -2947,7 +2979,9 @@
 			nimbus_consensus::collators::lookahead::Params {
 				additional_digests_provider: maybe_provide_vrf_digest,
 				additional_relay_keys: <span class="macro">vec!</span>[
-					moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
+					<span class="comment">// TODO: Can be removed after runtime 4000
+					</span><span class="attr">#[allow(deprecated)]
+					</span>moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
 					relay_chain::well_known_keys::EPOCH_INDEX.to_vec(),
 				],
 				authoring_duration: block_authoring_duration,
@@ -3108,6 +3142,10 @@
 	<span class="kw">let </span><span class="kw-2">mut </span>dev_rpc_data = <span class="prelude-val">None</span>;
 	<span class="kw">let </span>collator = config.role.is_authority();
 
+	<span class="kw">let </span>parachain_id: ParaId = para_id
+		.expect(<span class="string">"para ID should be specified for dev service"</span>)
+		.into();
+
 	<span class="kw">if </span>collator {
 		<span class="kw">let </span><span class="kw-2">mut </span>env = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
@@ -3214,7 +3252,9 @@
 					</span><span class="kw">let </span>client_for_xcm = client_for_cidp.clone();
 
 					<span class="kw">async move </span>{
-						<span class="kw">let </span>time = MockTimestampInherentDataProvider;
+						MockTimestampInherentDataProvider::advance_timestamp(
+							RELAY_CHAIN_SLOT_DURATION_MILLIS,
+						);
 
 						<span class="kw">let </span>current_para_block = maybe_current_para_block<span class="question-mark">?
 							</span>.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))<span class="question-mark">?</span>;
@@ -3225,15 +3265,10 @@
 
 						<span class="comment">// Get the mocked timestamp
 						</span><span class="kw">let </span>timestamp = TIMESTAMP.load(Ordering::SeqCst);
-						<span class="comment">// Calculate mocked slot number (should be consecutively 1, 2, ...)
+						<span class="comment">// Calculate mocked slot number
 						</span><span class="kw">let </span>slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
 						<span class="kw">let </span>additional_key_values = <span class="macro">vec!</span>[
-							(
-								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
-									.to_vec(),
-								sp_timestamp::Timestamp::current().encode(),
-							),
 							(relay_slot_key, Slot::from(slot).encode()),
 							(
 								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),
@@ -3266,7 +3301,6 @@
 							.collect_collation_info(block, <span class="kw-2">&amp;</span>current_para_head)
 						{
 							<span class="prelude-val">Ok</span>(info) =&gt; info.new_validation_code.is_some(),
-
 							<span class="prelude-val">Err</span>(e) =&gt; {
 								<span class="macro">log::error!</span>(<span class="string">"Failed to collect collation info: {:?}"</span>, e);
 
@@ -3276,9 +3310,7 @@
 
 						<span class="kw">let </span>mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
-							para_id: para_id
-								.expect(<span class="string">"para ID should be specified for dev service"</span>)
-								.into(),
+							para_id: parachain_id,
 							upgrade_go_ahead: should_send_go_ahead.then(|| {
 								<span class="macro">log::info!</span>(
 									<span class="string">"Detected pending validation code, sending go-ahead signal."
@@ -3287,11 +3319,9 @@
 								UpgradeGoAhead::GoAhead
 							}),
 							current_para_block_head,
-							relay_offset: <span class="number">1000
-								</span>+ additional_relay_offset.load(std::sync::atomic::Ordering::SeqCst),
-							relay_blocks_per_para_block: <span class="number">2</span>,
-							<span class="comment">// TODO: Recheck
-							</span>para_blocks_per_relay_epoch: <span class="number">10</span>,
+							relay_offset: additional_relay_offset.load(Ordering::SeqCst),
+							relay_blocks_per_para_block: <span class="number">1</span>,
+							para_blocks_per_relay_epoch: <span class="number">10</span>,
 							relay_randomness_config: (),
 							xcm_config: MockXcmConfig::new(
 								<span class="kw-2">&amp;*</span>client_for_xcm,
@@ -3305,7 +3335,11 @@
 
 						<span class="kw">let </span>randomness = session_keys_primitives::InherentDataProvider;
 
-						<span class="prelude-val">Ok</span>((time, mocked_parachain, randomness))
+						<span class="prelude-val">Ok</span>((
+							MockTimestampInherentDataProvider,
+							mocked_parachain,
+							randomness,
+						))
 					}
 				},
 			}),
@@ -3424,6 +3458,7 @@
 					}),
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					parachain_id,
 				)
 				.map_err(Into::into)
 			} <span class="kw">else </span>{
@@ -3433,6 +3468,7 @@
 					<span class="prelude-val">None</span>,
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					parachain_id,
 				)
 				.map_err(Into::into)
 			}
