@@ -590,7 +590,55 @@ jobs:
   #           true
   #         fi
 
-  dev-test:
+  vitest-test:
+    runs-on:
+      labels: bare-metal
+    permissions:
+      contents: read
+    needs: ["set-tags", "build"]
+    timeout-minutes: 20
+    env:
+      DEBUG_COLORS: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Create local folders
+        run: |
+          mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
+      - name: "Download branch built runtime"
+        uses: actions/download-artifact@v5
+        with:
+          name: runtimes
+          path: target/release/wbuild/${{ matrix.chain }}-runtime/
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v5
+        with:
+          name: moonbeam
+          path: target/release
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "test/.nvmrc"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: "Install and run dev test"
+        shell: bash
+        env:
+          DEBUG_COLOURS: "1"
+          NODE_OPTIONS: "--max-old-space-size=12288"
+        run: |
+          chmod uog+x target/release/moonbeam
+          cd test
+          pnpm install
+          pnpm compile-solidity
+          pnpm vitest
+
+  moonwall-test:
     runs-on:
       labels: bare-metal
     permissions:
