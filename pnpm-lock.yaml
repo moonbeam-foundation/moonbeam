@@ -27,11 +27,11 @@ importers:
         specifier: workspace:*
         version: link:../types-bundle
       '@moonwall/cli':
-        specifier: 5.16.2
-        version: 5.16.2(@types/debug@4.1.12)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)
+        specifier: 5.16.3
+        version: 5.16.3(@types/debug@4.1.12)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)
       '@moonwall/util':
-        specifier: 5.16.2
-        version: 5.16.2(@types/debug@4.1.12)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)
+        specifier: 5.16.3
+        version: 5.16.3(@types/debug@4.1.12)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)
       '@openzeppelin/contracts':
         specifier: 5.4.0
         version: 5.4.0
@@ -953,17 +953,17 @@ packages:
   '@moonbeam-network/types-bundle@1.0.2':
     resolution: {integrity: sha512-qVyy8x2tEZQoUqqU0ILZhp4vLazl10kQwTk8mdUYkQ8Nd/6RncSe/xzfWkl6pUHmPfK5RZlNDDI8Jao3+2xsiw==}
 
-  '@moonwall/cli@5.16.2':
-    resolution: {integrity: sha512-SdK0k3QgskpSvjrmvPPv9tn00UMEvzZ8tH0Hl6fJd6FDBtHlNXL6yl8X0mE6KawLcp734CQYAJntMl1koW/Qaw==}
+  '@moonwall/cli@5.16.3':
+    resolution: {integrity: sha512-KcMbXnntvemOOkDAdGtjBFWuf4CbEROPcoeohlBOv3FtWe4xQYEh7KsDwsxZYJDlWhSnhl+Mc18jASEtDAS70g==}
     engines: {node: '>=20', pnpm: '>=7'}
     hasBin: true
 
-  '@moonwall/types@5.16.2':
-    resolution: {integrity: sha512-h5+NkMowDno+CNKbmmL/aeMk6LJuHY4vA9LPlCGEO1oP61rd9sPXpunME1PMHF1ZgIPr3/ScRt0qWKz7hXTJCg==}
+  '@moonwall/types@5.16.3':
+    resolution: {integrity: sha512-qit3TAuCX+uozFYxgoyGpPG3QaX6WIW2u+oHnbfQ9FoCq/JXlf5+Dxk7fPaovSNb90ZzKKWYA74LdxUmSC+2ZA==}
     engines: {node: '>=20'}
 
-  '@moonwall/util@5.16.2':
-    resolution: {integrity: sha512-u04nKqCaoddQTEhfTVQcFfoq/vX/jNtTGzYHqLqpgpao5ZHXKqbUKktGozVLuKjhamdG+CAQjr2iCSyqE7DFMQ==}
+  '@moonwall/util@5.16.3':
+    resolution: {integrity: sha512-PL9ZLOCPf86eKXnrgDiFft1e9OAjy37SH+xJRXirX4L8n+Hy2e558S/a1nSKJXOnB8vv9kZWN+x0DR216GWeBw==}
     engines: {node: '>=20', pnpm: '>=7'}
 
   '@msgpackr-extract/msgpackr-extract-darwin-arm64@3.0.3':
@@ -4310,6 +4310,7 @@ packages:
     resolution: {integrity: sha512-Quz3MvAwHxVYNXsOByL7xI5EB2WYOeFswqaHIA3qOK3isRWTxiplBEocmmru6XmxDB2L7jDNYtYA4FyimoAFEw==}
     engines: {node: '>=8.17.0'}
     hasBin: true
+    bundledDependencies: []
 
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
@@ -7513,7 +7514,7 @@ snapshots:
       - utf-8-validate
       - yaml
 
-  '@moonwall/cli@5.16.2(@types/debug@4.1.12)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)':
+  '@moonwall/cli@5.16.3(@types/debug@4.1.12)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)':
     dependencies:
       '@acala-network/chopsticks': 1.2.2(bufferutil@4.0.9)(debug@4.4.3)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)
       '@effect/cluster': 0.50.4(@effect/platform@0.92.1(effect@3.18.4))(@effect/rpc@0.71.0(@effect/platform@0.92.1(effect@3.18.4))(effect@3.18.4))(@effect/sql@0.46.0(@effect/experimental@0.56.0(@effect/platform@0.92.1(effect@3.18.4))(effect@3.18.4))(@effect/platform@0.92.1(effect@3.18.4))(effect@3.18.4))(@effect/workflow@0.11.3(@effect/platform@0.92.1(effect@3.18.4))(@effect/rpc@0.71.0(@effect/platform@0.92.1(effect@3.18.4))(effect@3.18.4))(effect@3.18.4))(effect@3.18.4)
@@ -7525,8 +7526,8 @@ snapshots:
       '@effect/workflow': 0.11.3(@effect/platform@0.92.1(effect@3.18.4))(@effect/rpc@0.71.0(@effect/platform@0.92.1(effect@3.18.4))(effect@3.18.4))(effect@3.18.4)
       '@inquirer/prompts': 7.8.6(@types/node@24.7.0)
       '@moonbeam-network/api-augment': 0.3900.0(bufferutil@4.0.9)(debug@4.4.3)(postcss@8.5.6)(utf-8-validate@5.0.10)(yaml@2.8.1)
-      '@moonwall/types': 5.16.2(@types/debug@4.1.12)(@vitest/ui@3.2.4)(bufferutil@4.0.9)(chokidar@3.6.0)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)
-      '@moonwall/util': 5.16.2(@types/debug@4.1.12)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)
+      '@moonwall/types': 5.16.3(@types/debug@4.1.12)(@vitest/ui@3.2.4)(bufferutil@4.0.9)(chokidar@3.6.0)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)
+      '@moonwall/util': 5.16.3(@types/debug@4.1.12)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)
       '@octokit/rest': 22.0.0
       '@polkadot/api': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@polkadot/api-derive': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -7619,7 +7620,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@moonwall/types@5.16.2(@types/debug@4.1.12)(@vitest/ui@3.2.4)(bufferutil@4.0.9)(chokidar@3.6.0)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)':
+  '@moonwall/types@5.16.3(@types/debug@4.1.12)(@vitest/ui@3.2.4)(bufferutil@4.0.9)(chokidar@3.6.0)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)':
     dependencies:
       '@polkadot/api': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@polkadot/api-base': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -7666,11 +7667,11 @@ snapshots:
       - yaml
       - zod
 
-  '@moonwall/util@5.16.2(@types/debug@4.1.12)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)':
+  '@moonwall/util@5.16.3(@types/debug@4.1.12)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)':
     dependencies:
       '@inquirer/prompts': 7.8.6(@types/node@24.7.0)
       '@moonbeam-network/api-augment': 0.3900.0(bufferutil@4.0.9)(debug@4.4.3)(postcss@8.5.6)(utf-8-validate@5.0.10)(yaml@2.8.1)
-      '@moonwall/types': 5.16.2(@types/debug@4.1.12)(@vitest/ui@3.2.4)(bufferutil@4.0.9)(chokidar@3.6.0)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)
+      '@moonwall/types': 5.16.3(@types/debug@4.1.12)(@vitest/ui@3.2.4)(bufferutil@4.0.9)(chokidar@3.6.0)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(yaml@2.8.1)(zod@3.25.76)
       '@polkadot/api': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@polkadot/api-derive': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@polkadot/keyring': 13.5.6(@polkadot/util-crypto@13.5.6(@polkadot/util@13.5.6))(@polkadot/util@13.5.6)
