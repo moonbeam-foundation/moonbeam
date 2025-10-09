@@ -688,14 +688,14 @@ describeSuite({
     // 4. Focus on specific test accounts rather than all mainnet accounts
 
     beforeAll(async () => {
+      api = context.polkadotJs();
+      log("Setting up chopsticks test for staking migration...");
+
       // Execute migration test only on moonbeam
       if ((api.consts.system.version as any).specName.toString() !== "moonbeam") {
         log("Skipping staking migration test on non-moonbeam network");
         return;
       }
-
-      api = context.polkadotJs();
-      log("Setting up chopsticks test for staking migration...");
 
       // Perform runtime upgrade to include migration storage items
       const rtBefore = (api.consts.system.version as any).specVersion.toNumber();
