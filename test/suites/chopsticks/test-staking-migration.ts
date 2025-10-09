@@ -543,8 +543,8 @@ const executeBatchMigrationWithRetry = async (
 
       log("✅ Migration transaction completed, verifying results...");
 
-      // Verify each account in the batch in parallel
-      const verificationPromises = batch.map(async ([accountId, isCandidate]) => {
+      // Verify each account in the batch sequentially (not in parallel)
+      for (const [accountId, isCandidate] of batch) {
         try {
           // Check if migration was successful with timeout
           const migrationSuccessful = await verifyAccountMigrationWithTimeout(
@@ -564,7 +564,8 @@ const executeBatchMigrationWithRetry = async (
                 // Check if this is expected (zero bond)
                 const isZeroBalance = await verifyZeroBalanceAccount(api, accountId, true);
                 if (isZeroBalance) {
-                  return createMigrationResult(accountId, isCandidate, true);
+                  results.push(createMigrationResult(accountId, isCandidate, true));
+                  continue;
                 }
 
                 // If we get here, it's an actual error
@@ -589,7 +590,8 @@ const executeBatchMigrationWithRetry = async (
                 // Check if this is expected (zero total delegation)
                 const isZeroBalance = await verifyZeroBalanceAccount(api, accountId, false);
                 if (isZeroBalance) {
-                  return createMigrationResult(accountId, isCandidate, true);
+                  results.push(createMigrationResult(accountId, isCandidate, true));
+                  continue;
                 }
 
                 // If we get here, it's an actual error
@@ -602,14 +604,17 @@ const executeBatchMigrationWithRetry = async (
                 );
               }
             }
-            return createMigrationResult(accountId, isCandidate, true);
+            results.push(createMigrationResult(accountId, isCandidate, true));
+            continue;
           }
 
-          return createMigrationResult(
-            accountId,
-            isCandidate,
-            false,
-            "Migration not marked as complete"
+          results.push(
+            createMigrationResult(
+              accountId,
+              isCandidate,
+              false,
+              "Migration not marked as complete"
+            )
           );
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : String(error);
@@ -617,13 +622,9 @@ const executeBatchMigrationWithRetry = async (
             ? `Verification timeout (attempt ${attempt}): ${errorMsg}`
             : errorMsg;
 
-          return createMigrationResult(accountId, isCandidate, false, timeoutError);
+          results.push(createMigrationResult(accountId, isCandidate, false, timeoutError));
         }
-      });
-
-      // Wait for all verifications to complete
-      const verificationResults = await Promise.all(verificationPromises);
-      results.push(...verificationResults);
+      }
 
       // If we get here, the batch completed (with possible individual failures)
       return results;
@@ -777,7 +778,7 @@ describeSuite({
         }
 
         const accountsToMigrate = (context as any).allNonMigratedAccounts || [];
-        const batchSize = 100;
+        const batchSize = 500;
         const stats: MigrationStats = {
           totalProcessed: 0,
           totalSuccessful: 0,
