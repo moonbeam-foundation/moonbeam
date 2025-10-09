@@ -372,7 +372,6 @@ impl pallet_xcm::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_xcm::WeightInfo<Runtime>;
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
-	type AssetHubMigrationStarted = AssetHubMigrationStarted;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {

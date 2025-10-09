@@ -375,22 +375,6 @@ impl pallet_xcm::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_xcm::WeightInfo<Runtime>;
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
-	/// Configuration for pallet-xcm AssetHub migration timing
-	///
-	/// This type alias informs pallet-xcm when to enable DOT reserve checks
-	/// introduced in [PR #9137](https://github.com/paritytech/polkadot-sdk/pull/9137).
-	///
-	/// # Migration Strategy
-	/// Rather than immediately enforcing strict reserve checks (which would cause
-	/// hard failures), this provides a grace period for dApps to update their
-	/// implementations and adapt to the new reserve validation requirements.
-	///
-	/// # Behavior
-	/// - **Before migration**: Permissive reserve handling (legacy behavior)
-	/// - **After migration**: Strict DOT reserve checks enforced
-	///
-	/// The migration timing is controlled by [`AssetHubMigrationStartsAtRelayBlock`].
-	type AssetHubMigrationStarted = AssetHubMigrationStarted;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
