@@ -689,7 +689,7 @@ describeSuite({
 
     beforeAll(async () => {
       // Execute migration test only on moonbeam
-      if (api.consts.system.version.specName.toString() !== "moonbeam") {
+      if ((api.consts.system.version as any).specName.toString() !== "moonbeam") {
         log("Skipping staking migration test on non-moonbeam network");
         return;
       }
@@ -723,7 +723,7 @@ describeSuite({
       title: "Should discover non-migrated candidates and delegators",
       test: async () => {
         // Execute migration test only on moonbeam
-        if (api.consts.system.version.specName.toString() !== "moonbeam") {
+        if ((api.consts.system.version as any).specName.toString() !== "moonbeam") {
           log("Skipping staking migration test on non-moonbeam network");
           return;
         }
@@ -771,7 +771,7 @@ describeSuite({
       title: "Should migrate candidates and delegators recursively in batches",
       test: async () => {
         // Execute migration test only on moonbeam
-        if (api.consts.system.version.specName.toString() !== "moonbeam") {
+        if ((api.consts.system.version as any).specName.toString() !== "moonbeam") {
           log("Skipping staking migration test on non-moonbeam network");
           return;
         }
