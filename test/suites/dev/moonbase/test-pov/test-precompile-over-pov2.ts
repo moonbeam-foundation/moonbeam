@@ -72,7 +72,7 @@ describeSuite({
         });
 
         const { result, block } = await context.createBlock(rawSigned);
-        expect(block.proofSize).toMatchInlineSnapshot(`107861`);
+        expect(block.proofSize).toMatchInlineSnapshot(`107847`);
         expect(result?.successful).to.equal(true);
       },
     });

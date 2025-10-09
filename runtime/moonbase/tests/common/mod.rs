@@ -397,10 +397,7 @@ pub fn set_parachain_inherent_data() {
 	relay_sproof.para_id = 100u32.into();
 	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
 
-	let additional_key_values = vec![(
-		moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-		sp_timestamp::Timestamp::default().encode(),
-	)];
+	let additional_key_values = vec![];
 
 	relay_sproof.additional_key_values = additional_key_values;
 

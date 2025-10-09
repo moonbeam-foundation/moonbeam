@@ -24,6 +24,7 @@ use fp_rpc::EthereumRuntimeRPCApi;
 use sp_block_builder::BlockBuilder;
 
 use crate::client::RuntimeApiCollection;
+use crate::RELAY_CHAIN_SLOT_DURATION_MILLIS;
 use cumulus_primitives_core::{ParaId, PersistedValidationData};
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
@@ -34,6 +35,7 @@ use futures::StreamExt;
 use jsonrpsee::RpcModule;
 use moonbeam_cli_opt::EthApi as EthApiCmd;
 use moonbeam_core_primitives::{Block, Hash};
+use parity_scale_codec::Encode;
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	client::BlockchainEvents,
@@ -51,6 +53,7 @@ use sp_blockchain::{
 };
 use sp_core::H256;
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT, Header as HeaderT};
+use sp_timestamp::Timestamp;
 use std::collections::BTreeMap;
 
 pub struct MoonbeamEGA;
@@ -157,6 +160,7 @@ pub fn create_full<C, P, BE>(
 		>,
 	>,
 	pending_consenus_data_provider: Box<dyn ConsensusDataProvider<Block>>,
+	para_id: ParaId,
 ) -> Result<RpcModule<()>, Box<dyn std::error::Error + Send + Sync>>
 where
 	BE: Backend<Block> + 'static,
@@ -221,32 +225,63 @@ where
 	}
 	let convert_transaction: Option<Never> = None;
 
-	let pending_create_inherent_data_providers = move |_, _| async move {
-		let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-		// Create a dummy parachain inherent data provider which is required to pass
-		// the checks by the para chain system. We use dummy values because in the 'pending context'
-		// neither do we have access to the real values nor do we need them.
-		let (relay_parent_storage_root, relay_chain_state) =
-			RelayStateSproofBuilder::default().into_state_root_and_proof();
-		let vfp = PersistedValidationData {
-			// This is a hack to make `cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases`
-			// happy. Relay parent number can't be bigger than u32::MAX.
-			relay_parent_number: u32::MAX,
-			relay_parent_storage_root,
-			..Default::default()
-		};
-		let parachain_inherent_data = ParachainInherentData {
-			validation_data: vfp,
-			relay_chain_state,
-			downward_messages: Default::default(),
-			horizontal_messages: Default::default(),
-		};
-		Ok((timestamp, parachain_inherent_data))
+	// Need to clone it to avoid moving of `client` variable in closure below.
+	let client_for_cidp = client.clone();
+
+	let pending_create_inherent_data_providers = move |block, _| {
+		// Use timestamp in the future
+		let timestamp = sp_timestamp::InherentDataProvider::new(
+			Timestamp::current()
+				.saturating_add(RELAY_CHAIN_SLOT_DURATION_MILLIS.saturating_mul(100))
+				.into(),
+		);
+
+		let maybe_current_para_head = client_for_cidp.expect_header(block);
+		async move {
+			let current_para_block_head = Some(polkadot_primitives::HeadData(
+				maybe_current_para_head?.encode(),
+			));
+
+			let builder = RelayStateSproofBuilder {
+				para_id,
+				// Use a future relay slot (We derive one from the timestamp)
+				current_slot: polkadot_primitives::Slot::from(
+					timestamp
+						.timestamp()
+						.as_millis()
+						.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS),
+				),
+				included_para_head: current_para_block_head,
+				..Default::default()
+			};
+
+			// Create a dummy parachain inherent data provider which is required to pass
+			// the checks by the para chain system. We use dummy values because in the 'pending context'
+			// neither do we have access to the real values nor do we need them.
+			let (relay_parent_storage_root, relay_chain_state) =
+				builder.into_state_root_and_proof();
+
+			let vfp = PersistedValidationData {
+				// This is a hack to make `cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases`
+				// happy. Relay parent number can't be bigger than u32::MAX.
+				relay_parent_number: u32::MAX,
+				relay_parent_storage_root,
+				..Default::default()
+			};
+			let parachain_inherent_data = ParachainInherentData {
+				validation_data: vfp,
+				relay_chain_state,
+				downward_messages: Default::default(),
+				horizontal_messages: Default::default(),
+			};
+
+			Ok((timestamp, parachain_inherent_data))
+		}
 	};
 
 	io.merge(
 		Eth::<_, _, _, _, _, _, MoonbeamEthConfig<_, _>>::new(
-			Arc::clone(&client),
+			Arc::clone(&client.clone()),
 			Arc::clone(&pool),
 			graph.clone(),
 			convert_transaction,
