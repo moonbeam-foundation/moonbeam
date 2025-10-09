@@ -333,6 +333,8 @@ where
 			relay_chain_state,
 			downward_messages: Default::default(),
 			horizontal_messages: Default::default(),
+			relay_parent_descendants: Default::default(),
+			collator_peer_id: None,
 		};
 		Ok((time, parachain_inherent_data))
 	};
