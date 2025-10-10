@@ -722,6 +722,12 @@ where
 			relay_chain_interface: relay_chain_interface.clone(),
 			net_config,
 			sybil_resistance_level: CollatorSybilResistance::Resistant,
+			metrics: Net::register_notification_metrics(
+				parachain_config
+					.prometheus_config
+					.as_ref()
+					.map(|config| &config.registry),
+			),
 		})
 		.await?;
 
@@ -930,6 +936,7 @@ where
 		relay_chain_slot_duration,
 		recovery_handle: Box::new(overseer_handle.clone()),
 		sync_service: sync_service.clone(),
+		prometheus_registry: prometheus_registry.as_ref(),
 	})?;
 
 	let BlockImportPipeline::Parachain(block_import) = block_import else {
