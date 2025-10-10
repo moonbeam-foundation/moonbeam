@@ -27,7 +27,7 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo, StorageInfo,
+		Contains, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo, StorageInfo,
 		StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
@@ -40,9 +40,9 @@ use moonbeam_runtime::{
 	currency::GLMR,
 	moonbeam_xcm_weights,
 	xcm_config::{CurrencyId, SelfReserve},
-	AccountId, Balances, EvmForeignAssets, Executive, OpenTechCommitteeCollective,
-	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
-	RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice, Treasury,
+	AccountId, Balances, EvmForeignAssets, Executive, NormalFilter, OpenTechCommitteeCollective,
+	ParachainStaking, PolkadotXcm, Precompiles, Proxy, ProxyType, Runtime, RuntimeBlockWeights,
+	RuntimeCall, RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice, Treasury,
 	TreasuryCouncilCollective, XcmTransactor, WEIGHT_PER_GAS,
 };
 use moonbeam_xcm_weights::XcmWeight;
@@ -491,6 +491,29 @@ fn verify_proxy_type_indices() {
 	assert_eq!(moonbeam_runtime::ProxyType::Balances as u8, 5);
 	assert_eq!(moonbeam_runtime::ProxyType::AuthorMapping as u8, 6);
 	assert_eq!(moonbeam_runtime::ProxyType::IdentityJudgement as u8, 7);
+}
+
+// This test ensure that we not filter out pure proxy calls
+#[test]
+fn verify_normal_filter_allow_pure_proxy() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert!(NormalFilter::contains(&RuntimeCall::Proxy(
+			pallet_proxy::Call::<Runtime>::create_pure {
+				proxy_type: ProxyType::Any,
+				delay: 0,
+				index: 0,
+			}
+		)));
+		assert!(NormalFilter::contains(&RuntimeCall::Proxy(
+			pallet_proxy::Call::<Runtime>::kill_pure {
+				spawner: AccountId::from(ALICE),
+				proxy_type: ProxyType::Any,
+				index: 0,
+				height: 0,
+				ext_index: 0,
+			}
+		)));
+	});
 }
 
 #[test]
