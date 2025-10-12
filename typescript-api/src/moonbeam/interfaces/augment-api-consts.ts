@@ -193,7 +193,7 @@ declare module "@polkadot/api-base/types/consts" {
     };
     crowdloanRewards: {
       /**
-       * Percentage to be payed at initialization
+       * Percentage to be paid at initialization
        **/
       initializationPayment: Perbill & AugmentedConst<ApiType>;
       maxInitContributors: u32 & AugmentedConst<ApiType>;
