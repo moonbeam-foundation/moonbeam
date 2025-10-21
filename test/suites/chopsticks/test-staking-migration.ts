@@ -743,7 +743,7 @@ describeSuite({
       title: "Should migrate candidates and delegators recursively in batches",
       test: async () => {
         const accountsToMigrate = (context as any).allNonMigratedAccounts || [];
-        const batchSize = 200;
+        const batchSize = 100;
         const stats: MigrationStats = {
           totalProcessed: 0,
           totalSuccessful: 0,
