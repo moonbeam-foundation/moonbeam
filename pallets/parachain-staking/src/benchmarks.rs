@@ -2578,7 +2578,7 @@ mod benchmarks {
 		let initial_candidate_count = <CandidatePool<T>>::get().0.len() as u32;
 
 		// Create x candidate accounts with existing locks to migrate
-		for i in 0..x {
+		for i in 0..(T::MaxCandidates::get()) {
 			// Add extra amount to ensure each candidate has a unique stake
 			let extra_amount = BalanceOf::<T>::from(i.saturating_mul(100u32));
 			let candidate = create_funded_collator::<T>(

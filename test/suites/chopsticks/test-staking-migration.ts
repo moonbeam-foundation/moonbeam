@@ -675,6 +675,12 @@ describeSuite({
       api = context.polkadotJs();
       log("Setting up chopsticks test for staking migration...");
 
+      // Execute migration test only on moonbeam
+      if ((api.consts.system.version as any).specName.toString() !== "moonbeam") {
+        log("Skipping staking migration test on non-moonbeam network");
+        return;
+      }
+
       // Perform runtime upgrade to include migration storage items
       const rtBefore = (api.consts.system.version as any).specVersion.toNumber();
       log("Upgrading runtime to include migration storage items...");
@@ -700,6 +706,12 @@ describeSuite({
       timeout: 3600000, // Increase to 60 minutes
       title: "Should discover non-migrated candidates and delegators",
       test: async () => {
+        // Execute migration test only on moonbeam
+        if ((api.consts.system.version as any).specName.toString() !== "moonbeam") {
+          log("Skipping staking migration test on non-moonbeam network");
+          return;
+        }
+
         let allNonMigratedAccounts: [string, boolean][];
 
         // Check if specific accounts are provided via environment variables
@@ -742,6 +754,12 @@ describeSuite({
       timeout: 7200000, // 2 hour timeout for complete migration
       title: "Should migrate candidates and delegators recursively in batches",
       test: async () => {
+        // Execute migration test only on moonbeam
+        if ((api.consts.system.version as any).specName.toString() !== "moonbeam") {
+          log("Skipping staking migration test on non-moonbeam network");
+          return;
+        }
+
         const accountsToMigrate = (context as any).allNonMigratedAccounts || [];
         const batchSize = 300;
         const stats: MigrationStats = {
