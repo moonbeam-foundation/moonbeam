@@ -2046,11 +2046,7 @@
 <a href="#2045" id="2045">2045</a>
 <a href="#2046" id="2046">2046</a>
 <a href="#2047" id="2047">2047</a>
-<a href="#2048" id="2048">2048</a>
-<a href="#2049" id="2049">2049</a>
-<a href="#2050" id="2050">2050</a>
-<a href="#2051" id="2051">2051</a>
-<a href="#2052" id="2052">2052</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#2048" id="2048">2048</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -3271,11 +3267,7 @@
 				<span class="comment">// Anything else is disallowed
 				</span><span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
 			},
-			<span class="comment">// We filter anonymous proxy as they make "reserve" inconsistent
-			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
-			</span>RuntimeCall::Proxy(method) =&gt; <span class="kw">match </span>method {
-				pallet_proxy::Call::create_pure { .. } =&gt; <span class="bool-val">false</span>,
-				pallet_proxy::Call::kill_pure { .. } =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::Proxy(method) =&gt; <span class="kw">match </span>method {
 				pallet_proxy::Call::proxy { real, .. } =&gt; {
 					!pallet_evm::AccountCodes::&lt;Runtime&gt;::contains_key(H160::from(<span class="kw-2">*</span>real))
 				}
