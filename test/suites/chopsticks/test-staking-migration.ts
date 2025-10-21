@@ -427,37 +427,32 @@ const discoverAllNonMigratedAccounts = async (
   let delegatorsMigrated = 0;
 
   // Process delegators in smaller batches to avoid RPC timeouts
-  const delegatorBatchSize = 20;
+  const delegatorBatchSize = 200;
   for (let i = 0; i < delegatorState.length; i += delegatorBatchSize) {
     const batch = delegatorState.slice(i, i + delegatorBatchSize);
 
-    await Promise.all(
-      batch.map(async ([key, delegatorData]) => {
-        if ((delegatorData as any).isSome) {
-          const delegatorAccount = key.args[0].toString();
-          try {
-            const isMigrated = await checkMigrationStatus(api, delegatorAccount, false);
+    for (const [key, delegatorData] of batch) {
+      if ((delegatorData as any).isSome) {
+        const delegatorAccount = key.args[0].toString();
+        try {
+          const isMigrated = await checkMigrationStatus(api, delegatorAccount, false);
 
-            // Debug logging for first few delegators
-            if (delegatorsChecked < 3) {
-              log(
-                `  🔍 Delegator ${delegatorAccount}: migrated = ${isMigrated ? "true" : "false"}`
-              );
-            }
-
-            if (!isMigrated) {
-              nonMigratedAccounts.push([delegatorAccount, false]);
-            } else {
-              delegatorsMigrated++;
-            }
-          } catch (error) {
-            log(`  ⚠️  Error checking delegator ${delegatorAccount}: ${error}`);
-            // Continue processing other accounts
+          // Debug logging for first few delegators
+          if (delegatorsChecked < 3) {
+            log(`  🔍 Delegator ${delegatorAccount}: migrated = ${isMigrated ? "true" : "false"}`);
           }
-          delegatorsChecked++;
+
+          if (!isMigrated) {
+            nonMigratedAccounts.push([delegatorAccount, false]);
+          } else {
+            delegatorsMigrated++;
+          }
+        } catch (error) {
+          expect.fail(`  ⚠️  Error checking delegator ${delegatorAccount}: ${error}`);
         }
-      })
-    );
+        delegatorsChecked++;
+      }
+    }
 
     logAccountProgress(
       log,
@@ -755,7 +750,7 @@ describeSuite({
       title: "Should migrate candidates and delegators recursively in batches",
       test: async () => {
         const accountsToMigrate = (context as any).allNonMigratedAccounts || [];
-        const batchSize = 500;
+        const batchSize = 200;
         const stats: MigrationStats = {
           totalProcessed: 0,
           totalSuccessful: 0,
