@@ -380,31 +380,26 @@ const discoverAllNonMigratedAccounts = async (
   for (let i = 0; i < candidateInfo.length; i += candidateBatchSize) {
     const batch = candidateInfo.slice(i, i + candidateBatchSize);
 
-    await Promise.all(
-      batch.map(async ([key, candidateData]) => {
-        if ((candidateData as any).isSome) {
-          const collatorAccount = key.args[0].toString();
-          try {
-            const isMigrated = await checkMigrationStatus(api, collatorAccount, true);
+    for (const [key] of batch) {
+      const collatorAccount = key.args[0].toString();
+      try {
+        const isMigrated = await checkMigrationStatus(api, collatorAccount, true);
 
-            // Debug logging for first few candidates
-            if (candidatesChecked < 3) {
-              log(`  🔍 Candidate ${collatorAccount}: migrated = ${isMigrated ? "true" : "false"}`);
-            }
-
-            if (!isMigrated) {
-              nonMigratedAccounts.push([collatorAccount, true]);
-            } else {
-              candidatesMigrated++;
-            }
-          } catch (error) {
-            log(`  ⚠️  Error checking candidate ${collatorAccount}: ${error}`);
-            // Continue processing other accounts
-          }
-          candidatesChecked++;
+        // Debug logging for first few candidates
+        if (candidatesChecked < 3) {
+          log(`  🔍 Candidate ${collatorAccount}: migrated = ${isMigrated ? "true" : "false"}`);
         }
-      })
-    );
+
+        if (!isMigrated) {
+          nonMigratedAccounts.push([collatorAccount, true]);
+        } else {
+          candidatesMigrated++;
+        }
+      } catch (error) {
+        expect.fail(`  ⚠️  Error checking candidate ${collatorAccount}: ${error}`);
+      }
+      candidatesChecked++;
+    }
 
     logAccountProgress(
       log,
@@ -431,27 +426,25 @@ const discoverAllNonMigratedAccounts = async (
   for (let i = 0; i < delegatorState.length; i += delegatorBatchSize) {
     const batch = delegatorState.slice(i, i + delegatorBatchSize);
 
-    for (const [key, delegatorData] of batch) {
-      if ((delegatorData as any).isSome) {
-        const delegatorAccount = key.args[0].toString();
-        try {
-          const isMigrated = await checkMigrationStatus(api, delegatorAccount, false);
+    for (const [key] of batch) {
+      const delegatorAccount = key.args[0].toString();
+      try {
+        const isMigrated = await checkMigrationStatus(api, delegatorAccount, false);
 
-          // Debug logging for first few delegators
-          if (delegatorsChecked < 3) {
-            log(`  🔍 Delegator ${delegatorAccount}: migrated = ${isMigrated ? "true" : "false"}`);
-          }
-
-          if (!isMigrated) {
-            nonMigratedAccounts.push([delegatorAccount, false]);
-          } else {
-            delegatorsMigrated++;
-          }
-        } catch (error) {
-          expect.fail(`  ⚠️  Error checking delegator ${delegatorAccount}: ${error}`);
+        // Debug logging for first few delegators
+        if (delegatorsChecked < 3) {
+          log(`  🔍 Delegator ${delegatorAccount}: migrated = ${isMigrated ? "true" : "false"}`);
         }
-        delegatorsChecked++;
+
+        if (!isMigrated) {
+          nonMigratedAccounts.push([delegatorAccount, false]);
+        } else {
+          delegatorsMigrated++;
+        }
+      } catch (error) {
+        expect.fail(`  ⚠️  Error checking delegator ${delegatorAccount}: ${error}`);
       }
+      delegatorsChecked++;
     }
 
     logAccountProgress(
