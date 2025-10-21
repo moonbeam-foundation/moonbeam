@@ -40,9 +40,8 @@ use moonriver_runtime::{
 	moonriver_xcm_weights,
 	xcm_config::{CurrencyId, SelfReserve},
 	Balances, EvmForeignAssets, Executive, NormalFilter, OpenTechCommitteeCollective, PolkadotXcm,
-	Precompiles, Proxy, ProxyType, RuntimeBlockWeights, TransactionPayment,
-	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
-	WEIGHT_PER_GAS,
+	Precompiles, ProxyType, RuntimeBlockWeights, TransactionPayment, TransactionPaymentAsGasPrice,
+	Treasury, TreasuryCouncilCollective, XcmTransactor, WEIGHT_PER_GAS,
 };
 use moonriver_xcm_weights::XcmWeight;
 use nimbus_primitives::NimbusId;

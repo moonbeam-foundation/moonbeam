@@ -40,7 +40,7 @@ use moonbase_runtime::xcm_config::{AssetHubLocation, XcmExecutor};
 use moonbase_runtime::{
 	moonbase_xcm_weights, xcm_config::SelfReserve, AccountId, AssetId, Balances, EvmForeignAssets,
 	Executive, NormalFilter, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm,
-	Precompiles, Proxy, ProxyType, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
+	Precompiles, ProxyType, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
 	TransactionPayment, TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective,
 	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEIGHT_PER_GAS,
 };
