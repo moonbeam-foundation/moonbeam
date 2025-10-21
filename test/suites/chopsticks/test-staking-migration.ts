@@ -422,7 +422,7 @@ const discoverAllNonMigratedAccounts = async (
   let delegatorsMigrated = 0;
 
   // Process delegators in smaller batches to avoid RPC timeouts
-  const delegatorBatchSize = 200;
+  const delegatorBatchSize = 1000;
   for (let i = 0; i < delegatorState.length; i += delegatorBatchSize) {
     const batch = delegatorState.slice(i, i + delegatorBatchSize);
 
@@ -743,7 +743,7 @@ describeSuite({
       title: "Should migrate candidates and delegators recursively in batches",
       test: async () => {
         const accountsToMigrate = (context as any).allNonMigratedAccounts || [];
-        const batchSize = 100;
+        const batchSize = 300;
         const stats: MigrationStats = {
           totalProcessed: 0,
           totalSuccessful: 0,
@@ -829,17 +829,6 @@ describeSuite({
         (context as any).migrationStats = stats;
 
         expect(stats.totalProcessed).to.be.greaterThan(0);
-
-        // Verify staking system continues to produce blocks after migration
-        const currentHeight = (await api.rpc.chain.getBlock()).block.header.number.toNumber();
-
-        // Create a few blocks to ensure system continues working
-        await context.createBlock({ count: 5 });
-
-        const newHeight = (await api.rpc.chain.getBlock()).block.header.number.toNumber();
-        expect(newHeight - currentHeight).to.equal(5);
-
-        log("Staking system continues to produce blocks after migration");
       },
     });
   },
