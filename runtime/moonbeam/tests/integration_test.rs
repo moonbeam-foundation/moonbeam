@@ -41,7 +41,7 @@ use moonbeam_runtime::{
 	moonbeam_xcm_weights,
 	xcm_config::{CurrencyId, SelfReserve},
 	AccountId, Balances, EvmForeignAssets, Executive, NormalFilter, OpenTechCommitteeCollective,
-	ParachainStaking, PolkadotXcm, Precompiles, Proxy, ProxyType, Runtime, RuntimeBlockWeights,
+	ParachainStaking, PolkadotXcm, Precompiles, ProxyType, Runtime, RuntimeBlockWeights,
 	RuntimeCall, RuntimeEvent, System, TransactionPayment, TransactionPaymentAsGasPrice, Treasury,
 	TreasuryCouncilCollective, XcmTransactor, WEIGHT_PER_GAS,
 };
