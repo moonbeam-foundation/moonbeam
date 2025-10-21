@@ -2544,8 +2544,8 @@ mod benchmarks {
 
 		// Convert Vec to BoundedVec
 		let bounded_accounts =
-			BoundedVec::<(T::AccountId, bool), ConstU32<100>>::try_from(delegator_accounts)
-				.expect("delegator_accounts should not exceed 100 items");
+			BoundedVec::<(T::AccountId, bool), ConstU32<MAX_ACCOUNTS_PER_MIGRATION_BATCH>>::try_from(delegator_accounts)
+				.expect("delegator_accounts should not exceed MAX_ACCOUNTS_PER_MIGRATION_BATCH items");
 
 		#[extrinsic_call]
 		migrate_locks_to_freezes_batch(RawOrigin::Signed(caller), bounded_accounts.clone());
@@ -2594,8 +2594,8 @@ mod benchmarks {
 
 		// Convert Vec to BoundedVec
 		let bounded_accounts =
-			BoundedVec::<(T::AccountId, bool), ConstU32<100>>::try_from(candidate_accounts)
-				.expect("candidate_accounts should not exceed 100 items");
+			BoundedVec::<(T::AccountId, bool), ConstU32<MAX_ACCOUNTS_PER_MIGRATION_BATCH>>::try_from(candidate_accounts)
+				.expect("candidate_accounts should not exceed MAX_ACCOUNTS_PER_MIGRATION_BATCH items");
 
 		#[extrinsic_call]
 		migrate_locks_to_freezes_batch(RawOrigin::Signed(caller), bounded_accounts.clone());
