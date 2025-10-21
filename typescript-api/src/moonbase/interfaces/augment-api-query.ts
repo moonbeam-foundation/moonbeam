@@ -127,9 +127,10 @@ declare module "@polkadot/api-base/types/storage" {
   interface AugmentedQueries<ApiType extends ApiTypes> {
     asyncBacking: {
       /**
-       * First tuple element is the highest slot that has been seen in the history of this chain.
-       * Second tuple element is the number of authored blocks so far.
-       * This is a strictly-increasing value if T::AllowMultipleBlocksPerSlot = false.
+       * Current relay chain slot paired with a number of authored blocks.
+       *
+       * This is updated in [`FixedVelocityConsensusHook::on_state_proof`] with the current relay
+       * chain slot as provided by the relay chain state proof.
        **/
       slotInfo: AugmentedQuery<ApiType, () => Observable<Option<ITuple<[u64, u32]>>>, []> &
         QueryableStorageEntry<ApiType, []>;
