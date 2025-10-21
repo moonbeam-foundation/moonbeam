@@ -1,1 +1,4 @@
-/specs/ @moonbeam-foundation/moonsong-perm @moonbeam-foundation/opslayer-devops
+/.github/ @moonbeam-foundation/moonsong-perm @moonbeam-foundation/opslayer-devops
+/tools/github/ @moonbeam-foundation/moonsong-perm @moonbeam-foundation/opslayer-devops
+/docker/ @moonbeam-foundation/moonsong-perm @moonbeam-foundation/opslayer-devops
+/scripts/ @moonbeam-foundation/moonsong-perm @moonbeam-foundation/opslayer-devops
