@@ -70,8 +70,8 @@ pub enum EthereumXcmTransaction {
 }
 
 /// Value for `r` and `s` for the invalid signature included in Xcm transact's Ethereum transaction.
-pub fn rs_id() -> H256 {
-	H256::from_low_u64_be(1u64)
+pub fn rs_id() -> U256 {
+	U256::from(1u64)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
