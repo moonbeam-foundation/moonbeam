@@ -449,16 +449,18 @@ impl LegacyUnsignedTransaction {
 	pub fn sign_with_chain_id(&self, key: &H256, chain_id: u64) -> Transaction {
 		let hash = self.signing_hash();
 		let msg = libsecp256k1::Message::parse(hash.as_fixed_bytes());
-		let s = libsecp256k1::sign(
+		let (signature, recovery_id) = libsecp256k1::sign(
 			&msg,
 			&libsecp256k1::SecretKey::parse_slice(&key[..]).unwrap(),
 		);
-		let sig = s.0.serialize();
+		let rs: [u8; 64] = signature.serialize();
+		let r = U256::from_little_endian(&rs[0..32]);
+		let s = U256::from_little_endian(&rs[32..64]);
 
 		let sig = ethereum::legacy::TransactionSignature::new(
-			s.1.serialize() as u64 % 2 + chain_id * 2 + 35,
-			H256::from_slice(&sig[0..32]),
-			H256::from_slice(&sig[32..64]),
+			recovery_id.serialize() as u64 % 2 + chain_id * 2 + 35,
+			r,
+			s,
 		)
 		.unwrap();
 
