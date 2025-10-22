@@ -505,8 +505,8 @@ impl EIP2930UnsignedTransaction {
 
 		let (signature, recid) = libsecp256k1::sign(&signing_message, &secret);
 		let rs = signature.serialize();
-		let r = H256::from_slice(&rs[0..32]);
-		let s = H256::from_slice(&rs[32..64]);
+		let r = U256::from_little_endian(&rs[0..32]);
+		let s = U256::from_little_endian(&rs[32..64]);
 		Transaction::EIP2930(ethereum::EIP2930Transaction {
 			chain_id: msg.chain_id,
 			nonce: msg.nonce,
@@ -555,8 +555,8 @@ impl EIP1559UnsignedTransaction {
 
 		let (signature, recid) = libsecp256k1::sign(&signing_message, &secret);
 		let rs = signature.serialize();
-		let r = H256::from_slice(&rs[0..32]);
-		let s = H256::from_slice(&rs[32..64]);
+		let r = U256::from_little_endian(&rs[0..32]);
+		let s = U256::from_little_endian(&rs[32..64]);
 		Transaction::EIP1559(ethereum::EIP1559Transaction {
 			chain_id: msg.chain_id,
 			nonce: msg.nonce,
@@ -612,8 +612,8 @@ impl EIP7702UnsignedTransaction {
 
 		let (signature, recid) = libsecp256k1::sign(&signing_message, &secret);
 		let rs = signature.serialize();
-		let r = H256::from_slice(&rs[0..32]);
-		let s = H256::from_slice(&rs[32..64]);
+		let r = U256::from_little_endian(&rs[0..32]);
+		let s = U256::from_little_endian(&rs[32..64]);
 		Transaction::EIP7702(ethereum::EIP7702Transaction {
 			chain_id: msg.chain_id,
 			nonce: msg.nonce,
