@@ -627,7 +627,7 @@ async fn build_relay_chain_interface(
 	Arc<(dyn RelayChainInterface + 'static)>,
 	Option<CollatorPair>,
 )> {
-	if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
+	let result = if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
 		collator_options.relay_chain_mode
 	{
 		build_minimal_relay_chain_node_with_rpc(
@@ -645,7 +645,11 @@ async fn build_relay_chain_interface(
 			task_manager,
 			hwbench,
 		)
-	}
+	};
+
+	// Extract only the first two elements from the 4-tuple
+	result
+		.map(|(relay_chain_interface, collator_pair, _, _)| (relay_chain_interface, collator_pair))
 }
 
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
