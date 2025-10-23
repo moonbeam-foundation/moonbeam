@@ -117,7 +117,6 @@ pub struct EthereumXcmTransactionV3 {
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 	/// Authorization list as defined in EIP-7702.
-	/// Currently not supported from XCM, but reserved for future use.
 	pub authorization_list: Option<AuthorizationList>,
 }
 
