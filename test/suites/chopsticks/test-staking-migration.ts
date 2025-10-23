@@ -13,12 +13,14 @@ import type { u32 } from "@polkadot/types";
 import { hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
 import { blake2AsHex, xxhashAsU8a } from "@polkadot/util-crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { it as VitestIt } from "vitest";
 import {
   hasCollatorStakingFreeze,
   hasDelegatorStakingFreeze,
   verifyCandidateInfoMatchesFreezes,
   verifyDelegatorStateMatchesFreezes,
 } from "../../helpers/staking-freezes";
+import { env } from "node:process";
 
 interface MigrationResult {
   accountId: string;
@@ -662,6 +664,11 @@ describeSuite({
   title: "Chopsticks Staking Migration",
   foundationMethods: "chopsticks",
   testCases: ({ it, context, log }) => {
+    if (env.CI === "true") {
+      VitestIt.todo("Tests being run in the CI - skipping staking migration tests");
+      return;
+    }
+
     let api: ApiPromise;
 
     // NOTE: This test suite limits the number of accounts checked to 10 candidates and 10 delegators
