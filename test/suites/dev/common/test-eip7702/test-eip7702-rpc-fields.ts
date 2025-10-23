@@ -141,8 +141,13 @@ describeSuite({
         expect(auth).not.toHaveProperty("signature");
 
         // Verify the signature values match what we sent
-        expect(auth.r).toBe(authorization.r);
-        expect(auth.s).toBe(authorization.s);
+        // TODO: Trim leading zeros is necessary because of: https://github.com/wevm/viem/pull/3455
+        expect(auth.r).toBe(
+          authorization.r.replace(/^0x0+/, "0x") /* Trim leading zeros for comparison */
+        );
+        expect(auth.s).toBe(
+          authorization.s.replace(/^0x0+/, "0x") /* Trim leading zeros for comparison */
+        );
 
         // yParity can be 0 or 1, but should match the authorization
         // Note: yParity is a number (0 or 1), not a boolean
