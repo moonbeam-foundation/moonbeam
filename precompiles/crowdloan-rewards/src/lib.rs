@@ -53,7 +53,6 @@ where
 	Runtime: pallet_crowdloan_rewards::Config + pallet_evm::Config + frame_system::Config,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::RuntimeCall: From<pallet_crowdloan_rewards::Call<Runtime>>,
 	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
@@ -137,7 +136,12 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_crowdloan_rewards::Call::<Runtime>::claim {};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin.into()).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -163,7 +167,12 @@ where
 		let call =
 			pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address { new_reward_account };
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin.into()).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}

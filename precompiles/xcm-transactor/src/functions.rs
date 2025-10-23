@@ -55,7 +55,6 @@ where
 	Runtime: pallet_xcm_transactor::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<pallet_xcm_transactor::Call<Runtime>>,
-	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	TransactorOf<Runtime>: TryFrom<u8>,
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
@@ -183,7 +182,12 @@ where
 			refund: false,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -230,7 +234,12 @@ where
 			refund: false,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -280,7 +289,12 @@ where
 			refund: false,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -336,7 +350,12 @@ where
 			refund: false,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -372,7 +391,12 @@ where
 			call,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -413,7 +437,12 @@ where
 			call,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -459,7 +488,12 @@ where
 			call,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -510,7 +544,12 @@ where
 			call,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -607,7 +646,12 @@ where
 			refund,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -663,7 +707,12 @@ where
 			refund,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -704,7 +753,12 @@ where
 			call,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -755,7 +809,12 @@ where
 			call,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}

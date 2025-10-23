@@ -99,7 +99,6 @@ where
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	Runtime::RuntimeCall: From<pallet_collective::Call<Runtime, Instance>>,
 	<Runtime as pallet_collective::Config<Instance>>::Proposal: From<Runtime::RuntimeCall>,
-	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::AccountId: Into<H160>,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
@@ -133,7 +132,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
-			Some(origin).into(),
+			frame_system::RawOrigin::Signed(origin).into(),
 			pallet_collective::Call::<Runtime, Instance>::execute {
 				proposal,
 				length_bound: proposal_length,
@@ -193,7 +192,7 @@ where
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			RuntimeHelper::<Runtime>::try_dispatch(
 				handle,
-				Some(origin).into(),
+				frame_system::RawOrigin::Signed(origin).into(),
 				pallet_collective::Call::<Runtime, Instance>::propose {
 					threshold,
 					proposal,
@@ -228,7 +227,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
-			Some(origin).into(),
+			frame_system::RawOrigin::Signed(origin).into(),
 			pallet_collective::Call::<Runtime, Instance>::vote {
 				proposal: proposal_hash.into(),
 				index: proposal_index,
@@ -257,7 +256,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let post_dispatch_info = RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
-			Some(origin).into(),
+			frame_system::RawOrigin::Signed(origin).into(),
 			pallet_collective::Call::<Runtime, Instance>::close {
 				proposal_hash: proposal_hash.into(),
 				index: proposal_index,
