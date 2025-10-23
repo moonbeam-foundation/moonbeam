@@ -24,6 +24,7 @@ use frame_support::{
 	traits::Currency,
 };
 use pallet_evm::AddressMapping;
+use parity_scale_codec::EncodeLike;
 use precompile_utils::prelude::*;
 
 use sp_core::{H160, U256};
@@ -52,9 +53,17 @@ impl<Runtime> CrowdloanRewardsPrecompile<Runtime>
 where
 	Runtime: pallet_crowdloan_rewards::Config + pallet_evm::Config + frame_system::Config,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,
-	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::RuntimeCall: From<pallet_crowdloan_rewards::Call<Runtime>>,
-	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
+	<Runtime as pallet_crowdloan_rewards::Config>::RewardCurrency:
+		frame_support::traits::Currency<<Runtime as frame_system::pallet::Config>::AccountId>,
+	<Runtime as frame_system::pallet::Config>::RuntimeCall:
+		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<Runtime as frame_system::pallet::Config>::RuntimeCall:
+		From<pallet_crowdloan_rewards::Call<Runtime>>,
+	<Runtime as pallet_evm::Config>::AddressMapping:
+		AddressMapping<<Runtime as frame_system::pallet::Config>::AccountId>,
+	<Runtime as frame_system::Config>::AccountId: From<<Runtime as frame_system::pallet::Config>::AccountId>
+		+ Into<<Runtime as frame_system::pallet::Config>::AccountId>
+		+ EncodeLike<<Runtime as frame_system::pallet::Config>::AccountId>,
 {
 	// The accessors are first.
 	#[precompile::public("isContributor(address)")]
@@ -77,7 +86,7 @@ where
 
 		// fetch data from pallet
 		let is_contributor: bool =
-			pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account).is_some();
+			pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account.into()).is_some();
 
 		log::trace!(target: "crowldoan-rewards-precompile", "Result from pallet is {:?}", is_contributor);
 
@@ -106,7 +115,8 @@ where
 		);
 
 		// fetch data from pallet
-		let reward_info = pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account);
+		let reward_info =
+			pallet_crowdloan_rewards::Pallet::<Runtime>::accounts_payable(account.into());
 
 		let (total, claimed): (U256, U256) = if let Some(reward_info) = reward_info {
 			let total_reward: u128 = reward_info
@@ -164,8 +174,9 @@ where
 		log::trace!(target: "crowdloan-rewards-precompile", "New account is {:?}", new_address);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call =
-			pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address { new_reward_account };
+		let call = pallet_crowdloan_rewards::Call::<Runtime>::update_reward_address {
+			new_reward_account: new_reward_account.into(),
+		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
