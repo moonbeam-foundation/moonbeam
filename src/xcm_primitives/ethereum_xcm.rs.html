@@ -459,19 +459,7 @@
 <a href="#458" id="458">458</a>
 <a href="#459" id="459">459</a>
 <a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
-<a href="#463" id="463">463</a>
-<a href="#464" id="464">464</a>
-<a href="#465" id="465">465</a>
-<a href="#466" id="466">466</a>
-<a href="#467" id="467">467</a>
-<a href="#468" id="468">468</a>
-<a href="#469" id="469">469</a>
-<a href="#470" id="470">470</a>
-<a href="#471" id="471">471</a>
-<a href="#472" id="472">472</a>
-<a href="#473" id="473">473</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#461" id="461">461</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -543,8 +531,8 @@
 }
 
 <span class="doccomment">/// Value for `r` and `s` for the invalid signature included in Xcm transact's Ethereum transaction.
-</span><span class="kw">pub fn </span>rs_id() -&gt; H256 {
-	H256::from_low_u64_be(<span class="number">1u64</span>)
+</span><span class="kw">pub fn </span>rs_id() -&gt; U256 {
+	U256::from(<span class="number">1u64</span>)
 }
 
 <span class="attr">#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
@@ -816,12 +804,8 @@
 			value: U256::zero(),
 			input: <span class="macro">vec!</span>[<span class="number">1u8</span>],
 			access_list: <span class="macro">vec!</span>[],
-			signature: ethereum::eip1559::TransactionSignature::new(
-				<span class="bool-val">true</span>,
-				H256::from_low_u64_be(<span class="number">1u64</span>),
-				H256::from_low_u64_be(<span class="number">1u64</span>),
-			)
-			.unwrap(),
+			signature: ethereum::eip1559::TransactionSignature::new(<span class="bool-val">true</span>, rs_id(), rs_id())
+				.unwrap(),
 		}));
 
 		<span class="macro">assert_eq!</span>(
@@ -895,12 +879,8 @@
 			value: U256::zero(),
 			input: <span class="macro">vec!</span>[<span class="number">1u8</span>],
 			access_list: from_tuple_to_access_list(<span class="kw-2">&amp;</span>access_list.unwrap()),
-			signature: ethereum::eip2930::TransactionSignature::new(
-				<span class="bool-val">true</span>,
-				H256::from_low_u64_be(<span class="number">1u64</span>),
-				H256::from_low_u64_be(<span class="number">1u64</span>),
-			)
-			.unwrap(),
+			signature: ethereum::eip2930::TransactionSignature::new(<span class="bool-val">true</span>, rs_id(), rs_id())
+				.unwrap(),
 		}));
 
 		<span class="macro">assert_eq!</span>(
@@ -930,12 +910,8 @@
 			value: U256::zero(),
 			input: <span class="macro">vec!</span>[<span class="number">1u8</span>],
 			access_list: <span class="macro">vec!</span>[],
-			signature: ethereum::eip1559::TransactionSignature::new(
-				<span class="bool-val">true</span>,
-				H256::from_low_u64_be(<span class="number">1u64</span>),
-				H256::from_low_u64_be(<span class="number">1u64</span>),
-			)
-			.unwrap(),
+			signature: ethereum::eip1559::TransactionSignature::new(<span class="bool-val">true</span>, rs_id(), rs_id())
+				.unwrap(),
 		}));
 
 		<span class="macro">assert_eq!</span>(
