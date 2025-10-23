@@ -393,7 +393,7 @@ impl<
 		Ok(())
 	}
 
-	pub fn bond_less<T: Config>(&mut self, who: T::AccountId, amount: Balance)
+	pub fn bond_less<T: Config>(&mut self, who: T::AccountId, amount: Balance) -> DispatchResult
 	where
 		BalanceOf<T>: From<Balance>,
 	{
@@ -403,9 +403,9 @@ impl<
 
 		// Update the freeze to the new total amount
 		if self.bond.is_zero() {
-			let _ = <Pallet<T>>::thaw_extended(&who, true);
+			<Pallet<T>>::thaw_extended(&who, true)?;
 		} else {
-			let _ = <Pallet<T>>::freeze_extended(&who, self.bond.into(), true);
+			<Pallet<T>>::freeze_extended(&who, self.bond.into(), true)?;
 		}
 		self.total_counted = self.total_counted.saturating_sub(amount);
 		let event = Event::CandidateBondedLess {
@@ -418,6 +418,7 @@ impl<
 			Pallet::<T>::update_active(who, self.total_counted.into());
 		}
 		Pallet::<T>::deposit_event(event);
+		Ok(())
 	}
 
 	/// Schedule executable decrease of collator candidate self bond
@@ -460,7 +461,7 @@ impl<
 			request.when_executable <= <Round<T>>::get().current,
 			Error::<T>::PendingCandidateRequestNotDueYet
 		);
-		self.bond_less::<T>(who.clone(), request.amount);
+		self.bond_less::<T>(who.clone(), request.amount)?;
 		// reset s.t. no pending request
 		self.request = None;
 		Ok(())

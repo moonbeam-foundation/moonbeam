@@ -1430,13 +1430,13 @@ pub mod pallet {
 		/// - `accounts`: List of tuples containing (account_id, is_collator)
 		///   where is_collator indicates if the account is a collator (true) or delegator (false)
 		///
-		/// The maximum number of accounts that can be migrated in one batch is 100.
+		/// The maximum number of accounts that can be migrated in one batch is MAX_ACCOUNTS_PER_MIGRATION_BATCH.
 		/// The batch cannot be empty.
 		///
 		/// If 50% or more of the migration attempts are successful, the entire
 		/// extrinsic fee is refunded to incentivize successful batch migrations.
 		/// Weight is calculated based on actual successful operations performed.
-		#[pallet::call_index(33)]
+		#[pallet::call_index(200)]
 		#[pallet::weight({
 			T::WeightInfo::migrate_locks_to_freezes_batch_delegators(MAX_ACCOUNTS_PER_MIGRATION_BATCH).max(T::WeightInfo::migrate_locks_to_freezes_batch_candidates(MAX_ACCOUNTS_PER_MIGRATION_BATCH))
 		})]
@@ -1627,8 +1627,7 @@ pub mod pallet {
 				FreezeReason::StakingDelegator
 			};
 
-			let _ = T::Currency::thaw(&freeze_reason.into(), account);
-			Ok(())
+			T::Currency::thaw(&freeze_reason.into(), account)
 		}
 
 		/// Get frozen balance with lazy migration support
@@ -1649,16 +1648,6 @@ pub mod pallet {
 			} else {
 				<DelegatorState<T>>::get(account).map(|state| state.total)
 			}
-		}
-
-		pub fn set_candidate_bond_to_zero(acc: &T::AccountId) -> Weight {
-			let actual_weight =
-				<T as Config>::WeightInfo::set_candidate_bond_to_zero(T::MaxCandidates::get());
-			if let Some(mut state) = <CandidateInfo<T>>::get(&acc) {
-				state.bond_less::<T>(acc.clone(), state.bond);
-				<CandidateInfo<T>>::insert(&acc, state);
-			}
-			actual_weight
 		}
 
 		pub fn is_delegator(acc: &T::AccountId) -> bool {
@@ -1843,7 +1832,7 @@ pub mod pallet {
 					post_info: Some(actual_weight).into(),
 					error: err,
 				})?;
-			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
+			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| -> DispatchResult {
 				// remove delegation from delegator state
 				let mut delegator = DelegatorState::<T>::get(&bond.owner).expect(
 					"Collator state and delegator state are consistent.
@@ -1865,15 +1854,14 @@ pub mod pallet {
 						// last delegation was left.
 						<DelegatorState<T>>::remove(&bond.owner);
 						// Thaw all frozen funds for delegator
-						let _ = Self::thaw_extended(&bond.owner, false);
+						Self::thaw_extended(&bond.owner, false)?;
 					} else {
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
 				} else {
-					// TODO: review. we assume here that this delegator has no remaining staked
-					// balance, so we ensure the funds are freed
-					let _ = Self::thaw_extended(&bond.owner, false);
+					Self::thaw_extended(&bond.owner, false)?;
 				}
+				Ok(())
 			};
 			// total backing stake is at least the candidate self bond
 			let mut total_backing = state.bond;
@@ -1881,18 +1869,18 @@ pub mod pallet {
 			let top_delegations =
 				<TopDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in top_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)?;
 			}
 			total_backing = total_backing.saturating_add(top_delegations.total);
 			// return all bottom delegations
 			let bottom_delegations =
 				<BottomDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in bottom_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)?;
 			}
 			total_backing = total_backing.saturating_add(bottom_delegations.total);
 			// Thaw all frozen funds for collator
-			let _ = Self::thaw_extended(&candidate, true);
+			Self::thaw_extended(&candidate, true)?;
 			<CandidateInfo<T>>::remove(&candidate);
 			<DelegationScheduledRequests<T>>::remove(&candidate);
 			<AutoCompoundingDelegations<T>>::remove(&candidate);

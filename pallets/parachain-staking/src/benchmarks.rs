@@ -810,50 +810,6 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn set_candidate_bond_to_zero(
-		x: Linear<1, { T::MaxCandidates::get() }>,
-	) -> Result<(), BenchmarkError> {
-		let min_candidate_stk = min_candidate_stk::<T>();
-
-		let mut candidate_count = 1u32;
-		for i in 2..x {
-			let seed = USER_SEED - i;
-			let _collator = create_funded_collator::<T>(
-				"collator",
-				seed,
-				min_candidate_stk,
-				true,
-				candidate_count,
-			)?;
-			candidate_count += 1;
-		}
-
-		let caller: T::AccountId = create_funded_collator::<T>(
-			"collator",
-			USER_SEED,
-			min_candidate_stk,
-			false,
-			candidate_count,
-		)?;
-
-		roll_to_and_author::<T>(2, caller.clone());
-
-		#[block]
-		{
-			Pallet::<T>::set_candidate_bond_to_zero(&caller);
-		}
-
-		assert!(
-			Pallet::<T>::candidate_info(&caller)
-				.expect("candidate was created, qed")
-				.bond
-				.is_zero(),
-			"bond should be zero"
-		);
-		Ok(())
-	}
-
-	#[benchmark]
 	fn cancel_candidate_bond_less() -> Result<(), BenchmarkError> {
 		let min_candidate_stk = min_candidate_stk::<T>();
 		let caller: T::AccountId =

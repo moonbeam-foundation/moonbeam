@@ -360,31 +360,6 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 	}
 	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
 	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::Total` (r:1 w:1)
-	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:1 w:1)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:1 w:1)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
-	/// Storage: `System::Account` (r:1 w:1)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
-	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// The range of component `x` is `[1, 200]`.
-	fn set_candidate_bond_to_zero(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1302 + x * (42 ±0)`
-		//  Estimated: `4752 + x * (43 ±0)`
-		// Minimum execution time: 44_790_000 picoseconds.
-		Weight::from_parts(51_761_012, 4752)
-			// Standard Error: 1_360
-			.saturating_add(Weight::from_parts(80_223, 0).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(6_u64))
-			.saturating_add(T::DbWeight::get().writes(6_u64))
-			.saturating_add(Weight::from_parts(0, 45).saturating_mul(x.into()))
-	}
-	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
-	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	fn cancel_candidate_bond_less() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `191`
