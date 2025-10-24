@@ -1,6 +1,9 @@
 # MacOS thing
 **/.DS_Store
 
+# Lazy loading configs and temp files
+.lazy-loading
+
 # Rust directories
 **/target
 **/scripts/tmp
