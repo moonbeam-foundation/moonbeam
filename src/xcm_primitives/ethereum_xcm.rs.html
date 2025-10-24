@@ -459,7 +459,13 @@
 <a href="#458" id="458">458</a>
 <a href="#459" id="459">459</a>
 <a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -578,6 +584,7 @@
 	<span class="doccomment">/// Map of addresses to be pre-paid to warm storage.
 	</span><span class="kw">pub </span>access_list: <span class="prelude-ty">Option</span>&lt;Vec&lt;(H160, Vec&lt;H256&gt;)&gt;&gt;,
 	<span class="doccomment">/// Authorization list as defined in EIP-7702.
+	/// Currently not supported from XCM, but reserved for future use.
 	</span><span class="kw">pub </span>authorization_list: <span class="prelude-ty">Option</span>&lt;AuthorizationList&gt;,
 }
 
@@ -612,10 +619,15 @@
 }
 
 <span class="kw">impl </span>XcmToEthereum <span class="kw">for </span>EthereumXcmTransactionV1 {
-	<span class="kw">fn </span>into_transaction(<span class="kw-2">&amp;</span><span class="self">self</span>, nonce: U256, chain_id: u64, <span class="kw">_</span>: bool) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionV3&gt; {
-		<span class="comment">// We dont support creates for now
-		</span><span class="kw">if </span><span class="self">self</span>.action == TransactionAction::Create {
-			<span class="kw">return </span><span class="prelude-val">None</span>;
+	<span class="kw">fn </span>into_transaction(
+		<span class="kw-2">&amp;</span><span class="self">self</span>,
+		nonce: U256,
+		chain_id: u64,
+		allow_create: bool,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionV3&gt; {
+		<span class="kw">if </span>!allow_create &amp;&amp; <span class="self">self</span>.action == TransactionAction::Create {
+			<span class="comment">// Create not allowed
+			</span><span class="kw">return </span><span class="prelude-val">None</span>;
 		}
 		<span class="kw">let </span>from_tuple_to_access_list = |t: <span class="kw-2">&amp;</span>Vec&lt;(H160, Vec&lt;H256&gt;)&gt;| -&gt; AccessList {
 			t.iter()
