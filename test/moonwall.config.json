@@ -354,7 +354,7 @@
     },
     {
       "name": "lazy_loading_moonbeam",
-      "testFileDir": ["suites/lazy-loading"],
+      "testFileDir": ["suites/lazy-loading/common", "suites/lazy-loading/moonbeam"],
       "include": ["**/*test*.ts"],
       "timeout": 180000,
       "contracts": "contracts/",
@@ -411,6 +411,11 @@
           "name": "parachain",
           "type": "polkadotJs",
           "endpoints": ["ws://127.0.0.1:9944"]
+        },
+        {
+          "name": "viem",
+          "type": "viem",
+          "endpoints": ["http://127.0.0.1:9944"]
         }
       ]
     },
