@@ -117,6 +117,7 @@ pub struct EthereumXcmTransactionV3 {
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 	/// Authorization list as defined in EIP-7702.
+	/// Currently not supported from XCM, but reserved for future use.
 	pub authorization_list: Option<AuthorizationList>,
 }
 
@@ -151,9 +152,14 @@ impl XcmToEthereum for EthereumXcmTransaction {
 }
 
 impl XcmToEthereum for EthereumXcmTransactionV1 {
-	fn into_transaction(&self, nonce: U256, chain_id: u64, _: bool) -> Option<TransactionV3> {
-		// We dont support creates for now
-		if self.action == TransactionAction::Create {
+	fn into_transaction(
+		&self,
+		nonce: U256,
+		chain_id: u64,
+		allow_create: bool,
+	) -> Option<TransactionV3> {
+		if !allow_create && self.action == TransactionAction::Create {
+			// Create not allowed
 			return None;
 		}
 		let from_tuple_to_access_list = |t: &Vec<(H160, Vec<H256>)>| -> AccessList {
