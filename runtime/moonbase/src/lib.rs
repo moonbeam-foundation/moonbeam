@@ -45,7 +45,6 @@ use alloc::borrow::Cow;
 // Re-export required by get! macro.
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
-pub use frame_support::traits::Get;
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
 	Index, Signature,
@@ -71,8 +70,8 @@ use frame_support::{
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
-		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
-		OnFinalize, OnUnbalanced,
+		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, Get, InstanceFilter, LinearStoragePrice,
+		OnFinalize, OnUnbalanced, VariantCountOf,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -350,8 +349,8 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	type FreezeIdentifier = ();
-	type MaxFreezes = ConstU32<0>;
+	type FreezeIdentifier = RuntimeFreezeReason;
+	type MaxFreezes = VariantCountOf<Self::RuntimeFreezeReason>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type WeightInfo = moonbase_weights::pallet_balances::WeightInfo<Runtime>;
@@ -867,6 +866,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxCandidates = ConstU32<200>;
 	type SlotDuration = ConstU64<MILLISECS_PER_BLOCK>;
 	type BlockTime = ConstU64<MILLISECS_PER_BLOCK>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type LinearInflationThreshold = ();
 }
 
@@ -1426,7 +1426,7 @@ construct_runtime! {
 		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config<T>} = 9,
 		EVM: pallet_evm::{Pallet, Config<T>, Call, Storage, Event<T>} = 10,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config<T>} = 11,
-		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>, FreezeReason} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 13,
 		// Previously 14: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
 		// Previously 15: CouncilCollective: pallet_collective::<Instance1>

@@ -82,10 +82,11 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
+	use frame_support::dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
-		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
-		ReservableCurrency,
+		fungible::{Balanced, Inspect, Mutate, MutateFreeze},
+		Currency, Get, LockIdentifier, LockableCurrency, ReservableCurrency,
 	};
 	use frame_system::pallet_prelude::*;
 	use sp_consensus_slots::Slot;
@@ -103,8 +104,9 @@ pub mod pallet {
 	pub type RoundIndex = u32;
 	type RewardPoint = u32;
 	pub type BalanceOf<T> =
-		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+		<<T as Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
+	// DEPRECATED: Remove after applying migration `MigrateLocksToFreezes`
 	pub const COLLATOR_LOCK_ID: LockIdentifier = *b"stkngcol";
 	pub const DELEGATOR_LOCK_ID: LockIdentifier = *b"stkngdel";
 
@@ -112,15 +114,25 @@ pub mod pallet {
 	/// theoretically exist.
 	pub const MAX_CANDIDATES: u32 = 200;
 
+	/// Maximum number of accounts (delegators and candidates) that can be migrated at once in the `migrate_locks_to_freezes_batch` extrinsic.
+	pub(crate) const MAX_ACCOUNTS_PER_MIGRATION_BATCH: u32 = 300;
+
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-		/// The currency type
-		type Currency: Currency<Self::AccountId>
+		/// The fungible type for handling balances
+		type Currency: Inspect<Self::AccountId>
+			+ Mutate<Self::AccountId>
+			+ MutateFreeze<Self::AccountId, Id = Self::RuntimeFreezeReason>
+			+ Balanced<Self::AccountId>
+			// DEPRECATED: Remove traits below after applying migration `MigrateLocksToFreezes`
+			+ Currency<Self::AccountId, Balance = BalanceOf<Self>>
 			+ ReservableCurrency<Self::AccountId>
 			+ LockableCurrency<Self::AccountId>;
+		/// The overarching freeze identifier type.
+		type RuntimeFreezeReason: From<FreezeReason>;
 		/// The origin for monetary governance
 		type MonetaryGovernanceOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		/// Minimum number of blocks per round
@@ -200,6 +212,15 @@ pub mod pallet {
 		type WeightInfo: WeightInfo;
 	}
 
+	/// The reason for freezing funds.
+	#[pallet::composite_enum]
+	pub enum FreezeReason {
+		/// Funds frozen for staking as a collator
+		StakingCollator,
+		/// Funds frozen for staking as a delegator
+		StakingDelegator,
+	}
+
 	#[pallet::error]
 	pub enum Error<T> {
 		DelegatorDNE,
@@ -257,6 +278,7 @@ pub mod pallet {
 		CannotSetAboveMaxCandidates,
 		MarkingOfflineNotEnabled,
 		CurrentRoundTooLow,
+		EmptyMigrationBatch,
 	}
 
 	#[pallet::event]
@@ -688,6 +710,18 @@ pub mod pallet {
 	#[pallet::getter(fn marking_offline)]
 	/// Killswitch to enable/disable marking offline feature.
 	pub type EnableMarkingOffline<T: Config> = StorageValue<_, bool, ValueQuery>;
+
+	#[pallet::storage]
+	/// Temporary storage to track candidates that have been migrated from locks to freezes.
+	/// This storage should be removed after all accounts have been migrated.
+	pub type MigratedCandidates<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, (), OptionQuery>;
+
+	#[pallet::storage]
+	/// Temporary storage to track delegators that have been migrated from locks to freezes.
+	/// This storage should be removed after all accounts have been migrated.
+	pub type MigratedDelegators<T: Config> =
+		StorageMap<_, Twox64Concat, T::AccountId, (), OptionQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
@@ -1387,6 +1421,83 @@ pub mod pallet {
 			});
 			Ok(().into())
 		}
+		/// Batch migrate locks to freezes for a list of accounts.
+		///
+		/// This function allows migrating multiple accounts from the old lock-based
+		/// staking to the new freeze-based staking in a single transaction.
+		///
+		/// Parameters:
+		/// - `accounts`: List of tuples containing (account_id, is_collator)
+		///   where is_collator indicates if the account is a collator (true) or delegator (false)
+		///
+		/// The maximum number of accounts that can be migrated in one batch is MAX_ACCOUNTS_PER_MIGRATION_BATCH.
+		/// The batch cannot be empty.
+		///
+		/// If 50% or more of the migration attempts are successful, the entire
+		/// extrinsic fee is refunded to incentivize successful batch migrations.
+		/// Weight is calculated based on actual successful operations performed.
+		#[pallet::call_index(200)]
+		#[pallet::weight({
+			T::WeightInfo::migrate_locks_to_freezes_batch_delegators(MAX_ACCOUNTS_PER_MIGRATION_BATCH).max(T::WeightInfo::migrate_locks_to_freezes_batch_candidates(MAX_ACCOUNTS_PER_MIGRATION_BATCH))
+		})]
+		pub fn migrate_locks_to_freezes_batch(
+			origin: OriginFor<T>,
+			accounts: BoundedVec<(T::AccountId, bool), ConstU32<MAX_ACCOUNTS_PER_MIGRATION_BATCH>>,
+		) -> DispatchResultWithPostInfo {
+			ensure_signed(origin)?;
+			ensure!(!accounts.is_empty(), Error::<T>::EmptyMigrationBatch);
+
+			let total_accounts = accounts.len() as u32;
+			let mut successful_migrations = 0u32;
+			let mut delegators = 0u32;
+			let mut candidates = 0u32;
+
+			for (account, is_collator) in accounts.iter() {
+				if Self::check_and_migrate_lock(account, *is_collator) {
+					successful_migrations = successful_migrations.saturating_add(1);
+				}
+
+				if *is_collator {
+					candidates = candidates.saturating_add(1);
+				} else {
+					delegators = delegators.saturating_add(1);
+				}
+			}
+
+			// Calculate success rate
+			let success_rate = if total_accounts > 0 {
+				Percent::from_rational(successful_migrations, total_accounts)
+			} else {
+				Percent::zero()
+			};
+
+			// Calculate actual weight consumed
+			let delegator_weight = if delegators > 0 {
+				T::WeightInfo::migrate_locks_to_freezes_batch_delegators(delegators)
+			} else {
+				Weight::zero()
+			};
+
+			let candidate_weight = if candidates > 0 {
+				T::WeightInfo::migrate_locks_to_freezes_batch_candidates(candidates)
+			} else {
+				Weight::zero()
+			};
+
+			let actual_weight = delegator_weight.saturating_add(candidate_weight);
+
+			// Apply refund if 50% or more successful using Percent comparison
+			let pays_fee = if success_rate >= Percent::from_percent(50) {
+				Pays::No
+			} else {
+				Pays::Yes
+			};
+
+			Ok(PostDispatchInfo {
+				actual_weight: Some(actual_weight),
+				pays_fee,
+			})
+		}
 	}
 
 	/// Represents a payout made via `pay_one_collator_reward`.
@@ -1401,14 +1512,142 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn set_candidate_bond_to_zero(acc: &T::AccountId) -> Weight {
-			let actual_weight =
-				<T as Config>::WeightInfo::set_candidate_bond_to_zero(T::MaxCandidates::get());
-			if let Some(mut state) = <CandidateInfo<T>>::get(&acc) {
-				state.bond_less::<T>(acc.clone(), state.bond);
-				<CandidateInfo<T>>::insert(&acc, state);
+		/// Check if an account has been migrated from lock to freeze.
+		///
+		/// Returns `true` if migration was performed, `false` if already migrated or is not a collator/delegator
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		fn check_and_migrate_lock(account: &T::AccountId, is_collator: bool) -> bool {
+			use frame_support::traits::{fungible::MutateFreeze, LockableCurrency};
+
+			// Check if already migrated
+			if is_collator {
+				if <MigratedCandidates<T>>::contains_key(account) {
+					return false;
+				}
+			} else {
+				if <MigratedDelegators<T>>::contains_key(account) {
+					return false;
+				}
 			}
-			actual_weight
+
+			// Not migrated yet, proceed with migration
+			let (lock_id, freeze_reason) = if is_collator {
+				(COLLATOR_LOCK_ID, FreezeReason::StakingCollator)
+			} else {
+				(DELEGATOR_LOCK_ID, FreezeReason::StakingDelegator)
+			};
+
+			// Get the amount that should be locked/frozen from storage
+			let amount = if is_collator {
+				// For collators, get the bond amount from storage
+				match <CandidateInfo<T>>::get(account) {
+					Some(info) => info.bond,
+					None => return false,
+				}
+			} else {
+				// For delegators, get the total delegated amount from storage
+				match <DelegatorState<T>>::get(account) {
+					Some(state) => state.total,
+					None => return false,
+				}
+			};
+
+			if amount > BalanceOf::<T>::zero() {
+				// Remove any existing lock
+				T::Currency::remove_lock(lock_id, account);
+
+				// Set the freeze
+				if T::Currency::set_freeze(&freeze_reason.into(), account, amount).is_err() {
+					// set_freeze should be infallible as long as the runtime use pallet balance implementation and
+					// set `MaxFreezes = VariantCountOf<RuntimeFreezeReason>`.
+					log::error!(
+						"Failed to set freeze for account {:?}, amount {:?}",
+						account,
+						amount
+					);
+					return false;
+				}
+			}
+
+			if is_collator {
+				<MigratedCandidates<T>>::insert(account, ());
+			} else {
+				<MigratedDelegators<T>>::insert(account, ());
+			}
+
+			true
+		}
+
+		/// Set freeze with lazy migration support
+		/// This will check for existing locks and migrate them before setting the freeze
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		pub(crate) fn freeze_extended(
+			account: &T::AccountId,
+			amount: BalanceOf<T>,
+			is_collator: bool,
+		) -> DispatchResult {
+			use frame_support::traits::fungible::MutateFreeze;
+
+			// First check and migrate any existing lock
+			let _ = Self::check_and_migrate_lock(account, is_collator);
+
+			// Now set the freeze
+			let freeze_reason = if is_collator {
+				FreezeReason::StakingCollator
+			} else {
+				FreezeReason::StakingDelegator
+			};
+
+			T::Currency::set_freeze(&freeze_reason.into(), account, amount)
+		}
+
+		/// Thaw with lazy migration support
+		/// This will check for existing locks and remove them before thawing
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		pub(crate) fn thaw_extended(account: &T::AccountId, is_collator: bool) -> DispatchResult {
+			use frame_support::traits::{fungible::MutateFreeze, LockableCurrency};
+
+			// First check and remove any existing lock
+			let lock_id = if is_collator {
+				COLLATOR_LOCK_ID
+			} else {
+				DELEGATOR_LOCK_ID
+			};
+
+			// Remove the lock if it exists
+			T::Currency::remove_lock(lock_id, account);
+
+			// Now thaw the freeze
+			let freeze_reason = if is_collator {
+				FreezeReason::StakingCollator
+			} else {
+				FreezeReason::StakingDelegator
+			};
+
+			T::Currency::thaw(&freeze_reason.into(), account)
+		}
+
+		/// Get frozen balance with lazy migration support
+		/// This will check for existing locks and migrate them before returning the frozen balance
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		pub(crate) fn balance_frozen_extended(
+			account: &T::AccountId,
+			is_collator: bool,
+		) -> Option<BalanceOf<T>> {
+			// First check and migrate any existing lock
+			// We ignore the result as we want to return the frozen balance regardless
+			let _ = Self::check_and_migrate_lock(account, is_collator);
+
+			// Now return the frozen balance
+			if is_collator {
+				<CandidateInfo<T>>::get(account).map(|info| info.bond)
+			} else {
+				<DelegatorState<T>>::get(account).map(|state| state.total)
+			}
 		}
 
 		pub fn is_delegator(acc: &T::AccountId) -> bool {
@@ -1448,7 +1687,7 @@ pub mod pallet {
 				Self::get_collator_stakable_free_balance(&acc) >= bond,
 				Error::<T>::InsufficientBalance,
 			);
-			T::Currency::set_lock(COLLATOR_LOCK_ID, &acc, bond, WithdrawReasons::all());
+			Self::freeze_extended(&acc, bond, true).map_err(|_| Error::<T>::InsufficientBalance)?;
 			let candidate = CandidateMetadata::new(bond);
 			<CandidateInfo<T>>::insert(&acc, candidate);
 			let empty_delegations: Delegations<T::AccountId, BalanceOf<T>> = Default::default();
@@ -1593,7 +1832,7 @@ pub mod pallet {
 					post_info: Some(actual_weight).into(),
 					error: err,
 				})?;
-			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
+			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| -> DispatchResult {
 				// remove delegation from delegator state
 				let mut delegator = DelegatorState::<T>::get(&bond.owner).expect(
 					"Collator state and delegator state are consistent.
@@ -1614,15 +1853,15 @@ pub mod pallet {
 						// since it is assumed that they were removed incrementally before only the
 						// last delegation was left.
 						<DelegatorState<T>>::remove(&bond.owner);
-						T::Currency::remove_lock(DELEGATOR_LOCK_ID, &bond.owner);
+						// Thaw all frozen funds for delegator
+						Self::thaw_extended(&bond.owner, false)?;
 					} else {
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
 				} else {
-					// TODO: review. we assume here that this delegator has no remaining staked
-					// balance, so we ensure the lock is cleared
-					T::Currency::remove_lock(DELEGATOR_LOCK_ID, &bond.owner);
+					Self::thaw_extended(&bond.owner, false)?;
 				}
+				Ok(())
 			};
 			// total backing stake is at least the candidate self bond
 			let mut total_backing = state.bond;
@@ -1630,18 +1869,18 @@ pub mod pallet {
 			let top_delegations =
 				<TopDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in top_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)?;
 			}
 			total_backing = total_backing.saturating_add(top_delegations.total);
 			// return all bottom delegations
 			let bottom_delegations =
 				<BottomDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in bottom_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)?;
 			}
 			total_backing = total_backing.saturating_add(bottom_delegations.total);
-			// return stake to collator
-			T::Currency::remove_lock(COLLATOR_LOCK_ID, &candidate);
+			// Thaw all frozen funds for collator
+			Self::thaw_extended(&candidate, true)?;
 			<CandidateInfo<T>>::remove(&candidate);
 			<DelegationScheduledRequests<T>>::remove(&candidate);
 			<AutoCompoundingDelegations<T>>::remove(&candidate);
@@ -1657,24 +1896,23 @@ pub mod pallet {
 			Ok(Some(actual_weight).into())
 		}
 
-		/// Returns an account's stakable balance which is not locked in delegation staking
+		/// Returns an account's stakable balance (including the reserved) which is not frozen in delegation staking
 		pub fn get_delegator_stakable_balance(acc: &T::AccountId) -> BalanceOf<T> {
-			let mut stakable_balance =
-				T::Currency::free_balance(acc).saturating_add(T::Currency::reserved_balance(acc));
-
-			if let Some(state) = <DelegatorState<T>>::get(acc) {
-				stakable_balance = stakable_balance.saturating_sub(state.total());
+			let total_balance =
+				T::Currency::balance(acc).saturating_add(T::Currency::reserved_balance(acc));
+			if let Some(frozen_balance) = Self::balance_frozen_extended(acc, false) {
+				return total_balance.saturating_sub(frozen_balance);
 			}
-			stakable_balance
+			total_balance
 		}
 
-		/// Returns an account's free balance which is not locked in collator staking
+		/// Returns an account's free balance which is not frozen in collator staking
 		pub fn get_collator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
-			let mut balance = T::Currency::free_balance(acc);
-			if let Some(info) = <CandidateInfo<T>>::get(acc) {
-				balance = balance.saturating_sub(info.bond);
+			let total_balance = T::Currency::balance(acc);
+			if let Some(frozen_balance) = Self::balance_frozen_extended(acc, true) {
+				return total_balance.saturating_sub(frozen_balance);
 			}
-			balance
+			total_balance
 		}
 
 		/// Returns a delegations auto-compound value.
@@ -1767,14 +2005,16 @@ pub mod pallet {
 					continue;
 				}
 				let reserve = config.percent * total_issuance;
-				if let Ok(imb) = T::Currency::deposit_into_existing(&config.account, reserve) {
-					// update round issuance if transfer succeeds
-					left_issuance = left_issuance.saturating_sub(imb.peek());
-					Self::deposit_event(Event::InflationDistributed {
-						index: index as u32,
-						account: config.account.clone(),
-						value: imb.peek(),
-					});
+				if frame_system::Pallet::<T>::account_exists(&config.account) {
+					if let Ok(minted) = T::Currency::mint_into(&config.account, reserve) {
+						// update round issuance if minting succeeds
+						left_issuance = left_issuance.saturating_sub(minted);
+						Self::deposit_event(Event::InflationDistributed {
+							index: index as u32,
+							account: config.account.clone(),
+							value: minted,
+						});
+					}
 				}
 			}
 
@@ -2157,13 +2397,14 @@ pub mod pallet {
 		}
 
 		/// Mint a specified reward amount to the beneficiary account. Emits the [Rewarded] event.
-		pub fn mint(amt: BalanceOf<T>, to: T::AccountId) {
-			if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
-				Self::deposit_event(Event::Rewarded {
-					account: to.clone(),
-					rewards: amount_transferred.peek(),
-				});
-			}
+		pub fn mint(amt: BalanceOf<T>, to: &T::AccountId) -> Result<BalanceOf<T>, DispatchError> {
+			// Mint rewards to the account
+			let minted = T::Currency::mint_into(&to, amt)?;
+			Self::deposit_event(Event::Rewarded {
+				account: to.clone(),
+				rewards: minted,
+			});
+			Ok(minted)
 		}
 
 		/// Mint a specified reward amount to the collator's account. Emits the [Rewarded] event.
@@ -2172,12 +2413,15 @@ pub mod pallet {
 			collator_id: T::AccountId,
 			amt: BalanceOf<T>,
 		) -> Weight {
-			if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&collator_id, amt) {
-				Self::deposit_event(Event::Rewarded {
-					account: collator_id.clone(),
-					rewards: amount_transferred.peek(),
-				});
+			// Mint rewards to the collator
+			if let Err(e) = Self::mint(amt, &collator_id) {
+				log::warn!(
+					"Failed to mint collator reward for {:?}: {:?}",
+					collator_id,
+					e
+				);
 			}
+
 			<T as Config>::WeightInfo::mint_collator_reward()
 		}
 
@@ -2191,39 +2435,35 @@ pub mod pallet {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
 		) {
-			if let Ok(amount_transferred) =
-				T::Currency::deposit_into_existing(&delegator, amt.clone())
-			{
-				Self::deposit_event(Event::Rewarded {
-					account: delegator.clone(),
-					rewards: amount_transferred.peek(),
-				});
+			// Mint rewards to the delegator
+			if frame_system::Pallet::<T>::account_exists(&delegator) {
+				if let Ok(minted) = Self::mint(amt.clone(), &delegator) {
+					let compound_amount = compound_percent.mul_ceil(minted);
+					if compound_amount.is_zero() {
+						return;
+					}
 
-				let compound_amount = compound_percent.mul_ceil(amount_transferred.peek());
-				if compound_amount.is_zero() {
-					return;
-				}
+					if let Err(err) = Self::delegation_bond_more_without_event(
+						delegator.clone(),
+						candidate.clone(),
+						compound_amount.clone(),
+					) {
+						log::debug!(
+							"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
+							candidate,
+							delegator,
+							err
+						);
+						return;
+					};
 
-				if let Err(err) = Self::delegation_bond_more_without_event(
-					delegator.clone(),
-					candidate.clone(),
-					compound_amount.clone(),
-				) {
-					log::debug!(
-						"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
-						candidate,
+					Pallet::<T>::deposit_event(Event::Compounded {
 						delegator,
-						err
-					);
-					return;
+						candidate,
+						amount: compound_amount.clone(),
+					});
 				};
-
-				Pallet::<T>::deposit_event(Event::Compounded {
-					delegator,
-					candidate,
-					amount: compound_amount.clone(),
-				});
-			};
+			}
 		}
 
 		/// Add reward points to block authors:
