@@ -6,7 +6,7 @@ describeSuite({
   id: "LL-MOONBEAM-REGRESSIONS",
   title: "Lazy Loading - Regression tests for Moonbeam",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     let api: ApiPromise;
 
     beforeAll(async () => {
