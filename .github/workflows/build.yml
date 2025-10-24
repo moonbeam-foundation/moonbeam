@@ -807,7 +807,7 @@ jobs:
         uses: nick-fields/retry@v3
         with:
           max_attempts: 3
-          timeout_minutes: 30
+          timeout_minutes: 2
           retry_on: error
           command: |
             cd test
