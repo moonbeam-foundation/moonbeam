@@ -19,7 +19,7 @@ describeSuite({
       test: async function () {
         // Fetch the block containing the EIP7702 transaction (Block 12962274)
         const block = await customDevRpcRequest("eth_getBlockByNumber", ["0xc5c9e2", true]);
-        expect(block).toMatchFileSnapshot("snapshots/moonbeam-block-12962274.json");
+        await expect(block).toMatchFileSnapshot("snapshots/moonbeam-block-12962274.json");
       },
     });
   },
