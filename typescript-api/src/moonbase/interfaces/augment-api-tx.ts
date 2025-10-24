@@ -4150,7 +4150,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * May be called from any origin except `None`.
        *
        * This function first attempts to dispatch the `main` call.
-       * If the `main` call fails, the `fallback` is attemted.
+       * If the `main` call fails, the `fallback` is attempted.
        * if the fallback is successfully dispatched, the weights of both calls
        * are accumulated and an event containing the main call error is deposited.
        *

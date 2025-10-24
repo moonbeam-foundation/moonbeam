@@ -74,7 +74,7 @@ pub fn derive_bip44_pairs_from_mnemonic<TPublic: Public>(
 			}) {
 			childs.push(child_pair);
 		} else {
-			log::error!("An error ocurred while deriving key {} from parent", i)
+			log::error!("An error occurred while deriving key {} from parent", i)
 		}
 	}
 	childs
