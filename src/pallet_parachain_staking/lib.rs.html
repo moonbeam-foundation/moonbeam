@@ -2281,7 +2281,247 @@
 <a href="#2280" id="2280">2280</a>
 <a href="#2281" id="2281">2281</a>
 <a href="#2282" id="2282">2282</a>
-<a href="#2283" id="2283">2283</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#2283" id="2283">2283</a>
+<a href="#2284" id="2284">2284</a>
+<a href="#2285" id="2285">2285</a>
+<a href="#2286" id="2286">2286</a>
+<a href="#2287" id="2287">2287</a>
+<a href="#2288" id="2288">2288</a>
+<a href="#2289" id="2289">2289</a>
+<a href="#2290" id="2290">2290</a>
+<a href="#2291" id="2291">2291</a>
+<a href="#2292" id="2292">2292</a>
+<a href="#2293" id="2293">2293</a>
+<a href="#2294" id="2294">2294</a>
+<a href="#2295" id="2295">2295</a>
+<a href="#2296" id="2296">2296</a>
+<a href="#2297" id="2297">2297</a>
+<a href="#2298" id="2298">2298</a>
+<a href="#2299" id="2299">2299</a>
+<a href="#2300" id="2300">2300</a>
+<a href="#2301" id="2301">2301</a>
+<a href="#2302" id="2302">2302</a>
+<a href="#2303" id="2303">2303</a>
+<a href="#2304" id="2304">2304</a>
+<a href="#2305" id="2305">2305</a>
+<a href="#2306" id="2306">2306</a>
+<a href="#2307" id="2307">2307</a>
+<a href="#2308" id="2308">2308</a>
+<a href="#2309" id="2309">2309</a>
+<a href="#2310" id="2310">2310</a>
+<a href="#2311" id="2311">2311</a>
+<a href="#2312" id="2312">2312</a>
+<a href="#2313" id="2313">2313</a>
+<a href="#2314" id="2314">2314</a>
+<a href="#2315" id="2315">2315</a>
+<a href="#2316" id="2316">2316</a>
+<a href="#2317" id="2317">2317</a>
+<a href="#2318" id="2318">2318</a>
+<a href="#2319" id="2319">2319</a>
+<a href="#2320" id="2320">2320</a>
+<a href="#2321" id="2321">2321</a>
+<a href="#2322" id="2322">2322</a>
+<a href="#2323" id="2323">2323</a>
+<a href="#2324" id="2324">2324</a>
+<a href="#2325" id="2325">2325</a>
+<a href="#2326" id="2326">2326</a>
+<a href="#2327" id="2327">2327</a>
+<a href="#2328" id="2328">2328</a>
+<a href="#2329" id="2329">2329</a>
+<a href="#2330" id="2330">2330</a>
+<a href="#2331" id="2331">2331</a>
+<a href="#2332" id="2332">2332</a>
+<a href="#2333" id="2333">2333</a>
+<a href="#2334" id="2334">2334</a>
+<a href="#2335" id="2335">2335</a>
+<a href="#2336" id="2336">2336</a>
+<a href="#2337" id="2337">2337</a>
+<a href="#2338" id="2338">2338</a>
+<a href="#2339" id="2339">2339</a>
+<a href="#2340" id="2340">2340</a>
+<a href="#2341" id="2341">2341</a>
+<a href="#2342" id="2342">2342</a>
+<a href="#2343" id="2343">2343</a>
+<a href="#2344" id="2344">2344</a>
+<a href="#2345" id="2345">2345</a>
+<a href="#2346" id="2346">2346</a>
+<a href="#2347" id="2347">2347</a>
+<a href="#2348" id="2348">2348</a>
+<a href="#2349" id="2349">2349</a>
+<a href="#2350" id="2350">2350</a>
+<a href="#2351" id="2351">2351</a>
+<a href="#2352" id="2352">2352</a>
+<a href="#2353" id="2353">2353</a>
+<a href="#2354" id="2354">2354</a>
+<a href="#2355" id="2355">2355</a>
+<a href="#2356" id="2356">2356</a>
+<a href="#2357" id="2357">2357</a>
+<a href="#2358" id="2358">2358</a>
+<a href="#2359" id="2359">2359</a>
+<a href="#2360" id="2360">2360</a>
+<a href="#2361" id="2361">2361</a>
+<a href="#2362" id="2362">2362</a>
+<a href="#2363" id="2363">2363</a>
+<a href="#2364" id="2364">2364</a>
+<a href="#2365" id="2365">2365</a>
+<a href="#2366" id="2366">2366</a>
+<a href="#2367" id="2367">2367</a>
+<a href="#2368" id="2368">2368</a>
+<a href="#2369" id="2369">2369</a>
+<a href="#2370" id="2370">2370</a>
+<a href="#2371" id="2371">2371</a>
+<a href="#2372" id="2372">2372</a>
+<a href="#2373" id="2373">2373</a>
+<a href="#2374" id="2374">2374</a>
+<a href="#2375" id="2375">2375</a>
+<a href="#2376" id="2376">2376</a>
+<a href="#2377" id="2377">2377</a>
+<a href="#2378" id="2378">2378</a>
+<a href="#2379" id="2379">2379</a>
+<a href="#2380" id="2380">2380</a>
+<a href="#2381" id="2381">2381</a>
+<a href="#2382" id="2382">2382</a>
+<a href="#2383" id="2383">2383</a>
+<a href="#2384" id="2384">2384</a>
+<a href="#2385" id="2385">2385</a>
+<a href="#2386" id="2386">2386</a>
+<a href="#2387" id="2387">2387</a>
+<a href="#2388" id="2388">2388</a>
+<a href="#2389" id="2389">2389</a>
+<a href="#2390" id="2390">2390</a>
+<a href="#2391" id="2391">2391</a>
+<a href="#2392" id="2392">2392</a>
+<a href="#2393" id="2393">2393</a>
+<a href="#2394" id="2394">2394</a>
+<a href="#2395" id="2395">2395</a>
+<a href="#2396" id="2396">2396</a>
+<a href="#2397" id="2397">2397</a>
+<a href="#2398" id="2398">2398</a>
+<a href="#2399" id="2399">2399</a>
+<a href="#2400" id="2400">2400</a>
+<a href="#2401" id="2401">2401</a>
+<a href="#2402" id="2402">2402</a>
+<a href="#2403" id="2403">2403</a>
+<a href="#2404" id="2404">2404</a>
+<a href="#2405" id="2405">2405</a>
+<a href="#2406" id="2406">2406</a>
+<a href="#2407" id="2407">2407</a>
+<a href="#2408" id="2408">2408</a>
+<a href="#2409" id="2409">2409</a>
+<a href="#2410" id="2410">2410</a>
+<a href="#2411" id="2411">2411</a>
+<a href="#2412" id="2412">2412</a>
+<a href="#2413" id="2413">2413</a>
+<a href="#2414" id="2414">2414</a>
+<a href="#2415" id="2415">2415</a>
+<a href="#2416" id="2416">2416</a>
+<a href="#2417" id="2417">2417</a>
+<a href="#2418" id="2418">2418</a>
+<a href="#2419" id="2419">2419</a>
+<a href="#2420" id="2420">2420</a>
+<a href="#2421" id="2421">2421</a>
+<a href="#2422" id="2422">2422</a>
+<a href="#2423" id="2423">2423</a>
+<a href="#2424" id="2424">2424</a>
+<a href="#2425" id="2425">2425</a>
+<a href="#2426" id="2426">2426</a>
+<a href="#2427" id="2427">2427</a>
+<a href="#2428" id="2428">2428</a>
+<a href="#2429" id="2429">2429</a>
+<a href="#2430" id="2430">2430</a>
+<a href="#2431" id="2431">2431</a>
+<a href="#2432" id="2432">2432</a>
+<a href="#2433" id="2433">2433</a>
+<a href="#2434" id="2434">2434</a>
+<a href="#2435" id="2435">2435</a>
+<a href="#2436" id="2436">2436</a>
+<a href="#2437" id="2437">2437</a>
+<a href="#2438" id="2438">2438</a>
+<a href="#2439" id="2439">2439</a>
+<a href="#2440" id="2440">2440</a>
+<a href="#2441" id="2441">2441</a>
+<a href="#2442" id="2442">2442</a>
+<a href="#2443" id="2443">2443</a>
+<a href="#2444" id="2444">2444</a>
+<a href="#2445" id="2445">2445</a>
+<a href="#2446" id="2446">2446</a>
+<a href="#2447" id="2447">2447</a>
+<a href="#2448" id="2448">2448</a>
+<a href="#2449" id="2449">2449</a>
+<a href="#2450" id="2450">2450</a>
+<a href="#2451" id="2451">2451</a>
+<a href="#2452" id="2452">2452</a>
+<a href="#2453" id="2453">2453</a>
+<a href="#2454" id="2454">2454</a>
+<a href="#2455" id="2455">2455</a>
+<a href="#2456" id="2456">2456</a>
+<a href="#2457" id="2457">2457</a>
+<a href="#2458" id="2458">2458</a>
+<a href="#2459" id="2459">2459</a>
+<a href="#2460" id="2460">2460</a>
+<a href="#2461" id="2461">2461</a>
+<a href="#2462" id="2462">2462</a>
+<a href="#2463" id="2463">2463</a>
+<a href="#2464" id="2464">2464</a>
+<a href="#2465" id="2465">2465</a>
+<a href="#2466" id="2466">2466</a>
+<a href="#2467" id="2467">2467</a>
+<a href="#2468" id="2468">2468</a>
+<a href="#2469" id="2469">2469</a>
+<a href="#2470" id="2470">2470</a>
+<a href="#2471" id="2471">2471</a>
+<a href="#2472" id="2472">2472</a>
+<a href="#2473" id="2473">2473</a>
+<a href="#2474" id="2474">2474</a>
+<a href="#2475" id="2475">2475</a>
+<a href="#2476" id="2476">2476</a>
+<a href="#2477" id="2477">2477</a>
+<a href="#2478" id="2478">2478</a>
+<a href="#2479" id="2479">2479</a>
+<a href="#2480" id="2480">2480</a>
+<a href="#2481" id="2481">2481</a>
+<a href="#2482" id="2482">2482</a>
+<a href="#2483" id="2483">2483</a>
+<a href="#2484" id="2484">2484</a>
+<a href="#2485" id="2485">2485</a>
+<a href="#2486" id="2486">2486</a>
+<a href="#2487" id="2487">2487</a>
+<a href="#2488" id="2488">2488</a>
+<a href="#2489" id="2489">2489</a>
+<a href="#2490" id="2490">2490</a>
+<a href="#2491" id="2491">2491</a>
+<a href="#2492" id="2492">2492</a>
+<a href="#2493" id="2493">2493</a>
+<a href="#2494" id="2494">2494</a>
+<a href="#2495" id="2495">2495</a>
+<a href="#2496" id="2496">2496</a>
+<a href="#2497" id="2497">2497</a>
+<a href="#2498" id="2498">2498</a>
+<a href="#2499" id="2499">2499</a>
+<a href="#2500" id="2500">2500</a>
+<a href="#2501" id="2501">2501</a>
+<a href="#2502" id="2502">2502</a>
+<a href="#2503" id="2503">2503</a>
+<a href="#2504" id="2504">2504</a>
+<a href="#2505" id="2505">2505</a>
+<a href="#2506" id="2506">2506</a>
+<a href="#2507" id="2507">2507</a>
+<a href="#2508" id="2508">2508</a>
+<a href="#2509" id="2509">2509</a>
+<a href="#2510" id="2510">2510</a>
+<a href="#2511" id="2511">2511</a>
+<a href="#2512" id="2512">2512</a>
+<a href="#2513" id="2513">2513</a>
+<a href="#2514" id="2514">2514</a>
+<a href="#2515" id="2515">2515</a>
+<a href="#2516" id="2516">2516</a>
+<a href="#2517" id="2517">2517</a>
+<a href="#2518" id="2518">2518</a>
+<a href="#2519" id="2519">2519</a>
+<a href="#2520" id="2520">2520</a>
+<a href="#2521" id="2521">2521</a>
+<a href="#2522" id="2522">2522</a>
+<a href="#2523" id="2523">2523</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -2365,10 +2605,11 @@
 	};
 	<span class="kw">use crate</span>::{set::BoundedOrderedSet, traits::<span class="kw-2">*</span>, types::<span class="kw-2">*</span>, InflationInfo, Range, WeightInfo};
 	<span class="kw">use crate</span>::{AutoCompoundConfig, AutoCompoundDelegations};
+	<span class="kw">use </span>frame_support::dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo};
 	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 	<span class="kw">use </span>frame_support::traits::{
-		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
-		ReservableCurrency,
+		fungible::{Balanced, Inspect, Mutate, MutateFreeze},
+		Currency, Get, LockIdentifier, LockableCurrency, ReservableCurrency,
 	};
 	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 	<span class="kw">use </span>sp_consensus_slots::Slot;
@@ -2386,24 +2627,35 @@
 	<span class="kw">pub type </span>RoundIndex = u32;
 	<span class="kw">type </span>RewardPoint = u32;
 	<span class="kw">pub type </span>BalanceOf&lt;T&gt; =
-		&lt;&lt;T <span class="kw">as </span>Config&gt;::Currency <span class="kw">as </span>Currency&lt;&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId&gt;&gt;::Balance;
+		&lt;&lt;T <span class="kw">as </span>Config&gt;::Currency <span class="kw">as </span>Inspect&lt;&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId&gt;&gt;::Balance;
 
-	<span class="kw">pub const </span>COLLATOR_LOCK_ID: LockIdentifier = <span class="kw-2">*</span><span class="string">b"stkngcol"</span>;
+	<span class="comment">// DEPRECATED: Remove after applying migration `MigrateLocksToFreezes`
+	</span><span class="kw">pub const </span>COLLATOR_LOCK_ID: LockIdentifier = <span class="kw-2">*</span><span class="string">b"stkngcol"</span>;
 	<span class="kw">pub const </span>DELEGATOR_LOCK_ID: LockIdentifier = <span class="kw-2">*</span><span class="string">b"stkngdel"</span>;
 
 	<span class="doccomment">/// A hard limit for weight computation purposes for the max candidates that _could_
 	/// theoretically exist.
 	</span><span class="kw">pub const </span>MAX_CANDIDATES: u32 = <span class="number">200</span>;
 
+	<span class="doccomment">/// Maximum number of accounts (delegators and candidates) that can be migrated at once in the `migrate_locks_to_freezes_batch` extrinsic.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>MAX_ACCOUNTS_PER_MIGRATION_BATCH: u32 = <span class="number">300</span>;
+
 	<span class="doccomment">/// Configuration trait of this pallet.
 	</span><span class="attr">#[pallet::config]
 	</span><span class="kw">pub trait </span>Config: frame_system::Config {
 		<span class="doccomment">/// Overarching event type
 		</span><span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
-		<span class="doccomment">/// The currency type
-		</span><span class="kw">type </span>Currency: Currency&lt;<span class="self">Self</span>::AccountId&gt;
+		<span class="doccomment">/// The fungible type for handling balances
+		</span><span class="kw">type </span>Currency: Inspect&lt;<span class="self">Self</span>::AccountId&gt;
+			+ Mutate&lt;<span class="self">Self</span>::AccountId&gt;
+			+ MutateFreeze&lt;<span class="self">Self</span>::AccountId, Id = <span class="self">Self</span>::RuntimeFreezeReason&gt;
+			+ Balanced&lt;<span class="self">Self</span>::AccountId&gt;
+			<span class="comment">// DEPRECATED: Remove traits below after applying migration `MigrateLocksToFreezes`
+			</span>+ Currency&lt;<span class="self">Self</span>::AccountId, Balance = BalanceOf&lt;<span class="self">Self</span>&gt;&gt;
 			+ ReservableCurrency&lt;<span class="self">Self</span>::AccountId&gt;
 			+ LockableCurrency&lt;<span class="self">Self</span>::AccountId&gt;;
+		<span class="doccomment">/// The overarching freeze identifier type.
+		</span><span class="kw">type </span>RuntimeFreezeReason: From&lt;FreezeReason&gt;;
 		<span class="doccomment">/// The origin for monetary governance
 		</span><span class="kw">type </span>MonetaryGovernanceOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
 		<span class="doccomment">/// Minimum number of blocks per round
@@ -2483,6 +2735,15 @@
 		</span><span class="kw">type </span>WeightInfo: WeightInfo;
 	}
 
+	<span class="doccomment">/// The reason for freezing funds.
+	</span><span class="attr">#[pallet::composite_enum]
+	</span><span class="kw">pub enum </span>FreezeReason {
+		<span class="doccomment">/// Funds frozen for staking as a collator
+		</span>StakingCollator,
+		<span class="doccomment">/// Funds frozen for staking as a delegator
+		</span>StakingDelegator,
+	}
+
 	<span class="attr">#[pallet::error]
 	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
 		DelegatorDNE,
@@ -2540,6 +2801,7 @@
 		CannotSetAboveMaxCandidates,
 		MarkingOfflineNotEnabled,
 		CurrentRoundTooLow,
+		EmptyMigrationBatch,
 	}
 
 	<span class="attr">#[pallet::event]
@@ -2971,6 +3233,18 @@
 	#[pallet::getter(<span class="kw">fn </span>marking_offline)]
 	</span><span class="doccomment">/// Killswitch to enable/disable marking offline feature.
 	</span><span class="kw">pub type </span>EnableMarkingOffline&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, bool, ValueQuery&gt;;
+
+	<span class="attr">#[pallet::storage]
+	</span><span class="doccomment">/// Temporary storage to track candidates that have been migrated from locks to freezes.
+	/// This storage should be removed after all accounts have been migrated.
+	</span><span class="kw">pub type </span>MigratedCandidates&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, T::AccountId, (), OptionQuery&gt;;
+
+	<span class="attr">#[pallet::storage]
+	</span><span class="doccomment">/// Temporary storage to track delegators that have been migrated from locks to freezes.
+	/// This storage should be removed after all accounts have been migrated.
+	</span><span class="kw">pub type </span>MigratedDelegators&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, T::AccountId, (), OptionQuery&gt;;
 
 	<span class="attr">#[pallet::genesis_config]
 	</span><span class="kw">pub struct </span>GenesisConfig&lt;T: Config&gt; {
@@ -3670,6 +3944,83 @@
 			});
 			<span class="prelude-val">Ok</span>(().into())
 		}
+		<span class="doccomment">/// Batch migrate locks to freezes for a list of accounts.
+		///
+		/// This function allows migrating multiple accounts from the old lock-based
+		/// staking to the new freeze-based staking in a single transaction.
+		///
+		/// Parameters:
+		/// - `accounts`: List of tuples containing (account_id, is_collator)
+		///   where is_collator indicates if the account is a collator (true) or delegator (false)
+		///
+		/// The maximum number of accounts that can be migrated in one batch is MAX_ACCOUNTS_PER_MIGRATION_BATCH.
+		/// The batch cannot be empty.
+		///
+		/// If 50% or more of the migration attempts are successful, the entire
+		/// extrinsic fee is refunded to incentivize successful batch migrations.
+		/// Weight is calculated based on actual successful operations performed.
+		</span><span class="attr">#[pallet::call_index(<span class="number">200</span>)]
+		#[pallet::weight({
+			T::WeightInfo::migrate_locks_to_freezes_batch_delegators(MAX_ACCOUNTS_PER_MIGRATION_BATCH).max(T::WeightInfo::migrate_locks_to_freezes_batch_candidates(MAX_ACCOUNTS_PER_MIGRATION_BATCH))
+		})]
+		</span><span class="kw">pub fn </span>migrate_locks_to_freezes_batch(
+			origin: OriginFor&lt;T&gt;,
+			accounts: BoundedVec&lt;(T::AccountId, bool), ConstU32&lt;MAX_ACCOUNTS_PER_MIGRATION_BATCH&gt;&gt;,
+		) -&gt; DispatchResultWithPostInfo {
+			ensure_signed(origin)<span class="question-mark">?</span>;
+			<span class="macro">ensure!</span>(!accounts.is_empty(), Error::&lt;T&gt;::EmptyMigrationBatch);
+
+			<span class="kw">let </span>total_accounts = accounts.len() <span class="kw">as </span>u32;
+			<span class="kw">let </span><span class="kw-2">mut </span>successful_migrations = <span class="number">0u32</span>;
+			<span class="kw">let </span><span class="kw-2">mut </span>delegators = <span class="number">0u32</span>;
+			<span class="kw">let </span><span class="kw-2">mut </span>candidates = <span class="number">0u32</span>;
+
+			<span class="kw">for </span>(account, is_collator) <span class="kw">in </span>accounts.iter() {
+				<span class="kw">if </span><span class="self">Self</span>::check_and_migrate_lock(account, <span class="kw-2">*</span>is_collator) {
+					successful_migrations = successful_migrations.saturating_add(<span class="number">1</span>);
+				}
+
+				<span class="kw">if </span><span class="kw-2">*</span>is_collator {
+					candidates = candidates.saturating_add(<span class="number">1</span>);
+				} <span class="kw">else </span>{
+					delegators = delegators.saturating_add(<span class="number">1</span>);
+				}
+			}
+
+			<span class="comment">// Calculate success rate
+			</span><span class="kw">let </span>success_rate = <span class="kw">if </span>total_accounts &gt; <span class="number">0 </span>{
+				Percent::from_rational(successful_migrations, total_accounts)
+			} <span class="kw">else </span>{
+				Percent::zero()
+			};
+
+			<span class="comment">// Calculate actual weight consumed
+			</span><span class="kw">let </span>delegator_weight = <span class="kw">if </span>delegators &gt; <span class="number">0 </span>{
+				T::WeightInfo::migrate_locks_to_freezes_batch_delegators(delegators)
+			} <span class="kw">else </span>{
+				Weight::zero()
+			};
+
+			<span class="kw">let </span>candidate_weight = <span class="kw">if </span>candidates &gt; <span class="number">0 </span>{
+				T::WeightInfo::migrate_locks_to_freezes_batch_candidates(candidates)
+			} <span class="kw">else </span>{
+				Weight::zero()
+			};
+
+			<span class="kw">let </span>actual_weight = delegator_weight.saturating_add(candidate_weight);
+
+			<span class="comment">// Apply refund if 50% or more successful using Percent comparison
+			</span><span class="kw">let </span>pays_fee = <span class="kw">if </span>success_rate &gt;= Percent::from_percent(<span class="number">50</span>) {
+				Pays::No
+			} <span class="kw">else </span>{
+				Pays::Yes
+			};
+
+			<span class="prelude-val">Ok</span>(PostDispatchInfo {
+				actual_weight: <span class="prelude-val">Some</span>(actual_weight),
+				pays_fee,
+			})
+		}
 	}
 
 	<span class="doccomment">/// Represents a payout made via `pay_one_collator_reward`.
@@ -3684,14 +4035,142 @@
 	}
 
 	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
-		<span class="kw">pub fn </span>set_candidate_bond_to_zero(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; Weight {
-			<span class="kw">let </span>actual_weight =
-				&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::set_candidate_bond_to_zero(T::MaxCandidates::get());
-			<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>state) = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>acc) {
-				state.bond_less::&lt;T&gt;(acc.clone(), state.bond);
-				&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, state);
+		<span class="doccomment">/// Check if an account has been migrated from lock to freeze.
+		///
+		/// Returns `true` if migration was performed, `false` if already migrated or is not a collator/delegator
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		</span><span class="kw">fn </span>check_and_migrate_lock(account: <span class="kw-2">&amp;</span>T::AccountId, is_collator: bool) -&gt; bool {
+			<span class="kw">use </span>frame_support::traits::{fungible::MutateFreeze, LockableCurrency};
+
+			<span class="comment">// Check if already migrated
+			</span><span class="kw">if </span>is_collator {
+				<span class="kw">if </span>&lt;MigratedCandidates&lt;T&gt;&gt;::contains_key(account) {
+					<span class="kw">return </span><span class="bool-val">false</span>;
+				}
+			} <span class="kw">else </span>{
+				<span class="kw">if </span>&lt;MigratedDelegators&lt;T&gt;&gt;::contains_key(account) {
+					<span class="kw">return </span><span class="bool-val">false</span>;
+				}
 			}
-			actual_weight
+
+			<span class="comment">// Not migrated yet, proceed with migration
+			</span><span class="kw">let </span>(lock_id, freeze_reason) = <span class="kw">if </span>is_collator {
+				(COLLATOR_LOCK_ID, FreezeReason::StakingCollator)
+			} <span class="kw">else </span>{
+				(DELEGATOR_LOCK_ID, FreezeReason::StakingDelegator)
+			};
+
+			<span class="comment">// Get the amount that should be locked/frozen from storage
+			</span><span class="kw">let </span>amount = <span class="kw">if </span>is_collator {
+				<span class="comment">// For collators, get the bond amount from storage
+				</span><span class="kw">match </span>&lt;CandidateInfo&lt;T&gt;&gt;::get(account) {
+					<span class="prelude-val">Some</span>(info) =&gt; info.bond,
+					<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
+				}
+			} <span class="kw">else </span>{
+				<span class="comment">// For delegators, get the total delegated amount from storage
+				</span><span class="kw">match </span>&lt;DelegatorState&lt;T&gt;&gt;::get(account) {
+					<span class="prelude-val">Some</span>(state) =&gt; state.total,
+					<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="bool-val">false</span>,
+				}
+			};
+
+			<span class="kw">if </span>amount &gt; BalanceOf::&lt;T&gt;::zero() {
+				<span class="comment">// Remove any existing lock
+				</span>T::Currency::remove_lock(lock_id, account);
+
+				<span class="comment">// Set the freeze
+				</span><span class="kw">if </span>T::Currency::set_freeze(<span class="kw-2">&amp;</span>freeze_reason.into(), account, amount).is_err() {
+					<span class="comment">// set_freeze should be infallible as long as the runtime use pallet balance implementation and
+					// set `MaxFreezes = VariantCountOf&lt;RuntimeFreezeReason&gt;`.
+					</span><span class="macro">log::error!</span>(
+						<span class="string">"Failed to set freeze for account {:?}, amount {:?}"</span>,
+						account,
+						amount
+					);
+					<span class="kw">return </span><span class="bool-val">false</span>;
+				}
+			}
+
+			<span class="kw">if </span>is_collator {
+				&lt;MigratedCandidates&lt;T&gt;&gt;::insert(account, ());
+			} <span class="kw">else </span>{
+				&lt;MigratedDelegators&lt;T&gt;&gt;::insert(account, ());
+			}
+
+			<span class="bool-val">true
+		</span>}
+
+		<span class="doccomment">/// Set freeze with lazy migration support
+		/// This will check for existing locks and migrate them before setting the freeze
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>freeze_extended(
+			account: <span class="kw-2">&amp;</span>T::AccountId,
+			amount: BalanceOf&lt;T&gt;,
+			is_collator: bool,
+		) -&gt; DispatchResult {
+			<span class="kw">use </span>frame_support::traits::fungible::MutateFreeze;
+
+			<span class="comment">// First check and migrate any existing lock
+			</span><span class="kw">let _ </span>= <span class="self">Self</span>::check_and_migrate_lock(account, is_collator);
+
+			<span class="comment">// Now set the freeze
+			</span><span class="kw">let </span>freeze_reason = <span class="kw">if </span>is_collator {
+				FreezeReason::StakingCollator
+			} <span class="kw">else </span>{
+				FreezeReason::StakingDelegator
+			};
+
+			T::Currency::set_freeze(<span class="kw-2">&amp;</span>freeze_reason.into(), account, amount)
+		}
+
+		<span class="doccomment">/// Thaw with lazy migration support
+		/// This will check for existing locks and remove them before thawing
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>thaw_extended(account: <span class="kw-2">&amp;</span>T::AccountId, is_collator: bool) -&gt; DispatchResult {
+			<span class="kw">use </span>frame_support::traits::{fungible::MutateFreeze, LockableCurrency};
+
+			<span class="comment">// First check and remove any existing lock
+			</span><span class="kw">let </span>lock_id = <span class="kw">if </span>is_collator {
+				COLLATOR_LOCK_ID
+			} <span class="kw">else </span>{
+				DELEGATOR_LOCK_ID
+			};
+
+			<span class="comment">// Remove the lock if it exists
+			</span>T::Currency::remove_lock(lock_id, account);
+
+			<span class="comment">// Now thaw the freeze
+			</span><span class="kw">let </span>freeze_reason = <span class="kw">if </span>is_collator {
+				FreezeReason::StakingCollator
+			} <span class="kw">else </span>{
+				FreezeReason::StakingDelegator
+			};
+
+			T::Currency::thaw(<span class="kw-2">&amp;</span>freeze_reason.into(), account)
+		}
+
+		<span class="doccomment">/// Get frozen balance with lazy migration support
+		/// This will check for existing locks and migrate them before returning the frozen balance
+		///
+		/// `is_collator` determines whether the account is a collator or delegator
+		</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>balance_frozen_extended(
+			account: <span class="kw-2">&amp;</span>T::AccountId,
+			is_collator: bool,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;BalanceOf&lt;T&gt;&gt; {
+			<span class="comment">// First check and migrate any existing lock
+			// We ignore the result as we want to return the frozen balance regardless
+			</span><span class="kw">let _ </span>= <span class="self">Self</span>::check_and_migrate_lock(account, is_collator);
+
+			<span class="comment">// Now return the frozen balance
+			</span><span class="kw">if </span>is_collator {
+				&lt;CandidateInfo&lt;T&gt;&gt;::get(account).map(|info| info.bond)
+			} <span class="kw">else </span>{
+				&lt;DelegatorState&lt;T&gt;&gt;::get(account).map(|state| state.total)
+			}
 		}
 
 		<span class="kw">pub fn </span>is_delegator(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; bool {
@@ -3731,7 +4210,7 @@
 				<span class="self">Self</span>::get_collator_stakable_free_balance(<span class="kw-2">&amp;</span>acc) &gt;= bond,
 				Error::&lt;T&gt;::InsufficientBalance,
 			);
-			T::Currency::set_lock(COLLATOR_LOCK_ID, <span class="kw-2">&amp;</span>acc, bond, WithdrawReasons::all());
+			<span class="self">Self</span>::freeze_extended(<span class="kw-2">&amp;</span>acc, bond, <span class="bool-val">true</span>).map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::InsufficientBalance)<span class="question-mark">?</span>;
 			<span class="kw">let </span>candidate = CandidateMetadata::new(bond);
 			&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>acc, candidate);
 			<span class="kw">let </span>empty_delegations: Delegations&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; = Default::default();
@@ -3876,7 +4355,7 @@
 					post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
 					error: err,
 				})<span class="question-mark">?</span>;
-			<span class="kw">let </span>return_stake = |bond: Bond&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;| {
+			<span class="kw">let </span>return_stake = |bond: Bond&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;| -&gt; DispatchResult {
 				<span class="comment">// remove delegation from delegator state
 				</span><span class="kw">let </span><span class="kw-2">mut </span>delegator = DelegatorState::&lt;T&gt;::get(<span class="kw-2">&amp;</span>bond.owner).expect(
 					<span class="string">"Collator state and delegator state are consistent.
@@ -3897,15 +4376,15 @@
 						// since it is assumed that they were removed incrementally before only the
 						// last delegation was left.
 						</span>&lt;DelegatorState&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>bond.owner);
-						T::Currency::remove_lock(DELEGATOR_LOCK_ID, <span class="kw-2">&amp;</span>bond.owner);
+						<span class="comment">// Thaw all frozen funds for delegator
+						</span><span class="self">Self</span>::thaw_extended(<span class="kw-2">&amp;</span>bond.owner, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 					} <span class="kw">else </span>{
 						&lt;DelegatorState&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>bond.owner, delegator);
 					}
 				} <span class="kw">else </span>{
-					<span class="comment">// TODO: review. we assume here that this delegator has no remaining staked
-					// balance, so we ensure the lock is cleared
-					</span>T::Currency::remove_lock(DELEGATOR_LOCK_ID, <span class="kw-2">&amp;</span>bond.owner);
+					<span class="self">Self</span>::thaw_extended(<span class="kw-2">&amp;</span>bond.owner, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 				}
+				<span class="prelude-val">Ok</span>(())
 			};
 			<span class="comment">// total backing stake is at least the candidate self bond
 			</span><span class="kw">let </span><span class="kw-2">mut </span>total_backing = state.bond;
@@ -3913,18 +4392,18 @@
 			</span><span class="kw">let </span>top_delegations =
 				&lt;TopDelegations&lt;T&gt;&gt;::take(<span class="kw-2">&amp;</span>candidate).expect(<span class="string">"CandidateInfo existence checked"</span>);
 			<span class="kw">for </span>bond <span class="kw">in </span>top_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)<span class="question-mark">?</span>;
 			}
 			total_backing = total_backing.saturating_add(top_delegations.total);
 			<span class="comment">// return all bottom delegations
 			</span><span class="kw">let </span>bottom_delegations =
 				&lt;BottomDelegations&lt;T&gt;&gt;::take(<span class="kw-2">&amp;</span>candidate).expect(<span class="string">"CandidateInfo existence checked"</span>);
 			<span class="kw">for </span>bond <span class="kw">in </span>bottom_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)<span class="question-mark">?</span>;
 			}
 			total_backing = total_backing.saturating_add(bottom_delegations.total);
-			<span class="comment">// return stake to collator
-			</span>T::Currency::remove_lock(COLLATOR_LOCK_ID, <span class="kw-2">&amp;</span>candidate);
+			<span class="comment">// Thaw all frozen funds for collator
+			</span><span class="self">Self</span>::thaw_extended(<span class="kw-2">&amp;</span>candidate, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 			&lt;CandidateInfo&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>candidate);
 			&lt;DelegationScheduledRequests&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>candidate);
 			&lt;AutoCompoundingDelegations&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>candidate);
@@ -3940,24 +4419,23 @@
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
 		}
 
-		<span class="doccomment">/// Returns an account's stakable balance which is not locked in delegation staking
+		<span class="doccomment">/// Returns an account's stakable balance (including the reserved) which is not frozen in delegation staking
 		</span><span class="kw">pub fn </span>get_delegator_stakable_balance(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; BalanceOf&lt;T&gt; {
-			<span class="kw">let </span><span class="kw-2">mut </span>stakable_balance =
-				T::Currency::free_balance(acc).saturating_add(T::Currency::reserved_balance(acc));
-
-			<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = &lt;DelegatorState&lt;T&gt;&gt;::get(acc) {
-				stakable_balance = stakable_balance.saturating_sub(state.total());
+			<span class="kw">let </span>total_balance =
+				T::Currency::balance(acc).saturating_add(T::Currency::reserved_balance(acc));
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(frozen_balance) = <span class="self">Self</span>::balance_frozen_extended(acc, <span class="bool-val">false</span>) {
+				<span class="kw">return </span>total_balance.saturating_sub(frozen_balance);
 			}
-			stakable_balance
+			total_balance
 		}
 
-		<span class="doccomment">/// Returns an account's free balance which is not locked in collator staking
+		<span class="doccomment">/// Returns an account's free balance which is not frozen in collator staking
 		</span><span class="kw">pub fn </span>get_collator_stakable_free_balance(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; BalanceOf&lt;T&gt; {
-			<span class="kw">let </span><span class="kw-2">mut </span>balance = T::Currency::free_balance(acc);
-			<span class="kw">if let </span><span class="prelude-val">Some</span>(info) = &lt;CandidateInfo&lt;T&gt;&gt;::get(acc) {
-				balance = balance.saturating_sub(info.bond);
+			<span class="kw">let </span>total_balance = T::Currency::balance(acc);
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(frozen_balance) = <span class="self">Self</span>::balance_frozen_extended(acc, <span class="bool-val">true</span>) {
+				<span class="kw">return </span>total_balance.saturating_sub(frozen_balance);
 			}
-			balance
+			total_balance
 		}
 
 		<span class="doccomment">/// Returns a delegations auto-compound value.
@@ -4050,14 +4528,16 @@
 					<span class="kw">continue</span>;
 				}
 				<span class="kw">let </span>reserve = config.percent * total_issuance;
-				<span class="kw">if let </span><span class="prelude-val">Ok</span>(imb) = T::Currency::deposit_into_existing(<span class="kw-2">&amp;</span>config.account, reserve) {
-					<span class="comment">// update round issuance if transfer succeeds
-					</span>left_issuance = left_issuance.saturating_sub(imb.peek());
-					<span class="self">Self</span>::deposit_event(Event::InflationDistributed {
-						index: index <span class="kw">as </span>u32,
-						account: config.account.clone(),
-						value: imb.peek(),
-					});
+				<span class="kw">if </span>frame_system::Pallet::&lt;T&gt;::account_exists(<span class="kw-2">&amp;</span>config.account) {
+					<span class="kw">if let </span><span class="prelude-val">Ok</span>(minted) = T::Currency::mint_into(<span class="kw-2">&amp;</span>config.account, reserve) {
+						<span class="comment">// update round issuance if minting succeeds
+						</span>left_issuance = left_issuance.saturating_sub(minted);
+						<span class="self">Self</span>::deposit_event(Event::InflationDistributed {
+							index: index <span class="kw">as </span>u32,
+							account: config.account.clone(),
+							value: minted,
+						});
+					}
 				}
 			}
 
@@ -4440,13 +4920,14 @@
 		}
 
 		<span class="doccomment">/// Mint a specified reward amount to the beneficiary account. Emits the [Rewarded] event.
-		</span><span class="kw">pub fn </span>mint(amt: BalanceOf&lt;T&gt;, to: T::AccountId) {
-			<span class="kw">if let </span><span class="prelude-val">Ok</span>(amount_transferred) = T::Currency::deposit_into_existing(<span class="kw-2">&amp;</span>to, amt) {
-				<span class="self">Self</span>::deposit_event(Event::Rewarded {
-					account: to.clone(),
-					rewards: amount_transferred.peek(),
-				});
-			}
+		</span><span class="kw">pub fn </span>mint(amt: BalanceOf&lt;T&gt;, to: <span class="kw-2">&amp;</span>T::AccountId) -&gt; <span class="prelude-ty">Result</span>&lt;BalanceOf&lt;T&gt;, DispatchError&gt; {
+			<span class="comment">// Mint rewards to the account
+			</span><span class="kw">let </span>minted = T::Currency::mint_into(<span class="kw-2">&amp;</span>to, amt)<span class="question-mark">?</span>;
+			<span class="self">Self</span>::deposit_event(Event::Rewarded {
+				account: to.clone(),
+				rewards: minted,
+			});
+			<span class="prelude-val">Ok</span>(minted)
 		}
 
 		<span class="doccomment">/// Mint a specified reward amount to the collator's account. Emits the [Rewarded] event.
@@ -4455,12 +4936,15 @@
 			collator_id: T::AccountId,
 			amt: BalanceOf&lt;T&gt;,
 		) -&gt; Weight {
-			<span class="kw">if let </span><span class="prelude-val">Ok</span>(amount_transferred) = T::Currency::deposit_into_existing(<span class="kw-2">&amp;</span>collator_id, amt) {
-				<span class="self">Self</span>::deposit_event(Event::Rewarded {
-					account: collator_id.clone(),
-					rewards: amount_transferred.peek(),
-				});
+			<span class="comment">// Mint rewards to the collator
+			</span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = <span class="self">Self</span>::mint(amt, <span class="kw-2">&amp;</span>collator_id) {
+				<span class="macro">log::warn!</span>(
+					<span class="string">"Failed to mint collator reward for {:?}: {:?}"</span>,
+					collator_id,
+					e
+				);
 			}
+
 			&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::mint_collator_reward()
 		}
 
@@ -4474,39 +4958,35 @@
 			candidate: T::AccountId,
 			delegator: T::AccountId,
 		) {
-			<span class="kw">if let </span><span class="prelude-val">Ok</span>(amount_transferred) =
-				T::Currency::deposit_into_existing(<span class="kw-2">&amp;</span>delegator, amt.clone())
-			{
-				<span class="self">Self</span>::deposit_event(Event::Rewarded {
-					account: delegator.clone(),
-					rewards: amount_transferred.peek(),
-				});
+			<span class="comment">// Mint rewards to the delegator
+			</span><span class="kw">if </span>frame_system::Pallet::&lt;T&gt;::account_exists(<span class="kw-2">&amp;</span>delegator) {
+				<span class="kw">if let </span><span class="prelude-val">Ok</span>(minted) = <span class="self">Self</span>::mint(amt.clone(), <span class="kw-2">&amp;</span>delegator) {
+					<span class="kw">let </span>compound_amount = compound_percent.mul_ceil(minted);
+					<span class="kw">if </span>compound_amount.is_zero() {
+						<span class="kw">return</span>;
+					}
 
-				<span class="kw">let </span>compound_amount = compound_percent.mul_ceil(amount_transferred.peek());
-				<span class="kw">if </span>compound_amount.is_zero() {
-					<span class="kw">return</span>;
-				}
+					<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">Self</span>::delegation_bond_more_without_event(
+						delegator.clone(),
+						candidate.clone(),
+						compound_amount.clone(),
+					) {
+						<span class="macro">log::debug!</span>(
+							<span class="string">"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}"</span>,
+							candidate,
+							delegator,
+							err
+						);
+						<span class="kw">return</span>;
+					};
 
-				<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">Self</span>::delegation_bond_more_without_event(
-					delegator.clone(),
-					candidate.clone(),
-					compound_amount.clone(),
-				) {
-					<span class="macro">log::debug!</span>(
-						<span class="string">"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}"</span>,
-						candidate,
+					Pallet::&lt;T&gt;::deposit_event(Event::Compounded {
 						delegator,
-						err
-					);
-					<span class="kw">return</span>;
+						candidate,
+						amount: compound_amount.clone(),
+					});
 				};
-
-				Pallet::&lt;T&gt;::deposit_event(Event::Compounded {
-					delegator,
-					candidate,
-					amount: compound_amount.clone(),
-				});
-			};
+			}
 		}
 
 		<span class="doccomment">/// Add reward points to block authors:

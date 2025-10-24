@@ -843,7 +843,18 @@
 <a href="#842" id="842">842</a>
 <a href="#843" id="843">843</a>
 <a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam foundation
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -865,21 +876,20 @@
 //! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 48.0.0
 //! DATE: 2025-09-02, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
-//! HOSTNAME: `ip-10-0-0-36`, CPU: `Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz`
+//! HOSTNAME: `Michaels-MacBook-Pro-2.local`, CPU: `&lt;UNKNOWN&gt;`
 //! WASM-EXECUTION: Compiled, CHAIN: None, DB CACHE: 1024
 
 </span><span class="comment">// Executed Command:
-// ./frame-omni-bencher
-// v1
+// ./target/release/moonbeam
 // benchmark
 // pallet
-// --runtime=./target/production/wbuild/moonriver-runtime/moonriver_runtime.wasm
+// --runtime=./target/release/wbuild/moonbase-runtime/moonbase_runtime.wasm
 // --genesis-builder=runtime
 // --genesis-builder-preset=development
-// --steps=50
-// --repeat=20
-// --pallet=pallet_parachain_staking
-// --extrinsic=*
+// --steps=5
+// --repeat=5
+// --pallet=pallet-parachain-staking
+// --extrinsic=
 // --wasm-execution=compiled
 // --header=./file_header.txt
 // --template=./benchmarking/frame-weight-template.hbs
@@ -971,10 +981,12 @@
 	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Locks` (r:1 w:1)
+	/// Storage: `ParachainStaking::MigratedCandidates` (r:1 w:0)
+	/// Proof: `ParachainStaking::MigratedCandidates` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Balances::Freezes` (r:1 w:1)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Locks` (r:1 w:0)
 	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:1 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
 	/// Storage: `ParachainStaking::Total` (r:1 w:1)
 	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::TopDelegations` (r:0 w:1)
@@ -992,7 +1004,7 @@
 			</span>.saturating_add(Weight::from_parts(<span class="number">90_910</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">7_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">7_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">41</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">43</span>).saturating_mul(x.into()))
 	}
 	<span class="doccomment">/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
 	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
@@ -1009,7 +1021,7 @@
 			</span>.saturating_add(Weight::from_parts(<span class="number">60_950</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">38</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">39</span>).saturating_mul(x.into()))
 	}
 	<span class="doccomment">/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
 	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
@@ -1019,12 +1031,14 @@
 	/// Proof: `ParachainStaking::TopDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::DelegatorState` (r:349 w:349)
 	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:350 w:350)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:350 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
+	/// Storage: `ParachainStaking::MigratedDelegators` (r:349 w:0)
+	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Balances::Freezes` (r:350 w:350)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
 	/// Storage: `System::Account` (r:350 w:350)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Locks` (r:350 w:1)
+	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
 	/// Storage: `ParachainStaking::DelegationScheduledRequests` (r:1 w:1)
 	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::BottomDelegations` (r:1 w:1)
@@ -1054,12 +1068,14 @@
 	/// Proof: `ParachainStaking::TopDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::DelegatorState` (r:349 w:349)
 	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:350 w:350)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:350 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
+	/// Storage: `ParachainStaking::MigratedDelegators` (r:349 w:0)
+	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Balances::Freezes` (r:350 w:350)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
 	/// Storage: `System::Account` (r:350 w:350)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Locks` (r:350 w:1)
+	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
 	/// Storage: `ParachainStaking::DelegationScheduledRequests` (r:1 w:1)
 	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::BottomDelegations` (r:1 w:1)
@@ -1097,7 +1113,7 @@
 			</span>.saturating_add(Weight::from_parts(<span class="number">72_385</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">38</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">39</span>).saturating_mul(x.into()))
 	}
 	<span class="doccomment">/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
 	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
@@ -1137,12 +1153,14 @@
 	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `ParachainStaking::Total` (r:1 w:1)
-	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::MigratedCandidates` (r:1 w:1)
+	/// Proof: `ParachainStaking::MigratedCandidates` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Locks` (r:1 w:1)
 	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:1 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:1 w:1)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
+	/// Storage: `ParachainStaking::Total` (r:1 w:1)
+	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
 	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[1, 200]`.
@@ -1173,10 +1191,12 @@
 	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::Total` (r:1 w:1)
 	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::MigratedCandidates` (r:1 w:1)
+	/// Proof: `ParachainStaking::MigratedCandidates` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Locks` (r:1 w:1)
 	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:1 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:1 w:1)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
@@ -1190,31 +1210,6 @@
 		</span>Weight::from_parts(<span class="number">61_713_851</span>, <span class="number">4752</span>)
 			<span class="comment">// Standard Error: 2_267
 			</span>.saturating_add(Weight::from_parts(<span class="number">84_720</span>, <span class="number">0</span>).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(<span class="number">6_u64</span>))
-			.saturating_add(T::DbWeight::get().writes(<span class="number">5_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">43</span>).saturating_mul(x.into()))
-	}
-	<span class="doccomment">/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
-	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::Total` (r:1 w:1)
-	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:1 w:1)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:1 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
-	/// Storage: `System::Account` (r:1 w:1)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
-	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// The range of component `x` is `[1, 200]`.
-	</span><span class="kw">fn </span>set_candidate_bond_to_zero(x: u32, ) -&gt; Weight {
-		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `1302 + x * (42 ±0)`
-		//  Estimated: `4752 + x * (43 ±0)`
-		// Minimum execution time: 44_478_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">51_941_463</span>, <span class="number">4752</span>)
-			<span class="comment">// Standard Error: 1_345
-			</span>.saturating_add(Weight::from_parts(<span class="number">81_065</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">6_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">5_u64</span>))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">43</span>).saturating_mul(x.into()))
@@ -1245,7 +1240,7 @@
 			</span>.saturating_add(Weight::from_parts(<span class="number">70_660</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">43</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">44</span>).saturating_mul(x.into()))
 	}
 	<span class="doccomment">/// Storage: `ParachainStaking::DelegatorState` (r:1 w:1)
 	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
@@ -1253,10 +1248,12 @@
 	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `ParachainStaking::MigratedDelegators` (r:1 w:1)
+	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Locks` (r:1 w:1)
 	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:1 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:1 w:1)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
 	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
 	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::TopDelegations` (r:1 w:1)
@@ -1293,36 +1290,7 @@
 			</span>.saturating_add(Weight::from_parts(<span class="number">71_222</span>, <span class="number">0</span>).saturating_mul(x.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">43</span>).saturating_mul(x.into()))
-	}
-	<span class="doccomment">/// Storage: `ParachainStaking::DelegatorState` (r:1 w:1)
-	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::DelegationScheduledRequests` (r:1 w:1)
-	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:1 w:1)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:1 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
-	/// Storage: `System::Account` (r:1 w:1)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `ParachainStaking::AutoCompoundingDelegations` (r:1 w:0)
-	/// Proof: `ParachainStaking::AutoCompoundingDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
-	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::TopDelegations` (r:1 w:1)
-	/// Proof: `ParachainStaking::TopDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
-	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::Total` (r:1 w:1)
-	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	</span><span class="kw">fn </span>execute_revoke_delegation() -&gt; Weight {
-		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `1004`
-		//  Estimated: `4752`
-		// Minimum execution time: 81_362_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">83_078_000</span>, <span class="number">4752</span>)
-			.saturating_add(T::DbWeight::get().reads(<span class="number">10_u64</span>))
-			.saturating_add(T::DbWeight::get().writes(<span class="number">8_u64</span>))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">44</span>).saturating_mul(x.into()))
 	}
 	<span class="doccomment">/// Storage: `ParachainStaking::DelegatorState` (r:1 w:1)
 	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
@@ -1353,7 +1321,7 @@
 		// Minimum execution time: 150_276_000 picoseconds.
 		</span>Weight::from_parts(<span class="number">154_494_000</span>, <span class="number">40813</span>)
 			.saturating_add(T::DbWeight::get().reads(<span class="number">11_u64</span>))
-			.saturating_add(T::DbWeight::get().writes(<span class="number">10_u64</span>))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">11_u64</span>))
 	}
 	<span class="doccomment">/// Storage: `ParachainStaking::DelegatorState` (r:1 w:1)
 	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
@@ -1361,10 +1329,12 @@
 	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
 	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::MigratedDelegators` (r:1 w:1)
+	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Locks` (r:1 w:1)
 	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:1 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:1 w:1)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
 	/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// Storage: `ParachainStaking::TopDelegations` (r:1 w:1)
@@ -1459,8 +1429,8 @@
 			.saturating_add(T::DbWeight::get().reads((<span class="number">4_u64</span>).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(x.into())))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3975</span>).saturating_mul(x.into()))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">639</span>).saturating_mul(y.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">4038</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">655</span>).saturating_mul(y.into()))
 	}
 	<span class="doccomment">/// Storage: `System::Account` (r:349 w:349)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
@@ -1468,10 +1438,12 @@
 	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::DelegationScheduledRequests` (r:1 w:0)
 	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::MigratedDelegators` (r:349 w:349)
+	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `Balances::Locks` (r:349 w:349)
 	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:349 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:349 w:349)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
 	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
 	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::TopDelegations` (r:1 w:1)
@@ -1497,11 +1469,11 @@
 			</span>.saturating_add(Weight::from_parts(<span class="number">28_182_239</span>, <span class="number">0</span>).saturating_mul(y.into()))
 			.saturating_add(T::DbWeight::get().reads((<span class="number">3_u64</span>).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().reads((<span class="number">2_u64</span>).saturating_mul(y.into())))
-			.saturating_add(T::DbWeight::get().writes((<span class="number">2_u64</span>).saturating_mul(x.into())))
-			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(y.into())))
+			.saturating_add(T::DbWeight::get().writes((<span class="number">3_u64</span>).saturating_mul(x.into())))
+			.saturating_add(T::DbWeight::get().writes((<span class="number">2_u64</span>).saturating_mul(y.into())))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2591</span>).saturating_mul(x.into()))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2234</span>).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">28</span>).saturating_mul(z.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">1733</span>).saturating_mul(y.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">41</span>).saturating_mul(z.into()))
 	}
 	<span class="doccomment">/// Storage: `ParachainStaking::DelayedPayouts` (r:1 w:0)
 	/// Proof: `ParachainStaking::DelayedPayouts` (`max_values`: None, `max_size`: None, mode: `Measured`)
@@ -1557,11 +1529,13 @@
 			</span>.saturating_add(Weight::from_parts(<span class="number">34_479</span>, <span class="number">0</span>).saturating_mul(y.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">23</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">24</span>).saturating_mul(x.into()))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">36</span>).saturating_mul(y.into()))
 	}
 	<span class="doccomment">/// Storage: `System::Account` (r:1 w:1)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `ParachainStaking::MigratedDelegators` (r:1 w:0)
+	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::DelegatorState` (r:1 w:1)
 	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
@@ -1574,10 +1548,10 @@
 	/// Proof: `ParachainStaking::BottomDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
 	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:1 w:1)
+	/// Storage: `Balances::Freezes` (r:1 w:1)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Locks` (r:1 w:0)
 	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:1 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
 	/// Storage: `ParachainStaking::Total` (r:1 w:1)
 	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[0, 350]`.
@@ -1597,12 +1571,14 @@
 			</span>.saturating_add(Weight::from_parts(<span class="number">213_242</span>, <span class="number">0</span>).saturating_mul(z.into()))
 			.saturating_add(T::DbWeight::get().reads(<span class="number">9_u64</span>))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">8_u64</span>))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">44</span>).saturating_mul(x.into()))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">19</span>).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">76</span>).saturating_mul(z.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">55</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">21</span>).saturating_mul(y.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">86</span>).saturating_mul(z.into()))
 	}
 	<span class="doccomment">/// Storage: `System::Account` (r:2 w:2)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `ParachainStaking::MigratedDelegators` (r:1 w:0)
+	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::DelegatorState` (r:2 w:2)
 	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
@@ -1613,10 +1589,10 @@
 	/// Proof: `ParachainStaking::TopDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::BottomDelegations` (r:1 w:1)
 	/// Proof: `ParachainStaking::BottomDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:2 w:2)
+	/// Storage: `Balances::Locks` (r:2 w:1)
 	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:2 w:0)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(37), added: 2512, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:2 w:2)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
 	/// Storage: `ParachainStaking::DelegationScheduledRequests` (r:1 w:1)
 	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
@@ -1685,7 +1661,53 @@
 			.saturating_add(T::DbWeight::get().reads((<span class="number">2_u64</span>).saturating_mul(x.into())))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(x.into())))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2580</span>).saturating_mul(x.into()))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2579</span>).saturating_mul(x.into()))
+	}
+	<span class="doccomment">/// Storage: `ParachainStaking::MigratedDelegators` (r:100 w:100)
+	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::DelegatorState` (r:100 w:0)
+	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Balances::Locks` (r:100 w:100)
+	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:100 w:100)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:100 w:100)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// The range of component `x` is `[1, 100]`.
+	</span><span class="kw">fn </span>migrate_locks_to_freezes_batch_delegators(x: u32, ) -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `463 + x * (329 ±0)`
+		//  Estimated: `1370 + x * (3762 ±1)`
+		// Minimum execution time: 49_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">26_430_805</span>, <span class="number">1370</span>)
+			<span class="comment">// Standard Error: 213_243
+			</span>.saturating_add(Weight::from_parts(<span class="number">43_210_541</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads((<span class="number">5_u64</span>).saturating_mul(x.into())))
+			.saturating_add(T::DbWeight::get().writes((<span class="number">4_u64</span>).saturating_mul(x.into())))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3762</span>).saturating_mul(x.into()))
+	}
+	<span class="doccomment">/// Storage: `ParachainStaking::MigratedCandidates` (r:100 w:100)
+	/// Proof: `ParachainStaking::MigratedCandidates` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainStaking::CandidateInfo` (r:100 w:0)
+	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Balances::Locks` (r:100 w:100)
+	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:100 w:100)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:100 w:100)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// The range of component `x` is `[1, 100]`.
+	</span><span class="kw">fn </span>migrate_locks_to_freezes_batch_candidates(x: u32, ) -&gt; Weight {
+		<span class="comment">// Proof Size summary in bytes:
+		//  Measured:  `357 + x * (326 ±0)`
+		//  Estimated: `1349 + x * (3762 ±1)`
+		// Minimum execution time: 51_000_000 picoseconds.
+		</span>Weight::from_parts(<span class="number">11_225_173</span>, <span class="number">1349</span>)
+			<span class="comment">// Standard Error: 93_283
+			</span>.saturating_add(Weight::from_parts(<span class="number">42_654_213</span>, <span class="number">0</span>).saturating_mul(x.into()))
+			.saturating_add(T::DbWeight::get().reads((<span class="number">5_u64</span>).saturating_mul(x.into())))
+			.saturating_add(T::DbWeight::get().writes((<span class="number">4_u64</span>).saturating_mul(x.into())))
+			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3762</span>).saturating_mul(x.into()))
 	}
 }
 </code></pre></div></section></main></body></html>

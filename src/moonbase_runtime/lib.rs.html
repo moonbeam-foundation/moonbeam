@@ -1916,7 +1916,6 @@
 <span class="comment">// Re-export required by get! macro.
 </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
 </span><span class="kw">pub use </span>fp_evm::GenesisAccount;
-<span class="kw">pub use </span>frame_support::traits::Get;
 <span class="kw">pub use </span>moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
 	Index, Signature,
@@ -1942,8 +1941,8 @@
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
-		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
-		OnFinalize, OnUnbalanced,
+		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, Get, InstanceFilter, LinearStoragePrice,
+		OnFinalize, OnUnbalanced, VariantCountOf,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -2221,8 +2220,8 @@
 	<span class="kw">type </span>DustRemoval = ();
 	<span class="kw">type </span>ExistentialDeposit = ExistentialDeposit;
 	<span class="kw">type </span>AccountStore = System;
-	<span class="kw">type </span>FreezeIdentifier = ();
-	<span class="kw">type </span>MaxFreezes = ConstU32&lt;<span class="number">0</span>&gt;;
+	<span class="kw">type </span>FreezeIdentifier = RuntimeFreezeReason;
+	<span class="kw">type </span>MaxFreezes = VariantCountOf&lt;<span class="self">Self</span>::RuntimeFreezeReason&gt;;
 	<span class="kw">type </span>RuntimeHoldReason = RuntimeHoldReason;
 	<span class="kw">type </span>RuntimeFreezeReason = RuntimeFreezeReason;
 	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_balances::WeightInfo&lt;Runtime&gt;;
@@ -2738,6 +2737,7 @@
 	<span class="kw">type </span>MaxCandidates = ConstU32&lt;<span class="number">200</span>&gt;;
 	<span class="kw">type </span>SlotDuration = ConstU64&lt;MILLISECS_PER_BLOCK&gt;;
 	<span class="kw">type </span>BlockTime = ConstU64&lt;MILLISECS_PER_BLOCK&gt;;
+	<span class="kw">type </span>RuntimeFreezeReason = RuntimeFreezeReason;
 	<span class="kw">type </span>LinearInflationThreshold = ();
 }
 
@@ -3297,7 +3297,7 @@
 		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config&lt;T&gt;} = <span class="number">9</span>,
 		EVM: pallet_evm::{Pallet, Config&lt;T&gt;, Call, Storage, Event&lt;T&gt;} = <span class="number">10</span>,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config&lt;T&gt;} = <span class="number">11</span>,
-		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;} = <span class="number">12</span>,
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event&lt;T&gt;, Config&lt;T&gt;, FreezeReason} = <span class="number">12</span>,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event&lt;T&gt;, Call} = <span class="number">13</span>,
 		<span class="comment">// Previously 14: pallet_democracy::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;, Call} = 14,
 		// Previously 15: CouncilCollective: pallet_collective::&lt;Instance1&gt;

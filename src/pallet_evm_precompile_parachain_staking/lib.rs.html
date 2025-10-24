@@ -918,14 +918,14 @@
 <span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 <span class="kw">use </span>frame_support::sp_runtime::Percent;
-<span class="kw">use </span>frame_support::traits::{Currency, Get};
+<span class="kw">use </span>frame_support::traits::{fungible::Inspect, Get};
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, U256};
 <span class="kw">use </span>sp_runtime::traits::Dispatchable;
 <span class="kw">use </span>sp_std::{convert::TryInto, marker::PhantomData, vec::Vec};
 
-<span class="kw">type </span>BalanceOf&lt;Runtime&gt; = &lt;&lt;Runtime <span class="kw">as </span>pallet_parachain_staking::Config&gt;::Currency <span class="kw">as </span>Currency&lt;
+<span class="kw">type </span>BalanceOf&lt;Runtime&gt; = &lt;&lt;Runtime <span class="kw">as </span>pallet_parachain_staking::Config&gt;::Currency <span class="kw">as </span>Inspect&lt;
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::AccountId,
 &gt;&gt;::Balance;
 

@@ -259,7 +259,7 @@
 
 </span><span class="doccomment">//! Helper methods for computing issuance based on inflation
 </span><span class="kw">use </span><span class="kw">crate</span>::pallet::{BalanceOf, Config, Pallet};
-<span class="kw">use </span>frame_support::traits::{Currency, Get};
+<span class="kw">use </span>frame_support::traits::{fungible::Inspect, Get};
 <span class="kw">use </span>parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>serde::{Deserialize, Serialize};

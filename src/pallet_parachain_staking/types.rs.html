@@ -1476,13 +1476,7 @@
 <a href="#1475" id="1475">1475</a>
 <a href="#1476" id="1476">1476</a>
 <a href="#1477" id="1477">1477</a>
-<a href="#1478" id="1478">1478</a>
-<a href="#1479" id="1479">1479</a>
-<a href="#1480" id="1480">1480</a>
-<a href="#1481" id="1481">1481</a>
-<a href="#1482" id="1482">1482</a>
-<a href="#1483" id="1483">1483</a>
-<a href="#1484" id="1484">1484</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#1478" id="1478">1478</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -1503,12 +1497,9 @@
 </span><span class="kw">use crate</span>::{
 	auto_compound::AutoCompoundDelegations, set::OrderedSet, BalanceOf, BottomDelegations,
 	CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Round, RoundIndex, TopDelegations,
-	Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	Total,
 };
-<span class="kw">use </span>frame_support::{
-	pallet_prelude::<span class="kw-2">*</span>,
-	traits::{tokens::WithdrawReasons, LockableCurrency},
-};
+<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">use </span>sp_runtime::{
 	traits::{Saturating, Zero},
@@ -1866,12 +1857,11 @@
 		<span class="kw">let </span>new_total = &lt;Total&lt;T&gt;&gt;::get().saturating_add(more.into());
 		&lt;Total&lt;T&gt;&gt;::put(new_total);
 		<span class="self">self</span>.bond = <span class="self">self</span>.bond.saturating_add(more);
-		T::Currency::set_lock(
-			COLLATOR_LOCK_ID,
-			<span class="kw-2">&amp;</span>who.clone(),
-			<span class="self">self</span>.bond.into(),
-			WithdrawReasons::all(),
-		);
+
+		<span class="comment">// Freeze the total new amount (current + additional)
+		</span>&lt;Pallet&lt;T&gt;&gt;::freeze_extended(<span class="kw-2">&amp;</span>who.clone(), <span class="self">self</span>.bond.into(), <span class="bool-val">true</span>)
+			.map_err(|<span class="kw">_</span>| DispatchError::from(Error::&lt;T&gt;::InsufficientBalance))<span class="question-mark">?</span>;
+
 		<span class="self">self</span>.total_counted = <span class="self">self</span>.total_counted.saturating_add(more);
 		&lt;Pallet&lt;T&gt;&gt;::deposit_event(Event::CandidateBondedMore {
 			candidate: who.clone(),
@@ -1881,22 +1871,19 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">pub fn </span>bond_less&lt;T: Config&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, who: T::AccountId, amount: Balance)
+	<span class="kw">pub fn </span>bond_less&lt;T: Config&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, who: T::AccountId, amount: Balance) -&gt; DispatchResult
 	<span class="kw">where
 		</span>BalanceOf&lt;T&gt;: From&lt;Balance&gt;,
 	{
 		<span class="kw">let </span>new_total_staked = &lt;Total&lt;T&gt;&gt;::get().saturating_sub(amount.into());
 		&lt;Total&lt;T&gt;&gt;::put(new_total_staked);
 		<span class="self">self</span>.bond = <span class="self">self</span>.bond.saturating_sub(amount);
-		<span class="kw">if </span><span class="self">self</span>.bond.is_zero() {
-			T::Currency::remove_lock(COLLATOR_LOCK_ID, <span class="kw-2">&amp;</span>who);
+
+		<span class="comment">// Update the freeze to the new total amount
+		</span><span class="kw">if </span><span class="self">self</span>.bond.is_zero() {
+			&lt;Pallet&lt;T&gt;&gt;::thaw_extended(<span class="kw-2">&amp;</span>who, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 		} <span class="kw">else </span>{
-			T::Currency::set_lock(
-				COLLATOR_LOCK_ID,
-				<span class="kw-2">&amp;</span>who,
-				<span class="self">self</span>.bond.into(),
-				WithdrawReasons::all(),
-			);
+			&lt;Pallet&lt;T&gt;&gt;::freeze_extended(<span class="kw-2">&amp;</span>who, <span class="self">self</span>.bond.into(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 		}
 		<span class="self">self</span>.total_counted = <span class="self">self</span>.total_counted.saturating_sub(amount);
 		<span class="kw">let </span>event = Event::CandidateBondedLess {
@@ -1909,6 +1896,7 @@
 			Pallet::&lt;T&gt;::update_active(who, <span class="self">self</span>.total_counted.into());
 		}
 		Pallet::&lt;T&gt;::deposit_event(event);
+		<span class="prelude-val">Ok</span>(())
 	}
 
 	<span class="doccomment">/// Schedule executable decrease of collator candidate self bond
@@ -1951,7 +1939,7 @@
 			request.when_executable &lt;= &lt;Round&lt;T&gt;&gt;::get().current,
 			Error::&lt;T&gt;::PendingCandidateRequestNotDueYet
 		);
-		<span class="self">self</span>.bond_less::&lt;T&gt;(who.clone(), request.amount);
+		<span class="self">self</span>.bond_less::&lt;T&gt;(who.clone(), request.amount)<span class="question-mark">?</span>;
 		<span class="comment">// reset s.t. no pending request
 		</span><span class="self">self</span>.request = <span class="prelude-val">None</span>;
 		<span class="prelude-val">Ok</span>(())
@@ -2607,7 +2595,7 @@
 	</span><span class="kw">pub </span>id: AccountId,
 	<span class="doccomment">/// All current delegations
 	</span><span class="kw">pub </span>delegations: OrderedSet&lt;Bond&lt;AccountId, Balance&gt;&gt;,
-	<span class="doccomment">/// Total balance locked for this delegator
+	<span class="doccomment">/// Total frozen balance for this delegator
 	</span><span class="kw">pub </span>total: Balance,
 	<span class="doccomment">/// Sum of pending revocation amounts + bond less amounts
 	</span><span class="kw">pub </span>less_total: Balance,
@@ -2812,14 +2800,13 @@
 		<span class="prelude-val">Err</span>(Error::&lt;T&gt;::DelegationDNE.into())
 	}
 
-	<span class="doccomment">/// Updates the bond locks for this delegator.
+	<span class="doccomment">/// Updates the bond freezes for this delegator.
 	///
-	/// This will take the current self.total and ensure that a lock of the same amount is applied
-	/// and when increasing the bond lock will also ensure that the account has enough free balance.
+	/// This will take the current self.total and ensure that a freeze of the same amount is applied.
+	/// When increasing the bond, it will also ensure that the account has enough free balance.
 	///
-	/// `additional_required_balance` should reflect the change to the amount that should be locked if
-	/// positive, 0 otherwise (e.g. `min(0, change_in_total_bond)`). This is necessary because it is
-	/// not possible to query the amount that is locked for a given lock id.
+	/// `additional_required_balance` should reflect the change to the amount that should be frozen if
+	/// positive, 0 otherwise (e.g. `min(0, change_in_total_bond)`).
 	</span><span class="kw">pub fn </span>adjust_bond_lock&lt;T: Config&gt;(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		additional_required_balance: BondAdjust&lt;Balance&gt;,
@@ -2828,33 +2815,34 @@
 		</span>BalanceOf&lt;T&gt;: From&lt;Balance&gt;,
 		T::AccountId: From&lt;AccountId&gt;,
 	{
+		<span class="kw">let </span>who: T::AccountId = <span class="self">self</span>.id.clone().into();
+
 		<span class="kw">match </span>additional_required_balance {
 			BondAdjust::Increase(amount) =&gt; {
 				<span class="macro">ensure!</span>(
-					&lt;Pallet&lt;T&gt;&gt;::get_delegator_stakable_balance(<span class="kw-2">&amp;</span><span class="self">self</span>.id.clone().into())
-						&gt;= amount.into(),
+					&lt;Pallet&lt;T&gt;&gt;::get_delegator_stakable_balance(<span class="kw-2">&amp;</span>who) &gt;= amount.into(),
 					Error::&lt;T&gt;::InsufficientBalance,
 				);
 
-				<span class="comment">// additional sanity check: shouldn't ever want to lock more than total
+				<span class="comment">// additional sanity check: shouldn't ever want to freeze more than total
 				</span><span class="kw">if </span>amount &gt; <span class="self">self</span>.total {
-					<span class="macro">log::warn!</span>(<span class="string">"LOGIC ERROR: request to reserve more than bond total"</span>);
+					<span class="macro">log::warn!</span>(<span class="string">"LOGIC ERROR: request to freeze more than bond total"</span>);
 					<span class="kw">return </span><span class="prelude-val">Err</span>(DispatchError::Other(<span class="string">"Invalid additional_required_balance"</span>));
 				}
 			}
-			BondAdjust::Decrease =&gt; (), <span class="comment">// do nothing on decrease
-		</span>};
-
-		<span class="kw">if </span><span class="self">self</span>.total.is_zero() {
-			T::Currency::remove_lock(DELEGATOR_LOCK_ID, <span class="kw-2">&amp;</span><span class="self">self</span>.id.clone().into());
-		} <span class="kw">else </span>{
-			T::Currency::set_lock(
-				DELEGATOR_LOCK_ID,
-				<span class="kw-2">&amp;</span><span class="self">self</span>.id.clone().into(),
-				<span class="self">self</span>.total.into(),
-				WithdrawReasons::all(),
-			);
+			BondAdjust::Decrease =&gt; {
+				<span class="comment">// Nothing special to do for decrease with freezes
+			</span>}
 		}
+
+		<span class="comment">// Set the freeze to the total amount
+		</span><span class="kw">if </span><span class="self">self</span>.total &gt; Balance::zero() {
+			&lt;Pallet&lt;T&gt;&gt;::freeze_extended(<span class="kw-2">&amp;</span>who, <span class="self">self</span>.total.into(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+		} <span class="kw">else </span>{
+			<span class="comment">// If total is zero, remove the freeze
+			</span><span class="kw">let _ </span>= &lt;Pallet&lt;T&gt;&gt;::thaw_extended(<span class="kw-2">&amp;</span>who, <span class="bool-val">false</span>);
+		}
+
 		<span class="prelude-val">Ok</span>(())
 	}
 
