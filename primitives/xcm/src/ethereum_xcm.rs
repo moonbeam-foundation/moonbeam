@@ -70,8 +70,8 @@ pub enum EthereumXcmTransaction {
 }
 
 /// Value for `r` and `s` for the invalid signature included in Xcm transact's Ethereum transaction.
-pub fn rs_id() -> U256 {
-	U256::from(1u64)
+pub fn rs_id() -> H256 {
+	H256::from_low_u64_be(1u64)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
@@ -349,8 +349,12 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
-			signature: ethereum::eip1559::TransactionSignature::new(true, rs_id(), rs_id())
-				.unwrap(),
+			signature: ethereum::eip1559::TransactionSignature::new(
+				true,
+				H256::from_low_u64_be(1u64),
+				H256::from_low_u64_be(1u64),
+			)
+			.unwrap(),
 		}));
 
 		assert_eq!(
@@ -424,8 +428,12 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: from_tuple_to_access_list(&access_list.unwrap()),
-			signature: ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())
-				.unwrap(),
+			signature: ethereum::eip2930::TransactionSignature::new(
+				true,
+				H256::from_low_u64_be(1u64),
+				H256::from_low_u64_be(1u64),
+			)
+			.unwrap(),
 		}));
 
 		assert_eq!(
@@ -455,8 +463,12 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
-			signature: ethereum::eip1559::TransactionSignature::new(true, rs_id(), rs_id())
-				.unwrap(),
+			signature: ethereum::eip1559::TransactionSignature::new(
+				true,
+				H256::from_low_u64_be(1u64),
+				H256::from_low_u64_be(1u64),
+			)
+			.unwrap(),
 		}));
 
 		assert_eq!(

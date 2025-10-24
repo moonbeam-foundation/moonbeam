@@ -2,9 +2,10 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
 import { sendRawTransaction } from "@moonwall/util";
 import { encodeFunctionData, type Abi } from "viem";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { generatePrivateKey, privateKeyToAccount, signAuthorization } from "viem/accounts";
 import { createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
+import { recoverAuthorizationAddress, verifyAuthorization } from "viem/utils";
 
 describeSuite({
   id: "D020514",
@@ -141,13 +142,18 @@ describeSuite({
         expect(auth).not.toHaveProperty("signature");
 
         // Verify the signature values match what we sent
-        // TODO: Trim leading zeros is necessary because of: https://github.com/wevm/viem/pull/3455
+        // INFO: Trimming leading zeros is necessary because of: https://github.com/wevm/viem/pull/3455
         expect(auth.r).toBe(
           authorization.r.replace(/^0x0+/, "0x") /* Trim leading zeros for comparison */
         );
         expect(auth.s).toBe(
           authorization.s.replace(/^0x0+/, "0x") /* Trim leading zeros for comparison */
         );
+        const valid = await verifyAuthorization({
+          address: delegatingAddress,
+          authorization: auth,
+        });
+        expect(valid, `Authorization signature is invalid`).toBeTruthy();
 
         // yParity can be 0 or 1, but should match the authorization
         // Note: yParity is a number (0 or 1), not a boolean
