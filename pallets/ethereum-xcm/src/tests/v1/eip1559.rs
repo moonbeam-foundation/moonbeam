@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::*;
+use ethereum::TransactionV3;
 use frame_support::{
 	assert_noop,
 	dispatch::{Pays, PostDispatchInfo},
@@ -23,7 +24,9 @@ use frame_support::{
 	BoundedVec,
 };
 use sp_runtime::{DispatchError, DispatchErrorWithPostInfo};
-use xcm_primitives::{EthereumXcmFee, EthereumXcmTransaction, EthereumXcmTransactionV1};
+use xcm_primitives::{
+	EthereumXcmFee, EthereumXcmTransaction, EthereumXcmTransactionV1, XcmToEthereum,
+};
 
 // 	pragma solidity ^0.6.6;
 // 	contract Test {
@@ -140,16 +143,17 @@ fn test_transact_xcm_evm_call_works() {
 	let bob = &pairs[1];
 
 	ext.execute_with(|| {
-		let t = EIP1559UnsignedTransaction {
-			nonce: U256::zero(),
-			max_priority_fee_per_gas: U256::from(1),
-			max_fee_per_gas: U256::from(1),
+		let t = EthereumXcmTransactionV1 {
 			gas_limit: U256::from(0x100000),
+			fee_payment: EthereumXcmFee::Auto,
 			action: ethereum::TransactionAction::Create,
 			value: U256::zero(),
-			input: hex::decode(CONTRACT).unwrap(),
+			input: hex::decode(CONTRACT).unwrap().try_into().unwrap(),
+			access_list: None,
 		}
-		.sign(&alice.private_key, None);
+		.into_transaction(U256::zero(), Default::default(), true)
+		.unwrap();
+		assert!(matches!(t, TransactionV3::EIP1559(_)));
 		assert_ok!(Ethereum::execute(alice.address, &t, None, None));
 
 		let contract_address = hex::decode("32dcab0ef3fb2de2fce1d2e0799d36239671f04a").unwrap();

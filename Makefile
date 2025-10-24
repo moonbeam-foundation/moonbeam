@@ -78,6 +78,8 @@ zombienet/bin/moonbeam:
 release-build:
 	@cargo build --release
 
+# Zombienet commands
+
 export PATH = $(ZOMBINET_PATHS)
 start-zombienet-moonbeam: all
 	@zombienet/bin/${ZOMBIENET_BIN} spawn zombienet/configs/moonbeam-polkadot.toml
@@ -88,3 +90,35 @@ start-zombienet-moonriver: all
 
 run-bridge-integration-tests: all
 	@./zombienet/integration-tests/bridges/run-test.sh 0001-moonbeam-moonriver-asset-transfer
+
+# Lazy loading commands
+
+export RPC := https://trace.api.moonbeam.network
+export RUNTIME := moonbeam
+start-lazy-loading-node: all
+	@if [ ! -e ".lazy-loading/wasm-runtime-overrides" ]; then \
+  		echo "Setup Lazy loading runtime overrides..."; \
+  		mkdir -p .lazy-loading/wasm-runtime-overrides; \
+  		cp target/release/wbuild/${RUNTIME}-runtime/${RUNTIME}_runtime.wasm .lazy-loading/wasm-runtime-overrides/${RUNTIME}_runtime.wasm; \
+	fi
+	@if [ ! -e ".lazy-loading/state-overrides.json" ]; then \
+  		echo "Generating default lazy loading config..."; \
+		echo "[]" > .lazy-loading/state-overrides.json; \
+	fi
+	@echo "Starting Moonbeam node in lazy loading mode...";
+	@${MOONBEAM_RELEASE_BIN} \
+		--lazy-loading-remote-rpc ${RPC} \
+		--lazy-loading-state-overrides .lazy-loading/state-overrides.json \
+		--lazy-loading-runtime-override target/release/wbuild/${RUNTIME}-runtime/${RUNTIME}_runtime.wasm \
+		-ltracing=trace,evm=trace,lazy-loading=trace,rpc=trace \
+		--alice \
+		--no-grandpa \
+		--reserved-only \
+		--sealing 6000 \
+		--unsafe-rpc-external \
+		--rpc-external \
+		--rpc-cors all \
+		--rpc-methods Unsafe \
+		--ethapi=txpool,debug,trace \
+		--force-authoring \
+		--wasm-runtime-overrides .lazy-loading/wasm-runtime-overrides

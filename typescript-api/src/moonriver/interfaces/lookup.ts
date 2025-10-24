@@ -2323,8 +2323,8 @@ export default {
    **/
   EthereumTransactionEip2930MalleableTransactionSignature: {
     oddYParity: "bool",
-    r: "H256",
-    s: "H256"
+    r: "U256",
+    s: "U256"
   },
   /**
    * Lookup227: pallet_ethereum::pallet::Call<T>
@@ -2373,8 +2373,8 @@ export default {
    **/
   EthereumTransactionLegacyTransactionSignature: {
     v: "u64",
-    r: "H256",
-    s: "H256"
+    r: "U256",
+    s: "U256"
   },
   /**
    * Lookup233: ethereum::transaction::eip2930::EIP2930Transaction
@@ -2402,8 +2402,8 @@ export default {
    **/
   EthereumTransactionEip2930TransactionSignature: {
     oddYParity: "bool",
-    r: "H256",
-    s: "H256"
+    r: "U256",
+    s: "U256"
   },
   /**
    * Lookup237: ethereum::transaction::eip1559::EIP1559Transaction

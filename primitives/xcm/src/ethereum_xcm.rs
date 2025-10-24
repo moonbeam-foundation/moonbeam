@@ -70,8 +70,8 @@ pub enum EthereumXcmTransaction {
 }
 
 /// Value for `r` and `s` for the invalid signature included in Xcm transact's Ethereum transaction.
-pub fn rs_id() -> H256 {
-	H256::from_low_u64_be(1u64)
+pub fn rs_id() -> U256 {
+	U256::from(1u64)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo, DecodeWithMemTracking)]
@@ -117,6 +117,7 @@ pub struct EthereumXcmTransactionV3 {
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 	/// Authorization list as defined in EIP-7702.
+	/// Currently not supported from XCM, but reserved for future use.
 	pub authorization_list: Option<AuthorizationList>,
 }
 
@@ -151,9 +152,14 @@ impl XcmToEthereum for EthereumXcmTransaction {
 }
 
 impl XcmToEthereum for EthereumXcmTransactionV1 {
-	fn into_transaction(&self, nonce: U256, chain_id: u64, _: bool) -> Option<TransactionV3> {
-		// We dont support creates for now
-		if self.action == TransactionAction::Create {
+	fn into_transaction(
+		&self,
+		nonce: U256,
+		chain_id: u64,
+		allow_create: bool,
+	) -> Option<TransactionV3> {
+		if !allow_create && self.action == TransactionAction::Create {
+			// Create not allowed
 			return None;
 		}
 		let from_tuple_to_access_list = |t: &Vec<(H160, Vec<H256>)>| -> AccessList {
@@ -343,12 +349,8 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
-			signature: ethereum::eip1559::TransactionSignature::new(
-				true,
-				H256::from_low_u64_be(1u64),
-				H256::from_low_u64_be(1u64),
-			)
-			.unwrap(),
+			signature: ethereum::eip1559::TransactionSignature::new(true, rs_id(), rs_id())
+				.unwrap(),
 		}));
 
 		assert_eq!(
@@ -422,12 +424,8 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: from_tuple_to_access_list(&access_list.unwrap()),
-			signature: ethereum::eip2930::TransactionSignature::new(
-				true,
-				H256::from_low_u64_be(1u64),
-				H256::from_low_u64_be(1u64),
-			)
-			.unwrap(),
+			signature: ethereum::eip2930::TransactionSignature::new(true, rs_id(), rs_id())
+				.unwrap(),
 		}));
 
 		assert_eq!(
@@ -457,12 +455,8 @@ mod tests {
 			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
-			signature: ethereum::eip1559::TransactionSignature::new(
-				true,
-				H256::from_low_u64_be(1u64),
-				H256::from_low_u64_be(1u64),
-			)
-			.unwrap(),
+			signature: ethereum::eip1559::TransactionSignature::new(true, rs_id(), rs_id())
+				.unwrap(),
 		}));
 
 		assert_eq!(

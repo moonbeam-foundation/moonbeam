@@ -2734,8 +2734,8 @@ declare module "@polkadot/types/lookup" {
   /** @name EthereumTransactionEip2930MalleableTransactionSignature (226) */
   interface EthereumTransactionEip2930MalleableTransactionSignature extends Struct {
     readonly oddYParity: bool;
-    readonly r: H256;
-    readonly s: H256;
+    readonly r: U256;
+    readonly s: U256;
   }
 
   /** @name PalletEthereumCall (227) */
@@ -2782,8 +2782,8 @@ declare module "@polkadot/types/lookup" {
   /** @name EthereumTransactionLegacyTransactionSignature (231) */
   interface EthereumTransactionLegacyTransactionSignature extends Struct {
     readonly v: u64;
-    readonly r: H256;
-    readonly s: H256;
+    readonly r: U256;
+    readonly s: U256;
   }
 
   /** @name EthereumTransactionEip2930Eip2930Transaction (233) */
@@ -2808,8 +2808,8 @@ declare module "@polkadot/types/lookup" {
   /** @name EthereumTransactionEip2930TransactionSignature (236) */
   interface EthereumTransactionEip2930TransactionSignature extends Struct {
     readonly oddYParity: bool;
-    readonly r: H256;
-    readonly s: H256;
+    readonly r: U256;
+    readonly s: U256;
   }
 
   /** @name EthereumTransactionEip1559Eip1559Transaction (237) */
