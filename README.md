@@ -108,6 +108,49 @@ Additionally, the prefunded default account for testing purposes is as follows:
 - PrivKey: 0x99b3c12287537e38c90a9219d4cb074a89a16e9cdb20bf85728ebd97c343e342
 ```
 
+## Run a Lazy-Loading Node
+
+Lazy-loading mode allows you to run a Moonbeam node that fetches state from a remote archive node on-demand, eliminating the need to sync the full chain state. This is particularly useful for development and testing against production state with custom runtime changes.
+
+### Prerequisites
+
+Build the Moonbeam node with your desired runtime changes:
+
+```bash
+# Build the release binary
+make release-build
+```
+
+### Start the Lazy-Loading Node
+
+```bash
+# Start with default configuration (connects to Moonbeam network)
+make start-lazy-loading-node
+```
+
+This command will:
+1. Set up the runtime override directory (`.lazy-loading/wasm-runtime-overrides`)
+2. Copy your built runtime WASM to the overrides directory
+3. Create a default state overrides configuration (`.lazy-loading/state-overrides.json`)
+4. Start the node connected to the remote RPC endpoint
+
+### Customization
+
+You can customize the lazy-loading configuration by setting environment variables:
+
+```bash
+# Connect to a different network or RPC endpoint
+RPC=https://rpc.api.moonriver.moonbeam.network RUNTIME=moonriver make start-lazy-loading-node
+```
+
+Available configuration options:
+- `RPC`: Remote archive RPC endpoint (default: `https://trace.api.moonbeam.network`)
+- `RUNTIME`: Runtime to use - `moonbeam`, `moonriver`, or `moonbase` (default: `moonbeam`)
+
+### State Overrides
+
+The `.lazy-loading/state-overrides.json` file allows you to override specific storage values in the remote state. This is useful for testing runtime upgrades or custom configurations without modifying the actual chain state.
+
 ## Build the Moonbeam Node
 
 To build Moonbeam, a proper Substrate development environment is required. If you're new to working with Substrate-based blockchains, consider starting with the [Getting Started with a Moonbeam Development Node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/) documentation.
