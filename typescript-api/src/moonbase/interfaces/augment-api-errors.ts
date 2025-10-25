@@ -773,6 +773,7 @@ declare module "@polkadot/api-base/types/errors" {
       DelegatorDNEinTopNorBottom: AugmentedError<ApiType>;
       DelegatorExists: AugmentedError<ApiType>;
       DelegatorNotLeaving: AugmentedError<ApiType>;
+      EmptyMigrationBatch: AugmentedError<ApiType>;
       ExceedMaxDelegationsPerDelegator: AugmentedError<ApiType>;
       InsufficientBalance: AugmentedError<ApiType>;
       InvalidSchedule: AugmentedError<ApiType>;
