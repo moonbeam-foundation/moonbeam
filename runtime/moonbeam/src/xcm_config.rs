@@ -457,7 +457,6 @@ pub type ResumeXcmOrigin = EitherOfDiverse<
 >;
 
 impl pallet_emergency_para_xcm::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type CheckAssociatedRelayNumber =
 		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);

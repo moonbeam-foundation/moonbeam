@@ -523,7 +523,6 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = MoonriverPrecompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
@@ -688,7 +687,6 @@ parameter_types! {
 }
 
 impl pallet_ethereum::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type StateRoot =
 		pallet_ethereum::IntermediateStateRoot<<Runtime as frame_system::Config>::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
@@ -879,7 +877,6 @@ impl pallet_author_inherent::Config for Runtime {
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RandomnessSource = Randomness;
 	type PotentialAuthors = ParachainStaking;
 	type WeightInfo = moonriver_weights::pallet_author_slot_filter::WeightInfo<Runtime>;
@@ -919,7 +916,6 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type DepositCurrency = Balances;
 	type DepositAmount = ConstU128<{ 100 * currency::MOVR * currency::SUPPLY_FACTOR }>;
 	type Keys = session_keys_primitives::VrfId;
@@ -1252,7 +1248,6 @@ impl moonkit_xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 }
 
 impl pallet_maintenance_mode::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
@@ -1341,7 +1336,6 @@ where
 }
 
 impl pallet_randomness::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AddressMapping = sp_runtime::traits::ConvertInto;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter<Runtime>;
