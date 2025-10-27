@@ -448,5 +448,6 @@ try-runtime = [
 	"pallet-erc20-xcm-bridge/try-runtime",
 	"pallet-multisig/try-runtime",
 	"pallet-async-backing/try-runtime",
+	"pallet-assets/try-runtime",
 	"pallet-precompile-benchmarks/try-runtime",
 ]
