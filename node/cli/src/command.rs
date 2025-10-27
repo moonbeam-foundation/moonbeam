@@ -627,7 +627,7 @@ pub fn run() -> Result<()> {
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
 
-								cmd.run(config, params.client, db, storage)
+								cmd.run(config, params.client, db, storage, None)
 							})
 						}
 						#[cfg(feature = "moonbeam-native")]
@@ -646,7 +646,7 @@ pub fn run() -> Result<()> {
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
 
-								cmd.run(config, params.client, db, storage)
+								cmd.run(config, params.client, db, storage, None)
 							})
 						}
 						#[cfg(feature = "moonbase-native")]
@@ -665,7 +665,7 @@ pub fn run() -> Result<()> {
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
 
-								cmd.run(config, params.client, db, storage)
+								cmd.run(config, params.client, db, storage, None)
 							})
 						}
 						#[cfg(not(feature = "moonbase-native"))]
