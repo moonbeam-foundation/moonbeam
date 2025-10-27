@@ -8144,6 +8144,7 @@ dependencies = [
  "moonbeam-core-primitives",
  "pallet-author-inherent",
  "pallet-balances",
+ "pallet-identity",
  "pallet-message-queue",
  "pallet-migrations",
  "pallet-moonbeam-foreign-assets",

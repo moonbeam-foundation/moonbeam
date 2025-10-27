@@ -656,6 +656,8 @@ impl pallet_identity::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_identity::WeightInfo<Runtime>;
 	type UsernameDeposit = ConstU128<{ currency::deposit(0, MaxUsernameLength::get()) }>;
 	type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelper;
 }
 
 pub struct TransactionConverter;
