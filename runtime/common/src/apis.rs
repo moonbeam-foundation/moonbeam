@@ -802,7 +802,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_support::traits::StorageInfoTrait;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
-					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
 
 					let mut list = Vec::<BenchmarkList>::new();
 					list_benchmarks!(list, extra);
@@ -862,18 +861,6 @@ macro_rules! impl_runtime_apis_plus_common {
 							}
 
 							(None, None)
-						}
-					}
-
-					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
-					impl pallet_transaction_payment::benchmarking::Config for Runtime {
-						fn setup_benchmark_environment() {
-							let alice = AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
-							pallet_author_inherent::Author::<Runtime>::put(&alice);
-
-							let caller: AccountId = frame_benchmarking::account("caller", 0, 0);
-							let balance = 1_000_000_000_000_000_000u64.into(); // 1 UNIT
-							<Balances as frame_support::traits::Currency<_>>::make_free_balance_be(&caller, balance);
 						}
 					}
 
