@@ -2472,15 +2472,18 @@ mod benchmarks {
 			accounts.push((candidate, true));
 		}
 
+		let collators_upper_index = T::MaxCandidates::get();
 		while accounts.len() < x as usize {
-			let seed = accounts.len() as u32 + 1;
+			let account_index = accounts.len() as u32 + 1;
+			let idx =
+				collators_upper_index.min(account_index.saturating_sub(collators_upper_index));
 			let delegator = create_funded_delegator::<T>(
 				"delegator",
-				seed,
+				account_index,
 				min_delegator_stk::<T>(),
-				accounts[0].clone().0,
+				accounts[idx as usize].clone().0,
 				true,
-				seed,
+				account_index,
 			)?;
 
 			accounts.push((delegator, false));
