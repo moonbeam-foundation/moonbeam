@@ -1688,7 +1688,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(31019)
+				.expect_cost(31020)
 				.expect_no_logs()
 				.execute_returns(());
 		});
