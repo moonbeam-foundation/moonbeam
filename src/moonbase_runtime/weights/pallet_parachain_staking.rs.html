@@ -831,30 +831,7 @@
 <a href="#830" id="830">830</a>
 <a href="#831" id="831">831</a>
 <a href="#832" id="832">832</a>
-<a href="#833" id="833">833</a>
-<a href="#834" id="834">834</a>
-<a href="#835" id="835">835</a>
-<a href="#836" id="836">836</a>
-<a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a>
-<a href="#839" id="839">839</a>
-<a href="#840" id="840">840</a>
-<a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a>
-<a href="#843" id="843">843</a>
-<a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
-<a href="#847" id="847">847</a>
-<a href="#848" id="848">848</a>
-<a href="#849" id="849">849</a>
-<a href="#850" id="850">850</a>
-<a href="#851" id="851">851</a>
-<a href="#852" id="852">852</a>
-<a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a>
-<a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam foundation
+<a href="#833" id="833">833</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -1663,29 +1640,6 @@
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(x.into())))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2579</span>).saturating_mul(x.into()))
 	}
-	<span class="doccomment">/// Storage: `ParachainStaking::MigratedDelegators` (r:100 w:100)
-	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::DelegatorState` (r:100 w:0)
-	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:100 w:100)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:100 w:100)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
-	/// Storage: `System::Account` (r:100 w:100)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// The range of component `x` is `[1, 100]`.
-	</span><span class="kw">fn </span>migrate_locks_to_freezes_batch_delegators(x: u32, ) -&gt; Weight {
-		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `463 + x * (329 ±0)`
-		//  Estimated: `1370 + x * (3762 ±1)`
-		// Minimum execution time: 50_000_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">50_000_000</span>, <span class="number">1370</span>)
-			<span class="comment">// Standard Error: 141_735
-			</span>.saturating_add(Weight::from_parts(<span class="number">42_504_861</span>, <span class="number">0</span>).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads((<span class="number">5_u64</span>).saturating_mul(x.into())))
-			.saturating_add(T::DbWeight::get().writes((<span class="number">4_u64</span>).saturating_mul(x.into())))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">3762</span>).saturating_mul(x.into()))
-	}
 	<span class="doccomment">/// Storage: `ParachainStaking::MigratedCandidates` (r:100 w:100)
 	/// Proof: `ParachainStaking::MigratedCandidates` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::CandidateInfo` (r:100 w:0)
@@ -1697,7 +1651,7 @@
 	/// Storage: `System::Account` (r:100 w:100)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// The range of component `x` is `[1, 100]`.
-	</span><span class="kw">fn </span>migrate_locks_to_freezes_batch_candidates(x: u32, ) -&gt; Weight {
+	</span><span class="kw">fn </span>migrate_locks_to_freezes_batch(x: u32, ) -&gt; Weight {
 		<span class="comment">// Proof Size summary in bytes:
 		//  Measured:  `357 + x * (326 ±0)`
 		//  Estimated: `1349 + x * (3762 ±1)`

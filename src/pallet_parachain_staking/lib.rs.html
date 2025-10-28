@@ -2513,15 +2513,7 @@
 <a href="#2512" id="2512">2512</a>
 <a href="#2513" id="2513">2513</a>
 <a href="#2514" id="2514">2514</a>
-<a href="#2515" id="2515">2515</a>
-<a href="#2516" id="2516">2516</a>
-<a href="#2517" id="2517">2517</a>
-<a href="#2518" id="2518">2518</a>
-<a href="#2519" id="2519">2519</a>
-<a href="#2520" id="2520">2520</a>
-<a href="#2521" id="2521">2521</a>
-<a href="#2522" id="2522">2522</a>
-<a href="#2523" id="2523">2523</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#2515" id="2515">2515</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -3960,9 +3952,9 @@
 		/// extrinsic fee is refunded to incentivize successful batch migrations.
 		/// Weight is calculated based on actual successful operations performed.
 		</span><span class="attr">#[pallet::call_index(<span class="number">200</span>)]
-		#[pallet::weight({
-			T::WeightInfo::migrate_locks_to_freezes_batch_delegators(MAX_ACCOUNTS_PER_MIGRATION_BATCH).max(T::WeightInfo::migrate_locks_to_freezes_batch_candidates(MAX_ACCOUNTS_PER_MIGRATION_BATCH))
-		})]
+		#[pallet::weight(T::WeightInfo::migrate_locks_to_freezes_batch(
+			MAX_ACCOUNTS_PER_MIGRATION_BATCH
+		))]
 		</span><span class="kw">pub fn </span>migrate_locks_to_freezes_batch(
 			origin: OriginFor&lt;T&gt;,
 			accounts: BoundedVec&lt;(T::AccountId, bool), ConstU32&lt;MAX_ACCOUNTS_PER_MIGRATION_BATCH&gt;&gt;,
@@ -3995,19 +3987,11 @@
 			};
 
 			<span class="comment">// Calculate actual weight consumed
-			</span><span class="kw">let </span>delegator_weight = <span class="kw">if </span>delegators &gt; <span class="number">0 </span>{
-				T::WeightInfo::migrate_locks_to_freezes_batch_delegators(delegators)
+			</span><span class="kw">let </span>actual_weight = <span class="kw">if </span>candidates &gt; <span class="number">0 </span>{
+				T::WeightInfo::migrate_locks_to_freezes_batch(total_accounts)
 			} <span class="kw">else </span>{
 				Weight::zero()
 			};
-
-			<span class="kw">let </span>candidate_weight = <span class="kw">if </span>candidates &gt; <span class="number">0 </span>{
-				T::WeightInfo::migrate_locks_to_freezes_batch_candidates(candidates)
-			} <span class="kw">else </span>{
-				Weight::zero()
-			};
-
-			<span class="kw">let </span>actual_weight = delegator_weight.saturating_add(candidate_weight);
 
 			<span class="comment">// Apply refund if 50% or more successful using Percent comparison
 			</span><span class="kw">let </span>pays_fee = <span class="kw">if </span>success_rate &gt;= Percent::from_percent(<span class="number">50</span>) {
