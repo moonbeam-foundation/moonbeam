@@ -2521,20 +2521,18 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn migrate_locks_to_freezes_batch_candidates(
-		x: Linear<1, MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
-	) -> Result<(), BenchmarkError> {
-		use crate::MigratedCandidates;
+	fn migrate_locks_to_freezes_batch_candidates() -> Result<(), BenchmarkError> {
+		use crate::{MigratedCandidates, MigratedDelegators};
 		use frame_benchmarking::whitelisted_caller;
 
 		let mut seed = Seed::new();
-		let mut candidate_accounts = Vec::new();
+		let mut accounts = Vec::new();
 
 		// Get current candidate count to avoid conflicts
 		let initial_candidate_count = <CandidatePool<T>>::get().0.len() as u32;
 
 		// Create x candidate accounts with existing locks to migrate
-		for i in 0..(T::MaxCandidates::get()) {
+		for i in 1..(T::MaxCandidates::get()) {
 			// Add extra amount to ensure each candidate has a unique stake
 			let extra_amount = BalanceOf::<T>::from(i.saturating_mul(100u32));
 			let candidate = create_funded_collator::<T>(
@@ -2545,7 +2543,21 @@ mod benchmarks {
 				initial_candidate_count + i,
 			)?;
 
-			candidate_accounts.push((candidate, true));
+			accounts.push((candidate, true));
+		}
+
+		while accounts.len() < MAX_ACCOUNTS_PER_MIGRATION_BATCH as usize {
+			let seed = accounts.len() as u32 + 1;
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				seed,
+				min_delegator_stk::<T>(),
+				accounts[0].clone().0,
+				true,
+				seed,
+			)?;
+
+			accounts.push((delegator, false));
 		}
 
 		let caller: T::AccountId = whitelisted_caller();
@@ -2554,7 +2566,7 @@ mod benchmarks {
 		let bounded_accounts = BoundedVec::<
 			(T::AccountId, bool),
 			ConstU32<MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
-		>::try_from(candidate_accounts)
+		>::try_from(accounts)
 		.expect("candidate_accounts should not exceed MAX_ACCOUNTS_PER_MIGRATION_BATCH items");
 
 		#[extrinsic_call]
@@ -2564,7 +2576,8 @@ mod benchmarks {
 		// Check that all candidate accounts have been marked as migrated
 		for (account, _) in bounded_accounts.iter() {
 			assert!(
-				<MigratedCandidates<T>>::contains_key(account),
+				<MigratedCandidates<T>>::contains_key(account)
+					|| <MigratedDelegators<T>>::contains_key(account),
 				"Candidate should be marked as migrated"
 			);
 		}
