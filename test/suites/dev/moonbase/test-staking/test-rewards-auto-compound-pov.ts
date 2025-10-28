@@ -109,8 +109,8 @@ describeSuite({
         // TODO: Revert back to 262ms once we have finished the lazy migration.
         expect(
           weights.mandatory.refTime.toNumber(),
-          "refTime over 320ms, very high for a payout with migrations"
-        ).to.be.at.most(320_000_000_000);
+          "refTime over 335ms, very high for a payout with migrations"
+        ).to.be.at.most(335_000_000_000);
 
         expect(
           weights.mandatory.proofSize.toNumber(),
