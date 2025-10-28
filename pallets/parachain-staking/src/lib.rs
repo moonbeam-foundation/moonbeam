@@ -1437,9 +1437,9 @@ pub mod pallet {
 		/// extrinsic fee is refunded to incentivize successful batch migrations.
 		/// Weight is calculated based on actual successful operations performed.
 		#[pallet::call_index(200)]
-		#[pallet::weight({
-			T::WeightInfo::migrate_locks_to_freezes_batch_delegators(MAX_ACCOUNTS_PER_MIGRATION_BATCH).max(T::WeightInfo::migrate_locks_to_freezes_batch_candidates(MAX_ACCOUNTS_PER_MIGRATION_BATCH))
-		})]
+		#[pallet::weight(T::WeightInfo::migrate_locks_to_freezes_batch(
+			MAX_ACCOUNTS_PER_MIGRATION_BATCH
+		))]
 		pub fn migrate_locks_to_freezes_batch(
 			origin: OriginFor<T>,
 			accounts: BoundedVec<(T::AccountId, bool), ConstU32<MAX_ACCOUNTS_PER_MIGRATION_BATCH>>,
@@ -1472,19 +1472,11 @@ pub mod pallet {
 			};
 
 			// Calculate actual weight consumed
-			let delegator_weight = if delegators > 0 {
-				T::WeightInfo::migrate_locks_to_freezes_batch_delegators(delegators)
+			let actual_weight = if candidates > 0 {
+				T::WeightInfo::migrate_locks_to_freezes_batch(total_accounts)
 			} else {
 				Weight::zero()
 			};
-
-			let candidate_weight = if candidates > 0 {
-				T::WeightInfo::migrate_locks_to_freezes_batch_candidates(candidates)
-			} else {
-				Weight::zero()
-			};
-
-			let actual_weight = delegator_weight.saturating_add(candidate_weight);
 
 			// Apply refund if 50% or more successful using Percent comparison
 			let pays_fee = if success_rate >= Percent::from_percent(50) {

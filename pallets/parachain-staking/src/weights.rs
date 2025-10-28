@@ -83,8 +83,7 @@ pub trait WeightInfo {
 	fn mint_collator_reward() -> Weight;
 	fn notify_inactive_collator() -> Weight;
 	fn mark_collators_as_inactive(x: u32, ) -> Weight;
-	fn migrate_locks_to_freezes_batch_delegators(x: u32, ) -> Weight;
-	fn migrate_locks_to_freezes_batch_candidates(x: u32, ) -> Weight;
+	fn migrate_locks_to_freezes_batch(x: u32, ) -> Weight;
 }
 
 /// Weights for `pallet_parachain_staking` using the Substrate node and recommended hardware.
@@ -846,29 +845,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(x.into())))
 			.saturating_add(Weight::from_parts(0, 2579).saturating_mul(x.into()))
 	}
-	/// Storage: `ParachainStaking::MigratedDelegators` (r:100 w:100)
-	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::DelegatorState` (r:100 w:0)
-	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:100 w:100)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:100 w:100)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
-	/// Storage: `System::Account` (r:100 w:100)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// The range of component `x` is `[1, 100]`.
-	fn migrate_locks_to_freezes_batch_delegators(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `463 + x * (329 ±0)`
-		//  Estimated: `1370 + x * (3762 ±1)`
-		// Minimum execution time: 50_000_000 picoseconds.
-		Weight::from_parts(50_000_000, 1370)
-			// Standard Error: 477_526
-			.saturating_add(Weight::from_parts(47_495_760, 0).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads((5_u64).saturating_mul(x.into())))
-			.saturating_add(T::DbWeight::get().writes((4_u64).saturating_mul(x.into())))
-			.saturating_add(Weight::from_parts(0, 3762).saturating_mul(x.into()))
-	}
 	/// Storage: `ParachainStaking::MigratedCandidates` (r:100 w:100)
 	/// Proof: `ParachainStaking::MigratedCandidates` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::CandidateInfo` (r:100 w:0)
@@ -880,7 +856,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Storage: `System::Account` (r:100 w:100)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// The range of component `x` is `[1, 100]`.
-	fn migrate_locks_to_freezes_batch_candidates(x: u32, ) -> Weight {
+	fn migrate_locks_to_freezes_batch(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `357 + x * (326 ±0)`
 		//  Estimated: `1349 + x * (3762 ±1)`
@@ -1652,29 +1628,6 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes((1_u64).saturating_mul(x.into())))
 			.saturating_add(Weight::from_parts(0, 2579).saturating_mul(x.into()))
 	}
-	/// Storage: `ParachainStaking::MigratedDelegators` (r:100 w:100)
-	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::DelegatorState` (r:100 w:0)
-	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:100 w:100)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:100 w:100)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
-	/// Storage: `System::Account` (r:100 w:100)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// The range of component `x` is `[1, 100]`.
-	fn migrate_locks_to_freezes_batch_delegators(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `463 + x * (329 ±0)`
-		//  Estimated: `1370 + x * (3762 ±1)`
-		// Minimum execution time: 50_000_000 picoseconds.
-		Weight::from_parts(50_000_000, 1370)
-			// Standard Error: 477_526
-			.saturating_add(Weight::from_parts(47_495_760, 0).saturating_mul(x.into()))
-			.saturating_add(RocksDbWeight::get().reads((5_u64).saturating_mul(x.into())))
-			.saturating_add(RocksDbWeight::get().writes((4_u64).saturating_mul(x.into())))
-			.saturating_add(Weight::from_parts(0, 3762).saturating_mul(x.into()))
-	}
 	/// Storage: `ParachainStaking::MigratedCandidates` (r:100 w:100)
 	/// Proof: `ParachainStaking::MigratedCandidates` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainStaking::CandidateInfo` (r:100 w:0)
@@ -1686,7 +1639,7 @@ impl WeightInfo for () {
 	/// Storage: `System::Account` (r:100 w:100)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// The range of component `x` is `[1, 100]`.
-	fn migrate_locks_to_freezes_batch_candidates(x: u32, ) -> Weight {
+	fn migrate_locks_to_freezes_batch(x: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `357 + x * (326 ±0)`
 		//  Estimated: `1349 + x * (3762 ±1)`
