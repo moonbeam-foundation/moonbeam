@@ -2521,7 +2521,9 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn migrate_locks_to_freezes_batch_candidates() -> Result<(), BenchmarkError> {
+	fn migrate_locks_to_freezes_batch_candidates(
+		x: Linear<1, MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
+	) -> Result<(), BenchmarkError> {
 		use crate::{MigratedCandidates, MigratedDelegators};
 		use frame_benchmarking::whitelisted_caller;
 
@@ -2546,7 +2548,7 @@ mod benchmarks {
 			accounts.push((candidate, true));
 		}
 
-		while accounts.len() < MAX_ACCOUNTS_PER_MIGRATION_BATCH as usize {
+		while accounts.len() < x as usize {
 			let seed = accounts.len() as u32 + 1;
 			let delegator = create_funded_delegator::<T>(
 				"delegator",
