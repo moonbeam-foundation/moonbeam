@@ -2445,96 +2445,20 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn migrate_locks_to_freezes_batch_delegators(
+	fn migrate_locks_to_freezes_batch(
 		x: Linear<1, MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
 	) -> Result<(), BenchmarkError> {
-		use crate::MigratedDelegators;
+		use crate::{MigratedCandidates, MigratedDelegators};
 		use frame_benchmarking::whitelisted_caller;
 
 		let mut seed = Seed::new();
-		let mut delegator_accounts = Vec::new();
-		let mut collators = Vec::new();
-
-		// Maximum delegations per collator (top + bottom)
-		let max_delegations_per_collator =
-			T::MaxTopDelegationsPerCandidate::get() + T::MaxBottomDelegationsPerCandidate::get();
-
-		// Create x delegator accounts with locks to migrate
-		for i in 0..x {
-			// Create a new collator every max_delegations_per_collator delegators
-			let collator = if i % max_delegations_per_collator == 0 {
-				let new_collator = create_funded_collator::<T>(
-					"collator",
-					seed.take(),
-					min_candidate_stk::<T>(),
-					true,
-					collators.len() as u32 + 1,
-				)?;
-				collators.push(new_collator.clone());
-				new_collator
-			} else {
-				// Use the last created collator
-				collators
-					.last()
-					.expect("collators vec should have at least one element; qed")
-					.clone()
-			};
-
-			// Add extra amount to ensure each delegation is unique and larger than previous ones
-			// This prevents hitting the CannotDelegateLessThanOrEqualToLowestBottomWhenFull error
-			let extra_amount = BalanceOf::<T>::from(i.saturating_mul(100u32));
-			let delegation_count_for_collator = i % max_delegations_per_collator;
-			let delegator = create_funded_delegator::<T>(
-				"delegator",
-				seed.take(),
-				extra_amount,
-				collator.clone(),
-				false,
-				delegation_count_for_collator,
-			)?;
-
-			delegator_accounts.push((delegator, false));
-		}
-
-		let caller: T::AccountId = whitelisted_caller();
-
-		// Convert Vec to BoundedVec
-		let bounded_accounts = BoundedVec::<
-			(T::AccountId, bool),
-			ConstU32<MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
-		>::try_from(delegator_accounts)
-		.expect("delegator_accounts should not exceed MAX_ACCOUNTS_PER_MIGRATION_BATCH items");
-
-		#[extrinsic_call]
-		migrate_locks_to_freezes_batch(RawOrigin::Signed(caller), bounded_accounts.clone());
-
-		// Verify that migration tracking storage was updated
-		// Check that all delegator accounts have been marked as migrated
-		for (account, _) in bounded_accounts.iter() {
-			assert!(
-				<MigratedDelegators<T>>::contains_key(account),
-				"Delegator should be marked as migrated"
-			);
-		}
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn migrate_locks_to_freezes_batch_candidates(
-		x: Linear<1, MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
-	) -> Result<(), BenchmarkError> {
-		use crate::MigratedCandidates;
-		use frame_benchmarking::whitelisted_caller;
-
-		let mut seed = Seed::new();
-		let mut candidate_accounts = Vec::new();
+		let mut accounts = Vec::new();
 
 		// Get current candidate count to avoid conflicts
 		let initial_candidate_count = <CandidatePool<T>>::get().0.len() as u32;
 
 		// Create x candidate accounts with existing locks to migrate
-		for i in 0..(T::MaxCandidates::get()) {
+		for i in 1..(T::MaxCandidates::get()) {
 			// Add extra amount to ensure each candidate has a unique stake
 			let extra_amount = BalanceOf::<T>::from(i.saturating_mul(100u32));
 			let candidate = create_funded_collator::<T>(
@@ -2545,7 +2469,24 @@ mod benchmarks {
 				initial_candidate_count + i,
 			)?;
 
-			candidate_accounts.push((candidate, true));
+			accounts.push((candidate, true));
+		}
+
+		let collators_upper_index = T::MaxCandidates::get();
+		while accounts.len() < x as usize {
+			let account_index = accounts.len() as u32 + 1;
+			let idx =
+				collators_upper_index.min(account_index.saturating_sub(collators_upper_index));
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				account_index,
+				min_delegator_stk::<T>(),
+				accounts[idx as usize].clone().0,
+				true,
+				account_index,
+			)?;
+
+			accounts.push((delegator, false));
 		}
 
 		let caller: T::AccountId = whitelisted_caller();
@@ -2554,7 +2495,7 @@ mod benchmarks {
 		let bounded_accounts = BoundedVec::<
 			(T::AccountId, bool),
 			ConstU32<MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
-		>::try_from(candidate_accounts)
+		>::try_from(accounts)
 		.expect("candidate_accounts should not exceed MAX_ACCOUNTS_PER_MIGRATION_BATCH items");
 
 		#[extrinsic_call]
@@ -2564,7 +2505,8 @@ mod benchmarks {
 		// Check that all candidate accounts have been marked as migrated
 		for (account, _) in bounded_accounts.iter() {
 			assert!(
-				<MigratedCandidates<T>>::contains_key(account),
+				<MigratedCandidates<T>>::contains_key(account)
+					|| <MigratedDelegators<T>>::contains_key(account),
 				"Candidate should be marked as migrated"
 			);
 		}
