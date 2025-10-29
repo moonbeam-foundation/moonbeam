@@ -48,6 +48,7 @@ jobs:
       polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver}}
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
+      any_changed: ${{ steps.changed-files.outputs.latest_rt_sha8 }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -124,8 +125,19 @@ jobs:
           echo polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
           echo polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
           echo polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver }}
+      - name: Get all changed file(s), excluding the docs
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files_ignore: |
+            - '**.md'
+            - '**.txt'
+      - name: Add changed-files output
+        run: |
+          echo "any_changed=${{ steps.changed-files-excluded.outputs.any_changed }}" >> $GITHUB_OUTPUT
 
   check-copyright:
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -163,6 +175,7 @@ jobs:
 
   check-biome:
     name: "Check with Biome"
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -273,6 +286,7 @@ jobs:
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
 
   build:
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -510,6 +524,7 @@ jobs:
           cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -594,6 +609,7 @@ jobs:
   #         fi
 
   dev-test:
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
