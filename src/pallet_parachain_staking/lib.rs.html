@@ -2496,24 +2496,7 @@
 <a href="#2495" id="2495">2495</a>
 <a href="#2496" id="2496">2496</a>
 <a href="#2497" id="2497">2497</a>
-<a href="#2498" id="2498">2498</a>
-<a href="#2499" id="2499">2499</a>
-<a href="#2500" id="2500">2500</a>
-<a href="#2501" id="2501">2501</a>
-<a href="#2502" id="2502">2502</a>
-<a href="#2503" id="2503">2503</a>
-<a href="#2504" id="2504">2504</a>
-<a href="#2505" id="2505">2505</a>
-<a href="#2506" id="2506">2506</a>
-<a href="#2507" id="2507">2507</a>
-<a href="#2508" id="2508">2508</a>
-<a href="#2509" id="2509">2509</a>
-<a href="#2510" id="2510">2510</a>
-<a href="#2511" id="2511">2511</a>
-<a href="#2512" id="2512">2512</a>
-<a href="#2513" id="2513">2513</a>
-<a href="#2514" id="2514">2514</a>
-<a href="#2515" id="2515">2515</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#2498" id="2498">2498</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -2597,7 +2580,7 @@
 	};
 	<span class="kw">use crate</span>::{set::BoundedOrderedSet, traits::<span class="kw-2">*</span>, types::<span class="kw-2">*</span>, InflationInfo, Range, WeightInfo};
 	<span class="kw">use crate</span>::{AutoCompoundConfig, AutoCompoundDelegations};
-	<span class="kw">use </span>frame_support::dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo};
+	<span class="kw">use </span>frame_support::dispatch::{DispatchResultWithPostInfo, Pays};
 	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 	<span class="kw">use </span>frame_support::traits::{
 		fungible::{Balanced, Inspect, Mutate, MutateFreeze},
@@ -3964,18 +3947,10 @@
 
 			<span class="kw">let </span>total_accounts = accounts.len() <span class="kw">as </span>u32;
 			<span class="kw">let </span><span class="kw-2">mut </span>successful_migrations = <span class="number">0u32</span>;
-			<span class="kw">let </span><span class="kw-2">mut </span>delegators = <span class="number">0u32</span>;
-			<span class="kw">let </span><span class="kw-2">mut </span>candidates = <span class="number">0u32</span>;
 
 			<span class="kw">for </span>(account, is_collator) <span class="kw">in </span>accounts.iter() {
 				<span class="kw">if </span><span class="self">Self</span>::check_and_migrate_lock(account, <span class="kw-2">*</span>is_collator) {
 					successful_migrations = successful_migrations.saturating_add(<span class="number">1</span>);
-				}
-
-				<span class="kw">if </span><span class="kw-2">*</span>is_collator {
-					candidates = candidates.saturating_add(<span class="number">1</span>);
-				} <span class="kw">else </span>{
-					delegators = delegators.saturating_add(<span class="number">1</span>);
 				}
 			}
 
@@ -3986,13 +3961,6 @@
 				Percent::zero()
 			};
 
-			<span class="comment">// Calculate actual weight consumed
-			</span><span class="kw">let </span>actual_weight = <span class="kw">if </span>candidates &gt; <span class="number">0 </span>{
-				T::WeightInfo::migrate_locks_to_freezes_batch(total_accounts)
-			} <span class="kw">else </span>{
-				Weight::zero()
-			};
-
 			<span class="comment">// Apply refund if 50% or more successful using Percent comparison
 			</span><span class="kw">let </span>pays_fee = <span class="kw">if </span>success_rate &gt;= Percent::from_percent(<span class="number">50</span>) {
 				Pays::No
@@ -4000,10 +3968,8 @@
 				Pays::Yes
 			};
 
-			<span class="prelude-val">Ok</span>(PostDispatchInfo {
-				actual_weight: <span class="prelude-val">Some</span>(actual_weight),
-				pays_fee,
-			})
+			<span class="comment">// Returning `actual_weight` as `None` stands for the worst case static weight.
+			</span><span class="prelude-val">Ok</span>(pays_fee.into())
 		}
 	}
 
