@@ -189,7 +189,6 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type PrecompilesType = Precompiles<Self>;
@@ -228,7 +227,6 @@ parameter_types! {
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Initialized = TestInitialized;
 	type InitializationPayment = TestInitializationPayment;
 	type MaxInitContributors = TestMaxInitContributors;

@@ -414,7 +414,6 @@ parameter_types! {
 pub type MaxHrmpRelayFee = xcm_builder::Case<MaxFee>;
 
 impl Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<u64>;

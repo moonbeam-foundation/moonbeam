@@ -666,7 +666,6 @@ pub type DerivativeAddressRegistrationOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_xcm_transactor::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = DerivativeAddressRegistrationOrigin;
@@ -750,7 +749,6 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
 	type ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
@@ -793,7 +791,6 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type PauseSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type ResumeSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;

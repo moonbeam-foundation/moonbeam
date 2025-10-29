@@ -184,7 +184,7 @@ pub mod pallet {
 	pub const PALLET_ID: frame_support::PalletId = frame_support::PalletId(*b"forgasst");
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_evm::Config + scale_info::TypeInfo {
+	pub trait Config: frame_system::Config<RuntimeEvent: From<Event<Self>>> + pallet_evm::Config + scale_info::TypeInfo {
 		// Convert AccountId to H160
 		type AccountIdToH160: Convert<Self::AccountId, H160>;
 
@@ -214,9 +214,6 @@ pub mod pallet {
 
 		/// Maximum numbers of different foreign assets
 		type MaxForeignAssets: Get<u32>;
-
-		/// The overarching event type.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;

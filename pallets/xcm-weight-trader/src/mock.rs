@@ -178,7 +178,6 @@ impl Config for Test {
 	type NativeLocation = NativeLocation;
 	type PauseSupportedAssetOrigin = EnsureSignedBy<PauseAccount, AccountId>;
 	type RemoveSupportedAssetOrigin = EnsureSignedBy<RemoveAccount, AccountId>;
-	type RuntimeEvent = RuntimeEvent;
 	type ResumeSupportedAssetOrigin = EnsureSignedBy<ResumeAccount, AccountId>;
 	type WeightInfo = ();
 	type WeightToFee = IdentityFee<Balance>;

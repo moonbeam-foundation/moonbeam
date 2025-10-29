@@ -393,7 +393,6 @@ pub mod mock_msg_queue {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type XcmExecutor: ExecuteXcm<Self::RuntimeCall>;
 	}
 
@@ -549,7 +548,6 @@ pub mod mock_version_changer {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 	}
 
 	#[pallet::call]
@@ -585,12 +583,10 @@ pub mod mock_version_changer {
 }
 
 impl mock_msg_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
 impl mock_version_changer::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 }
 
 pub type LocalOriginToLocation =
@@ -685,7 +681,6 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type XcmLocationToH160 = LocationToH160;
 	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
@@ -699,7 +694,6 @@ parameter_types! {
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
@@ -734,7 +728,6 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type NativeLocation = SelfReserve;
 	type PauseSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type RemoveSupportedAssetOrigin = EnsureRoot<AccountId>;
-	type RuntimeEvent = RuntimeEvent;
 	type ResumeSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type WeightInfo = ();
 	type WeightToFee = WeightToFee;
@@ -772,7 +765,6 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 
-	type RuntimeEvent = RuntimeEvent;
 	type PrecompilesType = ();
 	type PrecompilesValue = ();
 	type ChainId = ();
@@ -891,7 +883,6 @@ parameter_types! {
 }
 
 impl pallet_ethereum::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type StateRoot =
 		pallet_ethereum::IntermediateStateRoot<<Runtime as frame_system::Config>::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
@@ -979,7 +970,6 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 }
 
 impl pallet_ethereum_xcm::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;

@@ -397,7 +397,6 @@ pub mod mock_msg_queue {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type XcmExecutor: ExecuteXcm<Self::RuntimeCall>;
 	}
 
@@ -545,7 +544,6 @@ pub mod mock_msg_queue {
 	}
 }
 impl mock_msg_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
@@ -557,7 +555,6 @@ pub mod mock_statemint_prefix {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 	}
 
 	#[pallet::call]
@@ -593,7 +590,6 @@ pub mod mock_statemint_prefix {
 }
 
 impl mock_statemint_prefix::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 }
 
 type Block = frame_system::mocking::MockBlockU32<Runtime>;

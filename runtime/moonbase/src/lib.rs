@@ -713,7 +713,6 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 }
 
 impl pallet_ethereum_xcm::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
@@ -826,7 +825,6 @@ impl Get<Slot> for RelayChainSlotProvider {
 }
 
 impl pallet_parachain_staking::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
@@ -913,7 +911,6 @@ parameter_types! {
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Initialized = ConstBool<false>;
 	type InitializationPayment = InitializationPayment;
 	type MaxInitContributors = ConstU32<500>;
@@ -1273,7 +1270,6 @@ type DelCollatorOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_moonbeam_orbiters::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AccountLookup = AuthorMapping;
 	type AddCollatorOrigin = AddCollatorOrigin;
 	type Currency = Balances;
