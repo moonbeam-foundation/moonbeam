@@ -127,6 +127,8 @@ jobs:
         uses: tj-actions/changed-files@v35
         with:
           files_ignore: |
+            **/**.md
+            **/**.txt
             **.md
             **.txt
 
