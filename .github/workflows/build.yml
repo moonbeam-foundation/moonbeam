@@ -7,13 +7,13 @@ name: Build
 
 on:
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
   push:
     branches:
       - master
       - perm-*
-    paths-ignore:
-      - '**.md'
-      - '**.txt'
   workflow_dispatch:
     inputs:
       pull_request:
