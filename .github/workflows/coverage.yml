@@ -7,12 +7,12 @@ name: Coverage
 
 on:
   pull_request:
-  push:
-    branches:
-      - master
     paths-ignore:
       - '**.md'
       - '**.txt'
+  push:
+    branches:
+      - master
 
 # Cancel any previous job still running this workflow for this branch
 # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs#example-using-concurrency-to-cancel-any-in-progress-job-or-run
