@@ -495,6 +495,8 @@ jobs:
           edit-mode: replace
 
   check-unused-dependencies:
+    needs: ["set-tags"]
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on: moonbeam-release-medium
     permissions:
       contents: read
@@ -603,7 +605,7 @@ jobs:
   #         fi
 
   dev-test:
-    if: needs.set-tags.outputs.any_changed == 'true'
+    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -667,6 +669,7 @@ jobs:
       #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
 
   typescript-tracing-tests:
+    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -718,6 +721,7 @@ jobs:
           pnpm moonwall test dev_moonbase_tracing
 
   lazy-loading-tests:
+    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -777,6 +781,7 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   chopsticks-upgrade-test:
+    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -824,6 +829,7 @@ jobs:
             pnpm moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
+    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -897,6 +903,7 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   bridge-integration-tests:
+    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
     needs: ["set-tags", "build"]
     runs-on: ubuntu-latest
     permissions:
