@@ -48,7 +48,7 @@ jobs:
       polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver}}
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
-      any_changed: ${{ steps.changed-files.outputs.latest_rt_sha8 }}
+      any_changed: ${{ steps.changed-files.outputs.any_changed }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -132,9 +132,6 @@ jobs:
           files_ignore: |
             - '**.md'
             - '**.txt'
-      - name: Add changed-files output
-        run: |
-          echo "any_changed=${{ steps.changed-files-excluded.outputs.any_changed }}" >> $GITHUB_OUTPUT
 
   check-copyright:
     if: needs.set-tags.outputs.any_changed == 'true'
