@@ -82,7 +82,7 @@ pub mod pallet {
 	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
-	use frame_support::dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo};
+	use frame_support::dispatch::{DispatchResultWithPostInfo, Pays};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		fungible::{Balanced, Inspect, Mutate, MutateFreeze},
@@ -1449,18 +1449,10 @@ pub mod pallet {
 
 			let total_accounts = accounts.len() as u32;
 			let mut successful_migrations = 0u32;
-			let mut delegators = 0u32;
-			let mut candidates = 0u32;
 
 			for (account, is_collator) in accounts.iter() {
 				if Self::check_and_migrate_lock(account, *is_collator) {
 					successful_migrations = successful_migrations.saturating_add(1);
-				}
-
-				if *is_collator {
-					candidates = candidates.saturating_add(1);
-				} else {
-					delegators = delegators.saturating_add(1);
 				}
 			}
 
@@ -1471,13 +1463,6 @@ pub mod pallet {
 				Percent::zero()
 			};
 
-			// Calculate actual weight consumed
-			let actual_weight = if candidates > 0 {
-				T::WeightInfo::migrate_locks_to_freezes_batch(total_accounts)
-			} else {
-				Weight::zero()
-			};
-
 			// Apply refund if 50% or more successful using Percent comparison
 			let pays_fee = if success_rate >= Percent::from_percent(50) {
 				Pays::No
@@ -1485,10 +1470,8 @@ pub mod pallet {
 				Pays::Yes
 			};
 
-			Ok(PostDispatchInfo {
-				actual_weight: Some(actual_weight),
-				pays_fee,
-			})
+			// Returning `actual_weight` as `None` stands for the worst case static weight.
+			Ok(pays_fee.into())
 		}
 	}
 
