@@ -7,9 +7,6 @@ name: Build
 
 on:
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '**.txt'
   push:
     branches:
       - master
