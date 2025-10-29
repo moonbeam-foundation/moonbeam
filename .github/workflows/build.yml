@@ -132,6 +132,7 @@ jobs:
           files_ignore: |
             - '**.md'
             - '**.txt'
+            - '**/*.yml'
 
   check-copyright:
     if: needs.set-tags.outputs.any_changed == 'true'
