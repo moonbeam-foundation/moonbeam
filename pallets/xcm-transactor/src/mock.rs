@@ -31,7 +31,7 @@ use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
 use xcm::latest::{
-	opaque, Asset, Error as XcmError, Instruction, InteriorLocation,
+	opaque, Asset, Error as XcmError, Instruction, InstructionError, InteriorLocation,
 	Junction::{AccountKey20, GlobalConsensus, PalletInstance, Parachain},
 	Location, NetworkId, Result as XcmResult, SendError, SendResult, SendXcm, Xcm, XcmContext,
 	XcmHash,
@@ -204,10 +204,10 @@ use sp_std::marker::PhantomData;
 pub struct DummyWeigher<C>(PhantomData<C>);
 
 impl<C: Decode> WeightBounds<C> for DummyWeigher<C> {
-	fn weight(_message: &mut Xcm<C>) -> Result<Weight, ()> {
+	fn weight(_message: &mut Xcm<C>, _weight_limit: Weight) -> Result<Weight, InstructionError> {
 		Ok(Weight::zero())
 	}
-	fn instr_weight(_instruction: &mut Instruction<C>) -> Result<Weight, ()> {
+	fn instr_weight(_instruction: &mut Instruction<C>) -> Result<Weight, XcmError> {
 		Ok(Weight::zero())
 	}
 }
