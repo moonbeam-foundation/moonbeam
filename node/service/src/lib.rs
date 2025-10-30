@@ -1724,6 +1724,7 @@ mod tests {
 						path: tmp.path().into(),
 						cache_size: 1024,
 					},
+					metrics_registry: None,
 				},
 				u64::MAX,
 			)
