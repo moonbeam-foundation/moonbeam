@@ -255,6 +255,7 @@ jobs:
   ####### Building and Testing binaries #######
 
   cargo-clippy:
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
