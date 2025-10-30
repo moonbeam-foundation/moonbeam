@@ -289,7 +289,6 @@ impl pallet_xcm::Config for Runtime {
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
-	type AssetHubMigrationStarted = ConstBool<false>;
 }
 
 #[derive(Encode, Decode)]
