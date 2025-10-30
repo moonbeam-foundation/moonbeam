@@ -16,7 +16,7 @@
 
 //! Relay chain runtime mock.
 
-use frame_support::traits::{ConstBool, Disabled};
+use frame_support::traits::Disabled;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{AsEnsureOriginWithArg, Contains, ContainsPair, Everything, Get, Nothing},

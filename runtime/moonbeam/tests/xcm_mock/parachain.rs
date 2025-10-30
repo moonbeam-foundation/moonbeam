@@ -1013,7 +1013,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 }
 
 use frame_support::traits::{
-	ConstBool, Disabled, OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade,
+	Disabled, OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade,
 };
 use moonbeam_runtime::{currency, xcm_config::LocationToH160};
 use pallet_evm::FrameSystemAccountProvider;

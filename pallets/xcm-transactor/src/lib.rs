@@ -100,7 +100,7 @@ pub mod pallet {
 		dispatch::DispatchResult, pallet_prelude::*, weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, Convert};
+	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;

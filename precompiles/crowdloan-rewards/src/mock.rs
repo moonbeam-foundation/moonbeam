@@ -25,7 +25,7 @@ use frame_support::{
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureSigned};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
-use sp_core::{H256, U256};
+use sp_core::{ConstU32, H256, U256};
 use sp_io;
 use sp_runtime::traits::BlockNumberProvider;
 use sp_runtime::{

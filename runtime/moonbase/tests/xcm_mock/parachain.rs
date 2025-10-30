@@ -34,7 +34,7 @@ use moonbeam_runtime_common::{
 use pallet_moonbeam_foreign_assets::{MapSuccessToGovernance, MapSuccessToXcm};
 use pallet_xcm::{migration::v1::VersionUncheckedMigrateToV1, EnsureXcm};
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
-use sp_core::{ConstBool, H160, H256};
+use sp_core::{H160, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, Hash, IdentityLookup, MaybeEquivalence, Zero},
 	Permill,

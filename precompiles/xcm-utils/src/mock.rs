@@ -16,7 +16,7 @@
 
 //! Test utilities
 use super::*;
-use frame_support::traits::{ConstBool, Disabled};
+use frame_support::traits::Disabled;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{ConstU32, Everything, Nothing, OriginTrait, PalletInfo as _},
