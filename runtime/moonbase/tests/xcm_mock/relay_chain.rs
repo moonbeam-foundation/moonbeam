@@ -324,6 +324,10 @@ where
 	fn create_inherent(call: RuntimeCall) -> UncheckedExtrinsic {
 		UncheckedExtrinsic::new_bare(call)
 	}
+
+	fn create_bare(call: RuntimeCall) -> UncheckedExtrinsic {
+		UncheckedExtrinsic::new_bare(call)
+	}
 }
 
 parameter_types! {
