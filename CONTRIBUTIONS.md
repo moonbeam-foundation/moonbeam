@@ -12,8 +12,7 @@ You may also consider joining our [Discord server](https://discord.gg/PfpUATX) o
 ### Generated Documentation
 
 You can explore our [crate-level documentation](https://moonbeam-foundation.github.io/moonbeam).
-This documentation is
-automatically built and reflects the latest `master` commit.
+This documentation is automatically built and reflects the latest `master` commit.
 
 ### Code style
 
