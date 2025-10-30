@@ -282,7 +282,7 @@ jobs:
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
 
   build:
-    if: needs.set-tags.outputs.any_changed == 'true'
+    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
