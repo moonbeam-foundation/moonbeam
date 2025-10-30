@@ -427,7 +427,7 @@ pub mod mock_msg_queue {
 		/// Some XCM was executed OK.
 		Success(Option<T::Hash>),
 		/// Some XCM failed.
-		Fail(Option<T::Hash>, XcmError),
+		Fail(Option<T::Hash>, InstructionError),
 		/// Bad XCM version used.
 		BadVersion(Option<T::Hash>),
 		/// Bad XCM format used.
@@ -452,7 +452,7 @@ pub mod mock_msg_queue {
 			_sent_at: RelayBlockNumber,
 			xcm: VersionedXcm<T::RuntimeCall>,
 			max_weight: Weight,
-		) -> Result<Weight, XcmError> {
+		) -> Result<Weight, InstructionError> {
 			let hash = Encode::using_encoded(&xcm, T::Hashing::hash);
 			let (result, event) = match Xcm::<T::RuntimeCall>::try_from(xcm) {
 				Ok(xcm) => {
@@ -466,7 +466,7 @@ pub mod mock_msg_queue {
 						max_weight,
 						Weight::zero(),
 					) {
-						Outcome::Error { error } => {
+						Outcome::Error(error) => {
 							(Err(error.clone()), Event::Fail(Some(hash), error))
 						}
 						Outcome::Complete { used } => (Ok(used), Event::Success(Some(hash))),
@@ -478,7 +478,10 @@ pub mod mock_msg_queue {
 					}
 				}
 				Err(()) => (
-					Err(XcmError::UnhandledXcmVersion),
+					Err(InstructionError {
+						error: XcmError::UnhandledXcmVersion,
+						index: 0,
+					}),
 					Event::BadVersion(Some(hash)),
 				),
 			};
