@@ -450,6 +450,8 @@ pub fn set_parachain_inherent_data() {
 		relay_chain_state: relay_chain_state,
 		downward_messages: Default::default(),
 		horizontal_messages: Default::default(),
+		collator_peer_id: Default::default(),
+		relay_parent_descendants: Default::default(),
 	};
 	assert_ok!(RuntimeCall::ParachainSystem(
 		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {
