@@ -8,12 +8,12 @@ import {
   type XcmFragmentConfig,
   injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
-} from "../../../../helpers/xcm.js";
+} from "../../../../helpers";
 
 export const ERC20_TOTAL_SUPPLY = 1_000_000_000n;
 
 describeSuite({
-  id: "D024128",
+  id: "D024213",
   title: "Mock XCM - Send two local ERC20",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

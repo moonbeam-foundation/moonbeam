@@ -7,7 +7,11 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
-import { registerOldForeignAsset } from "../../../../helpers/assets.js";
+import {
+  registerForeignAsset,
+  foreignAssetBalance,
+  addAssetToWeightTrader,
+} from "../../../../helpers/assets.js";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 const statemint_para_id = 1001;
@@ -33,21 +37,15 @@ const STATEMINT_LOCATION = {
 };
 
 describeSuite({
-  id: "D024213",
+  id: "D024305",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    let assetId: string;
+    const assetId = 1n;
 
     beforeAll(async () => {
-      // registerOldForeignAsset
-      const { registeredAssetId, registeredAsset } = await registerOldForeignAsset(
-        context,
-        STATEMINT_LOCATION,
-        assetMetadata
-      );
-      assetId = registeredAssetId;
-      expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
+      await registerForeignAsset(context, assetId, STATEMINT_LOCATION, assetMetadata);
+      // Note: Not adding to weight trader since the test expects fees to not be supported
     });
 
     it({
@@ -85,11 +83,13 @@ describeSuite({
         } as RawXcmMessage);
 
         // Make sure the state has ALITH's foreign parachain tokens
-        const alithAssetZeroBalance = await context
-          .polkadotJs()
-          .query.assets.account(assetId, alith.address);
+        const alithAssetZeroBalance = await foreignAssetBalance(
+          context,
+          assetId,
+          alith.address as `0x${string}`
+        );
 
-        expect(alithAssetZeroBalance.isNone).to.eq(true);
+        expect(alithAssetZeroBalance).to.eq(0n);
       },
     });
   },

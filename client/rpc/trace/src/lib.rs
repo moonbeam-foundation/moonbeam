@@ -102,6 +102,9 @@ where
 				Ok(self.client.info().best_number)
 			}
 			Some(RequestBlockId::Tag(RequestBlockTag::Earliest)) => Ok(0),
+			Some(RequestBlockId::Tag(RequestBlockTag::Finalized)) => {
+				Ok(self.client.info().finalized_number)
+			}
 			Some(RequestBlockId::Tag(RequestBlockTag::Pending)) => {
 				Err("'pending' is not supported")
 			}
@@ -793,7 +796,7 @@ where
 		substrate_hash: H256,
 		overrides: Arc<dyn StorageOverride<B>>,
 	) -> TxsTraceRes {
-		// Get Subtrate block data.
+		// Get Substrate block data.
 		let api = client.runtime_api();
 		let block_header = client
 			.header(substrate_hash)

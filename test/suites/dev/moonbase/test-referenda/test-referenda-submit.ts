@@ -7,25 +7,40 @@ import {
   maximizeConvictionVotingOf,
   whiteListTrackNoSend,
 } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, type KeyringPair, ethan, generateKeyringPair } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  type KeyringPair,
+  ethan,
+  generateKeyringPair,
+  BALTATHAR_ADDRESS,
+} from "@moonwall/util";
+import { getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
   id: "D023303",
   title: "Referenda - Submit",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let whitelistedHash: string;
     let currentRef: number;
     let randomAddress: string;
     let randomAccount: KeyringPair;
-    let randBlocksPerRound: number;
 
     beforeEach(async () => {
-      randBlocksPerRound = Math.floor(Math.random() * 1000) + 200;
       randomAccount = generateKeyringPair();
       randomAddress = randomAccount.address;
 
-      const proposal = context.pjsApi.tx.parachainStaking.setParachainBondAccount(randomAddress);
+      const proposal = context.pjsApi.tx.parachainStaking.setInflationDistributionConfig([
+        {
+          account: randomAddress,
+          percent: 30,
+        },
+        {
+          account: BALTATHAR_ADDRESS,
+          percent: 0,
+        },
+      ]);
 
       const { whitelistedHash: wlHash } = await whiteListTrackNoSend(context, proposal);
       whitelistedHash = wlHash;
@@ -161,12 +176,11 @@ describeSuite({
         );
         expect(result?.successful).to.be.true;
 
-        const locks = await context.polkadotJs().query.balances.locks(randomAccount.address);
-        expect(locks.length).to.be.equal(2, "Failed to incur two locks");
-        expect(locks[0].amount.toBigInt()).to.be.equal(90n * GLMR);
-        expect(locks[0].id.toHuman()).to.be.equal("stkngdel");
-        expect(locks[1].amount.toBigInt()).to.be.equal(90n * GLMR);
-        expect(locks[1].id.toHuman()).to.be.equal("pyconvot");
+        const stakingFreeze = await getDelegatorStakingFreeze(
+          randomAccount.address as `0x${string}`,
+          context
+        );
+        expect(stakingFreeze).to.be.equal(90n * GLMR, "Failed to incur staking freeze");
       },
     });
   },

@@ -45,6 +45,7 @@ jobs:
       polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver}}
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
+      any_changed: ${{ steps.changed-files.outputs.any_changed }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -68,7 +69,7 @@ jobs:
           echo "repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
           echo "github.repository: ${{ github.repository }}"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
       - name: Get Latest RT Release
@@ -121,15 +122,23 @@ jobs:
           echo polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
           echo polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
           echo polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver }}
+      - name: Get all changed file(s), excluding the docs
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files_ignore: |
+            **.md
+            **.txt
 
   check-copyright:
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Find un-copyrighted files
@@ -149,7 +158,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: umbrelladocs/action-linkspector@v1
@@ -160,20 +169,21 @@ jobs:
 
   check-biome:
     name: "Check with Biome"
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
           version: 9
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
@@ -190,7 +200,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -210,7 +220,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
@@ -228,7 +238,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -250,7 +260,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Install Protoc
@@ -270,6 +280,7 @@ jobs:
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
 
   build:
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -277,7 +288,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
@@ -307,13 +318,13 @@ jobs:
       actions: read
       contents: read
       pull-requests: write
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]'  }}
     needs: ["set-tags", "build"]
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -331,7 +342,7 @@ jobs:
           LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$TARGET_BRANCH\" and .event == \"push\" and .status == \"completed\") | .databaseId" | head -n 1)
           echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
       - name: "Download runtimes from target branch"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: runtimes-target-branch
@@ -339,7 +350,7 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
       - name: "Download uncompressed-runtimes from target branch"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-target-branch
@@ -355,13 +366,13 @@ jobs:
           echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
           echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: runtimes-current-branch
           merge-multiple: true
       - name: "Download branch built uncompressed-runtimes"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-current-branch
@@ -425,7 +436,7 @@ jobs:
           get_status_emoji() {
             local size=$1
             local diff=$2
-            if [ $size -gt 2400 ]; then
+            if [ $size -gt 3000 ]; then
               echo "🚨"
             elif [ $diff -gt 0 ]; then
               echo "⚠️"
@@ -488,7 +499,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -504,9 +515,10 @@ jobs:
         run: |
           # There may be false negatives/positives
           # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
-          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime,bridge-stagenet --all-targets
+          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -519,7 +531,7 @@ jobs:
       SCCACHE_GHA_ENABLED: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Run sccache-cache
@@ -547,12 +559,6 @@ jobs:
       - name: Unit tests
         run: |
           cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
-      - name: Run bridge tests
-        run: |
-          cargo test --color=always -p moonbase-runtime --features bridge-betanet --test integration_test bridge_tests -- --nocapture
-          cargo test --color=always -p moonbase-runtime --features bridge-stagenet --test integration_test bridge_tests -- --nocapture
-      - name: Run sccache stat for check pre test
-        run: ${SCCACHE_PATH} --show-stats
 
   # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 
@@ -562,19 +568,19 @@ jobs:
   #   runs-on: ubuntu-latest
   #   steps:
   #     - name: Checkout
-  #       uses: actions/checkout@v4
+  #       uses: actions/checkout@v5
   #       with:
   #         ref: ${{ needs.set-tags.outputs.git_ref }}
   #     - uses: pnpm/action-setup@v4
   #       with:
   #         version: 9
-  #     - uses: actions/setup-node@v4
+  #     - uses: actions/setup-node@v5
   #       with:
   #         node-version-file: "test/.nvmrc"
   #         cache: "pnpm"
   #         cache-dependency-path: pnpm-lock.yaml
   #     - name: "Download branch built node"
-  #       uses: actions/download-artifact@v4
+  #       uses: actions/download-artifact@v5
   #       with:
   #         name: moonbeam
   #         path: target/release
@@ -597,6 +603,7 @@ jobs:
   #         fi
 
   dev-test:
+    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -613,19 +620,19 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release
@@ -636,7 +643,7 @@ jobs:
           shard: ${{ matrix.shard }}
           shard-count: 4
       - name: Upload HTML report to s3
-        if: ${{ !github.event.pull_request.head.repo.fork}}
+        if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
         uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
         with:
@@ -660,9 +667,6 @@ jobs:
       #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
 
   typescript-tracing-tests:
-    if: >
-      (github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork) || 
-      (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on:
       labels: bare-metal
     permissions:
@@ -670,10 +674,10 @@ jobs:
     needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: build
@@ -682,7 +686,7 @@ jobs:
         with:
           version: 9
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
@@ -690,7 +694,7 @@ jobs:
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release
@@ -730,13 +734,13 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
       - name: Create local folders
@@ -744,12 +748,12 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release
@@ -785,13 +789,13 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
@@ -801,7 +805,7 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp/node_logs
       - name: "Download runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -834,13 +838,13 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: "test/.nvmrc"
       - name: Create local folders
@@ -848,12 +852,12 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release
@@ -891,3 +895,42 @@ jobs:
         with:
           name: failed-node-logs
           path: ${{ env.NODE_LOGS_ZIP }}
+
+  bridge-integration-tests:
+    needs: ["set-tags", "build"]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: "Download branch built runtime"
+        uses: actions/download-artifact@v5
+        with:
+          name: runtimes
+          path: target/release
+      - name: "Download branch built node"
+        uses: actions/download-artifact@v5
+        with:
+          name: moonbeam
+          path: target/release
+      - name: Setup
+        run: |
+          # Install polkadot-js-api
+          # https://github.com/paritytech/polkadot-sdk/blob/56f683fabfc5a4554d4b9208e91103624264407c/bridges/testing/framework/utils/bridges.sh#L21
+          npm install -g @polkadot/api-cli
+          chmod uog+x ./target/release/moonbeam
+          # This command prepares all required binaries and runs the bridge integration tests
+          make run-bridge-integration-tests
+      - name: Zip and Upload Logs on Failure
+        if: failure()
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          export LOGS_ZIP="bridge_integration_tests_$TIMESTAMP.zip"
+          find /tmp/bridge-integration-tests -maxdepth 3 -type f -name '*.log' -exec zip -r $LOGS_ZIP {} \;
+          echo "LOGS_ZIP=${LOGS_ZIP}" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: bridge-integration-tests-logs
+          path: ${{ env.LOGS_ZIP }}

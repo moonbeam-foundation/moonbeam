@@ -7,6 +7,9 @@ name: Coverage
 
 on:
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
   push:
     branches:
       - master
@@ -61,7 +64,7 @@ jobs:
             echo "coverage_report=false" >> $GITHUB_OUTPUT
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
       - name: Get Latest RT Release
@@ -100,7 +103,7 @@ jobs:
       contents: read
       pull-requests: write
     needs: ["set-tags"]
-    if: ${{ !github.event.pull_request.head.repo.fork }}
+    if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
     timeout-minutes: 90
     env:
       RUSTC_WRAPPER: "sccache"
@@ -110,7 +113,7 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Variables
@@ -200,7 +203,7 @@ jobs:
           name: coverage
           path: coverage
       - name: Upload coverage s3
-        uses: mario-sangar/upload-s3-action@master
+        uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
         with:
           aws_key_id: ${{ secrets.S3_COVERAGE_ID }}

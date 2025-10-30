@@ -35,7 +35,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`49656n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`49920n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -68,7 +68,7 @@ describeSuite({
         });
 
         // Snapshot estimated gas
-        expect(estimatedGas).toMatchInlineSnapshot(`51118n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`50666n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Proxy",
@@ -89,7 +89,7 @@ describeSuite({
 
         // The tx can create an account, so record 148 bytes of storage growth
         // Storage growth ratio is 366
-        expect(gasUsed).toMatchInlineSnapshot(`31012n`);
+        expect(gasUsed).toMatchInlineSnapshot(`33732n`);
       },
     });
   },

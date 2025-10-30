@@ -16,41 +16,27 @@
     "check": "pnpm -r check",
     "check:fix": "pnpm -r check:fix"
   },
-  "dependencies": {
-    "@openzeppelin/contracts": "5.3.0",
-    "@polkadot/api": "16.3.1",
-    "@polkadot/api-derive": "16.3.1",
-    "@polkadot/keyring": "13.5.3",
-    "@polkadot/rpc-provider": "16.3.1",
-    "@polkadot/typegen": "16.3.1",
-    "@polkadot/types": "16.3.1",
-    "@polkadot/types-codec": "16.3.1",
-    "@polkadot/util": "13.5.3",
-    "@polkadot/util-crypto": "13.5.3",
-    "ethers": "6.14.4",
-    "tsup": "8.5.0"
-  },
   "devDependencies": {
-    "@biomejs/biome": "2.0.6",
-    "@types/node": "24.0.10",
-    "tsx": "4.20.3",
-    "typescript": "5.8.3"
+    "@biomejs/biome": "2.2.5"
   },
   "pnpm": {
-    "overrides": {
-      "@openzeppelin/contracts": "5.3.0",
-      "@polkadot/api": "16.3.1",
-      "@polkadot/api-derive": "16.3.1",
-      "@polkadot/keyring": "13.5.3",
-      "@polkadot/rpc-provider": "16.3.1",
-      "@polkadot/typegen": "16.3.1",
-      "@polkadot/types": "16.3.1",
-      "@polkadot/types-codec": "16.3.1",
-      "@polkadot/util": "13.5.3",
-      "@polkadot/util-crypto": "13.5.3",
-      "ethers": "6.14.4",
-      "tsup": "8.5.0"
-    }
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "bufferutil",
+      "cpu-features",
+      "es5-ext",
+      "esbuild",
+      "keccak",
+      "msgpackr-extract",
+      "protobufjs",
+      "secp256k1",
+      "sqlite3",
+      "ssh2",
+      "utf-8-validate",
+      "web3",
+      "web3-bzz",
+      "web3-shh"
+    ]
   },
   "keywords": [],
   "author": "",

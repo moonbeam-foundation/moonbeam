@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, Get, OnFinalize, OnInitialize},
+	traits::{Everything, Get, OnFinalize, OnInitialize, VariantCountOf},
 	weights::Weight,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -48,7 +48,7 @@ construct_runtime!(
 		Balances: pallet_balances,
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
-		ParachainStaking: pallet_parachain_staking,
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, FreezeReason},
 	}
 );
 
@@ -107,9 +107,9 @@ impl pallet_balances::Config for Runtime {
 	type AccountStore = System;
 	type WeightInfo = ();
 	type RuntimeHoldReason = ();
-	type FreezeIdentifier = ();
-	type MaxFreezes = ();
-	type RuntimeFreezeReason = ();
+	type FreezeIdentifier = RuntimeFreezeReason;
+	type MaxFreezes = VariantCountOf<Self::RuntimeFreezeReason>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type DoneSlashHandler = ();
 }
 
@@ -160,6 +160,8 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -230,6 +232,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxCandidates = MaxCandidates;
 	type SlotDuration = frame_support::traits::ConstU64<6_000>;
 	type BlockTime = frame_support::traits::ConstU64<6_000>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type LinearInflationThreshold = ();
 }
 
@@ -319,6 +322,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");

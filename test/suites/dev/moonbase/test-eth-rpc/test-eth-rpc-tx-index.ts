@@ -2,7 +2,7 @@ import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import { BALTATHAR_ADDRESS, createRawTransfer } from "@moonwall/util";
 
 describeSuite({
-  id: "D021106",
+  id: "D021206",
   title: "Transaction Index",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -28,7 +28,7 @@ describeSuite({
         const block = 0n;
         const index = 0;
 
-        expect(
+        await expect(
           async () => await context.viem().getTransaction({ blockNumber: block, index })
         ).rejects.toThrowError(`${index} is out of bounds`);
       },

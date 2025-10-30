@@ -28,3 +28,4 @@ export * from "./xcm";
 export * from "./tracingFns";
 export * from "./fees.ts";
 export * from "./parameters.ts";
+export * from "./staking-freezes";

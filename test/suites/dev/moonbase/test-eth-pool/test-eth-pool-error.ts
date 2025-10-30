@@ -16,7 +16,7 @@ import { ALITH_GENESIS_TRANSFERABLE_BALANCE, ConstantStore } from "../../../../h
 import { UNIT } from "../test-parameters/test-parameters";
 
 describeSuite({
-  id: "D021002",
+  id: "D021102",
   title: "Ethereum Rpc pool errors",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -35,7 +35,7 @@ describeSuite({
         const tx = (await createRawTransfer(context, BALTATHAR_ADDRESS, 1)) as `0x${string}`;
         await sendRawTransaction(context, tx);
 
-        expect(async () => await sendRawTransaction(context, tx)).rejects.toThrowError(
+        await expect(async () => await sendRawTransaction(context, tx)).rejects.toThrowError(
           "already known"
         );
       },
@@ -65,7 +65,7 @@ describeSuite({
           txnType: "legacy",
         });
 
-        expect(
+        await expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2])
         ).rejects.toThrowError("replacement transaction underpriced");
       },
@@ -90,7 +90,7 @@ describeSuite({
           nonce: Math.max(nonce - 1, 0),
           privateKey: CHARLETH_PRIVATE_KEY,
         });
-        expect(
+        await expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx2]),
           "tx should be rejected for duplicate nonce"
         ).rejects.toThrowError("nonce too low");
@@ -117,7 +117,7 @@ describeSuite({
         });
         await context.createBlock(tx1);
 
-        expect(
+        await expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx1])
         ).rejects.toThrowError("already known");
       },
@@ -132,7 +132,7 @@ describeSuite({
           privateKey: ZEROED_PKEY,
         });
 
-        expect(
+        await expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx])
         ).rejects.toThrowError("insufficient funds for gas * price + value");
       },
@@ -146,7 +146,7 @@ describeSuite({
           gas: 1_000_000_0000n,
         });
 
-        expect(
+        await expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx])
         ).rejects.toThrowError("exceeds block gas limit");
       },
@@ -163,7 +163,7 @@ describeSuite({
           privateKey: CHARLETH_PRIVATE_KEY,
         });
 
-        expect(
+        await expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx])
         ).rejects.toThrowError("insufficient funds for gas * price + value");
       },
@@ -179,7 +179,7 @@ describeSuite({
           maxPriorityFeePerGas: 200_000_000_000n,
         });
 
-        expect(
+        await expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [tx])
         ).rejects.toThrowError("max priority fee per gas higher than max fee per gas");
       },

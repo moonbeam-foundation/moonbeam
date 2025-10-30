@@ -1,28 +1,45 @@
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { type ApiPromise, WsProvider } from "@polkadot/api";
+import { XcmFragment } from "../../../../helpers/xcm.js";
 import {
-  XcmFragment,
-  registerOldForeignAsset,
+  registerForeignAsset,
+  addAssetToWeightTrader,
   relayAssetMetadata,
   RELAY_SOURCE_LOCATION,
-} from "../../../../helpers";
+} from "../../../../helpers/assets.js";
 
 describeSuite({
-  id: "D024221",
+  id: "D024312",
   title: "XCM - XcmPaymentApi",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let polkadotJs: ApiPromise;
+    const relayAssetId = 1n;
 
     beforeAll(async function () {
       polkadotJs = context.polkadotJs();
 
-      await registerOldForeignAsset(
+      await registerForeignAsset(
         context,
+        relayAssetId,
         RELAY_SOURCE_LOCATION,
-        relayAssetMetadata as any,
-        20000000000
+        relayAssetMetadata as any
       );
+
+      // Calculate relative price: equivalent to 20000000000 unitsPerSecond
+      const WEIGHT_REF_TIME_PER_SECOND = 1_000_000_000_000n;
+      const nativeAmountPerSecond = await context
+        .polkadotJs()
+        .call.transactionPaymentApi.queryWeightToFee({
+          refTime: WEIGHT_REF_TIME_PER_SECOND,
+          proofSize: 0n,
+        });
+
+      const relativePriceDecimals = 18n;
+      const relativePrice =
+        (BigInt(nativeAmountPerSecond.toString()) * 10n ** relativePriceDecimals) / 20000000000n;
+
+      await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, relativePrice, context);
     });
 
     it({

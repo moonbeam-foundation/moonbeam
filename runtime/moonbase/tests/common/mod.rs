@@ -33,12 +33,12 @@ use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
-use std::collections::BTreeMap;
-
+use cumulus_pallet_parachain_system::MessagingStateSnapshot;
+use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
 use moonbase_runtime::XcmWeightTrader;
 use pallet_transaction_payment::Multiplier;
-use xcm::prelude::{InteriorLocation, Location};
+use std::collections::BTreeMap;
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
@@ -67,8 +67,6 @@ pub fn rpc_run_to_block(n: u32) {
 /// Utility function that advances the chain to the desired block number.
 /// If an author is provided, that author information is injected to all the blocks in the meantime.
 pub fn run_to_block(n: u32, author: Option<NimbusId>) {
-	// Finalize the first block
-	Ethereum::on_finalize(System::block_number());
 	while System::block_number() < n {
 		// Set the new block number and author
 		match author {
@@ -96,7 +94,6 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 		Ethereum::on_initialize(System::block_number());
 
 		// Finalize the block
-		Ethereum::on_finalize(System::block_number());
 		ParachainStaking::on_finalize(System::block_number());
 	}
 }
@@ -136,7 +133,6 @@ pub struct ExtBuilder {
 	// [assettype, metadata, Vec<Account, Balance>]
 	xcm_assets: Vec<XcmAssetInitialization>,
 	safe_xcm_version: Option<u32>,
-	opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbase::LaneId>)>,
 }
 
 impl Default for ExtBuilder {
@@ -170,7 +166,6 @@ impl Default for ExtBuilder {
 			evm_accounts: BTreeMap::new(),
 			xcm_assets: vec![],
 			safe_xcm_version: None,
-			opened_bridges: vec![],
 		}
 	}
 }
@@ -186,11 +181,8 @@ impl ExtBuilder {
 		self
 	}
 
-	pub fn with_open_bridges(
-		mut self,
-		opened_bridges: Vec<(Location, InteriorLocation, Option<bp_moonbase::LaneId>)>,
-	) -> Self {
-		self.opened_bridges = opened_bridges;
+	pub fn with_trace_logs(self) -> Self {
+		frame_support::__private::sp_tracing::init_for_tests();
 		self
 	}
 
@@ -238,18 +230,9 @@ impl ExtBuilder {
 			.build_storage()
 			.unwrap();
 
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		parachain_info::GenesisConfig::<Runtime> {
-			parachain_id:
-				<moonbase_runtime::bridge_config::ThisChain as bp_runtime::Parachain>::PARACHAIN_ID
-					.into(),
-			_config: Default::default(),
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
 		pallet_balances::GenesisConfig::<Runtime> {
 			balances: self.balances,
+			dev_accounts: None,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
@@ -266,25 +249,8 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
-			funded_amount: self.crowdloan_fund,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
 		pallet_author_mapping::GenesisConfig::<Runtime> {
 			mappings: self.mappings,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		pallet_xcm_bridge::GenesisConfig::<
-			Runtime,
-			moonbase_runtime::bridge_config::XcmBridgeInstance,
-		> {
-			opened_bridges: self.opened_bridges,
-			_phantom: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
@@ -323,6 +289,26 @@ impl ExtBuilder {
 		let xcm_assets = self.xcm_assets.clone();
 
 		ext.execute_with(|| {
+			// Mock hrmp egress_channels
+			cumulus_pallet_parachain_system::RelevantMessagingState::<Runtime>::put(
+				MessagingStateSnapshot {
+					dmq_mqc_head: Default::default(),
+					relay_dispatch_queue_remaining_capacity: Default::default(),
+					ingress_channels: vec![],
+					egress_channels: vec![(
+						1_001.into(),
+						AbridgedHrmpChannel {
+							max_capacity: u32::MAX,
+							max_total_size: u32::MAX,
+							max_message_size: u32::MAX,
+							msg_count: 0,
+							total_size: 0,
+							mqc_head: None,
+						},
+					)],
+				},
+			);
+
 			// If any xcm assets specified, we register them here
 			for xcm_asset_initialization in xcm_assets {
 				let asset_id = xcm_asset_initialization.asset_id;
@@ -411,10 +397,7 @@ pub fn set_parachain_inherent_data() {
 	relay_sproof.para_id = 100u32.into();
 	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
 
-	let additional_key_values = vec![(
-		moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-		sp_timestamp::Timestamp::default().encode(),
-	)];
+	let additional_key_values = vec![];
 
 	relay_sproof.additional_key_values = additional_key_values;
 

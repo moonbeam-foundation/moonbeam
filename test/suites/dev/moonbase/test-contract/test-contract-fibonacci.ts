@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { TransactionTypes, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import { encodeDeployData } from "viem";
+import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D020505",
@@ -122,9 +123,11 @@ describeSuite({
             })
           );
 
-          const contractAddress = (
-            await context.viem().getTransactionReceipt({ hash: result!.hash as `0x${string}` })
-          ).contractAddress!;
+          const receipt1 = await getTransactionReceiptWithRetry(
+            context,
+            result!.hash as `0x${string}`
+          );
+          const contractAddress = receipt1.contractAddress!;
 
           const hash = await context.writeContract!({
             contractName: "Fibonacci",
@@ -135,8 +138,8 @@ describeSuite({
           });
 
           await context.createBlock();
-          const receipt = await context.viem().getTransactionReceipt({ hash });
-          expect(receipt.status).toBe("success");
+          const receipt2 = await getTransactionReceiptWithRetry(context, hash as `0x${string}`);
+          expect(receipt2.status).toBe("success");
         },
       });
     }

@@ -4,11 +4,19 @@
 
 [![Tests](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/moonbeam-foundation/moonbeam/actions/workflows/build.yml?query=branch:master)
 
-**An Ethereum compatible [Parachain](https://polkadot.com/parachains/) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
+**An Ethereum compatible [Parachain](https://polkadot.com/rollups) built with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk).**
 
 👉 _Discover the Moonbeam project at [moonbeam.network](https://moonbeam.network)._<br>
 👉 _Learn to [use the Moonbeam network](https://docs.moonbeam.network/) with our technical docs._<br>
 👉 _Reference our [crate-level docs (rustdocs)](https://moonbeam-foundation.github.io/moonbeam) to contribute._
+
+## Run Moonbeam with zombienet
+```bash
+# Start Polkadot relay with Moonbeam parachain
+make start-zombienet-moonbeam
+# Start Kusama relay with Moonriver parachain
+make start-zombienet-moonriver
+```
 
 ## Run a Moonbase Alpha (Moonbeam TestNet) Node with Docker
 
@@ -16,7 +24,7 @@ Docker images are published for every tagged release. Learn more with `moonbeam 
 
 ```bash
 # Join the public testnet
-docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --chain alphanet
+docker run --network="host" moonbeamfoundation/moonbeam:v0.47.3 --chain alphanet
 ```
 
 You can find more detailed instructions to [run a full node in our TestNet](https://docs.moonbeam.network/node-operators/networks/run-a-node/overview/)
@@ -28,7 +36,7 @@ locally. You can quickly set up a single node without a relay chain backing it u
 
 ```bash
 # Run a dev service node
-docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev
+docker run --network="host" moonbeamfoundation/moonbeam:v0.47.3 --dev
 ```
 
 For more information, see our detailed instructions to [run a development node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/)
@@ -39,10 +47,10 @@ The above command will start the node in instant seal mode. It creates a block w
 
 ```bash
 # Author a block every 6 seconds.
-docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev --sealing 6000
+docker run --network="host" moonbeamfoundation/moonbeam:v0.47.3 --dev --sealing 6000
 
 # Manually control the block authorship and finality
-docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev --sealing manual
+docker run --network="host" moonbeamfoundation/moonbeam:v0.47.3 --dev --sealing manual
 ```
 
 ### Prefunded Development Addresses
@@ -100,6 +108,49 @@ Additionally, the prefunded default account for testing purposes is as follows:
 - PrivKey: 0x99b3c12287537e38c90a9219d4cb074a89a16e9cdb20bf85728ebd97c343e342
 ```
 
+## Run a Lazy-Loading Node
+
+Lazy-loading mode allows you to run a Moonbeam node that fetches state from a remote archive node on-demand, eliminating the need to sync the full chain state. This is particularly useful for development and testing against production state with custom runtime changes.
+
+### Prerequisites
+
+Build the Moonbeam node with your desired runtime changes:
+
+```bash
+# Build the release binary
+make release-build
+```
+
+### Start the Lazy-Loading Node
+
+```bash
+# Start with default configuration (connects to Moonbeam network)
+make start-lazy-loading-node
+```
+
+This command will:
+1. Set up the runtime override directory (`.lazy-loading/wasm-runtime-overrides`)
+2. Copy your built runtime WASM to the overrides directory
+3. Create a default state overrides configuration (`.lazy-loading/state-overrides.json`)
+4. Start the node connected to the remote RPC endpoint
+
+### Customization
+
+You can customize the lazy-loading configuration by setting environment variables:
+
+```bash
+# Connect to a different network or RPC endpoint
+RPC=https://rpc.api.moonriver.moonbeam.network RUNTIME=moonriver make start-lazy-loading-node
+```
+
+Available configuration options:
+- `RPC`: Remote archive RPC endpoint (default: `https://trace.api.moonbeam.network`)
+- `RUNTIME`: Runtime to use - `moonbeam`, `moonriver`, or `moonbase` (default: `moonbeam`)
+
+### State Overrides
+
+The `.lazy-loading/state-overrides.json` file allows you to override specific storage values in the remote state. This is useful for testing runtime upgrades or custom configurations without modifying the actual chain state.
+
 ## Build the Moonbeam Node
 
 To build Moonbeam, a proper Substrate development environment is required. If you're new to working with Substrate-based blockchains, consider starting with the [Getting Started with a Moonbeam Development Node](https://docs.moonbeam.network/builders/get-started/networks/moonbeam-dev/) documentation.
@@ -133,6 +184,11 @@ cargo test
 cd test
 pnpm i 
 pnpm moonwall test dev_moonbase
+```
+
+### Run bridge integration tests
+```bash
+make run-bridge-integration-tests
 ```
 
 ## Chain IDs

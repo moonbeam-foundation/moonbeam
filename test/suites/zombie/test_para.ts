@@ -11,13 +11,11 @@ describeSuite({
   foundationMethods: "zombie",
   testCases: ({ it, context, log }) => {
     let paraApi: ApiPromise;
-    let relayApi: ApiPromise;
 
     beforeAll(async () => {
       paraApi = context.polkadotJs("parachain");
-      relayApi = context.polkadotJs("relaychain");
 
-      const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
+      const currentBlock = (await paraApi.rpc.chain.getHeader()).number.toNumber();
       expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);
     }, 120000);
 
@@ -25,7 +23,7 @@ describeSuite({
       id: "T01",
       title: "Blocks are being produced on parachain",
       test: async () => {
-        const blockNum = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
+        const blockNum = (await paraApi.rpc.chain.getHeader()).number.toNumber();
         expect(blockNum).to.be.greaterThan(0);
       },
     });
@@ -57,9 +55,7 @@ describeSuite({
         log(`Current runtime hash: ${rtHex.slice(0, 10)}...${rtHex.slice(-10)}`);
         log(`New runtime hash: ${codeString.slice(0, 10)}...${codeString.slice(-10)}`);
 
-        const blockNumberBefore = (
-          await paraApi.rpc.chain.getBlock()
-        ).block.header.number.toNumber();
+        const blockNumberBefore = (await paraApi.rpc.chain.getHeader()).number.toNumber();
 
         await paraApi.tx.system.applyAuthorizedUpgrade(rtHex).signAndSend(alith);
 
@@ -70,9 +66,7 @@ describeSuite({
 
         log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
 
-        const blockNumberAfter = (
-          await paraApi.rpc.chain.getBlock()
-        ).block.header.number.toNumber();
+        const blockNumberAfter = (await paraApi.rpc.chain.getHeader()).number.toNumber();
         log(`Before: #${blockNumberBefore}, After: #${blockNumberAfter}`);
         expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
           blockNumberBefore
@@ -85,49 +79,39 @@ describeSuite({
       title: "Can connect to parachain and execute a transaction",
       timeout: 240000,
       test: async () => {
-        const balBefore = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
+        const balBefore = (
+          await paraApi.query.system.account(BALTATHAR_ADDRESS)
+        ).data.free.toBigInt();
 
         log("Please wait, this will take at least 30s for transaction to complete");
 
-        // TODO: Renable the below when we are using polkadot 1.7.0
-        //       There is a discrepancy with polkadotJs and 1.3.0
-        //
-        // await new Promise((resolve, reject) => {
-        //   paraApi.tx.balances
-        //     .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
-        //     .signAndSend(charleth, ({ status, events }) => {
-        //       if (status.isInBlock) {
-        //         log("Transaction is in block");
-        //       }
-        //       if (status.isFinalized) {
-        //         log("Transaction is finalized!");
-        //         resolve(events);
-        //       }
+        await new Promise((resolve, reject) => {
+          paraApi.tx.balances
+            .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
+            .signAndSend(charleth, ({ status, events }) => {
+              log("Transaction status: ", status.toHuman());
 
-        //       if (
-        //         status.isDropped ||
-        //         status.isInvalid ||
-        //         status.isUsurped ||
-        //         status.isFinalityTimeout
-        //       ) {
-        //         reject("transaction failed!");
-        //         throw new Error("Transaction failed");
-        //       }
-        //     });
-        // })
+              if (status.isFinalized) {
+                log("Transaction is finalized!");
+                resolve(events);
+              }
 
-        await paraApi.tx.balances
-          .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
-          .signAndSend(charleth);
+              if (
+                status.isDropped ||
+                status.isInvalid ||
+                status.isUsurped ||
+                status.isFinalityTimeout
+              ) {
+                reject("transaction failed!");
+                throw new Error("Transaction failed");
+              }
+            });
+        });
 
-        // TODO: Remove waitBlock below when we are using polkadot 1.7.0
-        await context.waitBlock(6);
-
-        const balAfter = (await paraApi.query.system.account(BALTATHAR_ADDRESS)).data.free;
-        expect(
-          balBefore.lt(balAfter),
-          `${balBefore.toHuman()} is not less than ${balAfter.toHuman()}`
-        ).to.be.true;
+        const balAfter = (
+          await paraApi.query.system.account(BALTATHAR_ADDRESS)
+        ).data.free.toBigInt();
+        expect(balBefore, `${balBefore} is not less than ${balAfter}`).to.be.lessThan(balAfter);
       },
     });
 
@@ -147,11 +131,6 @@ describeSuite({
           (await context.ethers().provider?.getBlock("latest"))?.number,
           "Latest tag is not present"
         ).to.be.greaterThan(0);
-        // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "latest"));
-        // await context
-        //   .ethers()
-        //   .sendTransaction({ to: BALTATHAR_ADDRESS, value: ethers.parseEther("1") });
-        // log(await ethersSigner.provider.getTransactionCount(ALITH_ADDRESS, "pending"));
       },
     });
   },

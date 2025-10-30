@@ -30,25 +30,25 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		fungible::Inspect, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo,
-		StorageInfo, StorageInfoTrait,
+		Contains, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo, StorageInfo,
+		StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	StorageHasher, Twox128,
 };
-use moonbase_runtime::xcm_config::XcmExecutor;
+use moonbase_runtime::xcm_config::{AssetHubLocation, XcmExecutor};
 use moonbase_runtime::{
-	moonbase_xcm_weights, xcm_config::SelfReserve, AccountId, AssetId, Balances, CrowdloanRewards,
-	EvmForeignAssets, Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
+	moonbase_xcm_weights, xcm_config::SelfReserve, AccountId, AssetId, Balances, EvmForeignAssets,
+	Executive, NormalFilter, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm,
+	Precompiles, ProxyType, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
 	TransactionPayment, TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective,
-	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEEKS,
+	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEIGHT_PER_GAS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
 use sp_runtime::{
 	traits::{Convert as XcmConvert, Dispatchable},
-	BuildStorage,
+	BuildStorage, Percent,
 };
 use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
@@ -62,11 +62,11 @@ use moonkit_xcm_primitives::AccountIdAssetIdConversion;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_moonbeam_foreign_assets::AssetStatus;
+use pallet_parachain_staking::InflationDistributionAccount;
 use pallet_transaction_payment::Multiplier;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
-use sha3::{Digest, Keccak256};
-use sp_core::{crypto::UncheckedFrom, ByteArray, Get, Pair, H160, H256, U256};
+use sp_core::{crypto::UncheckedFrom, ByteArray, Get, H160, H256, U256};
 use sp_runtime::{bounded_vec, DispatchError, ModuleError};
 use std::cell::Cell;
 use std::rc::Rc;
@@ -75,8 +75,6 @@ use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
 type AuthorMappingPCall =
 	pallet_evm_precompile_author_mapping::AuthorMappingPrecompileCall<Runtime>;
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
-type CrowdloanRewardsPCall =
-	pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompileCall<Runtime>;
 type XcmUtilsPCall = pallet_evm_precompile_xcm_utils::XcmUtilsPrecompileCall<
 	Runtime,
 	moonbase_runtime::xcm_config::XcmExecutorConfig,
@@ -142,9 +140,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::XcmpQueue>("XcmpQueue");
 	is_pallet_prefix::<moonbase_runtime::CumulusXcm>("CumulusXcm");
 	is_pallet_prefix::<moonbase_runtime::PolkadotXcm>("PolkadotXcm");
-	is_pallet_prefix::<moonbase_runtime::Assets>("Assets");
-	is_pallet_prefix::<moonbase_runtime::AssetManager>("AssetManager");
-	is_pallet_prefix::<moonbase_runtime::Migrations>("Migrations");
 	is_pallet_prefix::<moonbase_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbase_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
 	is_pallet_prefix::<moonbase_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
@@ -203,14 +198,14 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Holds".to_vec(),
 				prefix: prefix(b"Balances", b"Holds"),
 				max_values: None,
-				max_size: Some(91),
+				max_size: Some(55),
 			},
 			StorageInfo {
 				pallet_name: b"Balances".to_vec(),
 				storage_name: b"Freezes".to_vec(),
 				prefix: prefix(b"Balances", b"Freezes"),
 				max_values: None,
-				max_size: Some(37),
+				max_size: Some(73),
 			},
 		]
 	);
@@ -422,10 +417,9 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::XcmpQueue>(25);
 	is_pallet_index::<moonbase_runtime::CumulusXcm>(26);
 	is_pallet_index::<moonbase_runtime::PolkadotXcm>(28);
-	is_pallet_index::<moonbase_runtime::Assets>(29);
+	// is_pallet_index::<moonbase_runtime::Assets>(29); Removed
 	// is_pallet_index::<moonbase_runtime::XTokens>(30); Removed
-	is_pallet_index::<moonbase_runtime::AssetManager>(31);
-	is_pallet_index::<moonbase_runtime::Migrations>(32);
+	// is_pallet_index::<moonbase_runtime::AssetManager>(31); Removed
 	is_pallet_index::<moonbase_runtime::XcmTransactor>(33);
 	is_pallet_index::<moonbase_runtime::ProxyGenesisCompanion>(34);
 	is_pallet_index::<moonbase_runtime::MoonbeamOrbiters>(37);
@@ -473,6 +467,29 @@ fn verify_proxy_type_indices() {
 	assert_eq!(moonbase_runtime::ProxyType::Balances as u8, 5);
 	assert_eq!(moonbase_runtime::ProxyType::AuthorMapping as u8, 6);
 	assert_eq!(moonbase_runtime::ProxyType::IdentityJudgement as u8, 7);
+}
+
+// This test ensure that we not filter out pure proxy calls
+#[test]
+fn verify_normal_filter_allow_pure_proxy() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert!(NormalFilter::contains(&RuntimeCall::Proxy(
+			pallet_proxy::Call::<Runtime>::create_pure {
+				proxy_type: ProxyType::Any,
+				delay: 0,
+				index: 0,
+			}
+		)));
+		assert!(NormalFilter::contains(&RuntimeCall::Proxy(
+			pallet_proxy::Call::<Runtime>::kill_pure {
+				spawner: AccountId::from(ALICE),
+				proxy_type: ProxyType::Any,
+				index: 0,
+				height: 0,
+				ext_index: 0,
+			}
+		)));
+	});
 }
 
 #[test]
@@ -576,6 +593,7 @@ fn transfer_through_evm_to_stake() {
 				max_priority_fee_per_gas: None,
 				nonce: None,
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 			assert_eq!(
@@ -659,10 +677,17 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 		.build()
 		.execute_with(|| {
 			increase_last_relay_slot_number(1);
-			assert_ok!(ParachainStaking::set_parachain_bond_account(
+			assert_ok!(ParachainStaking::set_inflation_distribution_config(
 				root_origin(),
-				AccountId::from(CHARLIE),
-			),);
+				[
+					InflationDistributionAccount {
+						account: AccountId::from(CHARLIE),
+						percent: Percent::from_percent(30),
+					},
+					InflationDistributionAccount::default(),
+				]
+				.into()
+			));
 
 			// Stop just before round 2
 			run_to_block(1199, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
@@ -701,551 +726,6 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				94727725000000000000,
 			);
 		});
-}
-
-#[test]
-fn initialize_crowdloan_addresses_with_batch_and_pay() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
-			(AccountId::from(BOB), 1_000 * UNIT),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
-			AccountId::from(ALICE),
-		)])
-		.with_crowdloan_fund(3_000_000 * UNIT)
-		.build()
-		.execute_with(|| {
-			// set parachain inherent data
-			set_parachain_inherent_data();
-			let init_block = CrowdloanRewards::init_vesting_block();
-			// This matches the previous vesting
-			let end_block = init_block + 4 * WEEKS;
-			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				RuntimeCall::Utility(pallet_utility::Call::<Runtime>::batch_all {
-					calls: vec![
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									[4u8; 32].into(),
-									Some(AccountId::from(CHARLIE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									[5u8; 32].into(),
-									Some(AccountId::from(DAVE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
-								lease_ending_block: end_block
-							}
-						)
-					]
-				})
-				.dispatch(root_origin())
-			);
-			// 30 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * UNIT);
-			// 30 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * UNIT);
-			let expected = RuntimeEvent::Utility(pallet_utility::Event::BatchCompleted);
-			assert_eq!(last_event(), expected);
-			// This one should fail, as we already filled our data
-			assert_ok!(
-				RuntimeCall::Utility(pallet_utility::Call::<Runtime>::batch {
-					calls: vec![RuntimeCall::CrowdloanRewards(
-						pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-							rewards: vec![([4u8; 32].into(), Some(AccountId::from(ALICE)), 432000)]
-						}
-					)]
-				})
-				.dispatch(root_origin())
-			);
-			let expected_fail = RuntimeEvent::Utility(pallet_utility::Event::BatchInterrupted {
-				index: 0,
-				error: DispatchError::Module(ModuleError {
-					index: 20,
-					error: [8, 0, 0, 0],
-					message: None,
-				}),
-			});
-			assert_eq!(last_event(), expected_fail);
-			// Claim 1 block.
-			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(CHARLIE))));
-			assert_ok!(CrowdloanRewards::claim(origin_of(AccountId::from(DAVE))));
-
-			let vesting_period = 4 * WEEKS as u128;
-			let per_block = (1_050_000 * UNIT) / vesting_period;
-
-			assert_eq!(
-				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
-					.unwrap()
-					.claimed_reward,
-				(450_000 * UNIT) + per_block
-			);
-			assert_eq!(
-				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
-					.unwrap()
-					.claimed_reward,
-				(450_000 * UNIT) + per_block
-			);
-			// The total claimed reward should be equal to the account balance at this point.
-			assert_eq!(
-				Balances::balance(&AccountId::from(CHARLIE)),
-				(450_000 * UNIT) + per_block
-			);
-			assert_eq!(
-				Balances::balance(&AccountId::from(DAVE)),
-				(450_000 * UNIT) + per_block
-			);
-			assert_noop!(
-				CrowdloanRewards::claim(origin_of(AccountId::from(ALICE))),
-				pallet_crowdloan_rewards::Error::<Runtime>::NoAssociatedClaim
-			);
-		});
-}
-
-#[test]
-fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
-			(AccountId::from(BOB), 1_000 * UNIT),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
-			AccountId::from(ALICE),
-		)])
-		.with_crowdloan_fund(3_000_000 * UNIT)
-		.build()
-		.execute_with(|| {
-			// set parachain inherent data
-			let init_block = CrowdloanRewards::init_vesting_block();
-			// This matches the previous vesting
-			let end_block = init_block + 4 * WEEKS;
-
-			let (pair1, _) = sp_core::sr25519::Pair::generate();
-			let (pair2, _) = sp_core::sr25519::Pair::generate();
-
-			let public1 = pair1.public();
-			let public2 = pair2.public();
-
-			// signature:
-			// WRAP_BYTES|| NetworkIdentifier|| new_account || previous_account || WRAP_BYTES
-			let mut message = pallet_crowdloan_rewards::WRAPPED_BYTES_PREFIX.to_vec();
-			message.append(&mut b"moonbase-".to_vec());
-			message.append(&mut AccountId::from(DAVE).encode());
-			message.append(&mut AccountId::from(CHARLIE).encode());
-			message.append(&mut pallet_crowdloan_rewards::WRAPPED_BYTES_POSTFIX.to_vec());
-
-			let signature1 = pair1.sign(&message);
-			let signature2 = pair2.sign(&message);
-
-			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				// two relay accounts pointing at the same reward account
-				RuntimeCall::Utility(pallet_utility::Call::<Runtime>::batch_all {
-					calls: vec![
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									public1.into(),
-									Some(AccountId::from(CHARLIE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									public2.into(),
-									Some(AccountId::from(CHARLIE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
-								lease_ending_block: end_block
-							}
-						)
-					]
-				})
-				.dispatch(root_origin())
-			);
-			// 30 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 900_000 * UNIT);
-
-			// this should fail, as we are only providing one signature
-			assert_noop!(
-				CrowdloanRewards::change_association_with_relay_keys(
-					origin_of(AccountId::from(CHARLIE)),
-					AccountId::from(DAVE),
-					AccountId::from(CHARLIE),
-					vec![(public1.into(), signature1.clone().into())]
-				),
-				pallet_crowdloan_rewards::Error::<Runtime>::InsufficientNumberOfValidProofs
-			);
-
-			// this should be valid
-			assert_ok!(CrowdloanRewards::change_association_with_relay_keys(
-				origin_of(AccountId::from(CHARLIE)),
-				AccountId::from(DAVE),
-				AccountId::from(CHARLIE),
-				vec![
-					(public1.into(), signature1.into()),
-					(public2.into(), signature2.into())
-				]
-			));
-
-			assert_eq!(
-				CrowdloanRewards::accounts_payable(&AccountId::from(DAVE))
-					.unwrap()
-					.claimed_reward,
-				(900_000 * UNIT)
-			);
-		});
-}
-
-#[test]
-fn claim_via_precompile() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
-			(AccountId::from(BOB), 1_000 * UNIT),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
-			AccountId::from(ALICE),
-		)])
-		.with_crowdloan_fund(3_000_000 * UNIT)
-		.build()
-		.execute_with(|| {
-			// set parachain inherent data
-			set_parachain_inherent_data();
-			let init_block = CrowdloanRewards::init_vesting_block();
-			// This matches the previous vesting
-			let end_block = init_block + 4 * WEEKS;
-			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				RuntimeCall::Utility(pallet_utility::Call::<Runtime>::batch_all {
-					calls: vec![
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									[4u8; 32].into(),
-									Some(AccountId::from(CHARLIE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									[5u8; 32].into(),
-									Some(AccountId::from(DAVE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
-								lease_ending_block: end_block
-							}
-						)
-					]
-				})
-				.dispatch(root_origin())
-			);
-
-			// 30 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(CHARLIE)), 450_000 * UNIT);
-			// 30 percent initial payout
-			assert_eq!(Balances::balance(&AccountId::from(DAVE)), 450_000 * UNIT);
-
-			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
-
-			// Alice uses the crowdloan precompile to claim through the EVM
-			let gas_limit = 100000u64;
-			let gas_price: U256 = BASE_FEE_GENISIS.into();
-
-			// Construct the call data (selector, amount)
-			let mut call_data = Vec::<u8>::from([0u8; 4]);
-			call_data[0..4].copy_from_slice(&Keccak256::digest(b"claim()")[0..4]);
-
-			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
-				source: H160::from(CHARLIE),
-				target: crowdloan_precompile_address,
-				input: call_data,
-				value: U256::zero(), // No value sent in EVM
-				gas_limit,
-				max_fee_per_gas: gas_price,
-				max_priority_fee_per_gas: None,
-				nonce: None, // Use the next nonce
-				access_list: Vec::new(),
-			})
-			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
-
-			let vesting_period = 4 * WEEKS as u128;
-			let per_block = (1_050_000 * UNIT) / vesting_period;
-
-			assert_eq!(
-				CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE))
-					.unwrap()
-					.claimed_reward,
-				(450_000 * UNIT) + per_block
-			);
-		})
-}
-
-#[test]
-fn is_contributor_via_precompile() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
-			(AccountId::from(BOB), 1_000 * UNIT),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
-			AccountId::from(ALICE),
-		)])
-		.with_crowdloan_fund(3_000_000 * UNIT)
-		.build()
-		.execute_with(|| {
-			// set parachain inherent data
-			let init_block = CrowdloanRewards::init_vesting_block();
-			// This matches the previous vesting
-			let end_block = init_block + 4 * WEEKS;
-			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				RuntimeCall::Utility(pallet_utility::Call::<Runtime>::batch_all {
-					calls: vec![
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									[4u8; 32].into(),
-									Some(AccountId::from(CHARLIE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									[5u8; 32].into(),
-									Some(AccountId::from(DAVE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
-								lease_ending_block: end_block
-							}
-						)
-					]
-				})
-				.dispatch(root_origin())
-			);
-
-			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
-
-			// Assert precompile reports Bob is not a contributor
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					crowdloan_precompile_address,
-					CrowdloanRewardsPCall::is_contributor {
-						contributor: Address(BOB.into()),
-					},
-				)
-				.expect_cost(3338)
-				.expect_no_logs()
-				.execute_returns(false);
-
-			// Assert precompile reports Charlie is a nominator
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					crowdloan_precompile_address,
-					CrowdloanRewardsPCall::is_contributor {
-						contributor: Address(CHARLIE.into()),
-					},
-				)
-				.expect_cost(3338)
-				.expect_no_logs()
-				.execute_returns(true);
-		})
-}
-
-#[test]
-fn reward_info_via_precompile() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
-			(AccountId::from(BOB), 1_000 * UNIT),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
-			AccountId::from(ALICE),
-		)])
-		.with_crowdloan_fund(3_000_000 * UNIT)
-		.build()
-		.execute_with(|| {
-			// set parachain inherent data
-			let init_block = CrowdloanRewards::init_vesting_block();
-			// This matches the previous vesting
-			let end_block = init_block + 4 * WEEKS;
-			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				RuntimeCall::Utility(pallet_utility::Call::<Runtime>::batch_all {
-					calls: vec![
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									[4u8; 32].into(),
-									Some(AccountId::from(CHARLIE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									[5u8; 32].into(),
-									Some(AccountId::from(DAVE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
-								lease_ending_block: end_block
-							}
-						)
-					]
-				})
-				.dispatch(root_origin())
-			);
-
-			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
-
-			let expected_total: U256 = (1_500_000 * UNIT).into();
-			let expected_claimed: U256 = (450_000 * UNIT).into();
-
-			// Assert precompile reports correct Charlie reward info.
-			Precompiles::new()
-				.prepare_test(
-					ALICE,
-					crowdloan_precompile_address,
-					CrowdloanRewardsPCall::reward_info {
-						contributor: Address(AccountId::from(CHARLIE).into()),
-					},
-				)
-				.expect_cost(3338)
-				.expect_no_logs()
-				.execute_returns((expected_total, expected_claimed));
-		})
-}
-
-#[test]
-fn update_reward_address_via_precompile() {
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * UNIT),
-			(AccountId::from(BOB), 1_000 * UNIT),
-		])
-		.with_collators(vec![(AccountId::from(ALICE), 1_000 * UNIT)])
-		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
-			AccountId::from(ALICE),
-		)])
-		.with_crowdloan_fund(3_000_000 * UNIT)
-		.build()
-		.execute_with(|| {
-			// set parachain inherent data
-			let init_block = CrowdloanRewards::init_vesting_block();
-			// This matches the previous vesting
-			let end_block = init_block + 4 * WEEKS;
-			// Batch calls always succeed. We just need to check the inner event
-			assert_ok!(
-				RuntimeCall::Utility(pallet_utility::Call::<Runtime>::batch_all {
-					calls: vec![
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									[4u8; 32].into(),
-									Some(AccountId::from(CHARLIE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::initialize_reward_vec {
-								rewards: vec![(
-									[5u8; 32].into(),
-									Some(AccountId::from(DAVE)),
-									1_500_000 * UNIT
-								)]
-							}
-						),
-						RuntimeCall::CrowdloanRewards(
-							pallet_crowdloan_rewards::Call::<Runtime>::complete_initialization {
-								lease_ending_block: end_block
-							}
-						)
-					]
-				})
-				.dispatch(root_origin())
-			);
-
-			let crowdloan_precompile_address = H160::from_low_u64_be(2049);
-
-			// Charlie uses the crowdloan precompile to update address through the EVM
-			let gas_limit = 100000u64;
-			let gas_price: U256 = BASE_FEE_GENISIS.into();
-
-			// Construct the input data to check if Bob is a contributor
-			let mut call_data = Vec::<u8>::from([0u8; 36]);
-			call_data[0..4]
-				.copy_from_slice(&Keccak256::digest(b"update_reward_address(address)")[0..4]);
-			call_data[16..36].copy_from_slice(&ALICE);
-
-			assert_ok!(RuntimeCall::EVM(pallet_evm::Call::<Runtime>::call {
-				source: H160::from(CHARLIE),
-				target: crowdloan_precompile_address,
-				input: call_data,
-				value: U256::zero(), // No value sent in EVM
-				gas_limit,
-				max_fee_per_gas: gas_price,
-				max_priority_fee_per_gas: None,
-				nonce: None, // Use the next nonce
-				access_list: Vec::new(),
-			})
-			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
-
-			assert!(CrowdloanRewards::accounts_payable(&AccountId::from(CHARLIE)).is_none());
-			assert_eq!(
-				CrowdloanRewards::accounts_payable(&AccountId::from(ALICE))
-					.unwrap()
-					.claimed_reward,
-				(450_000 * UNIT)
-			);
-		})
 }
 
 #[test]
@@ -1556,7 +1036,7 @@ fn xtokens_precompiles_transfer() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v5::Location::parent(),
+			xcm_location: AssetHubLocation::get(),
 			name: "RelayToken",
 			symbol: "Relay",
 			decimals: 12,
@@ -1572,13 +1052,11 @@ fn xtokens_precompiles_transfer() {
 			let xtokens_precompile_address = H160::from_low_u64_be(2052);
 
 			// We have the assetId that corresponds to the relay chain registered
-			let relay_asset_id: AssetId = 1;
+			let asset_id: AssetId = 1;
 
 			// Its address is
-			let asset_precompile_address = Runtime::asset_id_to_account(
-				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-				relay_asset_id,
-			);
+			let asset_precompile_address =
+				Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset_id);
 
 			// Alice has 1000 tokens. She should be able to send through precompile
 			let destination = Location::new(
@@ -1604,7 +1082,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(178255)
+				.expect_cost(260283)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1654,9 +1132,9 @@ fn xtokens_precompiles_transfer_multiasset() {
 	ExtBuilder::default()
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v5::Location::parent(),
-			name: "RelayToken",
-			symbol: "Relay",
+			xcm_location: AssetHubLocation::get(),
+			name: "DOT",
+			symbol: "DOT",
 			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000 * UNIT)],
 		}])
@@ -1688,14 +1166,14 @@ fn xtokens_precompiles_transfer_multiasset() {
 					ALICE,
 					xtokens_precompile_address,
 					XtokensPCall::transfer_multiasset {
-						// We want to transfer the relay token
-						asset: Location::parent(),
+						// We want to transfer DOT
+						asset: AssetHubLocation::get(),
 						amount: 500_000_000_000_000u128.into(),
 						destination,
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(178255)
+				.expect_cost(260283)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1779,7 +1257,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(26655)
+				.expect_cost(108683)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -1858,6 +1336,7 @@ fn multiplier_can_grow_from_zero() {
 #[test]
 fn ethereum_invalid_transaction() {
 	ExtBuilder::default().build().execute_with(|| {
+		set_parachain_inherent_data();
 		// Ensure an extrinsic not containing enough gas limit to store the transaction
 		// on chain is rejected.
 		assert_eq!(
@@ -1903,7 +1382,7 @@ fn initial_gas_fee_is_correct() {
 			TransactionPaymentAsGasPrice::min_gas_price(),
 			(
 				2_500_000_000u128.into(),
-				Weight::from_parts(41_742_000u64, 0)
+				Weight::from_parts(<Runtime as frame_system::Config>::DbWeight::get().read, 0)
 			)
 		);
 	});
@@ -1933,6 +1412,7 @@ fn transfer_ed_0_evm() {
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 			// 1 WEI is left in the account
@@ -1963,6 +1443,7 @@ fn refund_ed_0_evm() {
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 			// ALICE is refunded
@@ -2001,6 +1482,7 @@ fn author_does_receive_priority_fee() {
 				max_priority_fee_per_gas: Some(U256::from(200 * GIGAWEI)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -2040,6 +1522,7 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 				max_priority_fee_per_gas: Some(U256::from(BASE_FEE_GENISIS)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -2089,6 +1572,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -2120,9 +1604,9 @@ fn root_can_change_default_xcm_vers() {
 		])
 		.with_xcm_assets(vec![XcmAssetInitialization {
 			asset_id: 1,
-			xcm_location: xcm::v5::Location::parent(),
-			name: "RelayToken",
-			symbol: "Relay",
+			xcm_location: AssetHubLocation::get(),
+			name: "Dot",
+			symbol: "Dot",
 			decimals: 12,
 			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
 		}])
@@ -2157,7 +1641,7 @@ fn root_can_change_default_xcm_vers() {
 					0,
 					WeightLimit::Unlimited
 				),
-				pallet_xcm::Error::<Runtime>::SendFailure
+				pallet_xcm::Error::<Runtime>::LocalExecutionIncomplete
 			);
 
 			// Root sets the defaultXcm
@@ -2350,7 +1834,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(25190)
+				.expect_cost(30883)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2390,7 +1874,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(25190)
+				.expect_cost(30883)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -2472,7 +1956,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(16024)
+				.expect_cost(19935)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2494,7 +1978,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15552)
+				.expect_cost(19452)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2515,7 +1999,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(16038)
+				.expect_cost(19960)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2558,7 +2042,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(17829)
+				.expect_cost(22435)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2583,7 +2067,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(17829)
+				.expect_cost(22435)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2614,7 +2098,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: Location::parent(),
 				},
 			)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parent));
 
@@ -2634,7 +2123,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_parachain));
 
@@ -2664,7 +2158,12 @@ fn test_xcm_utils_ml_tp_account() {
 					location: alice_in_parachain_2000_multilocation,
 				},
 			)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(Address(expected_address_alice_in_parachain_2000));
 	});
@@ -2722,7 +2221,11 @@ fn test_xcm_utils_weight_message() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(1669)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS),
+			)
 			.expect_no_logs()
 			.execute_returns(expected_weight);
 	});
@@ -2741,7 +2244,12 @@ fn test_xcm_utils_get_units_per_second() {
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
-			.expect_cost(3338)
+			.expect_cost(
+				<Runtime as frame_system::Config>::DbWeight::get()
+					.read
+					.saturating_div(WEIGHT_PER_GAS)
+					.saturating_mul(2),
+			)
 			.expect_no_logs()
 			.execute_returns(expected_units);
 	});
@@ -2752,9 +2260,9 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 256, 1024, 1025, 1026, 1027, 2048, 2049, 2050, 2051, 2052,
-			2053, 2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064, 2065, 2066,
-			2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 256, 1024, 1025, 1026, 1027,
+			2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055, 2056, 2057, 2058, 2059, 2060, 2061,
+			2062, 2063, 2064, 2065, 2066, 2067, 2068, 2069, 2070, 2071, 2072, 2073, 2074,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2966,6 +2474,7 @@ fn evm_revert_substrate_events() {
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -3005,6 +2514,7 @@ fn evm_success_keeps_substrate_events() {
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
+				authorization_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::RuntimeOrigin::root()));
 
@@ -3039,6 +2549,7 @@ fn validate_transaction_fails_on_filtered_call() {
 				max_priority_fee_per_gas: Default::default(),
 				nonce: Default::default(),
 				access_list: Default::default(),
+				authorization_list: Default::default(),
 			}
 			.into(),
 		);
@@ -3421,254 +2932,6 @@ mod treasury_tests {
 	}
 }
 
-/// Run these tests:
-/// cargo test --color=always -p moonbase-runtime --features bridge-stagenet --test integration_test bridge_tests -- --nocapture
-#[cfg(all(any(feature = "bridge-stagenet", feature = "bridge-betanet"), test))]
-mod bridge_tests {
-	use crate::common::{origin_of, root_origin, ExtBuilder, XcmAssetInitialization, ALICE, BOB};
-	use bp_messages::target_chain::DispatchMessageData;
-	use bp_messages::ReceptionResult;
-	use bp_runtime::messages::MessageDispatchResult;
-	use cumulus_primitives_core::AggregateMessageOrigin;
-	use frame_support::assert_ok;
-	use frame_support::pallet_prelude::{Hooks, PalletInfoAccess};
-	use moonbase_runtime::bridge_config::{
-		SourceGlobalConsensusNetwork, SourceParachain, TargetBridgeLocation,
-		TargetGlobalConsensusNetwork, TargetParachain, WithMessagesInstance,
-	};
-	use moonbase_runtime::currency::{KILOWEI, UNIT};
-	use moonbase_runtime::xcm_config::CurrencyId;
-	use moonbase_runtime::{
-		Balances, BridgeMessages, BridgeXcmOver, MessageQueue, PolkadotXcm, Runtime, RuntimeEvent,
-		System,
-	};
-	use moonbeam_core_primitives::AccountId;
-	use pallet_bridge_messages::LanesManager;
-	use pallet_xcm_bridge::XcmBlobMessageDispatchResult::Dispatched;
-	use parity_scale_codec::Encode;
-	use sp_runtime::traits::Convert;
-	use xcm::latest::Junctions::X1;
-	use xcm::latest::{
-		Asset, AssetFilter, AssetId, Fungibility, Junctions, Location, WeightLimit, WildAsset, Xcm,
-	};
-	use xcm::prelude::{
-		AccountKey20, BuyExecution, ClearOrigin, DepositAsset, DescendOrigin, Fungible,
-		GlobalConsensus, PalletInstance, ReserveAssetDeposited, SetTopic, UniversalOrigin,
-		XCM_VERSION,
-	};
-	use xcm::{VersionedAssets, VersionedInteriorLocation, VersionedLocation, VersionedXcm};
-	use xcm_builder::BridgeMessage;
-
-	fn currency_to_asset(currency_id: CurrencyId, amount: u128) -> Asset {
-		Asset {
-			id: AssetId(
-				<moonbase_runtime::Runtime as pallet_xcm_transactor::Config>::CurrencyIdToLocation::convert(
-					currency_id,
-				)
-					.unwrap(),
-			),
-			fun: Fungibility::Fungible(amount),
-		}
-	}
-
-	fn next_block() {
-		System::reset_events();
-
-		let next_block = System::block_number() + 1u32;
-
-		System::set_block_number(next_block);
-		System::on_initialize(next_block);
-		MessageQueue::on_initialize(next_block);
-	}
-
-	#[test]
-	fn transfer_asset() {
-		frame_support::__private::sp_tracing::init_for_tests();
-
-		ExtBuilder::default()
-			.with_balances(vec![(AccountId::from(ALICE), 2_000 * UNIT)])
-			.with_safe_xcm_version(XCM_VERSION)
-			.with_open_bridges(vec![(
-				Location::new(1, [SourceParachain::get()]),
-				Junctions::from([
-					TargetGlobalConsensusNetwork::get().into(),
-					TargetParachain::get(),
-				]),
-				Some(Default::default()),
-			)])
-			.build()
-			.execute_with(|| {
-				assert_ok!(PolkadotXcm::force_xcm_version(
-					root_origin(),
-					Box::new(TargetBridgeLocation::get()),
-					XCM_VERSION
-				));
-
-				let asset = currency_to_asset(CurrencyId::SelfReserve, KILOWEI);
-
-				let message_data = BridgeMessages::outbound_message_data(Default::default(), 1u64);
-				assert!(message_data.is_none());
-
-				assert_ok!(PolkadotXcm::transfer_assets(
-					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::V5(TargetBridgeLocation::get())),
-					Box::new(VersionedLocation::V5(Location {
-						parents: 0,
-						interior: [AccountKey20 {
-							network: None,
-							key: ALICE,
-						}]
-						.into(),
-					})),
-					Box::new(VersionedAssets::V5(asset.into())),
-					0,
-					WeightLimit::Unlimited
-				));
-
-				let message_data = BridgeMessages::outbound_message_data(Default::default(), 1u64);
-				assert!(message_data.is_some());
-			})
-	}
-
-	#[test]
-	fn receive_message() {
-		frame_support::__private::sp_tracing::init_for_tests();
-
-		ExtBuilder::default()
-			.with_balances(vec![
-				(AccountId::from(ALICE), 2_000 * UNIT),
-				(AccountId::from(BOB), 1_000 * UNIT),
-			])
-			.with_xcm_assets(vec![XcmAssetInitialization {
-				asset_id: 1,
-				xcm_location: Location::new(
-					2,
-					[
-						GlobalConsensus(TargetGlobalConsensusNetwork::get()),
-						TargetParachain::get(),
-						PalletInstance(<Balances as PalletInfoAccess>::index() as u8),
-					],
-				),
-				name: "xcToken",
-				symbol: "xcToken",
-				decimals: 18,
-				balances: vec![(AccountId::from(ALICE), 1_000 * UNIT)],
-			}])
-			.with_safe_xcm_version(XCM_VERSION)
-			.with_open_bridges(vec![(
-				Location::new(1, [SourceParachain::get()]),
-				Junctions::from([
-					TargetGlobalConsensusNetwork::get().into(),
-					TargetParachain::get(),
-				]),
-				Some(Default::default()),
-			)])
-			.build()
-			.execute_with(|| {
-				assert_ok!(PolkadotXcm::force_xcm_version(
-					root_origin(),
-					Box::new(TargetBridgeLocation::get()),
-					XCM_VERSION
-				));
-
-				let bridge_message: BridgeMessage = BridgeMessage {
-					universal_dest: VersionedInteriorLocation::V5(
-						[
-							GlobalConsensus(SourceGlobalConsensusNetwork::get()),
-							SourceParachain::get(),
-						]
-						.into(),
-					),
-					message: VersionedXcm::V5(Xcm([
-						UniversalOrigin(GlobalConsensus(TargetGlobalConsensusNetwork::get())),
-						DescendOrigin(X1([TargetParachain::get()].into())),
-						ReserveAssetDeposited(
-							vec![Asset {
-								id: AssetId(Location::new(
-									2,
-									[
-										GlobalConsensus(TargetGlobalConsensusNetwork::get()),
-										TargetParachain::get(),
-										PalletInstance(
-											<Balances as PalletInfoAccess>::index() as u8
-										),
-									],
-								)),
-								fun: Fungible(UNIT * 2),
-							}]
-							.into(),
-						),
-						ClearOrigin,
-						BuyExecution {
-							fees: Asset {
-								id: AssetId(Location::new(
-									2,
-									[
-										GlobalConsensus(TargetGlobalConsensusNetwork::get()),
-										TargetParachain::get(),
-										PalletInstance(
-											<Balances as PalletInfoAccess>::index() as u8
-										),
-									],
-								)),
-								fun: Fungible(UNIT / 2),
-							},
-							weight_limit: WeightLimit::Unlimited,
-						},
-						DepositAsset {
-							assets: AssetFilter::Wild(WildAsset::AllCounted(1)),
-							beneficiary: Location::new(
-								0,
-								[AccountKey20 {
-									network: None,
-									key: ALICE,
-								}],
-							),
-						},
-						SetTopic([
-							24, 73, 92, 41, 231, 15, 196, 44, 136, 120, 145, 143, 224, 187, 112,
-							187, 47, 89, 154, 44, 193, 175, 174, 249, 30, 194, 97, 183, 171, 39,
-							87, 147,
-						]),
-					]
-					.into())),
-				};
-
-				let mut inbound_lane = LanesManager::<Runtime, WithMessagesInstance>::new()
-					.active_inbound_lane(Default::default())
-					.unwrap();
-
-				let msg = DispatchMessageData {
-					payload: Ok(bridge_message.encode()),
-				};
-				let result =
-					inbound_lane.receive_message::<BridgeXcmOver>(&AccountId::from(ALICE), 1, msg);
-
-				assert_eq!(
-					result,
-					ReceptionResult::Dispatched(MessageDispatchResult {
-						unspent_weight: Default::default(),
-						dispatch_level_result: Dispatched
-					})
-				);
-
-				// Produce next block
-				next_block();
-				// Confirm that the xcm message was successfully processed
-				assert!(System::events().iter().any(|evt| {
-					matches!(
-						evt.event,
-						RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed {
-							origin: AggregateMessageOrigin::Here,
-							success: true,
-							..
-						})
-					)
-				}));
-			});
-	}
-}
-
 #[cfg(test)]
 mod fee_tests {
 	use super::*;
@@ -3892,3 +3155,59 @@ mod fee_tests {
 		});
 	}
 }
+
+#[cfg(test)]
+mod balance_tests {
+	use crate::common::{ExtBuilder, ALICE};
+	use frame_support::assert_ok;
+	use frame_support::traits::LockableCurrency;
+	use frame_support::traits::{LockIdentifier, ReservableCurrency, WithdrawReasons};
+	use moonbase_runtime::{Balances, Runtime, System};
+	use moonbeam_core_primitives::AccountId;
+
+	#[test]
+	fn reserve_should_work_for_frozen_balance() {
+		let alice = AccountId::from(ALICE);
+		const ID_1: LockIdentifier = *b"1       ";
+
+		ExtBuilder::default()
+			.with_balances(vec![(alice, 10)])
+			.build()
+			.execute_with(|| {
+				// Check balances
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 10);
+				assert_eq!(account.frozen, 0);
+				assert_eq!(account.reserved, 0);
+
+				Balances::set_lock(ID_1, &alice, 9, WithdrawReasons::RESERVE);
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 10);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(account.reserved, 0);
+
+				assert_ok!(Balances::reserve(&alice, 5));
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, 5);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(account.reserved, 5);
+
+				let previous_reserved_amount = account.reserved;
+				let ed: u128 = <Runtime as pallet_balances::Config>::ExistentialDeposit::get();
+				let next_reserve = account.free.saturating_sub(ed);
+				assert_ok!(Balances::reserve(&alice, next_reserve));
+
+				let account = System::account(&alice).data;
+				assert_eq!(account.free, ed);
+				assert_eq!(account.frozen, 9);
+				assert_eq!(
+					account.reserved,
+					previous_reserved_amount.saturating_add(next_reserve)
+				);
+			});
+	}
+}
+
+moonbeam_runtime_common::generate_common_xcm_tests!(moonbase_runtime);

@@ -28,9 +28,6 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub mod bridge_config;
-
 pub mod asset_config;
 #[cfg(not(feature = "disable-genesis-builder"))]
 pub mod genesis_config_preset;
@@ -42,12 +39,12 @@ mod migrations;
 mod precompiles;
 
 extern crate alloc;
+extern crate core;
 
 use alloc::borrow::Cow;
 // Re-export required by get! macro.
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
-pub use frame_support::traits::Get;
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
 	Index, Signature,
@@ -73,8 +70,8 @@ use frame_support::{
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
-		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
-		OnFinalize, OnUnbalanced,
+		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, Get, InstanceFilter, LinearStoragePrice,
+		OnFinalize, OnUnbalanced, VariantCountOf,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -82,14 +79,11 @@ use frame_support::{
 	},
 	PalletId,
 };
-
 use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::{
-	impl_asset_conversion::AssetRateConverter,
-	impl_multiasset_paymaster::MultiAssetPaymaster,
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+	impl_asset_conversion::AssetRateConverter, impl_multiasset_paymaster::MultiAssetPaymaster,
 };
 use nimbus_primitives::CanAuthor;
 use pallet_ethereum::Call::transact;
@@ -100,7 +94,7 @@ use pallet_evm::{
 	OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{FungibleAdapter, Multiplier, TargetedFeeAdjustment};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use runtime_params::*;
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
@@ -215,7 +209,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("moonbase"),
 	impl_name: Cow::Borrowed("moonbase"),
 	authoring_version: 4,
-	spec_version: 3900,
+	spec_version: 4100,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -308,10 +302,13 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = ConstU16<1287>;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
-	type SingleBlockMigrations = ();
+	type SingleBlockMigrations = migrations::SingleBlockMigrations<Runtime>;
 	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
-	type PostInherents = ();
+	type PostInherents = (
+		// Validate timestamp provided by the consensus client
+		AsyncBacking,
+	);
 	type PostTransactions = ();
 	type ExtensionsWeightInfo = moonbase_weights::frame_system_extensions::WeightInfo<Runtime>;
 }
@@ -327,7 +324,7 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
-	type MinimumPeriod = ConstU64<3000>;
+	type MinimumPeriod = ConstU64<{ RELAY_CHAIN_SLOT_DURATION_MILLIS as u64 / 2 }>;
 	type WeightInfo = moonbase_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
@@ -352,8 +349,8 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	type FreezeIdentifier = ();
-	type MaxFreezes = ConstU32<0>;
+	type FreezeIdentifier = RuntimeFreezeReason;
+	type MaxFreezes = VariantCountOf<Self::RuntimeFreezeReason>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type WeightInfo = moonbase_weights::pallet_balances::WeightInfo<Runtime>;
@@ -538,10 +535,12 @@ impl pallet_evm::Config for Runtime {
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	type Timestamp = RelayTimestamp;
+	type Timestamp = Timestamp;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 
 	type WeightInfo = moonbase_weights::pallet_evm::WeightInfo<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -560,6 +559,7 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_scheduler::WeightInfo<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -730,6 +730,8 @@ parameter_types! {
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
+/// Relay chain slot duration, in milliseconds.
+const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
 /// into the relay chain.
 const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
@@ -739,6 +741,7 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 
 type ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook<
 	Runtime,
+	RELAY_CHAIN_SLOT_DURATION_MILLIS,
 	BLOCK_PROCESSING_VELOCITY,
 	UNINCLUDED_SEGMENT_CAPACITY,
 >;
@@ -752,7 +755,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = EmergencyParaXcm;
-	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
+	type ConsensusHook = ConsensusHook;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = moonbase_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
@@ -861,8 +864,9 @@ impl pallet_parachain_staking::Config for Runtime {
 	type SlotProvider = RelayChainSlotProvider;
 	type WeightInfo = moonbase_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
-	type SlotDuration = ConstU64<6_000>;
-	type BlockTime = ConstU64<6_000>;
+	type SlotDuration = ConstU64<MILLISECS_PER_BLOCK>;
+	type BlockTime = ConstU64<MILLISECS_PER_BLOCK>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type LinearInflationThreshold = ();
 }
 
@@ -898,7 +902,8 @@ impl pallet_author_slot_filter::Config for Runtime {
 impl pallet_async_backing::Config for Runtime {
 	type AllowMultipleBlocksPerSlot = ConstBool<true>;
 	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
-	type ExpectedBlockTime = ConstU64<6000>;
+	type SlotDuration = ConstU64<MILLISECS_PER_BLOCK>;
+	type ExpectedBlockTime = ConstU64<MILLISECS_PER_BLOCK>;
 }
 
 parameter_types! {
@@ -951,6 +956,7 @@ impl pallet_author_mapping::Config for Runtime {
 	TypeInfo,
 	Serialize,
 	Deserialize,
+	DecodeWithMemTracking,
 )]
 pub enum ProxyType {
 	/// All calls can be proxied. This is the trivial/most permissive filter.
@@ -1171,17 +1177,7 @@ impl pallet_proxy::Config for Runtime {
 	// - 32 bytes Hasher (Blake2256)
 	// - 4 bytes BlockNumber (u32)
 	type AnnouncementDepositFactor = ConstU128<{ currency::deposit(0, 56) }>;
-}
-
-impl pallet_migrations::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
-	// `moonbeam_runtime_common`.
-	type MigrationsList = (
-		moonbeam_runtime_common::migrations::CommonMigrations<Runtime>,
-		migrations::MoonbaseMigrations,
-	);
-	type XcmExecutionManager = XcmExecutionManager;
+	type BlockNumberProvider = System;
 }
 
 pub type ForeignAssetMigratorOrigin = EitherOfDiverse<
@@ -1204,7 +1200,6 @@ pub struct MaintenanceFilter;
 impl Contains<RuntimeCall> for MaintenanceFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			RuntimeCall::Assets(_) => false,
 			RuntimeCall::Balances(_) => false,
 			RuntimeCall::CrowdloanRewards(_) => false,
 			RuntimeCall::Ethereum(_) => false,
@@ -1222,30 +1217,11 @@ impl Contains<RuntimeCall> for MaintenanceFilter {
 }
 
 /// Normal Call Filter
-/// We dont allow to create nor mint assets, this for now is disabled
-/// We only allow transfers. For now creation of assets will go through
-/// asset-manager, while minting/burning only happens through xcm messages
-/// This can change in the future
 pub struct NormalFilter;
 impl Contains<RuntimeCall> for NormalFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			RuntimeCall::Assets(method) => match method {
-				pallet_assets::Call::transfer { .. } => true,
-				pallet_assets::Call::transfer_keep_alive { .. } => true,
-				pallet_assets::Call::approve_transfer { .. } => true,
-				pallet_assets::Call::transfer_approved { .. } => true,
-				pallet_assets::Call::cancel_approval { .. } => true,
-				pallet_assets::Call::destroy_accounts { .. } => true,
-				pallet_assets::Call::destroy_approvals { .. } => true,
-				pallet_assets::Call::finish_destroy { .. } => true,
-				_ => false,
-			},
-			// We filter anonymous proxy as they make "reserve" inconsistent
-			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			RuntimeCall::Proxy(method) => match method {
-				pallet_proxy::Call::create_pure { .. } => false,
-				pallet_proxy::Call::kill_pure { .. } => false,
 				pallet_proxy::Call::proxy { real, .. } => {
 					!pallet_evm::AccountCodes::<Runtime>::contains_key(H160::from(*real))
 				}
@@ -1283,6 +1259,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 
 impl pallet_proxy_genesis_companion::Config for Runtime {
 	type ProxyType = ProxyType;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -1395,6 +1372,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
 	type WeightInfo = moonbase_weights::pallet_multisig::WeightInfo<Runtime>;
+	type BlockNumberProvider = System;
 }
 
 impl pallet_relay_storage_roots::Config for Runtime {
@@ -1415,22 +1393,22 @@ impl pallet_parameters::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_parameters::WeightInfo<Runtime>;
 }
 
-/// List of multiblock migrations to be executed by the pallet_multiblock_migrations.
-#[cfg(not(feature = "runtime-benchmarks"))]
-pub type MultiBlockMigrationList = moonbeam_runtime_common::migrations::MultiBlockMigrationList;
-// Benchmarks need mocked migrations to guarantee that they succeed.
-#[cfg(feature = "runtime-benchmarks")]
-pub type MultiBlockMigrationList = pallet_multiblock_migrations::mock_helpers::MockedMigrations;
+impl cumulus_pallet_weight_reclaim::Config for Runtime {
+	type WeightInfo = moonbase_weights::cumulus_pallet_weight_reclaim::WeightInfo<Runtime>;
+}
 
-impl pallet_multiblock_migrations::Config for Runtime {
+impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type Migrations = MultiBlockMigrationList;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Migrations = migrations::MultiBlockMigrationList<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;
 	type CursorMaxLen = ConstU32<65_536>;
 	type IdentifierMaxLen = ConstU32<256>;
 	type MigrationStatusHandler = ();
 	type FailedMigrationHandler = MaintenanceMode;
 	type MaxServiceWeight = MaxServiceWeight;
-	type WeightInfo = weights::pallet_multiblock_migrations::WeightInfo<Runtime>;
+	type WeightInfo = weights::pallet_migrations::WeightInfo<Runtime>;
 }
 
 construct_runtime! {
@@ -1448,7 +1426,7 @@ construct_runtime! {
 		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config<T>} = 9,
 		EVM: pallet_evm::{Pallet, Config<T>, Call, Storage, Event<T>} = 10,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config<T>} = 11,
-		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>, FreezeReason} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 13,
 		// Previously 14: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
 		// Previously 15: CouncilCollective: pallet_collective::<Instance1>
@@ -1465,10 +1443,10 @@ construct_runtime! {
 		CumulusXcm: cumulus_pallet_xcm::{Pallet, Event<T>, Origin} = 26,
 		// Previously 27: DmpQueue: cumulus_pallet_dmp_queue::{Pallet, Call, Storage, Event<T>},
 		PolkadotXcm: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin, Config<T>} = 28,
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
+		// [Removed] Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 29,
 		// Previously 30: XTokens
-		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
-		Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
+		// Previously 31: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>}
+		// [Removed] Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		// Previously 35: BaseFee
@@ -1500,31 +1478,9 @@ construct_runtime! {
 		EvmForeignAssets: pallet_moonbeam_foreign_assets::{Pallet, Call, Storage, Event<T>} = 56,
 		Parameters: pallet_parameters = 57,
 		XcmWeightTrader: pallet_xcm_weight_trader::{Pallet, Call, Storage, Event<T>} = 58,
-		MultiBlockMigrations: pallet_multiblock_migrations = 117,
-
-		// Bridge pallets (reserved indexes from 130 to 140)
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		BridgeWestendGrandpa: pallet_bridge_grandpa::<Instance1>::{Pallet, Call, Storage, Event<T>} = 130,
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		BridgeParachains: pallet_bridge_parachains::<Instance1>::{Pallet, Call, Storage, Event<T>} = 131,
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		BridgeMessages: pallet_bridge_messages::<Instance1>::{Pallet, Call, Storage, Event<T>} = 132,
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		BridgeXcmOver: pallet_xcm_bridge::<Instance1>::{Pallet, Call, Storage, Event<T>, HoldReason} = 133
+		MultiBlockMigrations: pallet_migrations = 117,
+		WeightReclaim: cumulus_pallet_weight_reclaim = 118,
 	}
-}
-
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-use parity_scale_codec as codec;
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
-	RuntimeCall, AccountId,
-	// Grandpa
-	BridgeWestendGrandpa,
-	// Parachains
-	BridgeParachains,
-	// Messages
-	BridgeMessages
 }
 
 /// Block type as expected by this runtime.
@@ -1534,43 +1490,28 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 /// BlockId type as expected by this runtime.
 pub type BlockId = generic::BlockId<Block>;
 
-/// The SignedExtension to the basic transaction logic.
-#[cfg(not(any(feature = "bridge-stagenet", feature = "bridge-betanet")))]
-pub type SignedExtra = (
-	frame_system::CheckNonZeroSender<Runtime>,
-	frame_system::CheckSpecVersion<Runtime>,
-	frame_system::CheckTxVersion<Runtime>,
-	frame_system::CheckGenesis<Runtime>,
-	frame_system::CheckEra<Runtime>,
-	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
-);
-
-/// The SignedExtension to the basic transaction logic.
-#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-pub type SignedExtra = (
-	frame_system::CheckNonZeroSender<Runtime>,
-	frame_system::CheckSpecVersion<Runtime>,
-	frame_system::CheckTxVersion<Runtime>,
-	frame_system::CheckGenesis<Runtime>,
-	frame_system::CheckEra<Runtime>,
-	frame_system::CheckNonce<Runtime>,
-	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
-	frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
-	cumulus_primitives_storage_weight_reclaim::StorageWeightReclaim<Runtime>,
-	BridgeRejectObsoleteHeadersAndMessages,
-);
+/// The TransactionExtension to the basic transaction logic.
+pub type TxExtension = cumulus_pallet_weight_reclaim::StorageWeightReclaim<
+	Runtime,
+	(
+		frame_system::CheckNonZeroSender<Runtime>,
+		frame_system::CheckSpecVersion<Runtime>,
+		frame_system::CheckTxVersion<Runtime>,
+		frame_system::CheckGenesis<Runtime>,
+		frame_system::CheckEra<Runtime>,
+		frame_system::CheckNonce<Runtime>,
+		frame_system::CheckWeight<Runtime>,
+		pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+		frame_metadata_hash_extension::CheckMetadataHash<Runtime>,
+	),
+>;
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
-	fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
+	fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, TxExtension>;
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic =
-	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
+	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, TxExtension, H160>;
 /// Executive: handles dispatch to the various pallets.
 pub type Executive = frame_executive::Executive<
 	Runtime,
@@ -1600,7 +1541,6 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_sudo, Sudo]
 		[pallet_evm, EVM]
-		[pallet_assets, Assets]
 		[pallet_parachain_staking, ParachainStaking]
 		[pallet_scheduler, Scheduler]
 		[pallet_treasury, Treasury]
@@ -1615,7 +1555,6 @@ mod benches {
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_message_queue, MessageQueue]
 		[pallet_xcm, PalletXcmExtrinsicsBenchmark::<Runtime>]
-		[pallet_asset_manager, AssetManager]
 		[pallet_xcm_transactor, XcmTransactor]
 		[pallet_moonbeam_foreign_assets, EvmForeignAssets]
 		[pallet_moonbeam_orbiters, MoonbeamOrbiters]
@@ -1625,7 +1564,7 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_whitelist, Whitelist]
 		[pallet_multisig, Multisig]
-		[pallet_multiblock_migrations, MultiBlockMigrations]
+		[pallet_migrations, MultiBlockMigrations]
 		// Currently there are no extrinsics to benchmark for the Lazy Migrations pallet
 		// [pallet_moonbeam_lazy_migrations, MoonbeamLazyMigrations]
 		[pallet_relay_storage_roots, RelayStorageRoots]
@@ -1634,6 +1573,7 @@ mod benches {
 		[pallet_xcm_weight_trader, XcmWeightTrader]
 		[pallet_collective, TreasuryCouncilCollective]
 		[pallet_collective, OpenTechCommitteeCollective]
+		[cumulus_pallet_weight_reclaim, WeightReclaim]
 	);
 }
 
@@ -1691,8 +1631,8 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 						let tip = match &xt.0.preamble {
 							Preamble::Bare(_) => 0,
 							Preamble::Signed(_, _, signed_extra) => {
-								// Yuck, this depends on the index of ChargeTransactionPayment in SignedExtra
-								let charge_transaction_payment = &signed_extra.7;
+								// Yuck, this depends on the index of ChargeTransactionPayment in TxExtension
+								let charge_transaction_payment = &signed_extra.0.7;
 								charge_transaction_payment.tip()
 							},
 							Preamble::General(_, _) => 0,
@@ -1725,103 +1665,16 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 			}
 		}
 
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		impl bp_westend::WestendFinalityApi<Block> for Runtime {
-			fn best_finalized() -> Option<bp_runtime::HeaderId<bp_westend::Hash, bp_westend::BlockNumber>> {
-				BridgeWestendGrandpa::best_finalized()
-			}
-			fn free_headers_interval() -> Option<bp_westend::BlockNumber> {
-				<Runtime as pallet_bridge_grandpa::Config<
-					bridge_config::BridgeGrandpaInstance
-				>>::FreeHeadersInterval::get()
-			}
-			fn synced_headers_grandpa_info(
-			) -> Vec<bp_header_chain::StoredHeaderGrandpaInfo<bp_westend::Header>> {
-				BridgeWestendGrandpa::synced_headers_grandpa_info()
-			}
-		}
-
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		impl bp_moonbase::MoonbaseWestendFinalityApi<Block> for Runtime {
-			fn best_finalized() -> Option<bp_runtime::HeaderId<bp_moonbase::Hash, bp_moonbase::BlockNumber>> {
-				if cfg!(feature = "bridge-stagenet") {
-					BridgeParachains::best_parachain_head_id::<
-						bp_moonbase::betanet::Betanet
-					>().unwrap_or(None)
-				} else {
-					BridgeParachains::best_parachain_head_id::<
-						bp_moonbase::stagenet::Stagenet
-					>().unwrap_or(None)
-				}
-			}
-			fn free_headers_interval() -> Option<bp_moonbase::BlockNumber> {
-				// "free interval" is not currently used for parachains
-				None
-			}
-		}
-
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		impl bp_moonbase::ToMoonbaseWestendOutboundLaneApi<Block> for Runtime {
-			fn message_details(
-				lane: bp_moonbase::LaneId,
-				begin: bp_messages::MessageNonce,
-				end: bp_messages::MessageNonce,
-			) -> Vec<bp_messages::OutboundMessageDetails> {
-				bridge_runtime_common::messages_api::outbound_message_details::<
-					Runtime,
-					bridge_config::WithMessagesInstance,
-				>(lane, begin, end)
-			}
-		}
-
-		#[cfg(any(feature = "bridge-stagenet", feature = "bridge-betanet"))]
-		impl bp_moonbase::FromMoonbaseWestendInboundLaneApi<Block> for Runtime {
-			fn message_details(
-				lane: bp_moonbase::LaneId,
-				messages: Vec<(bp_messages::MessagePayload, bp_messages::OutboundMessageDetails)>,
-			) -> Vec<bp_messages::InboundMessageDetails> {
-				bridge_runtime_common::messages_api::inbound_message_details::<
-					Runtime,
-					bridge_config::WithMessagesInstance,
-				>(lane, messages)
-			}
-		}
 	}
 
 	// Benchmark customizations
 	{}
 );
 
-#[allow(dead_code)]
-struct CheckInherents;
-
-// Parity has decided to depreciate this trait, but does not offer a satisfactory replacement,
-// see issue: https://github.com/paritytech/polkadot-sdk/issues/2841
-#[allow(deprecated)]
-impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
-	fn check_inherents(
-		block: &Block,
-		relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
-	) -> sp_inherents::CheckInherentsResult {
-		let relay_chain_slot = relay_state_proof
-			.read_slot()
-			.expect("Could not read the relay chain slot from the proof");
-		let inherent_data =
-			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-				relay_chain_slot,
-				sp_std::time::Duration::from_secs(6),
-			)
-			.create_inherent_data()
-			.expect("Could not create the timestamp inherent data");
-		inherent_data.check_extrinsics(block)
-	}
-}
-
 // Nimbus's Executive wrapper allows relay validators to verify the seal digest
 cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime = Runtime,
 	BlockExecutor = pallet_author_inherent::BlockExecutor::<Runtime, Executive>,
-	CheckInherents = CheckInherents,
 );
 
 moonbeam_runtime_common::impl_self_contained_call!();
@@ -1863,7 +1716,6 @@ mod tests {
 		assert!(
 			std::mem::size_of::<pallet_maintenance_mode::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
-		assert!(std::mem::size_of::<pallet_asset_manager::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(
 			std::mem::size_of::<pallet_moonbeam_lazy_migrations::Call<Runtime>>()

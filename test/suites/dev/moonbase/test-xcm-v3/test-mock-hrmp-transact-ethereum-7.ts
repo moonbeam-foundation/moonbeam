@@ -12,7 +12,7 @@ import {
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D024028",
+  id: "D024113",
   title: "Mock XCM - transact ETHEREUM (proxy) disabled switch",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -120,7 +120,8 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmFee = 1_000_000_000_000_000n;
+        const targetXcmWeight = 5_000_000_000n + 100_000_000n;
+        const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
           expectedTransferredAmount += amountToTransfer;
@@ -146,7 +147,7 @@ describeSuite({
               },
             ],
             weight_limit: {
-              refTime: 4_778_641_000,
+              refTime: targetXcmWeight,
               proofSize: 43_208,
             } as any,
             descend_origin: sendingAddress,
@@ -159,7 +160,7 @@ describeSuite({
                 originKind: "SovereignAccount",
                 // 100_000 gas + 2db reads
                 requireWeightAtMost: {
-                  refTime: 608_484_000,
+                  refTime: 118_534_000,
                   // This is impacted by `GasWeightMapping::gas_to_weight` in pallet-ethereum-xcm
                   proofSize: 2_625, // Previously (with 5MB max PoV): 1312
                 },

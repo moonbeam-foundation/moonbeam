@@ -12,7 +12,7 @@ import {
 import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
-  id: "D010710",
+  id: "D010704",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -109,7 +109,7 @@ describeSuite({
         let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
-        const targetXcmWeight = 30_000_000_000n + 100_000_000n;
+        const targetXcmWeight = 30_000_000_000n + 700_000_000n;
         const targetXcmFee = targetXcmWeight * 200_000n;
 
         for (const xcmTransaction of xcmTransactions) {

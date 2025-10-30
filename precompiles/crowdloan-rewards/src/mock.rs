@@ -16,24 +16,18 @@
 
 //! Test utilities
 use super::*;
-use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayChainBlockNumber, AggregateMessageOrigin,
-	PersistedValidationData,
-};
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
-use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::{
-	construct_runtime,
-	inherent::{InherentData, ProvideInherent},
-	parameter_types,
-	traits::{Everything, OnFinalize, OnInitialize, UnfilteredDispatchable},
+	construct_runtime, parameter_types,
+	traits::{Everything, OnFinalize, OnInitialize},
 	weights::Weight,
 };
-use frame_system::{pallet_prelude::BlockNumberFor, EnsureSigned, RawOrigin};
+use frame_system::{pallet_prelude::BlockNumberFor, EnsureSigned};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_io;
+use sp_runtime::traits::BlockNumberProvider;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage, Perbill,
@@ -134,8 +128,17 @@ impl frame_system::Config for Runtime {
 	type PostTransactions = ();
 	type ExtensionsWeightInfo = ();
 }
+pub struct MockVestingBlockNumberProvider;
+impl BlockNumberProvider for MockVestingBlockNumberProvider {
+	type BlockNumber = u32;
+
+	fn current_block_number() -> Self::BlockNumber {
+		System::block_number()
+	}
+}
+
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 0;
+	pub const ExistentialDeposit: u128 = 1;
 }
 impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
@@ -201,6 +204,8 @@ impl pallet_evm::Config for Runtime {
 	type Timestamp = Timestamp;
 	type WeightInfo = pallet_evm::weights::SubstrateWeight<Runtime>;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
+	type CreateOriginFilter = ();
+	type CreateInnerOriginFilter = ();
 }
 
 parameter_types! {
@@ -235,8 +240,8 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type SignatureNetworkIdentifier = TestSignatureNetworkIdentifier;
 
-	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
-	type VestingBlockProvider = cumulus_pallet_parachain_system::RelaychainDataProvider<Self>;
+	type VestingBlockNumber = u32;
+	type VestingBlockProvider = MockVestingBlockNumberProvider;
 	type WeightInfo = ();
 }
 pub(crate) struct ExtBuilder {
@@ -268,14 +273,22 @@ impl ExtBuilder {
 			.build_storage()
 			.expect("Frame system builds valid default genesis config");
 
+		let mut balances = self.balances;
+		if self.crowdloan_pot > 0 {
+			balances.push((Crowdloan::account_id(), self.crowdloan_pot));
+		}
+
 		pallet_balances::GenesisConfig::<Runtime> {
-			balances: self.balances,
+			balances,
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
 
 		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
-			funded_amount: self.crowdloan_pot,
+			funded_accounts: vec![],
+			init_vesting_block: 1u32,
+			end_vesting_block: 100u32,
 		}
 		.assimilate_storage(&mut t)
 		.expect("Crowdloan Rewards storage can be assimilated");
@@ -286,47 +299,15 @@ impl ExtBuilder {
 	}
 }
 
-//TODO Add pallets here if necessary
 pub(crate) fn roll_to(n: BlockNumber) {
 	while System::block_number() < n {
-		// Relay chain Stuff. I might actually set this to a number different than N
-		let sproof_builder = RelayStateSproofBuilder::default();
-		let (relay_parent_storage_root, relay_chain_state) =
-			sproof_builder.into_state_root_and_proof();
-		let vfp = PersistedValidationData {
-			relay_parent_number: (System::block_number() + 1) as RelayChainBlockNumber,
-			relay_parent_storage_root,
-			..Default::default()
-		};
-		let inherent_data = {
-			let mut inherent_data = InherentData::default();
-			let system_inherent_data = ParachainInherentData {
-				validation_data: vfp.clone(),
-				relay_chain_state,
-				downward_messages: Default::default(),
-				horizontal_messages: Default::default(),
-			};
-			inherent_data
-				.put_data(
-					cumulus_primitives_parachain_inherent::INHERENT_IDENTIFIER,
-					&system_inherent_data,
-				)
-				.expect("failed to put VFP inherent");
-			inherent_data
-		};
-
-		ParachainSystem::on_initialize(System::block_number());
-		ParachainSystem::create_inherent(&inherent_data)
-			.expect("got an inherent")
-			.dispatch_bypass_filter(RawOrigin::None.into())
-			.expect("dispatch succeeded");
-		ParachainSystem::on_finalize(System::block_number());
-
+		Crowdloan::on_finalize(System::block_number());
 		Balances::on_finalize(System::block_number());
 		System::on_finalize(System::block_number());
 		System::set_block_number(System::block_number() + 1);
 		System::on_initialize(System::block_number());
 		Balances::on_initialize(System::block_number());
+		Crowdloan::on_initialize(System::block_number());
 	}
 }
 

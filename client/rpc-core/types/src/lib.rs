@@ -29,6 +29,7 @@ pub enum RequestBlockId {
 #[serde(rename_all = "camelCase")]
 pub enum RequestBlockTag {
 	Earliest,
+	Finalized,
 	Latest,
 	Pending,
 }

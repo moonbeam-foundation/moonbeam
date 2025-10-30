@@ -2,7 +2,7 @@
 name = "moonbeam-cli"
 authors = { workspace = true }
 edition = "2021"
-version = "0.47.0"
+version = "0.49.0"
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
@@ -10,6 +10,7 @@ clap-num = { workspace = true }
 log = { workspace = true }
 parity-scale-codec = { workspace = true }
 url = { workspace = true }
+ansi_term = { workspace = true }
 
 # Moonbeam
 moonbeam-cli-opt = { workspace = true }
@@ -45,7 +46,7 @@ default = [
     "moonriver-native"
 ]
 
-lazy-loading = ["sc-service/test-helpers", "moonbeam-service/lazy-loading"]
+lazy-loading = ["moonbeam-service/lazy-loading"]
 
 metadata-hash = ["moonbeam-service/metadata-hash"]
 

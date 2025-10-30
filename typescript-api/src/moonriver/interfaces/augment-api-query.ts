@@ -13,7 +13,6 @@ import type {
   Bytes,
   Null,
   Option,
-  Struct,
   U256,
   U8aFixed,
   Vec,
@@ -48,25 +47,20 @@ import type {
   CumulusPalletXcmpQueueQueueConfigData,
   CumulusPrimitivesCoreAggregateMessageOrigin,
   EthereumBlock,
-  EthereumReceiptReceiptV3,
-  EthereumTransactionTransactionV2,
+  EthereumReceiptReceiptV4,
+  EthereumTransactionTransactionV3,
   FpRpcTransactionStatus,
   FrameSupportDispatchPerDispatchClassWeight,
-  FrameSupportTokensMiscIdAmount,
+  FrameSupportTokensMiscIdAmountRuntimeFreezeReason,
+  FrameSupportTokensMiscIdAmountRuntimeHoldReason,
   FrameSystemAccountInfo,
   FrameSystemCodeUpgradeAuthorization,
   FrameSystemEventRecord,
   FrameSystemLastRuntimeUpgradeInfo,
   FrameSystemPhase,
-  MoonriverRuntimeRuntimeHoldReason,
   MoonriverRuntimeRuntimeParamsRuntimeParametersKey,
   MoonriverRuntimeRuntimeParamsRuntimeParametersValue,
-  MoonriverRuntimeXcmConfigAssetType,
   NimbusPrimitivesNimbusCryptoPublic,
-  PalletAssetsApproval,
-  PalletAssetsAssetAccount,
-  PalletAssetsAssetDetails,
-  PalletAssetsAssetMetadata,
   PalletAuthorMappingRegistrationInfo,
   PalletBalancesAccountData,
   PalletBalancesBalanceLock,
@@ -113,6 +107,7 @@ import type {
   PalletTransactionPaymentReleases,
   PalletTreasuryProposal,
   PalletTreasurySpendStatus,
+  PalletXcmAuthorizedAliasesEntry,
   PalletXcmQueryStatus,
   PalletXcmRemoteLockedFungibleRecord,
   PalletXcmTransactorRelayIndicesRelayChainIndices,
@@ -138,107 +133,12 @@ export type __QueryableStorageEntry<ApiType extends ApiTypes> = QueryableStorage
 
 declare module "@polkadot/api-base/types/storage" {
   interface AugmentedQueries<ApiType extends ApiTypes> {
-    assetManager: {
-      /**
-       * Mapping from an asset id to asset type.
-       * This is mostly used when receiving transaction specifying an asset directly,
-       * like transferring an asset from this chain to another.
-       **/
-      assetIdType: AugmentedQuery<
-        ApiType,
-        (
-          arg: u128 | AnyNumber | Uint8Array
-        ) => Observable<Option<MoonriverRuntimeXcmConfigAssetType>>,
-        [u128]
-      > &
-        QueryableStorageEntry<ApiType, [u128]>;
-      /**
-       * Reverse mapping of AssetIdType. Mapping from an asset type to an asset id.
-       * This is mostly used when receiving a multilocation XCM message to retrieve
-       * the corresponding asset in which tokens should me minted.
-       **/
-      assetTypeId: AugmentedQuery<
-        ApiType,
-        (
-          arg: MoonriverRuntimeXcmConfigAssetType | { Xcm: any } | string | Uint8Array
-        ) => Observable<Option<u128>>,
-        [MoonriverRuntimeXcmConfigAssetType]
-      > &
-        QueryableStorageEntry<ApiType, [MoonriverRuntimeXcmConfigAssetType]>;
-      /**
-       * Generic query
-       **/
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
-    assets: {
-      /**
-       * The holdings of a specific account for a specific asset.
-       **/
-      account: AugmentedQuery<
-        ApiType,
-        (
-          arg1: u128 | AnyNumber | Uint8Array,
-          arg2: AccountId20 | string | Uint8Array
-        ) => Observable<Option<PalletAssetsAssetAccount>>,
-        [u128, AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [u128, AccountId20]>;
-      /**
-       * Approved balance transfers. First balance is the amount approved for transfer. Second
-       * is the amount of `T::Currency` reserved for storing this.
-       * First key is the asset ID, second key is the owner and third key is the delegate.
-       **/
-      approvals: AugmentedQuery<
-        ApiType,
-        (
-          arg1: u128 | AnyNumber | Uint8Array,
-          arg2: AccountId20 | string | Uint8Array,
-          arg3: AccountId20 | string | Uint8Array
-        ) => Observable<Option<PalletAssetsApproval>>,
-        [u128, AccountId20, AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [u128, AccountId20, AccountId20]>;
-      /**
-       * Details of an asset.
-       **/
-      asset: AugmentedQuery<
-        ApiType,
-        (arg: u128 | AnyNumber | Uint8Array) => Observable<Option<PalletAssetsAssetDetails>>,
-        [u128]
-      > &
-        QueryableStorageEntry<ApiType, [u128]>;
-      /**
-       * Metadata of an asset.
-       **/
-      metadata: AugmentedQuery<
-        ApiType,
-        (arg: u128 | AnyNumber | Uint8Array) => Observable<PalletAssetsAssetMetadata>,
-        [u128]
-      > &
-        QueryableStorageEntry<ApiType, [u128]>;
-      /**
-       * The asset ID enforced for the next asset creation, if any present. Otherwise, this storage
-       * item has no effect.
-       *
-       * This can be useful for setting up constraints for IDs of the new assets. For example, by
-       * providing an initial [`NextAssetId`] and using the [`crate::AutoIncAssetId`] callback, an
-       * auto-increment model can be applied to all new asset IDs.
-       *
-       * The initial next asset ID can be set using the [`GenesisConfig`] or the
-       * [SetNextAssetId](`migration::next_asset_id::SetNextAssetId`) migration.
-       **/
-      nextAssetId: AugmentedQuery<ApiType, () => Observable<Option<u128>>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /**
-       * Generic query
-       **/
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
     asyncBacking: {
       /**
-       * First tuple element is the highest slot that has been seen in the history of this chain.
-       * Second tuple element is the number of authored blocks so far.
-       * This is a strictly-increasing value if T::AllowMultipleBlocksPerSlot = false.
+       * Current relay chain slot paired with a number of authored blocks.
+       *
+       * This is updated in [`FixedVelocityConsensusHook::on_state_proof`] with the current relay
+       * chain slot as provided by the relay chain state proof.
        **/
       slotInfo: AugmentedQuery<ApiType, () => Observable<Option<ITuple<[u64, u32]>>>, []> &
         QueryableStorageEntry<ApiType, []>;
@@ -343,7 +243,9 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       freezes: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<Vec<FrameSupportTokensMiscIdAmount>>,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Vec<FrameSupportTokensMiscIdAmountRuntimeFreezeReason>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -352,14 +254,9 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       holds: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<
-          Vec<
-            {
-              readonly id: MoonriverRuntimeRuntimeHoldReason;
-              readonly amount: u128;
-            } & Struct
-          >
-        >,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Vec<FrameSupportTokensMiscIdAmountRuntimeHoldReason>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -740,7 +637,7 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       currentReceipts: AugmentedQuery<
         ApiType,
-        () => Observable<Option<Vec<EthereumReceiptReceiptV3>>>,
+        () => Observable<Option<Vec<EthereumReceiptReceiptV4>>>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;
@@ -763,7 +660,7 @@ declare module "@polkadot/api-base/types/storage" {
         ) => Observable<
           Option<
             ITuple<
-              [EthereumTransactionTransactionV2, FpRpcTransactionStatus, EthereumReceiptReceiptV3]
+              [EthereumTransactionTransactionV3, FpRpcTransactionStatus, EthereumReceiptReceiptV4]
             >
           >
         >,
@@ -1040,33 +937,6 @@ declare module "@polkadot/api-base/types/storage" {
         () => Observable<Option<CumulusPrimitivesCoreAggregateMessageOrigin>>,
         []
       > &
-        QueryableStorageEntry<ApiType, []>;
-      /**
-       * Generic query
-       **/
-      [key: string]: QueryableStorageEntry<ApiType>;
-    };
-    migrations: {
-      /**
-       * True if all required migrations have completed
-       **/
-      fullyUpgraded: AugmentedQuery<ApiType, () => Observable<bool>, []> &
-        QueryableStorageEntry<ApiType, []>;
-      /**
-       * MigrationState tracks the progress of a migration.
-       * Maps name (Vec<u8>) -> whether or not migration has been completed (bool)
-       **/
-      migrationState: AugmentedQuery<
-        ApiType,
-        (arg: Bytes | string | Uint8Array) => Observable<bool>,
-        [Bytes]
-      > &
-        QueryableStorageEntry<ApiType, [Bytes]>;
-      /**
-       * Temporary value that is set to true at the beginning of the block during which the execution
-       * of xcm messages must be paused.
-       **/
-      shouldPauseXcm: AugmentedQuery<ApiType, () => Observable<bool>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * Generic query
@@ -1390,6 +1260,26 @@ declare module "@polkadot/api-base/types/storage" {
         []
       > &
         QueryableStorageEntry<ApiType, []>;
+      /**
+       * Temporary storage to track candidates that have been migrated from locks to freezes.
+       * This storage should be removed after all accounts have been migrated.
+       **/
+      migratedCandidates: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<Option<Null>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * Temporary storage to track delegators that have been migrated from locks to freezes.
+       * This storage should be removed after all accounts have been migrated.
+       **/
+      migratedDelegators: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<Option<Null>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
       /**
        * Total points awarded to collators for block production in the round
        **/
@@ -1717,6 +1607,19 @@ declare module "@polkadot/api-base/types/storage" {
         [H256]
       > &
         QueryableStorageEntry<ApiType, [H256]>;
+      /**
+       * Map of authorized aliasers of local origins. Each local location can authorize a list of
+       * other locations to alias into it. Each aliaser is only valid until its inner `expiry`
+       * block number.
+       **/
+      authorizedAliases: AugmentedQuery<
+        ApiType,
+        (
+          arg: XcmVersionedLocation | { V3: any } | { V4: any } | { V5: any } | string | Uint8Array
+        ) => Observable<Option<PalletXcmAuthorizedAliasesEntry>>,
+        [XcmVersionedLocation]
+      > &
+        QueryableStorageEntry<ApiType, [XcmVersionedLocation]>;
       /**
        * The current migration's stage, if any.
        **/
@@ -2070,6 +1973,9 @@ declare module "@polkadot/api-base/types/storage" {
         [u32]
       > &
         QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * Block number at which the agenda began incomplete execution.
+       **/
       incompleteSince: AugmentedQuery<ApiType, () => Observable<Option<u32>>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
@@ -2200,6 +2106,21 @@ declare module "@polkadot/api-base/types/storage" {
         [u32]
       > &
         QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * The weight reclaimed for the extrinsic.
+       *
+       * This information is available until the end of the extrinsic execution.
+       * More precisely this information is removed in `note_applied_extrinsic`.
+       *
+       * Logic doing some post dispatch weight reduction must update this storage to avoid duplicate
+       * reduction.
+       **/
+      extrinsicWeightReclaimed: AugmentedQuery<
+        ApiType,
+        () => Observable<SpWeightsWeightV2Weight>,
+        []
+      > &
+        QueryableStorageEntry<ApiType, []>;
       /**
        * Whether all inherents have been applied.
        **/
