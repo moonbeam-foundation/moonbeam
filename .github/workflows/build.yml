@@ -133,7 +133,7 @@ jobs:
             **.txt
 
   check-copyright:
-    if: needs.set-tags.outputs.any_changed == 'true'
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -170,8 +170,8 @@ jobs:
           filter_mode: nofilter
 
   check-biome:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check with Biome"
-    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -194,6 +194,7 @@ jobs:
       - run: pnpm check
 
   check-cargo-toml-format:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check Cargo.toml files format"
     runs-on:
       labels: ubuntu-latest
@@ -215,6 +216,7 @@ jobs:
         run: ./scripts/check-cargo-toml-files-format.sh
 
   check-forbid-evm-reentrancy:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check 'forbid-evm-reentrancy'"
     runs-on: ubuntu-latest
     permissions:
@@ -233,6 +235,7 @@ jobs:
         run: ./scripts/check-forbid-evm-reentrancy.sh
 
   check-rust-fmt:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
     permissions:
@@ -255,6 +258,7 @@ jobs:
   ####### Building and Testing binaries #######
 
   cargo-clippy:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -282,7 +286,6 @@ jobs:
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
 
   build:
-    if: needs.set-tags.outputs.any_changed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -290,37 +293,46 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: ./.github/workflow-templates/cargo-build
         with:
           features: metadata-hash
       - name: Upload runtimes
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: runtimes
           path: runtimes
       - name: Upload uncompressed runtimes
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes
       - name: Upload binary
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: moonbeam
           path: build
 
   check-wasm-size:
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.fork != true && 
+      github.actor != 'dependabot[bot]'
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
       pull-requests: write
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]'  }}
     needs: ["set-tags", "build"]
     env:
       GH_TOKEN: ${{ github.token }}
@@ -522,7 +534,7 @@ jobs:
           cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
-    if: needs.set-tags.outputs.any_changed == 'true'
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -607,7 +619,6 @@ jobs:
   #         fi
 
   dev-test:
-    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -624,30 +635,38 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Create local folders
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built runtime"
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release
       - name: "Run Moonwall Dev Tests"
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: ./.github/workflow-templates/dev-tests
         with:
           moonwall_environment: dev_${{ matrix.chain }}
           shard: ${{ matrix.shard }}
           shard-count: 4
       - name: Upload HTML report to s3
-        if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+        if: |
+          needs.set-tags.outputs.any_changed == 'true' &&
+          github.event.pull_request.head.repo.fork != true && 
+          github.actor != 'dependabot[bot]'
         uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
         with:
@@ -671,7 +690,7 @@ jobs:
       #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
 
   typescript-tracing-tests:
-    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -723,7 +742,7 @@ jobs:
           pnpm moonwall test dev_moonbase_tracing
 
   lazy-loading-tests:
-    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -783,7 +802,7 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   chopsticks-upgrade-test:
-    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -831,7 +850,7 @@ jobs:
             pnpm moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
-    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -905,7 +924,7 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   bridge-integration-tests:
-    if: ${{ always() && needs.set-tags.outputs.any_changed == 'true' }}
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     needs: ["set-tags", "build"]
     runs-on: ubuntu-latest
     permissions:
