@@ -1800,6 +1800,7 @@ mod tests {
 				cache_size: 128,
 			},
 			trie_cache_maximum_size: Some(16777216),
+			warm_up_trie_cache: None,
 			state_pruning: Default::default(),
 			blocks_pruning: sc_service::BlocksPruning::KeepAll,
 			chain_spec: Box::new(spec),
