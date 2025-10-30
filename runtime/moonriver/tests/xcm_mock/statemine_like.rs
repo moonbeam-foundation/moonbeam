@@ -559,8 +559,7 @@ pub mod mock_statemine_prefix {
 	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
-	}
+	pub trait Config: frame_system::Config {}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {}
@@ -594,8 +593,7 @@ pub mod mock_statemine_prefix {
 	}
 }
 
-impl mock_statemine_prefix::Config for Runtime {
-}
+impl mock_statemine_prefix::Config for Runtime {}
 
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
 construct_runtime!(

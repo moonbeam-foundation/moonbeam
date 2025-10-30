@@ -567,8 +567,7 @@ pub mod mock_version_changer {
 	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
-	}
+	pub trait Config: frame_system::Config {}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {}
@@ -606,8 +605,7 @@ impl mock_msg_queue::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
-impl mock_version_changer::Config for Runtime {
-}
+impl mock_version_changer::Config for Runtime {}
 
 pub type LocalOriginToLocation =
 	xcm_primitives::SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;

@@ -184,7 +184,11 @@ pub mod pallet {
 	pub const PALLET_ID: frame_support::PalletId = frame_support::PalletId(*b"forgasst");
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config<RuntimeEvent: From<Event<Self>>> + pallet_evm::Config + scale_info::TypeInfo {
+	pub trait Config:
+		frame_system::Config<RuntimeEvent: From<Event<Self>>>
+		+ pallet_evm::Config
+		+ scale_info::TypeInfo
+	{
 		// Convert AccountId to H160
 		type AccountIdToH160: Convert<Self::AccountId, H160>;
 

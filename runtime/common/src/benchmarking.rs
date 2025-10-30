@@ -47,11 +47,8 @@ impl pallet_identity::BenchmarkHelper<EthereumSigner, EthereumSignature> for Ben
 		let hash = sp_io::hashing::keccak_256(message);
 
 		// Sign using the generated key
-		let signature = sp_io::crypto::ecdsa_sign(
-			0.into(),
-			&public,
-			&hash,
-		).expect("signing should succeed");
+		let signature =
+			sp_io::crypto::ecdsa_sign(0.into(), &public, &hash).expect("signing should succeed");
 
 		// Convert to Ethereum types using existing From implementations
 		let eth_signature = EthereumSignature::from(signature);

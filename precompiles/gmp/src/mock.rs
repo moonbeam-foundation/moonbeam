@@ -18,8 +18,7 @@
 use super::*;
 use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 use frame_support::traits::{
-	Disabled, EnsureOrigin, Everything, Nothing, OriginTrait,
-	PalletInfo as PalletInfoTrait,
+	Disabled, EnsureOrigin, Everything, Nothing, OriginTrait, PalletInfo as PalletInfoTrait,
 };
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
