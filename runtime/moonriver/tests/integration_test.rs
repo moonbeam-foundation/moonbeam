@@ -1995,7 +1995,7 @@ fn test_nested_batch_calls_from_xcm_transact() {
 			call: valid_nested_calls.encode().into(),
 		}]);
 
-		assert!(XcmExecutor::prepare(valid_message).is_ok());
+		assert!(XcmExecutor::prepare(valid_message, Weight::MAX).is_ok());
 
 		let excessive_nested_calls = RuntimeCall::Utility(pallet_utility::Call::batch {
 			calls: vec![valid_nested_calls],
@@ -2007,7 +2007,7 @@ fn test_nested_batch_calls_from_xcm_transact() {
 			call: excessive_nested_calls.encode().into(),
 		}]);
 		// Expect to fail because we have too many nested calls
-		assert!(XcmExecutor::prepare(invalid_message).is_err());
+		assert!(XcmExecutor::prepare(invalid_message, Weight::MAX).is_err());
 	});
 }
 
