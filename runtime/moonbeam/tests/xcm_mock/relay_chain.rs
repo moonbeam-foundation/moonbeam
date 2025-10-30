@@ -283,6 +283,9 @@ impl paras::Config for Runtime {
 	type QueueFootprinter = ();
 	type OnNewHead = ();
 	type AssignCoretime = ();
+	type Fungible = ();
+	type CooldownRemovalMultiplier = ();
+	type AuthorizeCurrentCodeOrigin = frame_system::EnsureRoot<AccountId>;
 }
 
 impl dmp::Config for Runtime {}
