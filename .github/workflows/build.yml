@@ -235,7 +235,7 @@ jobs:
         run: ./scripts/check-forbid-evm-reentrancy.sh
 
   check-rust-fmt:
-    if: needs.set-tags.outputs.any_changed == 'true'
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
     permissions:
@@ -293,29 +293,29 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        if: needs.set-tags.outputs.any_changed == 'true'
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
-        if: needs.set-tags.outputs.any_changed == 'true'
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: ./.github/workflow-templates/cargo-build
         with:
           features: metadata-hash
       - name: Upload runtimes
-        if: needs.set-tags.outputs.any_changed == 'true'
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: runtimes
           path: runtimes
       - name: Upload uncompressed runtimes
-        if: needs.set-tags.outputs.any_changed == 'true'
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes
       - name: Upload binary
-        if: needs.set-tags.outputs.any_changed == 'true'
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: moonbeam
