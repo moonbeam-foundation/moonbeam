@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { RUNTIME_CONSTANTS } from "../../helpers";
+import { RUNTIME_CONSTANTS } from "../../../helpers";
 import type { ApiPromise } from "@polkadot/api";
 import fs from "node:fs/promises";
 import { u8aToHex } from "@polkadot/util";
@@ -8,16 +8,9 @@ import assert from "node:assert";
 import type { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
 describeSuite({
-  id: "L01",
+  id: "LL-COMMON-RT-UPGRADE",
   title: "Lazy Loading - Runtime Upgrade",
   foundationMethods: "dev",
-  options: {
-    forkConfig: {
-      url: process.env.FORK_URL ?? "https://trace.api.moonbeam.network",
-      stateOverridePath: "tmp/lazyLoadingStateOverrides.json",
-      verbose: true,
-    },
-  },
   testCases: ({ it, context, log }) => {
     let api: ApiPromise;
 

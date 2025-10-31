@@ -2901,16 +2901,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cumulus-primitives-timestamp"
-version = "0.20.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#4f1bceaa883a82b84df411b9081dcc7b09ab7a7e"
-dependencies = [
- "cumulus-primitives-core",
- "sp-inherents",
- "sp-timestamp",
-]
-
-[[package]]
 name = "cumulus-primitives-utility"
 version = "0.21.0"
 source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2506#4f1bceaa883a82b84df411b9081dcc7b09ab7a7e"
@@ -5658,7 +5648,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.5.9",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -6182,15 +6172,6 @@ name = "itertools"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
 dependencies = [
  "either",
 ]
@@ -6950,7 +6931,7 @@ dependencies = [
  "thiserror 1.0.69",
  "tracing",
  "yamux 0.12.1",
- "yamux 0.13.5",
+ "yamux 0.13.8",
 ]
 
 [[package]]
@@ -7166,7 +7147,7 @@ dependencies = [
  "url",
  "x25519-dalek",
  "x509-parser 0.17.0",
- "yamux 0.13.5",
+ "yamux 0.13.8",
  "yasna",
  "zeroize",
 ]
@@ -7558,7 +7539,6 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-storage-weight-reclaim",
- "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
  "ethereum",
@@ -7705,14 +7685,14 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.48.0"
+version = "0.49.0"
 dependencies = [
  "moonbeam-cli",
 ]
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.48.0"
+version = "0.49.0"
 dependencies = [
  "ansi_term",
  "clap",
@@ -7741,7 +7721,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.48.0"
+version = "0.49.0"
 dependencies = [
  "account",
  "bip32",
@@ -7984,7 +7964,6 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-storage-weight-reclaim",
- "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
  "ethereum",
@@ -8135,7 +8114,6 @@ name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 dependencies = [
  "account",
- "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "ethereum",
  "frame-support",
@@ -8164,7 +8142,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.48.0"
+version = "0.49.0"
 dependencies = [
  "ansi_term",
  "async-backing-primitives",
@@ -8320,7 +8298,6 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-primitives-storage-weight-reclaim",
- "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
  "ethereum",
@@ -11554,8 +11531,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
- "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand 0.7.3",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -13465,7 +13442,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
  "heck 0.4.1",
- "itertools 0.14.0",
+ "itertools 0.10.5",
  "log",
  "multimap",
  "once_cell",
@@ -13498,7 +13475,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.14.0",
+ "itertools 0.11.0",
  "proc-macro2",
  "quote",
  "syn 2.0.101",
@@ -19011,7 +18988,7 @@ checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
  "cfg-if",
  "digest 0.10.7",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
@@ -20544,9 +20521,9 @@ dependencies = [
 
 [[package]]
 name = "yamux"
-version = "0.13.5"
+version = "0.13.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3da1acad1c2dc53f0dde419115a38bd8221d8c3e47ae9aeceaf453266d29307e"
+checksum = "deab71f2e20691b4728b349c6cee8fc7223880fa67b6b4f92225ec32225447e5"
 dependencies = [
  "futures 0.3.31",
  "log",

@@ -15,7 +15,7 @@ describeSuite({
     beforeAll(async () => {
       paraApi = context.polkadotJs("parachain");
 
-      const currentBlock = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
+      const currentBlock = (await paraApi.rpc.chain.getHeader()).number.toNumber();
       expect(currentBlock, "Parachain not producing blocks").to.be.greaterThan(0);
     }, 120000);
 
@@ -23,7 +23,7 @@ describeSuite({
       id: "T01",
       title: "Blocks are being produced on parachain",
       test: async () => {
-        const blockNum = (await paraApi.rpc.chain.getBlock()).block.header.number.toNumber();
+        const blockNum = (await paraApi.rpc.chain.getHeader()).number.toNumber();
         expect(blockNum).to.be.greaterThan(0);
       },
     });
@@ -55,9 +55,7 @@ describeSuite({
         log(`Current runtime hash: ${rtHex.slice(0, 10)}...${rtHex.slice(-10)}`);
         log(`New runtime hash: ${codeString.slice(0, 10)}...${codeString.slice(-10)}`);
 
-        const blockNumberBefore = (
-          await paraApi.rpc.chain.getBlock()
-        ).block.header.number.toNumber();
+        const blockNumberBefore = (await paraApi.rpc.chain.getHeader()).number.toNumber();
 
         await paraApi.tx.system.applyAuthorizedUpgrade(rtHex).signAndSend(alith);
 
@@ -68,9 +66,7 @@ describeSuite({
 
         log(`RT upgrade has increased specVersion from ${rtBefore} to ${rtafter}`);
 
-        const blockNumberAfter = (
-          await paraApi.rpc.chain.getBlock()
-        ).block.header.number.toNumber();
+        const blockNumberAfter = (await paraApi.rpc.chain.getHeader()).number.toNumber();
         log(`Before: #${blockNumberBefore}, After: #${blockNumberAfter}`);
         expect(blockNumberAfter, "Block number did not increase").to.be.greaterThan(
           blockNumberBefore

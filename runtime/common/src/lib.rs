@@ -30,6 +30,5 @@ mod impl_self_contained_call;
 mod impl_xcm_evm_runner;
 pub mod migrations;
 pub mod tests;
-pub mod timestamp;
 pub mod types;
 pub mod xcm_origins;

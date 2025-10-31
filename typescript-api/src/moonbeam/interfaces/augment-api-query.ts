@@ -13,7 +13,6 @@ import type {
   Bytes,
   Null,
   Option,
-  Struct,
   U256,
   U8aFixed,
   Vec,
@@ -52,13 +51,13 @@ import type {
   EthereumTransactionTransactionV3,
   FpRpcTransactionStatus,
   FrameSupportDispatchPerDispatchClassWeight,
-  FrameSupportTokensMiscIdAmount,
+  FrameSupportTokensMiscIdAmountRuntimeFreezeReason,
+  FrameSupportTokensMiscIdAmountRuntimeHoldReason,
   FrameSystemAccountInfo,
   FrameSystemCodeUpgradeAuthorization,
   FrameSystemEventRecord,
   FrameSystemLastRuntimeUpgradeInfo,
   FrameSystemPhase,
-  MoonbeamRuntimeRuntimeHoldReason,
   MoonbeamRuntimeRuntimeParamsRuntimeParametersKey,
   MoonbeamRuntimeRuntimeParamsRuntimeParametersValue,
   NimbusPrimitivesNimbusCryptoPublic,
@@ -136,9 +135,10 @@ declare module "@polkadot/api-base/types/storage" {
   interface AugmentedQueries<ApiType extends ApiTypes> {
     asyncBacking: {
       /**
-       * First tuple element is the highest slot that has been seen in the history of this chain.
-       * Second tuple element is the number of authored blocks so far.
-       * This is a strictly-increasing value if T::AllowMultipleBlocksPerSlot = false.
+       * Current relay chain slot paired with a number of authored blocks.
+       *
+       * This is updated in [`FixedVelocityConsensusHook::on_state_proof`] with the current relay
+       * chain slot as provided by the relay chain state proof.
        **/
       slotInfo: AugmentedQuery<ApiType, () => Observable<Option<ITuple<[u64, u32]>>>, []> &
         QueryableStorageEntry<ApiType, []>;
@@ -243,7 +243,9 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       freezes: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<Vec<FrameSupportTokensMiscIdAmount>>,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Vec<FrameSupportTokensMiscIdAmountRuntimeFreezeReason>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -252,14 +254,9 @@ declare module "@polkadot/api-base/types/storage" {
        **/
       holds: AugmentedQuery<
         ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<
-          Vec<
-            {
-              readonly id: MoonbeamRuntimeRuntimeHoldReason;
-              readonly amount: u128;
-            } & Struct
-          >
-        >,
+        (
+          arg: AccountId20 | string | Uint8Array
+        ) => Observable<Vec<FrameSupportTokensMiscIdAmountRuntimeHoldReason>>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
@@ -1263,6 +1260,26 @@ declare module "@polkadot/api-base/types/storage" {
         []
       > &
         QueryableStorageEntry<ApiType, []>;
+      /**
+       * Temporary storage to track candidates that have been migrated from locks to freezes.
+       * This storage should be removed after all accounts have been migrated.
+       **/
+      migratedCandidates: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<Option<Null>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * Temporary storage to track delegators that have been migrated from locks to freezes.
+       * This storage should be removed after all accounts have been migrated.
+       **/
+      migratedDelegators: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<Option<Null>>,
+        [AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20]>;
       /**
        * Total points awarded to collators for block production in the round
        **/

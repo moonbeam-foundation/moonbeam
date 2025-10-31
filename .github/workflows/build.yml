@@ -45,6 +45,7 @@ jobs:
       polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver}}
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
+      any_changed: ${{ steps.changed-files.outputs.any_changed }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -121,8 +122,18 @@ jobs:
           echo polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
           echo polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
           echo polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver }}
+      - name: Get all changed file(s), excluding the docs
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files_ignore: |
+            **/**.md
+            **/**.txt
+            **.md
+            **.txt
 
   check-copyright:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -159,6 +170,7 @@ jobs:
           filter_mode: nofilter
 
   check-biome:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check with Biome"
     runs-on: ubuntu-latest
     permissions:
@@ -182,6 +194,7 @@ jobs:
       - run: pnpm check
 
   check-cargo-toml-format:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check Cargo.toml files format"
     runs-on:
       labels: ubuntu-latest
@@ -203,6 +216,7 @@ jobs:
         run: ./scripts/check-cargo-toml-files-format.sh
 
   check-forbid-evm-reentrancy:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check 'forbid-evm-reentrancy'"
     runs-on: ubuntu-latest
     permissions:
@@ -221,6 +235,7 @@ jobs:
         run: ./scripts/check-forbid-evm-reentrancy.sh
 
   check-rust-fmt:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     name: "Check with rustfmt"
     runs-on: ubuntu-latest
     permissions:
@@ -243,6 +258,7 @@ jobs:
   ####### Building and Testing binaries #######
 
   cargo-clippy:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -277,37 +293,46 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: ./.github/workflow-templates/cargo-build
         with:
           features: metadata-hash
       - name: Upload runtimes
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: runtimes
           path: runtimes
       - name: Upload uncompressed runtimes
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes
       - name: Upload binary
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: moonbeam
           path: build
 
   check-wasm-size:
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.fork != true && 
+      github.actor != 'dependabot[bot]'
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
       pull-requests: write
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
     needs: ["set-tags", "build"]
     env:
       GH_TOKEN: ${{ github.token }}
@@ -484,6 +509,8 @@ jobs:
           edit-mode: replace
 
   check-unused-dependencies:
+    needs: ["set-tags"]
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on: moonbeam-release-medium
     permissions:
       contents: read
@@ -507,6 +534,7 @@ jobs:
           cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -607,30 +635,38 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/checkout@v5
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Create local folders
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built runtime"
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/download-artifact@v5
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: actions/download-artifact@v5
         with:
           name: moonbeam
           path: target/release
       - name: "Run Moonwall Dev Tests"
+        if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
         uses: ./.github/workflow-templates/dev-tests
         with:
           moonwall_environment: dev_${{ matrix.chain }}
           shard: ${{ matrix.shard }}
           shard-count: 4
       - name: Upload HTML report to s3
-        if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+        if: |
+          needs.set-tags.outputs.any_changed == 'true' &&
+          github.event.pull_request.head.repo.fork != true && 
+          github.actor != 'dependabot[bot]'
         uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
         with:
@@ -654,9 +690,7 @@ jobs:
       #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
 
   typescript-tracing-tests:
-    if: >
-      (github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork) || 
-      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -708,6 +742,7 @@ jobs:
           pnpm moonwall test dev_moonbase_tracing
 
   lazy-loading-tests:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     permissions:
@@ -767,6 +802,7 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   chopsticks-upgrade-test:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -814,6 +850,7 @@ jobs:
             pnpm moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -887,6 +924,7 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   bridge-integration-tests:
+    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
     needs: ["set-tags", "build"]
     runs-on: ubuntu-latest
     permissions:

@@ -99,7 +99,8 @@ import type {
   FrameSupportStorageDisabled,
   FrameSupportTokensFungibleUnionOfNativeOrWithId,
   FrameSupportTokensMiscBalanceStatus,
-  FrameSupportTokensMiscIdAmount,
+  FrameSupportTokensMiscIdAmountRuntimeFreezeReason,
+  FrameSupportTokensMiscIdAmountRuntimeHoldReason,
   FrameSystemAccountInfo,
   FrameSystemCall,
   FrameSystemCodeUpgradeAuthorization,
@@ -123,6 +124,7 @@ import type {
   MoonriverRuntimeOriginCaller,
   MoonriverRuntimeProxyType,
   MoonriverRuntimeRuntime,
+  MoonriverRuntimeRuntimeFreezeReason,
   MoonriverRuntimeRuntimeHoldReason,
   MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit,
   MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters,
@@ -267,6 +269,7 @@ import type {
   PalletParachainStakingDelegatorStatus,
   PalletParachainStakingError,
   PalletParachainStakingEvent,
+  PalletParachainStakingFreezeReason,
   PalletParachainStakingInflationDistributionAccount,
   PalletParachainStakingInflationDistributionConfig,
   PalletParachainStakingInflationInflationInfo,
@@ -557,7 +560,8 @@ declare module "@polkadot/types/types/registry" {
     FrameSupportStorageDisabled: FrameSupportStorageDisabled;
     FrameSupportTokensFungibleUnionOfNativeOrWithId: FrameSupportTokensFungibleUnionOfNativeOrWithId;
     FrameSupportTokensMiscBalanceStatus: FrameSupportTokensMiscBalanceStatus;
-    FrameSupportTokensMiscIdAmount: FrameSupportTokensMiscIdAmount;
+    FrameSupportTokensMiscIdAmountRuntimeFreezeReason: FrameSupportTokensMiscIdAmountRuntimeFreezeReason;
+    FrameSupportTokensMiscIdAmountRuntimeHoldReason: FrameSupportTokensMiscIdAmountRuntimeHoldReason;
     FrameSystemAccountInfo: FrameSystemAccountInfo;
     FrameSystemCall: FrameSystemCall;
     FrameSystemCodeUpgradeAuthorization: FrameSystemCodeUpgradeAuthorization;
@@ -581,6 +585,7 @@ declare module "@polkadot/types/types/registry" {
     MoonriverRuntimeOriginCaller: MoonriverRuntimeOriginCaller;
     MoonriverRuntimeProxyType: MoonriverRuntimeProxyType;
     MoonriverRuntimeRuntime: MoonriverRuntimeRuntime;
+    MoonriverRuntimeRuntimeFreezeReason: MoonriverRuntimeRuntimeFreezeReason;
     MoonriverRuntimeRuntimeHoldReason: MoonriverRuntimeRuntimeHoldReason;
     MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit: MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessDeposit;
     MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters: MoonriverRuntimeRuntimeParamsDynamicParamsPalletRandomnessParameters;
@@ -725,6 +730,7 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingDelegatorStatus: PalletParachainStakingDelegatorStatus;
     PalletParachainStakingError: PalletParachainStakingError;
     PalletParachainStakingEvent: PalletParachainStakingEvent;
+    PalletParachainStakingFreezeReason: PalletParachainStakingFreezeReason;
     PalletParachainStakingInflationDistributionAccount: PalletParachainStakingInflationDistributionAccount;
     PalletParachainStakingInflationDistributionConfig: PalletParachainStakingInflationDistributionConfig;
     PalletParachainStakingInflationInflationInfo: PalletParachainStakingInflationInflationInfo;

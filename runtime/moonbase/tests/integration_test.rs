@@ -30,7 +30,7 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::DispatchClass,
 	traits::{
-		Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo, StorageInfo,
+		Contains, Currency as CurrencyT, EnsureOrigin, OnInitialize, PalletInfo, StorageInfo,
 		StorageInfoTrait,
 	},
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
@@ -39,10 +39,10 @@ use frame_support::{
 use moonbase_runtime::xcm_config::{AssetHubLocation, XcmExecutor};
 use moonbase_runtime::{
 	moonbase_xcm_weights, xcm_config::SelfReserve, AccountId, AssetId, Balances, EvmForeignAssets,
-	Executive, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, TransactionPayment,
-	TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEIGHT_PER_GAS,
+	Executive, NormalFilter, OpenTechCommitteeCollective, ParachainStaking, PolkadotXcm,
+	Precompiles, ProxyType, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System,
+	TransactionPayment, TransactionPaymentAsGasPrice, Treasury, TreasuryCouncilCollective,
+	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, WEIGHT_PER_GAS,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -205,7 +205,7 @@ fn verify_pallet_prefixes() {
 				storage_name: b"Freezes".to_vec(),
 				prefix: prefix(b"Balances", b"Freezes"),
 				max_values: None,
-				max_size: Some(37),
+				max_size: Some(73),
 			},
 		]
 	);
@@ -467,6 +467,29 @@ fn verify_proxy_type_indices() {
 	assert_eq!(moonbase_runtime::ProxyType::Balances as u8, 5);
 	assert_eq!(moonbase_runtime::ProxyType::AuthorMapping as u8, 6);
 	assert_eq!(moonbase_runtime::ProxyType::IdentityJudgement as u8, 7);
+}
+
+// This test ensure that we not filter out pure proxy calls
+#[test]
+fn verify_normal_filter_allow_pure_proxy() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert!(NormalFilter::contains(&RuntimeCall::Proxy(
+			pallet_proxy::Call::<Runtime>::create_pure {
+				proxy_type: ProxyType::Any,
+				delay: 0,
+				index: 0,
+			}
+		)));
+		assert!(NormalFilter::contains(&RuntimeCall::Proxy(
+			pallet_proxy::Call::<Runtime>::kill_pure {
+				spawner: AccountId::from(ALICE),
+				proxy_type: ProxyType::Any,
+				index: 0,
+				height: 0,
+				ext_index: 0,
+			}
+		)));
+	});
 }
 
 #[test]
@@ -1059,7 +1082,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(262854)
+				.expect_cost(260283)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1150,7 +1173,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(262854)
+				.expect_cost(260283)
 				.expect_no_logs()
 				// We expect an evm subcall ERC20.burnFrom
 				.with_subcall_handle(move |subcall| {
@@ -1234,7 +1257,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(111254)
+				.expect_cost(108683)
 				.expect_no_logs()
 				.execute_returns(());
 		})
@@ -1313,6 +1336,7 @@ fn multiplier_can_grow_from_zero() {
 #[test]
 fn ethereum_invalid_transaction() {
 	ExtBuilder::default().build().execute_with(|| {
+		set_parachain_inherent_data();
 		// Ensure an extrinsic not containing enough gas limit to store the transaction
 		// on chain is rejected.
 		assert_eq!(
@@ -1810,7 +1834,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(30911)
+				.expect_cost(30883)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -1850,7 +1874,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(30911)
+				.expect_cost(30883)
 				.expect_no_logs()
 				.execute_returns(());
 		});
@@ -1932,7 +1956,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(19918)
+				.expect_cost(19935)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -1954,7 +1978,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(19433)
+				.expect_cost(19452)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -1975,7 +1999,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(19938)
+				.expect_cost(19960)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2018,7 +2042,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(22420)
+				.expect_cost(22435)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -2043,7 +2067,7 @@ fn author_mapping_register_and_set_keys() {
 						.into(),
 					},
 				)
-				.expect_cost(22420)
+				.expect_cost(22435)
 				.expect_no_logs()
 				.execute_returns(());
 

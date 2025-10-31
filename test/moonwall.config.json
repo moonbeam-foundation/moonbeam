@@ -354,7 +354,7 @@
     },
     {
       "name": "lazy_loading_moonbeam",
-      "testFileDir": ["suites/lazy-loading"],
+      "testFileDir": ["suites/lazy-loading/common", "suites/lazy-loading/moonbeam"],
       "include": ["**/*test*.ts"],
       "timeout": 180000,
       "contracts": "contracts/",
@@ -376,6 +376,7 @@
             "name": "moonbeam",
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
+            "legacy": false,
             "options": [
               "--lazy-loading-delay-between-requests=10",
               "--lazy-loading-max-retries-per-request=5",
@@ -394,9 +395,6 @@
               "--tmp",
               "--max-pov-percentage=100"
             ],
-            "ports": {
-              "rpcPort": 9944
-            },
             "defaultForkConfig": {
               "url": "https://trace.api.moonbeam.network",
               "stateOverridePath": "tmp/lazyLoadingStateOverrides.json",
@@ -404,14 +402,7 @@
             }
           }
         ]
-      },
-      "connections": [
-        {
-          "name": "parachain",
-          "type": "polkadotJs",
-          "endpoints": ["ws://127.0.0.1:9944"]
-        }
-      ]
+      }
     },
     {
       "name": "dev_moonbeam",
@@ -436,6 +427,7 @@
             "name": "moonbeam",
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
+            "legacy": false,
             "options": [
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
@@ -480,6 +472,7 @@
             "name": "moonbeam",
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
+            "legacy": false,
             "options": [
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
@@ -524,6 +517,7 @@
             "name": "moonbeam",
             "binPath": "../target/release/moonbeam",
             "newRpcBehaviour": true,
+            "legacy": false,
             "options": [
               "--ethapi=txpool",
               "--no-hardware-benchmarks",
