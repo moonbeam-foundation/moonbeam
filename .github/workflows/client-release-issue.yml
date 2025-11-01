@@ -36,7 +36,7 @@ jobs:
         with:
           node-version-file: "test/.nvmrc"
       - name: Download Original Tools
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: original-tools
           path: original-tools
