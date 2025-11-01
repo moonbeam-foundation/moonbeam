@@ -71,8 +71,8 @@ ${commonTemplate}
 
 ## Post Release
 - [ ] Publish the docker runtime image (trigger the github action "Publish Docker runtime")
-  - \`gh workflow run "Draft Runtime Release" -r 'master' ` +
-      `-f from=runtime-${previousVersion} -f to=runtime-${newVersion}\`
+  - \`gh workflow run "Publish Docker runtime" -r 'master' ` +
+      `-f tag=runtime-${newVersion}\`
 - [ ] Create a PR that increment spec version (like #1051)
     `;
     console.log(template);
