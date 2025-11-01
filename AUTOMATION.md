@@ -49,11 +49,11 @@ and test by re-building our binary with `grcov` and re-executing our tests.
 
 The output is stored as an artefact and published in the comments of the PR.
 
-### Publish runtime draft
+### Draft runtime release
 
 [.github/workflows/publish-runtime.yml](.github/workflows/publish-runtime.yml)  
-`gh workflow run "Publish Runtime Draft" -r master -f from=runtime-2302 -f to=runtime-2400`
+`gh workflow run "Draft Runtime Release" -r master -f from=runtime-2302 -f to=runtime-2400`
 
 Builds the runtime of each network using srtool and then draft
 the release notes using the git commits between the given tags.
-The draft is "not published" (TODO: change the name of the action)
+The workflow produces a draft release that remains unpublished until manually reviewed.

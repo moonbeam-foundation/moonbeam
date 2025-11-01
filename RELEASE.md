@@ -43,7 +43,7 @@ To release `runtime-XXYY`:
 1. Create a PR that increment the spec version (like #1051)
 1. Get that PR approved and merged
 1. Tag master with `runtime-XXYY` and push to github
-1. Start the github action "Publish Runtime Draft"
+1. Start the github action "Draft Runtime Release"
 1. Review the generated Draft and clean a bit the messages if needed (keep it draft)
 1. Create the tracing runtime: start the github action "Create tracing runtime" on `moonbeam-foundation/moonbeam-runtime-overrides`
 1. Upgrade runtime on our internal test network stagenet

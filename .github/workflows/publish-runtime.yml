@@ -1,4 +1,4 @@
-name: Publish Runtime Draft
+name: Draft Runtime Release
 
 # The code (like generate-release-body) will be taken from the tag versions, not master
 on:

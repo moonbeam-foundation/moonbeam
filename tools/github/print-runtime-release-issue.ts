@@ -34,9 +34,9 @@ async function main() {
 - [ ] Check all proxy types.
 - [ ] Re-run all extrinsics/hooks benchmarks.
 - [ ] Tag master with runtime-${newVersion} and push to github
-- [ ] Start the github action Publish Runtime Draft
+- [ ] Start the github action Draft Runtime Release
 with runtime-${previousVersion} => runtime-${newVersion}
-  - \`gh workflow run "Publish Runtime Draft" -r 'master' ` +
+  - \`gh workflow run "Draft Runtime Release" -r 'master' ` +
     `-f from=runtime-${previousVersion} -f to=runtime-${newVersion}\`
 - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
 - [ ] Create the tracing runtime on moonbeam-runtime-overrides
@@ -71,7 +71,7 @@ ${commonTemplate}
 
 ## Post Release
 - [ ] Publish the docker runtime image (trigger the github action "Publish Docker runtime")
-  - \`gh workflow run "Publish Runtime Draft" -r 'master' ` +
+  - \`gh workflow run "Draft Runtime Release" -r 'master' ` +
       `-f from=runtime-${previousVersion} -f to=runtime-${newVersion}\`
 - [ ] Create a PR that increment spec version (like #1051)
     `;
