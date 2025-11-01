@@ -68,7 +68,7 @@ jobs:
           password: ${{ secrets.MBF_DOCKERHUB_PASSWORD }}
           registry: index.docker.io
       - name: Download original scripts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: original-scripts
           path: original-scripts
@@ -115,17 +115,17 @@ jobs:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
       - name: Download moonbase runtime
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: moonbase-runtime
           path: build
       - name: Download moonriver runtime
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: moonriver-runtime
           path: build
       - name: Download moonbeam runtime
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: moonbeam-runtime
           path: build
@@ -134,7 +134,7 @@ jobs:
         with:
           node-version-file: "test/.nvmrc"
       - name: Download Original Tools
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: original-tools
           path: original-tools
