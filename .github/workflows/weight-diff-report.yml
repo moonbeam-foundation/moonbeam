@@ -82,7 +82,7 @@ jobs:
                   generate_report "moonbeam" "${{ steps.changed-files-yaml.outputs.moonbeam_all_changed_files }}"
                 fi
             - name: Find Comment
-              uses: peter-evans/find-comment@v3
+              uses: peter-evans/find-comment@v4
               id: fc
               with:
                 issue-number: ${{ github.event.pull_request.number }}
