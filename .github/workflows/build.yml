@@ -124,7 +124,7 @@ jobs:
           echo polkadot_ver: ${{ steps.get-sha.outputs.polkadot_ver }}
       - name: Get all changed file(s), excluding the docs
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v47
         with:
           files_ignore: |
             **/**.md
