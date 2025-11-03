@@ -7284,7 +7284,6 @@ name = "moonbeam-core-primitives"
 version = "0.1.1"
 dependencies = [
  "account",
- "hex-literal",
  "sp-core",
  "sp-runtime",
 ]
