@@ -604,13 +604,6 @@ where
 						));
 
 						let additional_key_values = vec![
-							// TODO: TIMESTAMP_NOW can be removed after runtime 4000
-							(
-								#[allow(deprecated)]
-								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
-									.to_vec(),
-								timestamp.encode(),
-							),
 							// Override current slot number
 							(
 								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),
