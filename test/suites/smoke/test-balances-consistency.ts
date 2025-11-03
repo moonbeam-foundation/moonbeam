@@ -277,50 +277,6 @@ describeSuite({
           });
       });
 
-      // StorageQuery: ParachainStaking.CandidateInfo
-      await new Promise((resolve, reject) => {
-        apiAt.query.parachainStaking.candidateInfo
-          .entries()
-          .then(async (candidateInfo) => {
-            candidateInfo.forEach((candidate) => {
-              if (
-                specVersion < 1700 ||
-                (specVersion < 1800 &&
-                  !collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)])
-              ) {
-                updateReserveMap(candidate[0].toHex().slice(-40), {
-                  [ReserveType.Candidate]: candidate[1].unwrap().bond.toBigInt(),
-                });
-              }
-              if (
-                specVersion >= 1800 ||
-                collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
-              ) {
-                updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
-                  ColStake: candidate[1].unwrap().bond.toBigInt(),
-                });
-              }
-            });
-
-            candidateInfo.forEach((candidate) => {
-              // Support the case of the migration in 1700
-              if (
-                specVersion >= 1800 ||
-                collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
-              ) {
-                updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
-                  ColStake: candidate[1].unwrap().bond.toBigInt(),
-                });
-              }
-            });
-            resolve("candidate info scraped");
-          })
-          .catch((error) => {
-            console.error("Error fetching candidate info:", error);
-            reject(error);
-          });
-      });
-
       await new Promise((resolve, reject) => {
         apiAt.query.identity.identityOf
           .entries()
