@@ -274,8 +274,8 @@ where
 				downward_messages: Default::default(),
 				horizontal_messages: Default::default(),
 				relay_parent_descendants: Default::default(),
-			collator_peer_id: None,
-		};
+				collator_peer_id: None,
+			};
 
 			Ok((timestamp, parachain_inherent_data))
 		}

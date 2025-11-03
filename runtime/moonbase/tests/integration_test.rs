@@ -1638,12 +1638,9 @@ fn root_can_change_default_xcm_vers() {
 				})),
 				Box::new(VersionedAssets::from(asset.clone())),
 				0,
-				WeightLimit::Unlimited
+				WeightLimit::Unlimited,
 			);
-			assert!(matches!(
-				result,
-				Err(sp_runtime::DispatchError::Module(_))
-			));
+			assert!(matches!(result, Err(sp_runtime::DispatchError::Module(_))));
 
 			// Root sets the defaultXcm
 			assert_ok!(PolkadotXcm::force_default_xcm_version(
