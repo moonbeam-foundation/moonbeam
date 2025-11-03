@@ -51,6 +51,9 @@ authors = ["PureStake"]
 edition = "2021"
 repository = "https://github.com/PureStake/moonbeam"
 
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(substrate_runtime)'] }
+
 [workspace.dependencies]
 # Dependencies are split into 2 groups: wasm and client.
 # - "wasm" dependencies requires to be no_std compatible, which often requires

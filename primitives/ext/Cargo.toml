@@ -7,8 +7,8 @@ license = "GPL-3.0-only"
 repository = { workspace = true }
 version = "0.1.0"
 
-[lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(substrate_runtime)'] }
+[lints]
+workspace = true
 
 [dependencies]
 
