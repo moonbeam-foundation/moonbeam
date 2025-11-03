@@ -604,6 +604,13 @@ where
 						));
 
 						let additional_key_values = vec![
+							(
+								// TIMESTAMP_NOW was deprecated in runtime 4000, but should
+								// be kept for backwards compatibility with old runtimes
+								pallet_timestamp::Now::<moonbeam_runtime::Runtime>::hashed_key()
+									.to_vec(),
+								timestamp.encode(),
+							),
 							// Override current slot number
 							(
 								relay_chain::well_known_keys::CURRENT_SLOT.to_vec(),

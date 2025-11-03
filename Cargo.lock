@@ -7729,6 +7729,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-parachain-staking",
  "pallet-sudo",
+ "pallet-timestamp",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",

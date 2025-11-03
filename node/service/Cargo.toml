@@ -48,6 +48,7 @@ moonbeam-runtime = { workspace = true, optional = true }
 moonriver-runtime = { workspace = true, optional = true }
 frame-system = { workspace = true, features = ["std"] }
 pallet-balances = { workspace = true, features = ["std"] }
+pallet-timestamp = { workspace = true }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [
 	"std",
