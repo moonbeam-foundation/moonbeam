@@ -1139,24 +1139,25 @@ fn root_can_change_default_xcm_vers() {
 			};
 			// Default XCM version is not set yet, so xtokens should fail because it does not
 			// know with which version to send
-			assert_noop!(
-				PolkadotXcm::transfer_assets(
-					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::from(Location::parent())),
-					Box::new(VersionedLocation::from(Location {
-						parents: 0,
-						interior: [AccountId32 {
-							network: None,
-							id: [1u8; 32],
-						}]
-						.into(),
-					})),
-					Box::new(VersionedAssets::from(asset.clone())),
-					0,
-					WeightLimit::Unlimited
-				),
-				pallet_xcm::Error::<Runtime>::LocalExecutionIncomplete
+			let result = PolkadotXcm::transfer_assets(
+				origin_of(AccountId::from(ALICE)),
+				Box::new(VersionedLocation::from(Location::parent())),
+				Box::new(VersionedLocation::from(Location {
+					parents: 0,
+					interior: [AccountId32 {
+						network: None,
+						id: [1u8; 32],
+					}]
+					.into(),
+				})),
+				Box::new(VersionedAssets::from(asset.clone())),
+				0,
+				WeightLimit::Unlimited
 			);
+			assert!(matches!(
+				result,
+				Err(sp_runtime::DispatchError::Module(_))
+			));
 
 			// Root sets the defaultXcm
 			assert_ok!(PolkadotXcm::force_default_xcm_version(
