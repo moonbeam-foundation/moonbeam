@@ -39,8 +39,50 @@ enum ReserveType {
   PreimageBalanceHolds = "21",
 }
 
+// Test Case Specific Helper Functions
+const hexToBase64 = (hex: string): string => {
+  const formatted = hex.includes("0x") ? hex.slice(2) : hex;
+  return Buffer.from(formatted, "hex").toString("base64");
+};
+const base64ToHex = (base64: string): string => {
+  return "0x" + Buffer.from(base64, "base64").toString("hex");
+};
+
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
 type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
+type FreezesInfo = { total?: bigint; freezes?: { [key: string]: bigint } };
+
+async function getLocks(apiAt: ApiDecoration<"promise">): Promise<Map<string, { total: bigint }>> {
+  const locksMap = new Map<string, { total: bigint }>();
+  const locks = await apiAt.query.balances.locks.entries();
+
+  locks.forEach((lock) => {
+    const key = hexToBase64(lock[0].toHex().slice(-40));
+    const total = lock[1].reduce((acc, curr) => {
+      return curr.amount.toBigInt() + acc;
+    }, 0n);
+    locksMap.set(key, { total });
+  });
+
+  return locksMap;
+}
+
+async function getFreezes(
+  apiAt: ApiDecoration<"promise">
+): Promise<Map<string, { total: bigint }>> {
+  const freezesMap = new Map<string, { total: bigint }>();
+  const freezes = await apiAt.query.balances.freezes.entries();
+
+  freezes.forEach((freeze) => {
+    const key = hexToBase64(freeze[0].toHex().slice(-40));
+    const total = freeze[1].reduce((acc, curr) => {
+      return curr.amount.toBigInt() + acc;
+    }, 0n);
+    freezesMap.set(key, { total });
+  });
+
+  return freezesMap;
+}
 
 // This test attempts to reconcile the total amount of locked tokens across the entire
 // chain by ensuring that individual storages match the reserved balances and locks.
@@ -55,9 +97,12 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     const expectedReserveMap = new Map<string, ReservedInfo>();
     const expectedLocksMap = new Map<string, LocksInfo>();
-    const locksMap = new Map<string, { total: bigint }>();
+    const expectedFreezesMap = new Map<string, FreezesInfo>();
+    let locksMap: Map<string, { total: bigint }>;
+    let freezesMap: Map<string, { total: bigint }>;
     const failedLocks: any[] = [];
     const failedReserved: any[] = [];
+    const failedFreezes: any[] = [];
     let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
     let specVersion = 0;
@@ -66,15 +111,6 @@ describeSuite({
     let totalIssuance = 0n;
     let symbol: string;
     let paraApi: ApiPromise;
-
-    // Test Case Specific Helper Functions
-    const hexToBase64 = (hex: string): string => {
-      const formatted = hex.includes("0x") ? hex.slice(2) : hex;
-      return Buffer.from(formatted, "hex").toString("base64");
-    };
-    const base64ToHex = (base64: string): string => {
-      return "0x" + Buffer.from(base64, "base64").toString("hex");
-    };
 
     const updateReserveMap = (
       account: string,
@@ -132,6 +168,18 @@ describeSuite({
       expectedLocksMap.set(account64, { total: newTotal, locks: updatedLocks });
     };
 
+    const updateExpectedFreezesMap = (account: string, freezes: { [key: string]: bigint }) => {
+      const account64 = hexToBase64(account);
+      const value = expectedFreezesMap.get(account64);
+      if (value === undefined) {
+        expectedFreezesMap.set(account64, { total: 0n, freezes });
+        return;
+      }
+      const updatedFreezes = { ...value.freezes, ...freezes };
+      const newTotal = value.total;
+      expectedFreezesMap.set(account64, { total: newTotal, freezes: updatedFreezes });
+    };
+
     const getReserveTypeByValue = (value: string): string | null => {
       for (const key in ReserveType) {
         if (ReserveType[key as keyof typeof ReserveType] === value) {
@@ -173,7 +221,10 @@ describeSuite({
           });
       });
 
-      const delegatorState = await apiAt.query.parachainStaking.delegatorState.entries();
+      //1b) Build Expected Results - Locks & Freezes
+
+      locksMap = await getLocks(apiAt);
+      freezesMap = await getFreezes(apiAt);
 
       await new Promise((resolve, reject) => {
         apiAt.query.treasury.proposals
@@ -222,6 +273,50 @@ describeSuite({
           })
           .catch((error) => {
             console.error("Error fetching author mapping:", error);
+            reject(error);
+          });
+      });
+
+      // StorageQuery: ParachainStaking.CandidateInfo
+      await new Promise((resolve, reject) => {
+        apiAt.query.parachainStaking.candidateInfo
+          .entries()
+          .then(async (candidateInfo) => {
+            candidateInfo.forEach((candidate) => {
+              if (
+                specVersion < 1700 ||
+                (specVersion < 1800 &&
+                  !collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)])
+              ) {
+                updateReserveMap(candidate[0].toHex().slice(-40), {
+                  [ReserveType.Candidate]: candidate[1].unwrap().bond.toBigInt(),
+                });
+              }
+              if (
+                specVersion >= 1800 ||
+                collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
+              ) {
+                updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
+                  ColStake: candidate[1].unwrap().bond.toBigInt(),
+                });
+              }
+            });
+
+            candidateInfo.forEach((candidate) => {
+              // Support the case of the migration in 1700
+              if (
+                specVersion >= 1800 ||
+                collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
+              ) {
+                updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
+                  ColStake: candidate[1].unwrap().bond.toBigInt(),
+                });
+              }
+            });
+            resolve("candidate info scraped");
+          })
+          .catch((error) => {
+            console.error("Error fetching candidate info:", error);
             reject(error);
           });
       });
@@ -423,27 +518,6 @@ describeSuite({
         expectedReserveMap.set(key, { reserved, total });
       });
 
-      //1b) Build Expected Results - Locks Map
-
-      await new Promise((resolve, reject) => {
-        apiAt.query.balances.locks
-          .entries()
-          .then((locks) => {
-            locks.forEach((lock) => {
-              const key = hexToBase64(lock[0].toHex().slice(-40));
-              const total = lock[1].reduce((acc, curr) => {
-                return curr.amount.toBigInt() + acc;
-              }, 0n);
-              locksMap.set(key, { total });
-            });
-            resolve("locks scraped");
-          })
-          .catch((error) => {
-            console.error("Error fetching locks:", error);
-            reject(error);
-          });
-      });
-
       // Only applies to OpenGov
       await new Promise((resolve, reject) => {
         apiAt.query.convictionVoting.votingFor
@@ -476,6 +550,39 @@ describeSuite({
             console.error("Error fetching convictionVoting:", error);
             reject(error);
           });
+      });
+
+      const delegatorState = await apiAt.query.parachainStaking.delegatorState.entries();
+      delegatorState.forEach((delegator) => {
+        const address = delegator[0].toHex().slice(-40);
+        if (specVersion < 4000) {
+          updateExpectedLocksMap(address, {
+            DelStake: delegator[1].unwrap().total.toBigInt(),
+          });
+        } else {
+          updateExpectedFreezesMap(address, {
+            DelStake: delegator[1].unwrap().total.toBigInt(),
+          });
+        }
+      });
+      console.log(expectedFreezesMap);
+
+      log(`Retrieved ${expectedFreezesMap.size} accounts with freezes`);
+      expectedFreezesMap.forEach(({ freezes }, key) => {
+        const total = Object.values(freezes!).reduce((total, amount) => {
+          const subtotal = total + amount;
+          return subtotal;
+        }, 0n);
+        expectedFreezesMap.set(key, { freezes, total });
+      });
+
+      log(`Retrieved ${expectedLocksMap.size} accounts with locks`);
+      expectedLocksMap.forEach(({ locks }, key) => {
+        const total = Object.values(locks!).reduce((total, amount) => {
+          const subtotal = total + amount;
+          return subtotal;
+        }, 0n);
+        expectedLocksMap.set(key, { locks, total });
       });
 
       ///
@@ -596,6 +703,20 @@ describeSuite({
           }
         }
       });
+
+      // 4) Collect and process freezes failures
+      freezesMap.forEach((value, key) => {
+        if (expectedFreezesMap.has(key)) {
+          if (expectedFreezesMap.get(key)!.total! > value.total) {
+            failedFreezes.push(
+              `\t${base64ToHex(key)} (total: actual ${printTokens(
+                paraApi,
+                value.total
+              )} - expected: ${printTokens(paraApi, expectedLocksMap.get(key)!.total!)})`
+            );
+          }
+        }
+      });
     }, TWO_HOURS);
 
     it({
@@ -635,9 +756,6 @@ describeSuite({
       id: "C200",
       title: "should match total locks",
       test: async function () {
-        if (failedLocks.length > 0) {
-          log("Failed accounts locks");
-        }
         expect(
           failedLocks.length,
           `❌  Failed accounts locks: \n${failedLocks.join(",\n")}`
@@ -657,6 +775,17 @@ describeSuite({
 
         log(`Verified total issuance to be ${totalIssuance / 10n ** 18n}  ${symbol}`);
         expect(queriedIssuance).to.equal(totalIssuance);
+      },
+    });
+
+    it({
+      id: "C400",
+      title: "should match total freezes",
+      test: async function () {
+        expect(
+          failedFreezes.length,
+          `❌  Failed accounts freezes: \n${failedFreezes.join(",\n")}`
+        ).to.equal(0);
       },
     });
   },
