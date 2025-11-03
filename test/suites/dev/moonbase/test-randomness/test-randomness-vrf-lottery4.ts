@@ -20,7 +20,7 @@ describeSuite({
         value: 1n * GLMR,
       });
       log("Estimated Gas for startLottery", estimatedGas);
-      expect(estimatedGas).to.equal(111875n);
+      expect(estimatedGas).to.equal(111495n);
 
       await context.writeContract!({
         contractAddress: lotteryContract,
