@@ -94,7 +94,7 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 	/// Storage: `MessageQueue::Pages` (r:0 w:1)
 	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(105521), added: 107996, mode: `MaxEncodedLen`)
 	/// The range of component `n` is `[0, 1000]`.
-	fn enqueue_n_empty_xcmp_messages(n: u32, ) -> Weight {
+	fn enqueue_n_empty_xcmp_messages(_n: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `148`
 		//  Estimated: `5487`
