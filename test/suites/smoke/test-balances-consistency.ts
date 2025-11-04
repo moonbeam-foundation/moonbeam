@@ -39,8 +39,50 @@ enum ReserveType {
   PreimageBalanceHolds = "21",
 }
 
+// Test Case Specific Helper Functions
+const hexToBase64 = (hex: string): string => {
+  const formatted = hex.includes("0x") ? hex.slice(2) : hex;
+  return Buffer.from(formatted, "hex").toString("base64");
+};
+const base64ToHex = (base64: string): string => {
+  return "0x" + Buffer.from(base64, "base64").toString("hex");
+};
+
 type ReservedInfo = { total?: bigint; reserved?: { [key: string]: bigint } };
 type LocksInfo = { total?: bigint; locks?: { [key: string]: bigint } };
+type FreezesInfo = { total?: bigint; freezes?: { [key: string]: bigint } };
+
+async function getLocks(apiAt: ApiDecoration<"promise">): Promise<Map<string, { total: bigint }>> {
+  const locksMap = new Map<string, { total: bigint }>();
+  const locks = await apiAt.query.balances.locks.entries();
+
+  locks.forEach((lock) => {
+    const key = hexToBase64(lock[0].toHex().slice(-40));
+    const total = lock[1].reduce((acc, curr) => {
+      return curr.amount.toBigInt() + acc;
+    }, 0n);
+    locksMap.set(key, { total });
+  });
+
+  return locksMap;
+}
+
+async function getFreezes(
+  apiAt: ApiDecoration<"promise">
+): Promise<Map<string, { total: bigint }>> {
+  const freezesMap = new Map<string, { total: bigint }>();
+  const freezes = await apiAt.query.balances.freezes.entries();
+
+  freezes.forEach((freeze) => {
+    const key = hexToBase64(freeze[0].toHex().slice(-40));
+    const total = freeze[1].reduce((acc, curr) => {
+      return curr.amount.toBigInt() + acc;
+    }, 0n);
+    freezesMap.set(key, { total });
+  });
+
+  return freezesMap;
+}
 
 // This test attempts to reconcile the total amount of locked tokens across the entire
 // chain by ensuring that individual storages match the reserved balances and locks.
@@ -55,9 +97,12 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     const expectedReserveMap = new Map<string, ReservedInfo>();
     const expectedLocksMap = new Map<string, LocksInfo>();
-    const locksMap = new Map<string, { total: bigint }>();
+    const expectedFreezesMap = new Map<string, FreezesInfo>();
+    let locksMap: Map<string, { total: bigint }>;
+    let freezesMap: Map<string, { total: bigint }>;
     const failedLocks: any[] = [];
     const failedReserved: any[] = [];
+    const failedFreezes: any[] = [];
     let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
     let specVersion = 0;
@@ -66,15 +111,6 @@ describeSuite({
     let totalIssuance = 0n;
     let symbol: string;
     let paraApi: ApiPromise;
-
-    // Test Case Specific Helper Functions
-    const hexToBase64 = (hex: string): string => {
-      const formatted = hex.includes("0x") ? hex.slice(2) : hex;
-      return Buffer.from(formatted, "hex").toString("base64");
-    };
-    const base64ToHex = (base64: string): string => {
-      return "0x" + Buffer.from(base64, "base64").toString("hex");
-    };
 
     const updateReserveMap = (
       account: string,
@@ -132,6 +168,18 @@ describeSuite({
       expectedLocksMap.set(account64, { total: newTotal, locks: updatedLocks });
     };
 
+    const updateExpectedFreezesMap = (account: string, freezes: { [key: string]: bigint }) => {
+      const account64 = hexToBase64(account);
+      const value = expectedFreezesMap.get(account64);
+      if (value === undefined) {
+        expectedFreezesMap.set(account64, { total: 0n, freezes });
+        return;
+      }
+      const updatedFreezes = { ...value.freezes, ...freezes };
+      const newTotal = value.total;
+      expectedFreezesMap.set(account64, { total: newTotal, freezes: updatedFreezes });
+    };
+
     const getReserveTypeByValue = (value: string): string | null => {
       for (const key in ReserveType) {
         if (ReserveType[key as keyof typeof ReserveType] === value) {
@@ -173,21 +221,10 @@ describeSuite({
           });
       });
 
-      const [
-        democracyVotes,
-        delegatorState,
-        delegatorStakingMigrations,
-        collatorStakingMigrations,
-      ] = await Promise.all([
-        specVersion < 2900 ? apiAt.query.democracy.votingOf.entries() : undefined,
-        apiAt.query.parachainStaking.delegatorState.entries(),
-        specVersion >= 1700 && specVersion < 1800
-          ? apiAt.query.parachainStaking.delegatorReserveToLockMigrations.entries()
-          : undefined,
-        specVersion >= 1700 && specVersion < 1800
-          ? apiAt.query.parachainStaking.collatorReserveToLockMigrations.entries()
-          : undefined,
-      ]);
+      //1b) Build Expected Results - Locks & Freezes
+
+      locksMap = await getLocks(apiAt);
+      freezesMap = await getFreezes(apiAt);
 
       await new Promise((resolve, reject) => {
         apiAt.query.treasury.proposals
@@ -205,26 +242,6 @@ describeSuite({
             reject(error);
           });
       });
-
-      const delegatorStakingMigrationAccounts =
-        delegatorStakingMigrations !== undefined
-          ? (delegatorStakingMigrations.reduce((p, migration: any) => {
-              if (migration[1].isTrue) {
-                p[`0x${migration[0].toHex().slice(-40)}`] = true;
-              }
-              return p;
-            }, {} as any) as { [account: string]: boolean })
-          : {};
-
-      const collatorStakingMigrationAccounts =
-        collatorStakingMigrations !== undefined
-          ? (collatorStakingMigrations.reduce((p, migration: any) => {
-              if (migration[1].isTrue) {
-                p[`0x${migration[0].toHex().slice(-40)}`] = true;
-              }
-              return p;
-            }, {} as any) as { [account: string]: boolean })
-          : {};
 
       await new Promise((resolve, reject) => {
         apiAt.query.proxy.announcements
@@ -260,63 +277,12 @@ describeSuite({
           });
       });
 
-      // StorageQuery: ParachainStaking.CandidateInfo
-      await new Promise((resolve, reject) => {
-        apiAt.query.parachainStaking.candidateInfo
-          .entries()
-          .then(async (candidateInfo) => {
-            candidateInfo.forEach((candidate) => {
-              if (
-                specVersion < 1700 ||
-                (specVersion < 1800 &&
-                  !collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)])
-              ) {
-                updateReserveMap(candidate[0].toHex().slice(-40), {
-                  [ReserveType.Candidate]: candidate[1].unwrap().bond.toBigInt(),
-                });
-              }
-              if (
-                specVersion >= 1800 ||
-                collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
-              ) {
-                updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
-                  ColStake: candidate[1].unwrap().bond.toBigInt(),
-                });
-              }
-            });
-
-            candidateInfo.forEach((candidate) => {
-              // Support the case of the migration in 1700
-              if (
-                specVersion >= 1800 ||
-                collatorStakingMigrationAccounts[candidate[0].toHex().slice(-40)]
-              ) {
-                updateExpectedLocksMap(candidate[0].toHex().slice(-40), {
-                  ColStake: candidate[1].unwrap().bond.toBigInt(),
-                });
-              }
-            });
-            resolve("candidate info scraped");
-          })
-          .catch((error) => {
-            console.error("Error fetching candidate info:", error);
-            reject(error);
-          });
-      });
-
       await new Promise((resolve, reject) => {
         apiAt.query.identity.identityOf
           .entries()
           .then((identities) => {
             identities.forEach((identity) => {
               const storageValue = (() => {
-                if (specVersion < 2900) {
-                  return identity[1].unwrap();
-                }
-                if (specVersion < 3700) {
-                  return identity[1].unwrap()[0];
-                }
-
                 return identity[1].unwrap();
               })();
               updateReserveMap(identity[0].toHex().slice(-40), {
@@ -356,311 +322,87 @@ describeSuite({
       });
 
       await new Promise((resolve, reject) => {
-        if (specVersion < 2900) {
-          apiAt.query.democracy.depositOf
-            .entries()
-            .then((democracyDeposits) => {
-              democracyDeposits
-                .map((depositOf) =>
-                  depositOf[1]
-                    .unwrap()[0]
-                    .flatMap((deposit) => ({
-                      accountId: deposit.toHex(),
-                      reserved: depositOf[1].unwrap()[1].toBigInt(),
-                    }))
-                    .reduce(
-                      (p, deposit) => {
-                        // We merge multiple reserves together for same account
-                        if (!p[deposit.accountId]) {
-                          p[deposit.accountId] = {
-                            accountId: deposit.accountId,
-                            reserved: {
-                              [ReserveType.DemocracyDeposit]: 0n,
-                            },
-                          };
-                        }
-                        p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] +=
-                          deposit.reserved;
-                        return p;
-                      },
-                      {} as {
-                        [account: string]: {
-                          accountId: `0x${string}`;
-                          reserved: {
-                            [ReserveType.DemocracyDeposit]: bigint;
-                          };
-                        };
-                      }
-                    )
-                )
-                .forEach((deposit: any) => {
-                  updateReserveMap(deposit.accountId, deposit.reserved);
-                });
-
-              Object.values(
-                democracyDeposits
-                  .flatMap((depositOf) =>
-                    depositOf[1].unwrap()[0].map((deposit) => ({
-                      accountId: deposit.toHex(),
-                      reserved: depositOf[1].unwrap()[1].toBigInt(),
-                    }))
-                  )
-                  .reduce(
-                    (p, deposit) => {
-                      // We merge multiple reserves together for same account
-                      if (!p[deposit.accountId]) {
-                        p[deposit.accountId] = {
-                          accountId: deposit.accountId,
-                          reserved: {
-                            [ReserveType.DemocracyDeposit]: 0n,
-                          },
-                        };
-                      }
-                      p[deposit.accountId].reserved[ReserveType.DemocracyDeposit] +=
-                        deposit.reserved;
-                      return p;
-                    },
-                    {} as {
-                      [accountId: string]: {
-                        accountId: string;
-                        reserved: { [key: string]: bigint };
-                      };
-                    }
-                  )
-              ).forEach((deposit: any) => {
-                updateReserveMap(deposit.accountId, deposit.reserved);
-              });
-            })
-            .catch((error) => {
-              console.error("Error fetching democracy deposits:", error);
-              reject(error);
-            });
-        }
-        resolve("democracy deposits scraped");
-      });
-
-      await new Promise((resolve, reject) => {
-        if (specVersion < 2000) {
-          apiAt.query.democracy.preimages
-            .entries()
-            .then((democracyPreimages) => {
-              democracyPreimages
-                .filter((preimg: any) => preimg[1].unwrap().isAvailable)
-                .forEach((preimage: any) => {
-                  updateReserveMap(preimage[1].unwrap().asAvailable.provider.toHex(), {
-                    [ReserveType.Preimage]: preimage[1].unwrap().asAvailable.deposit.toBigInt(),
-                  });
-                });
-            })
-            .catch((error) => {
-              console.error("Error fetching democracyPreimages:", error);
-              reject(error);
-            });
-        }
-        resolve("democracyPreimages scraped");
-      });
-
-      await new Promise((resolve, reject) => {
-        if ((specVersion >= 1900 && runtimeName === "moonbase") || specVersion >= 2000) {
-          apiAt.query.preimage.statusFor
-            .entries()
-            .then((preimageStatuses) => {
-              preimageStatuses
-                .filter(
-                  (status) => status[1].unwrap().isUnrequested || status[1].unwrap().isRequested
-                )
-                .map((status) => {
-                  const deposit = extractPreimageDeposit(
-                    status[1].unwrap().isUnrequested
-                      ? status[1].unwrap().asUnrequested
-                      : status[1].unwrap().asRequested
-                  );
-                  return deposit
-                    ? { accountId: deposit.accountId, deposit: deposit.amount }
-                    : undefined;
-                })
-                .filter((value) => typeof value !== "undefined")
-                .forEach(({ deposit, accountId }: any) => {
-                  updateReserveMap(accountId, {
-                    [ReserveType.PreimageStatus]: deposit === 0n ? 0n : deposit.toBigInt(),
-                  });
-                });
-            })
-            .catch((error) => {
-              console.error("Error fetching proxies:", error);
-              reject(error);
-            });
-          resolve("proxies scraped");
-        }
-      });
-
-      await new Promise((resolve, reject) => {
-        if (
-          (specVersion >= 1900 && runtimeName === "moonbase") ||
-          (specVersion >= 2100 && runtimeName === "moonriver") ||
-          (specVersion >= 2300 && runtimeName === "moonbeam")
-        ) {
-          apiAt.query.referenda.referendumInfoFor
-            .entries()
-            .then((referendumInfoFor) => {
-              referendumInfoFor.forEach((info) => {
-                const deposits = (
-                  info[1].unwrap().isApproved
-                    ? [
-                        info[1].unwrap().asApproved[1].unwrapOr(null),
-                        info[1].unwrap().asApproved[2].unwrapOr(null),
-                      ]
-                    : info[1].unwrap().isRejected
-                      ? [
-                          info[1].unwrap().asRejected[1].unwrapOr(null),
-                          info[1].unwrap().asRejected[2].unwrapOr(null),
-                        ]
-                      : info[1].unwrap().isCancelled
-                        ? [
-                            info[1].unwrap().asCancelled[1].unwrapOr(null),
-                            info[1].unwrap().asCancelled[2].unwrapOr(null),
-                          ]
-                        : info[1].unwrap().isTimedOut
-                          ? [
-                              info[1].unwrap().asTimedOut[1].unwrapOr(null),
-                              info[1].unwrap().asTimedOut[2].unwrapOr(null),
-                            ]
-                          : info[1].unwrap().isOngoing
-                            ? [
-                                info[1].unwrap().asOngoing.submissionDeposit,
-                                info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
-                              ]
-                            : ([] as PalletReferendaDeposit[])
-                ).filter((value) => !!value);
-
-                deposits.forEach((deposit) => {
-                  // Support for https://github.com/paritytech/substrate/pull/12788
-                  // which make deposit optional.
-                  // TODO: better handle unwrapping
-                  updateReserveMap(deposit!.who.toHex(), {
-                    [ReserveType.ReferendumInfo]: deposit!.amount.toBigInt(),
-                  });
-                });
-              });
-            })
-            .catch((error) => {
-              console.error("Error fetching referendumInfoFor:", error);
-              reject(error);
-            });
-        }
-        resolve("referendumInfoFor scraped");
-      });
-
-      await new Promise((resolve, reject) => {
-        apiAt.query.assets.asset
+        apiAt.query.preimage.statusFor
           .entries()
-          .then(async (assets) => {
-            assets.forEach((asset) => {
-              updateReserveMap(asset[1].unwrap().owner.toHex().slice(-40), {
-                [ReserveType.Asset]: asset[1].unwrap().deposit.toBigInt(),
-              });
-            });
-
-            await new Promise((resolve, reject) => {
-              apiAt.query.assets.metadata
-                .entries()
-                .then((assetsMetadata) => {
-                  assetsMetadata.forEach((assetMetadata) => {
-                    updateReserveMap(
-                      assets
-                        .find(
-                          (asset) =>
-                            asset[0].toHex().slice(-64) === assetMetadata[0].toHex().slice(-64)
-                        )![1]
-                        .unwrap()
-                        .owner.toHex()
-                        .slice(-40),
-                      {
-                        [ReserveType.AssetMetadata]: assetMetadata[1].deposit.toBigInt(),
-                      }
-                    );
-                  });
-                  resolve("assetsMetadata scraped");
-                })
-                .catch((error) => {
-                  console.error("Error fetching assetsMetadata:", error);
-                  reject(error);
+          .then((preimageStatuses) => {
+            preimageStatuses
+              .filter(
+                (status) => status[1].unwrap().isUnrequested || status[1].unwrap().isRequested
+              )
+              .map((status) => {
+                const deposit = extractPreimageDeposit(
+                  status[1].unwrap().isUnrequested
+                    ? status[1].unwrap().asUnrequested
+                    : status[1].unwrap().asRequested
+                );
+                return deposit
+                  ? { accountId: deposit.accountId, deposit: deposit.amount }
+                  : undefined;
+              })
+              .filter((value) => typeof value !== "undefined")
+              .forEach(({ deposit, accountId }: any) => {
+                updateReserveMap(accountId, {
+                  [ReserveType.PreimageStatus]: deposit === 0n ? 0n : deposit.toBigInt(),
                 });
-            });
-
-            resolve("assets scraped");
+              });
           })
           .catch((error) => {
-            console.error("Error fetching assets :", error);
+            console.error("Error fetching proxies:", error);
             reject(error);
           });
+        resolve("proxies scraped");
       });
 
-      if (specVersion < 2800) {
-        await new Promise((resolve, reject) => {
-          apiAt.query.localAssets.asset
-            .entries()
-            .then(async (localAssets) => {
-              localAssets.forEach((localAsset) => {
-                updateReserveMap(localAsset[1].unwrap().owner.toHex().slice(-40), {
-                  [ReserveType.LocalAsset]: localAsset[1].unwrap().deposit.toBigInt(),
+      await new Promise((resolve, reject) => {
+        apiAt.query.referenda.referendumInfoFor
+          .entries()
+          .then((referendumInfoFor) => {
+            referendumInfoFor.forEach((info) => {
+              const deposits = (
+                info[1].unwrap().isApproved
+                  ? [
+                      info[1].unwrap().asApproved[1].unwrapOr(null),
+                      info[1].unwrap().asApproved[2].unwrapOr(null),
+                    ]
+                  : info[1].unwrap().isRejected
+                    ? [
+                        info[1].unwrap().asRejected[1].unwrapOr(null),
+                        info[1].unwrap().asRejected[2].unwrapOr(null),
+                      ]
+                    : info[1].unwrap().isCancelled
+                      ? [
+                          info[1].unwrap().asCancelled[1].unwrapOr(null),
+                          info[1].unwrap().asCancelled[2].unwrapOr(null),
+                        ]
+                      : info[1].unwrap().isTimedOut
+                        ? [
+                            info[1].unwrap().asTimedOut[1].unwrapOr(null),
+                            info[1].unwrap().asTimedOut[2].unwrapOr(null),
+                          ]
+                        : info[1].unwrap().isOngoing
+                          ? [
+                              info[1].unwrap().asOngoing.submissionDeposit,
+                              info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
+                            ]
+                          : ([] as PalletReferendaDeposit[])
+              ).filter((value) => !!value);
+
+              deposits.forEach((deposit) => {
+                // Support for https://github.com/paritytech/substrate/pull/12788
+                // which make deposit optional.
+                // TODO: better handle unwrapping
+                updateReserveMap(deposit!.who.toHex(), {
+                  [ReserveType.ReferendumInfo]: deposit!.amount.toBigInt(),
                 });
               });
-
-              await new Promise((resolve, reject) => {
-                apiAt.query.localAssets.metadata
-                  .entries()
-                  .then((localAssetMetadata) => {
-                    localAssetMetadata.forEach((localAssetMetadata) => {
-                      updateReserveMap(
-                        localAssets
-                          .find(
-                            (localAsset) =>
-                              localAsset[0].toHex().slice(-64) ===
-                              localAssetMetadata[0].toHex().slice(-64)
-                          )![1]
-                          .unwrap()
-                          .owner.toHex()
-                          .slice(-40),
-                        {
-                          [ReserveType.LocalAssetMetadata]:
-                            localAssetMetadata[1].deposit.toBigInt(),
-                        }
-                      );
-                    });
-                    resolve("localAssetsMetadata scraped");
-                  })
-                  .catch((error) => {
-                    console.error("Error fetching localAssetsMetadata:", error);
-                    reject(error);
-                  });
-              });
-
-              resolve("localAssets scraped");
-            })
-            .catch((error) => {
-              console.error("Error fetching localAssets :", error);
-              reject(error);
             });
-        });
-
-        await new Promise((resolve, reject) => {
-          apiAt.query.assetManager.localAssetDeposit
-            .entries()
-            .then((localAssetDeposits) => {
-              localAssetDeposits.forEach((assetDeposit) => {
-                updateReserveMap(assetDeposit[1].unwrap().creator.toHex(), {
-                  [ReserveType.LocalAssetDeposit]: assetDeposit[1].unwrap().deposit.toBigInt(),
-                });
-              });
-              resolve("localAssetDeposits scraped");
-            })
-            .catch((error) => {
-              console.error("Error fetching localAssetDeposits:", error);
-              reject(error);
-            });
-        });
-      }
+          })
+          .catch((error) => {
+            console.error("Error fetching referendumInfoFor:", error);
+            reject(error);
+          });
+        resolve("referendumInfoFor scraped");
+      });
 
       await new Promise((resolve, reject) => {
         apiAt.query.balances.reserves
@@ -681,51 +423,47 @@ describeSuite({
           });
       });
 
-      if (specVersion >= 2700) {
-        await new Promise((resolve, reject) => {
-          apiAt.query.balances.holds
-            .entries()
-            .then((holds) => {
-              holds.forEach((holdsOf) => {
-                const accountId = holdsOf[0].toHex().slice(-40);
-                holdsOf[1].forEach((holdOf) => {
-                  if (holdOf.id.isPreimage) {
-                    updateReserveMap(accountId, {
-                      [ReserveType.PreimageBalanceHolds]: holdOf.amount.toBigInt(),
-                    });
-                  } else {
-                    throw `Unknown hold id ${holdOf.id}`;
-                  }
-                });
+      await new Promise((resolve, reject) => {
+        apiAt.query.balances.holds
+          .entries()
+          .then((holds) => {
+            holds.forEach((holdsOf) => {
+              const accountId = holdsOf[0].toHex().slice(-40);
+              holdsOf[1].forEach((holdOf) => {
+                if (holdOf.id.isPreimage) {
+                  updateReserveMap(accountId, {
+                    [ReserveType.PreimageBalanceHolds]: holdOf.amount.toBigInt(),
+                  });
+                } else {
+                  throw `Unknown hold id ${holdOf.id}`;
+                }
               });
-              resolve("Preimage balance hold scraped");
-            })
-            .catch((error) => {
-              console.error("Error fetching holds:", error);
-              reject(error);
             });
-        });
-      }
+            resolve("Preimage balance hold scraped");
+          })
+          .catch((error) => {
+            console.error("Error fetching holds:", error);
+            reject(error);
+          });
+      });
 
-      if (specVersion >= 2401) {
-        await new Promise((resolve, reject) => {
-          apiAt.query.multisig.multisigs
-            .entries()
-            .then((multisigs) => {
-              multisigs.forEach((multisig) => {
-                const json = (multisig[1] as any).toJSON();
-                updateReserveMap(json.depositor, {
-                  [ReserveType.MultiSig]: BigInt(json.deposit),
-                });
+      await new Promise((resolve, reject) => {
+        apiAt.query.multisig.multisigs
+          .entries()
+          .then((multisigs) => {
+            multisigs.forEach((multisig) => {
+              const json = (multisig[1] as any).toJSON();
+              updateReserveMap(json.depositor, {
+                [ReserveType.MultiSig]: BigInt(json.deposit),
               });
-              resolve("multiSigs scraped");
-            })
-            .catch((error) => {
-              console.error("Error fetching multisigs:", error);
-              reject(error);
             });
-        });
-      }
+            resolve("multiSigs scraped");
+          })
+          .catch((error) => {
+            console.error("Error fetching multisigs:", error);
+            reject(error);
+          });
+      });
 
       log(`Retrieved ${expectedReserveMap.size} deposits`);
       expectedReserveMap.forEach(({ reserved }, key) => {
@@ -736,121 +474,65 @@ describeSuite({
         expectedReserveMap.set(key, { reserved, total });
       });
 
-      //1b) Build Expected Results - Locks Map
-
+      // Only applies to OpenGov
       await new Promise((resolve, reject) => {
-        apiAt.query.balances.locks
+        apiAt.query.convictionVoting.votingFor
           .entries()
-          .then((locks) => {
-            locks.forEach((lock) => {
-              const key = hexToBase64(lock[0].toHex().slice(-40));
-              const total = lock[1].reduce((acc, curr) => {
-                return curr.amount.toBigInt() + acc;
-              }, 0n);
-              locksMap.set(key, { total });
+          .then((votingFor) => {
+            (
+              votingFor as [StorageKey<[AccountId20, u16]>, PalletConvictionVotingVoteVoting][]
+            ).forEach((votes) => {
+              if (votes[1].isCasting) {
+                const accountId = votes[0].args[0].toHex().slice(-40);
+                const convictionVoting = votes[1].asCasting.votes.reduce((acc, curr) => {
+                  const amount = curr[1].isStandard
+                    ? curr[1].asStandard.balance.toBigInt()
+                    : curr[1].isSplit
+                      ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
+                      : curr[1].isSplitAbstain
+                        ? curr[1].asSplitAbstain.aye.toBigInt() +
+                          curr[1].asSplitAbstain.nay.toBigInt() +
+                          curr[1].asSplitAbstain.abstain.toBigInt()
+                        : 0n;
+
+                  return acc > amount ? acc : amount;
+                }, 0n);
+                updateExpectedLocksMap(accountId, { convictionVoting });
+              }
             });
-            resolve("locks scraped");
+            resolve("convictionVoting scraped");
           })
           .catch((error) => {
-            console.error("Error fetching locks:", error);
+            console.error("Error fetching convictionVoting:", error);
             reject(error);
           });
       });
 
-      // Only applies to OpenGov
-      if (
-        (specVersion >= 1900 && runtimeName === "moonbase") ||
-        (specVersion >= 2100 && runtimeName === "moonriver") ||
-        (specVersion >= 2300 && runtimeName === "moonbeam")
-      ) {
-        await new Promise((resolve, reject) => {
-          apiAt.query.convictionVoting.votingFor
-            .entries()
-            .then((votingFor) => {
-              (
-                votingFor as [StorageKey<[AccountId20, u16]>, PalletConvictionVotingVoteVoting][]
-              ).forEach((votes) => {
-                if (votes[1].isCasting) {
-                  const accountId = votes[0].args[0].toHex().slice(-40);
-                  const convictionVoting = votes[1].asCasting.votes.reduce((acc, curr) => {
-                    const amount = curr[1].isStandard
-                      ? curr[1].asStandard.balance.toBigInt()
-                      : curr[1].isSplit
-                        ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
-                        : curr[1].isSplitAbstain
-                          ? curr[1].asSplitAbstain.aye.toBigInt() +
-                            curr[1].asSplitAbstain.nay.toBigInt() +
-                            curr[1].asSplitAbstain.abstain.toBigInt()
-                          : 0n;
-
-                    return acc > amount ? acc : amount;
-                  }, 0n);
-                  updateExpectedLocksMap(accountId, { convictionVoting });
-                }
-              });
-              resolve("convictionVoting scraped");
-            })
-            .catch((error) => {
-              console.error("Error fetching convictionVoting:", error);
-              reject(error);
-            });
-        });
-      }
-
+      const delegatorState = await apiAt.query.parachainStaking.delegatorState.entries();
       delegatorState.forEach((delegator) => {
-        if (
-          specVersion < 1700 ||
-          (specVersion < 1800 &&
-            !delegatorStakingMigrationAccounts[delegator[0].toHex().slice(-40)])
-        ) {
-          updateReserveMap(delegator[0].toHex().slice(-40), {
-            [ReserveType.Delegator]: delegator[1].unwrap().total.toBigInt(),
+        const address = delegator[0].toHex().slice(-40);
+        if (specVersion < 4000) {
+          updateExpectedLocksMap(address, {
+            DelStake: delegator[1].unwrap().total.toBigInt(),
           });
-        }
-      });
-
-      delegatorState.forEach((delegator) => {
-        // Support the case of the migration in 1700
-        if (
-          specVersion >= 1800 ||
-          delegatorStakingMigrationAccounts[delegator[0].toHex().slice(-40)]
-        ) {
-          updateExpectedLocksMap(delegator[0].toHex().slice(-40), {
+        } else {
+          updateExpectedFreezesMap(address, {
             DelStake: delegator[1].unwrap().total.toBigInt(),
           });
         }
       });
+      console.log(expectedFreezesMap);
 
-      if (specVersion < 2900) {
-        if (!democracyVotes) {
-          throw new Error("Democracy votes not found");
-        }
-
-        democracyVotes.forEach((votes) => {
-          if (votes[1].isDirect) {
-            const accountId = votes[0].toHex().slice(-40);
-
-            const democracy = votes[1].asDirect.votes.reduce((acc, curr) => {
-              const subTotal = curr[1].isStandard
-                ? curr[1].asStandard.balance.toBigInt()
-                : curr[1].isSplit
-                  ? curr[1].asSplit.aye.toBigInt() + curr[1].asSplit.nay.toBigInt()
-                  : 0n;
-              return acc > subTotal ? acc : subTotal;
-            }, 0n);
-            updateExpectedLocksMap(accountId, { democracy });
-          }
-
-          if (votes[1].isDelegating) {
-            const accountId = votes[0].toHex().slice(-40);
-            const delegatedDemocracy = votes[1].asDelegating.prior[1].toBigInt();
-            updateExpectedLocksMap(accountId, { delegatedDemocracy });
-          }
-        });
-      }
+      log(`Retrieved ${expectedFreezesMap.size} accounts with freezes`);
+      expectedFreezesMap.forEach(({ freezes }, key) => {
+        const total = Object.values(freezes!).reduce((total, amount) => {
+          const subtotal = total + amount;
+          return subtotal;
+        }, 0n);
+        expectedFreezesMap.set(key, { freezes, total });
+      });
 
       log(`Retrieved ${expectedLocksMap.size} accounts with locks`);
-
       expectedLocksMap.forEach(({ locks }, key) => {
         const total = Object.values(locks!).reduce((total, amount) => {
           const subtotal = total + amount;
@@ -977,6 +659,20 @@ describeSuite({
           }
         }
       });
+
+      // 4) Collect and process freezes failures
+      freezesMap.forEach((value, key) => {
+        if (expectedFreezesMap.has(key)) {
+          if (expectedFreezesMap.get(key)!.total! > value.total) {
+            failedFreezes.push(
+              `\t${base64ToHex(key)} (total: actual ${printTokens(
+                paraApi,
+                value.total
+              )} - expected: ${printTokens(paraApi, expectedLocksMap.get(key)!.total!)})`
+            );
+          }
+        }
+      });
     }, TWO_HOURS);
 
     it({
@@ -1016,9 +712,6 @@ describeSuite({
       id: "C200",
       title: "should match total locks",
       test: async function () {
-        if (failedLocks.length > 0) {
-          log("Failed accounts locks");
-        }
         expect(
           failedLocks.length,
           `❌  Failed accounts locks: \n${failedLocks.join(",\n")}`
@@ -1038,6 +731,17 @@ describeSuite({
 
         log(`Verified total issuance to be ${totalIssuance / 10n ** 18n}  ${symbol}`);
         expect(queriedIssuance).to.equal(totalIssuance);
+      },
+    });
+
+    it({
+      id: "C400",
+      title: "should match total freezes",
+      test: async function () {
+        expect(
+          failedFreezes.length,
+          `❌  Failed accounts freezes: \n${failedFreezes.join(",\n")}`
+        ).to.equal(0);
       },
     });
   },
