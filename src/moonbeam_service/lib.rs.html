@@ -1912,12 +1912,7 @@
 <a href="#1911" id="1911">1911</a>
 <a href="#1912" id="1912">1912</a>
 <a href="#1913" id="1913">1913</a>
-<a href="#1914" id="1914">1914</a>
-<a href="#1915" id="1915">1915</a>
-<a href="#1916" id="1916">1916</a>
-<a href="#1917" id="1917">1917</a>
-<a href="#1918" id="1918">1918</a>
-<a href="#1919" id="1919">1919</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#1914" id="1914">1914</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -2978,12 +2973,7 @@
 		nimbus_consensus::collators::lookahead::run::&lt;Block, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, FullBackend, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;(
 			nimbus_consensus::collators::lookahead::Params {
 				additional_digests_provider: maybe_provide_vrf_digest,
-				additional_relay_keys: <span class="macro">vec!</span>[
-					<span class="comment">// TODO: Can be removed after runtime 4000
-					</span><span class="attr">#[allow(deprecated)]
-					</span>moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-					relay_chain::well_known_keys::EPOCH_INDEX.to_vec(),
-				],
+				additional_relay_keys: <span class="macro">vec!</span>[relay_chain::well_known_keys::EPOCH_INDEX.to_vec()],
 				authoring_duration: block_authoring_duration,
 				block_import,
 				code_hash_provider,

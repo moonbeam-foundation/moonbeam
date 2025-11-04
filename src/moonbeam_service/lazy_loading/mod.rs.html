@@ -1481,10 +1481,10 @@
 						));
 
 						<span class="kw">let </span>additional_key_values = <span class="macro">vec!</span>[
-							<span class="comment">// TODO: TIMESTAMP_NOW can be removed after runtime 4000
-							</span>(
-								<span class="attr">#[allow(deprecated)]
-								</span>moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
+							(
+								<span class="comment">// TIMESTAMP_NOW was deprecated in runtime 4000, but should
+								// be kept for backwards compatibility with old runtimes
+								</span>pallet_timestamp::Now::&lt;moonbeam_runtime::Runtime&gt;::hashed_key()
 									.to_vec(),
 								timestamp.encode(),
 							),
