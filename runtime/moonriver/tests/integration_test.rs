@@ -1154,7 +1154,15 @@ fn root_can_change_default_xcm_vers() {
 				0,
 				WeightLimit::Unlimited,
 			);
-			assert!(matches!(result, Err(sp_runtime::DispatchError::Module(_))));
+
+			assert!(matches!(
+				result,
+				Err(sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
+					index: 103,
+					error: [28, 2, 13, 0],
+					message: Some("LocalExecutionIncompleteWithError"),
+				}))
+			));
 
 			// Root sets the defaultXcm
 			assert_ok!(PolkadotXcm::force_default_xcm_version(
