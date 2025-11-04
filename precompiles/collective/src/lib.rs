@@ -18,7 +18,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use account::SYSTEM_ACCOUNT_SIZE;
+use account::{AccountId20, SYSTEM_ACCOUNT_SIZE};
 use core::marker::PhantomData;
 use fp_evm::Log;
 use frame_support::{
@@ -28,7 +28,7 @@ use frame_support::{
 	weights::Weight,
 };
 use pallet_evm::AddressMapping;
-use parity_scale_codec::DecodeLimit as _;
+use parity_scale_codec::{DecodeLimit as _, MaxEncodedLen};
 use precompile_utils::prelude::*;
 use sp_core::{Decode, Get, H160, H256};
 use sp_runtime::traits::Dispatchable;
@@ -99,7 +99,6 @@ where
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 	Runtime::RuntimeCall: From<pallet_collective::Call<Runtime, Instance>>,
 	<Runtime as pallet_collective::Config<Instance>>::Proposal: From<Runtime::RuntimeCall>,
-	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::AccountId: Into<H160>,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
@@ -133,7 +132,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
-			Some(origin).into(),
+			frame_system::RawOrigin::Signed(origin).into(),
 			pallet_collective::Call::<Runtime, Instance>::execute {
 				proposal,
 				length_bound: proposal_length,
@@ -193,7 +192,7 @@ where
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			RuntimeHelper::<Runtime>::try_dispatch(
 				handle,
-				Some(origin).into(),
+				frame_system::RawOrigin::Signed(origin).into(),
 				pallet_collective::Call::<Runtime, Instance>::propose {
 					threshold,
 					proposal,
@@ -228,7 +227,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
-			Some(origin).into(),
+			frame_system::RawOrigin::Signed(origin).into(),
 			pallet_collective::Call::<Runtime, Instance>::vote {
 				proposal: proposal_hash.into(),
 				index: proposal_index,
@@ -257,7 +256,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let post_dispatch_info = RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
-			Some(origin).into(),
+			frame_system::RawOrigin::Signed(origin).into(),
 			pallet_collective::Call::<Runtime, Instance>::close {
 				proposal_hash: proposal_hash.into(),
 				index: proposal_index,
@@ -310,9 +309,11 @@ where
 	#[precompile::public("members()")]
 	#[precompile::view]
 	fn members(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<Address>> {
-		// Members: Vec(20 * MaxMembers)
+		// Record cost of reading the Members storage item, which contains up to MaxMembers accounts
+		// Cost: AccountId20 size × MaxMembers
 		handle.record_db_read::<Runtime>(
-			20 * (<Runtime as pallet_collective::Config<Instance>>::MaxProposals::get() as usize),
+			AccountId20::max_encoded_len()
+				* (<Runtime as pallet_collective::Config<Instance>>::MaxMembers::get() as usize),
 		)?;
 
 		let members = pallet_collective::Members::<Runtime, Instance>::get();
@@ -324,9 +325,11 @@ where
 	#[precompile::public("isMember(address)")]
 	#[precompile::view]
 	fn is_member(handle: &mut impl PrecompileHandle, account: Address) -> EvmResult<bool> {
-		// Members: Vec(20 * MaxMembers)
+		// Record cost of reading the Members storage item, which contains up to MaxMembers accounts
+		// Cost: AccountId20 size × MaxMembers
 		handle.record_db_read::<Runtime>(
-			20 * (<Runtime as pallet_collective::Config<Instance>>::MaxProposals::get() as usize),
+			AccountId20::max_encoded_len()
+				* (<Runtime as pallet_collective::Config<Instance>>::MaxMembers::get() as usize),
 		)?;
 
 		let account = Runtime::AddressMapping::into_account_id(account.into());
