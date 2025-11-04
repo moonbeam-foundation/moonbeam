@@ -357,7 +357,11 @@
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
 <a href="#358" id="358">358</a>
-<a href="#359" id="359">359</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -377,7 +381,7 @@
 
 </span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 
-</span><span class="kw">use </span>account::SYSTEM_ACCOUNT_SIZE;
+</span><span class="kw">use </span>account::{AccountId20, SYSTEM_ACCOUNT_SIZE};
 <span class="kw">use </span>core::marker::PhantomData;
 <span class="kw">use </span>fp_evm::Log;
 <span class="kw">use </span>frame_support::{
@@ -387,7 +391,7 @@
 	weights::Weight,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
-<span class="kw">use </span>parity_scale_codec::DecodeLimit <span class="kw">as _</span>;
+<span class="kw">use </span>parity_scale_codec::{DecodeLimit <span class="kw">as _</span>, MaxEncodedLen};
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{Decode, Get, H160, H256};
 <span class="kw">use </span>sp_runtime::traits::Dispatchable;
@@ -669,9 +673,11 @@
 	<span class="attr">#[precompile::public(<span class="string">"members()"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>members(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;Address&gt;&gt; {
-		<span class="comment">// Members: Vec(20 * MaxMembers)
+		<span class="comment">// Record cost of reading the Members storage item, which contains up to MaxMembers accounts
+		// Cost: AccountId20 size × MaxMembers
 		</span>handle.record_db_read::&lt;Runtime&gt;(
-			<span class="number">20 </span>* (&lt;Runtime <span class="kw">as </span>pallet_collective::Config&lt;Instance&gt;&gt;::MaxProposals::get() <span class="kw">as </span>usize),
+			AccountId20::max_encoded_len()
+				* (&lt;Runtime <span class="kw">as </span>pallet_collective::Config&lt;Instance&gt;&gt;::MaxMembers::get() <span class="kw">as </span>usize),
 		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>members = pallet_collective::Members::&lt;Runtime, Instance&gt;::get();
@@ -683,9 +689,11 @@
 	<span class="attr">#[precompile::public(<span class="string">"isMember(address)"</span>)]
 	#[precompile::view]
 	</span><span class="kw">fn </span>is_member(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, account: Address) -&gt; EvmResult&lt;bool&gt; {
-		<span class="comment">// Members: Vec(20 * MaxMembers)
+		<span class="comment">// Record cost of reading the Members storage item, which contains up to MaxMembers accounts
+		// Cost: AccountId20 size × MaxMembers
 		</span>handle.record_db_read::&lt;Runtime&gt;(
-			<span class="number">20 </span>* (&lt;Runtime <span class="kw">as </span>pallet_collective::Config&lt;Instance&gt;&gt;::MaxProposals::get() <span class="kw">as </span>usize),
+			AccountId20::max_encoded_len()
+				* (&lt;Runtime <span class="kw">as </span>pallet_collective::Config&lt;Instance&gt;&gt;::MaxMembers::get() <span class="kw">as </span>usize),
 		)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>account = Runtime::AddressMapping::into_account_id(account.into());
