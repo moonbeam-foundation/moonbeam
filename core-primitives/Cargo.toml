@@ -9,7 +9,6 @@ version = "0.1.1"
 
 [dependencies]
 account = { workspace = true }
-hex-literal = { workspace = true }
 sp-core = { workspace = true }
 sp-runtime = { workspace = true }
 

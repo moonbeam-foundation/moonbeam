@@ -7284,7 +7284,6 @@ name = "moonbeam-core-primitives"
 version = "0.1.1"
 dependencies = [
  "account",
- "hex-literal",
  "sp-core",
  "sp-runtime",
 ]
@@ -7729,6 +7728,7 @@ dependencies = [
  "pallet-ethereum",
  "pallet-parachain-staking",
  "pallet-sudo",
+ "pallet-timestamp",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-scale-codec",

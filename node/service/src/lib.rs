@@ -1059,12 +1059,7 @@ where
 		nimbus_consensus::collators::lookahead::run::<Block, _, _, _, FullBackend, _, _, _, _, _, _>(
 			nimbus_consensus::collators::lookahead::Params {
 				additional_digests_provider: maybe_provide_vrf_digest,
-				additional_relay_keys: vec![
-					// TODO: Can be removed after runtime 4000
-					#[allow(deprecated)]
-					moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-					relay_chain::well_known_keys::EPOCH_INDEX.to_vec(),
-				],
+				additional_relay_keys: vec![relay_chain::well_known_keys::EPOCH_INDEX.to_vec()],
 				authoring_duration: block_authoring_duration,
 				block_import,
 				code_hash_provider,
