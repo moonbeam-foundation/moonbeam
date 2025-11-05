@@ -32,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Download Node
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: moonbeam
           path: target/release
@@ -42,7 +42,7 @@ jobs:
           version: 9
           run_install: false
       - name: Install Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
           cache: pnpm

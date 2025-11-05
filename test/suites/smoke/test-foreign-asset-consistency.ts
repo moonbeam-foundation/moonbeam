@@ -14,7 +14,7 @@ describeSuite({
     const foreignAssetIdType: { [assetId: string]: MultiLocation } = {};
     const foreignAssetTypeId: { [assetType: string]: string } = {};
     const xcmWeightManagerSupportedAssets: string[] = [];
-    let liveForeignAssets: { [key: string]: boolean };
+    const liveForeignAssets: { [key: string]: boolean } = {};
     let specVersion: number;
     let paraApi: ApiPromise;
 
@@ -29,11 +29,6 @@ describeSuite({
 
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
       specVersion = apiAt.consts.system.version.specVersion.toNumber();
-
-      liveForeignAssets = (await apiAt.query.assets.asset.entries()).reduce((acc, [key, value]) => {
-        acc[key.args.toString()] = (value.unwrap() as any).status.isLive;
-        return acc;
-      }, {});
 
       // Query all assets mapped by identifier
       const evmForeignAssets = await apiAt.query.evmForeignAssets.assetsById.entries();
