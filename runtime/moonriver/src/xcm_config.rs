@@ -321,43 +321,6 @@ pub type XcmRouter = WithUniqueTopic<(
 	>,
 )>;
 
-parameter_types! {
-	/// Conservative estimation for when AssetHub migration will start on Kusama
-	///
-	/// # Calculation Details
-	/// - **Computation date**: 2025-09-01 16:29:48 UTC
-	/// - **Reference block**: 29_913_400
-	/// - **Reference timestamp**: 1_756_740_588 (2025-09-01 16:29:48 UTC)
-	/// - **Target date**: 2025-10-06 00:00:00 UTC (1 day before the migration)
-	/// - **Target timestamp**: 1_759_705_200
-	///
-	/// # Block Estimation
-	/// ```text
-	/// Time difference: 1_759_705_200 - 1_756_740_588 = 2_964_612 seconds
-	/// Estimated blocks: 2_964_612 ÷ 6 = 494_102 blocks (assuming 6s block time)
-	/// Target block: 29_913_400 + 494_102 = 30_407_502
-	/// ```
-	///
-	/// **Note**: This assumes consistent 6-second block times and no network delays.
-	/// The actual migration is guaranteed to start no earlier than this block.
-	///
-	/// If the timeline changes, this value can be updated through a governance proposal.
-	pub storage AssetHubMigrationStartsAtRelayBlock: u32 = 30_407_502;
-}
-
-pub struct AssetHubMigrationStarted;
-impl Get<bool> for AssetHubMigrationStarted {
-	fn get() -> bool {
-		use cumulus_pallet_parachain_system::RelaychainDataProvider;
-		use sp_runtime::traits::BlockNumberProvider;
-
-		let ahm_relay_block = AssetHubMigrationStartsAtRelayBlock::get();
-		let current_relay_block_number = RelaychainDataProvider::<Runtime>::current_block_number();
-
-		current_relay_block_number >= ahm_relay_block
-	}
-}
-
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
@@ -839,17 +802,5 @@ mod testing {
 
 			CurrencyId::ForeignAsset(asset_id)
 		}
-	}
-}
-
-#[cfg(test)]
-mod tests {
-	use super::AssetHubMigrationStartsAtRelayBlock;
-
-	#[test]
-	fn check_type_parameter_key() {
-		let implicit_key = AssetHubMigrationStartsAtRelayBlock::key();
-		let explicit_key = sp_core::twox_128(b":AssetHubMigrationStartsAtRelayBlock:");
-		assert_eq!(implicit_key, explicit_key);
 	}
 }
