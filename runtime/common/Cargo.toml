@@ -66,13 +66,14 @@ std = [
 	"xcm/std",
 	"account/std",
 	"pallet-xcm-bridge/std",
+	"pallet-identity/std"
 ]
 runtime-benchmarks = [
 	"cumulus-primitives-core/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
-	"pallet-identity",
+	"pallet-identity/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 ]
