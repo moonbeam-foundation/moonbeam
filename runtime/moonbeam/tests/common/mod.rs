@@ -33,7 +33,7 @@ use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
-use cumulus_pallet_parachain_system::{MessagingStateSnapshot, ValidationData};
+use cumulus_pallet_parachain_system::MessagingStateSnapshot;
 use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
 use moonbeam_runtime::bridge_config::XcmOverKusamaInstance;
