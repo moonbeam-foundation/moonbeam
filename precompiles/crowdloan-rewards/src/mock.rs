@@ -25,7 +25,7 @@ use frame_support::{
 use frame_system::{pallet_prelude::BlockNumberFor, EnsureSigned};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
-use sp_core::{H256, U256};
+use sp_core::{ConstU32, H256, U256};
 use sp_io;
 use sp_runtime::traits::BlockNumberProvider;
 use sp_runtime::{
@@ -70,6 +70,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
 	type WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
+	type RelayParentOffset = ConstU32<0>;
 }
 
 parameter_types! {
@@ -189,7 +190,6 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type PrecompilesType = Precompiles<Self>;
@@ -228,7 +228,6 @@ parameter_types! {
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Initialized = TestInitialized;
 	type InitializationPayment = TestInitializationPayment;
 	type MaxInitContributors = TestMaxInitContributors;

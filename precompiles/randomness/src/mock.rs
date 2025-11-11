@@ -133,7 +133,6 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = TestPrecompiles<Runtime>;
 	type PrecompilesValue = PrecompilesValue;
@@ -166,7 +165,6 @@ parameter_types! {
 	pub const DepositAmount: Balance = 100;
 }
 impl pallet_author_mapping::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type Keys = VrfId;
@@ -190,7 +188,6 @@ parameter_types! {
 	pub const MaxBlockDelay: u32 = 20;
 }
 impl pallet_randomness::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;

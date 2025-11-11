@@ -130,7 +130,6 @@ impl AccountLookup<AccountId> for MockAccountLookup {
 }
 
 impl pallet_moonbeam_orbiters::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type AccountLookup = MockAccountLookup;
 	type AddCollatorOrigin = EnsureRoot<AccountId>;
 	type Currency = Balances;

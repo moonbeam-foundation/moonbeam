@@ -143,7 +143,6 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = Precompiles<Runtime>;
 	type PrecompilesValue = PrecompilesValue;
@@ -197,6 +196,28 @@ impl core::fmt::Debug for MaxAdditionalFields {
 		write!(f, "<>")
 	}
 }
+
+#[cfg(feature = "runtime-benchmarks")]
+pub struct IdentityBenchmarkHelper;
+#[cfg(feature = "runtime-benchmarks")]
+impl
+	pallet_identity::BenchmarkHelper<
+		<MockSignature as sp_runtime::traits::Verify>::Signer,
+		MockSignature,
+	> for IdentityBenchmarkHelper
+{
+	fn sign_message(
+		_message: &[u8],
+	) -> (
+		<MockSignature as sp_runtime::traits::Verify>::Signer,
+		MockSignature,
+	) {
+		// This is only used in runtime benchmarks, not in precompile tests
+		// So we panic here since this should never be called in tests
+		panic!("BenchmarkHelper::sign_message should not be called in precompile tests")
+	}
+}
+
 impl pallet_identity::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -218,6 +239,8 @@ impl pallet_identity::Config for Runtime {
 	type WeightInfo = ();
 	type UsernameGracePeriod = ();
 	type UsernameDeposit = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = IdentityBenchmarkHelper;
 }
 
 pub(crate) struct ExtBuilder {

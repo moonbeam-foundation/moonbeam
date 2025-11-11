@@ -108,8 +108,9 @@ where
 
 	fn prepare(
 		message: xcm::latest::Xcm<Config::RuntimeCall>,
-	) -> Result<Self::Prepared, xcm::latest::Xcm<Config::RuntimeCall>> {
-		InnerXcmExecutor::prepare(message)
+		weight_limit: Weight,
+	) -> Result<Self::Prepared, xcm::latest::InstructionError> {
+		InnerXcmExecutor::prepare(message, weight_limit)
 	}
 
 	fn execute(

@@ -17,7 +17,7 @@
 use core::marker::PhantomData;
 use cumulus_primitives_core::AggregateMessageOrigin;
 use frame_support::pallet_prelude::Get;
-use frame_support::traits::{EnqueueMessage, ProcessMessage};
+use frame_support::traits::{EnqueueMessage, ProcessMessage, QueueFootprintQuery};
 use frame_support::{ensure, BoundedVec};
 use pallet_xcm_bridge::BridgeId;
 use parity_scale_codec::{Decode, Encode};
@@ -124,8 +124,9 @@ where
 	type Error = SendError;
 
 	fn is_congested(_with: &Location) -> bool {
-		let book_state =
-			pallet_message_queue::Pallet::<Runtime>::footprint(AggregateMessageOrigin::Here);
+		let book_state = <pallet_message_queue::Pallet<Runtime> as QueueFootprintQuery<
+			AggregateMessageOrigin,
+		>>::footprint(AggregateMessageOrigin::Here);
 
 		book_state.ready_pages >= MESSAGE_QUEUE_CONGESTION_THRESHOLD
 	}

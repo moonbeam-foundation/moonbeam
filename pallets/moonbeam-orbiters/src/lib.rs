@@ -65,10 +65,7 @@ pub mod pallet {
 	>>::ReserveIdentifier;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
-		/// Overarching event type.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
+	pub trait Config: frame_system::Config<RuntimeEvent: From<Event<Self>>> {
 		/// A type to convert between AuthorId and AccountId. This pallet wrap the lookup to allow
 		/// orbiters authoring.
 		type AccountLookup: AccountLookup<Self::AccountId>;

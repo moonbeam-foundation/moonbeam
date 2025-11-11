@@ -33,7 +33,7 @@ use std::{
 };
 
 use sc_client_api::{
-	backend::{self, NewBlockState},
+	backend::{self, NewBlockState, TrieCacheContext},
 	blockchain::{self, BlockStatus, HeaderBackend},
 	leaves::LeafSet,
 	UsageInfo,
@@ -1231,7 +1231,7 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 	type OffchainStorage = InMemOffchainStorage;
 
 	fn begin_operation(&self) -> sp_blockchain::Result<Self::BlockImportOperation> {
-		let old_state = self.state_at(Default::default())?;
+		let old_state = self.state_at(Default::default(), TrieCacheContext::Untrusted)?;
 		Ok(BlockImportOperation {
 			pending_block: None,
 			old_state,
@@ -1249,7 +1249,7 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 		operation: &mut Self::BlockImportOperation,
 		block: Block::Hash,
 	) -> sp_blockchain::Result<()> {
-		operation.old_state = self.state_at(block)?;
+		operation.old_state = self.state_at(block, TrieCacheContext::Untrusted)?;
 		Ok(())
 	}
 
@@ -1330,7 +1330,11 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 		None
 	}
 
-	fn state_at(&self, hash: Block::Hash) -> sp_blockchain::Result<Self::State> {
+	fn state_at(
+		&self,
+		hash: Block::Hash,
+		_cache_context: sc_client_api::backend::TrieCacheContext,
+	) -> sp_blockchain::Result<Self::State> {
 		if hash == Default::default() {
 			return Ok(ForkedLazyBackend::<Block> {
 				rpc_client: self.rpc_client.clone(),
@@ -1359,7 +1363,9 @@ impl<Block: BlockT + DeserializeOwned> backend::Backend<Block> for Backend<Block
 					.map(|header| {
 						let checkpoint = self.fork_checkpoint.clone();
 						let state = if header.number().gt(checkpoint.number()) {
-							let parent = self.state_at(*header.parent_hash()).ok();
+							let parent = self
+								.state_at(*header.parent_hash(), TrieCacheContext::Untrusted)
+								.ok();
 
 							ForkedLazyBackend::<Block> {
 								rpc_client: self.rpc_client.clone(),

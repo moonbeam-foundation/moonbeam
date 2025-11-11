@@ -133,7 +133,6 @@ impl pallet_evm::Config for Test {
 	type WithdrawOrigin = pallet_evm::EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type PrecompilesType = ();
 	type PrecompilesValue = ();
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -157,7 +156,6 @@ parameter_types! {
 }
 
 impl pallet_ethereum::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = IntermediateStateRoot<<Test as frame_system::Config>::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
@@ -269,7 +267,6 @@ impl crate::Config for Test {
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type XcmLocationToH160 = ();
 	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
