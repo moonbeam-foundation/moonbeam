@@ -1,0 +1,41 @@
+# Chopsticks configuration for Polkadot AssetHub fork
+# Used for testing XCM Transactor AssetHub integration
+
+# Fork from live AssetHub Polkadot
+endpoint: wss://polkadot-asset-hub-rpc.polkadot.io
+
+# Enable mock signature mode for testing
+mock-signature-host: true
+
+# Store blockchain state locally
+db: ./tmp/db-assethub-polkadot.db
+
+# Port for this fork
+port: 8001
+
+# Block number to fork from (optional - uses latest if not specified)
+# block: 1000000
+
+# Import custom storage values for testing
+import-storage:
+  System:
+    Account:
+      # Fund Alice's account on AssetHub for testing (Substrate standard account)
+      # Alice SS58: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+      - - ["5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"]
+        - providers: 1
+          data:
+            free: "100000000000000" # 100 DOT (10 decimals) - use string for large numbers
+            reserved: "0"
+            miscFrozen: "0"
+            feeFrozen: "0"
+
+      # Fund Bob's account as well
+      # Bob SS58: 5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty
+      - - ["5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"]
+        - providers: 1
+          data:
+            free: "50000000000000" # 50 DOT - use string for large numbers
+            reserved: "0"
+            miscFrozen: "0"
+            feeFrozen: "0"
