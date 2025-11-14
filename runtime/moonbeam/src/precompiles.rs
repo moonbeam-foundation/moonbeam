@@ -53,7 +53,6 @@ use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripe
 use pallet_evm_precompile_xcm::PalletXcmPrecompile;
 use pallet_evm_precompile_xcm_transactor::{
 	v1::XcmTransactorPrecompileV1, v2::XcmTransactorPrecompileV2, v3::XcmTransactorPrecompileV3,
-	v4::XcmTransactorPrecompileV4,
 };
 use pallet_evm_precompile_xcm_utils::XcmUtilsPrecompile;
 use pallet_evm_precompile_xtokens::XtokensPrecompile;
@@ -300,15 +299,6 @@ type MoonbeamPrecompilesAt<R> = (
 			CallableByContract,
 			CallableByPrecompile,
 			SubcallWithMaxNesting<1>,
-		),
-	>,
-	PrecompileAt<
-		AddressU64<2075>,
-		XcmTransactorPrecompileV4<R>,
-		(
-			SubcallWithMaxNesting<1>,
-			CallableByContract,
-			CallableByPrecompile,
 		),
 	>,
 );
