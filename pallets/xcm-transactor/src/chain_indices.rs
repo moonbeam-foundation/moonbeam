@@ -57,86 +57,41 @@ pub struct RelayChainIndices {
 /// AssetHub pallet and call indices
 ///
 /// These indices are used to encode calls for AssetHub system parachain.
-/// Values are based on polkadot-fellows/runtimes AssetHub (Polkadot) runtime v2.0.2
-///
-/// WARNING: These indices MUST be verified against the actual AssetHub runtime
-/// before deployment. Use `subxt metadata` to extract correct indices.
+/// Network-specific values are defined in the `moonbeam-assethub-encoder` crate.
 #[derive(
 	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
 )]
 pub struct AssetHubIndices {
-	// Pallet indices (from AssetHub Polkadot runtime)
-	pub utility: u8,           // 40
-	pub proxy: u8,             // 42
-	pub staking: u8,           // 89 (pallet_staking for delegated staking)
-	pub nomination_pools: u8,  // ~80 (TBD - verify with metadata)
-	pub delegated_staking: u8, // ~88 (TBD - verify with metadata)
-	pub assets: u8,            // 50 (for future asset operations)
-	pub nfts: u8,              // 52 (for future NFT operations)
+	// Pallet indices
+	pub utility: u8,
+	pub proxy: u8,
+	pub staking: u8,
+	pub nomination_pools: u8,
+	pub delegated_staking: u8,
+	pub assets: u8,
+	pub nfts: u8,
 
-	// Utility call indices (standard across Substrate)
-	pub as_derivative: u8, // 1
-	pub batch: u8,         // 0
-	pub batch_all: u8,     // 2
+	// Utility call indices
+	pub as_derivative: u8,
+	pub batch: u8,
+	pub batch_all: u8,
 
-	// Proxy call indices (standard)
-	pub proxy_call: u8,   // 0
-	pub add_proxy: u8,    // 1
-	pub remove_proxy: u8, // 2
+	// Proxy call indices
+	pub proxy_call: u8,
+	pub add_proxy: u8,
+	pub remove_proxy: u8,
 
-	// Staking call indices (must be verified)
-	// These may differ from Relay Chain indices
-	pub bond: u8,              // TBD
-	pub bond_extra: u8,        // TBD
-	pub unbond: u8,            // TBD
-	pub withdraw_unbonded: u8, // TBD
-	pub validate: u8,          // TBD (may not be supported)
-	pub nominate: u8,          // TBD
-	pub chill: u8,             // TBD
-	pub set_payee: u8,         // TBD
-	pub set_controller: u8,    // TBD (deprecated)
-	pub rebond: u8,            // TBD
-}
-
-impl AssetHubIndices {
-	/// Create default AssetHub indices for Polkadot AssetHub
-	///
-	/// These values are estimates and MUST be verified before production use
-	pub fn polkadot_default() -> Self {
-		Self {
-			// Verified pallet indices from polkadot-fellows/runtimes
-			utility: 40,
-			proxy: 42,
-			staking: 89,
-			nomination_pools: 80,  // Estimate - VERIFY
-			delegated_staking: 88, // Estimate - VERIFY
-			assets: 50,
-			nfts: 52,
-
-			// Standard utility indices
-			as_derivative: 1,
-			batch: 0,
-			batch_all: 2,
-
-			// Standard proxy indices
-			proxy_call: 0,
-			add_proxy: 1,
-			remove_proxy: 2,
-
-			// Staking indices - MUST BE VERIFIED
-			// These are placeholders and likely INCORRECT
-			bond: 0,
-			bond_extra: 1,
-			unbond: 2,
-			withdraw_unbonded: 3,
-			validate: 4,
-			nominate: 5,
-			chill: 6,
-			set_payee: 7,
-			set_controller: 8,
-			rebond: 19,
-		}
-	}
+	// Staking call indices
+	pub bond: u8,
+	pub bond_extra: u8,
+	pub unbond: u8,
+	pub withdraw_unbonded: u8,
+	pub validate: u8,
+	pub nominate: u8,
+	pub chill: u8,
+	pub set_payee: u8,
+	pub set_controller: u8,
+	pub rebond: u8,
 }
 
 /// Unified chain indices enum

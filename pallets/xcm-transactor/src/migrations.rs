@@ -36,21 +36,26 @@ pub const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
 /// This migration:
 /// 1. Reads the old RelayIndices storage
 /// 2. Inserts it into ChainIndicesMap under the Relay transactor key
-/// 3. Initializes AssetHub indices with default values
+/// 3. Initializes AssetHub indices with network-specific values
 /// 4. Keeps the old RelayIndices storage for backwards compatibility (deprecated)
+///
+/// # Type Parameters
+/// - `AssetHubIndicesValue`: A `Get<AssetHubIndices>` that provides the network-specific
+///   AssetHub indices (e.g., Polkadot, Kusama, or Westend AssetHub)
 pub mod v1 {
 	use super::*;
 
-	pub struct MigrateToChainIndicesMap<T, RelayTransactor, AssetHubTransactor>(
-		PhantomData<(T, RelayTransactor, AssetHubTransactor)>,
+	pub struct MigrateToChainIndicesMap<T, RelayTransactor, AssetHubTransactor, AssetHubIndicesValue>(
+		PhantomData<(T, RelayTransactor, AssetHubTransactor, AssetHubIndicesValue)>,
 	);
 
-	impl<T, RelayTransactor, AssetHubTransactor> OnRuntimeUpgrade
-		for MigrateToChainIndicesMap<T, RelayTransactor, AssetHubTransactor>
+	impl<T, RelayTransactor, AssetHubTransactor, AssetHubIndicesValue> OnRuntimeUpgrade
+		for MigrateToChainIndicesMap<T, RelayTransactor, AssetHubTransactor, AssetHubIndicesValue>
 	where
 		T: Config,
 		RelayTransactor: Get<T::Transactor>,
 		AssetHubTransactor: Get<T::Transactor>,
+		AssetHubIndicesValue: Get<AssetHubIndices>,
 	{
 		fn on_runtime_upgrade() -> Weight {
 			let mut weight = T::DbWeight::get().reads(1);
@@ -70,9 +75,9 @@ pub mod v1 {
 				weight = weight.saturating_add(T::DbWeight::get().writes(1));
 			}
 
-			// Step 2: Initialize AssetHub indices with defaults
+			// Step 2: Initialize AssetHub indices with network-specific values
 			let assethub_key = AssetHubTransactor::get();
-			let assethub_indices = AssetHubIndices::polkadot_default();
+			let assethub_indices = AssetHubIndicesValue::get();
 			ChainIndicesMap::<T>::insert(&assethub_key, ChainIndices::AssetHub(assethub_indices));
 			weight = weight.saturating_add(T::DbWeight::get().writes(1));
 

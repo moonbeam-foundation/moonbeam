@@ -1,0 +1,19 @@
+[package]
+name = "moonbeam-assethub-encoder"
+authors = { workspace = true }
+edition = "2021"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+repository = { workspace = true }
+version = "0.1.0"
+
+[dependencies]
+
+# Moonbeam
+pallet-xcm-transactor = { workspace = true }
+
+[features]
+default = [ "std" ]
+std = [
+	"pallet-xcm-transactor/std",
+]

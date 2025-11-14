@@ -7090,6 +7090,7 @@ dependencies = [
  "hex",
  "hex-literal",
  "log",
+ "moonbeam-assethub-encoder",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
  "moonbeam-relay-encoder",
@@ -7220,6 +7221,13 @@ name = "moonbeam"
 version = "0.49.0"
 dependencies = [
  "moonbeam-cli",
+]
+
+[[package]]
+name = "moonbeam-assethub-encoder"
+version = "0.1.0"
+dependencies = [
+ "pallet-xcm-transactor",
 ]
 
 [[package]]
@@ -7514,6 +7522,7 @@ dependencies = [
  "hex",
  "hex-literal",
  "log",
+ "moonbeam-assethub-encoder",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
@@ -7848,6 +7857,7 @@ dependencies = [
  "hex",
  "hex-literal",
  "log",
+ "moonbeam-assethub-encoder",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
