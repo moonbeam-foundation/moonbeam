@@ -82,7 +82,6 @@ mod tests;
 pub mod chain_indices;
 pub mod encode;
 pub mod migrations;
-pub mod relay_indices;
 pub mod weights;
 pub use crate::weights::WeightInfo;
 
@@ -92,7 +91,7 @@ type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 pub mod pallet {
 
 	use super::*;
-	use crate::relay_indices::RelayChainIndices;
+	use crate::chain_indices::RelayChainIndices;
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};

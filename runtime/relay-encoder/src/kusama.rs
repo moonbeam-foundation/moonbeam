@@ -18,7 +18,7 @@
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
 use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
-use pallet_xcm_transactor::relay_indices::RelayChainIndices;
+use pallet_xcm_transactor::chain_indices::RelayChainIndices;
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;

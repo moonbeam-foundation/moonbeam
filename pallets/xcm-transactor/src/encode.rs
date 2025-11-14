@@ -255,7 +255,7 @@ impl<T: Config> StakeEncodeCallExt<T::Transactor> for Pallet<T> {
 impl<T: Config> Pallet<T> {
 	/// Encode staking call for Relay Chain using specific indices
 	fn encode_relay_stake_call(
-		indices: &crate::relay_indices::RelayChainIndices,
+		indices: &crate::chain_indices::RelayChainIndices,
 		call: AvailableStakeCalls,
 	) -> Vec<u8> {
 		match call {

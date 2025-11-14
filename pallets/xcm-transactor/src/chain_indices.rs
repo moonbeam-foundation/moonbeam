@@ -23,8 +23,36 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 
-// Re-export RelayChainIndices from relay_indices module for compatibility
-pub use crate::relay_indices::RelayChainIndices;
+/// Relay Chain pallet and call indices
+///
+/// These indices are used to encode calls for the Relay Chain (Polkadot/Kusama).
+#[derive(
+	Clone, Copy, Debug, Default, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq,
+)]
+pub struct RelayChainIndices {
+	// Pallet indices
+	pub staking: u8,
+	pub utility: u8,
+	pub hrmp: u8,
+	// Staking indices
+	pub bond: u8,
+	pub bond_extra: u8,
+	pub unbond: u8,
+	pub withdraw_unbonded: u8,
+	pub validate: u8,
+	pub nominate: u8,
+	pub chill: u8,
+	pub set_payee: u8,
+	pub set_controller: u8,
+	pub rebond: u8,
+	// Utility indices
+	pub as_derivative: u8,
+	// Hrmp indices
+	pub init_open_channel: u8,
+	pub accept_open_channel: u8,
+	pub close_channel: u8,
+	pub cancel_open_request: u8,
+}
 
 /// AssetHub pallet and call indices
 ///

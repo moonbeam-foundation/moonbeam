@@ -71,7 +71,7 @@ pub enum HrmpCall {
 	CancelOpenChannel(HrmpChannelId, u32),
 }
 
-use pallet_xcm_transactor::relay_indices::*;
+use pallet_xcm_transactor::chain_indices::*;
 pub const TEST_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 	staking: 1u8,
 	utility: 0u8,
