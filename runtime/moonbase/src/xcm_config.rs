@@ -617,14 +617,16 @@ parameter_types! {
 	pub MaxHrmpRelayFee: Asset = (Location::parent(), 1_000_000_000_000u128).into();
 }
 
-// For now we only allow to transact in the relay, although this might change in the future
-// Transactors just defines the chains in which we allow transactions to be issued through
-// xcm
+// Transactors defines the chains in which we allow transactions to be issued through XCM
+// This enum now supports both Relay Chain and AssetHub system parachain
 #[derive(
 	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
 )]
 pub enum Transactors {
+	/// Relay Chain (Westend for Moonbase)
 	Relay,
+	/// AssetHub system parachain (para 1000)
+	AssetHub,
 }
 
 // Default for benchmarking
@@ -640,6 +642,7 @@ impl TryFrom<u8> for Transactors {
 	fn try_from(value: u8) -> Result<Self, Self::Error> {
 		match value {
 			0u8 => Ok(Transactors::Relay),
+			1u8 => Ok(Transactors::AssetHub),
 			_ => Err(()),
 		}
 	}
@@ -652,6 +655,10 @@ impl UtilityEncodeCall for Transactors {
 				pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
 				call,
 			),
+			Transactors::AssetHub => pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+				pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
+				call,
+			),
 		}
 	}
 }
@@ -660,6 +667,10 @@ impl XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
 			Transactors::Relay => Location::parent(),
+			Transactors::AssetHub => Location {
+				parents: 1,
+				interior: [Parachain(1001)].into(),
+			},
 		}
 	}
 }

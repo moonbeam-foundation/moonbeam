@@ -83,6 +83,13 @@ pub enum AvailableStakeCalls {
 }
 
 pub trait StakeEncodeCall {
-	/// Encode call from the relay.
+	/// Encode staking call for the relay chain.
+	/// This is the legacy method kept for backwards compatibility.
 	fn encode_call(call: AvailableStakeCalls) -> Vec<u8>;
+}
+
+/// Extended trait for encoding staking calls with chain-specific support
+pub trait StakeEncodeCallExt<Transactor> {
+	/// Encode staking call for a specific chain destination (Relay or AssetHub)
+	fn encode_call_with_transactor(transactor: Transactor, call: AvailableStakeCalls) -> Vec<u8>;
 }

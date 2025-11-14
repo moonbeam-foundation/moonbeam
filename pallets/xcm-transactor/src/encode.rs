@@ -25,12 +25,13 @@ use frame_support::pallet_prelude::*;
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_std::prelude::*;
 use xcm_primitives::{
-	AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, StakeEncodeCall,
+	AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, StakeEncodeCall, StakeEncodeCallExt,
 	UtilityAvailableCalls, UtilityEncodeCall,
 };
 
 pub use crate::pallet::*;
 
+use crate::chain_indices::{AssetHubIndices, ChainIndices};
 pub use crate::weights::WeightInfo;
 
 impl<T: Config> UtilityEncodeCall for Pallet<T> {
@@ -215,6 +216,196 @@ impl<T: Config> StakeEncodeCall for Pallet<T> {
 				encoded_call.push(RelayIndices::<T>::get().staking);
 				// call index
 				encoded_call.push(RelayIndices::<T>::get().nominate);
+				let nominated: Vec<
+					<AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source,
+				> = a.iter().map(|add| (*add).clone().into()).collect();
+				encoded_call.append(&mut nominated.encode());
+				encoded_call
+			}
+		}
+	}
+}
+
+/// Extended implementation for chain-specific staking call encoding
+impl<T: Config> StakeEncodeCallExt<T::Transactor> for Pallet<T> {
+	fn encode_call_with_transactor(
+		transactor: T::Transactor,
+		call: AvailableStakeCalls,
+	) -> Vec<u8> {
+		// Get the chain indices for the specified transactor
+		let chain_indices = match ChainIndicesMap::<T>::get(&transactor) {
+			Some(indices) => indices,
+			None => {
+				// Fallback to legacy RelayIndices if not found
+				return <Self as StakeEncodeCall>::encode_call(call);
+			}
+		};
+
+		match chain_indices {
+			ChainIndices::Relay(relay_indices) => {
+				Self::encode_relay_stake_call(&relay_indices, call)
+			}
+			ChainIndices::AssetHub(assethub_indices) => {
+				Self::encode_assethub_stake_call(&assethub_indices, call)
+			}
+		}
+	}
+}
+
+impl<T: Config> Pallet<T> {
+	/// Encode staking call for Relay Chain using specific indices
+	fn encode_relay_stake_call(
+		indices: &crate::relay_indices::RelayChainIndices,
+		call: AvailableStakeCalls,
+	) -> Vec<u8> {
+		match call {
+			AvailableStakeCalls::Bond(b, c) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.bond);
+				encoded_call.append(&mut encode_compact_arg(b));
+				encoded_call.append(&mut c.encode());
+				encoded_call
+			}
+			AvailableStakeCalls::BondExtra(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.bond_extra);
+				encoded_call.append(&mut encode_compact_arg(a));
+				encoded_call
+			}
+			AvailableStakeCalls::Unbond(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.unbond);
+				encoded_call.append(&mut encode_compact_arg(a));
+				encoded_call
+			}
+			AvailableStakeCalls::WithdrawUnbonded(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.withdraw_unbonded);
+				encoded_call.append(&mut a.encode());
+				encoded_call
+			}
+			AvailableStakeCalls::Validate(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.validate);
+				encoded_call.append(&mut a.encode());
+				encoded_call
+			}
+			AvailableStakeCalls::Chill => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.chill);
+				encoded_call
+			}
+			AvailableStakeCalls::SetPayee(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.set_payee);
+				encoded_call.append(&mut a.encode());
+				encoded_call
+			}
+			AvailableStakeCalls::SetController => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.set_controller);
+				encoded_call
+			}
+			AvailableStakeCalls::Rebond(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.rebond);
+				encoded_call.append(&mut encode_compact_arg(a));
+				encoded_call
+			}
+			AvailableStakeCalls::Nominate(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.nominate);
+				let nominated: Vec<
+					<AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source,
+				> = a.iter().map(|add| (*add).clone().into()).collect();
+				encoded_call.append(&mut nominated.encode());
+				encoded_call
+			}
+		}
+	}
+
+	/// Encode staking call for AssetHub using specific indices
+	fn encode_assethub_stake_call(indices: &AssetHubIndices, call: AvailableStakeCalls) -> Vec<u8> {
+		match call {
+			AvailableStakeCalls::Bond(b, c) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.bond);
+				encoded_call.append(&mut encode_compact_arg(b));
+				encoded_call.append(&mut c.encode());
+				encoded_call
+			}
+			AvailableStakeCalls::BondExtra(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.bond_extra);
+				encoded_call.append(&mut encode_compact_arg(a));
+				encoded_call
+			}
+			AvailableStakeCalls::Unbond(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.unbond);
+				encoded_call.append(&mut encode_compact_arg(a));
+				encoded_call
+			}
+			AvailableStakeCalls::WithdrawUnbonded(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.withdraw_unbonded);
+				encoded_call.append(&mut a.encode());
+				encoded_call
+			}
+			AvailableStakeCalls::Validate(a) => {
+				// Note: Validate may not be supported on AssetHub
+				// This encodes it anyway, but it may fail on the destination chain
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.validate);
+				encoded_call.append(&mut a.encode());
+				encoded_call
+			}
+			AvailableStakeCalls::Chill => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.chill);
+				encoded_call
+			}
+			AvailableStakeCalls::SetPayee(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.set_payee);
+				encoded_call.append(&mut a.encode());
+				encoded_call
+			}
+			AvailableStakeCalls::SetController => {
+				// Note: SetController is deprecated in newer Substrate versions
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.set_controller);
+				encoded_call
+			}
+			AvailableStakeCalls::Rebond(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.rebond);
+				encoded_call.append(&mut encode_compact_arg(a));
+				encoded_call
+			}
+			AvailableStakeCalls::Nominate(a) => {
+				let mut encoded_call = Vec::new();
+				encoded_call.push(indices.staking);
+				encoded_call.push(indices.nominate);
 				let nominated: Vec<
 					<AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source,
 				> = a.iter().map(|add| (*add).clone().into()).collect();

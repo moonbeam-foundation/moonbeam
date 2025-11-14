@@ -276,7 +276,7 @@ pub enum HrmpCall {
 	Cancel(),
 }
 
-// Transactors for the mock runtime. Only relay chain
+// Transactors for the mock runtime: Relay chain and AssetHub
 #[derive(
 	Clone,
 	Eq,
@@ -291,6 +291,7 @@ pub enum HrmpCall {
 )]
 pub enum Transactors {
 	Relay,
+	AssetHub,
 }
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -300,10 +301,26 @@ impl Default for Transactors {
 	}
 }
 
+impl TryFrom<u8> for Transactors {
+	type Error = ();
+
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			0u8 => Ok(Transactors::Relay),
+			1u8 => Ok(Transactors::AssetHub),
+			_ => Err(()),
+		}
+	}
+}
+
 impl XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
 			Transactors::Relay => Location::parent(),
+			Transactors::AssetHub => Location {
+				parents: 1,
+				interior: [Parachain(1000)].into(),
+			},
 		}
 	}
 }
@@ -311,7 +328,7 @@ impl XcmTransact for Transactors {
 impl UtilityEncodeCall for Transactors {
 	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
-			Transactors::Relay => match call {
+			Transactors::Relay | Transactors::AssetHub => match call {
 				UtilityAvailableCalls::AsDerivative(a, b) => {
 					let mut call =
 						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
