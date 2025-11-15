@@ -17,7 +17,7 @@
 //! XCM Transactor pallet migrations
 
 use crate::{
-	chain_indices::{AssetHubIndices, ChainIndices, RelayChainIndices},
+	chain_indices::{AssetHubIndices, ChainIndices},
 	pallet::Config,
 	ChainIndicesMap, RelayIndices,
 };
@@ -101,6 +101,7 @@ pub mod v1 {
 
 		#[cfg(feature = "try-runtime")]
 		fn post_upgrade(state: Vec<u8>) -> Result<(), sp_runtime::TryRuntimeError> {
+			use crate::chain_indices::RelayChainIndices;
 			use parity_scale_codec::Decode;
 
 			// Decode pre-upgrade state
