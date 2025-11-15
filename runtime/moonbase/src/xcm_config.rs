@@ -669,7 +669,7 @@ impl XcmTransact for Transactors {
 			Transactors::Relay => Location::parent(),
 			Transactors::AssetHub => Location {
 				parents: 1,
-				interior: [Parachain(1001)].into(),
+				interior: [Parachain(1000)].into(),
 			},
 		}
 	}
