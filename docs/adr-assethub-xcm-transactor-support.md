@@ -10,9 +10,8 @@ This ADR proposes extending the XCM Transactor pallet to support AssetHub as a t
 
 1. Extending the `Transactors` enum to include `AssetHub`
 2. Creating chain-specific encoding logic with `AssetHubIndices`
-3. Implementing a new V4 precompile at address `0x0818` with unified `Transactor` parameter
-4. Migrating storage from `RelayIndices` to `ChainIndices<Transactors, ChainIndices>`
-5. Comprehensive testing including unit, integration, and chopsticks fork tests
+3. Migrating storage from `RelayIndices` to `ChainIndices<Transactors, ChainIndices>`
+4. Comprehensive testing including unit, integration, and chopsticks fork tests
 
 **Key Benefits:**
 - Enables DOT staking through AssetHub's delegated staking mechanisms
@@ -250,232 +249,18 @@ impl<T: Config> Pallet<T> {
 
 ##### Precompile Integration
 
-**5. V3 Extension vs V4 New Version**
+**5. Use Existing Precompiles**
 
-Two approaches are viable:
+The existing XCM Transactor precompiles (V1-V3) will continue to work without modification. The pallet-level changes to support AssetHub will be accessed through:
+- Direct pallet calls from Substrate transactions
+- Existing precompile interfaces by encoding AssetHub-specific calls in the `innerCall` parameter
+- The existing `transact_through_derivative` and `transact_through_signed` methods already accept arbitrary destinations via `Multilocation`
 
-**Approach A: Extend V3 (Minimal Changes)**
-- Add `transactThroughDerivativeAssetHub()` and similar methods to existing V3
-- Pro: No new precompile address needed
-- Con: Bloats V3 interface, breaks semantic versioning
-
-**Approach B: Create V4 (Recommended)**
-- Create new `precompiles/xcm-transactor/src/v4/` directory
-- New precompile address: `0x0000000000000000000000000000000000000818` (AddressU64<2072>)
-- Pro: Clean separation, semantic versioning, backwards compatible
-- Con: Additional maintenance overhead
-
-**Recommended: V4 with Unified Interface**
-
-```solidity
-// precompiles/xcm-transactor/src/v4/XcmTransactorV4.sol
-
-pragma solidity >=0.8.3;
-
-/// @title XCM Transactor Interface V4
-/// @notice Interface for cross-chain transactions with AssetHub support
-/// @dev Precompiled contract at address 0x0000000000000000000000000000000000000818
-interface XcmTransactorV4 {
-    /// @dev Transactor destination chains
-    enum Transactor {
-        Relay,      // 0: Polkadot/Kusama/Westend Relay Chain
-        AssetHub    // 1: AssetHub system parachain
-    }
-
-    struct Multilocation {
-        uint8 parents;
-        bytes[] interior;
-    }
-
-    struct Weight {
-        uint64 refTime;
-        uint64 proofSize;
-    }
-
-    // ============ Enhanced Transact Methods ============
-
-    /// @notice Transact through derivative account with chain selection
-    /// @param transactor Target chain (Relay or AssetHub)
-    /// @param index Derivative account index
-    /// @param feeAsset Asset to use for fees
-    /// @param transactRequiredWeightAtMost Weight limit for the remote call
-    /// @param innerCall SCALE-encoded call to execute remotely
-    /// @param feeAmount Maximum fee willing to pay
-    /// @param overallWeight Total weight limit including XCM overhead
-    /// @param refund Whether to refund unused fees
-    function transactThroughDerivative(
-        Transactor transactor,
-        uint16 index,
-        Multilocation memory feeAsset,
-        Weight memory transactRequiredWeightAtMost,
-        bytes memory innerCall,
-        uint256 feeAmount,
-        Weight memory overallWeight,
-        bool refund
-    ) external;
-
-    /// @notice Transact through signed origin with chain selection
-    /// @param transactor Target chain (Relay or AssetHub)
-    /// @param dest Destination location for the transaction
-    /// @param feeAsset Asset to use for fees
-    /// @param transactRequiredWeightAtMost Weight limit
-    /// @param innerCall SCALE-encoded call
-    /// @param feeAmount Maximum fee
-    /// @param overallWeight Total weight limit
-    /// @param refund Whether to refund unused fees
-    function transactThroughSigned(
-        Transactor transactor,
-        Multilocation memory dest,
-        Multilocation memory feeAsset,
-        Weight memory transactRequiredWeightAtMost,
-        bytes memory innerCall,
-        uint256 feeAmount,
-        Weight memory overallWeight,
-        bool refund
-    ) external;
-
-    // ============ Query Methods ============
-
-    /// @notice Get account address for a derivative index
-    /// @param index The derivative account index
-    /// @return The account address
-    function indexToAccount(uint16 index) external view returns (address);
-
-    /// @notice Get transaction weight info for a destination
-    /// @param transactor Target chain
-    /// @param multilocation The destination location
-    /// @return extraWeight Additional weight added by XCM
-    /// @return maxWeight Maximum allowed weight
-    function transactInfoWithSigned(
-        Transactor transactor,
-        Multilocation memory multilocation
-    ) external view returns (Weight memory, Weight memory);
-
-    /// @notice Get fee per second for an asset on a destination
-    /// @param transactor Target chain
-    /// @param multilocation The asset location
-    /// @return Fee per second of execution
-    function feePerSecond(
-        Transactor transactor,
-        Multilocation memory multilocation
-    ) external view returns (uint256);
-
-    // ============ Encoding Utilities ============
-
-    /// @notice Encode a utility.asDerivative call
-    /// @param transactor Target chain (affects pallet indices)
-    /// @param index Derivative index
-    /// @param innerCall The call to wrap
-    /// @return SCALE-encoded asDerivative call
-    function encodeUtilityAsDerivative(
-        Transactor transactor,
-        uint8 index,
-        bytes memory innerCall
-    ) external pure returns (bytes memory);
-}
-```
-
-**6. Precompile Implementation (Rust)**
-
-```rust
-// precompiles/xcm-transactor/src/v4/mod.rs
-
-#[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-    TransactThroughDerivative = "transactThroughDerivative(uint8,uint16,(uint8,bytes[]),(uint64,uint64),bytes,uint256,(uint64,uint64),bool)",
-    TransactThroughSigned = "transactThroughSigned(uint8,(uint8,bytes[]),(uint8,bytes[]),(uint64,uint64),bytes,uint256,(uint64,uint64),bool)",
-    IndexToAccount = "indexToAccount(uint16)",
-    TransactInfoWithSigned = "transactInfoWithSigned(uint8,(uint8,bytes[]))",
-    FeePerSecond = "feePerSecond(uint8,(uint8,bytes[]))",
-    EncodeUtilityAsDerivative = "encodeUtilityAsDerivative(uint8,uint8,bytes)",
-}
-
-impl<Runtime> XcmTransactorPrecompileV4<Runtime>
-where
-    Runtime: pallet_xcm_transactor::Config + pallet_evm::Config + frame_system::Config,
-{
-    fn transact_through_derivative(
-        handle: &mut impl PrecompileHandle,
-    ) -> EvmResult<PrecompileOutput> {
-        // Read input
-        read_args!(handle, {
-            transactor_u8: u8,
-            index: u16,
-            fee_asset: MultiLocation,
-            weight: EvmWeight,
-            inner_call: BoundedBytes<GetDataLimit>,
-            fee_amount: U256,
-            overall_weight: EvmWeight,
-            refund: bool
-        });
-
-        // Convert u8 to Transactors enum
-        let transactor = match transactor_u8 {
-            0 => Transactors::Relay,
-            1 => Transactors::AssetHub,
-            _ => return Err(revert("Invalid transactor")),
-        };
-
-        // Call shared implementation
-        XcmTransactorWrapper::<Runtime>::transact_through_derivative_v4(
-            handle,
-            transactor,
-            index,
-            fee_asset,
-            weight,
-            inner_call,
-            fee_amount,
-            overall_weight,
-            refund,
-        )
-    }
-}
-```
-
-**7. Shared Implementation Updates**
-
-```rust
-// precompiles/xcm-transactor/src/functions.rs
-
-impl<Runtime> XcmTransactorWrapper<Runtime>
-where
-    Runtime: pallet_xcm_transactor::Config + pallet_evm::Config,
-{
-    pub fn transact_through_derivative_v4(
-        handle: &mut impl PrecompileHandle,
-        transactor: Transactors,
-        index: u16,
-        // ... other params
-    ) -> EvmResult<PrecompileOutput> {
-        // Validate transactor is registered
-        let destination = transactor.destination();
-
-        // Build call to pallet
-        let call = pallet_xcm_transactor::Call::<Runtime>::transact_through_derivative {
-            dest: transactor,
-            index,
-            fee: CurrencyPayment {
-                currency: Currency::AsMultiLocation(Box::new(fee_asset.into())),
-                fee_amount: Some(fee_amount),
-            },
-            inner_call: inner_call.into(),
-            weight_info: TransactWeights {
-                transact_required_weight_at_most: weight.into(),
-                overall_weight: Some(overall_weight.into()),
-            },
-            refund,
-        };
-
-        RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
-        Ok(succeed(EvmDataWriter::new().write(true).build()))
-    }
-}
-```
+**Note:** No new precompile version is required. The AssetHub support is purely a pallet-level enhancement that extends the encoding capabilities and destination support.
 
 ##### Compatibility Analysis with Polkadot Fellows Runtime
 
-**8. AssetHub Staking Capabilities**
+**6. AssetHub Staking Capabilities**
 
 Based on analysis of `polkadot-fellows/runtimes`, AssetHub (Polkadot) runtime v2.0.2 includes:
 
@@ -506,7 +291,7 @@ Based on analysis of `polkadot-fellows/runtimes`, AssetHub (Polkadot) runtime v2
 2. Test which staking calls work directly vs require relay proxy
 3. Consider if some calls should route Relay->AssetHub or direct to Relay
 
-**9. Index Verification Strategy**
+**7. Index Verification Strategy**
 
 ```bash
 # Extract runtime metadata from AssetHub
@@ -519,7 +304,7 @@ subxt codegen --file assethub-metadata.scale | grep "pallet_index"
 
 ##### Testing Strategy
 
-**10. Comprehensive Test Plan**
+**8. Comprehensive Test Plan**
 
 **Phase 1: Unit Tests (Rust)**
 
@@ -596,89 +381,51 @@ fn transact_to_assethub_via_derivative_succeeds() {
 }
 ```
 
-**Phase 2: Precompile Tests**
-
-```rust
-// precompiles/xcm-transactor/src/tests.rs
-
-#[test]
-fn test_v4_selectors() {
-    use sha3::{Digest, Keccak256};
-
-    assert_eq!(
-        &Keccak256::digest(b"transactThroughDerivative(uint8,uint16,(uint8,bytes[]),(uint64,uint64),bytes,uint256,(uint64,uint64),bool)")[0..4],
-        PCallV4::transact_through_derivative_selectors()
-    );
-}
-
-#[test]
-fn test_v4_transact_assethub_derivative() {
-    ExtBuilder::default()
-        .with_balances(vec![(Alice.into(), 1000 * UNIT)])
-        .build()
-        .execute_with(|| {
-            let input = EvmDataWriter::new_with_selector(
-                Action::TransactThroughDerivative
-            )
-            .write(1u8) // AssetHub
-            .write(0u16) // index
-            .write(Multilocation { parents: 1, interior: vec![...] })
-            // ... params
-            .build();
-
-            precompiles()
-                .prepare_test(Alice, Precompile, input)
-                .execute_returns(EvmDataWriter::new().write(true).build());
-        });
-}
-```
-
-**Phase 3: Integration Tests (TypeScript/Moonwall)**
+**Phase 2: Integration Tests (TypeScript/Moonwall)**
 
 ```typescript
 // test/suites/dev/moonbase/test-xcm-transactor/test-xcm-assethub.ts
 
 describeSuite({
   id: "D0305",
-  title: "XCM Transactor V4 - AssetHub Staking",
+  title: "XCM Transactor - AssetHub Staking",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     it({
       id: "T01",
-      title: "should bond DOT on AssetHub via derivative",
+      title: "should bond DOT on AssetHub via derivative using pallet",
       test: async () => {
-        const XCM_TRANSACTOR_V4 = "0x0000000000000000000000000000000000000818";
-        const Transactor = { Relay: 0, AssetHub: 1 };
+        // Encode AssetHub bond call using AssetHub indices
+        const bondCall = encodeAssetHubBondCall(10n * GLMR);
 
-        // Encode bond call using relay-encoder or manual SCALE
-        const bondCall = encodeBondCall(10n * GLMR);
+        // AssetHub destination
+        const assetHubDest = {
+          parents: 1,
+          interior: { X1: { Parachain: 1000 } },
+        };
 
         // Create fee asset multilocation for AssetHub
         const feeAsset = {
           parents: 1,
-          interior: [{ Parachain: 1000 }],
+          interior: { X1: { Parachain: 1000 } },
         };
 
-        // Call precompile
+        // Call pallet directly
         const { result } = await context.createBlock(
-          context.polkadotJs().tx.ethereum.transact({
-            to: XCM_TRANSACTOR_V4,
-            data: encodeFunctionData({
-              abi: XcmTransactorV4ABI,
-              functionName: "transactThroughDerivative",
-              args: [
-                Transactor.AssetHub,
-                0, // index
-                feeAsset,
-                { refTime: 1_000_000_000, proofSize: 64_000 },
-                bondCall,
-                1000000n,
-                { refTime: 2_000_000_000, proofSize: 128_000 },
-                true, // refund
-              ],
-            }),
-            // ... gas params
-          })
+          context.polkadotJs().tx.xcmTransactor.transactThroughDerivative(
+            assetHubDest,
+            0, // derivative index
+            {
+              currency: { AsMultiLocation: feeAsset },
+              feeAmount: 1000000n,
+            },
+            bondCall,
+            {
+              transactRequiredWeightAtMost: { refTime: 1_000_000_000, proofSize: 64_000 },
+              overallWeight: { refTime: 2_000_000_000, proofSize: 128_000 },
+            },
+            true // refund
+          )
         );
 
         expect(result?.successful).to.be.true;
@@ -686,8 +433,6 @@ describeSuite({
         // Verify XCM message in outbound queue
         const messages = await context.polkadotJs().query.xcmpQueue.outboundXcmpMessages.entries();
         expect(messages.length).to.be.greaterThan(0);
-
-        // Could also use chopsticks to verify on AssetHub side
       },
     });
 
@@ -703,7 +448,7 @@ describeSuite({
 });
 ```
 
-**Phase 4: Chopsticks Fork Testing**
+**Phase 3: Chopsticks Fork Testing**
 
 ```typescript
 // test/helpers/assethub-fork.ts
@@ -732,7 +477,7 @@ export async function setupAssetHubFork() {
 // Use in tests to verify end-to-end flow
 ```
 
-**Phase 5: Smoke Tests**
+**Phase 4: Smoke Tests**
 
 ```typescript
 // test/suites/smoke/moonbeam/test-xcm-transactor-assethub.ts
@@ -744,12 +489,12 @@ describeSuite({
   testCases: ({ context, it }) => {
     it({
       id: "T01",
-      title: "V4 precompile should be deployed",
+      title: "AssetHub chain indices should be configured",
       test: async () => {
-        const code = await context.viem().getBytecode({
-          address: "0x0000000000000000000000000000000000000818",
-        });
-        expect(code).to.not.equal("0x");
+        const indices = await context.polkadotJs().query.xcmTransactor.chainIndices(
+          { AssetHub: null }
+        );
+        expect(indices.isSome).to.be.true;
       },
     });
 
@@ -774,8 +519,6 @@ describeSuite({
 | Unit - Encoding | All AvailableStakeCalls | Rust cargo test | P0 |
 | Unit - Storage Migration | Old→New format | Rust + try-runtime | P0 |
 | Unit - Pallet Logic | Transact calls | Rust cargo test | P0 |
-| Precompile - Selectors | V4 function sigs | Rust cargo test | P0 |
-| Precompile - Modifiers | View/state-changing | Rust cargo test | P0 |
 | Integration - XCM Messages | Message formation | Moonwall dev tests | P1 |
 | Integration - End-to-end | Full flow | Chopsticks | P1 |
 | Smoke - Deployment | Runtime config | Moonwall smoke | P1 |
@@ -783,7 +526,7 @@ describeSuite({
 
 ##### Migration Strategy
 
-**11. Storage Migration**
+**9. Storage Migration**
 
 ```rust
 // pallets/xcm-transactor/src/migrations.rs
@@ -844,80 +587,73 @@ pub mod v2 {
 
 ##### Documentation Updates
 
-**12. Solidity Documentation**
+**10. Pallet Documentation**
 
-Update technical documentation at `precompiles/xcm-transactor/src/v4/README.md`:
+Update technical documentation at `pallets/xcm-transactor/README.md`:
 
 ```markdown
-# XCM Transactor V4 Precompile
-
-Address: `0x0000000000000000000000000000000000000818`
+# XCM Transactor Pallet
 
 ## Overview
 
-The XCM Transactor V4 precompile enables Ethereum-style contracts on Moonbeam
-to execute calls on remote chains via XCM (Cross-Consensus Messaging).
-
-Version 4 adds support for **AssetHub** as a transaction destination, enabling
-staking, asset management, and proxy operations on the Polkadot AssetHub
-system parachain.
+The XCM Transactor pallet enables Moonbeam parachains to execute remote calls on other chains via XCM (Cross-Consensus Messaging).
 
 ## Supported Destinations
 
-- **Relay (0)**: Polkadot/Kusama/Westend Relay Chain
-- **AssetHub (1)**: Polkadot/Kusama AssetHub system parachain
+- **Relay Chain**: Polkadot/Kusama/Westend Relay Chain
+- **AssetHub**: AssetHub system parachain (Polkadot/Kusama/Westend)
 
 ## Key Features
 
-### AssetHub Staking
+### AssetHub Support
 
-Execute DOT staking operations through AssetHub's delegated staking:
+AssetHub support enables staking, asset management, and proxy operations on the AssetHub system parachain through chain-specific encoding:
 
-solidity
-// Bond 10 DOT on AssetHub
-bytes memory bondCall = encodeAssetHubBond(10 ether, REWARD_STAKED);
+```rust
+// Example: Bond DOT on AssetHub
+let call = AvailableStakeCalls::Bond(10_000_000_000, RewardDestination::Staked);
+let encoded_call = XcmTransactor::encode_call(Transactors::AssetHub, call);
 
-xcmTransactorV4.transactThroughDerivative(
-    XcmTransactorV4.Transactor.AssetHub,
-    0, // derivative index
-    assetHubFeeAsset,
-    Weight(1_000_000_000, 64_000),
-    bondCall,
-    1_000_000,
-    Weight(2_000_000_000, 128_000),
-    true // refund
-);
+// Use with transact_through_derivative
+XcmTransactor::transact_through_derivative(
+    origin,
+    Transactors::AssetHub,
+    derivative_index,
+    fee_payment,
+    encoded_call,
+    weight_info,
+    refund,
+)?;
+```
 
+## Storage
 
-## Migration from V3
+### ChainIndices
 
-V3 users can upgrade to V4 by:
-1. Changing precompile address to `0x0818`
-2. Adding `Transactor` enum parameter (use `Transactor.Relay` for same behavior)
-3. Updating function signatures (selectors changed)
+Stores pallet and call indices for each supported chain destination.
 
 ## Examples
 
-See `examples/` directory for complete integration examples.
+See integration tests in `test/suites/dev/moonbase/test-xcm-transactor/` for usage examples.
 ```
 
 **Pros:**
 - Extensible to additional chains (BridgeHub, Collectives, etc.)
 - Clear separation of encoding logic per chain
 - Configurable indices per chain via runtime configuration
-- Maintains backwards compatibility (V3 still works)
+- Maintains full backwards compatibility (existing precompiles unchanged)
 - Type-safe chain selection
 - Future-proof architecture for multi-chain support
 - Comprehensive testing coverage
 - Verified compatibility with AssetHub runtime
+- No new precompile required - simpler upgrade path
 
 **Cons:**
-- Requires creating new precompile version (V4)
 - Moderate implementation complexity
 - Need to update trait signatures across the codebase
 - Storage migration required
 - Requires maintaining AssetHub pallet indices on runtime upgrades
-- Additional testing burden (3x test matrix: Relay, AssetHub, compatibility)
+- Additional testing burden (Relay + AssetHub compatibility)
 
 #### Option 3: Dynamic Runtime Configuration (FUTURE CONSIDERATION)
 
@@ -1070,9 +806,10 @@ We recommend **Option 2** for the following reasons:
    - **DECISION**: Keep legacy storage for 2-3 runtime versions, then deprecate
 
 6. **Precompile interface** ✅ ANSWERED
-   - **DECISION**: Create new V4 precompile at `0x0818`
-   - Unified interface with `Transactor` enum parameter
-   - V1, V2, V3 remain unchanged and functional (backwards compatibility)
+   - **DECISION**: No new precompile version required
+   - AssetHub support is a pallet-level enhancement
+   - Existing precompiles (V1-V3) continue to work without modification
+   - Users access AssetHub via existing methods by passing AssetHub destination
    - Relay-encoder precompile may need AssetHub encoding support separately
 
 7. **Multi-network support**
@@ -1156,45 +893,35 @@ We recommend **Option 2** for the following reasons:
 - [ ] Update `UtilityEncodeCall` for AssetHub
 - [ ] Create comprehensive unit tests for encoding
 
-**Phase 3: Precompile V4** (1-2 weeks)
-- [ ] Create `precompiles/xcm-transactor/src/v4/` structure
-- [ ] Implement V4 precompile with `Transactor` parameter
-- [ ] Write Solidity interface `XcmTransactorV4.sol`
-- [ ] Register V4 at address `0x0818` in runtime
-- [ ] Update shared `functions.rs` implementation
-
-**Phase 4: Testing & Integration** (2 weeks)
+**Phase 3: Testing & Integration** (2 weeks)
 - [ ] Unit tests (encoding, storage, pallet logic)
-- [ ] Precompile tests (selectors, modifiers, integration)
 - [ ] Moonwall integration tests (dev and smoke)
 - [ ] Chopsticks fork testing with live AssetHub
 - [ ] Documentation updates (inline, README, migration guide)
 
-**Phase 5: Deployment** (1 week)
+**Phase 4: Deployment** (1 week)
 - [ ] Moonbase Alpha testnet deployment
 - [ ] Community testing period
 - [ ] Runtime upgrade to Moonriver (Kusama)
 - [ ] Runtime upgrade to Moonbeam (Polkadot)
 
-**Total Estimated Timeline:** 6-8 weeks
+**Total Estimated Timeline:** 4-6 weeks
 
 ### Success Criteria
 
 - [ ] All `AvailableStakeCalls` successfully encode for AssetHub
 - [ ] Storage migration tested with try-runtime on all runtimes
-- [ ] V4 precompile deployed and functional on all networks
 - [ ] End-to-end test: Bond DOT on AssetHub via Moonbeam derivative account
-- [ ] Zero breaking changes to existing V1-V3 precompile users
+- [ ] Zero breaking changes to existing precompile users
 - [ ] Documentation complete and reviewed
 - [ ] Security review passed (if required)
 
 ### Rollback Plan
 
 If critical issues are discovered:
-1. V4 precompile can be disabled without affecting V1-V3
-2. Storage migration includes rollback capability via try-runtime
-3. AssetHub `Transactor` variant can be feature-flagged
-4. Worst case: Runtime upgrade to remove AssetHub support, restore legacy behavior
+1. Storage migration includes rollback capability via try-runtime
+2. AssetHub `Transactor` variant can be feature-flagged
+3. Worst case: Runtime upgrade to remove AssetHub support, restore legacy behavior
 
 ## Architecture Diagram
 
@@ -1205,19 +932,12 @@ If critical issues are discovered:
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐             │
 │  │ V1 Precompile│  │ V2 Precompile│  │ V3 Precompile│             │
 │  │   (0x0806)   │  │   (0x080D)   │  │   (0x0817)   │             │
-│  │ Relay Only   │  │ Relay Only   │  │ Relay Only   │             │
+│  │  Unchanged   │  │  Unchanged   │  │  Unchanged   │             │
 │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘             │
 │         │                 │                 │                       │
 │         └─────────────────┴─────────────────┘                       │
 │                           │                                         │
-│  ┌────────────────────────▼──────────────────────────┐             │
-│  │          V4 Precompile (0x0818) NEW!              │             │
-│  │                                                    │             │
-│  │  function transactThroughDerivative(              │             │
-│  │    Transactor transactor,  // Relay | AssetHub   │             │
-│  │    ...                                            │             │
-│  │  )                                                │             │
-│  └────────────────────────┬──────────────────────────┘             │
+│     All precompiles now support AssetHub via destination parameter │
 │                           │                                         │
 └───────────────────────────┼─────────────────────────────────────────┘
                             │
@@ -1265,21 +985,21 @@ If critical issues are discovered:
 Flow Example: Bond DOT via AssetHub
 ====================================
 
-1. Solidity Contract calls V4 Precompile:
-   xcmTransactorV4.transactThroughDerivative(
-     Transactor.AssetHub,  // Target: AssetHub
-     0,                     // Derivative index
-     feeAsset,
-     weight,
-     bondCall,              // SCALE-encoded Bond(10 DOT)
-     ...
+1. User calls existing precompile or Substrate tx:
+   // Via Substrate
+   xcmTransactor.transactThroughDerivative(
+     dest: { parents: 1, interior: { X1: { Parachain: 1000 } } },  // AssetHub
+     index: 0,
+     fee: { currency: {...}, feeAmount: 1000000 },
+     innerCall: encodedBondCall,  // SCALE-encoded Bond(10 DOT)
+     weightInfo: {...},
+     refund: true
    )
 
-2. V4 Precompile converts to pallet call:
-   pallet_xcm_transactor::transact_through_derivative(
-     dest: Transactors::AssetHub,
-     ...
-   )
+   // Or via existing V3 precompile with AssetHub destination
+   xcmTransactorV3.transactThroughDerivative(...)
+
+2. Pallet receives call and determines destination is AssetHub
 
 3. Pallet encodes call using AssetHub indices:
    [89, 0, ...] // Pallet 89 (staking), Call 0 (bond)
