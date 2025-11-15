@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Precompile to encode relay staking calls via the EVM
+//! Precompile to encode AssetHub staking calls via the EVM
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -23,40 +23,31 @@ use cumulus_primitives_core::relay_chain;
 use fp_evm::PrecompileHandle;
 use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
-	ensure,
 	traits::ConstU32,
 };
 use pallet_staking::RewardDestination;
+use parity_scale_codec::{Decode, Encode};
 use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
 use sp_runtime::{traits::Dispatchable, AccountId32, Perbill};
 use sp_std::vec::Vec;
 use sp_std::{convert::TryInto, marker::PhantomData};
-use xcm_primitives::{
-	AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, RelayChainTransactor, StakeEncodeCall,
-};
-
-#[cfg(test)]
-mod mock;
-#[cfg(test)]
-mod test_relay_runtime;
-#[cfg(test)]
-mod tests;
+use xcm_primitives::{AssetHubTransactor, AvailableStakeCalls, StakeEncodeCall};
 
 pub const REWARD_DESTINATION_SIZE_LIMIT: u32 = 2u32.pow(16);
 pub const ARRAY_LIMIT: u32 = 512;
 type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 type GetRewardDestinationSizeLimit = ConstU32<REWARD_DESTINATION_SIZE_LIMIT>;
 
-/// A precompile to provide relay stake calls encoding through evm
-pub struct RelayEncoderPrecompile<Runtime>(PhantomData<Runtime>);
+/// A precompile to provide AssetHub stake calls encoding through evm
+pub struct AssetHubEncoderPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
-impl<Runtime> RelayEncoderPrecompile<Runtime>
+impl<Runtime> AssetHubEncoderPrecompile<Runtime>
 where
 	Runtime: pallet_evm::Config + pallet_xcm_transactor::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime as pallet_xcm_transactor::Config>::Transactor: RelayChainTransactor,
+	<Runtime as pallet_xcm_transactor::Config>::Transactor: AssetHubTransactor,
 {
 	#[precompile::public("encodeBond(uint256,bytes)")]
 	#[precompile::public("encode_bond(uint256,bytes)")]
@@ -74,7 +65,7 @@ where
 		let reward_destination = reward_destination.into();
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
+			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Bond(relay_amount, reward_destination),
 		)
 		.as_slice()
@@ -96,7 +87,7 @@ where
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
+			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::BondExtra(relay_amount),
 		)
 		.as_slice()
@@ -117,9 +108,8 @@ where
 		handle.record_cost(1000)?;
 
 		let relay_amount = u256_to_relay_amount(amount)?;
-
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
+			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Unbond(relay_amount),
 		)
 		.as_slice()
@@ -133,15 +123,15 @@ where
 	#[precompile::view]
 	fn encode_withdraw_unbonded(
 		handle: &mut impl PrecompileHandle,
-		slashes: u32,
+		num_slashing_spans: u32,
 	) -> EvmResult<UnboundedBytes> {
 		// No DB access but lot of logical stuff
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
-			AvailableStakeCalls::WithdrawUnbonded(slashes),
+			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			AvailableStakeCalls::WithdrawUnbonded(num_slashing_spans),
 		)
 		.as_slice()
 		.into();
@@ -162,8 +152,9 @@ where
 		handle.record_cost(1000)?;
 
 		let fraction = Perbill::from_parts(commission.converted());
+
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
+			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Validate(pallet_staking::ValidatorPrefs {
 				commission: fraction,
 				blocked: blocked,
@@ -187,16 +178,17 @@ where
 		handle.record_cost(1000)?;
 
 		let nominees: Vec<_> = nominees.into();
-		let nominated: Vec<AccountId32> = nominees
+		let nominees_as_account_ids: Vec<AccountId32> = nominees
 			.iter()
 			.map(|&add| {
 				let as_bytes: [u8; 32] = add.into();
 				as_bytes.into()
 			})
 			.collect();
+
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
-			AvailableStakeCalls::Nominate(nominated),
+			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			AvailableStakeCalls::Nominate(nominees_as_account_ids),
 		)
 		.as_slice()
 		.into();
@@ -213,7 +205,7 @@ where
 		handle.record_cost(1000)?;
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
+			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Chill,
 		)
 		.as_slice()
@@ -236,7 +228,7 @@ where
 		let reward_destination = reward_destination.into();
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
+			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::SetPayee(reward_destination),
 		)
 		.as_slice()
@@ -254,7 +246,7 @@ where
 		handle.record_cost(1000)?;
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
+			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::SetController,
 		)
 		.as_slice()
@@ -276,117 +268,12 @@ where
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
+			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Rebond(relay_amount),
 		)
 		.as_slice()
 		.into();
 
-		Ok(encoded)
-	}
-	#[precompile::public("encodeHrmpInitOpenChannel(uint32,uint32,uint32)")]
-	#[precompile::public("encode_hrmp_init_open_channel(uint32,uint32,uint32)")]
-	#[precompile::view]
-	fn encode_hrmp_init_open_channel(
-		handle: &mut impl PrecompileHandle,
-		recipient: u32,
-		max_capacity: u32,
-		max_message_size: u32,
-	) -> EvmResult<UnboundedBytes> {
-		// No DB access but lot of logical stuff
-		// To prevent spam, we charge an arbitrary amount of gas
-		handle.record_cost(1000)?;
-
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
-			HrmpAvailableCalls::InitOpenChannel(recipient.into(), max_capacity, max_message_size),
-		)
-		.map_err(|_| {
-			RevertReason::custom("Non-implemented hrmp encoding for transactor")
-				.in_field("transactor")
-		})?
-		.as_slice()
-		.into();
-		Ok(encoded)
-	}
-
-	#[precompile::public("encodeHrmpAcceptOpenChannel(uint32)")]
-	#[precompile::public("encode_hrmp_accept_open_channel(uint32)")]
-	#[precompile::view]
-	fn encode_hrmp_accept_open_channel(
-		handle: &mut impl PrecompileHandle,
-		sender: u32,
-	) -> EvmResult<UnboundedBytes> {
-		// No DB access but lot of logical stuff
-		// To prevent spam, we charge an arbitrary amount of gas
-		handle.record_cost(1000)?;
-
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
-			HrmpAvailableCalls::AcceptOpenChannel(sender.into()),
-		)
-		.map_err(|_| {
-			RevertReason::custom("Non-implemented hrmp encoding for transactor")
-				.in_field("transactor")
-		})?
-		.as_slice()
-		.into();
-		Ok(encoded)
-	}
-
-	#[precompile::public("encodeHrmpCloseChannel(uint32,uint32)")]
-	#[precompile::public("encode_hrmp_close_channel(uint32,uint32)")]
-	#[precompile::view]
-	fn encode_hrmp_close_channel(
-		handle: &mut impl PrecompileHandle,
-		sender: u32,
-		recipient: u32,
-	) -> EvmResult<UnboundedBytes> {
-		// No DB access but lot of logical stuff
-		// To prevent spam, we charge an arbitrary amount of gas
-		handle.record_cost(1000)?;
-
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
-			HrmpAvailableCalls::CloseChannel(relay_chain::HrmpChannelId {
-				sender: sender.into(),
-				recipient: recipient.into(),
-			}),
-		)
-		.map_err(|_| {
-			RevertReason::custom("Non-implemented hrmp encoding for transactor")
-				.in_field("transactor")
-		})?
-		.as_slice()
-		.into();
-		Ok(encoded)
-	}
-
-	#[precompile::public("encodeHrmpCancelOpenRequest(uint32,uint32,uint32)")]
-	#[precompile::public("encode_hrmp_cancel_open_request(uint32,uint32,uint32)")]
-	#[precompile::view]
-	fn encode_hrmp_cancel_open_request(
-		handle: &mut impl PrecompileHandle,
-		sender: u32,
-		recipient: u32,
-		open_requests: u32,
-	) -> EvmResult<UnboundedBytes> {
-		// No DB access but lot of logical stuff
-		// To prevent spam, we charge an arbitrary amount of gas
-		handle.record_cost(1000)?;
-
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::hrmp_encode_call(
-			HrmpAvailableCalls::CancelOpenRequest(
-				relay_chain::HrmpChannelId {
-					sender: sender.into(),
-					recipient: recipient.into(),
-				},
-				open_requests,
-			),
-		)
-		.map_err(|_| {
-			RevertReason::custom("Non-implemented hrmp encoding for transactor")
-				.in_field("transactor")
-		})?
-		.as_slice()
-		.into();
 		Ok(encoded)
 	}
 }
@@ -417,63 +304,22 @@ impl solidity::Codec for RewardDestinationWrapper {
 	fn read(reader: &mut solidity::codec::Reader) -> MayRevert<Self> {
 		let reward_destination = reader.read::<BoundedBytes<GetRewardDestinationSizeLimit>>()?;
 		let reward_destination_bytes: Vec<_> = reward_destination.into();
-		ensure!(
-			reward_destination_bytes.len() > 0,
-			RevertReason::custom("Reward destinations cannot be empty")
-		);
-		// For simplicity we use an EvmReader here
-		let mut encoded_reward_destination =
-			solidity::codec::Reader::new(&reward_destination_bytes);
-
-		// We take the first byte
-		let enum_selector = encoded_reward_destination.read_raw_bytes(1)?;
-		// The firs byte selects the enum variant
-		match enum_selector[0] {
-			0u8 => Ok(RewardDestinationWrapper(RewardDestination::Staked)),
-			1u8 => Ok(RewardDestinationWrapper(RewardDestination::Stash)),
-			// Deprecated in https://github.com/paritytech/polkadot-sdk/pull/2380
-			#[allow(deprecated)]
-			2u8 => Ok(RewardDestinationWrapper(RewardDestination::Controller)),
-			3u8 => {
-				let address = encoded_reward_destination.read::<H256>()?;
-				Ok(RewardDestinationWrapper(RewardDestination::Account(
-					address.as_fixed_bytes().clone().into(),
-				)))
-			}
-			4u8 => Ok(RewardDestinationWrapper(RewardDestination::None)),
-			_ => Err(RevertReason::custom("Unknown reward destination").into()),
+		if reward_destination_bytes.is_empty() {
+			return Err(RevertReason::custom(
+				"Error while decoding reward destination: input too short",
+			)
+			.into());
 		}
+		let reward_destination =
+			RewardDestination::<AccountId32>::decode(&mut reward_destination_bytes.as_slice())
+				.map_err(|_| RevertReason::custom("Error while decoding reward destination"))?;
+
+		Ok(reward_destination.into())
 	}
 
 	fn write(writer: &mut solidity::codec::Writer, value: Self) {
-		let mut encoded: Vec<u8> = Vec::new();
-		let encoded_bytes: UnboundedBytes = match value.0 {
-			RewardDestination::Staked => {
-				encoded.push(0);
-				encoded.as_slice().into()
-			}
-			RewardDestination::Stash => {
-				encoded.push(1);
-				encoded.as_slice().into()
-			}
-			// Deprecated in https://github.com/paritytech/polkadot-sdk/pull/2380
-			#[allow(deprecated)]
-			RewardDestination::Controller => {
-				encoded.push(2);
-				encoded.as_slice().into()
-			}
-			RewardDestination::Account(address) => {
-				encoded.push(3);
-				let address_bytes: [u8; 32] = address.into();
-				encoded.append(&mut address_bytes.to_vec());
-				encoded.as_slice().into()
-			}
-			RewardDestination::None => {
-				encoded.push(4);
-				encoded.as_slice().into()
-			}
-		};
-		solidity::Codec::write(writer, encoded_bytes);
+		let encoded = value.0.encode();
+		BoundedBytes::<GetRewardDestinationSizeLimit>::write(writer, encoded.as_slice().into());
 	}
 
 	fn has_static_size() -> bool {
@@ -481,6 +327,13 @@ impl solidity::Codec for RewardDestinationWrapper {
 	}
 
 	fn signature() -> String {
-		UnboundedBytes::signature()
+		BoundedBytes::<GetRewardDestinationSizeLimit>::signature()
 	}
 }
+
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod test_assethub_runtime;
+#[cfg(test)]
+mod tests;

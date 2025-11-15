@@ -123,8 +123,8 @@ impl xcm_primitives::HrmpEncodeCall for PolkadotEncoder {
 	}
 }
 
-impl xcm_primitives::StakeEncodeCall for PolkadotEncoder {
-	fn encode_call(call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
+impl xcm_primitives::StakeEncodeCall<()> for PolkadotEncoder {
+	fn encode_call(_transactor: (), call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
 		match call {
 			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
 				RelayCall::Stake(StakeCall::Bond(b, c)).encode()
@@ -221,7 +221,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		.encode();
 // 		expected_encoded.append(&mut expected);
 //
-// 		let call_bytes = <PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 		let call_bytes = <PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 			xcm_primitives::AvailableStakeCalls::Chill,
 // 		);
 //
@@ -243,7 +243,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
 // 					moonbeam_runtime::Runtime> as UtilityEncodeCall
-// 				>::encode_call(
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					pallet_xcm_transactor::Pallet(
 // 						sp_std::marker::PhantomData::<moonbeam_runtime::Runtime>::default()
 // 					),
@@ -272,7 +272,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 			<PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Bond(
 // 					100u32.into(),
 // 					pallet_staking::RewardDestination::Controller
@@ -288,8 +288,8 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonbeam_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonbeam_runtime::Runtime> as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Bond(
 // 						100u32.into(),
 // 						pallet_staking::RewardDestination::Controller
@@ -316,7 +316,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 			<PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
 // 			),
 // 			expected_encoded.clone()
@@ -329,8 +329,8 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonbeam_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonbeam_runtime::Runtime> as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
 // 				),
 // 				expected_encoded
@@ -354,7 +354,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 			<PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
 // 			),
 // 			expected_encoded.clone()
@@ -367,8 +367,8 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonbeam_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonbeam_runtime::Runtime> as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
 // 				),
 // 				expected_encoded
@@ -392,7 +392,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 			<PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
 // 			),
 // 			expected_encoded.clone()
@@ -405,8 +405,8 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonbeam_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonbeam_runtime::Runtime> as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
 // 				),
 // 				expected_encoded
@@ -435,7 +435,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 			<PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Validate(validator_prefs.clone())
 // 			),
 // 			expected_encoded.clone()
@@ -448,8 +448,8 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonbeam_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonbeam_runtime::Runtime> as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
 // 				),
 // 				expected_encoded
@@ -474,7 +474,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 			<PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Nominate(vec![relay_account.clone().into()])
 // 			),
 // 			expected_encoded.clone()
@@ -487,8 +487,8 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonbeam_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonbeam_runtime::Runtime> as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Nominate(vec![
 // 						relay_account.into()
 // 					])
@@ -511,7 +511,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 			<PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Chill
 // 			),
 // 			expected_encoded.clone()
@@ -524,8 +524,8 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonbeam_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonbeam_runtime::Runtime> as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Chill
 // 				),
 // 				expected_encoded
@@ -550,7 +550,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 			<PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::SetPayee(
 // 					pallet_staking::RewardDestination::Controller
 // 				)
@@ -565,8 +565,8 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonbeam_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonbeam_runtime::Runtime> as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::SetPayee(
 // 						pallet_staking::RewardDestination::Controller
 // 					)
@@ -591,7 +591,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 			<PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::SetController
 // 			),
 // 			expected_encoded.clone()
@@ -604,8 +604,8 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonbeam_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonbeam_runtime::Runtime> as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::SetController
 // 				),
 // 				expected_encoded
@@ -629,7 +629,7 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<PolkadotEncoder as StakeEncodeCall>::encode_call(
+// 			<PolkadotEncoder as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
 // 			),
 // 			expected_encoded.clone()
@@ -642,8 +642,8 @@ pub const POLKADOT_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonbeam_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonbeam_runtime::Runtime> as StakeEncodeCall<moonbeam_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonbeam_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
 // 				),
 // 				expected_encoded

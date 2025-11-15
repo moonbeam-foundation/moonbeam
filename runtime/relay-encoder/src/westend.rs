@@ -122,8 +122,8 @@ impl xcm_primitives::HrmpEncodeCall for WestendEncoder {
 		}
 	}
 }
-impl xcm_primitives::StakeEncodeCall for WestendEncoder {
-	fn encode_call(call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
+impl xcm_primitives::StakeEncodeCall<()> for WestendEncoder {
+	fn encode_call(_transactor: (), call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
 		match call {
 			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
 				RelayCall::Stake(StakeCall::Bond(b, c)).encode()
@@ -220,7 +220,8 @@ mod tests {
 		.encode();
 		expected_encoded.append(&mut expected);
 
-		let call_bytes = <WestendEncoder as StakeEncodeCall>::encode_call(
+		let call_bytes = <WestendEncoder as StakeEncodeCall<()>>::encode_call(
+			(),
 			xcm_primitives::AvailableStakeCalls::Chill,
 		);
 
@@ -272,7 +273,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<WestendEncoder as StakeEncodeCall>::encode_call(
+			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
 				xcm_primitives::AvailableStakeCalls::Bond(
 					100u32.into(),
 					pallet_staking::RewardDestination::Account(controller.clone()),
@@ -287,9 +289,10 @@ mod tests {
 				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<
-					moonbase_runtime::Runtime> as StakeEncodeCall
-				>::encode_call(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::Bond(
 						100u32.into(),
 						pallet_staking::RewardDestination::Account(controller)
@@ -316,7 +319,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<WestendEncoder as StakeEncodeCall>::encode_call(
+			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
 				xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
 			),
 			expected_encoded.clone()
@@ -328,9 +332,10 @@ mod tests {
 				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<
-					moonbase_runtime::Runtime> as StakeEncodeCall
-				>::encode_call(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
 				),
 				expected_encoded
@@ -354,7 +359,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<WestendEncoder as StakeEncodeCall>::encode_call(
+			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
 				xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
 			),
 			expected_encoded.clone()
@@ -366,9 +372,10 @@ mod tests {
 				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<
-					moonbase_runtime::Runtime> as StakeEncodeCall
-				>::encode_call(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
 				),
 				expected_encoded
@@ -392,7 +399,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<WestendEncoder as StakeEncodeCall>::encode_call(
+			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
 				xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
 			),
 			expected_encoded.clone()
@@ -404,9 +412,10 @@ mod tests {
 				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<
-					moonbase_runtime::Runtime> as StakeEncodeCall
-				>::encode_call(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
 				),
 				expected_encoded
@@ -435,7 +444,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<WestendEncoder as StakeEncodeCall>::encode_call(
+			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
 				xcm_primitives::AvailableStakeCalls::Validate(validator_prefs.clone())
 			),
 			expected_encoded.clone()
@@ -447,9 +457,10 @@ mod tests {
 				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<
-					moonbase_runtime::Runtime> as StakeEncodeCall
-				>::encode_call(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
 				),
 				expected_encoded
@@ -474,7 +485,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<WestendEncoder as StakeEncodeCall>::encode_call(
+			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
 				xcm_primitives::AvailableStakeCalls::Nominate(vec![relay_account.clone().into()])
 			),
 			expected_encoded.clone()
@@ -486,12 +498,11 @@ mod tests {
 				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<
-					moonbase_runtime::Runtime> as StakeEncodeCall
-				>::encode_call(
-					xcm_primitives::AvailableStakeCalls::Nominate(vec![
-						relay_account.into()
-					])
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::Relay,
+					xcm_primitives::AvailableStakeCalls::Nominate(vec![relay_account.into()])
 				),
 				expected_encoded
 			);
@@ -511,7 +522,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<WestendEncoder as StakeEncodeCall>::encode_call(
+			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
 				xcm_primitives::AvailableStakeCalls::Chill
 			),
 			expected_encoded.clone()
@@ -523,9 +535,10 @@ mod tests {
 				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<
-					moonbase_runtime::Runtime> as StakeEncodeCall
-				>::encode_call(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::Chill
 				),
 				expected_encoded
@@ -551,7 +564,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<WestendEncoder as StakeEncodeCall>::encode_call(
+			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
 				xcm_primitives::AvailableStakeCalls::SetPayee(
 					pallet_staking::RewardDestination::Account(controller.clone())
 				)
@@ -565,9 +579,10 @@ mod tests {
 				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<
-					moonbase_runtime::Runtime> as StakeEncodeCall
-				>::encode_call(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::SetPayee(
 						pallet_staking::RewardDestination::Account(controller)
 					)
@@ -592,7 +607,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<WestendEncoder as StakeEncodeCall>::encode_call(
+			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
 				xcm_primitives::AvailableStakeCalls::SetController
 			),
 			expected_encoded.clone()
@@ -604,9 +620,10 @@ mod tests {
 				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<
-					moonbase_runtime::Runtime> as StakeEncodeCall
-				>::encode_call(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::SetController
 				),
 				expected_encoded
@@ -630,7 +647,8 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			<WestendEncoder as StakeEncodeCall>::encode_call(
+			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
 				xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
 			),
 			expected_encoded.clone()
@@ -642,9 +660,10 @@ mod tests {
 				WESTEND_RELAY_INDICES,
 			);
 			assert_eq!(
-				<pallet_xcm_transactor::Pallet::<
-					moonbase_runtime::Runtime> as StakeEncodeCall
-				>::encode_call(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
 				),
 				expected_encoded

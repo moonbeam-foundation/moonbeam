@@ -25,7 +25,7 @@ use frame_support::pallet_prelude::*;
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_std::prelude::*;
 use xcm_primitives::{
-	AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, StakeEncodeCall, StakeEncodeCallExt,
+	AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, StakeEncodeCall,
 	UtilityAvailableCalls, UtilityEncodeCall,
 };
 
@@ -111,8 +111,33 @@ fn encode_compact_arg<T: parity_scale_codec::HasCompact>(input: T) -> Vec<u8> {
 	CompactWrapper { input }.encode()
 }
 
-impl<T: Config> StakeEncodeCall for Pallet<T> {
-	fn encode_call(call: AvailableStakeCalls) -> Vec<u8> {
+impl<T: Config> StakeEncodeCall<T::Transactor> for Pallet<T> {
+	fn encode_call(transactor: T::Transactor, call: AvailableStakeCalls) -> Vec<u8> {
+		// Get the chain indices for the specified transactor
+		let chain_indices = match ChainIndicesMap::<T>::get(&transactor) {
+			Some(indices) => indices,
+			None => {
+				// Fallback to legacy RelayIndices if not found
+				let relay_indices = RelayIndices::<T>::get();
+				return Self::encode_relay_stake_call(&relay_indices, call);
+			}
+		};
+
+		match chain_indices {
+			ChainIndices::Relay(relay_indices) => {
+				Self::encode_relay_stake_call(&relay_indices, call)
+			}
+			ChainIndices::AssetHub(assethub_indices) => {
+				Self::encode_assethub_stake_call(&assethub_indices, call)
+			}
+		}
+	}
+}
+
+// Legacy implementation kept for backwards compatibility
+impl<T: Config> Pallet<T> {
+	#[deprecated(note = "Use StakeEncodeCall::encode_call with transactor parameter instead")]
+	pub fn encode_call_legacy(call: AvailableStakeCalls) -> Vec<u8> {
 		match call {
 			AvailableStakeCalls::Bond(b, c) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
@@ -221,32 +246,6 @@ impl<T: Config> StakeEncodeCall for Pallet<T> {
 				> = a.iter().map(|add| (*add).clone().into()).collect();
 				encoded_call.append(&mut nominated.encode());
 				encoded_call
-			}
-		}
-	}
-}
-
-/// Extended implementation for chain-specific staking call encoding
-impl<T: Config> StakeEncodeCallExt<T::Transactor> for Pallet<T> {
-	fn encode_call_with_transactor(
-		transactor: T::Transactor,
-		call: AvailableStakeCalls,
-	) -> Vec<u8> {
-		// Get the chain indices for the specified transactor
-		let chain_indices = match ChainIndicesMap::<T>::get(&transactor) {
-			Some(indices) => indices,
-			None => {
-				// Fallback to legacy RelayIndices if not found
-				return <Self as StakeEncodeCall>::encode_call(call);
-			}
-		};
-
-		match chain_indices {
-			ChainIndices::Relay(relay_indices) => {
-				Self::encode_relay_stake_call(&relay_indices, call)
-			}
-			ChainIndices::AssetHub(assethub_indices) => {
-				Self::encode_assethub_stake_call(&assethub_indices, call)
 			}
 		}
 	}

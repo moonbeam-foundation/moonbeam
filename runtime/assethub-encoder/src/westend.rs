@@ -31,6 +31,10 @@
 //! - Last verified: 2025-11-14
 
 use pallet_xcm_transactor::chain_indices::AssetHubIndices;
+use parity_scale_codec::{Decode, Encode};
+use sp_runtime::traits::{AccountIdLookup, StaticLookup};
+use sp_runtime::AccountId32;
+use sp_std::vec::Vec;
 
 /// Westend AssetHub pallet and extrinsic indices
 ///
@@ -73,3 +77,484 @@ pub const WESTEND_ASSETHUB_INDICES: AssetHubIndices = AssetHubIndices {
 	set_controller: 8, // Deprecated but present
 	rebond: 19,
 };
+
+/// Root-level call enum for Westend AssetHub
+/// NOTE: Westend uses index 80 for Staking (different from Polkadot/Kusama which use 89)
+#[derive(Encode, Decode)]
+pub enum AssetHubCall {
+	#[codec(index = 80u8)]
+	Staking(StakeCall),
+}
+
+/// Staking pallet call enum for Westend AssetHub
+#[derive(Encode, Decode)]
+pub enum StakeCall {
+	#[codec(index = 0u16)]
+	Bond(
+		#[codec(compact)] u128,
+		pallet_staking::RewardDestination<AccountId32>,
+	),
+	#[codec(index = 1u16)]
+	BondExtra(#[codec(compact)] u128),
+	#[codec(index = 2u16)]
+	Unbond(#[codec(compact)] u128),
+	#[codec(index = 3u16)]
+	WithdrawUnbonded(u32),
+	#[codec(index = 4u16)]
+	Validate(pallet_staking::ValidatorPrefs),
+	#[codec(index = 5u16)]
+	Nominate(Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source>),
+	#[codec(index = 6u16)]
+	Chill,
+	#[codec(index = 7u16)]
+	SetPayee(pallet_staking::RewardDestination<AccountId32>),
+	#[codec(index = 8u16)]
+	SetController,
+	#[codec(index = 19u16)]
+	Rebond(#[codec(compact)] u128),
+}
+
+pub struct WestendAssetHubEncoder;
+
+impl xcm_primitives::StakeEncodeCall<()> for WestendAssetHubEncoder {
+	fn encode_call(_transactor: (), call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
+		match call {
+			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
+				AssetHubCall::Staking(StakeCall::Bond(b, c)).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::BondExtra(a) => {
+				AssetHubCall::Staking(StakeCall::BondExtra(a)).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::Unbond(a) => {
+				AssetHubCall::Staking(StakeCall::Unbond(a)).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(a) => {
+				AssetHubCall::Staking(StakeCall::WithdrawUnbonded(a)).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::Validate(a) => {
+				AssetHubCall::Staking(StakeCall::Validate(a)).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::Chill => {
+				AssetHubCall::Staking(StakeCall::Chill).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::SetPayee(a) => {
+				AssetHubCall::Staking(StakeCall::SetPayee(a.into())).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::SetController => {
+				AssetHubCall::Staking(StakeCall::SetController).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::Rebond(a) => {
+				AssetHubCall::Staking(StakeCall::Rebond(a.into())).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::Nominate(a) => {
+				let nominated: Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source> =
+					a.iter().map(|add| (*add).clone().into()).collect();
+
+				AssetHubCall::Staking(StakeCall::Nominate(nominated)).encode()
+			}
+		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::westend::WestendAssetHubEncoder;
+
+	use xcm_primitives::StakeEncodeCall;
+
+	#[test]
+	fn test_stake_bond() {
+		let controller: AccountId32 = [1u8; 32].into();
+
+		// Expected encoding: [pallet_index, call_index, ...call_data]
+		// Pallet: 80 (Staking on Westend AssetHub)
+		// Call: 0 (bond)
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		expected_encoded.push(80u8); // Staking pallet index
+
+		let mut expected = StakeCall::Bond(
+			100u32.into(),
+			pallet_staking::RewardDestination::Account(controller.clone()),
+		)
+		.encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
+				xcm_primitives::AvailableStakeCalls::Bond(
+					100u32.into(),
+					pallet_staking::RewardDestination::Account(controller.clone()),
+				)
+			),
+			expected_encoded.clone()
+		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			// Pallet-xcm-transactor encoder returns same result when configured
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					WESTEND_ASSETHUB_INDICES,
+				),
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::AssetHub,
+					xcm_primitives::AvailableStakeCalls::Bond(
+						100u32.into(),
+						pallet_staking::RewardDestination::Account(controller),
+					)
+				),
+				expected_encoded
+			);
+		});
+	}
+
+	#[test]
+	fn test_stake_bond_extra() {
+		// Expected encoding: [pallet_index, call_index, ...call_data]
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		expected_encoded.push(80u8); // Staking pallet index
+
+		let mut expected = StakeCall::BondExtra(100u32.into()).encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
+				xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into())
+			),
+			expected_encoded.clone()
+		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					WESTEND_ASSETHUB_INDICES,
+				),
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::AssetHub,
+					xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into())
+				),
+				expected_encoded
+			);
+		});
+	}
+
+	#[test]
+	fn test_stake_unbond() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		expected_encoded.push(80u8);
+
+		let mut expected = StakeCall::Unbond(100u32.into()).encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
+				xcm_primitives::AvailableStakeCalls::Unbond(100u32.into())
+			),
+			expected_encoded.clone()
+		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					WESTEND_ASSETHUB_INDICES,
+				),
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::AssetHub,
+					xcm_primitives::AvailableStakeCalls::Unbond(100u32.into())
+				),
+				expected_encoded
+			);
+		});
+	}
+
+	#[test]
+	fn test_stake_withdraw_unbonded() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		expected_encoded.push(80u8);
+
+		let mut expected = StakeCall::WithdrawUnbonded(100u32).encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
+				xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
+			),
+			expected_encoded.clone()
+		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					WESTEND_ASSETHUB_INDICES,
+				),
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::AssetHub,
+					xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
+				),
+				expected_encoded
+			);
+		});
+	}
+
+	#[test]
+	fn test_stake_validate() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		expected_encoded.push(80u8);
+
+		let mut expected = StakeCall::Validate(pallet_staking::ValidatorPrefs::default()).encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
+				xcm_primitives::AvailableStakeCalls::Validate(
+					pallet_staking::ValidatorPrefs::default()
+				)
+			),
+			expected_encoded.clone()
+		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					WESTEND_ASSETHUB_INDICES,
+				),
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::AssetHub,
+					xcm_primitives::AvailableStakeCalls::Validate(
+						pallet_staking::ValidatorPrefs::default()
+					)
+				),
+				expected_encoded
+			);
+		});
+	}
+
+	#[test]
+	fn test_stake_nominate() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		expected_encoded.push(80u8);
+
+		let account1: AccountId32 = [1u8; 32].into();
+		let account2: AccountId32 = [2u8; 32].into();
+		let targets = vec![account1.clone(), account2.clone()];
+
+		let nominated: Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source> =
+			targets.iter().map(|add| (*add).clone().into()).collect();
+
+		let mut expected = StakeCall::Nominate(nominated).encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
+				xcm_primitives::AvailableStakeCalls::Nominate(targets.clone())
+			),
+			expected_encoded.clone()
+		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					WESTEND_ASSETHUB_INDICES,
+				),
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::AssetHub,
+					xcm_primitives::AvailableStakeCalls::Nominate(targets)
+				),
+				expected_encoded
+			);
+		});
+	}
+
+	#[test]
+	fn test_stake_chill() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		expected_encoded.push(80u8);
+
+		let mut expected = StakeCall::Chill.encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
+				xcm_primitives::AvailableStakeCalls::Chill
+			),
+			expected_encoded.clone()
+		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					WESTEND_ASSETHUB_INDICES,
+				),
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::AssetHub,
+					xcm_primitives::AvailableStakeCalls::Chill
+				),
+				expected_encoded
+			);
+		});
+	}
+
+	#[test]
+	fn test_set_payee() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		expected_encoded.push(80u8);
+
+		let controller: AccountId32 = [1u8; 32].into();
+		let mut expected = StakeCall::SetPayee(pallet_staking::RewardDestination::Account(
+			controller.clone(),
+		))
+		.encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
+				xcm_primitives::AvailableStakeCalls::SetPayee(
+					pallet_staking::RewardDestination::Account(controller.clone()).into()
+				)
+			),
+			expected_encoded.clone()
+		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					WESTEND_ASSETHUB_INDICES,
+				),
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::AssetHub,
+					xcm_primitives::AvailableStakeCalls::SetPayee(
+						pallet_staking::RewardDestination::Account(controller).into()
+					)
+				),
+				expected_encoded
+			);
+		});
+	}
+
+	#[test]
+	fn test_set_controller() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		expected_encoded.push(80u8);
+
+		let mut expected = StakeCall::SetController.encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
+				xcm_primitives::AvailableStakeCalls::SetController
+			),
+			expected_encoded.clone()
+		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					WESTEND_ASSETHUB_INDICES,
+				),
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::AssetHub,
+					xcm_primitives::AvailableStakeCalls::SetController
+				),
+				expected_encoded
+			);
+		});
+	}
+
+	#[test]
+	fn test_rebond() {
+		let mut expected_encoded: Vec<u8> = Vec::new();
+		expected_encoded.push(80u8);
+
+		let mut expected = StakeCall::Rebond(100u32.into()).encode();
+		expected_encoded.append(&mut expected);
+
+		assert_eq!(
+			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
+				(),
+				xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
+			),
+			expected_encoded.clone()
+		);
+
+		sp_io::TestExternalities::default().execute_with(|| {
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					WESTEND_ASSETHUB_INDICES,
+				),
+			);
+			assert_eq!(
+				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
+					moonbase_runtime::xcm_config::Transactors,
+				>>::encode_call(
+					moonbase_runtime::xcm_config::Transactors::AssetHub,
+					xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
+				),
+				expected_encoded
+			);
+		});
+	}
+}

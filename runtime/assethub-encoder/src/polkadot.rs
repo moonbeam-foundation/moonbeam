@@ -31,6 +31,10 @@
 //! - Last verified: 2025-11-14
 
 use pallet_xcm_transactor::chain_indices::AssetHubIndices;
+use parity_scale_codec::{Decode, Encode};
+use sp_runtime::traits::{AccountIdLookup, StaticLookup};
+use sp_runtime::AccountId32;
+use sp_std::vec::Vec;
 
 /// Polkadot AssetHub pallet and extrinsic indices
 ///
@@ -67,3 +71,89 @@ pub const POLKADOT_ASSETHUB_INDICES: AssetHubIndices = AssetHubIndices {
 	set_controller: 8, // Deprecated but present
 	rebond: 19,
 };
+
+/// Root-level call enum for Polkadot AssetHub
+#[derive(Encode, Decode)]
+pub enum AssetHubCall {
+	#[codec(index = 89u8)]
+	Staking(StakeCall),
+}
+
+/// Staking pallet call enum for Polkadot AssetHub
+#[derive(Encode, Decode)]
+pub enum StakeCall {
+	#[codec(index = 0u16)]
+	Bond(
+		#[codec(compact)] u128,
+		pallet_staking::RewardDestination<AccountId32>,
+	),
+	#[codec(index = 1u16)]
+	BondExtra(#[codec(compact)] u128),
+	#[codec(index = 2u16)]
+	Unbond(#[codec(compact)] u128),
+	#[codec(index = 3u16)]
+	WithdrawUnbonded(u32),
+	#[codec(index = 4u16)]
+	Validate(pallet_staking::ValidatorPrefs),
+	#[codec(index = 5u16)]
+	Nominate(Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source>),
+	#[codec(index = 6u16)]
+	Chill,
+	#[codec(index = 7u16)]
+	SetPayee(pallet_staking::RewardDestination<AccountId32>),
+	#[codec(index = 8u16)]
+	SetController,
+	#[codec(index = 19u16)]
+	Rebond(#[codec(compact)] u128),
+}
+
+pub struct PolkadotAssetHubEncoder;
+
+impl xcm_primitives::StakeEncodeCall<()> for PolkadotAssetHubEncoder {
+	fn encode_call(_transactor: (), call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
+		match call {
+			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
+				AssetHubCall::Staking(StakeCall::Bond(b, c)).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::BondExtra(a) => {
+				AssetHubCall::Staking(StakeCall::BondExtra(a)).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::Unbond(a) => {
+				AssetHubCall::Staking(StakeCall::Unbond(a)).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(a) => {
+				AssetHubCall::Staking(StakeCall::WithdrawUnbonded(a)).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::Validate(a) => {
+				AssetHubCall::Staking(StakeCall::Validate(a)).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::Chill => {
+				AssetHubCall::Staking(StakeCall::Chill).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::SetPayee(a) => {
+				AssetHubCall::Staking(StakeCall::SetPayee(a.into())).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::SetController => {
+				AssetHubCall::Staking(StakeCall::SetController).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::Rebond(a) => {
+				AssetHubCall::Staking(StakeCall::Rebond(a.into())).encode()
+			}
+
+			xcm_primitives::AvailableStakeCalls::Nominate(a) => {
+				let nominated: Vec<<AccountIdLookup<AccountId32, ()> as StaticLookup>::Source> =
+					a.iter().map(|add| (*add).clone().into()).collect();
+
+				AssetHubCall::Staking(StakeCall::Nominate(nominated)).encode()
+			}
+		}
+	}
+}

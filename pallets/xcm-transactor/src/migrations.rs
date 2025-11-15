@@ -17,7 +17,7 @@
 //! XCM Transactor pallet migrations
 
 use crate::{
-	chain_indices::{AssetHubIndices, ChainIndices, RelayChainIndices},
+	chain_indices::{AssetHubIndices, ChainIndices},
 	pallet::Config,
 	ChainIndicesMap, RelayIndices,
 };

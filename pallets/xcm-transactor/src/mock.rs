@@ -340,6 +340,18 @@ impl UtilityEncodeCall for Transactors {
 	}
 }
 
+impl xcm_primitives::RelayChainTransactor for Transactors {
+	fn relay() -> Self {
+		Transactors::Relay
+	}
+}
+
+impl xcm_primitives::AssetHubTransactor for Transactors {
+	fn asset_hub() -> Self {
+		Transactors::AssetHub
+	}
+}
+
 pub type AssetId = u128;
 #[derive(
 	Clone,

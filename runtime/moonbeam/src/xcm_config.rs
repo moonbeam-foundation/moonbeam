@@ -689,6 +689,18 @@ impl XcmTransact for Transactors {
 	}
 }
 
+impl xcm_primitives::RelayChainTransactor for Transactors {
+	fn relay() -> Self {
+		Transactors::Relay
+	}
+}
+
+impl xcm_primitives::AssetHubTransactor for Transactors {
+	fn asset_hub() -> Self {
+		Transactors::AssetHub
+	}
+}
+
 pub type DerivativeAddressRegistrationOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 

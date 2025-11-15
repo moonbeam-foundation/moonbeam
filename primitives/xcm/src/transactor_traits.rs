@@ -82,14 +82,21 @@ pub enum AvailableStakeCalls {
 	Rebond(relay_chain::Balance),
 }
 
-pub trait StakeEncodeCall {
-	/// Encode staking call for the relay chain.
-	/// This is the legacy method kept for backwards compatibility.
-	fn encode_call(call: AvailableStakeCalls) -> Vec<u8>;
+pub trait StakeEncodeCall<Transactor> {
+	/// Encode staking call for a specific chain destination (Relay or AssetHub)
+	fn encode_call(transactor: Transactor, call: AvailableStakeCalls) -> Vec<u8>;
 }
 
-/// Extended trait for encoding staking calls with chain-specific support
-pub trait StakeEncodeCallExt<Transactor> {
-	/// Encode staking call for a specific chain destination (Relay or AssetHub)
-	fn encode_call_with_transactor(transactor: Transactor, call: AvailableStakeCalls) -> Vec<u8>;
+/// Trait to provide the Relay chain transactor value
+/// This is needed by precompiles and other components that specifically encode for the Relay chain
+pub trait RelayChainTransactor {
+	/// Returns the transactor value representing the Relay chain
+	fn relay() -> Self;
+}
+
+/// Trait to provide the AssetHub transactor value
+/// This is needed by precompiles and other components that specifically encode for AssetHub
+pub trait AssetHubTransactor {
+	/// Returns the transactor value representing AssetHub
+	fn asset_hub() -> Self;
 }

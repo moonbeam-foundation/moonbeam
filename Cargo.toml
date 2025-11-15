@@ -97,6 +97,7 @@ pallet-evm-precompile-randomness = { path = "precompiles/randomness", default-fe
 pallet-evm-precompile-referenda = { path = "precompiles/referenda", default-features = false }
 pallet-evm-precompile-registry = { path = "precompiles/precompile-registry", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "precompiles/relay-encoder", default-features = false }
+pallet-evm-precompile-assethub-encoder = { path = "precompiles/assethub-encoder", default-features = false }
 pallet-evm-precompile-relay-verifier = { path = "precompiles/relay-data-verifier", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "precompiles/xcm-transactor", default-features = false }
 pallet-evm-precompile-xcm-utils = { path = "precompiles/xcm-utils", default-features = false }

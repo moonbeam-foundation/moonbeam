@@ -122,8 +122,8 @@ impl xcm_primitives::HrmpEncodeCall for KusamaEncoder {
 	}
 }
 
-impl xcm_primitives::StakeEncodeCall for KusamaEncoder {
-	fn encode_call(call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
+impl xcm_primitives::StakeEncodeCall<()> for KusamaEncoder {
+	fn encode_call(_transactor: (), call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
 		match call {
 			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
 				RelayCall::Stake(StakeCall::Bond(b, c)).encode()
@@ -220,7 +220,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		.encode();
 // 		expected_encoded.append(&mut expected);
 //
-// 		let call_bytes = <KusamaEncoder as StakeEncodeCall>::encode_call(
+// 		let call_bytes = <KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 			xcm_primitives::AvailableStakeCalls::Chill,
 // 		);
 //
@@ -243,7 +243,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
 // 					moonriver_runtime::Runtime> as UtilityEncodeCall
-// 				>::encode_call(
+// 				>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 					pallet_xcm_transactor::Pallet(
 // 						sp_std::marker::PhantomData::<moonriver_runtime::Runtime>::default()),
 // 					xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
@@ -271,7 +271,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<KusamaEncoder as StakeEncodeCall>::encode_call(
+// 			<KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Bond(
 // 					100u32.into(),
 // 					pallet_staking::RewardDestination::Controller
@@ -287,8 +287,8 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonriver_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonriver_runtime::Runtime> as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Bond(
 // 							100u32.into(),
 // 						pallet_staking::RewardDestination::Controller
@@ -315,7 +315,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<KusamaEncoder as StakeEncodeCall>::encode_call(
+// 			<KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
 // 			),
 // 			expected_encoded.clone()
@@ -328,8 +328,8 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonriver_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonriver_runtime::Runtime> as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
 // 				),
 // 				expected_encoded
@@ -353,7 +353,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<KusamaEncoder as StakeEncodeCall>::encode_call(
+// 			<KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
 // 			),
 // 			expected_encoded.clone()
@@ -366,8 +366,8 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonriver_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonriver_runtime::Runtime> as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
 // 				),
 // 				expected_encoded
@@ -391,7 +391,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<KusamaEncoder as StakeEncodeCall>::encode_call(
+// 			<KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
 // 			),
 // 			expected_encoded.clone()
@@ -404,8 +404,8 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonriver_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonriver_runtime::Runtime> as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
 // 				),
 // 				expected_encoded
@@ -434,7 +434,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<KusamaEncoder as StakeEncodeCall>::encode_call(
+// 			<KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Validate(validator_prefs.clone())
 // 			),
 // 			expected_encoded
@@ -447,8 +447,8 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonriver_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonriver_runtime::Runtime> as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
 // 				),
 // 				expected_encoded
@@ -473,7 +473,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<KusamaEncoder as StakeEncodeCall>::encode_call(
+// 			<KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Nominate(vec![relay_account.clone().into()])
 // 			),
 // 			expected_encoded.clone()
@@ -486,8 +486,8 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonriver_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonriver_runtime::Runtime> as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Nominate(vec![
 // 						relay_account.into()
 // 					])
@@ -510,7 +510,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<KusamaEncoder as StakeEncodeCall>::encode_call(
+// 			<KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Chill
 // 			),
 // 			expected_encoded.clone()
@@ -523,8 +523,8 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonriver_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonriver_runtime::Runtime> as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Chill
 // 				),
 // 				expected_encoded
@@ -549,7 +549,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<KusamaEncoder as StakeEncodeCall>::encode_call(
+// 			<KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::SetPayee(
 // 					pallet_staking::RewardDestination::Controller
 // 				)
@@ -564,8 +564,8 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonriver_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonriver_runtime::Runtime> as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::SetPayee(
 // 						pallet_staking::RewardDestination::Controller
 // 					)
@@ -590,7 +590,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<KusamaEncoder as StakeEncodeCall>::encode_call(
+// 			<KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::SetController
 // 			),
 // 			expected_encoded.clone()
@@ -603,8 +603,8 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 					<pallet_xcm_transactor::Pallet::<
-// 							moonriver_runtime::Runtime> as StakeEncodeCall
-// 					>::encode_call(
+// 							moonriver_runtime::Runtime> as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>
+// 					>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 							xcm_primitives::AvailableStakeCalls::SetController
 // 					),
 // 					expected_encoded
@@ -628,7 +628,7 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 		expected_encoded.append(&mut expected);
 //
 // 		assert_eq!(
-// 			<KusamaEncoder as StakeEncodeCall>::encode_call(
+// 			<KusamaEncoder as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 				xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
 // 			),
 // 			expected_encoded.clone()
@@ -641,8 +641,8 @@ pub const KUSAMA_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 // 			);
 // 			assert_eq!(
 // 				<pallet_xcm_transactor::Pallet::<
-// 					moonriver_runtime::Runtime> as StakeEncodeCall
-// 				>::encode_call(
+// 					moonriver_runtime::Runtime> as StakeEncodeCall<moonriver_runtime::xcm_config::Transactors>
+// 				>::encode_call(moonriver_runtime::xcm_config::Transactors::Relay,
 // 					xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
 // 				),
 // 				expected_encoded
