@@ -29,3 +29,6 @@ tools/build
 
 .github/instructions/kluster-code-verify.instructions.md
 .kluster
+
+# AI tools
+.mcp.json

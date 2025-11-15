@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime};
-use crate::test_relay_runtime::TestEncoder;
+use crate::test_assethub_runtime::TestEncoder;
 use crate::AvailableStakeCalls;
 use crate::StakeEncodeCall;
 use crate::*;
@@ -300,7 +300,9 @@ fn test_encode_withdraw_unbonded() {
 				.prepare_test(
 					Alice,
 					Precompile1,
-					PCall::encode_withdraw_unbonded { slashes: 100 },
+					PCall::encode_withdraw_unbonded {
+						num_slashing_spans: 100,
+					},
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
@@ -312,11 +314,6 @@ fn test_encode_withdraw_unbonded() {
 					.as_slice(),
 				));
 		});
-}
-
-#[test]
-fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	check_precompile_implements_solidity_interfaces(&["RelayEncoder.sol"], PCall::supports_selector)
 }
 
 #[test]

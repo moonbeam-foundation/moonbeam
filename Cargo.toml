@@ -41,6 +41,7 @@ members = [
     "runtime/moonbase",
     "runtime/moonbeam",
     "runtime/moonriver",
+    "runtime/assethub-encoder",
     "runtime/relay-encoder",
     "runtime/summarize-precompile-checks",
 ]
@@ -69,6 +70,7 @@ moonbeam-rpc-primitives-debug = { path = "primitives/rpc/debug", default-feature
 moonbeam-rpc-primitives-txpool = { path = "primitives/rpc/txpool", default-features = false }
 storage-proof-primitives = { path = "primitives/storage-proof", default-features = false }
 
+moonbeam-assethub-encoder = { path = "runtime/assethub-encoder", default-features = false }
 moonbeam-evm-tracer = { path = "runtime/evm_tracer", default-features = false }
 moonbeam-relay-encoder = { path = "runtime/relay-encoder", default-features = false }
 moonbeam-runtime-common = { path = "runtime/common", default-features = false }
@@ -95,6 +97,7 @@ pallet-evm-precompile-randomness = { path = "precompiles/randomness", default-fe
 pallet-evm-precompile-referenda = { path = "precompiles/referenda", default-features = false }
 pallet-evm-precompile-registry = { path = "precompiles/precompile-registry", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "precompiles/relay-encoder", default-features = false }
+pallet-evm-precompile-assethub-encoder = { path = "precompiles/assethub-encoder", default-features = false }
 pallet-evm-precompile-relay-verifier = { path = "precompiles/relay-data-verifier", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "precompiles/xcm-transactor", default-features = false }
 pallet-evm-precompile-xcm-utils = { path = "precompiles/xcm-utils", default-features = false }

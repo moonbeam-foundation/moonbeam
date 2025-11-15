@@ -134,7 +134,7 @@ impl pallet_message_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 0;
+	pub const ExistentialDeposit: u128 = 1;
 }
 impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
@@ -236,25 +236,12 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<Location>> for CurrencyIdToL
 	}
 }
 
-// We need to use the encoding from the relay mock runtime
-#[derive(Encode, Decode)]
-pub enum RelayCall {
-	#[codec(index = 5u8)]
-	// the index should match the position of the module in `construct_runtime!`
-	Utility(UtilityCall),
-}
-
-#[derive(Encode, Decode)]
-pub enum UtilityCall {
-	#[codec(index = 1u8)]
-	AsDerivative(u16),
-}
-
 #[derive(
 	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
 )]
 pub enum MockTransactors {
 	Relay,
+	AssetHub,
 }
 
 impl TryFrom<u8> for MockTransactors {
@@ -263,23 +250,16 @@ impl TryFrom<u8> for MockTransactors {
 	fn try_from(value: u8) -> Result<Self, Self::Error> {
 		match value {
 			0x0 => Ok(MockTransactors::Relay),
+			0x1 => Ok(MockTransactors::AssetHub),
 			_ => Err(()),
 		}
 	}
 }
 
 impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
-		}
+	fn encode_call(self, _call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		// Not used in AssetHub encoder tests
+		vec![]
 	}
 }
 
@@ -287,13 +267,14 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 	fn destination(self) -> Location {
 		match self {
 			MockTransactors::Relay => Location::parent(),
+			MockTransactors::AssetHub => Location::new(1, [Parachain(1000)]),
 		}
 	}
 }
 
-impl xcm_primitives::RelayChainTransactor for MockTransactors {
-	fn relay() -> Self {
-		MockTransactors::Relay
+impl xcm_primitives::AssetHubTransactor for MockTransactors {
+	fn asset_hub() -> Self {
+		MockTransactors::AssetHub
 	}
 }
 
@@ -342,9 +323,9 @@ impl pallet_xcm_transactor::Config for Runtime {
 }
 
 pub type Precompiles<R> =
-	PrecompileSetBuilder<R, PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R>>>;
+	PrecompileSetBuilder<R, PrecompileAt<AddressU64<1>, AssetHubEncoderPrecompile<R>>>;
 
-pub type PCall = RelayEncoderPrecompileCall<Runtime>;
+pub type PCall = AssetHubEncoderPrecompileCall<Runtime>;
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
 /// Block storage limit in bytes. Set to 40 KB.
@@ -440,8 +421,11 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext.execute_with(|| {
-			pallet_xcm_transactor::RelayIndices::<Runtime>::put(
-				crate::test_relay_runtime::TEST_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<Runtime>::insert(
+				MockTransactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					crate::test_assethub_runtime::TEST_ASSETHUB_INDICES,
+				),
 			);
 		});
 		ext

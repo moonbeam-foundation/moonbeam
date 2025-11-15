@@ -16,15 +16,27 @@
 
 //! # Moonriver specific Migrations
 
-use crate::xcm_config::AssetType;
+use crate::xcm_config::{AssetType, Transactors};
 use moonbeam_core_primitives::AssetId;
 use sp_core::parameter_types;
 
 parameter_types! {
 	pub RelayAssetId: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
+	pub RelayTransactor: Transactors = Transactors::Relay;
+	pub AssetHubTransactor: Transactors = Transactors::AssetHub;
+	pub KusamaAssetHubIndices: pallet_xcm_transactor::chain_indices::AssetHubIndices =
+		moonbeam_assethub_encoder::kusama::KUSAMA_ASSETHUB_INDICES;
 }
 
-type MoonriverMigrations = ();
+type MoonriverMigrations = (
+	// Migrate XcmTransactor to support AssetHub
+	pallet_xcm_transactor::migrations::v1::MigrateToChainIndicesMap<
+		crate::Runtime,
+		RelayTransactor,
+		AssetHubTransactor,
+		KusamaAssetHubIndices,
+	>,
+);
 
 /// List of single block migrations to be executed by frame executive.
 pub type SingleBlockMigrations<Runtime> = (

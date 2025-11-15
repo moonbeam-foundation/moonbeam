@@ -79,9 +79,9 @@ pub(crate) mod mock;
 #[cfg(test)]
 mod tests;
 
+pub mod chain_indices;
 pub mod encode;
 pub mod migrations;
-pub mod relay_indices;
 pub mod weights;
 pub use crate::weights::WeightInfo;
 
@@ -91,7 +91,7 @@ type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 pub mod pallet {
 
 	use super::*;
-	use crate::relay_indices::RelayChainIndices;
+	use crate::chain_indices::RelayChainIndices;
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
@@ -361,9 +361,24 @@ pub mod pallet {
 	pub type DestinationAssetFeePerSecond<T: Config> = StorageMap<_, Twox64Concat, Location, u128>;
 
 	/// Stores the indices of relay chain pallets
+	///
+	/// DEPRECATED: Use ChainIndicesMap instead. This storage is kept for backwards compatibility
+	/// and will be removed in a future version.
 	#[pallet::storage]
 	#[pallet::getter(fn relay_indices)]
 	pub type RelayIndices<T: Config> = StorageValue<_, RelayChainIndices, ValueQuery>;
+
+	/// Stores chain-specific pallet and call indices for encoding remote calls
+	/// Maps Transactor type to its corresponding indices (Relay or AssetHub)
+	#[pallet::storage]
+	#[pallet::getter(fn chain_indices)]
+	pub type ChainIndicesMap<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		T::Transactor,
+		crate::chain_indices::ChainIndices,
+		OptionQuery,
+	>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]

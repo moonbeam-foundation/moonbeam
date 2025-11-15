@@ -7090,6 +7090,7 @@ dependencies = [
  "hex",
  "hex-literal",
  "log",
+ "moonbeam-assethub-encoder",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
  "moonbeam-relay-encoder",
@@ -7113,6 +7114,7 @@ dependencies = [
  "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-evm-chain-id",
+ "pallet-evm-precompile-assethub-encoder",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
@@ -7220,6 +7222,20 @@ name = "moonbeam"
 version = "0.49.0"
 dependencies = [
  "moonbeam-cli",
+]
+
+[[package]]
+name = "moonbeam-assethub-encoder"
+version = "0.1.0"
+dependencies = [
+ "moonbase-runtime",
+ "pallet-staking",
+ "pallet-xcm-transactor",
+ "parity-scale-codec",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -7514,6 +7530,7 @@ dependencies = [
  "hex",
  "hex-literal",
  "log",
+ "moonbeam-assethub-encoder",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
@@ -7539,6 +7556,7 @@ dependencies = [
  "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-evm-chain-id",
+ "pallet-evm-precompile-assethub-encoder",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
@@ -7848,6 +7866,7 @@ dependencies = [
  "hex",
  "hex-literal",
  "log",
+ "moonbeam-assethub-encoder",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
  "moonbeam-rpc-primitives-debug",
@@ -7873,6 +7892,7 @@ dependencies = [
  "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-evm-chain-id",
+ "pallet-evm-precompile-assethub-encoder",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
@@ -9365,6 +9385,34 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "scale-info",
+]
+
+[[package]]
+name = "pallet-evm-precompile-assethub-encoder"
+version = "0.1.0"
+dependencies = [
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-message-queue",
+ "pallet-staking",
+ "pallet-timestamp",
+ "pallet-xcm-transactor",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+ "staging-xcm-builder",
+ "staging-xcm-executor",
+ "xcm-primitives 0.1.1",
 ]
 
 [[package]]
