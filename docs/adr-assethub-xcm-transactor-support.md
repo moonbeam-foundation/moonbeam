@@ -302,227 +302,87 @@ subxt metadata --url wss://polkadot-asset-hub-rpc.polkadot.io > assethub-metadat
 subxt codegen --file assethub-metadata.scale | grep "pallet_index"
 ```
 
-##### Testing Strategy
+##### Manual Testing Guidelines
 
-**8. Comprehensive Test Plan**
+**8. Testing on Live Networks**
 
-**Phase 1: Unit Tests (Rust)**
+After deploying AssetHub support, manual testing should be performed to verify functionality:
 
-```rust
-// pallets/xcm-transactor/src/tests.rs
+**Prerequisites:**
+1. Ensure AssetHub chain indices are configured in runtime
+2. Verify AssetHub transactor info is registered with correct weight/fee parameters
+3. Have test accounts with sufficient balance for fees
 
-#[test]
-fn encode_assethub_bond_produces_correct_bytes() {
-    ExtBuilder::default()
-        .with_assethub_indices(AssetHubIndices {
-            staking: 89,
-            bond: 0,
-            // ... etc
-        })
-        .build()
-        .execute_with(|| {
-            let call = AvailableStakeCalls::Bond(
-                1_000_000_000_000, // 1 DOT
-                RewardDestination::Staked,
-            );
+**Test 1: Verify Configuration**
 
-            let encoded = XcmTransactor::encode_call(
-                Transactors::AssetHub,
-                call
-            );
+```bash
+# Check AssetHub indices are configured
+# Via Polkadot.js Apps or API:
+api.query.xcmTransactor.chainIndices({ AssetHub: null })
 
-            // Verify pallet index
-            assert_eq!(encoded[0], 89);
-            // Verify call index
-            assert_eq!(encoded[1], 0);
-            // Verify compact encoding of amount
-            // ... assertions
-        });
-}
-
-#[test]
-fn transact_to_assethub_via_derivative_succeeds() {
-    ExtBuilder::default()
-        .with_balances(vec![(ALICE, 1000 * UNIT)])
-        .build()
-        .execute_with(|| {
-            // Register AssetHub transactor info
-            assert_ok!(XcmTransactor::set_transact_info(
-                RuntimeOrigin::root(),
-                Box::new(xcm::VersionedLocation::V4(Transactors::AssetHub.destination())),
-                // ... weight and fee config
-            ));
-
-            // Register derivative account
-            assert_ok!(XcmTransactor::register(
-                RuntimeOrigin::signed(ALICE),
-                ALICE,
-                0,
-            ));
-
-            // Encode bond call
-            let inner_call = XcmTransactor::encode_call(
-                Transactors::AssetHub,
-                AvailableStakeCalls::Bond(10 * UNIT, RewardDestination::Staked),
-            );
-
-            // Execute transact
-            assert_ok!(XcmTransactor::transact_through_derivative(
-                RuntimeOrigin::signed(ALICE),
-                Transactors::AssetHub,
-                0,
-                // ... fee and weight params
-                inner_call,
-            ));
-
-            // Verify XCM message sent
-            // ... assertions on XCM queue
-        });
-}
+# Check transactor info is set
+api.query.xcmTransactor.transactorInfo({ AssetHub: null })
 ```
 
-**Phase 2: Integration Tests (TypeScript/Moonwall)**
+**Test 2: Simple Bond Operation**
 
-```typescript
-// test/suites/dev/moonbase/test-xcm-transactor/test-xcm-assethub.ts
+```javascript
+// 1. Register derivative account (if not already done)
+api.tx.xcmTransactor.register(accountId, derivativeIndex)
 
-describeSuite({
-  id: "D0305",
-  title: "XCM Transactor - AssetHub Staking",
-  foundationMethods: "dev",
-  testCases: ({ context, it }) => {
-    it({
-      id: "T01",
-      title: "should bond DOT on AssetHub via derivative using pallet",
-      test: async () => {
-        // Encode AssetHub bond call using AssetHub indices
-        const bondCall = encodeAssetHubBondCall(10n * GLMR);
+// 2. Encode a simple bond call for AssetHub
+// Use the encoding helper or manually encode with AssetHub indices
+const bondCall = encodeBondCall(amount, rewardDestination)
 
-        // AssetHub destination
-        const assetHubDest = {
-          parents: 1,
-          interior: { X1: { Parachain: 1000 } },
-        };
+// 3. Execute transact to AssetHub
+const assetHubDest = {
+  parents: 1,
+  interior: { X1: [{ Parachain: 1000 }] }
+}
 
-        // Create fee asset multilocation for AssetHub
-        const feeAsset = {
-          parents: 1,
-          interior: { X1: { Parachain: 1000 } },
-        };
-
-        // Call pallet directly
-        const { result } = await context.createBlock(
-          context.polkadotJs().tx.xcmTransactor.transactThroughDerivative(
-            assetHubDest,
-            0, // derivative index
-            {
-              currency: { AsMultiLocation: feeAsset },
-              feeAmount: 1000000n,
-            },
-            bondCall,
-            {
-              transactRequiredWeightAtMost: { refTime: 1_000_000_000, proofSize: 64_000 },
-              overallWeight: { refTime: 2_000_000_000, proofSize: 128_000 },
-            },
-            true // refund
-          )
-        );
-
-        expect(result?.successful).to.be.true;
-
-        // Verify XCM message in outbound queue
-        const messages = await context.polkadotJs().query.xcmpQueue.outboundXcmpMessages.entries();
-        expect(messages.length).to.be.greaterThan(0);
-      },
-    });
-
-    it({
-      id: "T02",
-      title: "should nominate validators on AssetHub",
-      test: async () => {
-        // Similar test for nominate call
-        // ...
-      },
-    });
+api.tx.xcmTransactor.transactThroughDerivative(
+  assetHubDest,
+  derivativeIndex,
+  {
+    currency: { AsMultiLocation: assetHubDest },
+    feeAmount: 1_000_000_000 // Adjust based on fee configuration
   },
-});
-```
-
-**Phase 3: Chopsticks Fork Testing**
-
-```typescript
-// test/helpers/assethub-fork.ts
-
-import { setup } from "@acala-network/chopsticks";
-
-export async function setupAssetHubFork() {
-  const assetHub = await setup({
-    endpoint: "wss://polkadot-asset-hub-rpc.polkadot.io",
-    db: "./db.sqlite",
-    port: 8001,
-  });
-
-  const moonbeam = await setup({
-    endpoint: "wss://wss.api.moonbeam.network",
-    db: "./db-moonbeam.sqlite",
-    port: 8000,
-  });
-
-  // Connect via HRMP
-  await setupHrmp(moonbeam, assetHub);
-
-  return { assetHub, moonbeam };
-}
-
-// Use in tests to verify end-to-end flow
-```
-
-**Phase 4: Smoke Tests**
-
-```typescript
-// test/suites/smoke/moonbeam/test-xcm-transactor-assethub.ts
-
-describeSuite({
-  id: "S0305",
-  title: "XCM Transactor AssetHub - Smoke Test",
-  foundationMethods: "read_only",
-  testCases: ({ context, it }) => {
-    it({
-      id: "T01",
-      title: "AssetHub chain indices should be configured",
-      test: async () => {
-        const indices = await context.polkadotJs().query.xcmTransactor.chainIndices(
-          { AssetHub: null }
-        );
-        expect(indices.isSome).to.be.true;
-      },
-    });
-
-    it({
-      id: "T02",
-      title: "AssetHub transactor info should be configured",
-      test: async () => {
-        const info = await context.polkadotJs().query.xcmTransactor.transactorInfo(
-          { AssetHub: null }
-        );
-        expect(info.isSome).to.be.true;
-      },
-    });
+  bondCall,
+  {
+    transactRequiredWeightAtMost: { refTime: 1_000_000_000, proofSize: 64_000 },
+    overallWeight: { refTime: 2_000_000_000, proofSize: 128_000 }
   },
-});
+  true // refund
+).signAndSend(account)
 ```
 
-**Testing Matrix:**
+**Test 3: Verify on AssetHub**
 
-| Test Type | Coverage | Tools | Priority |
-|-----------|----------|-------|----------|
-| Unit - Encoding | All AvailableStakeCalls | Rust cargo test | P0 |
-| Unit - Storage Migration | Old→New format | Rust + try-runtime | P0 |
-| Unit - Pallet Logic | Transact calls | Rust cargo test | P0 |
-| Integration - XCM Messages | Message formation | Moonwall dev tests | P1 |
-| Integration - End-to-end | Full flow | Chopsticks | P1 |
-| Smoke - Deployment | Runtime config | Moonwall smoke | P1 |
-| Fuzz - Invalid Inputs | Edge cases | Rust proptest | P2 |
+After sending the transaction:
+1. Check XCM message was sent via `xcmpQueue.outboundXcmpMessages`
+2. Monitor AssetHub for the transaction execution
+3. Verify the staking operation succeeded on AssetHub
+4. Check derivative account state on AssetHub
+
+**Test 4: Other Staking Operations**
+
+Repeat similar tests for:
+- `bond_extra` - Add more to existing bond
+- `unbond` - Unbond tokens
+- `nominate` - Set validator nominations
+- `chill` - Stop nominating
+
+**Network-Specific Testing:**
+- **Moonbase Alpha** (Westend): Test with Westend AssetHub
+- **Moonriver** (Kusama): Test with Kusama AssetHub
+- **Moonbeam** (Polkadot): Test with Polkadot AssetHub
+
+**Expected Behaviors:**
+- Transaction succeeds without errors
+- XCM message appears in outbound queue
+- Fees are deducted correctly
+- AssetHub executes the encoded call
+- Derivative account state updates on AssetHub
 
 ##### Migration Strategy
 
