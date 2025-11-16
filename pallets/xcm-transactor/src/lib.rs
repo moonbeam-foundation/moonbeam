@@ -471,6 +471,10 @@ pub mod pallet {
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T> {
+		/// Relay chain indices (deprecated - use chain_indices_map instead)
+		///
+		/// This field is kept for backwards compatibility but is no longer used.
+		/// The ChainIndicesMap storage is now initialized via runtime migrations.
 		pub relay_indices: RelayChainIndices,
 		#[serde(skip)]
 		pub _phantom: PhantomData<T>,
@@ -488,7 +492,12 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
+			// Store in old storage for backwards compatibility
 			<RelayIndices<T>>::put(self.relay_indices);
+
+			// Note: ChainIndicesMap initialization is handled by the runtime migration
+			// (MigrateToChainIndicesMap) which runs on first block and properly
+			// initializes both Relay and AssetHub indices with network-specific values.
 		}
 	}
 

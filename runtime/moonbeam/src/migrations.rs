@@ -24,6 +24,8 @@ parameter_types! {
 	pub RelayAssetId: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
 	pub RelayTransactor: Transactors = Transactors::Relay;
 	pub AssetHubTransactor: Transactors = Transactors::AssetHub;
+	pub PolkadotRelayIndices: pallet_xcm_transactor::chain_indices::RelayChainIndices =
+		moonbeam_relay_encoder::polkadot::POLKADOT_RELAY_INDICES;
 	pub PolkadotAssetHubIndices: pallet_xcm_transactor::chain_indices::AssetHubIndices =
 		moonbeam_assethub_encoder::polkadot::POLKADOT_ASSETHUB_INDICES;
 }
@@ -34,6 +36,7 @@ type MoonbeamMigrations = (
 		crate::Runtime,
 		RelayTransactor,
 		AssetHubTransactor,
+		PolkadotRelayIndices,
 		PolkadotAssetHubIndices,
 	>,
 );

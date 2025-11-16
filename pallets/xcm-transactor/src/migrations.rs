@@ -34,29 +34,52 @@ pub const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
 /// Migration from RelayIndices (single StorageValue) to ChainIndicesMap (StorageMap)
 ///
 /// This migration:
-/// 1. Reads the old RelayIndices storage
-/// 2. Inserts it into ChainIndicesMap under the Relay transactor key
+/// 1. Initializes RelayIndices if it's default (for fresh chains)
+/// 2. Migrates RelayIndices to ChainIndicesMap under the Relay transactor key
 /// 3. Initializes AssetHub indices with network-specific values
 /// 4. Keeps the old RelayIndices storage for backwards compatibility (deprecated)
 ///
 /// # Type Parameters
+/// - `RelayIndicesValue`: A `Get<RelayChainIndices>` that provides the network-specific
+///   Relay chain indices (e.g., Polkadot, Kusama, or Westend relay)
 /// - `AssetHubIndicesValue`: A `Get<AssetHubIndices>` that provides the network-specific
 ///   AssetHub indices (e.g., Polkadot, Kusama, or Westend AssetHub)
 pub mod v1 {
 	use super::*;
+	use crate::chain_indices::RelayChainIndices;
 	#[cfg(feature = "try-runtime")]
 	use sp_std::vec::Vec;
 
-	pub struct MigrateToChainIndicesMap<T, RelayTransactor, AssetHubTransactor, AssetHubIndicesValue>(
-		PhantomData<(T, RelayTransactor, AssetHubTransactor, AssetHubIndicesValue)>,
+	pub struct MigrateToChainIndicesMap<
+		T,
+		RelayTransactor,
+		AssetHubTransactor,
+		RelayIndicesValue,
+		AssetHubIndicesValue,
+	>(
+		PhantomData<(
+			T,
+			RelayTransactor,
+			AssetHubTransactor,
+			RelayIndicesValue,
+			AssetHubIndicesValue,
+		)>,
 	);
 
-	impl<T, RelayTransactor, AssetHubTransactor, AssetHubIndicesValue> OnRuntimeUpgrade
-		for MigrateToChainIndicesMap<T, RelayTransactor, AssetHubTransactor, AssetHubIndicesValue>
+	impl<T, RelayTransactor, AssetHubTransactor, RelayIndicesValue, AssetHubIndicesValue>
+		OnRuntimeUpgrade
+		for MigrateToChainIndicesMap<
+			T,
+			RelayTransactor,
+			AssetHubTransactor,
+			RelayIndicesValue,
+			AssetHubIndicesValue,
+		>
 	where
 		T: Config,
 		RelayTransactor: Get<T::Transactor>,
 		AssetHubTransactor: Get<T::Transactor>,
+		RelayIndicesValue: Get<RelayChainIndices>,
 		AssetHubIndicesValue: Get<AssetHubIndices>,
 	{
 		fn on_runtime_upgrade() -> Weight {
@@ -68,16 +91,24 @@ pub mod v1 {
 				return weight;
 			}
 
-			// Step 1: Migrate old RelayIndices to ChainIndicesMap
+			// Step 1: Initialize RelayIndices if it's default (for fresh chains like bridge tests)
 			let old_relay_indices = RelayIndices::<T>::get();
-
-			// Only migrate if there's data (non-default)
-			if old_relay_indices != Default::default() {
-				ChainIndicesMap::<T>::insert(&relay_key, ChainIndices::Relay(old_relay_indices));
+			let relay_indices_to_use = if old_relay_indices == Default::default() {
+				// Fresh chain - initialize with network-specific hardcoded values
+				let network_relay_indices = RelayIndicesValue::get();
+				RelayIndices::<T>::put(network_relay_indices);
 				weight = weight.saturating_add(T::DbWeight::get().writes(1));
-			}
+				network_relay_indices
+			} else {
+				// Existing chain - use what's already in storage
+				old_relay_indices
+			};
 
-			// Step 2: Initialize AssetHub indices with network-specific values
+			// Step 2: Migrate RelayIndices to ChainIndicesMap
+			ChainIndicesMap::<T>::insert(&relay_key, ChainIndices::Relay(relay_indices_to_use));
+			weight = weight.saturating_add(T::DbWeight::get().writes(1));
+
+			// Step 3: Initialize AssetHub indices with network-specific values
 			let assethub_key = AssetHubTransactor::get();
 			let assethub_indices = AssetHubIndicesValue::get();
 			ChainIndicesMap::<T>::insert(&assethub_key, ChainIndices::AssetHub(assethub_indices));
@@ -95,10 +126,9 @@ pub mod v1 {
 
 			// Store the current RelayIndices for verification
 			let old_indices = RelayIndices::<T>::get();
-			let has_relay_data = old_indices != Default::default();
 
 			// Encode state for post-upgrade verification
-			Ok((has_relay_data, old_indices).encode())
+			Ok(old_indices.encode())
 		}
 
 		#[cfg(feature = "try-runtime")]
@@ -107,34 +137,31 @@ pub mod v1 {
 			use parity_scale_codec::Decode;
 
 			// Decode pre-upgrade state
-			let (had_relay_data, old_relay_indices): (bool, RelayChainIndices) =
-				Decode::decode(&mut &state[..])
-					.map_err(|_| "Failed to decode pre-upgrade state")?;
+			let old_relay_indices: RelayChainIndices = Decode::decode(&mut &state[..])
+				.map_err(|_| "Failed to decode pre-upgrade state")?;
 
 			let relay_key = RelayTransactor::get();
 			let assethub_key = AssetHubTransactor::get();
 
-			// Verify Relay indices were migrated correctly
-			if had_relay_data {
-				let migrated_relay = ChainIndicesMap::<T>::get(relay_key)
-					.ok_or("Relay indices not found in ChainIndicesMap")?;
+			// Verify Relay indices were migrated correctly (always present now)
+			let migrated_relay = ChainIndicesMap::<T>::get(relay_key)
+				.ok_or("Relay indices not found in ChainIndicesMap")?;
 
-				match migrated_relay {
-					ChainIndices::Relay(indices) => {
-						if indices != old_relay_indices {
-							return Err("Migrated Relay indices don't match original".into());
-						}
-					}
-					_ => {
-						return Err("Expected ChainIndices::Relay variant".into());
+			match migrated_relay {
+				ChainIndices::Relay(indices) => {
+					if indices != old_relay_indices {
+						return Err("Migrated Relay indices don't match original".into());
 					}
 				}
-
-				// Verify old storage still exists (backwards compat)
-				let current_relay_indices = RelayIndices::<T>::get();
-				if current_relay_indices != old_relay_indices {
-					return Err("RelayIndices storage should remain unchanged".into());
+				_ => {
+					return Err("Expected ChainIndices::Relay variant".into());
 				}
+			}
+
+			// Verify old storage still exists (backwards compat)
+			let current_relay_indices = RelayIndices::<T>::get();
+			if current_relay_indices != old_relay_indices {
+				return Err("RelayIndices storage should remain unchanged".into());
 			}
 
 			// Verify AssetHub indices were initialized

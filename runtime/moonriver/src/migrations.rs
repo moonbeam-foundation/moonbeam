@@ -24,6 +24,8 @@ parameter_types! {
 	pub RelayAssetId: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
 	pub RelayTransactor: Transactors = Transactors::Relay;
 	pub AssetHubTransactor: Transactors = Transactors::AssetHub;
+	pub KusamaRelayIndices: pallet_xcm_transactor::chain_indices::RelayChainIndices =
+		moonbeam_relay_encoder::kusama::KUSAMA_RELAY_INDICES;
 	pub KusamaAssetHubIndices: pallet_xcm_transactor::chain_indices::AssetHubIndices =
 		moonbeam_assethub_encoder::kusama::KUSAMA_ASSETHUB_INDICES;
 }
@@ -34,6 +36,7 @@ type MoonriverMigrations = (
 		crate::Runtime,
 		RelayTransactor,
 		AssetHubTransactor,
+		KusamaRelayIndices,
 		KusamaAssetHubIndices,
 	>,
 );
