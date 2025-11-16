@@ -6,9 +6,7 @@
 
 # Rust directories
 **/target
-
-# Temporary folders
-**/tmp
+**/scripts/tmp
 
 # Typescript directories
 **/node_modules
