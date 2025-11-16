@@ -44,6 +44,8 @@ pub const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
 ///   AssetHub indices (e.g., Polkadot, Kusama, or Westend AssetHub)
 pub mod v1 {
 	use super::*;
+	#[cfg(feature = "try-runtime")]
+	use sp_std::vec::Vec;
 
 	pub struct MigrateToChainIndicesMap<T, RelayTransactor, AssetHubTransactor, AssetHubIndicesValue>(
 		PhantomData<(T, RelayTransactor, AssetHubTransactor, AssetHubIndicesValue)>,

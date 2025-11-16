@@ -90,7 +90,6 @@ type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 #[pallet]
 pub mod pallet {
 
-	use super::*;
 	use crate::chain_indices::RelayChainIndices;
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
