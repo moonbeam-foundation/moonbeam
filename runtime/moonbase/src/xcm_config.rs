@@ -620,7 +620,18 @@ parameter_types! {
 // Transactors defines the chains in which we allow transactions to be issued through XCM
 // This enum now supports both Relay Chain and AssetHub system parachain
 #[derive(
-	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+	Clone,
+	Eq,
+	Debug,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	TypeInfo,
+	DecodeWithMemTracking,
+	serde::Serialize,
+	serde::Deserialize,
 )]
 pub enum Transactors {
 	/// Relay Chain (Westend for Moonbase)

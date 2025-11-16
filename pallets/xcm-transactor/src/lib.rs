@@ -136,7 +136,12 @@ pub mod pallet {
 
 		// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
-		type Transactor: Parameter + Member + Clone + XcmTransact;
+		type Transactor: Parameter
+			+ Member
+			+ Clone
+			+ XcmTransact
+			+ serde::Serialize
+			+ serde::de::DeserializeOwned;
 
 		/// AssetTransactor allows us to withdraw asset without being trapped
 		/// This should change in xcm v3, which allows us to burn assets
@@ -475,7 +480,6 @@ pub mod pallet {
 		///
 		/// Maps transactor keys to their respective chain indices.
 		/// This should be populated for fresh chains in genesis config.
-		#[serde(skip)]
 		pub chain_indices_map: Vec<(T::Transactor, crate::chain_indices::ChainIndices)>,
 		#[serde(skip)]
 		pub _phantom: PhantomData<T>,

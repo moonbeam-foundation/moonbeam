@@ -323,7 +323,18 @@ pub enum HrmpCall {
 }
 
 #[derive(
-	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+	Clone,
+	Eq,
+	Debug,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	TypeInfo,
+	DecodeWithMemTracking,
+	serde::Serialize,
+	serde::Deserialize,
 )]
 pub enum MockTransactors {
 	Relay,

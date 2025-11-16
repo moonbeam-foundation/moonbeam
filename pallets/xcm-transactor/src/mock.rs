@@ -288,6 +288,8 @@ pub enum HrmpCall {
 	Decode,
 	scale_info::TypeInfo,
 	DecodeWithMemTracking,
+	serde::Serialize,
+	serde::Deserialize,
 )]
 pub enum Transactors {
 	Relay,
