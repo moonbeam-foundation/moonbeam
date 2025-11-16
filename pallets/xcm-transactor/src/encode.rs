@@ -38,11 +38,11 @@ impl<T: Config> Pallet<T> {
 	/// Get relay chain indices from ChainIndicesMap
 	///
 	/// This is used by HRMP and Utility encode functions which are relay-only operations.
-	/// Searches ChainIndicesMap for the first Relay variant.
-	/// Falls back to reading from deprecated RelayIndices storage if not found.
+	/// Searches ChainIndicesMap for the Relay variant, falling back to legacy storage.
 	fn get_relay_indices() -> RelayChainIndices {
-		// Try to get from ChainIndicesMap first (new storage)
-		// Search through all entries to find the Relay variant
+		// Search ChainIndicesMap for the Relay variant
+		// We can't use a direct key lookup because the pallet doesn't know which
+		// transactor value represents Relay (that's configured at runtime level)
 		for (_transactor, chain_indices) in ChainIndicesMap::<T>::iter() {
 			if let ChainIndices::Relay(indices) = chain_indices {
 				return indices;
@@ -50,7 +50,7 @@ impl<T: Config> Pallet<T> {
 		}
 
 		// Fallback to old storage for backwards compatibility
-		// This ensures the function works during migration
+		// This should only happen during migration or if storage is corrupted
 		RelayIndices::<T>::get()
 	}
 }
