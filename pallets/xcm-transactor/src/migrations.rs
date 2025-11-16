@@ -34,10 +34,12 @@ pub const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
 /// Migration from RelayIndices (single StorageValue) to ChainIndicesMap (StorageMap)
 ///
 /// This migration:
-/// 1. Initializes RelayIndices if it's default (for fresh chains)
-/// 2. Migrates RelayIndices to ChainIndicesMap under the Relay transactor key
-/// 3. Initializes AssetHub indices with network-specific values
-/// 4. Keeps the old RelayIndices storage for backwards compatibility (deprecated)
+/// 1. Migrates existing RelayIndices to ChainIndicesMap under the Relay transactor key
+/// 2. Initializes AssetHub indices with network-specific values
+/// 3. Keeps the old RelayIndices storage for backwards compatibility (deprecated)
+///
+/// Note: For fresh chains, ChainIndicesMap should be initialized via genesis config,
+/// not via this migration.
 ///
 /// # Type Parameters
 /// - `RelayIndicesValue`: A `Get<RelayChainIndices>` that provides the network-specific
@@ -88,27 +90,35 @@ pub mod v1 {
 			// Check if migration is needed by seeing if ChainIndicesMap is empty
 			let relay_key = RelayTransactor::get();
 			if ChainIndicesMap::<T>::contains_key(&relay_key) {
+				// Migration already ran or genesis initialized ChainIndicesMap
+				// Ensure RelayIndices is also populated for backwards compatibility
+				if let Some(ChainIndices::Relay(relay_indices)) =
+					ChainIndicesMap::<T>::get(&relay_key)
+				{
+					RelayIndices::<T>::put(relay_indices);
+					weight = weight.saturating_add(T::DbWeight::get().writes(1));
+				}
 				return weight;
 			}
 
-			// Step 1: Initialize RelayIndices if it's default (for fresh chains like bridge tests)
+			// Step 1: Migrate existing RelayIndices to ChainIndicesMap
 			let old_relay_indices = RelayIndices::<T>::get();
+
+			// If RelayIndices is default, this is likely a fresh chain that should have
+			// been initialized via genesis config. Use the network-specific hardcoded values
+			// as a fallback to ensure the chain can function.
 			let relay_indices_to_use = if old_relay_indices == Default::default() {
-				// Fresh chain - initialize with network-specific hardcoded values
-				let network_relay_indices = RelayIndicesValue::get();
-				RelayIndices::<T>::put(network_relay_indices);
-				weight = weight.saturating_add(T::DbWeight::get().writes(1));
-				network_relay_indices
+				RelayIndicesValue::get()
 			} else {
-				// Existing chain - use what's already in storage
 				old_relay_indices
 			};
 
-			// Step 2: Migrate RelayIndices to ChainIndicesMap
+			// Populate both new and old storage
 			ChainIndicesMap::<T>::insert(&relay_key, ChainIndices::Relay(relay_indices_to_use));
-			weight = weight.saturating_add(T::DbWeight::get().writes(1));
+			RelayIndices::<T>::put(relay_indices_to_use);
+			weight = weight.saturating_add(T::DbWeight::get().writes(2));
 
-			// Step 3: Initialize AssetHub indices with network-specific values
+			// Step 2: Initialize AssetHub indices
 			let assethub_key = AssetHubTransactor::get();
 			let assethub_indices = AssetHubIndicesValue::get();
 			ChainIndicesMap::<T>::insert(&assethub_key, ChainIndices::AssetHub(assethub_indices));

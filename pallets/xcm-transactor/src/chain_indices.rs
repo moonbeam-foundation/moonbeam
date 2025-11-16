@@ -97,7 +97,7 @@ pub struct AssetHubIndices {
 /// Unified chain indices enum
 ///
 /// Wraps either RelayChainIndices or AssetHubIndices depending on the target chain
-#[derive(Clone, Debug, Encode, Decode, TypeInfo, PartialEq, Eq)]
+#[derive(Clone, Debug, Deserialize, Serialize, Encode, Decode, TypeInfo, PartialEq, Eq)]
 pub enum ChainIndices {
 	Relay(RelayChainIndices),
 	AssetHub(AssetHubIndices),

@@ -17,12 +17,13 @@
 extern crate alloc;
 
 use crate::{
-	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
-	InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
-	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
-	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
+	currency::UNIT, xcm_config::Transactors, AccountId, AuthorFilterConfig, AuthorMappingConfig,
+	Balance, BalancesConfig, CrowdloanRewardsConfig, EVMConfig, EligibilityValue,
+	EthereumChainIdConfig, EthereumConfig, InflationInfo, MaintenanceModeConfig,
+	MoonbeamOrbitersConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
+	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
+	SudoConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig,
+	HOURS,
 };
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
@@ -182,7 +183,20 @@ pub fn testnet_genesis(
 			min_orbiter_deposit: One::one(),
 		},
 		xcm_transactor: XcmTransactorConfig {
-			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
+			chain_indices_map: vec![
+				(
+					Transactors::Relay,
+					pallet_xcm_transactor::chain_indices::ChainIndices::Relay(
+						moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
+					),
+				),
+				(
+					Transactors::AssetHub,
+					pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+						moonbeam_assethub_encoder::westend::WESTEND_ASSETHUB_INDICES,
+					),
+				),
+			],
 			..Default::default()
 		},
 		crowdloan_rewards: CrowdloanRewardsConfig {
