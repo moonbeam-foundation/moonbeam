@@ -68,7 +68,6 @@ use xcm_executor::{Config, XcmExecutor};
 use moonbeam_runtime_common::benchmarking::BenchmarkHelper as ArgumentsBenchmarkHelper;
 use pallet_xcm_transactor::RelayIndices;
 use scale_info::TypeInfo;
-use xcm_primitives::XcmTransact;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,

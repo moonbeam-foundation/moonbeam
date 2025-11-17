@@ -832,36 +832,6 @@ pub enum HrmpCall {
 	CancelOpenRequest(HrmpChannelId, u32),
 }
 
-#[derive(
-	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
-)]
-pub enum MockTransactors {
-	Relay,
-}
-
-impl xcm_primitives::XcmTransact for MockTransactors {
-	fn destination(self) -> Location {
-		match self {
-			MockTransactors::Relay => Location::parent(),
-		}
-	}
-}
-
-impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
-		}
-	}
-}
-
 #[allow(dead_code)]
 pub struct MockHrmpEncoder;
 
