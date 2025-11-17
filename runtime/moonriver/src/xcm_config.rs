@@ -654,15 +654,15 @@ parameter_types! {
 	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
 )]
 pub enum Transactors {
-	Relay,
 	AssetHub,
+	Relay, // Originally the Relay variant was at index 0, but the functionality was later moved to AssetHub
 }
 
 // Default for benchmarking
 #[cfg(feature = "runtime-benchmarks")]
 impl Default for Transactors {
 	fn default() -> Self {
-		Transactors::Relay
+		Transactors::AssetHub
 	}
 }
 
@@ -670,8 +670,8 @@ impl TryFrom<u8> for Transactors {
 	type Error = ();
 	fn try_from(value: u8) -> Result<Self, Self::Error> {
 		match value {
-			0u8 => Ok(Transactors::Relay),
-			1u8 => Ok(Transactors::AssetHub),
+			0u8 => Ok(Transactors::AssetHub),
+			1u8 => Ok(Transactors::Relay), // Originally the Relay variant was at index 0, but the functionality was later moved to AssetHub
 			_ => Err(()),
 		}
 	}
@@ -680,7 +680,7 @@ impl TryFrom<u8> for Transactors {
 impl UtilityEncodeCall for Transactors {
 	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
-			Transactors::Relay | Transactors::AssetHub => {
+			Transactors::AssetHub | Transactors::Relay => {
 				pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
 					pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
 					call,
@@ -693,8 +693,8 @@ impl UtilityEncodeCall for Transactors {
 impl XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
-			Transactors::Relay => RelayLocation::get(),
 			Transactors::AssetHub => AssetHubLocation::get(),
+			Transactors::Relay => RelayLocation::get(),
 		}
 	}
 }
