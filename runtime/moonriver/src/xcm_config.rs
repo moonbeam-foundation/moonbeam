@@ -655,6 +655,7 @@ parameter_types! {
 )]
 pub enum Transactors {
 	Relay,
+	AssetHub,
 }
 
 // Default for benchmarking
@@ -670,6 +671,7 @@ impl TryFrom<u8> for Transactors {
 	fn try_from(value: u8) -> Result<Self, Self::Error> {
 		match value {
 			0u8 => Ok(Transactors::Relay),
+			1u8 => Ok(Transactors::AssetHub),
 			_ => Err(()),
 		}
 	}
@@ -678,10 +680,12 @@ impl TryFrom<u8> for Transactors {
 impl UtilityEncodeCall for Transactors {
 	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
-			Transactors::Relay => pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-				pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
-				call,
-			),
+			Transactors::Relay | Transactors::AssetHub => {
+				pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+					pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
+					call,
+				)
+			}
 		}
 	}
 }
@@ -689,7 +693,8 @@ impl UtilityEncodeCall for Transactors {
 impl XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
-			Transactors::Relay => Location::parent(),
+			Transactors::Relay => RelayLocation::get(),
+			Transactors::AssetHub => AssetHubLocation::get(),
 		}
 	}
 }
