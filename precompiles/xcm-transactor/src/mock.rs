@@ -381,6 +381,7 @@ pub enum UtilityCall {
 )]
 pub enum MockTransactors {
 	Relay,
+	AssetHub,
 }
 
 impl TryFrom<u8> for MockTransactors {
@@ -389,6 +390,7 @@ impl TryFrom<u8> for MockTransactors {
 	fn try_from(value: u8) -> Result<Self, Self::Error> {
 		match value {
 			0x0 => Ok(MockTransactors::Relay),
+			0x1 => Ok(MockTransactors::AssetHub),
 			_ => Err(()),
 		}
 	}
@@ -398,6 +400,7 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 	fn destination(self) -> Location {
 		match self {
 			MockTransactors::Relay => Location::parent(),
+			MockTransactors::AssetHub => Location::new(1, [Parachain(1000)]),
 		}
 	}
 }
@@ -405,7 +408,7 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match self {
-			MockTransactors::Relay => match call {
+			MockTransactors::Relay | MockTransactors::AssetHub => match call {
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
 					let mut call =
 						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
@@ -414,6 +417,18 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 				}
 			},
 		}
+	}
+}
+
+impl xcm_primitives::RelayChainTransactor for MockTransactors {
+	fn relay() -> Self {
+		MockTransactors::Relay
+	}
+}
+
+impl xcm_primitives::AssetHubTransactor for MockTransactors {
+	fn asset_hub() -> Self {
+		MockTransactors::AssetHub
 	}
 }
 

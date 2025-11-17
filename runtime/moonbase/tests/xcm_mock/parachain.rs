@@ -858,12 +858,14 @@ pub enum HrmpCall {
 )]
 pub enum MockTransactors {
 	Relay,
+	AssetHub,
 }
 
 impl xcm_primitives::XcmTransact for MockTransactors {
 	fn destination(self) -> Location {
 		match self {
 			MockTransactors::Relay => Location::parent(),
+			MockTransactors::AssetHub => Location::new(1, [Parachain(1000)]),
 		}
 	}
 }
@@ -871,7 +873,7 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match self {
-			MockTransactors::Relay => match call {
+			MockTransactors::Relay | MockTransactors::AssetHub => match call {
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
 					let mut call =
 						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
@@ -880,6 +882,18 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 				}
 			},
 		}
+	}
+}
+
+impl xcm_primitives::RelayChainTransactor for MockTransactors {
+	fn relay() -> Self {
+		MockTransactors::Relay
+	}
+}
+
+impl xcm_primitives::AssetHubTransactor for MockTransactors {
+	fn asset_hub() -> Self {
+		MockTransactors::AssetHub
 	}
 }
 

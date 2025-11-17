@@ -21,15 +21,8 @@ use crate::{
 	pallet::Config,
 	ChainIndicesMap, RelayIndices,
 };
-use frame_support::{
-	pallet_prelude::*,
-	traits::{OnRuntimeUpgrade, StorageVersion},
-	weights::Weight,
-};
+use frame_support::{pallet_prelude::*, traits::OnRuntimeUpgrade, weights::Weight};
 use sp_std::marker::PhantomData;
-
-/// The current storage version
-pub const STORAGE_VERSION: StorageVersion = StorageVersion::new(1);
 
 /// Migration from RelayIndices (single StorageValue) to ChainIndicesMap (StorageMap)
 ///

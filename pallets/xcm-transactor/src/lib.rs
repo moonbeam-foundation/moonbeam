@@ -485,10 +485,25 @@ pub mod pallet {
 		pub _phantom: PhantomData<T>,
 	}
 
-	impl<T: Config> Default for GenesisConfig<T> {
+	impl<T: Config> Default for GenesisConfig<T>
+	where
+		T::Transactor: xcm_primitives::RelayChainTransactor + xcm_primitives::AssetHubTransactor,
+	{
 		fn default() -> Self {
+			use crate::chain_indices::{AssetHubIndices, ChainIndices, RelayChainIndices};
+			use xcm_primitives::{AssetHubTransactor, RelayChainTransactor};
+
 			Self {
-				chain_indices_map: Vec::new(),
+				chain_indices_map: vec![
+					(
+						T::Transactor::relay(),
+						ChainIndices::Relay(RelayChainIndices::default()),
+					),
+					(
+						T::Transactor::asset_hub(),
+						ChainIndices::AssetHub(AssetHubIndices::default()),
+					),
+				],
 				_phantom: Default::default(),
 			}
 		}

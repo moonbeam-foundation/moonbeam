@@ -289,6 +289,12 @@ impl xcm_primitives::AssetHubTransactor for MockTransactors {
 	}
 }
 
+impl xcm_primitives::RelayChainTransactor for MockTransactors {
+	fn relay() -> Self {
+		MockTransactors::Relay
+	}
+}
+
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
 	fn deposit_asset(_what: &Asset, _who: &Location, _context: Option<&XcmContext>) -> XcmResult {
