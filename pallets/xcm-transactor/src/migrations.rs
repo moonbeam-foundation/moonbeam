@@ -16,17 +16,24 @@
 
 //! A module that is responsible for migration of storage.
 
-use crate::{relay_indices::RelayChainIndices, Config, RelayIndices};
+use crate::{Config, RelayIndices};
 use cumulus_primitives_core::Weight;
 use frame_support::traits::{Get, OnRuntimeUpgrade};
 use sp_std::marker::PhantomData;
 
 /// Migrates the pallet storage to v1.
-pub struct UpdateRelayChainIndices<T, RelayChainIndices>(PhantomData<(T, RelayChainIndices)>);
+pub struct UpdateRelayChainIndices<T>(PhantomData<T>);
 
-impl<T: Config, R: Get<RelayChainIndices>> OnRuntimeUpgrade for UpdateRelayChainIndices<T, R> {
+impl<T: Config> OnRuntimeUpgrade for UpdateRelayChainIndices<T> {
 	fn on_runtime_upgrade() -> Weight {
-		RelayIndices::<T>::set(R::get());
+		let mut indices = RelayIndices::<T>::get();
+
+		// https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-kusama/src/lib.rs#L1628
+		indices.staking = 89;
+		// https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-kusama/src/lib.rs#L1596
+		indices.utility = 40;
+
+		RelayIndices::<T>::set(indices);
 
 		T::DbWeight::get().reads_writes(1, 1)
 	}

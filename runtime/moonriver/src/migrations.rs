@@ -16,22 +16,15 @@
 
 //! # Moonriver specific Migrations
 
-use crate::xcm_config::AssetType;
-use moonbeam_core_primitives::AssetId;
-use sp_core::parameter_types;
-
-parameter_types! {
-	pub RelayAssetId: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
-}
-
-type MoonriverMigrations = ();
+type MoonriverMigrations<Runtime> =
+	(pallet_xcm_transactor::migrations::UpdateRelayChainIndices<Runtime>,);
 
 /// List of single block migrations to be executed by frame executive.
 pub type SingleBlockMigrations<Runtime> = (
 	// Common migrations applied on all Moonbeam runtime
 	moonbeam_runtime_common::migrations::SingleBlockMigrations<Runtime>,
 	// Moonriver specific migrations
-	MoonriverMigrations,
+	MoonriverMigrations<Runtime>,
 );
 
 /// List of multi block migrations to be executed by the pallet_migrations.
