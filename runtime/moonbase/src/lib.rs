@@ -1447,7 +1447,7 @@ construct_runtime! {
 		// Previously 30: XTokens
 		// Previously 31: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>}
 		// [Removed] Migrations: pallet_migrations::{Pallet, Storage, Config<T>, Event<T>} = 32,
-		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 33,
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		// Previously 35: BaseFee
 		// Previously 36: pallet_assets::<Instance1>

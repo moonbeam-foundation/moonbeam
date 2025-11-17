@@ -22,7 +22,7 @@ use crate::{
 	InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
 	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
 	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
+	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, HOURS,
 };
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
@@ -180,10 +180,6 @@ pub fn testnet_genesis(
 		},
 		moonbeam_orbiters: MoonbeamOrbitersConfig {
 			min_orbiter_deposit: One::one(),
-		},
-		xcm_transactor: XcmTransactorConfig {
-			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
-			..Default::default()
 		},
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_accounts: vec![
