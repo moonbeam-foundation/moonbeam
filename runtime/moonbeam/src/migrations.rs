@@ -18,39 +18,13 @@
 
 use crate::xcm_config::AssetType;
 use moonbeam_core_primitives::AssetId;
-use pallet_xcm_transactor::migrations::UpdateRelayChainIndices;
-use pallet_xcm_transactor::relay_indices;
 use sp_core::parameter_types;
 
 parameter_types! {
 	pub RelayAssetId: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
-	pub RelayChainIndices: relay_indices::RelayChainIndices = relay_indices::RelayChainIndices {
-		// Pallet indices
-		staking: 89,
-		utility: 40,
-		hrmp: 60,
-		// Staking indices
-		bond: 0,
-		bond_extra: 1,
-		unbond: 2,
-		withdraw_unbonded: 3,
-		validate: 4,
-		nominate: 5,
-		chill: 6,
-		set_payee: 7,
-		set_controller: 8,
-		rebond: 19,
-		// Utility indices
-		as_derivative: 1,
-		// Hrmp indices
-		init_open_channel: 0,
-		accept_open_channel: 1,
-		close_channel: 2,
-		cancel_open_request: 6,
-	};
 }
 
-type MoonbeamMigrations = (UpdateRelayChainIndices<crate::Runtime, RelayChainIndices>,);
+type MoonbeamMigrations = ();
 
 /// List of single block migrations to be executed by frame executive.
 pub type SingleBlockMigrations<Runtime> = (
