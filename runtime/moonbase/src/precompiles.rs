@@ -60,7 +60,7 @@ use precompile_utils::precompile_set::*;
 parameter_types! {
 	pub P256VerifyWeight: frame_support::weights::Weight =
 		moonbase_weights::pallet_precompile_benchmarks::WeightInfo::<Runtime>::p256_verify();
-	pub AssetHubTransactor: crate::xcm_config::Transactors = crate::xcm_config::Transactors::Relay;
+	pub AssetHubTransactor: crate::xcm_config::Transactors = crate::xcm_config::Transactors::AssetHub;
 }
 
 /// ERC20 metadata for the native token.

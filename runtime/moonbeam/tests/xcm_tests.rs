@@ -1607,7 +1607,8 @@ fn transact_through_sovereign() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
+	let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
+		parachain::MockTransactors::Relay,
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 	);
 
@@ -1705,7 +1706,8 @@ fn transact_through_sovereign_fee_payer_none() {
 	encoded.append(&mut call_bytes);
 
 	// The final call will be an AsDerivative using index 0
-	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
+	let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
+		parachain::MockTransactors::Relay,
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 	);
 
@@ -1872,7 +1874,8 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
+	let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
+		parachain::MockTransactors::Relay,
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 	);
 
@@ -2034,7 +2037,8 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
+	let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
+		parachain::MockTransactors::Relay,
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 	);
 

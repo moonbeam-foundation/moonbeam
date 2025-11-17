@@ -306,20 +306,13 @@ impl XcmTransact for Transactors {
 			Transactors::Relay => Location::parent(),
 		}
 	}
-}
 
-impl UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			Transactors::Relay => match call {
-				UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
-		}
+	fn utility_pallet_index(&self) -> u8 {
+		RelayIndices::<Test>::get().utility
+	}
+
+	fn staking_pallet_index(&self) -> u8 {
+		RelayIndices::<Test>::get().staking
 	}
 }
 

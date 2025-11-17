@@ -23,6 +23,7 @@ use frame_support::traits::{
 };
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
+use pallet_xcm_transactor::RelayIndices;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
@@ -339,20 +340,13 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 			MockTransactors::Relay => Location::parent(),
 		}
 	}
-}
 
-impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
-		}
+	fn utility_pallet_index(&self) -> u8 {
+		RelayIndices::<Runtime>::get().utility
+	}
+
+	fn staking_pallet_index(&self) -> u8 {
+		RelayIndices::<Runtime>::get().staking
 	}
 }
 
