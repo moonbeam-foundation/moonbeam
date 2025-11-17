@@ -21,13 +21,14 @@
 extern crate alloc;
 
 use crate::{
-	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, Balances,
-	BalancesConfig, BridgePolkadotGrandpaConfig, BridgePolkadotMessagesConfig,
+	currency::MOVR, xcm_config::Transactors, AccountId, AuthorFilterConfig, AuthorMappingConfig,
+	Balance, Balances, BalancesConfig, BridgePolkadotGrandpaConfig, BridgePolkadotMessagesConfig,
 	BridgePolkadotParachainsConfig, BridgeXcmOverMoonbeamConfig, EVMConfig, EligibilityValue,
 	EthereumChainIdConfig, EthereumConfig, EvmForeignAssetsConfig, InflationInfo,
 	MaintenanceModeConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
 	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmWeightTraderConfig, HOURS,
+	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig,
+	XcmWeightTraderConfig, HOURS,
 };
 use alloc::{vec, vec::Vec};
 use bp_messages::MessagesOperatingMode;
@@ -245,6 +246,23 @@ pub fn testnet_genesis(
 				Some(Default::default()),
 			)],
 			_phantom: Default::default(),
+		},
+		xcm_transactor: XcmTransactorConfig {
+			chain_indices_map: vec![
+				(
+					Transactors::Relay,
+					pallet_xcm_transactor::chain_indices::ChainIndices::Relay(
+						moonbeam_relay_encoder::kusama::KUSAMA_RELAY_INDICES,
+					),
+				),
+				(
+					Transactors::AssetHub,
+					pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+						moonbeam_assethub_encoder::kusama::KUSAMA_ASSETHUB_INDICES,
+					),
+				),
+			],
+			..Default::default()
 		},
 	};
 
