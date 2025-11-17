@@ -23,6 +23,7 @@ use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
 use sp_std::vec::Vec;
+use xcm_primitives::XcmTransact;
 
 #[derive(Encode, Decode)]
 pub enum RelayCall {
@@ -87,7 +88,10 @@ pub enum HrmpCall {
 pub struct KusamaEncoder;
 
 impl xcm_primitives::UtilityEncodeCall for KusamaEncoder {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+	fn encode_call<Transactor: XcmTransact>(
+		_transactor: Transactor,
+		call: xcm_primitives::UtilityAvailableCalls,
+	) -> Vec<u8> {
 		match call {
 			xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
 				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
@@ -123,7 +127,10 @@ impl xcm_primitives::HrmpEncodeCall for KusamaEncoder {
 }
 
 impl xcm_primitives::StakeEncodeCall for KusamaEncoder {
-	fn encode_call(call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
+	fn encode_call<Transactor: XcmTransact>(
+		_transactor: Transactor,
+		call: xcm_primitives::AvailableStakeCalls,
+	) -> Vec<u8> {
 		match call {
 			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
 				RelayCall::Stake(StakeCall::Bond(b, c)).encode()

@@ -26,7 +26,7 @@ use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_std::prelude::*;
 use xcm_primitives::{
 	AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, StakeEncodeCall,
-	UtilityAvailableCalls, UtilityEncodeCall,
+	UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
 };
 
 pub use crate::pallet::*;
@@ -34,20 +34,25 @@ pub use crate::pallet::*;
 pub use crate::weights::WeightInfo;
 
 impl<T: Config> UtilityEncodeCall for Pallet<T> {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
+	fn encode_call<Transactor: XcmTransact>(
+		transactor: Transactor,
+		call: UtilityAvailableCalls,
+	) -> Vec<u8> {
+		let mut encoded_call: Vec<u8> = Vec::new();
+		// pallet index
+		encoded_call.push(transactor.utility_pallet_index());
+
 		match call {
 			UtilityAvailableCalls::AsDerivative(a, b) => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(RelayIndices::<T>::get().utility);
 				// call index
 				encoded_call.push(RelayIndices::<T>::get().as_derivative);
 				// encoded argument
 				encoded_call.append(&mut a.encode());
 				encoded_call.append(&mut b.clone());
-				encoded_call
 			}
 		}
+
+		encoded_call
 	}
 }
 
@@ -111,20 +116,23 @@ fn encode_compact_arg<T: parity_scale_codec::HasCompact>(input: T) -> Vec<u8> {
 }
 
 impl<T: Config> StakeEncodeCall for Pallet<T> {
-	fn encode_call(call: AvailableStakeCalls) -> Vec<u8> {
+	fn encode_call<Transactor: XcmTransact>(
+		transactor: Transactor,
+		call: AvailableStakeCalls,
+	) -> Vec<u8> {
+		let mut encoded_call: Vec<u8> = Vec::new();
+		// pallet index
+		encoded_call.push(transactor.staking_pallet_index());
+
 		match call {
 			AvailableStakeCalls::Bond(b, c) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(RelayIndices::<T>::get().staking);
 				// call index
 				encoded_call.push(RelayIndices::<T>::get().bond);
 				// encoded arguments
 				encoded_call.append(&mut encode_compact_arg(b));
 				encoded_call.append(&mut c.encode());
-				encoded_call
 			}
-
 			AvailableStakeCalls::BondExtra(a) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
@@ -133,9 +141,7 @@ impl<T: Config> StakeEncodeCall for Pallet<T> {
 				encoded_call.push(RelayIndices::<T>::get().bond_extra);
 				// encoded argument
 				encoded_call.append(&mut encode_compact_arg(a));
-				encoded_call
 			}
-
 			AvailableStakeCalls::Unbond(a) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
@@ -144,9 +150,7 @@ impl<T: Config> StakeEncodeCall for Pallet<T> {
 				encoded_call.push(RelayIndices::<T>::get().unbond);
 				// encoded argument
 				encoded_call.append(&mut encode_compact_arg(a));
-				encoded_call
 			}
-
 			AvailableStakeCalls::WithdrawUnbonded(a) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
@@ -155,9 +159,7 @@ impl<T: Config> StakeEncodeCall for Pallet<T> {
 				encoded_call.push(RelayIndices::<T>::get().withdraw_unbonded);
 				// encoded argument
 				encoded_call.append(&mut a.encode());
-				encoded_call
 			}
-
 			AvailableStakeCalls::Validate(a) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
@@ -166,18 +168,14 @@ impl<T: Config> StakeEncodeCall for Pallet<T> {
 				encoded_call.push(RelayIndices::<T>::get().validate);
 				// encoded argument
 				encoded_call.append(&mut a.encode());
-				encoded_call
 			}
-
 			AvailableStakeCalls::Chill => {
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
 				encoded_call.push(RelayIndices::<T>::get().staking);
 				// call index
 				encoded_call.push(RelayIndices::<T>::get().chill);
-				encoded_call
 			}
-
 			AvailableStakeCalls::SetPayee(a) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
@@ -186,18 +184,14 @@ impl<T: Config> StakeEncodeCall for Pallet<T> {
 				encoded_call.push(RelayIndices::<T>::get().set_payee);
 				// encoded argument
 				encoded_call.append(&mut a.encode());
-				encoded_call
 			}
-
 			AvailableStakeCalls::SetController => {
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
 				encoded_call.push(RelayIndices::<T>::get().staking);
 				// call index
 				encoded_call.push(RelayIndices::<T>::get().set_controller);
-				encoded_call
 			}
-
 			AvailableStakeCalls::Rebond(a) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
@@ -206,9 +200,7 @@ impl<T: Config> StakeEncodeCall for Pallet<T> {
 				encoded_call.push(RelayIndices::<T>::get().rebond);
 				// encoded argument
 				encoded_call.append(&mut encode_compact_arg(a));
-				encoded_call
 			}
-
 			AvailableStakeCalls::Nominate(a) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
@@ -219,8 +211,9 @@ impl<T: Config> StakeEncodeCall for Pallet<T> {
 					<AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source,
 				> = a.iter().map(|add| (*add).clone().into()).collect();
 				encoded_call.append(&mut nominated.encode());
-				encoded_call
 			}
 		}
+
+		encoded_call
 	}
 }
