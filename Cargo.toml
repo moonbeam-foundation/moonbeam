@@ -42,7 +42,6 @@ members = [
     "runtime/moonbase",
     "runtime/moonbeam",
     "runtime/moonriver",
-    "runtime/relay-encoder",
     "runtime/summarize-precompile-checks",
 ]
 resolver = "2"
@@ -71,7 +70,6 @@ moonbeam-rpc-primitives-txpool = { path = "primitives/rpc/txpool", default-featu
 storage-proof-primitives = { path = "primitives/storage-proof", default-features = false }
 
 moonbeam-evm-tracer = { path = "runtime/evm_tracer", default-features = false }
-moonbeam-relay-encoder = { path = "runtime/relay-encoder", default-features = false }
 moonbeam-runtime-common = { path = "runtime/common", default-features = false }
 
 pallet-asset-manager = { path = "pallets/asset-manager", default-features = false }
