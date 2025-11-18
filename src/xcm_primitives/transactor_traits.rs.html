@@ -86,7 +86,17 @@
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -131,7 +141,10 @@
 // the as_derivative extrinsic, and thus, this call can only be dispatched from the
 // derivative account
 </span><span class="kw">pub trait </span>UtilityEncodeCall {
-	<span class="kw">fn </span>encode_call(<span class="self">self</span>, call: UtilityAvailableCalls) -&gt; Vec&lt;u8&gt;;
+	<span class="kw">fn </span>encode_call&lt;Transactor: XcmTransact&gt;(
+		transactor: Transactor,
+		call: UtilityAvailableCalls,
+	) -&gt; Vec&lt;u8&gt;;
 }
 
 <span class="comment">// Trait that the ensures we can encode a call with hrmp functions.
@@ -149,9 +162,13 @@
 
 <span class="comment">// Trait to ensure we can retrieve the destination if a given type
 // It must implement UtilityEncodeCall
-</span><span class="kw">pub trait </span>XcmTransact: UtilityEncodeCall {
+</span><span class="kw">pub trait </span>XcmTransact {
 	<span class="doccomment">/// Encode call from the relay.
 	</span><span class="kw">fn </span>destination(<span class="self">self</span>) -&gt; Location;
+
+	<span class="kw">fn </span>utility_pallet_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8;
+
+	<span class="kw">fn </span>staking_pallet_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8;
 }
 
 <span class="kw">pub enum </span>AvailableStakeCalls {
@@ -172,6 +189,9 @@
 
 <span class="kw">pub trait </span>StakeEncodeCall {
 	<span class="doccomment">/// Encode call from the relay.
-	</span><span class="kw">fn </span>encode_call(call: AvailableStakeCalls) -&gt; Vec&lt;u8&gt;;
+	</span><span class="kw">fn </span>encode_call&lt;Transactor: XcmTransact&gt;(
+		transactor: Transactor,
+		call: AvailableStakeCalls,
+	) -&gt; Vec&lt;u8&gt;;
 }
 </code></pre></div></section></main></body></html>

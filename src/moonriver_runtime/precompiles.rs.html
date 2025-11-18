@@ -313,7 +313,8 @@
 <a href="#312" id="312">312</a>
 <a href="#313" id="313">313</a>
 <a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -377,6 +378,7 @@
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub </span>P256VerifyWeight: frame_support::weights::Weight =
 		moonriver_weights::pallet_precompile_benchmarks::WeightInfo::&lt;Runtime&gt;::p256_verify();
+	<span class="kw">pub </span>AssetHubTransactor: <span class="kw">crate</span>::xcm_config::Transactors = <span class="kw">crate</span>::xcm_config::Transactors::AssetHub;
 }
 
 <span class="kw">pub struct </span>NativeErc20Metadata;
@@ -486,7 +488,7 @@
 	&gt;,
 	PrecompileAt&lt;
 		AddressU64&lt;<span class="number">2053</span>&gt;,
-		RelayEncoderPrecompile&lt;R&gt;,
+		RelayEncoderPrecompile&lt;R, AssetHubTransactor&gt;,
 		(CallableByContract, CallableByPrecompile),
 	&gt;,
 	PrecompileAt&lt;

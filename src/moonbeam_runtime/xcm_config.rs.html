@@ -861,7 +861,12 @@
 <a href="#860" id="860">860</a>
 <a href="#861" id="861">861</a>
 <a href="#862" id="862">862</a>
-<a href="#863" id="863">863</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -927,8 +932,7 @@
 <span class="kw">use </span>pallet_xcm::EnsureXcm;
 <span class="kw">use </span>xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation,
-	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
-	UtilityEncodeCall, XcmTransact,
+	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, XcmTransact,
 };
 
 <span class="kw">use </span><span class="kw">crate</span>::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
@@ -1505,6 +1509,7 @@
 )]
 </span><span class="kw">pub enum </span>Transactors {
 	Relay,
+	AssetHub,
 }
 
 <span class="comment">// Default for benchmarking
@@ -1520,18 +1525,8 @@
 	<span class="kw">fn </span>try_from(value: u8) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
 		<span class="kw">match </span>value {
 			<span class="number">0u8 </span>=&gt; <span class="prelude-val">Ok</span>(Transactors::Relay),
+			<span class="number">1u8 </span>=&gt; <span class="prelude-val">Ok</span>(Transactors::AssetHub),
 			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(()),
-		}
-	}
-}
-
-<span class="kw">impl </span>UtilityEncodeCall <span class="kw">for </span>Transactors {
-	<span class="kw">fn </span>encode_call(<span class="self">self</span>, call: UtilityAvailableCalls) -&gt; Vec&lt;u8&gt; {
-		<span class="kw">match </span><span class="self">self </span>{
-			Transactors::Relay =&gt; pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
-				pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::&lt;Runtime&gt;),
-				call,
-			),
 		}
 	}
 }
@@ -1539,7 +1534,22 @@
 <span class="kw">impl </span>XcmTransact <span class="kw">for </span>Transactors {
 	<span class="kw">fn </span>destination(<span class="self">self</span>) -&gt; Location {
 		<span class="kw">match </span><span class="self">self </span>{
-			Transactors::Relay =&gt; Location::parent(),
+			Transactors::Relay =&gt; RelayLocation::get(),
+			Transactors::AssetHub =&gt; AssetHubLocation::get(),
+		}
+	}
+
+	<span class="kw">fn </span>utility_pallet_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+		<span class="kw">match </span><span class="self">self </span>{
+			Transactors::Relay =&gt; pallet_xcm_transactor::RelayIndices::&lt;Runtime&gt;::get().utility,
+			Transactors::AssetHub =&gt; pallet_xcm_transactor::ASSET_HUB_UTILITY_PALLET_INDEX,
+		}
+	}
+
+	<span class="kw">fn </span>staking_pallet_index(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
+		<span class="kw">match </span><span class="self">self </span>{
+			Transactors::Relay =&gt; pallet_xcm_transactor::RelayIndices::&lt;Runtime&gt;::get().staking,
+			Transactors::AssetHub =&gt; pallet_xcm_transactor::ASSET_HUB_STAKING_PALLET_INDEX,
 		}
 	}
 }

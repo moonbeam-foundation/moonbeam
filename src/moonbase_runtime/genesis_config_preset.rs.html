@@ -283,7 +283,30 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -315,6 +338,7 @@
 <span class="kw">use </span>frame_support::PalletId;
 <span class="kw">use </span>nimbus_primitives::NimbusId;
 <span class="kw">use </span>pallet_transaction_payment::Multiplier;
+<span class="kw">use </span>pallet_xcm_transactor::relay_indices::RelayChainIndices;
 <span class="kw">use </span>sp_genesis_builder::PresetId;
 <span class="kw">use </span>sp_keyring::Sr25519Keyring;
 <span class="kw">use </span>sp_runtime::{traits::One, Perbill, Percent};
@@ -324,6 +348,28 @@
 <span class="kw">const </span>BLOCKS_PER_ROUND: u32 = <span class="number">2 </span>* HOURS;
 <span class="kw">const </span>BLOCKS_PER_YEAR: u32 = <span class="number">31_557_600 </span>/ <span class="number">6</span>;
 <span class="kw">const </span>NUM_SELECTED_CANDIDATES: u32 = <span class="number">8</span>;
+
+<span class="doccomment">/// Westend pallet and extrinsic indices
+</span><span class="kw">pub const </span>WESTEND_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
+	staking: <span class="number">6u8</span>,
+	utility: <span class="number">16u8</span>,
+	hrmp: <span class="number">51u8</span>,
+	bond: <span class="number">0u8</span>,
+	bond_extra: <span class="number">1u8</span>,
+	unbond: <span class="number">2u8</span>,
+	withdraw_unbonded: <span class="number">3u8</span>,
+	validate: <span class="number">4u8</span>,
+	nominate: <span class="number">5u8</span>,
+	chill: <span class="number">6u8</span>,
+	set_payee: <span class="number">7u8</span>,
+	set_controller: <span class="number">8u8</span>,
+	rebond: <span class="number">19u8</span>,
+	as_derivative: <span class="number">1u8</span>,
+	init_open_channel: <span class="number">0u8</span>,
+	accept_open_channel: <span class="number">1u8</span>,
+	close_channel: <span class="number">2u8</span>,
+	cancel_open_request: <span class="number">6u8</span>,
+};
 
 <span class="kw">pub fn </span>moonbase_inflation_config() -&gt; InflationInfo&lt;Balance&gt; {
 	<span class="kw">fn </span>to_round_inflation(annual: Range&lt;Perbill&gt;) -&gt; Range&lt;Perbill&gt; {
@@ -467,7 +513,7 @@
 			min_orbiter_deposit: One::one(),
 		},
 		xcm_transactor: XcmTransactorConfig {
-			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
+			relay_indices: WESTEND_RELAY_INDICES,
 			..Default::default()
 		},
 		crowdloan_rewards: CrowdloanRewardsConfig {

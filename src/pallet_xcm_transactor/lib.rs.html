@@ -1356,7 +1356,20 @@
 <a href="#1355" id="1355">1355</a>
 <a href="#1356" id="1356">1356</a>
 <a href="#1357" id="1357">1357</a>
-<a href="#1358" id="1358">1358</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#1358" id="1358">1358</a>
+<a href="#1359" id="1359">1359</a>
+<a href="#1360" id="1360">1360</a>
+<a href="#1361" id="1361">1361</a>
+<a href="#1362" id="1362">1362</a>
+<a href="#1363" id="1363">1363</a>
+<a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
+<a href="#1366" id="1366">1366</a>
+<a href="#1367" id="1367">1367</a>
+<a href="#1368" id="1368">1368</a>
+<a href="#1369" id="1369">1369</a>
+<a href="#1370" id="1370">1370</a>
+<a href="#1371" id="1371">1371</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -1444,6 +1457,18 @@
 <span class="kw">pub use </span><span class="kw">crate</span>::weights::WeightInfo;
 
 <span class="kw">type </span>CurrencyIdOf&lt;T&gt; = &lt;T <span class="kw">as </span>Config&gt;::CurrencyId;
+
+<span class="doccomment">/// TODO: Temporary (Will be removed when we have a proper way of getting pallet indices)
+/// Same index on both Polkadot and Kusama Asset Hub
+/// Kusama: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-kusama/src/lib.rs#L1596
+/// Polkadot: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-polkadot/src/lib.rs#L1400
+</span><span class="kw">pub const </span>ASSET_HUB_UTILITY_PALLET_INDEX: u8 = <span class="number">40</span>;
+
+<span class="doccomment">/// TODO: Temporary (Will be removed when we have a proper way of getting pallet indices)
+/// Same index on both Polkadot and Kusama Asset Hub
+/// Kusama: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-kusama/src/lib.rs#L1628
+/// Polkadot: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-polkadot/src/lib.rs#L1434
+</span><span class="kw">pub const </span>ASSET_HUB_STAKING_PALLET_INDEX: u8 = <span class="number">89</span>;
 
 <span class="attr">#[pallet]
 </span><span class="kw">pub mod </span>pallet {
@@ -1921,9 +1946,10 @@
 
 			<span class="comment">// Encode call bytes
 			// We make sure the inner call is wrapped on a as_derivative dispatchable
-			</span><span class="kw">let </span>call_bytes: Vec&lt;u8&gt; = dest
-				.clone()
-				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
+			</span><span class="kw">let </span>call_bytes: Vec&lt;u8&gt; = &lt;<span class="self">Self </span><span class="kw">as </span>UtilityEncodeCall&gt;::encode_call(
+				dest.clone(),
+				UtilityAvailableCalls::AsDerivative(index, inner_call),
+			);
 
 			<span class="comment">// Grab the destination
 			</span><span class="kw">let </span>dest = dest.destination();

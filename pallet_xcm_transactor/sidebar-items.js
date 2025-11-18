@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["encode","migrations","pallet","relay_indices","weights"]};
+window.SIDEBAR_ITEMS = {"constant":["ASSET_HUB_STAKING_PALLET_INDEX","ASSET_HUB_UTILITY_PALLET_INDEX"],"mod":["encode","migrations","pallet","relay_indices","weights"]};

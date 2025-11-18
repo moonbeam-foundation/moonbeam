@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["POLKADOT_RELAY_INDICES"],"enum":["HrmpCall","RelayCall","StakeCall","UtilityCall"],"struct":["PolkadotEncoder"]};

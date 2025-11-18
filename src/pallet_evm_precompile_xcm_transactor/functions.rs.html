@@ -1292,7 +1292,7 @@
 			.try_into()
 			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">"Non-existent transactor"</span>).in_field(<span class="string">"transactor"</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>encoded = UtilityEncodeCall::encode_call(
+		<span class="kw">let </span>encoded = &lt;pallet_xcm_transactor::Pallet&lt;Runtime&gt; <span class="kw">as </span>UtilityEncodeCall&gt;::encode_call(
 			transactor,
 			UtilityAvailableCalls::AsDerivative(index, inner_call.into()),
 		)

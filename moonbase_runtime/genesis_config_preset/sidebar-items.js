@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["development","get_preset","moonbase_inflation_config","preset_names","testnet_genesis"]};
+window.SIDEBAR_ITEMS = {"constant":["WESTEND_RELAY_INDICES"],"fn":["development","get_preset","moonbase_inflation_config","preset_names","testnet_genesis"]};

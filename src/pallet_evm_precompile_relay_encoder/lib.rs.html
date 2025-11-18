@@ -470,7 +470,21 @@
 <a href="#469" id="469">469</a>
 <a href="#470" id="470">470</a>
 <a href="#471" id="471">471</a>
-<a href="#472" id="472">472</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -519,13 +533,16 @@
 <span class="kw">type </span>GetRewardDestinationSizeLimit = ConstU32&lt;REWARD_DESTINATION_SIZE_LIMIT&gt;;
 
 <span class="doccomment">/// A precompile to provide relay stake calls encoding through evm
-</span><span class="kw">pub struct </span>RelayEncoderPrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
+</span><span class="kw">pub struct </span>RelayEncoderPrecompile&lt;Runtime, StakingTransactor&gt;(
+	PhantomData&lt;(Runtime, StakingTransactor)&gt;,
+);
 
 <span class="attr">#[precompile_utils::precompile]
-</span><span class="kw">impl</span>&lt;Runtime&gt; RelayEncoderPrecompile&lt;Runtime&gt;
+</span><span class="kw">impl</span>&lt;Runtime, StakingTransactor&gt; RelayEncoderPrecompile&lt;Runtime, StakingTransactor&gt;
 <span class="kw">where
 	</span>Runtime: pallet_evm::Config + pallet_xcm_transactor::Config,
 	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	StakingTransactor: sp_core::Get&lt;&lt;Runtime <span class="kw">as </span>pallet_xcm_transactor::Config&gt;::Transactor&gt;,
 {
 	<span class="attr">#[precompile::public(<span class="string">"encodeBond(uint256,bytes)"</span>)]
 	#[precompile::public(<span class="string">"encode_bond(uint256,bytes)"</span>)]
@@ -543,6 +560,7 @@
 		<span class="kw">let </span>reward_destination = reward_destination.into();
 
 		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::Bond(relay_amount, reward_destination),
 		)
 		.as_slice()
@@ -564,6 +582,7 @@
 
 		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
 		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::BondExtra(relay_amount),
 		)
 		.as_slice()
@@ -586,6 +605,7 @@
 		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::Unbond(relay_amount),
 		)
 		.as_slice()
@@ -606,6 +626,7 @@
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::WithdrawUnbonded(slashes),
 		)
 		.as_slice()
@@ -628,6 +649,7 @@
 
 		<span class="kw">let </span>fraction = Perbill::from_parts(commission.converted());
 		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::Validate(pallet_staking::ValidatorPrefs {
 				commission: fraction,
 				blocked: blocked,
@@ -659,6 +681,7 @@
 			})
 			.collect();
 		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::Nominate(nominated),
 		)
 		.as_slice()
@@ -675,10 +698,12 @@
 		// To prevent spam, we charge an arbitrary amount of gas
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>encoded =
-			pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(AvailableStakeCalls::Chill)
-				.as_slice()
-				.into();
+		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			StakingTransactor::get(),
+			AvailableStakeCalls::Chill,
+		)
+		.as_slice()
+		.into();
 
 		<span class="prelude-val">Ok</span>(encoded)
 	}
@@ -697,6 +722,7 @@
 		<span class="kw">let </span>reward_destination = reward_destination.into();
 
 		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::SetPayee(reward_destination),
 		)
 		.as_slice()
@@ -714,6 +740,7 @@
 		</span>handle.record_cost(<span class="number">1000</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::SetController,
 		)
 		.as_slice()
@@ -735,6 +762,7 @@
 
 		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
 		<span class="kw">let </span>encoded = pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::Rebond(relay_amount),
 		)
 		.as_slice()
