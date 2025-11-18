@@ -217,7 +217,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("moonriver"),
 	impl_name: Cow::Borrowed("moonriver"),
 	authoring_version: 3,
-	spec_version: 4000,
+	spec_version: 4001,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
