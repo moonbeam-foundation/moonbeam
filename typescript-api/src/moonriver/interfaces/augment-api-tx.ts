@@ -4796,7 +4796,7 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       transactThroughDerivative: AugmentedSubmittable<
         (
-          dest: MoonriverRuntimeXcmConfigTransactors | "Relay" | number | Uint8Array,
+          dest: MoonriverRuntimeXcmConfigTransactors | "Relay" | "AssetHub" | number | Uint8Array,
           index: u16 | AnyNumber | Uint8Array,
           fee:
             | PalletXcmTransactorCurrencyPayment

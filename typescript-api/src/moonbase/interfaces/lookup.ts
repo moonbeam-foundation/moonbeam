@@ -4186,7 +4186,7 @@ export default {
    * Lookup353: moonbase_runtime::xcm_config::Transactors
    **/
   MoonbaseRuntimeXcmConfigTransactors: {
-    _enum: ["Relay"]
+    _enum: ["Relay", "AssetHub"]
   },
   /**
    * Lookup354: pallet_xcm_transactor::pallet::CurrencyPayment<moonbase_runtime::xcm_config::CurrencyId>
