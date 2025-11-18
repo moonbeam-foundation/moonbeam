@@ -855,20 +855,13 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 			MockTransactors::Relay => Location::parent(),
 		}
 	}
-}
 
-impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
-		}
+	fn utility_pallet_index(&self) -> u8 {
+		XcmTransactor::relay_indices().utility
+	}
+
+	fn staking_pallet_index(&self) -> u8 {
+		XcmTransactor::relay_indices().staking
 	}
 }
 

@@ -26,6 +26,7 @@ use frame_support::{
 use pallet_evm::{
 	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
+use pallet_xcm_transactor::RelayIndices;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
@@ -268,26 +269,19 @@ impl TryFrom<u8> for MockTransactors {
 	}
 }
 
-impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
-		}
-	}
-}
-
 impl xcm_primitives::XcmTransact for MockTransactors {
 	fn destination(self) -> Location {
 		match self {
 			MockTransactors::Relay => Location::parent(),
 		}
+	}
+
+	fn utility_pallet_index(&self) -> u8 {
+		RelayIndices::<Runtime>::get().utility
+	}
+
+	fn staking_pallet_index(&self) -> u8 {
+		RelayIndices::<Runtime>::get().staking
 	}
 }
 
@@ -311,6 +305,7 @@ parameter_types! {
 		parents: 1,
 		interior: [Parachain(ParachainId::get().into())].into(),
 	};
+	pub StakingTransactor: MockTransactors = MockTransactors::Relay;
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
@@ -335,10 +330,12 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type MaxHrmpFee = ();
 }
 
-pub type Precompiles<R> =
-	PrecompileSetBuilder<R, PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R>>>;
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R, StakingTransactor>>,
+>;
 
-pub type PCall = RelayEncoderPrecompileCall<Runtime>;
+pub type PCall = RelayEncoderPrecompileCall<Runtime, StakingTransactor>;
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
 /// Block storage limit in bytes. Set to 40 KB.

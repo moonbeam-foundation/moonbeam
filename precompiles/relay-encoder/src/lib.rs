@@ -47,13 +47,16 @@ type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 type GetRewardDestinationSizeLimit = ConstU32<REWARD_DESTINATION_SIZE_LIMIT>;
 
 /// A precompile to provide relay stake calls encoding through evm
-pub struct RelayEncoderPrecompile<Runtime>(PhantomData<Runtime>);
+pub struct RelayEncoderPrecompile<Runtime, StakingTransactor>(
+	PhantomData<(Runtime, StakingTransactor)>,
+);
 
 #[precompile_utils::precompile]
-impl<Runtime> RelayEncoderPrecompile<Runtime>
+impl<Runtime, StakingTransactor> RelayEncoderPrecompile<Runtime, StakingTransactor>
 where
 	Runtime: pallet_evm::Config + pallet_xcm_transactor::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	StakingTransactor: sp_core::Get<<Runtime as pallet_xcm_transactor::Config>::Transactor>,
 {
 	#[precompile::public("encodeBond(uint256,bytes)")]
 	#[precompile::public("encode_bond(uint256,bytes)")]
@@ -71,6 +74,7 @@ where
 		let reward_destination = reward_destination.into();
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::Bond(relay_amount, reward_destination),
 		)
 		.as_slice()
@@ -92,6 +96,7 @@ where
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::BondExtra(relay_amount),
 		)
 		.as_slice()
@@ -114,6 +119,7 @@ where
 		let relay_amount = u256_to_relay_amount(amount)?;
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::Unbond(relay_amount),
 		)
 		.as_slice()
@@ -134,6 +140,7 @@ where
 		handle.record_cost(1000)?;
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::WithdrawUnbonded(slashes),
 		)
 		.as_slice()
@@ -156,6 +163,7 @@ where
 
 		let fraction = Perbill::from_parts(commission.converted());
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::Validate(pallet_staking::ValidatorPrefs {
 				commission: fraction,
 				blocked: blocked,
@@ -187,6 +195,7 @@ where
 			})
 			.collect();
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::Nominate(nominated),
 		)
 		.as_slice()
@@ -203,10 +212,12 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded =
-			pallet_xcm_transactor::Pallet::<Runtime>::encode_call(AvailableStakeCalls::Chill)
-				.as_slice()
-				.into();
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			StakingTransactor::get(),
+			AvailableStakeCalls::Chill,
+		)
+		.as_slice()
+		.into();
 
 		Ok(encoded)
 	}
@@ -225,6 +236,7 @@ where
 		let reward_destination = reward_destination.into();
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::SetPayee(reward_destination),
 		)
 		.as_slice()
@@ -242,6 +254,7 @@ where
 		handle.record_cost(1000)?;
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::SetController,
 		)
 		.as_slice()
@@ -263,6 +276,7 @@ where
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+			StakingTransactor::get(),
 			AvailableStakeCalls::Rebond(relay_amount),
 		)
 		.as_slice()

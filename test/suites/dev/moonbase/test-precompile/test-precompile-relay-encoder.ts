@@ -17,7 +17,7 @@ describeSuite({
             functionName: "encodeBond",
             args: [100, "0x02"],
           })
-        ).toBe("0x0600910102");
+        ).toBe("0x5900910102");
       },
     });
 
@@ -31,7 +31,7 @@ describeSuite({
             functionName: "encodeBondExtra",
             args: [100],
           })
-        ).to.equal("0x06019101");
+        ).to.equal("0x59019101");
       },
     });
 
@@ -45,7 +45,7 @@ describeSuite({
             functionName: "encodeUnbond",
             args: [100],
           })
-        ).to.equal("0x06029101");
+        ).to.equal("0x59029101");
       },
     });
 
@@ -59,7 +59,7 @@ describeSuite({
             functionName: "encodeChill",
             args: [],
           })
-        ).to.equal("0x0606");
+        ).to.equal("0x5906");
       },
     });
 
@@ -73,7 +73,7 @@ describeSuite({
             functionName: "encodeWithdrawUnbonded",
             args: [100],
           })
-        ).to.equal("0x060364000000");
+        ).to.equal("0x590364000000");
       },
     });
 
@@ -87,7 +87,7 @@ describeSuite({
             functionName: "encodeValidate",
             args: [100000000, false],
           })
-        ).to.equal("0x06040284d71700");
+        ).to.equal("0x59040284d71700");
       },
     });
 
@@ -102,7 +102,7 @@ describeSuite({
             args: [[ALITH_SESSION_ADDRESS, BALTATHAR_SESSION_ADDRESS]],
           })
         ).to.equal(
-          "0x06050800d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7" +
+          "0x59050800d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7" +
             "a56da27d008eaf04151687736326c9fea17e25fc5287613693c912909cb226aa" +
             "4794f26a48"
         );
@@ -119,7 +119,7 @@ describeSuite({
             functionName: "encodeSetPayee",
             args: ["0x02"],
           })
-        ).to.equal("0x060702");
+        ).to.equal("0x590702");
       },
     });
 
@@ -133,7 +133,7 @@ describeSuite({
             functionName: "encodeSetController",
             args: [],
           })
-        ).to.equal("0x0608");
+        ).to.equal("0x5908");
       },
     });
 
@@ -147,7 +147,7 @@ describeSuite({
             functionName: "encodeRebond",
             args: [100],
           })
-        ).to.equal("0x06139101");
+        ).to.equal("0x59139101");
       },
     });
   },
