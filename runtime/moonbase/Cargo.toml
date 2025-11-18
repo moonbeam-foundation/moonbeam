@@ -232,7 +232,6 @@ std = [
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
 	"pallet-author-slot-filter/std",
-	"pallet-assets/std",
 	"pallet-balances/std",
 	"pallet-collective/std",
 	"pallet-conviction-voting/std",
@@ -394,7 +393,6 @@ runtime-benchmarks = [
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"xcm-runtime-apis/runtime-benchmarks",
-	"pallet-assets/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -447,5 +445,5 @@ try-runtime = [
 	"pallet-multisig/try-runtime",
 	"pallet-async-backing/try-runtime",
 	"pallet-precompile-benchmarks/try-runtime",
-	"pallet-assets/try-runtime",
+	"parachains-common/try-runtime",
 ]
