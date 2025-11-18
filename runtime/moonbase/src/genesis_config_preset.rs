@@ -30,6 +30,7 @@ use fp_evm::GenesisAccount;
 use frame_support::PalletId;
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
+use pallet_xcm_transactor::relay_indices::RelayChainIndices;
 use sp_genesis_builder::PresetId;
 use sp_keyring::Sr25519Keyring;
 use sp_runtime::{traits::One, Perbill, Percent};
@@ -39,6 +40,28 @@ const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const BLOCKS_PER_ROUND: u32 = 2 * HOURS;
 const BLOCKS_PER_YEAR: u32 = 31_557_600 / 6;
 const NUM_SELECTED_CANDIDATES: u32 = 8;
+
+/// Westend pallet and extrinsic indices
+pub const WESTEND_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
+	staking: 6u8,
+	utility: 16u8,
+	hrmp: 51u8,
+	bond: 0u8,
+	bond_extra: 1u8,
+	unbond: 2u8,
+	withdraw_unbonded: 3u8,
+	validate: 4u8,
+	nominate: 5u8,
+	chill: 6u8,
+	set_payee: 7u8,
+	set_controller: 8u8,
+	rebond: 19u8,
+	as_derivative: 1u8,
+	init_open_channel: 0u8,
+	accept_open_channel: 1u8,
+	close_channel: 2u8,
+	cancel_open_request: 6u8,
+};
 
 pub fn moonbase_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
@@ -182,7 +205,7 @@ pub fn testnet_genesis(
 			min_orbiter_deposit: One::one(),
 		},
 		xcm_transactor: XcmTransactorConfig {
-			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
+			relay_indices: WESTEND_RELAY_INDICES,
 			..Default::default()
 		},
 		crowdloan_rewards: CrowdloanRewardsConfig {
