@@ -13,6 +13,7 @@ import {
   XcmFragment,
 } from "../../../../helpers";
 import { parseEther } from "ethers";
+import type { DispatchError } from "@polkadot/types/interfaces";
 
 describeSuite({
   id: "D024016",
@@ -23,6 +24,7 @@ describeSuite({
 
     beforeAll(async function () {
       polkadotJs = context.polkadotJs();
+      await context.createBlock();
     });
 
     for (const xcmVersion of XCM_VERSIONS) {
