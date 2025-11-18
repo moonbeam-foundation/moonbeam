@@ -1776,13 +1776,13 @@ fn transact_through_sovereign() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
-		moonriver_runtime::xcm_config::Transactors::Relay,
-		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
-	);
-
 	// Root can directly pass the execution byes to the sovereign
 	ParaA::execute_with(|| {
+		let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
+			moonriver_runtime::xcm_config::Transactors::Relay,
+			xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
+		);
+
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::from(dest)),
@@ -1874,12 +1874,6 @@ fn transact_through_sovereign_fee_payer_none() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	// The final call will be an AsDerivative using index 0
-	let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
-		moonriver_runtime::xcm_config::Transactors::Relay,
-		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
-	);
-
 	// We send the xcm transact operation to parent
 	let dest = Location {
 		parents: 1,
@@ -1888,6 +1882,12 @@ fn transact_through_sovereign_fee_payer_none() {
 
 	// Root can directly pass the execution byes to the sovereign
 	ParaA::execute_with(|| {
+		// The final call will be an AsDerivative using index 0
+		let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
+			moonriver_runtime::xcm_config::Transactors::Relay,
+			xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
+		);
+
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::from(dest)),
@@ -2043,14 +2043,14 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
-		moonriver_runtime::xcm_config::Transactors::Relay,
-		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
-	);
-
 	let total_weight = 4000003000u64;
 	// Root can directly pass the execution byes to the sovereign
 	ParaA::execute_with(|| {
+		let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
+			moonriver_runtime::xcm_config::Transactors::Relay,
+			xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
+		);
+
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::from(dest)),
@@ -2206,14 +2206,14 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
-		moonriver_runtime::xcm_config::Transactors::Relay,
-		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
-	);
-
 	let total_weight = 4000009000u64;
 	// Root can directly pass the execution byes to the sovereign
 	ParaA::execute_with(|| {
+		let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
+			moonriver_runtime::xcm_config::Transactors::Relay,
+			xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
+		);
+
 		assert_ok!(XcmTransactor::transact_through_sovereign(
 			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedLocation::from(dest)),

@@ -712,7 +712,7 @@ parameter_types! {
 impl pallet_xcm_transactor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
-	type Transactor = moonbase_runtime::xcm_config::Transactors;
+	type Transactor = MockTransactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
 	type SovereignAccountDispatcherOrigin = frame_system::EnsureRoot<AccountId>;
 	type CurrencyId = CurrencyId;
@@ -840,6 +840,29 @@ pub enum HrmpCall {
 	CloseChannel(HrmpChannelId),
 	#[codec(index = 6u8)]
 	CancelOpenRequest(HrmpChannelId, u32),
+}
+
+#[derive(
+	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+)]
+pub enum MockTransactors {
+	Relay,
+}
+
+impl xcm_primitives::XcmTransact for MockTransactors {
+	fn destination(self) -> Location {
+		match self {
+			MockTransactors::Relay => Location::parent(),
+		}
+	}
+
+	fn utility_pallet_index(&self) -> u8 {
+		XcmTransactor::relay_indices().utility
+	}
+
+	fn staking_pallet_index(&self) -> u8 {
+		XcmTransactor::relay_indices().staking
+	}
 }
 
 #[allow(dead_code)]
