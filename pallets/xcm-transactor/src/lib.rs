@@ -87,6 +87,18 @@ pub use crate::weights::WeightInfo;
 
 type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 
+/// TODO: Temporary (Will be removed when we have a proper way of getting pallet indices)
+/// Same index on both Polkadot and Kusama Asset Hub
+/// Kusama: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-kusama/src/lib.rs#L1596
+/// Polkadot: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-polkadot/src/lib.rs#L1400
+pub const ASSET_HUB_UTILITY_PALLET_INDEX: u8 = 40;
+
+/// TODO: Temporary (Will be removed when we have a proper way of getting pallet indices)
+/// Same index on both Polkadot and Kusama Asset Hub
+/// Kusama: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-kusama/src/lib.rs#L1628
+/// Polkadot: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-polkadot/src/lib.rs#L1434
+pub const ASSET_HUB_STAKING_PALLET_INDEX: u8 = 89;
+
 #[pallet]
 pub mod pallet {
 
@@ -562,9 +574,10 @@ pub mod pallet {
 
 			// Encode call bytes
 			// We make sure the inner call is wrapped on a as_derivative dispatchable
-			let call_bytes: Vec<u8> = dest
-				.clone()
-				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
+			let call_bytes: Vec<u8> = <Self as UtilityEncodeCall>::encode_call(
+				dest.clone(),
+				UtilityAvailableCalls::AsDerivative(index, inner_call),
+			);
 
 			// Grab the destination
 			let dest = dest.destination();

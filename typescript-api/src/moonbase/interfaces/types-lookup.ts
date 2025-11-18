@@ -5144,7 +5144,8 @@ declare module "@polkadot/types/lookup" {
   /** @name MoonbaseRuntimeXcmConfigTransactors (353) */
   interface MoonbaseRuntimeXcmConfigTransactors extends Enum {
     readonly isRelay: boolean;
-    readonly type: "Relay";
+    readonly isAssetHub: boolean;
+    readonly type: "Relay" | "AssetHub";
   }
 
   /** @name PalletXcmTransactorCurrencyPayment (354) */

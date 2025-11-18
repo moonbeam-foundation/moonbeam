@@ -65,8 +65,7 @@ use frame_support::traits::Disabled;
 use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation,
-	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
-	UtilityEncodeCall, XcmTransact,
+	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, XcmTransact,
 };
 
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
@@ -596,6 +595,7 @@ parameter_types! {
 )]
 pub enum Transactors {
 	Relay,
+	AssetHub,
 }
 
 // Default for benchmarking
@@ -611,18 +611,8 @@ impl TryFrom<u8> for Transactors {
 	fn try_from(value: u8) -> Result<Self, Self::Error> {
 		match value {
 			0u8 => Ok(Transactors::Relay),
+			1u8 => Ok(Transactors::AssetHub),
 			_ => Err(()),
-		}
-	}
-}
-
-impl UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			Transactors::Relay => pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-				pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
-				call,
-			),
 		}
 	}
 }
@@ -630,7 +620,22 @@ impl UtilityEncodeCall for Transactors {
 impl XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
-			Transactors::Relay => Location::parent(),
+			Transactors::Relay => RelayLocation::get(),
+			Transactors::AssetHub => AssetHubLocation::get(),
+		}
+	}
+
+	fn utility_pallet_index(&self) -> u8 {
+		match self {
+			Transactors::Relay => pallet_xcm_transactor::RelayIndices::<Runtime>::get().utility,
+			Transactors::AssetHub => pallet_xcm_transactor::ASSET_HUB_UTILITY_PALLET_INDEX,
+		}
+	}
+
+	fn staking_pallet_index(&self) -> u8 {
+		match self {
+			Transactors::Relay => pallet_xcm_transactor::RelayIndices::<Runtime>::get().staking,
+			Transactors::AssetHub => pallet_xcm_transactor::ASSET_HUB_STAKING_PALLET_INDEX,
 		}
 	}
 }
