@@ -4192,7 +4192,7 @@ export default {
    * Lookup376: moonriver_runtime::xcm_config::Transactors
    **/
   MoonriverRuntimeXcmConfigTransactors: {
-    _enum: ["Relay"]
+    _enum: ["Relay", "AssetHub"]
   },
   /**
    * Lookup377: pallet_xcm_transactor::pallet::CurrencyPayment<moonriver_runtime::xcm_config::CurrencyId>

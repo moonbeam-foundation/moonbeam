@@ -5024,7 +5024,8 @@ declare module "@polkadot/types/lookup" {
   /** @name MoonriverRuntimeXcmConfigTransactors (376) */
   interface MoonriverRuntimeXcmConfigTransactors extends Enum {
     readonly isRelay: boolean;
-    readonly type: "Relay";
+    readonly isAssetHub: boolean;
+    readonly type: "Relay" | "AssetHub";
   }
 
   /** @name PalletXcmTransactorCurrencyPayment (377) */
