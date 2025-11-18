@@ -16,7 +16,6 @@
 
 extern crate alloc;
 
-#[cfg(feature = "try-runtime")]
 use alloc::vec::Vec;
 
 use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
@@ -105,5 +104,86 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 		ensure!(new_state == expected_new_state, "State migration failed");
 
 		Ok(())
+	}
+}
+
+/// Migration to move `DelegationScheduledRequests` from a single `StorageMap` keyed by collator
+/// into a `StorageDoubleMap` keyed by (collator, delegator) and to initialize the per-collator
+/// counter `DelegationScheduledRequestsPerCollator`.
+///
+/// This assumes the on-chain data was written with the old layout where:
+/// - Storage key: ParachainStaking::DelegationScheduledRequests
+/// - Value type: BoundedVec<ScheduledRequest<..>, AddGet<MaxTop, MaxBottom>>
+pub struct MigrateDelegationScheduledRequestsToDoubleMap<T>(sp_std::marker::PhantomData<T>);
+
+impl<T: Config> OnRuntimeUpgrade for MigrateDelegationScheduledRequestsToDoubleMap<T> {
+	fn on_runtime_upgrade() -> Weight {
+		use frame_support::storage::migration::{clear_storage_prefix, storage_key_iter};
+
+		type OldScheduledRequests<T> = frame_support::BoundedVec<
+			ScheduledRequest<
+				<T as frame_system::Config>::AccountId,
+				BalanceOf<T>,
+			>,
+			AddGet<
+				<T as pallet::Config>::MaxTopDelegationsPerCandidate,
+				<T as pallet::Config>::MaxBottomDelegationsPerCandidate,
+			>,
+		>;
+
+		// Collect all existing entries under the old layout.
+		let mut entries: Vec<(
+			<T as frame_system::Config>::AccountId,
+			OldScheduledRequests<T>,
+		)> = Vec::new();
+
+		for (collator, requests) in storage_key_iter::<
+			<T as frame_system::Config>::AccountId,
+			OldScheduledRequests<T>,
+			frame_support::Blake2_128Concat,
+		>(b"ParachainStaking", b"DelegationScheduledRequests")
+		{
+			entries.push((collator, requests));
+		}
+
+		// Clear all existing keys for DelegationScheduledRequests to avoid mixing
+		// old layout entries with the new double-map layout.
+		clear_storage_prefix(
+			b"ParachainStaking",
+			b"DelegationScheduledRequests",
+			&[],
+			None,
+			None,
+		);
+
+		// Rebuild storage using the new layout and initialize the per-collator counters.
+		for (collator, old_requests) in entries.into_iter() {
+			let mut per_collator_count: u32 = 0;
+
+			for request in old_requests.into_iter() {
+				let delegator = request.delegator.clone();
+				let mut new_vec: frame_support::BoundedVec<
+					ScheduledRequest<<T as frame_system::Config>::AccountId, BalanceOf<T>>,
+					frame_support::traits::ConstU32<50>,
+				> = Default::default();
+
+				if new_vec.try_push(request).is_err() {
+					// This should not happen since we only ever push a single element.
+					continue;
+				}
+
+				DelegationScheduledRequests::<T>::insert(&collator, &delegator, new_vec);
+				per_collator_count = per_collator_count.saturating_add(1);
+			}
+
+			if per_collator_count > 0 {
+				DelegationScheduledRequestsPerCollator::<T>::insert(
+					&collator,
+					per_collator_count,
+				);
+			}
+		}
+
+		Weight::zero()
 	}
 }

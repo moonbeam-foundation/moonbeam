@@ -31,9 +31,9 @@ use crate::mock::{
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
-	AtStake, Bond, CollatorStatus, DelegationScheduledRequests, DelegatorAdded,
-	EnableMarkingOffline, Error, Event, FreezeReason, InflationDistributionInfo, Range,
-	WasInactive,
+	AtStake, Bond, CollatorStatus, DelegationScheduledRequests,
+	DelegationScheduledRequestsPerCollator, DelegatorAdded, EnableMarkingOffline, Error, Event,
+	FreezeReason, InflationDistributionInfo, Range, WasInactive,
 };
 use frame_support::traits::fungible::MutateFreeze;
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
@@ -1594,7 +1594,7 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 				1,
 				5
 			));
-			let state = ParachainStaking::delegation_scheduled_requests(&1);
+			let state = ParachainStaking::delegation_scheduled_requests(&1, &2);
 			assert_eq!(
 				state,
 				vec![ScheduledRequest {
@@ -1619,14 +1619,8 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 			));
 			assert!(ParachainStaking::candidate_info(1).is_none());
 			assert!(
-				!ParachainStaking::delegation_scheduled_requests(&1)
-					.iter()
-					.any(|x| x.delegator == 2),
-				"delegation request not removed"
-			);
-			assert!(
-				!<DelegationScheduledRequests<Test>>::contains_key(&1),
-				"the key was not removed from storage"
+				<DelegationScheduledRequests<Test>>::iter_prefix(1).next().is_none(),
+				"delegation requests were not removed for the candidate"
 			);
 		});
 }
@@ -3088,7 +3082,7 @@ fn delegator_bond_less_updates_delegator_state() {
 				1,
 				5
 			));
-			let state = ParachainStaking::delegation_scheduled_requests(&1);
+			let state = ParachainStaking::delegation_scheduled_requests(&1, &2);
 			assert_eq!(
 				state,
 				vec![ScheduledRequest {
@@ -3099,6 +3093,194 @@ fn delegator_bond_less_updates_delegator_state() {
 			);
 		});
 }
+
+#[test]
+fn can_schedule_multiple_bond_less_requests_for_same_delegation() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100), (2, 100)])
+		.with_candidates(vec![(1, 50)])
+		.with_delegations(vec![(2, 1, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				5
+			));
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				5
+			));
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				5
+			));
+
+			let requests = ParachainStaking::delegation_scheduled_requests(&1, &2);
+			assert_eq!(requests.len(), 3);
+			assert_eq!(requests[0].action, DelegationAction::Decrease(5));
+			assert_eq!(requests[1].action, DelegationAction::Decrease(5));
+			assert_eq!(requests[2].action, DelegationAction::Decrease(5));
+		});
+}
+
+#[test]
+fn execute_multiple_bond_less_requests_in_fifo_order() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 50), (2, 50)])
+		.with_candidates(vec![(1, 50)])
+		.with_delegations(vec![(2, 1, 20)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				ParachainStaking::delegator_state(2)
+					.expect("exists")
+					.total(),
+				20
+			);
+
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				5
+			));
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				7
+			));
+
+			let requests = ParachainStaking::delegation_scheduled_requests(&1, &2);
+			assert_eq!(requests.len(), 2);
+			assert_eq!(requests[0].action, DelegationAction::Decrease(5));
+			assert_eq!(requests[1].action, DelegationAction::Decrease(7));
+
+			roll_to(10);
+
+			// Execute first pending request
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				RuntimeOrigin::signed(2),
+				2,
+				1
+			));
+			let state_after_first = ParachainStaking::delegator_state(2).expect("exists");
+			assert_eq!(state_after_first.total(), 15);
+
+			let remaining_requests =
+				ParachainStaking::delegation_scheduled_requests(&1, &2);
+			assert_eq!(remaining_requests.len(), 1);
+			assert_eq!(remaining_requests[0].action, DelegationAction::Decrease(7));
+
+			// Execute second pending request
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				RuntimeOrigin::signed(2),
+				2,
+				1
+			));
+			let state_after_second = ParachainStaking::delegator_state(2).expect("exists");
+			assert_eq!(state_after_second.total(), 8);
+
+			let remaining_requests =
+				ParachainStaking::delegation_scheduled_requests(&1, &2);
+			assert_eq!(remaining_requests.len(), 0);
+		});
+}
+
+#[test]
+fn cannot_revoke_delegation_if_other_request_pending() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 25), (3, 20)])
+		.with_candidates(vec![(1, 30), (3, 20)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(2),
+				1,
+				5
+			));
+			assert_noop!(
+				ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(2), 1)
+					.map_err(|err| err.error),
+				Error::<Test>::PendingDelegationRequestAlreadyExists
+			);
+		});
+}
+
+#[test]
+fn cannot_schedule_more_than_max_bond_less_requests_per_delegation() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 200), (2, 200)])
+		.with_candidates(vec![(1, 100)])
+		.with_delegations(vec![(2, 1, 80)])
+		.build()
+		.execute_with(|| {
+			for _ in 0..50 {
+				assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+					RuntimeOrigin::signed(2),
+					1,
+					1
+				));
+			}
+			assert_noop!(
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 1)
+					.map_err(|err| err.error),
+				Error::<Test>::ExceedMaxDelegationsPerDelegator
+			);
+		});
+}
+
+	#[test]
+	fn cannot_exceed_max_delegators_with_pending_requests_per_collator() {
+		// Build a scenario with one collator and one real delegator,
+		// then artificially saturate the scheduled-requests map for that collator
+		// to the configured maximum number of delegators.
+		ExtBuilder::default()
+			.with_balances(vec![(1, 1_000), (2, 1_000)])
+			.with_candidates(vec![(1, 100)])
+			.with_delegations(vec![(2, 1, 10)])
+			.build()
+			.execute_with(|| {
+				let max_delegators_per_collator =
+					(<Test as crate::Config>::MaxTopDelegationsPerCandidate::get()
+						+ <Test as crate::Config>::MaxBottomDelegationsPerCandidate::get())
+						as u64;
+
+				// Artificially create `max_delegators_per_collator` delegators with pending
+				// requests for collator 1 by directly populating storage.
+				for i in 0..max_delegators_per_collator {
+					let fake_delegator: AccountId = 1000 + i;
+					let requests = BoundedVec::try_from(vec![ScheduledRequest {
+						delegator: fake_delegator,
+						when_executable: 1,
+						action: DelegationAction::Decrease(1),
+					}])
+					.expect("must succeed");
+					<DelegationScheduledRequests<Test>>::insert(1, fake_delegator, requests);
+				}
+
+				// Maintain the per-collator counter consistently with the synthetic setup.
+				<DelegationScheduledRequestsPerCollator<Test>>::insert(
+					1,
+					max_delegators_per_collator as u32,
+				);
+
+				// Now the collator already has the maximum number of delegators with pending
+				// requests. Scheduling a new request for delegator 2 towards collator 1
+				// should fail with `ExceedMaxDelegationsPerDelegator`.
+				assert_noop!(
+					ParachainStaking::schedule_delegator_bond_less(
+						RuntimeOrigin::signed(2),
+						1,
+						1
+					)
+					.map_err(|err| err.error),
+					Error::<Test>::ExceedMaxDelegationsPerDelegator
+				);
+			});
+	}
 
 #[test]
 fn cannot_delegator_bond_less_if_revoking() {
@@ -3321,16 +3503,18 @@ fn execute_revoke_delegation_adds_revocation_to_delegator_state() {
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
-				.iter()
-				.any(|x| x.delegator == 2));
+			assert!(
+				ParachainStaking::delegation_scheduled_requests(&1, &2).is_empty(),
+				"no scheduled requests should exist before scheduling revoke"
+			);
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				RuntimeOrigin::signed(2),
 				1
 			));
-			assert!(ParachainStaking::delegation_scheduled_requests(&1)
-				.iter()
-				.any(|x| x.delegator == 2));
+			assert!(
+				!ParachainStaking::delegation_scheduled_requests(&1, &2).is_empty(),
+				"a scheduled revoke request should exist after scheduling"
+			);
 		});
 }
 
@@ -3352,9 +3536,10 @@ fn execute_revoke_delegation_removes_revocation_from_delegator_state_upon_execut
 				2,
 				1
 			));
-			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
-				.iter()
-				.any(|x| x.delegator == 2));
+			assert!(
+				ParachainStaking::delegation_scheduled_requests(&1, &2).is_empty(),
+				"scheduled revoke request should be removed after execution"
+			);
 		});
 }
 
@@ -3377,10 +3562,8 @@ fn execute_revoke_delegation_removes_revocation_from_state_for_single_delegation
 				1
 			));
 			assert!(
-				!ParachainStaking::delegation_scheduled_requests(&1)
-					.iter()
-					.any(|x| x.delegator == 2),
-				"delegation was not removed"
+				ParachainStaking::delegation_scheduled_requests(&1, &2).is_empty(),
+				"delegation request was not removed"
 			);
 		});
 }
@@ -3978,7 +4161,7 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 				RuntimeOrigin::signed(2),
 				1
 			));
-			let state = ParachainStaking::delegation_scheduled_requests(&1);
+			let state = ParachainStaking::delegation_scheduled_requests(&1, &2);
 			assert_eq!(
 				state,
 				vec![ScheduledRequest {
@@ -3997,9 +4180,10 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 				RuntimeOrigin::signed(2),
 				1
 			));
-			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
-				.iter()
-				.any(|x| x.delegator == 2));
+			assert!(
+				ParachainStaking::delegation_scheduled_requests(&1, &2).is_empty(),
+				"scheduled revoke request should be removed after cancel"
+			);
 			assert_eq!(
 				ParachainStaking::delegator_state(&2)
 					.map(|x| x.less_total)
@@ -4052,7 +4236,7 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 				1,
 				5
 			));
-			let state = ParachainStaking::delegation_scheduled_requests(&1);
+			let state = ParachainStaking::delegation_scheduled_requests(&1, &2);
 			assert_eq!(
 				state,
 				vec![ScheduledRequest {
@@ -4071,9 +4255,10 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 				RuntimeOrigin::signed(2),
 				1
 			));
-			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
-				.iter()
-				.any(|x| x.delegator == 2));
+			assert!(
+				ParachainStaking::delegation_scheduled_requests(&1, &2).is_empty(),
+				"scheduled bond-less request should be removed after cancel"
+			);
 			assert_eq!(
 				ParachainStaking::delegator_state(&2)
 					.map(|x| x.less_total)
@@ -4923,9 +5108,10 @@ fn execute_leave_candidate_removes_delegations() {
 		.build()
 		.execute_with(|| {
 			// Verifies the revocation request is initially empty
-			assert!(!ParachainStaking::delegation_scheduled_requests(&2)
-				.iter()
-				.any(|x| x.delegator == 3));
+			assert!(
+				ParachainStaking::delegation_scheduled_requests(&2, &3).is_empty(),
+				"no scheduled revoke request should exist before scheduling"
+			);
 
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
 				RuntimeOrigin::signed(2),
@@ -4936,9 +5122,10 @@ fn execute_leave_candidate_removes_delegations() {
 				2
 			));
 			// Verifies the revocation request is present
-			assert!(ParachainStaking::delegation_scheduled_requests(&2)
-				.iter()
-				.any(|x| x.delegator == 3));
+			assert!(
+				!ParachainStaking::delegation_scheduled_requests(&2, &3).is_empty(),
+				"a scheduled revoke request should exist after scheduling"
+			);
 
 			roll_to(16);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
@@ -4947,9 +5134,10 @@ fn execute_leave_candidate_removes_delegations() {
 				2
 			));
 			// Verifies the revocation request is again empty
-			assert!(!ParachainStaking::delegation_scheduled_requests(&2)
-				.iter()
-				.any(|x| x.delegator == 3));
+			assert!(
+				ParachainStaking::delegation_scheduled_requests(&2, &3).is_empty(),
+				"scheduled revoke request should be removed when candidate leaves"
+			);
 		});
 }
 
@@ -6446,9 +6634,10 @@ fn delegation_kicked_from_bottom_removes_pending_request() {
 				unstaked_amount: 19,
 			});
 			// ensure request DNE
-			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
-				.iter()
-				.any(|x| x.delegator == 2));
+			assert!(
+				ParachainStaking::delegation_scheduled_requests(&1, &2).is_empty(),
+				"delegation request should be removed when delegation is kicked"
+			);
 		});
 }
 
@@ -6984,6 +7173,7 @@ fn test_delegation_request_exists_returns_true_when_decrease_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
+				2,
 				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
@@ -7005,6 +7195,7 @@ fn test_delegation_request_exists_returns_true_when_revoke_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
+				2,
 				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
@@ -7038,6 +7229,7 @@ fn test_delegation_request_revoke_exists_returns_false_when_decrease_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
+				2,
 				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
@@ -7059,6 +7251,7 @@ fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
 		.execute_with(|| {
 			<DelegationScheduledRequests<Test>>::insert(
 				1,
+				2,
 				BoundedVec::try_from(vec![ScheduledRequest {
 					delegator: 2,
 					when_executable: 3,
