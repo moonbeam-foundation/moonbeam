@@ -410,7 +410,7 @@ pub mod pallet {
 			delegator_position: DelegatorAdded<BalanceOf<T>>,
 			auto_compound: Percent,
 		},
-		/// Delegation from candidate state has been remove.
+		/// Delegation from candidate state has been removed.
 		DelegatorLeftCandidate {
 			delegator: T::AccountId,
 			candidate: T::AccountId,
