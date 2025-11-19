@@ -950,7 +950,7 @@ mod benchmarks {
 		let scheduled = Pallet::<T>::delegation_scheduled_requests(&collator, &last_top_delegator);
 		assert_eq!(
 			scheduled,
-			vec![ScheduledRequest {
+			sp_std::vec![ScheduledRequest {
 				delegator: last_top_delegator,
 				when_executable: current_round + delegator_delay,
 				action: DelegationAction::Revoke(last_top_delegator_bond),
@@ -1205,7 +1205,7 @@ mod benchmarks {
 		let scheduled = Pallet::<T>::delegation_scheduled_requests(&collator, &last_top_delegator);
 		assert_eq!(
 			scheduled,
-			vec![ScheduledRequest {
+			sp_std::vec![ScheduledRequest {
 				delegator: last_top_delegator,
 				when_executable: current_round + delegator_delay,
 				action: DelegationAction::Decrease(bond_less),
