@@ -93,10 +93,7 @@ describeSuite({
       test: async function () {
         const delegationRequests = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(
-            ETHAN_ADDRESS,
-            CHARLETH_ADDRESS
-          );
+          .query.parachainStaking.delegationScheduledRequests(ETHAN_ADDRESS, CHARLETH_ADDRESS);
 
         const currentRound = (
           await context.polkadotJs().query.parachainStaking.round()

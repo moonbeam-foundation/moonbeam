@@ -107,16 +107,10 @@ describeSuite({
 
         const delegationRequestsFromBaltathar = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(
-            ETHAN_ADDRESS,
-            BALTATHAR_ADDRESS
-          );
+          .query.parachainStaking.delegationScheduledRequests(ETHAN_ADDRESS, BALTATHAR_ADDRESS);
         const delegationRequestsFromCharleth = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(
-            ETHAN_ADDRESS,
-            CHARLETH_ADDRESS
-          );
+          .query.parachainStaking.delegationScheduledRequests(ETHAN_ADDRESS, CHARLETH_ADDRESS);
 
         expect(delegationRequestsFromBaltathar.toJSON()).to.deep.equal([
           {
