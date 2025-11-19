@@ -148,7 +148,7 @@ impl<T: Config> OnRuntimeUpgrade for MigrateDelegationScheduledRequestsToDoubleM
 		//
 		// It is safe to clear all existing keys for `DelegationScheduledRequests` in one call because
 		// there can only be at most `MaxCandidates` items with this prefix. `MaxCandidates` is set to 200,
-		// which is well within the range of what can be safely removed in a single block without 
+		// which is well within the range of what can be safely removed in a single block without
 		// risking exceeding block weight limits.
 		//
 		// We loop until the cursor returned by `clear_storage_prefix` is `None`, which means
