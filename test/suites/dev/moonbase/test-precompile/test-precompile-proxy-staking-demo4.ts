@@ -97,10 +97,6 @@ describeSuite({
       id: "T03",
       title: "should have scheduled leave from baltathar and charleth to ethan",
       test: async function () {
-        const delegationRequests = await context
-          .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(ETHAN_ADDRESS);
-
         const currentRound = (
           await context.polkadotJs().query.parachainStaking.round()
         ).current.toNumber();
@@ -109,7 +105,20 @@ describeSuite({
           .polkadotJs()
           .consts.parachainStaking.revokeDelegationDelay.toNumber();
 
-        expect(delegationRequests.toJSON()).to.deep.equal([
+        const delegationRequestsFromBaltathar = await context
+          .polkadotJs()
+          .query.parachainStaking.delegationScheduledRequests(
+            ETHAN_ADDRESS,
+            BALTATHAR_ADDRESS
+          );
+        const delegationRequestsFromCharleth = await context
+          .polkadotJs()
+          .query.parachainStaking.delegationScheduledRequests(
+            ETHAN_ADDRESS,
+            CHARLETH_ADDRESS
+          );
+
+        expect(delegationRequestsFromBaltathar.toJSON()).to.deep.equal([
           {
             delegator: BALTATHAR_ADDRESS,
             whenExecutable: currentRound + roundDelay,
@@ -117,6 +126,9 @@ describeSuite({
               revoke: nToHex(1n * GLMR, { bitLength: 128 }),
             },
           },
+        ]);
+
+        expect(delegationRequestsFromCharleth.toJSON()).to.deep.equal([
           {
             delegator: CHARLETH_ADDRESS,
             whenExecutable: currentRound + roundDelay,
