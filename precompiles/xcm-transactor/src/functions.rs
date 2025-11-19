@@ -530,7 +530,7 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
 
-		let encoded = UtilityEncodeCall::encode_call(
+		let encoded = <pallet_xcm_transactor::Pallet<Runtime> as UtilityEncodeCall>::encode_call(
 			transactor,
 			UtilityAvailableCalls::AsDerivative(index, inner_call.into()),
 		)

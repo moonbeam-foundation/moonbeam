@@ -72,6 +72,7 @@ pub enum HrmpCall {
 }
 
 use pallet_xcm_transactor::relay_indices::*;
+use xcm_primitives::XcmTransact;
 pub const TEST_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 	staking: 1u8,
 	utility: 0u8,
@@ -96,7 +97,10 @@ pub const TEST_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 pub struct TestEncoder;
 
 impl StakeEncodeCall for TestEncoder {
-	fn encode_call(call: AvailableStakeCalls) -> Vec<u8> {
+	fn encode_call<Transactor: XcmTransact>(
+		_transactor: Transactor,
+		call: AvailableStakeCalls,
+	) -> Vec<u8> {
 		match call {
 			AvailableStakeCalls::Bond(b, c) => RelayCall::Stake(StakeCall::Bond(b, c)).encode(),
 
