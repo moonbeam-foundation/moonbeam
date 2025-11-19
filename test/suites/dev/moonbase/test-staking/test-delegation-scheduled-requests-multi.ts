@@ -30,14 +30,7 @@ describeSuite({
         // Ensure a fresh delegation with enough stake for many decreases.
         await context.createBlock(
           psTx
-            .delegateWithAutoCompound(
-              alith.address,
-              MIN_GLMR_DELEGATOR + 1000n,
-              0,
-              0,
-              0,
-              0
-            )
+            .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR + 1000n, 0, 0, 0, 0)
             .signAsync(ethan),
           { allowFailures: false }
         );
@@ -75,10 +68,9 @@ describeSuite({
         const api = context.polkadotJs();
         const psTx = api.tx.parachainStaking;
 
-        await context.createBlock(
-          psTx.scheduleRevokeDelegation(alith.address).signAsync(ethan),
-          { allowFailures: false }
-        );
+        await context.createBlock(psTx.scheduleRevokeDelegation(alith.address).signAsync(ethan), {
+          allowFailures: false,
+        });
 
         const block = await context.createBlock(
           psTx.scheduleDelegatorBondLess(alith.address, LESS_AMOUNT).signAsync(ethan),
@@ -96,10 +88,9 @@ describeSuite({
         const psTx = api.tx.parachainStaking;
 
         // Ensure there is no pending request for this delegation.
-        await context.createBlock(
-          psTx.cancelDelegationRequest(alith.address).signAsync(ethan),
-          { allowFailures: true }
-        );
+        await context.createBlock(psTx.cancelDelegationRequest(alith.address).signAsync(ethan), {
+          allowFailures: true,
+        });
 
         await context.createBlock(
           psTx.scheduleDelegatorBondLess(alith.address, LESS_AMOUNT).signAsync(ethan),
@@ -115,5 +106,3 @@ describeSuite({
     });
   },
 });
-
-
