@@ -121,10 +121,7 @@ impl<T: Config> OnRuntimeUpgrade for MigrateDelegationScheduledRequestsToDoubleM
 		use frame_support::storage::migration::{clear_storage_prefix, storage_key_iter};
 
 		type OldScheduledRequests<T> = frame_support::BoundedVec<
-			ScheduledRequest<
-				<T as frame_system::Config>::AccountId,
-				BalanceOf<T>,
-			>,
+			ScheduledRequest<<T as frame_system::Config>::AccountId, BalanceOf<T>>,
 			AddGet<
 				<T as pallet::Config>::MaxTopDelegationsPerCandidate,
 				<T as pallet::Config>::MaxBottomDelegationsPerCandidate,
@@ -177,10 +174,7 @@ impl<T: Config> OnRuntimeUpgrade for MigrateDelegationScheduledRequestsToDoubleM
 			}
 
 			if per_collator_count > 0 {
-				DelegationScheduledRequestsPerCollator::<T>::insert(
-					&collator,
-					per_collator_count,
-				);
+				DelegationScheduledRequestsPerCollator::<T>::insert(&collator, per_collator_count);
 			}
 		}
 

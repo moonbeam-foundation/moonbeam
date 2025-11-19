@@ -23,10 +23,10 @@ use crate::pallet::{
 };
 use crate::weights::WeightInfo;
 use crate::{auto_compound::AutoCompoundDelegations, Delegator};
-	use frame_support::dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo};
-	use frame_support::ensure;
-	use frame_support::traits::{ConstU32, Get};
-	use frame_support::BoundedVec;
+use frame_support::dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo};
+use frame_support::ensure;
+use frame_support::traits::{ConstU32, Get};
+use frame_support::BoundedVec;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use scale_info::TypeInfo;
 use sp_runtime::{traits::Saturating, RuntimeDebug};
@@ -102,12 +102,10 @@ impl<T: Config> Pallet<T> {
 		delegator: T::AccountId,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
-		let mut scheduled_requests =
-			<DelegationScheduledRequests<T>>::get(&collator, &delegator);
+		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator, &delegator);
 
-		let actual_weight = <T as Config>::WeightInfo::schedule_revoke_delegation(
-			scheduled_requests.len() as u32,
-		);
+		let actual_weight =
+			<T as Config>::WeightInfo::schedule_revoke_delegation(scheduled_requests.len() as u32);
 
 		// If this is the first scheduled request for this delegator towards this collator,
 		// ensure we do not exceed the maximum number of delegators that can have pending
@@ -115,8 +113,7 @@ impl<T: Config> Pallet<T> {
 		let is_new_delegator =
 			!<DelegationScheduledRequests<T>>::contains_key(&collator, &delegator);
 		if is_new_delegator {
-			let current =
-				<DelegationScheduledRequestsPerCollator<T>>::get(&collator);
+			let current = <DelegationScheduledRequestsPerCollator<T>>::get(&collator);
 			if current >= Pallet::<T>::max_delegators_per_candidate() {
 				return Err(DispatchErrorWithPostInfo {
 					post_info: Some(actual_weight).into(),
@@ -177,8 +174,7 @@ impl<T: Config> Pallet<T> {
 		decrease_amount: BalanceOf<T>,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
-		let mut scheduled_requests =
-			<DelegationScheduledRequests<T>>::get(&collator, &delegator);
+		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator, &delegator);
 
 		let actual_weight = <T as Config>::WeightInfo::schedule_delegator_bond_less(
 			scheduled_requests.len() as u32,
@@ -190,8 +186,7 @@ impl<T: Config> Pallet<T> {
 		let is_new_delegator =
 			!<DelegationScheduledRequests<T>>::contains_key(&collator, &delegator);
 		if is_new_delegator {
-			let current =
-				<DelegationScheduledRequestsPerCollator<T>>::get(&collator);
+			let current = <DelegationScheduledRequestsPerCollator<T>>::get(&collator);
 			let max_delegators = Pallet::<T>::max_delegators_per_candidate();
 			if current >= max_delegators {
 				return Err(DispatchErrorWithPostInfo {
@@ -285,18 +280,17 @@ impl<T: Config> Pallet<T> {
 		delegator: T::AccountId,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
-		let mut scheduled_requests =
-			<DelegationScheduledRequests<T>>::get(&collator, &delegator);
+		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator, &delegator);
 		let actual_weight =
 			<T as Config>::WeightInfo::cancel_delegation_request(scheduled_requests.len() as u32);
 
-		let request = Self::cancel_request_with_state(&mut state, &mut scheduled_requests)
-			.ok_or(DispatchErrorWithPostInfo {
+		let request = Self::cancel_request_with_state(&mut state, &mut scheduled_requests).ok_or(
+			DispatchErrorWithPostInfo {
 				post_info: Some(actual_weight).into(),
 				error: <Error<T>>::PendingDelegationRequestDNE.into(),
-			})?;
+			},
+		)?;
 
-			
 		if scheduled_requests.is_empty() {
 			<DelegationScheduledRequestsPerCollator<T>>::mutate(&collator, |c| {
 				*c = c.saturating_sub(1);
@@ -339,8 +333,7 @@ impl<T: Config> Pallet<T> {
 		delegator: T::AccountId,
 	) -> DispatchResultWithPostInfo {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
-		let mut scheduled_requests =
-			<DelegationScheduledRequests<T>>::get(&collator, &delegator);
+		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator, &delegator);
 		let request = scheduled_requests
 			.first()
 			.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;

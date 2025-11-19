@@ -947,8 +947,7 @@ mod benchmarks {
 		let current_round = Pallet::<T>::round().current;
 		let delegator_delay = <<T as Config>::LeaveDelegatorsDelay>::get();
 
-		let scheduled =
-			Pallet::<T>::delegation_scheduled_requests(&collator, &last_top_delegator);
+		let scheduled = Pallet::<T>::delegation_scheduled_requests(&collator, &last_top_delegator);
 		assert_eq!(
 			scheduled,
 			vec![ScheduledRequest {
@@ -1203,8 +1202,7 @@ mod benchmarks {
 		let current_round = Pallet::<T>::round().current;
 		let delegator_delay = <<T as Config>::DelegationBondLessDelay>::get();
 
-		let scheduled =
-			Pallet::<T>::delegation_scheduled_requests(&collator, &last_top_delegator);
+		let scheduled = Pallet::<T>::delegation_scheduled_requests(&collator, &last_top_delegator);
 		assert_eq!(
 			scheduled,
 			vec![ScheduledRequest {
@@ -1580,8 +1578,7 @@ mod benchmarks {
 			)?;
 		}
 
-		let scheduled =
-			Pallet::<T>::delegation_scheduled_requests(&collator, &delegator);
+		let scheduled = Pallet::<T>::delegation_scheduled_requests(&collator, &delegator);
 		assert!(scheduled.is_empty());
 		Ok(())
 	}

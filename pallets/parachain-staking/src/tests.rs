@@ -1619,7 +1619,9 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 			));
 			assert!(ParachainStaking::candidate_info(1).is_none());
 			assert!(
-				<DelegationScheduledRequests<Test>>::iter_prefix(1).next().is_none(),
+				<DelegationScheduledRequests<Test>>::iter_prefix(1)
+					.next()
+					.is_none(),
 				"delegation requests were not removed for the candidate"
 			);
 		});
@@ -3168,8 +3170,7 @@ fn execute_multiple_bond_less_requests_in_fifo_order() {
 			let state_after_first = ParachainStaking::delegator_state(2).expect("exists");
 			assert_eq!(state_after_first.total(), 15);
 
-			let remaining_requests =
-				ParachainStaking::delegation_scheduled_requests(&1, &2);
+			let remaining_requests = ParachainStaking::delegation_scheduled_requests(&1, &2);
 			assert_eq!(remaining_requests.len(), 1);
 			assert_eq!(remaining_requests[0].action, DelegationAction::Decrease(7));
 
@@ -3182,8 +3183,7 @@ fn execute_multiple_bond_less_requests_in_fifo_order() {
 			let state_after_second = ParachainStaking::delegator_state(2).expect("exists");
 			assert_eq!(state_after_second.total(), 8);
 
-			let remaining_requests =
-				ParachainStaking::delegation_scheduled_requests(&1, &2);
+			let remaining_requests = ParachainStaking::delegation_scheduled_requests(&1, &2);
 			assert_eq!(remaining_requests.len(), 0);
 		});
 }
@@ -3232,55 +3232,50 @@ fn cannot_schedule_more_than_max_bond_less_requests_per_delegation() {
 		});
 }
 
-	#[test]
-	fn cannot_exceed_max_delegators_with_pending_requests_per_collator() {
-		// Build a scenario with one collator and one real delegator,
-		// then artificially saturate the scheduled-requests map for that collator
-		// to the configured maximum number of delegators.
-		ExtBuilder::default()
-			.with_balances(vec![(1, 1_000), (2, 1_000)])
-			.with_candidates(vec![(1, 100)])
-			.with_delegations(vec![(2, 1, 10)])
-			.build()
-			.execute_with(|| {
-				let max_delegators_per_collator =
-					(<Test as crate::Config>::MaxTopDelegationsPerCandidate::get()
-						+ <Test as crate::Config>::MaxBottomDelegationsPerCandidate::get())
-						as u64;
+#[test]
+fn cannot_exceed_max_delegators_with_pending_requests_per_collator() {
+	// Build a scenario with one collator and one real delegator,
+	// then artificially saturate the scheduled-requests map for that collator
+	// to the configured maximum number of delegators.
+	ExtBuilder::default()
+		.with_balances(vec![(1, 1_000), (2, 1_000)])
+		.with_candidates(vec![(1, 100)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			let max_delegators_per_collator =
+				(<Test as crate::Config>::MaxTopDelegationsPerCandidate::get()
+					+ <Test as crate::Config>::MaxBottomDelegationsPerCandidate::get()) as u64;
 
-				// Artificially create `max_delegators_per_collator` delegators with pending
-				// requests for collator 1 by directly populating storage.
-				for i in 0..max_delegators_per_collator {
-					let fake_delegator: AccountId = 1000 + i;
-					let requests = BoundedVec::try_from(vec![ScheduledRequest {
-						delegator: fake_delegator,
-						when_executable: 1,
-						action: DelegationAction::Decrease(1),
-					}])
-					.expect("must succeed");
-					<DelegationScheduledRequests<Test>>::insert(1, fake_delegator, requests);
-				}
+			// Artificially create `max_delegators_per_collator` delegators with pending
+			// requests for collator 1 by directly populating storage.
+			for i in 0..max_delegators_per_collator {
+				let fake_delegator: AccountId = 1000 + i;
+				let requests = BoundedVec::try_from(vec![ScheduledRequest {
+					delegator: fake_delegator,
+					when_executable: 1,
+					action: DelegationAction::Decrease(1),
+				}])
+				.expect("must succeed");
+				<DelegationScheduledRequests<Test>>::insert(1, fake_delegator, requests);
+			}
 
-				// Maintain the per-collator counter consistently with the synthetic setup.
-				<DelegationScheduledRequestsPerCollator<Test>>::insert(
-					1,
-					max_delegators_per_collator as u32,
-				);
+			// Maintain the per-collator counter consistently with the synthetic setup.
+			<DelegationScheduledRequestsPerCollator<Test>>::insert(
+				1,
+				max_delegators_per_collator as u32,
+			);
 
-				// Now the collator already has the maximum number of delegators with pending
-				// requests. Scheduling a new request for delegator 2 towards collator 1
-				// should fail with `ExceedMaxDelegationsPerDelegator`.
-				assert_noop!(
-					ParachainStaking::schedule_delegator_bond_less(
-						RuntimeOrigin::signed(2),
-						1,
-						1
-					)
+			// Now the collator already has the maximum number of delegators with pending
+			// requests. Scheduling a new request for delegator 2 towards collator 1
+			// should fail with `ExceedMaxDelegationsPerDelegator`.
+			assert_noop!(
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 1)
 					.map_err(|err| err.error),
-					Error::<Test>::ExceedMaxDelegationsPerDelegator
-				);
-			});
-	}
+				Error::<Test>::ExceedMaxDelegationsPerDelegator
+			);
+		});
+}
 
 #[test]
 fn cannot_delegator_bond_less_if_revoking() {

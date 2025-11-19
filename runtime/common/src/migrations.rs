@@ -140,8 +140,9 @@ where
 }
 
 /// Unreleased migrations. Add new ones here:
-pub type UnreleasedSingleBlockMigrations<Runtime> =
-	(pallet_parachain_staking::migrations::MigrateDelegationScheduledRequestsToDoubleMap<Runtime>,);
+pub type UnreleasedSingleBlockMigrations<Runtime> = (
+	pallet_parachain_staking::migrations::MigrateDelegationScheduledRequestsToDoubleMap<Runtime>,
+);
 
 /// Migrations/checks that do not need to be versioned and can run on every update.
 pub type PermanentSingleBlockMigrations<Runtime> =

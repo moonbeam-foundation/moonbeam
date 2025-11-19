@@ -1869,8 +1869,11 @@ pub mod pallet {
 			Self::thaw_extended(&candidate, true)?;
 			<CandidateInfo<T>>::remove(&candidate);
 			// Remove all scheduled delegation requests for this collator
-			let _ =
-				<DelegationScheduledRequests<T>>::clear_prefix(&candidate, Self::max_delegators_per_candidate(), None);
+			let _ = <DelegationScheduledRequests<T>>::clear_prefix(
+				&candidate,
+				Self::max_delegators_per_candidate(),
+				None,
+			);
 			<DelegationScheduledRequestsPerCollator<T>>::remove(&candidate);
 			<AutoCompoundingDelegations<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
@@ -1885,7 +1888,7 @@ pub mod pallet {
 			Ok(Some(actual_weight).into())
 		}
 
-		pub fn max_delegators_per_candidate() -> u32 {	
+		pub fn max_delegators_per_candidate() -> u32 {
 			AddGet::<T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate>::get()
 		}
 
@@ -2330,7 +2333,8 @@ pub mod pallet {
 			// Aggregate the net effect of all scheduled requests per delegator for this collator.
 			// If a revoke exists, it dominates and is treated as a full revoke.
 			// Otherwise, decreases are summed.
-			let mut requests: BTreeMap<T::AccountId, DelegationAction<BalanceOf<T>>> = BTreeMap::new();
+			let mut requests: BTreeMap<T::AccountId, DelegationAction<BalanceOf<T>>> =
+				BTreeMap::new();
 			for (delegator, scheduled_requests) in
 				<DelegationScheduledRequests<T>>::iter_prefix(collator)
 			{
@@ -2344,10 +2348,7 @@ pub mod pallet {
 				{
 					// Amount is irrelevant for revokes in this context, since we always
 					// zero out the bond and account the full previous stake as uncounted.
-					requests.insert(
-						delegator,
-						DelegationAction::Revoke(BalanceOf::<T>::zero()),
-					);
+					requests.insert(delegator, DelegationAction::Revoke(BalanceOf::<T>::zero()));
 				} else {
 					let mut total: BalanceOf<T> = BalanceOf::<T>::zero();
 					for req in scheduled_requests.iter() {
