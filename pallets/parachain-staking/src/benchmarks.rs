@@ -946,16 +946,16 @@ mod benchmarks {
 			Pallet::<T>::delegator_state(&last_top_delegator).expect("delegator must exist");
 		let current_round = Pallet::<T>::round().current;
 		let delegator_delay = <<T as Config>::LeaveDelegatorsDelay>::get();
+
+		let scheduled =
+			Pallet::<T>::delegation_scheduled_requests(&collator, &last_top_delegator);
 		assert_eq!(
-			Pallet::<T>::delegation_scheduled_requests(&collator)
-				.iter()
-				.find(|r| r.delegator == last_top_delegator)
-				.cloned(),
-			Some(ScheduledRequest {
+			scheduled,
+			vec![ScheduledRequest {
 				delegator: last_top_delegator,
 				when_executable: current_round + delegator_delay,
 				action: DelegationAction::Revoke(last_top_delegator_bond),
-			}),
+			}]
 		);
 		Ok(())
 	}
@@ -1202,16 +1202,16 @@ mod benchmarks {
 			.expect("just request bonded less so exists");
 		let current_round = Pallet::<T>::round().current;
 		let delegator_delay = <<T as Config>::DelegationBondLessDelay>::get();
+
+		let scheduled =
+			Pallet::<T>::delegation_scheduled_requests(&collator, &last_top_delegator);
 		assert_eq!(
-			Pallet::<T>::delegation_scheduled_requests(&collator)
-				.iter()
-				.find(|r| r.delegator == last_top_delegator)
-				.cloned(),
-			Some(ScheduledRequest {
+			scheduled,
+			vec![ScheduledRequest {
 				delegator: last_top_delegator,
 				when_executable: current_round + delegator_delay,
 				action: DelegationAction::Decrease(bond_less),
-			}),
+			}]
 		);
 		Ok(())
 	}
@@ -1580,9 +1580,9 @@ mod benchmarks {
 			)?;
 		}
 
-		assert!(!Pallet::<T>::delegation_scheduled_requests(&collator)
-			.iter()
-			.any(|x| &x.delegator == &delegator));
+		let scheduled =
+			Pallet::<T>::delegation_scheduled_requests(&collator, &delegator);
+		assert!(scheduled.is_empty());
 		Ok(())
 	}
 
