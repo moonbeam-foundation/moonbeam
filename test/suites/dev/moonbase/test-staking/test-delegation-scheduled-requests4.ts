@@ -54,7 +54,7 @@ describeSuite({
 
       const delegationRequests = await context
         .polkadotJs()
-        .query.parachainStaking.delegationScheduledRequests(alith.address);
+        .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
       await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber());
     });
 
@@ -73,7 +73,7 @@ describeSuite({
           .query.parachainStaking.delegatorState(ethan.address);
         const delegationRequestsAfter = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(alith.address);
+          .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
         expect(delegatorState.unwrap().delegations[0].owner.toString()).toBe(baltathar.address);
         expect(delegatorState.unwrap().delegations[0].amount.toBigInt()).toBe(MIN_GLMR_DELEGATOR);
         expect(delegationRequestsAfter.isEmpty).toBe(true);

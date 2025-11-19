@@ -36,7 +36,10 @@ describeSuite({
       await createBlock(psTx.scheduleRevokeDelegation(alith.address).signAsync(ethan));
 
       // jump to exact executable Round
-      const delegationRequests = await psQuery.delegationScheduledRequests(alith.address);
+      const delegationRequests = await psQuery.delegationScheduledRequests(
+        alith.address,
+        ethan.address
+      );
       await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber() + 5);
     });
 
@@ -48,7 +51,10 @@ describeSuite({
           psTx.executeDelegationRequest(ethan.address, alith.address).signAsync(ethan)
         );
         const delegatorState = await psQuery.delegatorState(ethan.address);
-        const delegationRequestsAfter = await psQuery.delegationScheduledRequests(alith.address);
+        const delegationRequestsAfter = await psQuery.delegationScheduledRequests(
+          alith.address,
+          ethan.address
+        );
         expect(delegatorState.unwrap().delegations[0].amount.toBigInt()).toBe(MIN_GLMR_DELEGATOR);
         expect(delegatorState.unwrap().delegations[0].owner.toString()).toBe(baltathar.address);
         expect(delegationRequestsAfter.toJSON()).to.be.empty;

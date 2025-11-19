@@ -80,7 +80,7 @@ describeSuite({
       test: async () => {
         const delegationRequestsBefore = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(baltathar.address);
+          .query.parachainStaking.delegationScheduledRequests(baltathar.address, ethan.address);
         expect(delegationRequestsBefore.toJSON()).to.not.be.empty;
 
         await context.createBlock(
@@ -92,10 +92,10 @@ describeSuite({
 
         const delegationRequestsBaltatharAfter = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(baltathar.address);
+          .query.parachainStaking.delegationScheduledRequests(baltathar.address, ethan.address);
         const delegationRequestsAlithAfter = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(alith.address);
+          .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
         expect(delegationRequestsAlithAfter.toJSON()).to.deep.equal([
           {
             delegator: ethan.address,
