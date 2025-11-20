@@ -92,8 +92,11 @@ pub enum StakeCall {
 pub struct TestEncoder;
 
 impl StakeEncodeCall<()> for TestEncoder {
-	fn encode_call(_transactor: (), call: AvailableStakeCalls) -> Vec<u8> {
-		match call {
+	fn encode_call(
+		_transactor: (),
+		call: AvailableStakeCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		let encoded = match call {
 			AvailableStakeCalls::Bond(bonded_amount, reward_destination) => {
 				AssetHubCall::Stake(StakeCall::Bond(bonded_amount, reward_destination)).encode()
 			}
@@ -124,6 +127,8 @@ impl StakeEncodeCall<()> for TestEncoder {
 			AvailableStakeCalls::Rebond(bonded_amount) => {
 				AssetHubCall::Stake(StakeCall::Rebond(bonded_amount)).encode()
 			}
-		}
+		};
+
+		Ok(encoded)
 	}
 }

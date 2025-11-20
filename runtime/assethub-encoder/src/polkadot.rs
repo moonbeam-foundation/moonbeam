@@ -110,8 +110,11 @@ pub enum StakeCall {
 pub struct PolkadotAssetHubEncoder;
 
 impl xcm_primitives::StakeEncodeCall<()> for PolkadotAssetHubEncoder {
-	fn encode_call(_transactor: (), call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
-		match call {
+	fn encode_call(
+		_transactor: (),
+		call: xcm_primitives::AvailableStakeCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		let encoded = match call {
 			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
 				AssetHubCall::Staking(StakeCall::Bond(b, c)).encode()
 			}
@@ -154,6 +157,8 @@ impl xcm_primitives::StakeEncodeCall<()> for PolkadotAssetHubEncoder {
 
 				AssetHubCall::Staking(StakeCall::Nominate(nominated)).encode()
 			}
-		}
+		};
+
+		Ok(encoded)
 	}
 }

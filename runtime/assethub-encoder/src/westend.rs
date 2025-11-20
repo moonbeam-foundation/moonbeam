@@ -117,8 +117,11 @@ pub enum StakeCall {
 pub struct WestendAssetHubEncoder;
 
 impl xcm_primitives::StakeEncodeCall<()> for WestendAssetHubEncoder {
-	fn encode_call(_transactor: (), call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
-		match call {
+	fn encode_call(
+		_transactor: (),
+		call: xcm_primitives::AvailableStakeCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		let encoded = match call {
 			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
 				AssetHubCall::Staking(StakeCall::Bond(b, c)).encode()
 			}
@@ -161,7 +164,9 @@ impl xcm_primitives::StakeEncodeCall<()> for WestendAssetHubEncoder {
 
 				AssetHubCall::Staking(StakeCall::Nominate(nominated)).encode()
 			}
-		}
+		};
+
+		Ok(encoded)
 	}
 }
 
@@ -196,7 +201,8 @@ mod tests {
 					100u32.into(),
 					pallet_staking::RewardDestination::Account(controller.clone()),
 				)
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 
@@ -217,7 +223,8 @@ mod tests {
 						100u32.into(),
 						pallet_staking::RewardDestination::Account(controller),
 					)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -236,7 +243,8 @@ mod tests {
 			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into())
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 
@@ -253,7 +261,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::AssetHub,
 					xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into())
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -271,7 +280,8 @@ mod tests {
 			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::Unbond(100u32.into())
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 
@@ -288,7 +298,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::AssetHub,
 					xcm_primitives::AvailableStakeCalls::Unbond(100u32.into())
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -306,7 +317,8 @@ mod tests {
 			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 
@@ -323,7 +335,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::AssetHub,
 					xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -343,7 +356,8 @@ mod tests {
 				xcm_primitives::AvailableStakeCalls::Validate(
 					pallet_staking::ValidatorPrefs::default()
 				)
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 
@@ -362,7 +376,8 @@ mod tests {
 					xcm_primitives::AvailableStakeCalls::Validate(
 						pallet_staking::ValidatorPrefs::default()
 					)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -387,7 +402,8 @@ mod tests {
 			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::Nominate(targets.clone())
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 
@@ -404,7 +420,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::AssetHub,
 					xcm_primitives::AvailableStakeCalls::Nominate(targets)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -422,7 +439,8 @@ mod tests {
 			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::Chill
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 
@@ -439,7 +457,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::AssetHub,
 					xcm_primitives::AvailableStakeCalls::Chill
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -463,7 +482,8 @@ mod tests {
 				xcm_primitives::AvailableStakeCalls::SetPayee(
 					pallet_staking::RewardDestination::Account(controller.clone()).into()
 				)
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 
@@ -482,7 +502,8 @@ mod tests {
 					xcm_primitives::AvailableStakeCalls::SetPayee(
 						pallet_staking::RewardDestination::Account(controller).into()
 					)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -500,7 +521,8 @@ mod tests {
 			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::SetController
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 
@@ -517,7 +539,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::AssetHub,
 					xcm_primitives::AvailableStakeCalls::SetController
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -535,7 +558,8 @@ mod tests {
 			<WestendAssetHubEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 
@@ -552,7 +576,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::AssetHub,
 					xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});

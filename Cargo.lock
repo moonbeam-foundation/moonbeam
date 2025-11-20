@@ -7235,6 +7235,7 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+ "staging-xcm",
  "xcm-primitives 0.1.1",
 ]
 

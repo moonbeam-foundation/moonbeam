@@ -96,8 +96,11 @@ pub const TEST_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 pub struct TestEncoder;
 
 impl StakeEncodeCall<()> for TestEncoder {
-	fn encode_call(_transactor: (), call: AvailableStakeCalls) -> Vec<u8> {
-		match call {
+	fn encode_call(
+		_transactor: (),
+		call: AvailableStakeCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		let encoded = match call {
 			AvailableStakeCalls::Bond(b, c) => RelayCall::Stake(StakeCall::Bond(b, c)).encode(),
 
 			AvailableStakeCalls::BondExtra(a) => RelayCall::Stake(StakeCall::BondExtra(a)).encode(),
@@ -130,7 +133,9 @@ impl StakeEncodeCall<()> for TestEncoder {
 
 				RelayCall::Stake(StakeCall::Nominate(nominated)).encode()
 			}
-		}
+		};
+
+		Ok(encoded)
 	}
 }
 

@@ -19,6 +19,9 @@ parity-scale-codec = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
 
+# Polkadot
+xcm = { workspace = true }
+
 [dev-dependencies]
 moonbase-runtime = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
@@ -33,4 +36,5 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-primitives/std",
+	"xcm/std",
 ]

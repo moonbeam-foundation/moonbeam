@@ -77,6 +77,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Bond(relay_amount, reward_destination),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -99,6 +100,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::BondExtra(relay_amount),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -122,6 +124,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Unbond(relay_amount),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -143,6 +146,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::WithdrawUnbonded(slashes),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -169,6 +173,7 @@ where
 				blocked: blocked,
 			}),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -198,6 +203,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Nominate(nominated),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -216,6 +222,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Chill,
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -239,6 +246,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::SetPayee(reward_destination),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -257,6 +265,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::SetController,
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -279,6 +288,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Rebond(relay_amount),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 

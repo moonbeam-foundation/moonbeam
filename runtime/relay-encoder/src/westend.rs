@@ -18,6 +18,8 @@
 // TODO: whenever a conclusion is taken from https://github.com/paritytech/substrate/issues/8158
 
 use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
+#[cfg(test)]
+use pallet_xcm_transactor::chain_indices::ChainIndices;
 use pallet_xcm_transactor::chain_indices::RelayChainIndices;
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
@@ -123,8 +125,11 @@ impl xcm_primitives::HrmpEncodeCall for WestendEncoder {
 	}
 }
 impl xcm_primitives::StakeEncodeCall<()> for WestendEncoder {
-	fn encode_call(_transactor: (), call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
-		match call {
+	fn encode_call(
+		_transactor: (),
+		call: xcm_primitives::AvailableStakeCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		let encoded = match call {
 			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
 				RelayCall::Stake(StakeCall::Bond(b, c)).encode()
 			}
@@ -167,7 +172,9 @@ impl xcm_primitives::StakeEncodeCall<()> for WestendEncoder {
 
 				RelayCall::Stake(StakeCall::Nominate(nominated)).encode()
 			}
-		}
+		};
+
+		Ok(encoded)
 	}
 }
 
@@ -223,7 +230,8 @@ mod tests {
 		let call_bytes = <WestendEncoder as StakeEncodeCall<()>>::encode_call(
 			(),
 			xcm_primitives::AvailableStakeCalls::Chill,
-		);
+		)
+		.unwrap();
 
 		expected_encoded.append(&mut expected);
 
@@ -237,8 +245,9 @@ mod tests {
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<
@@ -279,14 +288,16 @@ mod tests {
 					100u32.into(),
 					pallet_staking::RewardDestination::Account(controller.clone()),
 				)
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
@@ -297,7 +308,8 @@ mod tests {
 						100u32.into(),
 						pallet_staking::RewardDestination::Account(controller)
 					)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -322,14 +334,16 @@ mod tests {
 			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
@@ -337,7 +351,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::BondExtra(100u32.into(),)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -362,14 +377,16 @@ mod tests {
 			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
@@ -377,7 +394,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::Unbond(100u32.into(),)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -402,14 +420,16 @@ mod tests {
 			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
@@ -417,7 +437,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::WithdrawUnbonded(100u32,)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -447,14 +468,16 @@ mod tests {
 			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::Validate(validator_prefs.clone())
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
@@ -462,7 +485,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::Validate(validator_prefs)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -488,14 +512,16 @@ mod tests {
 			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::Nominate(vec![relay_account.clone().into()])
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
@@ -503,7 +529,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::Nominate(vec![relay_account.into()])
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -525,14 +552,16 @@ mod tests {
 			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::Chill
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
@@ -540,7 +569,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::Chill
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -569,14 +599,16 @@ mod tests {
 				xcm_primitives::AvailableStakeCalls::SetPayee(
 					pallet_staking::RewardDestination::Account(controller.clone())
 				)
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
@@ -586,7 +618,8 @@ mod tests {
 					xcm_primitives::AvailableStakeCalls::SetPayee(
 						pallet_staking::RewardDestination::Account(controller)
 					)
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -610,14 +643,16 @@ mod tests {
 			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::SetController
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
@@ -625,7 +660,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::SetController
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -650,14 +686,16 @@ mod tests {
 			<WestendEncoder as StakeEncodeCall<()>>::encode_call(
 				(),
 				xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
-			),
+			)
+			.unwrap(),
 			expected_encoded.clone()
 		);
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<moonbase_runtime::Runtime> as StakeEncodeCall<
@@ -665,7 +703,8 @@ mod tests {
 				>>::encode_call(
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					xcm_primitives::AvailableStakeCalls::Rebond(100u32.into())
-				),
+				)
+				.unwrap(),
 				expected_encoded
 			);
 		});
@@ -704,8 +743,9 @@ mod tests {
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<
@@ -749,8 +789,9 @@ mod tests {
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<
@@ -796,8 +837,9 @@ mod tests {
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<
@@ -850,8 +892,9 @@ mod tests {
 		sp_io::TestExternalities::default().execute_with(|| {
 			// Pallet-xcm-transactor default encoder returns same result
 			// insert storage item as per migration to set the storage item
-			pallet_xcm_transactor::RelayIndices::<moonbase_runtime::Runtime>::put(
-				WESTEND_RELAY_INDICES,
+			pallet_xcm_transactor::ChainIndicesMap::<moonbase_runtime::Runtime>::insert(
+				moonbase_runtime::xcm_config::Transactors::Relay,
+				ChainIndices::Relay(WESTEND_RELAY_INDICES),
 			);
 			assert_eq!(
 				<pallet_xcm_transactor::Pallet::<

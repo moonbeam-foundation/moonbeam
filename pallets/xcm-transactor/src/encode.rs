@@ -135,25 +135,24 @@ fn encode_compact_arg<T: parity_scale_codec::HasCompact>(input: T) -> Vec<u8> {
 }
 
 impl<T: Config> StakeEncodeCall<T::Transactor> for Pallet<T> {
-	fn encode_call(transactor: T::Transactor, call: AvailableStakeCalls) -> Vec<u8> {
+	fn encode_call(
+		transactor: T::Transactor,
+		call: AvailableStakeCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
 		// Get the chain indices for the specified transactor
-		let chain_indices = match ChainIndicesMap::<T>::get(&transactor) {
-			Some(indices) => indices,
-			None => {
-				// Fallback to legacy RelayIndices if not found
-				let relay_indices = RelayIndices::<T>::get();
-				return Self::encode_relay_stake_call(&relay_indices, call);
-			}
-		};
+		let chain_indices =
+			ChainIndicesMap::<T>::get(&transactor).ok_or(xcm::latest::Error::Unimplemented)?;
 
-		match chain_indices {
+		let encoded = match chain_indices {
 			ChainIndices::Relay(relay_indices) => {
 				Self::encode_relay_stake_call(&relay_indices, call)
 			}
 			ChainIndices::AssetHub(assethub_indices) => {
 				Self::encode_assethub_stake_call(&assethub_indices, call)
 			}
-		}
+		};
+
+		Ok(encoded)
 	}
 }
 

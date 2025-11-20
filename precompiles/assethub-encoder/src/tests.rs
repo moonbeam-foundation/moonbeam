@@ -106,6 +106,7 @@ fn test_encode_bond() {
 							RewardDestination::Account(controller),
 						),
 					)
+					.unwrap()
 					.as_slice(),
 				));
 		});
@@ -127,6 +128,7 @@ fn test_encode_bond_more() {
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
 					TestEncoder::encode_call((), AvailableStakeCalls::BondExtra(100u32.into()))
+						.unwrap()
 						.as_slice(),
 				));
 		});
@@ -143,7 +145,9 @@ fn test_encode_chill() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call((), AvailableStakeCalls::Chill).as_slice(),
+					TestEncoder::encode_call((), AvailableStakeCalls::Chill)
+						.unwrap()
+						.as_slice(),
 				));
 		});
 }
@@ -169,6 +173,7 @@ fn test_encode_nominate() {
 						(),
 						AvailableStakeCalls::Nominate(vec![[1u8; 32].into(), [2u8; 32].into()]),
 					)
+					.unwrap()
 					.as_slice(),
 				));
 		});
@@ -189,7 +194,9 @@ fn test_encode_rebond() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call((), AvailableStakeCalls::Rebond(100u128)).as_slice(),
+					TestEncoder::encode_call((), AvailableStakeCalls::Rebond(100u128))
+						.unwrap()
+						.as_slice(),
 				));
 		});
 }
@@ -205,7 +212,9 @@ fn test_encode_set_controller() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call((), AvailableStakeCalls::SetController).as_slice(),
+					TestEncoder::encode_call((), AvailableStakeCalls::SetController)
+						.unwrap()
+						.as_slice(),
 				))
 		});
 }
@@ -234,6 +243,7 @@ fn test_encode_set_payee() {
 						(),
 						AvailableStakeCalls::SetPayee(RewardDestination::Account(controller)),
 					)
+					.unwrap()
 					.as_slice(),
 				));
 		});
@@ -255,6 +265,7 @@ fn test_encode_unbond() {
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
 					TestEncoder::encode_call((), AvailableStakeCalls::Unbond(100u32.into()))
+						.unwrap()
 						.as_slice(),
 				));
 		});
@@ -285,6 +296,7 @@ fn test_encode_validate() {
 							blocked: true,
 						}),
 					)
+					.unwrap()
 					.as_slice(),
 				));
 		});
@@ -311,6 +323,7 @@ fn test_encode_withdraw_unbonded() {
 						(),
 						AvailableStakeCalls::WithdrawUnbonded(100u32.into()),
 					)
+					.unwrap()
 					.as_slice(),
 				));
 		});

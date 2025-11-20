@@ -123,8 +123,11 @@ impl xcm_primitives::HrmpEncodeCall for KusamaEncoder {
 }
 
 impl xcm_primitives::StakeEncodeCall<()> for KusamaEncoder {
-	fn encode_call(_transactor: (), call: xcm_primitives::AvailableStakeCalls) -> Vec<u8> {
-		match call {
+	fn encode_call(
+		_transactor: (),
+		call: xcm_primitives::AvailableStakeCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		let encoded = match call {
 			xcm_primitives::AvailableStakeCalls::Bond(b, c) => {
 				RelayCall::Stake(StakeCall::Bond(b, c)).encode()
 			}
@@ -167,7 +170,9 @@ impl xcm_primitives::StakeEncodeCall<()> for KusamaEncoder {
 
 				RelayCall::Stake(StakeCall::Nominate(nominated)).encode()
 			}
-		}
+		};
+
+		Ok(encoded)
 	}
 }
 

@@ -68,6 +68,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Bond(relay_amount, reward_destination),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -90,6 +91,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::BondExtra(relay_amount),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -112,6 +114,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Unbond(relay_amount),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -133,6 +136,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::WithdrawUnbonded(num_slashing_spans),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -160,6 +164,7 @@ where
 				blocked: blocked,
 			}),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -190,6 +195,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Nominate(nominees_as_account_ids),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -208,6 +214,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Chill,
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -231,6 +238,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::SetPayee(reward_destination),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -249,6 +257,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::SetController,
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
@@ -271,6 +280,7 @@ where
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Rebond(relay_amount),
 		)
+		.map_err(|_| revert("Transactor not configured"))?
 		.as_slice()
 		.into();
 
