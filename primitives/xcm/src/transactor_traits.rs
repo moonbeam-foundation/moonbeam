@@ -43,7 +43,10 @@ pub enum HrmpAvailableCalls {
 // the as_derivative extrinsic, and thus, this call can only be dispatched from the
 // derivative account
 pub trait UtilityEncodeCall {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
+	fn encode_call<Transactor: XcmTransact>(
+		transactor: Transactor,
+		call: UtilityAvailableCalls,
+	) -> Vec<u8>;
 }
 
 // Trait that the ensures we can encode a call with hrmp functions.
@@ -61,7 +64,7 @@ impl HrmpEncodeCall for () {
 
 // Trait to ensure we can retrieve the destination if a given type
 // It must implement UtilityEncodeCall
-pub trait XcmTransact: UtilityEncodeCall {
+pub trait XcmTransact {
 	/// Encode call from the relay.
 	fn destination(self) -> Location;
 }

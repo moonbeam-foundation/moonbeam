@@ -64,8 +64,7 @@ use frame_support::traits::Disabled;
 use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation,
-	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
-	UtilityEncodeCall, XcmTransact,
+	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20,
 };
 
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
@@ -688,20 +687,16 @@ impl TryFrom<u8> for Transactors {
 	}
 }
 
-impl UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			Transactors::Relay | Transactors::AssetHub => {
-				pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-					pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
-					call,
-				)
-			}
-		}
+impl xcm_primitives::UtilityEncodeCall for Transactors {
+	fn encode_call<Transactor: xcm_primitives::XcmTransact>(
+		transactor: Transactor,
+		call: xcm_primitives::UtilityAvailableCalls,
+	) -> Vec<u8> {
+		pallet_xcm_transactor::Pallet::<Runtime>::encode_call(transactor, call)
 	}
 }
 
-impl XcmTransact for Transactors {
+impl xcm_primitives::XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
 			Transactors::Relay => Location::parent(),

@@ -24,8 +24,6 @@ use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::{AccountId32, BuildStorage};
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain, TestExt};
 
-use parachain::MockTransactors;
-
 use polkadot_runtime_parachains::configuration::{
 	GenesisConfig as ConfigurationGenesisConfig, HostConfiguration,
 };
@@ -74,6 +72,29 @@ pub fn mock_relay_config() -> HostConfiguration<relay_chain::BlockNumber> {
 		// Changed to avoid arithmetic errors within hrmp_close
 		max_downward_message_size: 100_000u32,
 		..Default::default()
+	}
+}
+
+pub fn mock_xcm_transactor_storage() -> RelayChainIndices {
+	RelayChainIndices {
+		staking: 0u8,
+		utility: 5u8,
+		hrmp: 6u8,
+		bond: 0u8,
+		bond_extra: 1u8,
+		unbond: 2u8,
+		withdraw_unbonded: 3u8,
+		validate: 4u8,
+		nominate: 5u8,
+		chill: 6u8,
+		set_payee: 7u8,
+		set_controller: 8u8,
+		rebond: 19u8,
+		as_derivative: 1u8,
+		init_open_channel: 0u8,
+		accept_open_channel: 1u8,
+		close_channel: 2u8,
+		cancel_open_request: 6u8,
 	}
 }
 
@@ -159,7 +180,7 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	pallet_xcm_transactor::GenesisConfig::<Runtime> {
 		// match relay runtime construct_runtime order in xcm_mock::relay_chain
 		chain_indices_map: vec![(
-			MockTransactors::Relay,
+			moonriver_runtime::xcm_config::Transactors::Relay,
 			pallet_xcm_transactor::chain_indices::ChainIndices::Relay(RelayChainIndices {
 				hrmp: 6u8,
 				init_open_channel: 0u8,

@@ -25,9 +25,9 @@ parameter_types! {
 	pub RelayTransactor: Transactors = Transactors::Relay;
 	pub AssetHubTransactor: Transactors = Transactors::AssetHub;
 	pub WestendRelayIndices: pallet_xcm_transactor::chain_indices::RelayChainIndices =
-		moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES;
+		crate::genesis_config_preset::WESTEND_RELAY_INDICES;
 	pub WestendAssetHubIndices: pallet_xcm_transactor::chain_indices::AssetHubIndices =
-		moonbeam_assethub_encoder::westend::WESTEND_ASSETHUB_INDICES;
+		crate::genesis_config_preset::WESTEND_ASSETHUB_INDICES;
 }
 
 type MoonbaseMigrations = (

@@ -37,7 +37,7 @@ use xcm::latest::{
 	XcmHash,
 };
 use xcm::{IntoVersion, VersionedXcm, WrapVersion};
-use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
+use xcm_primitives::XcmTransact;
 
 use sp_std::cell::RefCell;
 use xcm_executor::{
@@ -327,17 +327,17 @@ impl XcmTransact for Transactors {
 	}
 }
 
-impl UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			Transactors::Relay | Transactors::AssetHub => match call {
-				UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
+impl xcm_primitives::UtilityEncodeCall for Transactors {
+	fn encode_call<Transactor: xcm_primitives::XcmTransact>(
+		_transactor: Transactor,
+		call: xcm_primitives::UtilityAvailableCalls,
+	) -> Vec<u8> {
+		match call {
+			xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
+				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+				call.append(&mut b.clone());
+				call
+			}
 		}
 	}
 }

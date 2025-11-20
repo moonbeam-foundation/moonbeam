@@ -56,7 +56,10 @@ impl<T: Config> Pallet<T> {
 }
 
 impl<T: Config> UtilityEncodeCall for Pallet<T> {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
+	fn encode_call<Transactor: xcm_primitives::XcmTransact>(
+		_transactor: Transactor,
+		call: UtilityAvailableCalls,
+	) -> Vec<u8> {
 		let relay_indices = Self::get_relay_indices();
 		match call {
 			UtilityAvailableCalls::AsDerivative(a, b) => {
@@ -77,7 +80,7 @@ impl<T: Config> UtilityEncodeCall for Pallet<T> {
 impl<T: Config> HrmpEncodeCall for Pallet<T> {
 	fn hrmp_encode_call(call: HrmpAvailableCalls) -> Result<Vec<u8>, xcm::latest::Error> {
 		let relay_indices = Self::get_relay_indices();
-		match call {
+		let encoded_call = match call {
 			HrmpAvailableCalls::InitOpenChannel(a, b, c) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
 				// pallet index
@@ -88,7 +91,7 @@ impl<T: Config> HrmpEncodeCall for Pallet<T> {
 				encoded_call.append(&mut a.encode());
 				encoded_call.append(&mut b.encode());
 				encoded_call.append(&mut c.encode());
-				Ok(encoded_call)
+				encoded_call
 			}
 			HrmpAvailableCalls::AcceptOpenChannel(a) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
@@ -98,7 +101,7 @@ impl<T: Config> HrmpEncodeCall for Pallet<T> {
 				encoded_call.push(relay_indices.accept_open_channel);
 				// encoded argument
 				encoded_call.append(&mut a.encode());
-				Ok(encoded_call)
+				encoded_call
 			}
 			HrmpAvailableCalls::CloseChannel(a) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
@@ -108,7 +111,7 @@ impl<T: Config> HrmpEncodeCall for Pallet<T> {
 				encoded_call.push(relay_indices.close_channel);
 				// encoded argument
 				encoded_call.append(&mut a.encode());
-				Ok(encoded_call)
+				encoded_call
 			}
 			HrmpAvailableCalls::CancelOpenRequest(a, b) => {
 				let mut encoded_call: Vec<u8> = Vec::new();
@@ -119,9 +122,11 @@ impl<T: Config> HrmpEncodeCall for Pallet<T> {
 				// encoded argument
 				encoded_call.append(&mut a.encode());
 				encoded_call.append(&mut b.encode());
-				Ok(encoded_call)
+				encoded_call
 			}
-		}
+		};
+
+		Ok(encoded_call)
 	}
 }
 
@@ -161,116 +166,7 @@ impl<T: Config> Pallet<T> {
 	#[deprecated(note = "Use StakeEncodeCall::encode_call with transactor parameter instead")]
 	pub fn encode_call_legacy(call: AvailableStakeCalls) -> Vec<u8> {
 		let relay_indices = Self::get_relay_indices();
-		match call {
-			AvailableStakeCalls::Bond(b, c) => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(relay_indices.staking);
-				// call index
-				encoded_call.push(relay_indices.bond);
-				// encoded arguments
-				encoded_call.append(&mut encode_compact_arg(b));
-				encoded_call.append(&mut c.encode());
-				encoded_call
-			}
-
-			AvailableStakeCalls::BondExtra(a) => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(relay_indices.staking);
-				// call index
-				encoded_call.push(relay_indices.bond_extra);
-				// encoded argument
-				encoded_call.append(&mut encode_compact_arg(a));
-				encoded_call
-			}
-
-			AvailableStakeCalls::Unbond(a) => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(relay_indices.staking);
-				// call index
-				encoded_call.push(relay_indices.unbond);
-				// encoded argument
-				encoded_call.append(&mut encode_compact_arg(a));
-				encoded_call
-			}
-
-			AvailableStakeCalls::WithdrawUnbonded(a) => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(relay_indices.staking);
-				// call index
-				encoded_call.push(relay_indices.withdraw_unbonded);
-				// encoded argument
-				encoded_call.append(&mut a.encode());
-				encoded_call
-			}
-
-			AvailableStakeCalls::Validate(a) => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(relay_indices.staking);
-				// call index
-				encoded_call.push(relay_indices.validate);
-				// encoded argument
-				encoded_call.append(&mut a.encode());
-				encoded_call
-			}
-
-			AvailableStakeCalls::Chill => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(relay_indices.staking);
-				// call index
-				encoded_call.push(relay_indices.chill);
-				encoded_call
-			}
-
-			AvailableStakeCalls::SetPayee(a) => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(relay_indices.staking);
-				// call index
-				encoded_call.push(relay_indices.set_payee);
-				// encoded argument
-				encoded_call.append(&mut a.encode());
-				encoded_call
-			}
-
-			AvailableStakeCalls::SetController => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(relay_indices.staking);
-				// call index
-				encoded_call.push(relay_indices.set_controller);
-				encoded_call
-			}
-
-			AvailableStakeCalls::Rebond(a) => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(relay_indices.staking);
-				// call index
-				encoded_call.push(relay_indices.rebond);
-				// encoded argument
-				encoded_call.append(&mut encode_compact_arg(a));
-				encoded_call
-			}
-
-			AvailableStakeCalls::Nominate(a) => {
-				let mut encoded_call: Vec<u8> = Vec::new();
-				// pallet index
-				encoded_call.push(relay_indices.staking);
-				// call index
-				encoded_call.push(relay_indices.nominate);
-				let nominated: Vec<
-					<AccountIdLookup<sp_runtime::AccountId32, ()> as StaticLookup>::Source,
-				> = a.iter().map(|add| (*add).clone().into()).collect();
-				encoded_call.append(&mut nominated.encode());
-				encoded_call
-			}
-		}
+		Self::encode_relay_stake_call(&relay_indices, call)
 	}
 }
 

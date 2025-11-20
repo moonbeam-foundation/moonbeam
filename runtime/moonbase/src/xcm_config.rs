@@ -65,8 +65,7 @@ use frame_support::traits::Disabled;
 use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation,
-	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
-	UtilityEncodeCall, XcmTransact,
+	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20,
 };
 
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
@@ -636,7 +635,7 @@ parameter_types! {
 pub enum Transactors {
 	/// Relay Chain (Westend for Moonbase)
 	Relay,
-	/// AssetHub system parachain (para 1000)
+	/// AssetHub system parachain
 	AssetHub,
 }
 
@@ -659,28 +658,22 @@ impl TryFrom<u8> for Transactors {
 	}
 }
 
-impl UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			Transactors::Relay => pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-				pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
-				call,
-			),
-			Transactors::AssetHub => pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-				pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
-				call,
-			),
-		}
+impl xcm_primitives::UtilityEncodeCall for Transactors {
+	fn encode_call<Transactor: xcm_primitives::XcmTransact>(
+		transactor: Transactor,
+		call: xcm_primitives::UtilityAvailableCalls,
+	) -> Vec<u8> {
+		pallet_xcm_transactor::Pallet::<Runtime>::encode_call(transactor, call)
 	}
 }
 
-impl XcmTransact for Transactors {
+impl xcm_primitives::XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
 			Transactors::Relay => Location::parent(),
 			Transactors::AssetHub => Location {
 				parents: 1,
-				interior: [Parachain(1000)].into(),
+				interior: [Parachain(1001)].into(),
 			},
 		}
 	}

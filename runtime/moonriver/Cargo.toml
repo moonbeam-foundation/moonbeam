@@ -25,8 +25,6 @@ strum_macros = { workspace = true }
 # Moonbeam
 account = { workspace = true }
 ethereum = { workspace = true }
-moonbeam-assethub-encoder = { workspace = true }
-moonbeam-relay-encoder = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
 session-keys-primitives = { workspace = true }
@@ -237,9 +235,7 @@ std = [
 	"frame-support/std",
 	"frame-system-rpc-runtime-api/std",
 	"frame-system/std",
-	"moonbeam-assethub-encoder/std",
 	"moonbeam-core-primitives/std",
-	"moonbeam-relay-encoder/std",
 	"moonbeam-evm-tracer/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",

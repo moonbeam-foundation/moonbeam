@@ -26,6 +26,7 @@ use frame_support::{
 use pallet_evm::{
 	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, GasWeightMapping,
 };
+
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use precompile_utils::{
 	mock_account,
@@ -406,16 +407,16 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 }
 
 impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay | MockTransactors::AssetHub => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
+	fn encode_call<Transactor: xcm_primitives::XcmTransact>(
+		_transactor: Transactor,
+		call: xcm_primitives::UtilityAvailableCalls,
+	) -> Vec<u8> {
+		match call {
+			xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
+				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+				call.append(&mut b.clone());
+				call
+			}
 		}
 	}
 }

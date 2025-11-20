@@ -7090,10 +7090,8 @@ dependencies = [
  "hex",
  "hex-literal",
  "log",
- "moonbeam-assethub-encoder",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
- "moonbeam-relay-encoder",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
@@ -7225,21 +7223,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "moonbeam-assethub-encoder"
-version = "0.1.0"
-dependencies = [
- "moonbase-runtime",
- "pallet-staking",
- "pallet-xcm-transactor",
- "parity-scale-codec",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "staging-xcm",
- "xcm-primitives 0.1.1",
-]
-
-[[package]]
 name = "moonbeam-cli"
 version = "0.49.0"
 dependencies = [
@@ -7355,27 +7338,6 @@ dependencies = [
  "parity-scale-codec",
  "sp-runtime-interface",
  "sp-std",
-]
-
-[[package]]
-name = "moonbeam-relay-encoder"
-version = "0.1.0"
-dependencies = [
- "cumulus-primitives-core",
- "frame-support",
- "frame-system",
- "moonbase-runtime",
- "pallet-staking",
- "pallet-utility",
- "pallet-xcm-transactor",
- "parity-scale-codec",
- "polkadot-runtime-parachains",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "staging-xcm",
- "westend-runtime",
- "xcm-primitives 0.1.1",
 ]
 
 [[package]]
@@ -7531,10 +7493,8 @@ dependencies = [
  "hex",
  "hex-literal",
  "log",
- "moonbeam-assethub-encoder",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
- "moonbeam-relay-encoder",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
@@ -7868,10 +7828,8 @@ dependencies = [
  "hex",
  "hex-literal",
  "log",
- "moonbeam-assethub-encoder",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
- "moonbeam-relay-encoder",
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",

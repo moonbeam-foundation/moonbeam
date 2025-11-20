@@ -49,10 +49,12 @@ type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 type GetRewardDestinationSizeLimit = ConstU32<REWARD_DESTINATION_SIZE_LIMIT>;
 
 /// A precompile to provide relay stake calls encoding through evm
-pub struct RelayEncoderPrecompile<Runtime>(PhantomData<Runtime>);
+pub struct RelayEncoderPrecompile<Runtime, StakingTransactor>(
+	PhantomData<(Runtime, StakingTransactor)>,
+);
 
 #[precompile_utils::precompile]
-impl<Runtime> RelayEncoderPrecompile<Runtime>
+impl<Runtime, StakingTransactor> RelayEncoderPrecompile<Runtime, StakingTransactor>
 where
 	Runtime: pallet_evm::Config + pallet_xcm_transactor::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,

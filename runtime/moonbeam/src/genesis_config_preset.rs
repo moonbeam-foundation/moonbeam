@@ -47,6 +47,57 @@ const BLOCKS_PER_ROUND: u32 = 6 * HOURS;
 const BLOCKS_PER_YEAR: u32 = 31_557_600 / 12;
 const NUM_SELECTED_CANDIDATES: u32 = 8;
 
+/// Polkadot pallet and extrinsic indices
+pub const POLKADOT_RELAY_INDICES: pallet_xcm_transactor::chain_indices::RelayChainIndices =
+	pallet_xcm_transactor::chain_indices::RelayChainIndices {
+		staking: 7u8,
+		utility: 26u8,
+		hrmp: 60u8,
+		bond: 0u8,
+		bond_extra: 1u8,
+		unbond: 2u8,
+		withdraw_unbonded: 3u8,
+		validate: 4u8,
+		nominate: 5u8,
+		chill: 6u8,
+		set_payee: 7u8,
+		set_controller: 8u8,
+		rebond: 19u8,
+		as_derivative: 1u8,
+		init_open_channel: 0u8,
+		accept_open_channel: 1u8,
+		close_channel: 2u8,
+		cancel_open_request: 6u8,
+	};
+
+/// Polkadot AssetHub pallet and extrinsic indices
+pub const POLKADOT_ASSETHUB_INDICES: pallet_xcm_transactor::chain_indices::AssetHubIndices =
+	pallet_xcm_transactor::chain_indices::AssetHubIndices {
+		utility: 40,
+		proxy: 42,
+		staking: 89,
+		nomination_pools: 80,
+		delegated_staking: 83,
+		assets: 50,
+		nfts: 52,
+		as_derivative: 1,
+		batch: 0,
+		batch_all: 2,
+		proxy_call: 0,
+		add_proxy: 1,
+		remove_proxy: 2,
+		bond: 0,
+		bond_extra: 1,
+		unbond: 2,
+		withdraw_unbonded: 3,
+		validate: 4,
+		nominate: 5,
+		chill: 6,
+		set_payee: 7,
+		set_controller: 8,
+		rebond: 19,
+	};
+
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
 		use pallet_parachain_staking::inflation::perbill_annual_to_perbill_round;
@@ -247,13 +298,13 @@ pub fn testnet_genesis(
 				(
 					Transactors::Relay,
 					pallet_xcm_transactor::chain_indices::ChainIndices::Relay(
-						moonbeam_relay_encoder::polkadot::POLKADOT_RELAY_INDICES,
+						POLKADOT_RELAY_INDICES,
 					),
 				),
 				(
 					Transactors::AssetHub,
 					pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
-						moonbeam_assethub_encoder::polkadot::POLKADOT_ASSETHUB_INDICES,
+						POLKADOT_ASSETHUB_INDICES,
 					),
 				),
 			],
