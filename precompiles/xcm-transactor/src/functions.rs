@@ -37,9 +37,7 @@ use sp_std::{
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
 use xcm::latest::Location;
-use xcm_primitives::{
-	AccountIdToCurrencyId, UtilityAvailableCalls, UtilityEncodeCall, DEFAULT_PROOF_SIZE,
-};
+use xcm_primitives::{AccountIdToCurrencyId, UtilityAvailableCalls, DEFAULT_PROOF_SIZE};
 
 /// A precompile to wrap the functionality from xcm transactor
 pub struct XcmTransactorWrapper<Runtime>(PhantomData<Runtime>);
@@ -530,7 +528,7 @@ where
 			.try_into()
 			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
 
-		let encoded = <pallet_xcm_transactor::Pallet<Runtime> as UtilityEncodeCall>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_utility_call(
 			transactor,
 			UtilityAvailableCalls::AsDerivative(index, inner_call.into()),
 		)

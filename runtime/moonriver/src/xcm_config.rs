@@ -688,11 +688,8 @@ impl TryFrom<u8> for Transactors {
 }
 
 impl xcm_primitives::UtilityEncodeCall for Transactors {
-	fn encode_call<Transactor: xcm_primitives::XcmTransact>(
-		transactor: Transactor,
-		call: xcm_primitives::UtilityAvailableCalls,
-	) -> Vec<u8> {
-		pallet_xcm_transactor::Pallet::<Runtime>::encode_call(transactor, call)
+	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		pallet_xcm_transactor::Pallet::<Runtime>::encode_utility_call(self, call)
 	}
 }
 

@@ -25,8 +25,7 @@ use frame_support::pallet_prelude::*;
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_std::prelude::*;
 use xcm_primitives::{
-	AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, StakeEncodeCall,
-	UtilityAvailableCalls, UtilityEncodeCall,
+	AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, StakeEncodeCall, UtilityAvailableCalls,
 };
 
 pub use crate::pallet::*;
@@ -55,8 +54,8 @@ impl<T: Config> Pallet<T> {
 	}
 }
 
-impl<T: Config> UtilityEncodeCall for Pallet<T> {
-	fn encode_call<Transactor: xcm_primitives::XcmTransact>(
+impl<T: Config> Pallet<T> {
+	pub fn encode_utility_call<Transactor: xcm_primitives::XcmTransact>(
 		_transactor: Transactor,
 		call: UtilityAvailableCalls,
 	) -> Vec<u8> {

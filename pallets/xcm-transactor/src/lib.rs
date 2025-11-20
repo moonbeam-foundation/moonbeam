@@ -121,7 +121,7 @@ pub mod pallet {
 	use xcm_executor::traits::{TransactAsset, WeightBounds};
 	use xcm_primitives::{
 		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, Reserve, UtilityAvailableCalls,
-		UtilityEncodeCall, XcmTransact,
+		XcmTransact,
 	};
 
 	#[pallet::pallet]
@@ -618,7 +618,7 @@ pub mod pallet {
 
 			// Encode call bytes
 			// We make sure the inner call is wrapped on a as_derivative dispatchable
-			let call_bytes: Vec<u8> = <Self as UtilityEncodeCall>::encode_call(
+			let call_bytes: Vec<u8> = Self::encode_utility_call(
 				dest.clone(),
 				UtilityAvailableCalls::AsDerivative(index, inner_call),
 			);
