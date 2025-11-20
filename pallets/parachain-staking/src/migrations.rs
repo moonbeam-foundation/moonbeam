@@ -118,7 +118,7 @@ pub struct MigrateDelegationScheduledRequestsToDoubleMap<T>(sp_std::marker::Phan
 
 impl<T: Config> OnRuntimeUpgrade for MigrateDelegationScheduledRequestsToDoubleMap<T> {
 	fn on_runtime_upgrade() -> Weight {
-		use frame_support::storage::migration::{clear_storage_prefix, storage_key_iter};
+		use frame_support::storage::migration::storage_key_iter;
 
 		type OldScheduledRequests<T> = frame_support::BoundedVec<
 			ScheduledRequest<<T as frame_system::Config>::AccountId, BalanceOf<T>>,
@@ -146,28 +146,15 @@ impl<T: Config> OnRuntimeUpgrade for MigrateDelegationScheduledRequestsToDoubleM
 		// Clear all existing keys for DelegationScheduledRequests to avoid mixing
 		// old layout entries with the new double-map layout.
 		//
-		// It is safe to clear all existing keys for `DelegationScheduledRequests` in one call because
-		// there can only be at most `MaxCandidates` items with this prefix. `MaxCandidates` is set to 200,
-		// which is well within the range of what can be safely removed in a single block without
-		// risking exceeding block weight limits.
-		//
-		// We loop until the cursor returned by `clear_storage_prefix` is `None`, which means
-		// the prefix has been fully cleared. This both respects the API contract and makes
-		// sure the `MultiRemovalResults` return value is actually used (no `must_use` warning).
-		let mut cursor: Option<Vec<u8>> = None;
-		loop {
-			let removal_result = clear_storage_prefix(
-				b"ParachainStaking",
-				b"DelegationScheduledRequests",
-				&[],
-				None,
-				cursor.as_deref(),
-			);
-			cursor = removal_result.maybe_cursor;
-			if cursor.is_none() {
-				break;
-			}
-		}
+		// We use the low-level `sp_io::storage::clear_prefix` on the full storage prefix so
+		// that *all* existing keys under `ParachainStaking::DelegationScheduledRequests`
+		// (from the legacy single-map layout) are removed before we insert the new keys for
+		// the double-map layout.
+		let prefix = frame_support::storage::storage_prefix(
+			b"ParachainStaking",
+			b"DelegationScheduledRequests",
+		);
+		let _ = frame_support::storage::unhashed::clear_prefix(&prefix, None, None);
 
 		// Rebuild storage using the new layout and initialize the per-collator counters.
 		for (collator, old_requests) in entries.into_iter() {
