@@ -33,7 +33,7 @@ use sp_runtime::{traits::Dispatchable, AccountId32, Perbill};
 use sp_std::vec::Vec;
 use sp_std::{convert::TryInto, marker::PhantomData};
 use xcm_primitives::{
-	AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, RelayChainTransactor, StakeEncodeCall,
+	AvailableStakeCalls, HrmpAvailableCalls, HrmpEncodeCall, RelayChainTransactor,
 };
 
 #[cfg(test)]
@@ -75,7 +75,7 @@ where
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let reward_destination = reward_destination.into();
 
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Bond(relay_amount, reward_destination),
 		)
@@ -98,7 +98,7 @@ where
 		handle.record_cost(1000)?;
 
 		let relay_amount = u256_to_relay_amount(amount)?;
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::BondExtra(relay_amount),
 		)
@@ -122,7 +122,7 @@ where
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Unbond(relay_amount),
 		)
@@ -144,7 +144,7 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::WithdrawUnbonded(slashes),
 		)
@@ -168,7 +168,7 @@ where
 		handle.record_cost(1000)?;
 
 		let fraction = Perbill::from_parts(commission.converted());
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Validate(pallet_staking::ValidatorPrefs {
 				commission: fraction,
@@ -201,7 +201,7 @@ where
 				as_bytes.into()
 			})
 			.collect();
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Nominate(nominated),
 		)
@@ -220,7 +220,7 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Chill,
 		)
@@ -244,7 +244,7 @@ where
 
 		let reward_destination = reward_destination.into();
 
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::SetPayee(reward_destination),
 		)
@@ -263,7 +263,7 @@ where
 		// To prevent spam, we charge an arbitrary amount of gas
 		handle.record_cost(1000)?;
 
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::SetController,
 		)
@@ -286,7 +286,7 @@ where
 		handle.record_cost(1000)?;
 
 		let relay_amount = u256_to_relay_amount(amount)?;
-		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
+		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
 			<Runtime as pallet_xcm_transactor::Config>::Transactor::relay(),
 			AvailableStakeCalls::Rebond(relay_amount),
 		)

@@ -82,10 +82,10 @@ pub enum AvailableStakeCalls {
 	Rebond(relay_chain::Balance),
 }
 
-pub trait StakeEncodeCall<Transactor> {
+pub trait StakeEncodeCall {
 	/// Encode staking call for a specific chain destination (Relay or AssetHub)
 	/// Returns an error if the transactor is not configured properly
-	fn encode_call(transactor: Transactor, call: AvailableStakeCalls) -> Result<Vec<u8>, XcmError>;
+	fn encode_call(self, call: AvailableStakeCalls) -> Result<Vec<u8>, XcmError>;
 }
 
 /// Trait to provide the Relay chain transactor value

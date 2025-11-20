@@ -680,6 +680,15 @@ impl xcm_primitives::UtilityEncodeCall for Transactors {
 	}
 }
 
+impl xcm_primitives::StakeEncodeCall for Transactors {
+	fn encode_call(
+		self,
+		call: xcm_primitives::AvailableStakeCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(self, call)
+	}
+}
+
 impl xcm_primitives::XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
