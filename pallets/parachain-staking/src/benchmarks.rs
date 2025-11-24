@@ -21,7 +21,7 @@ use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, CandidatePool,
 	Config, DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
 	InflationDistributionConfig, InflationDistributionInfo, Pallet, Points, Range, RewardPayment,
-	Round, ScheduledRequest, TopDelegations, MAX_ACCOUNTS_PER_MIGRATION_BATCH,
+	Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::v2::*;
 use frame_support::traits::tokens::fungible::{Inspect, Mutate};
