@@ -84,10 +84,10 @@ describeSuite({
           return;
         }
 
-        const psQuery: any = api.query.parachainStaking;
+        const psQueryBefore: any = api.query.parachainStaking;
 
         // 1. Capture the pre-upgrade DelegationScheduledRequests layout (single map).
-        const oldEntries = await psQuery.delegationScheduledRequests.entries();
+        const oldEntries = await psQueryBefore.delegationScheduledRequests.entries();
         let totalOldRequests = 0;
         for (const [, boundedVec] of oldEntries as any) {
           const requestsJson = (boundedVec as any).toJSON() as any[];
@@ -115,7 +115,12 @@ describeSuite({
         //      - The total number of scheduled requests is preserved.
         //      - DelegationScheduledRequestsPerCollator matches the number of
         //        delegators with pending requests per collator.
-        const newEntries = await psQuery.delegationScheduledRequests.entries();
+        //    IMPORTANT: reacquire the storage query handle *after* the upgrade so that
+        //    polkadot-js uses the upgraded metadata and interprets the layout as a
+        //    double map. Reusing the pre-upgrade handle can cause keys to be decoded
+        //    with the old (single-map) layout, effectively double-counting entries.
+        const psQueryAfter: any = api.query.parachainStaking;
+        const newEntries = await psQueryAfter.delegationScheduledRequests.entries();
         let totalNewRequests = 0;
         for (const [, boundedVec] of newEntries as any) {
           const requestsJson = (boundedVec as any).toJSON() as any[];
@@ -125,14 +130,18 @@ describeSuite({
         log(
           `Post-upgrade DelegationScheduledRequests entries (requests): ${totalNewRequests} (was ${totalOldRequests} before upgrade)`
         );
+        expect(totalNewRequests).to.equal(
+          totalOldRequests,
+          "Total number of scheduled delegation requests should be preserved by the migration"
+        );
 
         // 3b. Verify DelegationScheduledRequestsPerCollator matches the number
         //     of delegators with pending requests per collator. After the
         //     migration, each storage key in the double map corresponds to one
         //     unique (collator, delegator) pair, so the sum of all per-collator
         //     counters should equal the number of double-map entries.
-        const psQueryAfter: any = api.query.parachainStaking;
-        const perCollatorCounterQuery: any = psQueryAfter.delegationScheduledRequestsPerCollator;
+        const perCollatorCounterQuery: any =
+          psQueryAfter.delegationScheduledRequestsPerCollator;
         if (!perCollatorCounterQuery || !perCollatorCounterQuery.entries) {
           // If the upgraded runtime does not expose the per-collator counter storage,
           // we cannot check this invariant here.
