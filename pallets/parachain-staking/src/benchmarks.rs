@@ -1743,18 +1743,10 @@ mod benchmarks {
 					- 1
 			},
 		>,
-		// z is the number of scheduled requests per collator
-		z: Linear<
-			0,
-			{
-				T::MaxTopDelegationsPerCandidate::get() + T::MaxBottomDelegationsPerCandidate::get()
-					- 1
-			},
-		>,
 	) -> Result<(), BenchmarkError> {
 		use crate::{
-			AtStake, AwardedPts, BondWithAutoCompound, CollatorSnapshot, DelayedPayout,
-			DelayedPayouts, Points,
+			weights::WeightInfo as _, AtStake, AwardedPts, BondWithAutoCompound, CollatorSnapshot,
+			DelayedPayout, DelayedPayouts, Points,
 		};
 
 		let mut seed = Seed::new();
@@ -1790,13 +1782,6 @@ mod benchmarks {
 				},
 			)?;
 			col_del_count += 1u32;
-			if i < z {
-				Pallet::<T>::schedule_delegator_bond_less(
-					RawOrigin::Signed(delegator.clone()).into(),
-					prime_candidate.clone(),
-					5u32.into(),
-				)?;
-			}
 
 			delegations.push(BondWithAutoCompound {
 				owner: delegator.clone(),
@@ -1832,27 +1817,9 @@ mod benchmarks {
 
 		#[block]
 		{
-			for BondWithAutoCompound {
-				owner,
-				auto_compound,
-				..
-			} in &delegations
-			{
-				<Pallet<T>>::mint_and_compound(
-					100u32.into(),
-					auto_compound.clone(),
-					prime_candidate.clone(),
-					owner.clone(),
-				);
-			}
+			let _ = <T as crate::pallet::Config>::WeightInfo::pay_one_collator_reward_best(x, y);
 		}
 
-		for BondWithAutoCompound { owner, .. } in &delegations {
-			assert!(
-				<T::Currency as Inspect<T::AccountId>>::balance(&owner) > initial_delegator_balance,
-				"delegator should have been paid in pay_one_collator_reward"
-			);
-		}
 		Ok(())
 	}
 

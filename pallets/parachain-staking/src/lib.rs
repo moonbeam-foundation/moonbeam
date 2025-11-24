@@ -2113,9 +2113,6 @@ pub mod pallet {
 				let num_delegators = state.delegations.len();
 				let mut num_paid_delegations = 0u32;
 				let mut num_auto_compounding = 0u32;
-				// We no longer derive the exact number of scheduled requests here; this
-				// parameter is only used for weight accounting.
-				let num_scheduled_requests: u32 = 0;
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
 					extra_weight = extra_weight
@@ -2173,7 +2170,6 @@ pub mod pallet {
 					<T as Config>::WeightInfo::pay_one_collator_reward_best(
 						num_paid_delegations,
 						num_auto_compounding,
-						num_scheduled_requests,
 					),
 				);
 

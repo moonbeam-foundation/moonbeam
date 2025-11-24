@@ -601,8 +601,7 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 	/// Proof: `ParachainStaking::BottomDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[0, 349]`.
 	/// The range of component `y` is `[0, 349]`.
-	/// The range of component `z` is `[0, 349]`.
-	fn pay_one_collator_reward_best(x: u32, y: u32, z: u32, ) -> Weight {
+	fn pay_one_collator_reward_best(x: u32, y: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0 + x * (387 ±0) + y * (148 ±0) + z * (41 ±0)`
 		//  Estimated: `123445 + x * (2591 ±7) + y * (2234 ±20) + z * (28 ±0)`
@@ -618,7 +617,6 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 			.saturating_add(T::DbWeight::get().writes((2_u64).saturating_mul(y.into())))
 			.saturating_add(Weight::from_parts(0, 2591).saturating_mul(x.into()))
 			.saturating_add(Weight::from_parts(0, 2234).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(0, 28).saturating_mul(z.into()))
 	}
 	/// Storage: `ParachainStaking::DelayedPayouts` (r:1 w:0)
 	/// Proof: `ParachainStaking::DelayedPayouts` (`max_values`: None, `max_size`: None, mode: `Measured`)
