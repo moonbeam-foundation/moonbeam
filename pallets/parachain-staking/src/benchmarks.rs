@@ -18,15 +18,14 @@
 
 //! Benchmarking
 use crate::{
-	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, CandidatePool,
-	Config, DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
+	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
+	DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
 	InflationDistributionConfig, InflationDistributionInfo, Pallet, Points, Range, RewardPayment,
 	Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::v2::*;
 use frame_support::traits::tokens::fungible::{Inspect, Mutate};
-use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
-use frame_support::{traits::ConstU32, BoundedVec};
+use frame_support::traits::{Get, OnFinalize, OnInitialize};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
 use sp_runtime::{Perbill, Percent};
 use sp_std::vec::Vec;
@@ -2274,7 +2273,7 @@ mod benchmarks {
 	fn mint_collator_reward() -> Result<(), BenchmarkError> {
 		let mut seed = Seed::new();
 		let collator = create_funded_collator::<T>("collator", seed.take(), 0u32.into(), true, 1)?;
-		let original_free_balance = T::Currency::free_balance(&collator);
+		let original_free_balance = T::Currency::balance(&collator);
 
 		#[block]
 		{
@@ -2282,7 +2281,7 @@ mod benchmarks {
 		}
 
 		assert_eq!(
-			T::Currency::free_balance(&collator),
+			T::Currency::balance(&collator),
 			original_free_balance + 50u32.into()
 		);
 		Ok(())
