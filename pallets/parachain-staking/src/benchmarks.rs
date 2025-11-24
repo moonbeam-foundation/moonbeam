@@ -85,34 +85,6 @@ fn create_funded_delegator<T: Config>(
 		0u32, // first delegation for all calls
 	)?;
 
-	// TODO: Remove this once the lazy migration is complete.
-	{
-		// Downgrade to pre-migration state for lazy migration benchmarking
-		use crate::{FreezeReason, MigratedDelegators, DELEGATOR_LOCK_ID};
-		use frame_support::traits::{
-			fungible::{InspectFreeze, MutateFreeze},
-			LockableCurrency, WithdrawReasons,
-		};
-
-		// 1. Get the frozen amount
-		let frozen_amount =
-			T::Currency::balance_frozen(&FreezeReason::StakingDelegator.into(), &user);
-
-		// 2. Thaw the freeze
-		let _ = T::Currency::thaw(&FreezeReason::StakingDelegator.into(), &user);
-
-		// 3. Set old-style lock
-		T::Currency::set_lock(
-			DELEGATOR_LOCK_ID,
-			&user,
-			frozen_amount,
-			WithdrawReasons::all(),
-		);
-
-		// 4. Remove from migration tracking to trigger migration on next operation
-		MigratedDelegators::<T>::remove(&user);
-	}
-
 	Ok(user)
 }
 
@@ -227,34 +199,6 @@ fn create_funded_collator<T: Config>(
 		bond,
 		candidate_count,
 	)?;
-
-	// TODO: Remove this once the lazy migration is complete.
-	{
-		// Downgrade to pre-migration state for lazy migration benchmarking
-		use crate::{FreezeReason, MigratedCandidates, COLLATOR_LOCK_ID};
-		use frame_support::traits::{
-			fungible::{InspectFreeze, MutateFreeze},
-			LockableCurrency, WithdrawReasons,
-		};
-
-		// 1. Get the frozen amount
-		let frozen_amount =
-			T::Currency::balance_frozen(&FreezeReason::StakingCollator.into(), &user);
-
-		// 2. Thaw the freeze
-		let _ = T::Currency::thaw(&FreezeReason::StakingCollator.into(), &user);
-
-		// 3. Set old-style lock
-		T::Currency::set_lock(
-			COLLATOR_LOCK_ID,
-			&user,
-			frozen_amount,
-			WithdrawReasons::all(),
-		);
-
-		// 4. Remove from migration tracking to trigger migration on next operation
-		MigratedCandidates::<T>::remove(&user);
-	}
 
 	Ok(user)
 }
