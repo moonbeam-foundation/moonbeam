@@ -140,8 +140,7 @@ describeSuite({
         //     migration, each storage key in the double map corresponds to one
         //     unique (collator, delegator) pair, so the sum of all per-collator
         //     counters should equal the number of double-map entries.
-        const perCollatorCounterQuery: any =
-          psQueryAfter.delegationScheduledRequestsPerCollator;
+        const perCollatorCounterQuery: any = psQueryAfter.delegationScheduledRequestsPerCollator;
         if (!perCollatorCounterQuery || !perCollatorCounterQuery.entries) {
           // If the upgraded runtime does not expose the per-collator counter storage,
           // we cannot check this invariant here.
