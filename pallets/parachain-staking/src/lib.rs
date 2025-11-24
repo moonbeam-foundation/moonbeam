@@ -2345,21 +2345,29 @@ pub mod pallet {
 					continue;
 				}
 
-				if scheduled_requests
-					.iter()
-					.any(|req| matches!(req.action, DelegationAction::Revoke(_)))
-				{
+				// Compute in a single pass whether any revoke exists and, if not,
+				// the total amount of all decreases.
+				let (has_revoke, total) = scheduled_requests.iter().fold(
+					(false, BalanceOf::<T>::zero()),
+					|(has_revoke, total), req| {
+						let has_revoke =
+							has_revoke || matches!(req.action, DelegationAction::Revoke(_));
+						let total = if has_revoke {
+							// Once a revoke is present, we ignore the accumulated decrease total.
+							BalanceOf::<T>::zero()
+						} else {
+							total.saturating_add(req.action.amount())
+						};
+						(has_revoke, total)
+					},
+				);
+
+				if has_revoke {
 					// Amount is irrelevant for revokes in this context, since we always
 					// zero out the bond and account the full previous stake as uncounted.
 					requests.insert(delegator, DelegationAction::Revoke(BalanceOf::<T>::zero()));
-				} else {
-					let mut total: BalanceOf<T> = BalanceOf::<T>::zero();
-					for req in scheduled_requests.iter() {
-						total = total.saturating_add(req.action.amount());
-					}
-					if !total.is_zero() {
-						requests.insert(delegator, DelegationAction::Decrease(total));
-					}
+				} else if !total.is_zero() {
+					requests.insert(delegator, DelegationAction::Decrease(total));
 				}
 			}
 			let mut uncounted_stake = BalanceOf::<T>::zero();
