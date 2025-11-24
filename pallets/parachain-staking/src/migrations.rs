@@ -164,7 +164,7 @@ impl<T: Config> OnRuntimeUpgrade for MigrateDelegationScheduledRequestsToDoubleM
 				let delegator = request.delegator.clone();
 				let mut new_vec: frame_support::BoundedVec<
 					ScheduledRequest<<T as frame_system::Config>::AccountId, BalanceOf<T>>,
-					frame_support::traits::ConstU32<50>,
+					<T as crate::pallet::Config>::MaxScheduledRequestsPerDelegator,
 				> = Default::default();
 
 				if new_vec.try_push(request).is_err() {

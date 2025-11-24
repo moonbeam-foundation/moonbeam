@@ -172,6 +172,9 @@ pub mod pallet {
 		/// Maximum delegations per delegator
 		#[pallet::constant]
 		type MaxDelegationsPerDelegator: Get<u32>;
+		/// Maximum number of scheduled delegation requests per (collator, delegator).
+		#[pallet::constant]
+		type MaxScheduledRequestsPerDelegator: Get<u32>;
 		/// Minimum stake required for any account to be a collator candidate
 		#[pallet::constant]
 		type MinCandidateStk: Get<BalanceOf<Self>>;
@@ -589,7 +592,8 @@ pub mod pallet {
 
 	/// Stores outstanding delegation requests per collator & delegator.
 	///
-	/// Each `(collator, delegator)` pair can have up to 50 scheduled requests,
+	/// Each `(collator, delegator)` pair can have up to
+	/// `T::MaxScheduledRequestsPerDelegator` scheduled requests,
 	/// which are always interpreted and executed in FIFO order.
 	#[pallet::storage]
 	#[pallet::getter(fn delegation_scheduled_requests)]
@@ -599,7 +603,10 @@ pub mod pallet {
 		T::AccountId,
 		Blake2_128Concat,
 		T::AccountId,
-		BoundedVec<ScheduledRequest<T::AccountId, BalanceOf<T>>, ConstU32<50>>,
+		BoundedVec<
+			ScheduledRequest<T::AccountId, BalanceOf<T>>,
+			T::MaxScheduledRequestsPerDelegator,
+		>,
 		ValueQuery,
 	>;
 

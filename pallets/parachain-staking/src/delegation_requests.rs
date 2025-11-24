@@ -25,7 +25,7 @@ use crate::weights::WeightInfo;
 use crate::{auto_compound::AutoCompoundDelegations, Delegator};
 use frame_support::dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostInfo};
 use frame_support::ensure;
-use frame_support::traits::{ConstU32, Get};
+use frame_support::traits::Get;
 use frame_support::BoundedVec;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use scale_info::TypeInfo;
@@ -317,7 +317,7 @@ impl<T: Config> Pallet<T> {
 		state: &mut Delegator<T::AccountId, BalanceOf<T>>,
 		scheduled_requests: &mut BoundedVec<
 			ScheduledRequest<T::AccountId, BalanceOf<T>>,
-			ConstU32<50>,
+			T::MaxScheduledRequestsPerDelegator,
 		>,
 	) -> Option<ScheduledRequest<T::AccountId, BalanceOf<T>>> {
 		let request = scheduled_requests.get(0).cloned()?;
@@ -609,8 +609,10 @@ mod tests {
 			less_total: 100,
 			status: crate::DelegatorStatus::Active,
 		};
-		let mut scheduled_requests: BoundedVec<ScheduledRequest<u64, u128>, ConstU32<50>> =
-			BoundedVec::default();
+		let mut scheduled_requests: BoundedVec<
+			ScheduledRequest<u64, u128>,
+			<Test as crate::pallet::Config>::MaxScheduledRequestsPerDelegator,
+		> = BoundedVec::default();
 		let removed_request =
 			<Pallet<Test>>::cancel_request_with_state(&mut state, &mut scheduled_requests);
 
