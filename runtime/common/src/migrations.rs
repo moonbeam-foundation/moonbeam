@@ -17,10 +17,10 @@
 //! # Common Moonbeam Migrations
 
 use core::marker::PhantomData;
+use frame_support::migrations::SteppedMigration;
 use frame_support::migrations::SteppedMigrationError;
 use frame_support::traits::PalletInfoAccess;
 use frame_support::weights::WeightMeter;
-use frame_support::{migrations::SteppedMigration, parameter_types};
 use pallet_migrations::WeightInfo;
 use parity_scale_codec::Encode;
 use sp_core::{twox_128, Get};
@@ -286,9 +286,6 @@ pub type SingleBlockMigrations<Runtime> = (
 );
 
 parameter_types! {
-	pub const AssetManagerPalletName: &'static str = "AssetManager";
-	pub const AssetsPalletName: &'static str = "Assets";
-
 	pub const MigratedCandidatesStorageName: &'static str = "MigratedCandidates";
 	pub const MigratedDelegatorsStorageName: &'static str = "MigratedDelegators";
 }
@@ -296,8 +293,6 @@ parameter_types! {
 /// List of common multiblock migrations to be executed by the pallet_multiblock_migrations.
 /// The migrations listed here are common to every moonbeam runtime.
 pub type MultiBlockMigrations<Runtime> = (
-	RemovePallet<Runtime, AssetManagerPalletName>,
-	RemovePallet<Runtime, AssetsPalletName>,
 	ResetStorage<Runtime, pallet_parachain_staking::Pallet<Runtime>, MigratedCandidatesStorageName>,
 	ResetStorage<Runtime, pallet_parachain_staking::Pallet<Runtime>, MigratedDelegatorsStorageName>,
 );
