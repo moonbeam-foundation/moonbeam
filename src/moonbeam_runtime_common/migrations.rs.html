@@ -155,15 +155,7 @@
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href="#157" id="157">157</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -182,9 +174,9 @@
 </span><span class="doccomment">//! # Common Moonbeam Migrations
 
 </span><span class="kw">use </span>core::marker::PhantomData;
+<span class="kw">use </span>frame_support::migrations::SteppedMigration;
 <span class="kw">use </span>frame_support::migrations::SteppedMigrationError;
 <span class="kw">use </span>frame_support::weights::WeightMeter;
-<span class="kw">use </span>frame_support::{migrations::SteppedMigration, parameter_types};
 <span class="kw">use </span>pallet_migrations::WeightInfo;
 <span class="kw">use </span>parity_scale_codec::Encode;
 <span class="kw">use </span>sp_core::{twox_128, Get};
@@ -317,15 +309,7 @@
 	PermanentSingleBlockMigrations&lt;Runtime&gt;,
 );
 
-<span class="macro">parameter_types!</span> {
-	<span class="kw">pub const </span>AssetManagerPalletName: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"AssetManager"</span>;
-	<span class="kw">pub const </span>AssetsPalletName: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"Assets"</span>;
-}
-
 <span class="doccomment">/// List of common multiblock migrations to be executed by the pallet_multiblock_migrations.
 /// The migrations listed here are common to every moonbeam runtime.
-</span><span class="kw">pub type </span>MultiBlockMigrations&lt;Runtime&gt; = (
-	RemovePallet&lt;Runtime, AssetManagerPalletName&gt;,
-	RemovePallet&lt;Runtime, AssetsPalletName&gt;,
-);
+</span><span class="kw">pub type </span>MultiBlockMigrations = ();
 </code></pre></div></section></main></body></html>

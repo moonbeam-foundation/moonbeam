@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AssetManagerPalletName","AssetsPalletName","RemovePallet"],"type":["MultiBlockMigrations","PermanentSingleBlockMigrations","SingleBlockMigrations","UnreleasedSingleBlockMigrations"]};
+window.SIDEBAR_ITEMS = {"struct":["RemovePallet"],"type":["MultiBlockMigrations","PermanentSingleBlockMigrations","SingleBlockMigrations","UnreleasedSingleBlockMigrations"]};
