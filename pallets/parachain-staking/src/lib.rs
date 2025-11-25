@@ -701,18 +701,6 @@ pub mod pallet {
 	/// Killswitch to enable/disable marking offline feature.
 	pub type EnableMarkingOffline<T: Config> = StorageValue<_, bool, ValueQuery>;
 
-	#[pallet::storage]
-	/// Temporary storage to track candidates that have been migrated from locks to freezes.
-	/// This storage should be removed after all accounts have been migrated.
-	pub type MigratedCandidates<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, (), OptionQuery>;
-
-	#[pallet::storage]
-	/// Temporary storage to track delegators that have been migrated from locks to freezes.
-	/// This storage should be removed after all accounts have been migrated.
-	pub type MigratedDelegators<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, (), OptionQuery>;
-
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		/// Initialize balance and register all as collators: `(collator AccountId, balance Amount)`
