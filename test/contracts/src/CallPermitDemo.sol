@@ -109,7 +109,7 @@ contract CallPermitDemo {
         sender.transfer(bondAmount);
     }
 
-    /// @notice Returns the total bonded acount
+    /// @notice Returns the total bonded account
     function getBondAmount(address who) external view returns (uint256) {
         return bonds[who];
     }

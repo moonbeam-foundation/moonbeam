@@ -70,7 +70,7 @@ where
 		cursor: Option<Self::Cursor>,
 		meter: &mut WeightMeter,
 	) -> Result<Option<Self::Cursor>, SteppedMigrationError> {
-		// we write the storage version in a seperate block
+		// we write the storage version in a separate block
 		if cursor.unwrap_or(false) {
 			let required = T::DbWeight::get().writes(1);
 			meter
