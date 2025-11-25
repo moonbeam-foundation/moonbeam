@@ -19,6 +19,7 @@
 use core::marker::PhantomData;
 use frame_support::migrations::SteppedMigration;
 use frame_support::migrations::SteppedMigrationError;
+use frame_support::parameter_types;
 use frame_support::traits::PalletInfoAccess;
 use frame_support::weights::WeightMeter;
 use pallet_migrations::WeightInfo;
