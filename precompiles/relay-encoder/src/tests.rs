@@ -15,13 +15,13 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime};
 use crate::test_relay_runtime::TestEncoder;
-use crate::AvailableStakeCalls;
-use crate::StakeEncodeCall;
 use crate::*;
 use pallet_staking::RewardDestination;
 use pallet_staking::ValidatorPrefs;
 use precompile_utils::testing::*;
 use sp_runtime::Perbill;
+use xcm_primitives::AvailableStakeCalls;
+use xcm_primitives::StakeEncodeCall;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -99,15 +99,13 @@ fn test_encode_bond() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call(
-						(),
-						AvailableStakeCalls::Bond(
+					TestEncoder
+						.encode_call(AvailableStakeCalls::Bond(
 							100u32.into(),
 							RewardDestination::Account(controller),
-						),
-					)
-					.unwrap()
-					.as_slice(),
+						))
+						.unwrap()
+						.as_slice(),
 				));
 		});
 }
@@ -127,7 +125,8 @@ fn test_encode_bond_more() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call((), AvailableStakeCalls::BondExtra(100u32.into()))
+					TestEncoder
+						.encode_call(AvailableStakeCalls::BondExtra(100u32.into()))
 						.unwrap()
 						.as_slice(),
 				));
@@ -145,7 +144,8 @@ fn test_encode_chill() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call((), AvailableStakeCalls::Chill)
+					TestEncoder
+						.encode_call(AvailableStakeCalls::Chill)
 						.unwrap()
 						.as_slice(),
 				));
@@ -169,12 +169,13 @@ fn test_encode_nominate() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call(
-						(),
-						AvailableStakeCalls::Nominate(vec![[1u8; 32].into(), [2u8; 32].into()]),
-					)
-					.unwrap()
-					.as_slice(),
+					TestEncoder
+						.encode_call(AvailableStakeCalls::Nominate(vec![
+							[1u8; 32].into(),
+							[2u8; 32].into(),
+						]))
+						.unwrap()
+						.as_slice(),
 				));
 		});
 }
@@ -194,7 +195,8 @@ fn test_encode_rebond() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call((), AvailableStakeCalls::Rebond(100u128))
+					TestEncoder
+						.encode_call(AvailableStakeCalls::Rebond(100u128))
 						.unwrap()
 						.as_slice(),
 				));
@@ -212,7 +214,8 @@ fn test_encode_set_controller() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call((), AvailableStakeCalls::SetController)
+					TestEncoder
+						.encode_call(AvailableStakeCalls::SetController)
 						.unwrap()
 						.as_slice(),
 				))
@@ -239,12 +242,12 @@ fn test_encode_set_payee() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call(
-						(),
-						AvailableStakeCalls::SetPayee(RewardDestination::Account(controller)),
-					)
-					.unwrap()
-					.as_slice(),
+					TestEncoder
+						.encode_call(AvailableStakeCalls::SetPayee(RewardDestination::Account(
+							controller,
+						)))
+						.unwrap()
+						.as_slice(),
 				));
 		});
 }
@@ -264,7 +267,8 @@ fn test_encode_unbond() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call((), AvailableStakeCalls::Unbond(100u32.into()))
+					TestEncoder
+						.encode_call(AvailableStakeCalls::Unbond(100u32.into()))
 						.unwrap()
 						.as_slice(),
 				));
@@ -289,15 +293,13 @@ fn test_encode_validate() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call(
-						(),
-						AvailableStakeCalls::Validate(ValidatorPrefs {
+					TestEncoder
+						.encode_call(AvailableStakeCalls::Validate(ValidatorPrefs {
 							commission: Perbill::from_parts(100u32.into()),
 							blocked: true,
-						}),
-					)
-					.unwrap()
-					.as_slice(),
+						}))
+						.unwrap()
+						.as_slice(),
 				));
 		});
 }
@@ -317,12 +319,10 @@ fn test_encode_withdraw_unbonded() {
 				.expect_cost(1000)
 				.expect_no_logs()
 				.execute_returns(UnboundedBytes::from(
-					TestEncoder::encode_call(
-						(),
-						AvailableStakeCalls::WithdrawUnbonded(100u32.into()),
-					)
-					.unwrap()
-					.as_slice(),
+					TestEncoder
+						.encode_call(AvailableStakeCalls::WithdrawUnbonded(100u32.into()))
+						.unwrap()
+						.as_slice(),
 				));
 		});
 }

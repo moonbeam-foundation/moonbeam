@@ -43,7 +43,7 @@ pub enum HrmpAvailableCalls {
 // the as_derivative extrinsic, and thus, this call can only be dispatched from the
 // derivative account
 pub trait UtilityEncodeCall {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
+	fn encode_call(&self, call: UtilityAvailableCalls) -> Vec<u8>;
 }
 
 // Trait that the ensures we can encode a call with hrmp functions.
@@ -85,7 +85,7 @@ pub enum AvailableStakeCalls {
 pub trait StakeEncodeCall {
 	/// Encode staking call for a specific chain destination (Relay or AssetHub)
 	/// Returns an error if the transactor is not configured properly
-	fn encode_call(self, call: AvailableStakeCalls) -> Result<Vec<u8>, XcmError>;
+	fn encode_call(&self, call: AvailableStakeCalls) -> Result<Vec<u8>, XcmError>;
 }
 
 /// Trait to provide the Relay chain transactor value

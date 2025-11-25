@@ -268,10 +268,7 @@ impl TryFrom<u8> for MockTransactors {
 }
 
 impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call<Transactor: xcm_primitives::XcmTransact>(
-		_transactor: Transactor,
-		_call: xcm_primitives::UtilityAvailableCalls,
-	) -> Vec<u8> {
+	fn encode_call(&self, _call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		// Not used in AssetHub encoder tests
 		vec![]
 	}

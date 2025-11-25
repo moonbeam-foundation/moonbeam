@@ -140,16 +140,16 @@ fn encode_compact_arg<T: parity_scale_codec::HasCompact>(input: T) -> Vec<u8> {
 }
 
 impl<T: Config> Pallet<T> {
-	pub fn encode_stake_call<Transactor: xcm_primitives::XcmTransact>(
-		transactor: Transactor,
+	pub fn encode_stake_call<Transactor: xcm_primitives::XcmTransact + Clone>(
+		transactor: &Transactor,
 		call: AvailableStakeCalls,
 	) -> Result<Vec<u8>, xcm::latest::Error>
 	where
 		Transactor: Encode + Decode + EncodeLike<T::Transactor>,
 	{
 		// Get the chain indices for the specified transactor
-		let chain_indices =
-			ChainIndicesMap::<T>::get(transactor).ok_or(xcm::latest::Error::Unimplemented)?;
+		let chain_indices = ChainIndicesMap::<T>::get(transactor.clone())
+			.ok_or(xcm::latest::Error::Unimplemented)?;
 
 		let encoded = match chain_indices {
 			ChainIndices::Relay(relay_indices) => {

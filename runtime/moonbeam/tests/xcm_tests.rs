@@ -1609,8 +1609,7 @@ fn transact_through_sovereign() {
 
 	// Root can directly pass the execution byes to the sovereign
 	ParaA::execute_with(|| {
-		let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
-			parachain::MockTransactors::Relay,
+		let utility_bytes = parachain::MockTransactors::Relay.encode_call(
 			xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 		);
 
@@ -1714,8 +1713,7 @@ fn transact_through_sovereign_fee_payer_none() {
 	// Root can directly pass the execution byes to the sovereign
 	ParaA::execute_with(|| {
 		// The final call will be an AsDerivative using index 0
-		let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
-			parachain::MockTransactors::Relay,
+		let utility_bytes = parachain::MockTransactors::Relay.encode_call(
 			xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 		);
 
@@ -1877,8 +1875,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	let total_weight = 4000003000u64;
 	// Root can directly pass the execution byes to the sovereign
 	ParaA::execute_with(|| {
-		let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
-			parachain::MockTransactors::Relay,
+		let utility_bytes = parachain::MockTransactors::Relay.encode_call(
 			xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 		);
 
@@ -2040,8 +2037,7 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	let total_weight = 4000009000u64;
 	// Root can directly pass the execution byes to the sovereign
 	ParaA::execute_with(|| {
-		let utility_bytes = <XcmTransactor as UtilityEncodeCall>::encode_call(
-			parachain::MockTransactors::Relay,
+		let utility_bytes = parachain::MockTransactors::Relay.encode_call(
 			xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 		);
 

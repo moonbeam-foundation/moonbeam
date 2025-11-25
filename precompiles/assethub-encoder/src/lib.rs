@@ -65,7 +65,7 @@ where
 		let reward_destination = reward_destination.into();
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			&<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Bond(relay_amount, reward_destination),
 		)
 		.map_err(|_| revert("Transactor not configured"))?
@@ -88,7 +88,7 @@ where
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			&<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::BondExtra(relay_amount),
 		)
 		.map_err(|_| revert("Transactor not configured"))?
@@ -111,7 +111,7 @@ where
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			&<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Unbond(relay_amount),
 		)
 		.map_err(|_| revert("Transactor not configured"))?
@@ -133,7 +133,7 @@ where
 		handle.record_cost(1000)?;
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			&<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::WithdrawUnbonded(num_slashing_spans),
 		)
 		.map_err(|_| revert("Transactor not configured"))?
@@ -158,7 +158,7 @@ where
 		let fraction = Perbill::from_parts(commission.converted());
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			&<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Validate(pallet_staking::ValidatorPrefs {
 				commission: fraction,
 				blocked: blocked,
@@ -192,7 +192,7 @@ where
 			.collect();
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			&<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Nominate(nominees_as_account_ids),
 		)
 		.map_err(|_| revert("Transactor not configured"))?
@@ -211,7 +211,7 @@ where
 		handle.record_cost(1000)?;
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			&<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Chill,
 		)
 		.map_err(|_| revert("Transactor not configured"))?
@@ -235,7 +235,7 @@ where
 		let reward_destination = reward_destination.into();
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			&<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::SetPayee(reward_destination),
 		)
 		.map_err(|_| revert("Transactor not configured"))?
@@ -254,7 +254,7 @@ where
 		handle.record_cost(1000)?;
 
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			&<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::SetController,
 		)
 		.map_err(|_| revert("Transactor not configured"))?
@@ -277,7 +277,7 @@ where
 
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded = pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(
-			<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
+			&<Runtime as pallet_xcm_transactor::Config>::Transactor::asset_hub(),
 			AvailableStakeCalls::Rebond(relay_amount),
 		)
 		.map_err(|_| revert("Transactor not configured"))?

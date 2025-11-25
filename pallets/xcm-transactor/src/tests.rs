@@ -385,10 +385,8 @@ fn test_transact_through_derivative_multilocation_success() {
 				crate::Event::TransactedDerivative {
 					account_id: 1u64,
 					dest: Location::parent(),
-					call: <XcmTransactor as UtilityEncodeCall>::encode_call(
-						Transactors::Relay,
-						UtilityAvailableCalls::AsDerivative(1, vec![1u8]),
-					),
+					call: Transactors::Relay
+						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
 					index: 1,
 				},
 			];
@@ -457,10 +455,8 @@ fn test_transact_through_derivative_success() {
 				crate::Event::TransactedDerivative {
 					account_id: 1u64,
 					dest: Location::parent(),
-					call: <XcmTransactor as UtilityEncodeCall>::encode_call(
-						Transactors::Relay,
-						UtilityAvailableCalls::AsDerivative(1, vec![1u8]),
-					),
+					call: Transactors::Relay
+						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
 					index: 1,
 				},
 			];
@@ -943,10 +939,8 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 				crate::Event::TransactedDerivative {
 					account_id: 1u64,
 					dest: Location::parent(),
-					call: <XcmTransactor as UtilityEncodeCall>::encode_call(
-						Transactors::Relay,
-						UtilityAvailableCalls::AsDerivative(1, vec![1u8]),
-					),
+					call: Transactors::Relay
+						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
 					index: 1,
 				},
 			];
@@ -964,11 +958,9 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 			assert!(sent_message.0.contains(&Transact {
 				origin_kind: OriginKind::SovereignAccount,
 				fallback_max_weight: Some(tx_weight),
-				call: <XcmTransactor as UtilityEncodeCall>::encode_call(
-					Transactors::Relay,
-					UtilityAvailableCalls::AsDerivative(1, vec![1u8])
-				)
-				.into(),
+				call: Transactors::Relay
+					.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8]))
+					.into(),
 			}));
 		})
 }
@@ -1624,10 +1616,8 @@ fn test_transact_through_derivative_with_refund_works() {
 				crate::Event::TransactedDerivative {
 					account_id: 1u64,
 					dest: Location::parent(),
-					call: <XcmTransactor as UtilityEncodeCall>::encode_call(
-						Transactors::Relay,
-						UtilityAvailableCalls::AsDerivative(1, vec![1u8]),
-					),
+					call: Transactors::Relay
+						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
 					index: 1,
 				},
 			];

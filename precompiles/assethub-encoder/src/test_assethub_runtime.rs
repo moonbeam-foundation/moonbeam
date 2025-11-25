@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::AvailableStakeCalls;
-use crate::StakeEncodeCall;
 use pallet_xcm_transactor::chain_indices::AssetHubIndices;
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
 use sp_std::vec::Vec;
+use xcm_primitives::AvailableStakeCalls;
+use xcm_primitives::StakeEncodeCall;
 
 /// Test AssetHub indices - using indices similar to real AssetHub
 pub const TEST_ASSETHUB_INDICES: AssetHubIndices = AssetHubIndices {
@@ -91,11 +91,8 @@ pub enum StakeCall {
 
 pub struct TestEncoder;
 
-impl StakeEncodeCall<()> for TestEncoder {
-	fn encode_call(
-		_transactor: (),
-		call: AvailableStakeCalls,
-	) -> Result<Vec<u8>, xcm::latest::Error> {
+impl StakeEncodeCall for TestEncoder {
+	fn encode_call(&self, call: AvailableStakeCalls) -> Result<Vec<u8>, xcm::latest::Error> {
 		let encoded = match call {
 			AvailableStakeCalls::Bond(bonded_amount, reward_destination) => {
 				AssetHubCall::Stake(StakeCall::Bond(bonded_amount, reward_destination)).encode()

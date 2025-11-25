@@ -328,7 +328,7 @@ impl XcmTransact for Transactors {
 }
 
 impl xcm_primitives::UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+	fn encode_call(&self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			Transactors::Relay | Transactors::AssetHub => match call {
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
