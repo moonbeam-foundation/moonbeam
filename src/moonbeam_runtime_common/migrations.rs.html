@@ -227,7 +227,7 @@
 		cursor: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cursor&gt;,
 		meter: <span class="kw-2">&amp;mut </span>WeightMeter,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cursor&gt;, SteppedMigrationError&gt; {
-		<span class="comment">// we write the storage version in a seperate block
+		<span class="comment">// we write the storage version in a separate block
 		</span><span class="kw">if </span>cursor.unwrap_or(<span class="bool-val">false</span>) {
 			<span class="kw">let </span>required = T::DbWeight::get().writes(<span class="number">1</span>);
 			meter

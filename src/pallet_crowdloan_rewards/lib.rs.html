@@ -1126,7 +1126,7 @@
 			AccountsPayable::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>payee, <span class="kw-2">&amp;</span>info);
 
 			<span class="comment">// This pallet controls an amount of funds and transfers them to each of the contributors
-			//TODO: contributors should have the balance locked for tranfers but not for democracy
+			//TODO: contributors should have the balance locked for transfers but not for democracy
 			</span>T::RewardCurrency::transfer(
 				<span class="kw-2">&amp;</span>PALLET_ID.into_account_truncating(),
 				<span class="kw-2">&amp;</span>payee,
@@ -1159,7 +1159,7 @@
 			<span class="comment">// Remove previous rewarded account
 			</span>AccountsPayable::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>signer);
 
-			<span class="comment">// Update new rewarded acount
+			<span class="comment">// Update new rewarded account
 			</span>AccountsPayable::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>new_reward_account, <span class="kw-2">&amp;</span>info);
 
 			<span class="comment">// Emit event
