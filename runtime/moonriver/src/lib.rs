@@ -1482,7 +1482,7 @@ construct_runtime! {
 		// [Removed] Assets: pallet_assets::{Pallet, Call, Storage, Event<T>} = 104,
 		// Previously 105: AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>}
 		// Previously 106: XTokens
-		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Config<T>, Storage, Event<T>} = 107,
 		// Previously 108: pallet_assets::<Instance1>
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin, Event<T>} = 109,
 		Erc20XcmBridge: pallet_erc20_xcm_bridge::{Pallet} = 110,

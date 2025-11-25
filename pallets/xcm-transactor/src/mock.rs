@@ -276,7 +276,7 @@ pub enum HrmpCall {
 	Cancel(),
 }
 
-// Transactors for the mock runtime. Only relay chain
+// Transactors for the mock runtime: Relay chain and AssetHub
 #[derive(
 	Clone,
 	Eq,
@@ -288,9 +288,12 @@ pub enum HrmpCall {
 	Decode,
 	scale_info::TypeInfo,
 	DecodeWithMemTracking,
+	serde::Serialize,
+	serde::Deserialize,
 )]
 pub enum Transactors {
 	Relay,
+	AssetHub,
 }
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -300,19 +303,54 @@ impl Default for Transactors {
 	}
 }
 
+impl TryFrom<u8> for Transactors {
+	type Error = ();
+
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			0u8 => Ok(Transactors::Relay),
+			1u8 => Ok(Transactors::AssetHub),
+			_ => Err(()),
+		}
+	}
+}
+
 impl XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
 			Transactors::Relay => Location::parent(),
+			Transactors::AssetHub => Location {
+				parents: 1,
+				interior: [Parachain(1000)].into(),
+			},
 		}
 	}
+}
 
-	fn utility_pallet_index(&self) -> u8 {
-		RelayIndices::<Test>::get().utility
+impl xcm_primitives::UtilityEncodeCall for Transactors {
+	fn encode_call(&self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			Transactors::Relay | Transactors::AssetHub => match call {
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
+					let mut call =
+						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+					call.append(&mut b.clone());
+					call
+				}
+			},
+		}
 	}
+}
 
-	fn staking_pallet_index(&self) -> u8 {
-		RelayIndices::<Test>::get().staking
+impl xcm_primitives::RelayChainTransactor for Transactors {
+	fn relay() -> Self {
+		Transactors::Relay
+	}
+}
+
+impl xcm_primitives::AssetHubTransactor for Transactors {
+	fn asset_hub() -> Self {
+		Transactors::AssetHub
 	}
 }
 

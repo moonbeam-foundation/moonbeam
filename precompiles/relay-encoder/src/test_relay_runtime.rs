@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::AvailableStakeCalls;
-use crate::StakeEncodeCall;
 use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::traits::{AccountIdLookup, StaticLookup};
 use sp_runtime::AccountId32;
 use sp_std::vec::Vec;
+use xcm_primitives::AvailableStakeCalls;
+use xcm_primitives::StakeEncodeCall;
 
 #[derive(Encode, Decode)]
 pub enum RelayCall {
@@ -71,8 +71,7 @@ pub enum HrmpCall {
 	CancelOpenChannel(HrmpChannelId, u32),
 }
 
-use pallet_xcm_transactor::relay_indices::*;
-use xcm_primitives::XcmTransact;
+use pallet_xcm_transactor::chain_indices::*;
 pub const TEST_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 	staking: 1u8,
 	utility: 0u8,
@@ -97,11 +96,8 @@ pub const TEST_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 pub struct TestEncoder;
 
 impl StakeEncodeCall for TestEncoder {
-	fn encode_call<Transactor: XcmTransact>(
-		_transactor: Transactor,
-		call: AvailableStakeCalls,
-	) -> Vec<u8> {
-		match call {
+	fn encode_call(&self, call: AvailableStakeCalls) -> Result<Vec<u8>, xcm::latest::Error> {
+		let encoded = match call {
 			AvailableStakeCalls::Bond(b, c) => RelayCall::Stake(StakeCall::Bond(b, c)).encode(),
 
 			AvailableStakeCalls::BondExtra(a) => RelayCall::Stake(StakeCall::BondExtra(a)).encode(),
@@ -134,7 +130,9 @@ impl StakeEncodeCall for TestEncoder {
 
 				RelayCall::Stake(StakeCall::Nominate(nominated)).encode()
 			}
-		}
+		};
+
+		Ok(encoded)
 	}
 }
 

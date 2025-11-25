@@ -66,7 +66,6 @@ use xcm_executor::{Config, XcmExecutor};
 
 #[cfg(feature = "runtime-benchmarks")]
 use moonbeam_runtime_common::benchmarking::BenchmarkHelper as ArgumentsBenchmarkHelper;
-use pallet_xcm_transactor::RelayIndices;
 use scale_info::TypeInfo;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
@@ -836,25 +835,57 @@ pub enum HrmpCall {
 }
 
 #[derive(
-	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+	Clone,
+	Eq,
+	Debug,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	TypeInfo,
+	DecodeWithMemTracking,
+	serde::Serialize,
+	serde::Deserialize,
 )]
 pub enum MockTransactors {
 	Relay,
+	AssetHub,
 }
 
 impl xcm_primitives::XcmTransact for MockTransactors {
 	fn destination(self) -> Location {
 		match self {
 			MockTransactors::Relay => Location::parent(),
+			MockTransactors::AssetHub => Location::new(1, [Parachain(1000)]),
 		}
 	}
+}
 
-	fn utility_pallet_index(&self) -> u8 {
-		RelayIndices::<Runtime>::get().utility
+impl xcm_primitives::UtilityEncodeCall for MockTransactors {
+	fn encode_call(&self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		match self {
+			MockTransactors::Relay | MockTransactors::AssetHub => match call {
+				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
+					let mut call =
+						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
+					call.append(&mut b.clone());
+					call
+				}
+			},
+		}
 	}
+}
 
-	fn staking_pallet_index(&self) -> u8 {
-		RelayIndices::<Runtime>::get().staking
+impl xcm_primitives::RelayChainTransactor for MockTransactors {
+	fn relay() -> Self {
+		MockTransactors::Relay
+	}
+}
+
+impl xcm_primitives::AssetHubTransactor for MockTransactors {
+	fn asset_hub() -> Self {
+		MockTransactors::AssetHub
 	}
 }
 

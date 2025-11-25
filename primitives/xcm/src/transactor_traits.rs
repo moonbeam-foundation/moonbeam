@@ -43,10 +43,7 @@ pub enum HrmpAvailableCalls {
 // the as_derivative extrinsic, and thus, this call can only be dispatched from the
 // derivative account
 pub trait UtilityEncodeCall {
-	fn encode_call<Transactor: XcmTransact>(
-		transactor: Transactor,
-		call: UtilityAvailableCalls,
-	) -> Vec<u8>;
+	fn encode_call(&self, call: UtilityAvailableCalls) -> Vec<u8>;
 }
 
 // Trait that the ensures we can encode a call with hrmp functions.
@@ -67,10 +64,6 @@ impl HrmpEncodeCall for () {
 pub trait XcmTransact {
 	/// Encode call from the relay.
 	fn destination(self) -> Location;
-
-	fn utility_pallet_index(&self) -> u8;
-
-	fn staking_pallet_index(&self) -> u8;
 }
 
 pub enum AvailableStakeCalls {
@@ -90,9 +83,21 @@ pub enum AvailableStakeCalls {
 }
 
 pub trait StakeEncodeCall {
-	/// Encode call from the relay.
-	fn encode_call<Transactor: XcmTransact>(
-		transactor: Transactor,
-		call: AvailableStakeCalls,
-	) -> Vec<u8>;
+	/// Encode staking call for a specific chain destination (Relay or AssetHub)
+	/// Returns an error if the transactor is not configured properly
+	fn encode_call(&self, call: AvailableStakeCalls) -> Result<Vec<u8>, XcmError>;
+}
+
+/// Trait to provide the Relay chain transactor value
+/// This is needed by precompiles and other components that specifically encode for the Relay chain
+pub trait RelayChainTransactor {
+	/// Returns the transactor value representing the Relay chain
+	fn relay() -> Self;
+}
+
+/// Trait to provide the AssetHub transactor value
+/// This is needed by precompiles and other components that specifically encode for AssetHub
+pub trait AssetHubTransactor {
+	/// Returns the transactor value representing AssetHub
+	fn asset_hub() -> Self;
 }

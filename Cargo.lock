@@ -7112,6 +7112,7 @@ dependencies = [
  "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-evm-chain-id",
+ "pallet-evm-precompile-assethub-encoder",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
@@ -7517,6 +7518,7 @@ dependencies = [
  "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-evm-chain-id",
+ "pallet-evm-precompile-assethub-encoder",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
@@ -7851,6 +7853,7 @@ dependencies = [
  "pallet-ethereum-xcm",
  "pallet-evm",
  "pallet-evm-chain-id",
+ "pallet-evm-precompile-assethub-encoder",
  "pallet-evm-precompile-author-mapping",
  "pallet-evm-precompile-balances-erc20",
  "pallet-evm-precompile-batch",
@@ -9346,6 +9349,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-evm-precompile-assethub-encoder"
+version = "0.1.0"
+dependencies = [
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-message-queue",
+ "pallet-staking",
+ "pallet-timestamp",
+ "pallet-xcm-transactor",
+ "parity-scale-codec",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+ "staging-xcm-builder",
+ "staging-xcm-executor",
+ "xcm-primitives 0.1.1",
+]
+
+[[package]]
 name = "pallet-evm-precompile-author-mapping"
 version = "0.2.0"
 dependencies = [
@@ -9557,6 +9589,7 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9753,6 +9786,7 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9848,6 +9882,7 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -9902,6 +9937,7 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
+ "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",

@@ -46,6 +46,7 @@ parity-scale-codec = { workspace = true, features = ["max-encoded-len", "std"] }
 pallet-xcm-transactor = { workspace = true, features = ["std"] }
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 scale-info = { workspace = true, features = ["derive", "std"] }
+serde = { workspace = true }
 sp-runtime = { workspace = true, features = ["std"] }
 
 [features]

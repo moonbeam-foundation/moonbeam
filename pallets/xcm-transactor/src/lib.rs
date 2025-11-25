@@ -79,9 +79,9 @@ pub(crate) mod mock;
 #[cfg(test)]
 mod tests;
 
+pub mod chain_indices;
 pub mod encode;
 pub mod migrations;
-pub mod relay_indices;
 pub mod weights;
 pub use crate::weights::WeightInfo;
 
@@ -102,8 +102,7 @@ pub const ASSET_HUB_STAKING_PALLET_INDEX: u8 = 89;
 #[pallet]
 pub mod pallet {
 
-	use super::*;
-	use crate::relay_indices::RelayChainIndices;
+	use crate::chain_indices::RelayChainIndices;
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
@@ -122,7 +121,7 @@ pub mod pallet {
 	use xcm_executor::traits::{TransactAsset, WeightBounds};
 	use xcm_primitives::{
 		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, Reserve, UtilityAvailableCalls,
-		UtilityEncodeCall, XcmTransact,
+		XcmTransact,
 	};
 
 	#[pallet::pallet]
@@ -149,7 +148,12 @@ pub mod pallet {
 
 		// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
-		type Transactor: Parameter + Member + Clone + XcmTransact;
+		type Transactor: Parameter
+			+ Member
+			+ Clone
+			+ XcmTransact
+			+ serde::Serialize
+			+ serde::de::DeserializeOwned;
 
 		/// AssetTransactor allows us to withdraw asset without being trapped
 		/// This should change in xcm v3, which allows us to burn assets
@@ -373,9 +377,24 @@ pub mod pallet {
 	pub type DestinationAssetFeePerSecond<T: Config> = StorageMap<_, Twox64Concat, Location, u128>;
 
 	/// Stores the indices of relay chain pallets
+	///
+	/// DEPRECATED: Use ChainIndicesMap instead. This storage is kept for backwards compatibility
+	/// and will be removed in a future version.
 	#[pallet::storage]
 	#[pallet::getter(fn relay_indices)]
 	pub type RelayIndices<T: Config> = StorageValue<_, RelayChainIndices, ValueQuery>;
+
+	/// Stores chain-specific pallet and call indices for encoding remote calls
+	/// Maps Transactor type to its corresponding indices (Relay or AssetHub)
+	#[pallet::storage]
+	#[pallet::getter(fn chain_indices)]
+	pub type ChainIndicesMap<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		T::Transactor,
+		crate::chain_indices::ChainIndices,
+		OptionQuery,
+	>;
 
 	/// An error that can occur while executing the mapping pallet's logic.
 	#[pallet::error]
@@ -468,16 +487,35 @@ pub mod pallet {
 	}
 
 	#[pallet::genesis_config]
-	pub struct GenesisConfig<T> {
-		pub relay_indices: RelayChainIndices,
+	pub struct GenesisConfig<T: Config> {
+		/// Chain-specific indices map for multi-chain support (Relay + AssetHub)
+		///
+		/// Maps transactor keys to their respective chain indices.
+		/// This should be populated for fresh chains in genesis config.
+		pub chain_indices_map: Vec<(T::Transactor, crate::chain_indices::ChainIndices)>,
 		#[serde(skip)]
 		pub _phantom: PhantomData<T>,
 	}
 
-	impl<T> Default for GenesisConfig<T> {
+	impl<T: Config> Default for GenesisConfig<T>
+	where
+		T::Transactor: xcm_primitives::RelayChainTransactor + xcm_primitives::AssetHubTransactor,
+	{
 		fn default() -> Self {
+			use crate::chain_indices::{AssetHubIndices, ChainIndices, RelayChainIndices};
+			use xcm_primitives::{AssetHubTransactor, RelayChainTransactor};
+
 			Self {
-				relay_indices: RelayChainIndices::default(),
+				chain_indices_map: vec![
+					(
+						T::Transactor::relay(),
+						ChainIndices::Relay(RelayChainIndices::default()),
+					),
+					(
+						T::Transactor::asset_hub(),
+						ChainIndices::AssetHub(AssetHubIndices::default()),
+					),
+				],
 				_phantom: Default::default(),
 			}
 		}
@@ -486,7 +524,12 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
-			<RelayIndices<T>>::put(self.relay_indices);
+			// Initialize ChainIndicesMap from genesis config
+			for (transactor, indices) in &self.chain_indices_map {
+				ChainIndicesMap::<T>::insert(transactor, indices);
+			}
+
+			// Note: RelayIndices storage is populated by the migration for backwards compatibility
 		}
 	}
 
@@ -575,7 +618,7 @@ pub mod pallet {
 
 			// Encode call bytes
 			// We make sure the inner call is wrapped on a as_derivative dispatchable
-			let call_bytes: Vec<u8> = <Self as UtilityEncodeCall>::encode_call(
+			let call_bytes: Vec<u8> = Self::encode_utility_call(
 				dest.clone(),
 				UtilityAvailableCalls::AsDerivative(index, inner_call),
 			);

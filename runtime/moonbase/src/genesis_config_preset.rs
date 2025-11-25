@@ -17,12 +17,13 @@
 extern crate alloc;
 
 use crate::{
-	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	CrowdloanRewardsConfig, EVMConfig, EligibilityValue, EthereumChainIdConfig, EthereumConfig,
-	InflationInfo, MaintenanceModeConfig, MoonbeamOrbitersConfig,
-	OpenTechCommitteeCollectiveConfig, ParachainInfoConfig, ParachainStakingConfig,
-	PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig, SudoConfig,
-	TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig, HOURS,
+	currency::UNIT, xcm_config::Transactors, AccountId, AuthorFilterConfig, AuthorMappingConfig,
+	Balance, BalancesConfig, CrowdloanRewardsConfig, EVMConfig, EligibilityValue,
+	EthereumChainIdConfig, EthereumConfig, InflationInfo, MaintenanceModeConfig,
+	MoonbeamOrbitersConfig, OpenTechCommitteeCollectiveConfig, ParachainInfoConfig,
+	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, RuntimeGenesisConfig,
+	SudoConfig, TransactionPaymentConfig, TreasuryCouncilCollectiveConfig, XcmTransactorConfig,
+	HOURS,
 };
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
@@ -30,7 +31,7 @@ use fp_evm::GenesisAccount;
 use frame_support::PalletId;
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
-use pallet_xcm_transactor::relay_indices::RelayChainIndices;
+use pallet_xcm_transactor::chain_indices::RelayChainIndices;
 use sp_genesis_builder::PresetId;
 use sp_keyring::Sr25519Keyring;
 use sp_runtime::{traits::One, Perbill, Percent};
@@ -41,7 +42,7 @@ const BLOCKS_PER_ROUND: u32 = 2 * HOURS;
 const BLOCKS_PER_YEAR: u32 = 31_557_600 / 6;
 const NUM_SELECTED_CANDIDATES: u32 = 8;
 
-/// Westend pallet and extrinsic indices
+/// Westend Relay Chain pallet and extrinsic indices
 pub const WESTEND_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 	staking: 6u8,
 	utility: 16u8,
@@ -62,6 +63,34 @@ pub const WESTEND_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
 	close_channel: 2u8,
 	cancel_open_request: 6u8,
 };
+
+/// Westend AssetHub pallet and extrinsic indices
+pub const WESTEND_ASSETHUB_INDICES: pallet_xcm_transactor::chain_indices::AssetHubIndices =
+	pallet_xcm_transactor::chain_indices::AssetHubIndices {
+		utility: 40,
+		proxy: 42,
+		staking: 80,
+		nomination_pools: 81,
+		delegated_staking: 84,
+		assets: 50,
+		nfts: 52,
+		as_derivative: 1,
+		batch: 0,
+		batch_all: 2,
+		proxy_call: 0,
+		add_proxy: 1,
+		remove_proxy: 2,
+		bond: 0,
+		bond_extra: 1,
+		unbond: 2,
+		withdraw_unbonded: 3,
+		validate: 4,
+		nominate: 5,
+		chill: 6,
+		set_payee: 7,
+		set_controller: 8,
+		rebond: 19,
+	};
 
 pub fn moonbase_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
@@ -205,7 +234,20 @@ pub fn testnet_genesis(
 			min_orbiter_deposit: One::one(),
 		},
 		xcm_transactor: XcmTransactorConfig {
-			relay_indices: WESTEND_RELAY_INDICES,
+			chain_indices_map: vec![
+				(
+					Transactors::Relay,
+					pallet_xcm_transactor::chain_indices::ChainIndices::Relay(
+						WESTEND_RELAY_INDICES,
+					),
+				),
+				(
+					Transactors::AssetHub,
+					pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+						WESTEND_ASSETHUB_INDICES,
+					),
+				),
+			],
 			..Default::default()
 		},
 		crowdloan_rewards: CrowdloanRewardsConfig {

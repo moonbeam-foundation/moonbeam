@@ -1,4 +1,4 @@
-// Copyright 2019-2025 PureStake Inc.
+// Copyright 2025 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -26,7 +26,6 @@ use frame_support::{
 use pallet_evm::{
 	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
-
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use scale_info::TypeInfo;
@@ -135,7 +134,7 @@ impl pallet_message_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: u128 = 0;
+	pub const ExistentialDeposit: u128 = 1;
 }
 impl pallet_balances::Config for Runtime {
 	type MaxReserves = ();
@@ -237,20 +236,6 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<Location>> for CurrencyIdToL
 	}
 }
 
-// We need to use the encoding from the relay mock runtime
-#[derive(Encode, Decode)]
-pub enum RelayCall {
-	#[codec(index = 5u8)]
-	// the index should match the position of the module in `construct_runtime!`
-	Utility(UtilityCall),
-}
-
-#[derive(Encode, Decode)]
-pub enum UtilityCall {
-	#[codec(index = 1u8)]
-	AsDerivative(u16),
-}
-
 #[derive(
 	Clone,
 	Eq,
@@ -283,17 +268,9 @@ impl TryFrom<u8> for MockTransactors {
 }
 
 impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(&self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay | MockTransactors::AssetHub => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
-		}
+	fn encode_call(&self, _call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		// Not used in AssetHub encoder tests
+		vec![]
 	}
 }
 
@@ -306,15 +283,15 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 	}
 }
 
-impl xcm_primitives::RelayChainTransactor for MockTransactors {
-	fn relay() -> Self {
-		MockTransactors::Relay
-	}
-}
-
 impl xcm_primitives::AssetHubTransactor for MockTransactors {
 	fn asset_hub() -> Self {
 		MockTransactors::AssetHub
+	}
+}
+
+impl xcm_primitives::RelayChainTransactor for MockTransactors {
+	fn relay() -> Self {
+		MockTransactors::Relay
 	}
 }
 
@@ -338,7 +315,6 @@ parameter_types! {
 		parents: 1,
 		interior: [Parachain(ParachainId::get().into())].into(),
 	};
-	pub StakingTransactor: MockTransactors = MockTransactors::Relay;
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
@@ -363,12 +339,10 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type MaxHrmpFee = ();
 }
 
-pub type Precompiles<R> = PrecompileSetBuilder<
-	R,
-	PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R, StakingTransactor>>,
->;
+pub type Precompiles<R> =
+	PrecompileSetBuilder<R, PrecompileAt<AddressU64<1>, AssetHubEncoderPrecompile<R>>>;
 
-pub type PCall = RelayEncoderPrecompileCall<Runtime, StakingTransactor>;
+pub type PCall = AssetHubEncoderPrecompileCall<Runtime>;
 
 const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
 /// Block storage limit in bytes. Set to 40 KB.
@@ -465,9 +439,9 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext.execute_with(|| {
 			pallet_xcm_transactor::ChainIndicesMap::<Runtime>::insert(
-				MockTransactors::Relay,
-				pallet_xcm_transactor::chain_indices::ChainIndices::Relay(
-					crate::test_relay_runtime::TEST_RELAY_INDICES,
+				MockTransactors::AssetHub,
+				pallet_xcm_transactor::chain_indices::ChainIndices::AssetHub(
+					crate::test_assethub_runtime::TEST_ASSETHUB_INDICES,
 				),
 			);
 		});

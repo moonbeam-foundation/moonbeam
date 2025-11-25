@@ -1,7 +1,7 @@
 [package]
-name = "pallet-evm-precompile-relay-encoder"
+name = "pallet-evm-precompile-assethub-encoder"
 authors = { workspace = true }
-description = "A Precompile to make relay staking calls encoding accessible to pallet-evm"
+description = "A Precompile to make AssetHub staking calls encoding accessible to pallet-evm"
 edition = "2021"
 version = "0.1.0"
 

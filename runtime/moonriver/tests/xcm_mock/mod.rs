@@ -19,7 +19,7 @@ pub mod relay_chain;
 pub mod statemine_like;
 
 use cumulus_primitives_core::ParaId;
-use pallet_xcm_transactor::relay_indices::*;
+use pallet_xcm_transactor::chain_indices::*;
 use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::{AccountId32, BuildStorage};
 use xcm_simulator::{decl_test_network, decl_test_parachain, decl_test_relay_chain, TestExt};
@@ -178,7 +178,18 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_xcm_transactor::GenesisConfig::<Runtime> {
-		relay_indices: mock_xcm_transactor_storage(),
+		// match relay runtime construct_runtime order in xcm_mock::relay_chain
+		chain_indices_map: vec![(
+			moonriver_runtime::xcm_config::Transactors::Relay,
+			pallet_xcm_transactor::chain_indices::ChainIndices::Relay(RelayChainIndices {
+				hrmp: 6u8,
+				init_open_channel: 0u8,
+				accept_open_channel: 1u8,
+				close_channel: 2u8,
+				cancel_open_request: 6u8,
+				..Default::default()
+			}),
+		)],
 		..Default::default()
 	}
 	.assimilate_storage(&mut t)

@@ -23,6 +23,7 @@ use frame_support::parameter_types;
 use moonkit_xcm_primitives::location_matcher::{
 	Erc20PalletMatcher, ForeignAssetMatcher, SingleAddressMatcher,
 };
+use pallet_evm_precompile_assethub_encoder::AssetHubEncoderPrecompile;
 use pallet_evm_precompile_author_mapping::AuthorMappingPrecompile;
 use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadata};
 use pallet_evm_precompile_batch::BatchPrecompile;
@@ -301,6 +302,11 @@ type MoonbeamPrecompilesAt<R> = (
 			CallableByPrecompile,
 			SubcallWithMaxNesting<1>,
 		),
+	>,
+	PrecompileAt<
+		AddressU64<2075>,
+		AssetHubEncoderPrecompile<R>,
+		(CallableByContract, CallableByPrecompile),
 	>,
 );
 

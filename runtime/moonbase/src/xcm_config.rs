@@ -65,7 +65,7 @@ use frame_support::traits::Disabled;
 use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation,
-	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, XcmTransact,
+	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20,
 };
 
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
@@ -616,14 +616,26 @@ parameter_types! {
 	pub MaxHrmpRelayFee: Asset = (Location::parent(), 1_000_000_000_000u128).into();
 }
 
-// For now we only allow to transact in the relay, although this might change in the future
-// Transactors just defines the chains in which we allow transactions to be issued through
-// xcm
+// Transactors defines the chains in which we allow transactions to be issued through XCM
+// This enum now supports both Relay Chain and AssetHub system parachain
 #[derive(
-	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo, DecodeWithMemTracking,
+	Clone,
+	Eq,
+	Debug,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	TypeInfo,
+	DecodeWithMemTracking,
+	serde::Serialize,
+	serde::Deserialize,
 )]
 pub enum Transactors {
+	/// Relay Chain (Westend for Moonbase)
 	Relay,
+	/// AssetHub system parachain
 	AssetHub,
 }
 
@@ -646,26 +658,42 @@ impl TryFrom<u8> for Transactors {
 	}
 }
 
-impl XcmTransact for Transactors {
+impl xcm_primitives::UtilityEncodeCall for Transactors {
+	fn encode_call(&self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+		pallet_xcm_transactor::Pallet::<Runtime>::encode_utility_call(self.clone(), call)
+	}
+}
+
+impl xcm_primitives::StakeEncodeCall for Transactors {
+	fn encode_call(
+		&self,
+		call: xcm_primitives::AvailableStakeCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
+		pallet_xcm_transactor::Pallet::<Runtime>::encode_stake_call(self, call)
+	}
+}
+
+impl xcm_primitives::XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
-			Transactors::Relay => RelayLocation::get(),
-			Transactors::AssetHub => AssetHubLocation::get(),
+			Transactors::Relay => Location::parent(),
+			Transactors::AssetHub => Location {
+				parents: 1,
+				interior: [Parachain(1001)].into(),
+			},
 		}
 	}
+}
 
-	fn utility_pallet_index(&self) -> u8 {
-		match self {
-			Transactors::Relay => pallet_xcm_transactor::RelayIndices::<Runtime>::get().utility,
-			Transactors::AssetHub => pallet_xcm_transactor::ASSET_HUB_UTILITY_PALLET_INDEX,
-		}
+impl xcm_primitives::RelayChainTransactor for Transactors {
+	fn relay() -> Self {
+		Transactors::Relay
 	}
+}
 
-	fn staking_pallet_index(&self) -> u8 {
-		match self {
-			Transactors::Relay => pallet_xcm_transactor::RelayIndices::<Runtime>::get().staking,
-			Transactors::AssetHub => pallet_xcm_transactor::ASSET_HUB_STAKING_PALLET_INDEX,
-		}
+impl xcm_primitives::AssetHubTransactor for Transactors {
+	fn asset_hub() -> Self {
+		Transactors::AssetHub
 	}
 }
 

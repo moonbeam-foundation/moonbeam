@@ -16,15 +16,30 @@
 
 //! # Moonbeam specific Migrations
 
-use crate::xcm_config::AssetType;
+use crate::xcm_config::{AssetType, Transactors};
 use moonbeam_core_primitives::AssetId;
 use sp_core::parameter_types;
 
 parameter_types! {
 	pub RelayAssetId: AssetId = AssetType::Xcm(xcm::v3::Location::parent()).into();
+	pub RelayTransactor: Transactors = Transactors::Relay;
+	pub AssetHubTransactor: Transactors = Transactors::AssetHub;
+	pub PolkadotRelayIndices: pallet_xcm_transactor::chain_indices::RelayChainIndices =
+		crate::genesis_config_preset::POLKADOT_RELAY_INDICES;
+	pub PolkadotAssetHubIndices: pallet_xcm_transactor::chain_indices::AssetHubIndices =
+		crate::genesis_config_preset::POLKADOT_ASSETHUB_INDICES;
 }
 
-type MoonbeamMigrations = ();
+type MoonbeamMigrations = (
+	// Migrate XcmTransactor to support AssetHub
+	pallet_xcm_transactor::migrations::v1::MigrateToChainIndicesMap<
+		crate::Runtime,
+		RelayTransactor,
+		AssetHubTransactor,
+		PolkadotRelayIndices,
+		PolkadotAssetHubIndices,
+	>,
+);
 
 /// List of single block migrations to be executed by frame executive.
 pub type SingleBlockMigrations<Runtime> = (
