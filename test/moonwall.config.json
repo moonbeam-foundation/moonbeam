@@ -234,6 +234,13 @@
           }
         },
         {
+          "endpoints": [
+            "wss://asset-hub-polkadot-rpc.n.dwellir.com"
+          ],
+          "name": "asset-hub",
+          "type": "polkadotJs"
+        },
+        {
           "name": "relay",
           "type": "polkadotJs",
           "endpoints": ["wss://kusama-rpc.polkadot.io"]
@@ -287,6 +294,13 @@
               }
             }
           }
+        },
+        {
+          "endpoints": [
+            "wss://asset-hub-polkadot-rpc.n.dwellir.com"
+          ],
+          "name": "asset-hub",
+          "type": "polkadotJs"
         },
         {
           "name": "relay",
