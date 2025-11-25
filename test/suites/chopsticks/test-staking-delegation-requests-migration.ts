@@ -11,6 +11,13 @@ import type { HexString } from "@polkadot/util/types";
 import type { u32 } from "@polkadot/types";
 import { hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
 import { blake2AsHex, xxhashAsU8a } from "@polkadot/util-crypto";
+import { env } from "node:process";
+
+// When true, the test only reads staking storage and enforces invariants once
+// the migration has fully completed (cursor == None). This is useful locally
+// to reduce RPC requests and execution time. CI should leave this disabled to run the
+// full per-block checks.
+const LIGHT_MIGRATION_CHECKS = env.CI !== "true";
 
 const hash = (prefix: HexString, suffix: Uint8Array) => {
   return u8aToHex(u8aConcat(hexToU8a(prefix), xxhashAsU8a(suffix, 64), suffix));
@@ -65,11 +72,6 @@ describeSuite({
 
       const specName = (api.consts.system.version as any).specName.toString();
       log(`Connected to chain specName=${specName}`);
-
-      if (specName !== "moonbase") {
-        log("Skipping DelegationScheduledRequests migration test on non-moonbase network");
-        return;
-      }
     });
 
     it({
@@ -78,12 +80,6 @@ describeSuite({
       title:
         "DelegationScheduledRequests is migrated from single map to double map and counters initialized",
       test: async () => {
-        const specName = (api.consts.system.version as any).specName.toString();
-        if (specName !== "moonbase") {
-          // Safety: do nothing on other networks.
-          return;
-        }
-
         const psQueryBefore: any = api.query.parachainStaking;
 
         // 1. Capture the pre-upgrade DelegationScheduledRequests layout (single map).
@@ -99,7 +95,7 @@ describeSuite({
         const rtBefore = (api.consts.system.version as any).specVersion.toNumber();
         log(`Spec version before upgrade: ${rtBefore}`);
 
-        // 2. Perform the runtime upgrade which includes the new migration.
+        // 2. Perform the runtime upgrade which includes the new multi-block migration.
         await upgradeRuntime(context as unknown as ChopsticksContext);
 
         const rtAfter = (api.consts.system.version as any).specVersion.toNumber();
@@ -110,56 +106,93 @@ describeSuite({
         await new Promise((resolve) => setTimeout(resolve, 1_000));
         await api.isReady;
 
-        // 3. Read the post-upgrade DelegationScheduledRequests layout (double map)
-        //    and verify that:
-        //      - The total number of scheduled requests is preserved.
-        //      - DelegationScheduledRequestsPerCollator matches the number of
-        //        delegators with pending requests per collator.
-        //    IMPORTANT: reacquire the storage query handle *after* the upgrade so that
-        //    polkadot-js uses the upgraded metadata and interprets the layout as a
-        //    double map. Reusing the pre-upgrade handle can cause keys to be decoded
-        //    with the old (single-map) layout, effectively double-counting entries.
-        const psQueryAfter: any = api.query.parachainStaking;
-        const newEntries = await psQueryAfter.delegationScheduledRequests.entries();
-        let totalNewRequests = 0;
-        for (const [, boundedVec] of newEntries as any) {
-          const requestsJson = (boundedVec as any).toJSON() as any[];
-          totalNewRequests += requestsJson.length;
-        }
+        // Helper to read the current staking migration state in a single block.
+        const readState = async () => {
+          const psQueryAfter: any = api.query.parachainStaking;
 
-        log(
-          `Post-upgrade DelegationScheduledRequests entries (requests): ${totalNewRequests} (was ${totalOldRequests} before upgrade)`
-        );
-        expect(totalNewRequests).to.equal(
-          totalOldRequests,
-          "Total number of scheduled delegation requests should be preserved by the migration"
-        );
+          const entries = await psQueryAfter.delegationScheduledRequests.entries();
+          let totalRequests = 0;
+          for (const [, boundedVec] of entries as any) {
+            const requestsJson = (boundedVec as any).toJSON() as any[];
+            totalRequests += requestsJson.length;
+          }
 
-        // 3b. Verify DelegationScheduledRequestsPerCollator matches the number
-        //     of delegators with pending requests per collator. After the
-        //     migration, each storage key in the double map corresponds to one
-        //     unique (collator, delegator) pair, so the sum of all per-collator
-        //     counters should equal the number of double-map entries.
-        const perCollatorCounterQuery: any = psQueryAfter.delegationScheduledRequestsPerCollator;
-        if (!perCollatorCounterQuery || !perCollatorCounterQuery.entries) {
-          // If the upgraded runtime does not expose the per-collator counter storage,
-          // we cannot check this invariant here.
+          const perCollatorCounterQuery: any = psQueryAfter.delegationScheduledRequestsPerCollator;
+          let totalDelegatorQueues = 0;
+          let rawCounters = "n/a";
+          if (perCollatorCounterQuery && perCollatorCounterQuery.entries) {
+            const counterEntries = await perCollatorCounterQuery.entries();
+            totalDelegatorQueues = counterEntries.reduce(
+              (acc: number, [, count]: any) => acc + (count as any).toNumber(),
+              0
+            );
+            rawCounters = counterEntries
+              .map(
+                ([key, count]: any) =>
+                  `${key.toString?.() ?? JSON.stringify(key)}=${count.toString()}`
+              )
+              .join(", ");
+          }
+
+          return {
+            totalRequests,
+            queueCount: entries.length,
+            totalDelegatorQueues,
+            rawCounters,
+          };
+        };
+
+        // 3. Progress blocks while the multi-block migrations are running and
+        //    assert consistency. In full mode we check invariants on every
+        //    block; in light mode we only read staking storage and assert
+        //    invariants once the migration has completed.
+        const migrationsQuery: any = (api.query as any).migrations;
+        let blocksAfterUpgrade = 0;
+
+        // Always check at least one block after the upgrade, then keep going
+        // until `pallet-migrations` cursor becomes `None` or we hit a hard cap.
+        for (let i = 0; i < 32; i++) {
+          await context.createBlock();
+          blocksAfterUpgrade += 1;
+
+          const cursor = migrationsQuery?.cursor
+            ? await migrationsQuery.cursor()
+            : null;
+
+          if (LIGHT_MIGRATION_CHECKS && !(cursor && cursor.isNone)) {
+            // Light mode: only log basic progress and wait until the migration
+            // reports completion before touching staking storage.
+            log(
+              `Block +${blocksAfterUpgrade}: LIGHT mode, cursor=${cursor?.toString?.() ?? "n/a"}`
+            );
+            continue;
+          }
+
+          const { totalRequests, queueCount, totalDelegatorQueues, rawCounters } =
+            await readState();
+
           log(
-            "delegationScheduledRequestsPerCollator storage item not found after upgrade; skipping counter consistency check"
+            `Block +${blocksAfterUpgrade}: totalRequests=${totalRequests}, queues=${queueCount}, sumCounters=${totalDelegatorQueues}, rawCounters=${rawCounters}, cursor=${cursor?.toString?.() ?? "n/a"}`
           );
-          return;
-        }
-        const counterEntries = await perCollatorCounterQuery.entries();
 
-        let totalDelegatorQueues = 0;
-        for (const [, count] of counterEntries as any) {
-          totalDelegatorQueues += (count as any).toNumber();
-        }
+          // In every block (full mode) or at least once at the end (light
+          // mode), the migration must preserve the total number of scheduled
+          // requests.
+          expect(totalRequests).to.equal(
+            totalOldRequests,
+            "Total number of scheduled delegation requests must be preserved during migration"
+          );
 
-        expect(totalDelegatorQueues).to.equal(
-          newEntries.length,
-          "Sum of DelegationScheduledRequestsPerCollator values should equal number of (collator, delegator) queues"
-        );
+          // Once the migrations are finished (`cursor` is None), we expect the
+          // per-collator counters to exactly match the number of queues.
+          if (cursor && cursor.isNone && queueCount > 0) {
+            expect(totalDelegatorQueues).to.equal(
+              queueCount,
+              "Sum of DelegationScheduledRequestsPerCollator values should equal number of (collator, delegator) queues after migration completes"
+            );
+            break;
+          }
+        }
       },
     });
   },

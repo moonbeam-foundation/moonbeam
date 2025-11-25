@@ -18,7 +18,14 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
+use frame_support::{
+	migrations::{SteppedMigration, SteppedMigrationError},
+	pallet_prelude::{ConstU32, Zero},
+	traits::{Get, OnRuntimeUpgrade},
+	weights::{Weight, WeightMeter},
+};
+use parity_scale_codec::Decode;
+use sp_io;
 
 use crate::*;
 
@@ -118,8 +125,54 @@ pub struct MigrateDelegationScheduledRequestsToDoubleMap<T>(sp_std::marker::Phan
 
 impl<T: Config> OnRuntimeUpgrade for MigrateDelegationScheduledRequestsToDoubleMap<T> {
 	fn on_runtime_upgrade() -> Weight {
-		use frame_support::storage::migration::storage_key_iter;
+		// This migration is now implemented as a multi-block migration using the
+		// `SteppedMigration` trait below and executed via `pallet-migrations`.
+		// The single-block `OnRuntimeUpgrade` implementation is intentionally a no-op.
+		Weight::zero()
+	}
+}
 
+impl<T> SteppedMigration for MigrateDelegationScheduledRequestsToDoubleMap<T>
+where
+	T: Config,
+{
+	/// Cursor keeps track of the last processed legacy storage key (the full
+	/// storage key bytes for the legacy single-map entry). `None` means we have
+	/// not processed any key yet.
+	///
+	/// Using a bounded vector keeps the on-chain cursor small while still being
+	/// large enough to store the full key (prefix + hash + AccountId).
+	type Cursor = frame_support::BoundedVec<u8, ConstU32<128>>;
+
+	/// Identifier for this migration. Must be unique across all migrations.
+	type Identifier = [u8; 16];
+
+	fn id() -> Self::Identifier {
+		// Arbitrary but fixed 16-byte identifier.
+		*b"MB-DSR-MIG-00001"
+	}
+
+	fn step(
+		cursor: Option<Self::Cursor>,
+		meter: &mut WeightMeter,
+	) -> Result<Option<Self::Cursor>, SteppedMigrationError> {
+		// NOTE: High-level algorithm
+		// --------------------------
+		// - We treat each invocation of `step` as having a fixed "budget"
+		//   equal to at most 50% of the remaining weight in the `WeightMeter`.
+		// - Within that budget we migrate as many *collators* (legacy map
+		//   entries) as we can.
+		// - For every collator we enforce two properties:
+		//   1. Before we even read the legacy value from storage we ensure the
+		//      remaining budget can pay for a *worst-case* collator.
+		//   2. Once we know exactly how many requests `n` that collator has,
+		//      we re-check the remaining budget against the *precise* cost for
+		//      those `n` requests.
+		// - Progress is tracked only by:
+		//   * Removing legacy keys as they are migrated, and
+		//   * Persisting the last processed legacy key in the `Cursor`. The
+		//     next `step` resumes scanning directly after that key.
+		// Legacy value type under `ParachainStaking::DelegationScheduledRequests`.
 		type OldScheduledRequests<T> = frame_support::BoundedVec<
 			ScheduledRequest<<T as frame_system::Config>::AccountId, BalanceOf<T>>,
 			AddGet<
@@ -128,59 +181,195 @@ impl<T: Config> OnRuntimeUpgrade for MigrateDelegationScheduledRequestsToDoubleM
 			>,
 		>;
 
-		// Collect all existing entries under the old layout.
-		let mut entries: Vec<(
-			<T as frame_system::Config>::AccountId,
-			OldScheduledRequests<T>,
-		)> = Vec::new();
+		// Upper bound for the number of legacy requests that can exist for a single
+		// collator in the old layout.
+		let max_requests_per_collator: u64 =
+			<AddGet<
+				<T as pallet::Config>::MaxTopDelegationsPerCandidate,
+				<T as pallet::Config>::MaxBottomDelegationsPerCandidate,
+			> as frame_support::traits::Get<u32>>::get() as u64;
 
-		for (collator, requests) in storage_key_iter::<
-			<T as frame_system::Config>::AccountId,
-			OldScheduledRequests<T>,
-			frame_support::Blake2_128Concat,
-		>(b"ParachainStaking", b"DelegationScheduledRequests")
-		{
-			entries.push((collator, requests));
-		}
-
-		// Clear all existing keys for DelegationScheduledRequests to avoid mixing
-		// old layout entries with the new double-map layout.
+		// Conservatively estimate the worst-case DB weight for migrating a single
+		// legacy entry (one collator):
 		//
-		// We use the low-level `sp_io::storage::clear_prefix` on the full storage prefix so
-		// that *all* existing keys under `ParachainStaking::DelegationScheduledRequests`
-		// (from the legacy single-map layout) are removed before we insert the new keys for
-		// the double-map layout.
+		// - 1 read for the old value.
+		// - For each request (up to max_requests_per_collator):
+		//   - 1 read + 1 write for `DelegationScheduledRequests` (mutate).
+		// - After migration of this collator:
+		//   - Up to `max_requests_per_collator` reads when iterating the new
+		//     double-map to compute the per-collator counter.
+		//   - 1 write to set `DelegationScheduledRequestsPerCollator`.
+		//   - 1 write to kill the old key.
+		let db_weight = <T as frame_system::Config>::DbWeight::get();
+		let worst_reads = 1 + 3 * max_requests_per_collator;
+		let worst_writes = 2 * max_requests_per_collator + 2;
+		// Upper bound on the weight needed to migrate a *single* collator in the
+		// worst case. This is used to guard storage reads so we never start
+		// processing a collator that we cannot afford to finish.
+		let worst_per_collator = db_weight.reads_writes(worst_reads, worst_writes);
+
+		// Safety margin baseline for this step: at most 50% of the initial
+		// remaining weight budget may be spent on this migration.
+		let remaining = meter.remaining();
+		let step_budget = remaining.saturating_div(2);
+
 		let prefix = frame_support::storage::storage_prefix(
 			b"ParachainStaking",
 			b"DelegationScheduledRequests",
 		);
-		let _ = frame_support::storage::unhashed::clear_prefix(&prefix, None, None);
 
-		// Rebuild storage using the new layout and initialize the per-collator counters.
-		for (collator, old_requests) in entries.into_iter() {
-			let mut per_collator_count: u32 = 0;
+		// Helper: find the next legacy (single-map) key after `start_from`.
+		//
+		// The key space is shared between the old single-map and the new
+		// double-map under the same storage prefix:
+		// - legacy:   Blake2_128Concat(collator)
+		// - new:      Blake2_128Concat(collator) ++ Blake2_128Concat(delegator)
+		//
+		// We use the fact that legacy keys have *no* trailing bytes after the
+		// collator AccountId, while new keys have at least one more encoded
+		// component.
+		fn next_legacy_key<T: Config>(
+			prefix: &[u8],
+			start_from: &[u8],
+		) -> Option<(Vec<u8>, <T as frame_system::Config>::AccountId)> {
+			let mut current = sp_io::storage::next_key(start_from)?;
 
-			for request in old_requests.into_iter() {
-				let delegator = request.delegator.clone();
-				let mut new_vec: frame_support::BoundedVec<
-					ScheduledRequest<<T as frame_system::Config>::AccountId, BalanceOf<T>>,
-					<T as crate::pallet::Config>::MaxScheduledRequestsPerDelegator,
-				> = Default::default();
+			while current.starts_with(prefix) {
+				// Strip the prefix and decode the first Blake2_128Concat-encoded key
+				// which should correspond to the collator AccountId.
+				let mut key_bytes = &current[prefix.len()..];
 
-				if new_vec.try_push(request).is_err() {
-					// This should not happen since we only ever push a single element.
+				// Must contain at least the 16 bytes of Blake2_128 hash.
+				if key_bytes.len() < 16 {
+					current = sp_io::storage::next_key(&current)?;
 					continue;
 				}
 
-				DelegationScheduledRequests::<T>::insert(&collator, &delegator, new_vec);
-				per_collator_count = per_collator_count.saturating_add(1);
+				// Skip the hash and decode the AccountId.
+				key_bytes = &key_bytes[16..];
+				let mut decoder = key_bytes;
+				let maybe_collator =
+					<<T as frame_system::Config>::AccountId as Decode>::decode(&mut decoder);
+
+				if let Ok(collator) = maybe_collator {
+					// If there are no remaining bytes, then this key corresponds to the
+					// legacy single-map layout (one key per collator). If there *are*
+					// remaining bytes, it is a new double-map key which we must skip.
+					if decoder.is_empty() {
+						return Some((current.clone(), collator));
+					}
+				}
+
+				current = sp_io::storage::next_key(&current)?;
 			}
 
-			if per_collator_count > 0 {
-				DelegationScheduledRequestsPerCollator::<T>::insert(&collator, per_collator_count);
-			}
+			None
 		}
 
-		Weight::zero()
+		// Process as many legacy entries as possible within the per-step weight
+		// budget. Progress is tracked by removing legacy keys from storage and
+		// by persisting the last processed legacy key in the cursor, so the
+		// next step can resume in O(1) reads.
+		let mut used_in_step = Weight::zero();
+		let mut start_from: Vec<u8> = cursor
+			.map(|c| c.to_vec())
+			.unwrap_or_else(|| prefix.to_vec());
+
+		loop {
+			let Some((full_key, collator)) = next_legacy_key::<T>(&prefix, &start_from) else {
+				// No more legacy entries to migrate – we are done. Account for
+				// the weight we actually used in this step.
+				if !used_in_step.is_zero() {
+					meter.consume(used_in_step);
+					// Persist the last processed legacy key so the next step can
+					// resume scanning from there (or from the prefix if we
+					// processed everything).
+					let bounded_key =
+						frame_support::BoundedVec::<u8, ConstU32<128>>::truncate_from(start_from);
+					return Ok(Some(bounded_key))
+				}
+				return Ok(None)
+			};
+
+			// Remaining per-step budget before touching this collator.
+			let remaining_budget = step_budget.saturating_sub(used_in_step);
+
+			// Before we read and decode the legacy value for this collator, make
+			// sure that we still have enough budget to safely process *any*
+			// collator in the worst case. This guards against spending PoV on
+			// reads when we already know we cannot finish even a single entry.
+			if remaining_budget.all_lt(worst_per_collator) {
+				if !used_in_step.is_zero() {
+					meter.consume(used_in_step);
+					let bounded_key =
+						frame_support::BoundedVec::<u8, ConstU32<128>>::truncate_from(start_from);
+					return Ok(Some(bounded_key))
+				}
+				return Err(SteppedMigrationError::InsufficientWeight { required: worst_per_collator })
+			}
+
+			// Decode the legacy value for this collator.
+			let Some(bytes) = sp_io::storage::get(&full_key) else {
+				// Nothing to migrate for this key; try the next one.
+				start_from = full_key;
+				continue;
+			};
+
+			let old_requests: OldScheduledRequests<T> =
+				OldScheduledRequests::<T>::decode(&mut &bytes[..]).unwrap_or_default();
+
+			let n = old_requests.len() as u64;
+			// More precise weight estimate for this specific collator based on
+			// the actual number of legacy requests `n`.
+			let reads = 1 + 3 * n;
+			let writes = 2 * n + 2;
+			let weight_for_collator = db_weight.reads_writes(reads, writes);
+
+			// Recompute remaining budget now that we know the precise weight
+			// for this collator, and ensure we do not exceed the 50% per-step
+			// safety margin.
+			let remaining_budget = step_budget.saturating_sub(used_in_step);
+			if weight_for_collator.any_gt(remaining_budget) {
+				// Cannot fit this collator into the current block's budget.
+				// Stop here and let the next step handle it.
+				break
+			}
+
+			// Rebuild storage using the new double-map layout for this collator.
+			for request in old_requests.into_iter() {
+				let delegator = request.delegator.clone();
+
+				DelegationScheduledRequests::<T>::mutate(&collator, &delegator, |scheduled| {
+					let _ = scheduled.try_push(request);
+				});
+			}
+
+			// Remove the legacy single-map key for this collator. This does *not* touch
+			// the new double-map entries, which use longer keys under the same prefix.
+			sp_io::storage::clear(&full_key);
+
+			// Initialize the per-collator counter from the freshly migrated data: each
+			// `(collator, delegator)` queued in the double map corresponds to one
+			// delegator with at least one pending request towards this collator.
+			let delegator_queues =
+				DelegationScheduledRequests::<T>::iter_prefix(&collator).count() as u32;
+			if delegator_queues > 0 {
+				DelegationScheduledRequestsPerCollator::<T>::insert(&collator, delegator_queues);
+			}
+
+			used_in_step = used_in_step.saturating_add(weight_for_collator);
+			start_from = full_key;
+		}
+
+		if !used_in_step.is_zero() {
+			meter.consume(used_in_step);
+			let bounded_key =
+				frame_support::BoundedVec::<u8, ConstU32<128>>::truncate_from(start_from);
+			Ok(Some(bounded_key))
+		} else {
+			// We had enough theoretical budget but could not fit even a single
+			// collator with the more precise estimate. Signal insufficient weight.
+			Err(SteppedMigrationError::InsufficientWeight { required: worst_per_collator })
+		}
 	}
 }

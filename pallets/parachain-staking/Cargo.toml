@@ -18,6 +18,7 @@ scale-info = { workspace = true, features = [ "derive" ] }
 sp-consensus-slots = { workspace = true }
 sp-runtime = { workspace = true }
 sp-std = { workspace = true }
+sp-io = { workspace = true }
 substrate-fixed = { workspace = true }
 
 # Nimbus
@@ -42,6 +43,7 @@ std = [
 	"sp-consensus-slots/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"sp-io/std",
 ]
 runtime-benchmarks = [ "frame-benchmarking" ]
 try-runtime = [ "frame-support/try-runtime" ]
