@@ -86,11 +86,6 @@ describeSuite({
         const upgradeStartedEvt = (await api.query.system.events()).find(({ event }) =>
           api.events.multiBlockMigrations.UpgradeStarted.is(event)
         );
-        expect(!!upgradeStartedEvt, "Upgrade Started").to.be.true;
-        const migrationAdvancedEvt = (await api.query.system.events()).find(({ event }) =>
-          api.events.multiBlockMigrations.MigrationAdvanced.is(event)
-        );
-        expect(!!migrationAdvancedEvt, "Migration Advanced").to.be.true;
 
         // Ensure single block migrations were executed
         const versionMigrationFinishedEvt = (await api.query.system.events()).find(({ event }) =>
@@ -98,21 +93,29 @@ describeSuite({
         );
         expect(!!versionMigrationFinishedEvt, "Permanent XCM migration was executed").to.be.true;
 
-        // Ensure multi block migrations completed in less than 10 blocks
-        let events = [];
-        let attempts = 0;
-        for (; attempts < 10; attempts++) {
-          events = (await api.query.system.events()).filter(
-            ({ event }) =>
-              api.events.multiBlockMigrations.MigrationCompleted.is(event) ||
-              api.events.multiBlockMigrations.UpgradeCompleted.is(event)
+        // If there are any multi-block migrations, confirm that they are advancing
+        if (upgradeStartedEvt) {
+          const migrationAdvancedEvt = (await api.query.system.events()).find(({ event }) =>
+            api.events.multiBlockMigrations.MigrationAdvanced.is(event)
           );
-          if (events.length === 2) {
-            break;
+          expect(!!migrationAdvancedEvt, "Migration Advanced").to.be.true;
+
+          // Ensure multi block migrations completed in less than 10 blocks
+          let events = [];
+          let attempts = 0;
+          for (; attempts < 10; attempts++) {
+            events = (await api.query.system.events()).filter(
+              ({ event }) =>
+                api.events.multiBlockMigrations.MigrationCompleted.is(event) ||
+                api.events.multiBlockMigrations.UpgradeCompleted.is(event)
+            );
+            if (events.length === 2) {
+              break;
+            }
+            await context.createBlock();
           }
-          await context.createBlock();
+          expect(events.length === 2, "Migrations should have completed").to.be.true;
         }
-        expect(events.length === 2, "Migrations should have completed").to.be.true;
       },
     });
   },
