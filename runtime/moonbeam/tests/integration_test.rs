@@ -65,9 +65,9 @@ use sp_runtime::{
 	BuildStorage, DispatchError, ModuleError, Percent,
 };
 use std::str::from_utf8;
-use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
+use xcm::{latest::prelude::*, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
-use xcm_executor::traits::ConvertLocation;
+use xcm_executor::traits::{ConvertLocation, TransferType};
 use xcm_primitives::split_location_into_chain_part_and_beneficiary;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
@@ -1754,24 +1754,26 @@ fn call_pallet_xcm_with_fee() {
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
 			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100_000_000_000_000);
 			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100);
-
-			// After the asset hub migration, we can no longer use the parent location as reserve.
-			assert_noop!(
-				PolkadotXcm::transfer_assets(
-					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::from(chain_part)),
-					Box::new(VersionedLocation::from(beneficiary)),
-					Box::new(VersionedAssets::from(vec![asset_fee, asset])),
-					0,
-					WeightLimit::Limited(4000000000.into())
-				),
-				pallet_xcm::Error::<Runtime>::InvalidAssetUnknownReserve
-			);
+			let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+			let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+				assets: Wild(All),
+				beneficiary: beneficiary.clone(),
+			}]);
+			assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
+				origin_of(AccountId::from(ALICE)),
+				Box::new(VersionedLocation::from(chain_part)),
+				Box::new(VersionedAssets::from(vec![asset_fee, asset])),
+				Box::new(TransferType::DestinationReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::DestinationReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Limited(4000000000.into())
+			));
 
 			let after_balance =
 				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
-			// At least these much (plus fees) should have been charged
-			assert_eq!(before_balance, after_balance);
+			// Balance should have been reduced by the transfer amount plus fees
+			assert!(after_balance < before_balance);
 		});
 }
 
