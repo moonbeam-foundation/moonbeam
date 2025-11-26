@@ -849,8 +849,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					/// This is needed because Moonbeam uses AccountKey20 (H160) accounts
 					/// instead of AccountId32, and the standard ToParentDeliveryHelper
 					/// fails when trying to deposit assets to an origin location.
-					pub struct MoonbeamDeliveryHelper;
-					impl xcm_builder::EnsureDelivery for MoonbeamDeliveryHelper {
+					pub struct TestDeliveryHelper;
+					impl xcm_builder::EnsureDelivery for TestDeliveryHelper {
 						fn ensure_successful_delivery(
 							origin_ref: &Location,
 							dest: &Location,
@@ -881,7 +881,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					}
 
 					impl pallet_xcm::benchmarking::Config for Runtime {
-				        type DeliveryHelper = MoonbeamDeliveryHelper;
+				        type DeliveryHelper = TestDeliveryHelper;
 
 						fn get_asset() -> Asset {
 							Asset {
@@ -961,7 +961,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
 						type AccountIdConverter = xcm_config::LocationToAccountId;
-						type DeliveryHelper = MoonbeamDeliveryHelper;
+						type DeliveryHelper = TestDeliveryHelper;
 						fn valid_destination() -> Result<Location, BenchmarkError> {
 							Ok(Location::parent())
 						}
