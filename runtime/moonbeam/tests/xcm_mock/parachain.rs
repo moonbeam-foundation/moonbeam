@@ -392,7 +392,7 @@ impl pallet_treasury::Config for Runtime {
 	type BalanceConverter = AssetRateConverter<Runtime, Balances>;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ArgumentsBenchmarkHelper;
+	type BenchmarkHelper = ArgumentsBenchmarkHelper<Runtime>;
 	type BlockNumberProvider = System;
 }
 
