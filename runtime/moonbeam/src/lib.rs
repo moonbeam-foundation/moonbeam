@@ -607,7 +607,7 @@ impl pallet_treasury::Config for Runtime {
 	type BalanceConverter = AssetRateConverter<Runtime, Balances>;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = BenchmarkHelper;
+	type BenchmarkHelper = BenchmarkHelper<Runtime>;
 	type BlockNumberProvider = System;
 }
 
@@ -650,7 +650,7 @@ impl pallet_identity::Config for Runtime {
 	type UsernameDeposit = ConstU128<{ currency::deposit(0, MaxUsernameLength::get()) }>;
 	type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = BenchmarkHelper;
+	type BenchmarkHelper = BenchmarkHelper<Runtime>;
 }
 
 pub struct TransactionConverter;

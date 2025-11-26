@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use account::{AccountId20, EthereumSignature, EthereumSigner};
+use account::AccountId20;
 use frame_support::traits::fungible::NativeOrWithId;
-use moonbeam_core_primitives::AssetId;
-#[cfg(feature = "runtime-benchmarks")]
+use moonbeam_core_primitives::{AssetId, Signature};
 use pallet_identity;
 use pallet_treasury::ArgumentsFactory;
+use sp_runtime::traits::PhantomData;
 
-pub struct BenchmarkHelper;
+pub struct BenchmarkHelper<T>(PhantomData<T>);
 
-impl ArgumentsFactory<NativeOrWithId<AssetId>, AccountId20> for BenchmarkHelper {
+impl<T> ArgumentsFactory<NativeOrWithId<AssetId>, AccountId20> for BenchmarkHelper<T> {
 	fn create_asset_kind(seed: u32) -> NativeOrWithId<AssetId> {
 		NativeOrWithId::WithId(seed.into())
 	}
@@ -37,9 +37,15 @@ impl ArgumentsFactory<NativeOrWithId<AssetId>, AccountId20> for BenchmarkHelper 
 	}
 }
 
-#[cfg(feature = "runtime-benchmarks")]
-impl pallet_identity::BenchmarkHelper<EthereumSigner, EthereumSignature> for BenchmarkHelper {
-	fn sign_message(message: &[u8]) -> (EthereumSigner, EthereumSignature) {
+impl<
+		T: pallet_identity::Config<
+			OffchainSignature = Signature,
+			SigningPublicKey = <Signature as sp_runtime::traits::Verify>::Signer,
+		>,
+	> pallet_identity::BenchmarkHelper<T::SigningPublicKey, T::OffchainSignature>
+	for BenchmarkHelper<T>
+{
+	fn sign_message(message: &[u8]) -> (T::SigningPublicKey, T::OffchainSignature) {
 		// Generate an ECDSA keypair using host functions (similar to default pallet_identity implementation)
 		let public = sp_io::crypto::ecdsa_generate(0.into(), None);
 
@@ -47,12 +53,12 @@ impl pallet_identity::BenchmarkHelper<EthereumSigner, EthereumSignature> for Ben
 		let hash = sp_io::hashing::keccak_256(message);
 
 		// Sign using the generated key
-		let signature =
-			sp_io::crypto::ecdsa_sign(0.into(), &public, &hash).expect("signing should succeed");
+		let signature = sp_io::crypto::ecdsa_sign_prehashed(0.into(), &public, &hash)
+			.expect("signing should succeed");
 
 		// Convert to Ethereum types using existing From implementations
-		let eth_signature = EthereumSignature::from(signature);
-		let eth_signer = EthereumSigner::from(public);
+		let eth_signature = T::OffchainSignature::from(signature);
+		let eth_signer = T::SigningPublicKey::from(public);
 
 		(eth_signer, eth_signature)
 	}
