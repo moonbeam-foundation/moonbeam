@@ -24,6 +24,7 @@ pallet-xcm-bridge = { workspace = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-balances = { workspace = true }
+pallet-identity = { workspace = true, optional = true }
 pallet-treasury = { workspace = true }
 pallet-xcm = { workspace = true }
 sp-core = { workspace = true }
@@ -72,12 +73,14 @@ std = [
 	"xcm/std",
 	"account/std",
 	"pallet-xcm-bridge/std",
+	"pallet-identity/std"
 ]
 runtime-benchmarks = [
 	"cumulus-primitives-core/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
+	"pallet-identity/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 ]

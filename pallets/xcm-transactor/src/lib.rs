@@ -112,7 +112,7 @@ pub mod pallet {
 		dispatch::DispatchResult, pallet_prelude::*, weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, Convert};
+	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
@@ -130,8 +130,7 @@ pub mod pallet {
 	pub struct Pallet<T>(pub PhantomData<T>);
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+	pub trait Config: frame_system::Config<RuntimeEvent: From<Event<Self>>> {
 		/// The balance type.
 		type Balance: Parameter
 			+ Member
@@ -1267,9 +1266,8 @@ pub mod pallet {
 					xcm: Xcm(vec![]),
 				},
 			]);
-			T::Weigher::weight(&mut xcm.into()).map_or(Weight::max_value(), |w| {
-				T::BaseXcmWeight::get().saturating_add(w)
-			})
+			T::Weigher::weight(&mut xcm.into(), Weight::MAX)
+				.map_or(Weight::MAX, |w| T::BaseXcmWeight::get().saturating_add(w))
 		}
 
 		/// Returns the fee for a given set of parameters

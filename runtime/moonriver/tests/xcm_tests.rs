@@ -32,11 +32,11 @@ use xcm::{
 		AccountId32, AccountKey20, All, Asset, AssetId, Assets as XcmAssets, BuyExecution,
 		ClearOrigin, DepositAsset, Fungibility, GeneralIndex, Junction, Junctions, Limited,
 		Location, OriginKind, PalletInstance, Parachain, QueryResponse, Reanchorable, Response,
-		WeightLimit, WithdrawAsset, Xcm,
+		WeightLimit, Wild, WithdrawAsset, Xcm,
 	},
-	IntoVersion, VersionedAssets, VersionedLocation, WrapVersion,
+	IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm, WrapVersion,
 };
-use xcm_executor::traits::ConvertLocation;
+use xcm_executor::traits::{ConvertLocation, TransferType};
 use xcm_mock::parachain::{self, EvmForeignAssets, PolkadotXcm, Treasury};
 use xcm_mock::relay_chain;
 use xcm_mock::*;
@@ -130,12 +130,19 @@ fn receive_relay_asset_from_relay() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 123).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -189,12 +196,19 @@ fn send_relay_asset_to_relay() {
 
 	// First send relay chain asset to Parachain like in previous test
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 123).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -214,24 +228,31 @@ fn send_relay_asset_to_relay() {
 	});
 
 	// We now send back some money to the relay
-	let dest = Location {
-		parents: 1,
+	let dest_chain = Location::parent();
+	let beneficiary = Location {
+		parents: 0,
 		interior: [AccountId32 {
 			network: None,
 			id: RELAYALICE.into(),
 		}]
 		.into(),
 	};
-	let (chain_part, beneficiary) = split_location_into_chain_part_and_beneficiary(dest).unwrap();
 
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 123);
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
-			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
+			Box::new(VersionedLocation::from(dest_chain)),
 			Box::new(VersionedAssets::from(vec![asset])),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -302,12 +323,19 @@ fn send_relay_asset_to_para_b() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 123).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -335,12 +363,19 @@ fn send_relay_asset_to_para_b() {
 
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(vec![asset])),
-			0,
+			Box::new(TransferType::RemoteReserve(Location::parent().into())),
+			Box::new(fees_id),
+			Box::new(TransferType::RemoteReserve(Location::parent().into())),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -889,12 +924,19 @@ fn receive_relay_asset_with_trader() {
 	// Therefore with no refund, we should receive 10 tokens less
 	// Native trader fails for this, and we use the asset trader
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 100).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -1120,12 +1162,19 @@ fn error_when_not_paying_enough() {
 	// If we set the dest weight to be 1e7, we know the buy_execution will spend 1e7*1e6/1e12 = 10
 	// Therefore with no refund, we should receive 10 tokens less
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 5).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -1192,12 +1241,19 @@ fn transact_through_derivative_multilocation() {
 	.into();
 	Relay::execute_with(|| {
 		// 4000000000 transact + 3000 correspond to 4000003000 tokens. 100 more for the transfer call
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -1235,12 +1291,19 @@ fn transact_through_derivative_multilocation() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(vec![asset])),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1344,12 +1407,19 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	.into();
 	Relay::execute_with(|| {
 		// 4000000000 transact + 3000 correspond to 4000003000 tokens. 100 more for the transfer call
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -1387,12 +1457,19 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(vec![asset])),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1508,12 +1585,19 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 	.into();
 	Relay::execute_with(|| {
 		// 4000000000 transact + 9000 correspond to 4000009000 tokens. 100 more for the transfer call
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 4000009100u128).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -1551,12 +1635,19 @@ fn transact_through_derivative_with_custom_fee_weight_refund() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(vec![asset])),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1684,12 +1775,19 @@ fn transact_through_sovereign() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -1726,12 +1824,19 @@ fn transact_through_sovereign() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(vec![asset])),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -1951,12 +2056,19 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 4000003100u128).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -1993,12 +2105,19 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(vec![asset])),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -2114,12 +2233,19 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 4000009100u128).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -2156,12 +2282,19 @@ fn transact_through_sovereign_with_custom_fee_weight_refund() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_id), 100);
 		// free execution, full amount received
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(vec![asset])),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 	});
@@ -2308,12 +2441,19 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		));
 
 		// Transfer assets. Since it is an unknown destination, it will query for version
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
 			Box::new(([] /* Here */, 123).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 
@@ -2570,12 +2710,19 @@ fn receive_asset_with_no_sufficients_is_possible_for_non_existent_account() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -2625,12 +2772,19 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -2689,12 +2843,19 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -2766,12 +2927,19 @@ fn empty_account_should_not_be_reset() {
 	}
 	.into();
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(VersionedLocation::from(dest.clone()).clone().into()),
 			Box::new(([] /* Here */, 123).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -2894,25 +3062,32 @@ fn test_statemine_like() {
 		.into();
 
 		// Send with new prefix
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(VersionedLocation::from(dest).clone()),
-			Box::new(
-				(
-					[
-						xcm::latest::prelude::PalletInstance(
-							<StatemineAssets as PalletInfoAccess>::index() as u8
-						),
-						xcm::latest::prelude::GeneralIndex(0),
-					],
-					123
-				)
-					.into()
-			),
+		let asset_location = Location::new(
 			0,
-			WeightLimit::Unlimited
-		));
+			[
+				xcm::latest::prelude::PalletInstance(
+					<StatemineAssets as PalletInfoAccess>::index() as u8,
+				),
+				xcm::latest::prelude::GeneralIndex(0),
+			],
+		);
+		let fees_id: VersionedAssetId = AssetId(asset_location.clone()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: dest.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYALICE),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((asset_location, 123).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 	});
 
 	ParaA::execute_with(|| {
@@ -3010,16 +3185,19 @@ fn send_statemine_asset_from_para_a_to_statemine_with_relay_fee() {
 
 	// Send relay chain asset to Alice in Parachain A
 	Relay::execute_with(|| {
-		assert_ok!(RelayChainPalletXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_from_relay.clone(),
+		}]);
+		assert_ok!(RelayChainPalletXcm::transfer_assets_using_type_and_then(
 			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_from_relay)
-					.clone()
-					.into()
-			),
 			Box::new(([] /* Here */, 200).into()),
-			0,
+			Box::new(TransferType::LocalReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::LocalReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Unlimited
 		));
 	});
@@ -3060,29 +3238,32 @@ fn send_statemine_asset_from_para_a_to_statemine_with_relay_fee() {
 		.into();
 
 		// Send with new prefix
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_from_statemine)
-					.clone()
-					.into()
-			),
-			Box::new(
-				(
-					[
-						xcm::latest::prelude::PalletInstance(
-							<StatemineAssets as PalletInfoAccess>::index() as u8
-						),
-						GeneralIndex(10),
-					],
-					125
-				)
-					.into()
-			),
+		let asset_location = Location::new(
 			0,
-			WeightLimit::Unlimited
-		));
+			[
+				xcm::latest::prelude::PalletInstance(
+					<StatemineAssets as PalletInfoAccess>::index() as u8,
+				),
+				GeneralIndex(10),
+			],
+		);
+		let fees_id: VersionedAssetId = AssetId(asset_location.clone()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_from_statemine.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYALICE),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((asset_location, 125).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 	});
 
 	let statemine_beneficiary = Location {
@@ -3125,13 +3306,20 @@ fn send_statemine_asset_from_para_a_to_statemine_with_relay_fee() {
 			100,
 		);
 		let asset_2 = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
+		let fees_id: VersionedAssetId = asset_2.id.clone().into();
 		let assets_to_send = vec![asset_1, asset_2];
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(assets_to_send)),
-			1,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
 	});
@@ -3237,18 +3425,23 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer() {
 		));
 
 		// Now send those tokens to ParaA
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute.clone())
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 200).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYALICE),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 200).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 	});
 
 	ParaA::execute_with(|| {
@@ -3273,12 +3466,19 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer() {
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(vec![asset])),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 
@@ -3299,18 +3499,23 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer() {
 	// Send back tokens from AH to ParaA from Bob's account
 	Statemine::execute_with(|| {
 		// Now send those tokens to ParaA
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYBOB),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute)
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 100).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYBOB),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 100).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 
 		// 100 DOTs were deducted from Bob's account
 		assert_eq!(StatemineBalances::free_balance(RELAYBOB), INITIAL_BALANCE);
@@ -3406,18 +3611,23 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_with_fee() {
 		));
 
 		// Now send those tokens to ParaA
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute.clone())
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 200).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYALICE),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 200).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 	});
 
 	ParaA::execute_with(|| {
@@ -3443,12 +3653,19 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_with_fee() {
 	ParaA::execute_with(|| {
 		let asset = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
 		let asset_fee = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 10);
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(vec![asset_fee, asset])),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 
@@ -3469,18 +3686,23 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_with_fee() {
 	// Send back tokens from AH to ParaA from Bob's account
 	Statemine::execute_with(|| {
 		// Now send those tokens to ParaA
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYBOB),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute)
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 100).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYBOB),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 100).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 
 		// 100 DOTs were deducted from Bob's account
 		assert_eq!(
@@ -3579,18 +3801,23 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiasset() {
 		));
 
 		// Now send those tokens to ParaA
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute.clone())
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 200).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYALICE),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 200).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 	});
 
 	ParaA::execute_with(|| {
@@ -3616,14 +3843,21 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiasset() {
 
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(
 				vec![(Location::parent(), 100).into()]
 			)),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(40000u64, DEFAULT_PROOF_SIZE))
 		));
 
@@ -3644,18 +3878,23 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiasset() {
 	// Send back tokens from AH to ParaA from Bob's account
 	Statemine::execute_with(|| {
 		// Now send those tokens to ParaA
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYBOB),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute)
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 100).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYBOB),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 100).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 
 		// 100 DOTs were deducted from Bob's account
 		assert_eq!(StatemineBalances::free_balance(RELAYBOB), INITIAL_BALANCE);
@@ -3810,43 +4049,51 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multicurrencies() {
 		));
 
 		// Now send relay tokens to ParaA
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute.clone())
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 200).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYALICE),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 200).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 
 		// Send USDC
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute.clone())
-					.clone()
-					.into()
-			),
-			Box::new(
-				(
-					[
-						xcm::latest::prelude::PalletInstance(
-							<StatemineAssets as PalletInfoAccess>::index() as u8
-						),
-						GeneralIndex(10),
-					],
-					125
-				)
-					.into()
-			),
+		let asset_location = Location::new(
 			0,
-			WeightLimit::Unlimited
-		));
+			[
+				xcm::latest::prelude::PalletInstance(
+					<StatemineAssets as PalletInfoAccess>::index() as u8,
+				),
+				GeneralIndex(10),
+			],
+		);
+		let fees_id: VersionedAssetId = AssetId(asset_location.clone()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYALICE),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((asset_location, 125).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 	});
 
 	ParaA::execute_with(|| {
@@ -3883,12 +4130,19 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multicurrencies() {
 			100,
 		);
 		let asset_2 = currency_to_asset(parachain::CurrencyId::ForeignAsset(source_relay_id), 100);
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(vec![asset_1, asset_2])),
-			1,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
 
@@ -3915,18 +4169,23 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multicurrencies() {
 		let bob_previous_balance = StatemineBalances::free_balance(RELAYBOB);
 
 		// Now send those tokens to ParaA
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYBOB),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute)
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 100).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYBOB),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 100).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 
 		// 100 DOTs were deducted from Bob's account
 		assert_eq!(
@@ -4084,43 +4343,51 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiassets() {
 		));
 
 		// Now send relay tokens to ParaA
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute.clone())
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 200).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYALICE),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 200).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 
 		// Send USDC
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYALICE),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute.clone())
-					.clone()
-					.into()
-			),
-			Box::new(
-				(
-					[
-						xcm::latest::prelude::PalletInstance(
-							<StatemineAssets as PalletInfoAccess>::index() as u8
-						),
-						GeneralIndex(10),
-					],
-					125
-				)
-					.into()
-			),
+		let asset_location = Location::new(
 			0,
-			WeightLimit::Unlimited
-		));
+			[
+				xcm::latest::prelude::PalletInstance(
+					<StatemineAssets as PalletInfoAccess>::index() as u8,
+				),
+				GeneralIndex(10),
+			],
+		);
+		let fees_id: VersionedAssetId = AssetId(asset_location.clone()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYALICE),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((asset_location, 125).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 	});
 
 	ParaA::execute_with(|| {
@@ -4167,12 +4434,19 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiassets() {
 
 	// Finally we test that we are able to send back the DOTs to AssetHub from the ParaA
 	ParaA::execute_with(|| {
-		assert_ok!(PolkadotXcm::limited_reserve_transfer_assets(
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: beneficiary.clone(),
+		}]);
+		assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(VersionedLocation::from(chain_part)),
-			Box::new(VersionedLocation::from(beneficiary)),
 			Box::new(VersionedAssets::from(assets_to_send)),
-			0,
+			Box::new(TransferType::DestinationReserve),
+			Box::new(fees_id),
+			Box::new(TransferType::DestinationReserve),
+			Box::new(VersionedXcm::V5(xcm_on_dest)),
 			WeightLimit::Limited(Weight::from_parts(80_000_000u64, 100_000u64))
 		));
 
@@ -4199,18 +4473,23 @@ fn send_dot_from_moonbeam_to_statemine_via_xtokens_transfer_multiassets() {
 		let bob_previous_balance = StatemineBalances::free_balance(RELAYBOB);
 
 		// Now send those tokens to ParaA
-		assert_ok!(StatemineChainPalletXcm::limited_reserve_transfer_assets(
-			statemine_like::RuntimeOrigin::signed(RELAYBOB),
-			Box::new(Location::new(1, [Parachain(1)]).into()),
-			Box::new(
-				VersionedLocation::from(parachain_beneficiary_absolute)
-					.clone()
-					.into()
-			),
-			Box::new((Location::parent(), 100).into()),
-			0,
-			WeightLimit::Unlimited
-		));
+		let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary: parachain_beneficiary_absolute.clone(),
+		}]);
+		assert_ok!(
+			StatemineChainPalletXcm::transfer_assets_using_type_and_then(
+				statemine_like::RuntimeOrigin::signed(RELAYBOB),
+				Box::new(Location::new(1, [Parachain(1)]).into()),
+				Box::new((Location::parent(), 100).into()),
+				Box::new(TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::LocalReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited
+			)
+		);
 
 		// 100 DOTs were deducted from Bob's account
 		assert_eq!(

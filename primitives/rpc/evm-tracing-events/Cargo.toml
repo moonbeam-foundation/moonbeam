@@ -12,7 +12,6 @@ environmental = { workspace = true }
 
 # Substrate
 parity-scale-codec = { workspace = true }
-sp-runtime-interface = { workspace = true }
 
 # Ethereum
 ethereum-types = { workspace = true }
@@ -29,6 +28,5 @@ std = [
 	"evm-runtime/std",
 	"evm/std",
 	"parity-scale-codec/std",
-	"sp-runtime-interface/std",
 ]
 evm-tracing = [ "evm-gasometer/tracing", "evm-runtime/tracing", "evm/tracing" ]

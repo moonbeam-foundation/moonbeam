@@ -319,33 +319,6 @@ pub type XcmExecutor = pallet_erc20_xcm_bridge::XcmExecutorWrapper<
 	xcm_executor::XcmExecutor<XcmExecutorConfig>,
 >;
 
-parameter_types! {
-	/// AssetHub migration start block for development/testing environments
-	///
-	/// Set to 0 by default since Moonbase is not affected by the actual AssetHub migration.
-	/// This can be overridden for testing migration scenarios in development.
-	pub storage AssetHubMigrationStartsAtRelayBlock: u32 = 0;
-}
-
-/// AssetHub migration status provider for Moonbase
-///
-/// # Purpose
-/// While Moonbase will not be affected by the actual AssetHub migration on Polkadot,
-/// this implementation allows simulation and testing of migration behavior in
-/// development environments.
-pub struct AssetHubMigrationStarted;
-impl Get<bool> for AssetHubMigrationStarted {
-	fn get() -> bool {
-		use cumulus_pallet_parachain_system::RelaychainDataProvider;
-		use sp_runtime::traits::BlockNumberProvider;
-
-		let ahm_relay_block = AssetHubMigrationStartsAtRelayBlock::get();
-		let current_relay_block_number = RelaychainDataProvider::<Runtime>::current_block_number();
-
-		current_relay_block_number >= ahm_relay_block
-	}
-}
-
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
@@ -371,7 +344,6 @@ impl pallet_xcm::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_xcm::WeightInfo<Runtime>;
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
-	type AssetHubMigrationStarted = AssetHubMigrationStarted;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -454,7 +426,6 @@ pub type ResumeXcmOrigin = EitherOfDiverse<
 >;
 
 impl pallet_emergency_para_xcm::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type CheckAssociatedRelayNumber =
 		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
@@ -673,7 +644,6 @@ pub type DerivativeAddressRegistrationOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_xcm_transactor::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = DerivativeAddressRegistrationOrigin;
@@ -757,7 +727,6 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
 	type ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
@@ -800,7 +769,6 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type PauseSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type ResumeSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbase_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;

@@ -89,6 +89,7 @@ impl pallet_bridge_parachains::Config<BridgeMoonriverInstance> for Runtime {
 	type ParaStoredHeaderDataBuilder = SingleParaStoredHeaderDataBuilder<bp_moonriver::Moonriver>;
 	type HeadsToKeep = ParachainHeadsToKeep;
 	type MaxParaHeadDataSize = MaxKusamaParaHeadDataSize;
+	type OnNewHead = ();
 	type WeightInfo = moonbeam_weights::pallet_bridge_parachains::WeightInfo<Runtime>;
 }
 

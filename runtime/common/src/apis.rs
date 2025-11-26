@@ -802,7 +802,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_support::traits::StorageInfoTrait;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
-					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
 
 					let mut list = Vec::<BenchmarkList>::new();
 					list_benchmarks!(list, extra);
@@ -846,34 +845,38 @@ macro_rules! impl_runtime_apis_plus_common {
 						pub const RandomParaId: ParaId = ParaId::new(43211234);
 					}
 
+					/// Custom delivery helper for Moonbeam that works with H160 accounts.
+					/// This is needed because Moonbeam uses AccountKey20 (H160) accounts
+					/// instead of AccountId32, and the standard ToParentDeliveryHelper
+					/// fails when trying to deposit assets to an origin location.
 					pub struct TestDeliveryHelper;
 					impl xcm_builder::EnsureDelivery for TestDeliveryHelper {
 						fn ensure_successful_delivery(
 							origin_ref: &Location,
-							_dest: &Location,
+							dest: &Location,
 							_fee_reason: xcm_executor::traits::FeeReason,
 						) -> (Option<xcm_executor::FeesMode>, Option<XcmAssets>) {
 							use xcm_executor::traits::ConvertLocation;
+
+							// Ensure the XCM sender is properly configured for benchmarks
+							// This sets up the HostConfiguration for sending messages
+							<xcm_config::XcmRouter as xcm::latest::SendXcm>::ensure_successful_delivery(Some(dest.clone()));
+
+							// Open HRMP channel for sibling parachain destinations
+							if let Some(Parachain(para_id)) = dest.interior().first() {
+								ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(
+									(*para_id).into()
+								);
+							}
+
+							// Deposit existential deposit to the origin account if we can convert it
 							if let Some(account) = xcm_config::LocationToH160::convert_location(origin_ref) {
-								// Give the existential deposit at least
-								let balance = ExistentialDeposit::get();
+								let balance = ExistentialDeposit::get() * 1000u128;
 								let _ = <Balances as frame_support::traits::Currency<_>>::
 									make_free_balance_be(&account.into(), balance);
 							}
 
 							(None, None)
-						}
-					}
-
-					use pallet_transaction_payment::benchmarking::Pallet as PalletTransactionPaymentBenchmark;
-					impl pallet_transaction_payment::benchmarking::Config for Runtime {
-						fn setup_benchmark_environment() {
-							let alice = AccountId::from(sp_core::hex2array!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac"));
-							pallet_author_inherent::Author::<Runtime>::put(&alice);
-
-							let caller: AccountId = frame_benchmarking::account("caller", 0, 0);
-							let balance = 1_000_000_000_000_000_000u64.into(); // 1 UNIT
-							<Balances as frame_support::traits::Currency<_>>::make_free_balance_be(&caller, balance);
 						}
 					}
 
@@ -958,7 +961,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
 						type AccountIdConverter = xcm_config::LocationToAccountId;
-						type DeliveryHelper = ();
+						type DeliveryHelper = TestDeliveryHelper;
 						fn valid_destination() -> Result<Location, BenchmarkError> {
 							Ok(Location::parent())
 						}
