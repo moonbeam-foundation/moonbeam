@@ -34,6 +34,7 @@ use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
 use cumulus_pallet_parachain_system::MessagingStateSnapshot;
+use cumulus_primitives_core::relay_chain::{AbridgedHostConfiguration, AsyncBackingParams};
 use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
 use moonbeam_runtime::bridge_config::XcmOverKusamaInstance;
@@ -43,6 +44,25 @@ use xcm::latest::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
+}
+
+/// Returns mock AbridgedHostConfiguration for ParachainSystem tests
+pub fn mock_abridged_host_config() -> AbridgedHostConfiguration {
+	AbridgedHostConfiguration {
+		max_code_size: 3_145_728,
+		max_head_data_size: 20_480,
+		max_upward_queue_count: 174_762,
+		max_upward_queue_size: 1_048_576,
+		max_upward_message_size: 65_531,
+		max_upward_message_num_per_candidate: 16,
+		hrmp_max_message_num_per_candidate: 10,
+		validation_upgrade_cooldown: 6,
+		validation_upgrade_delay: 6,
+		async_backing_params: AsyncBackingParams {
+			max_candidate_depth: 3,
+			allowed_ancestry_len: 2,
+		},
+	}
 }
 
 // A valid signed Alice transfer.
@@ -318,24 +338,8 @@ impl ExtBuilder {
 		let xcm_assets = self.xcm_assets.clone();
 		ext.execute_with(|| {
 			// Mock host configuration for ParachainSystem
-			use cumulus_primitives_core::relay_chain::AbridgedHostConfiguration;
 			cumulus_pallet_parachain_system::HostConfiguration::<Runtime>::put(
-				AbridgedHostConfiguration {
-					max_code_size: 3_145_728,
-					max_head_data_size: 20_480,
-					max_upward_queue_count: 174_762,
-					max_upward_queue_size: 1_048_576,
-					max_upward_message_size: 65_531,
-					max_upward_message_num_per_candidate: 16,
-					hrmp_max_message_num_per_candidate: 10,
-					validation_upgrade_cooldown: 6,
-					validation_upgrade_delay: 6,
-					async_backing_params:
-						cumulus_primitives_core::relay_chain::AsyncBackingParams {
-							max_candidate_depth: 3,
-							allowed_ancestry_len: 2,
-						},
-				},
+				mock_abridged_host_config(),
 			);
 
 			// Mock hrmp egress_channels
