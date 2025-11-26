@@ -845,17 +845,33 @@ macro_rules! impl_runtime_apis_plus_common {
 						pub const RandomParaId: ParaId = ParaId::new(43211234);
 					}
 
-					pub struct TestDeliveryHelper;
-					impl xcm_builder::EnsureDelivery for TestDeliveryHelper {
+					/// Custom delivery helper for Moonbeam that works with H160 accounts.
+					/// This is needed because Moonbeam uses AccountKey20 (H160) accounts
+					/// instead of AccountId32, and the standard ToParentDeliveryHelper
+					/// fails when trying to deposit assets to an origin location.
+					pub struct MoonbeamDeliveryHelper;
+					impl xcm_builder::EnsureDelivery for MoonbeamDeliveryHelper {
 						fn ensure_successful_delivery(
 							origin_ref: &Location,
-							_dest: &Location,
+							dest: &Location,
 							_fee_reason: xcm_executor::traits::FeeReason,
 						) -> (Option<xcm_executor::FeesMode>, Option<XcmAssets>) {
 							use xcm_executor::traits::ConvertLocation;
+
+							// Ensure the XCM sender is properly configured for benchmarks
+							// This sets up the HostConfiguration for sending messages
+							<xcm_config::XcmRouter as xcm::latest::SendXcm>::ensure_successful_delivery(Some(dest.clone()));
+
+							// Open HRMP channel for sibling parachain destinations
+							if let Some(Parachain(para_id)) = dest.interior().first() {
+								ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(
+									(*para_id).into()
+								);
+							}
+
+							// Deposit existential deposit to the origin account if we can convert it
 							if let Some(account) = xcm_config::LocationToH160::convert_location(origin_ref) {
-								// Give the existential deposit at least
-								let balance = ExistentialDeposit::get();
+								let balance = ExistentialDeposit::get() * 1000u128;
 								let _ = <Balances as frame_support::traits::Currency<_>>::
 									make_free_balance_be(&account.into(), balance);
 							}
@@ -865,7 +881,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					}
 
 					impl pallet_xcm::benchmarking::Config for Runtime {
-				        type DeliveryHelper = TestDeliveryHelper;
+				        type DeliveryHelper = MoonbeamDeliveryHelper;
 
 						fn get_asset() -> Asset {
 							Asset {
@@ -945,7 +961,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
 						type AccountIdConverter = xcm_config::LocationToAccountId;
-						type DeliveryHelper = ();
+						type DeliveryHelper = MoonbeamDeliveryHelper;
 						fn valid_destination() -> Result<Location, BenchmarkError> {
 							Ok(Location::parent())
 						}
