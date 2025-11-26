@@ -28,7 +28,7 @@ describeSuite({
         const block = 0n;
         const index = 0;
 
-        expect(
+        await expect(
           async () => await context.viem().getTransaction({ blockNumber: block, index })
         ).rejects.toThrowError(`${index} is out of bounds`);
       },

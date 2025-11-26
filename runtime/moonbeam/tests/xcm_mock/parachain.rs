@@ -66,6 +66,7 @@ use xcm_executor::{Config, XcmExecutor};
 
 #[cfg(feature = "runtime-benchmarks")]
 use moonbeam_runtime_common::benchmarking::BenchmarkHelper as ArgumentsBenchmarkHelper;
+use pallet_xcm_transactor::RelayIndices;
 use scale_info::TypeInfo;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
@@ -391,7 +392,7 @@ impl pallet_treasury::Config for Runtime {
 	type BalanceConverter = AssetRateConverter<Runtime, Balances>;
 	type PayoutPeriod = ConstU32<0>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ArgumentsBenchmarkHelper;
+	type BenchmarkHelper = ArgumentsBenchmarkHelper<Runtime>;
 	type BlockNumberProvider = System;
 }
 
@@ -402,7 +403,6 @@ pub mod mock_msg_queue {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type XcmExecutor: ExecuteXcm<Self::RuntimeCall>;
 	}
 
@@ -431,7 +431,7 @@ pub mod mock_msg_queue {
 		/// Some XCM was executed OK.
 		Success(Option<T::Hash>),
 		/// Some XCM failed.
-		Fail(Option<T::Hash>, XcmError),
+		Fail(Option<T::Hash>, InstructionError),
 		/// Bad XCM version used.
 		BadVersion(Option<T::Hash>),
 		/// Bad XCM format used.
@@ -456,7 +456,7 @@ pub mod mock_msg_queue {
 			_sent_at: RelayBlockNumber,
 			xcm: VersionedXcm<T::RuntimeCall>,
 			max_weight: Weight,
-		) -> Result<Weight, XcmError> {
+		) -> Result<Weight, InstructionError> {
 			let hash = Encode::using_encoded(&xcm, T::Hashing::hash);
 			let (result, event) = match Xcm::<T::RuntimeCall>::try_from(xcm) {
 				Ok(xcm) => {
@@ -470,7 +470,7 @@ pub mod mock_msg_queue {
 						max_weight,
 						Weight::zero(),
 					) {
-						Outcome::Error { error } => {
+						Outcome::Error(error) => {
 							(Err(error.clone()), Event::Fail(Some(hash), error))
 						}
 						Outcome::Complete { used } => (Ok(used), Event::Success(Some(hash))),
@@ -482,7 +482,10 @@ pub mod mock_msg_queue {
 					}
 				}
 				Err(()) => (
-					Err(XcmError::UnhandledXcmVersion),
+					Err(InstructionError {
+						error: XcmError::UnhandledXcmVersion,
+						index: 0,
+					}),
 					Event::BadVersion(Some(hash)),
 				),
 			};
@@ -557,9 +560,7 @@ pub mod mock_version_changer {
 	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-	}
+	pub trait Config: frame_system::Config {}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {}
@@ -594,13 +595,10 @@ pub mod mock_version_changer {
 }
 
 impl mock_msg_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
-impl mock_version_changer::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-}
+impl mock_version_changer::Config for Runtime {}
 
 pub type LocalOriginToLocation =
 	xcm_primitives::SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
@@ -636,7 +634,6 @@ impl pallet_xcm::Config for Runtime {
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
-	type AssetHubMigrationStarted = ConstBool<false>;
 }
 
 #[derive(
@@ -688,7 +685,6 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type XcmLocationToH160 = LocationToH160;
 	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
@@ -702,7 +698,6 @@ parameter_types! {
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
@@ -737,7 +732,6 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type NativeLocation = SelfReserve;
 	type PauseSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type RemoveSupportedAssetOrigin = EnsureRoot<AccountId>;
-	type RuntimeEvent = RuntimeEvent;
 	type ResumeSupportedAssetOrigin = EnsureRoot<AccountId>;
 	type WeightInfo = ();
 	type WeightToFee = WeightToFee;
@@ -775,7 +769,6 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 
-	type RuntimeEvent = RuntimeEvent;
 	type PrecompilesType = ();
 	type PrecompilesValue = ();
 	type ChainId = ();
@@ -847,20 +840,13 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 			MockTransactors::Relay => Location::parent(),
 		}
 	}
-}
 
-impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
-		}
+	fn utility_pallet_index(&self) -> u8 {
+		RelayIndices::<Runtime>::get().utility
+	}
+
+	fn staking_pallet_index(&self) -> u8 {
+		RelayIndices::<Runtime>::get().staking
 	}
 }
 
@@ -894,7 +880,6 @@ parameter_types! {
 }
 
 impl pallet_ethereum::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type StateRoot =
 		pallet_ethereum::IntermediateStateRoot<<Runtime as frame_system::Config>::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
@@ -981,7 +966,6 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 }
 
 impl pallet_ethereum_xcm::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
@@ -1023,9 +1007,7 @@ pub(crate) fn para_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::{
-	ConstBool, Disabled, OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade,
-};
+use frame_support::traits::{Disabled, OnFinalize, OnInitialize, UncheckedOnRuntimeUpgrade};
 use moonbeam_runtime::{currency, xcm_config::LocationToH160};
 use pallet_evm::FrameSystemAccountProvider;
 use sp_weights::constants::WEIGHT_REF_TIME_PER_SECOND;

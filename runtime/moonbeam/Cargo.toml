@@ -173,7 +173,6 @@ cumulus-pallet-weight-reclaim = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true, features = ["bridging"] }
 cumulus-primitives-core = { workspace = true }
-cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
 cumulus-primitives-storage-weight-reclaim = { workspace = true }
 parachain-info = { workspace = true }
@@ -220,7 +219,6 @@ std = [
 	"cumulus-pallet-xcm/std",
 	"cumulus-pallet-xcmp-queue/std",
 	"cumulus-primitives-core/std",
-	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
 	"cumulus-primitives-storage-weight-reclaim/std",
 	"ethereum/std",
@@ -242,7 +240,6 @@ std = [
 	"moonbeam-runtime-common/std",
 	"moonkit-xcm-primitives/std",
 	"nimbus-primitives/std",
-	"pallet-assets/std",
 	"pallet-async-backing/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
@@ -376,7 +373,6 @@ runtime-benchmarks = [
 	"hex-literal",
 	"moonbeam-runtime-common/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
-	"pallet-assets/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
 	"pallet-author-slot-filter/runtime-benchmarks",
@@ -464,7 +460,6 @@ try-runtime = [
 	"pallet-crowdloan-rewards/try-runtime",
 	"pallet-proxy/try-runtime",
 	"pallet-identity/try-runtime",
-	"pallet-assets/try-runtime",
 	"pallet-xcm-transactor/try-runtime",
 	"pallet-proxy-genesis-companion/try-runtime",
 	"pallet-moonbeam-orbiters/try-runtime",
@@ -477,4 +472,5 @@ try-runtime = [
 	"pallet-bridge-parachains/try-runtime",
 	"pallet-bridge-messages/try-runtime",
 	"pallet-xcm-bridge/try-runtime",
+	"parachains-common/try-runtime",
 ]

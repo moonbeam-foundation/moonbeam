@@ -45,7 +45,7 @@ describeSuite({
         const { result } = await context.createBlock(rawTxn);
 
         expectEVMResult(result!.events, "Revert");
-        expect(
+        await expect(
           async () =>
             await context.writeContract!({
               contractAddress: testContractAddress,

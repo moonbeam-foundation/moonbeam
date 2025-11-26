@@ -27,10 +27,18 @@ declare module "@polkadot/api-base/types/consts" {
   interface AugmentedConsts<ApiType extends ApiTypes> {
     asyncBacking: {
       /**
+       * TODO: Remove this constant once chopsticks has been updated
+       * - https://github.com/AcalaNetwork/chopsticks/blob/1a84b55097d2efdfaee64964b4b36af7c741d854/packages/core/src/utils/index.ts#L132
+       *
        * Purely informative, but used by mocking tools like chospticks to allow knowing how to mock
        * blocks
        **/
       expectedBlockTime: u64 & AugmentedConst<ApiType>;
+      /**
+       * The slot duration Nimbus should run with, expressed in milliseconds.
+       * The effective value of this type should not change while the chain is running.
+       **/
+      slotDuration: u64 & AugmentedConst<ApiType>;
       /**
        * Generic const
        **/
@@ -369,7 +377,7 @@ declare module "@polkadot/api-base/types/consts" {
     };
     parachainStaking: {
       /**
-       * Get the average time beetween 2 blocks in milliseconds
+       * Get the average time between 2 blocks in milliseconds
        **/
       blockTime: u64 & AugmentedConst<ApiType>;
       /**

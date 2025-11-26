@@ -7,6 +7,9 @@ name: Coverage
 
 on:
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
   push:
     branches:
       - master
@@ -100,7 +103,7 @@ jobs:
       contents: read
       pull-requests: write
     needs: ["set-tags"]
-    if: ${{ !github.event.pull_request.head.repo.fork }}
+    if: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
     timeout-minutes: 90
     env:
       RUSTC_WRAPPER: "sccache"
@@ -200,7 +203,7 @@ jobs:
           name: coverage
           path: coverage
       - name: Upload coverage s3
-        uses: mario-sangar/upload-s3-action@master
+        uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
         with:
           aws_key_id: ${{ secrets.S3_COVERAGE_ID }}
@@ -223,7 +226,7 @@ jobs:
           cat coverage_report.md
       - name: Find Comment
         if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number }}

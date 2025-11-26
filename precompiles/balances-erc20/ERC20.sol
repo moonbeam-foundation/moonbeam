@@ -74,14 +74,14 @@ interface IERC20 {
         uint256 value
     ) external returns (bool);
 
-    /// @dev Event emited when a transfer has been performed.
+    /// @dev Event emitted when a transfer has been performed.
     /// @custom:selector ddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
     /// @param from address The address sending the tokens
     /// @param to address The address receiving the tokens.
     /// @param value uint256 The amount of tokens transfered.
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-    /// @dev Event emited when an approval has been registered.
+    /// @dev Event emitted when an approval has been registered.
     /// @custom:selector 8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925
     /// @param owner address Owner of the tokens.
     /// @param spender address Allowed spender.
@@ -109,13 +109,13 @@ interface WrappedNativeCurrency {
     /// @param value uint256 The amount to withdraw/unwrap.
     function withdraw(uint256 value) external;
 
-    /// @dev Event emited when deposit() has been called.
+    /// @dev Event emitted when deposit() has been called.
     /// @custom:selector e1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c
     /// @param owner address Owner of the tokens
     /// @param value uint256 The amount of tokens "wrapped".
     event Deposit(address indexed owner, uint256 value);
 
-    /// @dev Event emited when withdraw(uint256) has been called.
+    /// @dev Event emitted when withdraw(uint256) has been called.
     /// @custom:selector 7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65
     /// @param owner address Owner of the tokens
     /// @param value uint256 The amount of tokens "unwrapped".

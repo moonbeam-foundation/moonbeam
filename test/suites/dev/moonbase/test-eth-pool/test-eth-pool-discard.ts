@@ -22,7 +22,7 @@ describeSuite({
           8ac98ea04dec8017ebddd1e87cc108d1df1ef1bf69ba35606efad4df2dfdbae2a07ac9edffaa0fd7c91fa5688\
           b5e36a1944944bca22b8ff367e4094be21f7d85a3";
 
-        expect(
+        await expect(
           async () => await customDevRpcRequest("eth_sendRawTransaction", [txString])
         ).rejects.toThrowError("intrinsic gas too low");
       },

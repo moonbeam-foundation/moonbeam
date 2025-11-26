@@ -64,8 +64,7 @@ use frame_support::traits::Disabled;
 use pallet_xcm::EnsureXcm;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToLocation,
-	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, UtilityAvailableCalls,
-	UtilityEncodeCall, XcmTransact,
+	IsBridgedConcreteAssetFrom, MultiNativeAsset, SignedToAccountId20, XcmTransact,
 };
 
 use crate::governance::referenda::{FastGeneralAdminOrRoot, GeneralAdminOrRoot};
@@ -313,43 +312,6 @@ pub type XcmRouter = WithUniqueTopic<(
 	>,
 )>;
 
-parameter_types! {
-	/// Conservative estimation for when AssetHub migration will start on Polkadot
-	///
-	/// # Calculation Details
-	/// - **Computation date**: 2025-09-01 16:43:54 UTC
-	/// - **Reference block**: 27_580_400
-	/// - **Reference timestamp**: 1_756_741_434 (2025-09-01 16:43:54 UTC)
-	/// - **Target date**: 2025-11-03 00:00:00 UTC (1 day before the migration)
-	/// - **Target timestamp**: 1_762_128_000
-	///
-	/// # Block Estimation
-	/// ```text
-	/// Time difference: 1_762_128_000 - 1_756_741_434 = 5_386_566 seconds
-	/// Estimated blocks: 5_386_566 ÷ 6 = 897_761 blocks (assuming 6s block time)
-	/// Target block: 27_580_400 + 897_761 = 28_478_161
-	/// ```
-	///
-	/// **Note**: This assumes consistent 6-second block times and no network delays.
-	/// The actual migration is guaranteed to start no earlier than this block.
-	///
-	/// If the timeline changes, this value can be updated through a governance proposal.
-	pub storage AssetHubMigrationStartsAtRelayBlock: u32 = 28_478_161;
-}
-
-pub struct AssetHubMigrationStarted;
-impl Get<bool> for AssetHubMigrationStarted {
-	fn get() -> bool {
-		use cumulus_pallet_parachain_system::RelaychainDataProvider;
-		use sp_runtime::traits::BlockNumberProvider;
-
-		let ahm_relay_block = AssetHubMigrationStartsAtRelayBlock::get();
-		let current_relay_block_number = RelaychainDataProvider::<Runtime>::current_block_number();
-
-		current_relay_block_number >= ahm_relay_block
-	}
-}
-
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
@@ -375,22 +337,6 @@ impl pallet_xcm::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_xcm::WeightInfo<Runtime>;
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
-	/// Configuration for pallet-xcm AssetHub migration timing
-	///
-	/// This type alias informs pallet-xcm when to enable DOT reserve checks
-	/// introduced in [PR #9137](https://github.com/paritytech/polkadot-sdk/pull/9137).
-	///
-	/// # Migration Strategy
-	/// Rather than immediately enforcing strict reserve checks (which would cause
-	/// hard failures), this provides a grace period for dApps to update their
-	/// implementations and adapt to the new reserve validation requirements.
-	///
-	/// # Behavior
-	/// - **Before migration**: Permissive reserve handling (legacy behavior)
-	/// - **After migration**: Strict DOT reserve checks enforced
-	///
-	/// The migration timing is controlled by [`AssetHubMigrationStartsAtRelayBlock`].
-	type AssetHubMigrationStarted = AssetHubMigrationStarted;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -473,7 +419,6 @@ pub type ResumeXcmOrigin = EitherOfDiverse<
 >;
 
 impl pallet_emergency_para_xcm::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type CheckAssociatedRelayNumber =
 		cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type QueuePausedQuery = (MaintenanceMode, NarrowOriginToSibling<XcmpQueue>);
@@ -642,6 +587,7 @@ parameter_types! {
 )]
 pub enum Transactors {
 	Relay,
+	AssetHub,
 }
 
 // Default for benchmarking
@@ -657,18 +603,8 @@ impl TryFrom<u8> for Transactors {
 	fn try_from(value: u8) -> Result<Self, Self::Error> {
 		match value {
 			0u8 => Ok(Transactors::Relay),
+			1u8 => Ok(Transactors::AssetHub),
 			_ => Err(()),
-		}
-	}
-}
-
-impl UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			Transactors::Relay => pallet_xcm_transactor::Pallet::<Runtime>::encode_call(
-				pallet_xcm_transactor::Pallet(sp_std::marker::PhantomData::<Runtime>),
-				call,
-			),
 		}
 	}
 }
@@ -676,7 +612,22 @@ impl UtilityEncodeCall for Transactors {
 impl XcmTransact for Transactors {
 	fn destination(self) -> Location {
 		match self {
-			Transactors::Relay => Location::parent(),
+			Transactors::Relay => RelayLocation::get(),
+			Transactors::AssetHub => AssetHubLocation::get(),
+		}
+	}
+
+	fn utility_pallet_index(&self) -> u8 {
+		match self {
+			Transactors::Relay => pallet_xcm_transactor::RelayIndices::<Runtime>::get().utility,
+			Transactors::AssetHub => pallet_xcm_transactor::ASSET_HUB_UTILITY_PALLET_INDEX,
+		}
+	}
+
+	fn staking_pallet_index(&self) -> u8 {
+		match self {
+			Transactors::Relay => pallet_xcm_transactor::RelayIndices::<Runtime>::get().staking,
+			Transactors::AssetHub => pallet_xcm_transactor::ASSET_HUB_STAKING_PALLET_INDEX,
 		}
 	}
 }
@@ -685,7 +636,6 @@ pub type DerivativeAddressRegistrationOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_xcm_transactor::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = DerivativeAddressRegistrationOrigin;
@@ -769,7 +719,6 @@ impl pallet_moonbeam_foreign_assets::Config for Runtime {
 	type ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
 	type OnForeignAssetCreated = ();
 	type MaxForeignAssets = ConstU32<256>;
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbeam_weights::pallet_moonbeam_foreign_assets::WeightInfo<Runtime>;
 	type XcmLocationToH160 = LocationToH160;
 	type ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
@@ -812,7 +761,6 @@ impl pallet_xcm_weight_trader::Config for Runtime {
 	type PauseSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type ResumeSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
 	type RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = moonbeam_weights::pallet_xcm_weight_trader::WeightInfo<Runtime>;
 	type WeightToFee = <Runtime as pallet_transaction_payment::Config>::WeightToFee;
 	type XcmFeesAccount = XcmFeesAccount;
@@ -847,17 +795,5 @@ mod testing {
 
 			CurrencyId::ForeignAsset(asset_id)
 		}
-	}
-}
-
-#[cfg(test)]
-mod tests {
-	use super::AssetHubMigrationStartsAtRelayBlock;
-
-	#[test]
-	fn check_type_parameter_key() {
-		let implicit_key = AssetHubMigrationStartsAtRelayBlock::key();
-		let explicit_key = sp_core::twox_128(b":AssetHubMigrationStartsAtRelayBlock:");
-		assert_eq!(implicit_key, explicit_key);
 	}
 }

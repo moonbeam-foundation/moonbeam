@@ -44,6 +44,7 @@ mod tests {
 			])
 			.build()
 			.execute_with(|| {
+				set_parachain_inherent_data();
 				let non_eth_uxt = UncheckedExtrinsic::new_bare(
 					pallet_balances::Call::<Runtime>::transfer_allow_death {
 						dest: AccountId::from(BOB),
@@ -56,7 +57,7 @@ mod tests {
 				let block = Header {
 					digest: Default::default(),
 					extrinsics_root: Default::default(),
-					number: 1,
+					number: 2,
 					parent_hash: Default::default(),
 					state_root: Default::default(),
 				};
@@ -83,6 +84,7 @@ mod tests {
 			])
 			.build()
 			.execute_with(|| {
+				set_parachain_inherent_data();
 				let non_eth_uxt = UncheckedExtrinsic::new_bare(
 					pallet_balances::Call::<Runtime>::transfer_allow_death {
 						dest: AccountId::from(BOB),
@@ -96,7 +98,7 @@ mod tests {
 				let block = Header {
 					digest: Default::default(),
 					extrinsics_root: Default::default(),
-					number: 1,
+					number: 2,
 					parent_hash: Default::default(),
 					state_root: Default::default(),
 				};
@@ -114,7 +116,7 @@ mod tests {
 		let block = Header {
 			digest: Default::default(),
 			extrinsics_root: Default::default(),
-			number: 1,
+			number: 2,
 			parent_hash: Default::default(),
 			state_root: Default::default(),
 		};

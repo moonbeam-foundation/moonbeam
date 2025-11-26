@@ -1,4 +1,4 @@
-// Copyright 2019-2025 PureStake Inc.
+// Copyright 2025 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Encoder for relay runtimes
-#![cfg_attr(not(feature = "std"), no_std)]
+//! # A collection of tests common to all runtimes
 
-pub mod kusama;
-pub mod polkadot;
-pub mod westend;
+pub mod xcm;

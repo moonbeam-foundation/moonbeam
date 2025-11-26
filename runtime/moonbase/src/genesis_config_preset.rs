@@ -27,8 +27,10 @@ use crate::{
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
 use fp_evm::GenesisAccount;
+use frame_support::PalletId;
 use nimbus_primitives::NimbusId;
 use pallet_transaction_payment::Multiplier;
+use pallet_xcm_transactor::relay_indices::RelayChainIndices;
 use sp_genesis_builder::PresetId;
 use sp_keyring::Sr25519Keyring;
 use sp_runtime::{traits::One, Perbill, Percent};
@@ -38,6 +40,28 @@ const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
 const BLOCKS_PER_ROUND: u32 = 2 * HOURS;
 const BLOCKS_PER_YEAR: u32 = 31_557_600 / 6;
 const NUM_SELECTED_CANDIDATES: u32 = 8;
+
+/// Westend pallet and extrinsic indices
+pub const WESTEND_RELAY_INDICES: RelayChainIndices = RelayChainIndices {
+	staking: 6u8,
+	utility: 16u8,
+	hrmp: 51u8,
+	bond: 0u8,
+	bond_extra: 1u8,
+	unbond: 2u8,
+	withdraw_unbonded: 3u8,
+	validate: 4u8,
+	nominate: 5u8,
+	chill: 6u8,
+	set_payee: 7u8,
+	set_controller: 8u8,
+	rebond: 19u8,
+	as_derivative: 1u8,
+	init_open_channel: 0u8,
+	accept_open_channel: 1u8,
+	close_channel: 2u8,
+	cancel_open_request: 6u8,
+};
 
 pub fn moonbase_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
@@ -73,7 +97,6 @@ pub fn testnet_genesis(
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	endowed_accounts: Vec<AccountId>,
-	crowdloan_fund_pot: Balance,
 	para_id: ParaId,
 	chain_id: u64,
 ) -> serde_json::Value {
@@ -83,18 +106,24 @@ pub fn testnet_genesis(
 	// (PUSH1 0x00 PUSH1 0x00 REVERT)
 	let revert_bytecode = vec![0x60, 0x00, 0x60, 0x00, 0xFD];
 
+	// Fund the crowdloan pallet account with enough balance for rewards
+	let crowdloan_pallet_account: AccountId =
+		sp_runtime::traits::AccountIdConversion::into_account_truncating(&PalletId(*b"Crowdloa"));
+
+	let mut balances: Vec<(AccountId, Balance)> = endowed_accounts
+		.iter()
+		.cloned()
+		.map(|k| (k, 1 << 80))
+		.collect();
+
+	// Add crowdloan pallet account with sufficient funds for all rewards
+	balances.push((crowdloan_pallet_account, 100_000_000 * UNIT));
+
 	let config = RuntimeGenesisConfig {
 		system: Default::default(),
 		balances: BalancesConfig {
-			balances: endowed_accounts
-				.iter()
-				.cloned()
-				.map(|k| (k, 1 << 80))
-				.collect(),
+			balances,
 			dev_accounts: Default::default(),
-		},
-		crowdloan_rewards: CrowdloanRewardsConfig {
-			funded_amount: crowdloan_fund_pot,
 		},
 		sudo: SudoConfig {
 			key: Some(root_key),
@@ -176,8 +205,26 @@ pub fn testnet_genesis(
 			min_orbiter_deposit: One::one(),
 		},
 		xcm_transactor: XcmTransactorConfig {
-			relay_indices: moonbeam_relay_encoder::westend::WESTEND_RELAY_INDICES,
+			relay_indices: WESTEND_RELAY_INDICES,
 			..Default::default()
+		},
+		crowdloan_rewards: CrowdloanRewardsConfig {
+			funded_accounts: vec![
+				// Dorothy account with test rewards
+				(
+					[
+						0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
+						0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
+						0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11,
+					],
+					Some(AccountId::from(sp_core::hex2array!(
+						"773539d4Ac0e786233D90A233654ccEE26a613D9"
+					))),
+					3_000_000 * UNIT,
+				),
+			],
+			init_vesting_block: 0u32,
+			end_vesting_block: 201600u32,
 		},
 	};
 
@@ -237,7 +284,6 @@ pub fn development() -> serde_json::Value {
 				"773539d4Ac0e786233D90A233654ccEE26a613D9"
 			)),
 		],
-		3_000_000 * UNIT,
 		Default::default(), // para_id
 		1280,               //ChainId
 	)

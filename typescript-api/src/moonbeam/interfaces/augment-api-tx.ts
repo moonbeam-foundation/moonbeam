@@ -996,33 +996,6 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       claim: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
-       * This extrinsic completes the initialization if some checks are fullfiled. These checks are:
-       * -The reward contribution money matches the crowdloan pot
-       * -The end vesting block is higher than the init vesting block
-       * -The initialization has not complete yet
-       **/
-      completeInitialization: AugmentedSubmittable<
-        (leaseEndingBlock: u32 | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [u32]
-      >;
-      /**
-       * Initialize the reward distribution storage. It shortcuts whenever an error is found
-       * This does not enforce any checks other than making sure we dont go over funds
-       * complete_initialization should perform any additional
-       **/
-      initializeRewardVec: AugmentedSubmittable<
-        (
-          rewards:
-            | Vec<ITuple<[U8aFixed, Option<AccountId20>, u128]>>
-            | [
-                U8aFixed | string | Uint8Array,
-                Option<AccountId20> | null | Uint8Array | AccountId20 | string,
-                u128 | AnyNumber | Uint8Array
-              ][]
-        ) => SubmittableExtrinsic<ApiType>,
-        [Vec<ITuple<[U8aFixed, Option<AccountId20>, u128]>>]
-      >;
-      /**
        * Update reward address, proving that the caller owns the current native key
        **/
       updateRewardAddress: AugmentedSubmittable<
@@ -2444,6 +2417,31 @@ declare module "@polkadot/api-base/types/submittable" {
           candidateCount: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [u128, u32]
+      >;
+      /**
+       * Batch migrate locks to freezes for a list of accounts.
+       *
+       * This function allows migrating multiple accounts from the old lock-based
+       * staking to the new freeze-based staking in a single transaction.
+       *
+       * Parameters:
+       * - `accounts`: List of tuples containing (account_id, is_collator)
+       * where is_collator indicates if the account is a collator (true) or delegator (false)
+       *
+       * The maximum number of accounts that can be migrated in one batch is MAX_ACCOUNTS_PER_MIGRATION_BATCH.
+       * The batch cannot be empty.
+       *
+       * If 50% or more of the migration attempts are successful, the entire
+       * extrinsic fee is refunded to incentivize successful batch migrations.
+       * Weight is calculated based on actual successful operations performed.
+       **/
+      migrateLocksToFreezesBatch: AugmentedSubmittable<
+        (
+          accounts:
+            | Vec<ITuple<[AccountId20, bool]>>
+            | [AccountId20 | string | Uint8Array, bool | boolean | Uint8Array][]
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<ITuple<[AccountId20, bool]>>]
       >;
       /**
        * Notify a collator is inactive during MaxOfflineRounds
@@ -4798,7 +4796,7 @@ declare module "@polkadot/api-base/types/submittable" {
        **/
       transactThroughDerivative: AugmentedSubmittable<
         (
-          dest: MoonbeamRuntimeXcmConfigTransactors | "Relay" | number | Uint8Array,
+          dest: MoonbeamRuntimeXcmConfigTransactors | "Relay" | "AssetHub" | number | Uint8Array,
           index: u16 | AnyNumber | Uint8Array,
           fee:
             | PalletXcmTransactorCurrencyPayment

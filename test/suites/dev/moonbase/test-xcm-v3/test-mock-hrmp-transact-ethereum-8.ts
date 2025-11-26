@@ -92,6 +92,7 @@ describeSuite({
           },
         ];
 
+        const targetXcmWeight = 5_000_000_000n + 100_000_000n;
         const targetXcmFee = 25_000_000n;
 
         let expectedTransferredAmountPlusFees = 0n;
@@ -116,7 +117,7 @@ describeSuite({
               },
             ],
             weight_limit: {
-              refTime: 4_745_157_000,
+              refTime: targetXcmWeight,
               proofSize: 43_208,
             } as any,
             descend_origin: sendingAddress,

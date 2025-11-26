@@ -9,11 +9,10 @@ describeSuite({
   id: "D020112",
   title: "Costs of creating a Foreign Asset via XCM",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const paraId = 4444;
     let paraSovereignAccount;
-    // Previous feeAmount: 139_608_625_000_000n;
-    const feeLimit = 140_000_000_000_000n;
+    const feeLimit = 146_788_037_500_000n;
     const depositAmount = 100_000_000_000_000_000_000n; // 100 tokens
     const fundAmount = feeLimit + depositAmount;
 
@@ -55,7 +54,8 @@ describeSuite({
         );
 
         const balanceAfter = await getFreeBalance(paraSovereignAccount, context);
-        expect(balanceAfter).toMatchInlineSnapshot(`2847750000000n`);
+        // The balanceAfter should always be 0. (update the feeLimit value if this fails)
+        expect(balanceAfter).toBe(0n);
       },
     });
   },

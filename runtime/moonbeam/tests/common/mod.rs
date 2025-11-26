@@ -33,7 +33,8 @@ use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
-use cumulus_pallet_parachain_system::{MessagingStateSnapshot, ValidationData};
+use cumulus_pallet_parachain_system::MessagingStateSnapshot;
+use cumulus_primitives_core::relay_chain::{AbridgedHostConfiguration, AsyncBackingParams};
 use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
 use moonbeam_runtime::bridge_config::XcmOverKusamaInstance;
@@ -43,6 +44,25 @@ use xcm::latest::{InteriorLocation, Location};
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
+}
+
+/// Returns mock AbridgedHostConfiguration for ParachainSystem tests
+pub fn mock_abridged_host_config() -> AbridgedHostConfiguration {
+	AbridgedHostConfiguration {
+		max_code_size: 3_145_728,
+		max_head_data_size: 20_480,
+		max_upward_queue_count: 174_762,
+		max_upward_queue_size: 1_048_576,
+		max_upward_message_size: 65_531,
+		max_upward_message_num_per_candidate: 16,
+		hrmp_max_message_num_per_candidate: 10,
+		validation_upgrade_cooldown: 6,
+		validation_upgrade_delay: 6,
+		async_backing_params: AsyncBackingParams {
+			max_candidate_depth: 3,
+			allowed_ancestry_len: 2,
+		},
+	}
 }
 
 // A valid signed Alice transfer.
@@ -125,7 +145,6 @@ pub struct XcmAssetInitialization {
 }
 
 pub struct ExtBuilder {
-	asset_hub_migration_started: bool,
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
@@ -152,7 +171,6 @@ pub struct ExtBuilder {
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
-			asset_hub_migration_started: false,
 			balances: vec![],
 			delegations: vec![],
 			collators: vec![],
@@ -188,11 +206,6 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
-	pub fn asset_hub_migration_has_started(mut self) -> Self {
-		self.asset_hub_migration_started = true;
-		self
-	}
-
 	pub fn with_evm_accounts(mut self, accounts: BTreeMap<H160, GenesisAccount>) -> Self {
 		self.evm_accounts = accounts;
 		self
@@ -286,12 +299,6 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
-			funded_amount: self.crowdloan_fund,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
 		pallet_author_mapping::GenesisConfig::<Runtime> {
 			mappings: self.mappings,
 		}
@@ -330,16 +337,10 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		let xcm_assets = self.xcm_assets.clone();
 		ext.execute_with(|| {
-			if self.asset_hub_migration_started {
-				// Indicate that the asset-hub migration has already started
-				moonbeam_runtime::xcm_config::AssetHubMigrationStartsAtRelayBlock::set(&0);
-
-				let mut validation_data = ValidationData::<Runtime>::get().unwrap_or_default();
-
-				validation_data.relay_parent_number =
-					moonbeam_runtime::xcm_config::AssetHubMigrationStartsAtRelayBlock::get();
-				ValidationData::<Runtime>::set(Some(validation_data));
-			}
+			// Mock host configuration for ParachainSystem
+			cumulus_pallet_parachain_system::HostConfiguration::<Runtime>::put(
+				mock_abridged_host_config(),
+			);
 
 			// Mock hrmp egress_channels
 			cumulus_pallet_parachain_system::RelevantMessagingState::<Runtime>::put(
@@ -437,10 +438,7 @@ pub fn set_parachain_inherent_data() {
 	relay_sproof.para_id = bp_moonbeam::PARACHAIN_ID.into();
 	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
 
-	let additional_key_values = vec![(
-		moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-		sp_timestamp::Timestamp::default().encode(),
-	)];
+	let additional_key_values = vec![];
 
 	relay_sproof.additional_key_values = additional_key_values;
 
@@ -456,6 +454,8 @@ pub fn set_parachain_inherent_data() {
 		relay_chain_state: relay_chain_state,
 		downward_messages: Default::default(),
 		horizontal_messages: Default::default(),
+		collator_peer_id: Default::default(),
+		relay_parent_descendants: Default::default(),
 	};
 	assert_ok!(RuntimeCall::ParachainSystem(
 		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {

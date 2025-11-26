@@ -20,9 +20,6 @@ import {
 } from "../../../../helpers";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
-const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
-  "0x1111111111111111111111111111111111111111111111111111111111111111";
-const ARBITRARY_VESTING_PERIOD = 201600n;
 
 describeSuite({
   id: "D022001",
@@ -41,7 +38,7 @@ describeSuite({
       title: "should forbid transferring tokens",
       test: async () => {
         await context.createBlock(await createRawTransfer(context, CHARLETH_ADDRESS, 512));
-        expect(
+        await expect(
           async () =>
             await context.createBlock(
               context.polkadotJs().tx.balances.transferAllowDeath(BALTATHAR_ADDRESS, 1n * GLMR)
@@ -86,31 +83,14 @@ describeSuite({
       id: "T03",
       title: "should forbid crowdloan rewards claim",
       test: async () => {
-        await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context
-                .polkadotJs()
-                .tx.crowdloanRewards.initializeRewardVec([
-                  [RELAYCHAIN_ARBITRARY_ADDRESS_1, CHARLETH_ADDRESS, 3_000_000n * GLMR],
-                ])
-            )
-        );
-        const initBlock = await context.polkadotJs().query.crowdloanRewards.initRelayBlock();
-        await context.createBlock(
-          context
-            .polkadotJs()
-            .tx.sudo.sudo(
-              context
-                .polkadotJs()
-                .tx.crowdloanRewards.completeInitialization(
-                  initBlock.toBigInt() + ARBITRARY_VESTING_PERIOD
-                )
-            )
-        );
+        // We can't initialize rewards anymore, but we can test that if someone
+        // had rewards, they wouldn't be able to claim during maintenance mode.
+        // This test verifies the maintenance mode filter works for crowdloan claims.
 
-        expect(
+        // Note: Since we can't initialize rewards in the new pallet version,
+        // we're testing that the claim transaction itself is blocked.
+        // In a real scenario with existing rewards, this would prevent claiming.
+        await expect(
           async () => await context.createBlock(context.polkadotJs().tx.crowdloanRewards.claim())
         ).rejects.toThrowError("1010: Invalid Transaction: Transaction call is not expected");
       },
@@ -136,7 +116,7 @@ describeSuite({
         // Mock asset balance using the new system
         await mockAssetBalance(context, balance, ARBITRARY_ASSET_ID, alith, ALITH_ADDRESS);
 
-        expect(
+        await expect(
           async () =>
             await context.createBlock(
               context.viem().writeContract({
@@ -167,7 +147,7 @@ describeSuite({
             sender:    0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
 
           Docs: https://viem.sh/docs/contract/writeContract
-          Version: viem@2.31.7]
+          Version: viem@2.37.13]
         `);
       },
     });
@@ -176,7 +156,7 @@ describeSuite({
       id: "T05",
       title: "should forbid xcm transfer",
       test: async () => {
-        expect(
+        await expect(
           async () =>
             await context.createBlock(
               context
@@ -254,7 +234,7 @@ describeSuite({
           feeAmount: null,
         });
 
-        expect(
+        await expect(
           async () =>
             await context.createBlock(
               context

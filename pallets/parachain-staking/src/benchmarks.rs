@@ -24,9 +24,10 @@ use crate::{
 	Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::v2::*;
-use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
+use frame_support::traits::tokens::fungible::{Inspect, Mutate};
+use frame_support::traits::{Get, OnFinalize, OnInitialize};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
-use sp_runtime::{traits::Zero, Perbill, Percent};
+use sp_runtime::{Perbill, Percent};
 use sp_std::vec::Vec;
 
 /// Minimum collator candidate stake
@@ -51,8 +52,8 @@ fn create_funded_user<T: Config>(
 	let user = account(string, n, SEED);
 	let min_candidate_stk = min_candidate_stk::<T>();
 	let total = min_candidate_stk + extra;
-	let _ = T::Currency::make_free_balance_be(&user, total);
-	let _ = T::Currency::issue(total);
+	// Use set_balance to set the user's balance directly
+	let _ = T::Currency::set_balance(&user, total);
 	(user, total)
 }
 
@@ -71,6 +72,8 @@ fn create_funded_delegator<T: Config>(
 	} else {
 		total
 	};
+
+	// Always create normally first using pallet extrinsics
 	Pallet::<T>::delegate_with_auto_compound(
 		RawOrigin::Signed(user.clone()).into(),
 		collator,
@@ -80,6 +83,7 @@ fn create_funded_delegator<T: Config>(
 		0u32,
 		0u32, // first delegation for all calls
 	)?;
+
 	Ok(user)
 }
 
@@ -126,8 +130,8 @@ fn create_account<T: Config>(
 		AccountBalance::Value(v) => v,
 	};
 
-	let _ = T::Currency::make_free_balance_be(&acc, initial_balance);
-	let _ = T::Currency::issue(initial_balance);
+	// Use set_balance to set the account's balance directly
+	let _ = T::Currency::set_balance(&acc, initial_balance);
 
 	match action {
 		AccountAction::None => (),
@@ -187,11 +191,14 @@ fn create_funded_collator<T: Config>(
 	} else {
 		total
 	};
+
+	// Always create normally first using pallet extrinsics
 	Pallet::<T>::join_candidates(
 		RawOrigin::Signed(user.clone()).into(),
 		bond,
 		candidate_count,
 	)?;
+
 	Ok(user)
 }
 
@@ -746,50 +753,6 @@ mod benchmarks {
 	}
 
 	#[benchmark]
-	fn set_candidate_bond_to_zero(
-		x: Linear<1, { T::MaxCandidates::get() }>,
-	) -> Result<(), BenchmarkError> {
-		let min_candidate_stk = min_candidate_stk::<T>();
-
-		let mut candidate_count = 1u32;
-		for i in 2..x {
-			let seed = USER_SEED - i;
-			let _collator = create_funded_collator::<T>(
-				"collator",
-				seed,
-				min_candidate_stk,
-				true,
-				candidate_count,
-			)?;
-			candidate_count += 1;
-		}
-
-		let caller: T::AccountId = create_funded_collator::<T>(
-			"collator",
-			USER_SEED,
-			min_candidate_stk,
-			false,
-			candidate_count,
-		)?;
-
-		roll_to_and_author::<T>(2, caller.clone());
-
-		#[block]
-		{
-			Pallet::<T>::set_candidate_bond_to_zero(&caller);
-		}
-
-		assert!(
-			Pallet::<T>::candidate_info(&caller)
-				.expect("candidate was created, qed")
-				.bond
-				.is_zero(),
-			"bond should be zero"
-		);
-		Ok(())
-	}
-
-	#[benchmark]
 	fn cancel_candidate_bond_less() -> Result<(), BenchmarkError> {
 		let min_candidate_stk = min_candidate_stk::<T>();
 		let caller: T::AccountId =
@@ -1193,40 +1156,6 @@ mod benchmarks {
 				action: DelegationAction::Decrease(bond_less),
 			}),
 		);
-		Ok(())
-	}
-
-	#[benchmark]
-	fn execute_revoke_delegation() -> Result<(), BenchmarkError> {
-		let collator: T::AccountId =
-			create_funded_collator::<T>("collator", USER_SEED, 0u32.into(), true, 1u32)?;
-		let (caller, _) = create_funded_user::<T>("caller", USER_SEED, 0u32.into());
-		let bond = <<T as Config>::MinDelegation as Get<BalanceOf<T>>>::get();
-		Pallet::<T>::delegate_with_auto_compound(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-			bond,
-			Percent::zero(),
-			0u32,
-			0u32,
-			0u32,
-		)?;
-		Pallet::<T>::schedule_revoke_delegation(
-			RawOrigin::Signed(caller.clone()).into(),
-			collator.clone(),
-		)?;
-		roll_to_and_author::<T>(T::RevokeDelegationDelay::get(), collator.clone());
-
-		#[block]
-		{
-			Pallet::<T>::execute_delegation_request(
-				RawOrigin::Signed(caller.clone()).into(),
-				caller.clone(),
-				collator.clone(),
-			)?;
-		}
-
-		assert!(!Pallet::<T>::is_delegator(&caller));
 		Ok(())
 	}
 
@@ -1866,7 +1795,7 @@ mod benchmarks {
 
 		for BondWithAutoCompound { owner, .. } in &delegations {
 			assert!(
-				T::Currency::free_balance(&owner) > initial_delegator_balance,
+				<T::Currency as Inspect<T::AccountId>>::balance(&owner) > initial_delegator_balance,
 				"delegator should have been paid in pay_one_collator_reward"
 			);
 		}
@@ -1959,13 +1888,13 @@ mod benchmarks {
 
 		// collator should have been paid
 		assert!(
-			T::Currency::free_balance(&sole_collator) > initial_stake_amount,
+			<T::Currency as Inspect<T::AccountId>>::balance(&sole_collator) > initial_stake_amount,
 			"collator should have been paid in pay_one_collator_reward"
 		);
 		// nominators should have been paid
 		for delegator in &delegators {
 			assert!(
-				T::Currency::free_balance(&delegator) > initial_stake_amount,
+				<T::Currency as Inspect<T::AccountId>>::balance(&delegator) > initial_stake_amount,
 				"delegator should have been paid in pay_one_collator_reward"
 			);
 		}
@@ -2344,7 +2273,7 @@ mod benchmarks {
 	fn mint_collator_reward() -> Result<(), BenchmarkError> {
 		let mut seed = Seed::new();
 		let collator = create_funded_collator::<T>("collator", seed.take(), 0u32.into(), true, 1)?;
-		let original_free_balance = T::Currency::free_balance(&collator);
+		let original_free_balance = T::Currency::balance(&collator);
 
 		#[block]
 		{
@@ -2352,7 +2281,7 @@ mod benchmarks {
 		}
 
 		assert_eq!(
-			T::Currency::free_balance(&collator),
+			T::Currency::balance(&collator),
 			original_free_balance + 50u32.into()
 		);
 		Ok(())
@@ -2474,7 +2403,7 @@ mod tests {
 	pub fn new_test_ext() -> TestExternalities {
 		let t = frame_system::GenesisConfig::<Test>::default()
 			.build_storage()
-			.unwrap();
+			.expect("Failed to build test storage");
 		TestExternalities::new(t)
 	}
 }

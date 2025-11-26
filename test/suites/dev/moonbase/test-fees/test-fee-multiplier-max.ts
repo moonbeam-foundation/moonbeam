@@ -82,8 +82,7 @@ describeSuite({
         // note that this is not really affected by the high multiplier because most of its fee is
         // derived from the length_fee, which is not scaled by the multiplier
         // ~/4 to compensate for the ref time XCM fee changes
-        // Previous value: 231664695814090313277n
-        expect(initialBalance - afterBalance).toMatchInlineSnapshot(`143148109564090313277n`);
+        expect(initialBalance - afterBalance).toMatchInlineSnapshot(`143454558314090313277n`);
       },
     });
 

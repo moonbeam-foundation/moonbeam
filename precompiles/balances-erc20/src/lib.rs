@@ -184,7 +184,6 @@ where
 	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<pallet_balances::Call<Runtime, Instance>>,
-	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
 	Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + 'static,
@@ -284,7 +283,7 @@ where
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
 				handle,
-				Some(origin).into(),
+				frame_system::RawOrigin::Signed(origin).into(),
 				pallet_balances::Call::<Runtime, Instance>::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(to),
 					value,
@@ -350,7 +349,7 @@ where
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
 				handle,
-				Some(from).into(),
+				frame_system::RawOrigin::Signed(from).into(),
 				pallet_balances::Call::<Runtime, Instance>::transfer_allow_death {
 					dest: Runtime::Lookup::unlookup(to),
 					value,
@@ -412,7 +411,7 @@ where
 		// Send back funds received by the precompile.
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
-			Some(precompile).into(),
+			frame_system::RawOrigin::Signed(precompile).into(),
 			pallet_balances::Call::<Runtime, Instance>::transfer_allow_death {
 				dest: Runtime::Lookup::unlookup(caller),
 				value: amount,

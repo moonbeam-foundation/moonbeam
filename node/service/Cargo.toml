@@ -4,7 +4,7 @@ authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.48.0"
+version = "0.49.0"
 
 [dependencies]
 async-io = { workspace = true }
@@ -48,6 +48,7 @@ moonbeam-runtime = { workspace = true, optional = true }
 moonriver-runtime = { workspace = true, optional = true }
 frame-system = { workspace = true, features = ["std"] }
 pallet-balances = { workspace = true, features = ["std"] }
+pallet-timestamp = { workspace = true }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true, features = [
 	"std",

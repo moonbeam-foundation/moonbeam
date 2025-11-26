@@ -24,7 +24,7 @@
 //! multilocation-based derived accounts. The first is the account the parachain controls
 //! in the destination chain, the second is an account derived from the
 //! sovereign account itself, e.g., by hashing it with an index, while the third is an account
-//! derived from the multilocation of a use in this chain (tipically, hashing the ML).
+//! derived from the multilocation of a use in this chain (typically, hashing the ML).
 //! Such distinction is important since we want to keep the integrity of the sovereign account
 //!
 //! This pallet provides three ways of sending Transact operations to another chain
@@ -87,6 +87,18 @@ pub use crate::weights::WeightInfo;
 
 type CurrencyIdOf<T> = <T as Config>::CurrencyId;
 
+/// TODO: Temporary (Will be removed when we have a proper way of getting pallet indices)
+/// Same index on both Polkadot and Kusama Asset Hub
+/// Kusama: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-kusama/src/lib.rs#L1596
+/// Polkadot: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-polkadot/src/lib.rs#L1400
+pub const ASSET_HUB_UTILITY_PALLET_INDEX: u8 = 40;
+
+/// TODO: Temporary (Will be removed when we have a proper way of getting pallet indices)
+/// Same index on both Polkadot and Kusama Asset Hub
+/// Kusama: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-kusama/src/lib.rs#L1628
+/// Polkadot: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-polkadot/src/lib.rs#L1434
+pub const ASSET_HUB_STAKING_PALLET_INDEX: u8 = 89;
+
 #[pallet]
 pub mod pallet {
 
@@ -100,7 +112,7 @@ pub mod pallet {
 		dispatch::DispatchResult, pallet_prelude::*, weights::constants::WEIGHT_REF_TIME_PER_SECOND,
 	};
 	use frame_system::{ensure_signed, pallet_prelude::*};
-	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, Convert};
+	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
@@ -118,8 +130,7 @@ pub mod pallet {
 	pub struct Pallet<T>(pub PhantomData<T>);
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+	pub trait Config: frame_system::Config<RuntimeEvent: From<Event<Self>>> {
 		/// The balance type.
 		type Balance: Parameter
 			+ Member
@@ -563,9 +574,10 @@ pub mod pallet {
 
 			// Encode call bytes
 			// We make sure the inner call is wrapped on a as_derivative dispatchable
-			let call_bytes: Vec<u8> = dest
-				.clone()
-				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
+			let call_bytes: Vec<u8> = <Self as UtilityEncodeCall>::encode_call(
+				dest.clone(),
+				UtilityAvailableCalls::AsDerivative(index, inner_call),
+			);
 
 			// Grab the destination
 			let dest = dest.destination();
@@ -1254,9 +1266,8 @@ pub mod pallet {
 					xcm: Xcm(vec![]),
 				},
 			]);
-			T::Weigher::weight(&mut xcm.into()).map_or(Weight::max_value(), |w| {
-				T::BaseXcmWeight::get().saturating_add(w)
-			})
+			T::Weigher::weight(&mut xcm.into(), Weight::MAX)
+				.map_or(Weight::MAX, |w| T::BaseXcmWeight::get().saturating_add(w))
 		}
 
 		/// Returns the fee for a given set of parameters

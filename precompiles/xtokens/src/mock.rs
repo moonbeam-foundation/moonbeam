@@ -18,11 +18,12 @@
 use super::*;
 use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 use frame_support::traits::{
-	ConstBool, ConstU32, Disabled, EnsureOrigin, Everything, Nothing, OriginTrait,
+	ConstU32, Disabled, EnsureOrigin, Everything, Nothing, OriginTrait,
 	PalletInfo as PalletInfoTrait,
 };
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider};
+use pallet_xcm_transactor::RelayIndices;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use precompile_utils::{
 	mock_account,
@@ -166,7 +167,6 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = Precompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
@@ -290,7 +290,6 @@ impl pallet_xcm::Config for Runtime {
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
-	type AssetHubMigrationStarted = ConstBool<false>;
 }
 
 #[derive(Encode, Decode)]
@@ -335,20 +334,13 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 			MockTransactors::Relay => Location::parent(),
 		}
 	}
-}
 
-impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
-		match self {
-			MockTransactors::Relay => match call {
-				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
-					let mut call =
-						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
-					call.append(&mut b.clone());
-					call
-				}
-			},
-		}
+	fn utility_pallet_index(&self) -> u8 {
+		RelayIndices::<Runtime>::get().utility
+	}
+
+	fn staking_pallet_index(&self) -> u8 {
+		RelayIndices::<Runtime>::get().staking
 	}
 }
 
@@ -360,7 +352,6 @@ parameter_types! {
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
 	type DerivativeAddressRegistrationOrigin = frame_system::EnsureRoot<AccountId>;

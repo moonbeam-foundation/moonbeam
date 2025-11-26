@@ -24,6 +24,7 @@ jobs:
         uses: ./.github/workflow-templates/build-prod-binary
         with:
           target: "x86-64"
+          ref: ${{ github.event.inputs.tag }}
 
   publish-docker:
     runs-on: ubuntu-latest
@@ -33,7 +34,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           pattern: binaries-*
           merge-multiple: true

@@ -1,5 +1,13 @@
 # Migration History
 
+## Migrate Parachain Staking from Currency to Fungible Trait
+
+- [Migration PR `#3306`](https://github.com/moonbeam-foundation/moonbeam/pull/3306)
+
+## Introduce Additional Account for Inflation Distribution Alongside PBR
+
+- [Migration PR `#2976`](https://github.com/moonbeam-foundation/moonbeam/pull/2976)
+
 ## Calculate outgoing rewards based on pending revoke and decrease changes
 
 - [Migration PR `#1408`](https://github.com/moonbeam-foundation/moonbeam/pull/1408)

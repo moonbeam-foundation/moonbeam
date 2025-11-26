@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { u8aToHex } from "@polkadot/util";
-import { type DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "@moonwall/cli";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import { encodeFunctionData, parseAbi } from "viem";

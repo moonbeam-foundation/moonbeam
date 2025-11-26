@@ -3,7 +3,6 @@ tmp/*
 *.wasm
 *.zip
 
-moonbeam
 !suites/dev/moonbeam
 polkadot
 
@@ -13,3 +12,6 @@ html/
 contracts/cache
 contracts/out
 wasm/precompiled*
+
+.github/instructions/kluster-code-verify.instructions.md
+.kluster

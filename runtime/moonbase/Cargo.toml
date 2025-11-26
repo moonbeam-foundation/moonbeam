@@ -26,7 +26,6 @@ strum_macros = { workspace = true }
 account = { workspace = true }
 ethereum = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
-moonbeam-relay-encoder = { workspace = true }
 moonbeam-runtime-common = { workspace = true }
 session-keys-primitives = { workspace = true }
 xcm-primitives = { workspace = true }
@@ -132,7 +131,7 @@ fp-self-contained = { workspace = true, features = ["serde"] }
 pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm-precompile-blake2 = { workspace = true }
-pallet-evm-precompile-bls12381 = {workspace = true}
+pallet-evm-precompile-bls12381 = { workspace = true }
 pallet-evm-precompile-bn128 = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
@@ -156,7 +155,6 @@ cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
 cumulus-primitives-core = { workspace = true }
-cumulus-primitives-timestamp = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
 cumulus-primitives-storage-weight-reclaim = { workspace = true }
 cumulus-pallet-weight-reclaim = { workspace = true }
@@ -207,7 +205,6 @@ std = [
 	"cumulus-pallet-xcm/std",
 	"cumulus-pallet-xcmp-queue/std",
 	"cumulus-primitives-core/std",
-	"cumulus-primitives-timestamp/std",
 	"cumulus-primitives-utility/std",
 	"cumulus-primitives-storage-weight-reclaim/std",
 	"ethereum/std",
@@ -224,7 +221,6 @@ std = [
 	"frame-system/std",
 	"moonbeam-core-primitives/std",
 	"moonbeam-evm-tracer/std",
-	"moonbeam-relay-encoder/std",
 	"moonbeam-rpc-primitives-debug/std",
 	"moonbeam-rpc-primitives-txpool/std",
 	"moonbeam-runtime-common/std",
@@ -353,7 +349,6 @@ runtime-benchmarks = [
 	"frame-system-benchmarking/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"hex-literal",
-	"moonbeam-relay-encoder/runtime-benchmarks",
 	"moonbeam-runtime-common/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
@@ -431,7 +426,6 @@ try-runtime = [
 	"pallet-transaction-payment/try-runtime",
 	"parachain-info/try-runtime",
 	"pallet-evm-chain-id/try-runtime",
-	"parachain-info/try-runtime",
 	"pallet-evm/try-runtime",
 	"pallet-ethereum/try-runtime",
 	"pallet-treasury/try-runtime",
@@ -439,7 +433,6 @@ try-runtime = [
 	"pallet-crowdloan-rewards/try-runtime",
 	"pallet-proxy/try-runtime",
 	"pallet-identity/try-runtime",
-	"pallet-xcm-transactor/try-runtime",
 	"pallet-proxy-genesis-companion/try-runtime",
 	"pallet-moonbeam-orbiters/try-runtime",
 	"pallet-ethereum-xcm/try-runtime",
@@ -449,4 +442,5 @@ try-runtime = [
 	"pallet-multisig/try-runtime",
 	"pallet-async-backing/try-runtime",
 	"pallet-precompile-benchmarks/try-runtime",
+	"parachains-common/try-runtime",
 ]

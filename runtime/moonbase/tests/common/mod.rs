@@ -34,6 +34,7 @@ use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
 use cumulus_pallet_parachain_system::MessagingStateSnapshot;
+use cumulus_primitives_core::relay_chain::{AbridgedHostConfiguration, AsyncBackingParams};
 use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
 use moonbase_runtime::XcmWeightTrader;
@@ -42,6 +43,25 @@ use std::collections::BTreeMap;
 
 pub fn existential_deposit() -> u128 {
 	<Runtime as pallet_balances::Config>::ExistentialDeposit::get()
+}
+
+/// Returns mock AbridgedHostConfiguration for ParachainSystem tests
+pub fn mock_abridged_host_config() -> AbridgedHostConfiguration {
+	AbridgedHostConfiguration {
+		max_code_size: 3_145_728,
+		max_head_data_size: 20_480,
+		max_upward_queue_count: 174_762,
+		max_upward_queue_size: 1_048_576,
+		max_upward_message_size: 65_531,
+		max_upward_message_num_per_candidate: 16,
+		hrmp_max_message_num_per_candidate: 10,
+		validation_upgrade_cooldown: 6,
+		validation_upgrade_delay: 6,
+		async_backing_params: AsyncBackingParams {
+			max_candidate_depth: 3,
+			allowed_ancestry_len: 2,
+		},
+	}
 }
 
 // A valid signed Alice transfer.
@@ -181,6 +201,11 @@ impl ExtBuilder {
 		self
 	}
 
+	pub fn with_trace_logs(self) -> Self {
+		frame_support::__private::sp_tracing::init_for_tests();
+		self
+	}
+
 	pub fn with_collators(mut self, collators: Vec<(AccountId, Balance)>) -> Self {
 		self.collators = collators;
 		self
@@ -244,12 +269,6 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		pallet_crowdloan_rewards::GenesisConfig::<Runtime> {
-			funded_amount: self.crowdloan_fund,
-		}
-		.assimilate_storage(&mut t)
-		.unwrap();
-
 		pallet_author_mapping::GenesisConfig::<Runtime> {
 			mappings: self.mappings,
 		}
@@ -290,6 +309,11 @@ impl ExtBuilder {
 		let xcm_assets = self.xcm_assets.clone();
 
 		ext.execute_with(|| {
+			// Mock host configuration for ParachainSystem
+			cumulus_pallet_parachain_system::HostConfiguration::<Runtime>::put(
+				mock_abridged_host_config(),
+			);
+
 			// Mock hrmp egress_channels
 			cumulus_pallet_parachain_system::RelevantMessagingState::<Runtime>::put(
 				MessagingStateSnapshot {
@@ -398,10 +422,7 @@ pub fn set_parachain_inherent_data() {
 	relay_sproof.para_id = 100u32.into();
 	relay_sproof.included_para_head = Some(HeadData(vec![1, 2, 3]));
 
-	let additional_key_values = vec![(
-		moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-		sp_timestamp::Timestamp::default().encode(),
-	)];
+	let additional_key_values = vec![];
 
 	relay_sproof.additional_key_values = additional_key_values;
 
@@ -417,6 +438,8 @@ pub fn set_parachain_inherent_data() {
 		relay_chain_state: relay_chain_state,
 		downward_messages: Default::default(),
 		horizontal_messages: Default::default(),
+		collator_peer_id: Default::default(),
+		relay_parent_descendants: Default::default(),
 	};
 	assert_ok!(RuntimeCall::ParachainSystem(
 		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {

@@ -1428,7 +1428,7 @@ declare module "@polkadot/api-base/types/events" {
         { delegator: AccountId20; unstakedAmount: u128 }
       >;
       /**
-       * Delegation from candidate state has been remove.
+       * Delegation from candidate state has been removed.
        **/
       DelegatorLeftCandidate: AugmentedEvent<
         ApiType,

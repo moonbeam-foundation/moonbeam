@@ -62,6 +62,7 @@ use precompile_utils::precompile_set::*;
 parameter_types! {
 	pub P256VerifyWeight: frame_support::weights::Weight =
 		moonbeam_weights::pallet_precompile_benchmarks::WeightInfo::<Runtime>::p256_verify();
+	pub AssetHubTransactor: crate::xcm_config::Transactors = crate::xcm_config::Transactors::AssetHub;
 }
 
 pub struct NativeErc20Metadata;
@@ -144,7 +145,11 @@ type MoonbeamPrecompilesAt<R> = (
 	// (0x100 => 256) https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
 	PrecompileAt<AddressU64<256>, P256Verify<P256VerifyWeight>, EthereumPrecompilesChecks>,
 	// Non-Moonbeam specific nor Ethereum precompiles :
-	PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
+	PrecompileAt<
+		AddressU64<1024>,
+		Sha3FIPS256<Runtime, ()>,
+		(CallableByContract, CallableByPrecompile),
+	>,
 	RemovedPrecompileAt<AddressU64<1025>>, // Dispatch<R>
 	PrecompileAt<AddressU64<1026>, ECRecoverPublicKey, (CallableByContract, CallableByPrecompile)>,
 	// Moonbeam specific precompiles:
@@ -175,7 +180,7 @@ type MoonbeamPrecompilesAt<R> = (
 	>,
 	PrecompileAt<
 		AddressU64<2053>,
-		RelayEncoderPrecompile<R>,
+		RelayEncoderPrecompile<R, AssetHubTransactor>,
 		(CallableByContract, CallableByPrecompile),
 	>,
 	PrecompileAt<

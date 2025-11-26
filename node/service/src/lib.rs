@@ -122,13 +122,27 @@ static TIMESTAMP: AtomicU64 = AtomicU64::new(0);
 /// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
 /// Each call will increment timestamp by slot_duration making Aura think time has passed.
 struct MockTimestampInherentDataProvider;
+
+impl MockTimestampInherentDataProvider {
+	fn advance_timestamp(slot_duration: u64) {
+		if TIMESTAMP.load(Ordering::SeqCst) == 0 {
+			// Initialize timestamp inherent provider
+			TIMESTAMP.store(
+				sp_timestamp::Timestamp::current().as_millis(),
+				Ordering::SeqCst,
+			);
+		} else {
+			TIMESTAMP.fetch_add(slot_duration, Ordering::SeqCst);
+		}
+	}
+}
+
 #[async_trait::async_trait]
 impl sp_inherents::InherentDataProvider for MockTimestampInherentDataProvider {
 	async fn provide_inherent_data(
 		&self,
 		inherent_data: &mut sp_inherents::InherentData,
 	) -> Result<(), sp_inherents::Error> {
-		TIMESTAMP.fetch_add(RELAY_CHAIN_SLOT_DURATION_MILLIS, Ordering::SeqCst);
 		inherent_data.put_data(
 			sp_timestamp::INHERENT_IDENTIFIER,
 			&TIMESTAMP.load(Ordering::SeqCst),
@@ -627,7 +641,7 @@ async fn build_relay_chain_interface(
 	Arc<(dyn RelayChainInterface + 'static)>,
 	Option<CollatorPair>,
 )> {
-	if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
+	let result = if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
 		collator_options.relay_chain_mode
 	{
 		build_minimal_relay_chain_node_with_rpc(
@@ -645,7 +659,11 @@ async fn build_relay_chain_interface(
 			task_manager,
 			hwbench,
 		)
-	}
+	};
+
+	// Extract only the first two elements from the 4-tuple
+	result
+		.map(|(relay_chain_interface, collator_pair, _, _)| (relay_chain_interface, collator_pair))
 }
 
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
@@ -718,10 +736,16 @@ where
 			transaction_pool: transaction_pool.clone(),
 			spawn_handle: task_manager.spawn_handle(),
 			import_queue: params.import_queue,
-			para_id,
+			para_id: para_id.clone(),
 			relay_chain_interface: relay_chain_interface.clone(),
 			net_config,
 			sybil_resistance_level: CollatorSybilResistance::Resistant,
+			metrics: Net::register_notification_metrics(
+				parachain_config
+					.prometheus_config
+					.as_ref()
+					.map(|config| &config.registry),
+			),
 		})
 		.await?;
 
@@ -862,6 +886,7 @@ where
 					}),
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					para_id,
 				)
 				.map_err(Into::into)
 			} else {
@@ -871,6 +896,7 @@ where
 					None,
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					para_id,
 				)
 				.map_err(Into::into)
 			}
@@ -930,6 +956,7 @@ where
 		relay_chain_slot_duration,
 		recovery_handle: Box::new(overseer_handle.clone()),
 		sync_service: sync_service.clone(),
+		prometheus_registry: prometheus_registry.as_ref(),
 	})?;
 
 	let BlockImportPipeline::Parachain(block_import) = block_import else {
@@ -1009,13 +1036,11 @@ where
 	);
 
 	let create_inherent_data_providers = |_, _| async move {
-		let time = sp_timestamp::InherentDataProvider::from_system_time();
-
 		let author = nimbus_primitives::InherentDataProvider;
 
 		let randomness = session_keys_primitives::InherentDataProvider;
 
-		Ok((time, author, randomness))
+		Ok((author, randomness))
 	};
 
 	let client_clone = client.clone();
@@ -1045,10 +1070,7 @@ where
 		nimbus_consensus::collators::lookahead::run::<Block, _, _, _, FullBackend, _, _, _, _, _, _>(
 			nimbus_consensus::collators::lookahead::Params {
 				additional_digests_provider: maybe_provide_vrf_digest,
-				additional_relay_keys: vec![
-					moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW.to_vec(),
-					relay_chain::well_known_keys::EPOCH_INDEX.to_vec(),
-				],
+				additional_relay_keys: vec![relay_chain::well_known_keys::EPOCH_INDEX.to_vec()],
 				authoring_duration: block_authoring_duration,
 				block_import,
 				code_hash_provider,
@@ -1207,6 +1229,10 @@ where
 	let mut dev_rpc_data = None;
 	let collator = config.role.is_authority();
 
+	let parachain_id: ParaId = para_id
+		.expect("para ID should be specified for dev service")
+		.into();
+
 	if collator {
 		let mut env = sc_basic_authorship::ProposerFactory::with_proof_recording(
 			task_manager.spawn_handle(),
@@ -1313,7 +1339,9 @@ where
 					let client_for_xcm = client_for_cidp.clone();
 
 					async move {
-						let time = MockTimestampInherentDataProvider;
+						MockTimestampInherentDataProvider::advance_timestamp(
+							RELAY_CHAIN_SLOT_DURATION_MILLIS,
+						);
 
 						let current_para_block = maybe_current_para_block?
 							.ok_or(sp_blockchain::Error::UnknownBlock(block.to_string()))?;
@@ -1324,15 +1352,10 @@ where
 
 						// Get the mocked timestamp
 						let timestamp = TIMESTAMP.load(Ordering::SeqCst);
-						// Calculate mocked slot number (should be consecutively 1, 2, ...)
+						// Calculate mocked slot number
 						let slot = timestamp.saturating_div(RELAY_CHAIN_SLOT_DURATION_MILLIS);
 
 						let additional_key_values = vec![
-							(
-								moonbeam_core_primitives::well_known_relay_keys::TIMESTAMP_NOW
-									.to_vec(),
-								sp_timestamp::Timestamp::current().encode(),
-							),
 							(relay_slot_key, Slot::from(slot).encode()),
 							(
 								relay_chain::well_known_keys::ACTIVE_CONFIG.to_vec(),
@@ -1365,7 +1388,6 @@ where
 							.collect_collation_info(block, &current_para_head)
 						{
 							Ok(info) => info.new_validation_code.is_some(),
-
 							Err(e) => {
 								log::error!("Failed to collect collation info: {:?}", e);
 
@@ -1375,9 +1397,7 @@ where
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
-							para_id: para_id
-								.expect("para ID should be specified for dev service")
-								.into(),
+							para_id: parachain_id,
 							upgrade_go_ahead: should_send_go_ahead.then(|| {
 								log::info!(
 									"Detected pending validation code, sending go-ahead signal."
@@ -1386,10 +1406,8 @@ where
 								UpgradeGoAhead::GoAhead
 							}),
 							current_para_block_head,
-							relay_offset: 1000
-								+ additional_relay_offset.load(std::sync::atomic::Ordering::SeqCst),
-							relay_blocks_per_para_block: 2,
-							// TODO: Recheck
+							relay_offset: additional_relay_offset.load(Ordering::SeqCst),
+							relay_blocks_per_para_block: 1,
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
 							xcm_config: MockXcmConfig::new(
@@ -1404,7 +1422,11 @@ where
 
 						let randomness = session_keys_primitives::InherentDataProvider;
 
-						Ok((time, mocked_parachain, randomness))
+						Ok((
+							MockTimestampInherentDataProvider,
+							mocked_parachain,
+							randomness,
+						))
 					}
 				},
 			}),
@@ -1523,6 +1545,7 @@ where
 					}),
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					parachain_id,
 				)
 				.map_err(Into::into)
 			} else {
@@ -1532,6 +1555,7 @@ where
 					None,
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
+					parachain_id,
 				)
 				.map_err(Into::into)
 			}
@@ -1576,7 +1600,7 @@ mod tests {
 	use crate::chain_spec::moonbase::ChainSpec;
 	use crate::chain_spec::Extensions;
 	use jsonrpsee::server::BatchRequestConfig;
-	use moonbase_runtime::{currency::UNIT, AccountId};
+	use moonbase_runtime::AccountId;
 	use prometheus::{proto::LabelPair, Counter};
 	use sc_network::config::NetworkConfiguration;
 	use sc_service::config::RpcConfiguration;
@@ -1713,6 +1737,7 @@ mod tests {
 						path: tmp.path().into(),
 						cache_size: 1024,
 					},
+					metrics_registry: None,
 				},
 				u64::MAX,
 			)
@@ -1767,7 +1792,6 @@ mod tests {
 				vec![],
 				vec![],
 				vec![],
-				1000 * UNIT,
 				ParaId::new(0),
 				0,
 			))
@@ -1789,6 +1813,7 @@ mod tests {
 				cache_size: 128,
 			},
 			trie_cache_maximum_size: Some(16777216),
+			warm_up_trie_cache: None,
 			state_pruning: Default::default(),
 			blocks_pruning: sc_service::BlocksPruning::KeepAll,
 			chain_spec: Box::new(spec),

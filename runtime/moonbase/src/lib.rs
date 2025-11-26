@@ -45,7 +45,6 @@ use alloc::borrow::Cow;
 // Re-export required by get! macro.
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
-pub use frame_support::traits::Get;
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
 	Index, Signature,
@@ -71,8 +70,8 @@ use frame_support::{
 	traits::{
 		fungible::{Balanced, Credit, HoldConsideration, Inspect, NativeOrWithId},
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains, EitherOf,
-		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, InstanceFilter, LinearStoragePrice,
-		OnFinalize, OnUnbalanced,
+		EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, Get, InstanceFilter, LinearStoragePrice,
+		OnFinalize, OnUnbalanced, VariantCountOf,
 	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
@@ -84,9 +83,7 @@ use frame_system::{EnsureRoot, EnsureSigned};
 use governance::councils::*;
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::{
-	impl_asset_conversion::AssetRateConverter,
-	impl_multiasset_paymaster::MultiAssetPaymaster,
-	timestamp::{ConsensusHookWrapperForRelayTimestamp, RelayTimestamp},
+	impl_asset_conversion::AssetRateConverter, impl_multiasset_paymaster::MultiAssetPaymaster,
 };
 use nimbus_primitives::CanAuthor;
 use pallet_ethereum::Call::transact;
@@ -212,7 +209,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("moonbase"),
 	impl_name: Cow::Borrowed("moonbase"),
 	authoring_version: 4,
-	spec_version: 4000,
+	spec_version: 4100,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -308,7 +305,10 @@ impl frame_system::Config for Runtime {
 	type SingleBlockMigrations = migrations::SingleBlockMigrations<Runtime>;
 	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
-	type PostInherents = ();
+	type PostInherents = (
+		// Validate timestamp provided by the consensus client
+		AsyncBacking,
+	);
 	type PostTransactions = ();
 	type ExtensionsWeightInfo = moonbase_weights::frame_system_extensions::WeightInfo<Runtime>;
 }
@@ -324,7 +324,7 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
-	type MinimumPeriod = ConstU64<3000>;
+	type MinimumPeriod = ConstU64<{ RELAY_CHAIN_SLOT_DURATION_MILLIS as u64 / 2 }>;
 	type WeightInfo = moonbase_weights::pallet_timestamp::WeightInfo<Runtime>;
 }
 
@@ -349,8 +349,8 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	type FreezeIdentifier = ();
-	type MaxFreezes = ConstU32<0>;
+	type FreezeIdentifier = RuntimeFreezeReason;
+	type MaxFreezes = VariantCountOf<Self::RuntimeFreezeReason>;
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type WeightInfo = moonbase_weights::pallet_balances::WeightInfo<Runtime>;
@@ -521,7 +521,6 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = MoonbasePrecompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
@@ -535,7 +534,7 @@ impl pallet_evm::Config for Runtime {
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
 	type GasLimitStorageGrowthRatio = GasLimitStorageGrowthRatio;
-	type Timestamp = RelayTimestamp;
+	type Timestamp = Timestamp;
 	type AccountProvider = FrameSystemAccountProvider<Runtime>;
 
 	type WeightInfo = moonbase_weights::pallet_evm::WeightInfo<Runtime>;
@@ -615,7 +614,7 @@ impl pallet_treasury::Config for Runtime {
 	type BalanceConverter = AssetRateConverter<Runtime, Balances>;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = BenchmarkHelper;
+	type BenchmarkHelper = BenchmarkHelper<Runtime>;
 	type BlockNumberProvider = System;
 }
 
@@ -657,6 +656,8 @@ impl pallet_identity::Config for Runtime {
 	type WeightInfo = moonbase_weights::pallet_identity::WeightInfo<Runtime>;
 	type UsernameDeposit = ConstU128<{ currency::deposit(0, MaxUsernameLength::get()) }>;
 	type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelper<Runtime>;
 }
 
 pub struct TransactionConverter;
@@ -688,7 +689,6 @@ parameter_types! {
 }
 
 impl pallet_ethereum::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type StateRoot =
 		pallet_ethereum::IntermediateStateRoot<<Runtime as frame_system::Config>::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
@@ -713,7 +713,6 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 }
 
 impl pallet_ethereum_xcm::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
@@ -730,6 +729,8 @@ parameter_types! {
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
+/// Relay chain slot duration, in milliseconds.
+const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
 /// into the relay chain.
 const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
@@ -739,6 +740,7 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 
 type ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook<
 	Runtime,
+	RELAY_CHAIN_SLOT_DURATION_MILLIS,
 	BLOCK_PROCESSING_VELOCITY,
 	UNINCLUDED_SEGMENT_CAPACITY,
 >;
@@ -752,10 +754,11 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = EmergencyParaXcm;
-	type ConsensusHook = ConsensusHookWrapperForRelayTimestamp<Runtime, ConsensusHook>;
+	type ConsensusHook = ConsensusHook;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = moonbase_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
+	type RelayParentOffset = ConstU32<0>;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -822,7 +825,6 @@ impl Get<Slot> for RelayChainSlotProvider {
 }
 
 impl pallet_parachain_staking::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
@@ -861,8 +863,9 @@ impl pallet_parachain_staking::Config for Runtime {
 	type SlotProvider = RelayChainSlotProvider;
 	type WeightInfo = moonbase_weights::pallet_parachain_staking::WeightInfo<Runtime>;
 	type MaxCandidates = ConstU32<200>;
-	type SlotDuration = ConstU64<6_000>;
-	type BlockTime = ConstU64<6_000>;
+	type SlotDuration = ConstU64<MILLISECS_PER_BLOCK>;
+	type BlockTime = ConstU64<MILLISECS_PER_BLOCK>;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type LinearInflationThreshold = ();
 }
 
@@ -886,7 +889,6 @@ mod mock {
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	#[cfg(not(test))]
 	type RandomnessSource = Randomness;
 	#[cfg(test)]
@@ -898,7 +900,8 @@ impl pallet_author_slot_filter::Config for Runtime {
 impl pallet_async_backing::Config for Runtime {
 	type AllowMultipleBlocksPerSlot = ConstBool<true>;
 	type GetAndVerifySlot = pallet_async_backing::RelaySlot;
-	type ExpectedBlockTime = ConstU64<6000>;
+	type SlotDuration = ConstU64<MILLISECS_PER_BLOCK>;
+	type ExpectedBlockTime = ConstU64<MILLISECS_PER_BLOCK>;
 }
 
 parameter_types! {
@@ -909,7 +912,6 @@ parameter_types! {
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Initialized = ConstBool<false>;
 	type InitializationPayment = InitializationPayment;
 	type MaxInitContributors = ConstU32<500>;
@@ -929,7 +931,6 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type DepositCurrency = Balances;
 	type DepositAmount = ConstU128<{ 100 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	type Keys = session_keys_primitives::VrfId;
@@ -1216,11 +1217,7 @@ pub struct NormalFilter;
 impl Contains<RuntimeCall> for NormalFilter {
 	fn contains(c: &RuntimeCall) -> bool {
 		match c {
-			// We filter anonymous proxy as they make "reserve" inconsistent
-			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			RuntimeCall::Proxy(method) => match method {
-				pallet_proxy::Call::create_pure { .. } => false,
-				pallet_proxy::Call::kill_pure { .. } => false,
 				pallet_proxy::Call::proxy { real, .. } => {
 					!pallet_evm::AccountCodes::<Runtime>::contains_key(H160::from(*real))
 				}
@@ -1248,7 +1245,6 @@ impl moonkit_xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 }
 
 impl pallet_maintenance_mode::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
@@ -1271,7 +1267,6 @@ type DelCollatorOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_moonbeam_orbiters::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AccountLookup = AuthorMapping;
 	type AddCollatorOrigin = AddCollatorOrigin;
 	type Currency = Balances;
@@ -1337,7 +1332,6 @@ where
 }
 
 impl pallet_randomness::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AddressMapping = sp_runtime::traits::ConvertInto;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter<Runtime>;
@@ -1425,7 +1419,7 @@ construct_runtime! {
 		EthereumChainId: pallet_evm_chain_id::{Pallet, Storage, Config<T>} = 9,
 		EVM: pallet_evm::{Pallet, Config<T>, Call, Storage, Event<T>} = 10,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config<T>} = 11,
-		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>, FreezeReason} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 13,
 		// Previously 14: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
 		// Previously 15: CouncilCollective: pallet_collective::<Instance1>
@@ -1548,7 +1542,7 @@ mod benches {
 		[pallet_crowdloan_rewards, CrowdloanRewards]
 		[pallet_author_mapping, AuthorMapping]
 		[pallet_proxy, Proxy]
-		[pallet_transaction_payment, PalletTransactionPaymentBenchmark::<Runtime>]
+		[pallet_transaction_payment, TransactionPayment]
 		[pallet_identity, Identity]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
@@ -1670,36 +1664,10 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common!(
 	{}
 );
 
-#[allow(dead_code)]
-struct CheckInherents;
-
-// Parity has decided to depreciate this trait, but does not offer a satisfactory replacement,
-// see issue: https://github.com/paritytech/polkadot-sdk/issues/2841
-#[allow(deprecated)]
-impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
-	fn check_inherents(
-		block: &Block,
-		relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
-	) -> sp_inherents::CheckInherentsResult {
-		let relay_chain_slot = relay_state_proof
-			.read_slot()
-			.expect("Could not read the relay chain slot from the proof");
-		let inherent_data =
-			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-				relay_chain_slot,
-				sp_std::time::Duration::from_secs(6),
-			)
-			.create_inherent_data()
-			.expect("Could not create the timestamp inherent data");
-		inherent_data.check_extrinsics(block)
-	}
-}
-
 // Nimbus's Executive wrapper allows relay validators to verify the seal digest
 cumulus_pallet_parachain_system::register_validate_block!(
 	Runtime = Runtime,
 	BlockExecutor = pallet_author_inherent::BlockExecutor::<Runtime, Executive>,
-	CheckInherents = CheckInherents,
 );
 
 moonbeam_runtime_common::impl_self_contained_call!();

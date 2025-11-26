@@ -16,7 +16,7 @@
 
 //! Relay chain runtime mock.
 
-use frame_support::traits::{ConstBool, Disabled};
+use frame_support::traits::Disabled;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{AsEnsureOriginWithArg, Contains, ContainsPair, Everything, Get, Nothing},
@@ -383,7 +383,6 @@ impl pallet_xcm::Config for Runtime {
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
-	type AssetHubMigrationStarted = ConstBool<false>;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -398,7 +397,6 @@ pub mod mock_msg_queue {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type XcmExecutor: ExecuteXcm<Self::RuntimeCall>;
 	}
 
@@ -427,7 +425,7 @@ pub mod mock_msg_queue {
 		/// Some XCM was executed OK.
 		Success(Option<T::Hash>),
 		/// Some XCM failed.
-		Fail(Option<T::Hash>, XcmError),
+		Fail(Option<T::Hash>, InstructionError),
 		/// Bad XCM version used.
 		BadVersion(Option<T::Hash>),
 		/// Bad XCM format used.
@@ -452,7 +450,7 @@ pub mod mock_msg_queue {
 			_sent_at: RelayBlockNumber,
 			xcm: VersionedXcm<T::RuntimeCall>,
 			max_weight: Weight,
-		) -> Result<Weight, XcmError> {
+		) -> Result<Weight, InstructionError> {
 			let hash = Encode::using_encoded(&xcm, T::Hashing::hash);
 			let (result, event) = match Xcm::<T::RuntimeCall>::try_from(xcm) {
 				Ok(xcm) => {
@@ -466,7 +464,7 @@ pub mod mock_msg_queue {
 						max_weight,
 						Weight::zero(),
 					) {
-						Outcome::Error { error } => {
+						Outcome::Error(error) => {
 							(Err(error.clone()), Event::Fail(Some(hash), error))
 						}
 						Outcome::Complete { used } => (Ok(used), Event::Success(Some(hash))),
@@ -478,7 +476,10 @@ pub mod mock_msg_queue {
 					}
 				}
 				Err(()) => (
-					Err(XcmError::UnhandledXcmVersion),
+					Err(InstructionError {
+						error: XcmError::UnhandledXcmVersion,
+						index: 0,
+					}),
 					Event::BadVersion(Some(hash)),
 				),
 			};
@@ -546,7 +547,6 @@ pub mod mock_msg_queue {
 	}
 }
 impl mock_msg_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
@@ -557,9 +557,7 @@ pub mod mock_statemint_prefix {
 	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-	}
+	pub trait Config: frame_system::Config {}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {}
@@ -593,9 +591,7 @@ pub mod mock_statemint_prefix {
 	}
 }
 
-impl mock_statemint_prefix::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-}
+impl mock_statemint_prefix::Config for Runtime {}
 
 type Block = frame_system::mocking::MockBlockU32<Runtime>;
 construct_runtime!(

@@ -5,6 +5,7 @@ import { type Abi, parseEther } from "viem";
 import { sendRawTransaction } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount, createViemTransaction } from "./helpers";
+import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D020805",
@@ -100,7 +101,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
       },
     });
@@ -148,7 +149,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
       },
     });
@@ -195,7 +196,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
       },
     });
@@ -241,7 +242,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction result - may revert when calling zero address delegation
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         // Transaction may revert when calling zero address after delegation
         expect(["success", "reverted"]).toContain(receipt.status);
       },
@@ -275,7 +276,7 @@ describeSuite({
         await context.createBlock();
 
         // Verify transaction result - may revert when calling EOA after delegation
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         // Transaction may revert when calling EOA after delegation
         expect(["success", "reverted"]).toContain(receipt.status);
 
@@ -337,7 +338,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
       },
     });
@@ -376,7 +377,7 @@ describeSuite({
         await context.createBlock();
 
         // First authorization should succeed, second should be ignored
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
 
         // Transaction may succeed but only one delegation should be set
         const code = await context.viem().getCode({
@@ -437,7 +438,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
       },
     });
@@ -489,7 +490,7 @@ describeSuite({
         expect(code).toBeFalsy();
 
         // Verify transaction succeeded but authorization was invalid
-        const receipt = await context.viem().getTransactionReceipt({ hash });
+        const receipt = await getTransactionReceiptWithRetry(context, hash);
         expect(receipt.status).toBe("success");
       },
     });
