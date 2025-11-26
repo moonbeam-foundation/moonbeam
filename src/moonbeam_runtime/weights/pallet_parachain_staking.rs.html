@@ -809,36 +809,7 @@
 <a href="#808" id="808">808</a>
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
-<a href="#811" id="811">811</a>
-<a href="#812" id="812">812</a>
-<a href="#813" id="813">813</a>
-<a href="#814" id="814">814</a>
-<a href="#815" id="815">815</a>
-<a href="#816" id="816">816</a>
-<a href="#817" id="817">817</a>
-<a href="#818" id="818">818</a>
-<a href="#819" id="819">819</a>
-<a href="#820" id="820">820</a>
-<a href="#821" id="821">821</a>
-<a href="#822" id="822">822</a>
-<a href="#823" id="823">823</a>
-<a href="#824" id="824">824</a>
-<a href="#825" id="825">825</a>
-<a href="#826" id="826">826</a>
-<a href="#827" id="827">827</a>
-<a href="#828" id="828">828</a>
-<a href="#829" id="829">829</a>
-<a href="#830" id="830">830</a>
-<a href="#831" id="831">831</a>
-<a href="#832" id="832">832</a>
-<a href="#833" id="833">833</a>
-<a href="#834" id="834">834</a>
-<a href="#835" id="835">835</a>
-<a href="#836" id="836">836</a>
-<a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a>
-<a href="#839" id="839">839</a>
-<a href="#840" id="840">840</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam foundation
+<a href="#811" id="811">811</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2025 Moonbeam foundation
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -1647,35 +1618,6 @@
 			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(x.into())))
 			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2580</span>).saturating_mul(x.into()))
-	}
-	<span class="doccomment">/// Storage: `ParachainStaking::MigratedCandidates` (r:199 w:199)
-	/// Proof: `ParachainStaking::MigratedCandidates` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::CandidateInfo` (r:199 w:0)
-	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:300 w:300)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:300 w:300)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
-	/// Storage: `System::Account` (r:300 w:300)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `ParachainStaking::MigratedDelegators` (r:101 w:101)
-	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::DelegatorState` (r:101 w:0)
-	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// The range of component `x` is `[1, 300]`.
-	</span><span class="kw">fn </span>migrate_locks_to_freezes_batch(x: u32, ) -&gt; Weight {
-		<span class="comment">// Proof Size summary in bytes:
-		//  Measured:  `61191 + x * (42 ±0)`
-		//  Estimated: `664760 + x * (1006 ±3)`
-		// Minimum execution time: 9_054_542_000 picoseconds.
-		</span>Weight::from_parts(<span class="number">8_083_097_903</span>, <span class="number">664760</span>)
-			<span class="comment">// Standard Error: 432_789
-			</span>.saturating_add(Weight::from_parts(<span class="number">12_360_501</span>, <span class="number">0</span>).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(<span class="number">882_u64</span>))
-			.saturating_add(T::DbWeight::get().reads((<span class="number">1_u64</span>).saturating_mul(x.into())))
-			.saturating_add(T::DbWeight::get().writes(<span class="number">706_u64</span>))
-			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(x.into())))
-			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">1006</span>).saturating_mul(x.into()))
 	}
 }
 </code></pre></div></section></main></body></html>

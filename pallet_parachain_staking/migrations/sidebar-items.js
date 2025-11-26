@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["MigrateParachainBondConfig","OldParachainBondConfig"]};
+window.SIDEBAR_ITEMS = {};

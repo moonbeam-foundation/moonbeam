@@ -79,9 +79,9 @@
 
 <span class="doccomment">/// List of multi block migrations to be executed by the pallet_migrations.
 </span><span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
-</span><span class="kw">pub type </span>MultiBlockMigrationList = (
-	<span class="comment">// Common multiblock migrations applied on all Moonbeam runtime
-	</span>moonbeam_runtime_common::migrations::MultiBlockMigrations,
+</span><span class="kw">pub type </span>MultiBlockMigrationList&lt;Runtime&gt; = (
+	<span class="comment">// Common multiblock migrations applied on all Moonbeam runtimes
+	</span>moonbeam_runtime_common::migrations::MultiBlockMigrations&lt;Runtime&gt;,
 	<span class="comment">// ... Moonbase specific multiblock migrations
 </span>);
 </code></pre></div></section></main></body></html>

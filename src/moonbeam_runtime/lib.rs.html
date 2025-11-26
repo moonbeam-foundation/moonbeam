@@ -3445,7 +3445,7 @@
 <span class="kw">impl </span>pallet_migrations::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
-	</span><span class="kw">type </span>Migrations = migrations::MultiBlockMigrationList;
+	</span><span class="kw">type </span>Migrations = migrations::MultiBlockMigrationList&lt;Runtime&gt;;
 	<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
 	</span><span class="kw">type </span>Migrations = pallet_migrations::mock_helpers::MockedMigrations;
 	<span class="kw">type </span>CursorMaxLen = ConstU32&lt;<span class="number">65_536</span>&gt;;
