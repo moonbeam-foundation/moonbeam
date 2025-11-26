@@ -1742,10 +1742,7 @@ export default {
       __Unused196: "Null",
       __Unused197: "Null",
       __Unused198: "Null",
-      __Unused199: "Null",
-      migrate_locks_to_freezes_batch: {
-        accounts: "Vec<(AccountId20,bool)>"
-      }
+      __Unused199: "Null"
     }
   },
   /**

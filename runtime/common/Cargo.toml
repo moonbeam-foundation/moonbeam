@@ -16,6 +16,7 @@ moonbeam-core-primitives = { workspace = true }
 pallet-migrations = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-xcm-weight-trader = { workspace = true }
+pallet-parachain-staking = { workspace = true }
 
 # Substrate
 pallet-message-queue = { workspace = true }

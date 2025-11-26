@@ -808,33 +808,4 @@ impl<T: frame_system::Config> pallet_parachain_staking::WeightInfo for WeightInf
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(x.into())))
 			.saturating_add(Weight::from_parts(0, 2580).saturating_mul(x.into()))
 	}
-	/// Storage: `ParachainStaking::MigratedCandidates` (r:199 w:199)
-	/// Proof: `ParachainStaking::MigratedCandidates` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::CandidateInfo` (r:199 w:0)
-	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `Balances::Locks` (r:300 w:300)
-	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-	/// Storage: `Balances::Freezes` (r:300 w:300)
-	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
-	/// Storage: `System::Account` (r:300 w:300)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-	/// Storage: `ParachainStaking::MigratedDelegators` (r:101 w:101)
-	/// Proof: `ParachainStaking::MigratedDelegators` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainStaking::DelegatorState` (r:101 w:0)
-	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// The range of component `x` is `[1, 300]`.
-	fn migrate_locks_to_freezes_batch(x: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `61191 + x * (42 ±0)`
-		//  Estimated: `664760 + x * (1006 ±3)`
-		// Minimum execution time: 9_054_542_000 picoseconds.
-		Weight::from_parts(8_083_097_903, 664760)
-			// Standard Error: 432_789
-			.saturating_add(Weight::from_parts(12_360_501, 0).saturating_mul(x.into()))
-			.saturating_add(T::DbWeight::get().reads(882_u64))
-			.saturating_add(T::DbWeight::get().reads((1_u64).saturating_mul(x.into())))
-			.saturating_add(T::DbWeight::get().writes(706_u64))
-			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(x.into())))
-			.saturating_add(Weight::from_parts(0, 1006).saturating_mul(x.into()))
-	}
 }
