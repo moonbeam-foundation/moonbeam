@@ -60,7 +60,6 @@ impl<Runtime> AuthorMappingPrecompile<Runtime>
 where
 	Runtime: pallet_author_mapping::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::RuntimeCall: From<AuthorMappingCall<Runtime>>,
 	Runtime::Hash: From<H256>,
 	Runtime::AccountId: Into<H160>,
@@ -80,7 +79,12 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::add_association { nimbus_id };
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -106,7 +110,12 @@ where
 			new_nimbus_id,
 		};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -124,7 +133,12 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::clear_association { nimbus_id };
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -140,7 +154,12 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::remove_keys {};
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}
@@ -154,7 +173,12 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = AuthorMappingCall::<Runtime>::set_keys { keys: keys.into() };
 
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call, 0)?;
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			frame_system::RawOrigin::Signed(origin).into(),
+			call,
+			0,
+		)?;
 
 		Ok(())
 	}

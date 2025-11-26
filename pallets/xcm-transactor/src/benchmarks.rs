@@ -24,6 +24,13 @@ use sp_std::boxed::Box;
 use sp_std::vec;
 use xcm::latest::prelude::*;
 
+/// Helper function to set up XCM router for benchmarks
+fn setup_xcm_router<T: Config>() {
+	// Ensure the XCM sender is properly configured for benchmarks
+	// This sets up the HostConfiguration for sending messages to the relay chain
+	T::XcmSender::ensure_successful_delivery(Some(Location::parent()));
+}
+
 #[benchmarks(
 	where T::Transactor: Default, T::CurrencyId: From<Location>
 )]
@@ -135,6 +142,9 @@ mod benchmarks {
 	// Worst Case: transacInfo db reads
 	#[benchmark]
 	fn transact_through_derivative() -> Result<(), BenchmarkError> {
+		// Set up XCM router for benchmarks
+		setup_xcm_router::<T>();
+
 		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
@@ -193,6 +203,9 @@ mod benchmarks {
 
 	#[benchmark]
 	fn transact_through_sovereign() -> Result<(), BenchmarkError> {
+		// Set up XCM router for benchmarks
+		setup_xcm_router::<T>();
+
 		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
@@ -251,6 +264,9 @@ mod benchmarks {
 
 	#[benchmark]
 	fn transact_through_signed() -> Result<(), BenchmarkError> {
+		// Set up XCM router for benchmarks
+		setup_xcm_router::<T>();
+
 		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
@@ -298,6 +314,9 @@ mod benchmarks {
 
 	#[benchmark]
 	fn hrmp_manage() -> Result<(), BenchmarkError> {
+		// Set up XCM router for benchmarks
+		setup_xcm_router::<T>();
+
 		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);

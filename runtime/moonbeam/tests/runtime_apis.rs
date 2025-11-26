@@ -333,7 +333,7 @@ fn can_author_when_selected_is_empty() {
 			let parent = Header {
 				digest: Default::default(),
 				extrinsics_root: Default::default(),
-				number: Default::default(),
+				number: 2,
 				parent_hash: Default::default(),
 				state_root: Default::default(),
 			};

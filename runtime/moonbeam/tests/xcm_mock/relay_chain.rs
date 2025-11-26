@@ -247,7 +247,6 @@ impl pallet_xcm::Config for Runtime {
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
-	type AssetHubMigrationStarted = ConstBool<false>;
 }
 
 parameter_types! {
@@ -284,6 +283,9 @@ impl paras::Config for Runtime {
 	type QueueFootprinter = ();
 	type OnNewHead = ();
 	type AssignCoretime = ();
+	type Fungible = ();
+	type CooldownRemovalMultiplier = ();
+	type AuthorizeCurrentCodeOrigin = frame_system::EnsureRoot<AccountId>;
 }
 
 impl dmp::Config for Runtime {}
@@ -320,6 +322,10 @@ where
 	RuntimeCall: From<C>,
 {
 	fn create_inherent(call: RuntimeCall) -> UncheckedExtrinsic {
+		UncheckedExtrinsic::new_bare(call)
+	}
+
+	fn create_bare(call: RuntimeCall) -> UncheckedExtrinsic {
 		UncheckedExtrinsic::new_bare(call)
 	}
 }
@@ -388,7 +394,7 @@ pub(crate) fn relay_events() -> Vec<RuntimeEvent> {
 		.collect::<Vec<_>>()
 }
 
-use frame_support::traits::{ConstBool, Disabled, OnFinalize, OnInitialize};
+use frame_support::traits::{Disabled, OnFinalize, OnInitialize};
 pub(crate) fn relay_roll_to(n: BlockNumber) {
 	while System::block_number() < n {
 		XcmPallet::on_finalize(System::block_number());

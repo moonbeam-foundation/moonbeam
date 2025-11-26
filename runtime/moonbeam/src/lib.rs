@@ -516,7 +516,6 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = MoonbeamPrecompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
@@ -608,7 +607,7 @@ impl pallet_treasury::Config for Runtime {
 	type BalanceConverter = AssetRateConverter<Runtime, Balances>;
 	type PayoutPeriod = ConstU32<{ 30 * DAYS }>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = BenchmarkHelper;
+	type BenchmarkHelper = BenchmarkHelper<Runtime>;
 	type BlockNumberProvider = System;
 }
 
@@ -650,6 +649,8 @@ impl pallet_identity::Config for Runtime {
 	type WeightInfo = moonbeam_weights::pallet_identity::WeightInfo<Runtime>;
 	type UsernameDeposit = ConstU128<{ currency::deposit(0, MaxUsernameLength::get()) }>;
 	type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = BenchmarkHelper<Runtime>;
 }
 
 pub struct TransactionConverter;
@@ -681,7 +682,6 @@ parameter_types! {
 }
 
 impl pallet_ethereum::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
@@ -716,6 +716,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = moonbeam_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
+	type RelayParentOffset = ConstU32<0>;
 }
 
 pub struct EthereumXcmEnsureProxy;
@@ -736,7 +737,6 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 }
 
 impl pallet_ethereum_xcm::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
@@ -821,7 +821,6 @@ parameter_types! {
 }
 
 impl pallet_parachain_staking::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = MonetaryGovernanceOrigin;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
@@ -877,7 +876,6 @@ impl pallet_author_inherent::Config for Runtime {
 }
 
 impl pallet_author_slot_filter::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RandomnessSource = Randomness;
 	type PotentialAuthors = ParachainStaking;
 	type WeightInfo = moonbeam_weights::pallet_author_slot_filter::WeightInfo<Runtime>;
@@ -897,7 +895,6 @@ parameter_types! {
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Initialized = ConstBool<false>;
 	type InitializationPayment = InitializationPayment;
 	type MaxInitContributors = ConstU32<500>;
@@ -916,7 +913,6 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 // This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 impl pallet_author_mapping::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type DepositCurrency = Balances;
 	type DepositAmount = ConstU128<{ 100 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	type Keys = session_keys_primitives::VrfId;
@@ -1246,7 +1242,6 @@ impl moonkit_xcm_primitives::PauseXcmExecution for XcmExecutionManager {
 }
 
 impl pallet_maintenance_mode::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type NormalCallFilter = NormalFilter;
 	type MaintenanceCallFilter = MaintenanceFilter;
 	type MaintenanceOrigin =
@@ -1269,7 +1264,6 @@ type DelCollatorOrigin =
 	EitherOfDiverse<EnsureRoot<AccountId>, governance::custom_origins::GeneralAdmin>;
 
 impl pallet_moonbeam_orbiters::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AccountLookup = AuthorMapping;
 	type AddCollatorOrigin = AddCollatorOrigin;
 	type Currency = Balances;
@@ -1335,7 +1329,6 @@ where
 }
 
 impl pallet_randomness::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AddressMapping = sp_runtime::traits::ConvertInto;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter<Runtime>;
@@ -1546,7 +1539,6 @@ mod benches {
 		[pallet_crowdloan_rewards, CrowdloanRewards]
 		[pallet_author_mapping, AuthorMapping]
 		[pallet_proxy, Proxy]
-		[pallet_transaction_payment, PalletTransactionPaymentBenchmark::<Runtime>]
 		[pallet_identity, Identity]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]

@@ -56,8 +56,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `142`
 		//  Estimated: `1497`
-		// Minimum execution time: 4_880_000 picoseconds.
-		Weight::from_parts(5_232_000, 1497)
+		// Minimum execution time: 3_000_000 picoseconds.
+		Weight::from_parts(3_000_000, 1497)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -71,15 +71,15 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 	/// Proof: `XcmpQueue::InboundXcmpSuspended` (`max_values`: Some(1), `max_size`: Some(4002), added: 4497, mode: `MaxEncodedLen`)
 	/// Storage: `MessageQueue::Pages` (r:0 w:1)
 	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(105521), added: 107996, mode: `MaxEncodedLen`)
-	/// The range of component `n` is `[1, 105467]`.
+	/// The range of component `n` is `[0, 105467]`.
 	fn enqueue_n_bytes_xcmp_message(n: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `148`
 		//  Estimated: `5487`
-		// Minimum execution time: 12_770_000 picoseconds.
-		Weight::from_parts(9_330_606, 5487)
-			// Standard Error: 5
-			.saturating_add(Weight::from_parts(915, 0).saturating_mul(n.into()))
+		// Minimum execution time: 10_000_000 picoseconds.
+		Weight::from_parts(10_810_679, 5487)
+			// Standard Error: 0
+			.saturating_add(Weight::from_parts(186, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -93,14 +93,78 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 	/// Proof: `XcmpQueue::InboundXcmpSuspended` (`max_values`: Some(1), `max_size`: Some(4002), added: 4497, mode: `MaxEncodedLen`)
 	/// Storage: `MessageQueue::Pages` (r:0 w:1)
 	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(105521), added: 107996, mode: `MaxEncodedLen`)
-	fn enqueue_2_empty_xcmp_messages() -> Weight {
+	/// The range of component `n` is `[0, 1000]`.
+	fn enqueue_n_empty_xcmp_messages(n: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `148`
 		//  Estimated: `5487`
-		// Minimum execution time: 21_173_000 picoseconds.
-		Weight::from_parts(21_510_000, 5487)
+		// Minimum execution time: 8_000_000 picoseconds.
+		Weight::from_parts(10_721_859, 5487)
+			// Standard Error: 117
+			.saturating_add(Weight::from_parts(103_219, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
+	}
+	/// Storage: `XcmpQueue::QueueConfig` (r:1 w:0)
+	/// Proof: `XcmpQueue::QueueConfig` (`max_values`: Some(1), `max_size`: Some(12), added: 507, mode: `Measured`)
+	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
+	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `Measured`)
+	/// Storage: `MessageQueue::Pages` (r:1 w:1)
+	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(105521), added: 107996, mode: `Measured`)
+	/// Storage: `XcmpQueue::InboundXcmpSuspended` (r:1 w:0)
+	/// Proof: `XcmpQueue::InboundXcmpSuspended` (`max_values`: Some(1), `max_size`: Some(4002), added: 4497, mode: `Measured`)
+	/// The range of component `n` is `[0, 105457]`.
+	fn enqueue_empty_xcmp_message_at(n: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `330 + n * (1 ±0)`
+		//  Estimated: `3793 + n * (1 ±0)`
+		// Minimum execution time: 15_000_000 picoseconds.
+		Weight::from_parts(15_913_241, 3793)
+			// Standard Error: 3
+			.saturating_add(Weight::from_parts(683, 0).saturating_mul(n.into()))
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
+			.saturating_add(Weight::from_parts(0, 1).saturating_mul(n.into()))
+	}
+	/// Storage: `XcmpQueue::QueueConfig` (r:1 w:0)
+	/// Proof: `XcmpQueue::QueueConfig` (`max_values`: Some(1), `max_size`: Some(12), added: 507, mode: `MaxEncodedLen`)
+	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
+	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
+	/// Storage: `MessageQueue::ServiceHead` (r:1 w:1)
+	/// Proof: `MessageQueue::ServiceHead` (`max_values`: Some(1), `max_size`: Some(5), added: 500, mode: `MaxEncodedLen`)
+	/// Storage: `XcmpQueue::InboundXcmpSuspended` (r:1 w:0)
+	/// Proof: `XcmpQueue::InboundXcmpSuspended` (`max_values`: Some(1), `max_size`: Some(4002), added: 4497, mode: `MaxEncodedLen`)
+	/// Storage: `MessageQueue::Pages` (r:0 w:100)
+	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(105521), added: 107996, mode: `MaxEncodedLen`)
+	/// The range of component `n` is `[0, 100]`.
+	fn enqueue_n_full_pages(n: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `183`
+		//  Estimated: `5487`
+		// Minimum execution time: 9_000_000 picoseconds.
+		Weight::from_parts(9_000_000, 5487)
+			// Standard Error: 22_075
+			.saturating_add(Weight::from_parts(24_041_157, 0).saturating_mul(n.into()))
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
+			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
+	}
+	/// Storage: `XcmpQueue::QueueConfig` (r:1 w:0)
+	/// Proof: `XcmpQueue::QueueConfig` (`max_values`: Some(1), `max_size`: Some(12), added: 507, mode: `Measured`)
+	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
+	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `Measured`)
+	/// Storage: `MessageQueue::Pages` (r:1 w:1)
+	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(105521), added: 107996, mode: `Measured`)
+	/// Storage: `XcmpQueue::InboundXcmpSuspended` (r:1 w:0)
+	/// Proof: `XcmpQueue::InboundXcmpSuspended` (`max_values`: Some(1), `max_size`: Some(4002), added: 4497, mode: `Measured`)
+	fn enqueue_1000_small_xcmp_messages() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `53063`
+		//  Estimated: `56528`
+		// Minimum execution time: 151_000_000 picoseconds.
+		Weight::from_parts(154_000_000, 56528)
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
 	/// Storage: `XcmpQueue::OutboundXcmpStatus` (r:1 w:1)
 	/// Proof: `XcmpQueue::OutboundXcmpStatus` (`max_values`: Some(1), `max_size`: Some(1282), added: 1777, mode: `MaxEncodedLen`)
@@ -108,8 +172,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `142`
 		//  Estimated: `2767`
-		// Minimum execution time: 3_242_000 picoseconds.
-		Weight::from_parts(3_451_000, 2767)
+		// Minimum execution time: 2_000_000 picoseconds.
+		Weight::from_parts(2_000_000, 2767)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -119,8 +183,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `177`
 		//  Estimated: `2767`
-		// Minimum execution time: 4_512_000 picoseconds.
-		Weight::from_parts(4_707_000, 2767)
+		// Minimum execution time: 3_000_000 picoseconds.
+		Weight::from_parts(3_000_000, 2767)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -128,8 +192,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 5_284_000 picoseconds.
-		Weight::from_parts(5_496_000, 0)
+		// Minimum execution time: 7_000_000 picoseconds.
+		Weight::from_parts(8_000_000, 0)
 	}
 	/// Storage: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6b345d8e88afa015075c945637c07e8f20` (r:1 w:1)
 	/// Proof: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6b345d8e88afa015075c945637c07e8f20` (r:1 w:1)
@@ -149,8 +213,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `105713`
 		//  Estimated: `109178`
-		// Minimum execution time: 176_063_000 picoseconds.
-		Weight::from_parts(179_278_000, 109178)
+		// Minimum execution time: 61_000_000 picoseconds.
+		Weight::from_parts(62_000_000, 109178)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
@@ -172,8 +236,8 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 		// Proof Size summary in bytes:
 		//  Measured:  `65782`
 		//  Estimated: `69247`
-		// Minimum execution time: 115_349_000 picoseconds.
-		Weight::from_parts(117_636_000, 69247)
+		// Minimum execution time: 42_000_000 picoseconds.
+		Weight::from_parts(44_000_000, 69247)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}

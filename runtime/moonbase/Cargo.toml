@@ -131,7 +131,7 @@ fp-self-contained = { workspace = true, features = ["serde"] }
 pallet-ethereum = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
 pallet-evm-precompile-blake2 = { workspace = true }
-pallet-evm-precompile-bls12381 = {workspace = true}
+pallet-evm-precompile-bls12381 = { workspace = true }
 pallet-evm-precompile-bn128 = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
@@ -426,7 +426,6 @@ try-runtime = [
 	"pallet-transaction-payment/try-runtime",
 	"parachain-info/try-runtime",
 	"pallet-evm-chain-id/try-runtime",
-	"parachain-info/try-runtime",
 	"pallet-evm/try-runtime",
 	"pallet-ethereum/try-runtime",
 	"pallet-treasury/try-runtime",
@@ -434,7 +433,6 @@ try-runtime = [
 	"pallet-crowdloan-rewards/try-runtime",
 	"pallet-proxy/try-runtime",
 	"pallet-identity/try-runtime",
-	"pallet-xcm-transactor/try-runtime",
 	"pallet-proxy-genesis-companion/try-runtime",
 	"pallet-moonbeam-orbiters/try-runtime",
 	"pallet-ethereum-xcm/try-runtime",
@@ -444,4 +442,5 @@ try-runtime = [
 	"pallet-multisig/try-runtime",
 	"pallet-async-backing/try-runtime",
 	"pallet-precompile-benchmarks/try-runtime",
+	"parachains-common/try-runtime",
 ]

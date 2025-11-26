@@ -18,15 +18,14 @@
 
 //! Benchmarking
 use crate::{
-	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, CandidatePool,
-	Config, DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
+	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
+	DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
 	InflationDistributionConfig, InflationDistributionInfo, Pallet, Points, Range, RewardPayment,
-	Round, ScheduledRequest, TopDelegations, MAX_ACCOUNTS_PER_MIGRATION_BATCH,
+	Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::v2::*;
 use frame_support::traits::tokens::fungible::{Inspect, Mutate};
-use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
-use frame_support::{traits::ConstU32, BoundedVec};
+use frame_support::traits::{Get, OnFinalize, OnInitialize};
 use frame_system::{pallet_prelude::BlockNumberFor, RawOrigin};
 use sp_runtime::{Perbill, Percent};
 use sp_std::vec::Vec;
@@ -84,34 +83,6 @@ fn create_funded_delegator<T: Config>(
 		0u32,
 		0u32, // first delegation for all calls
 	)?;
-
-	// TODO: Remove this once the lazy migration is complete.
-	{
-		// Downgrade to pre-migration state for lazy migration benchmarking
-		use crate::{FreezeReason, MigratedDelegators, DELEGATOR_LOCK_ID};
-		use frame_support::traits::{
-			fungible::{InspectFreeze, MutateFreeze},
-			LockableCurrency, WithdrawReasons,
-		};
-
-		// 1. Get the frozen amount
-		let frozen_amount =
-			T::Currency::balance_frozen(&FreezeReason::StakingDelegator.into(), &user);
-
-		// 2. Thaw the freeze
-		let _ = T::Currency::thaw(&FreezeReason::StakingDelegator.into(), &user);
-
-		// 3. Set old-style lock
-		T::Currency::set_lock(
-			DELEGATOR_LOCK_ID,
-			&user,
-			frozen_amount,
-			WithdrawReasons::all(),
-		);
-
-		// 4. Remove from migration tracking to trigger migration on next operation
-		MigratedDelegators::<T>::remove(&user);
-	}
 
 	Ok(user)
 }
@@ -227,34 +198,6 @@ fn create_funded_collator<T: Config>(
 		bond,
 		candidate_count,
 	)?;
-
-	// TODO: Remove this once the lazy migration is complete.
-	{
-		// Downgrade to pre-migration state for lazy migration benchmarking
-		use crate::{FreezeReason, MigratedCandidates, COLLATOR_LOCK_ID};
-		use frame_support::traits::{
-			fungible::{InspectFreeze, MutateFreeze},
-			LockableCurrency, WithdrawReasons,
-		};
-
-		// 1. Get the frozen amount
-		let frozen_amount =
-			T::Currency::balance_frozen(&FreezeReason::StakingCollator.into(), &user);
-
-		// 2. Thaw the freeze
-		let _ = T::Currency::thaw(&FreezeReason::StakingCollator.into(), &user);
-
-		// 3. Set old-style lock
-		T::Currency::set_lock(
-			COLLATOR_LOCK_ID,
-			&user,
-			frozen_amount,
-			WithdrawReasons::all(),
-		);
-
-		// 4. Remove from migration tracking to trigger migration on next operation
-		MigratedCandidates::<T>::remove(&user);
-	}
 
 	Ok(user)
 }
@@ -2294,7 +2237,7 @@ mod benchmarks {
 	fn mint_collator_reward() -> Result<(), BenchmarkError> {
 		let mut seed = Seed::new();
 		let collator = create_funded_collator::<T>("collator", seed.take(), 0u32.into(), true, 1)?;
-		let original_free_balance = T::Currency::free_balance(&collator);
+		let original_free_balance = T::Currency::balance(&collator);
 
 		#[block]
 		{
@@ -2302,7 +2245,7 @@ mod benchmarks {
 		}
 
 		assert_eq!(
-			T::Currency::free_balance(&collator),
+			T::Currency::balance(&collator),
 			original_free_balance + 50u32.into()
 		);
 		Ok(())
@@ -2403,76 +2346,6 @@ mod benchmarks {
 		{
 			let cur = 2;
 			let _inactive_info = Pallet::<T>::mark_collators_as_inactive(cur);
-		}
-
-		Ok(())
-	}
-
-	#[benchmark]
-	fn migrate_locks_to_freezes_batch(
-		x: Linear<1, MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
-	) -> Result<(), BenchmarkError> {
-		use crate::{MigratedCandidates, MigratedDelegators};
-		use frame_benchmarking::whitelisted_caller;
-
-		let mut seed = Seed::new();
-		let mut accounts = Vec::new();
-
-		// Get current candidate count to avoid conflicts
-		let initial_candidate_count = <CandidatePool<T>>::get().0.len() as u32;
-
-		// Create x candidate accounts with existing locks to migrate
-		for i in 1..(T::MaxCandidates::get()) {
-			// Add extra amount to ensure each candidate has a unique stake
-			let extra_amount = BalanceOf::<T>::from(i.saturating_mul(100u32));
-			let candidate = create_funded_collator::<T>(
-				"candidate",
-				seed.take(),
-				min_candidate_stk::<T>() + extra_amount,
-				true,
-				initial_candidate_count + i,
-			)?;
-
-			accounts.push((candidate, true));
-		}
-
-		let collators_upper_index = T::MaxCandidates::get();
-		while accounts.len() < x as usize {
-			let account_index = accounts.len() as u32 + 1;
-			let idx =
-				collators_upper_index.min(account_index.saturating_sub(collators_upper_index));
-			let delegator = create_funded_delegator::<T>(
-				"delegator",
-				account_index,
-				min_delegator_stk::<T>(),
-				accounts[idx as usize].clone().0,
-				true,
-				account_index,
-			)?;
-
-			accounts.push((delegator, false));
-		}
-
-		let caller: T::AccountId = whitelisted_caller();
-
-		// Convert Vec to BoundedVec
-		let bounded_accounts = BoundedVec::<
-			(T::AccountId, bool),
-			ConstU32<MAX_ACCOUNTS_PER_MIGRATION_BATCH>,
-		>::try_from(accounts)
-		.expect("candidate_accounts should not exceed MAX_ACCOUNTS_PER_MIGRATION_BATCH items");
-
-		#[extrinsic_call]
-		migrate_locks_to_freezes_batch(RawOrigin::Signed(caller), bounded_accounts.clone());
-
-		// Verify that migration tracking storage was updated
-		// Check that all candidate accounts have been marked as migrated
-		for (account, _) in bounded_accounts.iter() {
-			assert!(
-				<MigratedCandidates<T>>::contains_key(account)
-					|| <MigratedDelegators<T>>::contains_key(account),
-				"Candidate should be marked as migrated"
-			);
 		}
 
 		Ok(())
