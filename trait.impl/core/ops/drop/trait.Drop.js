@@ -1,5 +1,5 @@
 (function() {
-    var implementors = Object.fromEntries([["pallet_xcm_weight_trader",[["impl&lt;T: <a class=\"trait\" href=\"pallet_xcm_weight_trader/pallet/trait.Config.html\" title=\"trait pallet_xcm_weight_trader::pallet::Config\">Config</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.84.1/core/ops/drop/trait.Drop.html\" title=\"trait core::ops::drop::Drop\">Drop</a> for <a class=\"struct\" href=\"pallet_xcm_weight_trader/struct.Trader.html\" title=\"struct pallet_xcm_weight_trader::Trader\">Trader</a>&lt;T&gt;"]]]]);
+    var implementors = Object.fromEntries([["pallet_xcm_weight_trader",[["impl&lt;T: <a class=\"trait\" href=\"pallet_xcm_weight_trader/pallet/trait.Config.html\" title=\"trait pallet_xcm_weight_trader::pallet::Config\">Config</a>&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/ops/drop/trait.Drop.html\" title=\"trait core::ops::drop::Drop\">Drop</a> for <a class=\"struct\" href=\"pallet_xcm_weight_trader/struct.Trader.html\" title=\"struct pallet_xcm_weight_trader::Trader\">Trader</a>&lt;T&gt;"]]]]);
     if (window.register_implementors) {
         window.register_implementors(implementors);
     } else {

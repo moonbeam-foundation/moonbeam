@@ -1,247 +1,123 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/impl_moonbeam_xcm_call_tracing.rs`."><title>impl_moonbeam_xcm_call_tracing.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.1 (e71f9a9a9 2025-01-27)" data-channel="1.84.1" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">moonbeam_runtime_common/</div>impl_moonbeam_xcm_call_tracing.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
-<a href="#1" id="1">1</a>
-<a href="#2" id="2">2</a>
-<a href="#3" id="3">3</a>
-<a href="#4" id="4">4</a>
-<a href="#5" id="5">5</a>
-<a href="#6" id="6">6</a>
-<a href="#7" id="7">7</a>
-<a href="#8" id="8">8</a>
-<a href="#9" id="9">9</a>
-<a href="#10" id="10">10</a>
-<a href="#11" id="11">11</a>
-<a href="#12" id="12">12</a>
-<a href="#13" id="13">13</a>
-<a href="#14" id="14">14</a>
-<a href="#15" id="15">15</a>
-<a href="#16" id="16">16</a>
-<a href="#17" id="17">17</a>
-<a href="#18" id="18">18</a>
-<a href="#19" id="19">19</a>
-<a href="#20" id="20">20</a>
-<a href="#21" id="21">21</a>
-<a href="#22" id="22">22</a>
-<a href="#23" id="23">23</a>
-<a href="#24" id="24">24</a>
-<a href="#25" id="25">25</a>
-<a href="#26" id="26">26</a>
-<a href="#27" id="27">27</a>
-<a href="#28" id="28">28</a>
-<a href="#29" id="29">29</a>
-<a href="#30" id="30">30</a>
-<a href="#31" id="31">31</a>
-<a href="#32" id="32">32</a>
-<a href="#33" id="33">33</a>
-<a href="#34" id="34">34</a>
-<a href="#35" id="35">35</a>
-<a href="#36" id="36">36</a>
-<a href="#37" id="37">37</a>
-<a href="#38" id="38">38</a>
-<a href="#39" id="39">39</a>
-<a href="#40" id="40">40</a>
-<a href="#41" id="41">41</a>
-<a href="#42" id="42">42</a>
-<a href="#43" id="43">43</a>
-<a href="#44" id="44">44</a>
-<a href="#45" id="45">45</a>
-<a href="#46" id="46">46</a>
-<a href="#47" id="47">47</a>
-<a href="#48" id="48">48</a>
-<a href="#49" id="49">49</a>
-<a href="#50" id="50">50</a>
-<a href="#51" id="51">51</a>
-<a href="#52" id="52">52</a>
-<a href="#53" id="53">53</a>
-<a href="#54" id="54">54</a>
-<a href="#55" id="55">55</a>
-<a href="#56" id="56">56</a>
-<a href="#57" id="57">57</a>
-<a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a>
-<a href="#60" id="60">60</a>
-<a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
-<a href="#64" id="64">64</a>
-<a href="#65" id="65">65</a>
-<a href="#66" id="66">66</a>
-<a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a></pre></div><pre class="rust"><code><span class="comment">// Copyright 2019-2025 PureStake Inc.
-// This file is part of Moonbeam.
-
-// Moonbeam is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// Moonbeam is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
-
-</span><span class="attr">#[macro_export]
-</span><span class="macro">macro_rules!</span> impl_moonbeam_xcm_call_tracing {
-	{} =&gt; {
-		<span class="kw">use </span>moonbeam_evm_tracer::tracer::EthereumTracingStatus;
-		<span class="kw">type </span>CallResult =
-			<span class="prelude-ty">Result</span>&lt;
-				PostDispatchInfoOf&lt;RuntimeCall&gt;,
-				DispatchErrorWithPostInfo&lt;PostDispatchInfoOf&lt;RuntimeCall&gt;&gt;
-			&gt;;
-
-		<span class="kw">pub struct </span>MoonbeamCall;
-		<span class="kw">impl </span>CallDispatcher&lt;RuntimeCall&gt; <span class="kw">for </span>MoonbeamCall {
-			<span class="kw">fn </span>dispatch(
-				call: RuntimeCall,
-				origin: RuntimeOrigin,
-			) -&gt; CallResult {
-				<span class="kw">if let </span><span class="prelude-val">Ok</span>(raw_origin) = TryInto::&lt;RawOrigin&lt;AccountId&gt;&gt;::try_into(origin.clone().caller) {
-					<span class="kw">match </span>call.clone() {
-						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }) |
-						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy {
-							xcm_transaction, ..
-						}) |
-						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::force_transact_as {
-							xcm_transaction, ..
-					 	}) =&gt; {
-							<span class="kw">use </span><span class="kw">crate</span>::EthereumXcm;
-							<span class="kw">use </span>moonbeam_evm_tracer::tracer::{
-								EthereumTracer,
-								EvmTracer,
-								EthereumTracingStatus
-							};
-							<span class="kw">use </span>xcm_primitives::{
-								XcmToEthereum,
-							};
-							<span class="kw">use </span>frame_support::storage::unhashed;
-							<span class="kw">use </span>frame_support::traits::Get;
-
-							<span class="kw">let </span>dispatch_call = || {
-								RuntimeCall::dispatch(
-									call,
-									<span class="kw">match </span>raw_origin {
-										RawOrigin::Signed(account_id) =&gt; {
-											pallet_ethereum_xcm::Origin::XcmEthereumTransaction(
-												account_id.into()
-											).into()
-										},
-										origin =&gt; origin.into()
-									}
-								)
-							};
-
-							<span class="kw">return match </span>EthereumTracer::status() {
-								<span class="comment">// This runtime instance is used for tracing.
-								</span><span class="prelude-val">Some</span>(tracing_status) =&gt; {
-									<span class="kw">match </span>tracing_status {
-										<span class="comment">// Tracing a block, all calls are done using environmental.
-										</span>EthereumTracingStatus::Block =&gt; {
-											<span class="comment">// Each known extrinsic is a new call stack.
-											</span>EvmTracer::emit_new();
-											<span class="kw">let </span><span class="kw-2">mut </span>res: <span class="prelude-ty">Option</span>&lt;CallResult&gt; = <span class="prelude-val">None</span>;
-											EvmTracer::new().trace(|| {
-												res = <span class="prelude-val">Some</span>(dispatch_call());
-											});
-											res.expect(<span class="string">"Invalid dispatch result"</span>)
-										},
-										<span class="comment">// Tracing a transaction, the one matching the trace request
-										// is done using environmental, the rest dispatched normally.
-										</span>EthereumTracingStatus::Transaction(traced_transaction_hash) =&gt; {
-											<span class="kw">let </span>transaction_hash = xcm_transaction.into_transaction(
-												EthereumXcm::nonce(),
-												&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::ChainId::get(),
-												<span class="bool-val">false
-											</span>)
-											.expect(<span class="string">"Invalid transaction conversion"</span>)
-											.hash();
-											<span class="kw">if </span>transaction_hash == traced_transaction_hash {
-												<span class="kw">let </span><span class="kw-2">mut </span>res: <span class="prelude-ty">Option</span>&lt;CallResult&gt; = <span class="prelude-val">None</span>;
-												EvmTracer::new().trace(|| {
-													res = <span class="prelude-val">Some</span>(dispatch_call());
-												});
-												<span class="comment">// Tracing runtime work is done, just signal instance exit.
-												</span>EthereumTracer::transaction_exited();
-												<span class="kw">return </span>res.expect(<span class="string">"Invalid dispatch result"</span>);
-											}
-											dispatch_call()
-										},
-										<span class="comment">// Tracing a transaction that has already been found and
-										// executed. There's no need to dispatch the rest of the
-										// calls.
-										</span>EthereumTracingStatus::TransactionExited =&gt; <span class="prelude-val">Ok</span>(<span class="kw">crate</span>::PostDispatchInfo {
-											actual_weight: <span class="prelude-val">None</span>,
-											pays_fee: frame_support::pallet_prelude::Pays::No,
-										}),
-									}
-								}
-								<span class="comment">// This runtime instance is importing a block.
-								</span><span class="prelude-val">None </span>=&gt; dispatch_call()
-							};
-						},
-						<span class="kw">_ </span>=&gt; {}
-					}
-				}
-				RuntimeCall::dispatch(call, origin)
-			}
-		}
-	}
-}
-</code></pre></div></section></main></body></html>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/impl_moonbeam_xcm_call_tracing.rs`."><title>impl_moonbeam_xcm_call_tracing.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-1a91846b.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="moonbeam_runtime_common" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0 (6b00bc388 2025-06-23)" data-channel="1.88.0" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-4e99c027.js"></script><script defer src="../../static.files/src-script-63605ae7.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">moonbeam_runtime_common/</div>impl_moonbeam_xcm_call_tracing.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="comment">// Copyright 2019-2025 PureStake Inc.
+<a href=#2 id=2 data-nosnippet>2</a>// This file is part of Moonbeam.
+<a href=#3 id=3 data-nosnippet>3</a>
+<a href=#4 id=4 data-nosnippet>4</a>// Moonbeam is free software: you can redistribute it and/or modify
+<a href=#5 id=5 data-nosnippet>5</a>// it under the terms of the GNU General Public License as published by
+<a href=#6 id=6 data-nosnippet>6</a>// the Free Software Foundation, either version 3 of the License, or
+<a href=#7 id=7 data-nosnippet>7</a>// (at your option) any later version.
+<a href=#8 id=8 data-nosnippet>8</a>
+<a href=#9 id=9 data-nosnippet>9</a>// Moonbeam is distributed in the hope that it will be useful,
+<a href=#10 id=10 data-nosnippet>10</a>// but WITHOUT ANY WARRANTY; without even the implied warranty of
+<a href=#11 id=11 data-nosnippet>11</a>// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<a href=#12 id=12 data-nosnippet>12</a>// GNU General Public License for more details.
+<a href=#13 id=13 data-nosnippet>13</a>
+<a href=#14 id=14 data-nosnippet>14</a>// You should have received a copy of the GNU General Public License
+<a href=#15 id=15 data-nosnippet>15</a>// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+<a href=#16 id=16 data-nosnippet>16</a>
+<a href=#17 id=17 data-nosnippet>17</a></span><span class="attr">#[macro_export]
+<a href=#18 id=18 data-nosnippet>18</a></span><span class="macro">macro_rules!</span> impl_moonbeam_xcm_call_tracing {
+<a href=#19 id=19 data-nosnippet>19</a>	{} =&gt; {
+<a href=#20 id=20 data-nosnippet>20</a>		<span class="kw">use </span>moonbeam_evm_tracer::tracer::EthereumTracingStatus;
+<a href=#21 id=21 data-nosnippet>21</a>		<span class="kw">type </span>CallResult =
+<a href=#22 id=22 data-nosnippet>22</a>			<span class="prelude-ty">Result</span>&lt;
+<a href=#23 id=23 data-nosnippet>23</a>				PostDispatchInfoOf&lt;RuntimeCall&gt;,
+<a href=#24 id=24 data-nosnippet>24</a>				DispatchErrorWithPostInfo&lt;PostDispatchInfoOf&lt;RuntimeCall&gt;&gt;
+<a href=#25 id=25 data-nosnippet>25</a>			&gt;;
+<a href=#26 id=26 data-nosnippet>26</a>
+<a href=#27 id=27 data-nosnippet>27</a>		<span class="kw">pub struct </span>MoonbeamCall;
+<a href=#28 id=28 data-nosnippet>28</a>		<span class="kw">impl </span>CallDispatcher&lt;RuntimeCall&gt; <span class="kw">for </span>MoonbeamCall {
+<a href=#29 id=29 data-nosnippet>29</a>			<span class="kw">fn </span>dispatch(
+<a href=#30 id=30 data-nosnippet>30</a>				call: RuntimeCall,
+<a href=#31 id=31 data-nosnippet>31</a>				origin: RuntimeOrigin,
+<a href=#32 id=32 data-nosnippet>32</a>			) -&gt; CallResult {
+<a href=#33 id=33 data-nosnippet>33</a>				<span class="kw">if let </span><span class="prelude-val">Ok</span>(raw_origin) = TryInto::&lt;RawOrigin&lt;AccountId&gt;&gt;::try_into(origin.clone().caller) {
+<a href=#34 id=34 data-nosnippet>34</a>					<span class="kw">match </span>call.clone() {
+<a href=#35 id=35 data-nosnippet>35</a>						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }) |
+<a href=#36 id=36 data-nosnippet>36</a>						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy {
+<a href=#37 id=37 data-nosnippet>37</a>							xcm_transaction, ..
+<a href=#38 id=38 data-nosnippet>38</a>						}) |
+<a href=#39 id=39 data-nosnippet>39</a>						RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::force_transact_as {
+<a href=#40 id=40 data-nosnippet>40</a>							xcm_transaction, ..
+<a href=#41 id=41 data-nosnippet>41</a>					 	}) =&gt; {
+<a href=#42 id=42 data-nosnippet>42</a>							<span class="kw">use </span><span class="kw">crate</span>::EthereumXcm;
+<a href=#43 id=43 data-nosnippet>43</a>							<span class="kw">use </span>moonbeam_evm_tracer::tracer::{
+<a href=#44 id=44 data-nosnippet>44</a>								EthereumTracer,
+<a href=#45 id=45 data-nosnippet>45</a>								EvmTracer,
+<a href=#46 id=46 data-nosnippet>46</a>								EthereumTracingStatus
+<a href=#47 id=47 data-nosnippet>47</a>							};
+<a href=#48 id=48 data-nosnippet>48</a>							<span class="kw">use </span>xcm_primitives::{
+<a href=#49 id=49 data-nosnippet>49</a>								XcmToEthereum,
+<a href=#50 id=50 data-nosnippet>50</a>							};
+<a href=#51 id=51 data-nosnippet>51</a>							<span class="kw">use </span>frame_support::storage::unhashed;
+<a href=#52 id=52 data-nosnippet>52</a>							<span class="kw">use </span>frame_support::traits::Get;
+<a href=#53 id=53 data-nosnippet>53</a>
+<a href=#54 id=54 data-nosnippet>54</a>							<span class="kw">let </span>dispatch_call = || {
+<a href=#55 id=55 data-nosnippet>55</a>								RuntimeCall::dispatch(
+<a href=#56 id=56 data-nosnippet>56</a>									call,
+<a href=#57 id=57 data-nosnippet>57</a>									<span class="kw">match </span>raw_origin {
+<a href=#58 id=58 data-nosnippet>58</a>										RawOrigin::Signed(account_id) =&gt; {
+<a href=#59 id=59 data-nosnippet>59</a>											pallet_ethereum_xcm::Origin::XcmEthereumTransaction(
+<a href=#60 id=60 data-nosnippet>60</a>												account_id.into()
+<a href=#61 id=61 data-nosnippet>61</a>											).into()
+<a href=#62 id=62 data-nosnippet>62</a>										},
+<a href=#63 id=63 data-nosnippet>63</a>										origin =&gt; origin.into()
+<a href=#64 id=64 data-nosnippet>64</a>									}
+<a href=#65 id=65 data-nosnippet>65</a>								)
+<a href=#66 id=66 data-nosnippet>66</a>							};
+<a href=#67 id=67 data-nosnippet>67</a>
+<a href=#68 id=68 data-nosnippet>68</a>							<span class="kw">return match </span>EthereumTracer::status() {
+<a href=#69 id=69 data-nosnippet>69</a>								<span class="comment">// This runtime instance is used for tracing.
+<a href=#70 id=70 data-nosnippet>70</a>								</span><span class="prelude-val">Some</span>(tracing_status) =&gt; {
+<a href=#71 id=71 data-nosnippet>71</a>									<span class="kw">match </span>tracing_status {
+<a href=#72 id=72 data-nosnippet>72</a>										<span class="comment">// Tracing a block, all calls are done using environmental.
+<a href=#73 id=73 data-nosnippet>73</a>										</span>EthereumTracingStatus::Block =&gt; {
+<a href=#74 id=74 data-nosnippet>74</a>											<span class="comment">// Each known extrinsic is a new call stack.
+<a href=#75 id=75 data-nosnippet>75</a>											</span>EvmTracer::emit_new();
+<a href=#76 id=76 data-nosnippet>76</a>											<span class="kw">let </span><span class="kw-2">mut </span>res: <span class="prelude-ty">Option</span>&lt;CallResult&gt; = <span class="prelude-val">None</span>;
+<a href=#77 id=77 data-nosnippet>77</a>											EvmTracer::new().trace(|| {
+<a href=#78 id=78 data-nosnippet>78</a>												res = <span class="prelude-val">Some</span>(dispatch_call());
+<a href=#79 id=79 data-nosnippet>79</a>											});
+<a href=#80 id=80 data-nosnippet>80</a>											res.expect(<span class="string">"Invalid dispatch result"</span>)
+<a href=#81 id=81 data-nosnippet>81</a>										},
+<a href=#82 id=82 data-nosnippet>82</a>										<span class="comment">// Tracing a transaction, the one matching the trace request
+<a href=#83 id=83 data-nosnippet>83</a>										// is done using environmental, the rest dispatched normally.
+<a href=#84 id=84 data-nosnippet>84</a>										</span>EthereumTracingStatus::Transaction(traced_transaction_hash) =&gt; {
+<a href=#85 id=85 data-nosnippet>85</a>											<span class="kw">let </span>transaction_hash = xcm_transaction.into_transaction(
+<a href=#86 id=86 data-nosnippet>86</a>												EthereumXcm::nonce(),
+<a href=#87 id=87 data-nosnippet>87</a>												&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::ChainId::get(),
+<a href=#88 id=88 data-nosnippet>88</a>												<span class="bool-val">false
+<a href=#89 id=89 data-nosnippet>89</a>											</span>)
+<a href=#90 id=90 data-nosnippet>90</a>											.expect(<span class="string">"Invalid transaction conversion"</span>)
+<a href=#91 id=91 data-nosnippet>91</a>											.hash();
+<a href=#92 id=92 data-nosnippet>92</a>											<span class="kw">if </span>transaction_hash == traced_transaction_hash {
+<a href=#93 id=93 data-nosnippet>93</a>												<span class="kw">let </span><span class="kw-2">mut </span>res: <span class="prelude-ty">Option</span>&lt;CallResult&gt; = <span class="prelude-val">None</span>;
+<a href=#94 id=94 data-nosnippet>94</a>												EvmTracer::new().trace(|| {
+<a href=#95 id=95 data-nosnippet>95</a>													res = <span class="prelude-val">Some</span>(dispatch_call());
+<a href=#96 id=96 data-nosnippet>96</a>												});
+<a href=#97 id=97 data-nosnippet>97</a>												<span class="comment">// Tracing runtime work is done, just signal instance exit.
+<a href=#98 id=98 data-nosnippet>98</a>												</span>EthereumTracer::transaction_exited();
+<a href=#99 id=99 data-nosnippet>99</a>												<span class="kw">return </span>res.expect(<span class="string">"Invalid dispatch result"</span>);
+<a href=#100 id=100 data-nosnippet>100</a>											}
+<a href=#101 id=101 data-nosnippet>101</a>											dispatch_call()
+<a href=#102 id=102 data-nosnippet>102</a>										},
+<a href=#103 id=103 data-nosnippet>103</a>										<span class="comment">// Tracing a transaction that has already been found and
+<a href=#104 id=104 data-nosnippet>104</a>										// executed. There's no need to dispatch the rest of the
+<a href=#105 id=105 data-nosnippet>105</a>										// calls.
+<a href=#106 id=106 data-nosnippet>106</a>										</span>EthereumTracingStatus::TransactionExited =&gt; <span class="prelude-val">Ok</span>(<span class="kw">crate</span>::PostDispatchInfo {
+<a href=#107 id=107 data-nosnippet>107</a>											actual_weight: <span class="prelude-val">None</span>,
+<a href=#108 id=108 data-nosnippet>108</a>											pays_fee: frame_support::pallet_prelude::Pays::No,
+<a href=#109 id=109 data-nosnippet>109</a>										}),
+<a href=#110 id=110 data-nosnippet>110</a>									}
+<a href=#111 id=111 data-nosnippet>111</a>								}
+<a href=#112 id=112 data-nosnippet>112</a>								<span class="comment">// This runtime instance is importing a block.
+<a href=#113 id=113 data-nosnippet>113</a>								</span><span class="prelude-val">None </span>=&gt; dispatch_call()
+<a href=#114 id=114 data-nosnippet>114</a>							};
+<a href=#115 id=115 data-nosnippet>115</a>						},
+<a href=#116 id=116 data-nosnippet>116</a>						<span class="kw">_ </span>=&gt; {}
+<a href=#117 id=117 data-nosnippet>117</a>					}
+<a href=#118 id=118 data-nosnippet>118</a>				}
+<a href=#119 id=119 data-nosnippet>119</a>				RuntimeCall::dispatch(call, origin)
+<a href=#120 id=120 data-nosnippet>120</a>			}
+<a href=#121 id=121 data-nosnippet>121</a>		}
+<a href=#122 id=122 data-nosnippet>122</a>	}
+<a href=#123 id=123 data-nosnippet>123</a>}</code></pre></div></section></main></body></html>

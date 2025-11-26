@@ -1,5 +1,5 @@
 (function() {
-    var implementors = Object.fromEntries([["moonbeam_runtime_common",[["impl&lt;MQ: EnqueueMessage&lt;AggregateMessageOrigin&gt;, OurPlace: Get&lt;InteriorLocation&gt;, OurPlaceBridgeInstance: Get&lt;<a class=\"enum\" href=\"https://doc.rust-lang.org/1.84.1/core/option/enum.Option.html\" title=\"enum core::option::Option\">Option</a>&lt;InteriorLocation&gt;&gt;&gt; DispatchBlob for <a class=\"struct\" href=\"moonbeam_runtime_common/bridge/struct.LocalBlobDispatcher.html\" title=\"struct moonbeam_runtime_common::bridge::LocalBlobDispatcher\">LocalBlobDispatcher</a>&lt;MQ, OurPlace, OurPlaceBridgeInstance&gt;"]]]]);
+    var implementors = Object.fromEntries([["moonbeam_runtime_common",[["impl&lt;MQ: EnqueueMessage&lt;AggregateMessageOrigin&gt;, OurPlace: Get&lt;InteriorLocation&gt;, OurPlaceBridgeInstance: Get&lt;<a class=\"enum\" href=\"https://doc.rust-lang.org/1.88.0/core/option/enum.Option.html\" title=\"enum core::option::Option\">Option</a>&lt;InteriorLocation&gt;&gt;&gt; DispatchBlob for <a class=\"struct\" href=\"moonbeam_runtime_common/bridge/struct.LocalBlobDispatcher.html\" title=\"struct moonbeam_runtime_common::bridge::LocalBlobDispatcher\">LocalBlobDispatcher</a>&lt;MQ, OurPlace, OurPlaceBridgeInstance&gt;"]]]]);
     if (window.register_implementors) {
         window.register_implementors(implementors);
     } else {
