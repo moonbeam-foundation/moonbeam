@@ -8,7 +8,7 @@ name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 
 [dependencies]
-log = "0.4"
+log = { workspace = true }
 
 # Moonbeam
 ethereum = { workspace = true }
@@ -51,11 +51,17 @@ cumulus-primitives-core = { workspace = true, default-features = false }
 std = [
 	"ethereum/std",
 	"frame-support/std",
+	"frame-system/std",
 	"moonbeam-core-primitives/std",
+	"pallet-xcm-bridge/std",
+	"pallet-moonbeam-foreign-assets/std",
 	"pallet-author-inherent/std",
 	"pallet-migrations/std",
 	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
+	"pallet-balances/std",
+	"pallet-treasury/std",
+	"pallet-xcm/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
 	"sp-core/std",

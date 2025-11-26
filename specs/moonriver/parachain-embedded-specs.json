@@ -6,7 +6,6 @@
     "/dns4/deo-moonriver-boot-1.moonriver.ol-infra.network/tcp/30333/p2p/12D3KooWF6CsSo3pNEFDN9cP3PbCt8Vye55mCqzcBtGUiNphntxi",
     "/dns4/qco-moonriver-boot-1.moonriver.ol-infra.network/tcp/30333/p2p/12D3KooWRJ1SK3umgu35qJ8ZHY6JzrfaLixcKzGQ5Ecso3VAPPo2",
     "/dns4/ukl-moonriver-boot-1.moonriver.ol-infra.network/tcp/30333/p2p/12D3KooWPvGdozEKsA1ceiyGVYqrbDX6AhYSkU1RWrQTBN4kb9S3",
-    "/dns4/sino-moonriver-boot-1.moonriver.ol-infra.network/tcp/30333/p2p/12D3KooWF4RKCLkNxin9mW789eG8Hesb9ejoJ6G3xmtRLRg8tbkX",
     "/dns/na-02.unitedbloc.com/tcp/6060/p2p/12D3KooWKPrWGGSTirVgEWvvu6t4L5VXUkE9FLi5xFoi2zgqziH4",
     "/dns/eu-02.unitedbloc.com/tcp/36060/p2p/12D3KooWKB4rt5SWajY7MdVEhQqyx9NRj7LyUyo2fgSzSEuYTz8j",
     "/dns/eu-03.unitedbloc.com/tcp/36060/p2p/12D3KooWPaLHEeVhicbyioBWj4t9RcJTB9dhHFdcoL3nQbg5piQA",
@@ -14,7 +13,8 @@
     "/dns/apac-02.unitedbloc.com/tcp/36060/p2p/12D3KooWPvom1ZBWpXRAPf7S8zQXYX2iNNF6dSZcBxyfPY517JMd",
     "/dns/apac-01.unitedbloc.com/tcp/36060/p2p/12D3KooWAosKitTohMgbKqTtcaUvyUHpP3vbnL7het3nFBSfheZ7",
     "/dns/sa-01.unitedbloc.com/tcp/36060/p2p/12D3KooWBXSNJudphGqb4TKmgfruZkY79PsN9aGYFnLgYR4ou3SH",
-    "/dns/na-01.unitedbloc.com/tcp/36060/p2p/12D3KooWLVmzvBxKvJyg8u4fUuBgnSBJGS8wQFXKvyHUBzJ1pAuT"
+    "/dns/na-01.unitedbloc.com/tcp/36060/p2p/12D3KooWLVmzvBxKvJyg8u4fUuBgnSBJGS8wQFXKvyHUBzJ1pAuT",
+    "/dns4/moonbase-alpha-1.boot.onfinality.io/tcp/22987/ws/p2p/12D3KooWMe4sMVxmTYJ9HfzKc5w6daLtjjDK9Jts4dKN5mTj6YhD"
   ],
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]

@@ -334,7 +334,7 @@ pub mod pallet {
 			AccountsPayable::<T>::insert(&payee, &info);
 
 			// This pallet controls an amount of funds and transfers them to each of the contributors
-			//TODO: contributors should have the balance locked for tranfers but not for democracy
+			//TODO: contributors should have the balance locked for transfers but not for democracy
 			T::RewardCurrency::transfer(
 				&PALLET_ID.into_account_truncating(),
 				&payee,
@@ -367,7 +367,7 @@ pub mod pallet {
 			// Remove previous rewarded account
 			AccountsPayable::<T>::remove(&signer);
 
-			// Update new rewarded acount
+			// Update new rewarded account
 			AccountsPayable::<T>::insert(&new_reward_account, &info);
 
 			// Emit event
