@@ -298,6 +298,7 @@ cumulus-client-parachain-inherent = { git = "https://github.com/moonbeam-foundat
 cumulus-relay-chain-inprocess-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2506" }
 cumulus-relay-chain-interface = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2506" }
 cumulus-relay-chain-minimal-node = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2506" }
+polkadot-omni-node-lib = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2506" }
 
 # Polkadot / XCM (wasm)
 pallet-xcm = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2506", default-features = false }
@@ -484,3 +485,31 @@ debug = 1               # debug symbols are useful for profilers
 debug-assertions = true # Enable debug-assert! for non-production profiles
 inherits = "release"
 overflow-checks = true
+
+[patch."https://github.com/Moonsong-Labs/moonkit"]
+nimbus-consensus = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/client/consensus/nimbus-consensus" }
+async-backing-primitives = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/primitives/async-backing" }
+nimbus-primitives = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/primitives/nimbus-primitives" }
+pallet-evm-precompileset-assets-erc20 = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/precompiles/assets-erc20" }
+xcm-primitives = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/primitives/xcm" }
+pallet-evm-precompile-balances-erc20 = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/precompiles/balances-erc20" }
+pallet-evm-precompile-batch = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/precompiles/batch" }
+pallet-evm-precompile-call-permit = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/precompiles/call-permit" }
+pallet-evm-precompile-xcm = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/precompiles/pallet-xcm" }
+pallet-foreign-asset-creator = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/foreign-asset-creator" }
+pallet-evm-precompile-proxy = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/precompiles/proxy" }
+pallet-evm-precompile-xcm-utils = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/precompiles/xcm-utils" }
+pallet-async-backing = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/async-backing" }
+pallet-aura-style-filter = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/aura-style-filter" }
+pallet-author-inherent = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/author-inherent" }
+pallet-author-mapping = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/author-mapping" }
+session-keys-primitives = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/primitives/session-keys" }
+pallet-author-slot-filter = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/author-slot-filter" }
+pallet-emergency-para-xcm = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/emergency-para-xcm" }
+pallet-maintenance-mode = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/maintenance-mode" }
+pallet-migrations = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/migrations" }
+pallet-randomness = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/randomness" }
+pallet-relay-storage-roots = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/pallets/relay-storage-roots" }
+moonkit-template = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/template/node" }
+moonkit-template-runtime = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/template/runtime" }
+pallet-template = { path = "/Users/romarq/Projects/Moonsong/Moonbeam/moonkit/template/pallets/template" }

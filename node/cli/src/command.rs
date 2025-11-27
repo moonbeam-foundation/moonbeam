@@ -272,7 +272,7 @@ pub fn run() -> Result<()> {
 				let (client, _, import_queue, task_manager) = moonbeam_service::new_chain_ops(
 					&mut config,
 					&rpc_config,
-					cli.run.legacy_block_import_strategy,
+					cli.node_extra_args()
 				)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
@@ -284,7 +284,7 @@ pub fn run() -> Result<()> {
 				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(
 					&mut config,
 					&rpc_config,
-					cli.run.legacy_block_import_strategy,
+					cli.node_extra_args()
 				)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
@@ -296,7 +296,7 @@ pub fn run() -> Result<()> {
 				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(
 					&mut config,
 					&rpc_config,
-					cli.run.legacy_block_import_strategy,
+					cli.node_extra_args(),
 				)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
@@ -308,7 +308,7 @@ pub fn run() -> Result<()> {
 				let (client, _, import_queue, task_manager) = moonbeam_service::new_chain_ops(
 					&mut config,
 					&rpc_config,
-					cli.run.legacy_block_import_strategy,
+					cli.node_extra_args(),
 				)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
@@ -372,8 +372,7 @@ pub fn run() -> Result<()> {
 					>(
 						&mut config,
 						&rpc_config,
-						false,
-						cli.run.legacy_block_import_strategy,
+						cli.node_extra_args()
 					)?;
 
 					Ok((
@@ -389,8 +388,7 @@ pub fn run() -> Result<()> {
 					>(
 						&mut config,
 						&rpc_config,
-						false,
-						cli.run.legacy_block_import_strategy,
+							cli.node_extra_args()
 					)?;
 
 					Ok((
@@ -406,8 +404,7 @@ pub fn run() -> Result<()> {
 					>(
 						&mut config,
 						&rpc_config,
-						false,
-						cli.run.legacy_block_import_strategy,
+						cli.node_extra_args()
 					)?;
 
 					Ok((
@@ -558,8 +555,7 @@ pub fn run() -> Result<()> {
 								>(
 									&mut config,
 									&rpc_config,
-									false,
-									cli.run.legacy_block_import_strategy,
+									cli.node_extra_args()
 								)?;
 
 								cmd.run(params.client)
@@ -574,8 +570,7 @@ pub fn run() -> Result<()> {
 								>(
 									&mut config,
 									&rpc_config,
-									false,
-									cli.run.legacy_block_import_strategy,
+									cli.node_extra_args()
 								)?;
 
 								cmd.run(params.client)
@@ -590,8 +585,7 @@ pub fn run() -> Result<()> {
 								>(
 									&mut config,
 									&rpc_config,
-									false,
-									cli.run.legacy_block_import_strategy,
+									cli.node_extra_args()
 								)?;
 
 								cmd.run(params.client)
@@ -706,8 +700,7 @@ pub fn run() -> Result<()> {
 					>(
 						&mut config,
 						&rpc_config,
-						false,
-						cli.run.legacy_block_import_strategy,
+						cli.node_extra_args()
 					)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
@@ -724,8 +717,7 @@ pub fn run() -> Result<()> {
 					>(
 						&mut config,
 						&rpc_config,
-						false,
-						cli.run.legacy_block_import_strategy,
+						cli.node_extra_args()
 					)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
@@ -742,8 +734,7 @@ pub fn run() -> Result<()> {
 					>(
 						&mut config,
 						&rpc_config,
-						false,
-						cli.run.legacy_block_import_strategy,
+						cli.node_extra_args()
 					)?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
@@ -806,6 +797,7 @@ pub fn run() -> Result<()> {
 							cli.run.sealing,
 							rpc_config,
 							hwbench,
+							cli.node_extra_args()
 						)
 						.await
 						.map_err(Into::into),
@@ -821,6 +813,7 @@ pub fn run() -> Result<()> {
 							cli.run.sealing,
 							rpc_config,
 							hwbench,
+							cli.node_extra_args()
 						)
 						.await
 						.map_err(Into::into),
@@ -836,6 +829,7 @@ pub fn run() -> Result<()> {
 							cli.run.sealing,
 							rpc_config,
 							hwbench,
+							cli.node_extra_args()
 						)
 						.await
 						.map_err(Into::into),
@@ -930,8 +924,7 @@ pub fn run() -> Result<()> {
 						rpc_config,
 						cli.run.block_authoring_duration,
 						hwbench,
-						cli.run.legacy_block_import_strategy,
-						cli.run.max_pov_percentage,
+						cli.node_extra_args(),
 					)
 					.await
 					.map(|r| r.0)
@@ -948,8 +941,7 @@ pub fn run() -> Result<()> {
 						rpc_config,
 						cli.run.block_authoring_duration,
 						hwbench,
-						cli.run.legacy_block_import_strategy,
-						cli.run.max_pov_percentage,
+						cli.node_extra_args(),
 					)
 					.await
 					.map(|r| r.0)
@@ -966,8 +958,7 @@ pub fn run() -> Result<()> {
 						rpc_config,
 						cli.run.block_authoring_duration,
 						hwbench,
-						cli.run.legacy_block_import_strategy,
-						cli.run.max_pov_percentage,
+						cli.node_extra_args(),
 					)
 					.await
 					.map(|r| r.0)

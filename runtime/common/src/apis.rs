@@ -61,6 +61,18 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			impl cumulus_primitives_core::RelayParentOffsetApi<Block> for Runtime {
+				fn relay_parent_offset() -> u32 {
+					2
+				}
+			}
+
+			impl cumulus_primitives_core::GetCoreSelectorApi<Block> for Runtime {
+				fn core_selector() -> (cumulus_primitives_core::CoreSelector, cumulus_primitives_core::ClaimQueueOffset) {
+					ParachainSystem::core_selector()
+				}
+			}
+
 			impl sp_api::Metadata<Block> for Runtime {
 				fn metadata() -> OpaqueMetadata {
 					OpaqueMetadata::new(Runtime::metadata().into())
