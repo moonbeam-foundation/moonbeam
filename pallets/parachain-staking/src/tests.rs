@@ -42,8 +42,8 @@ use frame_support::traits::fungible::MutateFreeze;
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 use frame_support::weights::WeightMeter;
 use frame_support::{assert_noop, assert_ok, BoundedVec};
-use parity_scale_codec::Encode;
 use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
+use parity_scale_codec::Encode;
 use sp_io::hashing::blake2_128;
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 
@@ -8492,8 +8492,11 @@ fn delegation_scheduled_requests_stepped_migration_completes_and_preserves_state
 		let prefix = storage_prefix(b"ParachainStaking", b"DelegationScheduledRequests");
 
 		// Build some synthetic legacy data for a few collators.
-		let scenarios: &[(AccountId, &[(AccountId, u32)])] =
-			&[(1, &[(10, 2), (11, 1)]), (2, &[(20, 3)]), (3, &[(30, 1), (31, 1), (32, 1)])];
+		let scenarios: &[(AccountId, &[(AccountId, u32)])] = &[
+			(1, &[(10, 2), (11, 1)]),
+			(2, &[(20, 3)]),
+			(3, &[(30, 1), (31, 1), (32, 1)]),
+		];
 
 		let mut expected_total_requests: u32 = 0;
 		let mut expected_per_collator: Vec<(AccountId, u32)> = Vec::new();
@@ -8512,7 +8515,10 @@ fn delegation_scheduled_requests_stepped_migration_completes_and_preserves_state
 						action: DelegationAction::Revoke(amount),
 					};
 					let push_result = legacy_requests.try_push(request);
-					assert!(push_result.is_ok(), "legacy_requests should not exceed its bound");
+					assert!(
+						push_result.is_ok(),
+						"legacy_requests should not exceed its bound"
+					);
 					expected_total_requests = expected_total_requests.saturating_add(1);
 				}
 			}
