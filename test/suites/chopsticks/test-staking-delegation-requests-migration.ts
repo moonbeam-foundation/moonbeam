@@ -60,7 +60,6 @@ const upgradeRuntime = async (context: ChopsticksContext) => {
 
 describeSuite({
   id: "C03",
-  timeout: 600_000,
   title: "Chopsticks Staking Migration - DelegationScheduledRequests",
   foundationMethods: "chopsticks",
   testCases: ({ it, context, log }) => {
@@ -119,26 +118,18 @@ describeSuite({
 
           const perCollatorCounterQuery: any = psQueryAfter.delegationScheduledRequestsPerCollator;
           let totalDelegatorQueues = 0;
-          let rawCounters = "n/a";
           if (perCollatorCounterQuery && perCollatorCounterQuery.entries) {
             const counterEntries = await perCollatorCounterQuery.entries();
             totalDelegatorQueues = counterEntries.reduce(
               (acc: number, [, count]: any) => acc + (count as any).toNumber(),
               0
             );
-            rawCounters = counterEntries
-              .map(
-                ([key, count]: any) =>
-                  `${key.toString?.() ?? JSON.stringify(key)}=${count.toString()}`
-              )
-              .join(", ");
           }
 
           return {
             totalRequests,
             queueCount: entries.length,
             totalDelegatorQueues,
-            rawCounters,
           };
         };
 
@@ -146,7 +137,13 @@ describeSuite({
         //    assert consistency. In full mode we check invariants on every
         //    block; in light mode we only read staking storage and assert
         //    invariants once the migration has completed.
-        const migrationsQuery: any = (api.query as any).migrations;
+        //
+        // NOTE: The multi-block migration framework lives in the
+        // `multiBlockMigrations` pallet. We must query its `cursor` storage
+        // item, which returns `Option<PalletMigrationsMigrationCursor>`. A
+        // value of `None` means that *no* migration is currently running (all
+        // migrations finished or none configured).
+        const migrationsQuery: any = (api.query as any).multiBlockMigrations;
         let blocksAfterUpgrade = 0;
 
         // Always check at least one block after the upgrade, then keep going
@@ -166,11 +163,10 @@ describeSuite({
             continue;
           }
 
-          const { totalRequests, queueCount, totalDelegatorQueues, rawCounters } =
-            await readState();
+          const { totalRequests, queueCount, totalDelegatorQueues } = await readState();
 
           log(
-            `Block +${blocksAfterUpgrade}: totalRequests=${totalRequests}, queues=${queueCount}, sumCounters=${totalDelegatorQueues}, rawCounters=${rawCounters}, cursor=${cursor?.toString?.() ?? "n/a"}`
+            `Block +${blocksAfterUpgrade}: totalRequests=${totalRequests}, queues=${queueCount}, sumCounters=${totalDelegatorQueues}, cursor=${cursor?.toString?.() ?? "n/a"}`
           );
 
           // In every block (full mode) or at least once at the end (light
