@@ -1536,7 +1536,7 @@ mod benches {
 		[pallet_crowdloan_rewards, CrowdloanRewards]
 		[pallet_author_mapping, AuthorMapping]
 		[pallet_proxy, Proxy]
-		[pallet_transaction_payment, TransactionPayment]
+		[pallet_transaction_payment, TransactionPaymentBenchmark::<Runtime>]
 		[pallet_identity, Identity]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]

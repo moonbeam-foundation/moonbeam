@@ -802,6 +802,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_support::traits::StorageInfoTrait;
 
 					use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsicsBenchmark;
+					use pallet_transaction_payment::benchmarking::Pallet as TransactionPaymentBenchmark;
 
 					let mut list = Vec::<BenchmarkList>::new();
 					list_benchmarks!(list, extra);
@@ -837,6 +838,17 @@ macro_rules! impl_runtime_apis_plus_common {
 
 						fn verify_set_code() {
 							System::assert_last_event(cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into());
+						}
+					}
+
+					// Needed to run `charge_transaction_payment` benchmark which distributes
+					// fees to block author. Moonbeam requires an author to be set for fee distribution.
+					use pallet_transaction_payment::benchmarking::Pallet as TransactionPaymentBenchmark;
+					impl pallet_transaction_payment::benchmarking::Config for Runtime {
+						fn setup_benchmark_environment() {
+							// Set a dummy author for the block so fee distribution doesn't panic
+							let author: AccountId = frame_benchmarking::whitelisted_caller();
+							pallet_author_inherent::Author::<Runtime>::put(author);
 						}
 					}
 
