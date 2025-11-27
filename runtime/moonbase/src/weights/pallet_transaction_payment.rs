@@ -52,17 +52,17 @@ pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_transaction_payment::WeightInfo for WeightInfo<T> {
 	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
 	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
-	/// Storage: `System::Account` (r:3 w:3)
+	/// Storage: `System::Account` (r:2 w:2)
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
 	/// Storage: `AuthorInherent::Author` (r:1 w:0)
 	/// Proof: `AuthorInherent::Author` (`max_values`: Some(1), `max_size`: Some(20), added: 515, mode: `MaxEncodedLen`)
 	fn charge_transaction_payment() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `633`
-		//  Estimated: `8763`
-		// Minimum execution time: 82_742_000 picoseconds.
-		Weight::from_parts(84_440_000, 8763)
-			.saturating_add(T::DbWeight::get().reads(5_u64))
-			.saturating_add(T::DbWeight::get().writes(3_u64))
+		//  Measured:  `438`
+		//  Estimated: `6172`
+		// Minimum execution time: 67_000_000 picoseconds.
+		Weight::from_parts(70_000_000, 6172)
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
 }

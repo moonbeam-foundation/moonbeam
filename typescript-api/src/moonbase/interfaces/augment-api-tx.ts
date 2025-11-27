@@ -1969,31 +1969,6 @@ declare module "@polkadot/api-base/types/submittable" {
         [u128, u32]
       >;
       /**
-       * Batch migrate locks to freezes for a list of accounts.
-       *
-       * This function allows migrating multiple accounts from the old lock-based
-       * staking to the new freeze-based staking in a single transaction.
-       *
-       * Parameters:
-       * - `accounts`: List of tuples containing (account_id, is_collator)
-       * where is_collator indicates if the account is a collator (true) or delegator (false)
-       *
-       * The maximum number of accounts that can be migrated in one batch is MAX_ACCOUNTS_PER_MIGRATION_BATCH.
-       * The batch cannot be empty.
-       *
-       * If 50% or more of the migration attempts are successful, the entire
-       * extrinsic fee is refunded to incentivize successful batch migrations.
-       * Weight is calculated based on actual successful operations performed.
-       **/
-      migrateLocksToFreezesBatch: AugmentedSubmittable<
-        (
-          accounts:
-            | Vec<ITuple<[AccountId20, bool]>>
-            | [AccountId20 | string | Uint8Array, bool | boolean | Uint8Array][]
-        ) => SubmittableExtrinsic<ApiType>,
-        [Vec<ITuple<[AccountId20, bool]>>]
-      >;
-      /**
        * Notify a collator is inactive during MaxOfflineRounds
        **/
       notifyInactiveCollator: AugmentedSubmittable<
@@ -2156,6 +2131,8 @@ declare module "@polkadot/api-base/types/submittable" {
                 relayChainState?: any;
                 downwardMessages?: any;
                 horizontalMessages?: any;
+                relayParentDescendants?: any;
+                collatorPeerId?: any;
               }
             | string
             | Uint8Array
@@ -2950,7 +2927,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * `pure` with corresponding parameters.
        *
        * - `spawner`: The account that originally called `pure` to create this account.
-       * - `index`: The disambiguation index originally passed to `pure`. Probably `0`.
+       * - `index`: The disambiguation index originally passed to `create_pure`. Probably `0`.
        * - `proxy_type`: The proxy type originally passed to `pure`.
        * - `height`: The height of the chain when the call to `pure` was processed.
        * - `ext_index`: The extrinsic index in which the call to `pure` was processed.
