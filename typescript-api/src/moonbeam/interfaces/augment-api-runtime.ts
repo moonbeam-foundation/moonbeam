@@ -10,7 +10,6 @@ import type { Bytes, Null, Option, Result, Vec, bool, u128, u32 } from "@polkado
 import type { AnyNumber, IMethod, ITuple } from "@polkadot/types-codec/types";
 import type { CheckInherentsResult, InherentData } from "@polkadot/types/interfaces/blockbuilder";
 import type { BlockHash } from "@polkadot/types/interfaces/chain";
-import type { CollationInfo } from "@polkadot/types/interfaces/cumulus";
 import type {
   CallDryRunEffects,
   XcmDryRunApiError,
@@ -101,32 +100,6 @@ declare module "@polkadot/api-base/types/calls" {
         (
           inherent: InherentData | { data?: any } | string | Uint8Array
         ) => Observable<Vec<Extrinsic>>
-      >;
-      /**
-       * Generic call
-       **/
-      [key: string]: DecoratedCallBase<ApiType>;
-    };
-    /** 0xea93e3f16f3d6962/2 */
-    collectCollationInfo: {
-      /**
-       * Collect information about a collation.
-       **/
-      collectCollationInfo: AugmentedCall<
-        ApiType,
-        (
-          header:
-            | Header
-            | {
-                parentHash?: any;
-                number?: any;
-                stateRoot?: any;
-                extrinsicsRoot?: any;
-                digest?: any;
-              }
-            | string
-            | Uint8Array
-        ) => Observable<CollationInfo>
       >;
       /**
        * Generic call

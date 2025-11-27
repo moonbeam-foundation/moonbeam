@@ -338,6 +338,7 @@ import type {
   PalletXcmBridgeHubHoldReason,
   PalletXcmCall,
   PalletXcmError,
+  PalletXcmErrorsExecutionError,
   PalletXcmEvent,
   PalletXcmMaxAuthorizedAliases,
   PalletXcmOrigin,
@@ -423,6 +424,7 @@ import type {
   StagingXcmV5PalletInfo,
   StagingXcmV5QueryResponseInfo,
   StagingXcmV5Response,
+  StagingXcmV5TraitsInstructionError,
   StagingXcmV5TraitsOutcome,
   StagingXcmV5Xcm,
   XcmDoubleEncoded,
@@ -799,6 +801,7 @@ declare module "@polkadot/types/types/registry" {
     PalletXcmBridgeHubHoldReason: PalletXcmBridgeHubHoldReason;
     PalletXcmCall: PalletXcmCall;
     PalletXcmError: PalletXcmError;
+    PalletXcmErrorsExecutionError: PalletXcmErrorsExecutionError;
     PalletXcmEvent: PalletXcmEvent;
     PalletXcmMaxAuthorizedAliases: PalletXcmMaxAuthorizedAliases;
     PalletXcmOrigin: PalletXcmOrigin;
@@ -884,6 +887,7 @@ declare module "@polkadot/types/types/registry" {
     StagingXcmV5PalletInfo: StagingXcmV5PalletInfo;
     StagingXcmV5QueryResponseInfo: StagingXcmV5QueryResponseInfo;
     StagingXcmV5Response: StagingXcmV5Response;
+    StagingXcmV5TraitsInstructionError: StagingXcmV5TraitsInstructionError;
     StagingXcmV5TraitsOutcome: StagingXcmV5TraitsOutcome;
     StagingXcmV5Xcm: StagingXcmV5Xcm;
     XcmDoubleEncoded: XcmDoubleEncoded;

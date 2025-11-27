@@ -1880,6 +1880,24 @@ declare module "@polkadot/api-base/types/events" {
         }
       >;
       /**
+       * A pure proxy was killed by its spawner.
+       **/
+      PureKilled: AugmentedEvent<
+        ApiType,
+        [
+          pure: AccountId20,
+          spawner: AccountId20,
+          proxyType: MoonbaseRuntimeProxyType,
+          disambiguationIndex: u16
+        ],
+        {
+          pure: AccountId20;
+          spawner: AccountId20;
+          proxyType: MoonbaseRuntimeProxyType;
+          disambiguationIndex: u16;
+        }
+      >;
+      /**
        * Generic event
        **/
       [key: string]: AugmentedEvent<ApiType>;
