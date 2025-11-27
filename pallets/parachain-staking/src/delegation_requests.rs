@@ -147,11 +147,11 @@ impl<T: Config> Pallet<T> {
 				error: Error::<T>::ExceedMaxDelegationsPerDelegator.into(),
 			})?;
 		state.less_total = state.less_total.saturating_add(bonded_amount);
-		if is_new_delegator {
-			<DelegationScheduledRequestsPerCollator<T>>::mutate(&collator, |c| {
-				*c = c.saturating_add(1);
-			});
-		}
+
+		<DelegationScheduledRequestsPerCollator<T>>::mutate(&collator, |c| {
+			*c = c.saturating_add(1);
+		});
+
 		<DelegationScheduledRequests<T>>::insert(
 			collator.clone(),
 			delegator.clone(),
@@ -184,8 +184,7 @@ impl<T: Config> Pallet<T> {
 		// If this is the first scheduled request for this delegator towards this collator,
 		// ensure we do not exceed the maximum number of delegators that can have pending
 		// requests for the collator.
-		let is_new_delegator =
-			!<DelegationScheduledRequests<T>>::contains_key(&collator, &delegator);
+		let is_new_delegator = scheduled_requests.is_empty();
 		if is_new_delegator {
 			let current = <DelegationScheduledRequestsPerCollator<T>>::get(&collator);
 			let max_delegators = Pallet::<T>::max_delegators_per_candidate();
