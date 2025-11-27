@@ -183,11 +183,10 @@ where
 
 		// Upper bound for the number of legacy requests that can exist for a single
 		// collator in the old layout.
-		let max_requests_per_collator: u64 =
-			<AddGet<
-				<T as pallet::Config>::MaxTopDelegationsPerCandidate,
-				<T as pallet::Config>::MaxBottomDelegationsPerCandidate,
-			> as frame_support::traits::Get<u32>>::get() as u64;
+		let max_requests_per_collator: u64 = <AddGet<
+			<T as pallet::Config>::MaxTopDelegationsPerCandidate,
+			<T as pallet::Config>::MaxBottomDelegationsPerCandidate,
+		> as frame_support::traits::Get<u32>>::get() as u64;
 
 		// Conservatively estimate the worst-case DB weight for migrating a single
 		// legacy entry (one collator):
@@ -286,9 +285,9 @@ where
 					// processed everything).
 					let bounded_key =
 						frame_support::BoundedVec::<u8, ConstU32<128>>::truncate_from(start_from);
-					return Ok(Some(bounded_key))
+					return Ok(Some(bounded_key));
 				}
-				return Ok(None)
+				return Ok(None);
 			};
 
 			// Remaining per-step budget before touching this collator.
@@ -303,9 +302,11 @@ where
 					meter.consume(used_in_step);
 					let bounded_key =
 						frame_support::BoundedVec::<u8, ConstU32<128>>::truncate_from(start_from);
-					return Ok(Some(bounded_key))
+					return Ok(Some(bounded_key));
 				}
-				return Err(SteppedMigrationError::InsufficientWeight { required: worst_per_collator })
+				return Err(SteppedMigrationError::InsufficientWeight {
+					required: worst_per_collator,
+				});
 			}
 
 			// Decode the legacy value for this collator.
@@ -332,7 +333,7 @@ where
 			if weight_for_collator.any_gt(remaining_budget) {
 				// Cannot fit this collator into the current block's budget.
 				// Stop here and let the next step handle it.
-				break
+				break;
 			}
 
 			// Rebuild storage using the new double-map layout for this collator.
@@ -369,7 +370,9 @@ where
 		} else {
 			// We had enough theoretical budget but could not fit even a single
 			// collator with the more precise estimate. Signal insufficient weight.
-			Err(SteppedMigrationError::InsufficientWeight { required: worst_per_collator })
+			Err(SteppedMigrationError::InsufficientWeight {
+				required: worst_per_collator,
+			})
 		}
 	}
 }

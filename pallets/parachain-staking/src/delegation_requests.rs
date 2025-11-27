@@ -110,28 +110,26 @@ impl<T: Config> Pallet<T> {
 		let actual_weight =
 			<T as Config>::WeightInfo::schedule_revoke_delegation(scheduled_requests.len() as u32);
 
-		// If this is the first scheduled request for this delegator towards this collator,
-		// ensure we do not exceed the maximum number of delegators that can have pending
-		// requests for the collator.
-		let is_new_delegator =
-			!<DelegationScheduledRequests<T>>::contains_key(&collator, &delegator);
-		if is_new_delegator {
-			let current = <DelegationScheduledRequestsPerCollator<T>>::get(&collator);
-			if current >= Pallet::<T>::max_delegators_per_candidate() {
-				return Err(DispatchErrorWithPostInfo {
-					post_info: Some(actual_weight).into(),
-					error: Error::<T>::ExceedMaxDelegationsPerDelegator.into(),
-				});
-			}
-		}
+		let is_new_delegator = scheduled_requests.is_empty();
 
 		ensure!(
-			scheduled_requests.is_empty(),
+			is_new_delegator,
 			DispatchErrorWithPostInfo {
 				post_info: Some(actual_weight).into(),
 				error: <Error<T>>::PendingDelegationRequestAlreadyExists.into(),
 			},
 		);
+
+		// This is the first scheduled request for this delegator towards this collator,
+		// ensure we do not exceed the maximum number of delegators that can have pending
+		// requests for the collator.
+		let current = <DelegationScheduledRequestsPerCollator<T>>::get(&collator);
+		if current >= Pallet::<T>::max_delegators_per_candidate() {
+			return Err(DispatchErrorWithPostInfo {
+				post_info: Some(actual_weight).into(),
+				error: Error::<T>::ExceedMaxDelegationsPerDelegator.into(),
+			});
+		}
 
 		let bonded_amount = state
 			.get_bond_amount(&collator)
@@ -372,6 +370,7 @@ impl<T: Config> Pallet<T> {
 				};
 
 				// remove from pending requests
+				// `BoundedVec::remove` can panic, but we make sure it will not happen by checking above that `scheduled_requests` is not empty.
 				let amount = scheduled_requests.remove(0).action.amount();
 				state.less_total = state.less_total.saturating_sub(amount);
 
@@ -420,6 +419,7 @@ impl<T: Config> Pallet<T> {
 					<T as Config>::WeightInfo::execute_delegator_revoke_delegation_worst();
 
 				// remove from pending requests
+				// `BoundedVec::remove` can panic, but we make sure it will not happen by checking above that `scheduled_requests` is not empty.
 				let amount = scheduled_requests.remove(0).action.amount();
 				state.less_total = state.less_total.saturating_sub(amount);
 
@@ -524,7 +524,9 @@ impl<T: Config> Pallet<T> {
 		let total_amount: BalanceOf<T> = scheduled_requests
 			.iter()
 			.map(|request| request.action.amount())
-			.fold(BalanceOf::<T>::zero(), |acc, amount| acc.saturating_add(amount));
+			.fold(BalanceOf::<T>::zero(), |acc, amount| {
+				acc.saturating_add(amount)
+			});
 
 		state.less_total = state.less_total.saturating_sub(total_amount);
 		<DelegationScheduledRequests<T>>::remove(collator, delegator);
