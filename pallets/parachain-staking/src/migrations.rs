@@ -202,15 +202,29 @@ where
 		let db_weight = <T as frame_system::Config>::DbWeight::get();
 		let worst_reads = 1 + 3 * max_requests_per_collator;
 		let worst_writes = 2 * max_requests_per_collator + 2;
-		// Upper bound on the weight needed to migrate a *single* collator in the
-		// worst case. This is used to guard storage reads so we never start
-		// processing a collator that we cannot afford to finish.
 		let worst_per_collator = db_weight.reads_writes(worst_reads, worst_writes);
 
-		// Safety margin baseline for this step: at most 50% of the initial
-		// remaining weight budget may be spent on this migration.
+		// Safety margin baseline for this step: we will try to spend at most 50%
+		// of the remaining block weight on this migration, but we only require
+		// that the *full* remaining budget is sufficient to migrate one
+		// worst-case collator. This avoids the situation where the 50% margin is
+		// smaller than `worst_per_collator` (e.g. on production where
+		// MaxTop/MaxBottom are much larger than in tests) and the migration
+		// could never even start.
 		let remaining = meter.remaining();
+		if remaining.all_lt(worst_per_collator) {
+			return Err(SteppedMigrationError::InsufficientWeight {
+				required: worst_per_collator,
+			});
+		}
 		let step_budget = remaining.saturating_div(2);
+
+		// Hard cap on the number of collators we are willing to migrate in a
+		// single step, regardless of the theoretical weight budget. This
+		// prevents a single step from doing unbounded work even if the
+		// `WeightMeter` is configured with a very large limit (for example in
+		// testing), and keeps block execution times predictable on mainnet.
+		const MAX_COLLATORS_PER_STEP: u32 = 32;
 
 		let prefix = frame_support::storage::storage_prefix(
 			b"ParachainStaking",
@@ -270,6 +284,7 @@ where
 		// by persisting the last processed legacy key in the cursor, so the
 		// next step can resume in O(1) reads.
 		let mut used_in_step = Weight::zero();
+		let mut processed_collators: u32 = 0;
 		let mut start_from: Vec<u8> = cursor
 			.map(|c| c.to_vec())
 			.unwrap_or_else(|| prefix.to_vec());
@@ -289,25 +304,6 @@ where
 				}
 				return Ok(None);
 			};
-
-			// Remaining per-step budget before touching this collator.
-			let remaining_budget = step_budget.saturating_sub(used_in_step);
-
-			// Before we read and decode the legacy value for this collator, make
-			// sure that we still have enough budget to safely process *any*
-			// collator in the worst case. This guards against spending PoV on
-			// reads when we already know we cannot finish even a single entry.
-			if remaining_budget.all_lt(worst_per_collator) {
-				if !used_in_step.is_zero() {
-					meter.consume(used_in_step);
-					let bounded_key =
-						frame_support::BoundedVec::<u8, ConstU32<128>>::truncate_from(start_from);
-					return Ok(Some(bounded_key));
-				}
-				return Err(SteppedMigrationError::InsufficientWeight {
-					required: worst_per_collator,
-				});
-			}
 
 			// Decode the legacy value for this collator.
 			let Some(bytes) = sp_io::storage::get(&full_key) else {
@@ -360,6 +356,14 @@ where
 
 			used_in_step = used_in_step.saturating_add(weight_for_collator);
 			start_from = full_key;
+			processed_collators = processed_collators.saturating_add(1);
+
+			// Always stop after a bounded number of collators, even if the
+			// weight budget would allow more. The remaining work will be picked
+			// up in the next step.
+			if processed_collators >= MAX_COLLATORS_PER_STEP {
+				break;
+			}
 		}
 
 		if !used_in_step.is_zero() {
