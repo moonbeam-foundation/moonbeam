@@ -29,7 +29,10 @@ use frame_support::traits::Get;
 use frame_support::BoundedVec;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use scale_info::TypeInfo;
-use sp_runtime::{traits::Saturating, RuntimeDebug};
+use sp_runtime::{
+	traits::{Saturating, Zero},
+	RuntimeDebug,
+};
 
 /// An action that can be performed upon a delegation
 #[derive(
@@ -320,8 +323,13 @@ impl<T: Config> Pallet<T> {
 			T::MaxScheduledRequestsPerDelegator,
 		>,
 	) -> Option<ScheduledRequest<T::AccountId, BalanceOf<T>>> {
-		let request = scheduled_requests.get(0).cloned()?;
-		scheduled_requests.remove(0);
+		if scheduled_requests.is_empty() {
+			return None;
+		}
+
+		// `BoundedVec::remove` can panic, but we make sure it will not happen by
+		// checking above that `scheduled_requests` is not empty.
+		let request = scheduled_requests.remove(0);
 		let amount = request.action.amount();
 		state.less_total = state.less_total.saturating_sub(amount);
 		Some(request)
@@ -512,11 +520,11 @@ impl<T: Config> Pallet<T> {
 			return;
 		}
 
-		let mut total_amount: BalanceOf<T> = Default::default();
-		for request in scheduled_requests.iter() {
-			let amount = request.action.amount();
-			total_amount = total_amount.saturating_add(amount);
-		}
+		// Calculate total amount across all scheduled requests
+		let total_amount: BalanceOf<T> = scheduled_requests
+			.iter()
+			.map(|request| request.action.amount())
+			.fold(BalanceOf::<T>::zero(), |acc, amount| acc.saturating_add(amount));
 
 		state.less_total = state.less_total.saturating_sub(total_amount);
 		<DelegationScheduledRequests<T>>::remove(collator, delegator);
