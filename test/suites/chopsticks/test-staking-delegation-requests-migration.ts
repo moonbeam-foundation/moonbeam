@@ -155,9 +155,7 @@ describeSuite({
           await context.createBlock();
           blocksAfterUpgrade += 1;
 
-          const cursor = migrationsQuery?.cursor
-            ? await migrationsQuery.cursor()
-            : null;
+          const cursor = migrationsQuery?.cursor ? await migrationsQuery.cursor() : null;
 
           if (LIGHT_MIGRATION_CHECKS && !(cursor && cursor.isNone)) {
             // Light mode: only log basic progress and wait until the migration
