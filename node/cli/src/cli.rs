@@ -21,7 +21,8 @@
 
 use clap::Parser;
 use moonbeam_cli_opt::{
-	AuthoringPolicy, EthApi, FrontierBackendType, NodeExtraArgs, Sealing, account_key::{GenerateAccountKey, Network}
+	account_key::{GenerateAccountKey, Network},
+	AuthoringPolicy, EthApi, FrontierBackendType, NodeExtraArgs, Sealing,
 };
 use moonbeam_service::chain_spec;
 use sc_cli::{Error as CliError, SubstrateCli};

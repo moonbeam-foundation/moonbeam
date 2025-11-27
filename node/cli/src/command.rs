@@ -272,7 +272,7 @@ pub fn run() -> Result<()> {
 				let (client, _, import_queue, task_manager) = moonbeam_service::new_chain_ops(
 					&mut config,
 					&rpc_config,
-					cli.node_extra_args()
+					cli.node_extra_args(),
 				)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
@@ -284,7 +284,7 @@ pub fn run() -> Result<()> {
 				let (client, _, _, task_manager) = moonbeam_service::new_chain_ops(
 					&mut config,
 					&rpc_config,
-					cli.node_extra_args()
+					cli.node_extra_args(),
 				)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
@@ -369,11 +369,7 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonriver_runtime::RuntimeApi,
 						moonbeam_service::MoonriverCustomizations,
-					>(
-						&mut config,
-						&rpc_config,
-						cli.node_extra_args()
-					)?;
+					>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -385,11 +381,7 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
 						moonbeam_service::MoonbeamCustomizations,
-					>(
-						&mut config,
-						&rpc_config,
-							cli.node_extra_args()
-					)?;
+					>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -401,11 +393,7 @@ pub fn run() -> Result<()> {
 					let params = moonbeam_service::new_partial::<
 						moonbeam_service::moonbase_runtime::RuntimeApi,
 						moonbeam_service::MoonbaseCustomizations,
-					>(
-						&mut config,
-						&rpc_config,
-						cli.node_extra_args()
-					)?;
+					>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -549,14 +537,11 @@ pub fn run() -> Result<()> {
 						#[cfg(feature = "moonriver-native")]
 						spec if spec.is_moonriver() => {
 							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonriver_runtime::RuntimeApi,
-									moonbeam_service::MoonriverCustomizations,
-								>(
-									&mut config,
-									&rpc_config,
-									cli.node_extra_args()
-								)?;
+								let params =
+									moonbeam_service::new_partial::<
+										moonbeam_service::moonriver_runtime::RuntimeApi,
+										moonbeam_service::MoonriverCustomizations,
+									>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 								cmd.run(params.client)
 							})
@@ -564,14 +549,11 @@ pub fn run() -> Result<()> {
 						#[cfg(feature = "moonbeam-native")]
 						spec if spec.is_moonbeam() => {
 							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonbeam_runtime::RuntimeApi,
-									moonbeam_service::MoonbeamCustomizations,
-								>(
-									&mut config,
-									&rpc_config,
-									cli.node_extra_args()
-								)?;
+								let params =
+									moonbeam_service::new_partial::<
+										moonbeam_service::moonbeam_runtime::RuntimeApi,
+										moonbeam_service::MoonbeamCustomizations,
+									>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 								cmd.run(params.client)
 							})
@@ -579,14 +561,11 @@ pub fn run() -> Result<()> {
 						#[cfg(feature = "moonbase-native")]
 						_ => {
 							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonbase_runtime::RuntimeApi,
-									moonbeam_service::MoonbaseCustomizations,
-								>(
-									&mut config,
-									&rpc_config,
-									cli.node_extra_args()
-								)?;
+								let params =
+									moonbeam_service::new_partial::<
+										moonbeam_service::moonbase_runtime::RuntimeApi,
+										moonbeam_service::MoonbaseCustomizations,
+									>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 								cmd.run(params.client)
 							})
@@ -697,11 +676,7 @@ pub fn run() -> Result<()> {
 					} = moonbeam_service::new_partial::<
 						moonbeam_service::moonriver_runtime::RuntimeApi,
 						moonbeam_service::MoonriverCustomizations,
-					>(
-						&mut config,
-						&rpc_config,
-						cli.node_extra_args()
-					)?;
+					>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
 				}
@@ -714,11 +689,7 @@ pub fn run() -> Result<()> {
 					} = moonbeam_service::new_partial::<
 						moonbeam_service::moonbeam_runtime::RuntimeApi,
 						moonbeam_service::MoonbeamCustomizations,
-					>(
-						&mut config,
-						&rpc_config,
-						cli.node_extra_args()
-					)?;
+					>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
 				}
@@ -731,11 +702,7 @@ pub fn run() -> Result<()> {
 					} = moonbeam_service::new_partial::<
 						moonbeam_service::moonbase_runtime::RuntimeApi,
 						moonbeam_service::MoonbaseCustomizations,
-					>(
-						&mut config,
-						&rpc_config,
-						cli.node_extra_args()
-					)?;
+					>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 					Ok((cmd.run(backend, config.chain_spec), task_manager))
 				}
@@ -797,7 +764,7 @@ pub fn run() -> Result<()> {
 							cli.run.sealing,
 							rpc_config,
 							hwbench,
-							cli.node_extra_args()
+							cli.node_extra_args(),
 						)
 						.await
 						.map_err(Into::into),
@@ -813,7 +780,7 @@ pub fn run() -> Result<()> {
 							cli.run.sealing,
 							rpc_config,
 							hwbench,
-							cli.node_extra_args()
+							cli.node_extra_args(),
 						)
 						.await
 						.map_err(Into::into),
@@ -829,7 +796,7 @@ pub fn run() -> Result<()> {
 							cli.run.sealing,
 							rpc_config,
 							hwbench,
-							cli.node_extra_args()
+							cli.node_extra_args(),
 						)
 						.await
 						.map_err(Into::into),

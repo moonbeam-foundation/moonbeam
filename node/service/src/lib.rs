@@ -48,16 +48,14 @@ use futures::{FutureExt, StreamExt};
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
-use moonbeam_cli_opt::{
-	EthApi as EthApiCmd, FrontierBackendConfig, NodeExtraArgs, RpcConfig,
-};
+use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, NodeExtraArgs, RpcConfig};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
 use moonbeam_vrf::VrfDigestsProvider;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
 use nimbus_consensus::{
-	NimbusManualSealConsensusDataProvider, collators::slot_based::{SlotBasedBlockImport}
+	collators::slot_based::SlotBasedBlockImport, NimbusManualSealConsensusDataProvider,
 };
 use nimbus_primitives::{DigestsProvider, NimbusId};
 use polkadot_primitives::{AbridgedHostConfiguration, AsyncBackingParams, Slot, UpgradeGoAhead};
@@ -380,7 +378,7 @@ pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 pub fn new_chain_ops(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
-	node_extra_args: NodeExtraArgs
+	node_extra_args: NodeExtraArgs,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -416,7 +414,7 @@ pub fn new_chain_ops(
 fn new_chain_ops_inner<RuntimeApi, Customizations>(
 	config: &mut Configuration,
 	rpc_config: &RpcConfig,
-	node_extra_args: NodeExtraArgs
+	node_extra_args: NodeExtraArgs,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -439,11 +437,7 @@ where
 		import_queue,
 		task_manager,
 		..
-	} = new_partial::<RuntimeApi, Customizations>(
-		config,
-		rpc_config,
-		node_extra_args
-	)?;
+	} = new_partial::<RuntimeApi, Customizations>(config, rpc_config, node_extra_args)?;
 	Ok((
 		Arc::new(Client::from(client)),
 		backend,
@@ -705,7 +699,7 @@ where
 	let params = new_partial::<RuntimeApi, Customizations>(
 		&mut parachain_config,
 		&rpc_config,
-		node_extra_args.clone()
+		node_extra_args.clone(),
 	)?;
 	let (
 		block_import,
@@ -1177,40 +1171,49 @@ where
 
 	let (block_import, block_import_auxiliary_data) =
 		SlotBasedBlockImport::new(block_import, client.clone());
-	
+
 	let block_import = TParachainBlockImport::new(block_import, backend.clone());
 
-	nimbus_consensus::collators::slot_based::run::<Block, nimbus_primitives::NimbusPair, _, _, _, FullBackend, _, _, _, _, _, _>(
-		nimbus_consensus::collators::slot_based::Params {
-			additional_digests_provider: maybe_provide_vrf_digest,
-			additional_relay_state_keys: vec![
-				relay_chain::well_known_keys::EPOCH_INDEX.to_vec()
-			],
-			authoring_duration: block_authoring_duration,
-			block_import,
-			code_hash_provider,
-			collator_key,
-			collator_service,
-			create_inherent_data_providers: move |b, a| async move {
-				create_inherent_data_providers(b, a).await
-			},
-			force_authoring,
-			keystore,
-			para_backend: backend,
-			para_client: client,
-			para_id,
-			proposer,
-			relay_chain_slot_duration,
-			relay_client: relay_chain_interface,
-			para_slot_duration: None,
-			reinitialize: false,
-			max_pov_percentage: node_extra_args.max_pov_percentage.map(|p| p as u32),
-			export_pov: node_extra_args.export_pov,
-			slot_offset: Duration::from_secs(1),
-			spawner: task_manager.spawn_handle(),
-			block_import_handle: block_import_auxiliary_data,
+	nimbus_consensus::collators::slot_based::run::<
+		Block,
+		nimbus_primitives::NimbusPair,
+		_,
+		_,
+		_,
+		FullBackend,
+		_,
+		_,
+		_,
+		_,
+		_,
+		_,
+	>(nimbus_consensus::collators::slot_based::Params {
+		additional_digests_provider: maybe_provide_vrf_digest,
+		additional_relay_state_keys: vec![relay_chain::well_known_keys::EPOCH_INDEX.to_vec()],
+		authoring_duration: block_authoring_duration,
+		block_import,
+		code_hash_provider,
+		collator_key,
+		collator_service,
+		create_inherent_data_providers: move |b, a| async move {
+			create_inherent_data_providers(b, a).await
 		},
-	);
+		force_authoring,
+		keystore,
+		para_backend: backend,
+		para_client: client,
+		para_id,
+		proposer,
+		relay_chain_slot_duration,
+		relay_client: relay_chain_interface,
+		para_slot_duration: None,
+		reinitialize: false,
+		max_pov_percentage: node_extra_args.max_pov_percentage.map(|p| p as u32),
+		export_pov: node_extra_args.export_pov,
+		slot_offset: Duration::from_secs(1),
+		spawner: task_manager.spawn_handle(),
+		block_import_handle: block_import_auxiliary_data,
+	});
 
 	Ok(())
 }
@@ -1258,7 +1261,7 @@ pub async fn new_dev<RuntimeApi, Customizations, Net>(
 	sealing: moonbeam_cli_opt::Sealing,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
-	node_extra_args: NodeExtraArgs
+	node_extra_args: NodeExtraArgs,
 ) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
