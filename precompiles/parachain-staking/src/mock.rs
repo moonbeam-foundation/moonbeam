@@ -189,6 +189,7 @@ parameter_types! {
 	pub const MaxTopDelegationsPerCandidate: u32 = 2;
 	pub const MaxBottomDelegationsPerCandidate: u32 = 4;
 	pub const MaxDelegationsPerDelegator: u32 = 4;
+	pub const MaxScheduledRequestsPerDelegator: u32 = 50;
 	pub const MinCandidateStk: u128 = 10;
 	pub const MinDelegation: u128 = 3;
 	pub const MaxCandidates: u32 = 10;
@@ -218,6 +219,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxTopDelegationsPerCandidate = MaxTopDelegationsPerCandidate;
 	type MaxBottomDelegationsPerCandidate = MaxBottomDelegationsPerCandidate;
 	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
+	type MaxScheduledRequestsPerDelegator = MaxScheduledRequestsPerDelegator;
 	type MinCandidateStk = MinCandidateStk;
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;

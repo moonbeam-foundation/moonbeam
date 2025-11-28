@@ -52,7 +52,7 @@ describeSuite({
 
         const delegationRequestsAfter = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(alith.address);
+          .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
 
         const roundDelay = context
           .polkadotJs()

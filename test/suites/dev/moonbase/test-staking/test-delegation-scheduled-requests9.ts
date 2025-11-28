@@ -43,7 +43,7 @@ describeSuite({
       // jump to a round before the actual executable Round
       const delegationRequests = await context
         .polkadotJs()
-        .query.parachainStaking.delegationScheduledRequests(alith.address);
+        .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
       await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber() - 1);
     });
 

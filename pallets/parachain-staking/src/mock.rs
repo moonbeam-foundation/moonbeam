@@ -149,6 +149,7 @@ impl Get<Slot> for StakingRoundSlotProvider {
 
 parameter_types! {
 	pub const LinearInflationThreshold: Option<Balance> = Some(1_200_000_000);
+	pub const MaxScheduledRequestsPerDelegator: u32 = 50;
 }
 
 impl Config for Test {
@@ -167,6 +168,7 @@ impl Config for Test {
 	type MaxTopDelegationsPerCandidate = MaxTopDelegationsPerCandidate;
 	type MaxBottomDelegationsPerCandidate = MaxBottomDelegationsPerCandidate;
 	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
+	type MaxScheduledRequestsPerDelegator = MaxScheduledRequestsPerDelegator;
 	type MinCandidateStk = MinCandidateStk;
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
