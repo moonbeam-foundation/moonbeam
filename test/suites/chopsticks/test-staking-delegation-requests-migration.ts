@@ -219,9 +219,7 @@ describeSuite({
           if (!sawStakingMigration && !isCursorNone) {
             // We are still running earlier migrations (index < STAKING_MIGRATION_INDEX).
             // Just log the cursor and wait for staking to become active.
-            log(
-              `Block +${blocksAfterUpgrade}: waiting for staking migration, cursor=${cursorStr}`
-            );
+            log(`Block +${blocksAfterUpgrade}: waiting for staking migration, cursor=${cursorStr}`);
             continue;
           }
 
