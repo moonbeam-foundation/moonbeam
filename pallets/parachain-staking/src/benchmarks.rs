@@ -211,9 +211,26 @@ fn parachain_staking_on_finalize<T: Config>(author: T::AccountId) {
 }
 
 /// Run to end block and author
+///
+/// This function uses the minimum round length to speed up benchmarks.
+/// Instead of simulating thousands of blocks (e.g., 28 rounds * 1200 blocks = 33,600 blocks),
+/// we use MinBlocksPerRound (typically 10) to reduce iterations significantly
+/// (e.g., 28 rounds * 10 blocks = 280 blocks).
 fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
+	// Use minimal round length for benchmark efficiency
+	// This dramatically reduces the number of blocks we need to simulate
+	// while still exercising all the on_initialize/on_finalize hooks
+	let min_round_length = T::MinBlocksPerRound::get();
+	let current_round = <Round<T>>::get();
+	<Round<T>>::put(crate::RoundInfo::new(
+		current_round.current,
+		current_round.first,
+		min_round_length,
+		current_round.first_slot,
+	));
+
 	let total_rounds = round_delay + 1u32;
-	let round_length: BlockNumberFor<T> = Pallet::<T>::round().length.into();
+	let round_length: BlockNumberFor<T> = min_round_length.into();
 	let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
 	let first: BlockNumberFor<T> = Pallet::<T>::round().first;
 	let end = first + (round_length * total_rounds.into());
