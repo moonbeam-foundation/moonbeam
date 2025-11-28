@@ -593,8 +593,7 @@ pub fn run() -> Result<()> {
 								>(
 									&mut config,
 									&rpc_config,
-									false,
-									cli.run.legacy_block_import_strategy,
+									cli.node_extra_args()
 								)?;
 
 								let db = params.backend.expose_db();
@@ -612,8 +611,7 @@ pub fn run() -> Result<()> {
 								>(
 									&mut config,
 									&rpc_config,
-									false,
-									cli.run.legacy_block_import_strategy,
+									cli.node_extra_args()
 								)?;
 
 								let db = params.backend.expose_db();
@@ -631,8 +629,7 @@ pub fn run() -> Result<()> {
 								>(
 									&mut config,
 									&rpc_config,
-									false,
-									cli.run.legacy_block_import_strategy,
+									cli.node_extra_args()
 								)?;
 
 								let db = params.backend.expose_db();
