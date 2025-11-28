@@ -1011,12 +1011,12 @@ fn start_consensus<RuntimeApi, SO>(
 	keystore: KeystorePtr,
 	para_id: ParaId,
 	collator_key: CollatorPair,
-	overseer_handle: OverseerHandle,
+	_overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 	force_authoring: bool,
 	relay_chain_slot_duration: Duration,
 	block_authoring_duration: Duration,
-	sync_oracle: SO,
+	_sync_oracle: SO,
 	node_extra_args: NodeExtraArgs,
 ) -> Result<(), sc_service::Error>
 where
