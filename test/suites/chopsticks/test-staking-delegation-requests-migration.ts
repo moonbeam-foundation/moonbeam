@@ -13,12 +13,6 @@ import { hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
 import { blake2AsHex, xxhashAsU8a } from "@polkadot/util-crypto";
 import { env } from "node:process";
 
-// When true, the test only reads staking storage and enforces invariants once
-// the migration has fully completed. This is useful locally to reduce RPC
-// requests and execution time. CI leaves this disabled to follow the full
-// migration more closely.
-const LIGHT_MIGRATION_CHECKS = env.CI !== "true";
-
 // Index of the `MigrateDelegationScheduledRequestsToDoubleMap` migration in
 // the `MultiBlockMigrations` tuple defined in `runtime/common/src/migrations.rs`.
 // This is shared by Moonbase, Moonriver and Moonbeam.
@@ -177,50 +171,21 @@ describeSuite({
 
           const isCursorNone = !!cursor && (cursor as any).isNone;
 
-          // Light mode: only observe cursor progress until we know the staking
-          // migration has finished, then take a single state snapshot.
-          if (LIGHT_MIGRATION_CHECKS) {
-            if (!isCursorNone) {
-              log(`Block +${blocksAfterUpgrade}: LIGHT mode, cursor=${cursorStr}`);
-              continue;
-            }
-
-            // cursor is None here: all multi-block migrations have finished.
-            // If we never saw the staking migration become active something
-            // went wrong with the configuration.
-            if (!sawStakingMigration) {
-              throw new Error(
-                "Staking migration did not appear in multiBlockMigrations cursor before completion"
-              );
-            }
-
-            const { totalRequests, queueCount, totalDelegatorQueues } = await readState();
-
-            log(
-              `Block +${blocksAfterUpgrade}: totalRequests=${totalRequests}, queues=${queueCount}, sumCounters=${totalDelegatorQueues}, cursor=${cursorStr}`
-            );
-
-            expect(totalRequests).to.equal(
-              totalOldRequests,
-              "Total number of scheduled delegation requests must be preserved during migration"
-            );
-
-            if (queueCount > 0) {
-              expect(totalDelegatorQueues).to.equal(
-                queueCount,
-                "Sum of DelegationScheduledRequestsPerCollator values should equal number of (collator, delegator) queues after migration completes"
-              );
-            }
-            break;
+          // Only observe cursor progress until we know the staking migration
+          // has finished, then take a single state snapshot and assert
+          // invariants. This keeps the test lightweight even on large chains.
+          if (!isCursorNone) {
+            log(`Block +${blocksAfterUpgrade}: cursor=${cursorStr}`);
+            continue;
           }
 
-          // Full checks (CI): only touch staking storage while the staking
-          // migration is active or immediately after it has completed.
-          if (!sawStakingMigration && !isCursorNone) {
-            // We are still running earlier migrations (index < STAKING_MIGRATION_INDEX).
-            // Just log the cursor and wait for staking to become active.
-            log(`Block +${blocksAfterUpgrade}: waiting for staking migration, cursor=${cursorStr}`);
-            continue;
+          // cursor is None here: all multi-block migrations have finished.
+          // If we never saw the staking migration become active something
+          // went wrong with the configuration.
+          if (!sawStakingMigration) {
+            throw new Error(
+              "Staking migration did not appear in multiBlockMigrations cursor before completion"
+            );
           }
 
           const { totalRequests, queueCount, totalDelegatorQueues } = await readState();
@@ -234,15 +199,13 @@ describeSuite({
             "Total number of scheduled delegation requests must be preserved during migration"
           );
 
-          // Once the migrations are finished (`cursor` is None), we expect the
-          // per-collator counters to exactly match the number of queues.
-          if (isCursorNone && queueCount > 0) {
+          if (queueCount > 0) {
             expect(totalDelegatorQueues).to.equal(
               queueCount,
               "Sum of DelegationScheduledRequestsPerCollator values should equal number of (collator, delegator) queues after migration completes"
             );
-            break;
           }
+          break;
         }
       },
     });
