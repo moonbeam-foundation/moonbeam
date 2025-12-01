@@ -22,7 +22,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install Subxt-cli
@@ -126,7 +126,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       # Download artifacts from the local-diff job
       - name: Download diff artifacts
         uses: actions/download-artifact@v6
