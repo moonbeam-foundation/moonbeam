@@ -587,14 +587,11 @@ pub fn run() -> Result<()> {
 						#[cfg(feature = "moonriver-native")]
 						spec if spec.is_moonriver() => {
 							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonriver_runtime::RuntimeApi,
-									moonbeam_service::MoonriverCustomizations,
-								>(
-									&mut config,
-									&rpc_config,
-									cli.node_extra_args()
-								)?;
+								let params =
+									moonbeam_service::new_partial::<
+										moonbeam_service::moonriver_runtime::RuntimeApi,
+										moonbeam_service::MoonriverCustomizations,
+									>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -605,14 +602,11 @@ pub fn run() -> Result<()> {
 						#[cfg(feature = "moonbeam-native")]
 						spec if spec.is_moonbeam() => {
 							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonbeam_runtime::RuntimeApi,
-									moonbeam_service::MoonbeamCustomizations,
-								>(
-									&mut config,
-									&rpc_config,
-									cli.node_extra_args()
-								)?;
+								let params =
+									moonbeam_service::new_partial::<
+										moonbeam_service::moonbeam_runtime::RuntimeApi,
+										moonbeam_service::MoonbeamCustomizations,
+									>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -623,14 +617,11 @@ pub fn run() -> Result<()> {
 						#[cfg(feature = "moonbase-native")]
 						_ => {
 							return runner.sync_run(|mut config| {
-								let params = moonbeam_service::new_partial::<
-									moonbeam_service::moonbase_runtime::RuntimeApi,
-									moonbeam_service::MoonbaseCustomizations,
-								>(
-									&mut config,
-									&rpc_config,
-									cli.node_extra_args()
-								)?;
+								let params =
+									moonbeam_service::new_partial::<
+										moonbeam_service::moonbase_runtime::RuntimeApi,
+										moonbeam_service::MoonbaseCustomizations,
+									>(&mut config, &rpc_config, cli.node_extra_args())?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
