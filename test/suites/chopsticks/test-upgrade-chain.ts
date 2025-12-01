@@ -100,7 +100,8 @@ describeSuite({
       test: async () => {
         const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
         await api.tx.balances.transferAllowDeath(DUMMY_ACCOUNT, parseEther("1")).signAndSend(alith);
-        await context.createBlock({ count: 2 });
+        // Some multi-migration might take a few blocks to complete, so we wait for 32 blocks to be safe
+        await context.createBlock({ count: 32 });
         const balanceAfter = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
         expect(balanceBefore < balanceAfter).to.be.true;
       },
