@@ -21,7 +21,7 @@ jobs:
         cpu: ["x86-64", "skylake", "znver3"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
@@ -42,7 +42,7 @@ jobs:
       release_url: ${{ steps.create-release.outputs.html_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
@@ -94,7 +94,7 @@ jobs:
     needs: ["build-binary"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.to }}
       - uses: actions/download-artifact@v6
