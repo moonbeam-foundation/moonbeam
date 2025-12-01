@@ -69,7 +69,7 @@ jobs:
           echo "repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
           echo "github.repository: ${{ github.repository }}"
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
       - name: Get Latest RT Release
@@ -140,7 +140,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Find un-copyrighted files
@@ -160,7 +160,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: umbrelladocs/action-linkspector@v1
@@ -178,7 +178,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -203,7 +203,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -224,7 +224,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Rust toolchain
@@ -243,7 +243,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -266,7 +266,7 @@ jobs:
     needs: ["set-tags"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Install Protoc
@@ -294,7 +294,7 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Cargo build
@@ -338,7 +338,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       # With rustup's nice new toml format, we just need to run rustup show to install the toolchain
@@ -515,7 +515,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -547,7 +547,7 @@ jobs:
       SCCACHE_GHA_ENABLED: true
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Run sccache-cache
@@ -584,7 +584,7 @@ jobs:
   #   runs-on: ubuntu-latest
   #   steps:
   #     - name: Checkout
-  #       uses: actions/checkout@v5
+  #       uses: actions/checkout@v6
   #       with:
   #         ref: ${{ needs.set-tags.outputs.git_ref }}
   #     - uses: pnpm/action-setup@v4
@@ -636,7 +636,7 @@ jobs:
     steps:
       - name: Checkout
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Create local folders
@@ -698,7 +698,7 @@ jobs:
     needs: ["set-tags", "build", "dev-test"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v6
@@ -759,7 +759,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -815,7 +815,7 @@ jobs:
       DEBUG_COLORS: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -865,7 +865,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
@@ -931,7 +931,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: "Download branch built runtime"
         uses: actions/download-artifact@v6
         with:
