@@ -848,7 +848,7 @@
 <a href=#848 id=848 data-nosnippet>848</a>	<span class="doccomment">/// Maximum delegations per delegator
 <a href=#849 id=849 data-nosnippet>849</a>	</span><span class="kw">type </span>MaxDelegationsPerDelegator = ConstU32&lt;<span class="number">100</span>&gt;;
 <a href=#850 id=850 data-nosnippet>850</a>	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate
-<a href=#851 id=851 data-nosnippet>851</a>	</span><span class="kw">type </span>MinCandidateStk = ConstU128&lt;{ <span class="number">5_000 </span>* currency::GLMR * currency::SUPPLY_FACTOR }&gt;;
+<a href=#851 id=851 data-nosnippet>851</a>	</span><span class="kw">type </span>MinCandidateStk = ConstU128&lt;{ <span class="number">100_000 </span>* currency::GLMR }&gt;;
 <a href=#852 id=852 data-nosnippet>852</a>	<span class="doccomment">/// Minimum stake required to be reserved to be a delegator
 <a href=#853 id=853 data-nosnippet>853</a>	</span><span class="kw">type </span>MinDelegation = ConstU128&lt;{ <span class="number">500 </span>* currency::MILLIGLMR * currency::SUPPLY_FACTOR }&gt;;
 <a href=#854 id=854 data-nosnippet>854</a>	<span class="kw">type </span>BlockAuthor = AuthorInherent;
@@ -1952,7 +1952,7 @@
 <a href=#1952 id=1952 data-nosnippet>1952</a>		<span class="comment">// staking minimums
 <a href=#1953 id=1953 data-nosnippet>1953</a>		</span><span class="macro">assert_eq!</span>(
 <a href=#1954 id=1954 data-nosnippet>1954</a>			<span class="macro">get!</span>(pallet_parachain_staking, MinCandidateStk, u128),
-<a href=#1955 id=1955 data-nosnippet>1955</a>			Balance::from(<span class="number">500_000 </span>* GLMR)
+<a href=#1955 id=1955 data-nosnippet>1955</a>			Balance::from(<span class="number">100_000 </span>* GLMR)
 <a href=#1956 id=1956 data-nosnippet>1956</a>		);
 <a href=#1957 id=1957 data-nosnippet>1957</a>		<span class="macro">assert_eq!</span>(
 <a href=#1958 id=1958 data-nosnippet>1958</a>			<span class="macro">get!</span>(pallet_parachain_staking, MinDelegation, u128),
