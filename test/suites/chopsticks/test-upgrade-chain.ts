@@ -95,7 +95,7 @@ describeSuite({
 
     it({
       id: "T2",
-      timeout: 60000,
+      timeout: 300_000, // long timeout require for multi-migrations to complete
       title: "Can send balance transfers",
       test: async () => {
         const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
