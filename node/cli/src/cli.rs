@@ -350,7 +350,7 @@ pub struct RunCmd {
 	pub max_pov_percentage: u32,
 
 	/// Authoring style to use.
-	#[arg(long, default_value_t = AuthoringPolicy::Lookahead)]
+	#[arg(long, default_value_t = AuthoringPolicy::SlotBased)]
 	pub authoring: AuthoringPolicy,
 
 	/// Export all `PoVs` build by this collator to the given folder.
