@@ -48,12 +48,15 @@ use futures::{FutureExt, StreamExt};
 use maplit::hashmap;
 #[cfg(feature = "moonbase-native")]
 pub use moonbase_runtime;
-use moonbeam_cli_opt::{EthApi as EthApiCmd, FrontierBackendConfig, NodeExtraArgs, RpcConfig};
+use moonbeam_cli_opt::{
+	AuthoringPolicy, EthApi as EthApiCmd, FrontierBackendConfig, NodeExtraArgs, RpcConfig,
+};
 #[cfg(feature = "moonbeam-native")]
 pub use moonbeam_runtime;
 use moonbeam_vrf::VrfDigestsProvider;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
+use nimbus_consensus::collators::slot_based::SlotBasedBlockImportHandle;
 use nimbus_consensus::{
 	collators::slot_based::SlotBasedBlockImport, NimbusManualSealConsensusDataProvider,
 };
@@ -63,7 +66,7 @@ use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
 	ExecutorProvider,
 };
-use sc_consensus::ImportQueue;
+use sc_consensus::{BlockImport, ImportQueue};
 use sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::{config::FullNetworkConfiguration, NetworkBackend, NetworkBlock};
 use sc_service::config::PrometheusConfig;
@@ -96,9 +99,6 @@ type FullBackend = TFullBackend<Block>;
 
 type MaybeSelectChain<Backend> = Option<sc_consensus::LongestChain<Backend, Block>>;
 type FrontierBlockImport<Client> = TFrontierBlockImport<Block, Arc<Client>, Client>;
-type ParachainBlockImport<Client, Backend> =
-	TParachainBlockImport<Block, FrontierBlockImport<Client>, Backend>;
-// type ParachainBlockImport<Backend> = TParachainBlockImport<Block, Box<(dyn BlockImport<Block, Error = sp_consensus::Error> + std::marker::Send + std::marker::Sync + 'static)>, Backend>;
 type PartialComponentsResult<Client, Backend> = Result<
 	PartialComponents<
 		Client,
@@ -107,7 +107,7 @@ type PartialComponentsResult<Client, Backend> = Result<
 		sc_consensus::DefaultImportQueue<Block>,
 		sc_transaction_pool::TransactionPoolHandle<Block, Client>,
 		(
-			BlockImportPipeline<FrontierBlockImport<Client>, ParachainBlockImport<Client, Backend>>,
+			MoonbeamBlockImport<Client>,
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
@@ -174,12 +174,51 @@ pub type HostFunctions = (
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 
-/// Block Import Pipeline used.
-pub enum BlockImportPipeline<T, E> {
+pub enum MoonbeamBlockImport<Client> {
 	/// Used in dev mode to import new blocks as best blocks.
-	Dev(T),
-	/// Used in parachain mode.
-	Parachain(E),
+	Dev(FrontierBlockImport<Client>),
+	/// Used in parachain mode with lookahead authoring policy.
+	ParachainLookahead(FrontierBlockImport<Client>),
+	/// Used in parachain mode with slot-based authoring policy.
+	ParachainSlotBased(
+		SlotBasedBlockImport<Block, FrontierBlockImport<Client>, Client>,
+		SlotBasedBlockImportHandle<Block>,
+	),
+}
+
+impl<Client> MoonbeamBlockImport<Client>
+where
+	Client: Send + Sync + 'static,
+	Client: ProvideRuntimeApi<Block>,
+	Client::Api: sp_block_builder::BlockBuilder<Block> + fp_rpc::EthereumRuntimeRPCApi<Block>,
+	FrontierBlockImport<Client>: BlockImport<Block>,
+	SlotBasedBlockImport<Block, FrontierBlockImport<Client>, Client>: BlockImport<Block, Error = <FrontierBlockImport<Client> as BlockImport<Block>>::Error>
+		+ 'static,
+{
+	fn new(
+		frontier_block_import: FrontierBlockImport<Client>,
+		client: Arc<Client>,
+		authoring_policy: AuthoringPolicy,
+		is_dev: bool,
+	) -> Self {
+		if is_dev {
+			MoonbeamBlockImport::Dev(frontier_block_import)
+		} else {
+			match authoring_policy {
+				AuthoringPolicy::Lookahead => {
+					MoonbeamBlockImport::ParachainLookahead(frontier_block_import)
+				}
+				AuthoringPolicy::SlotBased => {
+					let (block_import, block_import_auxiliary_data) =
+						SlotBasedBlockImport::new(frontier_block_import, client);
+					MoonbeamBlockImport::ParachainSlotBased(
+						block_import,
+						block_import_auxiliary_data,
+					)
+				}
+			}
+		}
+	}
 }
 
 /// A trait that must be implemented by all moon* runtimes executors.
@@ -566,55 +605,54 @@ where
 
 	let frontier_backend = Arc::new(open_frontier_backend(client.clone(), config, rpc_config)?);
 	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
+	let block_import = MoonbeamBlockImport::new(
+		frontier_block_import.clone(),
+		client.clone(),
+		node_extra_args.authoring_policy,
+		config.chain_spec.is_dev(),
+	);
 
 	let create_inherent_data_providers = move |_, _| async move {
 		let time = sp_timestamp::InherentDataProvider::from_system_time();
 		Ok((time,))
 	};
 
-	let (import_queue, block_import) = if config.chain_spec.is_dev() {
-		(
-			nimbus_consensus::import_queue(
-				client.clone(),
-				frontier_block_import.clone(),
-				create_inherent_data_providers,
-				&task_manager.spawn_essential_handle(),
-				config.prometheus_registry(),
-				node_extra_args.legacy_block_import_strategy,
-				false,
-			)?,
-			BlockImportPipeline::Dev(frontier_block_import),
-		)
-	} else {
-		/*
-		let (block_import, block_import_handle): (Arc<dyn BlockImport<Block, Error = sp_consensus::Error> + std::marker::Send + std::marker::Sync + 'static>, Option<SlotBasedBlockImportHandle<Block>>)  = match node_extra_args.authoring_policy {
-			AuthoringPolicy::Lookahead => (Arc::new(frontier_block_import), None),
-			AuthoringPolicy::SlotBased => {
-				let (block_import, block_import_handle ) = SlotBasedBlockImport::new(frontier_block_import, client.clone());
-				(Arc::new(block_import), Some(block_import_handle))
+	let import_queue = {
+		let block_import_for_queue: Box<
+			dyn sc_consensus::BlockImport<Block, Error = sp_consensus::Error> + Send + Sync,
+		> = match &block_import {
+			MoonbeamBlockImport::Dev(bi) => Box::new(bi.clone()),
+			MoonbeamBlockImport::ParachainLookahead(bi) => {
+				if node_extra_args.legacy_block_import_strategy {
+					Box::new(TParachainBlockImport::new_with_delayed_best_block(
+						bi.clone(),
+						backend.clone(),
+					))
+				} else {
+					Box::new(TParachainBlockImport::new(bi.clone(), backend.clone()))
+				}
+			}
+			MoonbeamBlockImport::ParachainSlotBased(bi, _handle) => {
+				if node_extra_args.legacy_block_import_strategy {
+					Box::new(TParachainBlockImport::new_with_delayed_best_block(
+						bi.clone(),
+						backend.clone(),
+					))
+				} else {
+					Box::new(TParachainBlockImport::new(bi.clone(), backend.clone()))
+				}
 			}
 		};
-		*/
-		let parachain_block_import = if node_extra_args.legacy_block_import_strategy {
-			ParachainBlockImport::new_with_delayed_best_block(
-				frontier_block_import,
-				backend.clone(),
-			)
-		} else {
-			ParachainBlockImport::new(frontier_block_import, backend.clone())
-		};
-		(
-			nimbus_consensus::import_queue(
-				client.clone(),
-				parachain_block_import.clone(),
-				create_inherent_data_providers,
-				&task_manager.spawn_essential_handle(),
-				config.prometheus_registry(),
-				node_extra_args.legacy_block_import_strategy,
-				false,
-			)?,
-			BlockImportPipeline::Parachain(parachain_block_import),
-		)
+
+		nimbus_consensus::import_queue(
+			client.clone(),
+			block_import_for_queue,
+			create_inherent_data_providers,
+			&task_manager.spawn_essential_handle(),
+			config.prometheus_registry(),
+			node_extra_args.legacy_block_import_strategy,
+			false,
+		)?
 	};
 
 	Ok(PartialComponents {
@@ -965,11 +1003,11 @@ where
 		prometheus_registry: prometheus_registry.as_ref(),
 	})?;
 
-	let BlockImportPipeline::Parachain(block_import) = block_import else {
+	if matches!(block_import, MoonbeamBlockImport::Dev(_)) {
 		return Err(sc_service::Error::Other(
 			"Block import pipeline is not for parachain".into(),
 		));
-	};
+	}
 
 	if collator {
 		start_consensus::<RuntimeApi, _>(
@@ -1000,7 +1038,7 @@ where
 fn start_consensus<RuntimeApi, SO>(
 	backend: Arc<FullBackend>,
 	client: Arc<FullClient<RuntimeApi>>,
-	block_import: ParachainBlockImport<FullClient<RuntimeApi>, FullBackend>,
+	block_import: MoonbeamBlockImport<FullClient<RuntimeApi>>,
 	prometheus_registry: Option<&Registry>,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
@@ -1011,12 +1049,12 @@ fn start_consensus<RuntimeApi, SO>(
 	keystore: KeystorePtr,
 	para_id: ParaId,
 	collator_key: CollatorPair,
-	_overseer_handle: OverseerHandle,
+	overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 	force_authoring: bool,
 	relay_chain_slot_duration: Duration,
 	block_authoring_duration: Duration,
-	_sync_oracle: SO,
+	sync_oracle: SO,
 	node_extra_args: NodeExtraArgs,
 ) -> Result<(), sc_service::Error>
 where
@@ -1083,36 +1121,38 @@ where
 			.map(polkadot_primitives::ValidationCode)
 			.map(|c| c.hash())
 	};
-	/*
-	let collator_task = || async {
-		task_manager
-			.spawn_essential_handle()
-			.spawn("nimbus", None, task);
-		match node_extra_args.authoring_policy {
-			AuthoringPolicy::Lookahead => {
-				let params = nimbus_consensus::collators::lookahead::Params {
-					additional_digests_provider: maybe_provide_vrf_digest,
-					additional_relay_keys: vec![relay_chain::well_known_keys::EPOCH_INDEX.to_vec()],
-					authoring_duration: block_authoring_duration,
-					block_import,
-					code_hash_provider,
-					collator_key,
-					collator_service,
-					create_inherent_data_providers,
-					force_authoring,
-					keystore,
-					overseer_handle,
-					para_backend: backend,
-					para_client: client,
-					para_id,
-					proposer,
-					relay_chain_slot_duration,
-					relay_client: relay_chain_interface,
-					slot_duration: None,
-					sync_oracle,
-					reinitialize: false,
-					max_pov_percentage: node_extra_args.max_pov_percentage,
-				};
+
+	match block_import {
+		MoonbeamBlockImport::ParachainLookahead(bi) => {
+			let block_import = TParachainBlockImport::new(bi, backend.clone());
+
+			let params = nimbus_consensus::collators::lookahead::Params {
+				additional_digests_provider: maybe_provide_vrf_digest,
+				additional_relay_keys: vec![relay_chain::well_known_keys::EPOCH_INDEX.to_vec()],
+				authoring_duration: block_authoring_duration,
+				block_import,
+				code_hash_provider,
+				collator_key,
+				collator_service,
+				create_inherent_data_providers,
+				force_authoring,
+				keystore,
+				overseer_handle,
+				para_backend: backend,
+				para_client: client,
+				para_id,
+				proposer,
+				relay_chain_slot_duration,
+				relay_client: relay_chain_interface,
+				slot_duration: None,
+				sync_oracle,
+				reinitialize: false,
+				max_pov_percentage: node_extra_args.max_pov_percentage,
+			};
+
+			task_manager.spawn_essential_handle().spawn(
+				"nimbus",
+				None,
 				nimbus_consensus::collators::lookahead::run::<
 					Block,
 					_,
@@ -1125,95 +1165,61 @@ where
 					_,
 					_,
 					_,
-				>(params)
-				.await
-			}
-			AuthoringPolicy::SlotBased => {
-				let (block_import, block_import_auxiliary_data) =
-					SlotBasedBlockImport::new(block_import, client);
-				let params = nimbus_consensus::collators::slot_based::Params {
-					//additional_digests_provider: maybe_provide_vrf_digest,
-					additional_relay_state_keys: vec![
-						relay_chain::well_known_keys::EPOCH_INDEX.to_vec()
-					],
-					authoring_duration: block_authoring_duration,
-					block_import,
-					code_hash_provider,
-					collator_key,
-					collator_service,
-					create_inherent_data_providers: move |b, a| async move {
-						create_inherent_data_providers(b, a).await
-					},
-					force_authoring,
-					keystore,
-					para_backend: backend,
-					para_client: client,
-					para_id,
-					proposer,
-					relay_chain_slot_duration,
-					relay_client: relay_chain_interface,
-					para_slot_duration: None,
-					reinitialize: false,
-					max_pov_percentage: node_extra_args.max_pov_percentage.map(|p| p as u32),
-					export_pov: node_extra_args.export_pov,
-					slot_offset: Duration::from_secs(1),
-					spawner: task_manager.spawn_handle(),
-					block_import_handle: block_import_auxiliary_data,
-				};
-
-				nimbus_consensus::collators::slot_based::run::<Block, _, _, _, _, _, _, _, _, _, _>(
-					params,
-				)
-			}
+				>(params),
+			);
 		}
-	};
-	*/
+		MoonbeamBlockImport::ParachainSlotBased(bi, handle) => {
+			let block_import = TParachainBlockImport::new(bi, backend.clone());
 
-	let (block_import, block_import_auxiliary_data) =
-		SlotBasedBlockImport::new(block_import, client.clone());
-
-	let block_import = TParachainBlockImport::new(block_import, backend.clone());
-
-	nimbus_consensus::collators::slot_based::run::<
-		Block,
-		nimbus_primitives::NimbusPair,
-		_,
-		_,
-		_,
-		FullBackend,
-		_,
-		_,
-		_,
-		_,
-		_,
-		_,
-	>(nimbus_consensus::collators::slot_based::Params {
-		additional_digests_provider: maybe_provide_vrf_digest,
-		additional_relay_state_keys: vec![relay_chain::well_known_keys::EPOCH_INDEX.to_vec()],
-		authoring_duration: block_authoring_duration,
-		block_import,
-		code_hash_provider,
-		collator_key,
-		collator_service,
-		create_inherent_data_providers: move |b, a| async move {
-			create_inherent_data_providers(b, a).await
-		},
-		force_authoring,
-		keystore,
-		para_backend: backend,
-		para_client: client,
-		para_id,
-		proposer,
-		relay_chain_slot_duration,
-		relay_client: relay_chain_interface,
-		para_slot_duration: None,
-		reinitialize: false,
-		max_pov_percentage: node_extra_args.max_pov_percentage.map(|p| p as u32),
-		export_pov: node_extra_args.export_pov,
-		slot_offset: Duration::from_secs(1),
-		spawner: task_manager.spawn_handle(),
-		block_import_handle: block_import_auxiliary_data,
-	});
+			nimbus_consensus::collators::slot_based::run::<
+				Block,
+				nimbus_primitives::NimbusPair,
+				_,
+				_,
+				_,
+				FullBackend,
+				_,
+				_,
+				_,
+				_,
+				_,
+				_,
+			>(nimbus_consensus::collators::slot_based::Params {
+				additional_digests_provider: maybe_provide_vrf_digest,
+				additional_relay_state_keys: vec![
+					relay_chain::well_known_keys::EPOCH_INDEX.to_vec()
+				],
+				authoring_duration: block_authoring_duration,
+				block_import,
+				code_hash_provider,
+				collator_key,
+				collator_service,
+				create_inherent_data_providers: move |b, a| async move {
+					create_inherent_data_providers(b, a).await
+				},
+				force_authoring,
+				keystore,
+				para_backend: backend,
+				para_client: client,
+				para_id,
+				proposer,
+				relay_chain_slot_duration,
+				relay_client: relay_chain_interface,
+				para_slot_duration: None,
+				reinitialize: false,
+				max_pov_percentage: node_extra_args.max_pov_percentage.map(|p| p as u32),
+				export_pov: node_extra_args.export_pov,
+				slot_offset: Duration::from_secs(1),
+				spawner: task_manager.spawn_handle(),
+				block_import_handle: handle,
+			});
+		}
+		MoonbeamBlockImport::Dev(_) => {
+			return Err(sc_service::Error::Other(
+				"Dev block import should not be used in parachain consensus".into(),
+			))
+		}
+	}
 
 	Ok(())
 }
@@ -1292,7 +1298,7 @@ where
 			),
 	} = new_partial::<RuntimeApi, Customizations>(&mut config, &rpc_config, node_extra_args)?;
 
-	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
+	let block_import = if let MoonbeamBlockImport::Dev(block_import) = block_import_pipeline {
 		block_import
 	} else {
 		return Err(ServiceError::Other(
