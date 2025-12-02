@@ -98,10 +98,12 @@ describeSuite({
       timeout: 300_000, // long timeout require for multi-migrations to complete
       title: "Can send balance transfers",
       test: async () => {
+        // Some multi-migration might take a lot of blocks to complete, so we wait for 32 blocks to be safe
+        await context.createBlock({ count: 32 });
+
         const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
         await api.tx.balances.transferAllowDeath(DUMMY_ACCOUNT, parseEther("1")).signAndSend(alith);
-        // Some multi-migration might take a few blocks to complete, so we wait for 32 blocks to be safe
-        await context.createBlock({ count: 32 });
+        await context.createBlock({ count: 2 });
         const balanceAfter = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
         expect(balanceBefore < balanceAfter).to.be.true;
       },
