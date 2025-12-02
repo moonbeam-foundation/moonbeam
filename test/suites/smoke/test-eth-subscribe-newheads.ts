@@ -138,18 +138,21 @@ describeSuite({
 
     it({
       id: "C300",
-      title: "should verify parent hash continuity in received blocks",
+      title: "should verify parent hashes reference previously delivered blocks",
       timeout: LISTEN_DURATION_MS + 30_000,
       test: async function () {
         const transport = webSocket(wsEndpoint);
         client = createPublicClient({ transport });
 
+        // Track all received block hashes for parent verification
+        const receivedHashes = new Set<string>();
         const receivedBlocks: Array<{ number: bigint; hash: string; parentHash: string }> = [];
-        const parentHashMismatches: Array<{
+        const missingParents: Array<{
           blockNumber: bigint;
-          expectedParentHash: string;
-          actualParentHash: string;
+          blockHash: string;
+          parentHash: string;
         }> = [];
+        let firstBlockNumber: bigint | null = null;
 
         log(`Starting newHeads subscription for ${LISTEN_DURATION_MS / 1000} seconds...`);
 
@@ -161,33 +164,33 @@ describeSuite({
 
           const unwatch = client.watchBlocks({
             onBlock: (block) => {
-              const blockInfo = {
+              receivedBlocks.push({
                 number: block.number,
                 hash: block.hash,
                 parentHash: block.parentHash,
-              };
-              receivedBlocks.push(blockInfo);
+              });
 
-              // Check parent hash continuity (only if blocks are consecutive)
-              if (receivedBlocks.length > 1) {
-                const prevBlock = receivedBlocks[receivedBlocks.length - 2];
-
-                // Only check parent hash if this is the next consecutive block
-                if (block.number === prevBlock.number + 1n) {
-                  if (block.parentHash !== prevBlock.hash) {
-                    parentHashMismatches.push({
-                      blockNumber: block.number,
-                      expectedParentHash: prevBlock.hash,
-                      actualParentHash: block.parentHash,
-                    });
-                    log(
-                      `⚠️  PARENT HASH MISMATCH at block #${block.number}: ` +
-                        `expected ${prevBlock.hash.slice(0, 10)}..., ` +
-                        `got ${block.parentHash.slice(0, 10)}...`
-                    );
-                  }
-                }
+              // Track first block number to skip parent check for it
+              if (firstBlockNumber === null) {
+                firstBlockNumber = block.number;
               }
+
+              // For blocks after the first, verify parent hash was delivered
+              // This catches the bug where blocks are skipped during reorgs
+              if (block.number > firstBlockNumber && !receivedHashes.has(block.parentHash)) {
+                missingParents.push({
+                  blockNumber: block.number,
+                  blockHash: block.hash,
+                  parentHash: block.parentHash,
+                });
+                log(
+                  `⚠️  MISSING PARENT at block #${block.number}: ` +
+                    `parent ${block.parentHash.slice(0, 10)}... was never delivered`
+                );
+              }
+
+              // Add this block's hash to the set of received hashes
+              receivedHashes.add(block.hash);
             },
             onError: (error) => {
               clearTimeout(timeoutId);
@@ -198,6 +201,7 @@ describeSuite({
 
         log(`\nSubscription summary:`);
         log(`  - Total blocks received: ${receivedBlocks.length}`);
+        log(`  - Unique block hashes: ${receivedHashes.size}`);
 
         // Verify we received enough blocks
         expect(
@@ -205,24 +209,23 @@ describeSuite({
           `Expected at least ${MIN_BLOCKS_EXPECTED} blocks, received ${receivedBlocks.length}`
         ).toBeGreaterThanOrEqual(MIN_BLOCKS_EXPECTED);
 
-        // Check for parent hash mismatches
-        if (parentHashMismatches.length > 0) {
-          log(`\n❌ PARENT HASH MISMATCHES DETECTED:`);
-          for (const mismatch of parentHashMismatches) {
+        // Check for missing parent blocks
+        if (missingParents.length > 0) {
+          log(`\n❌ MISSING PARENT BLOCKS DETECTED (blocks were skipped):`);
+          for (const missing of missingParents) {
             log(
-              `  - Block #${mismatch.blockNumber}: ` +
-                `expected parent ${mismatch.expectedParentHash.slice(0, 18)}..., ` +
-                `got ${mismatch.actualParentHash.slice(0, 18)}...`
+              `  - Block #${missing.blockNumber} (${missing.blockHash.slice(0, 10)}...): ` +
+                `parent ${missing.parentHash.slice(0, 18)}... was never delivered`
             );
           }
         } else {
-          log(`\n✓ Parent hash continuity verified for consecutive blocks`);
+          log(`\n✓ All parent hashes reference previously delivered blocks`);
         }
 
-        // The test should fail if any parent hash mismatches were found
+        // The test should fail if any parent blocks were never delivered
         expect(
-          parentHashMismatches,
-          `Parent hash mismatches found in ${parentHashMismatches.length} blocks`
+          missingParents,
+          `Missing parent blocks detected: ${missingParents.length} blocks reference parents that were never delivered`
         ).toHaveLength(0);
       },
     });
