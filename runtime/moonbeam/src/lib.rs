@@ -693,7 +693,7 @@ const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 /// into the relay chain.
 const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
 /// Build with an offset of 2 behind the relay chain.
-const RELAY_PARENT_OFFSET: u32 = 2;
+const RELAY_PARENT_OFFSET: u32 = 1;
 /// How many parachain blocks are processed by the relay chain per parent. Limits the
 /// number of blocks authored per slot.
 const BLOCK_PROCESSING_VELOCITY: u32 = 1;
