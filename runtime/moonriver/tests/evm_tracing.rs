@@ -57,7 +57,7 @@ mod tests {
 				let block = Header {
 					digest: Default::default(),
 					extrinsics_root: Default::default(),
-					number: 1,
+					number: 2,
 					parent_hash: Default::default(),
 					state_root: Default::default(),
 				};
@@ -98,7 +98,7 @@ mod tests {
 				let block = Header {
 					digest: Default::default(),
 					extrinsics_root: Default::default(),
-					number: 1,
+					number: 2,
 					parent_hash: Default::default(),
 					state_root: Default::default(),
 				};
@@ -116,7 +116,7 @@ mod tests {
 		let block = Header {
 			digest: Default::default(),
 			extrinsics_root: Default::default(),
-			number: 1,
+			number: 2,
 			parent_hash: Default::default(),
 			state_root: Default::default(),
 		};

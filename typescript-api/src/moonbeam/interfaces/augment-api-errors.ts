@@ -1081,6 +1081,11 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       LocalExecutionIncomplete: AugmentedError<ApiType>;
       /**
+       * Local XCM execution incomplete with the actual XCM error and the index of the
+       * instruction that caused the error.
+       **/
+      LocalExecutionIncompleteWithError: AugmentedError<ApiType>;
+      /**
        * A remote lock with the corresponding data could not be found.
        **/
       LockNotFound: AugmentedError<ApiType>;

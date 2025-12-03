@@ -185,7 +185,6 @@ impl pallet_evm::Config for Test {
 	type WithdrawOrigin = EnsureAddressTruncated;
 	type AddressMapping = HashedAddressMapping;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type PrecompilesType = ();
 	type PrecompilesValue = ();
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -209,7 +208,6 @@ parameter_types! {
 }
 
 impl pallet_ethereum::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = IntermediateStateRoot<<Test as frame_system::Config>::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
@@ -294,7 +292,6 @@ impl xcm_primitives::EnsureProxy<AccountId32> for EthereumXcmEnsureProxy {
 }
 
 impl crate::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = crate::EnsureXcmEthereumTransaction;

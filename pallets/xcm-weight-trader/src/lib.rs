@@ -61,7 +61,7 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config<RuntimeEvent: From<Event<Self>>> {
 		/// Convert `T::AccountId` to `Location`.
 		type AccountIdToLocation: Convert<Self::AccountId, Location>;
 
@@ -89,9 +89,6 @@ pub mod pallet {
 
 		/// Origin that is allowed to remove a supported asset
 		type RemoveSupportedAssetOrigin: EnsureOrigin<Self::RuntimeOrigin>;
-
-		/// The overarching event type.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		/// Origin that is allowed to unpause a supported asset
 		type ResumeSupportedAssetOrigin: EnsureOrigin<Self::RuntimeOrigin>;

@@ -641,7 +641,7 @@ async fn build_relay_chain_interface(
 	Arc<(dyn RelayChainInterface + 'static)>,
 	Option<CollatorPair>,
 )> {
-	if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
+	let result = if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) =
 		collator_options.relay_chain_mode
 	{
 		build_minimal_relay_chain_node_with_rpc(
@@ -659,7 +659,11 @@ async fn build_relay_chain_interface(
 			task_manager,
 			hwbench,
 		)
-	}
+	};
+
+	// Extract only the first two elements from the 4-tuple
+	result
+		.map(|(relay_chain_interface, collator_pair, _, _)| (relay_chain_interface, collator_pair))
 }
 
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
@@ -736,6 +740,12 @@ where
 			relay_chain_interface: relay_chain_interface.clone(),
 			net_config,
 			sybil_resistance_level: CollatorSybilResistance::Resistant,
+			metrics: Net::register_notification_metrics(
+				parachain_config
+					.prometheus_config
+					.as_ref()
+					.map(|config| &config.registry),
+			),
 		})
 		.await?;
 
@@ -946,6 +956,7 @@ where
 		relay_chain_slot_duration,
 		recovery_handle: Box::new(overseer_handle.clone()),
 		sync_service: sync_service.clone(),
+		prometheus_registry: prometheus_registry.as_ref(),
 	})?;
 
 	let BlockImportPipeline::Parachain(block_import) = block_import else {
@@ -1726,6 +1737,7 @@ mod tests {
 						path: tmp.path().into(),
 						cache_size: 1024,
 					},
+					metrics_registry: None,
 				},
 				u64::MAX,
 			)
@@ -1801,6 +1813,7 @@ mod tests {
 				cache_size: 128,
 			},
 			trie_cache_maximum_size: Some(16777216),
+			warm_up_trie_cache: None,
 			state_pruning: Default::default(),
 			blocks_pruning: sc_service::BlocksPruning::KeepAll,
 			chain_spec: Box::new(spec),

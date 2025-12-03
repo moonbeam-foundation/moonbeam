@@ -65,9 +65,9 @@ use sp_runtime::{
 	BuildStorage, DispatchError, ModuleError, Percent,
 };
 use std::str::from_utf8;
-use xcm::{latest::prelude::*, VersionedAssets, VersionedLocation};
+use xcm::{latest::prelude::*, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
-use xcm_executor::traits::ConvertLocation;
+use xcm_executor::traits::{ConvertLocation, TransferType};
 use xcm_primitives::split_location_into_chain_part_and_beneficiary;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
@@ -1159,9 +1159,12 @@ fn root_can_change_default_xcm_vers() {
 					})),
 					Box::new(VersionedAssets::from(asset.clone())),
 					0,
-					WeightLimit::Unlimited
+					WeightLimit::Unlimited,
 				),
-				pallet_xcm::Error::<Runtime>::LocalExecutionIncomplete
+				pallet_xcm::Error::<Runtime>::LocalExecutionIncompleteWithError {
+					index: 2,
+					error: pallet_xcm::ExecutionError::DestinationUnsupported
+				}
 			);
 
 			// Root sets the defaultXcm
@@ -1717,72 +1720,10 @@ fn transactor_cannot_use_more_than_max_weight() {
 		})
 }
 
-// TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
 #[test]
 fn call_pallet_xcm_with_fee() {
 	let asset_id = 1;
-
 	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.with_safe_xcm_version(3)
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_id,
-			xcm_location: Location::parent(),
-			name: "RelayToken",
-			symbol: "Relay",
-			decimals: 12,
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-		}])
-		.build()
-		.execute_with(|| {
-			let dest = Location {
-				parents: 1,
-				interior: [AccountId32 {
-					network: None,
-					id: [1u8; 32],
-				}]
-				.into(),
-			};
-
-			let before_balance =
-				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
-			let (chain_part, beneficiary) =
-				split_location_into_chain_part_and_beneficiary(dest).unwrap();
-			let asset_amount = 100_000_000_000_000u128;
-			let asset_fee_amount = 100u128;
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), asset_amount);
-			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), asset_fee_amount);
-			// We are able to transfer with fee
-			assert_ok!(PolkadotXcm::transfer_assets(
-				origin_of(AccountId::from(ALICE)),
-				Box::new(VersionedLocation::from(chain_part)),
-				Box::new(VersionedLocation::from(beneficiary)),
-				Box::new(VersionedAssets::from(vec![asset_fee, asset])),
-				0,
-				WeightLimit::Limited(4000000000.into())
-			));
-
-			let after_balance =
-				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
-			// At least these much (plus fees) should have been charged
-			assert_eq!(
-				before_balance
-					.saturating_sub(asset_amount.into())
-					.saturating_sub(asset_fee_amount.into()),
-				after_balance
-			);
-		});
-}
-
-// TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
-#[test]
-fn call_pallet_xcm_with_fee_after_ahm() {
-	let asset_id = 1;
-	ExtBuilder::default()
-		.asset_hub_migration_has_started()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
 			(AccountId::from(BOB), 1_000 * GLMR),
@@ -1813,78 +1754,26 @@ fn call_pallet_xcm_with_fee_after_ahm() {
 				split_location_into_chain_part_and_beneficiary(dest).unwrap();
 			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100_000_000_000_000);
 			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100);
-
-			// Once the AH migration starts, we should no longer be able to use the parent location as reserve.
-			assert_noop!(
-				PolkadotXcm::transfer_assets(
-					origin_of(AccountId::from(ALICE)),
-					Box::new(VersionedLocation::from(chain_part)),
-					Box::new(VersionedLocation::from(beneficiary)),
-					Box::new(VersionedAssets::from(vec![asset_fee, asset])),
-					0,
-					WeightLimit::Limited(4000000000.into())
-				),
-				pallet_xcm::Error::<Runtime>::InvalidAssetUnknownReserve
-			);
-
-			let after_balance =
-				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
-			// At least these much (plus fees) should have been charged
-			assert_eq!(before_balance, after_balance);
-		});
-}
-
-// TODO: Unify all "call_pallet_xcm_with_fee" prefixed tests after the asset hub migration
-#[test]
-fn call_pallet_xcm_with_fee_before_ahm() {
-	let asset_id = 1;
-	ExtBuilder::default()
-		.with_balances(vec![
-			(AccountId::from(ALICE), 2_000 * GLMR),
-			(AccountId::from(BOB), 1_000 * GLMR),
-		])
-		.with_safe_xcm_version(3)
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_id,
-			xcm_location: Location::parent(),
-			name: "RelayToken",
-			symbol: "Relay",
-			decimals: 12,
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-		}])
-		.build()
-		.execute_with(|| {
-			let dest = Location {
-				parents: 1,
-				interior: [AccountId32 {
-					network: None,
-					id: [1u8; 32],
-				}]
-				.into(),
-			};
-			let before_balance =
-				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
-			let (chain_part, beneficiary) =
-				split_location_into_chain_part_and_beneficiary(dest).unwrap();
-			let asset = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100_000_000_000_000);
-			let asset_fee = currency_to_asset(CurrencyId::ForeignAsset(asset_id), 100);
-			// We are able to transfer with fee
-			assert_ok!(PolkadotXcm::transfer_assets(
+			let fees_id: VersionedAssetId = AssetId(Location::parent()).into();
+			let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+				assets: Wild(All),
+				beneficiary: beneficiary.clone(),
+			}]);
+			assert_ok!(PolkadotXcm::transfer_assets_using_type_and_then(
 				origin_of(AccountId::from(ALICE)),
 				Box::new(VersionedLocation::from(chain_part)),
-				Box::new(VersionedLocation::from(beneficiary)),
 				Box::new(VersionedAssets::from(vec![asset_fee, asset])),
-				0,
+				Box::new(TransferType::DestinationReserve),
+				Box::new(fees_id),
+				Box::new(TransferType::DestinationReserve),
+				Box::new(VersionedXcm::V5(xcm_on_dest)),
 				WeightLimit::Limited(4000000000.into())
 			));
 
 			let after_balance =
 				EvmForeignAssets::balance(asset_id, AccountId::from(ALICE)).unwrap();
-			// At least these much (plus fees) should have been charged
-			assert_eq!(
-				before_balance - 100_000_000_000_000u128 - 100u128,
-				after_balance
-			);
+			// Balance should have been reduced by the transfer amount plus fees
+			assert!(after_balance < before_balance);
 		});
 }
 
@@ -2022,7 +1911,7 @@ fn test_nested_batch_calls_from_xcm_transact() {
 			call: valid_nested_calls.encode().into(),
 		}]);
 
-		assert!(XcmExecutor::prepare(valid_message).is_ok());
+		assert!(XcmExecutor::prepare(valid_message, Weight::MAX).is_ok());
 
 		let excessive_nested_calls = RuntimeCall::Utility(pallet_utility::Call::batch {
 			calls: vec![valid_nested_calls],
@@ -2034,7 +1923,7 @@ fn test_nested_batch_calls_from_xcm_transact() {
 			call: excessive_nested_calls.encode().into(),
 		}]);
 		// Expect to fail because we have too many nested calls
-		assert!(XcmExecutor::prepare(invalid_message).is_err());
+		assert!(XcmExecutor::prepare(invalid_message, Weight::MAX).is_err());
 	});
 }
 

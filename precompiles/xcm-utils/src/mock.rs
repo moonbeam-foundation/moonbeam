@@ -16,7 +16,7 @@
 
 //! Test utilities
 use super::*;
-use frame_support::traits::{ConstBool, Disabled};
+use frame_support::traits::Disabled;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{ConstU32, Everything, Nothing, OriginTrait, PalletInfo as _},
@@ -221,7 +221,6 @@ impl pallet_xcm::Config for Runtime {
 	type RemoteLockConsumerIdentifier = ();
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
-	type AssetHubMigrationStarted = ConstBool<false>;
 }
 pub type Precompiles<R> = PrecompileSetBuilder<
 	R,
@@ -274,7 +273,6 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type PrecompilesType = Precompiles<Self>;

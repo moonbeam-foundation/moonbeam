@@ -129,7 +129,6 @@ parameter_types! {
 }
 
 impl Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type Initialized = Initialized;
 	type InitializationPayment = InitializationPayment;
 	type MaxInitContributors = MaxInitContributors;

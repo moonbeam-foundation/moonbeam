@@ -112,6 +112,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ConsensusHook = cumulus_pallet_parachain_system::ExpectParentIncluded;
 	type WeightInfo = cumulus_pallet_parachain_system::weights::SubstrateWeight<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
+	type RelayParentOffset = ConstU32<0>;
 }
 
 parameter_types! {
@@ -309,7 +310,6 @@ parameter_types! {
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
 	type DerivativeAddressRegistrationOrigin = frame_system::EnsureRoot<AccountId>;
@@ -363,7 +363,6 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type PrecompilesType = Precompiles<Self>;
