@@ -224,7 +224,7 @@ where
 		// prevents a single step from doing unbounded work even if the
 		// `WeightMeter` is configured with a very large limit (for example in
 		// testing), and keeps block execution times predictable on mainnet.
-		const MAX_COLLATORS_PER_STEP: u32 = 32;
+		const MAX_COLLATORS_PER_STEP: u32 = 8;
 
 		let prefix = frame_support::storage::storage_prefix(
 			b"ParachainStaking",
@@ -295,12 +295,6 @@ where
 				// the weight we actually used in this step.
 				if !used_in_step.is_zero() {
 					meter.consume(used_in_step);
-					// Persist the last processed legacy key so the next step can
-					// resume scanning from there (or from the prefix if we
-					// processed everything).
-					let bounded_key =
-						frame_support::BoundedVec::<u8, ConstU32<128>>::truncate_from(start_from);
-					return Ok(Some(bounded_key));
 				}
 				return Ok(None);
 			};
