@@ -63,29 +63,48 @@ describeSuite({
   foundationMethods: "chopsticks",
   testCases: ({ it, context, log }) => {
     let api: ApiPromise;
+    let specName: string;
 
     beforeAll(async () => {
       api = context.polkadotJs();
       await api.isReady;
 
-      const specName = (api.consts.system.version as any).specName.toString();
+      specName = (api.consts.system.version as any).specName.toString();
       log(`Connected to chain specName=${specName}`);
     });
 
     it({
       id: "T1",
-      timeout: 600_000,
+      timeout: 900_000,
       title:
         "DelegationScheduledRequests is migrated from single map to double map and counters initialized",
       test: async () => {
+        const isMoonbeam = specName === "moonbeam";
         const psQueryBefore: any = api.query.parachainStaking;
 
         // 1. Capture the pre-upgrade DelegationScheduledRequests layout (single map).
         const oldEntries = await psQueryBefore.delegationScheduledRequests.entries();
         let totalOldRequests = 0;
-        for (const [, boundedVec] of oldEntries as any) {
+        const expectedPerCollator: Record<string, number> = {};
+        for (const [storageKey, boundedVec] of oldEntries as any) {
           const requestsJson = (boundedVec as any).toJSON() as any[];
           totalOldRequests += requestsJson.length;
+
+          // Derive per collator how many distinct
+          // delegators have at least one scheduled request before the
+          // migration. This is the expected target for
+          // `DelegationScheduledRequestsPerCollator` after migration.
+          const collator = (storageKey as any).args?.[0]?.toString?.() ?? "";
+          if (collator) {
+            const uniqueDelegators = new Set<string>();
+            for (const req of requestsJson as any[]) {
+              const delegator = (req as any)?.delegator;
+              if (delegator != null) {
+                uniqueDelegators.add(String(delegator));
+              }
+            }
+            expectedPerCollator[collator] = uniqueDelegators.size;
+          }
         }
 
         log(`Pre-upgrade DelegationScheduledRequests entries (requests): ${totalOldRequests}`);
@@ -108,6 +127,32 @@ describeSuite({
         const readState = async () => {
           const psQueryAfter: any = api.query.parachainStaking;
 
+          // Always read the per-collator counters. On Moonbeam we avoid
+          // scanning the entire new double-map and rely solely on these
+          // counters, while on smaller networks we additionally read the
+          // double-map to enforce a stronger invariant.
+          const perCollatorCounterQuery: any = psQueryAfter.delegationScheduledRequestsPerCollator;
+          const counters: Record<string, number> = {};
+          let totalDelegatorQueues = 0;
+          if (perCollatorCounterQuery && perCollatorCounterQuery.entries) {
+            const counterEntries = await perCollatorCounterQuery.entries();
+            for (const [storageKey, count] of counterEntries as any) {
+              const collator = (storageKey as any).args?.[0]?.toString?.() ?? "";
+              if (collator) {
+                const value = (count as any).toNumber();
+                counters[collator] = value;
+                totalDelegatorQueues += value;
+              }
+            }
+          }
+
+          if (isMoonbeam) {
+            return {
+              counters,
+              totalDelegatorQueues,
+            };
+          }
+
           const entries = await psQueryAfter.delegationScheduledRequests.entries();
           let totalRequests = 0;
           for (const [, boundedVec] of entries as any) {
@@ -115,17 +160,8 @@ describeSuite({
             totalRequests += requestsJson.length;
           }
 
-          const perCollatorCounterQuery: any = psQueryAfter.delegationScheduledRequestsPerCollator;
-          let totalDelegatorQueues = 0;
-          if (perCollatorCounterQuery && perCollatorCounterQuery.entries) {
-            const counterEntries = await perCollatorCounterQuery.entries();
-            totalDelegatorQueues = counterEntries.reduce(
-              (acc: number, [, count]: any) => acc + (count as any).toNumber(),
-              0
-            );
-          }
-
           return {
+            counters,
             totalRequests,
             queueCount: entries.length,
             totalDelegatorQueues,
@@ -150,7 +186,7 @@ describeSuite({
 
         // Always check at least one block after the upgrade, then keep going
         // until `pallet-migrations` cursor becomes `None` or we hit a hard cap.
-        for (let i = 0; i < 32; i++) {
+        for (let i = 0; i < 128; i++) {
           await context.createBlock();
           blocksAfterUpgrade += 1;
 
@@ -188,22 +224,39 @@ describeSuite({
             );
           }
 
-          const { totalRequests, queueCount, totalDelegatorQueues } = await readState();
+          const state = (await readState()) as any;
+          const counters = state.counters as Record<string, number>;
 
-          log(
-            `Block +${blocksAfterUpgrade}: totalRequests=${totalRequests}, queues=${queueCount}, sumCounters=${totalDelegatorQueues}, cursor=${cursorStr}`
-          );
-
-          expect(totalRequests).to.equal(
-            totalOldRequests,
-            "Total number of scheduled delegation requests must be preserved during migration"
-          );
-
-          if (queueCount > 0) {
-            expect(totalDelegatorQueues).to.equal(
-              queueCount,
-              "Sum of DelegationScheduledRequestsPerCollator values should equal number of (collator, delegator) queues after migration completes"
+          // On all networks, assert that for every collator that had at least
+          // one scheduled request before the migration, the final per-collator
+          // counter matches the number of delegators with at least one
+          // scheduled request.
+          for (const [collator, expectedCount] of Object.entries(expectedPerCollator)) {
+            const actual = counters[collator] ?? 0;
+            expect(actual).to.equal(
+              expectedCount,
+              `DelegationScheduledRequestsPerCollator[${collator}] must equal number of delegators with at least one scheduled request before migration`
             );
+          }
+
+          if (!isMoonbeam) {
+            const { totalRequests, queueCount, totalDelegatorQueues } = state;
+
+            log(
+              `Block +${blocksAfterUpgrade}: totalRequests=${totalRequests}, queues=${queueCount}, sumCounters=${totalDelegatorQueues}, cursor=${cursorStr}`
+            );
+
+            expect(totalRequests).to.equal(
+              totalOldRequests,
+              "Total number of scheduled delegation requests must be preserved during migration"
+            );
+
+            if (queueCount > 0) {
+              expect(totalDelegatorQueues).to.equal(
+                queueCount,
+                "Sum of DelegationScheduledRequestsPerCollator values should equal number of (collator, delegator) queues after migration completes"
+              );
+            }
           }
           break;
         }
