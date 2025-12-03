@@ -14,12 +14,19 @@ describeSuite({
     let xcmTransactorV1: Contract;
     let xcmTransactorV2: Contract;
     let relayApi: ApiPromise;
-    let assetHubApi: ApiPromise;
     let paraApiVersion: number;
+
+    function getStakingPalletChainApi() {
+      const chainType = context.polkadotJs("para").consts.system.version.specName.toString();
+      if (chainType === "moonbase") {
+        return relayApi;
+      }
+
+      return context.polkadotJs("asset-hub");
+    }
 
     beforeAll(async function () {
       relayApi = context.polkadotJs("relay");
-      assetHubApi = context.polkadotJs("asset-hub");
       paraApiVersion = context.polkadotJs("para").consts.system.version.specVersion.toNumber();
       const RELAY_ENCODER_PRECOMPILE = "0x0000000000000000000000000000000000000805";
       const XCM_TRANSACTOR_V1_PRECOMPILE = "0x0000000000000000000000000000000000000806";
@@ -89,7 +96,9 @@ describeSuite({
       id: "C400",
       title: "should have matching indices for Staking.Bond",
       test: async function () {
-        const callHex = assetHubApi.tx.staking.bond(10000000000, "Staked").method.toHex();
+        const callHex = getStakingPalletChainApi()
+          .tx.staking.bond(10000000000, "Staked")
+          .method.toHex();
         const resp = await relayEncoder.encodeBond(10000000000, hexToU8a("0x00"));
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
       },
@@ -99,7 +108,7 @@ describeSuite({
       id: "C500",
       title: "should have matching indices for Staking.BondExtra",
       test: async function () {
-        const callHex = assetHubApi.tx.staking.bondExtra(10000000000).method.toHex();
+        const callHex = getStakingPalletChainApi().tx.staking.bondExtra(10000000000).method.toHex();
         const resp = await relayEncoder.encodeBondExtra(10000000000);
         expect(resp, "Mismatched encoding between relaychain and local values").to.equals(callHex);
       },
@@ -109,7 +118,7 @@ describeSuite({
       id: "C600",
       title: "should have matching indices for Staking.Chill",
       test: async function () {
-        const callHex = assetHubApi.tx.staking.chill().method.toHex();
+        const callHex = getStakingPalletChainApi().tx.staking.chill().method.toHex();
         const resp = await relayEncoder.encodeChill();
         PRECOMPILES.RelayEncoder;
         expect(resp, "Mismatched encoding between AssetHub and local values").to.equals(callHex);
@@ -120,7 +129,9 @@ describeSuite({
       id: "C700",
       title: "should have matching indices for Staking.Nominate",
       test: async function () {
-        const callHex = assetHubApi.tx.staking.nominate([ALITH_SESSION_ADDRESS]).method.toHex();
+        const callHex = getStakingPalletChainApi()
+          .tx.staking.nominate([ALITH_SESSION_ADDRESS])
+          .method.toHex();
         const resp = await relayEncoder.encodeNominate([hexToU8a(ALITH_SESSION_ADDRESS)]);
         expect(resp, "Mismatched encoding between AssetHub and local values").to.equals(callHex);
       },
@@ -130,7 +141,7 @@ describeSuite({
       id: "C800",
       title: "should have matching indices for Staking.Rebond",
       test: async function () {
-        const callHex = assetHubApi.tx.staking.rebond(1000).method.toHex();
+        const callHex = getStakingPalletChainApi().tx.staking.rebond(1000).method.toHex();
         const resp = await relayEncoder.encodeRebond(1000);
         expect(resp, "Mismatched encoding between AssetHub and local values").to.equals(callHex);
       },
@@ -140,7 +151,7 @@ describeSuite({
       id: "C900",
       title: "should have matching indices for Staking.SetController",
       test: async function () {
-        const callHex = assetHubApi.tx.staking.setController().method.toHex();
+        const callHex = getStakingPalletChainApi().tx.staking.setController().method.toHex();
         const resp = await relayEncoder.encodeSetController();
         expect(resp, "Mismatched encoding between AssetHub and local values").to.equals(callHex);
       },
@@ -150,7 +161,7 @@ describeSuite({
       id: "C1000",
       title: "should have matching indices for Staking.SetPayee",
       test: async function () {
-        const callHex = assetHubApi.tx.staking.setPayee("Staked").method.toHex();
+        const callHex = getStakingPalletChainApi().tx.staking.setPayee("Staked").method.toHex();
         const resp = await relayEncoder.encodeSetPayee(hexToU8a("0x00"));
         expect(resp, "Mismatched encoding between AssetHub and local values").to.equals(callHex);
       },
@@ -160,7 +171,7 @@ describeSuite({
       id: "C1100",
       title: "should have matching indices for Staking.Unbond",
       test: async function () {
-        const callHex = assetHubApi.tx.staking.unbond(1000).method.toHex();
+        const callHex = getStakingPalletChainApi().tx.staking.unbond(1000).method.toHex();
         const resp = await relayEncoder.encodeUnbond(1000);
         expect(resp, "Mismatched encoding between AssetHub and local values").to.equals(callHex);
       },
@@ -170,8 +181,8 @@ describeSuite({
       id: "C1200",
       title: "should have matching indices for Staking.Validate",
       test: async function () {
-        const callHex = assetHubApi.tx.staking
-          .validate({
+        const callHex = getStakingPalletChainApi()
+          .tx.staking.validate({
             commission: 0,
             blocked: false,
           })
@@ -185,7 +196,7 @@ describeSuite({
       id: "C1300",
       title: "should have matching indices for Staking.WithdrawUnbonded",
       test: async function () {
-        const callHex = assetHubApi.tx.staking.withdrawUnbonded(10).method.toHex();
+        const callHex = getStakingPalletChainApi().tx.staking.withdrawUnbonded(10).method.toHex();
         const resp = await relayEncoder.encodeWithdrawUnbonded(10);
         expect(resp, "Mismatched encoding between AssetHub and local values").to.equals(callHex);
       },

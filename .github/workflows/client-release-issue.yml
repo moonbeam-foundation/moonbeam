@@ -15,9 +15,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Upload tools
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: original-tools
           path: tools
@@ -30,7 +30,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Use Node.js
         uses: actions/setup-node@v6
         with:

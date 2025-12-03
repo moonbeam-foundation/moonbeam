@@ -64,7 +64,7 @@ jobs:
             echo "coverage_report=false" >> $GITHUB_OUTPUT
           fi
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ steps.check-git-ref.outputs.git_ref }}
       - name: Get Latest RT Release
@@ -113,7 +113,7 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Setup Variables
@@ -198,7 +198,7 @@ jobs:
 
           rm -rf proffiles/
       - name: Upload coverage to gha
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage
           path: coverage
@@ -234,7 +234,7 @@ jobs:
           body-includes: Coverage generated
       - name: Create or update comment
         if: ${{ needs.set-tags.outputs.coverage_report == 'true' }}
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
