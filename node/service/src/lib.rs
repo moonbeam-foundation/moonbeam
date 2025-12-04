@@ -1210,7 +1210,7 @@ where
 				max_pov_percentage: node_extra_args.max_pov_percentage.map(|p| p as u32),
 				export_pov: node_extra_args.export_pov,
 				slot_offset: Duration::from_secs(1),
-				spawner: task_manager.spawn_handle(),
+				spawner: task_manager.spawn_essential_handle(),
 				block_import_handle: handle,
 			});
 		}
