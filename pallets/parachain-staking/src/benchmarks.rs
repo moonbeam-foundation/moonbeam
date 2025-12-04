@@ -1794,21 +1794,15 @@ mod benchmarks {
 			}
 		}
 
-		// Delegators with non-zero auto-compound should see their balance
-		// increase as a result of `mint_and_compound`.
-		for BondWithAutoCompound {
-			owner,
-			auto_compound,
-			..
-		} in &delegations
-		{
-			if !auto_compound.is_zero() {
-				assert!(
-					<T::Currency as Inspect<T::AccountId>>::balance(owner)
-						> initial_delegator_balance,
-					"delegator should have been paid/compounded in pay_one_collator_reward_best",
-				);
-			}
+		// All delegators should see their free balance increase as a result of
+		// `mint_and_compound`, regardless of their auto-compound percentage
+		// (auto-compound only controls how much of the reward is re-bonded,
+		// not whether the reward is minted in the first place).
+		for BondWithAutoCompound { owner, .. } in &delegations {
+			assert!(
+				<T::Currency as Inspect<T::AccountId>>::balance(owner) > initial_delegator_balance,
+				"delegator should have been paid in pay_one_collator_reward_best",
+			);
 		}
 
 		Ok(())
