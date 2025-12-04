@@ -95,9 +95,16 @@ describeSuite({
 
     it({
       id: "T2",
-      timeout: 900_000, // long timeout require for multi-migrations to complete
+      timeout: 900_000, // long timeout required for multi-migrations to complete
       title: "Can send balance transfers",
-      test: async () => {
+      test: async function () {
+        const specName = api.consts.system.version.specName.toString();
+        if (specName === "moonbeam") {
+          // Multi-migration take 15 minutes to complete on moonbeam,
+          // and there is already another test (C03) taht test the migration itself.
+          // So we skip this test otherwise we need 30 minutes to complete C01 + C03.
+          this.skip?.();
+        }
         // Some multi-migration might take a lot of blocks to complete, so we wait for 32 blocks to be safe.
         // Note that we must wait for one block at a time otherwise the request will timeout.
         for (let i = 0; i < 32; i++) {
