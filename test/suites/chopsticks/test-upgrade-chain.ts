@@ -95,7 +95,7 @@ describeSuite({
 
     it({
       id: "T2",
-      timeout: 60000,
+      timeout: 900_000, // long timeout require for multi-migrations to complete
       title: "Can send balance transfers",
       test: async () => {
         // Some multi-migration might take a lot of blocks to complete, so we wait for 32 blocks to be safe.
