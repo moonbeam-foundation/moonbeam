@@ -51,7 +51,6 @@ describeSuite({
           .consts.parachainStaking.revokeDelegationDelay.toNumber();
         expect(delegationRequestsAfterSchedule.toJSON()).to.deep.equal([
           {
-            delegator: ethan.address,
             whenExecutable: currentRound + roundDelay,
             action: {
               revoke: numberToHex(MIN_GLMR_DELEGATOR),

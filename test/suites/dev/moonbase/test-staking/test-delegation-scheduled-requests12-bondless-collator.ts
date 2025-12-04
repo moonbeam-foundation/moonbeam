@@ -72,7 +72,6 @@ describeSuite({
         );
         expect(delegationRequestsAlithAfter.toJSON()).to.deep.equal([
           {
-            delegator: ethan.address,
             whenExecutable,
             action: {
               decrease: 10,

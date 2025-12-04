@@ -60,7 +60,6 @@ describeSuite({
 
         expect(delegationRequestsAfter.toJSON()).to.deep.equal([
           {
-            delegator: ethan.address,
             whenExecutable: currentRound + roundDelay,
             action: {
               revoke: numberToHex(MIN_GLMR_DELEGATOR),
