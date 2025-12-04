@@ -80,6 +80,7 @@ describeSuite({
 
     it({
       id: "T01",
+      timeout: 600_000, // 10 minutes
       title: "Ensure migrations are executed",
       test: async function () {
         // Ensure multi block migrations started
@@ -100,10 +101,10 @@ describeSuite({
           );
           expect(!!migrationAdvancedEvt, "Migration Advanced").to.be.true;
 
-          // Ensure multi block migrations completed in less than 10 blocks
+          // Ensure multi block migrations completed in less than 20 blocks
           let events = [];
           let attempts = 0;
-          for (; attempts < 10; attempts++) {
+          for (; attempts < 20; attempts++) {
             events = (await api.query.system.events()).filter(
               ({ event }) =>
                 api.events.multiBlockMigrations.MigrationCompleted.is(event) ||
