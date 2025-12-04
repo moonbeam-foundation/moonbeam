@@ -96,9 +96,12 @@ describeSuite({
         const delegationRequestsAlithAfter = await context
           .polkadotJs()
           .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
+        // After the collator leaves, the scheduled request for (alith, ethan)
+        // should remain and still be executable at the originally computed
+        // round, with the expected decrease amount. The delegator is implied
+        // by the key (alith, ethan), so it is no longer present in the value.
         expect(delegationRequestsAlithAfter.toJSON()).to.deep.equal([
           {
-            delegator: ethan.address,
             whenExecutable,
             action: {
               decrease: 10,
