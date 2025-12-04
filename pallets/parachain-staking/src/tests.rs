@@ -30,6 +30,7 @@ use crate::mock::{
 	roll_to_round_end, set_author, set_block_author, AccountId, Balances, BlockNumber, ExtBuilder,
 	ParachainStaking, RuntimeEvent, RuntimeOrigin, Test, POINTS_PER_BLOCK, POINTS_PER_ROUND,
 };
+use crate::RoundIndex;
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests,
@@ -43,9 +44,9 @@ use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 use frame_support::weights::WeightMeter;
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
-use parity_scale_codec::Encode;
+use parity_scale_codec::{Decode, Encode};
 use sp_io::hashing::blake2_128;
-use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
+use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent, RuntimeDebug};
 
 #[test]
 fn invalid_root_origin_fails() {
@@ -3091,7 +3092,6 @@ fn delegator_bond_less_updates_delegator_state() {
 			assert_eq!(
 				state,
 				vec![ScheduledRequest {
-					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Decrease(5),
 				}],
@@ -7170,7 +7170,6 @@ fn test_delegation_request_exists_returns_true_when_decrease_exists() {
 				1,
 				2,
 				BoundedVec::try_from(vec![ScheduledRequest {
-					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Decrease(5),
 				}])
@@ -7192,7 +7191,6 @@ fn test_delegation_request_exists_returns_true_when_revoke_exists() {
 				1,
 				2,
 				BoundedVec::try_from(vec![ScheduledRequest {
-					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Revoke(5),
 				}])
@@ -7226,7 +7224,6 @@ fn test_delegation_request_revoke_exists_returns_false_when_decrease_exists() {
 				1,
 				2,
 				BoundedVec::try_from(vec![ScheduledRequest {
-					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Decrease(5),
 				}])
@@ -7248,7 +7245,6 @@ fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
 				1,
 				2,
 				BoundedVec::try_from(vec![ScheduledRequest {
-					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Revoke(5),
 				}])

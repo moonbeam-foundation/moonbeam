@@ -1703,8 +1703,8 @@ mod benchmarks {
 		>,
 	) -> Result<(), BenchmarkError> {
 		use crate::{
-			weights::WeightInfo as _, AtStake, AwardedPts, BondWithAutoCompound, CollatorSnapshot,
-			DelayedPayout, DelayedPayouts, Points,
+			AtStake, AwardedPts, BondWithAutoCompound, CollatorSnapshot, DelayedPayout,
+			DelayedPayouts, Points,
 		};
 
 		let mut seed = Seed::new();
@@ -1773,9 +1773,42 @@ mod benchmarks {
 		<Points<T>>::insert(round_for_payout, 100);
 		<AwardedPts<T>>::insert(round_for_payout, &prime_candidate, 20);
 
+		// Measure the cost of minting and compounding rewards for `x` delegations,
+		// of which `y` have non-zero auto-compound. This mirrors the inner loop of
+		// `pay_one_collator_reward` where rewards are distributed to delegators and
+		// optionally compounded back into their stake.
 		#[block]
 		{
-			let _ = <T as crate::pallet::Config>::WeightInfo::pay_one_collator_reward_best(x, y);
+			for BondWithAutoCompound {
+				owner,
+				auto_compound,
+				..
+			} in &delegations
+			{
+				Pallet::<T>::mint_and_compound(
+					100u32.into(),
+					auto_compound.clone(),
+					prime_candidate.clone(),
+					owner.clone(),
+				);
+			}
+		}
+
+		// Delegators with non-zero auto-compound should see their balance
+		// increase as a result of `mint_and_compound`.
+		for BondWithAutoCompound {
+			owner,
+			auto_compound,
+			..
+		} in &delegations
+		{
+			if !auto_compound.is_zero() {
+				assert!(
+					<T::Currency as Inspect<T::AccountId>>::balance(owner)
+						> initial_delegator_balance,
+					"delegator should have been paid/compounded in pay_one_collator_reward_best",
+				);
+			}
 		}
 
 		Ok(())
