@@ -99,23 +99,26 @@ describeSuite({
       title: "Can send balance transfers",
       test: async function () {
         const specName = api.consts.system.version.specName.toString();
-        if (specName === "moonbeam") {
-          // Multi-migration take 15 minutes to complete on moonbeam,
-          // and there is already another test (C03) taht test the migration itself.
-          // So we skip this test otherwise we need 30 minutes to complete C01 + C03.
-          this.skip?.();
-        }
-        // Some multi-migration might take a lot of blocks to complete, so we wait for 32 blocks to be safe.
-        // Note that we must wait for one block at a time otherwise the request will timeout.
-        for (let i = 0; i < 32; i++) {
-          await context.createBlock();
-        }
+        // Multi-migration take 15 minutes to complete on moonbeam,
+        // and there is already another test (C03) taht test the migration itself.
+        // So we skip this test otherwise we need 30 minutes to complete C01 + C03.
+        if (specName !== "moonbeam") {
+          // Some multi-migration might take a lot of blocks to complete, so we wait for 16 blocks to be safe.
+          // Note that we must wait for one block at a time otherwise the request will timeout.
+          for (let i = 0; i < 16; i++) {
+            await context.createBlock();
+          }
 
-        const balanceBefore = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
-        await api.tx.balances.transferAllowDeath(DUMMY_ACCOUNT, parseEther("1")).signAndSend(alith);
-        await context.createBlock({ count: 2 });
-        const balanceAfter = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
-        expect(balanceBefore < balanceAfter).to.be.true;
+          const balanceBefore = (
+            await api.query.system.account(DUMMY_ACCOUNT)
+          ).data.free.toBigInt();
+          await api.tx.balances
+            .transferAllowDeath(DUMMY_ACCOUNT, parseEther("1"))
+            .signAndSend(alith);
+          await context.createBlock({ count: 2 });
+          const balanceAfter = (await api.query.system.account(DUMMY_ACCOUNT)).data.free.toBigInt();
+          expect(balanceBefore < balanceAfter).to.be.true;
+        }
       },
     });
   },
