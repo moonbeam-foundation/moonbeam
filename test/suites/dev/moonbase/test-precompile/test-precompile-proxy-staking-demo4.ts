@@ -114,7 +114,6 @@ describeSuite({
 
         expect(delegationRequestsFromBaltathar.toJSON()).to.deep.equal([
           {
-            delegator: BALTATHAR_ADDRESS,
             whenExecutable: currentRound + roundDelay,
             action: {
               revoke: nToHex(1n * GLMR, { bitLength: 128 }),
@@ -124,7 +123,6 @@ describeSuite({
 
         expect(delegationRequestsFromCharleth.toJSON()).to.deep.equal([
           {
-            delegator: CHARLETH_ADDRESS,
             whenExecutable: currentRound + roundDelay,
             action: {
               revoke: nToHex(1n * GLMR, { bitLength: 128 }),
