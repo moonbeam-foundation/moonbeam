@@ -347,6 +347,7 @@ where
 				let delegator = request.delegator.clone();
 
 				DelegationScheduledRequests::<T>::mutate(&collator, &delegator, |scheduled| {
+					// This Error is safe to ignore given that in the current implementation we have at most one request per collator.
 					let _ = scheduled.try_push(ScheduledRequest {
 						when_executable: request.when_executable,
 						action: request.action,
