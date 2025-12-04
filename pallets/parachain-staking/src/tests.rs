@@ -1602,7 +1602,6 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 			assert_eq!(
 				state,
 				vec![ScheduledRequest {
-					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Decrease(5),
 				}],
@@ -3256,7 +3255,6 @@ fn cannot_exceed_max_delegators_with_pending_requests_per_collator() {
 			for i in 0..max_delegators_per_collator {
 				let fake_delegator: AccountId = 1000 + i;
 				let requests = BoundedVec::try_from(vec![ScheduledRequest {
-					delegator: fake_delegator,
 					when_executable: 1,
 					action: DelegationAction::Decrease(1),
 				}])
@@ -4164,7 +4162,6 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 			assert_eq!(
 				state,
 				vec![ScheduledRequest {
-					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Revoke(10),
 				}],
@@ -4239,7 +4236,6 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 			assert_eq!(
 				state,
 				vec![ScheduledRequest {
-					delegator: 2,
 					when_executable: 3,
 					action: DelegationAction::Decrease(5),
 				}],
@@ -8470,8 +8466,15 @@ fn delegation_scheduled_requests_stepped_migration_completes_and_preserves_state
 	ExtBuilder::default().build().execute_with(|| {
 		type Balance = crate::BalanceOf<Test>;
 
+		#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug)]
+		struct LegacyScheduledRequest<AccountId, Balance> {
+			delegator: AccountId,
+			when_executable: RoundIndex,
+			action: DelegationAction<Balance>,
+		}
+
 		type OldScheduledRequests = BoundedVec<
-			ScheduledRequest<AccountId, Balance>,
+			LegacyScheduledRequest<AccountId, Balance>,
 			AddGet<
 				<Test as crate::Config>::MaxTopDelegationsPerCandidate,
 				<Test as crate::Config>::MaxBottomDelegationsPerCandidate,
@@ -8509,7 +8512,7 @@ fn delegation_scheduled_requests_stepped_migration_completes_and_preserves_state
 				distinct_delegators = distinct_delegators.saturating_add(1);
 				for _ in 0..*count {
 					let amount: Balance = 1u32.into();
-					let request = ScheduledRequest {
+					let request = LegacyScheduledRequest {
 						delegator: *delegator,
 						when_executable: 1,
 						action: DelegationAction::Revoke(amount),

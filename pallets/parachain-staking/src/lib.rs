@@ -591,10 +591,7 @@ pub mod pallet {
 		T::AccountId,
 		Blake2_128Concat,
 		T::AccountId,
-		BoundedVec<
-			ScheduledRequest<T::AccountId, BalanceOf<T>>,
-			T::MaxScheduledRequestsPerDelegator,
-		>,
+		BoundedVec<ScheduledRequest<BalanceOf<T>>, T::MaxScheduledRequestsPerDelegator>,
 		ValueQuery,
 	>;
 

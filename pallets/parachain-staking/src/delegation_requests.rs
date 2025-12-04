@@ -62,8 +62,8 @@ impl<Balance: Copy> DelegationAction<Balance> {
 	}
 }
 
-/// Represents a scheduled request that define a [DelegationAction]. The request is executable
-/// iff the provided [RoundIndex] is achieved.
+/// Represents a scheduled request that defines a [`DelegationAction`]. The request is executable
+/// iff the provided [`RoundIndex`] is achieved.
 #[derive(
 	Clone,
 	Eq,
@@ -76,8 +76,7 @@ impl<Balance: Copy> DelegationAction<Balance> {
 	Ord,
 	DecodeWithMemTracking,
 )]
-pub struct ScheduledRequest<AccountId, Balance> {
-	pub delegator: AccountId,
+pub struct ScheduledRequest<Balance> {
 	pub when_executable: RoundIndex,
 	pub action: DelegationAction<Balance>,
 }
@@ -89,8 +88,8 @@ pub struct CancelledScheduledRequest<Balance> {
 	pub action: DelegationAction<Balance>,
 }
 
-impl<A, B> From<ScheduledRequest<A, B>> for CancelledScheduledRequest<B> {
-	fn from(request: ScheduledRequest<A, B>) -> Self {
+impl<B> From<ScheduledRequest<B>> for CancelledScheduledRequest<B> {
+	fn from(request: ScheduledRequest<B>) -> Self {
 		CancelledScheduledRequest {
 			when_executable: request.when_executable,
 			action: request.action,
@@ -138,7 +137,6 @@ impl<T: Config> Pallet<T> {
 		let when = now.saturating_add(T::RevokeDelegationDelay::get());
 		scheduled_requests
 			.try_push(ScheduledRequest {
-				delegator: delegator.clone(),
 				action: DelegationAction::Revoke(bonded_amount),
 				when_executable: when,
 			})
@@ -244,7 +242,6 @@ impl<T: Config> Pallet<T> {
 		let when = now.saturating_add(T::DelegationBondLessDelay::get());
 		scheduled_requests
 			.try_push(ScheduledRequest {
-				delegator: delegator.clone(),
 				action: DelegationAction::Decrease(decrease_amount),
 				when_executable: when,
 			})
@@ -316,10 +313,10 @@ impl<T: Config> Pallet<T> {
 	fn cancel_request_with_state(
 		state: &mut Delegator<T::AccountId, BalanceOf<T>>,
 		scheduled_requests: &mut BoundedVec<
-			ScheduledRequest<T::AccountId, BalanceOf<T>>,
+			ScheduledRequest<BalanceOf<T>>,
 			T::MaxScheduledRequestsPerDelegator,
 		>,
-	) -> Option<ScheduledRequest<T::AccountId, BalanceOf<T>>> {
+	) -> Option<ScheduledRequest<BalanceOf<T>>> {
 		if scheduled_requests.is_empty() {
 			return None;
 		}
@@ -569,12 +566,10 @@ mod tests {
 		};
 		let mut scheduled_requests = vec![
 			ScheduledRequest {
-				delegator: 1,
 				when_executable: 1,
 				action: DelegationAction::Revoke(100),
 			},
 			ScheduledRequest {
-				delegator: 2,
 				when_executable: 1,
 				action: DelegationAction::Decrease(50),
 			},
@@ -587,7 +582,6 @@ mod tests {
 		assert_eq!(
 			removed_request,
 			Some(ScheduledRequest {
-				delegator: 1,
 				when_executable: 1,
 				action: DelegationAction::Revoke(100),
 			})
@@ -595,7 +589,6 @@ mod tests {
 		assert_eq!(
 			scheduled_requests,
 			vec![ScheduledRequest {
-				delegator: 2,
 				when_executable: 1,
 				action: DelegationAction::Decrease(50),
 			},]
@@ -619,7 +612,7 @@ mod tests {
 			status: crate::DelegatorStatus::Active,
 		};
 		let mut scheduled_requests: BoundedVec<
-			ScheduledRequest<u64, u128>,
+			ScheduledRequest<u128>,
 			<Test as crate::pallet::Config>::MaxScheduledRequestsPerDelegator,
 		> = BoundedVec::default();
 		let removed_request =

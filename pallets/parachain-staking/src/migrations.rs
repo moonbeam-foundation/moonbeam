@@ -172,9 +172,25 @@ where
 		//   * Removing legacy keys as they are migrated, and
 		//   * Persisting the last processed legacy key in the `Cursor`. The
 		//     next `step` resumes scanning directly after that key.
+		/// Legacy scheduled request type used *only* for decoding the old single-map
+		/// storage layout where the delegator was stored inside the value.
+		#[derive(
+			Clone,
+			PartialEq,
+			Eq,
+			parity_scale_codec::Decode,
+			parity_scale_codec::Encode,
+			sp_runtime::RuntimeDebug,
+		)]
+		struct LegacyScheduledRequest<AccountId, Balance> {
+			delegator: AccountId,
+			when_executable: RoundIndex,
+			action: DelegationAction<Balance>,
+		}
+
 		// Legacy value type under `ParachainStaking::DelegationScheduledRequests`.
 		type OldScheduledRequests<T> = frame_support::BoundedVec<
-			ScheduledRequest<<T as frame_system::Config>::AccountId, BalanceOf<T>>,
+			LegacyScheduledRequest<<T as frame_system::Config>::AccountId, BalanceOf<T>>,
 			AddGet<
 				<T as pallet::Config>::MaxTopDelegationsPerCandidate,
 				<T as pallet::Config>::MaxBottomDelegationsPerCandidate,
@@ -331,7 +347,10 @@ where
 				let delegator = request.delegator.clone();
 
 				DelegationScheduledRequests::<T>::mutate(&collator, &delegator, |scheduled| {
-					let _ = scheduled.try_push(request);
+					let _ = scheduled.try_push(ScheduledRequest {
+						when_executable: request.when_executable,
+						action: request.action,
+					});
 				});
 			}
 
