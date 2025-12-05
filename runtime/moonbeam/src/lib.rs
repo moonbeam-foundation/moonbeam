@@ -847,6 +847,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxBottomDelegationsPerCandidate = ConstU32<50>;
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
+	/// Maximum scheduled delegation requests per (collator, delegator)
+	type MaxScheduledRequestsPerDelegator = ConstU32<50>;
 	/// Minimum stake required to be reserved to be a candidate
 	type MinCandidateStk = ConstU128<{ 100_000 * currency::GLMR }>;
 	/// Minimum stake required to be reserved to be a delegator

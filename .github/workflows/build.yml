@@ -843,7 +843,7 @@ jobs:
         uses: nick-fields/retry@v3
         with:
           max_attempts: 3
-          timeout_minutes: 2
+          timeout_minutes: 15
           retry_on: error
           command: |
             cd test

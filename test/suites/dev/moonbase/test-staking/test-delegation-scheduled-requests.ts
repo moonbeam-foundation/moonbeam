@@ -52,7 +52,7 @@ describeSuite({
 
         const delegationRequestsAfter = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(alith.address);
+          .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
 
         const roundDelay = context
           .polkadotJs()
@@ -60,7 +60,6 @@ describeSuite({
 
         expect(delegationRequestsAfter.toJSON()).to.deep.equal([
           {
-            delegator: ethan.address,
             whenExecutable: currentRound + roundDelay,
             action: {
               revoke: numberToHex(MIN_GLMR_DELEGATOR),

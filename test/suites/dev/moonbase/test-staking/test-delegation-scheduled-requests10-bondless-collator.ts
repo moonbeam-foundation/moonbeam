@@ -39,7 +39,10 @@ describeSuite({
       );
 
       // jump to exact executable Round
-      const delegationRequests = await psQuery.delegationScheduledRequests(baltathar.address);
+      const delegationRequests = await psQuery.delegationScheduledRequests(
+        baltathar.address,
+        ethan.address
+      );
       await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber());
     });
 
@@ -52,7 +55,8 @@ describeSuite({
         );
         const delegatorState = await psQuery.delegatorState(ethan.address);
         const delegationRequestsAfter = await psQuery.delegationScheduledRequests(
-          baltathar.address
+          baltathar.address,
+          ethan.address
         );
         expect(delegatorState.unwrap().delegations[0].owner.toString()).toBe(baltathar.address);
         expect(delegatorState.unwrap().delegations[0].amount.toBigInt()).toBe(MIN_GLMR_DELEGATOR);

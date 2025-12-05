@@ -50,10 +50,12 @@ describeSuite({
       title: "should succeed",
       test: async () => {
         const currentRound = (await psQuery.round()).current.toNumber();
-        const delegationRequests = await psQuery.delegationScheduledRequests(baltathar.address);
+        const delegationRequests = await psQuery.delegationScheduledRequests(
+          baltathar.address,
+          ethan.address
+        );
         const roundDelay = psConst.revokeDelegationDelay.toNumber();
 
-        expect(delegationRequests[0].delegator.toString()).toBe(ethan.address);
         expect(delegationRequests[0].whenExecutable.toNumber()).toBe(currentRound + roundDelay);
         expect(delegationRequests[0].action.isDecrease).toBe(true);
         expect(delegationRequests[0].action.asDecrease.toNumber()).toBe(Number(LESS_AMOUNT));
@@ -61,7 +63,8 @@ describeSuite({
         await createBlock(psTx.cancelDelegationRequest(baltathar.address).signAsync(ethan));
 
         const delegationRequestsAfterCancel = await psQuery.delegationScheduledRequests(
-          baltathar.address
+          baltathar.address,
+          ethan.address
         );
         expect(delegationRequestsAfterCancel.isEmpty).toBe(true);
       },

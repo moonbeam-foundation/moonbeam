@@ -53,11 +53,14 @@ describeSuite({
 
         const delegationRequestsAfter = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(alith.address);
+          .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
         const roundDelay = context
           .polkadotJs()
           .consts.parachainStaking.revokeDelegationDelay.toNumber();
-        expect(delegationRequestsAfter[0].delegator.toString()).toBe(ethan.address);
+
+        // The delegator is implied by the storage key (alith, ethan); the
+        // value now only contains the execution round and action. Assert that
+        // the scheduled request matches the expected timing and amount.
         expect(delegationRequestsAfter[0].whenExecutable.toNumber()).toBe(
           currentRound + roundDelay
         );

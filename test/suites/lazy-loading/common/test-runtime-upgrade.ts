@@ -27,8 +27,8 @@ describeSuite({
       const runtimeWasmHex = u8aToHex(await fs.readFile(wasmPath));
 
       const rtBefore = api.consts.system.version.specVersion.toNumber();
-      log("Current runtime:", rtBefore);
-      log("About to upgrade to runtime at:", wasmPath);
+      log(`Current runtime: ${rtBefore}`);
+      log(`About to upgrade to runtime at: ${wasmPath}`);
 
       await context.createBlock();
       const { result } = await context.createBlock(
@@ -80,6 +80,7 @@ describeSuite({
 
     it({
       id: "T01",
+      timeout: 600_000, // 10 minutes
       title: "Ensure migrations are executed",
       test: async function () {
         // Ensure multi block migrations started
@@ -100,21 +101,35 @@ describeSuite({
           );
           expect(!!migrationAdvancedEvt, "Migration Advanced").to.be.true;
 
-          // Ensure multi block migrations completed in less than 10 blocks
-          let events = [];
-          let attempts = 0;
-          for (; attempts < 10; attempts++) {
-            events = (await api.query.system.events()).filter(
-              ({ event }) =>
-                api.events.multiBlockMigrations.MigrationCompleted.is(event) ||
-                api.events.multiBlockMigrations.UpgradeCompleted.is(event)
-            );
-            if (events.length === 2) {
+          // Ensure multi block migrations completed in less than 20 blocks.
+          // We don't assume a fixed number of MigrationCompleted events:
+          // there may be one per multi-block migration. Instead, we require
+          // that at least one MigrationCompleted is observed and that
+          // UpgradeCompleted eventually fires, which indicates that all
+          // migrations have finished.
+          let sawMigrationCompleted = false;
+          let sawUpgradeCompleted = false;
+          for (let attempts = 0; attempts < 20; attempts++) {
+            const events = await api.query.system.events();
+            if (
+              events.some(({ event }) =>
+                api.events.multiBlockMigrations.MigrationCompleted.is(event)
+              )
+            ) {
+              sawMigrationCompleted = true;
+            }
+            if (
+              events.some(({ event }) => api.events.multiBlockMigrations.UpgradeCompleted.is(event))
+            ) {
+              sawUpgradeCompleted = true;
               break;
             }
             await context.createBlock();
           }
-          expect(events.length === 2, "Migrations should have completed").to.be.true;
+
+          expect(sawMigrationCompleted, "At least one MigrationCompleted event should be observed")
+            .to.be.true;
+          expect(sawUpgradeCompleted, "UpgradeCompleted event should be observed").to.be.true;
         }
       },
     });

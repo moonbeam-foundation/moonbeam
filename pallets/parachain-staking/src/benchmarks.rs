@@ -906,16 +906,14 @@ mod benchmarks {
 			Pallet::<T>::delegator_state(&last_top_delegator).expect("delegator must exist");
 		let current_round = Pallet::<T>::round().current;
 		let delegator_delay = <<T as Config>::LeaveDelegatorsDelay>::get();
+
+		let scheduled = Pallet::<T>::delegation_scheduled_requests(&collator, &last_top_delegator);
 		assert_eq!(
-			Pallet::<T>::delegation_scheduled_requests(&collator)
-				.iter()
-				.find(|r| r.delegator == last_top_delegator)
-				.cloned(),
-			Some(ScheduledRequest {
-				delegator: last_top_delegator,
+			scheduled,
+			sp_std::vec![ScheduledRequest {
 				when_executable: current_round + delegator_delay,
 				action: DelegationAction::Revoke(last_top_delegator_bond),
-			}),
+			}]
 		);
 		Ok(())
 	}
@@ -1162,16 +1160,14 @@ mod benchmarks {
 			.expect("just request bonded less so exists");
 		let current_round = Pallet::<T>::round().current;
 		let delegator_delay = <<T as Config>::DelegationBondLessDelay>::get();
+
+		let scheduled = Pallet::<T>::delegation_scheduled_requests(&collator, &last_top_delegator);
 		assert_eq!(
-			Pallet::<T>::delegation_scheduled_requests(&collator)
-				.iter()
-				.find(|r| r.delegator == last_top_delegator)
-				.cloned(),
-			Some(ScheduledRequest {
-				delegator: last_top_delegator,
+			scheduled,
+			sp_std::vec![ScheduledRequest {
 				when_executable: current_round + delegator_delay,
 				action: DelegationAction::Decrease(bond_less),
-			}),
+			}]
 		);
 		Ok(())
 	}
@@ -1540,9 +1536,8 @@ mod benchmarks {
 			)?;
 		}
 
-		assert!(!Pallet::<T>::delegation_scheduled_requests(&collator)
-			.iter()
-			.any(|x| &x.delegator == &delegator));
+		let scheduled = Pallet::<T>::delegation_scheduled_requests(&collator, &delegator);
+		assert!(scheduled.is_empty());
 		Ok(())
 	}
 
@@ -1706,14 +1701,6 @@ mod benchmarks {
 					- 1
 			},
 		>,
-		// z is the number of scheduled requests per collator
-		z: Linear<
-			0,
-			{
-				T::MaxTopDelegationsPerCandidate::get() + T::MaxBottomDelegationsPerCandidate::get()
-					- 1
-			},
-		>,
 	) -> Result<(), BenchmarkError> {
 		use crate::{
 			AtStake, AwardedPts, BondWithAutoCompound, CollatorSnapshot, DelayedPayout,
@@ -1753,13 +1740,6 @@ mod benchmarks {
 				},
 			)?;
 			col_del_count += 1u32;
-			if i < z {
-				Pallet::<T>::schedule_delegator_bond_less(
-					RawOrigin::Signed(delegator.clone()).into(),
-					prime_candidate.clone(),
-					5u32.into(),
-				)?;
-			}
 
 			delegations.push(BondWithAutoCompound {
 				owner: delegator.clone(),
@@ -1793,6 +1773,10 @@ mod benchmarks {
 		<Points<T>>::insert(round_for_payout, 100);
 		<AwardedPts<T>>::insert(round_for_payout, &prime_candidate, 20);
 
+		// Measure the cost of minting and compounding rewards for `x` delegations,
+		// of which `y` have non-zero auto-compound. This mirrors the inner loop of
+		// `pay_one_collator_reward` where rewards are distributed to delegators and
+		// optionally compounded back into their stake.
 		#[block]
 		{
 			for BondWithAutoCompound {
@@ -1801,7 +1785,7 @@ mod benchmarks {
 				..
 			} in &delegations
 			{
-				<Pallet<T>>::mint_and_compound(
+				Pallet::<T>::mint_and_compound(
 					100u32.into(),
 					auto_compound.clone(),
 					prime_candidate.clone(),
@@ -1810,12 +1794,17 @@ mod benchmarks {
 			}
 		}
 
+		// All delegators should see their free balance increase as a result of
+		// `mint_and_compound`, regardless of their auto-compound percentage
+		// (auto-compound only controls how much of the reward is re-bonded,
+		// not whether the reward is minted in the first place).
 		for BondWithAutoCompound { owner, .. } in &delegations {
 			assert!(
-				<T::Currency as Inspect<T::AccountId>>::balance(&owner) > initial_delegator_balance,
-				"delegator should have been paid in pay_one_collator_reward"
+				<T::Currency as Inspect<T::AccountId>>::balance(owner) > initial_delegator_balance,
+				"delegator should have been paid in pay_one_collator_reward_best",
 			);
 		}
+
 		Ok(())
 	}
 

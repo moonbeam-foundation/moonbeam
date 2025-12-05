@@ -45,13 +45,12 @@ describeSuite({
         ).current.toNumber();
         const delegationRequestsAfterSchedule = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(alith.address);
+          .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
         const roundDelay = context
           .polkadotJs()
           .consts.parachainStaking.revokeDelegationDelay.toNumber();
         expect(delegationRequestsAfterSchedule.toJSON()).to.deep.equal([
           {
-            delegator: ethan.address,
             whenExecutable: currentRound + roundDelay,
             action: {
               revoke: numberToHex(MIN_GLMR_DELEGATOR),
@@ -68,8 +67,8 @@ describeSuite({
 
         const delegationRequestsAfterCancel = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(alith.address);
-        expect(delegationRequestsAfterCancel).to.be.empty;
+          .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
+        expect(delegationRequestsAfterCancel.toJSON()).to.deep.equal([]);
       },
     });
   },
