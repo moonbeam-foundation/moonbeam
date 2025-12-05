@@ -10,7 +10,7 @@ import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../..
 import { CHARLETH_ADDRESS, ETHAN_ADDRESS } from "@moonwall/util";
 
 describeSuite({
-  id: "D023701",
+  id: "D023601",
   title: "Sudo - successful forceSetBalance",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

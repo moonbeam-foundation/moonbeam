@@ -11,7 +11,7 @@ import { generateKeyringPair } from "@moonwall/util";
 import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
-  id: "D020114",
+  id: "D020111",
   title: "Creation of Foreign Assets via XCM",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -4,7 +4,7 @@ import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/
 import { getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
-  id: "D023474",
+  id: "D023374",
   title: "Staking - Freezes - join delegators",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

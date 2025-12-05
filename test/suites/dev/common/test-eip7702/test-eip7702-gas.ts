@@ -7,7 +7,7 @@ import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
-  id: "D020804",
+  id: "D010304",
   title: "EIP-7702 Gas Cost and Accounting",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

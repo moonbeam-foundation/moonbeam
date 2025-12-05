@@ -8,7 +8,7 @@ import assert from "node:assert";
 import type { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
 describeSuite({
-  id: "LL-COMMON-RT-UPGRADE",
+  id: "L0101",
   title: "Lazy Loading - Runtime Upgrade",
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {

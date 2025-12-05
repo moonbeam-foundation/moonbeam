@@ -5,7 +5,7 @@ import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 
 describeSuite({
-  id: "D022814",
+  id: "D022705",
   title: "Precompiles - bn128mul",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

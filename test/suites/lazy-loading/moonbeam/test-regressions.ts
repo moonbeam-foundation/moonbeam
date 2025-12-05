@@ -3,7 +3,7 @@ import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall
 import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
-  id: "LL-MOONBEAM-REGRESSIONS",
+  id: "L0201",
   title: "Lazy Loading - Regression tests for Moonbeam",
   foundationMethods: "dev",
   testCases: ({ it, context }) => {

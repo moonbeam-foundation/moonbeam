@@ -4,7 +4,7 @@ import { toHex } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 
 describeSuite({
-  id: "D022861",
+  id: "D022751",
   title: "Precompiles - ripemd160 ",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

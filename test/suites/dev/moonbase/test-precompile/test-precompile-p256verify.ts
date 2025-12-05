@@ -6,7 +6,7 @@ import { expectEVMResult } from "../../../../helpers";
 const CONTRACT_NAME = "P256Verify";
 
 describeSuite({
-  id: "D022844",
+  id: "D022735",
   title: "Precompiles - p256verify",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

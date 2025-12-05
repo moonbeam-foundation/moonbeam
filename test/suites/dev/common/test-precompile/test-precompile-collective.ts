@@ -12,7 +12,7 @@ import { type Abi, encodeFunctionData } from "viem";
 import { expectEVMResult, expectSubstrateEvent } from "../../../../helpers";
 
 describeSuite({
-  id: "D012829",
+  id: "D010415",
   title: "Treasury council precompile #1",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -4,7 +4,7 @@ import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
 import { verifyCandidateInfoMatchesFreezes } from "../../../../helpers/staking-freezes";
 
 describeSuite({
-  id: "D023404",
+  id: "D023304",
   title: "Staking - Candidate Join - valid request",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

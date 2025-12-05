@@ -7,7 +7,7 @@ import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
-  id: "D020807",
+  id: "D010309",
   title: "EIP-7702 Core Set-Code Transaction Tests",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
