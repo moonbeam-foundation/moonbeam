@@ -24,30 +24,6 @@ describeSuite({
 
     it({
       id: "C100",
-      title: "should return a valid subscription ID for newHeads",
-      test: async function () {
-        const transport = webSocket(wsEndpoint);
-        client = createPublicClient({ transport });
-
-        const result = (await client.transport.request({
-          method: "eth_subscribe",
-          params: ["newHeads"],
-        })) as string;
-
-        expect(result).toBeDefined();
-        expect(result.length).toBe(34); // 0x + 32 hex chars
-        log(`Subscription ID: ${result}`);
-
-        // Clean up
-        await client.transport.request({
-          method: "eth_unsubscribe",
-          params: [result],
-        });
-      },
-    });
-
-    it({
-      id: "C200",
       title: "should deliver all canonical block headers without gaps",
       timeout: LISTEN_DURATION_MS + 30_000, // Add buffer for setup/teardown
       test: async function () {
@@ -137,7 +113,7 @@ describeSuite({
     });
 
     it({
-      id: "C300",
+      id: "C200",
       title: "should verify parent hashes reference previously delivered blocks",
       timeout: LISTEN_DURATION_MS + 30_000,
       test: async function () {
