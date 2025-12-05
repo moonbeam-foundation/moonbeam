@@ -381,7 +381,7 @@ where
 		// `ScheduledRequest` (42 bytes), and multiply it by the maximum
 		// number of scheduled requests per (collator, delegator) queue.
 		handle.record_db_read::<Runtime>(
-			72 + 42
+			72 + ScheduledRequest::<<Runtime as frame_system::Config>::AccountId, BalanceOf<Runtime>>::max_encoded_len()
 				* (<Runtime as pallet_parachain_staking::Config>::MaxScheduledRequestsPerDelegator::get()
 					as usize),
 		)?;
