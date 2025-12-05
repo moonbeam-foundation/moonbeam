@@ -75,6 +75,7 @@ impl<Balance: Copy> DelegationAction<Balance> {
 	PartialOrd,
 	Ord,
 	DecodeWithMemTracking,
+	MaxEncodedLen,
 )]
 pub struct ScheduledRequest<Balance> {
 	pub when_executable: RoundIndex,
