@@ -113,7 +113,7 @@ jobs:
           pkill moonbeam
 
       - name: Upload diff artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: runtime-diff-${{ matrix.runtime }}-${{ github.event.inputs.spec_version }}
           path: runtime-diffs/${{ matrix.runtime }}
