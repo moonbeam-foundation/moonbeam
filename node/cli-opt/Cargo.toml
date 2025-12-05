@@ -19,3 +19,6 @@ account = { workspace = true, features = ["std"] }
 
 # Substrate
 sp-runtime = { workspace = true, features = ["std"] }
+
+# Cumulus
+polkadot-omni-node-lib = { workspace = true }

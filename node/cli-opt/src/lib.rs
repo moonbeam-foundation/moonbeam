@@ -17,6 +17,8 @@ use std::path::PathBuf;
 use primitive_types::H256;
 use std::str::FromStr;
 
+pub use polkadot_omni_node_lib::cli::AuthoringPolicy;
+
 pub mod account_key;
 
 /// Block authoring scheme to be used by the dev service.
@@ -122,4 +124,22 @@ pub struct LazyLoadingConfig {
 	pub runtime_override: Option<PathBuf>,
 	pub delay_between_requests: u32,
 	pub max_retries_per_request: u32,
+}
+/// Extra args that are passed when creating a new node spec.
+#[derive(Clone)]
+pub struct NodeExtraArgs {
+	/// The authoring policy to use.
+	///
+	/// Can be used to influence details of block production.
+	pub authoring_policy: AuthoringPolicy,
+
+	/// If set, each `PoV` build by the node will be exported to this folder.
+	pub export_pov: Option<PathBuf>,
+
+	/// The maximum percentage of the maximum PoV size that the collator can use.
+	/// It will be removed once <https://github.com/paritytech/polkadot-sdk/issues/6020> is fixed.
+	pub max_pov_percentage: Option<u32>,
+
+	/// Enable the legacy block import strategy
+	pub legacy_block_import_strategy: bool,
 }
