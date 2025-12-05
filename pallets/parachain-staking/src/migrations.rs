@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use frame_support::{
 	migrations::{SteppedMigration, SteppedMigrationError},
 	pallet_prelude::{ConstU32, Zero},
-	traits::{Get, OnRuntimeUpgrade},
+	traits::Get,
 	weights::{Weight, WeightMeter},
 };
 use parity_scale_codec::Decode;

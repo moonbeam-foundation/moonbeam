@@ -25,9 +25,11 @@ mod tests;
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
+use frame_support::pallet_prelude::MaxEncodedLen;
 use frame_support::sp_runtime::Percent;
 use frame_support::traits::{fungible::Inspect, Get};
 use pallet_evm::AddressMapping;
+use pallet_parachain_staking::ScheduledRequest;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
@@ -381,7 +383,7 @@ where
 		// `ScheduledRequest` (42 bytes), and multiply it by the maximum
 		// number of scheduled requests per (collator, delegator) queue.
 		handle.record_db_read::<Runtime>(
-			72 + ScheduledRequest::<<Runtime as frame_system::Config>::AccountId, BalanceOf<Runtime>>::max_encoded_len()
+			72 + ScheduledRequest::<BalanceOf<Runtime>>::max_encoded_len()
 				* (<Runtime as pallet_parachain_staking::Config>::MaxScheduledRequestsPerDelegator::get()
 					as usize),
 		)?;

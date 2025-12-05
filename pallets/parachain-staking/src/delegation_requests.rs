@@ -27,7 +27,7 @@ use frame_support::dispatch::{DispatchErrorWithPostInfo, DispatchResultWithPostI
 use frame_support::ensure;
 use frame_support::traits::Get;
 use frame_support::BoundedVec;
-use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
+use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{Saturating, Zero},
@@ -46,6 +46,7 @@ use sp_runtime::{
 	PartialOrd,
 	Ord,
 	DecodeWithMemTracking,
+	MaxEncodedLen,
 )]
 pub enum DelegationAction<Balance> {
 	Revoke(Balance),
