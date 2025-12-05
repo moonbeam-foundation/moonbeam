@@ -45,75 +45,6 @@ pub struct OldParachainBondConfig<AccountId> {
 	pub percent: sp_runtime::Percent,
 }
 
-pub struct MigrateParachainBondConfig<T>(sp_std::marker::PhantomData<T>);
-impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
-	fn on_runtime_upgrade() -> Weight {
-		let (account, percent) = if let Some(config) =
-			frame_support::storage::migration::get_storage_value::<
-				OldParachainBondConfig<T::AccountId>,
-			>(b"ParachainStaking", b"ParachainBondInfo", &[])
-		{
-			(config.account, config.percent)
-		} else {
-			return Weight::default();
-		};
-
-		let pbr = InflationDistributionAccount { account, percent };
-		let treasury = InflationDistributionAccount::<T::AccountId>::default();
-		let configs: InflationDistributionConfig<T::AccountId> = [pbr, treasury].into();
-
-		//***** Start mutate storage *****//
-
-		InflationDistributionInfo::<T>::put(configs);
-
-		// Remove storage value ParachainStaking::ParachainBondInfo
-		frame_support::storage::unhashed::kill(&frame_support::storage::storage_prefix(
-			b"ParachainStaking",
-			b"ParachainBondInfo",
-		));
-
-		Weight::default()
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::DispatchError> {
-		use frame_support::ensure;
-		use parity_scale_codec::Encode;
-
-		let state = frame_support::storage::migration::get_storage_value::<
-			OldParachainBondConfig<T::AccountId>,
-		>(b"ParachainStaking", b"ParachainBondInfo", &[]);
-
-		ensure!(state.is_some(), "State not found");
-
-		Ok(state
-			.expect("should be Some(_) due to former call to ensure!")
-			.encode())
-	}
-
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
-		use frame_support::ensure;
-
-		let old_state: OldParachainBondConfig<T::AccountId> =
-			parity_scale_codec::Decode::decode(&mut &state[..])
-				.map_err(|_| sp_runtime::DispatchError::Other("Failed to decode old state"))?;
-
-		let new_state = InflationDistributionInfo::<T>::get();
-
-		let pbr = InflationDistributionAccount {
-			account: old_state.account,
-			percent: old_state.percent,
-		};
-		let treasury = InflationDistributionAccount::<T::AccountId>::default();
-		let expected_new_state: InflationDistributionConfig<T::AccountId> = [pbr, treasury].into();
-
-		ensure!(new_state == expected_new_state, "State migration failed");
-
-		Ok(())
-	}
-}
-
 /// Migration to move `DelegationScheduledRequests` from a single `StorageMap` keyed by collator
 /// into a `StorageDoubleMap` keyed by (collator, delegator) and to initialize the per-collator
 /// counter `DelegationScheduledRequestsPerCollator`.
@@ -122,15 +53,6 @@ impl<T: Config> OnRuntimeUpgrade for MigrateParachainBondConfig<T> {
 /// - Storage key: ParachainStaking::DelegationScheduledRequests
 /// - Value type: BoundedVec<ScheduledRequest<..>, AddGet<MaxTop, MaxBottom>>
 pub struct MigrateDelegationScheduledRequestsToDoubleMap<T>(sp_std::marker::PhantomData<T>);
-
-impl<T: Config> OnRuntimeUpgrade for MigrateDelegationScheduledRequestsToDoubleMap<T> {
-	fn on_runtime_upgrade() -> Weight {
-		// This migration is now implemented as a multi-block migration using the
-		// `SteppedMigration` trait below and executed via `pallet-migrations`.
-		// The single-block `OnRuntimeUpgrade` implementation is intentionally a no-op.
-		Weight::zero()
-	}
-}
 
 impl<T> SteppedMigration for MigrateDelegationScheduledRequestsToDoubleMap<T>
 where
