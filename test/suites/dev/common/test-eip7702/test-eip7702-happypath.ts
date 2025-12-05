@@ -7,7 +7,7 @@ import { createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
-  id: "D020512",
+  id: "D010305",
   title: "EIP-7702 Transactions",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

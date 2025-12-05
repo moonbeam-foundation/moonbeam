@@ -5,7 +5,7 @@ import { calculate_vested_amount, getAccountPayable } from "../../../../helpers/
 import { jumpBlocks } from "../../../../helpers/block.js";
 
 describeSuite({
-  id: "D021002",
+  id: "D020701",
   title: "Crowdloan Rewards - Claim",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

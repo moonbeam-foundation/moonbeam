@@ -13,7 +13,7 @@ import {
 const foreign_para_id = 2000;
 
 describeSuite({
-  id: "D024202",
+  id: "D024102",
   title: "Mock XCM - receive horizontal transfer of DEV",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

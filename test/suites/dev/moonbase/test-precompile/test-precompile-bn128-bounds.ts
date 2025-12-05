@@ -11,7 +11,7 @@ import { createViemTransaction, sendRawTransaction } from "@moonwall/util";
  */
 
 describeSuite({
-  id: "D022812",
+  id: "D022703",
   title: "Precompiles - bn128",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { expect, describeSuite } from "@moonwall/cli";
 
 describeSuite({
-  id: "D021004",
+  id: "D020703",
   title: "Crowdloan Rewards - Serialization",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -10,7 +10,7 @@ import {
 import { chunk, getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers";
 
 describeSuite({
-  id: "D023476",
+  id: "D023376",
   title: "Staking - Freezes - bottom delegator removed",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

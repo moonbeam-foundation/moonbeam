@@ -13,7 +13,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D024010",
+  id: "D023910",
   title: "Mock XCM - receive horizontal transact with two Descends",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

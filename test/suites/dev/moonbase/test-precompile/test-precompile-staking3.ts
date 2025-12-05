@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { ETHAN_ADDRESS, ETHAN_PRIVATE_KEY, MIN_GLMR_STAKING } from "@moonwall/util";
 
 describeSuite({
-  id: "D022870",
+  id: "D022760",
   title: "Precompiles - Staking - Collator Leaving",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

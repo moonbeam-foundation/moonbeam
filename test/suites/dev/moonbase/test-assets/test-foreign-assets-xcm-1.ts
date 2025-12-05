@@ -6,7 +6,7 @@ import { fundAccount } from "../../../../helpers/balances.js";
 import { expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
-  id: "D020108",
+  id: "D020105",
   title: "Create & manage Foreign Assets via XCM",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -19,7 +19,7 @@ const getProxyErrors = (api: ApiPromise, events: EventRecord[]): RegistryError[]
 };
 
 describeSuite({
-  id: "D023001",
+  id: "D022901",
   title: "Proxy : IdentityJudgement",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

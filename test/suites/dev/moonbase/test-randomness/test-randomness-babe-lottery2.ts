@@ -18,7 +18,7 @@ import {
 } from "../../../../helpers/randomness.js";
 
 describeSuite({
-  id: "D023102",
+  id: "D023002",
   title: "Randomness Babe - Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

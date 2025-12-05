@@ -11,7 +11,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D024211",
+  id: "D024111",
   title: "Mock XCM - transact ETHEREUM (non-proxy) disabled switch",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

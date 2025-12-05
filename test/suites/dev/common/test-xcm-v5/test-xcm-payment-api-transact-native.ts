@@ -11,7 +11,7 @@ import {
 } from "../../../../helpers/xcm.js";
 
 describeSuite({
-  id: "D010708",
+  id: "D010808",
   title: "XCM - XcmPaymentApi - Transact",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

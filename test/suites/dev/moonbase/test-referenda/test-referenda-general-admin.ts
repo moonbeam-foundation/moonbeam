@@ -4,7 +4,7 @@ import { alith } from "@moonwall/util";
 import { stripNulls } from "../../../../helpers";
 
 describeSuite({
-  id: "D023302",
+  id: "D023202",
   title: "Referenda - GeneralAdmin",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

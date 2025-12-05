@@ -4,7 +4,7 @@ import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "
 import { encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D012999",
+  id: "D010413",
   title: "Precompiles - BLS123_81",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

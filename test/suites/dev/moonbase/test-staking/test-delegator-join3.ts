@@ -11,7 +11,7 @@ import {
 import { verifyDelegatorStateMatchesFreezes } from "../../../../helpers/staking-freezes";
 
 describeSuite({
-  id: "D023446",
+  id: "D023346",
   title: "Staking - Delegator Join - wrong candidate delegation hint",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

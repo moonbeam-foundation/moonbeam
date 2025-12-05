@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { PRECOMPILE_RELAY_DATA_VERIFIER_ADDRESS } from "../../../../helpers";
 
 describeSuite({
-  id: "D022859",
+  id: "D022749",
   title: "Precompiles - relay-verifier",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

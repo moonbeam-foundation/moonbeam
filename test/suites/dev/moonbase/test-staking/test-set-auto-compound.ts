@@ -11,7 +11,7 @@ import {
 } from "@moonwall/util";
 
 describeSuite({
-  id: "D023467",
+  id: "D023367",
   title: "Staking - Set Auto-Compound",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

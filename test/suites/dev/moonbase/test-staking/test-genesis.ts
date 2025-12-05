@@ -4,7 +4,7 @@ import { DEFAULT_GENESIS_STAKING, GLMR, alith } from "@moonwall/util";
 import { getCollatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
-  id: "D023449",
+  id: "D023349",
   title: "Staking - Genesis",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

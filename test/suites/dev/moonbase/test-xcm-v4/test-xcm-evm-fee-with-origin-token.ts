@@ -56,7 +56,7 @@ const DEFAULT_ADDRESS = "0x0101010101010101010101010101010101010101";
  *
  */
 describeSuite({
-  id: "D024215",
+  id: "D024115",
   title: "Mock XCM - Transfer some ERC20 token and pay with origin chain's token",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

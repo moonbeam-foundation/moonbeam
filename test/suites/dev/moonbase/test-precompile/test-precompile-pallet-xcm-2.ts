@@ -39,7 +39,7 @@ export const para1000AssetMetadata: AssetMetadata = {
 };
 
 describeSuite({
-  id: "D022845",
+  id: "D022736",
   title: "Precompiles - PalletXcm: Native fee",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

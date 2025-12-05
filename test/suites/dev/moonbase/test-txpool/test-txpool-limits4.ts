@@ -4,7 +4,7 @@ import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 import { encodeDeployData } from "viem";
 
 describeSuite({
-  id: "D023906",
+  id: "D023806",
   title: "TxPool - Limits",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

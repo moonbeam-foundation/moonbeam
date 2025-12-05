@@ -2,7 +2,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { RELAY_V3_SOURCE_LOCATION } from "../../../../helpers/assets";
 
 describeSuite({
-  id: "D024217",
+  id: "D024117",
   title: "XCM - LocationToAccountApi",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

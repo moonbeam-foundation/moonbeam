@@ -7,7 +7,7 @@ import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
-  id: "D020803",
+  id: "D010303",
   title: "EIP-7702 Delegatecall Operations",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

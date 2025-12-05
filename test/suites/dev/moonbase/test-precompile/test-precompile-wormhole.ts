@@ -51,7 +51,7 @@ const WH_IMPLICIT_DECIMALS = 18n;
 const WH_IMPLICIT_MULTIPLIER = 10n ** WH_IMPLICIT_DECIMALS;
 
 describeSuite({
-  id: "D022874",
+  id: "D022764",
   title: "Test local Wormhole",
   foundationMethods: "dev",
 

@@ -10,7 +10,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D020105",
+  id: "D020102",
   title: "XCM - Change existing asset's XCM location",
   foundationMethods: "dev",
   testCases: ({ context, log, it }) => {

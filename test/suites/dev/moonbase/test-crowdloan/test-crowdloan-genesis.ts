@@ -5,7 +5,7 @@ import { getAccountPayable } from "../../../../helpers/crowdloan.js";
 import { VESTING_PERIOD } from "../../../../helpers/constants.js";
 
 describeSuite({
-  id: "D021001",
+  id: "D020702",
   title: "Crowdloan Rewards - Genesis",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

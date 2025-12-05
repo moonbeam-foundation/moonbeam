@@ -4,7 +4,7 @@ import { MIN_GLMR_STAKING, baltathar } from "@moonwall/util";
 import { getCollatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
-  id: "D023478",
+  id: "D023378",
   title: "Staking - Freezes - join candidates",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

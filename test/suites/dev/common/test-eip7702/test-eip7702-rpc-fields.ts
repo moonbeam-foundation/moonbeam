@@ -8,7 +8,7 @@ import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transact
 import { recoverAuthorizationAddress, verifyAuthorization } from "viem/utils";
 
 describeSuite({
-  id: "D020514",
+  id: "D010307",
   title: "EIP-7702 RPC Field Naming",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

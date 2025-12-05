@@ -4,7 +4,7 @@ import { EXTRINSIC_GAS_LIMIT, createEthersTransaction } from "@moonwall/util";
 import { EIP7623_GAS_CONSTANTS } from "../../../../helpers/fees";
 
 describeSuite({
-  id: "D021303",
+  id: "D021203",
   title: "Ethereum Transaction - Large Transaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

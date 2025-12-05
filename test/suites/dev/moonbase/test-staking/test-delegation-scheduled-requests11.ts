@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, baltathar, ethan } from "@
 import { jumpToRound } from "../../../../helpers";
 
 describeSuite({
-  id: "D023424",
+  id: "D023324",
   title: "Staking - Delegation Scheduled Requests - execute bond less after round delay",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

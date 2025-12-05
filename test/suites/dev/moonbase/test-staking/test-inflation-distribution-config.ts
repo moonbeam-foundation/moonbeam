@@ -5,7 +5,7 @@ import { ZERO_ADDRESS, dorothy, charleth } from "@moonwall/util";
 const TWENTY_PERCENT = 20;
 
 describeSuite({
-  id: "D023450",
+  id: "D023350",
   title: "Staking - setInflationDistributionConfig",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

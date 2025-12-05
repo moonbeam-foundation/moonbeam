@@ -12,7 +12,7 @@ import fs from "node:fs";
 import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
 
 describeSuite({
-  id: "D023419",
+  id: "D023319",
   title: "Test auto-compound with reserved balance",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -7,7 +7,7 @@ import { createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
-  id: "D020806",
+  id: "D010308",
   title: "EIP-7702 Self-Delegation Test",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

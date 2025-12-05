@@ -18,7 +18,7 @@ import {
 import { getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
-  id: "D023303",
+  id: "D023203",
   title: "Referenda - Submit",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

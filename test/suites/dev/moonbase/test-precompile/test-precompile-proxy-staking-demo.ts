@@ -13,7 +13,7 @@ import { nToHex } from "@polkadot/util";
 import { setupWithParticipants } from "../../../../helpers";
 
 describeSuite({
-  id: "D022852",
+  id: "D022742",
   title: "Proxy Call Staking Demo - Register Candidate",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

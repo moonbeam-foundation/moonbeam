@@ -4,7 +4,7 @@ import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
 import { verifyDelegatorStateMatchesFreezes } from "../../../../helpers/staking-freezes";
 
 describeSuite({
-  id: "D023441",
+  id: "D023341",
   title: "Staking - Bond More - no scheduled request",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

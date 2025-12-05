@@ -5,7 +5,7 @@ import { getAccountPayable } from "../../../../helpers/crowdloan.js";
 import { jumpBlocks } from "../../../../helpers/block.js";
 
 describeSuite({
-  id: "D021003",
+  id: "D020704",
   title: "Crowdloan Rewards - Update Address",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

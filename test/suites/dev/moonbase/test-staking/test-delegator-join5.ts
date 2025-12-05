@@ -3,7 +3,7 @@ import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 
 describeSuite({
-  id: "D023448",
+  id: "D023348",
   title: "Staking - Delegator Join - valid request",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

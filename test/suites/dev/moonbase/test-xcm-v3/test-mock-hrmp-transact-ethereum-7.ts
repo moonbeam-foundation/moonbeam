@@ -12,7 +12,7 @@ import {
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
-  id: "D024113",
+  id: "D024013",
   title: "Mock XCM - transact ETHEREUM (proxy) disabled switch",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

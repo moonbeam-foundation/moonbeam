@@ -6,7 +6,7 @@ import { fundAccount } from "../../../../helpers/balances.js";
 import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
-  id: "D020115",
+  id: "D020112",
   title: "Freezing and Unfreezing Foreign Assets via XCM",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

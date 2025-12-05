@@ -8,7 +8,7 @@ import { calculateEIP7623Gas } from "../../../../helpers/fees";
 const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
 
 describeSuite({
-  id: "D022843",
+  id: "D022734",
   title: "Precompiles - modexp",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

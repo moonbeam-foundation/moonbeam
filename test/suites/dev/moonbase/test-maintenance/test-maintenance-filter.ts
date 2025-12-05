@@ -22,7 +22,7 @@ import {
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "D022001",
+  id: "D021901",
   title: "Maintenance Mode - Filter",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

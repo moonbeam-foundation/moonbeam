@@ -3,7 +3,7 @@ import { describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS, GLMR, generateKeyringPair } from "@moonwall/util";
 
 describeSuite({
-  id: "D022601",
+  id: "D022501",
   title: "Polkadot API",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

@@ -17,7 +17,7 @@ import {
 const RELAY_TOKEN = 10n ** relayAssetMetadata.decimals; // 12 decimals
 
 describeSuite({
-  id: "D024007",
+  id: "D023907",
   title: "Mock XCM - downward transfer claim trapped assets",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
