@@ -291,9 +291,10 @@ parameter_types! {
 	pub const MigratedDelegatorsStorageName: &'static str = "MigratedDelegators";
 }
 
-/// List of common multiblock migrations to be executed by the pallet_multiblock_migrations.
+/// List of common multiblock migrations to be executed by the pallet-migrations pallet.
 /// The migrations listed here are common to every moonbeam runtime.
 pub type MultiBlockMigrations<Runtime> = (
 	ResetStorage<Runtime, pallet_parachain_staking::Pallet<Runtime>, MigratedCandidatesStorageName>,
 	ResetStorage<Runtime, pallet_parachain_staking::Pallet<Runtime>, MigratedDelegatorsStorageName>,
+	pallet_parachain_staking::migrations::MigrateDelegationScheduledRequestsToDoubleMap<Runtime>,
 );

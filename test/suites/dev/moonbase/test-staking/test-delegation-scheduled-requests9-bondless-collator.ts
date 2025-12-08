@@ -44,7 +44,10 @@ describeSuite({
       );
 
       // jump to a round before the actual executable Round
-      const delegationRequests = await psQuery.delegationScheduledRequests(baltathar.address);
+      const delegationRequests = await psQuery.delegationScheduledRequests(
+        baltathar.address,
+        ethan.address
+      );
       await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber() - 1);
     });
 

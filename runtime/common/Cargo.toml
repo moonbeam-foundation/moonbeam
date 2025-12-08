@@ -14,9 +14,9 @@ log = { workspace = true }
 ethereum = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 pallet-migrations = { workspace = true }
+pallet-parachain-staking = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-xcm-weight-trader = { workspace = true }
-pallet-parachain-staking = { workspace = true }
 
 # Substrate
 pallet-message-queue = { workspace = true }
@@ -58,6 +58,7 @@ std = [
 	"pallet-moonbeam-foreign-assets/std",
 	"pallet-author-inherent/std",
 	"pallet-migrations/std",
+	"pallet-parachain-staking/std",
 	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
 	"pallet-balances/std",

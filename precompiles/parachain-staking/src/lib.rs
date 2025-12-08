@@ -25,9 +25,11 @@ mod tests;
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
+use frame_support::pallet_prelude::MaxEncodedLen;
 use frame_support::sp_runtime::Percent;
 use frame_support::traits::{fungible::Inspect, Get};
 use pallet_evm::AddressMapping;
+use pallet_parachain_staking::ScheduledRequest;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
@@ -370,16 +372,20 @@ where
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// DelegationScheduledRequests:
-		// Blake2128(16) + AccountId(20)
-		// + Vec(
-		// 	ScheduledRequest(20 + 4 + DelegationAction(18))
-		//	* (MaxTopDelegationsPerCandidate + MaxBottomDelegationsPerCandidate)
-		// )
+		// Blake2_128Concat(16) + AccountId(20)         <-- collator key
+		// + Blake2_128Concat(16) + AccountId(20)       <-- delegator key
+		// + BoundedVec(
+		//     ScheduledRequest(when_executable, action(Balance))
+		//     * MaxScheduledRequestsPerDelegator
+		//   )
+		//
+		// We keep a conservative upper bound for the encoded size of each
+		// `ScheduledRequest` (42 bytes), and multiply it by the maximum
+		// number of scheduled requests per (collator, delegator) queue.
 		handle.record_db_read::<Runtime>(
-			36 + (
-				42 * (<Runtime as pallet_parachain_staking::Config>::MaxTopDelegationsPerCandidate::get()
-				+ <Runtime as pallet_parachain_staking::Config>::MaxBottomDelegationsPerCandidate::get())
-				as usize),
+			72 + ScheduledRequest::<BalanceOf<Runtime>>::max_encoded_len()
+				* (<Runtime as pallet_parachain_staking::Config>::MaxScheduledRequestsPerDelegator::get()
+					as usize),
 		)?;
 
 		// If we are not able to get delegator state, we return false

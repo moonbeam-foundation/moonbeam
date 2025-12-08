@@ -35,7 +35,10 @@ describeSuite({
       );
       await createBlock(psTx.scheduleRevokeDelegation(alith.address).signAsync(ethan));
 
-      const delegationRequests = await psQuery.delegationScheduledRequests(alith.address);
+      const delegationRequests = await psQuery.delegationScheduledRequests(
+        alith.address,
+        ethan.address
+      );
       await jumpToRound(context, delegationRequests[0].whenExecutable.toNumber());
     });
 
@@ -48,7 +51,10 @@ describeSuite({
         );
         const delegatorState = await psQuery.delegatorState(ethan.address);
         console.log("delegatorState = ", JSON.stringify(delegatorState));
-        const delegationRequestsAfter = await psQuery.delegationScheduledRequests(alith.address);
+        const delegationRequestsAfter = await psQuery.delegationScheduledRequests(
+          alith.address,
+          ethan.address
+        );
         expect(delegatorState.unwrap().delegations[0].owner.toString()).toBe(baltathar.address);
         expect(delegatorState.unwrap().delegations[0].amount.toBigInt()).toBe(MIN_GLMR_DELEGATOR);
         expect(delegationRequestsAfter.isEmpty).toBe(true);

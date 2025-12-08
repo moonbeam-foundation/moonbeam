@@ -91,10 +91,6 @@ describeSuite({
       id: "T03",
       title: "should have scheduled leave from charleth to ethan",
       test: async function () {
-        const delegationRequests = await context
-          .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(ETHAN_ADDRESS);
-
         const currentRound = (
           await context.polkadotJs().query.parachainStaking.round()
         ).current.toNumber();
@@ -103,9 +99,12 @@ describeSuite({
           .polkadotJs()
           .consts.parachainStaking.revokeDelegationDelay.toNumber();
 
+        const delegationRequests = await context
+          .polkadotJs()
+          .query.parachainStaking.delegationScheduledRequests(ETHAN_ADDRESS, CHARLETH_ADDRESS);
+
         expect(delegationRequests.toJSON()).to.deep.equal([
           {
-            delegator: CHARLETH_ADDRESS,
             whenExecutable: currentRound + roundDelay,
             action: {
               revoke: nToHex(1n * GLMR, { bitLength: 128 }),

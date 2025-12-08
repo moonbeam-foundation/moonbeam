@@ -74,7 +74,7 @@ pub trait WeightInfo {
 	fn prepare_staking_payouts() -> Weight;
 	fn get_rewardable_delegators(y: u32, ) -> Weight;
 	fn select_top_candidates(x: u32, y: u32, ) -> Weight;
-	fn pay_one_collator_reward_best(x: u32, y: u32, z: u32, ) -> Weight;
+	fn pay_one_collator_reward_best(x: u32, y: u32, ) -> Weight;
 	fn pay_one_collator_reward(y: u32, ) -> Weight;
 	fn base_on_initialize() -> Weight;
 	fn set_auto_compound(x: u32, y: u32, ) -> Weight;
@@ -621,8 +621,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Proof: `ParachainStaking::BottomDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[0, 349]`.
 	/// The range of component `y` is `[0, 349]`.
-	/// The range of component `z` is `[0, 349]`.
-	fn pay_one_collator_reward_best(x: u32, y: u32, z: u32, ) -> Weight {
+	fn pay_one_collator_reward_best(x: u32, y: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0 + x * (389 ±0) + y * (144 ±0) + z * (41 ±0)`
 		//  Estimated: `328284 + x * (2591 ±265) + y * (1733 ±265) + z * (41 ±0)`
@@ -638,7 +637,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().writes((2_u64).saturating_mul(y.into())))
 			.saturating_add(Weight::from_parts(0, 2591).saturating_mul(x.into()))
 			.saturating_add(Weight::from_parts(0, 1733).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(0, 41).saturating_mul(z.into()))
 	}
 	/// Storage: `ParachainStaking::DelayedPayouts` (r:1 w:0)
 	/// Proof: `ParachainStaking::DelayedPayouts` (`max_values`: None, `max_size`: None, mode: `Measured`)
@@ -1379,8 +1377,7 @@ impl WeightInfo for () {
 	/// Proof: `ParachainStaking::BottomDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// The range of component `x` is `[0, 349]`.
 	/// The range of component `y` is `[0, 349]`.
-	/// The range of component `z` is `[0, 349]`.
-	fn pay_one_collator_reward_best(x: u32, y: u32, z: u32, ) -> Weight {
+	fn pay_one_collator_reward_best(x: u32, y: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0 + x * (389 ±0) + y * (144 ±0) + z * (41 ±0)`
 		//  Estimated: `328284 + x * (2591 ±265) + y * (1733 ±265) + z * (41 ±0)`
@@ -1396,7 +1393,6 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().writes((2_u64).saturating_mul(y.into())))
 			.saturating_add(Weight::from_parts(0, 2591).saturating_mul(x.into()))
 			.saturating_add(Weight::from_parts(0, 1733).saturating_mul(y.into()))
-			.saturating_add(Weight::from_parts(0, 41).saturating_mul(z.into()))
 	}
 	/// Storage: `ParachainStaking::DelayedPayouts` (r:1 w:0)
 	/// Proof: `ParachainStaking::DelayedPayouts` (`max_values`: None, `max_size`: None, mode: `Measured`)
