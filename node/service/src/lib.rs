@@ -1125,12 +1125,9 @@ where
 	match block_import {
 		MoonbeamBlockImport::ParachainLookahead(bi) => {
 			let block_import = if node_extra_args.legacy_block_import_strategy {
-				Box::new(TParachainBlockImport::new_with_delayed_best_block(
-					bi.clone(),
-					backend.clone(),
-				))
+				TParachainBlockImport::new_with_delayed_best_block(bi, backend.clone())
 			} else {
-				Box::new(TParachainBlockImport::new(bi.clone(), backend.clone()))
+				TParachainBlockImport::new(bi, backend.clone())
 			};
 
 			let params = nimbus_consensus::collators::lookahead::Params {
@@ -1177,12 +1174,9 @@ where
 		}
 		MoonbeamBlockImport::ParachainSlotBased(bi, handle) => {
 			let block_import = if node_extra_args.legacy_block_import_strategy {
-				Box::new(TParachainBlockImport::new_with_delayed_best_block(
-					bi.clone(),
-					backend.clone(),
-				))
+				TParachainBlockImport::new_with_delayed_best_block(bi, backend.clone())
 			} else {
-				Box::new(TParachainBlockImport::new(bi.clone(), backend.clone()))
+				TParachainBlockImport::new(bi, backend.clone())
 			};
 
 			nimbus_consensus::collators::slot_based::run::<
