@@ -156,12 +156,8 @@ fn take_transact_info() {
 				None
 			));
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second for test setup
+			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
 
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
@@ -195,12 +191,8 @@ fn take_transact_info_with_signed() {
 				Some(1.into())
 			));
 
-			// Root can set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second for test setup
+			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
 
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
@@ -226,12 +218,8 @@ fn take_fee_per_second() {
 				.prepare_test(Alice, TransactorV1, input.clone())
 				.execute_reverts(|output| output == b"Fee Per Second not set");
 
-			// Root can set fee per secnd
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second for test setup
+			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(2)
@@ -348,12 +336,8 @@ fn take_transact_info_with_signed_v3() {
 				Some(1.into())
 			));
 
-			// Root can set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second for test setup
+			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
 
 			let expected_max_weight: Weight = 10_000u64.into();
 			let expected_transact_extra_weight_signed: Weight = 1u64.into();
@@ -393,12 +377,8 @@ fn test_transact_derivative_multilocation() {
 				None
 			));
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second for test setup
+			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
 
 			// we pay with our current self reserve.
 			let fee_payer_asset = Location::parent().into();
@@ -446,12 +426,8 @@ fn test_transact_derivative() {
 				None
 			));
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second for test setup
+			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -568,12 +544,8 @@ fn test_transact_signed() {
 				Some(1.into())
 			));
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second for test setup
+			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
 
 			// Destination
 			let dest = Location::parent().into();
@@ -684,12 +656,8 @@ fn test_transact_signed_multilocation() {
 				Some(1.into())
 			));
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second for test setup
+			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
 
 			// Destination
 			let dest = Location::parent().into();

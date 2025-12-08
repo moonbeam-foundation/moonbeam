@@ -27,6 +27,9 @@ use pallet_evm::{
 	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, GasWeightMapping,
 };
 use pallet_xcm_transactor::RelayIndices;
+use sp_runtime::DispatchError;
+use xcm_primitives::XcmFeeTrader;
+use sp_std::cell::RefCell;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use precompile_utils::{
 	mock_account,
@@ -347,7 +350,51 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = frame_system::EnsureRoot<AccountId>;
 	type HrmpOpenOrigin = frame_system::EnsureRoot<AccountId>;
-	type MaxHrmpFee = ();
+		type MaxHrmpFee = ();
+		type FeeTrader = MockFeeTrader;
+	}
+
+/// Mock fee trader for tests that stores fee-per-second values in memory
+pub struct MockFeeTrader;
+
+thread_local! {
+	static FEE_PER_SECOND: RefCell<sp_std::collections::btree_map::BTreeMap<Location, u128>> = RefCell::new(sp_std::collections::btree_map::BTreeMap::new());
+}
+
+impl XcmFeeTrader for MockFeeTrader {
+	fn compute_fee(
+		_weight: Weight,
+		asset_location: &Location,
+		_destination: &Location,
+		explicit_amount: Option<u128>,
+	) -> Result<u128, DispatchError> {
+		if let Some(amount) = explicit_amount {
+			return Ok(amount);
+		}
+		FEE_PER_SECOND
+			.with(|map| map.borrow().get(asset_location).copied())
+			.ok_or(DispatchError::Other("Fee per second not set"))
+	}
+
+	fn get_asset_price(asset_location: &Location) -> Option<u128> {
+		FEE_PER_SECOND.with(|map| map.borrow().get(asset_location).copied())
+	}
+}
+
+impl MockFeeTrader {
+	/// Set the fee per second for an asset location (for test setup only).
+	pub fn set_asset_price(asset_location: Location, value: u128) {
+		FEE_PER_SECOND.with(|map| {
+			map.borrow_mut().insert(asset_location, value);
+		});
+	}
+
+	/// Remove the fee per second for an asset location (for test setup only).
+	pub fn remove_asset(asset_location: Location) {
+		FEE_PER_SECOND.with(|map| {
+			map.borrow_mut().remove(&asset_location);
+		});
+	}
 }
 
 // We need to use the encoding from the relay mock runtime

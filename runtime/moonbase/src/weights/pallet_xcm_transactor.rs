@@ -91,16 +91,6 @@ impl<T: frame_system::Config> pallet_xcm_transactor::WeightInfo for WeightInfo<T
 		Weight::from_parts(5_000_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	/// Storage: `XcmTransactor::DestinationAssetFeePerSecond` (r:0 w:1)
-	/// Proof: `XcmTransactor::DestinationAssetFeePerSecond` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	fn set_fee_per_second() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 4_000_000 picoseconds.
-		Weight::from_parts(5_000_000, 0)
-			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
 	/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:0)
 	/// Proof: `EvmForeignAssets::AssetsById` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `XcmTransactor::IndexToAccount` (r:1 w:0)

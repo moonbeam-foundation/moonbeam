@@ -18,11 +18,14 @@
 
 use super::*;
 use crate as pallet_xcm_transactor;
+use xcm_primitives::XcmFeeTrader;
 use cumulus_primitives_core::Assets;
 use frame_support::traits::PalletInfo as PalletInfoTrait;
 use frame_support::{
-	construct_runtime, dispatch::GetDispatchInfo, parameter_types, weights::Weight,
+	construct_runtime, dispatch::GetDispatchInfo, parameter_types,
+	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 };
+use sp_runtime::DispatchError;
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 
@@ -31,8 +34,8 @@ use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
 use xcm::latest::{
-	opaque, Asset, Error as XcmError, Instruction, InstructionError, InteriorLocation,
-	Junction::{AccountKey20, GlobalConsensus, PalletInstance, Parachain},
+	opaque, Asset, Error as XcmError, Instruction, InstructionError,
+	InteriorLocation, Junction::{AccountKey20, GlobalConsensus, PalletInstance, Parachain},
 	Location, NetworkId, Result as XcmResult, SendError, SendResult, SendXcm, Xcm, XcmContext,
 	XcmHash,
 };
@@ -406,6 +409,56 @@ parameter_types! {
 }
 pub type MaxHrmpRelayFee = xcm_builder::Case<MaxFee>;
 
+/// Mock fee trader for tests that stores fee-per-second values in memory
+pub struct MockFeeTrader;
+
+thread_local! {
+	static FEE_PER_SECOND: RefCell<sp_std::collections::btree_map::BTreeMap<Location, u128>> = RefCell::new(sp_std::collections::btree_map::BTreeMap::new());
+}
+
+impl XcmFeeTrader for MockFeeTrader {
+	fn compute_fee(
+		weight: Weight,
+		asset_location: &Location,
+		explicit_amount: Option<u128>,
+	) -> Result<u128, DispatchError> {
+		if let Some(amount) = explicit_amount {
+			return Ok(amount);
+		}
+
+		let fee_per_second = FEE_PER_SECOND
+			.with(|map| map.borrow().get(asset_location).copied())
+			.ok_or_else(|| -> DispatchError { Error::<Test>::UnableToWithdrawAsset.into() })?;
+
+		// Calculate fee using the same formula as before
+		// Note: Reserve validation is done at the pallet-xcm-transactor level in calculate_fee
+		let weight_per_second_u128 = WEIGHT_REF_TIME_PER_SECOND as u128;
+		let fee_mul_rounded_up = (fee_per_second.saturating_mul(weight.ref_time() as u128))
+			.saturating_add(weight_per_second_u128 - 1);
+		Ok(fee_mul_rounded_up / weight_per_second_u128)
+	}
+
+	fn get_asset_price(asset_location: &Location) -> Option<u128> {
+		FEE_PER_SECOND.with(|map| map.borrow().get(asset_location).copied())
+	}
+}
+
+impl FeeTraderSetter for MockFeeTrader {
+	fn set_asset_price(asset_location: Location, value: u128) -> Result<(), DispatchError> {
+		FEE_PER_SECOND.with(|map| {
+			map.borrow_mut().insert(asset_location, value);
+		});
+		Ok(())
+	}
+
+	fn remove_asset(asset_location: Location) -> Result<(), DispatchError> {
+		FEE_PER_SECOND.with(|map| {
+			map.borrow_mut().remove(&asset_location);
+		});
+		Ok(())
+	}
+}
+
 impl Config for Test {
 	type Balance = Balance;
 	type Transactor = Transactors;
@@ -425,6 +478,8 @@ impl Config for Test {
 	type HrmpManipulatorOrigin = EnsureRoot<u64>;
 	type HrmpOpenOrigin = EnsureRoot<u64>;
 	type MaxHrmpFee = MaxHrmpRelayFee;
+	type FeeTrader = MockFeeTrader;
+	type FeeTraderSetter = MockFeeTrader;
 }
 
 pub(crate) struct ExtBuilder {

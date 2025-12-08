@@ -8108,6 +8108,7 @@ dependencies = [
  "pallet-treasury",
  "pallet-xcm",
  "pallet-xcm-bridge-hub",
+ "pallet-xcm-transactor",
  "pallet-xcm-weight-trader",
  "parity-scale-codec",
  "scale-info",
@@ -11472,6 +11473,7 @@ dependencies = [
  "sp-tracing",
  "staging-xcm",
  "staging-xcm-executor",
+ "xcm-primitives 0.1.1",
  "xcm-runtime-apis",
 ]
 

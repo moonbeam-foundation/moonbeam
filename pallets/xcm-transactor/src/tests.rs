@@ -18,7 +18,7 @@ use crate::mock::*;
 use crate::*;
 use cumulus_primitives_core::relay_chain::HrmpChannelId;
 use frame_support::weights::Weight;
-use frame_support::{assert_noop, assert_ok, weights::constants::WEIGHT_REF_TIME_PER_SECOND};
+use frame_support::{assert_noop, assert_ok};
 use sp_runtime::traits::Convert;
 use sp_runtime::DispatchError;
 use sp_std::boxed::Box;
@@ -130,16 +130,12 @@ fn test_transact_through_derivative_errors() {
 					},
 					false
 				),
-				Error::<Test>::FeePerSecondNotSet
+				Error::<Test>::UnableToWithdrawAsset
 			);
 
-			// Set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::new(
-					1,
-					[Junction::Parachain(1000)]
-				))),
+			// Set fee per second using FeeTrader
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(
+				Location::new(1, [Junction::Parachain(1000)]),
 				1
 			));
 
@@ -168,12 +164,8 @@ fn test_transact_through_derivative_errors() {
 				Error::<Test>::AssetIsNotReserveInDestination
 			);
 
-			// Set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second using FeeTrader
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
 
 			// Cannot exceed the max weight
 			assert_noop!(
@@ -283,16 +275,12 @@ fn test_transact_through_signed_errors() {
 					},
 					false
 				),
-				Error::<Test>::FeePerSecondNotSet
+				Error::<Test>::UnableToWithdrawAsset
 			);
 
-			// Set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::new(
-					1,
-					[Junction::Parachain(1000)]
-				))),
+			// Set fee per second using FeeTrader
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(
+				Location::new(1, [Junction::Parachain(1000)]),
 				1
 			));
 
@@ -340,12 +328,8 @@ fn test_transact_through_derivative_multilocation_success() {
 				None
 			));
 
-			// Set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second using FeeTrader
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative(
@@ -378,10 +362,7 @@ fn test_transact_through_derivative_multilocation_success() {
 						transact_extra_weight_signed: None,
 					},
 				},
-				crate::Event::DestFeePerSecondChanged {
-					location: Location::parent(),
-					fee_per_second: 1,
-				},
+				// DestFeePerSecondChanged event removed - fee configuration now handled by pallet-xcm-weight-trader
 				crate::Event::TransactedDerivative {
 					account_id: 1u64,
 					dest: Location::parent(),
@@ -414,12 +395,8 @@ fn test_transact_through_derivative_success() {
 				None
 			));
 
-			// Set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second using FeeTrader
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative(
@@ -450,10 +427,7 @@ fn test_transact_through_derivative_success() {
 						transact_extra_weight_signed: None,
 					},
 				},
-				crate::Event::DestFeePerSecondChanged {
-					location: Location::parent(),
-					fee_per_second: 1,
-				},
+				// DestFeePerSecondChanged event removed - fee configuration now handled by pallet-xcm-weight-trader
 				crate::Event::TransactedDerivative {
 					account_id: 1u64,
 					dest: Location::parent(),
@@ -520,12 +494,8 @@ fn test_root_can_transact_through_sovereign() {
 				None
 			));
 
-			// Set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second using FeeTrader
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_sovereign(
@@ -556,10 +526,7 @@ fn test_root_can_transact_through_sovereign() {
 						transact_extra_weight_signed: None,
 					},
 				},
-				crate::Event::DestFeePerSecondChanged {
-					location: Location::parent(),
-					fee_per_second: 1,
-				},
+				// DestFeePerSecondChanged event removed - fee configuration now handled by pallet-xcm-weight-trader
 				crate::Event::TransactedSovereign {
 					fee_payer: Some(1u64),
 					dest: Location::parent(),
@@ -570,38 +537,11 @@ fn test_root_can_transact_through_sovereign() {
 		})
 }
 
-#[test]
-fn test_fee_calculation_works() {
-	ExtBuilder::default()
-		.with_balances(vec![])
-		.build()
-		.execute_with(|| {
-			assert_eq!(
-				XcmTransactor::calculate_fee_per_second(
-					1000000000.into(),
-					8 * WEIGHT_REF_TIME_PER_SECOND as u128
-				),
-				8000000000
-			);
-		})
-}
+// Removed: test_fee_calculation_works
+// The calculate_fee_per_second function was removed. Fee calculation is now handled by pallet-xcm-weight-trader.
 
-// Kusama case
-#[test]
-fn test_fee_calculation_works_kusama_0_9_20_case() {
-	ExtBuilder::default()
-		.with_balances(vec![])
-		.build()
-		.execute_with(|| {
-			// 38620923000 * 319324000/1e12 = 12332587.6161
-			// integer arithmetic would round this to 12332587
-			// we test here that it rounds up to 12332588 instead
-			assert_eq!(
-				XcmTransactor::calculate_fee_per_second(319324000.into(), 38620923000),
-				12332588
-			);
-		})
-}
+// Removed: test_fee_calculation_works_kusama_0_9_20_case
+// The calculate_fee_per_second function was removed. Fee calculation is now handled by pallet-xcm-weight-trader.
 
 #[test]
 fn de_registering_works() {
@@ -835,7 +775,7 @@ fn test_transact_through_signed_fails_if_fee_per_second_not_set() {
 					},
 					false
 				),
-				Error::<Test>::FeePerSecondNotSet
+				Error::<Test>::UnableToWithdrawAsset
 			);
 		})
 }
@@ -855,12 +795,8 @@ fn test_transact_through_signed_works() {
 				Some(1.into())
 			));
 
-			// Set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second using FeeTrader
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
 
 			// transact info and fee per second set
 			// this time it should work
@@ -888,10 +824,7 @@ fn test_transact_through_signed_works() {
 						transact_extra_weight_signed: Some(1.into()),
 					},
 				},
-				crate::Event::DestFeePerSecondChanged {
-					location: Location::parent(),
-					fee_per_second: 1,
-				},
+				// DestFeePerSecondChanged event removed - fee configuration now handled by pallet-xcm-weight-trader
 				crate::Event::TransactedSigned {
 					fee_payer: 1u64,
 					dest: Location::parent(),
@@ -1581,12 +1514,8 @@ fn test_transact_through_derivative_with_refund_works() {
 				None
 			));
 
-			// Set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second using FeeTrader
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative(
@@ -1617,10 +1546,7 @@ fn test_transact_through_derivative_with_refund_works() {
 						transact_extra_weight_signed: None,
 					},
 				},
-				crate::Event::DestFeePerSecondChanged {
-					location: Location::parent(),
-					fee_per_second: 1,
-				},
+				// DestFeePerSecondChanged event removed - fee configuration now handled by pallet-xcm-weight-trader
 				crate::Event::TransactedDerivative {
 					account_id: 1u64,
 					dest: Location::parent(),
@@ -1667,12 +1593,8 @@ fn test_transact_through_derivative_with_refund_fails_overall_weight_not_set() {
 				None
 			));
 
-			// Set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second using FeeTrader
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
 
 			// fee as destination are the same, this time it should work
 			assert_noop!(
@@ -1702,12 +1624,8 @@ fn test_transact_through_signed_with_refund_works() {
 		.with_balances(vec![])
 		.build()
 		.execute_with(|| {
-			// Set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1
-			));
+			// Set fee per second using FeeTrader
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
 
 			// Overall weight to use
 			let total_weight: Weight = 10_100u64.into();
@@ -1727,10 +1645,7 @@ fn test_transact_through_signed_with_refund_works() {
 			));
 
 			let expected = vec![
-				crate::Event::DestFeePerSecondChanged {
-					location: Location::parent(),
-					fee_per_second: 1,
-				},
+				// DestFeePerSecondChanged event removed - fee configuration now handled by pallet-xcm-weight-trader
 				crate::Event::TransactedSigned {
 					fee_payer: 1u64,
 					dest: Location::parent(),
