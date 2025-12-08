@@ -14,7 +14,6 @@ log = { workspace = true }
 ethereum = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 pallet-migrations = { workspace = true }
-pallet-parachain-staking = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-parachain-staking = { workspace = true }
 pallet-xcm-transactor = { workspace = true }
