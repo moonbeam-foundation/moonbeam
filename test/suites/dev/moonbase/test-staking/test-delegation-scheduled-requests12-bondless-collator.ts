@@ -55,21 +55,23 @@ describeSuite({
       title: "should remove complete storage item",
       test: async () => {
         const delegationRequestsBefore = await psQuery.delegationScheduledRequests(
-          baltathar.address
+          baltathar.address,
+          ethan.address
         );
         expect(delegationRequestsBefore.toJSON()).to.not.be.empty;
 
         await createBlock(psTx.executeLeaveCandidates(baltathar.address, 1).signAsync(ethan));
 
         const delegationRequestsBaltatharAfter = await psQuery.delegationScheduledRequests(
-          baltathar.address
+          baltathar.address,
+          ethan.address
         );
         const delegationRequestsAlithAfter = await psQuery.delegationScheduledRequests(
-          alith.address
+          alith.address,
+          ethan.address
         );
         expect(delegationRequestsAlithAfter.toJSON()).to.deep.equal([
           {
-            delegator: ethan.address,
             whenExecutable,
             action: {
               decrease: 10,

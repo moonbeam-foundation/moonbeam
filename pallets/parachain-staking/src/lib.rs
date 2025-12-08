@@ -160,6 +160,9 @@ pub mod pallet {
 		/// Maximum delegations per delegator
 		#[pallet::constant]
 		type MaxDelegationsPerDelegator: Get<u32>;
+		/// Maximum number of scheduled delegation requests per (collator, delegator).
+		#[pallet::constant]
+		type MaxScheduledRequestsPerDelegator: Get<u32>;
 		/// Minimum stake required for any account to be a collator candidate
 		#[pallet::constant]
 		type MinCandidateStk: Get<BalanceOf<Self>>;
@@ -575,19 +578,31 @@ pub mod pallet {
 		}
 	}
 
-	/// Stores outstanding delegation requests per collator.
+	/// Stores outstanding delegation requests per collator & delegator.
+	///
+	/// Each `(collator, delegator)` pair can have up to
+	/// `T::MaxScheduledRequestsPerDelegator` scheduled requests,
+	/// which are always interpreted and executed in FIFO order.
 	#[pallet::storage]
 	#[pallet::getter(fn delegation_scheduled_requests)]
-	pub(crate) type DelegationScheduledRequests<T: Config> = StorageMap<
+	pub(crate) type DelegationScheduledRequests<T: Config> = StorageDoubleMap<
 		_,
 		Blake2_128Concat,
 		T::AccountId,
-		BoundedVec<
-			ScheduledRequest<T::AccountId, BalanceOf<T>>,
-			AddGet<T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate>,
-		>,
+		Blake2_128Concat,
+		T::AccountId,
+		BoundedVec<ScheduledRequest<BalanceOf<T>>, T::MaxScheduledRequestsPerDelegator>,
 		ValueQuery,
 	>;
+
+	/// Tracks how many delegators have at least one pending delegation request for a given collator.
+	///
+	/// This is used to enforce that the number of delegators with pending requests per collator
+	/// does not exceed `MaxTopDelegationsPerCandidate + MaxBottomDelegationsPerCandidate` without
+	/// having to iterate over all scheduled requests.
+	#[pallet::storage]
+	pub(crate) type DelegationScheduledRequestsPerCollator<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, u32, ValueQuery>;
 
 	/// Stores auto-compounding configuration per collator.
 	#[pallet::storage]
@@ -1221,7 +1236,7 @@ pub mod pallet {
 
 		/// Request bond less for delegators wrt a specific collator candidate. The delegation's
 		/// rewards for rounds while the request is pending use the reduced bonded amount.
-		/// A bond less may not be performed if any other scheduled request is pending.
+		/// A bond less may not be performed if a revoke request is pending for the same delegation.
 		#[pallet::call_index(24)]
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_delegator_bond_less(
 			T::MaxTopDelegationsPerCandidate::get() + T::MaxBottomDelegationsPerCandidate::get()
@@ -1692,7 +1707,13 @@ pub mod pallet {
 			// Thaw all frozen funds for collator
 			Self::thaw_extended(&candidate, true)?;
 			<CandidateInfo<T>>::remove(&candidate);
-			<DelegationScheduledRequests<T>>::remove(&candidate);
+			// Remove all scheduled delegation requests for this collator
+			let _ = <DelegationScheduledRequests<T>>::clear_prefix(
+				&candidate,
+				Self::max_delegators_per_candidate(),
+				None,
+			);
+			<DelegationScheduledRequestsPerCollator<T>>::remove(&candidate);
 			<AutoCompoundingDelegations<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
 			<BottomDelegations<T>>::remove(&candidate);
@@ -1704,6 +1725,10 @@ pub mod pallet {
 				new_total_amt_locked: new_total_staked,
 			});
 			Ok(Some(actual_weight).into())
+		}
+
+		pub fn max_delegators_per_candidate() -> u32 {
+			AddGet::<T::MaxTopDelegationsPerCandidate, T::MaxBottomDelegationsPerCandidate>::get()
 		}
 
 		/// Returns an account's stakable balance (including the reserved) which is not frozen in delegation staking
@@ -1920,8 +1945,6 @@ pub mod pallet {
 				let num_delegators = state.delegations.len();
 				let mut num_paid_delegations = 0u32;
 				let mut num_auto_compounding = 0u32;
-				let num_scheduled_requests =
-					<DelegationScheduledRequests<T>>::decode_len(&collator).unwrap_or_default();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
 					extra_weight = extra_weight
@@ -1979,7 +2002,6 @@ pub mod pallet {
 					<T as Config>::WeightInfo::pay_one_collator_reward_best(
 						num_paid_delegations,
 						num_auto_compounding,
-						num_scheduled_requests as u32,
 					),
 				);
 
@@ -2143,10 +2165,43 @@ pub mod pallet {
 		///
 		/// The intended bond amounts will be used while calculating rewards.
 		pub(crate) fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
-			let requests = <DelegationScheduledRequests<T>>::get(collator)
-				.into_iter()
-				.map(|x| (x.delegator, x.action))
-				.collect::<BTreeMap<_, _>>();
+			// Aggregate the net effect of all scheduled requests per delegator for this collator.
+			// If a revoke exists, it dominates and is treated as a full revoke.
+			// Otherwise, decreases are summed.
+			let mut requests: BTreeMap<T::AccountId, DelegationAction<BalanceOf<T>>> =
+				BTreeMap::new();
+			for (delegator, scheduled_requests) in
+				<DelegationScheduledRequests<T>>::iter_prefix(collator)
+			{
+				if scheduled_requests.is_empty() {
+					continue;
+				}
+
+				// Compute in a single pass whether any revoke exists and, if not,
+				// the total amount of all decreases.
+				let (has_revoke, total) = scheduled_requests.iter().fold(
+					(false, BalanceOf::<T>::zero()),
+					|(has_revoke, total), req| {
+						let has_revoke =
+							has_revoke || matches!(req.action, DelegationAction::Revoke(_));
+						let total = if has_revoke {
+							// Once a revoke is present, we ignore the accumulated decrease total.
+							BalanceOf::<T>::zero()
+						} else {
+							total.saturating_add(req.action.amount())
+						};
+						(has_revoke, total)
+					},
+				);
+
+				if has_revoke {
+					// Amount is irrelevant for revokes in this context, since we always
+					// zero out the bond and account the full previous stake as uncounted.
+					requests.insert(delegator, DelegationAction::Revoke(BalanceOf::<T>::zero()));
+				} else if !total.is_zero() {
+					requests.insert(delegator, DelegationAction::Decrease(total));
+				}
+			}
 			let mut uncounted_stake = BalanceOf::<T>::zero();
 			let rewardable_delegations = <TopDelegations<T>>::get(collator)
 				.expect("all members of CandidateQ must be candidates")
@@ -2193,9 +2248,9 @@ pub mod pallet {
 				Error::<T>::PendingDelegationRevoke
 			);
 
-			let actual_weight = <T as Config>::WeightInfo::delegator_bond_more(
-				<DelegationScheduledRequests<T>>::decode_len(&candidate).unwrap_or_default() as u32,
-			);
+			// This helper does not depend on the number of scheduled requests; we pass 0
+			// here and rely on the extrinsic declaration for an upper bound.
+			let actual_weight = <T as Config>::WeightInfo::delegator_bond_more(0);
 			let in_top = state
 				.increase_delegation::<T>(candidate.clone(), more)
 				.map_err(|err| DispatchErrorWithPostInfo {

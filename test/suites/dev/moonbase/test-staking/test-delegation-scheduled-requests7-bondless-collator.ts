@@ -55,10 +55,10 @@ describeSuite({
         );
 
         const delegationRequestsAfter = await psQuery.delegationScheduledRequests(
-          baltathar.address
+          baltathar.address,
+          ethan.address
         );
         const roundDelay = psConst.revokeDelegationDelay.toNumber();
-        expect(delegationRequestsAfter[0].delegator.toString()).toBe(ethan.address);
         expect(delegationRequestsAfter[0].whenExecutable.toNumber()).toBe(
           currentRound + roundDelay
         );

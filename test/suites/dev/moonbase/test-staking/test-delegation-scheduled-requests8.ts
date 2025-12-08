@@ -48,12 +48,11 @@ describeSuite({
         ).current.toNumber();
         const delegationRequests = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(alith.address);
+          .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
         const roundDelay = context
           .polkadotJs()
           .consts.parachainStaking.revokeDelegationDelay.toNumber();
 
-        expect(delegationRequests[0].delegator.toString()).toBe(ethan.address);
         expect(delegationRequests[0].whenExecutable.toNumber()).toBe(currentRound + roundDelay);
         expect(delegationRequests[0].action.isDecrease).toBe(true);
         expect(delegationRequests[0].action.asDecrease.toNumber()).toBe(Number(LESS_AMOUNT));
@@ -67,7 +66,7 @@ describeSuite({
 
         const delegationRequestsAfterCancel = await context
           .polkadotJs()
-          .query.parachainStaking.delegationScheduledRequests(alith.address);
+          .query.parachainStaking.delegationScheduledRequests(alith.address, ethan.address);
         expect(delegationRequestsAfterCancel.isEmpty).toBe(true);
       },
     });
