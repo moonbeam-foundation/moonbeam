@@ -443,9 +443,7 @@ impl XcmFeeTrader for MockFeeTrader {
 	fn get_asset_price(asset_location: &Location) -> Option<u128> {
 		FEE_PER_SECOND.with(|map| map.borrow().get(asset_location).copied())
 	}
-}
 
-impl FeeTraderSetter for MockFeeTrader {
 	fn set_asset_price(asset_location: Location, value: u128) -> Result<(), DispatchError> {
 		FEE_PER_SECOND.with(|map| {
 			map.borrow_mut().insert(asset_location, value);
@@ -481,7 +479,6 @@ impl Config for Test {
 	type HrmpOpenOrigin = EnsureRoot<u64>;
 	type MaxHrmpFee = MaxHrmpRelayFee;
 	type FeeTrader = MockFeeTrader;
-	type FeeTraderSetter = MockFeeTrader;
 }
 
 pub(crate) struct ExtBuilder {

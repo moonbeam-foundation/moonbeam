@@ -16,10 +16,7 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use crate::{
-	Call, Config, Currency, CurrencyPayment, FeeTraderSetter, HrmpOperation, Pallet,
-	TransactWeights,
-};
+use crate::{Call, Config, Currency, CurrencyPayment, HrmpOperation, Pallet, TransactWeights};
 use frame_benchmarking::v2::*;
 use frame_support::weights::Weight;
 use frame_system::RawOrigin;
@@ -144,7 +141,7 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		<T as Config>::FeeTraderSetter::set_asset_price(location.clone(), fee_per_second)
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
 			.expect("must succeed");
 		Pallet::<T>::register(RawOrigin::Root.into(), user.clone(), 0).expect("must succeed");
 
@@ -201,7 +198,7 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		<T as Config>::FeeTraderSetter::set_asset_price(location.clone(), fee_per_second)
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
 			.expect("must succeed");
 
 		#[block]
@@ -258,7 +255,7 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		<T as Config>::FeeTraderSetter::set_asset_price(location.clone(), fee_per_second)
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
 			.expect("must succeed");
 
 		#[extrinsic_call]
@@ -302,7 +299,7 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		<T as Config>::FeeTraderSetter::set_asset_price(location.clone(), fee_per_second)
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
 			.expect("must succeed");
 
 		#[extrinsic_call]

@@ -103,18 +103,6 @@ pub const ASSET_HUB_UTILITY_PALLET_INDEX: u8 = 40;
 /// Polkadot: https://github.com/polkadot-fellows/runtimes/blob/release-v2.0.0/system-parachains/asset-hubs/asset-hub-polkadot/src/lib.rs#L1434
 pub const ASSET_HUB_STAKING_PALLET_INDEX: u8 = 89;
 
-/// Trait for setting and removing asset pricing (only used in tests and benchmarks).
-#[cfg(any(test, feature = "runtime-benchmarks"))]
-pub trait FeeTraderSetter {
-	/// Set the price/configuration for an asset.
-	/// This is used to configure asset pricing in the weight-trader pallet.
-	fn set_asset_price(asset_location: Location, value: u128) -> Result<(), DispatchError>;
-
-	/// Remove the price/configuration for an asset.
-	/// This is used to remove asset pricing from the weight-trader pallet.
-	fn remove_asset(asset_location: Location) -> Result<(), DispatchError>;
-}
-
 #[pallet]
 pub mod pallet {
 
@@ -213,10 +201,6 @@ pub mod pallet {
 		/// Fee trader for computing XCM fees and managing asset pricing.
 		/// This replaces the old `DestinationAssetFeePerSecond` storage-based approach.
 		type FeeTrader: XcmFeeTrader;
-
-		/// Trait for setting and removing asset pricing (only used in tests and benchmarks).
-		#[cfg(any(test, feature = "runtime-benchmarks"))]
-		type FeeTraderSetter: FeeTraderSetter;
 
 		type WeightInfo: WeightInfo;
 	}
