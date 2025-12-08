@@ -585,207 +585,205 @@
 <a href=#585 id=585 data-nosnippet>585</a>	/// Proof: `ParachainStaking::BottomDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
 <a href=#586 id=586 data-nosnippet>586</a>	/// The range of component `x` is `[0, 349]`.
 <a href=#587 id=587 data-nosnippet>587</a>	/// The range of component `y` is `[0, 349]`.
-<a href=#588 id=588 data-nosnippet>588</a>	/// The range of component `z` is `[0, 349]`.
-<a href=#589 id=589 data-nosnippet>589</a>	</span><span class="kw">fn </span>pay_one_collator_reward_best(x: u32, y: u32, z: u32, ) -&gt; Weight {
-<a href=#590 id=590 data-nosnippet>590</a>		<span class="comment">// Proof Size summary in bytes:
-<a href=#591 id=591 data-nosnippet>591</a>		//  Measured:  `0 + x * (387 ±0) + y * (148 ±0) + z * (41 ±0)`
-<a href=#592 id=592 data-nosnippet>592</a>		//  Estimated: `123448 + x * (2591 ±28) + y * (2234 ±28) + z * (28 ±0)`
-<a href=#593 id=593 data-nosnippet>593</a>		// Minimum execution time: 0_000 picoseconds.
-<a href=#594 id=594 data-nosnippet>594</a>		</span>Weight::from_parts(<span class="number">0</span>, <span class="number">123448</span>)
-<a href=#595 id=595 data-nosnippet>595</a>			<span class="comment">// Standard Error: 444_599
-<a href=#596 id=596 data-nosnippet>596</a>			</span>.saturating_add(Weight::from_parts(<span class="number">44_737_113</span>, <span class="number">0</span>).saturating_mul(x.into()))
-<a href=#597 id=597 data-nosnippet>597</a>			<span class="comment">// Standard Error: 444_599
-<a href=#598 id=598 data-nosnippet>598</a>			</span>.saturating_add(Weight::from_parts(<span class="number">22_984_918</span>, <span class="number">0</span>).saturating_mul(y.into()))
-<a href=#599 id=599 data-nosnippet>599</a>			.saturating_add(T::DbWeight::get().reads((<span class="number">3_u64</span>).saturating_mul(x.into())))
-<a href=#600 id=600 data-nosnippet>600</a>			.saturating_add(T::DbWeight::get().reads((<span class="number">2_u64</span>).saturating_mul(y.into())))
-<a href=#601 id=601 data-nosnippet>601</a>			.saturating_add(T::DbWeight::get().writes((<span class="number">2_u64</span>).saturating_mul(x.into())))
-<a href=#602 id=602 data-nosnippet>602</a>			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(y.into())))
-<a href=#603 id=603 data-nosnippet>603</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2591</span>).saturating_mul(x.into()))
-<a href=#604 id=604 data-nosnippet>604</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2234</span>).saturating_mul(y.into()))
-<a href=#605 id=605 data-nosnippet>605</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">28</span>).saturating_mul(z.into()))
-<a href=#606 id=606 data-nosnippet>606</a>	}
-<a href=#607 id=607 data-nosnippet>607</a>	<span class="doccomment">/// Storage: `ParachainStaking::DelayedPayouts` (r:1 w:0)
-<a href=#608 id=608 data-nosnippet>608</a>	/// Proof: `ParachainStaking::DelayedPayouts` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#609 id=609 data-nosnippet>609</a>	/// Storage: `ParachainStaking::Points` (r:1 w:0)
-<a href=#610 id=610 data-nosnippet>610</a>	/// Proof: `ParachainStaking::Points` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#611 id=611 data-nosnippet>611</a>	/// Storage: `ParachainStaking::AtStake` (r:2 w:1)
-<a href=#612 id=612 data-nosnippet>612</a>	/// Proof: `ParachainStaking::AtStake` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#613 id=613 data-nosnippet>613</a>	/// Storage: `ParachainStaking::AwardedPts` (r:1 w:1)
-<a href=#614 id=614 data-nosnippet>614</a>	/// Proof: `ParachainStaking::AwardedPts` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#615 id=615 data-nosnippet>615</a>	/// Storage: `ParachainStaking::DelegationScheduledRequests` (r:1 w:0)
-<a href=#616 id=616 data-nosnippet>616</a>	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#617 id=617 data-nosnippet>617</a>	/// Storage: `MoonbeamOrbiters::OrbiterPerRound` (r:1 w:0)
-<a href=#618 id=618 data-nosnippet>618</a>	/// Proof: `MoonbeamOrbiters::OrbiterPerRound` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#619 id=619 data-nosnippet>619</a>	/// Storage: `System::Account` (r:301 w:301)
-<a href=#620 id=620 data-nosnippet>620</a>	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-<a href=#621 id=621 data-nosnippet>621</a>	/// The range of component `y` is `[0, 300]`.
-<a href=#622 id=622 data-nosnippet>622</a>	</span><span class="kw">fn </span>pay_one_collator_reward(y: u32, ) -&gt; Weight {
-<a href=#623 id=623 data-nosnippet>623</a>		<span class="comment">// Proof Size summary in bytes:
-<a href=#624 id=624 data-nosnippet>624</a>		//  Measured:  `1400 + y * (160 ±0)`
-<a href=#625 id=625 data-nosnippet>625</a>		//  Estimated: `7145 + y * (2591 ±0)`
-<a href=#626 id=626 data-nosnippet>626</a>		// Minimum execution time: 36_000_000 picoseconds.
-<a href=#627 id=627 data-nosnippet>627</a>		</span>Weight::from_parts(<span class="number">36_000_000</span>, <span class="number">7145</span>)
-<a href=#628 id=628 data-nosnippet>628</a>			<span class="comment">// Standard Error: 15_759
-<a href=#629 id=629 data-nosnippet>629</a>			</span>.saturating_add(Weight::from_parts(<span class="number">17_885_929</span>, <span class="number">0</span>).saturating_mul(y.into()))
-<a href=#630 id=630 data-nosnippet>630</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">8_u64</span>))
-<a href=#631 id=631 data-nosnippet>631</a>			.saturating_add(T::DbWeight::get().reads((<span class="number">1_u64</span>).saturating_mul(y.into())))
-<a href=#632 id=632 data-nosnippet>632</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
-<a href=#633 id=633 data-nosnippet>633</a>			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(y.into())))
-<a href=#634 id=634 data-nosnippet>634</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2591</span>).saturating_mul(y.into()))
-<a href=#635 id=635 data-nosnippet>635</a>	}
-<a href=#636 id=636 data-nosnippet>636</a>	<span class="kw">fn </span>base_on_initialize() -&gt; Weight {
-<a href=#637 id=637 data-nosnippet>637</a>		<span class="comment">// Proof Size summary in bytes:
-<a href=#638 id=638 data-nosnippet>638</a>		//  Measured:  `0`
-<a href=#639 id=639 data-nosnippet>639</a>		//  Estimated: `0`
-<a href=#640 id=640 data-nosnippet>640</a>		// Minimum execution time: 0_000 picoseconds.
-<a href=#641 id=641 data-nosnippet>641</a>		</span>Weight::from_parts(<span class="number">0</span>, <span class="number">0</span>)
-<a href=#642 id=642 data-nosnippet>642</a>	}
-<a href=#643 id=643 data-nosnippet>643</a>	<span class="doccomment">/// Storage: `ParachainStaking::DelegatorState` (r:1 w:0)
-<a href=#644 id=644 data-nosnippet>644</a>	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#645 id=645 data-nosnippet>645</a>	/// Storage: `ParachainStaking::AutoCompoundingDelegations` (r:1 w:1)
-<a href=#646 id=646 data-nosnippet>646</a>	/// Proof: `ParachainStaking::AutoCompoundingDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#647 id=647 data-nosnippet>647</a>	/// The range of component `x` is `[0, 300]`.
-<a href=#648 id=648 data-nosnippet>648</a>	/// The range of component `y` is `[0, 100]`.
-<a href=#649 id=649 data-nosnippet>649</a>	</span><span class="kw">fn </span>set_auto_compound(x: u32, y: u32, ) -&gt; Weight {
-<a href=#650 id=650 data-nosnippet>650</a>		<span class="comment">// Proof Size summary in bytes:
-<a href=#651 id=651 data-nosnippet>651</a>		//  Measured:  `672 + x * (22 ±0) + y * (36 ±0)`
-<a href=#652 id=652 data-nosnippet>652</a>		//  Estimated: `4028 + x * (23 ±0) + y * (36 ±0)`
-<a href=#653 id=653 data-nosnippet>653</a>		// Minimum execution time: 12_000_000 picoseconds.
-<a href=#654 id=654 data-nosnippet>654</a>		</span>Weight::from_parts(<span class="number">13_138_228</span>, <span class="number">4028</span>)
-<a href=#655 id=655 data-nosnippet>655</a>			<span class="comment">// Standard Error: 1_176
-<a href=#656 id=656 data-nosnippet>656</a>			</span>.saturating_add(Weight::from_parts(<span class="number">24_371</span>, <span class="number">0</span>).saturating_mul(x.into()))
-<a href=#657 id=657 data-nosnippet>657</a>			<span class="comment">// Standard Error: 3_522
-<a href=#658 id=658 data-nosnippet>658</a>			</span>.saturating_add(Weight::from_parts(<span class="number">26_486</span>, <span class="number">0</span>).saturating_mul(y.into()))
-<a href=#659 id=659 data-nosnippet>659</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
-<a href=#660 id=660 data-nosnippet>660</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
-<a href=#661 id=661 data-nosnippet>661</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">23</span>).saturating_mul(x.into()))
-<a href=#662 id=662 data-nosnippet>662</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">36</span>).saturating_mul(y.into()))
-<a href=#663 id=663 data-nosnippet>663</a>	}
-<a href=#664 id=664 data-nosnippet>664</a>	<span class="doccomment">/// Storage: `System::Account` (r:1 w:1)
-<a href=#665 id=665 data-nosnippet>665</a>	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-<a href=#666 id=666 data-nosnippet>666</a>	/// Storage: `ParachainStaking::DelegatorState` (r:1 w:1)
-<a href=#667 id=667 data-nosnippet>667</a>	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#668 id=668 data-nosnippet>668</a>	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
-<a href=#669 id=669 data-nosnippet>669</a>	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#670 id=670 data-nosnippet>670</a>	/// Storage: `ParachainStaking::AutoCompoundingDelegations` (r:1 w:1)
-<a href=#671 id=671 data-nosnippet>671</a>	/// Proof: `ParachainStaking::AutoCompoundingDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#672 id=672 data-nosnippet>672</a>	/// Storage: `ParachainStaking::TopDelegations` (r:1 w:1)
-<a href=#673 id=673 data-nosnippet>673</a>	/// Proof: `ParachainStaking::TopDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#674 id=674 data-nosnippet>674</a>	/// Storage: `ParachainStaking::BottomDelegations` (r:1 w:1)
-<a href=#675 id=675 data-nosnippet>675</a>	/// Proof: `ParachainStaking::BottomDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#676 id=676 data-nosnippet>676</a>	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
-<a href=#677 id=677 data-nosnippet>677</a>	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-<a href=#678 id=678 data-nosnippet>678</a>	/// Storage: `Balances::Freezes` (r:1 w:1)
-<a href=#679 id=679 data-nosnippet>679</a>	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
-<a href=#680 id=680 data-nosnippet>680</a>	/// Storage: `Balances::Locks` (r:1 w:0)
-<a href=#681 id=681 data-nosnippet>681</a>	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-<a href=#682 id=682 data-nosnippet>682</a>	/// Storage: `ParachainStaking::Total` (r:1 w:1)
-<a href=#683 id=683 data-nosnippet>683</a>	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-<a href=#684 id=684 data-nosnippet>684</a>	/// The range of component `x` is `[0, 350]`.
-<a href=#685 id=685 data-nosnippet>685</a>	/// The range of component `y` is `[0, 349]`.
-<a href=#686 id=686 data-nosnippet>686</a>	/// The range of component `z` is `[0, 99]`.
-<a href=#687 id=687 data-nosnippet>687</a>	</span><span class="kw">fn </span>delegate_with_auto_compound(x: u32, y: u32, z: u32, ) -&gt; Weight {
-<a href=#688 id=688 data-nosnippet>688</a>		<span class="comment">// Proof Size summary in bytes:
-<a href=#689 id=689 data-nosnippet>689</a>		//  Measured:  `0 + x * (60 ±0) + y * (21 ±0) + z * (78 ±0)`
-<a href=#690 id=690 data-nosnippet>690</a>		//  Estimated: `26242 + x * (44 ±0) + y * (19 ±0) + z * (76 ±1)`
-<a href=#691 id=691 data-nosnippet>691</a>		// Minimum execution time: 62_000_000 picoseconds.
-<a href=#692 id=692 data-nosnippet>692</a>		</span>Weight::from_parts(<span class="number">47_219_865</span>, <span class="number">26242</span>)
-<a href=#693 id=693 data-nosnippet>693</a>			<span class="comment">// Standard Error: 2_131
-<a href=#694 id=694 data-nosnippet>694</a>			</span>.saturating_add(Weight::from_parts(<span class="number">69_211</span>, <span class="number">0</span>).saturating_mul(x.into()))
-<a href=#695 id=695 data-nosnippet>695</a>			<span class="comment">// Standard Error: 2_137
-<a href=#696 id=696 data-nosnippet>696</a>			</span>.saturating_add(Weight::from_parts(<span class="number">10_800</span>, <span class="number">0</span>).saturating_mul(y.into()))
-<a href=#697 id=697 data-nosnippet>697</a>			<span class="comment">// Standard Error: 7_527
-<a href=#698 id=698 data-nosnippet>698</a>			</span>.saturating_add(Weight::from_parts(<span class="number">166_346</span>, <span class="number">0</span>).saturating_mul(z.into()))
-<a href=#699 id=699 data-nosnippet>699</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">9_u64</span>))
-<a href=#700 id=700 data-nosnippet>700</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">8_u64</span>))
-<a href=#701 id=701 data-nosnippet>701</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">44</span>).saturating_mul(x.into()))
-<a href=#702 id=702 data-nosnippet>702</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">19</span>).saturating_mul(y.into()))
-<a href=#703 id=703 data-nosnippet>703</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">76</span>).saturating_mul(z.into()))
-<a href=#704 id=704 data-nosnippet>704</a>	}
-<a href=#705 id=705 data-nosnippet>705</a>	<span class="doccomment">/// Storage: `System::Account` (r:2 w:2)
-<a href=#706 id=706 data-nosnippet>706</a>	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-<a href=#707 id=707 data-nosnippet>707</a>	/// Storage: `ParachainStaking::DelegatorState` (r:2 w:2)
-<a href=#708 id=708 data-nosnippet>708</a>	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#709 id=709 data-nosnippet>709</a>	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
-<a href=#710 id=710 data-nosnippet>710</a>	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#711 id=711 data-nosnippet>711</a>	/// Storage: `ParachainStaking::AutoCompoundingDelegations` (r:1 w:1)
-<a href=#712 id=712 data-nosnippet>712</a>	/// Proof: `ParachainStaking::AutoCompoundingDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#713 id=713 data-nosnippet>713</a>	/// Storage: `ParachainStaking::TopDelegations` (r:1 w:1)
-<a href=#714 id=714 data-nosnippet>714</a>	/// Proof: `ParachainStaking::TopDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#715 id=715 data-nosnippet>715</a>	/// Storage: `ParachainStaking::BottomDelegations` (r:1 w:1)
-<a href=#716 id=716 data-nosnippet>716</a>	/// Proof: `ParachainStaking::BottomDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#717 id=717 data-nosnippet>717</a>	/// Storage: `Balances::Freezes` (r:2 w:2)
-<a href=#718 id=718 data-nosnippet>718</a>	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
-<a href=#719 id=719 data-nosnippet>719</a>	/// Storage: `Balances::Locks` (r:2 w:0)
-<a href=#720 id=720 data-nosnippet>720</a>	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
-<a href=#721 id=721 data-nosnippet>721</a>	/// Storage: `ParachainStaking::DelegationScheduledRequests` (r:1 w:1)
-<a href=#722 id=722 data-nosnippet>722</a>	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#723 id=723 data-nosnippet>723</a>	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
-<a href=#724 id=724 data-nosnippet>724</a>	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-<a href=#725 id=725 data-nosnippet>725</a>	/// Storage: `ParachainStaking::Total` (r:1 w:1)
-<a href=#726 id=726 data-nosnippet>726</a>	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-<a href=#727 id=727 data-nosnippet>727</a>	</span><span class="kw">fn </span>delegate_with_auto_compound_worst() -&gt; Weight {
-<a href=#728 id=728 data-nosnippet>728</a>		<span class="comment">// Proof Size summary in bytes:
-<a href=#729 id=729 data-nosnippet>729</a>		//  Measured:  `48154`
-<a href=#730 id=730 data-nosnippet>730</a>		//  Estimated: `54094`
-<a href=#731 id=731 data-nosnippet>731</a>		// Minimum execution time: 153_000_000 picoseconds.
-<a href=#732 id=732 data-nosnippet>732</a>		</span>Weight::from_parts(<span class="number">168_000_000</span>, <span class="number">54094</span>)
-<a href=#733 id=733 data-nosnippet>733</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">15_u64</span>))
-<a href=#734 id=734 data-nosnippet>734</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">13_u64</span>))
-<a href=#735 id=735 data-nosnippet>735</a>	}
-<a href=#736 id=736 data-nosnippet>736</a>	<span class="doccomment">/// Storage: `System::Account` (r:1 w:1)
-<a href=#737 id=737 data-nosnippet>737</a>	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
-<a href=#738 id=738 data-nosnippet>738</a>	</span><span class="kw">fn </span>mint_collator_reward() -&gt; Weight {
-<a href=#739 id=739 data-nosnippet>739</a>		<span class="comment">// Proof Size summary in bytes:
-<a href=#740 id=740 data-nosnippet>740</a>		//  Measured:  `128`
-<a href=#741 id=741 data-nosnippet>741</a>		//  Estimated: `3581`
-<a href=#742 id=742 data-nosnippet>742</a>		// Minimum execution time: 17_000_000 picoseconds.
-<a href=#743 id=743 data-nosnippet>743</a>		</span>Weight::from_parts(<span class="number">17_000_000</span>, <span class="number">3581</span>)
-<a href=#744 id=744 data-nosnippet>744</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">1_u64</span>))
-<a href=#745 id=745 data-nosnippet>745</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
-<a href=#746 id=746 data-nosnippet>746</a>	}
-<a href=#747 id=747 data-nosnippet>747</a>	<span class="doccomment">/// Storage: `ParachainStaking::EnableMarkingOffline` (r:1 w:0)
-<a href=#748 id=748 data-nosnippet>748</a>	/// Proof: `ParachainStaking::EnableMarkingOffline` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-<a href=#749 id=749 data-nosnippet>749</a>	/// Storage: `ParachainStaking::TotalSelected` (r:1 w:0)
-<a href=#750 id=750 data-nosnippet>750</a>	/// Proof: `ParachainStaking::TotalSelected` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-<a href=#751 id=751 data-nosnippet>751</a>	/// Storage: `ParachainStaking::SelectedCandidates` (r:1 w:0)
-<a href=#752 id=752 data-nosnippet>752</a>	/// Proof: `ParachainStaking::SelectedCandidates` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-<a href=#753 id=753 data-nosnippet>753</a>	/// Storage: `ParachainStaking::WasInactive` (r:2 w:0)
-<a href=#754 id=754 data-nosnippet>754</a>	/// Proof: `ParachainStaking::WasInactive` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#755 id=755 data-nosnippet>755</a>	/// Storage: `MoonbeamOrbiters::OrbiterPerRound` (r:1 w:0)
-<a href=#756 id=756 data-nosnippet>756</a>	/// Proof: `MoonbeamOrbiters::OrbiterPerRound` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#757 id=757 data-nosnippet>757</a>	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
-<a href=#758 id=758 data-nosnippet>758</a>	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#759 id=759 data-nosnippet>759</a>	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
-<a href=#760 id=760 data-nosnippet>760</a>	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-<a href=#761 id=761 data-nosnippet>761</a>	</span><span class="kw">fn </span>notify_inactive_collator() -&gt; Weight {
-<a href=#762 id=762 data-nosnippet>762</a>		<span class="comment">// Proof Size summary in bytes:
-<a href=#763 id=763 data-nosnippet>763</a>		//  Measured:  `11212`
-<a href=#764 id=764 data-nosnippet>764</a>		//  Estimated: `17152`
-<a href=#765 id=765 data-nosnippet>765</a>		// Minimum execution time: 38_000_000 picoseconds.
-<a href=#766 id=766 data-nosnippet>766</a>		</span>Weight::from_parts(<span class="number">39_000_000</span>, <span class="number">17152</span>)
-<a href=#767 id=767 data-nosnippet>767</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">8_u64</span>))
-<a href=#768 id=768 data-nosnippet>768</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
-<a href=#769 id=769 data-nosnippet>769</a>	}
-<a href=#770 id=770 data-nosnippet>770</a>	<span class="doccomment">/// Storage: `ParachainStaking::AtStake` (r:52 w:0)
-<a href=#771 id=771 data-nosnippet>771</a>	/// Proof: `ParachainStaking::AtStake` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#772 id=772 data-nosnippet>772</a>	/// Storage: `ParachainStaking::AwardedPts` (r:51 w:0)
-<a href=#773 id=773 data-nosnippet>773</a>	/// Proof: `ParachainStaking::AwardedPts` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#774 id=774 data-nosnippet>774</a>	/// Storage: `ParachainStaking::WasInactive` (r:0 w:51)
-<a href=#775 id=775 data-nosnippet>775</a>	/// Proof: `ParachainStaking::WasInactive` (`max_values`: None, `max_size`: None, mode: `Measured`)
-<a href=#776 id=776 data-nosnippet>776</a>	/// The range of component `x` is `[0, 50]`.
-<a href=#777 id=777 data-nosnippet>777</a>	</span><span class="kw">fn </span>mark_collators_as_inactive(x: u32, ) -&gt; Weight {
-<a href=#778 id=778 data-nosnippet>778</a>		<span class="comment">// Proof Size summary in bytes:
-<a href=#779 id=779 data-nosnippet>779</a>		//  Measured:  `108 + x * (104 ±0)`
-<a href=#780 id=780 data-nosnippet>780</a>		//  Estimated: `6050 + x * (2580 ±0)`
-<a href=#781 id=781 data-nosnippet>781</a>		// Minimum execution time: 8_000_000 picoseconds.
-<a href=#782 id=782 data-nosnippet>782</a>		</span>Weight::from_parts(<span class="number">10_421_260</span>, <span class="number">6050</span>)
-<a href=#783 id=783 data-nosnippet>783</a>			<span class="comment">// Standard Error: 5_099
-<a href=#784 id=784 data-nosnippet>784</a>			</span>.saturating_add(Weight::from_parts(<span class="number">6_394_157</span>, <span class="number">0</span>).saturating_mul(x.into()))
-<a href=#785 id=785 data-nosnippet>785</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
-<a href=#786 id=786 data-nosnippet>786</a>			.saturating_add(T::DbWeight::get().reads((<span class="number">2_u64</span>).saturating_mul(x.into())))
-<a href=#787 id=787 data-nosnippet>787</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
-<a href=#788 id=788 data-nosnippet>788</a>			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(x.into())))
-<a href=#789 id=789 data-nosnippet>789</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2580</span>).saturating_mul(x.into()))
-<a href=#790 id=790 data-nosnippet>790</a>	}
-<a href=#791 id=791 data-nosnippet>791</a>}</code></pre></div></section></main></body></html>
+<a href=#588 id=588 data-nosnippet>588</a>	</span><span class="kw">fn </span>pay_one_collator_reward_best(x: u32, y: u32, ) -&gt; Weight {
+<a href=#589 id=589 data-nosnippet>589</a>		<span class="comment">// Proof Size summary in bytes:
+<a href=#590 id=590 data-nosnippet>590</a>		//  Measured:  `0 + x * (387 ±0) + y * (148 ±0) + z * (41 ±0)`
+<a href=#591 id=591 data-nosnippet>591</a>		//  Estimated: `123448 + x * (2591 ±28) + y * (2234 ±28) + z * (28 ±0)`
+<a href=#592 id=592 data-nosnippet>592</a>		// Minimum execution time: 0_000 picoseconds.
+<a href=#593 id=593 data-nosnippet>593</a>		</span>Weight::from_parts(<span class="number">0</span>, <span class="number">123448</span>)
+<a href=#594 id=594 data-nosnippet>594</a>			<span class="comment">// Standard Error: 444_599
+<a href=#595 id=595 data-nosnippet>595</a>			</span>.saturating_add(Weight::from_parts(<span class="number">44_737_113</span>, <span class="number">0</span>).saturating_mul(x.into()))
+<a href=#596 id=596 data-nosnippet>596</a>			<span class="comment">// Standard Error: 444_599
+<a href=#597 id=597 data-nosnippet>597</a>			</span>.saturating_add(Weight::from_parts(<span class="number">22_984_918</span>, <span class="number">0</span>).saturating_mul(y.into()))
+<a href=#598 id=598 data-nosnippet>598</a>			.saturating_add(T::DbWeight::get().reads((<span class="number">3_u64</span>).saturating_mul(x.into())))
+<a href=#599 id=599 data-nosnippet>599</a>			.saturating_add(T::DbWeight::get().reads((<span class="number">2_u64</span>).saturating_mul(y.into())))
+<a href=#600 id=600 data-nosnippet>600</a>			.saturating_add(T::DbWeight::get().writes((<span class="number">2_u64</span>).saturating_mul(x.into())))
+<a href=#601 id=601 data-nosnippet>601</a>			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(y.into())))
+<a href=#602 id=602 data-nosnippet>602</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2591</span>).saturating_mul(x.into()))
+<a href=#603 id=603 data-nosnippet>603</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2234</span>).saturating_mul(y.into()))
+<a href=#604 id=604 data-nosnippet>604</a>	}
+<a href=#605 id=605 data-nosnippet>605</a>	<span class="doccomment">/// Storage: `ParachainStaking::DelayedPayouts` (r:1 w:0)
+<a href=#606 id=606 data-nosnippet>606</a>	/// Proof: `ParachainStaking::DelayedPayouts` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#607 id=607 data-nosnippet>607</a>	/// Storage: `ParachainStaking::Points` (r:1 w:0)
+<a href=#608 id=608 data-nosnippet>608</a>	/// Proof: `ParachainStaking::Points` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#609 id=609 data-nosnippet>609</a>	/// Storage: `ParachainStaking::AtStake` (r:2 w:1)
+<a href=#610 id=610 data-nosnippet>610</a>	/// Proof: `ParachainStaking::AtStake` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#611 id=611 data-nosnippet>611</a>	/// Storage: `ParachainStaking::AwardedPts` (r:1 w:1)
+<a href=#612 id=612 data-nosnippet>612</a>	/// Proof: `ParachainStaking::AwardedPts` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#613 id=613 data-nosnippet>613</a>	/// Storage: `ParachainStaking::DelegationScheduledRequests` (r:1 w:0)
+<a href=#614 id=614 data-nosnippet>614</a>	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#615 id=615 data-nosnippet>615</a>	/// Storage: `MoonbeamOrbiters::OrbiterPerRound` (r:1 w:0)
+<a href=#616 id=616 data-nosnippet>616</a>	/// Proof: `MoonbeamOrbiters::OrbiterPerRound` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#617 id=617 data-nosnippet>617</a>	/// Storage: `System::Account` (r:301 w:301)
+<a href=#618 id=618 data-nosnippet>618</a>	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+<a href=#619 id=619 data-nosnippet>619</a>	/// The range of component `y` is `[0, 300]`.
+<a href=#620 id=620 data-nosnippet>620</a>	</span><span class="kw">fn </span>pay_one_collator_reward(y: u32, ) -&gt; Weight {
+<a href=#621 id=621 data-nosnippet>621</a>		<span class="comment">// Proof Size summary in bytes:
+<a href=#622 id=622 data-nosnippet>622</a>		//  Measured:  `1400 + y * (160 ±0)`
+<a href=#623 id=623 data-nosnippet>623</a>		//  Estimated: `7145 + y * (2591 ±0)`
+<a href=#624 id=624 data-nosnippet>624</a>		// Minimum execution time: 36_000_000 picoseconds.
+<a href=#625 id=625 data-nosnippet>625</a>		</span>Weight::from_parts(<span class="number">36_000_000</span>, <span class="number">7145</span>)
+<a href=#626 id=626 data-nosnippet>626</a>			<span class="comment">// Standard Error: 15_759
+<a href=#627 id=627 data-nosnippet>627</a>			</span>.saturating_add(Weight::from_parts(<span class="number">17_885_929</span>, <span class="number">0</span>).saturating_mul(y.into()))
+<a href=#628 id=628 data-nosnippet>628</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">8_u64</span>))
+<a href=#629 id=629 data-nosnippet>629</a>			.saturating_add(T::DbWeight::get().reads((<span class="number">1_u64</span>).saturating_mul(y.into())))
+<a href=#630 id=630 data-nosnippet>630</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">3_u64</span>))
+<a href=#631 id=631 data-nosnippet>631</a>			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(y.into())))
+<a href=#632 id=632 data-nosnippet>632</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2591</span>).saturating_mul(y.into()))
+<a href=#633 id=633 data-nosnippet>633</a>	}
+<a href=#634 id=634 data-nosnippet>634</a>	<span class="kw">fn </span>base_on_initialize() -&gt; Weight {
+<a href=#635 id=635 data-nosnippet>635</a>		<span class="comment">// Proof Size summary in bytes:
+<a href=#636 id=636 data-nosnippet>636</a>		//  Measured:  `0`
+<a href=#637 id=637 data-nosnippet>637</a>		//  Estimated: `0`
+<a href=#638 id=638 data-nosnippet>638</a>		// Minimum execution time: 0_000 picoseconds.
+<a href=#639 id=639 data-nosnippet>639</a>		</span>Weight::from_parts(<span class="number">0</span>, <span class="number">0</span>)
+<a href=#640 id=640 data-nosnippet>640</a>	}
+<a href=#641 id=641 data-nosnippet>641</a>	<span class="doccomment">/// Storage: `ParachainStaking::DelegatorState` (r:1 w:0)
+<a href=#642 id=642 data-nosnippet>642</a>	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#643 id=643 data-nosnippet>643</a>	/// Storage: `ParachainStaking::AutoCompoundingDelegations` (r:1 w:1)
+<a href=#644 id=644 data-nosnippet>644</a>	/// Proof: `ParachainStaking::AutoCompoundingDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#645 id=645 data-nosnippet>645</a>	/// The range of component `x` is `[0, 300]`.
+<a href=#646 id=646 data-nosnippet>646</a>	/// The range of component `y` is `[0, 100]`.
+<a href=#647 id=647 data-nosnippet>647</a>	</span><span class="kw">fn </span>set_auto_compound(x: u32, y: u32, ) -&gt; Weight {
+<a href=#648 id=648 data-nosnippet>648</a>		<span class="comment">// Proof Size summary in bytes:
+<a href=#649 id=649 data-nosnippet>649</a>		//  Measured:  `672 + x * (22 ±0) + y * (36 ±0)`
+<a href=#650 id=650 data-nosnippet>650</a>		//  Estimated: `4028 + x * (23 ±0) + y * (36 ±0)`
+<a href=#651 id=651 data-nosnippet>651</a>		// Minimum execution time: 12_000_000 picoseconds.
+<a href=#652 id=652 data-nosnippet>652</a>		</span>Weight::from_parts(<span class="number">13_138_228</span>, <span class="number">4028</span>)
+<a href=#653 id=653 data-nosnippet>653</a>			<span class="comment">// Standard Error: 1_176
+<a href=#654 id=654 data-nosnippet>654</a>			</span>.saturating_add(Weight::from_parts(<span class="number">24_371</span>, <span class="number">0</span>).saturating_mul(x.into()))
+<a href=#655 id=655 data-nosnippet>655</a>			<span class="comment">// Standard Error: 3_522
+<a href=#656 id=656 data-nosnippet>656</a>			</span>.saturating_add(Weight::from_parts(<span class="number">26_486</span>, <span class="number">0</span>).saturating_mul(y.into()))
+<a href=#657 id=657 data-nosnippet>657</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">2_u64</span>))
+<a href=#658 id=658 data-nosnippet>658</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+<a href=#659 id=659 data-nosnippet>659</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">23</span>).saturating_mul(x.into()))
+<a href=#660 id=660 data-nosnippet>660</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">36</span>).saturating_mul(y.into()))
+<a href=#661 id=661 data-nosnippet>661</a>	}
+<a href=#662 id=662 data-nosnippet>662</a>	<span class="doccomment">/// Storage: `System::Account` (r:1 w:1)
+<a href=#663 id=663 data-nosnippet>663</a>	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+<a href=#664 id=664 data-nosnippet>664</a>	/// Storage: `ParachainStaking::DelegatorState` (r:1 w:1)
+<a href=#665 id=665 data-nosnippet>665</a>	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#666 id=666 data-nosnippet>666</a>	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
+<a href=#667 id=667 data-nosnippet>667</a>	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#668 id=668 data-nosnippet>668</a>	/// Storage: `ParachainStaking::AutoCompoundingDelegations` (r:1 w:1)
+<a href=#669 id=669 data-nosnippet>669</a>	/// Proof: `ParachainStaking::AutoCompoundingDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#670 id=670 data-nosnippet>670</a>	/// Storage: `ParachainStaking::TopDelegations` (r:1 w:1)
+<a href=#671 id=671 data-nosnippet>671</a>	/// Proof: `ParachainStaking::TopDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#672 id=672 data-nosnippet>672</a>	/// Storage: `ParachainStaking::BottomDelegations` (r:1 w:1)
+<a href=#673 id=673 data-nosnippet>673</a>	/// Proof: `ParachainStaking::BottomDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#674 id=674 data-nosnippet>674</a>	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
+<a href=#675 id=675 data-nosnippet>675</a>	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#676 id=676 data-nosnippet>676</a>	/// Storage: `Balances::Freezes` (r:1 w:1)
+<a href=#677 id=677 data-nosnippet>677</a>	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
+<a href=#678 id=678 data-nosnippet>678</a>	/// Storage: `Balances::Locks` (r:1 w:0)
+<a href=#679 id=679 data-nosnippet>679</a>	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
+<a href=#680 id=680 data-nosnippet>680</a>	/// Storage: `ParachainStaking::Total` (r:1 w:1)
+<a href=#681 id=681 data-nosnippet>681</a>	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#682 id=682 data-nosnippet>682</a>	/// The range of component `x` is `[0, 350]`.
+<a href=#683 id=683 data-nosnippet>683</a>	/// The range of component `y` is `[0, 349]`.
+<a href=#684 id=684 data-nosnippet>684</a>	/// The range of component `z` is `[0, 99]`.
+<a href=#685 id=685 data-nosnippet>685</a>	</span><span class="kw">fn </span>delegate_with_auto_compound(x: u32, y: u32, z: u32, ) -&gt; Weight {
+<a href=#686 id=686 data-nosnippet>686</a>		<span class="comment">// Proof Size summary in bytes:
+<a href=#687 id=687 data-nosnippet>687</a>		//  Measured:  `0 + x * (60 ±0) + y * (21 ±0) + z * (78 ±0)`
+<a href=#688 id=688 data-nosnippet>688</a>		//  Estimated: `26242 + x * (44 ±0) + y * (19 ±0) + z * (76 ±1)`
+<a href=#689 id=689 data-nosnippet>689</a>		// Minimum execution time: 62_000_000 picoseconds.
+<a href=#690 id=690 data-nosnippet>690</a>		</span>Weight::from_parts(<span class="number">47_219_865</span>, <span class="number">26242</span>)
+<a href=#691 id=691 data-nosnippet>691</a>			<span class="comment">// Standard Error: 2_131
+<a href=#692 id=692 data-nosnippet>692</a>			</span>.saturating_add(Weight::from_parts(<span class="number">69_211</span>, <span class="number">0</span>).saturating_mul(x.into()))
+<a href=#693 id=693 data-nosnippet>693</a>			<span class="comment">// Standard Error: 2_137
+<a href=#694 id=694 data-nosnippet>694</a>			</span>.saturating_add(Weight::from_parts(<span class="number">10_800</span>, <span class="number">0</span>).saturating_mul(y.into()))
+<a href=#695 id=695 data-nosnippet>695</a>			<span class="comment">// Standard Error: 7_527
+<a href=#696 id=696 data-nosnippet>696</a>			</span>.saturating_add(Weight::from_parts(<span class="number">166_346</span>, <span class="number">0</span>).saturating_mul(z.into()))
+<a href=#697 id=697 data-nosnippet>697</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">9_u64</span>))
+<a href=#698 id=698 data-nosnippet>698</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">8_u64</span>))
+<a href=#699 id=699 data-nosnippet>699</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">44</span>).saturating_mul(x.into()))
+<a href=#700 id=700 data-nosnippet>700</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">19</span>).saturating_mul(y.into()))
+<a href=#701 id=701 data-nosnippet>701</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">76</span>).saturating_mul(z.into()))
+<a href=#702 id=702 data-nosnippet>702</a>	}
+<a href=#703 id=703 data-nosnippet>703</a>	<span class="doccomment">/// Storage: `System::Account` (r:2 w:2)
+<a href=#704 id=704 data-nosnippet>704</a>	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+<a href=#705 id=705 data-nosnippet>705</a>	/// Storage: `ParachainStaking::DelegatorState` (r:2 w:2)
+<a href=#706 id=706 data-nosnippet>706</a>	/// Proof: `ParachainStaking::DelegatorState` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#707 id=707 data-nosnippet>707</a>	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
+<a href=#708 id=708 data-nosnippet>708</a>	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#709 id=709 data-nosnippet>709</a>	/// Storage: `ParachainStaking::AutoCompoundingDelegations` (r:1 w:1)
+<a href=#710 id=710 data-nosnippet>710</a>	/// Proof: `ParachainStaking::AutoCompoundingDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#711 id=711 data-nosnippet>711</a>	/// Storage: `ParachainStaking::TopDelegations` (r:1 w:1)
+<a href=#712 id=712 data-nosnippet>712</a>	/// Proof: `ParachainStaking::TopDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#713 id=713 data-nosnippet>713</a>	/// Storage: `ParachainStaking::BottomDelegations` (r:1 w:1)
+<a href=#714 id=714 data-nosnippet>714</a>	/// Proof: `ParachainStaking::BottomDelegations` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#715 id=715 data-nosnippet>715</a>	/// Storage: `Balances::Freezes` (r:2 w:2)
+<a href=#716 id=716 data-nosnippet>716</a>	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(73), added: 2548, mode: `MaxEncodedLen`)
+<a href=#717 id=717 data-nosnippet>717</a>	/// Storage: `Balances::Locks` (r:2 w:0)
+<a href=#718 id=718 data-nosnippet>718</a>	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
+<a href=#719 id=719 data-nosnippet>719</a>	/// Storage: `ParachainStaking::DelegationScheduledRequests` (r:1 w:1)
+<a href=#720 id=720 data-nosnippet>720</a>	/// Proof: `ParachainStaking::DelegationScheduledRequests` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#721 id=721 data-nosnippet>721</a>	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
+<a href=#722 id=722 data-nosnippet>722</a>	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#723 id=723 data-nosnippet>723</a>	/// Storage: `ParachainStaking::Total` (r:1 w:1)
+<a href=#724 id=724 data-nosnippet>724</a>	/// Proof: `ParachainStaking::Total` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#725 id=725 data-nosnippet>725</a>	</span><span class="kw">fn </span>delegate_with_auto_compound_worst() -&gt; Weight {
+<a href=#726 id=726 data-nosnippet>726</a>		<span class="comment">// Proof Size summary in bytes:
+<a href=#727 id=727 data-nosnippet>727</a>		//  Measured:  `48154`
+<a href=#728 id=728 data-nosnippet>728</a>		//  Estimated: `54094`
+<a href=#729 id=729 data-nosnippet>729</a>		// Minimum execution time: 153_000_000 picoseconds.
+<a href=#730 id=730 data-nosnippet>730</a>		</span>Weight::from_parts(<span class="number">168_000_000</span>, <span class="number">54094</span>)
+<a href=#731 id=731 data-nosnippet>731</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">15_u64</span>))
+<a href=#732 id=732 data-nosnippet>732</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">13_u64</span>))
+<a href=#733 id=733 data-nosnippet>733</a>	}
+<a href=#734 id=734 data-nosnippet>734</a>	<span class="doccomment">/// Storage: `System::Account` (r:1 w:1)
+<a href=#735 id=735 data-nosnippet>735</a>	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+<a href=#736 id=736 data-nosnippet>736</a>	</span><span class="kw">fn </span>mint_collator_reward() -&gt; Weight {
+<a href=#737 id=737 data-nosnippet>737</a>		<span class="comment">// Proof Size summary in bytes:
+<a href=#738 id=738 data-nosnippet>738</a>		//  Measured:  `128`
+<a href=#739 id=739 data-nosnippet>739</a>		//  Estimated: `3581`
+<a href=#740 id=740 data-nosnippet>740</a>		// Minimum execution time: 17_000_000 picoseconds.
+<a href=#741 id=741 data-nosnippet>741</a>		</span>Weight::from_parts(<span class="number">17_000_000</span>, <span class="number">3581</span>)
+<a href=#742 id=742 data-nosnippet>742</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">1_u64</span>))
+<a href=#743 id=743 data-nosnippet>743</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+<a href=#744 id=744 data-nosnippet>744</a>	}
+<a href=#745 id=745 data-nosnippet>745</a>	<span class="doccomment">/// Storage: `ParachainStaking::EnableMarkingOffline` (r:1 w:0)
+<a href=#746 id=746 data-nosnippet>746</a>	/// Proof: `ParachainStaking::EnableMarkingOffline` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#747 id=747 data-nosnippet>747</a>	/// Storage: `ParachainStaking::TotalSelected` (r:1 w:0)
+<a href=#748 id=748 data-nosnippet>748</a>	/// Proof: `ParachainStaking::TotalSelected` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#749 id=749 data-nosnippet>749</a>	/// Storage: `ParachainStaking::SelectedCandidates` (r:1 w:0)
+<a href=#750 id=750 data-nosnippet>750</a>	/// Proof: `ParachainStaking::SelectedCandidates` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#751 id=751 data-nosnippet>751</a>	/// Storage: `ParachainStaking::WasInactive` (r:2 w:0)
+<a href=#752 id=752 data-nosnippet>752</a>	/// Proof: `ParachainStaking::WasInactive` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#753 id=753 data-nosnippet>753</a>	/// Storage: `MoonbeamOrbiters::OrbiterPerRound` (r:1 w:0)
+<a href=#754 id=754 data-nosnippet>754</a>	/// Proof: `MoonbeamOrbiters::OrbiterPerRound` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#755 id=755 data-nosnippet>755</a>	/// Storage: `ParachainStaking::CandidateInfo` (r:1 w:1)
+<a href=#756 id=756 data-nosnippet>756</a>	/// Proof: `ParachainStaking::CandidateInfo` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#757 id=757 data-nosnippet>757</a>	/// Storage: `ParachainStaking::CandidatePool` (r:1 w:1)
+<a href=#758 id=758 data-nosnippet>758</a>	/// Proof: `ParachainStaking::CandidatePool` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#759 id=759 data-nosnippet>759</a>	</span><span class="kw">fn </span>notify_inactive_collator() -&gt; Weight {
+<a href=#760 id=760 data-nosnippet>760</a>		<span class="comment">// Proof Size summary in bytes:
+<a href=#761 id=761 data-nosnippet>761</a>		//  Measured:  `11212`
+<a href=#762 id=762 data-nosnippet>762</a>		//  Estimated: `17152`
+<a href=#763 id=763 data-nosnippet>763</a>		// Minimum execution time: 38_000_000 picoseconds.
+<a href=#764 id=764 data-nosnippet>764</a>		</span>Weight::from_parts(<span class="number">39_000_000</span>, <span class="number">17152</span>)
+<a href=#765 id=765 data-nosnippet>765</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">8_u64</span>))
+<a href=#766 id=766 data-nosnippet>766</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">2_u64</span>))
+<a href=#767 id=767 data-nosnippet>767</a>	}
+<a href=#768 id=768 data-nosnippet>768</a>	<span class="doccomment">/// Storage: `ParachainStaking::AtStake` (r:52 w:0)
+<a href=#769 id=769 data-nosnippet>769</a>	/// Proof: `ParachainStaking::AtStake` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#770 id=770 data-nosnippet>770</a>	/// Storage: `ParachainStaking::AwardedPts` (r:51 w:0)
+<a href=#771 id=771 data-nosnippet>771</a>	/// Proof: `ParachainStaking::AwardedPts` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#772 id=772 data-nosnippet>772</a>	/// Storage: `ParachainStaking::WasInactive` (r:0 w:51)
+<a href=#773 id=773 data-nosnippet>773</a>	/// Proof: `ParachainStaking::WasInactive` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#774 id=774 data-nosnippet>774</a>	/// The range of component `x` is `[0, 50]`.
+<a href=#775 id=775 data-nosnippet>775</a>	</span><span class="kw">fn </span>mark_collators_as_inactive(x: u32, ) -&gt; Weight {
+<a href=#776 id=776 data-nosnippet>776</a>		<span class="comment">// Proof Size summary in bytes:
+<a href=#777 id=777 data-nosnippet>777</a>		//  Measured:  `108 + x * (104 ±0)`
+<a href=#778 id=778 data-nosnippet>778</a>		//  Estimated: `6050 + x * (2580 ±0)`
+<a href=#779 id=779 data-nosnippet>779</a>		// Minimum execution time: 8_000_000 picoseconds.
+<a href=#780 id=780 data-nosnippet>780</a>		</span>Weight::from_parts(<span class="number">10_421_260</span>, <span class="number">6050</span>)
+<a href=#781 id=781 data-nosnippet>781</a>			<span class="comment">// Standard Error: 5_099
+<a href=#782 id=782 data-nosnippet>782</a>			</span>.saturating_add(Weight::from_parts(<span class="number">6_394_157</span>, <span class="number">0</span>).saturating_mul(x.into()))
+<a href=#783 id=783 data-nosnippet>783</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">3_u64</span>))
+<a href=#784 id=784 data-nosnippet>784</a>			.saturating_add(T::DbWeight::get().reads((<span class="number">2_u64</span>).saturating_mul(x.into())))
+<a href=#785 id=785 data-nosnippet>785</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">1_u64</span>))
+<a href=#786 id=786 data-nosnippet>786</a>			.saturating_add(T::DbWeight::get().writes((<span class="number">1_u64</span>).saturating_mul(x.into())))
+<a href=#787 id=787 data-nosnippet>787</a>			.saturating_add(Weight::from_parts(<span class="number">0</span>, <span class="number">2580</span>).saturating_mul(x.into()))
+<a href=#788 id=788 data-nosnippet>788</a>	}
+<a href=#789 id=789 data-nosnippet>789</a>}</code></pre></div></section></main></body></html>

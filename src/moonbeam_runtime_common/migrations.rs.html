@@ -291,9 +291,10 @@
 <a href=#291 id=291 data-nosnippet>291</a>	<span class="kw">pub const </span>MigratedDelegatorsStorageName: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"MigratedDelegators"</span>;
 <a href=#292 id=292 data-nosnippet>292</a>}
 <a href=#293 id=293 data-nosnippet>293</a>
-<a href=#294 id=294 data-nosnippet>294</a><span class="doccomment">/// List of common multiblock migrations to be executed by the pallet_multiblock_migrations.
+<a href=#294 id=294 data-nosnippet>294</a><span class="doccomment">/// List of common multiblock migrations to be executed by the pallet-migrations pallet.
 <a href=#295 id=295 data-nosnippet>295</a>/// The migrations listed here are common to every moonbeam runtime.
 <a href=#296 id=296 data-nosnippet>296</a></span><span class="kw">pub type </span>MultiBlockMigrations&lt;Runtime&gt; = (
 <a href=#297 id=297 data-nosnippet>297</a>	ResetStorage&lt;Runtime, pallet_parachain_staking::Pallet&lt;Runtime&gt;, MigratedCandidatesStorageName&gt;,
 <a href=#298 id=298 data-nosnippet>298</a>	ResetStorage&lt;Runtime, pallet_parachain_staking::Pallet&lt;Runtime&gt;, MigratedDelegatorsStorageName&gt;,
-<a href=#299 id=299 data-nosnippet>299</a>);</code></pre></div></section></main></body></html>
+<a href=#299 id=299 data-nosnippet>299</a>	pallet_parachain_staking::migrations::MigrateDelegationScheduledRequestsToDoubleMap&lt;Runtime&gt;,
+<a href=#300 id=300 data-nosnippet>300</a>);</code></pre></div></section></main></body></html>
