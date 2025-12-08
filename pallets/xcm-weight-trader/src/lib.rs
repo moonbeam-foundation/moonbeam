@@ -36,7 +36,10 @@ use frame_support::traits::Contains;
 use frame_support::weights::WeightToFee;
 use frame_support::{pallet, Deserialize, Serialize};
 use frame_system::pallet_prelude::*;
-use sp_runtime::{traits::{Convert, Zero}, DispatchError};
+use sp_runtime::{
+	traits::{Convert, Zero},
+	DispatchError,
+};
 use sp_std::{vec, vec::Vec};
 use xcm::v5::{Asset, AssetId as XcmAssetId, Error as XcmError, Fungibility, Location, XcmContext};
 use xcm::{IntoVersion, VersionedAssetId};
@@ -278,23 +281,23 @@ pub mod pallet {
 				relative_price,
 			});
 
-		Ok(())
-	}
+			Ok(())
+		}
 
-	pub fn do_remove_asset(location: Location) -> DispatchResult {
-		ensure!(
-			SupportedAssets::<T>::contains_key(&location),
-			Error::<T>::AssetNotFound
-		);
+		pub fn do_remove_asset(location: Location) -> DispatchResult {
+			ensure!(
+				SupportedAssets::<T>::contains_key(&location),
+				Error::<T>::AssetNotFound
+			);
 
-		SupportedAssets::<T>::remove(&location);
+			SupportedAssets::<T>::remove(&location);
 
-		Self::deposit_event(Event::SupportedAssetRemoved { location });
+			Self::deposit_event(Event::SupportedAssetRemoved { location });
 
-		Ok(())
-	}
+			Ok(())
+		}
 
-	pub fn get_asset_relative_price(location: &Location) -> Option<u128> {
+		pub fn get_asset_relative_price(location: &Location) -> Option<u128> {
 			if let Some((true, ratio)) = SupportedAssets::<T>::get(location) {
 				Some(ratio)
 			} else {
@@ -537,14 +540,15 @@ impl<T: Config> XcmFeeTrader for Pallet<T> {
 		// Convert xcm::latest::Location to xcm::v5::Location for internal computation
 		let asset_location_v5 = xcm::v5::Location::try_from(asset_location.clone())
 			.map_err(|_| DispatchError::Other("Failed to convert location"))?;
-		
+
 		// Use the weight-trader's compute logic
-		let amount = Trader::<T>::compute_amount_to_charge(&weight, &asset_location_v5)
-			.map_err(|e| match e {
+		let amount = Trader::<T>::compute_amount_to_charge(&weight, &asset_location_v5).map_err(
+			|e| match e {
 				XcmError::AssetNotFound => DispatchError::Other("Asset not found"),
 				XcmError::Overflow => DispatchError::Other("Overflow"),
 				_ => DispatchError::Other("Unable to compute fee"),
-			})?;
+			},
+		)?;
 
 		// Note: Reserve validation is done at the pallet-xcm-transactor level,
 		// as it requires access to the ReserveProvider which is configured there.
@@ -556,7 +560,7 @@ impl<T: Config> XcmFeeTrader for Pallet<T> {
 	fn get_asset_price(asset_location: &xcm::latest::Location) -> Option<u128> {
 		// Convert xcm::latest::Location to xcm::v5::Location for storage lookup
 		let asset_location_v5 = xcm::v5::Location::try_from(asset_location.clone()).ok()?;
-		
+
 		// Return the relative_price if the asset is enabled
 		if let Some((true, relative_price)) = SupportedAssets::<T>::get(&asset_location_v5) {
 			Some(relative_price)

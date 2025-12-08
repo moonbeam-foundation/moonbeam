@@ -109,10 +109,13 @@ fn set_fee_per_second_for_location(location: Location, fee_per_second: u128) -> 
 	} else {
 		0u128
 	};
-	if pallet_xcm_weight_trader::SupportedAssets::<moonriver_runtime::Runtime>::contains_key(&location) {
-		let enabled = pallet_xcm_weight_trader::SupportedAssets::<moonriver_runtime::Runtime>::get(&location)
-			.ok_or(())?
-			.0;
+	if pallet_xcm_weight_trader::SupportedAssets::<moonriver_runtime::Runtime>::contains_key(
+		&location,
+	) {
+		let enabled =
+			pallet_xcm_weight_trader::SupportedAssets::<moonriver_runtime::Runtime>::get(&location)
+				.ok_or(())?
+				.0;
 		pallet_xcm_weight_trader::SupportedAssets::<moonriver_runtime::Runtime>::insert(
 			&location,
 			(enabled, relative_price),

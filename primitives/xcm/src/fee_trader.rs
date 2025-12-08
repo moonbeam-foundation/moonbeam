@@ -38,4 +38,3 @@ pub trait XcmFeeTrader {
 	/// Returns None if the asset is not configured.
 	fn get_asset_price(asset_location: &Location) -> Option<u128>;
 }
-

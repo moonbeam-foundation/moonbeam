@@ -18,24 +18,26 @@
 
 use super::*;
 use crate as pallet_xcm_transactor;
-use xcm_primitives::XcmFeeTrader;
 use cumulus_primitives_core::Assets;
 use frame_support::traits::PalletInfo as PalletInfoTrait;
 use frame_support::{
-	construct_runtime, dispatch::GetDispatchInfo, parameter_types,
+	construct_runtime,
+	dispatch::GetDispatchInfo,
+	parameter_types,
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 };
-use sp_runtime::DispatchError;
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
+use sp_runtime::DispatchError;
+use xcm_primitives::XcmFeeTrader;
 
 use sp_core::{H160, H256};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
 use xcm::latest::{
-	opaque, Asset, Error as XcmError, Instruction, InstructionError,
-	InteriorLocation, Junction::{AccountKey20, GlobalConsensus, PalletInstance, Parachain},
+	opaque, Asset, Error as XcmError, Instruction, InstructionError, InteriorLocation,
+	Junction::{AccountKey20, GlobalConsensus, PalletInstance, Parachain},
 	Location, NetworkId, Result as XcmResult, SendError, SendResult, SendXcm, Xcm, XcmContext,
 	XcmHash,
 };

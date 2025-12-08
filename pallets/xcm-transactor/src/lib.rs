@@ -1206,7 +1206,6 @@ pub mod pallet {
 			Ok(SetAppendix(Xcm(instructions)))
 		}
 
-
 		/// Returns weight of `weight_of_initiate_reserve_withdraw` call.
 		fn weight_of_initiate_reserve_withdraw() -> Weight {
 			let dest = Location::parent();
@@ -1231,7 +1230,6 @@ pub mod pallet {
 			T::Weigher::weight(&mut xcm.into(), Weight::MAX)
 				.map_or(Weight::MAX, |w| T::BaseXcmWeight::get().saturating_add(w))
 		}
-
 
 		/// Returns the weight information for a destination from storage
 		/// it returns the weight to be used in non-signed cases

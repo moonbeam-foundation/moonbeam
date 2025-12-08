@@ -104,9 +104,10 @@ fn set_fee_per_second_for_location(location: Location, fee_per_second: u128) -> 
 		0u128
 	};
 	if pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::contains_key(&location) {
-		let enabled = pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::get(&location)
-			.ok_or(())?
-			.0;
+		let enabled =
+			pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::get(&location)
+				.ok_or(())?
+				.0;
 		pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::insert(
 			&location,
 			(enabled, relative_price),
@@ -4565,8 +4566,11 @@ fn transact_through_signed_multilocation_para_to_para() {
 		));
 		// Root can set transact info
 		// Set fee per second using weight-trader (replaces old set_fee_per_second)
-		set_fee_per_second_for_location(para_b_balances.clone(), parachain::ParaTokensPerSecond::get())
-			.expect("must succeed");
+		set_fee_per_second_for_location(
+			para_b_balances.clone(),
+			parachain::ParaTokensPerSecond::get(),
+		)
+		.expect("must succeed");
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
@@ -4661,8 +4665,11 @@ fn transact_through_signed_multilocation_para_to_para_refund() {
 
 	ParaA::execute_with(|| {
 		// Set fee per second using weight-trader (replaces old set_fee_per_second)
-		set_fee_per_second_for_location(para_b_balances.clone(), parachain::ParaTokensPerSecond::get())
-			.expect("must succeed");
+		set_fee_per_second_for_location(
+			para_b_balances.clone(),
+			parachain::ParaTokensPerSecond::get(),
+		)
+		.expect("must succeed");
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
@@ -4771,8 +4778,11 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 		));
 		// Root can set transact info
 		// Set fee per second using weight-trader (replaces old set_fee_per_second)
-		set_fee_per_second_for_location(para_b_balances.clone(), parachain::ParaTokensPerSecond::get())
-			.expect("must succeed");
+		set_fee_per_second_for_location(
+			para_b_balances.clone(),
+			parachain::ParaTokensPerSecond::get(),
+		)
+		.expect("must succeed");
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
@@ -4896,8 +4906,11 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 		));
 		// Root can set transact info
 		// Set fee per second using weight-trader (replaces old set_fee_per_second)
-		set_fee_per_second_for_location(para_b_balances.clone(), parachain::ParaTokensPerSecond::get())
-			.expect("must succeed");
+		set_fee_per_second_for_location(
+			para_b_balances.clone(),
+			parachain::ParaTokensPerSecond::get(),
+		)
+		.expect("must succeed");
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 
@@ -5017,8 +5030,11 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 		));
 		// Root can set transact info
 		// Set fee per second using weight-trader (replaces old set_fee_per_second)
-		set_fee_per_second_for_location(para_b_balances.clone(), parachain::ParaTokensPerSecond::get())
-			.expect("must succeed");
+		set_fee_per_second_for_location(
+			para_b_balances.clone(),
+			parachain::ParaTokensPerSecond::get(),
+		)
+		.expect("must succeed");
 		ancestry = parachain::UniversalLocation::get().into();
 	});
 

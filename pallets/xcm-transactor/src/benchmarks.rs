@@ -16,7 +16,10 @@
 
 #![cfg(feature = "runtime-benchmarks")]
 
-use crate::{Call, Config, Currency, CurrencyPayment, FeeTraderSetter, HrmpOperation, Pallet, TransactWeights};
+use crate::{
+	Call, Config, Currency, CurrencyPayment, FeeTraderSetter, HrmpOperation, Pallet,
+	TransactWeights,
+};
 use frame_benchmarking::v2::*;
 use frame_support::weights::Weight;
 use frame_system::RawOrigin;

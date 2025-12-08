@@ -94,7 +94,10 @@ const BASE_FEE_GENISIS: u128 = 10 * GIGAWEI / 4;
 
 /// Helper function to set fee per second for an asset location (for compatibility with old tests).
 /// Converts fee_per_second to relative_price and adds/edits the asset in the weight-trader.
-fn set_fee_per_second_for_location(location: xcm::latest::prelude::Location, fee_per_second: u128) -> Result<(), ()> {
+fn set_fee_per_second_for_location(
+	location: xcm::latest::prelude::Location,
+	fee_per_second: u128,
+) -> Result<(), ()> {
 	use frame_support::weights::WeightToFee as _;
 	let native_amount_per_second: u128 =
 		<moonbase_runtime::Runtime as pallet_xcm_weight_trader::Config>::WeightToFee::weight_to_fee(
@@ -110,10 +113,13 @@ fn set_fee_per_second_for_location(location: xcm::latest::prelude::Location, fee
 	} else {
 		0u128
 	};
-	if pallet_xcm_weight_trader::SupportedAssets::<moonbase_runtime::Runtime>::contains_key(&location) {
-		let enabled = pallet_xcm_weight_trader::SupportedAssets::<moonbase_runtime::Runtime>::get(&location)
-			.ok_or(())?
-			.0;
+	if pallet_xcm_weight_trader::SupportedAssets::<moonbase_runtime::Runtime>::contains_key(
+		&location,
+	) {
+		let enabled =
+			pallet_xcm_weight_trader::SupportedAssets::<moonbase_runtime::Runtime>::get(&location)
+				.ok_or(())?
+				.0;
 		pallet_xcm_weight_trader::SupportedAssets::<moonbase_runtime::Runtime>::insert(
 			&location,
 			(enabled, relative_price),
@@ -1741,7 +1747,8 @@ fn transactor_cannot_use_more_than_max_weight() {
 				None
 			));
 			// Set fee per second using weight-trader (replaces old set_fee_per_second)
-			set_fee_per_second_for_location(xcm::latest::prelude::Location::parent(), 1).expect("must succeed");
+			set_fee_per_second_for_location(xcm::latest::prelude::Location::parent(), 1)
+				.expect("must succeed");
 
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
@@ -1851,7 +1858,8 @@ fn transact_through_signed_precompile_works_v1() {
 				Some(4000.into())
 			));
 			// Set fee per second using weight-trader (replaces old set_fee_per_second)
-			set_fee_per_second_for_location(xcm::latest::prelude::Location::parent(), 1).expect("must succeed");
+			set_fee_per_second_for_location(xcm::latest::prelude::Location::parent(), 1)
+				.expect("must succeed");
 
 			Precompiles::new()
 				.prepare_test(

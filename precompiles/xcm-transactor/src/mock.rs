@@ -27,9 +27,6 @@ use pallet_evm::{
 	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, GasWeightMapping,
 };
 use pallet_xcm_transactor::RelayIndices;
-use sp_runtime::DispatchError;
-use xcm_primitives::XcmFeeTrader;
-use sp_std::cell::RefCell;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 use precompile_utils::{
 	mock_account,
@@ -40,6 +37,8 @@ use scale_info::TypeInfo;
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::BuildStorage;
+use sp_runtime::DispatchError;
+use sp_std::cell::RefCell;
 use xcm::latest::{prelude::*, Error as XcmError};
 use xcm_builder::FixedWeightBounds;
 use xcm_executor::{
@@ -47,6 +46,7 @@ use xcm_executor::{
 	AssetsInHolding,
 };
 use xcm_primitives::AccountIdToCurrencyId;
+use xcm_primitives::XcmFeeTrader;
 
 pub type AccountId = MockAccount;
 pub type Balance = u128;
@@ -350,9 +350,9 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = frame_system::EnsureRoot<AccountId>;
 	type HrmpOpenOrigin = frame_system::EnsureRoot<AccountId>;
-		type MaxHrmpFee = ();
-		type FeeTrader = MockFeeTrader;
-	}
+	type MaxHrmpFee = ();
+	type FeeTrader = MockFeeTrader;
+}
 
 /// Mock fee trader for tests that stores fee-per-second values in memory
 pub struct MockFeeTrader;

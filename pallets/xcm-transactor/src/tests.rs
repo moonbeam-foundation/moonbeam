@@ -165,7 +165,10 @@ fn test_transact_through_derivative_errors() {
 			);
 
 			// Set fee per second using FeeTrader
-			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// Cannot exceed the max weight
 			assert_noop!(
@@ -329,7 +332,10 @@ fn test_transact_through_derivative_multilocation_success() {
 			));
 
 			// Set fee per second using FeeTrader
-			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative(
@@ -396,7 +402,10 @@ fn test_transact_through_derivative_success() {
 			));
 
 			// Set fee per second using FeeTrader
-			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative(
@@ -495,7 +504,10 @@ fn test_root_can_transact_through_sovereign() {
 			));
 
 			// Set fee per second using FeeTrader
-			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_sovereign(
@@ -796,7 +808,10 @@ fn test_transact_through_signed_works() {
 			));
 
 			// Set fee per second using FeeTrader
-			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// transact info and fee per second set
 			// this time it should work
@@ -1515,7 +1530,10 @@ fn test_transact_through_derivative_with_refund_works() {
 			));
 
 			// Set fee per second using FeeTrader
-			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative(
@@ -1594,7 +1612,10 @@ fn test_transact_through_derivative_with_refund_fails_overall_weight_not_set() {
 			));
 
 			// Set fee per second using FeeTrader
-			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// fee as destination are the same, this time it should work
 			assert_noop!(
@@ -1625,7 +1646,10 @@ fn test_transact_through_signed_with_refund_works() {
 		.build()
 		.execute_with(|| {
 			// Set fee per second using FeeTrader
-			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(Location::parent(), 1));
+			assert_ok!(<Test as Config>::FeeTraderSetter::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// Overall weight to use
 			let total_weight: Weight = 10_100u64.into();
