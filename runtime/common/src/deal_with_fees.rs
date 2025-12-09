@@ -24,19 +24,30 @@ use frame_support::traits::{Get, Imbalance};
 use frame_support::weights::ConstantMultiplier;
 use moonbeam_core_primitives::Balance;
 use pallet_treasury::TreasuryAccountId;
-use sp_runtime::Perbill;
+use sp_runtime::{Perbill, SaturatedConversion, Saturating};
 
 /// Type alias for converting reference time weight to fee using a constant multiplier.
 ///
 /// This maps computational weight (ref_time) to a fee amount by multiplying
 /// the weight by a constant factor `M`.
-pub type RefTimeToFee<T, M> = ConstantMultiplier<T, M>;
+pub type RefTimeToFee<M> = ConstantMultiplier<Balance, M>;
 
 /// Type alias for converting proof size weight to fee using a constant multiplier.
 ///
 /// This maps the proof size (PoV size) component of weight to a fee amount
 /// by multiplying by a constant factor `M`.
-pub type ProofSizeToFee<T, M> = ConstantMultiplier<T, M>;
+pub struct ProofSizeToFee<M>(PhantomData<M>);
+
+impl<M> frame_support::weights::WeightToFee for ProofSizeToFee<M>
+where
+	M: Get<Balance>,
+{
+	type Balance = Balance;
+
+	fn weight_to_fee(weight: &Weight) -> Self::Balance {
+		Self::Balance::saturated_from(weight.proof_size()).saturating_mul(M::get())
+	}
+}
 
 /// Combines reference time and proof size fees, charging by the more scarce resource.
 ///

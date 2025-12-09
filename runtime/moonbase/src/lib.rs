@@ -390,9 +390,8 @@ impl pallet_transaction_payment::Config for Runtime {
 	>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = WeightToFee<
-		RefTimeToFee<Balance, ConstU128<{ currency::WEIGHT_FEE }>>,
+		RefTimeToFee<ConstU128<{ currency::WEIGHT_FEE }>>,
 		ProofSizeToFee<
-			Balance,
 			ConstU128<
 				{ currency::WEIGHT_FEE.saturating_mul(GasLimitPovSizeRatio::get() as Balance) },
 			>,
