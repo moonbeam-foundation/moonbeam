@@ -19,12 +19,12 @@ use cumulus_primitives_core::Weight;
 use frame_support::pallet_prelude::TypedGet;
 use frame_support::traits::fungible::Credit;
 use frame_support::traits::tokens::imbalance::ResolveTo;
-use frame_support::traits::{Get, Imbalance};
 use frame_support::traits::OnUnbalanced;
+use frame_support::traits::{Get, Imbalance};
 use frame_support::weights::ConstantMultiplier;
+use moonbeam_core_primitives::Balance;
 use pallet_treasury::TreasuryAccountId;
 use sp_runtime::Perbill;
-use moonbeam_core_primitives::Balance;
 
 /// Type alias for converting reference time weight to fee using a constant multiplier.
 ///
@@ -46,15 +46,15 @@ pub type ProofSizeToFee<T, M> = ConstantMultiplier<T, M>;
 /// more of relative to block limits.
 pub struct WeightToFee<RefTimeToFee, ProofSizeToFee>(PhantomData<(RefTimeToFee, ProofSizeToFee)>);
 impl<
-	RefTimeToFee: frame_support::weights::WeightToFee<Balance = Balance>,
-	ProofSizeToFee: frame_support::weights::WeightToFee<Balance = Balance>,
-> frame_support::weights::WeightToFee for WeightToFee<RefTimeToFee, ProofSizeToFee> {
+		RefTimeToFee: frame_support::weights::WeightToFee<Balance = Balance>,
+		ProofSizeToFee: frame_support::weights::WeightToFee<Balance = Balance>,
+	> frame_support::weights::WeightToFee for WeightToFee<RefTimeToFee, ProofSizeToFee>
+{
 	type Balance = Balance;
 
 	fn weight_to_fee(weight: &Weight) -> Self::Balance {
 		// Take the maximum instead of the sum to charge by the more scarce resource.
-		RefTimeToFee::weight_to_fee(weight)
-			.max(ProofSizeToFee::weight_to_fee(weight))
+		RefTimeToFee::weight_to_fee(weight).max(ProofSizeToFee::weight_to_fee(weight))
 	}
 }
 

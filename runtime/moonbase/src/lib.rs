@@ -391,7 +391,12 @@ impl pallet_transaction_payment::Config for Runtime {
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = WeightToFee<
 		RefTimeToFee<Balance, ConstU128<{ currency::WEIGHT_FEE }>>,
-		ProofSizeToFee<Balance, ConstU128<{ currency::WEIGHT_FEE.saturating_mul(GasLimitPovSizeRatio::get() as Balance) }>>,
+		ProofSizeToFee<
+			Balance,
+			ConstU128<
+				{ currency::WEIGHT_FEE.saturating_mul(GasLimitPovSizeRatio::get() as Balance) },
+			>,
+		>,
 	>;
 	type LengthToFee = LengthToFee;
 	type FeeMultiplierUpdate = FastAdjustingFeeUpdate<Runtime>;
@@ -1523,7 +1528,10 @@ pub type Executive = frame_executive::Executive<
 
 #[cfg(feature = "runtime-benchmarks")]
 use moonbeam_runtime_common::benchmarking::BenchmarkHelper;
-use moonbeam_runtime_common::deal_with_fees::{DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip, ProofSizeToFee, RefTimeToFee, WeightToFee};
+use moonbeam_runtime_common::deal_with_fees::{
+	DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
+	ProofSizeToFee, RefTimeToFee, WeightToFee,
+};
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
