@@ -19,7 +19,7 @@ const SELECTORS = {
 };
 
 describeSuite({
-  id: "D010304",
+  id: "D010404",
   title: "Precompile Author Mapping - Remove Faith keys",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

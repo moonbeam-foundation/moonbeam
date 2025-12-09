@@ -2435,7 +2435,7 @@ declare module "@polkadot/api-base/types/submittable" {
       /**
        * Request bond less for delegators wrt a specific collator candidate. The delegation's
        * rewards for rounds while the request is pending use the reduced bonded amount.
-       * A bond less may not be performed if any other scheduled request is pending.
+       * A bond less may not be performed if a revoke request is pending for the same delegation.
        **/
       scheduleDelegatorBondLess: AugmentedSubmittable<
         (

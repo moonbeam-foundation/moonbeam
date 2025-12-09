@@ -4,7 +4,7 @@ import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
 import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
 
 describeSuite({
-  id: "D023452",
+  id: "D023352",
   title: "Staking - Rewards Auto-Compound - no auto-compound config",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

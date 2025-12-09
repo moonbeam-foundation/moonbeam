@@ -39,7 +39,7 @@ async function createBlockWithMockedHrmpChannel(context, paraId: number, rawTxs:
 }
 
 describeSuite({
-  id: "D022847",
+  id: "D022737",
   title: "Precompiles - PalletXcm",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

@@ -12,7 +12,7 @@ import { type TransactionReceipt, decodeEventLog } from "viem";
 import { setupLotteryWithParticipants } from "../../../../helpers";
 
 describeSuite({
-  id: "D023115",
+  id: "D023015",
   title: "Randomness VRF - Fulfilling Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -48,7 +48,7 @@ describeSuite({
         args: [0],
       });
 
-      expect(estimatedGas).to.be.equal(158559n);
+      expect(estimatedGas).to.be.equal(162997n);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",

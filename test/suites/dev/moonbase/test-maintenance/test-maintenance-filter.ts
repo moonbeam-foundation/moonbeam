@@ -22,7 +22,7 @@ import {
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
 describeSuite({
-  id: "D022001",
+  id: "D021901",
   title: "Maintenance Mode - Filter",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
@@ -136,19 +136,7 @@ describeSuite({
                 account: ALITH_ADDRESS,
               })
             )
-        ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          [ContractFunctionExecutionError: The contract function "transfer" reverted with the following reason:
-          no signer available
-
-          Contract Call:
-            address:   0xffffffff1fcacbd218edc0eba20fc2308c778080
-            function:  transfer(address to, uint256 amount)
-            args:              (0x3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0, 1000)
-            sender:    0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac
-
-          Docs: https://viem.sh/docs/contract/writeContract
-          Version: viem@2.37.13]
-        `);
+        ).rejects.toThrowError("no signer available");
       },
     });
 

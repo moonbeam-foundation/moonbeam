@@ -16,7 +16,7 @@ import { parseEther } from "ethers";
 import type { DispatchError } from "@polkadot/types/interfaces";
 
 describeSuite({
-  id: "D024016",
+  id: "D023916",
   title: "XCM - DryRunApi",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

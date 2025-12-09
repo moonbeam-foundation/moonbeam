@@ -4,7 +4,7 @@ import { GLMR } from "@moonwall/util";
 import { expectEVMResult, setupLotteryWithParticipants } from "../../../../helpers";
 
 describeSuite({
-  id: "D023114",
+  id: "D023014",
   title: "Randomness VRF - Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -20,7 +20,7 @@ describeSuite({
         value: 1n * GLMR,
       });
       log("Estimated Gas for startLottery", estimatedGas);
-      expect(estimatedGas).to.equal(111495n);
+      expect(estimatedGas).to.equal(111850n);
 
       await context.writeContract!({
         contractAddress: lotteryContract,
@@ -47,7 +47,7 @@ describeSuite({
           args: [0],
         });
         log("Estimated Gas for startLottery", estimatedGas);
-        expect(estimatedGas).to.equal(158559n);
+        expect(estimatedGas).to.equal(162997n);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Randomness",

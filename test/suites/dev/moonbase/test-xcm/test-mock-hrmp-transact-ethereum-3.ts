@@ -21,7 +21,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D024015",
+  id: "D023915",
   title: "Mock XCM - receive horizontal transact ETHEREUM (asset fee)",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

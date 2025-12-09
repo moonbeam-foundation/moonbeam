@@ -1,10 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import {
+  beforeAll,
+  customDevRpcRequest,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
-import type { Abi } from "viem";
+import { type Abi, encodeFunctionData } from "viem";
 
 describeSuite({
-  id: "D021804",
+  id: "D021704",
   title: "Estimate Gas - Multiply",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
@@ -102,18 +108,22 @@ describeSuite({
       id: "T05",
       title: "should not work with a lower gas limit",
       test: async function () {
+        // Use raw RPC call to properly test gas limit enforcement
+        // viem's estimateContractGas ignores the gas limit parameter in newer versions
         await expect(
           async () =>
-            await context.viem().estimateContractGas({
-              account: "0x0000000000000000000000000000000000000000",
-              abi: multiAbi,
-              address: multiAddress,
-              functionName: "multiply",
-              maxPriorityFeePerGas: 0n,
-              args: [3],
-              gas: 21000n,
-              value: 0n,
-            })
+            await customDevRpcRequest("eth_estimateGas", [
+              {
+                from: "0x0000000000000000000000000000000000000000",
+                to: multiAddress,
+                data: encodeFunctionData({
+                  abi: multiAbi,
+                  functionName: "multiply",
+                  args: [3],
+                }),
+                gas: "0x5208", // 21000 in hex
+              },
+            ])
         ).rejects.toThrowError("gas required exceeds allowance 21000");
       },
     });

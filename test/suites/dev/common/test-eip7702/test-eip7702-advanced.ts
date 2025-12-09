@@ -6,7 +6,7 @@ import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
-  id: "D020802",
+  id: "D010302",
   title: "EIP-7702 Advanced Pointer and Context Tests",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {

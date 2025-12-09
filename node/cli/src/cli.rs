@@ -22,7 +22,7 @@
 use clap::Parser;
 use moonbeam_cli_opt::{
 	account_key::{GenerateAccountKey, Network},
-	EthApi, FrontierBackendType, Sealing,
+	AuthoringPolicy, EthApi, FrontierBackendType, NodeExtraArgs, Sealing,
 };
 use moonbeam_service::chain_spec;
 use sc_cli::{Error as CliError, SubstrateCli};
@@ -347,7 +347,18 @@ pub struct RunCmd {
 		default_value = "50",
 		default_value_if("nimbus_full_pov", "true", "100")
 	)]
-	pub max_pov_percentage: u8,
+	pub max_pov_percentage: u32,
+
+	/// Authoring style to use.
+	#[arg(long, default_value_t = AuthoringPolicy::Lookahead)]
+	pub authoring: AuthoringPolicy,
+
+	/// Export all `PoVs` build by this collator to the given folder.
+	///
+	/// This is useful for debugging issues that are occurring while validating these `PoVs` on the
+	/// relay chain.
+	#[arg(long)]
+	pub export_pov_to_path: Option<PathBuf>,
 }
 
 fn block_authoring_duration_parser(s: &str) -> Result<Duration, String> {
@@ -452,6 +463,17 @@ pub struct Cli {
 	/// Relaychain arguments
 	#[clap(raw = true)]
 	pub relaychain_args: Vec<String>,
+}
+
+impl Cli {
+	pub(crate) fn node_extra_args(&self) -> NodeExtraArgs {
+		NodeExtraArgs {
+			authoring_policy: self.run.authoring,
+			export_pov: self.run.export_pov_to_path.clone(),
+			max_pov_percentage: Some(self.run.max_pov_percentage),
+			legacy_block_import_strategy: self.run.legacy_block_import_strategy,
+		}
+	}
 }
 
 #[derive(Debug)]

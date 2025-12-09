@@ -8,7 +8,7 @@ import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
-  id: "D020805",
+  id: "D010306",
   title: "EIP-7702 Invalid Transaction Handling",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
