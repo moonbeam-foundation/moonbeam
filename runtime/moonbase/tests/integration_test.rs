@@ -1868,7 +1868,7 @@ fn transact_through_signed_precompile_works_v1() {
 				xcm::latest::prelude::Location::parent(),
 				100_000_000, // any value >= WEIGHT_REF_TIME_PER_SECOND / 15_000 works
 			)
-				.expect("must succeed");
+			.expect("must succeed");
 
 			Precompiles::new()
 				.prepare_test(

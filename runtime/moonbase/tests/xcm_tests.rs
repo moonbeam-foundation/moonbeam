@@ -87,14 +87,13 @@ fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128)
 /// Helper function to set fee per second for an asset location (for compatibility with old tests).
 /// Converts fee_per_second to relative_price and adds/edits the asset in the weight-trader.
 fn set_fee_per_second_for_location(location: Location, fee_per_second: u128) -> Result<(), ()> {
-	use xcm_primitives::XcmFeeTrader;
 	use moonbeam_tests_primitives::MemoryFeeTrader;
+	use xcm_primitives::XcmFeeTrader;
 
 	// In tests, we configure fees for XcmTransactor via the in-memory fee trader
 	// instead of pallet-xcm-weight-trader, so that generic XCM funding transfers
 	// remain free (as on master) and only the transactor calls are charged.
-	<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(location, fee_per_second)
-		.map_err(|_| ())
+	<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(location, fee_per_second).map_err(|_| ())
 }
 
 fn currency_to_asset(currency_id: parachain::CurrencyId, amount: u128) -> Asset {
