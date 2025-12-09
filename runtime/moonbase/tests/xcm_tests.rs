@@ -87,40 +87,14 @@ fn add_supported_asset(asset_type: parachain::AssetType, units_per_second: u128)
 /// Helper function to set fee per second for an asset location (for compatibility with old tests).
 /// Converts fee_per_second to relative_price and adds/edits the asset in the weight-trader.
 fn set_fee_per_second_for_location(location: Location, fee_per_second: u128) -> Result<(), ()> {
-	use frame_support::weights::WeightToFee as _;
-	let native_amount_per_second: u128 =
-		<parachain::Runtime as pallet_xcm_weight_trader::Config>::WeightToFee::weight_to_fee(
-			&Weight::from_parts(
-				frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND,
-				0,
-			),
-		)
-		.try_into()
-		.map_err(|_| ())?;
-	let precision_factor = 10u128.pow(pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS);
-	let relative_price: u128 = if fee_per_second > 0u128 {
-		native_amount_per_second
-			.saturating_mul(precision_factor)
-			.saturating_div(fee_per_second)
-	} else {
-		0u128
-	};
-	if pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::contains_key(&location) {
-		let enabled =
-			pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::get(&location)
-				.ok_or(())?
-				.0;
-		pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::insert(
-			&location,
-			(enabled, relative_price),
-		);
-	} else {
-		pallet_xcm_weight_trader::SupportedAssets::<parachain::Runtime>::insert(
-			&location,
-			(true, relative_price),
-		);
-	}
-	Ok(())
+	use xcm_primitives::XcmFeeTrader;
+	use moonbeam_tests_primitives::MemoryFeeTrader;
+
+	// In tests, we configure fees for XcmTransactor via the in-memory fee trader
+	// instead of pallet-xcm-weight-trader, so that generic XCM funding transfers
+	// remain free (as on master) and only the transactor calls are charged.
+	<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(location, fee_per_second)
+		.map_err(|_| ())
 }
 
 fn currency_to_asset(currency_id: parachain::CurrencyId, amount: u128) -> Asset {

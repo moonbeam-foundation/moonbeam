@@ -63,7 +63,6 @@ impl XcmFeeTrader for MemoryFeeTrader {
 		FEE_PER_SECOND.with(|map| map.borrow().get(asset_location).copied())
 	}
 
-	#[cfg(feature = "runtime-benchmarks")]
 	fn set_asset_price(asset_location: Location, value: u128) -> Result<(), DispatchError> {
 		FEE_PER_SECOND.with(|map| {
 			map.borrow_mut().insert(asset_location, value);
@@ -71,7 +70,6 @@ impl XcmFeeTrader for MemoryFeeTrader {
 		Ok(())
 	}
 
-	#[cfg(feature = "runtime-benchmarks")]
 	fn remove_asset(asset_location: Location) -> Result<(), DispatchError> {
 		FEE_PER_SECOND.with(|map| {
 			map.borrow_mut().remove(&asset_location);
