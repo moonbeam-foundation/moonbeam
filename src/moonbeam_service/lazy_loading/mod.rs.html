@@ -16,8 +16,8 @@
 <a href=#16 id=16 data-nosnippet>16</a>
 <a href=#17 id=17 data-nosnippet>17</a></span><span class="kw">use </span><span class="kw">crate</span>::chain_spec::Extensions;
 <a href=#18 id=18 data-nosnippet>18</a><span class="kw">use crate</span>::{
-<a href=#19 id=19 data-nosnippet>19</a>	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
-<a href=#20 id=20 data-nosnippet>20</a>	ClientCustomizations, FrontierBlockImport, HostFunctions, MockTimestampInherentDataProvider,
+<a href=#19 id=19 data-nosnippet>19</a>	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, ClientCustomizations,
+<a href=#20 id=20 data-nosnippet>20</a>	FrontierBlockImport, HostFunctions, MockTimestampInherentDataProvider, MoonbeamBlockImport,
 <a href=#21 id=21 data-nosnippet>21</a>	PartialComponentsResult, PendingConsensusDataProvider, RuntimeApiCollection,
 <a href=#22 id=22 data-nosnippet>22</a>	RELAY_CHAIN_SLOT_DURATION_MILLIS, SOFT_DEADLINE_PERCENT, TIMESTAMP,
 <a href=#23 id=23 data-nosnippet>23</a>};
@@ -323,7 +323,7 @@
 <a href=#323 id=323 data-nosnippet>323</a>		<span class="bool-val">false</span>,
 <a href=#324 id=324 data-nosnippet>324</a>		<span class="bool-val">false</span>,
 <a href=#325 id=325 data-nosnippet>325</a>	)<span class="question-mark">?</span>;
-<a href=#326 id=326 data-nosnippet>326</a>	<span class="kw">let </span>block_import = BlockImportPipeline::Dev(frontier_block_import);
+<a href=#326 id=326 data-nosnippet>326</a>	<span class="kw">let </span>block_import = MoonbeamBlockImport::Dev(frontier_block_import);
 <a href=#327 id=327 data-nosnippet>327</a>
 <a href=#328 id=328 data-nosnippet>328</a>	<span class="prelude-val">Ok</span>(PartialComponents {
 <a href=#329 id=329 data-nosnippet>329</a>		backend,
@@ -420,7 +420,7 @@
 <a href=#420 id=420 data-nosnippet>420</a>	);
 <a href=#421 id=421 data-nosnippet>421</a>	tokio::time::sleep(Duration::from_secs(start_delay)).<span class="kw">await</span>;
 <a href=#422 id=422 data-nosnippet>422</a>
-<a href=#423 id=423 data-nosnippet>423</a>	<span class="kw">let </span>block_import = <span class="kw">if let </span>BlockImportPipeline::Dev(block_import) = block_import_pipeline {
+<a href=#423 id=423 data-nosnippet>423</a>	<span class="kw">let </span>block_import = <span class="kw">if let </span>MoonbeamBlockImport::Dev(block_import) = block_import_pipeline {
 <a href=#424 id=424 data-nosnippet>424</a>		block_import
 <a href=#425 id=425 data-nosnippet>425</a>	} <span class="kw">else </span>{
 <a href=#426 id=426 data-nosnippet>426</a>		<span class="kw">return </span><span class="prelude-val">Err</span>(ServiceError::Other(

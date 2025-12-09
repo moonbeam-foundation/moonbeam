@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["EthApi","FrontierBackendConfig","FrontierBackendType","Sealing"],"mod":["account_key"],"struct":["LazyLoadingConfig","RpcConfig"]};
+window.SIDEBAR_ITEMS = {"enum":["AuthoringPolicy","EthApi","FrontierBackendConfig","FrontierBackendType","Sealing"],"mod":["account_key"],"struct":["LazyLoadingConfig","NodeExtraArgs","RpcConfig"]};
