@@ -1857,8 +1857,17 @@ fn transact_through_signed_precompile_works_v1() {
 				Weight::from_parts(200_000, (xcm_primitives::DEFAULT_PROOF_SIZE) + 4000),
 				Some(4000.into())
 			));
-			// Set fee per second using weight-trader (replaces old set_fee_per_second)
-			set_fee_per_second_for_location(xcm::latest::prelude::Location::parent(), 1)
+
+			// Set fee per second using weight-trader (replaces old set_fee_per_second).
+			// With the new FeeTrader semantics, very small `fee_per_second` values combined
+			// with small weights can legitimately produce a zero fee, which the relay-chain
+			// XCM barrier rejects. To keep the v1 precompile test meaningful while adapting
+			// to the new semantics, we choose a `fee_per_second` large enough that the
+			// computed fee for this test's weight (15_000) is at least 1 unit.
+			set_fee_per_second_for_location(
+				xcm::latest::prelude::Location::parent(),
+				100_000_000, // any value >= WEIGHT_REF_TIME_PER_SECOND / 15_000 works
+			)
 				.expect("must succeed");
 
 			Precompiles::new()
