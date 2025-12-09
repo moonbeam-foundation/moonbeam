@@ -569,7 +569,6 @@ impl<T: Config> XcmFeeTrader for Pallet<T> {
 		}
 	}
 
-	#[cfg(any(test, feature = "runtime-benchmarks"))]
 	fn set_asset_price(
 		asset_location: xcm::latest::Location,
 		value: u128,
@@ -582,7 +581,6 @@ impl<T: Config> XcmFeeTrader for Pallet<T> {
 		Ok(())
 	}
 
-	#[cfg(any(test, feature = "runtime-benchmarks"))]
 	fn remove_asset(asset_location: xcm::latest::Location) -> Result<(), DispatchError> {
 		// Convert latest location into v5 for internal storage
 		let asset_location_v5 = xcm::v5::Location::try_from(asset_location)
