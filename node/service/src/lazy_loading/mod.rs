@@ -16,8 +16,8 @@
 
 use crate::chain_spec::Extensions;
 use crate::{
-	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, BlockImportPipeline,
-	ClientCustomizations, FrontierBlockImport, HostFunctions, MockTimestampInherentDataProvider,
+	lazy_loading, open_frontier_backend, rpc, set_prometheus_registry, ClientCustomizations,
+	FrontierBlockImport, HostFunctions, MockTimestampInherentDataProvider, MoonbeamBlockImport,
 	PartialComponentsResult, PendingConsensusDataProvider, RuntimeApiCollection,
 	RELAY_CHAIN_SLOT_DURATION_MILLIS, SOFT_DEADLINE_PERCENT, TIMESTAMP,
 };
@@ -323,7 +323,7 @@ where
 		false,
 		false,
 	)?;
-	let block_import = BlockImportPipeline::Dev(frontier_block_import);
+	let block_import = MoonbeamBlockImport::Dev(frontier_block_import);
 
 	Ok(PartialComponents {
 		backend,
@@ -420,7 +420,7 @@ where
 	);
 	tokio::time::sleep(Duration::from_secs(start_delay)).await;
 
-	let block_import = if let BlockImportPipeline::Dev(block_import) = block_import_pipeline {
+	let block_import = if let MoonbeamBlockImport::Dev(block_import) = block_import_pipeline {
 		block_import
 	} else {
 		return Err(ServiceError::Other(
