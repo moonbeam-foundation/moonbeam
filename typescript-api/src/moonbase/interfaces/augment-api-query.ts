@@ -979,13 +979,31 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, [u32]>;
       /**
-       * Stores outstanding delegation requests per collator.
+       * Stores outstanding delegation requests per collator & delegator.
+       *
+       * Each `(collator, delegator)` pair can have up to
+       * `T::MaxScheduledRequestsPerDelegator` scheduled requests,
+       * which are always interpreted and executed in FIFO order.
        **/
       delegationScheduledRequests: AugmentedQuery<
         ApiType,
         (
-          arg: AccountId20 | string | Uint8Array
+          arg1: AccountId20 | string | Uint8Array,
+          arg2: AccountId20 | string | Uint8Array
         ) => Observable<Vec<PalletParachainStakingDelegationRequestsScheduledRequest>>,
+        [AccountId20, AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20, AccountId20]>;
+      /**
+       * Tracks how many delegators have at least one pending delegation request for a given collator.
+       *
+       * This is used to enforce that the number of delegators with pending requests per collator
+       * does not exceed `MaxTopDelegationsPerCandidate + MaxBottomDelegationsPerCandidate` without
+       * having to iterate over all scheduled requests.
+       **/
+      delegationScheduledRequestsPerCollator: AugmentedQuery<
+        ApiType,
+        (arg: AccountId20 | string | Uint8Array) => Observable<u32>,
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
