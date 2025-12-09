@@ -26,8 +26,8 @@
     "@biomejs/biome": "^2.2.5",
     "@moonbeam-network/api-augment": "workspace:*",
     "@moonbeam-network/types-bundle": "workspace:*",
-    "@moonwall/cli": "5.16.3",
-    "@moonwall/util": "5.16.3",
+    "@moonwall/cli": "5.17.3",
+    "@moonwall/util": "5.17.3",
     "@openzeppelin/contracts": "5.4.0",
     "@polkadot-api/merkleize-metadata": "1.1.25",
     "@polkadot/api": "16.4.8",
@@ -56,7 +56,7 @@
     "semver": "7.7.2",
     "solc": "0.8.30",
     "tsx": "^4.20.6",
-    "viem": "2.38.0",
+    "viem": "2.41.2",
     "vitest": "3.2.4",
     "web3": "4.16.0",
     "yaml": "2.8.1"
@@ -75,6 +75,6 @@
   },
   "engines": {
     "pnpm": ">=8.6",
-    "node": ">=22.12.0"
+    "node": ">=22.13.0"
   }
 }
