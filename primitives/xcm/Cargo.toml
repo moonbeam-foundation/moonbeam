@@ -42,7 +42,14 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-builder/std",
-	"xcm/std"
+	"xcm/std",
+	"frame-support/std",
+	"frame-system/std",
+	"xcm-executor/std",
+	"ethereum-types/std",
+	"ethereum/std",
+	"log/std",
+	"scale-info/std"
 ]
 runtime-benchmarks = [
 	"xcm-builder/runtime-benchmarks",
@@ -50,4 +57,7 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"pallet-staking/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
+	"cumulus-primitives-core/runtime-benchmarks",
+	"xcm-executor/runtime-benchmarks",
+	"xcm/runtime-benchmarks"
 ]

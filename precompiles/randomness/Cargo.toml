@@ -54,4 +54,10 @@ std = [
 	"sp-core/std",
 	"sp-io/std",
 	"sp-std/std",
+	"pallet-author-mapping/std",
+	"session-keys-primitives/std",
+	"pallet-balances/std",
+	"pallet-timestamp/std",
+	"sp-runtime/std",
+	"scale-info/std"
 ]

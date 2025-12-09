@@ -44,28 +44,49 @@ sp-core = { workspace = true, features = ["std"] }
 [features]
 default = ["std"]
 std = [
-    "ethereum-types/std",
-    "frame-benchmarking/std",
-    "frame-support/std",
-    "frame-system/std",
-    "precompile-utils/std",
-    "precompile-utils/testing",
-    "pallet-evm/std",
-    "parity-scale-codec/std",
-    "scale-info/std",
-    "sp-io/std",
-    "sp-runtime/std",
-    "sp-std/std",
-    "xcm/std",
-    "xcm-executor/std",
-    "fp-evm/std",
-    "pallet-ethereum/std",
+	"ethereum-types/std",
+	"frame-benchmarking/std",
+	"frame-support/std",
+	"frame-system/std",
+	"precompile-utils/std",
+	"precompile-utils/testing",
+	"pallet-evm/std",
+	"parity-scale-codec/std",
+	"scale-info/std",
+	"sp-io/std",
+	"sp-runtime/std",
+	"sp-std/std",
+	"xcm/std",
+	"xcm-executor/std",
+	"fp-evm/std",
+	"pallet-ethereum/std",
+	"pallet-balances/std",
+	"pallet-timestamp/std",
+	"sp-core/std",
+	"hex/std",
+	"log/std",
+	"serde/std"
 ]
 
 runtime-benchmarks = [
-    "frame-benchmarking",
-    "frame-support/runtime-benchmarks",
-    "frame-system/runtime-benchmarks",
-    "pallet-ethereum/runtime-benchmarks",
+	"frame-benchmarking",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"pallet-ethereum/runtime-benchmarks",
+	"pallet-evm/runtime-benchmarks",
+	"frame-benchmarking/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"xcm-executor/runtime-benchmarks",
+	"xcm/runtime-benchmarks"
 ]
-try-runtime = ["frame-support/try-runtime"]
+try-runtime = [
+	"frame-support/try-runtime",
+	"pallet-ethereum/try-runtime",
+	"pallet-evm/try-runtime",
+	"frame-system/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"sp-runtime/try-runtime"
+]

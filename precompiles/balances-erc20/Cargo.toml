@@ -52,4 +52,9 @@ std = [
 	"sp-io/std",
 	"sp-std/std",
 	"account/std",
+	"pallet-timestamp/std",
+	"sp-runtime/std",
+	"libsecp256k1/std",
+	"scale-info/std",
+	"sha3/std"
 ]

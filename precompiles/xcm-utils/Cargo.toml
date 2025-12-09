@@ -65,8 +65,24 @@ std = [
 	"xcm-executor/std",
 	"xcm-primitives/std",
 	"pallet-xcm/std",
+	"fp-evm/std",
+	"cumulus-primitives-core/std",
+	"sp-runtime/std",
+	"sp-weights/std",
+	"xcm/std",
+	"scale-info/std"
 ]
 runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
+	"pallet-evm/runtime-benchmarks",
+	"cumulus-primitives-core/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-xcm/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"xcm-builder/runtime-benchmarks",
+	"xcm-executor/runtime-benchmarks",
+	"xcm/runtime-benchmarks",
+	"xcm-primitives/runtime-benchmarks"
 ]

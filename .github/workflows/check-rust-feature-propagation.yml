@@ -30,5 +30,7 @@ jobs:
           fetch-depth: 0
       - name: Check features
         run: |
-          cargo install --locked --version 0.13.2 -q -f zepter && zepter --version
+          # Install zepter
+          cargo install zepter -f --locked --version 0.13.2
+          # Run checks
           zepter run check
