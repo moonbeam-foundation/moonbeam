@@ -8,7 +8,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D023113",
+  id: "D023013",
   title: "Randomness VRF - Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

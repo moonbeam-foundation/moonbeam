@@ -4,7 +4,7 @@ import { GLMR } from "@moonwall/util";
 import { expectEVMResult, setupLotteryWithParticipants } from "../../../../helpers";
 
 describeSuite({
-  id: "D023112",
+  id: "D023012",
   title: "Randomness VRF - Starting the Lottery Demo",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

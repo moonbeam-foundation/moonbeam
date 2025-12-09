@@ -9,7 +9,7 @@ import {
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
-  id: "D010402",
+  id: "D010502",
   title: "Proxy: Balances",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

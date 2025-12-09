@@ -13,7 +13,7 @@ import {
 } from "../../../../helpers";
 
 describeSuite({
-  id: "D022878",
+  id: "D022768",
   title: "Precompiles - xcm transactor V3",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

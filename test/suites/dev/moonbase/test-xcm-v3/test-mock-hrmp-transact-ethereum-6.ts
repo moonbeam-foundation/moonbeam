@@ -12,7 +12,7 @@ import {
 import { ConstantStore } from "../../../../helpers/constants.js";
 
 describeSuite({
-  id: "D024112",
+  id: "D024012",
   title: "Mock XCM - receive horizontal transact ETHEREUM (proxy)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

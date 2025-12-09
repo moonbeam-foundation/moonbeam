@@ -6,7 +6,7 @@ import { hexToU8a } from "@polkadot/util";
 import { calculateEIP7623Gas } from "../../../../helpers/fees";
 
 describeSuite({
-  id: "D021607",
+  id: "D021507",
   title: "Substrate Length Fees - Ethereum txn Interaction",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {

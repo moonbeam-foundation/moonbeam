@@ -21,7 +21,7 @@ async function metadataHash(api: ApiPromise) {
 }
 
 describeSuite({
-  id: "D010501",
+  id: "D010601",
   title: "Test transaction with metadata hash",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
