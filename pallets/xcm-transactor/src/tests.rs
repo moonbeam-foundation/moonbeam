@@ -23,7 +23,8 @@ use sp_runtime::traits::Convert;
 use sp_runtime::DispatchError;
 use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
-use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall};
+use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmFeeTrader};
+
 #[test]
 fn test_register_address() {
 	ExtBuilder::default()

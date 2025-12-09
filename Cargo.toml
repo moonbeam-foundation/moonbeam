@@ -36,6 +36,7 @@ members = [
     "precompiles/xtokens",
     "precompiles/p256verify",
     "primitives/storage-proof",
+    "primitives/tests-primitives",
     "primitives/bridge/moonbeam",
     "primitives/bridge/moonriver",
     "runtime/moonbase",
@@ -108,6 +109,7 @@ pallet-proxy-genesis-companion = { path = "pallets/proxy-genesis-companion", def
 pallet-xcm-transactor = { path = "pallets/xcm-transactor", default-features = false }
 pallet-xcm-weight-trader = { path = "pallets/xcm-weight-trader", default-features = false }
 xcm-primitives = { path = "primitives/xcm", default-features = false }
+moonbeam-tests-primitives = { path = "primitives/tests-primitives", default-features = false }
 
 # Local bridge crates
 bp-moonbeam = { path = "primitives/bridge/moonbeam", default-features = false }

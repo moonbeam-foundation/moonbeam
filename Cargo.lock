@@ -7564,6 +7564,7 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
+ "moonbeam-tests-primitives",
  "nimbus-primitives",
  "num_enum 0.5.11",
  "pallet-assets",
@@ -7966,6 +7967,7 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
+ "moonbeam-tests-primitives",
  "nimbus-primitives",
  "num_enum 0.5.11",
  "pallet-assets",
@@ -8244,6 +8246,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-tests-primitives"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+ "xcm-primitives 0.1.1",
+]
+
+[[package]]
 name = "moonbeam-vrf"
 version = "0.1.0"
 dependencies = [
@@ -8303,6 +8316,7 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
+ "moonbeam-tests-primitives",
  "nimbus-primitives",
  "num_enum 0.5.11",
  "pallet-assets",
@@ -10031,6 +10045,7 @@ dependencies = [
  "frame-system",
  "hex",
  "log",
+ "moonbeam-tests-primitives",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
@@ -10226,6 +10241,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "moonbeam-tests-primitives",
  "pallet-balances",
  "pallet-evm",
  "pallet-message-queue",
@@ -10325,6 +10341,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "moonbeam-tests-primitives",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
@@ -10378,6 +10395,7 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
+ "moonbeam-tests-primitives",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
@@ -11439,6 +11457,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "moonbeam-tests-primitives",
  "pallet-balances",
  "pallet-timestamp",
  "parity-scale-codec",

@@ -33,6 +33,7 @@ pallet-xcm = { workspace = true }
 
 # Moonbeam
 precompile-utils = { workspace = true, features = ["testing"] }
+moonbeam-tests-primitives = { workspace = true }
 
 # Substrate
 pallet-balances = { workspace = true, features = ["std"] }

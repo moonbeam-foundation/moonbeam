@@ -23,6 +23,7 @@ use frame_system::RawOrigin;
 use sp_std::boxed::Box;
 use sp_std::vec;
 use xcm::latest::prelude::*;
+use xcm_primitives::XcmFeeTrader;
 
 /// Helper function to set up XCM router for benchmarks
 fn setup_xcm_router<T: Config>() {

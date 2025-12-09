@@ -19,10 +19,12 @@ use crate::mock::{
 };
 
 use frame_support::{assert_ok, weights::Weight};
+use moonbeam_tests_primitives::MemoryFeeTrader;
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::H160;
 use sp_std::boxed::Box;
 use xcm::latest::Location;
+use xcm_primitives::XcmFeeTrader;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -157,7 +159,10 @@ fn take_transact_info() {
 			));
 
 			// Set fee per second for test setup
-			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
@@ -192,7 +197,10 @@ fn take_transact_info_with_signed() {
 			));
 
 			// Set fee per second for test setup
-			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
@@ -219,7 +227,10 @@ fn take_fee_per_second() {
 				.execute_reverts(|output| output == b"Fee Per Second not set");
 
 			// Set fee per second for test setup
-			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
+				1
+			));
 			precompiles()
 				.prepare_test(Alice, TransactorV1, input)
 				.expect_cost(2)
@@ -337,7 +348,10 @@ fn take_transact_info_with_signed_v3() {
 			));
 
 			// Set fee per second for test setup
-			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			let expected_max_weight: Weight = 10_000u64.into();
 			let expected_transact_extra_weight_signed: Weight = 1u64.into();
@@ -378,7 +392,10 @@ fn test_transact_derivative_multilocation() {
 			));
 
 			// Set fee per second for test setup
-			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// we pay with our current self reserve.
 			let fee_payer_asset = Location::parent().into();
@@ -427,7 +444,10 @@ fn test_transact_derivative() {
 			));
 
 			// Set fee per second for test setup
-			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -545,7 +565,10 @@ fn test_transact_signed() {
 			));
 
 			// Set fee per second for test setup
-			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// Destination
 			let dest = Location::parent().into();
@@ -657,7 +680,10 @@ fn test_transact_signed_multilocation() {
 			));
 
 			// Set fee per second for test setup
-			crate::mock::MockFeeTrader::set_asset_price(Location::parent(), 1);
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
+				1
+			));
 
 			// Destination
 			let dest = Location::parent().into();
