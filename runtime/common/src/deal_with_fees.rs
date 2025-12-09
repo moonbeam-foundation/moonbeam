@@ -24,7 +24,7 @@ use frame_support::traits::{Get, Imbalance};
 use frame_support::weights::ConstantMultiplier;
 use moonbeam_core_primitives::Balance;
 use pallet_treasury::TreasuryAccountId;
-use sp_runtime::{Perbill, SaturatedConversion, Saturating};
+use sp_runtime::{Perbill, SaturatedConversion};
 
 /// Type alias for converting reference time weight to fee using a constant multiplier.
 ///
