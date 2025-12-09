@@ -131,7 +131,7 @@ fn test_transact_through_derivative_errors() {
 					},
 					false
 				),
-				Error::<Test>::UnableToWithdrawAsset
+				DispatchError::Other("Fee per second not set")
 			);
 
 			// Set fee per second using FeeTrader
@@ -279,7 +279,7 @@ fn test_transact_through_signed_errors() {
 					},
 					false
 				),
-				Error::<Test>::UnableToWithdrawAsset
+				DispatchError::Other("Fee per second not set")
 			);
 
 			// Set fee per second using FeeTrader
@@ -788,7 +788,7 @@ fn test_transact_through_signed_fails_if_fee_per_second_not_set() {
 					},
 					false
 				),
-				Error::<Test>::UnableToWithdrawAsset
+				DispatchError::Other("Fee per second not set")
 			);
 		})
 }

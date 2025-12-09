@@ -39,12 +39,9 @@ pub trait XcmFeeTrader {
 	fn get_asset_price(asset_location: &Location) -> Option<u128>;
 
 	/// Set the price/configuration for an asset.
-	/// This is only available in tests and when the `runtime-benchmarks` feature is enabled.
-	#[cfg(any(test, feature = "runtime-benchmarks"))]
+
 	fn set_asset_price(_asset_location: Location, _value: u128) -> Result<(), DispatchError>;
 
 	/// Remove the price/configuration for an asset.
-	/// This is only available in tests and when the `runtime-benchmarks` feature is enabled.
-	#[cfg(any(test, feature = "runtime-benchmarks"))]
 	fn remove_asset(_asset_location: Location) -> Result<(), DispatchError>;
 }
