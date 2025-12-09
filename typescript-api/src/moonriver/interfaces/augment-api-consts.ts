@@ -419,6 +419,10 @@ declare module "@polkadot/api-base/types/consts" {
        **/
       maxOfflineRounds: u32 & AugmentedConst<ApiType>;
       /**
+       * Maximum number of scheduled delegation requests per (collator, delegator).
+       **/
+      maxScheduledRequestsPerDelegator: u32 & AugmentedConst<ApiType>;
+      /**
        * Maximum top delegations counted per candidate
        **/
       maxTopDelegationsPerCandidate: u32 & AugmentedConst<ApiType>;
