@@ -33,11 +33,23 @@ jobs:
 
   ####### Prepare and publish the release draft #######
 
+  setup-scripts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Upload tools
+        uses: actions/upload-artifact@v5
+        with:
+          name: original-tools
+          path: tools
+
   publish-draft-release:
+    needs: ["setup-scripts", "build-binary"]
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    needs: ["build-binary"]
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
     steps:
@@ -51,24 +63,28 @@ jobs:
           pattern: binaries-*
           merge-multiple: true
           path: build
-      - name: Use Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: "test/.nvmrc"
       - name: Prepare moonbeam binary for release body generation
         working-directory: build
         run: |
           mv moonbeam-x86-64 moonbeam
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: "test/.nvmrc"
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-      - name: Generate release body
-        id: generate-release-body
+      - name: Download Original Tools
+        uses: actions/download-artifact@v6
+        with:
+          name: original-tools
+          path: original-tools
+      - name: Generate runtime release issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: tools
+        working-directory: original-tools
         run: |
-          pnpm install
-          pnpm -s run github/generate-release-body --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
+          pnpm install --ignore-workspace 
+          pnpm run --silent generate-release-body --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
       - name: Prepare binary assets
         working-directory: build
         run: |

@@ -29,8 +29,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd tools
-          pnpm install
-          pnpm --silent run print-version-bump-info --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../version-bump.md
+          pnpm install --ignore-workspace 
+          pnpm run --silent print-version-bump-info --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../version-bump.md
       - name: Create version bump issue
         uses: peter-evans/create-issue-from-file@v6
         with:

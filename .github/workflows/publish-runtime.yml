@@ -146,8 +146,8 @@ jobs:
         id: generate-release-body
         working-directory: original-tools
         run: |
-          pnpm install
-          pnpm -s run github/generate-runtimes-body --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
+          pnpm install --ignore-workspace 
+          pnpm run --silent generate-runtimes-body --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
       - name: Get runtime versions
         id: get-runtime-ver
         run: |
