@@ -68,7 +68,12 @@ pub use moonbeam_core_primitives::{
 };
 use moonbeam_rpc_primitives_txpool::TxPoolResponse;
 use moonbeam_runtime_common::{
-	impl_asset_conversion::AssetRateConverter, impl_multiasset_paymaster::MultiAssetPaymaster,
+	deal_with_fees::{
+		DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
+		ProofSizeToFee, RefTimeToFee, WeightToFee,
+	},
+	impl_asset_conversion::AssetRateConverter,
+	impl_multiasset_paymaster::MultiAssetPaymaster,
 };
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_ethereum::Call::transact;
@@ -386,7 +391,14 @@ impl pallet_transaction_payment::Config for Runtime {
 		>,
 	>;
 	type OperationalFeeMultiplier = ConstU8<5>;
-	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
+	type WeightToFee = WeightToFee<
+		RefTimeToFee<ConstU128<{ currency::WEIGHT_FEE }>>,
+		ProofSizeToFee<
+			ConstU128<
+				{ currency::WEIGHT_FEE.saturating_mul(GasLimitPovSizeRatio::get() as Balance) },
+			>,
+		>,
+	>;
 	type LengthToFee = LengthToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Runtime>;
@@ -1516,10 +1528,6 @@ bridge_runtime_common::generate_bridge_reject_obsolete_headers_and_messages! {
 
 #[cfg(feature = "runtime-benchmarks")]
 use moonbeam_runtime_common::benchmarking::BenchmarkHelper;
-use moonbeam_runtime_common::deal_with_fees::{
-	DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
-};
-
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_support::parameter_types! {
