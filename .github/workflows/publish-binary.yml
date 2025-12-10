@@ -54,10 +54,6 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
-      - name: Prepare moonbeam binary for release body generation
-        working-directory: build
-        run: |
-          mv moonbeam-x86-64 moonbeam
       - name: Generate release body
         id: generate-release-body
         env:
