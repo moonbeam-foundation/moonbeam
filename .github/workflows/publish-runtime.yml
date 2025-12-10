@@ -138,14 +138,16 @@ jobs:
         with:
           name: original-tools
           path: original-tools
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
       - name: Generate release body
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         id: generate-release-body
         working-directory: original-tools
         run: |
-          yarn
-          yarn -s run ts-node github/generate-runtimes-body.ts --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
+          pnpm install
+          pnpm -s run ts-node github/generate-runtimes-body.ts --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
       - name: Get runtime versions
         id: get-runtime-ver
         run: |

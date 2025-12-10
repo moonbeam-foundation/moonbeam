@@ -59,14 +59,16 @@ jobs:
         working-directory: build
         run: |
           mv moonbeam-x86-64 moonbeam
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
       - name: Generate release body
         id: generate-release-body
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: tools
         run: |
-          yarn
-          yarn -s run ts-node github/generate-release-body.ts --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
+          pnpm install
+          pnpm -s run ts-node github/generate-release-body.ts --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
       - name: Prepare binary assets
         working-directory: build
         run: |
