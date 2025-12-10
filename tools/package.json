@@ -29,6 +29,8 @@
     "list-pr-labels": "ts-node github/list-pr-labels.ts",
     "print-client-release-issue": "ts-node github/print-client-release-issue.ts",
     "print-runtime-release-issue": "ts-node github/print-runtime-release-issue.ts",
-    "print-version-bump-info": "ts-node github/print-version-bump-info.ts"
+    "print-version-bump-info": "ts-node github/print-version-bump-info.ts",
+    "generate-release-body": "ts-node github/generate-release-body.ts",
+    "generate-runtimes-body": "ts-node github/generate-runtimes-body.ts"
   }
 }
