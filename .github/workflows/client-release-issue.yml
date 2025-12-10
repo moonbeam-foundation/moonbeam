@@ -48,7 +48,7 @@ jobs:
         working-directory: original-tools
         run: |
           pnpm install
-          pnpm --silent run print-client-release-issue -- --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../client-release-issue.md
+          pnpm --silent run print-client-release-issue --from ${{ github.event.inputs.from }} --to ${{ github.event.inputs.to }} | tee ../client-release-issue.md
       - name: Create version bump issue
         uses: peter-evans/create-issue-from-file@v6
         with:
