@@ -34,7 +34,7 @@ describeSuite({
             id: 42259045809535163221576417993425387648n,
             location: RELAY_SOURCE_LOCATION,
             metadata: relayAssetMetadata,
-            relativePrice: 1n,
+            relativePrice: 1000000000000000000n,
           },
           initialBalance,
           ALITH_ADDRESS,
