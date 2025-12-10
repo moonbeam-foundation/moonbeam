@@ -23,4 +23,6 @@ std = [
 	# Frontier
 	"fp-evm/std",
 	"frame-support/std",
+	"precompile-utils/std",
+	"p256/std"
 ]

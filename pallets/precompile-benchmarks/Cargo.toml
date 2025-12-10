@@ -32,24 +32,32 @@ frame-benchmarking = { workspace = true, optional = true }
 [features]
 default = ["std"]
 std = [
-    "cumulus-primitives-core/std",
-    "frame-benchmarking/std",
-    "frame-support/std",
-    "frame-system/std",
-    "pallet-relay-storage-roots/std",
-    "pallet-evm-precompile-p256verify/std",
-    "precompile-utils/std",
-    "parity-scale-codec/std",
-    "scale-info/std",
-    "sp-core/std",
-    "sp-std/std",
-    "fp-evm/std",
-    "evm/std",
+	"cumulus-primitives-core/std",
+	"frame-benchmarking/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-relay-storage-roots/std",
+	"pallet-evm-precompile-p256verify/std",
+	"precompile-utils/std",
+	"parity-scale-codec/std",
+	"scale-info/std",
+	"sp-core/std",
+	"sp-std/std",
+	"fp-evm/std",
+	"evm/std",
+	"storage-proof-primitives/std"
 ]
 
 runtime-benchmarks = [
-    "frame-benchmarking",
-    "frame-system/runtime-benchmarks",
-    "frame-support/runtime-benchmarks",
+	"frame-benchmarking",
+	"frame-system/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"pallet-relay-storage-roots/runtime-benchmarks",
+	"cumulus-primitives-core/runtime-benchmarks",
+	"frame-benchmarking/runtime-benchmarks"
 ]
-try-runtime = ["frame-support/try-runtime"]
+try-runtime = [
+	"frame-support/try-runtime",
+	"pallet-relay-storage-roots/try-runtime",
+	"frame-system/try-runtime"
+]

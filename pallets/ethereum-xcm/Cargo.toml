@@ -75,12 +75,34 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"xcm-primitives/std",
+	"fp-self-contained/std",
+	"pallet-ethereum/std",
+	"pallet-balances/std",
+	"pallet-proxy/std",
+	"sp-core/std",
+	"pallet-evm-precompile-proxy/std",
+	"hex/std",
+	"libsecp256k1/std"
 ]
 runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
-	"pallet-evm/runtime-benchmarks", 
+	"pallet-evm/runtime-benchmarks",
 	"xcm-primitives/runtime-benchmarks",
-	"pallet-ethereum/runtime-benchmarks"
+	"pallet-ethereum/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-proxy/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks"
 ]
-try-runtime = [ "frame-support/try-runtime" ]
+try-runtime = [
+	"frame-support/try-runtime",
+	"fp-self-contained/try-runtime",
+	"pallet-ethereum/try-runtime",
+	"pallet-evm/try-runtime",
+	"frame-system/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-proxy/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"sp-runtime/try-runtime"
+]

@@ -9061,6 +9061,7 @@ version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dcbff9bc912032c62bf65ef1d5aea88983b420f4f839db1e9b0c281a25c9c799"
 dependencies = [
+ "proc-macro-crate 1.1.3",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
@@ -18161,6 +18162,7 @@ source = "git+https://github.com/encointer/substrate-fixed#d5f70362f2e05b5f33fb5
 dependencies = [
  "parity-scale-codec",
  "scale-info",
+ "serde",
  "substrate-typenum",
 ]
 

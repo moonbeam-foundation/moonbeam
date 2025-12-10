@@ -52,4 +52,8 @@ std = [
 	"sp-runtime/std",
 	"sp-std/std",
 	"account/std",
+	"evm/std",
+	"pallet-timestamp/std",
+	"sp-io/std",
+	"scale-info/std"
 ]

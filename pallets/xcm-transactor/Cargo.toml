@@ -51,6 +51,12 @@ std = [
 	"xcm-executor/std",
 	"xcm-primitives/std",
 	"xcm/std",
+	"pallet-balances/std",
+	"pallet-timestamp/std",
+	"sp-core/std",
+	"xcm-builder/std",
+	"scale-info/std",
+	"serde/std"
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
@@ -59,5 +65,17 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 	"xcm-primitives/runtime-benchmarks",
+	"cumulus-primitives-core/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"xcm-executor/runtime-benchmarks",
+	"xcm/runtime-benchmarks"
 ]
-try-runtime = [ "frame-support/try-runtime" ]
+try-runtime = [
+	"frame-support/try-runtime",
+	"frame-system/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"sp-runtime/try-runtime"
+]

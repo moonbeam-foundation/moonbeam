@@ -53,5 +53,21 @@ std = [
 	"sp-std/std",
 	"xcm-primitives/std",
 	"account/std",
+	"evm/std",
+	"pallet-balances/std",
+	"pallet-timestamp/std",
+	"pallet-treasury/std",
+	"sp-runtime/std",
+	"scale-info/std"
 ]
-runtime-benchmarks = []
+runtime-benchmarks = [
+	"pallet-evm/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-collective/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"pallet-treasury/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"xcm-primitives/runtime-benchmarks"
+]

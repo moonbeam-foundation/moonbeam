@@ -28,24 +28,38 @@ pallet-utility = { workspace = true, features = ["std"] }
 [features]
 default = ["std"]
 std = [
-    "parity-scale-codec/std",
-    "frame-benchmarking/std",
-    "frame-support/std",
-    "frame-system/std",
-    "sp-core/std",
-    "sp-runtime/std",
-    "serde",
-    "log/std",
-    "sp-std/std",
-    "sp-io/std",
-    "scale-info/std",
-    "ed25519-dalek/std",
-    "pallet-balances/std",
+	"parity-scale-codec/std",
+	"frame-benchmarking/std",
+	"frame-support/std",
+	"frame-system/std",
+	"sp-core/std",
+	"sp-runtime/std",
+	"serde",
+	"log/std",
+	"sp-std/std",
+	"sp-io/std",
+	"scale-info/std",
+	"ed25519-dalek/std",
+	"pallet-balances/std",
+	"pallet-utility/std",
+	"sp-trie?/std",
+	"serde?/std"
 ]
 runtime-benchmarks = [
-    "frame-benchmarking",
-    "sp-trie",
-    "ed25519-dalek",
-    "sp-runtime/runtime-benchmarks",
+	"frame-benchmarking",
+	"sp-trie",
+	"ed25519-dalek",
+	"sp-runtime/runtime-benchmarks",
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-utility/runtime-benchmarks"
 ]
-try-runtime = ["frame-support/try-runtime"]
+try-runtime = [
+	"frame-support/try-runtime",
+	"frame-system/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-utility/try-runtime",
+	"sp-runtime/try-runtime"
+]
