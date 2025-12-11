@@ -15,16 +15,3 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 extern crate alloc;
-
-use alloc::vec::Vec;
-
-use frame_support::{
-	migrations::{SteppedMigration, SteppedMigrationError},
-	pallet_prelude::{ConstU32, Zero},
-	traits::Get,
-	weights::{Weight, WeightMeter},
-};
-use parity_scale_codec::Decode;
-use sp_io;
-
-use crate::*;
