@@ -1,0 +1,74 @@
+Pallets:
+    ~ CumulusXcm
+    ~ Multisig
+        Calls:
+            ~ as_multi
+            ~ as_multi_threshold_1
+    ~ OpenTechCommitteeCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: value type)
+    ~ ParachainStaking
+        Calls:
+            - migrate_locks_to_freezes_batch
+        Constants:
+            + MaxScheduledRequestsPerDelegator
+        Storage Entries:
+            ~ DelegationScheduledRequests (Changed: key type, value type)
+            + DelegationScheduledRequestsPerCollator
+            - MigratedCandidates
+            - MigratedDelegators
+    ~ ParachainSystem
+        Calls:
+            ~ set_validation_data
+    ~ PolkadotXcm
+    ~ Proxy
+        Calls:
+            ~ proxy
+            ~ proxy_announced
+    ~ Referenda
+        Calls:
+            ~ submit
+        Storage Entries:
+            ~ ReferendumInfoFor (Changed: value type)
+    ~ Scheduler
+        Calls:
+            ~ schedule
+            ~ schedule_after
+            ~ schedule_named
+            ~ schedule_named_after
+        Storage Entries:
+            ~ Agenda (Changed: value type)
+    ~ Sudo
+        Calls:
+            ~ sudo
+            ~ sudo_as
+            ~ sudo_unchecked_weight
+    ~ System
+        Storage Entries:
+            ~ Events (Changed: value type)
+    ~ TreasuryCouncilCollective
+        Calls:
+            ~ execute
+            ~ propose
+        Storage Entries:
+            ~ ProposalOf (Changed: value type)
+    ~ Utility
+        Calls:
+            ~ as_derivative
+            ~ batch
+            ~ batch_all
+            ~ dispatch_as
+            ~ dispatch_as_fallible
+            ~ force_batch
+            ~ if_else
+            ~ with_weight
+    ~ Whitelist
+        Calls:
+            ~ dispatch_whitelisted_call_with_preimage
+Runtime APIs:
+    ~ DryRunApi
+    + GetCoreSelectorApi
+    + RelayParentOffsetApi
