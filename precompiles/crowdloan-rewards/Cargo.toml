@@ -59,4 +59,12 @@ std = [
 	"precompile-utils/std",
 	"sp-core/std",
 	"sp-std/std",
+	"pallet-balances/std",
+	"pallet-message-queue/std",
+	"pallet-timestamp/std",
+	"sp-io/std",
+	"sp-runtime/std",
+	"log/std",
+	"scale-info/std",
+	"sha3/std"
 ]

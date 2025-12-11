@@ -340,10 +340,47 @@ std = [
 	"bp-moonriver/std",
 	"bp-polkadot-core/std",
 	"bridge-runtime-common/std",
+	"pallet-evm-precompile-blake2/std",
+	"pallet-evm-precompile-bn128/std",
+	"pallet-evm-precompile-modexp/std",
+	"pallet-evm-precompile-sha3fips/std",
+	"pallet-evm-precompile-simple/std",
+	"cumulus-primitives-parachain-inherent/std",
+	"cumulus-test-relay-sproof-builder/std",
+	"frame-system-benchmarking?/std",
+	"frame-try-runtime?/std",
+	"pallet-assets/std",
+	"pallet-message-queue/std",
+	"pallet-xcm-benchmarks?/std",
+	"polkadot-core-primitives/std",
+	"polkadot-parachain/std",
+	"polkadot-runtime-common/std",
+	"polkadot-runtime-parachains/std",
+	"sp-debug-derive/std",
+	"sp-keyring/std",
+	"sp-weights/std",
+	"pallet-evm-precompile-crowdloan-rewards/std",
+	"pallet-evm-precompile-gmp/std",
+	"pallet-evm-precompile-identity/std",
+	"pallet-evm-precompile-registry/std",
+	"pallet-evm-precompile-proxy/std",
+	"frame-metadata/std",
+	"hex/std",
+	"log/std",
+	"num_enum/std",
+	"rlp?/std",
+	"serde/std",
+	"sha3?/std"
 ]
 
 # Must be enabled for tracing runtimes only
-evm-tracing = ["evm-tracing-events", "moonbeam-evm-tracer", "rlp", "sha3"]
+evm-tracing = [
+	"evm-tracing-events",
+	"moonbeam-evm-tracer",
+	"rlp",
+	"sha3",
+	"evm-tracing-events?/evm-tracing"
+]
 
 # Allow to print logs details (no wasm:stripped)
 force-debug = ["sp-debug-derive/force-debug"]
@@ -423,6 +460,27 @@ runtime-benchmarks = [
 	"xcm-builder/runtime-benchmarks",
 	"xcm-runtime-apis/runtime-benchmarks",
 	"bridge-runtime-common/runtime-benchmarks",
+	"nimbus-primitives/runtime-benchmarks",
+	"pallet-evm-precompile-xcm/runtime-benchmarks",
+	"moonkit-xcm-primitives/runtime-benchmarks",
+	"bridge-hub-common/runtime-benchmarks",
+	"cumulus-primitives-utility/runtime-benchmarks",
+	"pallet-assets/runtime-benchmarks",
+	"pallet-message-queue/runtime-benchmarks",
+	"polkadot-parachain/runtime-benchmarks",
+	"polkadot-runtime-common/runtime-benchmarks",
+	"polkadot-runtime-parachains/runtime-benchmarks",
+	"xcm-executor/runtime-benchmarks",
+	"xcm/runtime-benchmarks",
+	"pallet-evm-precompile-collective/runtime-benchmarks",
+	"pallet-evm-precompile-conviction-voting/runtime-benchmarks",
+	"pallet-evm-precompile-gmp/runtime-benchmarks",
+	"pallet-evm-precompile-identity/runtime-benchmarks",
+	"pallet-evm-precompile-referenda/runtime-benchmarks",
+	"pallet-evm-precompile-xcm-transactor/runtime-benchmarks",
+	"pallet-evm-precompile-xcm-utils/runtime-benchmarks",
+	"pallet-evm-precompile-xtokens/runtime-benchmarks",
+	"xcm-primitives/runtime-benchmarks"
 ]
 try-runtime = [
 	"cumulus-pallet-parachain-system/try-runtime",
@@ -480,4 +538,15 @@ try-runtime = [
 	"pallet-bridge-messages/try-runtime",
 	"pallet-xcm-bridge/try-runtime",
 	"parachains-common/try-runtime",
+	"nimbus-primitives/try-runtime",
+	"pallet-emergency-para-xcm/try-runtime",
+	"cumulus-pallet-weight-reclaim/try-runtime",
+	"frame-support/try-runtime",
+	"frame-try-runtime/try-runtime",
+	"pallet-assets/try-runtime",
+	"polkadot-runtime-common/try-runtime",
+	"polkadot-runtime-parachains/try-runtime",
+	"sp-runtime/try-runtime",
+	"pallet-moonbeam-foreign-assets/try-runtime",
+	"pallet-xcm-weight-trader/try-runtime"
 ]

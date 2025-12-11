@@ -38,19 +38,37 @@ sp-tracing = { workspace = true, features = ["std"] }
 [features]
 default = ["std"]
 runtime-benchmarks = [
-    "frame-benchmarking",
-    "frame-system/runtime-benchmarks"
+	"frame-benchmarking",
+	"frame-system/runtime-benchmarks",
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-support/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"xcm-executor/runtime-benchmarks",
+	"xcm/runtime-benchmarks",
+	"xcm-runtime-apis/runtime-benchmarks"
 ]
 std = [
-    "frame-support/std",
-    "frame-system/std",
-    "scale-info/std",
-    "sp-core/std",
-    "sp-io/std",
-    "sp-runtime/std",
-    "sp-std/std",
-    "xcm/std",
-    "xcm-executor/std",
-    "xcm-runtime-apis/std",
+	"frame-support/std",
+	"frame-system/std",
+	"scale-info/std",
+	"sp-core/std",
+	"sp-io/std",
+	"sp-runtime/std",
+	"sp-std/std",
+	"xcm/std",
+	"xcm-executor/std",
+	"xcm-runtime-apis/std",
+	"frame-benchmarking?/std",
+	"pallet-balances/std",
+	"sp-tracing/std",
+	"log/std",
+	"parity-scale-codec/std",
+	"serde/std"
 ]
-try-runtime = ["frame-support/try-runtime"]
+try-runtime = [
+	"frame-support/try-runtime",
+	"frame-system/try-runtime",
+	"pallet-balances/try-runtime",
+	"sp-runtime/try-runtime"
+]

@@ -23,12 +23,13 @@ parity-scale-codec = { workspace = true }
 [features]
 default = ["std"]
 std = [
-    "cumulus-primitives-core/std",
-    "frame-support/std",
-    "parity-scale-codec/std",
-    "sp-runtime/std",
-    "sp-core/std",
-    "sp-state-machine/std",
-    "sp-std/std",
-    "sp-trie/std",
+	"cumulus-primitives-core/std",
+	"frame-support/std",
+	"parity-scale-codec/std",
+	"sp-runtime/std",
+	"sp-core/std",
+	"sp-state-machine/std",
+	"sp-std/std",
+	"sp-trie/std",
+	"hex/std"
 ]

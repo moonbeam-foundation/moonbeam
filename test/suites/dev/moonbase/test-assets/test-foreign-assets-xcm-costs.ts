@@ -12,7 +12,7 @@ describeSuite({
   testCases: ({ context, it }) => {
     const paraId = 4444;
     let paraSovereignAccount;
-    const feeLimit = 146_788_037_500_000n;
+    const feeLimit = 148_566_637_500_000n;
     const depositAmount = 100_000_000_000_000_000_000n; // 100 tokens
     const fundAmount = feeLimit + depositAmount;
 

@@ -4,7 +4,7 @@ authors = { workspace = true }
 edition = "2021"
 homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
-version = "0.49.0"
+version = "0.50.0"
 
 [dependencies]
 async-io = { workspace = true }
@@ -179,9 +179,35 @@ runtime-benchmarks = [
 	"moonriver-native",
 	"moonriver-runtime/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
+	"nimbus-primitives/runtime-benchmarks",
+	"session-keys-primitives/runtime-benchmarks",
+	"cumulus-primitives-core/runtime-benchmarks",
+	"frame-benchmarking/runtime-benchmarks",
+	"frame-system/runtime-benchmarks",
+	"pallet-balances/runtime-benchmarks",
+	"pallet-sudo/runtime-benchmarks",
+	"pallet-timestamp/runtime-benchmarks",
+	"polkadot-primitives/runtime-benchmarks",
+	"polkadot-runtime-common/runtime-benchmarks",
+	"sc-client-db/runtime-benchmarks",
+	"sc-service/runtime-benchmarks",
+	"sp-runtime/runtime-benchmarks",
+	"xcm-runtime-apis/runtime-benchmarks",
+	"pallet-parachain-staking/runtime-benchmarks"
 ]
 
 try-runtime = [
 	"moonbase-runtime",
 	"moonbase-runtime/try-runtime",
+	"nimbus-primitives/try-runtime",
+	"pallet-ethereum/try-runtime",
+	"frame-system/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-sudo/try-runtime",
+	"pallet-timestamp/try-runtime",
+	"polkadot-runtime-common/try-runtime",
+	"sp-runtime/try-runtime",
+	"pallet-parachain-staking/try-runtime",
+	"moonbeam-runtime?/try-runtime",
+	"moonriver-runtime?/try-runtime"
 ]

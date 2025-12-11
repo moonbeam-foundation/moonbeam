@@ -32,5 +32,17 @@ std = [
 	"scale-info/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"pallet-balances/std",
+	"sp-core/std",
+	"sp-io/std",
+	"pallet-evm-precompile-proxy/std",
+	"parity-scale-codec/std",
+	"serde/std"
 ]
-try-runtime = [ "frame-support/try-runtime" ]
+try-runtime = [
+	"frame-support/try-runtime",
+	"frame-system/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-proxy/try-runtime",
+	"sp-runtime/try-runtime"
+]
