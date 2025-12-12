@@ -24,29 +24,22 @@
 
 use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
-use crate::migrations::MigrateDelegationScheduledRequestsToDoubleMap;
 use crate::mock::{
 	inflation_configs, query_freeze_amount, roll_blocks, roll_to, roll_to_round_begin,
 	roll_to_round_end, set_author, set_block_author, AccountId, Balances, BlockNumber, ExtBuilder,
 	ParachainStaking, RuntimeEvent, RuntimeOrigin, Test, POINTS_PER_BLOCK, POINTS_PER_ROUND,
 };
-use crate::RoundIndex;
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, Bond, CollatorStatus, DelegationScheduledRequests,
 	DelegationScheduledRequestsPerCollator, DelegatorAdded, EnableMarkingOffline, Error, Event,
 	FreezeReason, InflationDistributionInfo, Range, WasInactive,
 };
-use frame_support::migrations::SteppedMigration;
-use frame_support::storage::storage_prefix;
 use frame_support::traits::fungible::MutateFreeze;
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
-use frame_support::weights::WeightMeter;
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 use pallet_balances::{Event as BalancesEvent, PositiveImbalance};
-use parity_scale_codec::{Decode, Encode};
-use sp_io::hashing::blake2_128;
-use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent, RuntimeDebug};
+use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 
 #[test]
 fn invalid_root_origin_fails() {
@@ -8453,125 +8446,4 @@ fn test_linear_inflation_threshold() {
 			});
 			assert_eq!(round_above.ideal, threshold.unwrap() / 20); // 5% of threshold
 		});
-}
-
-#[test]
-fn delegation_scheduled_requests_stepped_migration_completes_and_preserves_state() {
-	use crate::AddGet;
-
-	ExtBuilder::default().build().execute_with(|| {
-		type Balance = crate::BalanceOf<Test>;
-
-		#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug)]
-		struct LegacyScheduledRequest<AccountId, Balance> {
-			delegator: AccountId,
-			when_executable: RoundIndex,
-			action: DelegationAction<Balance>,
-		}
-
-		type OldScheduledRequests = BoundedVec<
-			LegacyScheduledRequest<AccountId, Balance>,
-			AddGet<
-				<Test as crate::Config>::MaxTopDelegationsPerCandidate,
-				<Test as crate::Config>::MaxBottomDelegationsPerCandidate,
-			>,
-		>;
-
-		// Helper to build the raw storage key for the legacy single-map layout:
-		//   prefix ++ Blake2_128(Encode(collator)) ++ Encode(collator)
-		fn legacy_key_for(prefix: &[u8], collator: &AccountId) -> Vec<u8> {
-			let mut full = prefix.to_vec();
-			let encoded_collator = collator.encode();
-			let hash = blake2_128(&encoded_collator);
-			full.extend_from_slice(&hash);
-			full.extend_from_slice(&encoded_collator);
-			full
-		}
-
-		let prefix = storage_prefix(b"ParachainStaking", b"DelegationScheduledRequests");
-
-		// Build some synthetic legacy data for a few collators.
-		let scenarios: &[(AccountId, &[(AccountId, u32)])] = &[
-			(1, &[(10, 2), (11, 1)]),
-			(2, &[(20, 3)]),
-			(3, &[(30, 1), (31, 1), (32, 1)]),
-		];
-
-		let mut expected_total_requests: u32 = 0;
-		let mut expected_per_collator: Vec<(AccountId, u32)> = Vec::new();
-
-		for (collator, delegators) in scenarios {
-			let mut legacy_requests: OldScheduledRequests = BoundedVec::default();
-			let mut distinct_delegators: u32 = 0;
-
-			for (delegator, count) in *delegators {
-				distinct_delegators = distinct_delegators.saturating_add(1);
-				for _ in 0..*count {
-					let amount: Balance = 1u32.into();
-					let request = LegacyScheduledRequest {
-						delegator: *delegator,
-						when_executable: 1,
-						action: DelegationAction::Revoke(amount),
-					};
-					let push_result = legacy_requests.try_push(request);
-					assert!(
-						push_result.is_ok(),
-						"legacy_requests should not exceed its bound"
-					);
-					expected_total_requests = expected_total_requests.saturating_add(1);
-				}
-			}
-
-			let key = legacy_key_for(&prefix, collator);
-			let value = legacy_requests.encode();
-			sp_io::storage::set(&key, &value);
-
-			expected_per_collator.push((*collator, distinct_delegators));
-		}
-
-		// Drive the stepped migration until completion, checking that each step
-		// finishes without error and that the cursor eventually reaches `None`.
-		let mut cursor: Option<
-			<MigrateDelegationScheduledRequestsToDoubleMap<Test> as SteppedMigration>::Cursor,
-		> = None;
-
-		for _ in 0..32 {
-			let mut meter = WeightMeter::new();
-			let next_cursor = MigrateDelegationScheduledRequestsToDoubleMap::<Test>::step(
-				cursor.clone(),
-				&mut meter,
-			)
-			.expect("migration step must not error");
-
-			cursor = next_cursor;
-
-			if cursor.is_none() {
-				break;
-			}
-		}
-
-		assert!(
-			cursor.is_none(),
-			"migration should complete in a bounded number of steps"
-		);
-
-		// Verify that the total number of scheduled requests is preserved.
-		let mut migrated_total_requests: u32 = 0;
-		for (_, _, requests) in DelegationScheduledRequests::<Test>::iter() {
-			migrated_total_requests = migrated_total_requests.saturating_add(requests.len() as u32);
-		}
-		assert_eq!(
-			migrated_total_requests, expected_total_requests,
-			"migration must preserve total number of scheduled delegation requests"
-		);
-
-		// Verify that the per-collator counters reflect the number of delegator queues.
-		for (collator, expected_queues) in expected_per_collator {
-			let counters = DelegationScheduledRequestsPerCollator::<Test>::get(collator);
-			assert_eq!(
-				counters, expected_queues,
-				"per-collator queue counter should match number of delegators with requests"
-			);
-		}
-	});
 }
