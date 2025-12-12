@@ -92,10 +92,6 @@ export const ForeignChainsEndpoints = [
         paraId: 2012,
       },
       {
-        name: "Integritee",
-        paraId: 2015,
-      },
-      {
         name: "Robonomics",
         paraId: 2048,
       },
