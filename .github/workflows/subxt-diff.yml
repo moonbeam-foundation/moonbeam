@@ -29,7 +29,7 @@ jobs:
         run: |
           rustup override unset
           rustup show
-          cargo install subxt-cli@0.37.0 --locked
+          cargo install subxt-cli --locked
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Lookup previous runtime release build
         id: previous-runtime
