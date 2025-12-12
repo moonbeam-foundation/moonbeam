@@ -143,10 +143,6 @@ export const ForeignChainsEndpoints = [
         paraId: 2034,
       },
       {
-        name: "Phala",
-        paraId: 2035,
-      },
-      {
         name: "Unique",
         paraId: 2037,
       },
