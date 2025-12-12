@@ -1087,14 +1087,19 @@ pub mod pallet {
 			destination: Location,
 			total_weight: Weight,
 		) -> Result<Asset, DispatchError> {
-			// If amount is provided, just use it
-			// Else, delegate to FeeTrader to compute the fee based on weight and asset pricing
-			let amount: u128 = fee_amount.map_or_else(
-				|| T::FeeTrader::compute_fee(total_weight, &fee_location, None),
-				|v| Ok(v),
-			)?;
+			// If amount is explicitly provided, keep legacy behavior: do not enforce reserve/destination
+			// validation here. Historically, the reserve check only ran when converting weight->fee.
+			if let Some(amount) = fee_amount {
+				return Ok(Asset {
+					id: AssetId(fee_location),
+					fun: Fungible(amount),
+				});
+			}
 
-			// Validate that the asset is a reserve for the destination
+			// Otherwise, delegate to FeeTrader to compute the fee based on weight and asset pricing,
+			// and validate that the fee asset is a reserve for the destination.
+			let amount: u128 = T::FeeTrader::compute_fee(total_weight, &fee_location, None)?;
+
 			let asset = Asset {
 				id: AssetId(fee_location.clone()),
 				fun: Fungible(amount),
@@ -1105,11 +1110,7 @@ pub mod pallet {
 				return Err(Error::<T>::AssetIsNotReserveInDestination.into());
 			}
 
-			// Construct Asset
-			Ok(Asset {
-				id: AssetId(fee_location),
-				fun: Fungible(amount),
-			})
+			Ok(asset)
 		}
 
 		/// Construct the transact xcm message with the provided parameters
