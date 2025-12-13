@@ -14,14 +14,60 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::__private::Get;
+use core::marker::PhantomData;
+use cumulus_primitives_core::Weight;
 use frame_support::pallet_prelude::TypedGet;
 use frame_support::traits::fungible::Credit;
 use frame_support::traits::tokens::imbalance::ResolveTo;
-use frame_support::traits::Imbalance;
 use frame_support::traits::OnUnbalanced;
+use frame_support::traits::{Get, Imbalance};
+use frame_support::weights::ConstantMultiplier;
+use moonbeam_core_primitives::Balance;
 use pallet_treasury::TreasuryAccountId;
-use sp_runtime::Perbill;
+use sp_runtime::{Perbill, SaturatedConversion};
+
+/// Type alias for converting reference time weight to fee using a constant multiplier.
+///
+/// This maps computational weight (ref_time) to a fee amount by multiplying
+/// the weight by a constant factor `M`.
+pub type RefTimeToFee<M> = ConstantMultiplier<Balance, M>;
+
+/// Type alias for converting proof size weight to fee using a constant multiplier.
+///
+/// This maps the proof size (PoV size) component of weight to a fee amount
+/// by multiplying by a constant factor `M`.
+pub struct ProofSizeToFee<M>(PhantomData<M>);
+
+impl<M> frame_support::weights::WeightToFee for ProofSizeToFee<M>
+where
+	M: Get<Balance>,
+{
+	type Balance = Balance;
+
+	fn weight_to_fee(weight: &Weight) -> Self::Balance {
+		Self::Balance::saturated_from(weight.proof_size()).saturating_mul(M::get())
+	}
+}
+
+/// Combines reference time and proof size fees, charging by the more scarce resource.
+///
+/// This struct implements `WeightToFee` by computing fees for both the ref_time and
+/// proof_size components of a `Weight`, then returning the maximum of the two.
+/// This ensures transactions are charged based on whichever resource they consume
+/// more of relative to block limits.
+pub struct WeightToFee<RefTimeToFee, ProofSizeToFee>(PhantomData<(RefTimeToFee, ProofSizeToFee)>);
+impl<
+		RefTimeToFee: frame_support::weights::WeightToFee<Balance = Balance>,
+		ProofSizeToFee: frame_support::weights::WeightToFee<Balance = Balance>,
+	> frame_support::weights::WeightToFee for WeightToFee<RefTimeToFee, ProofSizeToFee>
+{
+	type Balance = Balance;
+
+	fn weight_to_fee(weight: &Weight) -> Self::Balance {
+		// Take the maximum instead of the sum to charge by the more scarce resource.
+		RefTimeToFee::weight_to_fee(weight).max(ProofSizeToFee::weight_to_fee(weight))
+	}
+}
 
 /// Deal with substrate based fees and tip. This should be used with pallet_transaction_payment.
 pub struct DealWithSubstrateFeesAndTip<R, FeesTreasuryProportion>(
