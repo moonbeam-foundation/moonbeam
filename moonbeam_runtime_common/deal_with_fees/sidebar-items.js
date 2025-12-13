@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["BlockAuthorAccountId","DealWithEthereumBaseFees","DealWithEthereumPriorityFees","DealWithSubstrateFeesAndTip"]};
+window.SIDEBAR_ITEMS = {"struct":["BlockAuthorAccountId","DealWithEthereumBaseFees","DealWithEthereumPriorityFees","DealWithSubstrateFeesAndTip","ProofSizeToFee","WeightToFee"],"type":["RefTimeToFee"]};
