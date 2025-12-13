@@ -118,40 +118,69 @@ function getSupportedAssetStorageKey(asset: any, context: any) {
  * @param context
  */
 export async function addAssetToWeightTrader(asset: any, relativePrice: bigint, context: any) {
+  const api = context.polkadotJs();
   const assetV4 = patchLocationV4recursively(asset?.Xcm || asset);
 
+  // Check if the asset is already registered in pallet-xcm-weight-trader.
+  // If it exists, we edit the price instead of trying to add it again.
+  const existing = await api.query.xcmWeightTrader.supportedAssets(assetV4);
+  const isExisting = (existing as any).isSome === true;
+
   if (relativePrice === 0n) {
-    const addAssetWithPlaceholderPrice = context
-      .polkadotJs()
-      .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, 1n));
+    // We cannot store a 0 price directly via the pallet API (PriceCannotBeZero).
+    // For new assets, we still need a placeholder insert; for existing ones we can
+    // override the price directly in storage.
     const overallAssetKey = getSupportedAssetStorageKey(assetV4, context);
 
-    const overrideAssetPrice = context.polkadotJs().tx.sudo.sudo(
-      context.polkadotJs().tx.system.setStorage([
-        [
-          u8aToHex(overallAssetKey),
-          "0x0100000000000000000000000000000000", // (enabled bool, 0 u128)
-        ],
-      ])
-    );
-    const batch = context
-      .polkadotJs()
-      .tx.utility.batch([addAssetWithPlaceholderPrice, overrideAssetPrice]);
+    if (isExisting) {
+      // Asset already exists in SupportedAssets: override storage only.
+      const overrideAssetPrice = api.tx.sudo.sudo(
+        api.tx.system.setStorage([
+          [
+            u8aToHex(overallAssetKey),
+            "0x0100000000000000000000000000000000", // (enabled bool, 0 u128)
+          ],
+        ])
+      );
 
-    await context.createBlock(batch, {
-      expectEvents: [context.polkadotJs().events.xcmWeightTrader.SupportedAssetAdded],
+      await context.createBlock(overrideAssetPrice, {
+        allowFailures: false,
+      });
+    } else {
+      // First time we see this asset: add with placeholder price, then override.
+      const addAssetWithPlaceholder = api.tx.sudo.sudo(
+        api.tx.xcmWeightTrader.addAsset(assetV4, 1n)
+      );
+
+      const overrideAssetPrice = api.tx.sudo.sudo(
+        api.tx.system.setStorage([
+          [
+            u8aToHex(overallAssetKey),
+            "0x0100000000000000000000000000000000", // (enabled bool, 0 u128)
+          ],
+        ])
+      );
+
+      const batch = api.tx.utility.batch([addAssetWithPlaceholder, overrideAssetPrice]);
+
+      await context.createBlock(batch, {
+        expectEvents: [api.events.xcmWeightTrader.SupportedAssetAdded],
+        allowFailures: false,
+      });
+    }
+  } else {
+    const extrinsic = isExisting
+      ? api.tx.sudo.sudo(api.tx.xcmWeightTrader.editAsset(assetV4, relativePrice))
+      : api.tx.sudo.sudo(api.tx.xcmWeightTrader.addAsset(assetV4, relativePrice));
+
+    await context.createBlock(extrinsic, {
+      expectEvents: [
+        isExisting
+          ? api.events.xcmWeightTrader.SupportedAssetEdited
+          : api.events.xcmWeightTrader.SupportedAssetAdded,
+      ],
       allowFailures: false,
     });
-  } else {
-    await context.createBlock(
-      context
-        .polkadotJs()
-        .tx.sudo.sudo(context.polkadotJs().tx.xcmWeightTrader.addAsset(assetV4, relativePrice)),
-      {
-        expectEvents: [context.polkadotJs().events.xcmWeightTrader.SupportedAssetAdded],
-        allowFailures: false,
-      }
-    );
   }
 }
 

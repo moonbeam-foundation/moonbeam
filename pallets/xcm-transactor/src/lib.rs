@@ -68,6 +68,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet;
+use frame_support::weights::Weight;
+use sp_runtime::DispatchError;
+use xcm::latest::prelude::Location;
+use xcm_primitives::XcmFeeTrader;
 
 pub use pallet::*;
 
@@ -108,9 +112,7 @@ pub mod pallet {
 	use crate::CurrencyIdOf;
 	use cumulus_primitives_core::{relay_chain::HrmpChannelId, ParaId};
 	use frame_support::traits::EitherOfDiverse;
-	use frame_support::{
-		dispatch::DispatchResult, pallet_prelude::*, weights::constants::WEIGHT_REF_TIME_PER_SECOND,
-	};
+	use frame_support::{dispatch::DispatchResult, pallet_prelude::*};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
 	use sp_std::boxed::Box;
@@ -121,7 +123,7 @@ pub mod pallet {
 	use xcm::{latest::prelude::*, VersionedLocation};
 	use xcm_executor::traits::{TransactAsset, WeightBounds};
 	use xcm_primitives::{
-		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, Reserve, UtilityAvailableCalls,
+		FilterMaxAssetFee, HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls,
 		UtilityEncodeCall, XcmTransact,
 	};
 
@@ -195,6 +197,10 @@ pub mod pallet {
 
 		/// The way to filter the max fee to use for HRMP management operations
 		type MaxHrmpFee: FilterMaxAssetFee;
+
+		/// Fee trader for computing XCM fees and managing asset pricing.
+		/// This replaces the old `DestinationAssetFeePerSecond` storage-based approach.
+		type FeeTrader: XcmFeeTrader;
 
 		type WeightInfo: WeightInfo;
 	}
@@ -365,12 +371,6 @@ pub mod pallet {
 	pub type TransactInfoWithWeightLimit<T: Config> =
 		StorageMap<_, Blake2_128Concat, Location, RemoteTransactInfoWithMaxWeight>;
 
-	/// Stores the fee per second for an asset in its reserve chain. This allows us to convert
-	/// from weight to fee
-	#[pallet::storage]
-	#[pallet::getter(fn dest_asset_fee_per_second)]
-	pub type DestinationAssetFeePerSecond<T: Config> = StorageMap<_, Twox64Concat, Location, u128>;
-
 	/// Stores the indices of relay chain pallets
 	#[pallet::storage]
 	#[pallet::getter(fn relay_indices)]
@@ -399,12 +399,19 @@ pub mod pallet {
 		BadVersion,
 		MaxWeightTransactReached,
 		UnableToWithdrawAsset,
-		FeePerSecondNotSet,
+		// Removed: FeePerSecondNotSet (was index 20)
+		// This error was removed. Fee-related errors are now handled by pallet-xcm-weight-trader.
+		#[codec(index = 21)]
 		SignedTransactNotAllowedForDestination,
+		#[codec(index = 22)]
 		FailedMultiLocationToJunction,
+		#[codec(index = 23)]
 		HrmpHandlerNotImplemented,
+		#[codec(index = 24)]
 		TooMuchFeeUsed,
+		#[codec(index = 25)]
 		ErrorValidating,
+		#[codec(index = 26)]
 		RefundNotSupportedWithTransactInfo,
 	}
 
@@ -451,16 +458,12 @@ pub mod pallet {
 		TransactInfoRemoved {
 			location: Location,
 		},
-		/// Set dest fee per second
-		DestFeePerSecondChanged {
-			location: Location,
-			fee_per_second: u128,
-		},
-		/// Remove dest fee per second
-		DestFeePerSecondRemoved {
-			location: Location,
-		},
+		// Removed: DestFeePerSecondChanged (was index 8)
+		// This event was removed. Fee configuration events are now emitted by pallet-xcm-weight-trader.
+		// Removed: DestFeePerSecondRemoved (was index 9)
+		// This event was removed. Fee removal events are now emitted by pallet-xcm-weight-trader.
 		/// HRMP manage action succesfully sent
+		#[codec(index = 10)]
 		HrmpManagementSent {
 			action: HrmpOperation,
 		},
@@ -864,45 +867,11 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Set the fee per second of an asset on its reserve chain
-		#[pallet::call_index(7)]
-		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
-		pub fn set_fee_per_second(
-			origin: OriginFor<T>,
-			asset_location: Box<VersionedLocation>,
-			fee_per_second: u128,
-		) -> DispatchResult {
-			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
-			let asset_location =
-				Location::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
+		// Removed: set_fee_per_second (was call_index 7)
+		// This extrinsic was removed. Fee configuration is now handled by pallet-xcm-weight-trader.
 
-			DestinationAssetFeePerSecond::<T>::insert(&asset_location, &fee_per_second);
-
-			Self::deposit_event(Event::DestFeePerSecondChanged {
-				location: asset_location,
-				fee_per_second,
-			});
-			Ok(())
-		}
-
-		/// Remove the fee per second of an asset on its reserve chain
-		#[pallet::call_index(8)]
-		#[pallet::weight(T::WeightInfo::set_fee_per_second())]
-		pub fn remove_fee_per_second(
-			origin: OriginFor<T>,
-			asset_location: Box<VersionedLocation>,
-		) -> DispatchResult {
-			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
-			let asset_location =
-				Location::try_from(*asset_location).map_err(|()| Error::<T>::BadVersion)?;
-
-			DestinationAssetFeePerSecond::<T>::remove(&asset_location);
-
-			Self::deposit_event(Event::DestFeePerSecondRemoved {
-				location: asset_location,
-			});
-			Ok(())
-		}
+		// Removed: remove_fee_per_second (was call_index 8)
+		// This extrinsic was removed. Fee removal is now handled by pallet-xcm-weight-trader.
 
 		/// Manage HRMP operations
 		#[pallet::call_index(9)]
@@ -1110,32 +1079,38 @@ pub mod pallet {
 		}
 
 		/// Calculate the amount of fee based on the multilocation of the fee asset and
-		/// the total weight to be spent
+		/// the total weight to be spent.
+		/// This now delegates to the FeeTrader instead of reading from local storage.
 		fn calculate_fee(
 			fee_location: Location,
 			fee_amount: Option<u128>,
 			destination: Location,
 			total_weight: Weight,
 		) -> Result<Asset, DispatchError> {
-			// If amount is provided, just use it
-			// Else, multiply weight*destination_units_per_second to see how much we should charge for
-			// this weight execution
-			let amount: u128 = fee_amount.map_or_else(
-				|| {
-					Self::take_fee_per_second_from_storage(
-						fee_location.clone(),
-						destination,
-						total_weight,
-					)
-				},
-				|v| Ok(v),
-			)?;
+			// If amount is explicitly provided, keep legacy behavior: do not enforce reserve/destination
+			// validation here. Historically, the reserve check only ran when converting weight->fee.
+			if let Some(amount) = fee_amount {
+				return Ok(Asset {
+					id: AssetId(fee_location),
+					fun: Fungible(amount),
+				});
+			}
 
-			// Construct Asset
-			Ok(Asset {
-				id: AssetId(fee_location),
+			// Otherwise, delegate to FeeTrader to compute the fee based on weight and asset pricing,
+			// and validate that the fee asset is a reserve for the destination.
+			let amount: u128 = T::FeeTrader::compute_fee(total_weight, &fee_location, None)?;
+
+			let asset = Asset {
+				id: AssetId(fee_location.clone()),
 				fun: Fungible(amount),
-			})
+			};
+			let reserve = <T::ReserveProvider as xcm_primitives::Reserve>::reserve(&asset)
+				.ok_or(Error::<T>::AssetHasNoReserve)?;
+			if reserve != destination {
+				return Err(Error::<T>::AssetIsNotReserveInDestination.into());
+			}
+
+			Ok(asset)
 		}
 
 		/// Construct the transact xcm message with the provided parameters
@@ -1216,35 +1191,6 @@ pub mod pallet {
 			Ok(SetAppendix(Xcm(instructions)))
 		}
 
-		/// Ensure `dest` has chain part and none recipient part.
-		fn ensure_valid_dest(dest: &Location) -> Result<Location, DispatchError> {
-			let chain_location = dest.chain_location();
-			if *dest == chain_location {
-				Ok(chain_location)
-			} else {
-				Err(Error::<T>::InvalidDest.into())
-			}
-		}
-
-		/// Check whether the transfer is allowed.
-		///
-		/// Returns `Err` if `asset` is not a reserved asset of `dest`,
-		/// else returns `dest`, parachain or relay chain location.
-		fn transfer_allowed(asset: &Asset, dest: &Location) -> Result<Location, DispatchError> {
-			let dest = Self::ensure_valid_dest(dest)?;
-
-			let self_location = T::SelfLocation::get();
-			ensure!(dest != self_location, Error::<T>::NotCrossChainTransfer);
-
-			let reserve =
-				T::ReserveProvider::reserve(asset).ok_or(Error::<T>::AssetHasNoReserve)?;
-
-			// We only allow to transact using a reserve asset as fee
-			ensure!(reserve == dest, Error::<T>::AssetIsNotReserveInDestination);
-
-			Ok(dest)
-		}
-
 		/// Returns weight of `weight_of_initiate_reserve_withdraw` call.
 		fn weight_of_initiate_reserve_withdraw() -> Weight {
 			let dest = Location::parent();
@@ -1268,20 +1214,6 @@ pub mod pallet {
 			]);
 			T::Weigher::weight(&mut xcm.into(), Weight::MAX)
 				.map_or(Weight::MAX, |w| T::BaseXcmWeight::get().saturating_add(w))
-		}
-
-		/// Returns the fee for a given set of parameters
-		/// We always round up in case of fractional division
-		pub fn calculate_fee_per_second(weight: Weight, fee_per_second: u128) -> u128 {
-			// grab WEIGHT_REF_TIME_PER_SECOND as u128
-			let weight_per_second_u128 = WEIGHT_REF_TIME_PER_SECOND as u128;
-
-			// we add WEIGHT_REF_TIME_PER_SECOND -1 after multiplication to make sure that
-			// if there is a fractional part we round up the result
-			let fee_mul_rounded_up = (fee_per_second.saturating_mul(weight.ref_time() as u128))
-				.saturating_add(weight_per_second_u128 - 1);
-
-			fee_mul_rounded_up / weight_per_second_u128
 		}
 
 		/// Returns the weight information for a destination from storage
@@ -1340,22 +1272,10 @@ pub mod pallet {
 			Ok(total_weight)
 		}
 
-		/// Returns the fee per second charged by a reserve chain for an asset
-		/// it takes this information from storage
-		pub fn take_fee_per_second_from_storage(
-			fee_location: Location,
-			destination: Location,
-			total_weight: Weight,
-		) -> Result<u128, DispatchError> {
-			let fee_per_second = DestinationAssetFeePerSecond::<T>::get(&fee_location)
-				.ok_or(Error::<T>::FeePerSecondNotSet)?;
-
-			// Ensure the asset is a reserve
-			// We only store information about asset fee per second on its reserve chain
-			// if amount is provided, we first check whether we have this information
-			Self::transfer_allowed(&(fee_location, fee_per_second).into(), &destination)?;
-
-			Ok(Self::calculate_fee_per_second(total_weight, fee_per_second))
+		/// Get the fee per second for an asset location.
+		/// This now delegates to the FeeTrader instead of reading from local storage.
+		pub fn dest_asset_fee_per_second(location: &Location) -> Option<u128> {
+			T::FeeTrader::get_asset_price(location)
 		}
 
 		/// Converts Currency to multilocation

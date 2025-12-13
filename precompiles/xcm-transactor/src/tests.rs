@@ -19,10 +19,12 @@ use crate::mock::{
 };
 
 use frame_support::{assert_ok, weights::Weight};
+use moonbeam_tests_primitives::MemoryFeeTrader;
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::H160;
 use sp_std::boxed::Box;
 use xcm::latest::Location;
+use xcm_primitives::XcmFeeTrader;
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -156,10 +158,9 @@ fn take_transact_info() {
 				None
 			));
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
+			// Set fee per second for test setup
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
 				1
 			));
 
@@ -195,10 +196,9 @@ fn take_transact_info_with_signed() {
 				Some(1.into())
 			));
 
-			// Root can set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
+			// Set fee per second for test setup
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
 				1
 			));
 
@@ -226,10 +226,9 @@ fn take_fee_per_second() {
 				.prepare_test(Alice, TransactorV1, input.clone())
 				.execute_reverts(|output| output == b"Fee Per Second not set");
 
-			// Root can set fee per secnd
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
+			// Set fee per second for test setup
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
 				1
 			));
 			precompiles()
@@ -348,10 +347,9 @@ fn take_transact_info_with_signed_v3() {
 				Some(1.into())
 			));
 
-			// Root can set fee per second
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
+			// Set fee per second for test setup
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
 				1
 			));
 
@@ -393,10 +391,9 @@ fn test_transact_derivative_multilocation() {
 				None
 			));
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
+			// Set fee per second for test setup
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
 				1
 			));
 
@@ -446,10 +443,9 @@ fn test_transact_derivative() {
 				None
 			));
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
+			// Set fee per second for test setup
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
 				1
 			));
 
@@ -568,10 +564,9 @@ fn test_transact_signed() {
 				Some(1.into())
 			));
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
+			// Set fee per second for test setup
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
 				1
 			));
 
@@ -684,10 +679,9 @@ fn test_transact_signed_multilocation() {
 				Some(1.into())
 			));
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				RuntimeOrigin::root(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
+			// Set fee per second for test setup
+			assert_ok!(<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(
+				Location::parent(),
 				1
 			));
 

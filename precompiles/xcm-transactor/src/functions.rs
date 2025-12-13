@@ -136,7 +136,7 @@ where
 		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + Location + u128(16)
 		handle.record_db_read::<Runtime>(32 + Location::max_encoded_len())?;
 		let fee_per_second: u128 =
-			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(location)
+			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(&location)
 				.ok_or(revert("Fee Per Second not set"))?;
 
 		Ok(fee_per_second.into())

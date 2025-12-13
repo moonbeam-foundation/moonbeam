@@ -92,7 +92,7 @@ describeSuite({
             id: 42259045809535163221576417993425387648n,
             location: RELAY_SOURCE_LOCATION,
             metadata: relayAssetMetadata,
-            relativePrice: 1n,
+            relativePrice: 1000000000000000000n,
           },
           100000000000000n,
           ALITH_ADDRESS,
@@ -143,9 +143,10 @@ describeSuite({
           functionName: "totalSupply",
         });
 
-        // We have used 1000 units to pay for the fees in the relay  (plus 1 transact_extra_weight),
-        // so balance and supply should have changed
-        const expectedBalance = 100000000000000n - 1000n - 1n;
+        // Hardcoded cost guardrail: with fee pricing configured in pallet-xcm-weight-trader,
+        // this call is expected to charge this exact amount on Moonbase.
+        const EXPECTED_FEE = 12_512_500n;
+        const expectedBalance = 100000000000000n - EXPECTED_FEE;
         expect(afterBalance).to.equal(expectedBalance);
         expect(afterSupply).to.equal(expectedBalance);
 
