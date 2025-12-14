@@ -813,6 +813,8 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: pnpm/action-setup@v4
+        with:
+          version: 9.1.4
       - uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
