@@ -74,6 +74,11 @@
     "typescript": "5.9.3",
     "yargs": "18.0.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sqlite3"
+    ]
+  },
   "engines": {
     "pnpm": ">=8.6",
     "node": ">=22.13.0"
