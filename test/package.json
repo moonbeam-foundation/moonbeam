@@ -62,6 +62,7 @@
     "yaml": "2.8.1"
   },
   "devDependencies": {
+    "sqlite3": "^5.1.7",
     "@types/debug": "4.1.12",
     "@types/json-bigint": "1.0.4",
     "@types/node": "^24.7.0",
