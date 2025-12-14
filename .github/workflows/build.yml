@@ -818,6 +818,9 @@ jobs:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
       - name: Create local folders
         run: |
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -829,7 +832,6 @@ jobs:
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Install and run upgrade test"
         run: |
-          cd test
           pnpm install
       - name: Run Upgrade Test (with retry)
         uses: nick-fields/retry@v3
@@ -839,7 +841,7 @@ jobs:
           retry_on: error
           command: |
             cd test
-            pnpm moonwall test upgrade_${{matrix.chain}}
+            bun moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
     if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
