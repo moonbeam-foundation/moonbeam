@@ -45,9 +45,11 @@ describeSuite({
     let apiAt: ApiDecoration<"promise">;
     let predecessorApiAt: ApiDecoration<"promise">;
     let paraApi: ApiPromise;
+    let specVersion: number;
 
     beforeAll(async () => {
       paraApi = context.polkadotJs("para");
+      specVersion = paraApi.runtimeVersion.specVersion.toNumber();
 
       const atBlockNumber = process.env.BLOCK_NUMBER
         ? Number.parseInt(process.env.BLOCK_NUMBER)
@@ -737,7 +739,7 @@ describeSuite({
             acc,
             [
               {
-                args: [candidateId],
+                args: [candidateId, delegator],
               },
               scheduledRequests,
             ]
@@ -748,7 +750,11 @@ describeSuite({
             scheduledRequests
               .filter((req) => req.action.isRevoke)
               .forEach((req) => {
-                acc[candidateId.toHex()].add(req.delegator.toHex());
+                if (specVersion >= 4_100) {
+                  acc[candidateId.toHex()].add(delegator.toHex());
+                } else {
+                  acc[candidateId.toHex()].add(req.delegator.toHex());
+                }
               });
             return acc;
           },

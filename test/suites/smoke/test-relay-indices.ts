@@ -17,8 +17,7 @@ describeSuite({
     let paraApiVersion: number;
 
     function getStakingPalletChainApi() {
-      const chainType = context.polkadotJs("para").consts.system.version.specName.toString();
-      if (chainType === "moonbase") {
+      if (paraApiVersion < 4_001) {
         return relayApi;
       }
 
