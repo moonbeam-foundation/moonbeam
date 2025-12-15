@@ -1670,7 +1670,7 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 						.contains("Dispatched call failed with error:")
 						&& from_utf8(&output)
 							.unwrap()
-							.contains("AssetIsNotReserveInDestination")
+							.contains("ErrorValidating")
 				});
 		});
 }
