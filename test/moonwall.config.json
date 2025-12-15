@@ -179,6 +179,13 @@
           }
         },
         {
+          "endpoints": [
+            "wss://asset-hub-polkadot-rpc.n.dwellir.com"
+          ],
+          "name": "asset-hub",
+          "type": "polkadotJs"
+        },
+        {
           "name": "relay",
           "type": "polkadotJs",
           "endpoints": ["wss://stagenet-relay.api.moondev.network"]
@@ -358,6 +365,13 @@
               }
             }
           }
+        },
+        {
+          "endpoints": [
+            "wss://asset-hub-polkadot-rpc.n.dwellir.com"
+          ],
+          "name": "asset-hub",
+          "type": "polkadotJs"
         },
         {
           "name": "relay",
