@@ -23,15 +23,23 @@ interface SubstrateBlockRecord {
 }
 
 interface ReorgEvent {
-  previousBest: BlockRecord;
-  newBest: BlockRecord;
+  type: "gap" | "chain_switch";
+  previousBlock: BlockRecord;
+  newBlock: BlockRecord;
   skippedBlocks: bigint[];
   timestamp: number;
 }
 
+// Per Ethereum spec (https://github.com/ethereum/go-ethereum/wiki/RPC-PUB-SUB):
+// "When a chain reorganization occurs, this subscription will emit an event
+// containing all new headers (blocks) for the new chain. This means that you
+// may see multiple headers emitted with the same height (block number)."
+//
+// This test verifies that newHeads behaves according to spec during reorgs.
+
 describeSuite({
   id: "S29",
-  title: "eth_subscribe newHeads - Reorg detection and block delivery",
+  title: "eth_subscribe newHeads - Reorg detection and block delivery (per Ethereum spec)",
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let viemClient: PublicClient;
@@ -102,11 +110,12 @@ describeSuite({
                   `parent=${block.parentHash.slice(0, 18)}...`
               );
 
-              // Check for gaps with the previous block
+              // Check for issues with the previous block
               if (ethBlocks.length > 1) {
                 const prevBlock = ethBlocks[ethBlocks.length - 2];
                 const expectedNumber = prevBlock.number + 1n;
 
+                // Check 1: Gap in block numbers (explicit skip)
                 if (block.number !== expectedNumber) {
                   const gap = block.number - expectedNumber;
                   skippedBlocks.push({
@@ -115,36 +124,53 @@ describeSuite({
                     gap,
                   });
 
-                  // Detect potential reorg
                   const skippedNumbers: bigint[] = [];
                   for (let i = expectedNumber; i < block.number; i++) {
                     skippedNumbers.push(i);
                   }
 
                   reorgEvents.push({
-                    previousBest: prevBlock,
-                    newBest: blockInfo,
+                    type: "gap",
+                    previousBlock: prevBlock,
+                    newBlock: blockInfo,
                     skippedBlocks: skippedNumbers,
                     timestamp: Date.now(),
                   });
 
                   log(
-                    `[ETH] ⚠️  REORG/GAP DETECTED: Expected #${expectedNumber}, ` +
+                    `[ETH] ♻️  REORG (GAP): Expected #${expectedNumber}, ` +
                       `received #${block.number} (${gap} blocks skipped: ${skippedNumbers.join(", ")})`
                   );
                 }
 
-                // Verify parent hash was delivered (except for first block)
+                // Check 2: Chain switch - parent hash doesn't match previous block's hash
+                // This is the key indicator of a reorg: we moved to a different fork
+                if (block.parentHash !== prevBlock.hash) {
+                  reorgEvents.push({
+                    type: "chain_switch",
+                    previousBlock: prevBlock,
+                    newBlock: blockInfo,
+                    skippedBlocks: [],
+                    timestamp: Date.now(),
+                  });
+
+                  log(`[ETH] ♻️  REORG (CHAIN SWITCH) at block #${block.number}:`);
+                  log(
+                    `[ETH]     Previous block #${prevBlock.number}: ${prevBlock.hash.slice(0, 18)}...`
+                  );
+                  log(
+                    `[ETH]     New block #${block.number} parent: ${block.parentHash.slice(0, 18)}...`
+                  );
+                  log(`[ETH]     ❌ Parent hash mismatch! Chain switched to different fork.`);
+                }
+
+                // Track missing parents for analysis (parent was never delivered to us)
                 if (!ethHashes.has(block.parentHash)) {
                   missingParents.push({
                     blockNumber: block.number,
                     blockHash: block.hash,
                     parentHash: block.parentHash,
                   });
-                  log(
-                    `[ETH] ⚠️  MISSING PARENT: Block #${block.number} references ` +
-                      `parent ${block.parentHash.slice(0, 18)}... which was never delivered`
-                  );
                 }
               }
 
@@ -237,14 +263,38 @@ describeSuite({
         }
 
         // Report reorg events
+        const chainSwitches = reorgEvents.filter((r) => r.type === "chain_switch");
+        const gaps = reorgEvents.filter((r) => r.type === "gap");
+
         if (reorgEvents.length > 0) {
-          log(`\n❌ REORG EVENTS DETECTED:`);
-          for (const reorg of reorgEvents) {
-            log(`  - Reorg from #${reorg.previousBest.number} to #${reorg.newBest.number}`);
-            log(`    Previous best: ${reorg.previousBest.hash.slice(0, 18)}...`);
-            log(`    New best: ${reorg.newBest.hash.slice(0, 18)}...`);
-            log(`    Skipped blocks: ${reorg.skippedBlocks.join(", ")}`);
+          log(`\n♻️  REORG EVENTS DETECTED: ${reorgEvents.length} total`);
+          log(`    - Chain switches (parent mismatch): ${chainSwitches.length}`);
+          log(`    - Gaps (skipped block numbers): ${gaps.length}`);
+
+          if (chainSwitches.length > 0) {
+            log(`\n  CHAIN SWITCHES (issue #3415 - blocks skipped during reorg):`);
+            for (const reorg of chainSwitches) {
+              log(`    Block #${reorg.newBlock.number}:`);
+              log(
+                `      Previous delivered: #${reorg.previousBlock.number} (${reorg.previousBlock.hash.slice(0, 18)}...)`
+              );
+              log(`      New block parent:   ${reorg.newBlock.parentHash.slice(0, 18)}...`);
+              log(`      New block hash:     ${reorg.newBlock.hash.slice(0, 18)}...`);
+              log(
+                `      → The subscription jumped to a different fork without delivering intermediate blocks`
+              );
+            }
           }
+
+          if (gaps.length > 0) {
+            log(`\n  GAPS (explicit block number skips):`);
+            for (const reorg of gaps) {
+              log(`    From #${reorg.previousBlock.number} to #${reorg.newBlock.number}`);
+              log(`      Skipped: ${reorg.skippedBlocks.join(", ")}`);
+            }
+          }
+        } else {
+          log(`\n✓ No reorg events detected`);
         }
 
         // Report missing parent blocks
@@ -287,6 +337,13 @@ describeSuite({
             `parents that were never delivered`
         ).toHaveLength(0);
 
+        // No chain switches should occur (issue #3415 - this is the main bug)
+        expect(
+          chainSwitches,
+          `Chain switch reorgs detected: ${chainSwitches.length} times the subscription ` +
+            `jumped to a different fork without delivering intermediate blocks`
+        ).toHaveLength(0);
+
         // Every block Substrate reported should also be reported by eth_subscribe
         // Note: This may have timing differences, so we log but don't fail on this
         if (blocksNotDeliveredByEth.length > 0) {
@@ -300,17 +357,31 @@ describeSuite({
 
     it({
       id: "C101",
-      title: "should track block hash consistency during subscription",
+      title: "per Ethereum spec: reorgs should emit same block number with different hashes",
       timeout: LISTEN_DURATION_MS + 60_000,
       test: async function () {
+        // Per Ethereum spec: "When a chain reorganization occurs, this subscription
+        // will emit an event containing all new headers for the new chain. This means
+        // you may see multiple headers emitted with the same height (block number)."
+        //
+        // This test verifies that during reorgs, the subscription properly re-emits
+        // block headers for the new chain, resulting in the same block number
+        // appearing multiple times with different hashes.
+
         const transport = webSocket(wsEndpoint);
         viemClient = createPublicClient({ transport });
 
         const blocks: BlockRecord[] = [];
         const hashByNumber = new Map<bigint, Set<string>>();
+        const chainSwitches: Array<{
+          blockNumber: bigint;
+          prevHash: string;
+          newParentHash: string;
+        }> = [];
         const duplicateNumbers: Array<{ number: bigint; hashes: string[] }> = [];
 
-        log(`Starting block hash consistency test for ${LISTEN_DURATION_MS / 1000} seconds...`);
+        log(`Starting Ethereum spec compliance test for ${LISTEN_DURATION_MS / 1000} seconds...`);
+        log(`Per spec: reorgs should emit same block number with different hashes`);
 
         await new Promise<void>((resolve, reject) => {
           const timeoutId = setTimeout(() => {
@@ -326,6 +397,23 @@ describeSuite({
                 parentHash: block.parentHash,
                 timestamp: Date.now(),
               };
+
+              // Detect chain switches (reorgs where parent doesn't match)
+              if (blocks.length > 0) {
+                const prevBlock = blocks[blocks.length - 1];
+                if (block.number === prevBlock.number + 1n && block.parentHash !== prevBlock.hash) {
+                  chainSwitches.push({
+                    blockNumber: block.number,
+                    prevHash: prevBlock.hash,
+                    newParentHash: block.parentHash,
+                  });
+                  log(
+                    `[CHAIN SWITCH] Block #${block.number}: parent ${block.parentHash.slice(0, 12)}... ` +
+                      `!= prev hash ${prevBlock.hash.slice(0, 12)}...`
+                  );
+                }
+              }
+
               blocks.push(blockInfo);
 
               // Track all hashes seen for each block number
@@ -333,20 +421,15 @@ describeSuite({
                 hashByNumber.set(block.number, new Set());
               }
               const hashes = hashByNumber.get(block.number)!;
-              const wasAlreadySeen = hashes.has(block.hash);
               hashes.add(block.hash);
 
+              // Per spec, this SHOULD happen during reorgs
               if (hashes.size > 1) {
                 log(
-                  `[REORG] Block #${block.number} has multiple hashes: ${Array.from(hashes)
-                    .map((h) => h.slice(0, 12) + "...")
-                    .join(", ")}`
-                );
-              }
-
-              if (wasAlreadySeen) {
-                log(
-                  `[DUP] Duplicate delivery of block #${block.number} (${block.hash.slice(0, 18)}...)`
+                  `[SPEC COMPLIANT] Block #${block.number} re-emitted with new hash ` +
+                    `(${hashes.size} hashes seen): ${Array.from(hashes)
+                      .map((h) => h.slice(0, 12) + "...")
+                      .join(", ")}`
                 );
               }
             },
@@ -357,7 +440,7 @@ describeSuite({
           });
         });
 
-        // Find block numbers with multiple different hashes (reorgs)
+        // Find block numbers with multiple different hashes
         for (const [number, hashes] of hashByNumber) {
           if (hashes.size > 1) {
             duplicateNumbers.push({
@@ -367,13 +450,29 @@ describeSuite({
           }
         }
 
-        log(`\nBlock hash consistency summary:`);
+        log(`\n${"=".repeat(80)}`);
+        log(`ETHEREUM SPEC COMPLIANCE CHECK`);
+        log(`${"=".repeat(80)}`);
+        log(`\nSubscription summary:`);
         log(`  - Total blocks received: ${blocks.length}`);
         log(`  - Unique block numbers: ${hashByNumber.size}`);
-        log(`  - Block numbers with multiple hashes (reorgs): ${duplicateNumbers.length}`);
+        log(`  - Chain switches detected (reorgs): ${chainSwitches.length}`);
+        log(`  - Block numbers with multiple hashes: ${duplicateNumbers.length}`);
+
+        if (chainSwitches.length > 0 && duplicateNumbers.length === 0) {
+          log(`\n❌ SPEC VIOLATION DETECTED:`);
+          log(`   ${chainSwitches.length} chain switches occurred but NO block numbers`);
+          log(`   were re-emitted with different hashes.`);
+          log(`\n   Per Ethereum spec, when a reorg occurs:`);
+          log(`   "this subscription will emit an event containing all new headers`);
+          log(`   for the new chain. This means that you may see multiple headers`);
+          log(`   emitted with the same height (block number)."`);
+          log(`\n   Current behavior: subscription jumps to new fork without`);
+          log(`   re-emitting headers for the new chain's blocks.`);
+        }
 
         if (duplicateNumbers.length > 0) {
-          log(`\nReorg detected - blocks with multiple hashes:`);
+          log(`\n✓ Spec-compliant reorg handling detected:`);
           for (const dup of duplicateNumbers) {
             log(`  - Block #${dup.number}: ${dup.hashes.length} different hashes`);
             for (const hash of dup.hashes) {
@@ -387,9 +486,19 @@ describeSuite({
           `Expected at least ${MIN_BLOCKS_EXPECTED} blocks`
         ).toBeGreaterThanOrEqual(MIN_BLOCKS_EXPECTED);
 
-        // Note: Multiple hashes for the same block number is expected during reorgs
-        // The key issue is whether ALL best heads were delivered
-        log(`\n✓ Block hash tracking complete`);
+        // If we detected chain switches but no duplicate block numbers,
+        // the implementation is not following Ethereum spec
+        if (chainSwitches.length > 0) {
+          expect(
+            duplicateNumbers.length,
+            `Detected ${chainSwitches.length} chain switches (reorgs) but the subscription ` +
+              `did NOT re-emit block headers with the same number and different hashes. ` +
+              `Per Ethereum spec, reorgs should cause the same block number to be emitted ` +
+              `multiple times with different hashes.`
+          ).toBeGreaterThan(0);
+        }
+
+        log(`\n✓ Spec compliance check complete`);
       },
     });
   },
