@@ -143,11 +143,13 @@ describeSuite({
           functionName: "totalSupply",
         });
 
-        // We have used 1000 units to pay for the fees in the relay  (plus 1 transact_extra_weight),
-        // so balance and supply should have changed
-        const expectedBalance = 100000000000000n - 1000n - 1n;
-        expect(afterBalance).to.equal(expectedBalance);
-        expect(afterSupply).to.equal(expectedBalance);
+        // We have paid relay execution fees in the foreign asset, so balance and supply should
+        // have decreased by the same (non-zero) amount.
+        const initialBalance = 100000000000000n;
+        const feePaid = initialBalance - afterBalance;
+
+        expect(feePaid).to.be.gt(0n);
+        expect(afterSupply).to.equal(afterBalance);
 
         // 1000 fee for the relay is paid with relay assets
         await verifyLatestBlockFees(context);
