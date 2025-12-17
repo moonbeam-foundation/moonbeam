@@ -143,22 +143,14 @@ describeSuite({
           functionName: "totalSupply",
         });
 
-        // Fee calculation via pallet-xcm-weight-trader:
-        // - V1 precompile doesn't pass explicit feeAmount, so fee is computed from weight
-        // - transact_extra_weight.ref_time = 1 (from setTransactInfo)
-        // - total_ref_time = weight + transact_extra_weight.ref_time = 1001
-        // - fee = WeightToFee(total_weight)
-        // With relative_price = 1e18: fee = native_fee * 1e18 / 1e18 = native_fee
-        const WEIGHT_FEE = 12_500n;
-        const transact_extra_weight_ref_time = 1n;
-        const totalRefTime = BigInt(weight) + transact_extra_weight_ref_time;
-        const expectedFee = totalRefTime * WEIGHT_FEE;
-
-        const expectedBalance = 100000000000000n - expectedFee;
+        // Hardcoded cost guardrail: with fee pricing configured in pallet-xcm-weight-trader,
+        // this call is expected to charge this exact amount on Moonbase.
+        const EXPECTED_FEE = 12_512_500n;
+        const expectedBalance = 100000000000000n - EXPECTED_FEE;
         expect(afterBalance).to.equal(expectedBalance);
         expect(afterSupply).to.equal(expectedBalance);
 
-        // Fee for the relay is paid with relay assets
+        // 1000 fee for the relay is paid with relay assets
         await verifyLatestBlockFees(context);
       },
     });

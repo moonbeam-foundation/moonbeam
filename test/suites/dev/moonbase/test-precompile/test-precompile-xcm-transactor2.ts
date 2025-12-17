@@ -89,14 +89,14 @@ describeSuite({
 
         // Fee calculation via pallet-xcm-weight-trader:
         // - V1 precompile doesn't pass explicit feeAmount, so fee is computed from weight
-        // - transact_extra_weight.ref_time = 1 (from setTransactInfo)
-        // - total_ref_time = weight + transact_extra_weight.ref_time = 1001
-        // - fee = WeightToFee(total_weight)
-        // With relative_price = 1e18: fee = native_fee * 1e18 / 1e18 = native_fee
+        // - transact_extra_weight = 1 (from setTransactInfo)
+        // - total_weight = weight + transact_extra_weight = 1001
+        // - native_fee = WeightToFee(total_weight) = total_weight * WEIGHT_FEE = 1001 * 12_500
+        // - With relative_price = 1e18: fee = native_fee * 1e18 / 1e18 = native_fee
         const WEIGHT_FEE = 12_500n;
-        const transact_extra_weight_ref_time = 1n;
-        const totalRefTime = BigInt(weight) + transact_extra_weight_ref_time;
-        const expectedFee = totalRefTime * WEIGHT_FEE;
+        const transact_extra_weight = 1n;
+        const totalWeight = BigInt(weight) + transact_extra_weight;
+        const expectedFee = totalWeight * WEIGHT_FEE;
         const expectedBalance = initialBalance - expectedFee;
 
         expect(afterBalance).to.equal(expectedBalance);
