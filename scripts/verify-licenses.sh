@@ -42,6 +42,7 @@ AUTHORS=(
     "Moonsong-Labs"
     "Moonsong Labs"
     "moonbeam-foundation"
+    "Moonbeam Foundation"
     "Frontier developers <legal@bitarray.dev>"
 )
 NAMES=(
