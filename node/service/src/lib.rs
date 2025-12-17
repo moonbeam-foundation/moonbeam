@@ -1253,17 +1253,30 @@ where
 		+ cumulus_primitives_core::RelayParentOffsetApi<Block>,
 	Customizations: ClientCustomizations + 'static,
 {
-	start_node_impl::<RuntimeApi, Customizations, sc_network::NetworkWorker<_, _>>(
-		parachain_config,
-		polkadot_config,
-		collator_options,
-		para_id,
-		rpc_config,
-		block_authoring_duration,
-		hwbench,
-		node_extra_args
-	)
-	.await
+	match parachain_config.network.network_backend {
+			sc_network::config::NetworkBackendType::Libp2p =>
+				start_node_impl::<RuntimeApi, Customizations, sc_network::NetworkWorker<_, _>>(
+					parachain_config,
+					polkadot_config,
+					collator_options,
+					para_id,
+					rpc_config,
+					block_authoring_duration,
+					hwbench,
+					node_extra_args
+				).await,
+			sc_network::config::NetworkBackendType::Litep2p =>
+				start_node_impl::<RuntimeApi, Customizations, sc_network::Litep2pNetworkBackend>(
+					parachain_config,
+					polkadot_config,
+					collator_options,
+					para_id,
+					rpc_config,
+					block_authoring_duration,
+					hwbench,
+					node_extra_args
+				).await
+		}
 }
 
 /// Builds a new development service. This service uses manual seal, and mocks
