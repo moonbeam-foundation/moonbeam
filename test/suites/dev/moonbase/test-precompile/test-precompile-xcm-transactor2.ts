@@ -87,22 +87,14 @@ describeSuite({
           functionName: "totalSupply",
         });
 
-        // Fee calculation via pallet-xcm-weight-trader:
-        // - V1 precompile doesn't pass explicit feeAmount, so fee is computed from weight
-        // - transact_extra_weight = 1 (from setTransactInfo)
-        // - total_weight = weight + transact_extra_weight = 1001
-        // - native_fee = WeightToFee(total_weight) = total_weight * WEIGHT_FEE = 1001 * 12_500
-        // - With relative_price = 1e18: fee = native_fee * 1e18 / 1e18 = native_fee
-        const WEIGHT_FEE = 12_500n;
-        const transact_extra_weight = 1n;
-        const totalWeight = BigInt(weight) + transact_extra_weight;
-        const expectedFee = totalWeight * WEIGHT_FEE;
-        const expectedBalance = initialBalance - expectedFee;
+        // We have used 1000 units to pay for the fees in the relay, so balance and supply should
+        // have changed
+        const expectedBalance = initialBalance - 1000n - 1n;
 
         expect(afterBalance).to.equal(expectedBalance);
         expect(afterSupply).to.equal(expectedBalance);
 
-        // Fee for the relay is paid with relay assets
+        // 1000 fee for the relay is paid with relay assets
         await verifyLatestBlockFees(context);
       },
     });
