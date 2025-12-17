@@ -143,10 +143,9 @@ describeSuite({
           functionName: "totalSupply",
         });
 
-        // Hardcoded cost guardrail: with fee pricing configured in pallet-xcm-weight-trader,
-        // this call is expected to charge this exact amount on Moonbase.
-        const EXPECTED_FEE = 12_512_500n;
-        const expectedBalance = 100000000000000n - EXPECTED_FEE;
+        // We have used 1000 units to pay for the fees in the relay  (plus 1 transact_extra_weight),
+        // so balance and supply should have changed
+        const expectedBalance = 100000000000000n - 1000n - 1n;
         expect(afterBalance).to.equal(expectedBalance);
         expect(afterSupply).to.equal(expectedBalance);
 
