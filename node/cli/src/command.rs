@@ -837,6 +837,8 @@ pub fn run() -> Result<()> {
 						.chain(cli.relaychain_args.iter()),
 				);
 
+				info!("Relay Chain Client Version: {}", polkadot_cli.impl_version);
+
 				let para_id = extension.map(|e| e.para_id);
 				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
 
