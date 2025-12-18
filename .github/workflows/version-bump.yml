@@ -24,6 +24,8 @@ jobs:
           node-version-file: "test/.nvmrc"
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - name: Generate version bump issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
