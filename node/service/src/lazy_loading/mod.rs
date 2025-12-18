@@ -806,6 +806,7 @@ where
 					Some(crate::rpc::TracingConfig {
 						tracing_requesters: tracing_requesters.clone(),
 						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
+						max_block_range: rpc_config.max_block_range,
 					}),
 					pubsub_notification_sinks.clone(),
 					pending_consensus_data_provider,
