@@ -46,9 +46,9 @@ members = [
 resolver = "2"
 
 [workspace.package]
-authors = ["PureStake"]
+authors = ["Moonbeam Foundation"]
 edition = "2021"
-repository = "https://github.com/PureStake/moonbeam"
+repository = "https://github.com/moonbeam-foundation/moonbeam"
 
 [workspace.lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(substrate_runtime)'] }
