@@ -478,29 +478,39 @@
 <a href=#478 id=478 data-nosnippet>478</a>
 <a href=#479 id=479 data-nosnippet>479</a><span class="attr">#[derive(Debug)]
 <a href=#480 id=480 data-nosnippet>480</a></span><span class="kw">pub struct </span>RelayChainCli {
-<a href=#481 id=481 data-nosnippet>481</a>	<span class="doccomment">/// The actual relay chain cli object.
-<a href=#482 id=482 data-nosnippet>482</a>	</span><span class="kw">pub </span>base: polkadot_cli::RunCmd,
-<a href=#483 id=483 data-nosnippet>483</a>
-<a href=#484 id=484 data-nosnippet>484</a>	<span class="doccomment">/// Optional chain id that should be passed to the relay chain.
-<a href=#485 id=485 data-nosnippet>485</a>	</span><span class="kw">pub </span>chain_id: <span class="prelude-ty">Option</span>&lt;String&gt;,
-<a href=#486 id=486 data-nosnippet>486</a>
-<a href=#487 id=487 data-nosnippet>487</a>	<span class="doccomment">/// The base path that should be used by the relay chain.
-<a href=#488 id=488 data-nosnippet>488</a>	</span><span class="kw">pub </span>base_path: PathBuf,
-<a href=#489 id=489 data-nosnippet>489</a>}
-<a href=#490 id=490 data-nosnippet>490</a>
-<a href=#491 id=491 data-nosnippet>491</a><span class="kw">impl </span>RelayChainCli {
-<a href=#492 id=492 data-nosnippet>492</a>	<span class="doccomment">/// Parse the relay chain CLI parameters using the para chain `Configuration`.
-<a href=#493 id=493 data-nosnippet>493</a>	</span><span class="kw">pub fn </span>new&lt;<span class="lifetime">'a</span>&gt;(
-<a href=#494 id=494 data-nosnippet>494</a>		para_config: <span class="kw-2">&amp;</span>sc_service::Configuration,
-<a href=#495 id=495 data-nosnippet>495</a>		relay_chain_args: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>String&gt;,
-<a href=#496 id=496 data-nosnippet>496</a>	) -&gt; <span class="self">Self </span>{
-<a href=#497 id=497 data-nosnippet>497</a>		<span class="kw">let </span>extension = chain_spec::Extensions::try_get(<span class="kw-2">&amp;*</span>para_config.chain_spec);
-<a href=#498 id=498 data-nosnippet>498</a>		<span class="kw">let </span>chain_id = extension.map(|e| e.relay_chain.clone());
-<a href=#499 id=499 data-nosnippet>499</a>		<span class="kw">let </span>base_path = para_config.base_path.path().join(<span class="string">"polkadot"</span>);
-<a href=#500 id=500 data-nosnippet>500</a>		<span class="self">Self </span>{
-<a href=#501 id=501 data-nosnippet>501</a>			base_path,
-<a href=#502 id=502 data-nosnippet>502</a>			chain_id,
-<a href=#503 id=503 data-nosnippet>503</a>			base: polkadot_cli::RunCmd::parse_from(relay_chain_args),
-<a href=#504 id=504 data-nosnippet>504</a>		}
-<a href=#505 id=505 data-nosnippet>505</a>	}
-<a href=#506 id=506 data-nosnippet>506</a>}</code></pre></div></section></main></body></html>
+<a href=#481 id=481 data-nosnippet>481</a>	<span class="doccomment">/// Implementation version.
+<a href=#482 id=482 data-nosnippet>482</a>	///
+<a href=#483 id=483 data-nosnippet>483</a>	/// By default, it will look like this:
+<a href=#484 id=484 data-nosnippet>484</a>	///
+<a href=#485 id=485 data-nosnippet>485</a>	/// `2.0.0-b950f731c`
+<a href=#486 id=486 data-nosnippet>486</a>	///
+<a href=#487 id=487 data-nosnippet>487</a>	/// Where the hash is the short hash of the commit in the Git repository.
+<a href=#488 id=488 data-nosnippet>488</a>	</span><span class="kw">pub </span>impl_version: String,
+<a href=#489 id=489 data-nosnippet>489</a>
+<a href=#490 id=490 data-nosnippet>490</a>	<span class="doccomment">/// The actual relay chain cli object.
+<a href=#491 id=491 data-nosnippet>491</a>	</span><span class="kw">pub </span>base: polkadot_cli::RunCmd,
+<a href=#492 id=492 data-nosnippet>492</a>
+<a href=#493 id=493 data-nosnippet>493</a>	<span class="doccomment">/// Optional chain id that should be passed to the relay chain.
+<a href=#494 id=494 data-nosnippet>494</a>	</span><span class="kw">pub </span>chain_id: <span class="prelude-ty">Option</span>&lt;String&gt;,
+<a href=#495 id=495 data-nosnippet>495</a>
+<a href=#496 id=496 data-nosnippet>496</a>	<span class="doccomment">/// The base path that should be used by the relay chain.
+<a href=#497 id=497 data-nosnippet>497</a>	</span><span class="kw">pub </span>base_path: PathBuf,
+<a href=#498 id=498 data-nosnippet>498</a>}
+<a href=#499 id=499 data-nosnippet>499</a>
+<a href=#500 id=500 data-nosnippet>500</a><span class="kw">impl </span>RelayChainCli {
+<a href=#501 id=501 data-nosnippet>501</a>	<span class="doccomment">/// Parse the relay chain CLI parameters using the para chain `Configuration`.
+<a href=#502 id=502 data-nosnippet>502</a>	</span><span class="kw">pub fn </span>new&lt;<span class="lifetime">'a</span>&gt;(
+<a href=#503 id=503 data-nosnippet>503</a>		para_config: <span class="kw-2">&amp;</span>sc_service::Configuration,
+<a href=#504 id=504 data-nosnippet>504</a>		relay_chain_args: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>String&gt;,
+<a href=#505 id=505 data-nosnippet>505</a>	) -&gt; <span class="self">Self </span>{
+<a href=#506 id=506 data-nosnippet>506</a>		<span class="kw">let </span>extension = chain_spec::Extensions::try_get(<span class="kw-2">&amp;*</span>para_config.chain_spec);
+<a href=#507 id=507 data-nosnippet>507</a>		<span class="kw">let </span>chain_id = extension.map(|e| e.relay_chain.clone());
+<a href=#508 id=508 data-nosnippet>508</a>		<span class="kw">let </span>base_path = para_config.base_path.path().join(<span class="string">"polkadot"</span>);
+<a href=#509 id=509 data-nosnippet>509</a>		<span class="self">Self </span>{
+<a href=#510 id=510 data-nosnippet>510</a>			impl_version: polkadot_cli::Cli::impl_version(),
+<a href=#511 id=511 data-nosnippet>511</a>			base_path,
+<a href=#512 id=512 data-nosnippet>512</a>			chain_id,
+<a href=#513 id=513 data-nosnippet>513</a>			base: polkadot_cli::RunCmd::parse_from(relay_chain_args),
+<a href=#514 id=514 data-nosnippet>514</a>		}
+<a href=#515 id=515 data-nosnippet>515</a>	}
+<a href=#516 id=516 data-nosnippet>516</a>}</code></pre></div></section></main></body></html>
