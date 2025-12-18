@@ -806,72 +806,73 @@
 <a href=#806 id=806 data-nosnippet>806</a>					<span class="prelude-val">Some</span>(<span class="kw">crate</span>::rpc::TracingConfig {
 <a href=#807 id=807 data-nosnippet>807</a>						tracing_requesters: tracing_requesters.clone(),
 <a href=#808 id=808 data-nosnippet>808</a>						trace_filter_max_count: rpc_config.ethapi_trace_max_count,
-<a href=#809 id=809 data-nosnippet>809</a>					}),
-<a href=#810 id=810 data-nosnippet>810</a>					pubsub_notification_sinks.clone(),
-<a href=#811 id=811 data-nosnippet>811</a>					pending_consensus_data_provider,
-<a href=#812 id=812 data-nosnippet>812</a>					parachain_id,
-<a href=#813 id=813 data-nosnippet>813</a>				)
-<a href=#814 id=814 data-nosnippet>814</a>				.map_err(Into::into)
-<a href=#815 id=815 data-nosnippet>815</a>			} <span class="kw">else </span>{
-<a href=#816 id=816 data-nosnippet>816</a>				rpc::create_full(
-<a href=#817 id=817 data-nosnippet>817</a>					deps,
-<a href=#818 id=818 data-nosnippet>818</a>					subscription_task_executor,
-<a href=#819 id=819 data-nosnippet>819</a>					<span class="prelude-val">None</span>,
-<a href=#820 id=820 data-nosnippet>820</a>					pubsub_notification_sinks.clone(),
-<a href=#821 id=821 data-nosnippet>821</a>					pending_consensus_data_provider,
-<a href=#822 id=822 data-nosnippet>822</a>					parachain_id,
-<a href=#823 id=823 data-nosnippet>823</a>				)
-<a href=#824 id=824 data-nosnippet>824</a>				.map_err(Into::into)
-<a href=#825 id=825 data-nosnippet>825</a>			}
-<a href=#826 id=826 data-nosnippet>826</a>		}
-<a href=#827 id=827 data-nosnippet>827</a>	};
-<a href=#828 id=828 data-nosnippet>828</a>
-<a href=#829 id=829 data-nosnippet>829</a>	<span class="kw">let </span>_rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
-<a href=#830 id=830 data-nosnippet>830</a>		network,
-<a href=#831 id=831 data-nosnippet>831</a>		client,
-<a href=#832 id=832 data-nosnippet>832</a>		keystore: keystore_container.keystore(),
-<a href=#833 id=833 data-nosnippet>833</a>		task_manager: <span class="kw-2">&amp;mut </span>task_manager,
-<a href=#834 id=834 data-nosnippet>834</a>		transaction_pool,
-<a href=#835 id=835 data-nosnippet>835</a>		rpc_builder: Box::new(rpc_builder),
-<a href=#836 id=836 data-nosnippet>836</a>		backend,
-<a href=#837 id=837 data-nosnippet>837</a>		system_rpc_tx,
-<a href=#838 id=838 data-nosnippet>838</a>		sync_service: sync_service.clone(),
-<a href=#839 id=839 data-nosnippet>839</a>		config,
-<a href=#840 id=840 data-nosnippet>840</a>		tx_handler_controller,
-<a href=#841 id=841 data-nosnippet>841</a>		telemetry: <span class="prelude-val">None</span>,
-<a href=#842 id=842 data-nosnippet>842</a>	})<span class="question-mark">?</span>;
-<a href=#843 id=843 data-nosnippet>843</a>
-<a href=#844 id=844 data-nosnippet>844</a>	<span class="kw">if let </span><span class="prelude-val">Some</span>(hwbench) = hwbench {
-<a href=#845 id=845 data-nosnippet>845</a>		sc_sysinfo::print_hwbench(<span class="kw-2">&amp;</span>hwbench);
-<a href=#846 id=846 data-nosnippet>846</a>
-<a href=#847 id=847 data-nosnippet>847</a>		<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>telemetry) = telemetry {
-<a href=#848 id=848 data-nosnippet>848</a>			<span class="kw">let </span>telemetry_handle = telemetry.handle();
-<a href=#849 id=849 data-nosnippet>849</a>			task_manager.spawn_handle().spawn(
-<a href=#850 id=850 data-nosnippet>850</a>				<span class="string">"telemetry_hwbench"</span>,
-<a href=#851 id=851 data-nosnippet>851</a>				<span class="prelude-val">None</span>,
-<a href=#852 id=852 data-nosnippet>852</a>				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
-<a href=#853 id=853 data-nosnippet>853</a>			);
-<a href=#854 id=854 data-nosnippet>854</a>		}
-<a href=#855 id=855 data-nosnippet>855</a>	}
-<a href=#856 id=856 data-nosnippet>856</a>
-<a href=#857 id=857 data-nosnippet>857</a>	<span class="macro">log::info!</span>(<span class="string">"Service Ready"</span>);
-<a href=#858 id=858 data-nosnippet>858</a>
-<a href=#859 id=859 data-nosnippet>859</a>	<span class="prelude-val">Ok</span>(task_manager)
-<a href=#860 id=860 data-nosnippet>860</a>}
-<a href=#861 id=861 data-nosnippet>861</a>
-<a href=#862 id=862 data-nosnippet>862</a><span class="kw">pub fn </span>spec_builder() -&gt; sc_chain_spec::ChainSpecBuilder&lt;Extensions, HostFunctions&gt; {
-<a href=#863 id=863 data-nosnippet>863</a>	<span class="kw">crate</span>::chain_spec::moonbeam::ChainSpec::builder(
-<a href=#864 id=864 data-nosnippet>864</a>		moonbeam_runtime::WASM_BINARY.expect(<span class="string">"WASM binary was not build, please build it!"</span>),
-<a href=#865 id=865 data-nosnippet>865</a>		Default::default(),
-<a href=#866 id=866 data-nosnippet>866</a>	)
-<a href=#867 id=867 data-nosnippet>867</a>	.with_name(<span class="string">"Lazy Loading"</span>)
-<a href=#868 id=868 data-nosnippet>868</a>	.with_id(<span class="string">"lazy_loading"</span>)
-<a href=#869 id=869 data-nosnippet>869</a>	.with_chain_type(ChainType::Development)
-<a href=#870 id=870 data-nosnippet>870</a>	.with_properties(
-<a href=#871 id=871 data-nosnippet>871</a>		serde_json::from_str(
-<a href=#872 id=872 data-nosnippet>872</a>			<span class="string">"{\"tokenDecimals\": 18, \"tokenSymbol\": \"GLMR\", \"SS58Prefix\": 1284}"</span>,
-<a href=#873 id=873 data-nosnippet>873</a>		)
-<a href=#874 id=874 data-nosnippet>874</a>		.expect(<span class="string">"Provided valid json map"</span>),
-<a href=#875 id=875 data-nosnippet>875</a>	)
-<a href=#876 id=876 data-nosnippet>876</a>	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
-<a href=#877 id=877 data-nosnippet>877</a>}</code></pre></div></section></main></body></html>
+<a href=#809 id=809 data-nosnippet>809</a>						max_block_range: rpc_config.max_block_range,
+<a href=#810 id=810 data-nosnippet>810</a>					}),
+<a href=#811 id=811 data-nosnippet>811</a>					pubsub_notification_sinks.clone(),
+<a href=#812 id=812 data-nosnippet>812</a>					pending_consensus_data_provider,
+<a href=#813 id=813 data-nosnippet>813</a>					parachain_id,
+<a href=#814 id=814 data-nosnippet>814</a>				)
+<a href=#815 id=815 data-nosnippet>815</a>				.map_err(Into::into)
+<a href=#816 id=816 data-nosnippet>816</a>			} <span class="kw">else </span>{
+<a href=#817 id=817 data-nosnippet>817</a>				rpc::create_full(
+<a href=#818 id=818 data-nosnippet>818</a>					deps,
+<a href=#819 id=819 data-nosnippet>819</a>					subscription_task_executor,
+<a href=#820 id=820 data-nosnippet>820</a>					<span class="prelude-val">None</span>,
+<a href=#821 id=821 data-nosnippet>821</a>					pubsub_notification_sinks.clone(),
+<a href=#822 id=822 data-nosnippet>822</a>					pending_consensus_data_provider,
+<a href=#823 id=823 data-nosnippet>823</a>					parachain_id,
+<a href=#824 id=824 data-nosnippet>824</a>				)
+<a href=#825 id=825 data-nosnippet>825</a>				.map_err(Into::into)
+<a href=#826 id=826 data-nosnippet>826</a>			}
+<a href=#827 id=827 data-nosnippet>827</a>		}
+<a href=#828 id=828 data-nosnippet>828</a>	};
+<a href=#829 id=829 data-nosnippet>829</a>
+<a href=#830 id=830 data-nosnippet>830</a>	<span class="kw">let </span>_rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
+<a href=#831 id=831 data-nosnippet>831</a>		network,
+<a href=#832 id=832 data-nosnippet>832</a>		client,
+<a href=#833 id=833 data-nosnippet>833</a>		keystore: keystore_container.keystore(),
+<a href=#834 id=834 data-nosnippet>834</a>		task_manager: <span class="kw-2">&amp;mut </span>task_manager,
+<a href=#835 id=835 data-nosnippet>835</a>		transaction_pool,
+<a href=#836 id=836 data-nosnippet>836</a>		rpc_builder: Box::new(rpc_builder),
+<a href=#837 id=837 data-nosnippet>837</a>		backend,
+<a href=#838 id=838 data-nosnippet>838</a>		system_rpc_tx,
+<a href=#839 id=839 data-nosnippet>839</a>		sync_service: sync_service.clone(),
+<a href=#840 id=840 data-nosnippet>840</a>		config,
+<a href=#841 id=841 data-nosnippet>841</a>		tx_handler_controller,
+<a href=#842 id=842 data-nosnippet>842</a>		telemetry: <span class="prelude-val">None</span>,
+<a href=#843 id=843 data-nosnippet>843</a>	})<span class="question-mark">?</span>;
+<a href=#844 id=844 data-nosnippet>844</a>
+<a href=#845 id=845 data-nosnippet>845</a>	<span class="kw">if let </span><span class="prelude-val">Some</span>(hwbench) = hwbench {
+<a href=#846 id=846 data-nosnippet>846</a>		sc_sysinfo::print_hwbench(<span class="kw-2">&amp;</span>hwbench);
+<a href=#847 id=847 data-nosnippet>847</a>
+<a href=#848 id=848 data-nosnippet>848</a>		<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>telemetry) = telemetry {
+<a href=#849 id=849 data-nosnippet>849</a>			<span class="kw">let </span>telemetry_handle = telemetry.handle();
+<a href=#850 id=850 data-nosnippet>850</a>			task_manager.spawn_handle().spawn(
+<a href=#851 id=851 data-nosnippet>851</a>				<span class="string">"telemetry_hwbench"</span>,
+<a href=#852 id=852 data-nosnippet>852</a>				<span class="prelude-val">None</span>,
+<a href=#853 id=853 data-nosnippet>853</a>				sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+<a href=#854 id=854 data-nosnippet>854</a>			);
+<a href=#855 id=855 data-nosnippet>855</a>		}
+<a href=#856 id=856 data-nosnippet>856</a>	}
+<a href=#857 id=857 data-nosnippet>857</a>
+<a href=#858 id=858 data-nosnippet>858</a>	<span class="macro">log::info!</span>(<span class="string">"Service Ready"</span>);
+<a href=#859 id=859 data-nosnippet>859</a>
+<a href=#860 id=860 data-nosnippet>860</a>	<span class="prelude-val">Ok</span>(task_manager)
+<a href=#861 id=861 data-nosnippet>861</a>}
+<a href=#862 id=862 data-nosnippet>862</a>
+<a href=#863 id=863 data-nosnippet>863</a><span class="kw">pub fn </span>spec_builder() -&gt; sc_chain_spec::ChainSpecBuilder&lt;Extensions, HostFunctions&gt; {
+<a href=#864 id=864 data-nosnippet>864</a>	<span class="kw">crate</span>::chain_spec::moonbeam::ChainSpec::builder(
+<a href=#865 id=865 data-nosnippet>865</a>		moonbeam_runtime::WASM_BINARY.expect(<span class="string">"WASM binary was not build, please build it!"</span>),
+<a href=#866 id=866 data-nosnippet>866</a>		Default::default(),
+<a href=#867 id=867 data-nosnippet>867</a>	)
+<a href=#868 id=868 data-nosnippet>868</a>	.with_name(<span class="string">"Lazy Loading"</span>)
+<a href=#869 id=869 data-nosnippet>869</a>	.with_id(<span class="string">"lazy_loading"</span>)
+<a href=#870 id=870 data-nosnippet>870</a>	.with_chain_type(ChainType::Development)
+<a href=#871 id=871 data-nosnippet>871</a>	.with_properties(
+<a href=#872 id=872 data-nosnippet>872</a>		serde_json::from_str(
+<a href=#873 id=873 data-nosnippet>873</a>			<span class="string">"{\"tokenDecimals\": 18, \"tokenSymbol\": \"GLMR\", \"SS58Prefix\": 1284}"</span>,
+<a href=#874 id=874 data-nosnippet>874</a>		)
+<a href=#875 id=875 data-nosnippet>875</a>		.expect(<span class="string">"Provided valid json map"</span>),
+<a href=#876 id=876 data-nosnippet>876</a>	)
+<a href=#877 id=877 data-nosnippet>877</a>	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
+<a href=#878 id=878 data-nosnippet>878</a>}</code></pre></div></section></main></body></html>
