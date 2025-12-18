@@ -57,7 +57,7 @@ use frame_support::{
 		OnUnbalanced, VariantCountOf,
 	},
 	weights::{
-		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
+		constants::WEIGHT_REF_TIME_PER_SECOND, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
@@ -72,6 +72,7 @@ use moonbeam_runtime_common::impl_asset_conversion::AssetRateConverter;
 use moonbeam_runtime_common::{
 	deal_with_fees::{
 		DealWithEthereumBaseFees, DealWithEthereumPriorityFees, DealWithSubstrateFeesAndTip,
+		ProofSizeToFee, RefTimeToFee, WeightToFee,
 	},
 	impl_multiasset_paymaster::MultiAssetPaymaster,
 };
@@ -393,7 +394,14 @@ impl pallet_transaction_payment::Config for Runtime {
 		>,
 	>;
 	type OperationalFeeMultiplier = ConstU8<5>;
-	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
+	type WeightToFee = WeightToFee<
+		RefTimeToFee<ConstU128<{ currency::WEIGHT_FEE }>>,
+		ProofSizeToFee<
+			ConstU128<
+				{ currency::WEIGHT_FEE.saturating_mul(GasLimitPovSizeRatio::get() as Balance) },
+			>,
+		>,
+	>;
 	type LengthToFee = LengthToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Runtime>;
 	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Runtime>;

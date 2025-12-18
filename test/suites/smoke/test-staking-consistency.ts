@@ -196,55 +196,48 @@ describeSuite({
       title: "all delegators lessTotal matches revoke/decrease requests",
       test: async function () {
         let checks = 0;
-        if (specVersion >= 1500) {
-          const delegationScheduledRequests =
-            await apiAt.query.parachainStaking.delegationScheduledRequests.entries();
-          const delegatorRequests = delegationScheduledRequests.reduce(
-            (p, requests: any) => {
-              for (const request of requests[1]) {
-                const delegator = request.delegator.toHex();
-                if (!p[delegator]) {
-                  p[delegator] = [];
-                }
-                p[delegator].push(request);
+        const delegationScheduledRequests =
+          await apiAt.query.parachainStaking.delegationScheduledRequests.entries();
+        const delegatorRequests = delegationScheduledRequests.reduce(
+          (
+            p,
+            [
+              {
+                args: [_candidateId, delegator],
+              },
+              requests,
+            ]: any
+          ) => {
+            for (const request of requests) {
+              if (specVersion < 4_100) {
+                delegator = request.delegator.toHex();
+              } else {
+                delegator = delegator.toHex();
               }
-              return p;
-            },
-            {} as { [delegator: string]: { delegator: any; whenExecutable: any; action: any }[] }
+              if (!p[delegator]) {
+                p[delegator] = [];
+              }
+              p[delegator].push(request);
+            }
+            return p;
+          },
+          {} as { [delegator: string]: { delegator: any; whenExecutable: any; action: any }[] }
+        );
+
+        for (const state of allDelegatorState) {
+          const delegator = `0x${state[0].toHex().slice(-40)}`;
+          const totalRequestAmount = (delegatorRequests[delegator] || []).reduce(
+            (p, v) =>
+              p +
+              (v.action.isDecrease ? v.action.asDecrease.toBigInt() : v.action.asRevoke.toBigInt()),
+            0n
           );
 
-          for (const state of allDelegatorState) {
-            const delegator = `0x${state[0].toHex().slice(-40)}`;
-            const totalRequestAmount = (delegatorRequests[delegator] || []).reduce(
-              (p, v) =>
-                p +
-                (v.action.isDecrease
-                  ? v.action.asDecrease.toBigInt()
-                  : v.action.asRevoke.toBigInt()),
-              0n
-            );
-
-            expect(
-              (state[1].unwrap() as any).lessTotal.toBigInt(),
-              `delegator: ${delegator}`
-            ).to.equal(totalRequestAmount);
-            checks++;
-          }
-        }
-
-        if (specVersion < 1500) {
-          for (const state of allDelegatorState) {
-            const delegator = `0x${state[0].toHex().slice(-40)}`;
-            const totalRequestAmount = Array.from(
-              (state[1] as any).unwrap().requests.requests.values()
-            ).reduce((p, v: any) => p + v.amount.toBigInt(), 0n);
-
-            expect(
-              (state[1] as any).unwrap().requests.lessTotal.toBigInt(),
-              `delegator: ${delegator}`
-            ).to.equal(totalRequestAmount);
-            checks++;
-          }
+          expect(
+            (state[1].unwrap() as any).lessTotal.toBigInt(),
+            `delegator: ${delegator}`
+          ).to.equal(totalRequestAmount);
+          checks++;
         }
 
         log(`Verified ${checks} lessTotal (runtime: ${specVersion})`);
