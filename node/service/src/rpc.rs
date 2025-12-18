@@ -147,6 +147,7 @@ pub struct FullDeps<C, P, BE> {
 pub struct TracingConfig {
 	pub tracing_requesters: crate::rpc::tracing::RpcRequesters,
 	pub trace_filter_max_count: u32,
+	pub max_block_range: u32,
 }
 
 /// Instantiate all Full RPC extensions.
@@ -377,6 +378,7 @@ where
 					client,
 					trace_filter_requester,
 					tracing_config.trace_filter_max_count,
+					tracing_config.max_block_range,
 				)
 				.into_rpc(),
 			)?;
