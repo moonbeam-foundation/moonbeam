@@ -686,76 +686,89 @@ describeSuite({
 
     it({
       id: "T04",
-      title: "new subscription after reorg should only see canonical chain",
+      title: "multiple concurrent subscriptions should receive identical blocks",
       test: async function () {
-        log("\n=== T04: New Subscription Post-Reorg Test ===");
+        log("\n=== T04: Concurrent Subscriptions Test ===");
 
-        // Create reorg scenario WITHOUT subscription
-        const block1 = await context.createBlock([], {});
-
-        const block2a = await context.createBlock([], {
-          parentHash: block1.block.hash,
-          finalize: false,
-        });
-        // Get block2a's hash while it's still canonical (before reorg)
-        const block2aHash = await getEthHash(await context.viem().getBlockNumber());
-        log(`Pre-sub Fork A: ${block2aHash.slice(0, 18)}...`);
-
-        const block2b = await context.createBlock([], {
-          parentHash: block1.block.hash,
-          finalize: false,
-        });
-
-        // Extend Fork B to make it canonical
-        const block3b = await context.createBlock([], {
-          parentHash: block2b.block.hash,
-          finalize: false,
-        });
-
-        // NOW create subscription
-        log("\n--- Creating subscription after reorg ---");
-        const sub = await createSubscription(wsEndpoint, log);
+        // Create two subscriptions concurrently
+        const sub1 = await createSubscription(wsEndpoint, (msg) =>
+          log(`[SUB1] ${msg.replace("[SUB] ", "")}`)
+        );
+        const sub2 = await createSubscription(wsEndpoint, (msg) =>
+          log(`[SUB2] ${msg.replace("[SUB] ", "")}`)
+        );
 
         try {
-          // Warmup with blocks extending the canonical chain
-          let lastBlock = block3b;
-          await warmupSubscription(sub, async () => {
-            lastBlock = await context.createBlock([], {
-              parentHash: lastBlock.block.hash,
-              finalize: false,
-            });
-          });
+          // Warmup both subscriptions
+          await Promise.all([
+            warmupSubscription(sub1, () => context.createBlock([], {})),
+            warmupSubscription(sub2, () => Promise.resolve()), // sub2 piggybacks on sub1's blocks
+          ]);
 
-          // Create more blocks
-          const block4 = await context.createBlock([], {
-            parentHash: lastBlock.block.hash,
-            finalize: false,
-          });
-          await sub.collector.waitForStability(500);
+          // Clear collectors for fresh comparison
+          sub1.collector.clear();
+          sub2.collector.clear();
 
-          const _block5 = await context.createBlock([], {
-            parentHash: block4.block.hash,
-            finalize: false,
-          });
-          await sub.collector.waitForStability(1000);
+          log("\n--- Creating blocks ---");
+          const BLOCK_COUNT = 10;
 
-          // Verify: should NOT have received orphaned block2a
+          for (let i = 0; i < BLOCK_COUNT; i++) {
+            await context.createBlock([], {});
+          }
+
+          // Wait for both to receive all blocks
+          await Promise.all([
+            sub1.collector.waitForBlockCount(BLOCK_COUNT, 30000),
+            sub2.collector.waitForBlockCount(BLOCK_COUNT, 30000),
+          ]);
+
+          // Verify invariants
           log("\n=== Invariant Checks ===");
 
-          const receivedOrphan = sub.collector.hasHash(block2aHash);
-          log(
-            `Orphaned block ${block2aHash.slice(0, 18)}...: ${receivedOrphan ? "✗ RECEIVED (bad)" : "✓ NOT received (good)"}`
-          );
-          expect(receivedOrphan, "Should not receive orphaned fork block").toBe(false);
+          const blocks1 = sub1.collector.getAll();
+          const blocks2 = sub2.collector.getAll();
 
-          // Parent continuity
-          const checker = new InvariantChecker(sub.collector, log);
-          const parentCheck = checker.checkParentContinuity();
-          expect(parentCheck.passed, "Parent chain should be continuous").toBe(true);
+          log(`SUB1 received ${blocks1.length} blocks`);
+          log(`SUB2 received ${blocks2.length} blocks`);
+
+          // Both should have received the same number of blocks
+          expect(blocks1.length, "Both subscriptions should receive same block count").toBe(
+            blocks2.length
+          );
+
+          // Both should have received the same block hashes in the same order
+          const hashes1 = blocks1.map((b) => b.hash);
+          const hashes2 = blocks2.map((b) => b.hash);
+
+          let hashMismatch = false;
+          for (let i = 0; i < hashes1.length; i++) {
+            if (hashes1[i] !== hashes2[i]) {
+              log(
+                `✗ Hash mismatch at index ${i}: ${hashes1[i].slice(0, 18)}... vs ${hashes2[i].slice(0, 18)}...`
+              );
+              hashMismatch = true;
+            }
+          }
+
+          if (!hashMismatch) {
+            log("✓ Both subscriptions received identical block sequences");
+          }
+          expect(hashMismatch, "Block sequences should be identical").toBe(false);
+
+          // Verify parent continuity for both
+          const checker1 = new InvariantChecker(sub1.collector, log);
+          const checker2 = new InvariantChecker(sub2.collector, log);
+
+          const parentCheck1 = checker1.checkParentContinuity();
+          const parentCheck2 = checker2.checkParentContinuity();
+
+          expect(parentCheck1.passed, "SUB1 parent chain should be continuous").toBe(true);
+          expect(parentCheck2.passed, "SUB2 parent chain should be continuous").toBe(true);
 
           log("\n=== T04 Complete ===");
         } finally {
-          sub.close();
+          sub1.close();
+          sub2.close();
         }
       },
     });
