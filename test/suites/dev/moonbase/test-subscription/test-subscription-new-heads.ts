@@ -655,22 +655,19 @@ describeSuite({
             finalize: false,
           });
 
-          // Wait for stability
-          await sub.collector.waitForStability(2000);
+          // Wait for the final canonical block to be received via subscription
+          const currentBlockNum = await context.viem().getBlockNumber();
+          const finalBlockHash = await getEthHash(currentBlockNum);
+          log(`Waiting for canonical block #${currentBlockNum}: ${finalBlockHash.slice(0, 18)}...`);
+          await sub.collector.waitForHash(finalBlockHash);
+
+          // Additional stability wait to ensure all reorg blocks arrived
+          await sub.collector.waitForStability(1000);
 
           // Verify invariants
           const checker = new InvariantChecker(sub.collector, log);
 
           log("\n=== Invariant Checks ===");
-
-          // Check if forks were visible (informational - Ethereum spec says they should be)
-          const forks = sub.collector.getHeightsWithForks();
-          log(`Heights with forks: ${forks.map((f) => f.height).join(", ") || "(none)"}`);
-          if (forks.length >= 1) {
-            log("✓ Fork headers were re-emitted during reorg (Ethereum spec compliant)");
-          } else {
-            log("⚠ No fork headers re-emitted (Ethereum spec expects re-emission)");
-          }
 
           // Key invariant: We should have received all canonical blocks
           const canonicalCheck = await checker.checkReceivedCanonicalBlocks(context.viem());
