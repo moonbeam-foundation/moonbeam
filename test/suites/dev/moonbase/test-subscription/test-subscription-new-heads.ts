@@ -6,14 +6,14 @@ import WebSocket from "ws";
 /**
  * Redesigned test suite for eth_subscribe newHeads reorg behavior.
  *
- * Design principles (see ADR-001):
+ * Design principles:
  * - Each test gets isolated WebSocket client and subscription
  * - Event-driven verification with time-windowed collection
  * - Invariant-based assertions rather than sequence checks
  * - Hash-based tracking instead of height-based waiting
  *
  * NOTE: Uses raw WebSocket instead of viem's watchBlocks to guarantee
- * message ordering. See INVESTIGATION-block-ordering.md for details.
+ * message ordering.
  */
 
 // ============================================================================
@@ -889,6 +889,69 @@ describeSuite({
 
         log("✓ Substrate correctly rejected long-range fork attempt");
         log("\n=== T06 Complete ===");
+      },
+    });
+
+    it({
+      id: "T07",
+      title: "should handle long running subscription with many blocks",
+      test: async function () {
+        log("\n=== T07: Long Running Subscription Test ===");
+
+        const sub = await createSubscription(wsEndpoint, log);
+        const BLOCK_COUNT = 50;
+
+        try {
+          // Warmup
+          await warmupSubscription(sub, () => context.createBlock([], {}));
+
+          // Clear the collector to start fresh count
+          sub.collector.clear();
+
+          log(`\n--- Creating ${BLOCK_COUNT} blocks ---`);
+
+          // Create many blocks sequentially
+          for (let i = 0; i < BLOCK_COUNT; i++) {
+            await context.createBlock([], {});
+          }
+
+          // Wait for all blocks to be received
+          log(`\n--- Waiting for ${BLOCK_COUNT} blocks ---`);
+          await sub.collector.waitForBlockCount(BLOCK_COUNT, 60000);
+
+          // Verify invariants
+          const checker = new InvariantChecker(sub.collector, log);
+
+          log("\n=== Invariant Checks ===");
+
+          // Check we received the expected number of blocks
+          const receivedCount = sub.collector.getCount();
+          log(`Received ${receivedCount} blocks (expected ${BLOCK_COUNT})`);
+          expect(receivedCount, `Should receive at least ${BLOCK_COUNT} blocks`).toBeGreaterThanOrEqual(
+            BLOCK_COUNT
+          );
+
+          // No gaps in block heights
+          const gapCheck = checker.checkNoGaps();
+          expect(gapCheck.passed, "No gaps in block heights").toBe(true);
+
+          // Parent chain continuity
+          const parentCheck = checker.checkParentContinuity();
+          expect(parentCheck.passed, "Parent chain should be continuous").toBe(true);
+
+          // Verify against RPC
+          const canonicalCheck = await checker.checkReceivedCanonicalBlocks(context.viem());
+          expect(canonicalCheck.passed, "Should receive all canonical blocks").toBe(true);
+
+          const range = sub.collector.getHeightRange();
+          if (range) {
+            log(`Block range: ${range.min} - ${range.max}`);
+          }
+
+          log("\n=== T07 Complete ===");
+        } finally {
+          sub.close();
+        }
       },
     });
   },
