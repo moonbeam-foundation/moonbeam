@@ -349,7 +349,6 @@ class InvariantChecker {
 
 /**
  * Create a raw WebSocket subscription for newHeads.
- * This guarantees message ordering unlike viem's watchBlocks.
  */
 async function createSubscription(
   wsEndpoint: string,
@@ -438,7 +437,7 @@ async function warmupSubscription(
 
 describeSuite({
   id: "D023506",
-  title: "Subscription - newHeads reorg behavior v2 (Ethereum spec compliance)",
+  title: "Subscription - newHeads (Ethereum spec compliance)",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
     let wsEndpoint: string;
@@ -927,9 +926,10 @@ describeSuite({
           // Check we received the expected number of blocks
           const receivedCount = sub.collector.getCount();
           log(`Received ${receivedCount} blocks (expected ${BLOCK_COUNT})`);
-          expect(receivedCount, `Should receive at least ${BLOCK_COUNT} blocks`).toBeGreaterThanOrEqual(
-            BLOCK_COUNT
-          );
+          expect(
+            receivedCount,
+            `Should receive at least ${BLOCK_COUNT} blocks`
+          ).toBeGreaterThanOrEqual(BLOCK_COUNT);
 
           // No gaps in block heights
           const gapCheck = checker.checkNoGaps();
