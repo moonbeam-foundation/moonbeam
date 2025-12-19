@@ -661,9 +661,6 @@ describeSuite({
           log(`Waiting for canonical block #${currentBlockNum}: ${finalBlockHash.slice(0, 18)}...`);
           await sub.collector.waitForHash(finalBlockHash);
 
-          // Additional stability wait to ensure all reorg blocks arrived
-          await sub.collector.waitForStability(1000);
-
           // Verify invariants
           const checker = new InvariantChecker(sub.collector, log);
 
