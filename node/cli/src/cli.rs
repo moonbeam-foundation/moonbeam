@@ -478,6 +478,15 @@ impl Cli {
 
 #[derive(Debug)]
 pub struct RelayChainCli {
+	/// Implementation version.
+	///
+	/// By default, it will look like this:
+	///
+	/// `2.0.0-b950f731c`
+	///
+	/// Where the hash is the short hash of the commit in the Git repository.
+	pub impl_version: String,
+
 	/// The actual relay chain cli object.
 	pub base: polkadot_cli::RunCmd,
 
@@ -498,6 +507,7 @@ impl RelayChainCli {
 		let chain_id = extension.map(|e| e.relay_chain.clone());
 		let base_path = para_config.base_path.path().join("polkadot");
 		Self {
+			impl_version: polkadot_cli::Cli::impl_version(),
 			base_path,
 			chain_id,
 			base: polkadot_cli::RunCmd::parse_from(relay_chain_args),

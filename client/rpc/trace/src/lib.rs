@@ -64,6 +64,7 @@ pub struct Trace<B, C> {
 	client: Arc<C>,
 	requester: CacheRequester,
 	max_count: u32,
+	max_block_range: u32,
 }
 
 impl<B, C> Clone for Trace<B, C> {
@@ -73,6 +74,7 @@ impl<B, C> Clone for Trace<B, C> {
 			client: Arc::clone(&self.client),
 			requester: self.requester.clone(),
 			max_count: self.max_count,
+			max_block_range: self.max_block_range,
 		}
 	}
 }
@@ -85,11 +87,17 @@ where
 	C: Send + Sync + 'static,
 {
 	/// Create a new RPC handler.
-	pub fn new(client: Arc<C>, requester: CacheRequester, max_count: u32) -> Self {
+	pub fn new(
+		client: Arc<C>,
+		requester: CacheRequester,
+		max_count: u32,
+		max_block_range: u32,
+	) -> Self {
 		Self {
 			client,
 			requester,
 			max_count,
+			max_block_range,
 			_phantom: PhantomData,
 		}
 	}
@@ -116,6 +124,16 @@ where
 	async fn filter(self, req: FilterRequest) -> TxsTraceRes {
 		let from_block = self.block_id(req.from_block)?;
 		let to_block = self.block_id(req.to_block)?;
+
+		// Validate block range to prevent abuse
+		let block_range = to_block.saturating_sub(from_block);
+		if block_range > self.max_block_range {
+			return Err(format!(
+				"block range is too wide (maximum {})",
+				self.max_block_range
+			));
+		}
+
 		let block_heights = from_block..=to_block;
 
 		let count = req.count.unwrap_or(self.max_count);
