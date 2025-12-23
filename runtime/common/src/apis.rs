@@ -186,7 +186,7 @@ macro_rules! impl_runtime_apis_plus_common {
 							// in the storage
 							Executive::initialize_block(header);
 
-							// Apply the a subset of extrinsics: all the substrate-specific or ethereum
+							// Apply a subset of extrinsics: all the substrate-specific or ethereum
 							// transactions that preceded the requested transaction.
 							for ext in extrinsics.into_iter() {
 								let _ = match &ext.0.function {
