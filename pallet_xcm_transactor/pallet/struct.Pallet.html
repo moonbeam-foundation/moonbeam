@@ -54,7 +54,7 @@ to be a reserve asset for the destination transactor::multilocation.</p>
     call: <a class="struct" href="https://doc.rust-lang.org/1.88.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.88.0/std/primitive.u8.html">u8</a>&gt;,
     weight_info: <a class="struct" href="struct.TransactWeights.html" title="struct pallet_xcm_transactor::pallet::TransactWeights">TransactWeights</a>,
     refund: <a class="primitive" href="https://doc.rust-lang.org/1.88.0/std/primitive.bool.html">bool</a>,
-) -&gt; DispatchResult</h4></section></summary><div class="docblock"><p>Transact the call through the a signed origin in this chain
+) -&gt; DispatchResult</h4></section></summary><div class="docblock"><p>Transact the call through a signed origin in this chain
 that should be converted to a transaction dispatch account in the destination chain
 by any method implemented in the destination chains runtime</p>
 <p>This time we are giving the currency as a currencyId instead of multilocation</p>
