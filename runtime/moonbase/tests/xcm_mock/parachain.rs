@@ -723,6 +723,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
 	type HrmpOpenOrigin = EnsureRoot<AccountId>;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
+	type FeeTrader = moonbeam_tests_primitives::MemoryFeeTrader;
 }
 
 parameter_types! {

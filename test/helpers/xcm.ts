@@ -8,7 +8,11 @@ import type {
 } from "@polkadot/types/lookup";
 import { type BN, stringToU8a, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
-import { RELAY_V3_SOURCE_LOCATION } from "./assets.js";
+import {
+  RELAY_SOURCE_LOCATION,
+  RELAY_V3_SOURCE_LOCATION,
+  addAssetToWeightTrader,
+} from "./assets.js";
 import { expectSystemEvent } from "./expect.ts";
 import { getPalletIndex } from "./pallets.ts";
 
@@ -879,15 +883,9 @@ export const registerXcmTransactorAndContract = async (context: DevModeContext) 
       )
   );
 
-  await context.createBlock(
-    context
-      .polkadotJs()
-      .tx.sudo.sudo(
-        context
-          .polkadotJs()
-          .tx.xcmTransactor.setFeePerSecond(RELAY_V3_SOURCE_LOCATION, 1000000000000n)
-      )
-  );
+  // Configure XCM fee pricing for the relay asset via pallet-xcm-weight-trader.
+  // This replaces the old `xcmTransactor.setFeePerSecond` extrinsic.
+  await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 1000000000000n, context);
 };
 
 export const registerXcmTransactorDerivativeIndex = async (context: DevModeContext) => {

@@ -24,6 +24,9 @@ xcm = { workspace = true }
 xcm-executor = { workspace = true }
 xcm-runtime-apis = { workspace = true }
 
+# Moonbeam
+xcm-primitives = { workspace = true }
+
 # Benchmarks
 frame-benchmarking = { workspace = true, optional = true }
 

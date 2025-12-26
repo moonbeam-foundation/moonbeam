@@ -91,6 +91,44 @@ fn currency_to_asset(currency_id: CurrencyId, amount: u128) -> Asset {
 		fun: Fungibility::Fungible(amount),
 	}
 }
+
+/// Helper function to set fee per second for an asset location (for compatibility with old tests).
+/// Converts fee_per_second to relative_price and adds/edits the asset in the weight-trader.
+fn set_fee_per_second_for_location(location: Location, fee_per_second: u128) -> Result<(), ()> {
+	use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight, WeightToFee as _};
+	let native_amount_per_second: u128 =
+		<moonbeam_runtime::Runtime as pallet_xcm_weight_trader::Config>::WeightToFee::weight_to_fee(
+			&Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, 0),
+		)
+		.try_into()
+		.map_err(|_| ())?;
+	let precision_factor = 10u128.pow(pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS);
+	let relative_price: u128 = if fee_per_second > 0u128 {
+		native_amount_per_second
+			.saturating_mul(precision_factor)
+			.saturating_div(fee_per_second)
+	} else {
+		0u128
+	};
+	if pallet_xcm_weight_trader::SupportedAssets::<moonbeam_runtime::Runtime>::contains_key(
+		&location,
+	) {
+		let enabled =
+			pallet_xcm_weight_trader::SupportedAssets::<moonbeam_runtime::Runtime>::get(&location)
+				.ok_or(())?
+				.0;
+		pallet_xcm_weight_trader::SupportedAssets::<moonbeam_runtime::Runtime>::insert(
+			&location,
+			(enabled, relative_price),
+		);
+	} else {
+		pallet_xcm_weight_trader::SupportedAssets::<moonbeam_runtime::Runtime>::insert(
+			&location,
+			(true, relative_price),
+		);
+	}
+	Ok(())
+}
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
 	// important for the XcmExecutionManager impl of PauseExecution which uses root origin
@@ -1668,12 +1706,8 @@ fn transactor_cannot_use_more_than_max_weight() {
 				20000.into(),
 				None
 			));
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedLocation::from(Location::parent())),
-				1,
-			));
+			// Set fee per second using weight-trader (replaces old set_fee_per_second)
+			set_fee_per_second_for_location(Location::parent(), 1).expect("must succeed");
 
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
