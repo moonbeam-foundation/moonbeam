@@ -22,7 +22,7 @@ use super::{
 	governance, AccountId, AssetId, Balance, Balances, EmergencyParaXcm, Erc20XcmBridge,
 	EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill,
 	PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury,
-	XcmpQueue,
+	XcmWeightTrader, XcmpQueue,
 };
 use crate::OpenTechCommitteeInstance;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;

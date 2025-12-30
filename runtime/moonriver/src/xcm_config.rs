@@ -21,7 +21,8 @@ use super::{
 	bridge_config, governance, AccountId, AssetId, Balance, Balances, BridgeXcmOverMoonbeam,
 	EmergencyParaXcm, Erc20XcmBridge, EvmForeignAssets, MaintenanceMode, MessageQueue,
 	OpenTechCommitteeInstance, ParachainInfo, ParachainSystem, Perbill, PolkadotXcm, Runtime,
-	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmpQueue,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury, XcmWeightTrader,
+	XcmpQueue,
 };
 
 use super::moonriver_weights;
