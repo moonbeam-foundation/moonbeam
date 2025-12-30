@@ -667,7 +667,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type HrmpOpenOrigin = FastGeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
-	type FeeTrader = pallet_xcm_weight_trader::Pallet<Runtime>;
+	type FeeTrader = XcmWeightTrader;
 }
 
 parameter_types! {
