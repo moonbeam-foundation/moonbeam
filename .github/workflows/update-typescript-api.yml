@@ -32,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Download Node
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: moonbeam
           path: target/release

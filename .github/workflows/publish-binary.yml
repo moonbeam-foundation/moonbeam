@@ -58,7 +58,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.to }}
           fetch-depth: 0
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           pattern: binaries-*
           merge-multiple: true
@@ -76,7 +76,7 @@ jobs:
         with:
           version: 9
       - name: Download Original Tools
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: original-tools
           path: original-tools
@@ -117,7 +117,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ github.event.inputs.to }}
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           pattern: binaries-*
           merge-multiple: true
