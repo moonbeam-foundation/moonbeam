@@ -23,7 +23,7 @@ use frame_support::traits::PalletInfoAccess;
 use frame_support::weights::WeightMeter;
 use pallet_migrations::WeightInfo;
 use parity_scale_codec::Encode;
-use sp_core::{twox_128, Get};
+use sp_core::{parameter_types, twox_128, Get};
 use sp_io::{storage::clear_prefix, KillStorageResult};
 use sp_runtime::SaturatedConversion;
 
