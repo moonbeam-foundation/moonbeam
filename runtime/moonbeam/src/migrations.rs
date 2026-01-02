@@ -38,6 +38,6 @@ pub type SingleBlockMigrations<Runtime> = (
 #[cfg(not(feature = "runtime-benchmarks"))]
 pub type MultiBlockMigrationList = (
 	// Common multiblock migrations applied on all Moonbeam runtimes
-	moonbeam_runtime_common::migrations::MultiBlockMigrations,
+	moonbeam_runtime_common::migrations::MultiBlockMigrations<Runtime>,
 	// ... Moonbeam specific multiblock migrations
 );
