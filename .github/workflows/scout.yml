@@ -59,7 +59,7 @@ jobs:
           echo "report_dir=$REPORT_DIR" >> $GITHUB_OUTPUT
 
       - name: Upload report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: scout_audit_report.md
           path: ${{ steps.run-scout.outputs.report }}

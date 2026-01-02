@@ -304,19 +304,19 @@ jobs:
           features: metadata-hash
       - name: Upload runtimes
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: runtimes
           path: runtimes
       - name: Upload uncompressed runtimes
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes
       - name: Upload binary
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: moonbeam
           path: build
@@ -430,7 +430,7 @@ jobs:
           twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonriver_runtime.wasm uncompressed-runtimes-current-branch/moonriver_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonriver.json
 
       - name: Upload Twiggy diff reports
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: twiggy-diff-reports
           path: twiggy-diff-reports
@@ -795,7 +795,7 @@ jobs:
           export NODE_LOGS_ZIP="node_logs_$TIMESTAMP.zip"
           find test/tmp/node_logs -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
           echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: failed-node-logs
@@ -919,7 +919,7 @@ jobs:
           MOST_RECENT_ZOMBIE_DIR=$(ls -td /tmp/zombie-* | head -n 1)
           find $MOST_RECENT_ZOMBIE_DIR -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
           echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: failed-node-logs
@@ -959,7 +959,7 @@ jobs:
           export LOGS_ZIP="bridge_integration_tests_$TIMESTAMP.zip"
           find /tmp/bridge-integration-tests -maxdepth 3 -type f -name '*.log' -exec zip -r $LOGS_ZIP {} \;
           echo "LOGS_ZIP=${LOGS_ZIP}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: bridge-integration-tests-logs
