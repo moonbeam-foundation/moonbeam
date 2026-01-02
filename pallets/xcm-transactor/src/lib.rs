@@ -777,7 +777,7 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Transact the call through the a signed origin in this chain
+		/// Transact the call through a signed origin in this chain
 		/// that should be converted to a transaction dispatch account in the destination chain
 		/// by any method implemented in the destination chains runtime
 		///
