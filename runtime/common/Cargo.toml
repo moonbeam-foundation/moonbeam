@@ -14,7 +14,6 @@ log = { workspace = true }
 ethereum = { workspace = true }
 moonbeam-core-primitives = { workspace = true }
 pallet-migrations = { workspace = true }
-pallet-parachain-staking = { workspace = true }
 pallet-moonbeam-foreign-assets = { workspace = true }
 pallet-xcm-weight-trader = { workspace = true }
 
@@ -58,7 +57,6 @@ std = [
 	"pallet-moonbeam-foreign-assets/std",
 	"pallet-author-inherent/std",
 	"pallet-migrations/std",
-	"pallet-parachain-staking/std",
 	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
 	"pallet-balances/std",
@@ -94,7 +92,6 @@ runtime-benchmarks = [
 	"xcm-builder/runtime-benchmarks",
 	"xcm/runtime-benchmarks",
 	"pallet-moonbeam-foreign-assets/runtime-benchmarks",
-	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-xcm-weight-trader/runtime-benchmarks"
 ]
 try-runtime = [
@@ -110,6 +107,5 @@ try-runtime = [
 	"pallet-xcm/try-runtime",
 	"sp-runtime/try-runtime",
 	"pallet-moonbeam-foreign-assets/try-runtime",
-	"pallet-parachain-staking/try-runtime",
 	"pallet-xcm-weight-trader/try-runtime"
 ]
