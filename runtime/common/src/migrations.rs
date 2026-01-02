@@ -19,7 +19,6 @@
 use core::marker::PhantomData;
 use frame_support::migrations::SteppedMigration;
 use frame_support::migrations::SteppedMigrationError;
-use frame_support::parameter_types;
 use frame_support::traits::PalletInfoAccess;
 use frame_support::weights::WeightMeter;
 use pallet_migrations::WeightInfo;
@@ -287,17 +286,12 @@ pub type SingleBlockMigrations<Runtime> = (
 );
 
 parameter_types! {
-	pub const MigratedCandidatesStorageName: &'static str = "MigratedCandidates";
-	pub const MigratedDelegatorsStorageName: &'static str = "MigratedDelegators";
 	pub const DestinationAssetFeePerSecondStorageName: &'static str = "DestinationAssetFeePerSecond";
 }
 
 /// List of common multiblock migrations to be executed by the pallet-migrations pallet.
 /// The migrations listed here are common to every moonbeam runtime.
 pub type MultiBlockMigrations<Runtime> = (
-	ResetStorage<Runtime, pallet_parachain_staking::Pallet<Runtime>, MigratedCandidatesStorageName>,
-	ResetStorage<Runtime, pallet_parachain_staking::Pallet<Runtime>, MigratedDelegatorsStorageName>,
-	pallet_parachain_staking::migrations::MigrateDelegationScheduledRequestsToDoubleMap<Runtime>,
 	ResetStorage<
 		Runtime,
 		pallet_xcm_transactor::Pallet<Runtime>,

@@ -46,7 +46,7 @@ jobs:
           echo "Latest build for runtime-${{ github.event.inputs.spec_version }}: $RUNTIME_BUILD"
           echo "NEXT_RUNTIME_BUILD=$RUNTIME_BUILD" >> $GITHUB_OUTPUT
       - name: "Download previous runtime release binary"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: moonbeam
           path: previous-runtime-release
@@ -54,7 +54,7 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ steps.previous-runtime.outputs.PREVIOUS_RUNTIME_BUILD }}
       - name: "Download next runtime release binary"
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: moonbeam
           path: next-runtime-release
@@ -113,7 +113,7 @@ jobs:
           pkill moonbeam
 
       - name: Upload diff artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: runtime-diff-${{ matrix.runtime }}-${{ github.event.inputs.spec_version }}
           path: runtime-diffs/${{ matrix.runtime }}
@@ -129,22 +129,22 @@ jobs:
         uses: actions/checkout@v6
       # Download artifacts from the local-diff job
       - name: Download diff artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: runtime-diff-moonbase-${{ github.event.inputs.spec_version }}
           path: runtime-diffs/moonbase
       - name: Download diff artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: runtime-diff-moonbeam-${{ github.event.inputs.spec_version }}
           path: runtime-diffs/moonbeam
       - name: Download diff artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: runtime-diff-moonriver-${{ github.event.inputs.spec_version }}
           path: runtime-diffs/moonriver
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           base: master
           branch: "runtime-diff-${{ github.event.inputs.spec_version }}"
