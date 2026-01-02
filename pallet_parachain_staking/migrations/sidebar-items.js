@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["MigrateDelegationScheduledRequestsToDoubleMap","OldParachainBondConfig"]};
+window.SIDEBAR_ITEMS = {};
