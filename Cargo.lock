@@ -8210,6 +8210,7 @@ dependencies = [
  "pallet-message-queue",
  "pallet-migrations",
  "pallet-moonbeam-foreign-assets",
+ "pallet-parachain-staking",
  "pallet-treasury",
  "pallet-xcm",
  "pallet-xcm-bridge-hub",
