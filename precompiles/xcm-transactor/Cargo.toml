@@ -33,6 +33,7 @@ cumulus-primitives-core = { workspace = true }
 # Moonbeam
 precompile-utils = { workspace = true, features = ["testing", "codec-xcm"] }
 xcm-primitives = { workspace = true }
+moonbeam-tests-primitives = { workspace = true }
 
 # Substrate
 pallet-balances = { workspace = true, features = ["std", "insecure_zero_ed"] }

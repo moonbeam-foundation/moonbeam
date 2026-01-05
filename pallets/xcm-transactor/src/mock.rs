@@ -24,6 +24,7 @@ use frame_support::{
 	construct_runtime, dispatch::GetDispatchInfo, parameter_types, weights::Weight,
 };
 use frame_system::EnsureRoot;
+use moonbeam_tests_primitives::MemoryFeeTrader;
 use parity_scale_codec::{Decode, DecodeWithMemTracking, Encode};
 
 use sp_core::{H160, H256};
@@ -425,6 +426,7 @@ impl Config for Test {
 	type HrmpManipulatorOrigin = EnsureRoot<u64>;
 	type HrmpOpenOrigin = EnsureRoot<u64>;
 	type MaxHrmpFee = MaxHrmpRelayFee;
+	type FeeTrader = MemoryFeeTrader;
 }
 
 pub(crate) struct ExtBuilder {

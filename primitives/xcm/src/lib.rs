@@ -36,6 +36,9 @@ pub use origin_conversion::*;
 mod transactor_traits;
 pub use transactor_traits::*;
 
+mod fee_trader;
+pub use fee_trader::*;
+
 use xcm::latest::{Junction, Junctions, Location};
 
 pub fn split_location_into_chain_part_and_beneficiary(

@@ -23,6 +23,7 @@ use frame_support::{
 	traits::{Everything, PalletInfo as PalletInfoTrait},
 	weights::Weight,
 };
+use moonbeam_tests_primitives::MemoryFeeTrader;
 use pallet_evm::{
 	EnsureAddressNever, EnsureAddressRoot, FrameSystemAccountProvider, SubstrateBlockHashMapping,
 };
@@ -328,6 +329,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type HrmpManipulatorOrigin = frame_system::EnsureRoot<AccountId>;
 	type HrmpOpenOrigin = frame_system::EnsureRoot<AccountId>;
 	type MaxHrmpFee = ();
+	type FeeTrader = MemoryFeeTrader;
 }
 
 pub type Precompiles<R> = PrecompileSetBuilder<

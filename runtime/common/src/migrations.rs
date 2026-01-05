@@ -23,7 +23,7 @@ use frame_support::traits::PalletInfoAccess;
 use frame_support::weights::WeightMeter;
 use pallet_migrations::WeightInfo;
 use parity_scale_codec::Encode;
-use sp_core::{twox_128, Get};
+use sp_core::{parameter_types, twox_128, Get};
 use sp_io::{storage::clear_prefix, KillStorageResult};
 use sp_runtime::SaturatedConversion;
 
@@ -285,6 +285,16 @@ pub type SingleBlockMigrations<Runtime> = (
 	PermanentSingleBlockMigrations<Runtime>,
 );
 
+parameter_types! {
+	pub const DestinationAssetFeePerSecondStorageName: &'static str = "DestinationAssetFeePerSecond";
+}
+
 /// List of common multiblock migrations to be executed by the pallet-migrations pallet.
 /// The migrations listed here are common to every moonbeam runtime.
-pub type MultiBlockMigrations = ();
+pub type MultiBlockMigrations<Runtime> = (
+	ResetStorage<
+		Runtime,
+		pallet_xcm_transactor::Pallet<Runtime>,
+		DestinationAssetFeePerSecondStorageName,
+	>,
+);

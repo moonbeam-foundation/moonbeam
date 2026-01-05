@@ -22,7 +22,7 @@ use super::{
 	governance, AccountId, AssetId, Balance, Balances, EmergencyParaXcm, Erc20XcmBridge,
 	EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill,
 	PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury,
-	XcmpQueue,
+	XcmWeightTrader, XcmpQueue,
 };
 use crate::OpenTechCommitteeInstance;
 use moonkit_xcm_primitives::AccountIdAssetIdConversion;
@@ -662,6 +662,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type HrmpManipulatorOrigin = GeneralAdminOrRoot;
 	type HrmpOpenOrigin = FastGeneralAdminOrRoot;
 	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
+	type FeeTrader = XcmWeightTrader;
 }
 
 parameter_types! {

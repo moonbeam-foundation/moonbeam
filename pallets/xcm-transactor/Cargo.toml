@@ -36,6 +36,7 @@ pallet-timestamp = { workspace = true, features = [ "std" ] }
 parity-scale-codec = { workspace = true, features = [ "std" ] }
 sp-core = { workspace = true, features = [ "std" ] }
 sp-runtime = { workspace = true }
+moonbeam-tests-primitives = { workspace = true }
 
 [features]
 default = [ "std" ]
