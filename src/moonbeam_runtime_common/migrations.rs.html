@@ -23,7 +23,7 @@
 <a href=#23 id=23 data-nosnippet>23</a><span class="kw">use </span>frame_support::weights::WeightMeter;
 <a href=#24 id=24 data-nosnippet>24</a><span class="kw">use </span>pallet_migrations::WeightInfo;
 <a href=#25 id=25 data-nosnippet>25</a><span class="kw">use </span>parity_scale_codec::Encode;
-<a href=#26 id=26 data-nosnippet>26</a><span class="kw">use </span>sp_core::{twox_128, Get};
+<a href=#26 id=26 data-nosnippet>26</a><span class="kw">use </span>sp_core::{parameter_types, twox_128, Get};
 <a href=#27 id=27 data-nosnippet>27</a><span class="kw">use </span>sp_io::{storage::clear_prefix, KillStorageResult};
 <a href=#28 id=28 data-nosnippet>28</a><span class="kw">use </span>sp_runtime::SaturatedConversion;
 <a href=#29 id=29 data-nosnippet>29</a>
@@ -285,6 +285,16 @@
 <a href=#285 id=285 data-nosnippet>285</a>	PermanentSingleBlockMigrations&lt;Runtime&gt;,
 <a href=#286 id=286 data-nosnippet>286</a>);
 <a href=#287 id=287 data-nosnippet>287</a>
-<a href=#288 id=288 data-nosnippet>288</a><span class="doccomment">/// List of common multiblock migrations to be executed by the pallet-migrations pallet.
-<a href=#289 id=289 data-nosnippet>289</a>/// The migrations listed here are common to every moonbeam runtime.
-<a href=#290 id=290 data-nosnippet>290</a></span><span class="kw">pub type </span>MultiBlockMigrations = ();</code></pre></div></section></main></body></html>
+<a href=#288 id=288 data-nosnippet>288</a><span class="macro">parameter_types!</span> {
+<a href=#289 id=289 data-nosnippet>289</a>	<span class="kw">pub const </span>DestinationAssetFeePerSecondStorageName: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str = <span class="string">"DestinationAssetFeePerSecond"</span>;
+<a href=#290 id=290 data-nosnippet>290</a>}
+<a href=#291 id=291 data-nosnippet>291</a>
+<a href=#292 id=292 data-nosnippet>292</a><span class="doccomment">/// List of common multiblock migrations to be executed by the pallet-migrations pallet.
+<a href=#293 id=293 data-nosnippet>293</a>/// The migrations listed here are common to every moonbeam runtime.
+<a href=#294 id=294 data-nosnippet>294</a></span><span class="kw">pub type </span>MultiBlockMigrations&lt;Runtime&gt; = (
+<a href=#295 id=295 data-nosnippet>295</a>	ResetStorage&lt;
+<a href=#296 id=296 data-nosnippet>296</a>		Runtime,
+<a href=#297 id=297 data-nosnippet>297</a>		pallet_xcm_transactor::Pallet&lt;Runtime&gt;,
+<a href=#298 id=298 data-nosnippet>298</a>		DestinationAssetFeePerSecondStorageName,
+<a href=#299 id=299 data-nosnippet>299</a>	&gt;,
+<a href=#300 id=300 data-nosnippet>300</a>);</code></pre></div></section></main></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["RemovePallet","ResetStorage"],"type":["MultiBlockMigrations","PermanentSingleBlockMigrations","SingleBlockMigrations","UnreleasedSingleBlockMigrations"]};
+window.SIDEBAR_ITEMS = {"struct":["DestinationAssetFeePerSecondStorageName","RemovePallet","ResetStorage"],"type":["MultiBlockMigrations","PermanentSingleBlockMigrations","SingleBlockMigrations","UnreleasedSingleBlockMigrations"]};

@@ -36,8 +36,8 @@
 <a href=#36 id=36 data-nosnippet>36</a>
 <a href=#37 id=37 data-nosnippet>37</a><span class="doccomment">/// List of multi block migrations to be executed by the pallet_migrations.
 <a href=#38 id=38 data-nosnippet>38</a></span><span class="attr">#[cfg(not(feature = <span class="string">"runtime-benchmarks"</span>))]
-<a href=#39 id=39 data-nosnippet>39</a></span><span class="kw">pub type </span>MultiBlockMigrationList = (
+<a href=#39 id=39 data-nosnippet>39</a></span><span class="kw">pub type </span>MultiBlockMigrationList&lt;Runtime&gt; = (
 <a href=#40 id=40 data-nosnippet>40</a>	<span class="comment">// Common multiblock migrations applied on all Moonbeam runtimes
-<a href=#41 id=41 data-nosnippet>41</a>	</span>moonbeam_runtime_common::migrations::MultiBlockMigrations,
+<a href=#41 id=41 data-nosnippet>41</a>	</span>moonbeam_runtime_common::migrations::MultiBlockMigrations&lt;Runtime&gt;,
 <a href=#42 id=42 data-nosnippet>42</a>	<span class="comment">// ... Moonbeam specific multiblock migrations
 <a href=#43 id=43 data-nosnippet>43</a></span>);</code></pre></div></section></main></body></html>

@@ -1,0 +1,1 @@
+searchState.loadedDescShard("moonbeam_tests_primitives", 0, "Test primitives for Moonbeam, including mock …\nMemory-based fee trader for tests that stores …\nReturns the argument unchanged.\nGet a mutable reference to the inner from the outer.\nGet a reference to the inner from the outer.\nCalls <code>U::from(self)</code>.")

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["DestinationAssetFeePerSecond","IndexToAccount","RelayIndices","TransactInfoWithWeightLimit"]};
+window.SIDEBAR_ITEMS = {"struct":["IndexToAccount","RelayIndices","TransactInfoWithWeightLimit"]};

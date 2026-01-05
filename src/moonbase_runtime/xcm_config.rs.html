@@ -22,7 +22,7 @@
 <a href=#22 id=22 data-nosnippet>22</a>	governance, AccountId, AssetId, Balance, Balances, EmergencyParaXcm, Erc20XcmBridge,
 <a href=#23 id=23 data-nosnippet>23</a>	EvmForeignAssets, MaintenanceMode, MessageQueue, ParachainInfo, ParachainSystem, Perbill,
 <a href=#24 id=24 data-nosnippet>24</a>	PolkadotXcm, Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, RuntimeOrigin, Treasury,
-<a href=#25 id=25 data-nosnippet>25</a>	XcmpQueue,
+<a href=#25 id=25 data-nosnippet>25</a>	XcmWeightTrader, XcmpQueue,
 <a href=#26 id=26 data-nosnippet>26</a>};
 <a href=#27 id=27 data-nosnippet>27</a><span class="kw">use </span><span class="kw">crate</span>::OpenTechCommitteeInstance;
 <a href=#28 id=28 data-nosnippet>28</a><span class="kw">use </span>moonkit_xcm_primitives::AccountIdAssetIdConversion;
@@ -662,146 +662,147 @@
 <a href=#662 id=662 data-nosnippet>662</a>	<span class="kw">type </span>HrmpManipulatorOrigin = GeneralAdminOrRoot;
 <a href=#663 id=663 data-nosnippet>663</a>	<span class="kw">type </span>HrmpOpenOrigin = FastGeneralAdminOrRoot;
 <a href=#664 id=664 data-nosnippet>664</a>	<span class="kw">type </span>MaxHrmpFee = xcm_builder::Case&lt;MaxHrmpRelayFee&gt;;
-<a href=#665 id=665 data-nosnippet>665</a>}
-<a href=#666 id=666 data-nosnippet>666</a>
-<a href=#667 id=667 data-nosnippet>667</a><span class="macro">parameter_types!</span> {
-<a href=#668 id=668 data-nosnippet>668</a>	<span class="comment">// This is the relative view of erc20 assets.
-<a href=#669 id=669 data-nosnippet>669</a>	// Identified by this prefix + AccountKey20(contractAddress)
-<a href=#670 id=670 data-nosnippet>670</a>	// We use the RELATIVE multilocation
-<a href=#671 id=671 data-nosnippet>671</a>	</span><span class="kw">pub </span>Erc20XcmBridgePalletLocation: Location = Location {
-<a href=#672 id=672 data-nosnippet>672</a>		parents:<span class="number">0</span>,
-<a href=#673 id=673 data-nosnippet>673</a>		interior: [
-<a href=#674 id=674 data-nosnippet>674</a>			PalletInstance(&lt;Erc20XcmBridge <span class="kw">as </span>PalletInfoAccess&gt;::index() <span class="kw">as </span>u8)
-<a href=#675 id=675 data-nosnippet>675</a>		].into()
-<a href=#676 id=676 data-nosnippet>676</a>	};
-<a href=#677 id=677 data-nosnippet>677</a>
-<a href=#678 id=678 data-nosnippet>678</a>	<span class="comment">// To be able to support almost all erc20 implementations,
-<a href=#679 id=679 data-nosnippet>679</a>	// we provide a sufficiently hight gas limit.
-<a href=#680 id=680 data-nosnippet>680</a>	</span><span class="kw">pub </span>Erc20XcmBridgeTransferGasLimit: u64 = <span class="number">400_000</span>;
-<a href=#681 id=681 data-nosnippet>681</a>}
-<a href=#682 id=682 data-nosnippet>682</a>
-<a href=#683 id=683 data-nosnippet>683</a><span class="kw">impl </span>pallet_erc20_xcm_bridge::Config <span class="kw">for </span>Runtime {
-<a href=#684 id=684 data-nosnippet>684</a>	<span class="kw">type </span>AccountIdConverter = LocationToH160;
-<a href=#685 id=685 data-nosnippet>685</a>	<span class="kw">type </span>Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
-<a href=#686 id=686 data-nosnippet>686</a>	<span class="kw">type </span>Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
-<a href=#687 id=687 data-nosnippet>687</a>	<span class="kw">type </span>EvmRunner = EvmRunnerPrecompileOrEthXcm&lt;MoonbeamCall, <span class="self">Self</span>&gt;;
-<a href=#688 id=688 data-nosnippet>688</a>}
-<a href=#689 id=689 data-nosnippet>689</a>
-<a href=#690 id=690 data-nosnippet>690</a><span class="kw">pub struct </span>AccountIdToH160;
-<a href=#691 id=691 data-nosnippet>691</a><span class="kw">impl </span>sp_runtime::traits::Convert&lt;AccountId, H160&gt; <span class="kw">for </span>AccountIdToH160 {
-<a href=#692 id=692 data-nosnippet>692</a>	<span class="kw">fn </span>convert(account_id: AccountId) -&gt; H160 {
-<a href=#693 id=693 data-nosnippet>693</a>		account_id.into()
-<a href=#694 id=694 data-nosnippet>694</a>	}
-<a href=#695 id=695 data-nosnippet>695</a>}
-<a href=#696 id=696 data-nosnippet>696</a>
-<a href=#697 id=697 data-nosnippet>697</a><span class="kw">pub type </span>ForeignAssetManagerOrigin = EitherOf&lt;
-<a href=#698 id=698 data-nosnippet>698</a>	MapSuccessToXcm&lt;EnsureXcm&lt;AllowSiblingParachains&gt;&gt;,
-<a href=#699 id=699 data-nosnippet>699</a>	MapSuccessToGovernance&lt;
-<a href=#700 id=700 data-nosnippet>700</a>		EitherOf&lt;
-<a href=#701 id=701 data-nosnippet>701</a>			EnsureRoot&lt;AccountId&gt;,
-<a href=#702 id=702 data-nosnippet>702</a>			EitherOf&lt;
-<a href=#703 id=703 data-nosnippet>703</a>				pallet_collective::EnsureProportionMoreThan&lt;
-<a href=#704 id=704 data-nosnippet>704</a>					AccountId,
-<a href=#705 id=705 data-nosnippet>705</a>					OpenTechCommitteeInstance,
-<a href=#706 id=706 data-nosnippet>706</a>					<span class="number">5</span>,
-<a href=#707 id=707 data-nosnippet>707</a>					<span class="number">9</span>,
-<a href=#708 id=708 data-nosnippet>708</a>				&gt;,
-<a href=#709 id=709 data-nosnippet>709</a>				EitherOf&lt;
-<a href=#710 id=710 data-nosnippet>710</a>					governance::custom_origins::FastGeneralAdmin,
-<a href=#711 id=711 data-nosnippet>711</a>					governance::custom_origins::GeneralAdmin,
-<a href=#712 id=712 data-nosnippet>712</a>				&gt;,
-<a href=#713 id=713 data-nosnippet>713</a>			&gt;,
-<a href=#714 id=714 data-nosnippet>714</a>		&gt;,
-<a href=#715 id=715 data-nosnippet>715</a>	&gt;,
-<a href=#716 id=716 data-nosnippet>716</a>&gt;;
-<a href=#717 id=717 data-nosnippet>717</a>
-<a href=#718 id=718 data-nosnippet>718</a><span class="kw">impl </span>pallet_moonbeam_foreign_assets::Config <span class="kw">for </span>Runtime {
-<a href=#719 id=719 data-nosnippet>719</a>	<span class="kw">type </span>AccountIdToH160 = AccountIdToH160;
-<a href=#720 id=720 data-nosnippet>720</a>	<span class="kw">type </span>AssetIdFilter = Everything;
-<a href=#721 id=721 data-nosnippet>721</a>	<span class="kw">type </span>EvmRunner = EvmRunnerPrecompileOrEthXcm&lt;MoonbeamCall, <span class="self">Self</span>&gt;;
-<a href=#722 id=722 data-nosnippet>722</a>	<span class="kw">type </span>ConvertLocation =
-<a href=#723 id=723 data-nosnippet>723</a>		SiblingParachainConvertsVia&lt;polkadot_parachain::primitives::Sibling, AccountId&gt;;
-<a href=#724 id=724 data-nosnippet>724</a>	<span class="kw">type </span>ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
-<a href=#725 id=725 data-nosnippet>725</a>	<span class="kw">type </span>ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
-<a href=#726 id=726 data-nosnippet>726</a>	<span class="kw">type </span>ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
-<a href=#727 id=727 data-nosnippet>727</a>	<span class="kw">type </span>ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
-<a href=#728 id=728 data-nosnippet>728</a>	<span class="kw">type </span>OnForeignAssetCreated = ();
-<a href=#729 id=729 data-nosnippet>729</a>	<span class="kw">type </span>MaxForeignAssets = ConstU32&lt;<span class="number">256</span>&gt;;
-<a href=#730 id=730 data-nosnippet>730</a>	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo&lt;Runtime&gt;;
-<a href=#731 id=731 data-nosnippet>731</a>	<span class="kw">type </span>XcmLocationToH160 = LocationToH160;
-<a href=#732 id=732 data-nosnippet>732</a>	<span class="kw">type </span>ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
-<a href=#733 id=733 data-nosnippet>733</a>	<span class="kw">type </span>Balance = Balance;
-<a href=#734 id=734 data-nosnippet>734</a>	<span class="kw">type </span>Currency = Balances;
-<a href=#735 id=735 data-nosnippet>735</a>}
-<a href=#736 id=736 data-nosnippet>736</a>
-<a href=#737 id=737 data-nosnippet>737</a><span class="kw">pub struct </span>AssetFeesFilter;
-<a href=#738 id=738 data-nosnippet>738</a><span class="kw">impl </span>frame_support::traits::Contains&lt;Location&gt; <span class="kw">for </span>AssetFeesFilter {
-<a href=#739 id=739 data-nosnippet>739</a>	<span class="kw">fn </span>contains(location: <span class="kw-2">&amp;</span>Location) -&gt; bool {
-<a href=#740 id=740 data-nosnippet>740</a>		location.parent_count() &gt; <span class="number">0
-<a href=#741 id=741 data-nosnippet>741</a>			</span>&amp;&amp; location.first_interior() != Erc20XcmBridgePalletLocation::get().first_interior()
-<a href=#742 id=742 data-nosnippet>742</a>	}
-<a href=#743 id=743 data-nosnippet>743</a>}
-<a href=#744 id=744 data-nosnippet>744</a>
-<a href=#745 id=745 data-nosnippet>745</a><span class="kw">pub type </span>AddAndEditSupportedAssetOrigin = EitherOfDiverse&lt;
-<a href=#746 id=746 data-nosnippet>746</a>	EnsureRoot&lt;AccountId&gt;,
-<a href=#747 id=747 data-nosnippet>747</a>	EitherOfDiverse&lt;
-<a href=#748 id=748 data-nosnippet>748</a>		pallet_collective::EnsureProportionMoreThan&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;,
-<a href=#749 id=749 data-nosnippet>749</a>		EitherOf&lt;
-<a href=#750 id=750 data-nosnippet>750</a>			governance::custom_origins::GeneralAdmin,
-<a href=#751 id=751 data-nosnippet>751</a>			governance::custom_origins::FastGeneralAdmin,
-<a href=#752 id=752 data-nosnippet>752</a>		&gt;,
-<a href=#753 id=753 data-nosnippet>753</a>	&gt;,
-<a href=#754 id=754 data-nosnippet>754</a>&gt;;
-<a href=#755 id=755 data-nosnippet>755</a>
-<a href=#756 id=756 data-nosnippet>756</a><span class="kw">pub type </span>RemoveSupportedAssetOrigin = EitherOfDiverse&lt;
-<a href=#757 id=757 data-nosnippet>757</a>	EnsureRoot&lt;AccountId&gt;,
-<a href=#758 id=758 data-nosnippet>758</a>	pallet_collective::EnsureProportionMoreThan&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;,
-<a href=#759 id=759 data-nosnippet>759</a>&gt;;
-<a href=#760 id=760 data-nosnippet>760</a>
-<a href=#761 id=761 data-nosnippet>761</a><span class="kw">impl </span>pallet_xcm_weight_trader::Config <span class="kw">for </span>Runtime {
-<a href=#762 id=762 data-nosnippet>762</a>	<span class="kw">type </span>AccountIdToLocation = AccountIdToLocation&lt;AccountId&gt;;
-<a href=#763 id=763 data-nosnippet>763</a>	<span class="kw">type </span>AddSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
-<a href=#764 id=764 data-nosnippet>764</a>	<span class="kw">type </span>AssetLocationFilter = AssetFeesFilter;
-<a href=#765 id=765 data-nosnippet>765</a>	<span class="kw">type </span>AssetTransactor = AssetTransactors;
-<a href=#766 id=766 data-nosnippet>766</a>	<span class="kw">type </span>Balance = Balance;
-<a href=#767 id=767 data-nosnippet>767</a>	<span class="kw">type </span>EditSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
-<a href=#768 id=768 data-nosnippet>768</a>	<span class="kw">type </span>NativeLocation = SelfReserve;
-<a href=#769 id=769 data-nosnippet>769</a>	<span class="kw">type </span>PauseSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
-<a href=#770 id=770 data-nosnippet>770</a>	<span class="kw">type </span>ResumeSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
-<a href=#771 id=771 data-nosnippet>771</a>	<span class="kw">type </span>RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
-<a href=#772 id=772 data-nosnippet>772</a>	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_xcm_weight_trader::WeightInfo&lt;Runtime&gt;;
-<a href=#773 id=773 data-nosnippet>773</a>	<span class="kw">type </span>WeightToFee = &lt;Runtime <span class="kw">as </span>pallet_transaction_payment::Config&gt;::WeightToFee;
-<a href=#774 id=774 data-nosnippet>774</a>	<span class="kw">type </span>XcmFeesAccount = XcmFeesAccount;
-<a href=#775 id=775 data-nosnippet>775</a>	<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
-<a href=#776 id=776 data-nosnippet>776</a>	</span><span class="kw">type </span>NotFilteredLocation = RelayLocation;
-<a href=#777 id=777 data-nosnippet>777</a>}
-<a href=#778 id=778 data-nosnippet>778</a>
-<a href=#779 id=779 data-nosnippet>779</a><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
-<a href=#780 id=780 data-nosnippet>780</a></span><span class="kw">mod </span>testing {
-<a href=#781 id=781 data-nosnippet>781</a>	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-<a href=#782 id=782 data-nosnippet>782</a>
-<a href=#783 id=783 data-nosnippet>783</a>	<span class="doccomment">/// This From exists for benchmarking purposes. It has the potential side-effect of calling
-<a href=#784 id=784 data-nosnippet>784</a>	/// EvmForeignAssets::set_asset() and should NOT be used in any production code.
-<a href=#785 id=785 data-nosnippet>785</a>	</span><span class="kw">impl </span>From&lt;Location&gt; <span class="kw">for </span>CurrencyId {
-<a href=#786 id=786 data-nosnippet>786</a>		<span class="kw">fn </span>from(location: Location) -&gt; CurrencyId {
-<a href=#787 id=787 data-nosnippet>787</a>			<span class="kw">use </span>sp_runtime::traits::MaybeEquivalence;
-<a href=#788 id=788 data-nosnippet>788</a>
-<a href=#789 id=789 data-nosnippet>789</a>			<span class="comment">// If it does not exist, for benchmarking purposes, we create the association
-<a href=#790 id=790 data-nosnippet>790</a>			</span><span class="kw">let </span>asset_id = <span class="kw">if let </span><span class="prelude-val">Some</span>(asset_id) = EvmForeignAssets::convert(<span class="kw-2">&amp;</span>location) {
-<a href=#791 id=791 data-nosnippet>791</a>				asset_id
-<a href=#792 id=792 data-nosnippet>792</a>			} <span class="kw">else </span>{
-<a href=#793 id=793 data-nosnippet>793</a>				<span class="comment">// Generate asset ID from location hash (similar to old AssetManager approach)
-<a href=#794 id=794 data-nosnippet>794</a>				</span><span class="kw">let </span>hash: H256 =
-<a href=#795 id=795 data-nosnippet>795</a>					location.using_encoded(&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash);
-<a href=#796 id=796 data-nosnippet>796</a>				<span class="kw">let </span><span class="kw-2">mut </span>result: [u8; <span class="number">16</span>] = [<span class="number">0u8</span>; <span class="number">16</span>];
-<a href=#797 id=797 data-nosnippet>797</a>				result.copy_from_slice(<span class="kw-2">&amp;</span>hash.as_fixed_bytes()[<span class="number">0</span>..<span class="number">16</span>]);
-<a href=#798 id=798 data-nosnippet>798</a>				<span class="kw">let </span>asset_id = u128::from_le_bytes(result);
-<a href=#799 id=799 data-nosnippet>799</a>
-<a href=#800 id=800 data-nosnippet>800</a>				EvmForeignAssets::set_asset(location, asset_id);
-<a href=#801 id=801 data-nosnippet>801</a>				asset_id
-<a href=#802 id=802 data-nosnippet>802</a>			};
-<a href=#803 id=803 data-nosnippet>803</a>
-<a href=#804 id=804 data-nosnippet>804</a>			CurrencyId::ForeignAsset(asset_id)
-<a href=#805 id=805 data-nosnippet>805</a>		}
-<a href=#806 id=806 data-nosnippet>806</a>	}
-<a href=#807 id=807 data-nosnippet>807</a>}</code></pre></div></section></main></body></html>
+<a href=#665 id=665 data-nosnippet>665</a>	<span class="kw">type </span>FeeTrader = XcmWeightTrader;
+<a href=#666 id=666 data-nosnippet>666</a>}
+<a href=#667 id=667 data-nosnippet>667</a>
+<a href=#668 id=668 data-nosnippet>668</a><span class="macro">parameter_types!</span> {
+<a href=#669 id=669 data-nosnippet>669</a>	<span class="comment">// This is the relative view of erc20 assets.
+<a href=#670 id=670 data-nosnippet>670</a>	// Identified by this prefix + AccountKey20(contractAddress)
+<a href=#671 id=671 data-nosnippet>671</a>	// We use the RELATIVE multilocation
+<a href=#672 id=672 data-nosnippet>672</a>	</span><span class="kw">pub </span>Erc20XcmBridgePalletLocation: Location = Location {
+<a href=#673 id=673 data-nosnippet>673</a>		parents:<span class="number">0</span>,
+<a href=#674 id=674 data-nosnippet>674</a>		interior: [
+<a href=#675 id=675 data-nosnippet>675</a>			PalletInstance(&lt;Erc20XcmBridge <span class="kw">as </span>PalletInfoAccess&gt;::index() <span class="kw">as </span>u8)
+<a href=#676 id=676 data-nosnippet>676</a>		].into()
+<a href=#677 id=677 data-nosnippet>677</a>	};
+<a href=#678 id=678 data-nosnippet>678</a>
+<a href=#679 id=679 data-nosnippet>679</a>	<span class="comment">// To be able to support almost all erc20 implementations,
+<a href=#680 id=680 data-nosnippet>680</a>	// we provide a sufficiently hight gas limit.
+<a href=#681 id=681 data-nosnippet>681</a>	</span><span class="kw">pub </span>Erc20XcmBridgeTransferGasLimit: u64 = <span class="number">400_000</span>;
+<a href=#682 id=682 data-nosnippet>682</a>}
+<a href=#683 id=683 data-nosnippet>683</a>
+<a href=#684 id=684 data-nosnippet>684</a><span class="kw">impl </span>pallet_erc20_xcm_bridge::Config <span class="kw">for </span>Runtime {
+<a href=#685 id=685 data-nosnippet>685</a>	<span class="kw">type </span>AccountIdConverter = LocationToH160;
+<a href=#686 id=686 data-nosnippet>686</a>	<span class="kw">type </span>Erc20MultilocationPrefix = Erc20XcmBridgePalletLocation;
+<a href=#687 id=687 data-nosnippet>687</a>	<span class="kw">type </span>Erc20TransferGasLimit = Erc20XcmBridgeTransferGasLimit;
+<a href=#688 id=688 data-nosnippet>688</a>	<span class="kw">type </span>EvmRunner = EvmRunnerPrecompileOrEthXcm&lt;MoonbeamCall, <span class="self">Self</span>&gt;;
+<a href=#689 id=689 data-nosnippet>689</a>}
+<a href=#690 id=690 data-nosnippet>690</a>
+<a href=#691 id=691 data-nosnippet>691</a><span class="kw">pub struct </span>AccountIdToH160;
+<a href=#692 id=692 data-nosnippet>692</a><span class="kw">impl </span>sp_runtime::traits::Convert&lt;AccountId, H160&gt; <span class="kw">for </span>AccountIdToH160 {
+<a href=#693 id=693 data-nosnippet>693</a>	<span class="kw">fn </span>convert(account_id: AccountId) -&gt; H160 {
+<a href=#694 id=694 data-nosnippet>694</a>		account_id.into()
+<a href=#695 id=695 data-nosnippet>695</a>	}
+<a href=#696 id=696 data-nosnippet>696</a>}
+<a href=#697 id=697 data-nosnippet>697</a>
+<a href=#698 id=698 data-nosnippet>698</a><span class="kw">pub type </span>ForeignAssetManagerOrigin = EitherOf&lt;
+<a href=#699 id=699 data-nosnippet>699</a>	MapSuccessToXcm&lt;EnsureXcm&lt;AllowSiblingParachains&gt;&gt;,
+<a href=#700 id=700 data-nosnippet>700</a>	MapSuccessToGovernance&lt;
+<a href=#701 id=701 data-nosnippet>701</a>		EitherOf&lt;
+<a href=#702 id=702 data-nosnippet>702</a>			EnsureRoot&lt;AccountId&gt;,
+<a href=#703 id=703 data-nosnippet>703</a>			EitherOf&lt;
+<a href=#704 id=704 data-nosnippet>704</a>				pallet_collective::EnsureProportionMoreThan&lt;
+<a href=#705 id=705 data-nosnippet>705</a>					AccountId,
+<a href=#706 id=706 data-nosnippet>706</a>					OpenTechCommitteeInstance,
+<a href=#707 id=707 data-nosnippet>707</a>					<span class="number">5</span>,
+<a href=#708 id=708 data-nosnippet>708</a>					<span class="number">9</span>,
+<a href=#709 id=709 data-nosnippet>709</a>				&gt;,
+<a href=#710 id=710 data-nosnippet>710</a>				EitherOf&lt;
+<a href=#711 id=711 data-nosnippet>711</a>					governance::custom_origins::FastGeneralAdmin,
+<a href=#712 id=712 data-nosnippet>712</a>					governance::custom_origins::GeneralAdmin,
+<a href=#713 id=713 data-nosnippet>713</a>				&gt;,
+<a href=#714 id=714 data-nosnippet>714</a>			&gt;,
+<a href=#715 id=715 data-nosnippet>715</a>		&gt;,
+<a href=#716 id=716 data-nosnippet>716</a>	&gt;,
+<a href=#717 id=717 data-nosnippet>717</a>&gt;;
+<a href=#718 id=718 data-nosnippet>718</a>
+<a href=#719 id=719 data-nosnippet>719</a><span class="kw">impl </span>pallet_moonbeam_foreign_assets::Config <span class="kw">for </span>Runtime {
+<a href=#720 id=720 data-nosnippet>720</a>	<span class="kw">type </span>AccountIdToH160 = AccountIdToH160;
+<a href=#721 id=721 data-nosnippet>721</a>	<span class="kw">type </span>AssetIdFilter = Everything;
+<a href=#722 id=722 data-nosnippet>722</a>	<span class="kw">type </span>EvmRunner = EvmRunnerPrecompileOrEthXcm&lt;MoonbeamCall, <span class="self">Self</span>&gt;;
+<a href=#723 id=723 data-nosnippet>723</a>	<span class="kw">type </span>ConvertLocation =
+<a href=#724 id=724 data-nosnippet>724</a>		SiblingParachainConvertsVia&lt;polkadot_parachain::primitives::Sibling, AccountId&gt;;
+<a href=#725 id=725 data-nosnippet>725</a>	<span class="kw">type </span>ForeignAssetCreatorOrigin = ForeignAssetManagerOrigin;
+<a href=#726 id=726 data-nosnippet>726</a>	<span class="kw">type </span>ForeignAssetFreezerOrigin = ForeignAssetManagerOrigin;
+<a href=#727 id=727 data-nosnippet>727</a>	<span class="kw">type </span>ForeignAssetModifierOrigin = ForeignAssetManagerOrigin;
+<a href=#728 id=728 data-nosnippet>728</a>	<span class="kw">type </span>ForeignAssetUnfreezerOrigin = ForeignAssetManagerOrigin;
+<a href=#729 id=729 data-nosnippet>729</a>	<span class="kw">type </span>OnForeignAssetCreated = ();
+<a href=#730 id=730 data-nosnippet>730</a>	<span class="kw">type </span>MaxForeignAssets = ConstU32&lt;<span class="number">256</span>&gt;;
+<a href=#731 id=731 data-nosnippet>731</a>	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_moonbeam_foreign_assets::WeightInfo&lt;Runtime&gt;;
+<a href=#732 id=732 data-nosnippet>732</a>	<span class="kw">type </span>XcmLocationToH160 = LocationToH160;
+<a href=#733 id=733 data-nosnippet>733</a>	<span class="kw">type </span>ForeignAssetCreationDeposit = dynamic_params::xcm_config::ForeignAssetCreationDeposit;
+<a href=#734 id=734 data-nosnippet>734</a>	<span class="kw">type </span>Balance = Balance;
+<a href=#735 id=735 data-nosnippet>735</a>	<span class="kw">type </span>Currency = Balances;
+<a href=#736 id=736 data-nosnippet>736</a>}
+<a href=#737 id=737 data-nosnippet>737</a>
+<a href=#738 id=738 data-nosnippet>738</a><span class="kw">pub struct </span>AssetFeesFilter;
+<a href=#739 id=739 data-nosnippet>739</a><span class="kw">impl </span>frame_support::traits::Contains&lt;Location&gt; <span class="kw">for </span>AssetFeesFilter {
+<a href=#740 id=740 data-nosnippet>740</a>	<span class="kw">fn </span>contains(location: <span class="kw-2">&amp;</span>Location) -&gt; bool {
+<a href=#741 id=741 data-nosnippet>741</a>		location.parent_count() &gt; <span class="number">0
+<a href=#742 id=742 data-nosnippet>742</a>			</span>&amp;&amp; location.first_interior() != Erc20XcmBridgePalletLocation::get().first_interior()
+<a href=#743 id=743 data-nosnippet>743</a>	}
+<a href=#744 id=744 data-nosnippet>744</a>}
+<a href=#745 id=745 data-nosnippet>745</a>
+<a href=#746 id=746 data-nosnippet>746</a><span class="kw">pub type </span>AddAndEditSupportedAssetOrigin = EitherOfDiverse&lt;
+<a href=#747 id=747 data-nosnippet>747</a>	EnsureRoot&lt;AccountId&gt;,
+<a href=#748 id=748 data-nosnippet>748</a>	EitherOfDiverse&lt;
+<a href=#749 id=749 data-nosnippet>749</a>		pallet_collective::EnsureProportionMoreThan&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;,
+<a href=#750 id=750 data-nosnippet>750</a>		EitherOf&lt;
+<a href=#751 id=751 data-nosnippet>751</a>			governance::custom_origins::GeneralAdmin,
+<a href=#752 id=752 data-nosnippet>752</a>			governance::custom_origins::FastGeneralAdmin,
+<a href=#753 id=753 data-nosnippet>753</a>		&gt;,
+<a href=#754 id=754 data-nosnippet>754</a>	&gt;,
+<a href=#755 id=755 data-nosnippet>755</a>&gt;;
+<a href=#756 id=756 data-nosnippet>756</a>
+<a href=#757 id=757 data-nosnippet>757</a><span class="kw">pub type </span>RemoveSupportedAssetOrigin = EitherOfDiverse&lt;
+<a href=#758 id=758 data-nosnippet>758</a>	EnsureRoot&lt;AccountId&gt;,
+<a href=#759 id=759 data-nosnippet>759</a>	pallet_collective::EnsureProportionMoreThan&lt;AccountId, OpenTechCommitteeInstance, <span class="number">5</span>, <span class="number">9</span>&gt;,
+<a href=#760 id=760 data-nosnippet>760</a>&gt;;
+<a href=#761 id=761 data-nosnippet>761</a>
+<a href=#762 id=762 data-nosnippet>762</a><span class="kw">impl </span>pallet_xcm_weight_trader::Config <span class="kw">for </span>Runtime {
+<a href=#763 id=763 data-nosnippet>763</a>	<span class="kw">type </span>AccountIdToLocation = AccountIdToLocation&lt;AccountId&gt;;
+<a href=#764 id=764 data-nosnippet>764</a>	<span class="kw">type </span>AddSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
+<a href=#765 id=765 data-nosnippet>765</a>	<span class="kw">type </span>AssetLocationFilter = AssetFeesFilter;
+<a href=#766 id=766 data-nosnippet>766</a>	<span class="kw">type </span>AssetTransactor = AssetTransactors;
+<a href=#767 id=767 data-nosnippet>767</a>	<span class="kw">type </span>Balance = Balance;
+<a href=#768 id=768 data-nosnippet>768</a>	<span class="kw">type </span>EditSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
+<a href=#769 id=769 data-nosnippet>769</a>	<span class="kw">type </span>NativeLocation = SelfReserve;
+<a href=#770 id=770 data-nosnippet>770</a>	<span class="kw">type </span>PauseSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
+<a href=#771 id=771 data-nosnippet>771</a>	<span class="kw">type </span>ResumeSupportedAssetOrigin = AddAndEditSupportedAssetOrigin;
+<a href=#772 id=772 data-nosnippet>772</a>	<span class="kw">type </span>RemoveSupportedAssetOrigin = RemoveSupportedAssetOrigin;
+<a href=#773 id=773 data-nosnippet>773</a>	<span class="kw">type </span>WeightInfo = moonbase_weights::pallet_xcm_weight_trader::WeightInfo&lt;Runtime&gt;;
+<a href=#774 id=774 data-nosnippet>774</a>	<span class="kw">type </span>WeightToFee = &lt;Runtime <span class="kw">as </span>pallet_transaction_payment::Config&gt;::WeightToFee;
+<a href=#775 id=775 data-nosnippet>775</a>	<span class="kw">type </span>XcmFeesAccount = XcmFeesAccount;
+<a href=#776 id=776 data-nosnippet>776</a>	<span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+<a href=#777 id=777 data-nosnippet>777</a>	</span><span class="kw">type </span>NotFilteredLocation = RelayLocation;
+<a href=#778 id=778 data-nosnippet>778</a>}
+<a href=#779 id=779 data-nosnippet>779</a>
+<a href=#780 id=780 data-nosnippet>780</a><span class="attr">#[cfg(feature = <span class="string">"runtime-benchmarks"</span>)]
+<a href=#781 id=781 data-nosnippet>781</a></span><span class="kw">mod </span>testing {
+<a href=#782 id=782 data-nosnippet>782</a>	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#783 id=783 data-nosnippet>783</a>
+<a href=#784 id=784 data-nosnippet>784</a>	<span class="doccomment">/// This From exists for benchmarking purposes. It has the potential side-effect of calling
+<a href=#785 id=785 data-nosnippet>785</a>	/// EvmForeignAssets::set_asset() and should NOT be used in any production code.
+<a href=#786 id=786 data-nosnippet>786</a>	</span><span class="kw">impl </span>From&lt;Location&gt; <span class="kw">for </span>CurrencyId {
+<a href=#787 id=787 data-nosnippet>787</a>		<span class="kw">fn </span>from(location: Location) -&gt; CurrencyId {
+<a href=#788 id=788 data-nosnippet>788</a>			<span class="kw">use </span>sp_runtime::traits::MaybeEquivalence;
+<a href=#789 id=789 data-nosnippet>789</a>
+<a href=#790 id=790 data-nosnippet>790</a>			<span class="comment">// If it does not exist, for benchmarking purposes, we create the association
+<a href=#791 id=791 data-nosnippet>791</a>			</span><span class="kw">let </span>asset_id = <span class="kw">if let </span><span class="prelude-val">Some</span>(asset_id) = EvmForeignAssets::convert(<span class="kw-2">&amp;</span>location) {
+<a href=#792 id=792 data-nosnippet>792</a>				asset_id
+<a href=#793 id=793 data-nosnippet>793</a>			} <span class="kw">else </span>{
+<a href=#794 id=794 data-nosnippet>794</a>				<span class="comment">// Generate asset ID from location hash (similar to old AssetManager approach)
+<a href=#795 id=795 data-nosnippet>795</a>				</span><span class="kw">let </span>hash: H256 =
+<a href=#796 id=796 data-nosnippet>796</a>					location.using_encoded(&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash);
+<a href=#797 id=797 data-nosnippet>797</a>				<span class="kw">let </span><span class="kw-2">mut </span>result: [u8; <span class="number">16</span>] = [<span class="number">0u8</span>; <span class="number">16</span>];
+<a href=#798 id=798 data-nosnippet>798</a>				result.copy_from_slice(<span class="kw-2">&amp;</span>hash.as_fixed_bytes()[<span class="number">0</span>..<span class="number">16</span>]);
+<a href=#799 id=799 data-nosnippet>799</a>				<span class="kw">let </span>asset_id = u128::from_le_bytes(result);
+<a href=#800 id=800 data-nosnippet>800</a>
+<a href=#801 id=801 data-nosnippet>801</a>				EvmForeignAssets::set_asset(location, asset_id);
+<a href=#802 id=802 data-nosnippet>802</a>				asset_id
+<a href=#803 id=803 data-nosnippet>803</a>			};
+<a href=#804 id=804 data-nosnippet>804</a>
+<a href=#805 id=805 data-nosnippet>805</a>			CurrencyId::ForeignAsset(asset_id)
+<a href=#806 id=806 data-nosnippet>806</a>		}
+<a href=#807 id=807 data-nosnippet>807</a>	}
+<a href=#808 id=808 data-nosnippet>808</a>}</code></pre></div></section></main></body></html>

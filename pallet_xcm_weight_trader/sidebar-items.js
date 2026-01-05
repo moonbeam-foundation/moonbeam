@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["RELATIVE_PRICE_DECIMALS"],"mod":["pallet","weights"],"struct":["Trader","XcmWeightTraderAssetInfo"]};
+window.SIDEBAR_ITEMS = {"constant":["RELATIVE_PRICE_DECIMALS"],"fn":["compute_fee_amount"],"mod":["pallet","weights"],"struct":["Trader","XcmWeightTraderAssetInfo"]};

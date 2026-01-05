@@ -136,7 +136,7 @@
 <a href=#136 id=136 data-nosnippet>136</a>		// storage item: AssetTypeUnitsPerSecond: Blake2_128(16) + Location + u128(16)
 <a href=#137 id=137 data-nosnippet>137</a>		</span>handle.record_db_read::&lt;Runtime&gt;(<span class="number">32 </span>+ Location::max_encoded_len())<span class="question-mark">?</span>;
 <a href=#138 id=138 data-nosnippet>138</a>		<span class="kw">let </span>fee_per_second: u128 =
-<a href=#139 id=139 data-nosnippet>139</a>			pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::dest_asset_fee_per_second(location)
+<a href=#139 id=139 data-nosnippet>139</a>			pallet_xcm_transactor::Pallet::&lt;Runtime&gt;::dest_asset_fee_per_second(<span class="kw-2">&amp;</span>location)
 <a href=#140 id=140 data-nosnippet>140</a>				.ok_or(revert(<span class="string">"Fee Per Second not set"</span>))<span class="question-mark">?</span>;
 <a href=#141 id=141 data-nosnippet>141</a>
 <a href=#142 id=142 data-nosnippet>142</a>		<span class="prelude-val">Ok</span>(fee_per_second.into())
