@@ -2535,22 +2535,6 @@ declare module "@polkadot/api-base/types/events" {
     xcmTransactor: {
       DeRegisteredDerivative: AugmentedEvent<ApiType, [index: u16], { index: u16 }>;
       /**
-       * Set dest fee per second
-       **/
-      DestFeePerSecondChanged: AugmentedEvent<
-        ApiType,
-        [location: StagingXcmV5Location, feePerSecond: u128],
-        { location: StagingXcmV5Location; feePerSecond: u128 }
-      >;
-      /**
-       * Remove dest fee per second
-       **/
-      DestFeePerSecondRemoved: AugmentedEvent<
-        ApiType,
-        [location: StagingXcmV5Location],
-        { location: StagingXcmV5Location }
-      >;
-      /**
        * HRMP manage action succesfully sent
        **/
       HrmpManagementSent: AugmentedEvent<

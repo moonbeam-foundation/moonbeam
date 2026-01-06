@@ -4339,21 +4339,6 @@ declare module "@polkadot/api-base/types/submittable" {
         [AccountId20, u16]
       >;
       /**
-       * Remove the fee per second of an asset on its reserve chain
-       **/
-      removeFeePerSecond: AugmentedSubmittable<
-        (
-          assetLocation:
-            | XcmVersionedLocation
-            | { V3: any }
-            | { V4: any }
-            | { V5: any }
-            | string
-            | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedLocation]
-      >;
-      /**
        * Remove the transact info of a location
        **/
       removeTransactInfo: AugmentedSubmittable<
@@ -4367,22 +4352,6 @@ declare module "@polkadot/api-base/types/submittable" {
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [XcmVersionedLocation]
-      >;
-      /**
-       * Set the fee per second of an asset on its reserve chain
-       **/
-      setFeePerSecond: AugmentedSubmittable<
-        (
-          assetLocation:
-            | XcmVersionedLocation
-            | { V3: any }
-            | { V4: any }
-            | { V5: any }
-            | string
-            | Uint8Array,
-          feePerSecond: u128 | AnyNumber | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedLocation, u128]
       >;
       /**
        * Change the transact info of a location

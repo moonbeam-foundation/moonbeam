@@ -1538,7 +1538,6 @@ declare module "@polkadot/api-base/types/errors" {
       ErrorDelivering: AugmentedError<ApiType>;
       ErrorValidating: AugmentedError<ApiType>;
       FailedMultiLocationToJunction: AugmentedError<ApiType>;
-      FeePerSecondNotSet: AugmentedError<ApiType>;
       HrmpHandlerNotImplemented: AugmentedError<ApiType>;
       IndexAlreadyClaimed: AugmentedError<ApiType>;
       InvalidDest: AugmentedError<ApiType>;
