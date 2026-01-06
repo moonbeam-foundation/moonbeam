@@ -4023,13 +4023,8 @@ export default {
         weightInfo: "PalletXcmTransactorTransactWeights",
         refund: "bool"
       },
-      set_fee_per_second: {
-        assetLocation: "XcmVersionedLocation",
-        feePerSecond: "u128"
-      },
-      remove_fee_per_second: {
-        assetLocation: "XcmVersionedLocation"
-      },
+      __Unused7: "Null",
+      __Unused8: "Null",
       hrmp_manage: {
         action: "PalletXcmTransactorHrmpOperation",
         fee: "PalletXcmTransactorCurrencyPayment",
@@ -4933,13 +4928,8 @@ export default {
       TransactInfoRemoved: {
         location: "StagingXcmV5Location"
       },
-      DestFeePerSecondChanged: {
-        location: "StagingXcmV5Location",
-        feePerSecond: "u128"
-      },
-      DestFeePerSecondRemoved: {
-        location: "StagingXcmV5Location"
-      },
+      __Unused8: "Null",
+      __Unused9: "Null",
       HrmpManagementSent: {
         action: "PalletXcmTransactorHrmpOperation"
       }
@@ -6869,7 +6859,7 @@ export default {
       "BadVersion",
       "MaxWeightTransactReached",
       "UnableToWithdrawAsset",
-      "FeePerSecondNotSet",
+      "__Unused20",
       "SignedTransactNotAllowedForDestination",
       "FailedMultiLocationToJunction",
       "HrmpHandlerNotImplemented",
