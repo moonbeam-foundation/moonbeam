@@ -61,7 +61,11 @@ pub use moonbeam_rpc_core_trace::{FilterRequest, TraceServer};
 use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 
+/// Internal type for trace results from blocking tasks
 type TxsTraceRes = Result<Vec<TransactionTrace>, String>;
+
+/// Type for trace results sent to requesters (Arc-wrapped for zero-copy sharing)
+type SharedTxsTraceRes = Result<Arc<Vec<TransactionTrace>>, String>;
 
 /// Log target for trace cache operations
 const CACHE_LOG_TARGET: &str = "trace-cache";
@@ -277,8 +281,8 @@ enum CacheRequest {
 	/// Fetch the traces for given block hash.
 	/// The task will answer only when it has processed this block.
 	GetTraces {
-		/// Returns the array of traces or an error.
-		sender: oneshot::Sender<TxsTraceRes>,
+		/// Returns the array of traces or an error (Arc-wrapped for zero-copy sharing).
+		sender: oneshot::Sender<SharedTxsTraceRes>,
 		/// Hash of the block.
 		block: H256,
 	},
@@ -293,8 +297,9 @@ impl CacheRequester {
 	/// If the block is already cached, returns immediately.
 	/// If the block is being traced, waits for the result.
 	/// If the block is not cached, triggers tracing and waits for the result.
+	/// Returns Arc-wrapped traces for zero-copy sharing.
 	#[instrument(skip(self))]
-	pub async fn get_traces(&self, block: H256) -> TxsTraceRes {
+	pub async fn get_traces(&self, block: H256) -> SharedTxsTraceRes {
 		let (response_tx, response_rx) = oneshot::channel();
 		let sender = self.0.clone();
 
@@ -323,7 +328,7 @@ struct WaitListEntry {
 	/// Time when this entry was created
 	created_at: Instant,
 	/// All requests waiting for this block to be traced
-	waiters: Vec<oneshot::Sender<TxsTraceRes>>,
+	waiters: Vec<oneshot::Sender<SharedTxsTraceRes>>,
 }
 
 /// Wait list for requests pending the same block trace.
@@ -345,7 +350,7 @@ pub struct CacheTask<B, C, BE> {
 	client: Arc<C>,
 	backend: Arc<BE>,
 	blocking_permits: Arc<Semaphore>,
-	cache: LRUCacheByteLimited<H256, Vec<TransactionTrace>>,
+	cache: LRUCacheByteLimited<H256, Arc<Vec<TransactionTrace>>>,
 	wait_list: WaitList,
 	_phantom: PhantomData<B>,
 }
@@ -435,16 +440,15 @@ where
 	fn request_get_traces(
 		&mut self,
 		blocking_tx: &mpsc::Sender<BlockingTaskMessage>,
-		sender: oneshot::Sender<TxsTraceRes>,
+		sender: oneshot::Sender<SharedTxsTraceRes>,
 		block: H256,
 		overrides: Arc<dyn StorageOverride<B>>,
 		spawn_handle: &SpawnTaskHandle,
 	) {
 		// Check if block is already cached
 		if let Some(cached) = self.cache.get(&block) {
-			// Cache hit - respond immediately (LRU handles access tracking)
-			// Wrap in Ok since cache only stores successful traces
-			let _ = sender.send(Ok(cached.clone()));
+			// Cache hit - respond immediately with Arc::clone (cheap)
+			let _ = sender.send(Ok(Arc::clone(&cached)));
 			return;
 		}
 
@@ -522,19 +526,29 @@ where
 
 	/// Handle completion of a block trace task.
 	/// Sends result to all waiting requests and caches it.
+	/// Uses Arc for zero-copy sharing across multiple waiters.
 	fn blocking_finished(&mut self, block_hash: H256, result: TxsTraceRes) {
 		// Get all waiting senders for this block
 		if let Some(entry) = self.wait_list.remove(&block_hash) {
-			// Send result to all waiting requests
-			for sender in entry.waiters {
-				let _ = sender.send(result.clone());
-			}
+			match result {
+				Ok(traces) => {
+					// Wrap successful result in Arc once
+					let arc_traces = Arc::new(traces);
 
-			// Only cache successful results to avoid polluting cache with transient errors
-			// (network timeouts, temporary DB locks, etc.)
-			// Failed blocks can be retried on next request
-			if let Ok(traces) = result {
-				self.cache.put(block_hash, traces);
+					// Send Arc::clone to all waiters (cheap pointer copy, no data duplication)
+					for sender in entry.waiters {
+						let _ = sender.send(Ok(Arc::clone(&arc_traces)));
+					}
+
+					// Cache the Arc-wrapped result
+					self.cache.put(block_hash, arc_traces);
+				}
+				Err(error) => {
+					// Send error to all waiters (errors are not cached)
+					for sender in entry.waiters {
+						let _ = sender.send(Err(error.clone()));
+					}
+				}
 			}
 		}
 	}
