@@ -25,6 +25,7 @@ moonbeam-rpc-primitives-debug = { workspace = true }
 # Substrate
 sc-client-api = { workspace = true }
 sc-utils = { workspace = true }
+sc-service = { workspace = true }
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-blockchain = { workspace = true }

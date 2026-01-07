@@ -53,10 +53,11 @@ where
 			let (trace_filter_task, trace_filter_requester) = CacheTask::create(
 				Arc::clone(&params.client),
 				Arc::clone(&params.substrate_backend),
-				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
+				rpc_config.ethapi_trace_filter_cache_size,
 				Arc::clone(&permit_pool),
 				Arc::clone(&params.overrides),
 				prometheus,
+				params.task_manager.spawn_handle(),
 			);
 			(Some(trace_filter_task), Some(trace_filter_requester))
 		} else {

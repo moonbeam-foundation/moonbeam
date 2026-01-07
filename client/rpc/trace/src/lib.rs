@@ -24,27 +24,32 @@
 //! - For each traced block an async task responsible to wait for a permit, spawn a blocking
 //!   task and waiting for the result, then send it to the main `CacheTask`.
 
-use futures::{select, stream::FuturesUnordered, FutureExt, StreamExt};
-use std::{collections::BTreeMap, future::Future, marker::PhantomData, sync::Arc, time::Duration};
+use futures::{select, FutureExt};
+use std::{
+	collections::{BTreeMap, HashMap},
+	future::Future,
+	marker::PhantomData,
+	sync::Arc,
+	time::{Duration, Instant},
+};
 use tokio::{
 	sync::{mpsc, oneshot, Semaphore},
-	time::sleep,
+	time::interval,
 };
 use tracing::{instrument, Instrument};
 
 use sc_client_api::backend::{Backend, StateBackend, StorageProvider};
-use sc_utils::mpsc::TracingUnboundedSender;
+use sc_service::SpawnTaskHandle;
 use sp_api::{ApiExt, Core, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{
 	Backend as BlockchainBackend, Error as BlockChainError, HeaderBackend, HeaderMetadata,
 };
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT, Header as HeaderT};
-use substrate_prometheus_endpoint::{
-	register, Counter, PrometheusError, Registry as PrometheusRegistry, U64,
-};
+use substrate_prometheus_endpoint::Registry as PrometheusRegistry;
 
 use ethereum_types::H256;
+use fc_rpc::lru_cache::LRUCacheByteLimited;
 use fc_storage::StorageOverride;
 use fp_rpc::EthereumRuntimeRPCApi;
 
@@ -57,6 +62,13 @@ use moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
 use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 
 type TxsTraceRes = Result<Vec<TransactionTrace>, String>;
+
+/// Log target for trace cache operations
+const CACHE_LOG_TARGET: &str = "trace-cache";
+
+/// Maximum time allowed for tracing a single block.
+/// Prevents indefinite hangs if runtime code has bugs.
+const TRACING_TIMEOUT_SECS: u64 = 60;
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
 pub struct Trace<B, C> {
@@ -165,17 +177,8 @@ where
 			block_hashes.push(block_hash);
 		}
 
-		// Start a batch with these blocks.
-		let batch_id = self.requester.start_batch(block_hashes.clone()).await?;
-		// Fetch all the traces. It is done in another function to simplify error handling and allow
-		// to call the following `stop_batch` regardless of the result. This is important for the
-		// cache cleanup to work properly.
-		let res = self.fetch_traces(req, &block_hashes, count as usize).await;
-		// Stop the batch, allowing the cache task to remove useless non-started block traces and
-		// start the expiration delay.
-		self.requester.stop_batch(batch_id).await;
-
-		res
+		// Fetch traces for all blocks
+		self.fetch_traces(req, &block_hashes, count as usize).await
 	}
 
 	async fn fetch_traces(
@@ -269,20 +272,8 @@ where
 	}
 }
 
-/// An opaque batch ID.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct CacheBatchId(u64);
-
 /// Requests the cache task can accept.
 enum CacheRequest {
-	/// Request to start caching the provided range of blocks.
-	/// The task will add to blocks to its pool and immediately return a new batch ID.
-	StartBatch {
-		/// Returns the ID of the batch for cancellation.
-		sender: oneshot::Sender<CacheBatchId>,
-		/// List of block hash to trace.
-		blocks: Vec<H256>,
-	},
 	/// Fetch the traces for given block hash.
 	/// The task will answer only when it has processed this block.
 	GetTraces {
@@ -291,63 +282,29 @@ enum CacheRequest {
 		/// Hash of the block.
 		block: H256,
 	},
-	/// Notify the cache that it can stop the batch with that ID. Any block contained only in
-	/// this batch and still not started will be discarded.
-	StopBatch { batch_id: CacheBatchId },
 }
 
 /// Allows to interact with the cache task.
 #[derive(Clone)]
-pub struct CacheRequester(TracingUnboundedSender<CacheRequest>);
+pub struct CacheRequester(mpsc::Sender<CacheRequest>);
 
 impl CacheRequester {
-	/// Request to start caching the provided range of blocks.
-	/// The task will add to blocks to its pool and immediately return the batch ID.
-	#[instrument(skip(self))]
-	pub async fn start_batch(&self, blocks: Vec<H256>) -> Result<CacheBatchId, String> {
-		let (response_tx, response_rx) = oneshot::channel();
-		let sender = self.0.clone();
-
-		sender
-			.unbounded_send(CacheRequest::StartBatch {
-				sender: response_tx,
-				blocks,
-			})
-			.map_err(|e| {
-				format!(
-					"Failed to send request to the trace cache task. Error : {:?}",
-					e
-				)
-			})?;
-
-		response_rx.await.map_err(|e| {
-			format!(
-				"Trace cache task closed the response channel. Error : {:?}",
-				e
-			)
-		})
-	}
-
 	/// Fetch the traces for given block hash.
-	/// The task will answer only when it has processed this block.
-	/// The block should be part of a batch first. If no batch has requested the block it will
-	/// return an error.
+	/// If the block is already cached, returns immediately.
+	/// If the block is being traced, waits for the result.
+	/// If the block is not cached, triggers tracing and waits for the result.
 	#[instrument(skip(self))]
 	pub async fn get_traces(&self, block: H256) -> TxsTraceRes {
 		let (response_tx, response_rx) = oneshot::channel();
 		let sender = self.0.clone();
 
 		sender
-			.unbounded_send(CacheRequest::GetTraces {
+			.send(CacheRequest::GetTraces {
 				sender: response_tx,
 				block,
 			})
-			.map_err(|e| {
-				format!(
-					"Failed to send request to the trace cache task. Error : {:?}",
-					e
-				)
-			})?;
+			.await
+			.map_err(|e| format!("Trace cache task is overloaded or closed. Error : {:?}", e))?;
 
 		response_rx
 			.await
@@ -359,67 +316,23 @@ impl CacheRequester {
 			})?
 			.map_err(|e| format!("Failed to replay block. Error : {:?}", e))
 	}
-
-	/// Notify the cache that it can stop the batch with that ID. Any block contained only in
-	/// this batch and still in the waiting pool will be discarded.
-	#[instrument(skip(self))]
-	pub async fn stop_batch(&self, batch_id: CacheBatchId) {
-		let sender = self.0.clone();
-
-		// Here we don't care if the request has been accepted or refused, the caller can't
-		// do anything with it.
-		let _ = sender
-			.unbounded_send(CacheRequest::StopBatch { batch_id })
-			.map_err(|e| {
-				format!(
-					"Failed to send request to the trace cache task. Error : {:?}",
-					e
-				)
-			});
-	}
 }
 
-/// Data stored for each block in the cache.
-/// `active_batch_count` represents the number of batches using this
-/// block. It will increase immediately when a batch is created, but will be
-/// decrease only after the batch ends and its expiration delay passes.
-/// It allows to keep the data in the cache for following requests that would use
-/// this block, which is important to handle pagination efficiently.
-struct CacheBlock {
-	active_batch_count: usize,
-	state: CacheBlockState,
+/// Entry in the wait list for a block being traced.
+struct WaitListEntry {
+	/// Time when this entry was created
+	created_at: Instant,
+	/// All requests waiting for this block to be traced
+	waiters: Vec<oneshot::Sender<TxsTraceRes>>,
 }
 
-/// State of a cached block. It can either be polled to be traced or cached.
-enum CacheBlockState {
-	/// Block has been added to the pool blocks to be replayed.
-	/// It may be currently waiting to be replayed or being replayed.
-	Pooled {
-		started: bool,
-		/// Multiple requests might query the same block while it is pooled to be
-		/// traced. They response channel is stored here, and the result will be
-		/// sent in all of them when the tracing is finished.
-		waiting_requests: Vec<oneshot::Sender<TxsTraceRes>>,
-		/// Channel used to unqueue a tracing that has not yet started.
-		/// A tracing will be unqueued if it has not yet been started and the last batch
-		/// needing this block is ended (ignoring the expiration delay).
-		/// It is not used directly, but dropping will wake up the receiver.
-		#[allow(dead_code)]
-		unqueue_sender: oneshot::Sender<()>,
-	},
-	/// Tracing has been completed and the result is available. No Runtime API call
-	/// will be needed until this block cache is removed.
-	Cached { traces: TxsTraceRes },
-}
+/// Wait list for requests pending the same block trace.
+/// Multiple concurrent requests for the same block will be added to this list
+/// and all will receive the result once tracing completes.
+type WaitList = HashMap<H256, WaitListEntry>;
 
-/// Tracing a block is done in a separate tokio blocking task to avoid clogging the async threads.
-/// For this reason a channel using this type is used by the blocking task to communicate with the
-/// main cache task.
+/// Message sent from blocking trace tasks back to the main cache task.
 enum BlockingTaskMessage {
-	/// Notify the tracing for this block has started as the blocking task got a permit from
-	/// the semaphore. This is used to prevent the deletion of a cache entry for a block that has
-	/// started being traced.
-	Started { block_hash: H256 },
 	/// The tracing is finished and the result is sent to the main task.
 	Finished {
 		block_hash: H256,
@@ -432,10 +345,8 @@ pub struct CacheTask<B, C, BE> {
 	client: Arc<C>,
 	backend: Arc<BE>,
 	blocking_permits: Arc<Semaphore>,
-	cached_blocks: BTreeMap<H256, CacheBlock>,
-	batches: BTreeMap<u64, Vec<H256>>,
-	next_batch_id: u64,
-	metrics: Option<Metrics>,
+	cache: LRUCacheByteLimited<H256, Vec<TransactionTrace>>,
+	wait_list: WaitList,
 	_phantom: PhantomData<B>,
 }
 
@@ -461,85 +372,54 @@ where
 	pub fn create(
 		client: Arc<C>,
 		backend: Arc<BE>,
-		cache_duration: Duration,
+		cache_size_bytes: u64,
 		blocking_permits: Arc<Semaphore>,
 		overrides: Arc<dyn StorageOverride<B>>,
 		prometheus: Option<PrometheusRegistry>,
+		spawn_handle: SpawnTaskHandle,
 	) -> (impl Future<Output = ()>, CacheRequester) {
-		// Communication with the outside world :
-		let (requester_tx, mut requester_rx) =
-			sc_utils::mpsc::tracing_unbounded("trace-filter-cache", 100_000);
+		// Communication with the outside world - bounded channel to prevent memory exhaustion
+		let (requester_tx, mut requester_rx) = mpsc::channel(10_000);
 
 		// Task running in the service.
 		let task = async move {
-			// The following variables are polled by the select! macro, and thus cannot be
-			// part of Self without introducing borrowing issues.
-			let mut batch_expirations = FuturesUnordered::new();
 			let (blocking_tx, mut blocking_rx) =
 				mpsc::channel(blocking_permits.available_permits() * 2);
-			let metrics = if let Some(registry) = prometheus {
-				match Metrics::register(&registry) {
-					Ok(metrics) => Some(metrics),
-					Err(err) => {
-						log::error!(target: "tracing", "Failed to register metrics {err:?}");
-						None
-					}
-				}
-			} else {
-				None
-			};
-			// Contains the inner state of the cache task, excluding the pooled futures/channels.
-			// Having this object allows to refactor each event into its own function, simplifying
-			// the main loop.
+
+			// Periodic cleanup interval for orphaned wait list entries
+			let mut cleanup_interval = interval(Duration::from_secs(30));
+			cleanup_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+
 			let mut inner = Self {
 				client,
 				backend,
 				blocking_permits,
-				cached_blocks: BTreeMap::new(),
-				batches: BTreeMap::new(),
-				next_batch_id: 0,
-				metrics,
+				cache: LRUCacheByteLimited::new(
+					"trace-filter-blocks-cache",
+					cache_size_bytes,
+					prometheus,
+				),
+				wait_list: HashMap::new(),
 				_phantom: Default::default(),
 			};
 
-			// Main event loop. This loop must not contain any direct .await, as we want to
-			// react to events as fast as possible.
 			loop {
 				select! {
-					request = requester_rx.next() => {
+					request = requester_rx.recv().fuse() => {
 						match request {
 							None => break,
-							Some(CacheRequest::StartBatch {sender, blocks})
-								=> inner.request_start_batch(&blocking_tx, sender, blocks, overrides.clone()),
-							Some(CacheRequest::GetTraces {sender, block})
-								=> inner.request_get_traces(sender, block),
-							Some(CacheRequest::StopBatch {batch_id}) => {
-								// Cannot be refactored inside `request_stop_batch` because
-								// it has an unnamable type :C
-								batch_expirations.push(async move {
-									sleep(cache_duration).await;
-									batch_id
-								});
-
-								inner.request_stop_batch(batch_id);
-							},
+							Some(CacheRequest::GetTraces {sender, block}) =>
+								inner.request_get_traces(&blocking_tx, sender, block, overrides.clone(), &spawn_handle),
 						}
 					},
 					message = blocking_rx.recv().fuse() => {
-						match message {
-							None => (),
-							Some(BlockingTaskMessage::Started { block_hash })
-								=> inner.blocking_started(block_hash),
-							Some(BlockingTaskMessage::Finished { block_hash, result })
-								=> inner.blocking_finished(block_hash, result),
+						if let Some(BlockingTaskMessage::Finished { block_hash, result }) = message {
+							inner.blocking_finished(block_hash, result);
 						}
 					},
-					batch_id = batch_expirations.next() => {
-						match batch_id {
-							None => (),
-							Some(batch_id) => inner.expired_batch(batch_id),
-						}
-					}
+					_ = cleanup_interval.tick().fuse() => {
+						inner.cleanup_wait_list();
+					},
 				}
 			}
 		}
@@ -548,259 +428,143 @@ where
 		(task, CacheRequester(requester_tx))
 	}
 
-	/// Handle the creation of a batch.
-	/// Will start the tracing process for blocks that are not already in the cache.
-	#[instrument(skip(self, blocking_tx, sender, blocks, overrides))]
-	fn request_start_batch(
+	/// Handle a request to get traces for a specific block.
+	/// - If cached: respond immediately
+	/// - If pending: add to wait list
+	/// - If new: spawn trace task and add to wait list
+	fn request_get_traces(
 		&mut self,
 		blocking_tx: &mpsc::Sender<BlockingTaskMessage>,
-		sender: oneshot::Sender<CacheBatchId>,
-		blocks: Vec<H256>,
+		sender: oneshot::Sender<TxsTraceRes>,
+		block: H256,
 		overrides: Arc<dyn StorageOverride<B>>,
+		spawn_handle: &SpawnTaskHandle,
 	) {
-		tracing::trace!("Starting batch {}", self.next_batch_id);
-		self.batches.insert(self.next_batch_id, blocks.clone());
+		// Check if block is already cached
+		if let Some(cached) = self.cache.get(&block) {
+			// Cache hit - respond immediately (LRU handles access tracking)
+			// Wrap in Ok since cache only stores successful traces
+			let _ = sender.send(Ok(cached.clone()));
+			return;
+		}
 
-		for block in blocks {
-			// The block is already in the cache, awesome!
-			if let Some(block_cache) = self.cached_blocks.get_mut(&block) {
-				block_cache.active_batch_count += 1;
-				tracing::trace!(
-					"Cache hit for block {}, now used by {} batches.",
-					block,
-					block_cache.active_batch_count
-				);
-			}
-			// Otherwise we need to queue this block for tracing.
-			else {
-				tracing::trace!("Cache miss for block {}, pooling it for tracing.", block);
+		// Check if block is currently being traced
+		if let Some(entry) = self.wait_list.get_mut(&block) {
+			entry.waiters.push(sender);
+			return;
+		}
 
-				let blocking_permits = Arc::clone(&self.blocking_permits);
-				let (unqueue_sender, unqueue_receiver) = oneshot::channel();
-				let client = Arc::clone(&self.client);
-				let backend = Arc::clone(&self.backend);
-				let blocking_tx = blocking_tx.clone();
-				let overrides = overrides.clone();
+		// Add sender to wait list for this new block
+		self.wait_list.insert(
+			block,
+			WaitListEntry {
+				created_at: Instant::now(),
+				waiters: vec![sender],
+			},
+		);
 
-				// Spawn all block caching asynchronously.
-				// It will wait to obtain a permit, then spawn a blocking task.
-				// When the blocking task returns its result, it is sent
-				// thought a channel to the main task loop.
-				tokio::spawn(
-					async move {
-						tracing::trace!("Waiting for blocking permit or task cancellation");
-						let _permit = select!(
-							_ = unqueue_receiver.fuse() => {
-							tracing::trace!("Tracing of the block has been cancelled.");
-								return;
-							},
-							permit = blocking_permits.acquire().fuse() => permit,
+		// Spawn worker task to trace the block
+		let blocking_permits = Arc::clone(&self.blocking_permits);
+		let client = Arc::clone(&self.client);
+		let backend = Arc::clone(&self.backend);
+		let blocking_tx = blocking_tx.clone();
+
+		spawn_handle.spawn(
+			"trace-block",
+			Some("trace-filter"),
+			async move {
+				// Wait for permit to limit concurrent tracing operations
+				let _permit = blocking_permits.acquire().await;
+
+				// Perform block tracing in blocking task with timeout
+				let result = match tokio::time::timeout(
+					Duration::from_secs(TRACING_TIMEOUT_SECS),
+					tokio::task::spawn_blocking(move || {
+						Self::cache_block(client, backend, block, overrides)
+					}),
+				)
+				.await
+				{
+					// Timeout occurred
+					Err(_elapsed) => {
+						log::error!(
+							target: CACHE_LOG_TARGET,
+							"Tracing timeout for block {}",
+							block
 						);
-
-						// Warn the main task that block tracing as started, and
-						// this block cache entry should not be removed.
-						let _ = blocking_tx
-							.send(BlockingTaskMessage::Started { block_hash: block })
-							.await;
-
-						tracing::trace!("Start block tracing in a blocking task.");
-
-						// Perform block tracing in a tokio blocking task.
-						let result = async {
-							tokio::task::spawn_blocking(move || {
-								Self::cache_block(client, backend, block, overrides.clone())
-							})
-							.await
-							.map_err(|e| {
-								format!("Tracing Substrate block {} panicked : {:?}", block, e)
-							})?
+						Err(format!(
+							"Tracing timeout after {} seconds",
+							TRACING_TIMEOUT_SECS
+						))
+					}
+					// Task completed
+					Ok(join_result) => {
+						match join_result {
+							// Task panicked
+							Err(join_err) => Err(format!("Tracing panicked: {:?}", join_err)),
+							// Task succeeded, return its result
+							Ok(trace_result) => trace_result,
 						}
-						.await
-						.map_err(|e| e.to_string());
-
-						tracing::trace!("Block tracing finished, sending result to main task.");
-
-						// Send a response to the main task.
-						let _ = blocking_tx
-							.send(BlockingTaskMessage::Finished {
-								block_hash: block,
-								result,
-							})
-							.await;
 					}
-					.instrument(tracing::trace_span!("Block tracing", block = %block)),
-				);
+				};
 
-				// Insert the block in the cache.
-				self.cached_blocks.insert(
-					block,
-					CacheBlock {
-						active_batch_count: 1,
-						state: CacheBlockState::Pooled {
-							started: false,
-							waiting_requests: vec![],
-							unqueue_sender,
-						},
-					},
-				);
+				// Send result back to main task
+				let _ = blocking_tx
+					.send(BlockingTaskMessage::Finished {
+						block_hash: block,
+						result,
+					})
+					.await;
 			}
-		}
-
-		// Respond with the batch ID.
-		let _ = sender.send(CacheBatchId(self.next_batch_id));
-
-		// Increase batch ID for the next request.
-		self.next_batch_id = self.next_batch_id.overflowing_add(1).0;
+			.instrument(tracing::trace_span!("trace_block", block = %block)),
+		);
 	}
 
-	/// Handle a request to get the traces of the provided block.
-	/// - If the result is stored in the cache, it sends it immediately.
-	/// - If the block is currently being pooled, it is added to this block cache waiting list,
-	///   and all requests concerning this block will be satisfied when the tracing for this block
-	///   is finished.
-	/// - If this block is missing from the cache, it means no batch asked for it. All requested
-	///   blocks should be contained in a batch beforehand, and thus an error is returned.
-	#[instrument(skip(self))]
-	fn request_get_traces(&mut self, sender: oneshot::Sender<TxsTraceRes>, block: H256) {
-		if let Some(block_cache) = self.cached_blocks.get_mut(&block) {
-			match &mut block_cache.state {
-				CacheBlockState::Pooled {
-					ref mut waiting_requests,
-					..
-				} => {
-					tracing::warn!(
-						"A request asked a pooled block ({}), adding it to the list of \
-						waiting requests.",
-						block
-					);
-					waiting_requests.push(sender);
-					if let Some(metrics) = &self.metrics {
-						metrics.tracing_cache_misses.inc();
-					}
-				}
-				CacheBlockState::Cached { traces, .. } => {
-					tracing::warn!(
-						"A request asked a cached block ({}), sending the traces directly.",
-						block
-					);
-					let _ = sender.send(traces.clone());
-					if let Some(metrics) = &self.metrics {
-						metrics.tracing_cache_hits.inc();
-					}
-				}
-			}
-		} else {
-			tracing::warn!(
-				"An RPC request asked to get a block ({}) which was not batched.",
-				block
-			);
-			let _ = sender.send(Err(format!(
-				"RPC request asked a block ({}) that was not batched",
-				block
-			)));
-		}
-	}
-
-	/// Handle a request to stop a batch.
-	/// For all blocks that needed to be traced, are only in this batch and not yet started, their
-	/// tracing is cancelled to save CPU-time and avoid attacks requesting large amount of blocks.
-	/// This batch data is not yet removed however. Instead a expiration delay timer is started
-	/// after which the data will indeed be cleared. (the code for that is in the main loop code
-	/// as it involved an unnamable type :C)
-	#[instrument(skip(self))]
-	fn request_stop_batch(&mut self, batch_id: CacheBatchId) {
-		tracing::trace!("Stopping batch {}", batch_id.0);
-		if let Some(blocks) = self.batches.get(&batch_id.0) {
-			for block in blocks {
-				let mut remove = false;
-
-				// We remove early the block cache if this batch is the last
-				// pooling this block.
-				if let Some(block_cache) = self.cached_blocks.get_mut(block) {
-					if block_cache.active_batch_count == 1
-						&& matches!(
-							block_cache.state,
-							CacheBlockState::Pooled { started: false, .. }
-						) {
-						remove = true;
-					}
-				}
-
-				if remove {
-					tracing::trace!("Pooled block {} is no longer requested.", block);
-					// Remove block from the cache. Drops the value,
-					// closing all the channels contained in it.
-					let _ = self.cached_blocks.remove(block);
-				}
-			}
-		}
-	}
-
-	/// A tracing blocking task notifies it got a permit and is starting the tracing.
-	/// This started status is stored to avoid removing this block entry.
-	#[instrument(skip(self))]
-	fn blocking_started(&mut self, block_hash: H256) {
-		if let Some(block_cache) = self.cached_blocks.get_mut(&block_hash) {
-			if let CacheBlockState::Pooled {
-				ref mut started, ..
-			} = block_cache.state
-			{
-				*started = true;
-			}
-		}
-	}
-
-	/// A tracing blocking task notifies it has finished the tracing and provide the result.
-	#[instrument(skip(self, result))]
+	/// Handle completion of a block trace task.
+	/// Sends result to all waiting requests and caches it.
 	fn blocking_finished(&mut self, block_hash: H256, result: TxsTraceRes) {
-		// In some cases it might be possible to receive traces of a block
-		// that has no entry in the cache because it was removed of the pool
-		// and received a permit concurrently. We just ignore it.
-		//
-		// TODO : Should we add it back ? Should it have an active_batch_count
-		// of 1 then ?
-		if let Some(block_cache) = self.cached_blocks.get_mut(&block_hash) {
-			if let CacheBlockState::Pooled {
-				ref mut waiting_requests,
-				..
-			} = block_cache.state
-			{
-				tracing::trace!(
-					"A new block ({}) has been traced, adding it to the cache and responding to \
-					{} waiting requests.",
-					block_hash,
-					waiting_requests.len()
-				);
-				// Send result in waiting channels
-				while let Some(channel) = waiting_requests.pop() {
-					let _ = channel.send(result.clone());
-				}
+		// Get all waiting senders for this block
+		if let Some(entry) = self.wait_list.remove(&block_hash) {
+			// Send result to all waiting requests
+			for sender in entry.waiters {
+				let _ = sender.send(result.clone());
+			}
 
-				// Update cache entry
-				block_cache.state = CacheBlockState::Cached { traces: result };
+			// Only cache successful results to avoid polluting cache with transient errors
+			// (network timeouts, temporary DB locks, etc.)
+			// Failed blocks can be retried on next request
+			if let Ok(traces) = result {
+				self.cache.put(block_hash, traces);
 			}
 		}
 	}
 
-	/// A batch expiration delay timer has completed. It performs the cache cleaning for blocks
-	/// not longer used by other batches.
-	#[instrument(skip(self))]
-	fn expired_batch(&mut self, batch_id: CacheBatchId) {
-		if let Some(batch) = self.batches.remove(&batch_id.0) {
-			for block in batch {
-				// For each block of the batch, we remove it if it was the
-				// last batch containing it.
-				let mut remove = false;
-				if let Some(block_cache) = self.cached_blocks.get_mut(&block) {
-					block_cache.active_batch_count -= 1;
+	/// Clean up orphaned wait list entries that have been pending too long.
+	/// This handles cases where spawned tasks panic or get cancelled.
+	fn cleanup_wait_list(&mut self) {
+		let timeout = Duration::from_secs(TRACING_TIMEOUT_SECS + 10);
+		let now = Instant::now();
 
-					if block_cache.active_batch_count == 0 {
-						remove = true;
-					}
-				}
+		let mut to_remove = Vec::new();
 
-				if remove {
-					let _ = self.cached_blocks.remove(&block);
+		for (block_hash, entry) in &self.wait_list {
+			if now.duration_since(entry.created_at) > timeout {
+				log::warn!(
+					target: CACHE_LOG_TARGET,
+					"Cleaning up orphaned wait list entry for block {}",
+					block_hash
+				);
+				to_remove.push(*block_hash);
+			}
+		}
+
+		// Remove timed-out entries and notify waiters
+		for block_hash in to_remove {
+			if let Some(entry) = self.wait_list.remove(&block_hash) {
+				for sender in entry.waiters {
+					let _ = sender.send(Err(format!(
+						"Trace request timeout (task failed or was cancelled)"
+					)));
 				}
 			}
 		}
@@ -969,27 +733,5 @@ where
 				.collect();
 
 		Ok(traces)
-	}
-}
-
-/// Prometheus metrics for tracing.
-#[derive(Clone)]
-pub(crate) struct Metrics {
-	tracing_cache_hits: Counter<U64>,
-	tracing_cache_misses: Counter<U64>,
-}
-
-impl Metrics {
-	pub(crate) fn register(registry: &PrometheusRegistry) -> Result<Self, PrometheusError> {
-		Ok(Self {
-			tracing_cache_hits: register(
-				Counter::new("tracing_cache_hits", "Number of tracing cache hits.")?,
-				registry,
-			)?,
-			tracing_cache_misses: register(
-				Counter::new("tracing_cache_misses", "Number of tracing cache misses.")?,
-				registry,
-			)?,
-		})
 	}
 }
