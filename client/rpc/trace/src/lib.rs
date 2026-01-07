@@ -65,13 +65,14 @@ use moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 type TxsTraceRes = Result<Vec<TransactionTrace>, String>;
 
 /// Type for trace results sent to requesters (Arc-wrapped for zero-copy sharing)
-type SharedTxsTraceRes = Result<Arc<Vec<TransactionTrace>>, String>;
+/// Both success (traces) and error (message) are Arc-wrapped to avoid cloning
+/// when multiple waiters are waiting for the same block.
+type SharedTxsTraceRes = Result<Arc<Vec<TransactionTrace>>, Arc<String>>;
 
 /// Log target for trace cache operations
 const CACHE_LOG_TARGET: &str = "trace-cache";
 
 /// Maximum time allowed for tracing a single block.
-/// Prevents indefinite hangs if runtime code has bugs.
 const TRACING_TIMEOUT_SECS: u64 = 60;
 
 /// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
@@ -201,7 +202,11 @@ where
 			// Request the traces of this block to the cache service.
 			// This will resolve quickly if the block is already cached, or wait until the block
 			// has finished tracing.
-			let block_traces = self.requester.get_traces(block_hash).await?;
+			let block_traces = self
+				.requester
+				.get_traces(block_hash)
+				.await
+				.map_err(|arc_error| (*arc_error).clone())?;
 
 			// Filter addresses.
 			let mut block_traces: Vec<_> = block_traces
@@ -309,17 +314,24 @@ impl CacheRequester {
 				block,
 			})
 			.await
-			.map_err(|e| format!("Trace cache task is overloaded or closed. Error : {:?}", e))?;
+			.map_err(|e| {
+				Arc::new(format!(
+					"Trace cache task is overloaded or closed. Error : {:?}",
+					e
+				))
+			})?;
 
 		response_rx
 			.await
 			.map_err(|e| {
-				format!(
+				Arc::new(format!(
 					"Trace cache task closed the response channel. Error : {:?}",
 					e
-				)
+				))
 			})?
-			.map_err(|e| format!("Failed to replay block. Error : {:?}", e))
+			.map_err(|arc_error| {
+				Arc::new(format!("Failed to replay block. Error : {:?}", arc_error))
+			})
 	}
 }
 
@@ -445,8 +457,20 @@ where
 		overrides: Arc<dyn StorageOverride<B>>,
 		spawn_handle: &SpawnTaskHandle,
 	) {
+		log::debug!(
+			target: CACHE_LOG_TARGET,
+			"Request received: block={}, wait_list_size={}",
+			block,
+			self.wait_list.len()
+		);
+
 		// Check if block is already cached
 		if let Some(cached) = self.cache.get(&block) {
+			log::debug!(
+				target: CACHE_LOG_TARGET,
+				"Cache hit: block={}",
+				block
+			);
 			// Cache hit - respond immediately with Arc::clone (cheap)
 			let _ = sender.send(Ok(Arc::clone(&cached)));
 			return;
@@ -454,6 +478,12 @@ where
 
 		// Check if block is currently being traced
 		if let Some(entry) = self.wait_list.get_mut(&block) {
+			log::debug!(
+				target: CACHE_LOG_TARGET,
+				"Joining wait list: block={}, waiters={}",
+				block,
+				entry.waiters.len()
+			);
 			entry.waiters.push(sender);
 			return;
 		}
@@ -465,6 +495,13 @@ where
 				created_at: Instant::now(),
 				waiters: vec![sender],
 			},
+		);
+
+		log::debug!(
+			target: CACHE_LOG_TARGET,
+			"Spawning trace task: block={}, available_permits={}",
+			block,
+			self.blocking_permits.available_permits()
 		);
 
 		// Spawn worker task to trace the block
@@ -530,10 +567,21 @@ where
 	fn blocking_finished(&mut self, block_hash: H256, result: TxsTraceRes) {
 		// Get all waiting senders for this block
 		if let Some(entry) = self.wait_list.remove(&block_hash) {
+			let waiter_count = entry.waiters.len();
+
 			match result {
 				Ok(traces) => {
+					let trace_count = traces.len();
 					// Wrap successful result in Arc once
 					let arc_traces = Arc::new(traces);
+
+					log::debug!(
+						target: CACHE_LOG_TARGET,
+						"Trace completed: block={}, traces={}, waiters={}, cached=true",
+						block_hash,
+						trace_count,
+						waiter_count
+					);
 
 					// Send Arc::clone to all waiters (cheap pointer copy, no data duplication)
 					for sender in entry.waiters {
@@ -544,9 +592,20 @@ where
 					self.cache.put(block_hash, arc_traces);
 				}
 				Err(error) => {
-					// Send error to all waiters (errors are not cached)
+					log::warn!(
+						target: CACHE_LOG_TARGET,
+						"Trace failed: block={}, waiters={}, error={}",
+						block_hash,
+						waiter_count,
+						error
+					);
+
+					// Wrap error in Arc once
+					let arc_error = Arc::new(error);
+
+					// Send Arc::clone to all waiters (cheap pointer copy, no string duplication)
 					for sender in entry.waiters {
-						let _ = sender.send(Err(error.clone()));
+						let _ = sender.send(Err(Arc::clone(&arc_error)));
 					}
 				}
 			}
@@ -572,13 +631,21 @@ where
 			}
 		}
 
+		log::debug!(
+			target: CACHE_LOG_TARGET,
+			"Wait list status: active_blocks={}, timed_out_block_requests={}",
+			self.wait_list.len(),
+			to_remove.len()
+		);
+
 		// Remove timed-out entries and notify waiters
+		let timeout_error =
+			Arc::new("Trace request timeout (task failed or was cancelled)".to_string());
+
 		for block_hash in to_remove {
 			if let Some(entry) = self.wait_list.remove(&block_hash) {
 				for sender in entry.waiters {
-					let _ = sender.send(Err(format!(
-						"Trace request timeout (task failed or was cancelled)"
-					)));
+					let _ = sender.send(Err(Arc::clone(&timeout_error)));
 				}
 			}
 		}
