@@ -68,7 +68,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet;
-use frame_support::weights::Weight;
+use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight};
 use sp_runtime::DispatchError;
 use xcm::latest::prelude::Location;
 use xcm_primitives::XcmFeeTrader;
@@ -1273,9 +1273,13 @@ pub mod pallet {
 		}
 
 		/// Get the fee per second for an asset location.
-		/// This now delegates to the FeeTrader instead of reading from local storage.
+		///
+		/// This derives the fee-per-second value by asking the configured `FeeTrader`
+		/// to compute the fee for one second of execution weight, instead of
+		/// exposing any internal pricing representation (such as relative prices).
 		pub fn dest_asset_fee_per_second(location: &Location) -> Option<u128> {
-			T::FeeTrader::get_asset_price(location)
+			let one_second = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, 0);
+			T::FeeTrader::compute_fee(one_second, location, None).ok()
 		}
 
 		/// Converts Currency to multilocation
