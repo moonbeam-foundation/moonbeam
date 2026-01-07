@@ -457,7 +457,7 @@ where
 		overrides: Arc<dyn StorageOverride<B>>,
 		spawn_handle: &SpawnTaskHandle,
 	) {
-		log::debug!(
+		log::trace!(
 			target: CACHE_LOG_TARGET,
 			"Request received: block={}, wait_list_size={}",
 			block,
@@ -466,7 +466,7 @@ where
 
 		// Check if block is already cached
 		if let Some(cached) = self.cache.get(&block) {
-			log::debug!(
+			log::trace!(
 				target: CACHE_LOG_TARGET,
 				"Cache hit: block={}",
 				block
@@ -478,7 +478,7 @@ where
 
 		// Check if block is currently being traced
 		if let Some(entry) = self.wait_list.get_mut(&block) {
-			log::debug!(
+			log::trace!(
 				target: CACHE_LOG_TARGET,
 				"Joining wait list: block={}, waiters={}",
 				block,
