@@ -209,15 +209,9 @@ describeSuite({
             ]: any
           ) => {
             for (const request of requests) {
-              if (specVersion < 4_100) {
-                delegator = request.delegator.toHex();
-              } else {
-                delegator = delegator.toHex();
-              }
-              if (!p[delegator]) {
-                p[delegator] = [];
-              }
-              p[delegator].push(request);
+              const delegatorHex = specVersion < 4_100 ? request.delegator.toHex() : delegator.toHex();
+              p[delegatorHex] = p[delegatorHex] || [];
+              p[delegatorHex].push(request);
             }
             return p;
           },
