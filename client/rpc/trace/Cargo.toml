@@ -20,7 +20,7 @@ tracing = { workspace = true }
 moonbeam-client-evm-tracing = { workspace = true }
 moonbeam-rpc-core-trace = { workspace = true }
 moonbeam-rpc-core-types = { workspace = true }
-moonbeam-rpc-primitives-debug = { workspace = true }
+moonbeam-rpc-primitives-debug = { workspace = true, default-features = true }
 
 # Substrate
 sc-client-api = { workspace = true }

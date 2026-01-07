@@ -18,7 +18,7 @@ tokio = { workspace = true, features = [ "sync", "time" ] }
 moonbeam-client-evm-tracing = { workspace = true }
 moonbeam-rpc-core-debug = { workspace = true }
 moonbeam-rpc-core-types = { workspace = true }
-moonbeam-rpc-primitives-debug = { workspace = true }
+moonbeam-rpc-primitives-debug = { workspace = true, features = [ "std" ] }
 
 # Substrate
 sc-client-api = { workspace = true }
