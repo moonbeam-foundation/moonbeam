@@ -212,423 +212,440 @@
 <a href=#212 id=212 data-nosnippet>212</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
 <a href=#213 id=213 data-nosnippet>213</a>				error: &lt;Error&lt;T&gt;&gt;::DelegationDNE.into(),
 <a href=#214 id=214 data-nosnippet>214</a>			})<span class="question-mark">?</span>;
-<a href=#215 id=215 data-nosnippet>215</a>		<span class="macro">ensure!</span>(
-<a href=#216 id=216 data-nosnippet>216</a>			bonded_amount &gt; decrease_amount,
-<a href=#217 id=217 data-nosnippet>217</a>			DispatchErrorWithPostInfo {
-<a href=#218 id=218 data-nosnippet>218</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#219 id=219 data-nosnippet>219</a>				error: &lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin.into(),
-<a href=#220 id=220 data-nosnippet>220</a>			},
-<a href=#221 id=221 data-nosnippet>221</a>		);
-<a href=#222 id=222 data-nosnippet>222</a>		<span class="kw">let </span>new_amount: BalanceOf&lt;T&gt; = (bonded_amount - decrease_amount).into();
-<a href=#223 id=223 data-nosnippet>223</a>		<span class="macro">ensure!</span>(
-<a href=#224 id=224 data-nosnippet>224</a>			new_amount &gt;= T::MinDelegation::get(),
-<a href=#225 id=225 data-nosnippet>225</a>			DispatchErrorWithPostInfo {
-<a href=#226 id=226 data-nosnippet>226</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#227 id=227 data-nosnippet>227</a>				error: &lt;Error&lt;T&gt;&gt;::DelegationBelowMin.into(),
-<a href=#228 id=228 data-nosnippet>228</a>			},
-<a href=#229 id=229 data-nosnippet>229</a>		);
-<a href=#230 id=230 data-nosnippet>230</a>
-<a href=#231 id=231 data-nosnippet>231</a>		<span class="comment">// Net Total is total after pending orders are executed
-<a href=#232 id=232 data-nosnippet>232</a>		</span><span class="kw">let </span>net_total = state.total().saturating_sub(state.less_total);
-<a href=#233 id=233 data-nosnippet>233</a>		<span class="comment">// Net Total is always &gt;= MinDelegation
-<a href=#234 id=234 data-nosnippet>234</a>		</span><span class="kw">let </span>max_subtracted_amount = net_total.saturating_sub(T::MinDelegation::get().into());
-<a href=#235 id=235 data-nosnippet>235</a>		<span class="macro">ensure!</span>(
-<a href=#236 id=236 data-nosnippet>236</a>			decrease_amount &lt;= max_subtracted_amount,
-<a href=#237 id=237 data-nosnippet>237</a>			DispatchErrorWithPostInfo {
-<a href=#238 id=238 data-nosnippet>238</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#239 id=239 data-nosnippet>239</a>				error: &lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin.into(),
-<a href=#240 id=240 data-nosnippet>240</a>			},
-<a href=#241 id=241 data-nosnippet>241</a>		);
-<a href=#242 id=242 data-nosnippet>242</a>
-<a href=#243 id=243 data-nosnippet>243</a>		<span class="kw">let </span>now = &lt;Round&lt;T&gt;&gt;::get().current;
-<a href=#244 id=244 data-nosnippet>244</a>		<span class="kw">let </span>when = now.saturating_add(T::DelegationBondLessDelay::get());
-<a href=#245 id=245 data-nosnippet>245</a>		scheduled_requests
-<a href=#246 id=246 data-nosnippet>246</a>			.try_push(ScheduledRequest {
-<a href=#247 id=247 data-nosnippet>247</a>				action: DelegationAction::Decrease(decrease_amount),
-<a href=#248 id=248 data-nosnippet>248</a>				when_executable: when,
-<a href=#249 id=249 data-nosnippet>249</a>			})
-<a href=#250 id=250 data-nosnippet>250</a>			.map_err(|<span class="kw">_</span>| DispatchErrorWithPostInfo {
-<a href=#251 id=251 data-nosnippet>251</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#252 id=252 data-nosnippet>252</a>				error: Error::&lt;T&gt;::ExceedMaxDelegationsPerDelegator.into(),
-<a href=#253 id=253 data-nosnippet>253</a>			})<span class="question-mark">?</span>;
-<a href=#254 id=254 data-nosnippet>254</a>		state.less_total = state.less_total.saturating_add(decrease_amount);
-<a href=#255 id=255 data-nosnippet>255</a>		<span class="kw">if </span>is_new_delegator {
-<a href=#256 id=256 data-nosnippet>256</a>			&lt;DelegationScheduledRequestsPerCollator&lt;T&gt;&gt;::mutate(<span class="kw-2">&amp;</span>collator, |c| {
-<a href=#257 id=257 data-nosnippet>257</a>				<span class="kw-2">*</span>c = c.saturating_add(<span class="number">1</span>);
-<a href=#258 id=258 data-nosnippet>258</a>			});
-<a href=#259 id=259 data-nosnippet>259</a>		}
-<a href=#260 id=260 data-nosnippet>260</a>		&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(
-<a href=#261 id=261 data-nosnippet>261</a>			collator.clone(),
-<a href=#262 id=262 data-nosnippet>262</a>			delegator.clone(),
-<a href=#263 id=263 data-nosnippet>263</a>			scheduled_requests,
-<a href=#264 id=264 data-nosnippet>264</a>		);
-<a href=#265 id=265 data-nosnippet>265</a>		&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state);
-<a href=#266 id=266 data-nosnippet>266</a>
-<a href=#267 id=267 data-nosnippet>267</a>		<span class="self">Self</span>::deposit_event(Event::DelegationDecreaseScheduled {
-<a href=#268 id=268 data-nosnippet>268</a>			delegator,
-<a href=#269 id=269 data-nosnippet>269</a>			candidate: collator,
-<a href=#270 id=270 data-nosnippet>270</a>			amount_to_decrease: decrease_amount,
-<a href=#271 id=271 data-nosnippet>271</a>			execute_round: when,
-<a href=#272 id=272 data-nosnippet>272</a>		});
-<a href=#273 id=273 data-nosnippet>273</a>		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
-<a href=#274 id=274 data-nosnippet>274</a>	}
-<a href=#275 id=275 data-nosnippet>275</a>
-<a href=#276 id=276 data-nosnippet>276</a>	<span class="doccomment">/// Cancels the delegator's existing [ScheduledRequest] towards a given collator.
-<a href=#277 id=277 data-nosnippet>277</a>	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delegation_cancel_request(
-<a href=#278 id=278 data-nosnippet>278</a>		collator: T::AccountId,
-<a href=#279 id=279 data-nosnippet>279</a>		delegator: T::AccountId,
-<a href=#280 id=280 data-nosnippet>280</a>	) -&gt; DispatchResultWithPostInfo {
-<a href=#281 id=281 data-nosnippet>281</a>		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
-<a href=#282 id=282 data-nosnippet>282</a>		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
-<a href=#283 id=283 data-nosnippet>283</a>		<span class="kw">let </span>actual_weight =
-<a href=#284 id=284 data-nosnippet>284</a>			&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::cancel_delegation_request(scheduled_requests.len() <span class="kw">as </span>u32);
-<a href=#285 id=285 data-nosnippet>285</a>
-<a href=#286 id=286 data-nosnippet>286</a>		<span class="kw">let </span>request = <span class="self">Self</span>::cancel_request_with_state(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>scheduled_requests).ok_or(
-<a href=#287 id=287 data-nosnippet>287</a>			DispatchErrorWithPostInfo {
-<a href=#288 id=288 data-nosnippet>288</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#289 id=289 data-nosnippet>289</a>				error: &lt;Error&lt;T&gt;&gt;::PendingDelegationRequestDNE.into(),
-<a href=#290 id=290 data-nosnippet>290</a>			},
-<a href=#291 id=291 data-nosnippet>291</a>		)<span class="question-mark">?</span>;
+<a href=#215 id=215 data-nosnippet>215</a>		<span class="comment">// Per-request safety: a single decrease cannot exceed the current delegation
+<a href=#216 id=216 data-nosnippet>216</a>		// and must leave at least MinDelegation on that delegation.
+<a href=#217 id=217 data-nosnippet>217</a>		</span><span class="macro">ensure!</span>(
+<a href=#218 id=218 data-nosnippet>218</a>			bonded_amount &gt; decrease_amount,
+<a href=#219 id=219 data-nosnippet>219</a>			DispatchErrorWithPostInfo {
+<a href=#220 id=220 data-nosnippet>220</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#221 id=221 data-nosnippet>221</a>				error: &lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin.into(),
+<a href=#222 id=222 data-nosnippet>222</a>			},
+<a href=#223 id=223 data-nosnippet>223</a>		);
+<a href=#224 id=224 data-nosnippet>224</a>
+<a href=#225 id=225 data-nosnippet>225</a>		<span class="comment">// Cumulative safety: multiple pending Decrease requests for the same
+<a href=#226 id=226 data-nosnippet>226</a>		// (collator, delegator) pair must also respect the MinDelegation
+<a href=#227 id=227 data-nosnippet>227</a>		// constraint when applied together. Otherwise, snapshots can become
+<a href=#228 id=228 data-nosnippet>228</a>		// inconsistent even if each request, in isolation, appears valid.
+<a href=#229 id=229 data-nosnippet>229</a>		</span><span class="kw">let </span>pending_decrease_total: BalanceOf&lt;T&gt; = scheduled_requests
+<a href=#230 id=230 data-nosnippet>230</a>			.iter()
+<a href=#231 id=231 data-nosnippet>231</a>			.filter_map(|req| <span class="kw">match </span>req.action {
+<a href=#232 id=232 data-nosnippet>232</a>				DelegationAction::Decrease(amount) =&gt; <span class="prelude-val">Some</span>(amount),
+<a href=#233 id=233 data-nosnippet>233</a>				<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+<a href=#234 id=234 data-nosnippet>234</a>			})
+<a href=#235 id=235 data-nosnippet>235</a>			.fold(BalanceOf::&lt;T&gt;::zero(), |acc, amount| {
+<a href=#236 id=236 data-nosnippet>236</a>				acc.saturating_add(amount)
+<a href=#237 id=237 data-nosnippet>237</a>			});
+<a href=#238 id=238 data-nosnippet>238</a>		<span class="kw">let </span>total_decrease_after = pending_decrease_total.saturating_add(decrease_amount);
+<a href=#239 id=239 data-nosnippet>239</a>		<span class="kw">let </span>new_amount_after_all = bonded_amount.saturating_sub(total_decrease_after);
+<a href=#240 id=240 data-nosnippet>240</a>		<span class="macro">ensure!</span>(
+<a href=#241 id=241 data-nosnippet>241</a>			new_amount_after_all &gt;= T::MinDelegation::get(),
+<a href=#242 id=242 data-nosnippet>242</a>			DispatchErrorWithPostInfo {
+<a href=#243 id=243 data-nosnippet>243</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#244 id=244 data-nosnippet>244</a>				error: &lt;Error&lt;T&gt;&gt;::DelegationBelowMin.into(),
+<a href=#245 id=245 data-nosnippet>245</a>			},
+<a href=#246 id=246 data-nosnippet>246</a>		);
+<a href=#247 id=247 data-nosnippet>247</a>
+<a href=#248 id=248 data-nosnippet>248</a>		<span class="comment">// Net Total is total after pending orders are executed
+<a href=#249 id=249 data-nosnippet>249</a>		</span><span class="kw">let </span>net_total = state.total().saturating_sub(state.less_total);
+<a href=#250 id=250 data-nosnippet>250</a>		<span class="comment">// Net Total is always &gt;= MinDelegation
+<a href=#251 id=251 data-nosnippet>251</a>		</span><span class="kw">let </span>max_subtracted_amount = net_total.saturating_sub(T::MinDelegation::get().into());
+<a href=#252 id=252 data-nosnippet>252</a>		<span class="macro">ensure!</span>(
+<a href=#253 id=253 data-nosnippet>253</a>			decrease_amount &lt;= max_subtracted_amount,
+<a href=#254 id=254 data-nosnippet>254</a>			DispatchErrorWithPostInfo {
+<a href=#255 id=255 data-nosnippet>255</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#256 id=256 data-nosnippet>256</a>				error: &lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin.into(),
+<a href=#257 id=257 data-nosnippet>257</a>			},
+<a href=#258 id=258 data-nosnippet>258</a>		);
+<a href=#259 id=259 data-nosnippet>259</a>
+<a href=#260 id=260 data-nosnippet>260</a>		<span class="kw">let </span>now = &lt;Round&lt;T&gt;&gt;::get().current;
+<a href=#261 id=261 data-nosnippet>261</a>		<span class="kw">let </span>when = now.saturating_add(T::DelegationBondLessDelay::get());
+<a href=#262 id=262 data-nosnippet>262</a>		scheduled_requests
+<a href=#263 id=263 data-nosnippet>263</a>			.try_push(ScheduledRequest {
+<a href=#264 id=264 data-nosnippet>264</a>				action: DelegationAction::Decrease(decrease_amount),
+<a href=#265 id=265 data-nosnippet>265</a>				when_executable: when,
+<a href=#266 id=266 data-nosnippet>266</a>			})
+<a href=#267 id=267 data-nosnippet>267</a>			.map_err(|<span class="kw">_</span>| DispatchErrorWithPostInfo {
+<a href=#268 id=268 data-nosnippet>268</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#269 id=269 data-nosnippet>269</a>				error: Error::&lt;T&gt;::ExceedMaxDelegationsPerDelegator.into(),
+<a href=#270 id=270 data-nosnippet>270</a>			})<span class="question-mark">?</span>;
+<a href=#271 id=271 data-nosnippet>271</a>		state.less_total = state.less_total.saturating_add(decrease_amount);
+<a href=#272 id=272 data-nosnippet>272</a>		<span class="kw">if </span>is_new_delegator {
+<a href=#273 id=273 data-nosnippet>273</a>			&lt;DelegationScheduledRequestsPerCollator&lt;T&gt;&gt;::mutate(<span class="kw-2">&amp;</span>collator, |c| {
+<a href=#274 id=274 data-nosnippet>274</a>				<span class="kw-2">*</span>c = c.saturating_add(<span class="number">1</span>);
+<a href=#275 id=275 data-nosnippet>275</a>			});
+<a href=#276 id=276 data-nosnippet>276</a>		}
+<a href=#277 id=277 data-nosnippet>277</a>		&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(
+<a href=#278 id=278 data-nosnippet>278</a>			collator.clone(),
+<a href=#279 id=279 data-nosnippet>279</a>			delegator.clone(),
+<a href=#280 id=280 data-nosnippet>280</a>			scheduled_requests,
+<a href=#281 id=281 data-nosnippet>281</a>		);
+<a href=#282 id=282 data-nosnippet>282</a>		&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state);
+<a href=#283 id=283 data-nosnippet>283</a>
+<a href=#284 id=284 data-nosnippet>284</a>		<span class="self">Self</span>::deposit_event(Event::DelegationDecreaseScheduled {
+<a href=#285 id=285 data-nosnippet>285</a>			delegator,
+<a href=#286 id=286 data-nosnippet>286</a>			candidate: collator,
+<a href=#287 id=287 data-nosnippet>287</a>			amount_to_decrease: decrease_amount,
+<a href=#288 id=288 data-nosnippet>288</a>			execute_round: when,
+<a href=#289 id=289 data-nosnippet>289</a>		});
+<a href=#290 id=290 data-nosnippet>290</a>		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
+<a href=#291 id=291 data-nosnippet>291</a>	}
 <a href=#292 id=292 data-nosnippet>292</a>
-<a href=#293 id=293 data-nosnippet>293</a>		<span class="kw">if </span>scheduled_requests.is_empty() {
-<a href=#294 id=294 data-nosnippet>294</a>			&lt;DelegationScheduledRequestsPerCollator&lt;T&gt;&gt;::mutate(<span class="kw-2">&amp;</span>collator, |c| {
-<a href=#295 id=295 data-nosnippet>295</a>				<span class="kw-2">*</span>c = c.saturating_sub(<span class="number">1</span>);
-<a href=#296 id=296 data-nosnippet>296</a>			});
-<a href=#297 id=297 data-nosnippet>297</a>			&lt;DelegationScheduledRequests&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
-<a href=#298 id=298 data-nosnippet>298</a>		} <span class="kw">else </span>{
-<a href=#299 id=299 data-nosnippet>299</a>			&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(
-<a href=#300 id=300 data-nosnippet>300</a>				collator.clone(),
-<a href=#301 id=301 data-nosnippet>301</a>				delegator.clone(),
-<a href=#302 id=302 data-nosnippet>302</a>				scheduled_requests,
-<a href=#303 id=303 data-nosnippet>303</a>			);
-<a href=#304 id=304 data-nosnippet>304</a>		}
-<a href=#305 id=305 data-nosnippet>305</a>		&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state);
-<a href=#306 id=306 data-nosnippet>306</a>
-<a href=#307 id=307 data-nosnippet>307</a>		<span class="self">Self</span>::deposit_event(Event::CancelledDelegationRequest {
-<a href=#308 id=308 data-nosnippet>308</a>			delegator,
-<a href=#309 id=309 data-nosnippet>309</a>			collator,
-<a href=#310 id=310 data-nosnippet>310</a>			cancelled_request: request.into(),
-<a href=#311 id=311 data-nosnippet>311</a>		});
-<a href=#312 id=312 data-nosnippet>312</a>		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
-<a href=#313 id=313 data-nosnippet>313</a>	}
-<a href=#314 id=314 data-nosnippet>314</a>
-<a href=#315 id=315 data-nosnippet>315</a>	<span class="kw">fn </span>cancel_request_with_state(
-<a href=#316 id=316 data-nosnippet>316</a>		state: <span class="kw-2">&amp;mut </span>Delegator&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
-<a href=#317 id=317 data-nosnippet>317</a>		scheduled_requests: <span class="kw-2">&amp;mut </span>BoundedVec&lt;
-<a href=#318 id=318 data-nosnippet>318</a>			ScheduledRequest&lt;BalanceOf&lt;T&gt;&gt;,
-<a href=#319 id=319 data-nosnippet>319</a>			T::MaxScheduledRequestsPerDelegator,
-<a href=#320 id=320 data-nosnippet>320</a>		&gt;,
-<a href=#321 id=321 data-nosnippet>321</a>	) -&gt; <span class="prelude-ty">Option</span>&lt;ScheduledRequest&lt;BalanceOf&lt;T&gt;&gt;&gt; {
-<a href=#322 id=322 data-nosnippet>322</a>		<span class="kw">if </span>scheduled_requests.is_empty() {
-<a href=#323 id=323 data-nosnippet>323</a>			<span class="kw">return </span><span class="prelude-val">None</span>;
-<a href=#324 id=324 data-nosnippet>324</a>		}
-<a href=#325 id=325 data-nosnippet>325</a>
-<a href=#326 id=326 data-nosnippet>326</a>		<span class="comment">// `BoundedVec::remove` can panic, but we make sure it will not happen by
-<a href=#327 id=327 data-nosnippet>327</a>		// checking above that `scheduled_requests` is not empty.
-<a href=#328 id=328 data-nosnippet>328</a>		</span><span class="kw">let </span>request = scheduled_requests.remove(<span class="number">0</span>);
-<a href=#329 id=329 data-nosnippet>329</a>		<span class="kw">let </span>amount = request.action.amount();
-<a href=#330 id=330 data-nosnippet>330</a>		state.less_total = state.less_total.saturating_sub(amount);
-<a href=#331 id=331 data-nosnippet>331</a>		<span class="prelude-val">Some</span>(request)
-<a href=#332 id=332 data-nosnippet>332</a>	}
-<a href=#333 id=333 data-nosnippet>333</a>
-<a href=#334 id=334 data-nosnippet>334</a>	<span class="doccomment">/// Executes the delegator's existing [ScheduledRequest] towards a given collator.
-<a href=#335 id=335 data-nosnippet>335</a>	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delegation_execute_scheduled_request(
-<a href=#336 id=336 data-nosnippet>336</a>		collator: T::AccountId,
-<a href=#337 id=337 data-nosnippet>337</a>		delegator: T::AccountId,
-<a href=#338 id=338 data-nosnippet>338</a>	) -&gt; DispatchResultWithPostInfo {
-<a href=#339 id=339 data-nosnippet>339</a>		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
-<a href=#340 id=340 data-nosnippet>340</a>		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
-<a href=#341 id=341 data-nosnippet>341</a>		<span class="kw">let </span>request = scheduled_requests
-<a href=#342 id=342 data-nosnippet>342</a>			.first()
-<a href=#343 id=343 data-nosnippet>343</a>			.ok_or(&lt;Error&lt;T&gt;&gt;::PendingDelegationRequestDNE)<span class="question-mark">?</span>;
-<a href=#344 id=344 data-nosnippet>344</a>
-<a href=#345 id=345 data-nosnippet>345</a>		<span class="kw">let </span>now = &lt;Round&lt;T&gt;&gt;::get().current;
-<a href=#346 id=346 data-nosnippet>346</a>		<span class="macro">ensure!</span>(
-<a href=#347 id=347 data-nosnippet>347</a>			request.when_executable &lt;= now,
-<a href=#348 id=348 data-nosnippet>348</a>			&lt;Error&lt;T&gt;&gt;::PendingDelegationRequestNotDueYet
-<a href=#349 id=349 data-nosnippet>349</a>		);
+<a href=#293 id=293 data-nosnippet>293</a>	<span class="doccomment">/// Cancels the delegator's existing [ScheduledRequest] towards a given collator.
+<a href=#294 id=294 data-nosnippet>294</a>	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delegation_cancel_request(
+<a href=#295 id=295 data-nosnippet>295</a>		collator: T::AccountId,
+<a href=#296 id=296 data-nosnippet>296</a>		delegator: T::AccountId,
+<a href=#297 id=297 data-nosnippet>297</a>	) -&gt; DispatchResultWithPostInfo {
+<a href=#298 id=298 data-nosnippet>298</a>		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
+<a href=#299 id=299 data-nosnippet>299</a>		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
+<a href=#300 id=300 data-nosnippet>300</a>		<span class="kw">let </span>actual_weight =
+<a href=#301 id=301 data-nosnippet>301</a>			&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::cancel_delegation_request(scheduled_requests.len() <span class="kw">as </span>u32);
+<a href=#302 id=302 data-nosnippet>302</a>
+<a href=#303 id=303 data-nosnippet>303</a>		<span class="kw">let </span>request = <span class="self">Self</span>::cancel_request_with_state(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>scheduled_requests).ok_or(
+<a href=#304 id=304 data-nosnippet>304</a>			DispatchErrorWithPostInfo {
+<a href=#305 id=305 data-nosnippet>305</a>				post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#306 id=306 data-nosnippet>306</a>				error: &lt;Error&lt;T&gt;&gt;::PendingDelegationRequestDNE.into(),
+<a href=#307 id=307 data-nosnippet>307</a>			},
+<a href=#308 id=308 data-nosnippet>308</a>		)<span class="question-mark">?</span>;
+<a href=#309 id=309 data-nosnippet>309</a>
+<a href=#310 id=310 data-nosnippet>310</a>		<span class="kw">if </span>scheduled_requests.is_empty() {
+<a href=#311 id=311 data-nosnippet>311</a>			&lt;DelegationScheduledRequestsPerCollator&lt;T&gt;&gt;::mutate(<span class="kw-2">&amp;</span>collator, |c| {
+<a href=#312 id=312 data-nosnippet>312</a>				<span class="kw-2">*</span>c = c.saturating_sub(<span class="number">1</span>);
+<a href=#313 id=313 data-nosnippet>313</a>			});
+<a href=#314 id=314 data-nosnippet>314</a>			&lt;DelegationScheduledRequests&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
+<a href=#315 id=315 data-nosnippet>315</a>		} <span class="kw">else </span>{
+<a href=#316 id=316 data-nosnippet>316</a>			&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(
+<a href=#317 id=317 data-nosnippet>317</a>				collator.clone(),
+<a href=#318 id=318 data-nosnippet>318</a>				delegator.clone(),
+<a href=#319 id=319 data-nosnippet>319</a>				scheduled_requests,
+<a href=#320 id=320 data-nosnippet>320</a>			);
+<a href=#321 id=321 data-nosnippet>321</a>		}
+<a href=#322 id=322 data-nosnippet>322</a>		&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state);
+<a href=#323 id=323 data-nosnippet>323</a>
+<a href=#324 id=324 data-nosnippet>324</a>		<span class="self">Self</span>::deposit_event(Event::CancelledDelegationRequest {
+<a href=#325 id=325 data-nosnippet>325</a>			delegator,
+<a href=#326 id=326 data-nosnippet>326</a>			collator,
+<a href=#327 id=327 data-nosnippet>327</a>			cancelled_request: request.into(),
+<a href=#328 id=328 data-nosnippet>328</a>		});
+<a href=#329 id=329 data-nosnippet>329</a>		<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
+<a href=#330 id=330 data-nosnippet>330</a>	}
+<a href=#331 id=331 data-nosnippet>331</a>
+<a href=#332 id=332 data-nosnippet>332</a>	<span class="kw">fn </span>cancel_request_with_state(
+<a href=#333 id=333 data-nosnippet>333</a>		state: <span class="kw-2">&amp;mut </span>Delegator&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
+<a href=#334 id=334 data-nosnippet>334</a>		scheduled_requests: <span class="kw-2">&amp;mut </span>BoundedVec&lt;
+<a href=#335 id=335 data-nosnippet>335</a>			ScheduledRequest&lt;BalanceOf&lt;T&gt;&gt;,
+<a href=#336 id=336 data-nosnippet>336</a>			T::MaxScheduledRequestsPerDelegator,
+<a href=#337 id=337 data-nosnippet>337</a>		&gt;,
+<a href=#338 id=338 data-nosnippet>338</a>	) -&gt; <span class="prelude-ty">Option</span>&lt;ScheduledRequest&lt;BalanceOf&lt;T&gt;&gt;&gt; {
+<a href=#339 id=339 data-nosnippet>339</a>		<span class="kw">if </span>scheduled_requests.is_empty() {
+<a href=#340 id=340 data-nosnippet>340</a>			<span class="kw">return </span><span class="prelude-val">None</span>;
+<a href=#341 id=341 data-nosnippet>341</a>		}
+<a href=#342 id=342 data-nosnippet>342</a>
+<a href=#343 id=343 data-nosnippet>343</a>		<span class="comment">// `BoundedVec::remove` can panic, but we make sure it will not happen by
+<a href=#344 id=344 data-nosnippet>344</a>		// checking above that `scheduled_requests` is not empty.
+<a href=#345 id=345 data-nosnippet>345</a>		</span><span class="kw">let </span>request = scheduled_requests.remove(<span class="number">0</span>);
+<a href=#346 id=346 data-nosnippet>346</a>		<span class="kw">let </span>amount = request.action.amount();
+<a href=#347 id=347 data-nosnippet>347</a>		state.less_total = state.less_total.saturating_sub(amount);
+<a href=#348 id=348 data-nosnippet>348</a>		<span class="prelude-val">Some</span>(request)
+<a href=#349 id=349 data-nosnippet>349</a>	}
 <a href=#350 id=350 data-nosnippet>350</a>
-<a href=#351 id=351 data-nosnippet>351</a>		<span class="kw">match </span>request.action {
-<a href=#352 id=352 data-nosnippet>352</a>			DelegationAction::Revoke(amount) =&gt; {
-<a href=#353 id=353 data-nosnippet>353</a>				<span class="kw">let </span>actual_weight =
-<a href=#354 id=354 data-nosnippet>354</a>					&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::execute_delegator_revoke_delegation_worst();
-<a href=#355 id=355 data-nosnippet>355</a>
-<a href=#356 id=356 data-nosnippet>356</a>				<span class="comment">// revoking last delegation =&gt; leaving set of delegators
-<a href=#357 id=357 data-nosnippet>357</a>				</span><span class="kw">let </span>leaving = <span class="kw">if </span>state.delegations.<span class="number">0</span>.len() == <span class="number">1usize </span>{
-<a href=#358 id=358 data-nosnippet>358</a>					<span class="bool-val">true
-<a href=#359 id=359 data-nosnippet>359</a>				</span>} <span class="kw">else </span>{
-<a href=#360 id=360 data-nosnippet>360</a>					<span class="macro">ensure!</span>(
-<a href=#361 id=361 data-nosnippet>361</a>						state.total().saturating_sub(T::MinDelegation::get().into()) &gt;= amount,
-<a href=#362 id=362 data-nosnippet>362</a>						DispatchErrorWithPostInfo {
-<a href=#363 id=363 data-nosnippet>363</a>							post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#364 id=364 data-nosnippet>364</a>							error: &lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin.into(),
-<a href=#365 id=365 data-nosnippet>365</a>						}
-<a href=#366 id=366 data-nosnippet>366</a>					);
-<a href=#367 id=367 data-nosnippet>367</a>					<span class="bool-val">false
-<a href=#368 id=368 data-nosnippet>368</a>				</span>};
-<a href=#369 id=369 data-nosnippet>369</a>
-<a href=#370 id=370 data-nosnippet>370</a>				<span class="comment">// remove from pending requests
-<a href=#371 id=371 data-nosnippet>371</a>				// `BoundedVec::remove` can panic, but we make sure it will not happen by checking above that `scheduled_requests` is not empty.
-<a href=#372 id=372 data-nosnippet>372</a>				</span><span class="kw">let </span>amount = scheduled_requests.remove(<span class="number">0</span>).action.amount();
-<a href=#373 id=373 data-nosnippet>373</a>				state.less_total = state.less_total.saturating_sub(amount);
-<a href=#374 id=374 data-nosnippet>374</a>
-<a href=#375 id=375 data-nosnippet>375</a>				<span class="comment">// remove delegation from delegator state
-<a href=#376 id=376 data-nosnippet>376</a>				</span>state.rm_delegation::&lt;T&gt;(<span class="kw-2">&amp;</span>collator);
-<a href=#377 id=377 data-nosnippet>377</a>
-<a href=#378 id=378 data-nosnippet>378</a>				<span class="comment">// remove delegation from auto-compounding info
-<a href=#379 id=379 data-nosnippet>379</a>				</span>&lt;AutoCompoundDelegations&lt;T&gt;&gt;::remove_auto_compound(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
-<a href=#380 id=380 data-nosnippet>380</a>
-<a href=#381 id=381 data-nosnippet>381</a>				<span class="comment">// remove delegation from collator state delegations
-<a href=#382 id=382 data-nosnippet>382</a>				</span><span class="self">Self</span>::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)
-<a href=#383 id=383 data-nosnippet>383</a>					.map_err(|err| DispatchErrorWithPostInfo {
-<a href=#384 id=384 data-nosnippet>384</a>						post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#385 id=385 data-nosnippet>385</a>						error: err,
-<a href=#386 id=386 data-nosnippet>386</a>					})<span class="question-mark">?</span>;
-<a href=#387 id=387 data-nosnippet>387</a>				<span class="self">Self</span>::deposit_event(Event::DelegationRevoked {
-<a href=#388 id=388 data-nosnippet>388</a>					delegator: delegator.clone(),
-<a href=#389 id=389 data-nosnippet>389</a>					candidate: collator.clone(),
-<a href=#390 id=390 data-nosnippet>390</a>					unstaked_amount: amount,
-<a href=#391 id=391 data-nosnippet>391</a>				});
-<a href=#392 id=392 data-nosnippet>392</a>				<span class="kw">if </span>scheduled_requests.is_empty() {
-<a href=#393 id=393 data-nosnippet>393</a>					&lt;DelegationScheduledRequests&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
-<a href=#394 id=394 data-nosnippet>394</a>					&lt;DelegationScheduledRequestsPerCollator&lt;T&gt;&gt;::mutate(<span class="kw-2">&amp;</span>collator, |c| {
-<a href=#395 id=395 data-nosnippet>395</a>						<span class="kw-2">*</span>c = c.saturating_sub(<span class="number">1</span>);
-<a href=#396 id=396 data-nosnippet>396</a>					});
-<a href=#397 id=397 data-nosnippet>397</a>				} <span class="kw">else </span>{
-<a href=#398 id=398 data-nosnippet>398</a>					&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(
-<a href=#399 id=399 data-nosnippet>399</a>						collator.clone(),
-<a href=#400 id=400 data-nosnippet>400</a>						delegator.clone(),
-<a href=#401 id=401 data-nosnippet>401</a>						scheduled_requests,
-<a href=#402 id=402 data-nosnippet>402</a>					);
-<a href=#403 id=403 data-nosnippet>403</a>				}
-<a href=#404 id=404 data-nosnippet>404</a>				<span class="kw">if </span>leaving {
-<a href=#405 id=405 data-nosnippet>405</a>					&lt;DelegatorState&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>delegator);
-<a href=#406 id=406 data-nosnippet>406</a>					<span class="self">Self</span>::deposit_event(Event::DelegatorLeft {
-<a href=#407 id=407 data-nosnippet>407</a>						delegator,
-<a href=#408 id=408 data-nosnippet>408</a>						unstaked_amount: amount,
-<a href=#409 id=409 data-nosnippet>409</a>					});
-<a href=#410 id=410 data-nosnippet>410</a>				} <span class="kw">else </span>{
-<a href=#411 id=411 data-nosnippet>411</a>					&lt;DelegatorState&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>delegator, state);
-<a href=#412 id=412 data-nosnippet>412</a>				}
-<a href=#413 id=413 data-nosnippet>413</a>				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
-<a href=#414 id=414 data-nosnippet>414</a>			}
-<a href=#415 id=415 data-nosnippet>415</a>			DelegationAction::Decrease(<span class="kw">_</span>) =&gt; {
-<a href=#416 id=416 data-nosnippet>416</a>				<span class="kw">let </span>actual_weight =
-<a href=#417 id=417 data-nosnippet>417</a>					&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::execute_delegator_revoke_delegation_worst();
-<a href=#418 id=418 data-nosnippet>418</a>
-<a href=#419 id=419 data-nosnippet>419</a>				<span class="comment">// remove from pending requests
-<a href=#420 id=420 data-nosnippet>420</a>				// `BoundedVec::remove` can panic, but we make sure it will not happen by checking above that `scheduled_requests` is not empty.
-<a href=#421 id=421 data-nosnippet>421</a>				</span><span class="kw">let </span>amount = scheduled_requests.remove(<span class="number">0</span>).action.amount();
-<a href=#422 id=422 data-nosnippet>422</a>				state.less_total = state.less_total.saturating_sub(amount);
-<a href=#423 id=423 data-nosnippet>423</a>
-<a href=#424 id=424 data-nosnippet>424</a>				<span class="comment">// decrease delegation
-<a href=#425 id=425 data-nosnippet>425</a>				</span><span class="kw">for </span>bond <span class="kw">in </span><span class="kw-2">&amp;mut </span>state.delegations.<span class="number">0 </span>{
-<a href=#426 id=426 data-nosnippet>426</a>					<span class="kw">if </span>bond.owner == collator {
-<a href=#427 id=427 data-nosnippet>427</a>						<span class="kw">return if </span>bond.amount &gt; amount {
-<a href=#428 id=428 data-nosnippet>428</a>							<span class="kw">let </span>amount_before: BalanceOf&lt;T&gt; = bond.amount.into();
-<a href=#429 id=429 data-nosnippet>429</a>							bond.amount = bond.amount.saturating_sub(amount);
-<a href=#430 id=430 data-nosnippet>430</a>							<span class="kw">let </span><span class="kw-2">mut </span>collator_info = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator)
-<a href=#431 id=431 data-nosnippet>431</a>								.ok_or(&lt;Error&lt;T&gt;&gt;::CandidateDNE)
-<a href=#432 id=432 data-nosnippet>432</a>								.map_err(|err| DispatchErrorWithPostInfo {
-<a href=#433 id=433 data-nosnippet>433</a>									post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#434 id=434 data-nosnippet>434</a>									error: err.into(),
-<a href=#435 id=435 data-nosnippet>435</a>								})<span class="question-mark">?</span>;
-<a href=#436 id=436 data-nosnippet>436</a>
-<a href=#437 id=437 data-nosnippet>437</a>							state
-<a href=#438 id=438 data-nosnippet>438</a>								.total_sub_if::&lt;T, <span class="kw">_</span>&gt;(amount, |total| {
-<a href=#439 id=439 data-nosnippet>439</a>									<span class="kw">let </span>new_total: BalanceOf&lt;T&gt; = total.into();
-<a href=#440 id=440 data-nosnippet>440</a>									<span class="macro">ensure!</span>(
-<a href=#441 id=441 data-nosnippet>441</a>										new_total &gt;= T::MinDelegation::get(),
-<a href=#442 id=442 data-nosnippet>442</a>										&lt;Error&lt;T&gt;&gt;::DelegationBelowMin
-<a href=#443 id=443 data-nosnippet>443</a>									);
-<a href=#444 id=444 data-nosnippet>444</a>
-<a href=#445 id=445 data-nosnippet>445</a>									<span class="prelude-val">Ok</span>(())
-<a href=#446 id=446 data-nosnippet>446</a>								})
-<a href=#447 id=447 data-nosnippet>447</a>								.map_err(|err| DispatchErrorWithPostInfo {
-<a href=#448 id=448 data-nosnippet>448</a>									post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#449 id=449 data-nosnippet>449</a>									error: err,
-<a href=#450 id=450 data-nosnippet>450</a>								})<span class="question-mark">?</span>;
-<a href=#451 id=451 data-nosnippet>451</a>
-<a href=#452 id=452 data-nosnippet>452</a>							<span class="comment">// need to go into decrease_delegation
-<a href=#453 id=453 data-nosnippet>453</a>							</span><span class="kw">let </span>in_top = collator_info
-<a href=#454 id=454 data-nosnippet>454</a>								.decrease_delegation::&lt;T&gt;(
-<a href=#455 id=455 data-nosnippet>455</a>									<span class="kw-2">&amp;</span>collator,
-<a href=#456 id=456 data-nosnippet>456</a>									delegator.clone(),
-<a href=#457 id=457 data-nosnippet>457</a>									amount_before,
-<a href=#458 id=458 data-nosnippet>458</a>									amount,
-<a href=#459 id=459 data-nosnippet>459</a>								)
-<a href=#460 id=460 data-nosnippet>460</a>								.map_err(|err| DispatchErrorWithPostInfo {
-<a href=#461 id=461 data-nosnippet>461</a>									post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#462 id=462 data-nosnippet>462</a>									error: err,
-<a href=#463 id=463 data-nosnippet>463</a>								})<span class="question-mark">?</span>;
-<a href=#464 id=464 data-nosnippet>464</a>							&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>collator, collator_info);
-<a href=#465 id=465 data-nosnippet>465</a>							<span class="kw">let </span>new_total_staked = &lt;Total&lt;T&gt;&gt;::get().saturating_sub(amount);
-<a href=#466 id=466 data-nosnippet>466</a>							&lt;Total&lt;T&gt;&gt;::put(new_total_staked);
-<a href=#467 id=467 data-nosnippet>467</a>
-<a href=#468 id=468 data-nosnippet>468</a>							<span class="kw">if </span>scheduled_requests.is_empty() {
-<a href=#469 id=469 data-nosnippet>469</a>								&lt;DelegationScheduledRequests&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
-<a href=#470 id=470 data-nosnippet>470</a>								&lt;DelegationScheduledRequestsPerCollator&lt;T&gt;&gt;::mutate(
-<a href=#471 id=471 data-nosnippet>471</a>									<span class="kw-2">&amp;</span>collator,
-<a href=#472 id=472 data-nosnippet>472</a>									|c| {
-<a href=#473 id=473 data-nosnippet>473</a>										<span class="kw-2">*</span>c = c.saturating_sub(<span class="number">1</span>);
-<a href=#474 id=474 data-nosnippet>474</a>									},
-<a href=#475 id=475 data-nosnippet>475</a>								);
-<a href=#476 id=476 data-nosnippet>476</a>							} <span class="kw">else </span>{
-<a href=#477 id=477 data-nosnippet>477</a>								&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(
-<a href=#478 id=478 data-nosnippet>478</a>									collator.clone(),
-<a href=#479 id=479 data-nosnippet>479</a>									delegator.clone(),
-<a href=#480 id=480 data-nosnippet>480</a>									scheduled_requests,
-<a href=#481 id=481 data-nosnippet>481</a>								);
-<a href=#482 id=482 data-nosnippet>482</a>							}
-<a href=#483 id=483 data-nosnippet>483</a>							&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state);
-<a href=#484 id=484 data-nosnippet>484</a>							<span class="self">Self</span>::deposit_event(Event::DelegationDecreased {
-<a href=#485 id=485 data-nosnippet>485</a>								delegator,
-<a href=#486 id=486 data-nosnippet>486</a>								candidate: collator.clone(),
-<a href=#487 id=487 data-nosnippet>487</a>								amount,
-<a href=#488 id=488 data-nosnippet>488</a>								in_top,
-<a href=#489 id=489 data-nosnippet>489</a>							});
-<a href=#490 id=490 data-nosnippet>490</a>							<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
-<a href=#491 id=491 data-nosnippet>491</a>						} <span class="kw">else </span>{
-<a href=#492 id=492 data-nosnippet>492</a>							<span class="comment">// must rm entire delegation if bond.amount &lt;= less or cancel request
-<a href=#493 id=493 data-nosnippet>493</a>							</span><span class="prelude-val">Err</span>(DispatchErrorWithPostInfo {
-<a href=#494 id=494 data-nosnippet>494</a>								post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#495 id=495 data-nosnippet>495</a>								error: &lt;Error&lt;T&gt;&gt;::DelegationBelowMin.into(),
-<a href=#496 id=496 data-nosnippet>496</a>							})
-<a href=#497 id=497 data-nosnippet>497</a>						};
-<a href=#498 id=498 data-nosnippet>498</a>					}
-<a href=#499 id=499 data-nosnippet>499</a>				}
-<a href=#500 id=500 data-nosnippet>500</a>				<span class="prelude-val">Err</span>(DispatchErrorWithPostInfo {
-<a href=#501 id=501 data-nosnippet>501</a>					post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
-<a href=#502 id=502 data-nosnippet>502</a>					error: &lt;Error&lt;T&gt;&gt;::DelegationDNE.into(),
-<a href=#503 id=503 data-nosnippet>503</a>				})
-<a href=#504 id=504 data-nosnippet>504</a>			}
-<a href=#505 id=505 data-nosnippet>505</a>		}
-<a href=#506 id=506 data-nosnippet>506</a>	}
-<a href=#507 id=507 data-nosnippet>507</a>
-<a href=#508 id=508 data-nosnippet>508</a>	<span class="doccomment">/// Removes the delegator's existing [ScheduledRequest] towards a given collator, if exists.
-<a href=#509 id=509 data-nosnippet>509</a>	/// The state needs to be persisted by the caller of this function.
-<a href=#510 id=510 data-nosnippet>510</a>	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delegation_remove_request_with_state(
-<a href=#511 id=511 data-nosnippet>511</a>		collator: <span class="kw-2">&amp;</span>T::AccountId,
-<a href=#512 id=512 data-nosnippet>512</a>		delegator: <span class="kw-2">&amp;</span>T::AccountId,
-<a href=#513 id=513 data-nosnippet>513</a>		state: <span class="kw-2">&amp;mut </span>Delegator&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
-<a href=#514 id=514 data-nosnippet>514</a>	) {
-<a href=#515 id=515 data-nosnippet>515</a>		<span class="kw">let </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(collator, delegator);
-<a href=#516 id=516 data-nosnippet>516</a>
-<a href=#517 id=517 data-nosnippet>517</a>		<span class="kw">if </span>scheduled_requests.is_empty() {
-<a href=#518 id=518 data-nosnippet>518</a>			<span class="kw">return</span>;
-<a href=#519 id=519 data-nosnippet>519</a>		}
-<a href=#520 id=520 data-nosnippet>520</a>
-<a href=#521 id=521 data-nosnippet>521</a>		<span class="comment">// Calculate total amount across all scheduled requests
-<a href=#522 id=522 data-nosnippet>522</a>		</span><span class="kw">let </span>total_amount: BalanceOf&lt;T&gt; = scheduled_requests
-<a href=#523 id=523 data-nosnippet>523</a>			.iter()
-<a href=#524 id=524 data-nosnippet>524</a>			.map(|request| request.action.amount())
-<a href=#525 id=525 data-nosnippet>525</a>			.fold(BalanceOf::&lt;T&gt;::zero(), |acc, amount| {
-<a href=#526 id=526 data-nosnippet>526</a>				acc.saturating_add(amount)
-<a href=#527 id=527 data-nosnippet>527</a>			});
-<a href=#528 id=528 data-nosnippet>528</a>
-<a href=#529 id=529 data-nosnippet>529</a>		state.less_total = state.less_total.saturating_sub(total_amount);
-<a href=#530 id=530 data-nosnippet>530</a>		&lt;DelegationScheduledRequests&lt;T&gt;&gt;::remove(collator, delegator);
-<a href=#531 id=531 data-nosnippet>531</a>		&lt;DelegationScheduledRequestsPerCollator&lt;T&gt;&gt;::mutate(collator, |c| {
-<a href=#532 id=532 data-nosnippet>532</a>			<span class="kw-2">*</span>c = c.saturating_sub(<span class="number">1</span>);
-<a href=#533 id=533 data-nosnippet>533</a>		});
-<a href=#534 id=534 data-nosnippet>534</a>	}
-<a href=#535 id=535 data-nosnippet>535</a>
-<a href=#536 id=536 data-nosnippet>536</a>	<span class="doccomment">/// Returns true if a [ScheduledRequest] exists for a given delegation
-<a href=#537 id=537 data-nosnippet>537</a>	</span><span class="kw">pub fn </span>delegation_request_exists(collator: <span class="kw-2">&amp;</span>T::AccountId, delegator: <span class="kw-2">&amp;</span>T::AccountId) -&gt; bool {
-<a href=#538 id=538 data-nosnippet>538</a>		!&lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(collator, delegator).is_empty()
-<a href=#539 id=539 data-nosnippet>539</a>	}
-<a href=#540 id=540 data-nosnippet>540</a>
-<a href=#541 id=541 data-nosnippet>541</a>	<span class="doccomment">/// Returns true if a [DelegationAction::Revoke] [ScheduledRequest] exists for a given delegation
-<a href=#542 id=542 data-nosnippet>542</a>	</span><span class="kw">pub fn </span>delegation_request_revoke_exists(
-<a href=#543 id=543 data-nosnippet>543</a>		collator: <span class="kw-2">&amp;</span>T::AccountId,
-<a href=#544 id=544 data-nosnippet>544</a>		delegator: <span class="kw-2">&amp;</span>T::AccountId,
-<a href=#545 id=545 data-nosnippet>545</a>	) -&gt; bool {
-<a href=#546 id=546 data-nosnippet>546</a>		&lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(collator, delegator)
-<a href=#547 id=547 data-nosnippet>547</a>			.iter()
-<a href=#548 id=548 data-nosnippet>548</a>			.any(|req| <span class="macro">matches!</span>(req.action, DelegationAction::Revoke(<span class="kw">_</span>)))
-<a href=#549 id=549 data-nosnippet>549</a>	}
-<a href=#550 id=550 data-nosnippet>550</a>}
-<a href=#551 id=551 data-nosnippet>551</a>
-<a href=#552 id=552 data-nosnippet>552</a><span class="attr">#[cfg(test)]
-<a href=#553 id=553 data-nosnippet>553</a></span><span class="kw">mod </span>tests {
-<a href=#554 id=554 data-nosnippet>554</a>	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-<a href=#555 id=555 data-nosnippet>555</a>	<span class="kw">use crate</span>::{mock::Test, set::OrderedSet, Bond};
-<a href=#556 id=556 data-nosnippet>556</a>
-<a href=#557 id=557 data-nosnippet>557</a>	<span class="attr">#[test]
-<a href=#558 id=558 data-nosnippet>558</a>	</span><span class="kw">fn </span>test_cancel_request_with_state_removes_request_for_correct_delegator_and_updates_state() {
-<a href=#559 id=559 data-nosnippet>559</a>		<span class="kw">let </span><span class="kw-2">mut </span>state = Delegator {
-<a href=#560 id=560 data-nosnippet>560</a>			id: <span class="number">1</span>,
-<a href=#561 id=561 data-nosnippet>561</a>			delegations: OrderedSet::from(<span class="macro">vec!</span>[Bond {
-<a href=#562 id=562 data-nosnippet>562</a>				amount: <span class="number">100</span>,
-<a href=#563 id=563 data-nosnippet>563</a>				owner: <span class="number">2</span>,
-<a href=#564 id=564 data-nosnippet>564</a>			}]),
-<a href=#565 id=565 data-nosnippet>565</a>			total: <span class="number">100</span>,
-<a href=#566 id=566 data-nosnippet>566</a>			less_total: <span class="number">150</span>,
-<a href=#567 id=567 data-nosnippet>567</a>			status: <span class="kw">crate</span>::DelegatorStatus::Active,
-<a href=#568 id=568 data-nosnippet>568</a>		};
-<a href=#569 id=569 data-nosnippet>569</a>		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = <span class="macro">vec!</span>[
-<a href=#570 id=570 data-nosnippet>570</a>			ScheduledRequest {
-<a href=#571 id=571 data-nosnippet>571</a>				when_executable: <span class="number">1</span>,
-<a href=#572 id=572 data-nosnippet>572</a>				action: DelegationAction::Revoke(<span class="number">100</span>),
-<a href=#573 id=573 data-nosnippet>573</a>			},
-<a href=#574 id=574 data-nosnippet>574</a>			ScheduledRequest {
-<a href=#575 id=575 data-nosnippet>575</a>				when_executable: <span class="number">1</span>,
-<a href=#576 id=576 data-nosnippet>576</a>				action: DelegationAction::Decrease(<span class="number">50</span>),
-<a href=#577 id=577 data-nosnippet>577</a>			},
-<a href=#578 id=578 data-nosnippet>578</a>		]
-<a href=#579 id=579 data-nosnippet>579</a>		.try_into()
-<a href=#580 id=580 data-nosnippet>580</a>		.expect(<span class="string">"must succeed"</span>);
-<a href=#581 id=581 data-nosnippet>581</a>		<span class="kw">let </span>removed_request =
-<a href=#582 id=582 data-nosnippet>582</a>			&lt;Pallet&lt;Test&gt;&gt;::cancel_request_with_state(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>scheduled_requests);
-<a href=#583 id=583 data-nosnippet>583</a>
-<a href=#584 id=584 data-nosnippet>584</a>		<span class="macro">assert_eq!</span>(
-<a href=#585 id=585 data-nosnippet>585</a>			removed_request,
-<a href=#586 id=586 data-nosnippet>586</a>			<span class="prelude-val">Some</span>(ScheduledRequest {
-<a href=#587 id=587 data-nosnippet>587</a>				when_executable: <span class="number">1</span>,
-<a href=#588 id=588 data-nosnippet>588</a>				action: DelegationAction::Revoke(<span class="number">100</span>),
-<a href=#589 id=589 data-nosnippet>589</a>			})
-<a href=#590 id=590 data-nosnippet>590</a>		);
-<a href=#591 id=591 data-nosnippet>591</a>		<span class="macro">assert_eq!</span>(
-<a href=#592 id=592 data-nosnippet>592</a>			scheduled_requests,
-<a href=#593 id=593 data-nosnippet>593</a>			<span class="macro">vec!</span>[ScheduledRequest {
-<a href=#594 id=594 data-nosnippet>594</a>				when_executable: <span class="number">1</span>,
-<a href=#595 id=595 data-nosnippet>595</a>				action: DelegationAction::Decrease(<span class="number">50</span>),
-<a href=#596 id=596 data-nosnippet>596</a>			},]
-<a href=#597 id=597 data-nosnippet>597</a>		);
-<a href=#598 id=598 data-nosnippet>598</a>		<span class="macro">assert_eq!</span>(
-<a href=#599 id=599 data-nosnippet>599</a>			state.less_total, <span class="number">50</span>,
-<a href=#600 id=600 data-nosnippet>600</a>			<span class="string">"less_total should be reduced by the amount of the cancelled request"
-<a href=#601 id=601 data-nosnippet>601</a>		</span>);
-<a href=#602 id=602 data-nosnippet>602</a>	}
-<a href=#603 id=603 data-nosnippet>603</a>
-<a href=#604 id=604 data-nosnippet>604</a>	<span class="attr">#[test]
-<a href=#605 id=605 data-nosnippet>605</a>	</span><span class="kw">fn </span>test_cancel_request_with_state_does_nothing_when_request_does_not_exist() {
-<a href=#606 id=606 data-nosnippet>606</a>		<span class="kw">let </span><span class="kw-2">mut </span>state = Delegator {
-<a href=#607 id=607 data-nosnippet>607</a>			id: <span class="number">1</span>,
-<a href=#608 id=608 data-nosnippet>608</a>			delegations: OrderedSet::from(<span class="macro">vec!</span>[Bond {
-<a href=#609 id=609 data-nosnippet>609</a>				amount: <span class="number">100</span>,
-<a href=#610 id=610 data-nosnippet>610</a>				owner: <span class="number">2</span>,
-<a href=#611 id=611 data-nosnippet>611</a>			}]),
-<a href=#612 id=612 data-nosnippet>612</a>			total: <span class="number">100</span>,
-<a href=#613 id=613 data-nosnippet>613</a>			less_total: <span class="number">100</span>,
-<a href=#614 id=614 data-nosnippet>614</a>			status: <span class="kw">crate</span>::DelegatorStatus::Active,
-<a href=#615 id=615 data-nosnippet>615</a>		};
-<a href=#616 id=616 data-nosnippet>616</a>		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests: BoundedVec&lt;
-<a href=#617 id=617 data-nosnippet>617</a>			ScheduledRequest&lt;u128&gt;,
-<a href=#618 id=618 data-nosnippet>618</a>			&lt;Test <span class="kw">as </span><span class="kw">crate</span>::pallet::Config&gt;::MaxScheduledRequestsPerDelegator,
-<a href=#619 id=619 data-nosnippet>619</a>		&gt; = BoundedVec::default();
-<a href=#620 id=620 data-nosnippet>620</a>		<span class="kw">let </span>removed_request =
-<a href=#621 id=621 data-nosnippet>621</a>			&lt;Pallet&lt;Test&gt;&gt;::cancel_request_with_state(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>scheduled_requests);
-<a href=#622 id=622 data-nosnippet>622</a>
-<a href=#623 id=623 data-nosnippet>623</a>		<span class="macro">assert_eq!</span>(removed_request, <span class="prelude-val">None</span>,);
-<a href=#624 id=624 data-nosnippet>624</a>		<span class="macro">assert_eq!</span>(
-<a href=#625 id=625 data-nosnippet>625</a>			scheduled_requests.len(),
-<a href=#626 id=626 data-nosnippet>626</a>			<span class="number">0</span>,
-<a href=#627 id=627 data-nosnippet>627</a>			<span class="string">"scheduled_requests should remain empty"
-<a href=#628 id=628 data-nosnippet>628</a>		</span>);
-<a href=#629 id=629 data-nosnippet>629</a>		<span class="macro">assert_eq!</span>(
-<a href=#630 id=630 data-nosnippet>630</a>			state.less_total, <span class="number">100</span>,
-<a href=#631 id=631 data-nosnippet>631</a>			<span class="string">"less_total should remain unchanged when there is nothing to cancel"
-<a href=#632 id=632 data-nosnippet>632</a>		</span>);
-<a href=#633 id=633 data-nosnippet>633</a>	}
-<a href=#634 id=634 data-nosnippet>634</a>}</code></pre></div></section></main></body></html>
+<a href=#351 id=351 data-nosnippet>351</a>	<span class="doccomment">/// Executes the delegator's existing [ScheduledRequest] towards a given collator.
+<a href=#352 id=352 data-nosnippet>352</a>	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delegation_execute_scheduled_request(
+<a href=#353 id=353 data-nosnippet>353</a>		collator: T::AccountId,
+<a href=#354 id=354 data-nosnippet>354</a>		delegator: T::AccountId,
+<a href=#355 id=355 data-nosnippet>355</a>	) -&gt; DispatchResultWithPostInfo {
+<a href=#356 id=356 data-nosnippet>356</a>		<span class="kw">let </span><span class="kw-2">mut </span>state = &lt;DelegatorState&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>delegator).ok_or(&lt;Error&lt;T&gt;&gt;::DelegatorDNE)<span class="question-mark">?</span>;
+<a href=#357 id=357 data-nosnippet>357</a>		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
+<a href=#358 id=358 data-nosnippet>358</a>		<span class="kw">let </span>request = scheduled_requests
+<a href=#359 id=359 data-nosnippet>359</a>			.first()
+<a href=#360 id=360 data-nosnippet>360</a>			.ok_or(&lt;Error&lt;T&gt;&gt;::PendingDelegationRequestDNE)<span class="question-mark">?</span>;
+<a href=#361 id=361 data-nosnippet>361</a>
+<a href=#362 id=362 data-nosnippet>362</a>		<span class="kw">let </span>now = &lt;Round&lt;T&gt;&gt;::get().current;
+<a href=#363 id=363 data-nosnippet>363</a>		<span class="macro">ensure!</span>(
+<a href=#364 id=364 data-nosnippet>364</a>			request.when_executable &lt;= now,
+<a href=#365 id=365 data-nosnippet>365</a>			&lt;Error&lt;T&gt;&gt;::PendingDelegationRequestNotDueYet
+<a href=#366 id=366 data-nosnippet>366</a>		);
+<a href=#367 id=367 data-nosnippet>367</a>
+<a href=#368 id=368 data-nosnippet>368</a>		<span class="kw">match </span>request.action {
+<a href=#369 id=369 data-nosnippet>369</a>			DelegationAction::Revoke(amount) =&gt; {
+<a href=#370 id=370 data-nosnippet>370</a>				<span class="kw">let </span>actual_weight =
+<a href=#371 id=371 data-nosnippet>371</a>					&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::execute_delegator_revoke_delegation_worst();
+<a href=#372 id=372 data-nosnippet>372</a>
+<a href=#373 id=373 data-nosnippet>373</a>				<span class="comment">// revoking last delegation =&gt; leaving set of delegators
+<a href=#374 id=374 data-nosnippet>374</a>				</span><span class="kw">let </span>leaving = <span class="kw">if </span>state.delegations.<span class="number">0</span>.len() == <span class="number">1usize </span>{
+<a href=#375 id=375 data-nosnippet>375</a>					<span class="bool-val">true
+<a href=#376 id=376 data-nosnippet>376</a>				</span>} <span class="kw">else </span>{
+<a href=#377 id=377 data-nosnippet>377</a>					<span class="macro">ensure!</span>(
+<a href=#378 id=378 data-nosnippet>378</a>						state.total().saturating_sub(T::MinDelegation::get().into()) &gt;= amount,
+<a href=#379 id=379 data-nosnippet>379</a>						DispatchErrorWithPostInfo {
+<a href=#380 id=380 data-nosnippet>380</a>							post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#381 id=381 data-nosnippet>381</a>							error: &lt;Error&lt;T&gt;&gt;::DelegatorBondBelowMin.into(),
+<a href=#382 id=382 data-nosnippet>382</a>						}
+<a href=#383 id=383 data-nosnippet>383</a>					);
+<a href=#384 id=384 data-nosnippet>384</a>					<span class="bool-val">false
+<a href=#385 id=385 data-nosnippet>385</a>				</span>};
+<a href=#386 id=386 data-nosnippet>386</a>
+<a href=#387 id=387 data-nosnippet>387</a>				<span class="comment">// remove from pending requests
+<a href=#388 id=388 data-nosnippet>388</a>				// `BoundedVec::remove` can panic, but we make sure it will not happen by checking above that `scheduled_requests` is not empty.
+<a href=#389 id=389 data-nosnippet>389</a>				</span><span class="kw">let </span>amount = scheduled_requests.remove(<span class="number">0</span>).action.amount();
+<a href=#390 id=390 data-nosnippet>390</a>				state.less_total = state.less_total.saturating_sub(amount);
+<a href=#391 id=391 data-nosnippet>391</a>
+<a href=#392 id=392 data-nosnippet>392</a>				<span class="comment">// remove delegation from delegator state
+<a href=#393 id=393 data-nosnippet>393</a>				</span>state.rm_delegation::&lt;T&gt;(<span class="kw-2">&amp;</span>collator);
+<a href=#394 id=394 data-nosnippet>394</a>
+<a href=#395 id=395 data-nosnippet>395</a>				<span class="comment">// remove delegation from auto-compounding info
+<a href=#396 id=396 data-nosnippet>396</a>				</span>&lt;AutoCompoundDelegations&lt;T&gt;&gt;::remove_auto_compound(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
+<a href=#397 id=397 data-nosnippet>397</a>
+<a href=#398 id=398 data-nosnippet>398</a>				<span class="comment">// remove delegation from collator state delegations
+<a href=#399 id=399 data-nosnippet>399</a>				</span><span class="self">Self</span>::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)
+<a href=#400 id=400 data-nosnippet>400</a>					.map_err(|err| DispatchErrorWithPostInfo {
+<a href=#401 id=401 data-nosnippet>401</a>						post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#402 id=402 data-nosnippet>402</a>						error: err,
+<a href=#403 id=403 data-nosnippet>403</a>					})<span class="question-mark">?</span>;
+<a href=#404 id=404 data-nosnippet>404</a>				<span class="self">Self</span>::deposit_event(Event::DelegationRevoked {
+<a href=#405 id=405 data-nosnippet>405</a>					delegator: delegator.clone(),
+<a href=#406 id=406 data-nosnippet>406</a>					candidate: collator.clone(),
+<a href=#407 id=407 data-nosnippet>407</a>					unstaked_amount: amount,
+<a href=#408 id=408 data-nosnippet>408</a>				});
+<a href=#409 id=409 data-nosnippet>409</a>				<span class="kw">if </span>scheduled_requests.is_empty() {
+<a href=#410 id=410 data-nosnippet>410</a>					&lt;DelegationScheduledRequests&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
+<a href=#411 id=411 data-nosnippet>411</a>					&lt;DelegationScheduledRequestsPerCollator&lt;T&gt;&gt;::mutate(<span class="kw-2">&amp;</span>collator, |c| {
+<a href=#412 id=412 data-nosnippet>412</a>						<span class="kw-2">*</span>c = c.saturating_sub(<span class="number">1</span>);
+<a href=#413 id=413 data-nosnippet>413</a>					});
+<a href=#414 id=414 data-nosnippet>414</a>				} <span class="kw">else </span>{
+<a href=#415 id=415 data-nosnippet>415</a>					&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(
+<a href=#416 id=416 data-nosnippet>416</a>						collator.clone(),
+<a href=#417 id=417 data-nosnippet>417</a>						delegator.clone(),
+<a href=#418 id=418 data-nosnippet>418</a>						scheduled_requests,
+<a href=#419 id=419 data-nosnippet>419</a>					);
+<a href=#420 id=420 data-nosnippet>420</a>				}
+<a href=#421 id=421 data-nosnippet>421</a>				<span class="kw">if </span>leaving {
+<a href=#422 id=422 data-nosnippet>422</a>					&lt;DelegatorState&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>delegator);
+<a href=#423 id=423 data-nosnippet>423</a>					<span class="self">Self</span>::deposit_event(Event::DelegatorLeft {
+<a href=#424 id=424 data-nosnippet>424</a>						delegator,
+<a href=#425 id=425 data-nosnippet>425</a>						unstaked_amount: amount,
+<a href=#426 id=426 data-nosnippet>426</a>					});
+<a href=#427 id=427 data-nosnippet>427</a>				} <span class="kw">else </span>{
+<a href=#428 id=428 data-nosnippet>428</a>					&lt;DelegatorState&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>delegator, state);
+<a href=#429 id=429 data-nosnippet>429</a>				}
+<a href=#430 id=430 data-nosnippet>430</a>				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
+<a href=#431 id=431 data-nosnippet>431</a>			}
+<a href=#432 id=432 data-nosnippet>432</a>			DelegationAction::Decrease(<span class="kw">_</span>) =&gt; {
+<a href=#433 id=433 data-nosnippet>433</a>				<span class="kw">let </span>actual_weight =
+<a href=#434 id=434 data-nosnippet>434</a>					&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::execute_delegator_revoke_delegation_worst();
+<a href=#435 id=435 data-nosnippet>435</a>
+<a href=#436 id=436 data-nosnippet>436</a>				<span class="comment">// remove from pending requests
+<a href=#437 id=437 data-nosnippet>437</a>				// `BoundedVec::remove` can panic, but we make sure it will not happen by checking above that `scheduled_requests` is not empty.
+<a href=#438 id=438 data-nosnippet>438</a>				</span><span class="kw">let </span>amount = scheduled_requests.remove(<span class="number">0</span>).action.amount();
+<a href=#439 id=439 data-nosnippet>439</a>				state.less_total = state.less_total.saturating_sub(amount);
+<a href=#440 id=440 data-nosnippet>440</a>
+<a href=#441 id=441 data-nosnippet>441</a>				<span class="comment">// decrease delegation
+<a href=#442 id=442 data-nosnippet>442</a>				</span><span class="kw">for </span>bond <span class="kw">in </span><span class="kw-2">&amp;mut </span>state.delegations.<span class="number">0 </span>{
+<a href=#443 id=443 data-nosnippet>443</a>					<span class="kw">if </span>bond.owner == collator {
+<a href=#444 id=444 data-nosnippet>444</a>						<span class="kw">return if </span>bond.amount &gt; amount {
+<a href=#445 id=445 data-nosnippet>445</a>							<span class="kw">let </span>amount_before: BalanceOf&lt;T&gt; = bond.amount.into();
+<a href=#446 id=446 data-nosnippet>446</a>							bond.amount = bond.amount.saturating_sub(amount);
+<a href=#447 id=447 data-nosnippet>447</a>							<span class="kw">let </span><span class="kw-2">mut </span>collator_info = &lt;CandidateInfo&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>collator)
+<a href=#448 id=448 data-nosnippet>448</a>								.ok_or(&lt;Error&lt;T&gt;&gt;::CandidateDNE)
+<a href=#449 id=449 data-nosnippet>449</a>								.map_err(|err| DispatchErrorWithPostInfo {
+<a href=#450 id=450 data-nosnippet>450</a>									post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#451 id=451 data-nosnippet>451</a>									error: err.into(),
+<a href=#452 id=452 data-nosnippet>452</a>								})<span class="question-mark">?</span>;
+<a href=#453 id=453 data-nosnippet>453</a>
+<a href=#454 id=454 data-nosnippet>454</a>							state
+<a href=#455 id=455 data-nosnippet>455</a>								.total_sub_if::&lt;T, <span class="kw">_</span>&gt;(amount, |total| {
+<a href=#456 id=456 data-nosnippet>456</a>									<span class="kw">let </span>new_total: BalanceOf&lt;T&gt; = total.into();
+<a href=#457 id=457 data-nosnippet>457</a>									<span class="macro">ensure!</span>(
+<a href=#458 id=458 data-nosnippet>458</a>										new_total &gt;= T::MinDelegation::get(),
+<a href=#459 id=459 data-nosnippet>459</a>										&lt;Error&lt;T&gt;&gt;::DelegationBelowMin
+<a href=#460 id=460 data-nosnippet>460</a>									);
+<a href=#461 id=461 data-nosnippet>461</a>
+<a href=#462 id=462 data-nosnippet>462</a>									<span class="prelude-val">Ok</span>(())
+<a href=#463 id=463 data-nosnippet>463</a>								})
+<a href=#464 id=464 data-nosnippet>464</a>								.map_err(|err| DispatchErrorWithPostInfo {
+<a href=#465 id=465 data-nosnippet>465</a>									post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#466 id=466 data-nosnippet>466</a>									error: err,
+<a href=#467 id=467 data-nosnippet>467</a>								})<span class="question-mark">?</span>;
+<a href=#468 id=468 data-nosnippet>468</a>
+<a href=#469 id=469 data-nosnippet>469</a>							<span class="comment">// need to go into decrease_delegation
+<a href=#470 id=470 data-nosnippet>470</a>							</span><span class="kw">let </span>in_top = collator_info
+<a href=#471 id=471 data-nosnippet>471</a>								.decrease_delegation::&lt;T&gt;(
+<a href=#472 id=472 data-nosnippet>472</a>									<span class="kw-2">&amp;</span>collator,
+<a href=#473 id=473 data-nosnippet>473</a>									delegator.clone(),
+<a href=#474 id=474 data-nosnippet>474</a>									amount_before,
+<a href=#475 id=475 data-nosnippet>475</a>									amount,
+<a href=#476 id=476 data-nosnippet>476</a>								)
+<a href=#477 id=477 data-nosnippet>477</a>								.map_err(|err| DispatchErrorWithPostInfo {
+<a href=#478 id=478 data-nosnippet>478</a>									post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#479 id=479 data-nosnippet>479</a>									error: err,
+<a href=#480 id=480 data-nosnippet>480</a>								})<span class="question-mark">?</span>;
+<a href=#481 id=481 data-nosnippet>481</a>							&lt;CandidateInfo&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>collator, collator_info);
+<a href=#482 id=482 data-nosnippet>482</a>							<span class="kw">let </span>new_total_staked = &lt;Total&lt;T&gt;&gt;::get().saturating_sub(amount);
+<a href=#483 id=483 data-nosnippet>483</a>							&lt;Total&lt;T&gt;&gt;::put(new_total_staked);
+<a href=#484 id=484 data-nosnippet>484</a>
+<a href=#485 id=485 data-nosnippet>485</a>							<span class="kw">if </span>scheduled_requests.is_empty() {
+<a href=#486 id=486 data-nosnippet>486</a>								&lt;DelegationScheduledRequests&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
+<a href=#487 id=487 data-nosnippet>487</a>								&lt;DelegationScheduledRequestsPerCollator&lt;T&gt;&gt;::mutate(
+<a href=#488 id=488 data-nosnippet>488</a>									<span class="kw-2">&amp;</span>collator,
+<a href=#489 id=489 data-nosnippet>489</a>									|c| {
+<a href=#490 id=490 data-nosnippet>490</a>										<span class="kw-2">*</span>c = c.saturating_sub(<span class="number">1</span>);
+<a href=#491 id=491 data-nosnippet>491</a>									},
+<a href=#492 id=492 data-nosnippet>492</a>								);
+<a href=#493 id=493 data-nosnippet>493</a>							} <span class="kw">else </span>{
+<a href=#494 id=494 data-nosnippet>494</a>								&lt;DelegationScheduledRequests&lt;T&gt;&gt;::insert(
+<a href=#495 id=495 data-nosnippet>495</a>									collator.clone(),
+<a href=#496 id=496 data-nosnippet>496</a>									delegator.clone(),
+<a href=#497 id=497 data-nosnippet>497</a>									scheduled_requests,
+<a href=#498 id=498 data-nosnippet>498</a>								);
+<a href=#499 id=499 data-nosnippet>499</a>							}
+<a href=#500 id=500 data-nosnippet>500</a>							&lt;DelegatorState&lt;T&gt;&gt;::insert(delegator.clone(), state);
+<a href=#501 id=501 data-nosnippet>501</a>							<span class="self">Self</span>::deposit_event(Event::DelegationDecreased {
+<a href=#502 id=502 data-nosnippet>502</a>								delegator,
+<a href=#503 id=503 data-nosnippet>503</a>								candidate: collator.clone(),
+<a href=#504 id=504 data-nosnippet>504</a>								amount,
+<a href=#505 id=505 data-nosnippet>505</a>								in_top,
+<a href=#506 id=506 data-nosnippet>506</a>							});
+<a href=#507 id=507 data-nosnippet>507</a>							<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(actual_weight).into())
+<a href=#508 id=508 data-nosnippet>508</a>						} <span class="kw">else </span>{
+<a href=#509 id=509 data-nosnippet>509</a>							<span class="comment">// must rm entire delegation if bond.amount &lt;= less or cancel request
+<a href=#510 id=510 data-nosnippet>510</a>							</span><span class="prelude-val">Err</span>(DispatchErrorWithPostInfo {
+<a href=#511 id=511 data-nosnippet>511</a>								post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#512 id=512 data-nosnippet>512</a>								error: &lt;Error&lt;T&gt;&gt;::DelegationBelowMin.into(),
+<a href=#513 id=513 data-nosnippet>513</a>							})
+<a href=#514 id=514 data-nosnippet>514</a>						};
+<a href=#515 id=515 data-nosnippet>515</a>					}
+<a href=#516 id=516 data-nosnippet>516</a>				}
+<a href=#517 id=517 data-nosnippet>517</a>				<span class="prelude-val">Err</span>(DispatchErrorWithPostInfo {
+<a href=#518 id=518 data-nosnippet>518</a>					post_info: <span class="prelude-val">Some</span>(actual_weight).into(),
+<a href=#519 id=519 data-nosnippet>519</a>					error: &lt;Error&lt;T&gt;&gt;::DelegationDNE.into(),
+<a href=#520 id=520 data-nosnippet>520</a>				})
+<a href=#521 id=521 data-nosnippet>521</a>			}
+<a href=#522 id=522 data-nosnippet>522</a>		}
+<a href=#523 id=523 data-nosnippet>523</a>	}
+<a href=#524 id=524 data-nosnippet>524</a>
+<a href=#525 id=525 data-nosnippet>525</a>	<span class="doccomment">/// Removes the delegator's existing [ScheduledRequest] towards a given collator, if exists.
+<a href=#526 id=526 data-nosnippet>526</a>	/// The state needs to be persisted by the caller of this function.
+<a href=#527 id=527 data-nosnippet>527</a>	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>delegation_remove_request_with_state(
+<a href=#528 id=528 data-nosnippet>528</a>		collator: <span class="kw-2">&amp;</span>T::AccountId,
+<a href=#529 id=529 data-nosnippet>529</a>		delegator: <span class="kw-2">&amp;</span>T::AccountId,
+<a href=#530 id=530 data-nosnippet>530</a>		state: <span class="kw-2">&amp;mut </span>Delegator&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
+<a href=#531 id=531 data-nosnippet>531</a>	) {
+<a href=#532 id=532 data-nosnippet>532</a>		<span class="kw">let </span>scheduled_requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(collator, delegator);
+<a href=#533 id=533 data-nosnippet>533</a>
+<a href=#534 id=534 data-nosnippet>534</a>		<span class="kw">if </span>scheduled_requests.is_empty() {
+<a href=#535 id=535 data-nosnippet>535</a>			<span class="kw">return</span>;
+<a href=#536 id=536 data-nosnippet>536</a>		}
+<a href=#537 id=537 data-nosnippet>537</a>
+<a href=#538 id=538 data-nosnippet>538</a>		<span class="comment">// Calculate total amount across all scheduled requests
+<a href=#539 id=539 data-nosnippet>539</a>		</span><span class="kw">let </span>total_amount: BalanceOf&lt;T&gt; = scheduled_requests
+<a href=#540 id=540 data-nosnippet>540</a>			.iter()
+<a href=#541 id=541 data-nosnippet>541</a>			.map(|request| request.action.amount())
+<a href=#542 id=542 data-nosnippet>542</a>			.fold(BalanceOf::&lt;T&gt;::zero(), |acc, amount| {
+<a href=#543 id=543 data-nosnippet>543</a>				acc.saturating_add(amount)
+<a href=#544 id=544 data-nosnippet>544</a>			});
+<a href=#545 id=545 data-nosnippet>545</a>
+<a href=#546 id=546 data-nosnippet>546</a>		state.less_total = state.less_total.saturating_sub(total_amount);
+<a href=#547 id=547 data-nosnippet>547</a>		&lt;DelegationScheduledRequests&lt;T&gt;&gt;::remove(collator, delegator);
+<a href=#548 id=548 data-nosnippet>548</a>		&lt;DelegationScheduledRequestsPerCollator&lt;T&gt;&gt;::mutate(collator, |c| {
+<a href=#549 id=549 data-nosnippet>549</a>			<span class="kw-2">*</span>c = c.saturating_sub(<span class="number">1</span>);
+<a href=#550 id=550 data-nosnippet>550</a>		});
+<a href=#551 id=551 data-nosnippet>551</a>	}
+<a href=#552 id=552 data-nosnippet>552</a>
+<a href=#553 id=553 data-nosnippet>553</a>	<span class="doccomment">/// Returns true if a [ScheduledRequest] exists for a given delegation
+<a href=#554 id=554 data-nosnippet>554</a>	</span><span class="kw">pub fn </span>delegation_request_exists(collator: <span class="kw-2">&amp;</span>T::AccountId, delegator: <span class="kw-2">&amp;</span>T::AccountId) -&gt; bool {
+<a href=#555 id=555 data-nosnippet>555</a>		!&lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(collator, delegator).is_empty()
+<a href=#556 id=556 data-nosnippet>556</a>	}
+<a href=#557 id=557 data-nosnippet>557</a>
+<a href=#558 id=558 data-nosnippet>558</a>	<span class="doccomment">/// Returns true if a [DelegationAction::Revoke] [ScheduledRequest] exists for a given delegation
+<a href=#559 id=559 data-nosnippet>559</a>	</span><span class="kw">pub fn </span>delegation_request_revoke_exists(
+<a href=#560 id=560 data-nosnippet>560</a>		collator: <span class="kw-2">&amp;</span>T::AccountId,
+<a href=#561 id=561 data-nosnippet>561</a>		delegator: <span class="kw-2">&amp;</span>T::AccountId,
+<a href=#562 id=562 data-nosnippet>562</a>	) -&gt; bool {
+<a href=#563 id=563 data-nosnippet>563</a>		&lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(collator, delegator)
+<a href=#564 id=564 data-nosnippet>564</a>			.iter()
+<a href=#565 id=565 data-nosnippet>565</a>			.any(|req| <span class="macro">matches!</span>(req.action, DelegationAction::Revoke(<span class="kw">_</span>)))
+<a href=#566 id=566 data-nosnippet>566</a>	}
+<a href=#567 id=567 data-nosnippet>567</a>}
+<a href=#568 id=568 data-nosnippet>568</a>
+<a href=#569 id=569 data-nosnippet>569</a><span class="attr">#[cfg(test)]
+<a href=#570 id=570 data-nosnippet>570</a></span><span class="kw">mod </span>tests {
+<a href=#571 id=571 data-nosnippet>571</a>	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#572 id=572 data-nosnippet>572</a>	<span class="kw">use crate</span>::{mock::Test, set::OrderedSet, Bond};
+<a href=#573 id=573 data-nosnippet>573</a>
+<a href=#574 id=574 data-nosnippet>574</a>	<span class="attr">#[test]
+<a href=#575 id=575 data-nosnippet>575</a>	</span><span class="kw">fn </span>test_cancel_request_with_state_removes_request_for_correct_delegator_and_updates_state() {
+<a href=#576 id=576 data-nosnippet>576</a>		<span class="kw">let </span><span class="kw-2">mut </span>state = Delegator {
+<a href=#577 id=577 data-nosnippet>577</a>			id: <span class="number">1</span>,
+<a href=#578 id=578 data-nosnippet>578</a>			delegations: OrderedSet::from(<span class="macro">vec!</span>[Bond {
+<a href=#579 id=579 data-nosnippet>579</a>				amount: <span class="number">100</span>,
+<a href=#580 id=580 data-nosnippet>580</a>				owner: <span class="number">2</span>,
+<a href=#581 id=581 data-nosnippet>581</a>			}]),
+<a href=#582 id=582 data-nosnippet>582</a>			total: <span class="number">100</span>,
+<a href=#583 id=583 data-nosnippet>583</a>			less_total: <span class="number">150</span>,
+<a href=#584 id=584 data-nosnippet>584</a>			status: <span class="kw">crate</span>::DelegatorStatus::Active,
+<a href=#585 id=585 data-nosnippet>585</a>		};
+<a href=#586 id=586 data-nosnippet>586</a>		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests = <span class="macro">vec!</span>[
+<a href=#587 id=587 data-nosnippet>587</a>			ScheduledRequest {
+<a href=#588 id=588 data-nosnippet>588</a>				when_executable: <span class="number">1</span>,
+<a href=#589 id=589 data-nosnippet>589</a>				action: DelegationAction::Revoke(<span class="number">100</span>),
+<a href=#590 id=590 data-nosnippet>590</a>			},
+<a href=#591 id=591 data-nosnippet>591</a>			ScheduledRequest {
+<a href=#592 id=592 data-nosnippet>592</a>				when_executable: <span class="number">1</span>,
+<a href=#593 id=593 data-nosnippet>593</a>				action: DelegationAction::Decrease(<span class="number">50</span>),
+<a href=#594 id=594 data-nosnippet>594</a>			},
+<a href=#595 id=595 data-nosnippet>595</a>		]
+<a href=#596 id=596 data-nosnippet>596</a>		.try_into()
+<a href=#597 id=597 data-nosnippet>597</a>		.expect(<span class="string">"must succeed"</span>);
+<a href=#598 id=598 data-nosnippet>598</a>		<span class="kw">let </span>removed_request =
+<a href=#599 id=599 data-nosnippet>599</a>			&lt;Pallet&lt;Test&gt;&gt;::cancel_request_with_state(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>scheduled_requests);
+<a href=#600 id=600 data-nosnippet>600</a>
+<a href=#601 id=601 data-nosnippet>601</a>		<span class="macro">assert_eq!</span>(
+<a href=#602 id=602 data-nosnippet>602</a>			removed_request,
+<a href=#603 id=603 data-nosnippet>603</a>			<span class="prelude-val">Some</span>(ScheduledRequest {
+<a href=#604 id=604 data-nosnippet>604</a>				when_executable: <span class="number">1</span>,
+<a href=#605 id=605 data-nosnippet>605</a>				action: DelegationAction::Revoke(<span class="number">100</span>),
+<a href=#606 id=606 data-nosnippet>606</a>			})
+<a href=#607 id=607 data-nosnippet>607</a>		);
+<a href=#608 id=608 data-nosnippet>608</a>		<span class="macro">assert_eq!</span>(
+<a href=#609 id=609 data-nosnippet>609</a>			scheduled_requests,
+<a href=#610 id=610 data-nosnippet>610</a>			<span class="macro">vec!</span>[ScheduledRequest {
+<a href=#611 id=611 data-nosnippet>611</a>				when_executable: <span class="number">1</span>,
+<a href=#612 id=612 data-nosnippet>612</a>				action: DelegationAction::Decrease(<span class="number">50</span>),
+<a href=#613 id=613 data-nosnippet>613</a>			},]
+<a href=#614 id=614 data-nosnippet>614</a>		);
+<a href=#615 id=615 data-nosnippet>615</a>		<span class="macro">assert_eq!</span>(
+<a href=#616 id=616 data-nosnippet>616</a>			state.less_total, <span class="number">50</span>,
+<a href=#617 id=617 data-nosnippet>617</a>			<span class="string">"less_total should be reduced by the amount of the cancelled request"
+<a href=#618 id=618 data-nosnippet>618</a>		</span>);
+<a href=#619 id=619 data-nosnippet>619</a>	}
+<a href=#620 id=620 data-nosnippet>620</a>
+<a href=#621 id=621 data-nosnippet>621</a>	<span class="attr">#[test]
+<a href=#622 id=622 data-nosnippet>622</a>	</span><span class="kw">fn </span>test_cancel_request_with_state_does_nothing_when_request_does_not_exist() {
+<a href=#623 id=623 data-nosnippet>623</a>		<span class="kw">let </span><span class="kw-2">mut </span>state = Delegator {
+<a href=#624 id=624 data-nosnippet>624</a>			id: <span class="number">1</span>,
+<a href=#625 id=625 data-nosnippet>625</a>			delegations: OrderedSet::from(<span class="macro">vec!</span>[Bond {
+<a href=#626 id=626 data-nosnippet>626</a>				amount: <span class="number">100</span>,
+<a href=#627 id=627 data-nosnippet>627</a>				owner: <span class="number">2</span>,
+<a href=#628 id=628 data-nosnippet>628</a>			}]),
+<a href=#629 id=629 data-nosnippet>629</a>			total: <span class="number">100</span>,
+<a href=#630 id=630 data-nosnippet>630</a>			less_total: <span class="number">100</span>,
+<a href=#631 id=631 data-nosnippet>631</a>			status: <span class="kw">crate</span>::DelegatorStatus::Active,
+<a href=#632 id=632 data-nosnippet>632</a>		};
+<a href=#633 id=633 data-nosnippet>633</a>		<span class="kw">let </span><span class="kw-2">mut </span>scheduled_requests: BoundedVec&lt;
+<a href=#634 id=634 data-nosnippet>634</a>			ScheduledRequest&lt;u128&gt;,
+<a href=#635 id=635 data-nosnippet>635</a>			&lt;Test <span class="kw">as </span><span class="kw">crate</span>::pallet::Config&gt;::MaxScheduledRequestsPerDelegator,
+<a href=#636 id=636 data-nosnippet>636</a>		&gt; = BoundedVec::default();
+<a href=#637 id=637 data-nosnippet>637</a>		<span class="kw">let </span>removed_request =
+<a href=#638 id=638 data-nosnippet>638</a>			&lt;Pallet&lt;Test&gt;&gt;::cancel_request_with_state(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;mut </span>scheduled_requests);
+<a href=#639 id=639 data-nosnippet>639</a>
+<a href=#640 id=640 data-nosnippet>640</a>		<span class="macro">assert_eq!</span>(removed_request, <span class="prelude-val">None</span>,);
+<a href=#641 id=641 data-nosnippet>641</a>		<span class="macro">assert_eq!</span>(
+<a href=#642 id=642 data-nosnippet>642</a>			scheduled_requests.len(),
+<a href=#643 id=643 data-nosnippet>643</a>			<span class="number">0</span>,
+<a href=#644 id=644 data-nosnippet>644</a>			<span class="string">"scheduled_requests should remain empty"
+<a href=#645 id=645 data-nosnippet>645</a>		</span>);
+<a href=#646 id=646 data-nosnippet>646</a>		<span class="macro">assert_eq!</span>(
+<a href=#647 id=647 data-nosnippet>647</a>			state.less_total, <span class="number">100</span>,
+<a href=#648 id=648 data-nosnippet>648</a>			<span class="string">"less_total should remain unchanged when there is nothing to cancel"
+<a href=#649 id=649 data-nosnippet>649</a>		</span>);
+<a href=#650 id=650 data-nosnippet>650</a>	}
+<a href=#651 id=651 data-nosnippet>651</a>}</code></pre></div></section></main></body></html>

@@ -28,87 +28,142 @@
 <a href=#28 id=28 data-nosnippet>28</a>			<span class="kw">use </span>frame_support::assert_ok;
 <a href=#29 id=29 data-nosnippet>29</a>			<span class="kw">use </span>frame_support::traits::fungible::Inspect;
 <a href=#30 id=30 data-nosnippet>30</a>			<span class="kw">use </span>frame_support::traits::EnsureOrigin;
-<a href=#31 id=31 data-nosnippet>31</a>			<span class="kw">use </span>moonbeam_core_primitives::{AccountId, Balance};
-<a href=#32 id=32 data-nosnippet>32</a>			<span class="kw">use </span>parity_scale_codec::Encode;
-<a href=#33 id=33 data-nosnippet>33</a>			<span class="kw">use </span>sp_weights::Weight;
-<a href=#34 id=34 data-nosnippet>34</a>			<span class="kw">use </span>xcm::{
-<a href=#35 id=35 data-nosnippet>35</a>				latest::{prelude::AccountKey20, Assets <span class="kw">as </span>XcmAssets, Xcm},
-<a href=#36 id=36 data-nosnippet>36</a>				VersionedAssets, VersionedLocation, VersionedXcm,
-<a href=#37 id=37 data-nosnippet>37</a>			};
-<a href=#38 id=38 data-nosnippet>38</a>			<span class="kw">use </span><span class="macro-nonterminal">$runtime</span>::{
-<a href=#39 id=39 data-nosnippet>39</a>				xcm_config::SelfReserve, Balances, PolkadotXcm, Runtime, RuntimeEvent,
-<a href=#40 id=40 data-nosnippet>40</a>				RuntimeOrigin, System,
-<a href=#41 id=41 data-nosnippet>41</a>			};
-<a href=#42 id=42 data-nosnippet>42</a>
-<a href=#43 id=43 data-nosnippet>43</a>			<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>last_events(n: usize) -&gt; Vec&lt;RuntimeEvent&gt; {
-<a href=#44 id=44 data-nosnippet>44</a>				System::events()
-<a href=#45 id=45 data-nosnippet>45</a>					.into_iter()
-<a href=#46 id=46 data-nosnippet>46</a>					.map(|e| e.event)
-<a href=#47 id=47 data-nosnippet>47</a>					.rev()
-<a href=#48 id=48 data-nosnippet>48</a>					.take(n)
-<a href=#49 id=49 data-nosnippet>49</a>					.rev()
-<a href=#50 id=50 data-nosnippet>50</a>					.collect()
-<a href=#51 id=51 data-nosnippet>51</a>			}
-<a href=#52 id=52 data-nosnippet>52</a>
-<a href=#53 id=53 data-nosnippet>53</a>			<span class="attr">#[test]
-<a href=#54 id=54 data-nosnippet>54</a>			</span><span class="kw">fn </span>claim_assets_works() {
-<a href=#55 id=55 data-nosnippet>55</a>				<span class="kw">const </span>INITIAL_BALANCE: Balance = <span class="number">10_000_000_000_000_000_000</span>;
-<a href=#56 id=56 data-nosnippet>56</a>				<span class="kw">const </span>SEND_AMOUNT: Balance = <span class="number">1_000_000_000_000_000_000</span>;
-<a href=#57 id=57 data-nosnippet>57</a>
-<a href=#58 id=58 data-nosnippet>58</a>				<span class="kw">let </span>alice = AccountId::from(ALICE);
-<a href=#59 id=59 data-nosnippet>59</a>				<span class="kw">let </span>balances = <span class="macro">vec!</span>[(alice, INITIAL_BALANCE)];
-<a href=#60 id=60 data-nosnippet>60</a>
-<a href=#61 id=61 data-nosnippet>61</a>				ExtBuilder::default()
-<a href=#62 id=62 data-nosnippet>62</a>					.with_balances(balances)
-<a href=#63 id=63 data-nosnippet>63</a>					.build()
-<a href=#64 id=64 data-nosnippet>64</a>					.execute_with(|| {
-<a href=#65 id=65 data-nosnippet>65</a>						<span class="kw">let </span>assets = XcmAssets::from((SelfReserve::get(), SEND_AMOUNT));
-<a href=#66 id=66 data-nosnippet>66</a>						<span class="comment">// First trap some assets.
-<a href=#67 id=67 data-nosnippet>67</a>						</span><span class="kw">let </span>trapping_program =
-<a href=#68 id=68 data-nosnippet>68</a>							Xcm::builder_unsafe().withdraw_asset(assets.clone()).build();
-<a href=#69 id=69 data-nosnippet>69</a>						<span class="comment">// Even though assets are trapped, the extrinsic returns success.
-<a href=#70 id=70 data-nosnippet>70</a>						</span><span class="kw">let </span>origin_location =
-<a href=#71 id=71 data-nosnippet>71</a>							&lt;Runtime <span class="kw">as </span>pallet_xcm::Config&gt;::ExecuteXcmOrigin::ensure_origin(
-<a href=#72 id=72 data-nosnippet>72</a>								RuntimeOrigin::signed(alice),
-<a href=#73 id=73 data-nosnippet>73</a>							)
-<a href=#74 id=74 data-nosnippet>74</a>							.expect(<span class="string">"qed"</span>);
-<a href=#75 id=75 data-nosnippet>75</a>						<span class="kw">let </span>message = Box::new(VersionedXcm::V5(trapping_program));
-<a href=#76 id=76 data-nosnippet>76</a>						<span class="kw">let </span><span class="kw-2">mut </span>hash = message.using_encoded(sp_io::hashing::blake2_256);
-<a href=#77 id=77 data-nosnippet>77</a>						<span class="kw">let </span>message = (<span class="kw-2">*</span>message).try_into().expect(<span class="string">"qed"</span>);
-<a href=#78 id=78 data-nosnippet>78</a>						<span class="kw">let _ </span>= &lt;Runtime <span class="kw">as </span>pallet_xcm::Config&gt;::XcmExecutor::prepare_and_execute(
-<a href=#79 id=79 data-nosnippet>79</a>							origin_location,
-<a href=#80 id=80 data-nosnippet>80</a>							message,
-<a href=#81 id=81 data-nosnippet>81</a>							<span class="kw-2">&amp;mut </span>hash,
-<a href=#82 id=82 data-nosnippet>82</a>							Weight::MAX,
-<a href=#83 id=83 data-nosnippet>83</a>							Weight::MAX,
-<a href=#84 id=84 data-nosnippet>84</a>						);
-<a href=#85 id=85 data-nosnippet>85</a>						<span class="macro">assert_eq!</span>(
-<a href=#86 id=86 data-nosnippet>86</a>							Balances::total_balance(<span class="kw-2">&amp;</span>alice),
-<a href=#87 id=87 data-nosnippet>87</a>							INITIAL_BALANCE - SEND_AMOUNT
-<a href=#88 id=88 data-nosnippet>88</a>						);
-<a href=#89 id=89 data-nosnippet>89</a>
-<a href=#90 id=90 data-nosnippet>90</a>						<span class="comment">// Assets were indeed trapped.
-<a href=#91 id=91 data-nosnippet>91</a>						</span><span class="macro">assert!</span>(last_events(<span class="number">2</span>).iter().any(|evt| <span class="macro">matches!</span>(
-<a href=#92 id=92 data-nosnippet>92</a>							evt,
-<a href=#93 id=93 data-nosnippet>93</a>							RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped { .. })
-<a href=#94 id=94 data-nosnippet>94</a>						)));
-<a href=#95 id=95 data-nosnippet>95</a>
-<a href=#96 id=96 data-nosnippet>96</a>						<span class="comment">// Now claim them with the extrinsic.
-<a href=#97 id=97 data-nosnippet>97</a>						</span><span class="macro">assert_ok!</span>(PolkadotXcm::claim_assets(
-<a href=#98 id=98 data-nosnippet>98</a>							RuntimeOrigin::signed(alice),
-<a href=#99 id=99 data-nosnippet>99</a>							Box::new(VersionedAssets::V5(assets)),
-<a href=#100 id=100 data-nosnippet>100</a>							Box::new(VersionedLocation::V5(
-<a href=#101 id=101 data-nosnippet>101</a>								AccountKey20 {
-<a href=#102 id=102 data-nosnippet>102</a>									network: <span class="prelude-val">None</span>,
-<a href=#103 id=103 data-nosnippet>103</a>									key: alice.clone().into()
-<a href=#104 id=104 data-nosnippet>104</a>								}
-<a href=#105 id=105 data-nosnippet>105</a>								.into()
-<a href=#106 id=106 data-nosnippet>106</a>							)),
-<a href=#107 id=107 data-nosnippet>107</a>						));
-<a href=#108 id=108 data-nosnippet>108</a>						<span class="comment">// Confirm that trapped assets were claimed back
-<a href=#109 id=109 data-nosnippet>109</a>						</span><span class="macro">assert_eq!</span>(Balances::total_balance(<span class="kw-2">&amp;</span>alice), INITIAL_BALANCE);
-<a href=#110 id=110 data-nosnippet>110</a>					});
-<a href=#111 id=111 data-nosnippet>111</a>			}
-<a href=#112 id=112 data-nosnippet>112</a>		}
-<a href=#113 id=113 data-nosnippet>113</a>	};
-<a href=#114 id=114 data-nosnippet>114</a>}</code></pre></div></section></main></body></html>
+<a href=#31 id=31 data-nosnippet>31</a>			<span class="kw">use </span>frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, WeightToFee <span class="kw">as _</span>};
+<a href=#32 id=32 data-nosnippet>32</a>			<span class="kw">use </span>moonbeam_core_primitives::{AccountId, Balance};
+<a href=#33 id=33 data-nosnippet>33</a>			<span class="kw">use </span>pallet_xcm_weight_trader::{SupportedAssets, RELATIVE_PRICE_DECIMALS};
+<a href=#34 id=34 data-nosnippet>34</a>			<span class="kw">use </span>parity_scale_codec::Encode;
+<a href=#35 id=35 data-nosnippet>35</a>			<span class="kw">use </span>sp_weights::Weight;
+<a href=#36 id=36 data-nosnippet>36</a>			<span class="kw">use </span>xcm::latest::Location;
+<a href=#37 id=37 data-nosnippet>37</a>			<span class="kw">use </span>xcm::{
+<a href=#38 id=38 data-nosnippet>38</a>				latest::{prelude::AccountKey20, Assets <span class="kw">as </span>XcmAssets, Xcm},
+<a href=#39 id=39 data-nosnippet>39</a>				VersionedAssets, VersionedLocation, VersionedXcm,
+<a href=#40 id=40 data-nosnippet>40</a>			};
+<a href=#41 id=41 data-nosnippet>41</a>			<span class="kw">use </span><span class="macro-nonterminal">$runtime</span>::{
+<a href=#42 id=42 data-nosnippet>42</a>				xcm_config::SelfReserve, Balances, PolkadotXcm, Runtime, RuntimeEvent,
+<a href=#43 id=43 data-nosnippet>43</a>				RuntimeOrigin, System, XcmTransactor, XcmWeightTrader,
+<a href=#44 id=44 data-nosnippet>44</a>			};
+<a href=#45 id=45 data-nosnippet>45</a>
+<a href=#46 id=46 data-nosnippet>46</a>			<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>last_events(n: usize) -&gt; Vec&lt;RuntimeEvent&gt; {
+<a href=#47 id=47 data-nosnippet>47</a>				System::events()
+<a href=#48 id=48 data-nosnippet>48</a>					.into_iter()
+<a href=#49 id=49 data-nosnippet>49</a>					.map(|e| e.event)
+<a href=#50 id=50 data-nosnippet>50</a>					.rev()
+<a href=#51 id=51 data-nosnippet>51</a>					.take(n)
+<a href=#52 id=52 data-nosnippet>52</a>					.rev()
+<a href=#53 id=53 data-nosnippet>53</a>					.collect()
+<a href=#54 id=54 data-nosnippet>54</a>			}
+<a href=#55 id=55 data-nosnippet>55</a>
+<a href=#56 id=56 data-nosnippet>56</a>			<span class="attr">#[test]
+<a href=#57 id=57 data-nosnippet>57</a>			</span><span class="kw">fn </span>dest_asset_fee_per_second_matches_configured_fee_not_relative_price() {
+<a href=#58 id=58 data-nosnippet>58</a>				<span class="kw">fn </span>set_fee_per_second_for_location(
+<a href=#59 id=59 data-nosnippet>59</a>					location: Location,
+<a href=#60 id=60 data-nosnippet>60</a>					fee_per_second: u128,
+<a href=#61 id=61 data-nosnippet>61</a>				) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
+<a href=#62 id=62 data-nosnippet>62</a>					<span class="kw">let </span>native_amount_per_second: u128 =
+<a href=#63 id=63 data-nosnippet>63</a>						&lt;Runtime <span class="kw">as </span>pallet_xcm_weight_trader::Config&gt;::WeightToFee::weight_to_fee(
+<a href=#64 id=64 data-nosnippet>64</a>							<span class="kw-2">&amp;</span>Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, <span class="number">0</span>),
+<a href=#65 id=65 data-nosnippet>65</a>						)
+<a href=#66 id=66 data-nosnippet>66</a>						.try_into()
+<a href=#67 id=67 data-nosnippet>67</a>						.map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
+<a href=#68 id=68 data-nosnippet>68</a>					<span class="kw">let </span>precision_factor = <span class="number">10u128</span>.pow(RELATIVE_PRICE_DECIMALS);
+<a href=#69 id=69 data-nosnippet>69</a>					<span class="kw">let </span>relative_price: u128 = <span class="kw">if </span>fee_per_second &gt; <span class="number">0u128 </span>{
+<a href=#70 id=70 data-nosnippet>70</a>						native_amount_per_second
+<a href=#71 id=71 data-nosnippet>71</a>							.saturating_mul(precision_factor)
+<a href=#72 id=72 data-nosnippet>72</a>							.saturating_div(fee_per_second)
+<a href=#73 id=73 data-nosnippet>73</a>					} <span class="kw">else </span>{
+<a href=#74 id=74 data-nosnippet>74</a>						<span class="number">0u128
+<a href=#75 id=75 data-nosnippet>75</a>					</span>};
+<a href=#76 id=76 data-nosnippet>76</a>					<span class="kw">if </span>SupportedAssets::&lt;Runtime&gt;::contains_key(<span class="kw-2">&amp;</span>location) {
+<a href=#77 id=77 data-nosnippet>77</a>						<span class="kw">let </span>enabled = SupportedAssets::&lt;Runtime&gt;::get(<span class="kw-2">&amp;</span>location).ok_or(())<span class="question-mark">?</span>.<span class="number">0</span>;
+<a href=#78 id=78 data-nosnippet>78</a>						SupportedAssets::&lt;Runtime&gt;::insert(<span class="kw-2">&amp;</span>location, (enabled, relative_price));
+<a href=#79 id=79 data-nosnippet>79</a>					} <span class="kw">else </span>{
+<a href=#80 id=80 data-nosnippet>80</a>						SupportedAssets::&lt;Runtime&gt;::insert(<span class="kw-2">&amp;</span>location, (<span class="bool-val">true</span>, relative_price));
+<a href=#81 id=81 data-nosnippet>81</a>					}
+<a href=#82 id=82 data-nosnippet>82</a>					<span class="prelude-val">Ok</span>(())
+<a href=#83 id=83 data-nosnippet>83</a>				}
+<a href=#84 id=84 data-nosnippet>84</a>
+<a href=#85 id=85 data-nosnippet>85</a>				ExtBuilder::default().build().execute_with(|| {
+<a href=#86 id=86 data-nosnippet>86</a>					<span class="comment">// Scenario: the reserve asset is 5x more valuable than the native asset.
+<a href=#87 id=87 data-nosnippet>87</a>					// The actual fee-per-second on the reserve chain is native_fee_per_second / 5.
+<a href=#88 id=88 data-nosnippet>88</a>					</span><span class="kw">let </span>native_fee_per_second = WEIGHT_REF_TIME_PER_SECOND <span class="kw">as </span>u128;
+<a href=#89 id=89 data-nosnippet>89</a>					<span class="kw">let </span>actual_fee_per_second = native_fee_per_second
+<a href=#90 id=90 data-nosnippet>90</a>						.checked_div(<span class="number">5</span>)
+<a href=#91 id=91 data-nosnippet>91</a>						.expect(<span class="string">"division by 5 should not overflow"</span>);
+<a href=#92 id=92 data-nosnippet>92</a>
+<a href=#93 id=93 data-nosnippet>93</a>					<span class="kw">let </span>location = Location::parent();
+<a href=#94 id=94 data-nosnippet>94</a>
+<a href=#95 id=95 data-nosnippet>95</a>					<span class="comment">// Configure weight-trader storage using a helper that writes the relative price.
+<a href=#96 id=96 data-nosnippet>96</a>					</span>set_fee_per_second_for_location(location.clone(), actual_fee_per_second)
+<a href=#97 id=97 data-nosnippet>97</a>						.expect(<span class="string">"must be able to configure fee per second"</span>);
+<a href=#98 id=98 data-nosnippet>98</a>
+<a href=#99 id=99 data-nosnippet>99</a>					<span class="comment">// dest_asset_fee_per_second must return the true fee-per-second that callers
+<a href=#100 id=100 data-nosnippet>100</a>					// expect.
+<a href=#101 id=101 data-nosnippet>101</a>					</span><span class="kw">let </span>reported = XcmTransactor::dest_asset_fee_per_second(<span class="kw-2">&amp;</span>location)
+<a href=#102 id=102 data-nosnippet>102</a>						.expect(<span class="string">"fee should be set"</span>);
+<a href=#103 id=103 data-nosnippet>103</a>
+<a href=#104 id=104 data-nosnippet>104</a>					<span class="macro">assert_eq!</span>(reported, actual_fee_per_second);
+<a href=#105 id=105 data-nosnippet>105</a>				});
+<a href=#106 id=106 data-nosnippet>106</a>			}
+<a href=#107 id=107 data-nosnippet>107</a>
+<a href=#108 id=108 data-nosnippet>108</a>			<span class="attr">#[test]
+<a href=#109 id=109 data-nosnippet>109</a>			</span><span class="kw">fn </span>claim_assets_works() {
+<a href=#110 id=110 data-nosnippet>110</a>				<span class="kw">const </span>INITIAL_BALANCE: Balance = <span class="number">10_000_000_000_000_000_000</span>;
+<a href=#111 id=111 data-nosnippet>111</a>				<span class="kw">const </span>SEND_AMOUNT: Balance = <span class="number">1_000_000_000_000_000_000</span>;
+<a href=#112 id=112 data-nosnippet>112</a>
+<a href=#113 id=113 data-nosnippet>113</a>				<span class="kw">let </span>alice = AccountId::from(ALICE);
+<a href=#114 id=114 data-nosnippet>114</a>				<span class="kw">let </span>balances = <span class="macro">vec!</span>[(alice, INITIAL_BALANCE)];
+<a href=#115 id=115 data-nosnippet>115</a>
+<a href=#116 id=116 data-nosnippet>116</a>				ExtBuilder::default()
+<a href=#117 id=117 data-nosnippet>117</a>					.with_balances(balances)
+<a href=#118 id=118 data-nosnippet>118</a>					.build()
+<a href=#119 id=119 data-nosnippet>119</a>					.execute_with(|| {
+<a href=#120 id=120 data-nosnippet>120</a>						<span class="kw">let </span>assets = XcmAssets::from((SelfReserve::get(), SEND_AMOUNT));
+<a href=#121 id=121 data-nosnippet>121</a>						<span class="comment">// First trap some assets.
+<a href=#122 id=122 data-nosnippet>122</a>						</span><span class="kw">let </span>trapping_program =
+<a href=#123 id=123 data-nosnippet>123</a>							Xcm::builder_unsafe().withdraw_asset(assets.clone()).build();
+<a href=#124 id=124 data-nosnippet>124</a>						<span class="comment">// Even though assets are trapped, the extrinsic returns success.
+<a href=#125 id=125 data-nosnippet>125</a>						</span><span class="kw">let </span>origin_location =
+<a href=#126 id=126 data-nosnippet>126</a>							&lt;Runtime <span class="kw">as </span>pallet_xcm::Config&gt;::ExecuteXcmOrigin::ensure_origin(
+<a href=#127 id=127 data-nosnippet>127</a>								RuntimeOrigin::signed(alice),
+<a href=#128 id=128 data-nosnippet>128</a>							)
+<a href=#129 id=129 data-nosnippet>129</a>							.expect(<span class="string">"qed"</span>);
+<a href=#130 id=130 data-nosnippet>130</a>						<span class="kw">let </span>message = Box::new(VersionedXcm::V5(trapping_program));
+<a href=#131 id=131 data-nosnippet>131</a>						<span class="kw">let </span><span class="kw-2">mut </span>hash = message.using_encoded(sp_io::hashing::blake2_256);
+<a href=#132 id=132 data-nosnippet>132</a>						<span class="kw">let </span>message = (<span class="kw-2">*</span>message).try_into().expect(<span class="string">"qed"</span>);
+<a href=#133 id=133 data-nosnippet>133</a>						<span class="kw">let _ </span>= &lt;Runtime <span class="kw">as </span>pallet_xcm::Config&gt;::XcmExecutor::prepare_and_execute(
+<a href=#134 id=134 data-nosnippet>134</a>							origin_location,
+<a href=#135 id=135 data-nosnippet>135</a>							message,
+<a href=#136 id=136 data-nosnippet>136</a>							<span class="kw-2">&amp;mut </span>hash,
+<a href=#137 id=137 data-nosnippet>137</a>							Weight::MAX,
+<a href=#138 id=138 data-nosnippet>138</a>							Weight::MAX,
+<a href=#139 id=139 data-nosnippet>139</a>						);
+<a href=#140 id=140 data-nosnippet>140</a>						<span class="macro">assert_eq!</span>(
+<a href=#141 id=141 data-nosnippet>141</a>							Balances::total_balance(<span class="kw-2">&amp;</span>alice),
+<a href=#142 id=142 data-nosnippet>142</a>							INITIAL_BALANCE - SEND_AMOUNT
+<a href=#143 id=143 data-nosnippet>143</a>						);
+<a href=#144 id=144 data-nosnippet>144</a>
+<a href=#145 id=145 data-nosnippet>145</a>						<span class="comment">// Assets were indeed trapped.
+<a href=#146 id=146 data-nosnippet>146</a>						</span><span class="macro">assert!</span>(last_events(<span class="number">2</span>).iter().any(|evt| <span class="macro">matches!</span>(
+<a href=#147 id=147 data-nosnippet>147</a>							evt,
+<a href=#148 id=148 data-nosnippet>148</a>							RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped { .. })
+<a href=#149 id=149 data-nosnippet>149</a>						)));
+<a href=#150 id=150 data-nosnippet>150</a>
+<a href=#151 id=151 data-nosnippet>151</a>						<span class="comment">// Now claim them with the extrinsic.
+<a href=#152 id=152 data-nosnippet>152</a>						</span><span class="macro">assert_ok!</span>(PolkadotXcm::claim_assets(
+<a href=#153 id=153 data-nosnippet>153</a>							RuntimeOrigin::signed(alice),
+<a href=#154 id=154 data-nosnippet>154</a>							Box::new(VersionedAssets::V5(assets)),
+<a href=#155 id=155 data-nosnippet>155</a>							Box::new(VersionedLocation::V5(
+<a href=#156 id=156 data-nosnippet>156</a>								AccountKey20 {
+<a href=#157 id=157 data-nosnippet>157</a>									network: <span class="prelude-val">None</span>,
+<a href=#158 id=158 data-nosnippet>158</a>									key: alice.clone().into()
+<a href=#159 id=159 data-nosnippet>159</a>								}
+<a href=#160 id=160 data-nosnippet>160</a>								.into()
+<a href=#161 id=161 data-nosnippet>161</a>							)),
+<a href=#162 id=162 data-nosnippet>162</a>						));
+<a href=#163 id=163 data-nosnippet>163</a>						<span class="comment">// Confirm that trapped assets were claimed back
+<a href=#164 id=164 data-nosnippet>164</a>						</span><span class="macro">assert_eq!</span>(Balances::total_balance(<span class="kw-2">&amp;</span>alice), INITIAL_BALANCE);
+<a href=#165 id=165 data-nosnippet>165</a>					});
+<a href=#166 id=166 data-nosnippet>166</a>			}
+<a href=#167 id=167 data-nosnippet>167</a>		}
+<a href=#168 id=168 data-nosnippet>168</a>	};
+<a href=#169 id=169 data-nosnippet>169</a>}</code></pre></div></section></main></body></html>

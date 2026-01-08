@@ -68,7 +68,7 @@
 <a href=#68 id=68 data-nosnippet>68</a></span><span class="attr">#![cfg_attr(not(feature = <span class="string">"std"</span>), no_std)]
 <a href=#69 id=69 data-nosnippet>69</a>
 <a href=#70 id=70 data-nosnippet>70</a></span><span class="kw">use </span>frame_support::pallet;
-<a href=#71 id=71 data-nosnippet>71</a><span class="kw">use </span>frame_support::weights::Weight;
+<a href=#71 id=71 data-nosnippet>71</a><span class="kw">use </span>frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight};
 <a href=#72 id=72 data-nosnippet>72</a><span class="kw">use </span>sp_runtime::DispatchError;
 <a href=#73 id=73 data-nosnippet>73</a><span class="kw">use </span>xcm::latest::prelude::Location;
 <a href=#74 id=74 data-nosnippet>74</a><span class="kw">use </span>xcm_primitives::XcmFeeTrader;
@@ -1098,7 +1098,7 @@
 <a href=#1098 id=1098 data-nosnippet>1098</a>
 <a href=#1099 id=1099 data-nosnippet>1099</a>			<span class="comment">// Otherwise, delegate to FeeTrader to compute the fee based on weight and asset pricing,
 <a href=#1100 id=1100 data-nosnippet>1100</a>			// and validate that the fee asset is a reserve for the destination.
-<a href=#1101 id=1101 data-nosnippet>1101</a>			</span><span class="kw">let </span>amount: u128 = T::FeeTrader::compute_fee(total_weight, <span class="kw-2">&amp;</span>fee_location, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+<a href=#1101 id=1101 data-nosnippet>1101</a>			</span><span class="kw">let </span>amount: u128 = T::FeeTrader::compute_fee(total_weight, <span class="kw-2">&amp;</span>fee_location)<span class="question-mark">?</span>;
 <a href=#1102 id=1102 data-nosnippet>1102</a>
 <a href=#1103 id=1103 data-nosnippet>1103</a>			<span class="kw">let </span>asset = Asset {
 <a href=#1104 id=1104 data-nosnippet>1104</a>				id: AssetId(fee_location.clone()),
@@ -1273,17 +1273,21 @@
 <a href=#1273 id=1273 data-nosnippet>1273</a>		}
 <a href=#1274 id=1274 data-nosnippet>1274</a>
 <a href=#1275 id=1275 data-nosnippet>1275</a>		<span class="doccomment">/// Get the fee per second for an asset location.
-<a href=#1276 id=1276 data-nosnippet>1276</a>		/// This now delegates to the FeeTrader instead of reading from local storage.
-<a href=#1277 id=1277 data-nosnippet>1277</a>		</span><span class="kw">pub fn </span>dest_asset_fee_per_second(location: <span class="kw-2">&amp;</span>Location) -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
-<a href=#1278 id=1278 data-nosnippet>1278</a>			T::FeeTrader::get_asset_price(location)
-<a href=#1279 id=1279 data-nosnippet>1279</a>		}
-<a href=#1280 id=1280 data-nosnippet>1280</a>
-<a href=#1281 id=1281 data-nosnippet>1281</a>		<span class="doccomment">/// Converts Currency to multilocation
-<a href=#1282 id=1282 data-nosnippet>1282</a>		</span><span class="kw">pub fn </span>currency_to_multilocation(currency: Currency&lt;CurrencyIdOf&lt;T&gt;&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Location&gt; {
-<a href=#1283 id=1283 data-nosnippet>1283</a>			<span class="kw">match </span>currency {
-<a href=#1284 id=1284 data-nosnippet>1284</a>				Currency::AsCurrencyId(id) =&gt; T::CurrencyIdToLocation::convert(id),
-<a href=#1285 id=1285 data-nosnippet>1285</a>				Currency::AsMultiLocation(multiloc) =&gt; Location::try_from(<span class="kw-2">*</span>multiloc).ok(),
-<a href=#1286 id=1286 data-nosnippet>1286</a>			}
-<a href=#1287 id=1287 data-nosnippet>1287</a>		}
-<a href=#1288 id=1288 data-nosnippet>1288</a>	}
-<a href=#1289 id=1289 data-nosnippet>1289</a>}</code></pre></div></section></main></body></html>
+<a href=#1276 id=1276 data-nosnippet>1276</a>		///
+<a href=#1277 id=1277 data-nosnippet>1277</a>		/// This derives the fee-per-second value by asking the configured `FeeTrader`
+<a href=#1278 id=1278 data-nosnippet>1278</a>		/// to compute the fee for one second of execution weight, instead of
+<a href=#1279 id=1279 data-nosnippet>1279</a>		/// exposing any internal pricing representation (such as relative prices).
+<a href=#1280 id=1280 data-nosnippet>1280</a>		</span><span class="kw">pub fn </span>dest_asset_fee_per_second(location: <span class="kw-2">&amp;</span>Location) -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
+<a href=#1281 id=1281 data-nosnippet>1281</a>			<span class="kw">let </span>one_second = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, <span class="number">0</span>);
+<a href=#1282 id=1282 data-nosnippet>1282</a>			T::FeeTrader::compute_fee(one_second, location).ok()
+<a href=#1283 id=1283 data-nosnippet>1283</a>		}
+<a href=#1284 id=1284 data-nosnippet>1284</a>
+<a href=#1285 id=1285 data-nosnippet>1285</a>		<span class="doccomment">/// Converts Currency to multilocation
+<a href=#1286 id=1286 data-nosnippet>1286</a>		</span><span class="kw">pub fn </span>currency_to_multilocation(currency: Currency&lt;CurrencyIdOf&lt;T&gt;&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Location&gt; {
+<a href=#1287 id=1287 data-nosnippet>1287</a>			<span class="kw">match </span>currency {
+<a href=#1288 id=1288 data-nosnippet>1288</a>				Currency::AsCurrencyId(id) =&gt; T::CurrencyIdToLocation::convert(id),
+<a href=#1289 id=1289 data-nosnippet>1289</a>				Currency::AsMultiLocation(multiloc) =&gt; Location::try_from(<span class="kw-2">*</span>multiloc).ok(),
+<a href=#1290 id=1290 data-nosnippet>1290</a>			}
+<a href=#1291 id=1291 data-nosnippet>1291</a>		}
+<a href=#1292 id=1292 data-nosnippet>1292</a>	}
+<a href=#1293 id=1293 data-nosnippet>1293</a>}</code></pre></div></section></main></body></html>
