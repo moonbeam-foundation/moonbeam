@@ -45,6 +45,7 @@ pallet-timestamp = { workspace = true, features = ["std"] }
 parity-scale-codec = { workspace = true, features = ["max-encoded-len", "std"] }
 pallet-xcm-transactor = { workspace = true, features = ["std"] }
 precompile-utils = { workspace = true, features = ["std", "testing"] }
+moonbeam-tests-primitives = { workspace = true }
 scale-info = { workspace = true, features = ["derive", "std"] }
 sp-runtime = { workspace = true, features = ["std"] }
 

@@ -2697,15 +2697,6 @@ declare module "@polkadot/types/lookup" {
     readonly asTransactInfoRemoved: {
       readonly location: StagingXcmV5Location;
     } & Struct;
-    readonly isDestFeePerSecondChanged: boolean;
-    readonly asDestFeePerSecondChanged: {
-      readonly location: StagingXcmV5Location;
-      readonly feePerSecond: u128;
-    } & Struct;
-    readonly isDestFeePerSecondRemoved: boolean;
-    readonly asDestFeePerSecondRemoved: {
-      readonly location: StagingXcmV5Location;
-    } & Struct;
     readonly isHrmpManagementSent: boolean;
     readonly asHrmpManagementSent: {
       readonly action: PalletXcmTransactorHrmpOperation;
@@ -2719,8 +2710,6 @@ declare module "@polkadot/types/lookup" {
       | "TransactFailed"
       | "TransactInfoChanged"
       | "TransactInfoRemoved"
-      | "DestFeePerSecondChanged"
-      | "DestFeePerSecondRemoved"
       | "HrmpManagementSent";
   }
 
@@ -5132,15 +5121,6 @@ declare module "@polkadot/types/lookup" {
       readonly weightInfo: PalletXcmTransactorTransactWeights;
       readonly refund: bool;
     } & Struct;
-    readonly isSetFeePerSecond: boolean;
-    readonly asSetFeePerSecond: {
-      readonly assetLocation: XcmVersionedLocation;
-      readonly feePerSecond: u128;
-    } & Struct;
-    readonly isRemoveFeePerSecond: boolean;
-    readonly asRemoveFeePerSecond: {
-      readonly assetLocation: XcmVersionedLocation;
-    } & Struct;
     readonly isHrmpManage: boolean;
     readonly asHrmpManage: {
       readonly action: PalletXcmTransactorHrmpOperation;
@@ -5155,8 +5135,6 @@ declare module "@polkadot/types/lookup" {
       | "SetTransactInfo"
       | "RemoveTransactInfo"
       | "TransactThroughSigned"
-      | "SetFeePerSecond"
-      | "RemoveFeePerSecond"
       | "HrmpManage";
   }
 
@@ -7466,7 +7444,6 @@ declare module "@polkadot/types/lookup" {
     readonly isBadVersion: boolean;
     readonly isMaxWeightTransactReached: boolean;
     readonly isUnableToWithdrawAsset: boolean;
-    readonly isFeePerSecondNotSet: boolean;
     readonly isSignedTransactNotAllowedForDestination: boolean;
     readonly isFailedMultiLocationToJunction: boolean;
     readonly isHrmpHandlerNotImplemented: boolean;
@@ -7494,7 +7471,6 @@ declare module "@polkadot/types/lookup" {
       | "BadVersion"
       | "MaxWeightTransactReached"
       | "UnableToWithdrawAsset"
-      | "FeePerSecondNotSet"
       | "SignedTransactNotAllowedForDestination"
       | "FailedMultiLocationToJunction"
       | "HrmpHandlerNotImplemented"

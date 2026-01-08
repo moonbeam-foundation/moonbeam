@@ -23,6 +23,7 @@ use frame_system::RawOrigin;
 use sp_std::boxed::Box;
 use sp_std::vec;
 use xcm::latest::prelude::*;
+use xcm_primitives::XcmFeeTrader;
 
 /// Helper function to set up XCM router for benchmarks
 fn setup_xcm_router<T: Config>() {
@@ -118,26 +119,6 @@ mod benchmarks {
 		Ok(())
 	}
 
-	#[benchmark]
-	fn set_fee_per_second() -> Result<(), BenchmarkError> {
-		let fee_per_second = 1;
-		let location = Location::parent();
-
-		#[extrinsic_call]
-		_(
-			RawOrigin::Root,
-			Box::new(xcm::VersionedLocation::from(location.clone())),
-			fee_per_second,
-		);
-
-		assert_eq!(
-			Pallet::<T>::dest_asset_fee_per_second(&location),
-			Some(fee_per_second)
-		);
-
-		Ok(())
-	}
-
 	// Worst Case: AsCurrencyId, as the translation could involve db reads
 	// Worst Case: transacInfo db reads
 	#[benchmark]
@@ -161,12 +142,8 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		Pallet::<T>::set_fee_per_second(
-			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedLocation::from(location.clone())),
-			fee_per_second,
-		)
-		.expect("must succeed");
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
+			.expect("must succeed");
 		Pallet::<T>::register(RawOrigin::Root.into(), user.clone(), 0).expect("must succeed");
 
 		#[block]
@@ -222,12 +199,8 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		Pallet::<T>::set_fee_per_second(
-			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedLocation::from(location.clone())),
-			fee_per_second,
-		)
-		.expect("must succeed");
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
+			.expect("must succeed");
 
 		#[block]
 		{
@@ -283,12 +256,8 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		Pallet::<T>::set_fee_per_second(
-			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedLocation::from(location.clone())),
-			fee_per_second,
-		)
-		.expect("must succeed");
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
+			.expect("must succeed");
 
 		#[extrinsic_call]
 		_(
@@ -331,12 +300,8 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		Pallet::<T>::set_fee_per_second(
-			RawOrigin::Root.into(),
-			Box::new(xcm::VersionedLocation::from(location.clone())),
-			fee_per_second,
-		)
-		.expect("must succeed");
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
+			.expect("must succeed");
 
 		#[extrinsic_call]
 		_(

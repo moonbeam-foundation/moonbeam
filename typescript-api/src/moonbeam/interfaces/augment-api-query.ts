@@ -2395,18 +2395,6 @@ declare module "@polkadot/api-base/types/storage" {
     };
     xcmTransactor: {
       /**
-       * Stores the fee per second for an asset in its reserve chain. This allows us to convert
-       * from weight to fee
-       **/
-      destinationAssetFeePerSecond: AugmentedQuery<
-        ApiType,
-        (
-          arg: StagingXcmV5Location | { parents?: any; interior?: any } | string | Uint8Array
-        ) => Observable<Option<u128>>,
-        [StagingXcmV5Location]
-      > &
-        QueryableStorageEntry<ApiType, [StagingXcmV5Location]>;
-      /**
        * Since we are using pallet-utility for account derivation (through AsDerivative),
        * we need to provide an index for the account derivation. This storage item stores the index
        * assigned for a given local account. These indices are usable as derivative in the relay chain

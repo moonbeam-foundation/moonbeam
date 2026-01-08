@@ -207,6 +207,7 @@ polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
+moonbeam-tests-primitives = { workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true }

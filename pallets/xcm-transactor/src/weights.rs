@@ -56,7 +56,6 @@ pub trait WeightInfo {
 	fn deregister() -> Weight;
 	fn set_transact_info() -> Weight;
 	fn remove_transact_info() -> Weight;
-	fn set_fee_per_second() -> Weight;
 	fn transact_through_derivative() -> Weight;
 	fn transact_through_sovereign() -> Weight;
 	fn transact_through_signed() -> Weight;
@@ -107,24 +106,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_parts(15_752_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	/// Storage: XcmTransactor DestinationAssetFeePerSecond (r:0 w:1)
-	/// Proof Skipped: XcmTransactor DestinationAssetFeePerSecond (max_values: None, max_size: None, mode: Measured)
-	fn set_fee_per_second() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 16_164_000 picoseconds.
-		Weight::from_parts(16_519_000, 0)
-			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
 	/// Storage: AssetManager AssetIdType (r:1 w:0)
 	/// Proof Skipped: AssetManager AssetIdType (max_values: None, max_size: None, mode: Measured)
 	/// Storage: XcmTransactor IndexToAccount (r:1 w:0)
 	/// Proof Skipped: XcmTransactor IndexToAccount (max_values: None, max_size: None, mode: Measured)
 	/// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
 	/// Proof Skipped: XcmTransactor TransactInfoWithWeightLimit (max_values: None, max_size: None, mode: Measured)
-	/// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
-	/// Proof Skipped: XcmTransactor DestinationAssetFeePerSecond (max_values: None, max_size: None, mode: Measured)
+	/// Storage: XcmWeightTrader SupportedAssets (r:1 w:0)
+	/// Note: This now reads from pallet-xcm-weight-trader instead of local storage
 	/// Storage: AssetManager AssetTypeId (r:1 w:0)
 	/// Proof Skipped: AssetManager AssetTypeId (max_values: None, max_size: None, mode: Measured)
 	/// Storage: Assets Asset (r:1 w:0)
@@ -141,8 +130,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Proof Skipped: AssetManager AssetIdType (max_values: None, max_size: None, mode: Measured)
 	/// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
 	/// Proof Skipped: XcmTransactor TransactInfoWithWeightLimit (max_values: None, max_size: None, mode: Measured)
-	/// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
-	/// Proof Skipped: XcmTransactor DestinationAssetFeePerSecond (max_values: None, max_size: None, mode: Measured)
+	/// Storage: XcmWeightTrader SupportedAssets (r:1 w:0)
+	/// Note: This now reads from pallet-xcm-weight-trader instead of local storage
 	/// Storage: AssetManager AssetTypeId (r:1 w:0)
 	/// Proof Skipped: AssetManager AssetTypeId (max_values: None, max_size: None, mode: Measured)
 	/// Storage: Assets Asset (r:1 w:0)
@@ -159,8 +148,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Proof Skipped: AssetManager AssetIdType (max_values: None, max_size: None, mode: Measured)
 	/// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
 	/// Proof Skipped: XcmTransactor TransactInfoWithWeightLimit (max_values: None, max_size: None, mode: Measured)
-	/// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
-	/// Proof Skipped: XcmTransactor DestinationAssetFeePerSecond (max_values: None, max_size: None, mode: Measured)
+	/// Storage: XcmWeightTrader SupportedAssets (r:1 w:0)
+	/// Note: This now reads from pallet-xcm-weight-trader instead of local storage
 	/// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 	/// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	/// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
@@ -184,8 +173,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// Proof Skipped: AssetManager AssetIdType (max_values: None, max_size: None, mode: Measured)
 	/// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
 	/// Proof Skipped: XcmTransactor TransactInfoWithWeightLimit (max_values: None, max_size: None, mode: Measured)
-	/// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
-	/// Proof Skipped: XcmTransactor DestinationAssetFeePerSecond (max_values: None, max_size: None, mode: Measured)
+	/// Storage: XcmWeightTrader SupportedAssets (r:1 w:0)
+	/// Note: This now reads from pallet-xcm-weight-trader instead of local storage
 	/// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 	/// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	/// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
@@ -250,24 +239,14 @@ impl WeightInfo for () {
 		Weight::from_parts(15_752_000, 0)
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
-	/// Storage: XcmTransactor DestinationAssetFeePerSecond (r:0 w:1)
-	/// Proof Skipped: XcmTransactor DestinationAssetFeePerSecond (max_values: None, max_size: None, mode: Measured)
-	fn set_fee_per_second() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 16_164_000 picoseconds.
-		Weight::from_parts(16_519_000, 0)
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
 	/// Storage: AssetManager AssetIdType (r:1 w:0)
 	/// Proof Skipped: AssetManager AssetIdType (max_values: None, max_size: None, mode: Measured)
 	/// Storage: XcmTransactor IndexToAccount (r:1 w:0)
 	/// Proof Skipped: XcmTransactor IndexToAccount (max_values: None, max_size: None, mode: Measured)
 	/// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
 	/// Proof Skipped: XcmTransactor TransactInfoWithWeightLimit (max_values: None, max_size: None, mode: Measured)
-	/// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
-	/// Proof Skipped: XcmTransactor DestinationAssetFeePerSecond (max_values: None, max_size: None, mode: Measured)
+	/// Storage: XcmWeightTrader SupportedAssets (r:1 w:0)
+	/// Note: This now reads from pallet-xcm-weight-trader instead of local storage
 	/// Storage: AssetManager AssetTypeId (r:1 w:0)
 	/// Proof Skipped: AssetManager AssetTypeId (max_values: None, max_size: None, mode: Measured)
 	/// Storage: Assets Asset (r:1 w:0)
@@ -284,8 +263,8 @@ impl WeightInfo for () {
 	/// Proof Skipped: AssetManager AssetIdType (max_values: None, max_size: None, mode: Measured)
 	/// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
 	/// Proof Skipped: XcmTransactor TransactInfoWithWeightLimit (max_values: None, max_size: None, mode: Measured)
-	/// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
-	/// Proof Skipped: XcmTransactor DestinationAssetFeePerSecond (max_values: None, max_size: None, mode: Measured)
+	/// Storage: XcmWeightTrader SupportedAssets (r:1 w:0)
+	/// Note: This now reads from pallet-xcm-weight-trader instead of local storage
 	/// Storage: AssetManager AssetTypeId (r:1 w:0)
 	/// Proof Skipped: AssetManager AssetTypeId (max_values: None, max_size: None, mode: Measured)
 	/// Storage: Assets Asset (r:1 w:0)
@@ -302,8 +281,8 @@ impl WeightInfo for () {
 	/// Proof Skipped: AssetManager AssetIdType (max_values: None, max_size: None, mode: Measured)
 	/// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
 	/// Proof Skipped: XcmTransactor TransactInfoWithWeightLimit (max_values: None, max_size: None, mode: Measured)
-	/// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
-	/// Proof Skipped: XcmTransactor DestinationAssetFeePerSecond (max_values: None, max_size: None, mode: Measured)
+	/// Storage: XcmWeightTrader SupportedAssets (r:1 w:0)
+	/// Note: This now reads from pallet-xcm-weight-trader instead of local storage
 	/// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 	/// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	/// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
@@ -327,8 +306,8 @@ impl WeightInfo for () {
 	/// Proof Skipped: AssetManager AssetIdType (max_values: None, max_size: None, mode: Measured)
 	/// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
 	/// Proof Skipped: XcmTransactor TransactInfoWithWeightLimit (max_values: None, max_size: None, mode: Measured)
-	/// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
-	/// Proof Skipped: XcmTransactor DestinationAssetFeePerSecond (max_values: None, max_size: None, mode: Measured)
+	/// Storage: XcmWeightTrader SupportedAssets (r:1 w:0)
+	/// Note: This now reads from pallet-xcm-weight-trader instead of local storage
 	/// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 	/// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	/// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
