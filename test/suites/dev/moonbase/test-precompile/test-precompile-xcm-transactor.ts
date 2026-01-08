@@ -41,12 +41,10 @@ describeSuite({
         const asset: [number, any[]] = [1, []];
         const nativeFeePerSecond = BigInt(
           (
-            await context
-              .polkadotJs()
-              .call.transactionPaymentApi.queryWeightToFee({
-                refTime: 1_000_000_000_000n,
-                proofSize: 0n,
-              })
+            await context.polkadotJs().call.transactionPaymentApi.queryWeightToFee({
+              refTime: 1_000_000_000_000n,
+              proofSize: 0n,
+            })
           ).toString()
         );
 
@@ -68,12 +66,10 @@ describeSuite({
 
         const nativeFeePerSecond = BigInt(
           (
-            await context
-              .polkadotJs()
-              .call.transactionPaymentApi.queryWeightToFee({
-                refTime: 1_000_000_000_000n,
-                proofSize: 0n,
-              })
+            await context.polkadotJs().call.transactionPaymentApi.queryWeightToFee({
+              refTime: 1_000_000_000_000n,
+              proofSize: 0n,
+            })
           ).toString()
         );
 
