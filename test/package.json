@@ -71,6 +71,7 @@
     "debug": "4.4.3",
     "inquirer": "12.9.6",
     "typescript": "5.9.3",
+    "ws": "^8.18.3",
     "yargs": "18.0.0"
   },
   "engines": {
