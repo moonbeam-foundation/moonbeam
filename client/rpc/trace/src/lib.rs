@@ -354,7 +354,70 @@ enum BlockingTaskMessage {
 	Finished {
 		block_hash: H256,
 		result: TxsTraceRes,
+		duration: Duration,
 	},
+}
+
+/// Prometheus metrics for trace filter cache operations.
+struct CacheMetrics {
+	/// Current size of the wait list (number of blocks being traced)
+	wait_list_size: substrate_prometheus_endpoint::Gauge<substrate_prometheus_endpoint::U64>,
+	/// Total requests that joined an existing wait list entry (deduplication)
+	wait_list_joins_total:
+		substrate_prometheus_endpoint::Counter<substrate_prometheus_endpoint::U64>,
+	/// Total trace tasks spawned
+	tasks_spawned_total: substrate_prometheus_endpoint::Counter<substrate_prometheus_endpoint::U64>,
+	/// Total trace operations that timed out
+	timeouts_total: substrate_prometheus_endpoint::Counter<substrate_prometheus_endpoint::U64>,
+	/// Histogram of trace operation durations in seconds
+	trace_duration_seconds: substrate_prometheus_endpoint::Histogram,
+}
+
+impl CacheMetrics {
+	fn register(
+		registry: &PrometheusRegistry,
+	) -> Result<Self, substrate_prometheus_endpoint::PrometheusError> {
+		Ok(Self {
+			wait_list_size: substrate_prometheus_endpoint::register(
+				substrate_prometheus_endpoint::Gauge::new(
+					"trace_filter_wait_list_size",
+					"Current number of blocks in the wait list being traced",
+				)?,
+				registry,
+			)?,
+			wait_list_joins_total: substrate_prometheus_endpoint::register(
+				substrate_prometheus_endpoint::Counter::new(
+					"trace_filter_wait_list_joins_total",
+					"Total requests that joined an existing wait list entry",
+				)?,
+				registry,
+			)?,
+			tasks_spawned_total: substrate_prometheus_endpoint::register(
+				substrate_prometheus_endpoint::Counter::new(
+					"trace_filter_tasks_spawned_total",
+					"Total trace tasks spawned",
+				)?,
+				registry,
+			)?,
+			timeouts_total: substrate_prometheus_endpoint::register(
+				substrate_prometheus_endpoint::Counter::new(
+					"trace_filter_timeouts_total",
+					"Total trace operations that timed out",
+				)?,
+				registry,
+			)?,
+			trace_duration_seconds: substrate_prometheus_endpoint::register(
+				substrate_prometheus_endpoint::Histogram::with_opts(
+					substrate_prometheus_endpoint::HistogramOpts::new(
+						"trace_filter_trace_duration_seconds",
+						"Histogram of trace operation durations in seconds",
+					)
+					.buckets(vec![0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0]),
+				)?,
+				registry,
+			)?,
+		})
+	}
 }
 
 /// Type wrapper for the cache task, generic over the Client, Block and Backend types.
@@ -364,6 +427,7 @@ pub struct CacheTask<B, C, BE> {
 	blocking_permits: Arc<Semaphore>,
 	cache: LRUCacheByteLimited<H256, Arc<Vec<TransactionTrace>>>,
 	wait_list: WaitList,
+	metrics: Option<CacheMetrics>,
 	_phantom: PhantomData<B>,
 }
 
@@ -401,11 +465,27 @@ where
 		// Task running in the service.
 		let task = async move {
 			let (blocking_tx, mut blocking_rx) =
-				mpsc::channel(blocking_permits.available_permits() * 2);
+				mpsc::channel(blocking_permits.available_permits().saturating_mul(2));
 
 			// Periodic cleanup interval for orphaned wait list entries
 			let mut cleanup_interval = interval(Duration::from_secs(30));
 			cleanup_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+
+			// Register metrics if prometheus registry is provided
+			let metrics =
+				prometheus
+					.as_ref()
+					.and_then(|registry| match CacheMetrics::register(registry) {
+						Ok(metrics) => Some(metrics),
+						Err(e) => {
+							log::warn!(
+								target: CACHE_LOG_TARGET,
+								"Failed to register trace filter metrics: {:?}",
+								e
+							);
+							None
+						}
+					});
 
 			let mut inner = Self {
 				client,
@@ -417,6 +497,7 @@ where
 					prometheus,
 				),
 				wait_list: HashMap::new(),
+				metrics,
 				_phantom: Default::default(),
 			};
 
@@ -430,8 +511,8 @@ where
 						}
 					},
 					message = blocking_rx.recv().fuse() => {
-						if let Some(BlockingTaskMessage::Finished { block_hash, result }) = message {
-							inner.blocking_finished(block_hash, result);
+						if let Some(BlockingTaskMessage::Finished { block_hash, result, duration }) = message {
+							inner.blocking_finished(block_hash, result, duration);
 						}
 					},
 					_ = cleanup_interval.tick().fuse() => {
@@ -485,6 +566,12 @@ where
 				entry.waiters.len()
 			);
 			entry.waiters.push(sender);
+
+			// Increment deduplication metric
+			if let Some(ref metrics) = self.metrics {
+				metrics.wait_list_joins_total.inc();
+			}
+
 			return;
 		}
 
@@ -504,11 +591,18 @@ where
 			self.blocking_permits.available_permits()
 		);
 
+		// Update metrics
+		if let Some(ref metrics) = self.metrics {
+			metrics.tasks_spawned_total.inc();
+			metrics.wait_list_size.set(self.wait_list.len() as u64);
+		}
+
 		// Spawn worker task to trace the block
 		let blocking_permits = Arc::clone(&self.blocking_permits);
 		let client = Arc::clone(&self.client);
 		let backend = Arc::clone(&self.backend);
 		let blocking_tx = blocking_tx.clone();
+		let start_time = Instant::now();
 
 		spawn_handle.spawn(
 			"trace-block",
@@ -550,10 +644,12 @@ where
 				};
 
 				// Send result back to main task
+				let duration = start_time.elapsed();
 				let _ = blocking_tx
 					.send(BlockingTaskMessage::Finished {
 						block_hash: block,
 						result,
+						duration,
 					})
 					.await;
 			}
@@ -564,10 +660,18 @@ where
 	/// Handle completion of a block trace task.
 	/// Sends result to all waiting requests and caches it.
 	/// Uses Arc for zero-copy sharing across multiple waiters.
-	fn blocking_finished(&mut self, block_hash: H256, result: TxsTraceRes) {
+	fn blocking_finished(&mut self, block_hash: H256, result: TxsTraceRes, duration: Duration) {
 		// Get all waiting senders for this block
 		if let Some(entry) = self.wait_list.remove(&block_hash) {
 			let waiter_count = entry.waiters.len();
+
+			// Update wait list size metric
+			if let Some(ref metrics) = self.metrics {
+				metrics.wait_list_size.set(self.wait_list.len() as u64);
+				metrics
+					.trace_duration_seconds
+					.observe(duration.as_secs_f64());
+			}
 
 			match result {
 				Ok(traces) => {
@@ -577,10 +681,11 @@ where
 
 					log::debug!(
 						target: CACHE_LOG_TARGET,
-						"Trace completed: block={}, traces={}, waiters={}, cached=true",
+						"Trace completed: block={}, traces={}, waiters={}, cached=true, duration={:?}",
 						block_hash,
 						trace_count,
-						waiter_count
+						waiter_count,
+						duration
 					);
 
 					// Send Arc::clone to all waiters (cheap pointer copy, no data duplication)
@@ -638,6 +743,15 @@ where
 			to_remove.len()
 		);
 
+		// Increment timeout metric for each timed out block
+		if !to_remove.is_empty() {
+			if let Some(ref metrics) = self.metrics {
+				for _ in &to_remove {
+					metrics.timeouts_total.inc();
+				}
+			}
+		}
+
 		// Remove timed-out entries and notify waiters
 		let timeout_error =
 			Arc::new("Trace request timeout (task failed or was cancelled)".to_string());
@@ -648,6 +762,11 @@ where
 					let _ = sender.send(Err(Arc::clone(&timeout_error)));
 				}
 			}
+		}
+
+		// Update wait list size metric after cleanup
+		if let Some(ref metrics) = self.metrics {
+			metrics.wait_list_size.set(self.wait_list.len() as u64);
 		}
 	}
 
