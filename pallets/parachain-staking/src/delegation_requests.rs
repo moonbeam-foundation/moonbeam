@@ -212,6 +212,8 @@ impl<T: Config> Pallet<T> {
 				post_info: Some(actual_weight).into(),
 				error: <Error<T>>::DelegationDNE.into(),
 			})?;
+		// Per-request safety: a single decrease cannot exceed the current delegation
+		// and must leave at least MinDelegation on that delegation.
 		ensure!(
 			bonded_amount > decrease_amount,
 			DispatchErrorWithPostInfo {
@@ -222,6 +224,27 @@ impl<T: Config> Pallet<T> {
 		let new_amount: BalanceOf<T> = (bonded_amount - decrease_amount).into();
 		ensure!(
 			new_amount >= T::MinDelegation::get(),
+			DispatchErrorWithPostInfo {
+				post_info: Some(actual_weight).into(),
+				error: <Error<T>>::DelegationBelowMin.into(),
+			},
+		);
+
+		// Cumulative safety: multiple pending Decrease requests for the same
+		// (collator, delegator) pair must also respect the MinDelegation
+		// constraint when applied together. Otherwise, snapshots can become
+		// inconsistent even if each request, in isolation, appears valid.
+		let pending_decrease_total: BalanceOf<T> = scheduled_requests
+			.iter()
+			.filter_map(|req| match req.action {
+				DelegationAction::Decrease(amount) => Some(amount),
+				_ => None,
+			})
+			.fold(BalanceOf::<T>::zero(), |acc, amount| acc.saturating_add(amount));
+		let total_decrease_after = pending_decrease_total.saturating_add(decrease_amount);
+		let new_amount_after_all = bonded_amount.saturating_sub(total_decrease_after);
+		ensure!(
+			new_amount_after_all >= T::MinDelegation::get(),
 			DispatchErrorWithPostInfo {
 				post_info: Some(actual_weight).into(),
 				error: <Error<T>>::DelegationBelowMin.into(),

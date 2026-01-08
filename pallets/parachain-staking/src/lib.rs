@@ -2211,12 +2211,19 @@ pub mod pallet {
 					bond.amount = match requests.get(&bond.owner) {
 						None => bond.amount,
 						Some(DelegationAction::Revoke(_)) => {
+							// For revokes, the entire current bond is excluded from rewards.
 							uncounted_stake = uncounted_stake.saturating_add(bond.amount);
 							BalanceOf::<T>::zero()
 						}
 						Some(DelegationAction::Decrease(amount)) => {
-							uncounted_stake = uncounted_stake.saturating_add(*amount);
-							bond.amount.saturating_sub(*amount)
+							// Multiple pending decreases for this (collator, delegator) pair
+							// are aggregated into `amount`. However, we must never account
+							// more uncounted stake than is actually bonded on this
+							// delegation, otherwise `uncounted_stake` can exceed the real
+							// removable stake and corrupt the snapshot denominator.
+							let capped = sp_std::cmp::min(*amount, bond.amount);
+							uncounted_stake = uncounted_stake.saturating_add(capped);
+							bond.amount.saturating_sub(capped)
 						}
 					};
 
