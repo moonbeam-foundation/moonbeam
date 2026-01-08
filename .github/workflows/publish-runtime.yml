@@ -140,6 +140,8 @@ jobs:
           path: original-tools
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
       - name: Generate release body
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
