@@ -221,14 +221,6 @@ impl<T: Config> Pallet<T> {
 				error: <Error<T>>::DelegatorBondBelowMin.into(),
 			},
 		);
-		let new_amount: BalanceOf<T> = (bonded_amount - decrease_amount).into();
-		ensure!(
-			new_amount >= T::MinDelegation::get(),
-			DispatchErrorWithPostInfo {
-				post_info: Some(actual_weight).into(),
-				error: <Error<T>>::DelegationBelowMin.into(),
-			},
-		);
 
 		// Cumulative safety: multiple pending Decrease requests for the same
 		// (collator, delegator) pair must also respect the MinDelegation
