@@ -240,7 +240,9 @@ impl<T: Config> Pallet<T> {
 				DelegationAction::Decrease(amount) => Some(amount),
 				_ => None,
 			})
-			.fold(BalanceOf::<T>::zero(), |acc, amount| acc.saturating_add(amount));
+			.fold(BalanceOf::<T>::zero(), |acc, amount| {
+				acc.saturating_add(amount)
+			});
 		let total_decrease_after = pending_decrease_total.saturating_add(decrease_amount);
 		let new_amount_after_all = bonded_amount.saturating_sub(total_decrease_after);
 		ensure!(

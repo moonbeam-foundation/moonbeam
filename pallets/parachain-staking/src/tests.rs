@@ -397,7 +397,10 @@ fn stacked_decrease_requests_cannot_break_snapshot_denominator_or_overmint_payou
 			(D1, initial_balance),
 			(D2, initial_balance),
 		])
-		.with_candidates(vec![(COLLATOR, collator_bond), (OTHER_COLLATOR, collator_bond)])
+		.with_candidates(vec![
+			(COLLATOR, collator_bond),
+			(OTHER_COLLATOR, collator_bond),
+		])
 		// ExtBuilder expects 3-tuples (delegator, collator, amount)
 		.with_delegations(vec![
 			(D1, COLLATOR, d_stake),
@@ -408,7 +411,9 @@ fn stacked_decrease_requests_cannot_break_snapshot_denominator_or_overmint_payou
 		.execute_with(|| {
 			// Do NOT set_total_selected(1). Instead, remove OTHER_COLLATOR from CandidatePool
 			// so only COLLATOR can be selected.
-			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(OTHER_COLLATOR)));
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(
+				OTHER_COLLATOR
+			)));
 
 			// First Decrease is individually valid.
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
@@ -449,8 +454,11 @@ fn stacked_decrease_requests_cannot_break_snapshot_denominator_or_overmint_payou
 				AtStake::<Test>::get(round, COLLATOR).expect("AtStake snapshot must exist");
 
 			// --- Check invariant is preserved ---
-			let sum_delegations: crate::mock::Balance =
-				snapshot.delegations.iter().map(|d| d.amount).sum::<crate::mock::Balance>();
+			let sum_delegations: crate::mock::Balance = snapshot
+				.delegations
+				.iter()
+				.map(|d| d.amount)
+				.sum::<crate::mock::Balance>();
 			let expected_total = snapshot.bond.saturating_add(sum_delegations);
 			assert_eq!(
 				snapshot.total, expected_total,
