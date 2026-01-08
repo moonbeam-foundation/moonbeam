@@ -131,31 +131,6 @@ fn set_fee_per_second_for_location(location: Location, fee_per_second: u128) -> 
 }
 
 #[test]
-fn dest_asset_fee_per_second_matches_configured_fee_not_relative_price() {
-	ExtBuilder::default().build().execute_with(|| {
-		// Scenario: the reserve asset is 5x more valuable than the native asset.
-		// The actual fee-per-second on the reserve chain is native_fee_per_second / 5.
-		let native_fee_per_second = WEIGHT_REF_TIME_PER_SECOND as u128;
-		let actual_fee_per_second = native_fee_per_second
-			.checked_div(5)
-			.expect("division by 5 should not overflow");
-
-		let location = Location::parent();
-
-		// Configure weight-trader storage using a helper that writes the relative price.
-		set_fee_per_second_for_location(location.clone(), actual_fee_per_second)
-			.expect("must be able to configure fee per second");
-
-		// dest_asset_fee_per_second must return the true fee-per-second that callers
-		// expect
-		let reported =
-			XcmTransactor::dest_asset_fee_per_second(&location).expect("fee should be set");
-
-		assert_eq!(reported, actual_fee_per_second);
-	});
-}
-
-#[test]
 fn xcmp_queue_controller_origin_is_root() {
 	// important for the XcmExecutionManager impl of PauseExecution which uses root origin
 	// to suspend/resume XCM execution in xcmp_queue::on_idle

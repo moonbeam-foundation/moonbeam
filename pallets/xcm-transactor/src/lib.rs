@@ -1098,7 +1098,7 @@ pub mod pallet {
 
 			// Otherwise, delegate to FeeTrader to compute the fee based on weight and asset pricing,
 			// and validate that the fee asset is a reserve for the destination.
-			let amount: u128 = T::FeeTrader::compute_fee(total_weight, &fee_location, None)?;
+			let amount: u128 = T::FeeTrader::compute_fee(total_weight, &fee_location)?;
 
 			let asset = Asset {
 				id: AssetId(fee_location.clone()),
@@ -1279,7 +1279,7 @@ pub mod pallet {
 		/// exposing any internal pricing representation (such as relative prices).
 		pub fn dest_asset_fee_per_second(location: &Location) -> Option<u128> {
 			let one_second = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, 0);
-			T::FeeTrader::compute_fee(one_second, location, None).ok()
+			T::FeeTrader::compute_fee(one_second, location).ok()
 		}
 
 		/// Converts Currency to multilocation
