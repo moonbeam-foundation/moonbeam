@@ -31,9 +31,9 @@ use crate::mock::{
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
-	AtStake, Bond, CollatorStatus, DelegationScheduledRequests,
+	AtStake, AwardedPts, Bond, CollatorStatus, DelegationScheduledRequests,
 	DelegationScheduledRequestsPerCollator, DelegatorAdded, EnableMarkingOffline, Error, Event,
-	FreezeReason, InflationDistributionInfo, Range, WasInactive,
+	FreezeReason, InflationDistributionInfo, Points, Range, WasInactive,
 };
 use frame_support::traits::fungible::MutateFreeze;
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
@@ -353,6 +353,154 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 				selected_collators_number: 1,
 				total_balance: 20
 			});
+		});
+}
+
+#[test]
+fn stacked_decrease_requests_cannot_break_snapshot_denominator_or_overmint_payout() {
+	// `MinCandidateStk` and `MinDelegation` are associated types on the pallet
+	// config and already implement `Get`, so we can use them directly without
+	// importing the trait in the local scope.
+	use sp_runtime::Perbill;
+
+	// --- Accounts (u64 AccountId in this mock runtime) ---
+	const COLLATOR: AccountId = 1;
+	const OTHER_COLLATOR: AccountId = 2;
+	// D1: attacker who tries to stack Decrease requests on (COLLATOR, D1)
+	const D1: AccountId = 3;
+	// D2: top delegator who would benefit from a broken denominator
+	const D2: AccountId = 4;
+
+	// Pull runtime constants so this test is robust across mock parameter changes.
+	let min_candidate: crate::mock::Balance = <Test as crate::Config>::MinCandidateStk::get();
+	let min_delegation: crate::mock::Balance = <Test as crate::Config>::MinDelegation::get();
+
+	// Make collator bond relatively small, and delegations relatively large so that:
+	// - D2.amount would be able to dominate rewards if denominator were broken.
+	let collator_bond: crate::mock::Balance = min_candidate.saturating_add(1_000);
+	// D1 and D2 delegate large amount to COLLATOR so they are in top delegations.
+	let d_stake: crate::mock::Balance = collator_bond.saturating_mul(2);
+	// Each Decrease leaves exactly min_delegation (passes per-call check),
+	// but stacking 2x would make total_decrease > original bond amount on that delegation.
+	let dec: crate::mock::Balance = d_stake.saturating_sub(min_delegation);
+	// IMPORTANT: D1 needs extra delegation elsewhere so that net_total (global) would
+	// otherwise allow 2 decreases.
+	let other_stake: crate::mock::Balance = d_stake;
+
+	// Very large balances so no funding issues.
+	let initial_balance: crate::mock::Balance = 1_000_000_000_000_000_000u128;
+
+	ExtBuilder::default()
+		.with_balances(vec![
+			(COLLATOR, initial_balance),
+			(OTHER_COLLATOR, initial_balance),
+			(D1, initial_balance),
+			(D2, initial_balance),
+		])
+		.with_candidates(vec![
+			(COLLATOR, collator_bond),
+			(OTHER_COLLATOR, collator_bond),
+		])
+		// ExtBuilder expects 3-tuples (delegator, collator, amount)
+		.with_delegations(vec![
+			(D1, COLLATOR, d_stake),
+			(D2, COLLATOR, d_stake),
+			(D1, OTHER_COLLATOR, other_stake), // buffer to allow stacked decreases at global level
+		])
+		.build()
+		.execute_with(|| {
+			// Do NOT set_total_selected(1). Instead, remove OTHER_COLLATOR from CandidatePool
+			// so only COLLATOR can be selected.
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(
+				OTHER_COLLATOR
+			)));
+
+			// First Decrease is individually valid.
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				RuntimeOrigin::signed(D1),
+				COLLATOR,
+				dec
+			));
+
+			// Second, identical Decrease for the same (COLLATOR, D1) must now be rejected
+			// because the cumulative scheduled decrease would push the delegation below
+			// MinDelegation.
+			assert_noop!(
+				ParachainStaking::schedule_delegator_bond_less(
+					RuntimeOrigin::signed(D1),
+					COLLATOR,
+					dec
+				)
+				.map_err(|err| err.error),
+				Error::<Test>::DelegationBelowMin
+			);
+
+			let reqs = ParachainStaking::delegation_scheduled_requests(COLLATOR, D1);
+			assert_eq!(
+				reqs.len(),
+				1,
+				"only one valid Decrease request should be scheduled"
+			);
+
+			// Build a new round snapshot (calls get_rewardable_delegators internally).
+			let round: u32 = 2;
+			let (_w, collator_count, _delegation_count, _total) =
+				ParachainStaking::select_top_candidates(round);
+
+			// Since OTHER_COLLATOR is offline (not in CandidatePool), only COLLATOR should be selected.
+			assert_eq!(collator_count, 1, "expected only one selected collator");
+
+			let snapshot =
+				AtStake::<Test>::get(round, COLLATOR).expect("AtStake snapshot must exist");
+
+			// --- Check invariant is preserved ---
+			let sum_delegations: crate::mock::Balance = snapshot
+				.delegations
+				.iter()
+				.map(|d| d.amount)
+				.sum::<crate::mock::Balance>();
+			let expected_total = snapshot.bond.saturating_add(sum_delegations);
+			assert_eq!(
+				snapshot.total, expected_total,
+				"snapshot.total must equal bond + sum(delegations); total={}, expected={}",
+				snapshot.total, expected_total
+			);
+
+			// Ensure D2 remains a rewardable delegator.
+			let d2_amount = snapshot
+				.delegations
+				.iter()
+				.find(|d| d.owner == D2)
+				.expect("D2 must be in rewardable delegations")
+				.amount;
+			assert!(
+				!d2_amount.is_zero(),
+				"D2 should retain a positive delegation amount in the snapshot"
+			);
+
+			// --- Force a deterministic payout for this snapshot ---
+			Points::<Test>::insert(round, 20u32);
+			AwardedPts::<Test>::insert(round, COLLATOR, 20u32);
+			let payout_info = crate::DelayedPayout::<crate::mock::Balance> {
+				round_issuance: 1_000_000u128,
+				total_staking_reward: 1_000_000u128,
+				collator_commission: Perbill::from_percent(0),
+			};
+
+			let issuance_before = Balances::total_issuance();
+			let (_status, _weight) =
+				ParachainStaking::pay_one_collator_reward(round, payout_info.clone());
+			let issuance_after = Balances::total_issuance();
+			let minted = issuance_after.saturating_sub(issuance_before);
+
+			// With a correct denominator and zero commission, the total minted issuance
+			// must never exceed total_staking_reward.
+			assert!(
+				minted <= payout_info.total_staking_reward,
+				"minted={} must be <= total_staking_reward={}",
+				minted,
+				payout_info.total_staking_reward
+			);
 		});
 }
 
