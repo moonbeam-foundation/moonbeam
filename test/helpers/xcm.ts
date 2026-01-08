@@ -1,5 +1,5 @@
 import { type DevModeContext, customDevRpcRequest, expect } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS } from "@moonwall/util";
+import { alith, ALITH_ADDRESS, GLMR } from "@moonwall/util";
 import type { DispatchError, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import type {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
@@ -886,7 +886,7 @@ export const registerXcmTransactorAndContract = async (context: DevModeContext) 
   // Configure XCM fee pricing for the relay asset via pallet-xcm-weight-trader.
   // We register the relay asset with the same price as the native token (relative price = 1e18),
   // so one second of XCM execution in relay tokens costs the same as one second in the native token.
-  await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, 1_000_000_000_000_000_000n, context);
+  await addAssetToWeightTrader(RELAY_SOURCE_LOCATION, GLMR, context);
 };
 
 export const registerXcmTransactorDerivativeIndex = async (context: DevModeContext) => {
