@@ -36,16 +36,7 @@ thread_local! {
 pub struct MemoryFeeTrader;
 
 impl XcmFeeTrader for MemoryFeeTrader {
-	fn compute_fee(
-		weight: Weight,
-		asset_location: &Location,
-		explicit_amount: Option<u128>,
-	) -> Result<u128, DispatchError> {
-		// If explicit amount is provided, use it directly
-		if let Some(amount) = explicit_amount {
-			return Ok(amount);
-		}
-
+	fn compute_fee(weight: Weight, asset_location: &Location) -> Result<u128, DispatchError> {
 		// Get fee-per-second from storage
 		let fee_per_second = FEE_PER_SECOND
 			.with(|map| map.borrow().get(asset_location).copied())

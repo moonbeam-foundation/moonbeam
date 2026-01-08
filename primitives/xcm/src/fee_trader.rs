@@ -25,14 +25,10 @@ use xcm::latest::Location;
 /// (e.g., pallet-xcm-weight-trader) instead of maintaining their own storage.
 pub trait XcmFeeTrader {
 	/// Compute the fee amount for a given weight and asset location.
-	/// If `explicit_amount` is provided, it should be used directly.
-	/// Otherwise, the fee should be calculated based on the weight and asset pricing.
-	/// The `destination` parameter is used to validate that the asset is a valid reserve.
-	fn compute_fee(
-		weight: Weight,
-		asset_location: &Location,
-		explicit_amount: Option<u128>,
-	) -> Result<u128, DispatchError>;
+	///
+	/// The fee should be calculated based on the weight and asset pricing configured
+	/// for the given asset location.
+	fn compute_fee(weight: Weight, asset_location: &Location) -> Result<u128, DispatchError>;
 
 	/// Get the current price/fee-per-second for an asset, if configured.
 	/// Returns None if the asset is not configured.

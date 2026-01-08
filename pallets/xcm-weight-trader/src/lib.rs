@@ -528,14 +528,8 @@ impl<T: Config> XcmFeeTrader for Pallet<T> {
 	fn compute_fee(
 		weight: frame_support::weights::Weight,
 		asset_location: &xcm::latest::Location,
-		explicit_amount: Option<u128>,
 	) -> Result<u128, DispatchError> {
 		use xcm::v5::Error as XcmError;
-
-		// If explicit amount is provided, use it directly
-		if let Some(amount) = explicit_amount {
-			return Ok(amount);
-		}
 
 		// Convert xcm::latest::Location to xcm::v5::Location for internal computation
 		let asset_location_v5 = xcm::v5::Location::try_from(asset_location.clone())

@@ -39,6 +39,14 @@ describeSuite({
       test: async function () {
         // Destination as multilocation, one parent
         const asset: [number, any[]] = [1, []];
+        const nativeFeePerSecond = BigInt(
+          (
+            await context.polkadotJs().call.transactionPaymentApi.queryWeightToFee({
+              refTime: 1_000_000_000_000n,
+              proofSize: 0n,
+            })
+          ).toString()
+        );
 
         expect(
           await context.readPrecompile!({
@@ -46,7 +54,7 @@ describeSuite({
             functionName: "transactInfo",
             args: [asset],
           })
-        ).toEqual([1n, 1000000000000n, 20000000000n]);
+        ).toEqual([1n, nativeFeePerSecond, 20000000000n]);
       },
     });
 
@@ -56,13 +64,22 @@ describeSuite({
       test: async function () {
         const asset: [number, any[]] = [1, []];
 
+        const nativeFeePerSecond = BigInt(
+          (
+            await context.polkadotJs().call.transactionPaymentApi.queryWeightToFee({
+              refTime: 1_000_000_000_000n,
+              proofSize: 0n,
+            })
+          ).toString()
+        );
+
         expect(
           await context.readPrecompile!({
             precompileName: "XcmTransactorV1",
             functionName: "feePerSecond",
             args: [asset],
           })
-        ).toBe(1000000000000n);
+        ).toBe(nativeFeePerSecond);
       },
     });
 

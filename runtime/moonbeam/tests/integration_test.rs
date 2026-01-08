@@ -129,6 +129,7 @@ fn set_fee_per_second_for_location(location: Location, fee_per_second: u128) -> 
 	}
 	Ok(())
 }
+
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
 	// important for the XcmExecutionManager impl of PauseExecution which uses root origin
