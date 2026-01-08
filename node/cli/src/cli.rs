@@ -235,7 +235,7 @@ pub struct RunCmd {
 	/// Size in bytes of the LRU cache for trace_filter block traces.
 	/// Default value is 100MB (104,857,600 bytes).
 	#[clap(long, default_value = "104857600")]
-	pub ethapi_trace_filter_cache_size: u64,
+	pub ethapi_trace_cache_size: u64,
 
 	/// Size in bytes of the LRU cache for block data.
 	#[clap(long, default_value = "300000000")]
@@ -350,7 +350,7 @@ impl RunCmd {
 			ethapi: self.ethapi.clone(),
 			ethapi_max_permits: self.ethapi_max_permits,
 			ethapi_trace_max_count: self.ethapi_trace_max_count,
-			ethapi_trace_filter_cache_size: self.ethapi_trace_filter_cache_size,
+			ethapi_trace_cache_size: self.ethapi_trace_cache_size,
 			eth_log_block_cache: self.eth_log_block_cache,
 			eth_statuses_cache: self.eth_statuses_cache,
 			fee_history_limit: self.fee_history_limit,
