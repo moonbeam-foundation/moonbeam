@@ -39,13 +39,16 @@ describeSuite({
       test: async function () {
         // Destination as multilocation, one parent
         const asset: [number, any[]] = [1, []];
-
-        const nativeFeePerSecond = (await context
-          .polkadotJs()
-          .call.transactionPaymentApi.queryWeightToFee({
-            refTime: 1_000_000_000_000n,
-            proofSize: 0n,
-          })) as bigint;
+        const nativeFeePerSecond = BigInt(
+          (
+            await context
+              .polkadotJs()
+              .call.transactionPaymentApi.queryWeightToFee({
+                refTime: 1_000_000_000_000n,
+                proofSize: 0n,
+              })
+          ).toString()
+        );
 
         expect(
           await context.readPrecompile!({
@@ -63,12 +66,16 @@ describeSuite({
       test: async function () {
         const asset: [number, any[]] = [1, []];
 
-        const nativeFeePerSecond = (await context
-          .polkadotJs()
-          .call.transactionPaymentApi.queryWeightToFee({
-            refTime: 1_000_000_000_000n,
-            proofSize: 0n,
-          })) as bigint;
+        const nativeFeePerSecond = BigInt(
+          (
+            await context
+              .polkadotJs()
+              .call.transactionPaymentApi.queryWeightToFee({
+                refTime: 1_000_000_000_000n,
+                proofSize: 0n,
+              })
+          ).toString()
+        );
 
         expect(
           await context.readPrecompile!({
