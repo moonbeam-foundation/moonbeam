@@ -232,10 +232,10 @@
 <a href=#232 id=232 data-nosnippet>232</a>	</span><span class="attr">#[clap(long, default_value = <span class="string">"500"</span>)]
 <a href=#233 id=233 data-nosnippet>233</a>	</span><span class="kw">pub </span>ethapi_trace_max_count: u32,
 <a href=#234 id=234 data-nosnippet>234</a>
-<a href=#235 id=235 data-nosnippet>235</a>	<span class="doccomment">/// Duration (in seconds) after which the cache of `trace_filter` for a given block will be
-<a href=#236 id=236 data-nosnippet>236</a>	/// discarded.
-<a href=#237 id=237 data-nosnippet>237</a>	</span><span class="attr">#[clap(long, default_value = <span class="string">"300"</span>)]
-<a href=#238 id=238 data-nosnippet>238</a>	</span><span class="kw">pub </span>ethapi_trace_cache_duration: u64,
+<a href=#235 id=235 data-nosnippet>235</a>	<span class="doccomment">/// Size in bytes of the LRU cache for trace_filter block traces.
+<a href=#236 id=236 data-nosnippet>236</a>	/// Default value is 100MB (104,857,600 bytes).
+<a href=#237 id=237 data-nosnippet>237</a>	</span><span class="attr">#[clap(long, default_value = <span class="string">"104857600"</span>)]
+<a href=#238 id=238 data-nosnippet>238</a>	</span><span class="kw">pub </span>ethapi_trace_cache_size: u64,
 <a href=#239 id=239 data-nosnippet>239</a>
 <a href=#240 id=240 data-nosnippet>240</a>	<span class="doccomment">/// Size in bytes of the LRU cache for block data.
 <a href=#241 id=241 data-nosnippet>241</a>	</span><span class="attr">#[clap(long, default_value = <span class="string">"300000000"</span>)]
@@ -350,7 +350,7 @@
 <a href=#350 id=350 data-nosnippet>350</a>			ethapi: <span class="self">self</span>.ethapi.clone(),
 <a href=#351 id=351 data-nosnippet>351</a>			ethapi_max_permits: <span class="self">self</span>.ethapi_max_permits,
 <a href=#352 id=352 data-nosnippet>352</a>			ethapi_trace_max_count: <span class="self">self</span>.ethapi_trace_max_count,
-<a href=#353 id=353 data-nosnippet>353</a>			ethapi_trace_cache_duration: <span class="self">self</span>.ethapi_trace_cache_duration,
+<a href=#353 id=353 data-nosnippet>353</a>			ethapi_trace_cache_size: <span class="self">self</span>.ethapi_trace_cache_size,
 <a href=#354 id=354 data-nosnippet>354</a>			eth_log_block_cache: <span class="self">self</span>.eth_log_block_cache,
 <a href=#355 id=355 data-nosnippet>355</a>			eth_statuses_cache: <span class="self">self</span>.eth_statuses_cache,
 <a href=#356 id=356 data-nosnippet>356</a>			fee_history_limit: <span class="self">self</span>.fee_history_limit,

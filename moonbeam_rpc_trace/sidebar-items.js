@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CacheBatchId","CacheRequester","CacheTask","FilterRequest","Trace"],"trait":["TraceServer"]};
+window.SIDEBAR_ITEMS = {"struct":["CacheRequester","CacheTask","FilterRequest","Trace"],"trait":["TraceServer"]};

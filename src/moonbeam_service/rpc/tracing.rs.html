@@ -53,55 +53,56 @@
 <a href=#53 id=53 data-nosnippet>53</a>			<span class="kw">let </span>(trace_filter_task, trace_filter_requester) = CacheTask::create(
 <a href=#54 id=54 data-nosnippet>54</a>				Arc::clone(<span class="kw-2">&amp;</span>params.client),
 <a href=#55 id=55 data-nosnippet>55</a>				Arc::clone(<span class="kw-2">&amp;</span>params.substrate_backend),
-<a href=#56 id=56 data-nosnippet>56</a>				Duration::from_secs(rpc_config.ethapi_trace_cache_duration),
+<a href=#56 id=56 data-nosnippet>56</a>				rpc_config.ethapi_trace_cache_size,
 <a href=#57 id=57 data-nosnippet>57</a>				Arc::clone(<span class="kw-2">&amp;</span>permit_pool),
 <a href=#58 id=58 data-nosnippet>58</a>				Arc::clone(<span class="kw-2">&amp;</span>params.overrides),
 <a href=#59 id=59 data-nosnippet>59</a>				prometheus,
-<a href=#60 id=60 data-nosnippet>60</a>			);
-<a href=#61 id=61 data-nosnippet>61</a>			(<span class="prelude-val">Some</span>(trace_filter_task), <span class="prelude-val">Some</span>(trace_filter_requester))
-<a href=#62 id=62 data-nosnippet>62</a>		} <span class="kw">else </span>{
-<a href=#63 id=63 data-nosnippet>63</a>			(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
-<a href=#64 id=64 data-nosnippet>64</a>		};
-<a href=#65 id=65 data-nosnippet>65</a>
-<a href=#66 id=66 data-nosnippet>66</a>	<span class="kw">let </span>(debug_task, debug_requester) = <span class="kw">if </span>rpc_config.ethapi.contains(<span class="kw-2">&amp;</span>EthApiCmd::Debug) {
-<a href=#67 id=67 data-nosnippet>67</a>		<span class="kw">let </span>(debug_task, debug_requester) = DebugHandler::task(
-<a href=#68 id=68 data-nosnippet>68</a>			Arc::clone(<span class="kw-2">&amp;</span>params.client),
-<a href=#69 id=69 data-nosnippet>69</a>			Arc::clone(<span class="kw-2">&amp;</span>params.substrate_backend),
-<a href=#70 id=70 data-nosnippet>70</a>			<span class="kw">match </span><span class="kw-2">*</span>params.frontier_backend {
-<a href=#71 id=71 data-nosnippet>71</a>				fc_db::Backend::KeyValue(<span class="kw-2">ref </span>b) =&gt; b.clone(),
-<a href=#72 id=72 data-nosnippet>72</a>				fc_db::Backend::Sql(<span class="kw-2">ref </span>b) =&gt; b.clone(),
-<a href=#73 id=73 data-nosnippet>73</a>			},
-<a href=#74 id=74 data-nosnippet>74</a>			Arc::clone(<span class="kw-2">&amp;</span>permit_pool),
-<a href=#75 id=75 data-nosnippet>75</a>			Arc::clone(<span class="kw-2">&amp;</span>params.overrides),
-<a href=#76 id=76 data-nosnippet>76</a>			rpc_config.tracing_raw_max_memory_usage,
-<a href=#77 id=77 data-nosnippet>77</a>		);
-<a href=#78 id=78 data-nosnippet>78</a>		(<span class="prelude-val">Some</span>(debug_task), <span class="prelude-val">Some</span>(debug_requester))
-<a href=#79 id=79 data-nosnippet>79</a>	} <span class="kw">else </span>{
-<a href=#80 id=80 data-nosnippet>80</a>		(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
-<a href=#81 id=81 data-nosnippet>81</a>	};
-<a href=#82 id=82 data-nosnippet>82</a>
-<a href=#83 id=83 data-nosnippet>83</a>	<span class="comment">// `trace_filter` cache task. Essential.
-<a href=#84 id=84 data-nosnippet>84</a>	// Proxies rpc requests to it's handler.
-<a href=#85 id=85 data-nosnippet>85</a>	</span><span class="kw">if let </span><span class="prelude-val">Some</span>(trace_filter_task) = trace_filter_task {
-<a href=#86 id=86 data-nosnippet>86</a>		params.task_manager.spawn_essential_handle().spawn(
-<a href=#87 id=87 data-nosnippet>87</a>			<span class="string">"trace-filter-cache"</span>,
-<a href=#88 id=88 data-nosnippet>88</a>			<span class="prelude-val">Some</span>(<span class="string">"eth-tracing"</span>),
-<a href=#89 id=89 data-nosnippet>89</a>			trace_filter_task,
-<a href=#90 id=90 data-nosnippet>90</a>		);
-<a href=#91 id=91 data-nosnippet>91</a>	}
-<a href=#92 id=92 data-nosnippet>92</a>
-<a href=#93 id=93 data-nosnippet>93</a>	<span class="comment">// `debug` task if enabled. Essential.
-<a href=#94 id=94 data-nosnippet>94</a>	// Proxies rpc requests to it's handler.
-<a href=#95 id=95 data-nosnippet>95</a>	</span><span class="kw">if let </span><span class="prelude-val">Some</span>(debug_task) = debug_task {
-<a href=#96 id=96 data-nosnippet>96</a>		params.task_manager.spawn_essential_handle().spawn(
-<a href=#97 id=97 data-nosnippet>97</a>			<span class="string">"ethapi-debug"</span>,
-<a href=#98 id=98 data-nosnippet>98</a>			<span class="prelude-val">Some</span>(<span class="string">"eth-tracing"</span>),
-<a href=#99 id=99 data-nosnippet>99</a>			debug_task,
-<a href=#100 id=100 data-nosnippet>100</a>		);
-<a href=#101 id=101 data-nosnippet>101</a>	}
-<a href=#102 id=102 data-nosnippet>102</a>
-<a href=#103 id=103 data-nosnippet>103</a>	RpcRequesters {
-<a href=#104 id=104 data-nosnippet>104</a>		debug: debug_requester,
-<a href=#105 id=105 data-nosnippet>105</a>		trace: trace_filter_requester,
-<a href=#106 id=106 data-nosnippet>106</a>	}
-<a href=#107 id=107 data-nosnippet>107</a>}</code></pre></div></section></main></body></html>
+<a href=#60 id=60 data-nosnippet>60</a>				params.task_manager.spawn_handle(),
+<a href=#61 id=61 data-nosnippet>61</a>			);
+<a href=#62 id=62 data-nosnippet>62</a>			(<span class="prelude-val">Some</span>(trace_filter_task), <span class="prelude-val">Some</span>(trace_filter_requester))
+<a href=#63 id=63 data-nosnippet>63</a>		} <span class="kw">else </span>{
+<a href=#64 id=64 data-nosnippet>64</a>			(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
+<a href=#65 id=65 data-nosnippet>65</a>		};
+<a href=#66 id=66 data-nosnippet>66</a>
+<a href=#67 id=67 data-nosnippet>67</a>	<span class="kw">let </span>(debug_task, debug_requester) = <span class="kw">if </span>rpc_config.ethapi.contains(<span class="kw-2">&amp;</span>EthApiCmd::Debug) {
+<a href=#68 id=68 data-nosnippet>68</a>		<span class="kw">let </span>(debug_task, debug_requester) = DebugHandler::task(
+<a href=#69 id=69 data-nosnippet>69</a>			Arc::clone(<span class="kw-2">&amp;</span>params.client),
+<a href=#70 id=70 data-nosnippet>70</a>			Arc::clone(<span class="kw-2">&amp;</span>params.substrate_backend),
+<a href=#71 id=71 data-nosnippet>71</a>			<span class="kw">match </span><span class="kw-2">*</span>params.frontier_backend {
+<a href=#72 id=72 data-nosnippet>72</a>				fc_db::Backend::KeyValue(<span class="kw-2">ref </span>b) =&gt; b.clone(),
+<a href=#73 id=73 data-nosnippet>73</a>				fc_db::Backend::Sql(<span class="kw-2">ref </span>b) =&gt; b.clone(),
+<a href=#74 id=74 data-nosnippet>74</a>			},
+<a href=#75 id=75 data-nosnippet>75</a>			Arc::clone(<span class="kw-2">&amp;</span>permit_pool),
+<a href=#76 id=76 data-nosnippet>76</a>			Arc::clone(<span class="kw-2">&amp;</span>params.overrides),
+<a href=#77 id=77 data-nosnippet>77</a>			rpc_config.tracing_raw_max_memory_usage,
+<a href=#78 id=78 data-nosnippet>78</a>		);
+<a href=#79 id=79 data-nosnippet>79</a>		(<span class="prelude-val">Some</span>(debug_task), <span class="prelude-val">Some</span>(debug_requester))
+<a href=#80 id=80 data-nosnippet>80</a>	} <span class="kw">else </span>{
+<a href=#81 id=81 data-nosnippet>81</a>		(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
+<a href=#82 id=82 data-nosnippet>82</a>	};
+<a href=#83 id=83 data-nosnippet>83</a>
+<a href=#84 id=84 data-nosnippet>84</a>	<span class="comment">// `trace_filter` cache task. Essential.
+<a href=#85 id=85 data-nosnippet>85</a>	// Proxies rpc requests to it's handler.
+<a href=#86 id=86 data-nosnippet>86</a>	</span><span class="kw">if let </span><span class="prelude-val">Some</span>(trace_filter_task) = trace_filter_task {
+<a href=#87 id=87 data-nosnippet>87</a>		params.task_manager.spawn_essential_handle().spawn(
+<a href=#88 id=88 data-nosnippet>88</a>			<span class="string">"trace-filter-cache"</span>,
+<a href=#89 id=89 data-nosnippet>89</a>			<span class="prelude-val">Some</span>(<span class="string">"eth-tracing"</span>),
+<a href=#90 id=90 data-nosnippet>90</a>			trace_filter_task,
+<a href=#91 id=91 data-nosnippet>91</a>		);
+<a href=#92 id=92 data-nosnippet>92</a>	}
+<a href=#93 id=93 data-nosnippet>93</a>
+<a href=#94 id=94 data-nosnippet>94</a>	<span class="comment">// `debug` task if enabled. Essential.
+<a href=#95 id=95 data-nosnippet>95</a>	// Proxies rpc requests to it's handler.
+<a href=#96 id=96 data-nosnippet>96</a>	</span><span class="kw">if let </span><span class="prelude-val">Some</span>(debug_task) = debug_task {
+<a href=#97 id=97 data-nosnippet>97</a>		params.task_manager.spawn_essential_handle().spawn(
+<a href=#98 id=98 data-nosnippet>98</a>			<span class="string">"ethapi-debug"</span>,
+<a href=#99 id=99 data-nosnippet>99</a>			<span class="prelude-val">Some</span>(<span class="string">"eth-tracing"</span>),
+<a href=#100 id=100 data-nosnippet>100</a>			debug_task,
+<a href=#101 id=101 data-nosnippet>101</a>		);
+<a href=#102 id=102 data-nosnippet>102</a>	}
+<a href=#103 id=103 data-nosnippet>103</a>
+<a href=#104 id=104 data-nosnippet>104</a>	RpcRequesters {
+<a href=#105 id=105 data-nosnippet>105</a>		debug: debug_requester,
+<a href=#106 id=106 data-nosnippet>106</a>		trace: trace_filter_requester,
+<a href=#107 id=107 data-nosnippet>107</a>	}
+<a href=#108 id=108 data-nosnippet>108</a>}</code></pre></div></section></main></body></html>
