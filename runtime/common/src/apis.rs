@@ -1013,7 +1013,7 @@ macro_rules! impl_runtime_apis_plus_common {
 
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
-						type AccountIdConverter = xcm_config::LocationToAccountId;
+						type AccountIdConverter = BenchAccountIdConverter<AccountId>;
 						type DeliveryHelper = TestDeliveryHelper;
 						fn valid_destination() -> Result<Location, BenchmarkError> {
 							Ok(Location::parent())
