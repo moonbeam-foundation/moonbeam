@@ -352,16 +352,6 @@ Developer → Extrinsics → Submit test calls
 Developer → RPC Calls → Raw RPC queries
 ```
 
-### VS Code + rust-analyzer
-
-```json
-// .vscode/settings.json
-{
-  "rust-analyzer.cargo.features": ["std"],
-  "rust-analyzer.check.command": "clippy"
-}
-```
-
 ### Substrate Debug Tools
 
 ```bash
