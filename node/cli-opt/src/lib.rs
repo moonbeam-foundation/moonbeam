@@ -104,7 +104,7 @@ pub struct RpcConfig {
 	pub ethapi: Vec<EthApi>,
 	pub ethapi_max_permits: u32,
 	pub ethapi_trace_max_count: u32,
-	pub ethapi_trace_cache_duration: u64,
+	pub ethapi_trace_cache_size: u64,
 	pub eth_log_block_cache: usize,
 	pub eth_statuses_cache: usize,
 	pub fee_history_limit: u64,
