@@ -21,11 +21,11 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install skillz
-        run: cargo install --git https://github.com/manuelmauro/skillz
+      - name: Install skilo
+        run: cargo install skilo@0.1.0
 
       - name: Lint skills
-        run: skillz lint .claude/skills --strict
+        run: skilo lint .claude/skills --strict
 
       - name: Check formatting
-        run: skillz fmt .claude/skills --check
+        run: skilo fmt .claude/skills --check
