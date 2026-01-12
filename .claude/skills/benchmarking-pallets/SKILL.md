@@ -218,12 +218,12 @@ frame-omni-bencher v1 benchmark pallet \
 
 ### Benchmark Parameters
 
-| Parameter | Purpose | Typical Value |
-|-----------|---------|---------------|
-| `--steps` | Number of sample points | 50 |
-| `--repeat` | Repetitions per step | 20 |
-| `--heap-pages` | WASM heap size | 4096 |
-| `--wasm-execution` | Execution mode | compiled |
+| Parameter          | Purpose                 | Typical Value |
+|--------------------|-------------------------|---------------|
+| `--steps`          | Number of sample points | 50            |
+| `--repeat`         | Repetitions per step    | 20            |
+| `--heap-pages`     | WASM heap size          | 4096          |
+| `--wasm-execution` | Execution mode          | compiled      |
 
 ## Generated Weight File
 

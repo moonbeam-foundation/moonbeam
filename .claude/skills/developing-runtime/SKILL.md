@@ -18,11 +18,11 @@ description: Develops and modifies the Moonbeam runtime using general patterns a
 
 ### Three Runtime Variants
 
-| Runtime | Chain ID | Network | Location |
-|---------|----------|---------|----------|
-| moonbase | 1287 | TestNet | `runtime/moonbase/` |
-| moonbeam | 1284 | Polkadot | `runtime/moonbeam/` |
-| moonriver | 1285 | Kusama | `runtime/moonriver/` |
+| Runtime   | Chain ID | Network  | Location             |
+|-----------|----------|----------|----------------------|
+| moonbase  | 1287     | TestNet  | `runtime/moonbase/`  |
+| moonbeam  | 1284     | Polkadot | `runtime/moonbeam/`  |
+| moonriver | 1285     | Kusama   | `runtime/moonriver/` |
 
 ### Key Files Per Runtime
 
@@ -229,13 +229,13 @@ sp_api::decl_runtime_api! {
 
 ### When to Bump Versions
 
-| Change Type | Bump |
-|-------------|------|
-| Breaking storage change | `spec_version` |
-| New pallet | `spec_version` |
-| Runtime logic change | `spec_version` |
+| Change Type               | Bump                  |
+|---------------------------|-----------------------|
+| Breaking storage change   | `spec_version`        |
+| New pallet                | `spec_version`        |
+| Runtime logic change      | `spec_version`        |
 | Transaction format change | `transaction_version` |
-| State version change | `state_version` |
+| State version change      | `state_version`       |
 
 ### Version Location
 

@@ -16,14 +16,14 @@ description: Runs and writes tests for the Moonbeam parachain including Rust uni
 
 ## Test Types Overview
 
-| Type | Location | Purpose | Command |
-|------|----------|---------|---------|
-| Rust Unit | `*/src/tests.rs` | Pallet/module logic | `cargo test` |
-| Dev Tests | `test/suites/dev/` | Development mode features | `pnpm moonwall test dev_moonbase` |
-| Smoke Tests | `test/suites/smoke/` | Quick sanity checks | `pnpm moonwall test smoke_moonbase` |
-| Tracing Tests | `test/suites/tracing-tests/` | EVM tracing | `pnpm moonwall test tracing_moonbase` |
-| Zombienet | `test/suites/zombie/` | Multi-chain scenarios | `pnpm moonwall test zombie_*` |
-| Chopsticks | `test/suites/chopsticks/` | Forked state testing | `pnpm moonwall test chopsticks_*` |
+| Type          | Location                     | Purpose                   | Command                               |
+|---------------|------------------------------|---------------------------|---------------------------------------|
+| Rust Unit     | `*/src/tests.rs`             | Pallet/module logic       | `cargo test`                          |
+| Dev Tests     | `test/suites/dev/`           | Development mode features | `pnpm moonwall test dev_moonbase`     |
+| Smoke Tests   | `test/suites/smoke/`         | Quick sanity checks       | `pnpm moonwall test smoke_moonbase`   |
+| Tracing Tests | `test/suites/tracing-tests/` | EVM tracing               | `pnpm moonwall test tracing_moonbase` |
+| Zombienet     | `test/suites/zombie/`        | Multi-chain scenarios     | `pnpm moonwall test zombie_*`         |
+| Chopsticks    | `test/suites/chopsticks/`    | Forked state testing      | `pnpm moonwall test chopsticks_*`     |
 
 ## Rust Unit Tests
 

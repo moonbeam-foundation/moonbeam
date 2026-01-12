@@ -16,13 +16,13 @@ description: Develops XCM (Cross-Consensus Messaging) functionality for cross-ch
 
 ### Key Components
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| XCM Config | `runtime/*/xcm_config.rs` | XCM configuration and barriers |
-| XCM Transactor | `pallets/xcm-transactor/` | Remote chain execution |
-| XTokens Precompile | `precompiles/xtokens/` | EVM interface for transfers |
-| XCM Utils Precompile | `precompiles/xcm-utils/` | XCM utility functions |
-| Foreign Assets | `pallets/moonbeam-foreign-assets/` | Foreign asset management |
+| Component            | Location                           | Purpose                        |
+|----------------------|------------------------------------|--------------------------------|
+| XCM Config           | `runtime/*/xcm_config.rs`          | XCM configuration and barriers |
+| XCM Transactor       | `pallets/xcm-transactor/`          | Remote chain execution         |
+| XTokens Precompile   | `precompiles/xtokens/`             | EVM interface for transfers    |
+| XCM Utils Precompile | `precompiles/xcm-utils/`           | XCM utility functions          |
+| Foreign Assets       | `pallets/moonbeam-foreign-assets/` | Foreign asset management       |
 
 ### Message Flow
 
@@ -279,13 +279,13 @@ RUST_LOG=xcm=trace,xcm_executor=trace ./target/release/moonbeam --dev
 
 ### Common XCM Errors
 
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `TooExpensive` | Insufficient fee | Increase fee or adjust weight |
-| `UntrustedReserveLocation` | Asset not trusted | Add to trusted reserves |
-| `AssetNotFound` | Asset not registered | Register the foreign asset |
-| `Barrier` | Message blocked | Update barrier configuration |
-| `FailedToDecode` | Invalid message format | Check XCM version compatibility |
+| Error                      | Cause                  | Solution                        |
+|----------------------------|------------------------|---------------------------------|
+| `TooExpensive`             | Insufficient fee       | Increase fee or adjust weight   |
+| `UntrustedReserveLocation` | Asset not trusted      | Add to trusted reserves         |
+| `AssetNotFound`            | Asset not registered   | Register the foreign asset      |
+| `Barrier`                  | Message blocked        | Update barrier configuration    |
+| `FailedToDecode`           | Invalid message format | Check XCM version compatibility |
 
 ### Trace XCM Message
 

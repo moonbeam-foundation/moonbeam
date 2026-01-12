@@ -34,15 +34,15 @@ client/
 
 ### RPC Categories
 
-| Category | Prefix | Purpose |
-|----------|--------|---------|
-| Ethereum | `eth_` | Standard Ethereum RPCs (via Frontier) |
-| Debug | `debug_` | Transaction debugging |
-| Trace | `trace_` | Execution tracing |
-| Web3 | `web3_` | Web3 utilities |
-| Net | `net_` | Network info |
-| Moonbeam | `moon_` | Custom Moonbeam methods |
-| Txpool | `txpool_` | Transaction pool |
+| Category | Prefix    | Purpose                               |
+|----------|-----------|---------------------------------------|
+| Ethereum | `eth_`    | Standard Ethereum RPCs (via Frontier) |
+| Debug    | `debug_`  | Transaction debugging                 |
+| Trace    | `trace_`  | Execution tracing                     |
+| Web3     | `web3_`   | Web3 utilities                        |
+| Net      | `net_`    | Network info                          |
+| Moonbeam | `moon_`   | Custom Moonbeam methods               |
+| Txpool   | `txpool_` | Transaction pool                      |
 
 ## Adding a New RPC Method
 

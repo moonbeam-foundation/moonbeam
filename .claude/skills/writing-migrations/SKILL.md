@@ -439,12 +439,12 @@ for (key, value) in OldStorage::<T>::drain().take(MAX_ITEMS) {
 
 ## Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
+| Issue                | Cause                 | Solution                              |
+|----------------------|-----------------------|---------------------------------------|
 | Migration runs twice | Missing version check | Always check on_chain_storage_version |
-| Data loss | Incorrect key mapping | Test with real data before mainnet |
-| Timeout | Too many items | Use lazy migration or pagination |
-| Decode error | Format mismatch | Define old types correctly |
+| Data loss            | Incorrect key mapping | Test with real data before mainnet    |
+| Timeout              | Too many items        | Use lazy migration or pagination      |
+| Decode error         | Format mismatch       | Define old types correctly            |
 
 ## Key Files
 

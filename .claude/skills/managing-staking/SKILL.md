@@ -17,11 +17,11 @@ description: Manages Moonbeam's parachain staking system including collator sele
 
 ### Core Components
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| Pallet | `pallets/parachain-staking/` | Core staking logic |
-| Precompile | `precompiles/parachain-staking/` | EVM interface |
-| Tests | `test/suites/*/test-staking/` | Integration tests |
+| Component  | Location                         | Purpose            |
+|------------|----------------------------------|--------------------|
+| Pallet     | `pallets/parachain-staking/`     | Core staking logic |
+| Precompile | `precompiles/parachain-staking/` | EVM interface      |
+| Tests      | `test/suites/*/test-staking/`    | Integration tests  |
 
 ### Key Concepts
 
@@ -109,13 +109,13 @@ pallet_parachain_staking::Call::delegator_bond_more {
 
 ### Network-Specific Configuration
 
-| Parameter | Moonbeam | Moonriver | Moonbase |
-|-----------|----------|-----------|----------|
-| Min Collator Stake | 1M GLMR | 10K MOVR | 1K DEV |
-| Min Delegation | 50 GLMR | 5 MOVR | 1 DEV |
-| Max Delegations | 100 | 100 | 100 |
-| Round Length | 1800 blocks | 1800 blocks | 300 blocks |
-| Reward Delay | 2 rounds | 2 rounds | 2 rounds |
+| Parameter          | Moonbeam    | Moonriver   | Moonbase   |
+|--------------------|-------------|-------------|------------|
+| Min Collator Stake | 1M GLMR     | 10K MOVR    | 1K DEV     |
+| Min Delegation     | 50 GLMR     | 5 MOVR      | 1 DEV      |
+| Max Delegations    | 100         | 100         | 100        |
+| Round Length       | 1800 blocks | 1800 blocks | 300 blocks |
+| Reward Delay       | 2 rounds    | 2 rounds    | 2 rounds   |
 
 ### Runtime Configuration
 
@@ -261,12 +261,12 @@ describeSuite({
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| Delegation fails | Below minimum | Check MinDelegation |
-| Can't unstake | Pending request | Execute or cancel existing request |
-| Missing rewards | Not in top delegations | Increase delegation amount |
-| Collator not selected | Below threshold | Increase self-bond |
+| Issue                 | Cause                  | Solution                           |
+|-----------------------|------------------------|------------------------------------|
+| Delegation fails      | Below minimum          | Check MinDelegation                |
+| Can't unstake         | Pending request        | Execute or cancel existing request |
+| Missing rewards       | Not in top delegations | Increase delegation amount         |
+| Collator not selected | Below threshold        | Increase self-bond                 |
 
 ### Inspect Staking State
 

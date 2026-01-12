@@ -24,14 +24,14 @@ Before implementing, thoroughly understand:
 
 ### 2. Identify Implementation Location
 
-| EIP Type | Implementation Location |
-|----------|------------------------|
-| New opcode | Frontier (SputnikVM fork) |
-| New precompile | `/precompiles/` |
-| Transaction type | `pallet-ethereum`, Frontier |
-| Gas schedule change | Runtime configuration |
-| RPC method | `/client/rpc/` |
-| State change | Runtime migration |
+| EIP Type            | Implementation Location     |
+|---------------------|-----------------------------|
+| New opcode          | Frontier (SputnikVM fork)   |
+| New precompile      | `/precompiles/`             |
+| Transaction type    | `pallet-ethereum`, Frontier |
+| Gas schedule change | Runtime configuration       |
+| RPC method          | `/client/rpc/`              |
+| State change        | Runtime migration           |
 
 ### 3. Common EIP Categories
 

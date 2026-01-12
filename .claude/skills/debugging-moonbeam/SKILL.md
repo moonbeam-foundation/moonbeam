@@ -138,7 +138,7 @@ cargo build --release --features lazy-loading
 ### Common Use Cases
 
 | Use Case               | Configuration                                           |
-| ---------------------- | ------------------------------------------------------- |
+|------------------------|---------------------------------------------------------|
 | Debug failed tx        | Fork at block before tx, replay with tracing            |
 | Test migration         | Use `--lazy-loading-runtime-override` with new runtime  |
 | Simulate whale actions | Use `--lazy-loading-state-overrides` to modify balances |
@@ -256,7 +256,7 @@ cargo build --release --features lazy-loading
 ## Key Log Targets
 
 | Target            | Component                       |
-| ----------------- | ------------------------------- |
+|-------------------|---------------------------------|
 | `pallet_evm`      | EVM execution                   |
 | `pallet_ethereum` | Ethereum transaction processing |
 | `xcm`             | XCM message handling            |
@@ -317,7 +317,7 @@ eth_getBlockByNumber(blockNumber, true)
 ### Dispatch Errors
 
 | Error                 | Likely Cause         | Investigation                    |
-| --------------------- | -------------------- | -------------------------------- |
+|-----------------------|----------------------|----------------------------------|
 | `BadOrigin`           | Wrong caller type    | Check origin requirements        |
 | `InsufficientBalance` | Not enough funds     | Check free vs reserved balance   |
 | `StorageOverflow`     | Arithmetic overflow  | Check bounded types              |
@@ -326,7 +326,7 @@ eth_getBlockByNumber(blockNumber, true)
 ### EVM Errors
 
 | Error          | Cause                       | Debug Steps                                    |
-| -------------- | --------------------------- | ---------------------------------------------- |
+|----------------|-----------------------------|------------------------------------------------|
 | `OutOfGas`     | Gas limit too low           | Increase gas, check precompile costs           |
 | `Revert`       | Contract/precompile failure | Check revert reason, trace tx                  |
 | `InvalidNonce` | Nonce mismatch              | Check pending txs, use eth_getTransactionCount |

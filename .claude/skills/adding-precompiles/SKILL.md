@@ -405,7 +405,7 @@ log1(address, topic0, data).record(handle)?;
 ## Precompile Address Conventions
 
 | Range       | Usage                         |
-| ----------- | ----------------------------- |
+|-------------|-------------------------------|
 | 0x01-0x09   | Standard Ethereum precompiles |
 | 0x100-0x7FF | Frontier precompiles          |
 | 0x800-0x8FF | Moonbeam custom precompiles   |
