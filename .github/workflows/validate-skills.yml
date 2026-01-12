@@ -1,0 +1,31 @@
+name: Validate Skills
+
+on:
+  pull_request:
+    paths:
+      - ".claude/skills/**"
+  push:
+    branches: [master]
+    paths:
+      - ".claude/skills/**"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+
+      - name: Install skillz
+        run: cargo install --git https://github.com/manuelmauro/skillz
+
+      - name: Lint skills
+        run: skillz lint .claude/skills --strict
+
+      - name: Check formatting
+        run: skillz fmt .claude/skills --check
