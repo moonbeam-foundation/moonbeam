@@ -6,6 +6,7 @@ description: Debugs issues in the Moonbeam parachain including runtime panics, E
 # Debugging Moonbeam
 
 ## Contents
+- [Lazy Loading (Fork Mode)](#lazy-loading-fork-mode)
 - [Runtime Debugging](#runtime-debugging)
 - [EVM Debugging](#evm-debugging)
 - [XCM Debugging](#xcm-debugging)
@@ -13,6 +14,136 @@ description: Debugs issues in the Moonbeam parachain including runtime panics, E
 - [Block Production Debugging](#block-production-debugging)
 - [Common Error Patterns](#common-error-patterns)
 - [Investigation Tools](#investigation-tools)
+
+## Lazy Loading (Fork Mode)
+
+Lazy loading allows running a local Moonbeam node that fetches state on-demand from a live RPC endpoint. This is the most powerful tool for debugging production issues as it lets you replay transactions against real chain state.
+
+### Building with Lazy Loading
+
+```bash
+# Build with lazy-loading feature enabled
+cargo build --release --features lazy-loading
+```
+
+### Basic Usage
+
+```bash
+# Fork from Moonbeam mainnet at latest block
+./target/release/moonbeam \
+  --lazy-loading-remote-rpc https://rpc.api.moonbeam.network \
+  --sealing 6000
+
+# Fork from specific block
+./target/release/moonbeam \
+  --lazy-loading-remote-rpc https://rpc.api.moonbeam.network \
+  --lazy-loading-block 0x1234...abcd \
+  --sealing 6000
+
+# Fork Moonriver
+./target/release/moonbeam \
+  --lazy-loading-remote-rpc https://rpc.api.moonriver.moonbeam.network \
+  --sealing 6000
+
+# Fork Moonbase Alpha
+./target/release/moonbeam \
+  --lazy-loading-remote-rpc https://rpc.api.moonbase.moonbeam.network \
+  --sealing 6000
+```
+
+### Advanced Options
+
+```bash
+# Use custom runtime (test new runtime against production state)
+./target/release/moonbeam \
+  --lazy-loading-remote-rpc https://rpc.api.moonbeam.network \
+  --lazy-loading-runtime-override ./target/release/wbuild/moonbeam-runtime/moonbeam_runtime.wasm \
+  --sealing 6000
+
+# Apply state overrides (modify storage for testing)
+./target/release/moonbeam \
+  --lazy-loading-remote-rpc https://rpc.api.moonbeam.network \
+  --lazy-loading-state-overrides ./state-overrides.json \
+  --sealing 6000
+
+# Adjust RPC request throttling (avoid rate limits)
+./target/release/moonbeam \
+  --lazy-loading-remote-rpc https://rpc.api.moonbeam.network \
+  --lazy-loading-delay-between-requests 100 \
+  --lazy-loading-max-retries-per-request 5 \
+  --sealing 6000
+```
+
+### State Overrides File Format
+
+```json
+{
+  "0x1234...": {
+    "balance": "0x1000000000000000000",
+    "nonce": "0x0",
+    "code": "0x...",
+    "storage": {
+      "0x0": "0x1234"
+    }
+  }
+}
+```
+
+### Debugging Workflow with Lazy Loading
+
+1. **Reproduce a production issue**:
+   ```bash
+   # Fork at the block before the problematic transaction
+   ./target/release/moonbeam \
+     --lazy-loading-remote-rpc https://rpc.api.moonbeam.network \
+     --lazy-loading-block 0xBLOCK_BEFORE_ISSUE \
+     --ethapi=debug,trace \
+     --sealing manual
+   ```
+
+2. **Replay the failing transaction**:
+   ```javascript
+   // Get original tx details from production
+   const tx = await prodProvider.getTransaction(txHash);
+
+   // Replay on forked node with tracing
+   const trace = await localProvider.send('debug_traceCall', [{
+     from: tx.from,
+     to: tx.to,
+     data: tx.data,
+     value: tx.value,
+     gas: tx.gas
+   }, 'latest', { tracer: 'callTracer' }]);
+   ```
+
+3. **Test runtime fixes**:
+   ```bash
+   # Build fixed runtime
+   cargo build --release -p moonbeam-runtime
+
+   # Test against production state
+   ./target/release/moonbeam \
+     --lazy-loading-remote-rpc https://rpc.api.moonbeam.network \
+     --lazy-loading-runtime-override ./target/release/wbuild/moonbeam-runtime/moonbeam_runtime.wasm \
+     --sealing 6000
+   ```
+
+### Performance Considerations
+
+- Initial requests may be slow (state is fetched on-demand)
+- Use a reliable, non-rate-limited RPC endpoint
+- Consider running your own archive node for heavy debugging
+- Expect ~20x slower execution compared to local state
+
+### Common Use Cases
+
+| Use Case               | Configuration                                           |
+| ---------------------- | ------------------------------------------------------- |
+| Debug failed tx        | Fork at block before tx, replay with tracing            |
+| Test migration         | Use `--lazy-loading-runtime-override` with new runtime  |
+| Simulate whale actions | Use `--lazy-loading-state-overrides` to modify balances |
+| Test governance        | Override voting power via state overrides               |
+| Debug precompile       | Fork + trace precompile calls                           |
 
 ## Debugging Workflows
 
@@ -124,14 +255,14 @@ description: Debugs issues in the Moonbeam parachain including runtime panics, E
 
 ## Key Log Targets
 
-| Target | Component |
-|--------|-----------|
-| `pallet_evm` | EVM execution |
+| Target            | Component                       |
+| ----------------- | ------------------------------- |
+| `pallet_evm`      | EVM execution                   |
 | `pallet_ethereum` | Ethereum transaction processing |
-| `xcm` | XCM message handling |
-| `cumulus` | Parachain consensus |
-| `moonbeam_rpc` | Custom RPC methods |
-| `frontier` | Ethereum compatibility layer |
+| `xcm`             | XCM message handling            |
+| `cumulus`         | Parachain consensus             |
+| `moonbeam_rpc`    | Custom RPC methods              |
+| `frontier`        | Ethereum compatibility layer    |
 
 ## Useful RPC Methods for Debugging
 
@@ -185,21 +316,21 @@ eth_getBlockByNumber(blockNumber, true)
 
 ### Dispatch Errors
 
-| Error | Likely Cause | Investigation |
-|-------|--------------|---------------|
-| `BadOrigin` | Wrong caller type | Check origin requirements |
-| `InsufficientBalance` | Not enough funds | Check free vs reserved balance |
-| `StorageOverflow` | Arithmetic overflow | Check bounded types |
-| `TooManyDelegations` | Hit delegation limit | Check MaxDelegationsPerDelegator |
+| Error                 | Likely Cause         | Investigation                    |
+| --------------------- | -------------------- | -------------------------------- |
+| `BadOrigin`           | Wrong caller type    | Check origin requirements        |
+| `InsufficientBalance` | Not enough funds     | Check free vs reserved balance   |
+| `StorageOverflow`     | Arithmetic overflow  | Check bounded types              |
+| `TooManyDelegations`  | Hit delegation limit | Check MaxDelegationsPerDelegator |
 
 ### EVM Errors
 
-| Error | Cause | Debug Steps |
-|-------|-------|-------------|
-| `OutOfGas` | Gas limit too low | Increase gas, check precompile costs |
-| `Revert` | Contract/precompile failure | Check revert reason, trace tx |
-| `InvalidNonce` | Nonce mismatch | Check pending txs, use eth_getTransactionCount |
-| `IntrinsicGas` | Base gas cost not met | Ensure gas >= 21000 + calldata |
+| Error          | Cause                       | Debug Steps                                    |
+| -------------- | --------------------------- | ---------------------------------------------- |
+| `OutOfGas`     | Gas limit too low           | Increase gas, check precompile costs           |
+| `Revert`       | Contract/precompile failure | Check revert reason, trace tx                  |
+| `InvalidNonce` | Nonce mismatch              | Check pending txs, use eth_getTransactionCount |
+| `IntrinsicGas` | Base gas cost not met       | Ensure gas >= 21000 + calldata                 |
 
 ### Precompile Errors
 
