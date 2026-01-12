@@ -963,7 +963,7 @@ export const sendCallAsPara = async (
 
   const QUERY_ID = 43981;
 
-  const xcmMessage = new XcmFragment({
+  const xcmFragment = new XcmFragment({
     assets: [
       {
         multilocation: {
@@ -976,18 +976,28 @@ export const sendCallAsPara = async (
       },
     ],
     weight_limit: {
+      // Initial placeholder; will be overridden below based on the real
+      // weight of the message using the `XcmUtils::weightMessage` precompile.
       refTime: 40_000_000_000n,
       proofSize: 150_713n,
     },
     beneficiary: sovereignAccountOfSibling(context, paraId),
-  })
-    .withdraw_asset()
-    .buy_execution()
+  }).withdraw_asset().buy_execution();
+
+  // Measure the weight of the full XCM message and update the first
+  // `BuyExecution` instruction so that it reserves enough weight according
+  // to the current runtime XCM weights.
+  await xcmFragment.override_weight(context);
+
+  const xcmMessage = xcmFragment
     .push_any({
       Transact: {
         originKind: opts?.originKind ?? "Xcm",
         requireWeightAtMost: {
-          refTime: 20_089_165_000n,
+          // Give a generous upper bound so the inner call is not rejected
+          // because of `require_weight_at_most` while still relying on the
+          // BuyExecution weight computed above for actual charging.
+          refTime: 40_000_000_000n,
           proofSize: 80_000n,
         },
         call: {

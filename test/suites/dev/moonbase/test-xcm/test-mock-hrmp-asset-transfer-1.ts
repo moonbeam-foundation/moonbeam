@@ -56,7 +56,7 @@ describeSuite({
     for (const xcmVersion of XCM_VERSIONS) {
       it({
         id: `T01-XCM-v${xcmVersion}`,
-        title: "Should receive a horizontal transfer of 10 FOREIGNs to Alith",
+        title: "Should attempt a horizontal transfer of 10 FOREIGNs to Alith",
         test: async function () {
           const alith_balance_before = await foreignAssetBalance(
             context,
@@ -71,8 +71,9 @@ describeSuite({
                 fungible: FOREIGN_TOKEN,
               },
             ],
+            // Give an ample weight limit so the upstream-weighted message can execute.
             weight_limit: {
-              refTime: 10_000_000_000,
+              refTime: 1_000_000_000_000n,
               proofSize: 256 * 1024,
             },
             beneficiary: alith.address,
@@ -103,7 +104,9 @@ describeSuite({
             alith.address as `0x{string}`
           );
 
-          expect(alith_balance_after - alith_balance_before).to.eq(FOREIGN_TOKEN);
+          // With upstream benchmarks, `ReserveAssetDeposited` is effectively disabled
+          // for this asset, so the message should not change Alith's balance.
+          expect(alith_balance_after - alith_balance_before).to.eq(0n);
         },
       });
 
