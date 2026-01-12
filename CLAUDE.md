@@ -1,143 +1,85 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
-Moonbeam is an Ethereum-compatible parachain built with Polkadot-SDK. It's a Rust-based blockchain project that enables Ethereum-style smart contracts on Polkadot/Kusama networks.
+Moonbeam is an Ethereum-compatible parachain built with Polkadot-SDK. It enables Ethereum-style smart contracts on Polkadot/Kusama networks.
 
-## Essential Commands
+## Quick Commands
 
-### Building
 ```bash
-# Build the Moonbeam node (optimized release build)
+# Build
 cargo build --release
 
-# Build specific runtime only
-cargo build --release -p moonbeam-runtime
-
-# Build TypeScript packages
-pnpm i
-pnpm build
-```
-
-### Testing
-```bash
-# Run all Rust tests
-cargo test
-
-# Run specific pallet tests
+# Test
 cargo test -p pallet-parachain-staking
+cd test && pnpm moonwall test dev_moonbase
 
-# Run TypeScript integration tests (from test directory)
-cd test
-pnpm moonwall test dev_moonbase  # Development tests
-pnpm moonwall test smoke_moonbase # Smoke tests
-
-# Run a single test file
-pnpm moonwall test -d "test-contact" dev_moonbase D020512
-
-# Run a single test
-pnpm moonwall test -d "test-contact" dev_moonbase D020512T01
-```
-
-### Code Quality
-```bash
-# Rust linting and formatting
+# Lint
 cargo clippy --release --workspace
 cargo fmt -- --check
 
-# TypeScript linting
-pnpm check  # Runs Biome linter
-```
-
-### Running Development Node
-```bash
-# Using built binary
+# Run dev node
 ./target/release/moonbeam --dev --alice --sealing 6000 --rpc-port 9944
-
-# Using Docker
-docker run --network="host" moonbeamfoundation/moonbeam:v0.46.0 --dev --alice --sealing 6000 --rpc-port 9944
 ```
 
-### Runtime Benchmarking
+## Project Structure
 
-**Prerequisites**: Install `frame-omni-bencher` from [crates.io](https://crates.io/crates/frame-omni-bencher) or [Polkadot SDK](https://github.com/paritytech/polkadot-sdk/tree/b45f89c51fbd58e984e5e013992dd26715cb8bdc/substrate/utils/frame/omni-bencher)
-
-```bash
-# Run runtime benchmarks (may need to update frame-omni-bencher path in script)
-./scripts/run-benches-for-runtime.sh moonbase release
-
-# The script uses frame-omni-bencher with these key parameters:
-# --steps=50 --repeat=20 --wasm-execution=compiled
+```
+pallets/        # Custom FRAME pallets
+precompiles/    # EVM precompiled contracts
+runtime/        # Runtime implementations (moonbase, moonbeam, moonriver)
+node/           # Node binary
+client/         # Client RPC and services
+test/           # TypeScript integration tests
 ```
 
-## Architecture Overview
+## Dependency Forks
 
-### Runtime Architecture
-The runtime is the on-chain logic compiled to WASM. Moonbeam has three runtime variants:
-- **moonbeam**: Production runtime for Polkadot
-- **moonriver**: Production runtime for Kusama
-- **moonbase**: TestNet runtime for Westend
+Moonbeam maintains forks of key dependencies:
 
-Key architectural patterns:
-1. **Pallet Structure**: Custom logic is organized into pallets (e.g., `pallet-parachain-staking`)
-2. **Precompiles**: EVM precompiled contracts in `/precompiles` provide native Substrate functionality to EVM
-3. **XCM Integration**: Cross-chain messaging through XCM configuration in runtime
+```
+moonbeam
+├── polkadot-sdk (moonbeam-foundation/polkadot-sdk)
+├── moonkit
+│   ├── polkadot-sdk (moonbeam-foundation/polkadot-sdk)
+│   ├── evm
+│   └── frontier
+├── evm
+└── frontier
+    ├── evm
+    └── polkadot-sdk (moonbeam-foundation/polkadot-sdk)
 
-### Client Architecture
-The client (`/node`) implements:
-- **RPC Layer**: Custom RPC methods for Ethereum compatibility
-- **EVM Tracing**: Debug and trace EVM execution
-- **Block Production**: Collator logic for parachain block production
+parity-bridges-common
+└── frontier (paritytech/polkadot-sdk)
+```
 
-### Testing Architecture
-Tests are split into:
-- **Rust Unit Tests**: In each pallet/module
-- **TypeScript Integration Tests**: In `/test` using Moonwall framework
-- **Smoke Tests**: Minimal tests for quick validation
+| Dependency   | Fork                             | Purpose                                         |
+| ------------ | -------------------------------- | ----------------------------------------------- |
+| polkadot-sdk | moonbeam-foundation/polkadot-sdk | Substrate/Cumulus with Moonbeam patches         |
+| frontier     | moonbeam-foundation/frontier     | Ethereum compatibility layer                    |
+| evm          | moonbeam-foundation/evm          | SputnikVM fork for EVM execution                |
+| moonkit      | moonbeam-foundation/moonkit      | Shared Moonbeam components (nimbus, randomness) |
 
-### Cross-Component Communication
-1. **Runtime ↔ EVM**: Through precompiles and pallet-evm
-2. **Client ↔ Runtime**: Via runtime APIs defined in `runtime/common/src/apis`
-3. **Substrate ↔ Ethereum**: Through frontier pallets and custom RPC
+## Networks
 
-## Network Configuration
+| Network        | Chain ID | Runtime   |
+| -------------- | -------- | --------- |
+| Moonbeam       | 1284     | moonbeam  |
+| Moonriver      | 1285     | moonriver |
+| Moonbase Alpha | 1287     | moonbase  |
+| Development    | 1281     | moonbase  |
 
-| Network        | Chain ID | Runtime   | Purpose           |
-| -------------- | -------- | --------- | ----------------- |
-| Moonbeam       | 1284     | moonbeam  | Polkadot MainNet  |
-| Moonriver      | 1285     | moonriver | Kusama parachain  |
-| Moonbase Alpha | 1287     | moonbase  | Public TestNet    |
-| Development    | 1281     | moonbase  | Local development |
+## Before Committing
 
-## Key Development Patterns
+1. `cargo fmt`
+2. `cargo clippy --release`
+3. `pnpm check` (TypeScript)
+4. Ensure tests pass
 
-### Adding New Functionality
-1. **New Pallet**: Create in `/pallets`, add to runtime's `construct_runtime!`
-2. **New Precompile**: Create in `/precompiles`, register in `precompiles.rs`
-3. **Runtime API**: Define in `runtime/common/src/apis`, implement in runtime
-4. **RPC Method**: Add to `/client/rpc`, expose in node service
+## PR Requirements
 
-### Testing Patterns
-- Use `ExtBuilder` pattern for pallet unit tests
-- Use Moonwall's `DevModeContext` for integration tests
-- Test both Substrate and Ethereum interfaces when applicable
-
-### Version Management
-- Spec version in runtime when breaking changes
-- Client version for node releases
-- Precompile addresses are immutable once deployed
-
-## Development Workflow
-
-### Before Committing
-1. Run `cargo fmt`
-2. Run `cargo clippy --release`
-3. Run `pnpm check` for TypeScript
-4. Ensure tests pass for modified components
-
-### PR Requirements
-- Add appropriate label: `B7-runtimenoteworthy`, `B5-clientnoteworthy`, or `B0-silent`
-- Runtime changes need migration tests if applicable
-- Breaking changes require runtime version bump
+- Label: `B7-runtimenoteworthy`, `B5-clientnoteworthy`, or `B0-silent`
+- Runtime changes need migration tests
+- Breaking changes require spec version bump
