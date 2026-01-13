@@ -6,12 +6,35 @@ description: Writes and tests runtime migrations for state transitions in Moonbe
 # Runtime Migrations
 
 ## Contents
+- [Migration Lifecycle](#migration-lifecycle)
 - [Migration Types](#migration-types)
 - [Writing Migrations](#writing-migrations)
 - [Registering Migrations](#registering-migrations)
 - [Testing Migrations](#testing-migrations)
 - [Best Practices](#best-practices)
 - [Common Issues](#common-issues)
+
+## Migration Lifecycle
+
+Moonbeam follows a simple migration lifecycle:
+
+1. **Add migration before release**: Write the migration and register it in the runtime
+2. **Deploy**: Migration runs once during the runtime upgrade
+3. **Remove migration before next release**: Delete the migration code after it has executed
+
+This approach avoids complex storage versioning. Migrations are one-shot: they run once and are removed from the codebase.
+
+```
+Release N-1: No migration
+     ↓
+Add migration code
+     ↓
+Release N: Migration executes on-chain
+     ↓
+Remove migration code
+     ↓
+Release N+1: Clean codebase
+```
 
 ## Migration Types
 
@@ -20,11 +43,11 @@ description: Writes and tests runtime migrations for state transitions in Moonbe
 Standard migrations that run during runtime upgrade.
 
 ```rust
-pub struct MigrateV1ToV2<T>(PhantomData<T>);
+pub struct MigrateStorageFormat<T>(PhantomData<T>);
 
-impl<T: Config> OnRuntimeUpgrade for MigrateV1ToV2<T> {
+impl<T: Config> OnRuntimeUpgrade for MigrateStorageFormat<T> {
     fn on_runtime_upgrade() -> Weight {
-        // Migration logic
+        // Migration logic - runs once, then this code is removed
     }
 
     #[cfg(feature = "try-runtime")]
@@ -41,7 +64,7 @@ impl<T: Config> OnRuntimeUpgrade for MigrateV1ToV2<T> {
 
 ### Lazy Migrations
 
-Migrations that run gradually over multiple blocks.
+Migrations that run gradually over multiple blocks. Used for large data sets that cannot be migrated in a single block.
 
 ```rust
 // pallets/moonbeam-lazy-migrations/
@@ -65,92 +88,74 @@ impl<T: Config> LazyMigration<T> {
 ```rust
 // runtime/common/src/migrations.rs
 use frame_support::{
-    migration::storage_key_iter,
     pallet_prelude::*,
     traits::OnRuntimeUpgrade,
     weights::Weight,
 };
 
-pub mod v2 {
+// Old storage format (define what we're migrating from)
+mod old {
     use super::*;
 
-    // Old storage format
-    mod v1 {
-        use super::*;
+    #[frame_support::storage_alias]
+    pub type OldStorage<T: pallet::Config> =
+        StorageMap<pallet::Pallet<T>, Blake2_128Concat, AccountId, OldData>;
 
-        #[frame_support::storage_alias]
-        pub type OldStorage<T: Config> =
-            StorageMap<Pallet<T>, Blake2_128Concat, AccountId, OldData>;
+    #[derive(Decode)]
+    pub struct OldData {
+        pub value: u32,
+    }
+}
 
-        #[derive(Decode)]
-        pub struct OldData {
-            pub value: u32,
+/// Migration to add extra_field to storage items.
+/// Added in runtime XXXX, remove after deployment.
+pub struct MigrateStorageFormat<T>(PhantomData<T>);
+
+impl<T: pallet::Config> OnRuntimeUpgrade for MigrateStorageFormat<T> {
+    fn on_runtime_upgrade() -> Weight {
+        log::info!(target: "migration", "Running MigrateStorageFormat");
+
+        let mut count = 0u64;
+
+        // Iterate over old storage and transform
+        for (key, old_data) in old::OldStorage::<T>::drain() {
+            let new_data = NewData {
+                value: old_data.value,
+                extra_field: Default::default(),
+            };
+
+            NewStorage::<T>::insert(key, new_data);
+            count += 1;
         }
+
+        log::info!(target: "migration", "Migrated {} items", count);
+
+        T::DbWeight::get().reads_writes(count, count)
     }
 
-    pub struct MigrateToV2<T>(PhantomData<T>);
+    #[cfg(feature = "try-runtime")]
+    fn pre_upgrade() -> Result<Vec<u8>, DispatchError> {
+        let count = old::OldStorage::<T>::iter().count() as u32;
+        log::info!(target: "migration", "Pre-upgrade: {} items to migrate", count);
+        Ok(count.encode())
+    }
 
-    impl<T: Config> OnRuntimeUpgrade for MigrateToV2<T> {
-        fn on_runtime_upgrade() -> Weight {
-            let on_chain_version = Pallet::<T>::on_chain_storage_version();
+    #[cfg(feature = "try-runtime")]
+    fn post_upgrade(state: Vec<u8>) -> Result<(), DispatchError> {
+        let old_count: u32 = Decode::decode(&mut &state[..])
+            .map_err(|_| "Failed to decode state")?;
 
-            if on_chain_version < 2 {
-                log::info!(target: "migration", "Migrating pallet to v2");
+        let new_count = NewStorage::<T>::iter().count() as u32;
 
-                let mut count = 0u64;
+        ensure!(
+            old_count == new_count,
+            "Migration count mismatch: old={}, new={}",
+            old_count,
+            new_count
+        );
 
-                // Iterate over old storage
-                for (key, old_data) in v1::OldStorage::<T>::drain() {
-                    // Transform to new format
-                    let new_data = NewData {
-                        value: old_data.value,
-                        extra_field: Default::default(),
-                    };
-
-                    // Write to new storage
-                    NewStorage::<T>::insert(key, new_data);
-                    count += 1;
-                }
-
-                // Update storage version
-                StorageVersion::new(2).put::<Pallet<T>>();
-
-                log::info!(target: "migration", "Migrated {} items", count);
-
-                T::DbWeight::get().reads_writes(count + 1, count + 1)
-            } else {
-                log::info!(target: "migration", "No migration needed");
-                T::DbWeight::get().reads(1)
-            }
-        }
-
-        #[cfg(feature = "try-runtime")]
-        fn pre_upgrade() -> Result<Vec<u8>, DispatchError> {
-            let count = v1::OldStorage::<T>::iter().count() as u32;
-            log::info!(target: "migration", "Pre-upgrade: {} items to migrate", count);
-            Ok(count.encode())
-        }
-
-        #[cfg(feature = "try-runtime")]
-        fn post_upgrade(state: Vec<u8>) -> Result<(), DispatchError> {
-            let old_count: u32 = Decode::decode(&mut &state[..])
-                .map_err(|_| "Failed to decode state")?;
-
-            let new_count = NewStorage::<T>::iter().count() as u32;
-
-            ensure!(
-                old_count == new_count,
-                "Migration count mismatch: old={}, new={}",
-                old_count,
-                new_count
-            );
-
-            let version = Pallet::<T>::on_chain_storage_version();
-            ensure!(version >= 2, "Storage version not updated");
-
-            log::info!(target: "migration", "Post-upgrade: {} items migrated", new_count);
-            Ok(())
-        }
+        log::info!(target: "migration", "Post-upgrade: {} items migrated", new_count);
+        Ok(())
     }
 }
 ```
@@ -203,10 +208,14 @@ impl OnRuntimeUpgrade for KillOldPalletStorage {
 ### Multi-Step Migration
 
 ```rust
+/// Complex migration that updates multiple storage items.
+/// Added in runtime XXXX, remove after deployment.
 pub struct ComplexMigration<T>(PhantomData<T>);
 
 impl<T: Config> OnRuntimeUpgrade for ComplexMigration<T> {
     fn on_runtime_upgrade() -> Weight {
+        log::info!(target: "migration", "Running ComplexMigration");
+
         let mut weight = Weight::zero();
 
         // Step 1: Migrate storage A
@@ -218,9 +227,7 @@ impl<T: Config> OnRuntimeUpgrade for ComplexMigration<T> {
         // Step 3: Update configuration
         weight = weight.saturating_add(update_config::<T>());
 
-        // Update version
-        StorageVersion::new(3).put::<Pallet<T>>();
-
+        log::info!(target: "migration", "ComplexMigration complete");
         weight
     }
 }
@@ -233,12 +240,12 @@ impl<T: Config> OnRuntimeUpgrade for ComplexMigration<T> {
 ```rust
 // runtime/moonbase/lib.rs
 
-/// Migrations to run on runtime upgrade
-pub type Migrations = (
+/// Migrations to run on runtime upgrade.
+/// Remove after deployment.
+type MoonbaseMigrations = (
     // Run in order
-    pallet_a::migrations::v2::MigrateToV2<Runtime>,
-    pallet_b::migrations::RemoveOldStorage<Runtime>,
-    // Add more migrations here
+    migrations::MigrateStorageFormat<Runtime>,
+    migrations::RemoveDeprecatedStorage<Runtime>,
 );
 
 pub type Executive = frame_executive::Executive<
@@ -247,21 +254,36 @@ pub type Executive = frame_executive::Executive<
     frame_system::ChainContext<Runtime>,
     Runtime,
     AllPalletsWithSystem,
-    Migrations,  // <-- Migrations tuple
+    MoonbaseMigrations,
 >;
 ```
+
+Each runtime has its own migrations type:
+- `MoonbaseMigrations` in `runtime/moonbase/lib.rs`
+- `MoonriverMigrations` in `runtime/moonriver/lib.rs`
+- `MoonbeamMigrations` in `runtime/moonbeam/lib.rs`
 
 ### Migration Order
 
 Migrations run in the order listed in the tuple:
 
 ```rust
-pub type Migrations = (
+type MoonbaseMigrations = (
     FirstMigration,   // Runs first
     SecondMigration,  // Runs second
     ThirdMigration,   // Runs third
 );
 ```
+
+### After Deployment
+
+Once migrations have run on all networks (Moonbase Alpha, Moonriver, Moonbeam):
+
+```rust
+type MoonbaseMigrations = ();
+```
+
+Then remove the migration code from `runtime/common/src/migrations.rs`.
 
 ## Testing Migrations
 
@@ -269,38 +291,33 @@ pub type Migrations = (
 
 ```rust
 #[test]
-fn migration_v1_to_v2_works() {
+fn migration_works() {
     new_test_ext().execute_with(|| {
         // Setup old storage
-        v1::OldStorage::<Test>::insert(1, v1::OldData { value: 42 });
-        v1::OldStorage::<Test>::insert(2, v1::OldData { value: 100 });
-
-        // Set old version
-        StorageVersion::new(1).put::<Pallet<Test>>();
+        old::OldStorage::<Test>::insert(1, old::OldData { value: 42 });
+        old::OldStorage::<Test>::insert(2, old::OldData { value: 100 });
 
         // Run migration
-        let weight = MigrateToV2::<Test>::on_runtime_upgrade();
+        let weight = MigrateStorageFormat::<Test>::on_runtime_upgrade();
 
         // Verify migration
         assert!(weight.ref_time() > 0);
-        assert!(v1::OldStorage::<Test>::iter().count() == 0);
+        assert!(old::OldStorage::<Test>::iter().count() == 0);
         assert_eq!(NewStorage::<Test>::get(1).unwrap().value, 42);
         assert_eq!(NewStorage::<Test>::get(2).unwrap().value, 100);
-        assert_eq!(Pallet::<Test>::on_chain_storage_version(), 2);
     });
 }
 
 #[test]
-fn migration_skips_if_already_done() {
+fn migration_handles_empty_storage() {
     new_test_ext().execute_with(|| {
-        // Set current version
-        StorageVersion::new(2).put::<Pallet<Test>>();
+        // No old storage items
 
-        // Run migration
-        let weight = MigrateToV2::<Test>::on_runtime_upgrade();
+        // Run migration - should complete without error
+        let weight = MigrateStorageFormat::<Test>::on_runtime_upgrade();
 
-        // Should only read version
-        assert_eq!(weight, <Test as frame_system::Config>::DbWeight::get().reads(1));
+        // Zero reads/writes when nothing to migrate
+        assert_eq!(weight, Weight::zero());
     });
 }
 ```
@@ -369,39 +386,22 @@ fn post_upgrade(state: Vec<u8>) -> Result<(), DispatchError> {
 
 ## Best Practices
 
-### 1. Always Use Storage Versions
+### 1. Document When to Remove
+
+Add a comment indicating when the migration should be removed:
 
 ```rust
-#[pallet::pallet]
-#[pallet::storage_version(STORAGE_VERSION)]
-pub struct Pallet<T>(_);
-
-const STORAGE_VERSION: StorageVersion = StorageVersion::new(2);
+/// Migration to fix XYZ issue.
+/// Added in runtime 2800, remove after deployment to all networks.
+pub struct FixXyzMigration<T>(PhantomData<T>);
 ```
 
-### 2. Check Version Before Migrating
-
-```rust
-fn on_runtime_upgrade() -> Weight {
-    let on_chain = Pallet::<T>::on_chain_storage_version();
-    let current = Pallet::<T>::current_storage_version();
-
-    if on_chain < current {
-        // Run migration
-    } else {
-        // Skip
-    }
-}
-```
-
-### 3. Log Migration Progress
+### 2. Log Migration Progress
 
 ```rust
 log::info!(
     target: "migration",
-    "Starting migration from v{} to v{}",
-    on_chain_version,
-    target_version
+    "Running FixXyzMigration"
 );
 
 log::info!(
@@ -412,39 +412,47 @@ log::info!(
 );
 ```
 
-### 4. Handle Empty Storage
+### 3. Handle Empty Storage Gracefully
 
 ```rust
 fn on_runtime_upgrade() -> Weight {
-    if OldStorage::<T>::iter().next().is_none() {
-        // No data to migrate, just update version
-        StorageVersion::new(2).put::<Pallet<T>>();
-        return T::DbWeight::get().writes(1);
+    let mut count = 0u64;
+
+    for (key, old_data) in OldStorage::<T>::drain() {
+        // Process...
+        count += 1;
     }
-    // Continue with migration
+
+    // Works fine even if storage was empty
+    log::info!(target: "migration", "Migrated {} items", count);
+    T::DbWeight::get().reads_writes(count, count)
 }
 ```
 
-### 5. Bounded Iterations
+### 4. Use Lazy Migrations for Large Data Sets
+
+For migrations that could timeout, use the lazy migration pallet:
 
 ```rust
-// Avoid unbounded iteration
-let (cursor, processed) = OldStorage::<T>::clear(MAX_ITEMS, cursor);
-
-// Or use drain with limit
-for (key, value) in OldStorage::<T>::drain().take(MAX_ITEMS) {
-    // Process
-}
+// Large unbounded iteration - use lazy migration
+// See pallets/moonbeam-lazy-migrations/
 ```
+
+### 5. Clean Up After Deployment
+
+After the runtime upgrade has been deployed to all networks:
+- Remove the migration struct and implementation
+- Remove from the `Migrations` tuple in the runtime
+- Remove any `old` module definitions
 
 ## Common Issues
 
-| Issue                | Cause                 | Solution                              |
-|----------------------|-----------------------|---------------------------------------|
-| Migration runs twice | Missing version check | Always check on_chain_storage_version |
-| Data loss            | Incorrect key mapping | Test with real data before mainnet    |
-| Timeout              | Too many items        | Use lazy migration or pagination      |
-| Decode error         | Format mismatch       | Define old types correctly            |
+| Issue                     | Cause                        | Solution                           |
+|---------------------------|------------------------------|------------------------------------|
+| Migration not removed     | Forgot to clean up           | Remove after deployment to all networks |
+| Data loss                 | Incorrect key mapping        | Test with real data before mainnet |
+| Timeout                   | Too many items               | Use lazy migration                 |
+| Decode error              | Format mismatch              | Define old types correctly         |
 
 ## Key Files
 

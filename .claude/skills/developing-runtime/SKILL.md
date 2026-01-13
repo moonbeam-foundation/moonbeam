@@ -122,6 +122,16 @@ mod benches {
 
 ## Runtime Migrations
 
+### Migration Lifecycle
+
+Moonbeam follows a simple migration lifecycle:
+
+1. **Add migration before release**: Write the migration and register it
+2. **Deploy**: Migration runs once during the runtime upgrade
+3. **Remove migration before next release**: Delete the migration code
+
+Migrations are one-shot: they run once and are removed from the codebase.
+
 ### When Migrations Are Needed
 
 - Storage layout changes
@@ -133,42 +143,33 @@ mod benches {
 
 ```rust
 // runtime/common/src/migrations.rs
-pub mod v1 {
-    use super::*;
 
-    pub struct MigrateToV1<T>(PhantomData<T>);
+/// Migration to update storage format.
+/// Added in runtime XXXX, remove after deployment to all networks.
+pub struct MigrateStorageFormat<T>(PhantomData<T>);
 
-    impl<T: pallet_my_pallet::Config> OnRuntimeUpgrade for MigrateToV1<T> {
-        fn on_runtime_upgrade() -> Weight {
-            let current = Pallet::<T>::on_chain_storage_version();
+impl<T: pallet_my_pallet::Config> OnRuntimeUpgrade for MigrateStorageFormat<T> {
+    fn on_runtime_upgrade() -> Weight {
+        log::info!(target: "migration", "Running MigrateStorageFormat");
 
-            if current < 1 {
-                // Perform migration
-                let count = migrate_storage::<T>();
+        let count = migrate_storage::<T>();
 
-                StorageVersion::new(1).put::<Pallet<T>>();
+        log::info!(target: "migration", "Migrated {} items", count);
+        T::DbWeight::get().reads_writes(count, count)
+    }
 
-                T::DbWeight::get().reads_writes(count, count + 1)
-            } else {
-                T::DbWeight::get().reads(1)
-            }
-        }
+    #[cfg(feature = "try-runtime")]
+    fn pre_upgrade() -> Result<Vec<u8>, DispatchError> {
+        let count = OldStorage::<T>::iter().count() as u32;
+        Ok(count.encode())
+    }
 
-        #[cfg(feature = "try-runtime")]
-        fn pre_upgrade() -> Result<Vec<u8>, DispatchError> {
-            // Verify pre-conditions
-            let count = OldStorage::<T>::iter().count() as u32;
-            Ok(count.encode())
-        }
-
-        #[cfg(feature = "try-runtime")]
-        fn post_upgrade(state: Vec<u8>) -> Result<(), DispatchError> {
-            // Verify post-conditions
-            let old_count: u32 = Decode::decode(&mut &state[..]).unwrap();
-            let new_count = NewStorage::<T>::iter().count() as u32;
-            ensure!(old_count == new_count, "Migration count mismatch");
-            Ok(())
-        }
+    #[cfg(feature = "try-runtime")]
+    fn post_upgrade(state: Vec<u8>) -> Result<(), DispatchError> {
+        let old_count: u32 = Decode::decode(&mut &state[..]).unwrap();
+        let new_count = NewStorage::<T>::iter().count() as u32;
+        ensure!(old_count == new_count, "Migration count mismatch");
+        Ok(())
     }
 }
 ```
@@ -177,10 +178,11 @@ pub mod v1 {
 
 ```rust
 // runtime/moonbase/lib.rs
-pub type Migrations = (
-    // Ordered list of migrations
-    pallet_my_pallet::migrations::v1::MigrateToV1<Runtime>,
-    // Add more as needed
+
+/// Migrations to run on runtime upgrade.
+/// Remove after deployment.
+type MoonbaseMigrations = (
+    migrations::MigrateStorageFormat<Runtime>,
 );
 
 pub type Executive = frame_executive::Executive<
@@ -189,9 +191,24 @@ pub type Executive = frame_executive::Executive<
     frame_system::ChainContext<Runtime>,
     Runtime,
     AllPalletsWithSystem,
-    Migrations, // <-- Migrations tuple
+    MoonbaseMigrations,
 >;
 ```
+
+Each runtime has its own migrations type:
+- `MoonbaseMigrations` in `runtime/moonbase/lib.rs`
+- `MoonriverMigrations` in `runtime/moonriver/lib.rs`
+- `MoonbeamMigrations` in `runtime/moonbeam/lib.rs`
+
+### After Deployment
+
+Once migrations have run on all networks, clean up:
+
+```rust
+type MoonbaseMigrations = ();
+```
+
+Then remove the migration code from `runtime/common/src/migrations.rs`.
 
 ## Runtime APIs
 
