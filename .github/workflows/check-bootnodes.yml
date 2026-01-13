@@ -81,14 +81,14 @@ jobs:
             local result="TIMEOUT"
 
             if [ "$SPEC_TYPE" = "parachain" ]; then
-              timeout 35s ./target/release/moonbeam \
+              timeout 65s ./target/release/moonbeam \
                 --chain=${{ matrix.network.chain }} --reserved-only --reserved-nodes "$bootnode" \
                 --tmp --port "$base_port" --rpc-port 0 --no-prometheus --no-hardware-benchmarks \
                 --network-backend libp2p \
                 -- --port "$((base_port + 1))" --rpc-port 0 --no-prometheus --network-backend libp2p \
                 > "$log_file" 2>&1 &
             else
-              timeout 35s ./target/release/polkadot \
+              timeout 65s ./target/release/polkadot \
                 --chain=${{ matrix.network.spec_file }} --reserved-only --reserved-nodes "$bootnode" \
                 --tmp --port "$base_port" --rpc-port 0 --no-prometheus --no-hardware-benchmarks \
                 --network-backend libp2p \
@@ -96,7 +96,7 @@ jobs:
             fi
             local pid=$!
 
-            for _ in {1..30}; do
+            for _ in {1..60}; do
               sleep 1
               if [ -n "$peer_id" ] && grep -q "provided a different peer ID.*$peer_id" "$log_file" 2>/dev/null; then
                 result="PEER_ID_MISMATCH"; break
