@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 
 // EIP-7939: CLZ (Count Leading Zeros) opcode
 // CLZ returns the number of leading zero bits in a 256-bit value
@@ -57,19 +56,13 @@ describeSuite({
       id: "T01",
       title: "should deploy CLZ test contract",
       test: async function () {
-        const rawSigned = await createEthersTransaction(context, {
-          from: ALITH_ADDRESS,
-          to: null,
-          value: "0x0",
-          gasLimit: 0x100000,
-          gasPrice: 10_000_000_000,
-          data: DEPLOY_BYTECODE,
+        const hash = await context.viem().sendTransaction({
+          data: DEPLOY_BYTECODE as `0x${string}`,
         });
 
-        const { result } = await context.createBlock(rawSigned);
-        const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: result?.hash as `0x${string}` });
+        await context.createBlock();
+
+        const receipt = await context.viem("public").getTransactionReceipt({ hash });
 
         expect(receipt.status).toBe("success");
         expect(receipt.contractAddress).toBeTruthy();
