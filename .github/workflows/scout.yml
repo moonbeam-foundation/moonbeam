@@ -50,7 +50,7 @@ jobs:
           mkdir -p "$REPORT_DIR"
 
           section "Running Security Analysis"
-          cargo +nightly-2025-08-07 scout-audit --filter known-vulnerabilities,overflow-check --manifest-path runtime/moonbeam/Cargo.toml --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
+          cargo +nightly-2025-08-07 scout-audit --filter known-vulnerabilities,avoid-panic-error --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
           
           if [ ! -f "$REPORT_PATH" ]; then
             echo "[ERROR] Scout analysis failed!"
