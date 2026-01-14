@@ -12,7 +12,10 @@ jobs:
     steps:
       - name: Install required dependencies
         run: |
-          cargo +nightly install cargo-scout-audit
+          sudo apt-get install -y libprotobuf-dev protobuf-compiler
+          rustup default nightly
+          rustup component add rust-src rustc-dev llvm-tools-preview
+          cargo install cargo-scout-audit
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -47,7 +50,7 @@ jobs:
           mkdir -p "$REPORT_DIR"
 
           section "Running Security Analysis"
-          cargo +nightly scout-audit --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
+          cargo scout-audit --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
           
           if [ ! -f "$REPORT_PATH" ]; then
             echo "[ERROR] Scout analysis failed!"
