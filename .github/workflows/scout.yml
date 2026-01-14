@@ -49,7 +49,7 @@ jobs:
           mkdir -p "$REPORT_DIR"
 
           section "Running Security Analysis"
-          cargo +nightly-2025-08-07 scout-audit --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
+          cargo +nightly-2025-08-07 scout-audit --debug -v --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
           
           if [ ! -f "$REPORT_PATH" ]; then
             echo "[ERROR] Scout analysis failed!"
