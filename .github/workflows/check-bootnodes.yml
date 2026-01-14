@@ -96,9 +96,11 @@ jobs:
             fi
             local pid=$!
 
+            local new_peer_id=""
             for _ in {1..60}; do
               sleep 1
               if [ -n "$peer_id" ] && grep -q "provided a different peer ID.*$peer_id" "$log_file" 2>/dev/null; then
+                new_peer_id=$(grep "provided a different peer ID.*$peer_id" "$log_file" | grep -oE "provided a different peer ID \`[^\`]+\`" | grep -oE "12D3KooW[a-zA-Z0-9]+" | head -1)
                 result="PEER_ID_MISMATCH"; break
               fi
               if [ "$SPEC_TYPE" = "parachain" ]; then
@@ -109,7 +111,11 @@ jobs:
             done
 
             kill $pid 2>/dev/null; wait $pid 2>/dev/null
-            echo "${result}:${bootnode}" > "test_results/result_${idx}.txt"
+            if [ "$result" = "PEER_ID_MISMATCH" ] && [ -n "$new_peer_id" ]; then
+              echo "${result}:${new_peer_id}:${bootnode}" > "test_results/result_${idx}.txt"
+            else
+              echo "${result}::${bootnode}" > "test_results/result_${idx}.txt"
+            fi
           }
 
           idx=0
@@ -127,10 +133,16 @@ jobs:
             [ -f "$f" ] || continue
             content=$(cat "$f")
             status="${content%%:*}"
-            node="${content#*:}"
+            rest="${content#*:}"
+            new_peer="${rest%%:*}"
+            node="${rest#*:}"
             case "$status" in
               SUCCESS) echo "SUCCESS: $node"; SUCCESS=$((SUCCESS + 1)) ;;
-              PEER_ID_MISMATCH) echo "PEER_ID_MISMATCH: $node"; FAILED=$((FAILED + 1)); MISMATCHES+="- \`$node\`"$'\n' ;;
+              PEER_ID_MISMATCH)
+                echo "PEER_ID_MISMATCH: $node (actual: $new_peer)"
+                FAILED=$((FAILED + 1))
+                MISMATCHES+="- \`$node\` → actual peer ID: \`$new_peer\`"$'\n'
+                ;;
               *) echo "TIMEOUT: $node"; FAILED=$((FAILED + 1)); TIMEOUTS+="- \`$node\`"$'\n' ;;
             esac
           done
