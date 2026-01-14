@@ -15,6 +15,7 @@ jobs:
           sudo apt-get install -y libprotobuf-dev protobuf-compiler
           rustup component add rust-src rustc-dev llvm-tools-preview --toolchain nightly-2025-08-07
           cargo +nightly-2025-08-07 install cargo-scout-audit
+          cargo +nightly-2025-08-07 install dylint-link
 
       - name: Checkout
         uses: actions/checkout@v6
