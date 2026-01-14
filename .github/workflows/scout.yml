@@ -1,9 +1,10 @@
 name: Scout Audit
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * *" # Runs every day at 12 AM UTC
+  pull_request:
+  push:
+    branches:
+      - master
 
 jobs:
   scout-audit:
@@ -11,9 +12,7 @@ jobs:
     steps:
       - name: Install required dependencies
         run: |
-          sudo apt-get install -y libprotobuf-dev protobuf-compiler
-          rustup component add rust-src rustc-dev llvm-tools-preview --toolchain nightly-2025-08-07
-          cargo +nightly-2025-08-07 install cargo-scout-audit
+          cargo install cargo-scout-audit
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -48,7 +47,7 @@ jobs:
           mkdir -p "$REPORT_DIR"
 
           section "Running Security Analysis"
-          cargo +nightly-2025-08-07 scout-audit --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
+          cargo scout-audit --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
           
           if [ ! -f "$REPORT_PATH" ]; then
             echo "[ERROR] Scout analysis failed!"
