@@ -82,7 +82,7 @@ jobs:
 
             if [ "$SPEC_TYPE" = "parachain" ]; then
               timeout 65s ./target/release/moonbeam \
-                --chain=${{ matrix.network.chain }} --reserved-only --reserved-nodes "$bootnode" \
+                --chain=${{ matrix.network.spec_file }} --reserved-only --reserved-nodes "$bootnode" \
                 --tmp --port "$base_port" --rpc-port 0 --no-prometheus --no-hardware-benchmarks \
                 --network-backend libp2p \
                 -- --port "$((base_port + 1))" --rpc-port 0 --no-prometheus --network-backend libp2p \
