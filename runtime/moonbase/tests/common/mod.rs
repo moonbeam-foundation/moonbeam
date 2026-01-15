@@ -16,7 +16,6 @@
 
 #![allow(dead_code)]
 
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use fp_evm::GenesisAccount;
 use frame_support::{
 	assert_ok,
@@ -33,7 +32,7 @@ use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
-use cumulus_pallet_parachain_system::MessagingStateSnapshot;
+use cumulus_pallet_parachain_system::{MessagingStateSnapshot, parachain_inherent::{BasicParachainInherentData, InboundMessagesData}};
 use cumulus_primitives_core::relay_chain::{AbridgedHostConfiguration, AsyncBackingParams};
 use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
@@ -433,17 +432,23 @@ pub fn set_parachain_inherent_data() {
 		relay_parent_storage_root,
 		..Default::default()
 	};
-	let parachain_inherent_data = ParachainInherentData {
+
+	let data = BasicParachainInherentData {
 		validation_data: vfp,
-		relay_chain_state: relay_chain_state,
-		downward_messages: Default::default(),
-		horizontal_messages: Default::default(),
+		relay_chain_state,
 		collator_peer_id: Default::default(),
 		relay_parent_descendants: Default::default(),
 	};
+
+	let inbound_messages_data = InboundMessagesData {
+		downward_messages: Default::default(),
+		horizontal_messages: Default::default(),
+	};
+
 	assert_ok!(RuntimeCall::ParachainSystem(
 		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {
-			data: parachain_inherent_data
+			data,
+			inbound_messages_data,
 		}
 	)
 	.dispatch(inherent_origin()));

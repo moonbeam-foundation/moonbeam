@@ -93,7 +93,7 @@ async function main(args: any) {
 
     // Generate precompiled wasm
     const command =
-      `${binaryPath} precompile-wasm --log=wasmtime-runtime --base-path=${tmpDir} ` +
+      `${binaryPath} precompile-wasm --log=wasmtime-runtime --database=paritydb --base-path=${tmpDir} ` +
       `--chain tmp/${args.argv.Chain}-raw.json ${outputDirectory}`;
     console.log(`🗃️  ${command}`);
     await spawn(command);

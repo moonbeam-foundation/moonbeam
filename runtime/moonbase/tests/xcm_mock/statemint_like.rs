@@ -154,6 +154,7 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = ();
 	type RemoveItemsLimit = ConstU32<656>;
 	type AssetIdParameter = AssetId;
+	type ReserveData = ();
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type CallbackHandle = ();
 	type Holder = ();

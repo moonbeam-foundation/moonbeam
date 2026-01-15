@@ -796,7 +796,7 @@ pub fn run() -> Result<()> {
 				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
 
 				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v8::AccountId>::into_account_truncating(&id);
+					AccountIdConversion::<polkadot_primitives::v9::AccountId>::into_account_truncating(&id);
 
 				let tokio_handle = config.tokio_handle.clone();
 				let polkadot_config =
