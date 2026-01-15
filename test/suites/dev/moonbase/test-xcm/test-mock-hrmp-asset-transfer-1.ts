@@ -56,7 +56,7 @@ describeSuite({
     for (const xcmVersion of XCM_VERSIONS) {
       it({
         id: `T01-XCM-v${xcmVersion}`,
-        title: "Should attempt a horizontal transfer of 10 FOREIGNs to Alith",
+        title: "Should receive a horizontal transfer of 10 FOREIGNs to Alith",
         test: async function () {
           const alith_balance_before = await foreignAssetBalance(
             context,
@@ -104,9 +104,7 @@ describeSuite({
             alith.address as `0x{string}`
           );
 
-          // With upstream benchmarks, `ReserveAssetDeposited` is effectively disabled
-          // for this asset, so the message should not change Alith's balance.
-          expect(alith_balance_after - alith_balance_before).to.eq(0n);
+          expect(alith_balance_after - alith_balance_before).to.eq(FOREIGN_TOKEN);
         },
       });
 
