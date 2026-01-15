@@ -864,7 +864,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent, WeightLimit,
 						AccountId32,
 					};
-					use xcm_config::{SelfReserve, MaxAssetsIntoHolding};
+					use xcm_config::{SelfReserve, MaxAssetsIntoHolding, AssetHubLocation, RelayLocation};
 					use frame_benchmarking::BenchmarkError;
 					use xcm_executor::traits::ConvertLocation;
 
@@ -1064,7 +1064,15 @@ macro_rules! impl_runtime_apis_plus_common {
 						pub const TokenLocation: Location = Here.into_location();
 						pub TrustedTeleporter: Option<(Location, Asset)> = None;
 						pub CheckedAccount: Option<(AccountId, xcm_builder::MintLocation)> = None;
-						pub const TrustedReserve: Option<(Location, Asset)> = None;
+						// Reserve location and asset used by the `reserve_asset_deposited` benchmark.
+						// We use DOT (asset id = `RelayLocation`) whose reserve is Asset Hub.
+						pub TrustedReserve: Option<(Location, Asset)> = Some((
+							AssetHubLocation::get(),
+							Asset {
+								id: AssetId(RelayLocation::get()),
+								fun: Fungible(100 * ExistentialDeposit::get()),
+							}
+						));
 					}
 
 					impl pallet_xcm_benchmarks::fungible::Config for Runtime {
