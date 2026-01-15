@@ -111,8 +111,8 @@ importers:
         specifier: 7.7.2
         version: 7.7.2
       solc:
-        specifier: 0.8.30
-        version: 0.8.30(debug@4.4.3)
+        specifier: 0.8.31
+        version: 0.8.31(debug@4.4.3)
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
@@ -5975,8 +5975,8 @@ packages:
     resolution: {integrity: sha512-HLpt+uLy/pxB+bum/9DzAgiKS8CX1EvbWxI4zlmgGCExImLdiad2iCwXT5Z4c9c3Eq8rP2318mPW2c+QbtjK8A==}
     engines: {node: '>= 10.0.0', npm: '>= 3.0.0'}
 
-  solc@0.8.30:
-    resolution: {integrity: sha512-9Srk/gndtBmoUbg4CE6ypAzPQlElv8ntbnl6SigUBAzgXKn35v87sj04uZeoZWjtDkdzT0qKFcIo/wl63UMxdw==}
+  solc@0.8.31:
+    resolution: {integrity: sha512-wpccgDgu/aE/rRcF2F/LeN+4knK0734XTcjppyaQOticjYd/Giq1AJE3XPQZKEViAsY3sNaFKl7QpMRYrK35vg==}
     engines: {node: '>=12.0.0'}
     hasBin: true
 
@@ -14988,7 +14988,7 @@ snapshots:
       smart-buffer: 4.2.0
     optional: true
 
-  solc@0.8.30(debug@4.4.3):
+  solc@0.8.31(debug@4.4.3):
     dependencies:
       command-exists: 1.2.9
       commander: 8.3.0

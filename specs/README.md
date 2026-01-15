@@ -4,7 +4,7 @@ This directory contains chain specs for well-known public networks.
 
 ## Context
 
-The Moonbase node is designed to support multiple networks including Moonbase Alpha, MoonRiver
+The Moonbase node is designed to support multiple networks including Moonbase Alpha, Moonriver
 (Kusama) and Moonbeam (Polkadot). Some of these networks are already live and others are planned.
 
 In order to support multiple networks with the same binary, Moonbase relies on a chain specification
@@ -13,11 +13,9 @@ it is convenient to "bake" specs for popular networks into the node.
 
 ## Which specs will come pre-baked?
 
-- Moonbase Stage V6 - internal
-- Moonbase Alpha V6 - live
-- MoonRock - Potential future deployment to Rococo
-- MoonRiver - Future Kusama Deployment
-- Moonbeam - Future Polkadot deployment
+- Moonbase Alpha - Dev Deployment
+- Moonriver - Kusama Deployment
+- Moonbeam - Polkadot deployment
 
 ## Relay chain specs
 
