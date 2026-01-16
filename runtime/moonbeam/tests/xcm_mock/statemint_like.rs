@@ -53,6 +53,7 @@ use xcm_simulator::{
 pub type AccountId = AccountId32;
 pub type Balance = u128;
 pub type AssetId = u128;
+pub type ReserveId = u128;
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
@@ -117,11 +118,15 @@ impl pallet_balances::Config for Runtime {
 // Required for runtime benchmarks
 pallet_assets::runtime_benchmarks_enabled! {
 	pub struct BenchmarkHelper;
-	impl<AssetIdParameter> pallet_assets::BenchmarkHelper<AssetIdParameter> for BenchmarkHelper
+	impl<AssetIdParameter, ReserveIdParameter> pallet_assets::BenchmarkHelper<AssetIdParameter, ReserveIdParameter> for BenchmarkHelper
 	where
 		AssetIdParameter: From<u128>,
+		ReserveIdParameter: From<u128>,
 	{
 		fn create_asset_id_parameter(id: u32) -> AssetIdParameter {
+			(id as u128).into()
+		}
+		fn create_reserve_id_parameter(id: u32) -> ReserveIdParameter {
 			(id as u128).into()
 		}
 	}
@@ -156,7 +161,7 @@ impl pallet_assets::Config for Runtime {
 	type WeightInfo = ();
 	type RemoveItemsLimit = ConstU32<656>;
 	type AssetIdParameter = AssetId;
-	type ReserveData = ();
+	type ReserveData = ReserveId;
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type CallbackHandle = ();
 	type Holder = ();
