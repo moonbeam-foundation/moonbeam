@@ -32,7 +32,10 @@ use sp_consensus_slots::Slot;
 use sp_core::{Encode, H160};
 use sp_runtime::{traits::Dispatchable, BuildStorage, Digest, DigestItem, Perbill, Percent};
 
-use cumulus_pallet_parachain_system::{MessagingStateSnapshot, parachain_inherent::{BasicParachainInherentData, InboundMessagesData}};
+use cumulus_pallet_parachain_system::{
+	parachain_inherent::{BasicParachainInherentData, InboundMessagesData},
+	MessagingStateSnapshot,
+};
 use cumulus_primitives_core::relay_chain::{AbridgedHostConfiguration, AsyncBackingParams};
 use cumulus_primitives_core::AbridgedHrmpChannel;
 use fp_rpc::ConvertTransaction;
@@ -462,7 +465,8 @@ pub fn set_parachain_inherent_data() {
 
 	assert_ok!(RuntimeCall::ParachainSystem(
 		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {
-			data, inbound_messages_data
+			data,
+			inbound_messages_data
 		}
 	)
 	.dispatch(inherent_origin()));

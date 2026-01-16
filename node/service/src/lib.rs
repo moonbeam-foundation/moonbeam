@@ -30,7 +30,7 @@ use cumulus_client_consensus_common::ParachainBlockImport as TParachainBlockImpo
 use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 use cumulus_client_service::{
 	prepare_node_config, start_relay_chain_tasks, CollatorSybilResistance, DARecoveryProfile,
-	ParachainTracingExecuteBlock, ParachainHostFunctions, StartRelayChainTasksParams,
+	ParachainHostFunctions, ParachainTracingExecuteBlock, StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::{
 	relay_chain::{self, well_known_keys, CollatorPair},
@@ -725,8 +725,8 @@ async fn start_node_impl<RuntimeApi, Customizations, Net>(
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection
-		+ cumulus_primitives_core::RelayParentOffsetApi<Block>,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection + cumulus_primitives_core::RelayParentOffsetApi<Block>,
 	Customizations: ClientCustomizations + 'static,
 	Net: NetworkBackend<Block, Hash>,
 {
@@ -1061,8 +1061,8 @@ fn start_consensus<RuntimeApi, SO>(
 ) -> Result<(), sc_service::Error>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection
-		+ cumulus_primitives_core::RelayParentOffsetApi<Block>,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection + cumulus_primitives_core::RelayParentOffsetApi<Block>,
 	sc_client_api::StateBackendFor<FullBackend, Block>: sc_client_api::StateBackend<BlakeTwo256>,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
@@ -1132,7 +1132,9 @@ where
 
 			let params = nimbus_consensus::collators::lookahead::Params {
 				additional_digests_provider: maybe_provide_vrf_digest,
-				additional_relay_state_keys: vec![relay_chain::well_known_keys::EPOCH_INDEX.to_vec()],
+				additional_relay_state_keys: vec![
+					relay_chain::well_known_keys::EPOCH_INDEX.to_vec()
+				],
 				authoring_duration: block_authoring_duration,
 				block_import,
 				code_hash_provider,
