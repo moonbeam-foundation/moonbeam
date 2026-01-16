@@ -1,0 +1,229 @@
+name: Check Bootnodes
+
+on:
+  schedule:
+    - cron: "0 5 * * 0" # Runs every Sunday at 5:00 AM UTC
+  workflow_dispatch:
+
+jobs:
+  check-bootnodes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        network:
+          - name: moonbeam
+            chain: moonbeam
+            spec_file: specs/moonbeam/parachain-embedded-specs.json
+            type: parachain
+          - name: moonriver
+            chain: moonriver
+            spec_file: specs/moonriver/parachain-embedded-specs.json
+            type: parachain
+          - name: moonbase-alpha
+            chain: moonbase-alpha
+            spec_file: specs/alphanet/parachain-embedded-specs-v8.json
+            type: parachain
+          - name: moonbase-alpha-relay
+            chain: moonbase-alpha
+            spec_file: specs/alphanet/westend-embedded-specs-v8.json
+            type: relay
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get latest moonbeam release
+        if: matrix.network.type == 'parachain'
+        id: get-moonbeam-release
+        run: |
+          LATEST_CLIENT=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("v";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]')
+          echo "latest_client=$LATEST_CLIENT" >> $GITHUB_OUTPUT
+          echo "Latest Moonbeam release: $LATEST_CLIENT"
+
+      - name: Download moonbeam binary
+        if: matrix.network.type == 'parachain'
+        run: |
+          mkdir -p target/release
+          wget -q https://github.com/moonbeam-foundation/moonbeam/releases/download/${{ steps.get-moonbeam-release.outputs.latest_client }}/moonbeam -O target/release/moonbeam
+          chmod +x target/release/moonbeam
+
+      - name: Get latest polkadot release
+        if: matrix.network.type == 'relay'
+        id: get-polkadot-release
+        run: |
+          LATEST_POLKADOT=$(curl -s https://api.github.com/repos/paritytech/polkadot-sdk/releases/latest | jq -r '.tag_name')
+          echo "latest_polkadot=$LATEST_POLKADOT" >> $GITHUB_OUTPUT
+          echo "Latest Polkadot SDK release: $LATEST_POLKADOT"
+
+      - name: Download polkadot binary
+        if: matrix.network.type == 'relay'
+        run: |
+          mkdir -p target/release
+          wget -q https://github.com/paritytech/polkadot-sdk/releases/download/${{ steps.get-polkadot-release.outputs.latest_polkadot }}/polkadot -O target/release/polkadot
+          chmod +x target/release/polkadot
+
+      - name: Validate bootnodes
+        run: |
+          BOOTNODES=$(jq -r '.bootNodes[]' ${{ matrix.network.spec_file }})
+          TOTAL=$(echo "$BOOTNODES" | wc -l | tr -d ' ')
+          SPEC_TYPE="${{ matrix.network.type }}"
+
+          echo "Validating $TOTAL $SPEC_TYPE bootnodes for ${{ matrix.network.name }}..."
+          mkdir -p test_results reports
+
+          test_bootnode() {
+            local bootnode="$1" idx="$2"
+            local base_port=$((30000 + idx * 100))
+            local peer_id=$(echo "$bootnode" | grep -oE "12D3KooW[a-zA-Z0-9]+")
+            local log_file="test_results/node_${idx}.log"
+            local result="TIMEOUT"
+
+            if [ "$SPEC_TYPE" = "parachain" ]; then
+              timeout 65s ./target/release/moonbeam \
+                --chain=${{ matrix.network.spec_file }} --reserved-only --reserved-nodes "$bootnode" \
+                --tmp --port "$base_port" --rpc-port 0 --no-prometheus --no-hardware-benchmarks \
+                --network-backend libp2p \
+                -- --port "$((base_port + 1))" --rpc-port 0 --no-prometheus --network-backend libp2p \
+                > "$log_file" 2>&1 &
+            else
+              timeout 65s ./target/release/polkadot \
+                --chain=${{ matrix.network.spec_file }} --reserved-only --reserved-nodes "$bootnode" \
+                --tmp --port "$base_port" --rpc-port 0 --no-prometheus --no-hardware-benchmarks \
+                --network-backend libp2p \
+                > "$log_file" 2>&1 &
+            fi
+            local pid=$!
+
+            local new_peer_id=""
+            for _ in {1..60}; do
+              sleep 1
+              if [ -n "$peer_id" ] && grep -q "provided a different peer ID.*$peer_id" "$log_file" 2>/dev/null; then
+                new_peer_id=$(grep "provided a different peer ID.*$peer_id" "$log_file" | grep -oE "provided a different peer ID \`[^\`]+\`" | grep -oE "12D3KooW[a-zA-Z0-9]+" | head -1)
+                result="PEER_ID_MISMATCH"; break
+              fi
+              if [ "$SPEC_TYPE" = "parachain" ]; then
+                grep -qE "\[🌗\].*\([1-9][0-9]* peers?\)" "$log_file" 2>/dev/null && { result="SUCCESS"; break; }
+              else
+                grep -qE "\([1-9][0-9]* peers?\)" "$log_file" 2>/dev/null && { result="SUCCESS"; break; }
+              fi
+            done
+
+            kill $pid 2>/dev/null; wait $pid 2>/dev/null
+            if [ "$result" = "PEER_ID_MISMATCH" ] && [ -n "$new_peer_id" ]; then
+              echo "${result}:${new_peer_id}:${bootnode}" > "test_results/result_${idx}.txt"
+            else
+              echo "${result}::${bootnode}" > "test_results/result_${idx}.txt"
+            fi
+          }
+
+          idx=0
+          while IFS= read -r bootnode; do
+            [ -z "$bootnode" ] && continue
+            test_bootnode "$bootnode" "$idx" &
+            idx=$((idx + 1))
+            sleep 0.5
+          done <<< "$BOOTNODES"
+          wait
+
+          # Collect results
+          SUCCESS=0 FAILED=0 TIMEOUTS="" MISMATCHES=""
+          for f in test_results/result_*.txt; do
+            [ -f "$f" ] || continue
+            content=$(cat "$f")
+            status="${content%%:*}"
+            rest="${content#*:}"
+            new_peer="${rest%%:*}"
+            node="${rest#*:}"
+            case "$status" in
+              SUCCESS) echo "SUCCESS: $node"; SUCCESS=$((SUCCESS + 1)) ;;
+              PEER_ID_MISMATCH)
+                echo "PEER_ID_MISMATCH: $node (actual: $new_peer)"
+                FAILED=$((FAILED + 1))
+                MISMATCHES+="- \`$node\` → actual peer ID: \`$new_peer\`"$'\n'
+                ;;
+              *) echo "TIMEOUT: $node"; FAILED=$((FAILED + 1)); TIMEOUTS+="- \`$node\`"$'\n' ;;
+            esac
+          done
+
+          echo -e "\nResults: $SUCCESS/$TOTAL successful"
+
+          # Save report
+          {
+            echo "network=${{ matrix.network.name }}"
+            echo "total=$TOTAL"
+            echo "success=$SUCCESS"
+            echo "failed=$FAILED"
+            echo "---TIMEOUT---"
+            echo -n "$TIMEOUTS"
+            echo "---PEER_ID_MISMATCH---"
+            echo -n "$MISMATCHES"
+          } > reports/${{ matrix.network.name }}.txt
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootnode-results-${{ matrix.network.name }}
+          path: reports/
+          retention-days: 1
+
+  report:
+    needs: check-bootnodes
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      issues: write
+    steps:
+      - name: Download all results
+        uses: actions/download-artifact@v4
+        with:
+          path: results
+          pattern: bootnode-results-*
+          merge-multiple: true
+
+      - name: Create issue if failures detected
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TOTAL_FAILURES=0
+
+          # Build summary table
+          TABLE="| Network | Status | Working |\n|---------|--------|---------|"
+          DETAILS=""
+
+          for report in results/*.txt; do
+            [ -f "$report" ] || continue
+            network=$(grep "^network=" "$report" | cut -d= -f2)
+            total=$(grep "^total=" "$report" | cut -d= -f2)
+            success=$(grep "^success=" "$report" | cut -d= -f2)
+            failed=$(grep "^failed=" "$report" | cut -d= -f2)
+            TOTAL_FAILURES=$((TOTAL_FAILURES + failed))
+
+            if [ "$failed" -gt 0 ]; then
+              TABLE+="\n| **$network** | :x: | $success/$total |"
+              timeouts=$(sed -n '/---TIMEOUT---/,/---PEER_ID_MISMATCH---/p' "$report" | grep -v "^---" | grep -v "^$" || true)
+              mismatches=$(sed -n '/---PEER_ID_MISMATCH---/,$ p' "$report" | grep -v "^---" | grep -v "^$" || true)
+
+              DETAILS+="\n### $network\n"
+              [ -n "$mismatches" ] && DETAILS+="\n<details>\n<summary>:warning: Peer ID Mismatch</summary>\n\n$mismatches\n</details>\n"
+              [ -n "$timeouts" ] && DETAILS+="\n<details>\n<summary>:hourglass: Connection Timeout</summary>\n\n$timeouts\n</details>\n"
+            else
+              TABLE+="\n| **$network** | :white_check_mark: | $success/$total |"
+            fi
+          done
+
+          [ "$TOTAL_FAILURES" -eq 0 ] && { echo "All bootnodes healthy!"; exit 0; }
+
+          BODY="The weekly bootnode validation check has detected connectivity issues.\n\n$(echo -e "$TABLE")\n$DETAILS\n---\n**Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+          ISSUE_TITLE="Bootnode Validation Failures"
+          EXISTING=$(gh issue list --repo ${{ github.repository }} --state open --search "in:title \"$ISSUE_TITLE\"" --json number --jq '.[0].number' 2>/dev/null || true)
+
+          if [ -n "$EXISTING" ]; then
+            echo "Updating issue #$EXISTING"
+            echo -e "$BODY" | gh issue edit "$EXISTING" --repo ${{ github.repository }} --body-file -
+          else
+            echo "Creating new issue"
+            echo -e "$BODY" | gh issue create --repo ${{ github.repository }} --title "$ISSUE_TITLE" --body-file - --label "bootnodes"
+          fi
