@@ -7,7 +7,6 @@ import {
   RELAY_SOURCE_LOCATION,
   addAssetToWeightTrader,
 } from "../../../../helpers";
-import {GLMR} from "@moonwall/util";
 
 describeSuite({
   id: "D024120",
@@ -45,47 +44,43 @@ describeSuite({
         // Should include the native asset + the foreign one
         expect(allowedAssets.asOk.toJSON().length).to.be.equal(2);
 
-        // const weightToNativeFee = await polkadotJs.call.xcmPaymentApi.queryWeightToAssetFee(
-        //   {
-        //     refTime: 10_000_000_000n,
-        //     proofSize: 80_000n,
-        //   },
-        //   {
-        //     V3: {
-        //       Concrete: {
-        //         parents: 0,
-        //         interior: {
-        //           X1: { PalletInstance: balancesPalletIndex },
-        //         },
-        //       },
-        //     },
-        //   }
-        // );
-        //
-        // console.log(`weightToNativeFee: ${weightToNativeFee}`);
-        //
-        // expect(weightToNativeFee.isOk).to.be.true;
-        // // 0.0005 GLMR
-        // expect(BigInt(weightToNativeFee.asOk.toJSON())).to.eq(125_000_000_000_000n);
-        //
-        // const weightToForeignFee = await polkadotJs.call.xcmPaymentApi.queryWeightToAssetFee(
-        //   {
-        //     refTime: 10_000_000_000n,
-        //     proofSize: 0n,
-        //   },
-        //   {
-        //     V3: {
-        //       Concrete: { parents: 1, interior: "Here" },
-        //     },
-        //   }
-        // );
-        //
-        // console.log(`weightToForeignFee: ${weightToForeignFee}`);
-        //
-        // expect(weightToForeignFee.isOk).to.be.true;
-        //
-        // // Foreign asset registered in Weight Trader with a 1-1 relative price to the native asset
-        // expect(BigInt(weightToForeignFee.asOk.toJSON())).to.eq(125_000_000_000_000n);
+        const weightToNativeFee = await polkadotJs.call.xcmPaymentApi.queryWeightToAssetFee(
+          {
+            refTime: 10_000_000_000n,
+            proofSize: 80_000n,
+          },
+          {
+            V3: {
+              Concrete: {
+                parents: 0,
+                interior: {
+                  X1: { PalletInstance: balancesPalletIndex },
+                },
+              },
+            },
+          }
+        );
+
+        expect(weightToNativeFee.isOk).to.be.true;
+        // 0.0005 GLMR
+        expect(BigInt(weightToNativeFee.asOk.toJSON())).to.eq(125_000_000_000_000n);
+
+        const weightToForeignFee = await polkadotJs.call.xcmPaymentApi.queryWeightToAssetFee(
+          {
+            refTime: 10_000_000_000n,
+            proofSize: 0n,
+          },
+          {
+            V3: {
+              Concrete: { parents: 1, interior: "Here" },
+            },
+          }
+        );
+
+        expect(weightToForeignFee.isOk).to.be.true;
+
+        // Foreign asset registered in Weight Trader with a 1-1 relative price to the native asset
+        expect(BigInt(weightToForeignFee.asOk.toJSON())).to.eq(125_000_000_000_000n);
 
         const transactWeightAtMost = {
           refTime: 500_000_000n,
