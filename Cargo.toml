@@ -265,11 +265,11 @@ precompile-utils-macro = { git = "https://github.com/moonbeam-foundation/frontie
 
 # Frontier (client)
 fc-consensus = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2512" }
-fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2512" }
+fc-db = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2512", default-features = false, features = [ "rocksdb" ] }
 fc-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2512" }
-fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2512" }
+fc-mapping-sync = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2512", default-features = false, features = [ "rocksdb" ] }
 fc-rpc = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2512", features = [
-    "rpc-binary-search-estimate",
+    "rpc-binary-search-estimate", "rocksdb",
 ] }
 fc-rpc-core = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2512" }
 fc-rpc-v2-api = { git = "https://github.com/moonbeam-foundation/frontier", branch = "moonbeam-polkadot-stable2512" }
