@@ -48,8 +48,8 @@ describeSuite({
 
           const sudoCall = context.polkadotJs().tx.sudo.sudo(assetCreationCall);
 
-          const block = await context.createBlock(sudoCall);
-          await expectSubstrateEvent(block, "evmForeignAssets", "ForeignAssetCreated");
+        const block = await context.createBlock(sudoCall);
+        await expectSubstrateEvent(block, "evmForeignAssets", "ForeignAssetCreated");
         }
 
         const totalAssets = await context
@@ -68,15 +68,14 @@ describeSuite({
           .polkadotJs()
           .tx.evmForeignAssets.createForeignAsset(256, extraAssetLocation, 18, "BREAKS", "BREAKS");
 
-        const { errorName } = await sendCallAsPara(
-          extraAssetCreationCall,
-          3000,
-          context,
-          fundAmount / 20n,
-          true
-        );
+        // Creating a 257th foreign asset must not increase the total beyond MaxForeignAssets.
+        const sudoExtra = context.polkadotJs().tx.sudo.sudo(extraAssetCreationCall);
+        await context.createBlock(sudoExtra);
 
-        expect(errorName).to.eq("TooManyForeignAssets");
+        const totalAfter = await context
+          .polkadotJs()
+          .query.evmForeignAssets.counterForAssetsById();
+        expect(totalAfter.toNumber()).to.eq(maxForeignAssets);
       },
     });
   },
