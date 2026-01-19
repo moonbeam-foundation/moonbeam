@@ -240,7 +240,7 @@ describeSuite({
       id: "T08",
       title: "nagydani-1-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 2670n;
+        const expectedModExpGasCost = 4416n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000040" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -351,7 +351,7 @@ describeSuite({
       id: "T11",
       title: "nagydani-2-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 6820n;
+        const expectedModExpGasCost = 10560n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000080" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -462,7 +462,7 @@ describeSuite({
       id: "T14",
       title: "nagydani-3-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 29312n;
+        const expectedModExpGasCost = 35136n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000100" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -573,7 +573,7 @@ describeSuite({
       id: "T17",
       title: "nagydani-4-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 131766n;
+        const expectedModExpGasCost = 133440n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000200" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
