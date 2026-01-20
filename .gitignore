@@ -29,3 +29,30 @@ tools/build
 
 .github/instructions/kluster-code-verify.instructions.md
 .kluster
+
+# AI Agent local configs
+.opencode/
+.claude/
+.codex/
+.cursor/
+.agents/
+.kilocode/
+.roo/
+.goose/
+.gemini/
+.agent/
+.github/skills/
+skills/
+.factory/
+.windsurf/
+
+# AI Agent instruction files
+CLAUDE.md
+.cursorrules
+.windsurfrules
+.github/copilot-instructions.md
+AGENTS.md
+GEMINI.md
+COPILOT.md
+.clinerules
+.roomodes
