@@ -24,7 +24,7 @@ precompile-utils = { workspace = true }
 
 [dev-dependencies]
 hex-literal = { workspace = true }
-libsecp256k1 = { workspace = true }
+libsecp256k1 = { workspace = true, features = [ "hmac" ] }
 
 pallet-timestamp = { workspace = true, features = ["std"] }
 pallet-balances = { workspace = true, features = [ "insecure_zero_ed", "std" ] }
