@@ -62,16 +62,9 @@ describeSuite({
 
         const calls = getCalls();
         for (const call of calls) {
-          const { errorName } = await sendCallAsPara(
-            call,
-            3000,
-            context,
-            fundAmount / 20n,
-            true,
-            {
-              originKind: "SovereignAccount",
-            }
-          );
+          const { errorName } = await sendCallAsPara(call, 3000, context, fundAmount / 20n, true, {
+            originKind: "SovereignAccount",
+          });
           // Depending on XCM execution and weight configuration, a sovereign-origin
           // call may fail before emitting a QueryResponse, in which case no HRMP
           // outbound message is produced. In that case we surface a synthetic
