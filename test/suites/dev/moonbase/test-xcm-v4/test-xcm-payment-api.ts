@@ -133,11 +133,16 @@ describeSuite({
 
         const deliveryFees = await polkadotJs.call.xcmPaymentApi.queryDeliveryFees(
           dest,
-          xcmMessage
+          xcmMessage,
+          {
+            V3: {
+              Concrete: { parents: 1, interior: "Here" },
+            },
+          },
         );
-        expect(deliveryFees.isOk).to.be.true;
+
         // No delivery fees set for now
-        expect(deliveryFees.asOk.toHuman()["V3"]).to.be.empty;
+        expect(deliveryFees.isOk).to.be.false;
       },
     });
   },

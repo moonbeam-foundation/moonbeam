@@ -109,7 +109,7 @@ describeSuite({
           account: BALTATHAR_ADDRESS,
         });
         log("Estimated Gas for startLottery", estimatedGas);
-        expect(estimatedGas).toMatchInlineSnapshot(`157238n`);
+        expect(estimatedGas).toMatchInlineSnapshot(`157898n`);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Randomness",

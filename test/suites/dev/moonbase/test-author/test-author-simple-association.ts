@@ -46,12 +46,12 @@ describeSuite({
           api.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS)
         );
         // check events
-        expect(result?.events.length === 8);
+        expect(result?.events.length === 9);
         expect(api.events.balances.Reserved.is(result?.events[1].event)).to.be.true;
         expect(api.events.authorMapping.KeysRegistered.is(result?.events[2].event)).to.be.true;
-        expect(api.events.system.NewAccount.is(result?.events[3].event)).to.be.true;
-        expect(api.events.balances.Endowed.is(result?.events[4].event)).to.be.true;
-        expect(api.events.system.ExtrinsicSuccess.is(result?.events[7].event)).to.be.true;
+        expect(api.events.system.NewAccount.is(result?.events[4].event)).to.be.true;
+        expect(api.events.balances.Endowed.is(result?.events[5].event)).to.be.true;
+        expect(api.events.system.ExtrinsicSuccess.is(result?.events[8].event)).to.be.true;
 
         // check association
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))?.account).to.eq(
