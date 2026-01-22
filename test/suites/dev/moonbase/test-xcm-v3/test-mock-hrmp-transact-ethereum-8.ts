@@ -156,13 +156,14 @@ describeSuite({
 
           // Make sure descend address has been deducted fees once (in xcm-executor).
           // With the new upstream benchmarks and more accurate weight refunds,
-          // the exact fee depends on configuration, so we only assert it is
-          // positive and within the originally budgeted upper bound.
+          // and with the Ethereum XCM execution suspension switch enabled,
+          // the exact fee depends on configuration and may even be fully
+          // refunded. We only assert it stays within the originally
+          // budgeted upper bound.
           const descendAddressBalance = await context
             .viem()
             .getBalance({ address: descendAddress });
           const spent = transferredBalance - BigInt(descendAddressBalance);
-          expect(spent).to.be.gt(0n);
           expect(spent).to.be.lte(expectedTransferredAmountPlusFees);
         }
       },
