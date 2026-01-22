@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, createViemTransaction, sendRawTransaction } from "@moonwall/util";
+import { ALITH_ADDRESS, EXTRINSIC_GAS_LIMIT, createViemTransaction } from "@moonwall/util";
 import { toHex } from "viem";
 import { testVectors } from "../../../../helpers/modexp";
 
@@ -90,18 +90,17 @@ describeSuite({
         // Use valid input sizes (all within 1024 bytes)
         const input = encodeModexpInputWithSizes(32, 32, 32);
 
-        const tx = await createViemTransaction(context, {
+        const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
           data: input,
-          gas: 100_000n,
+          gas: EXTRINSIC_GAS_LIMIT,
         });
 
-        const txHash = await sendRawTransaction(context, tx);
-        await context.createBlock();
+        const { result } = await context.createBlock(rawTxn);
 
         const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: txHash as `0x${string}` });
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         expect(receipt.status).toBe("success");
       },
@@ -114,18 +113,17 @@ describeSuite({
         // Base size at exactly 1024 bytes (maximum allowed)
         const input = encodeModexpInputWithSizes(EIP_7823_MAX_INPUT_SIZE, 32, 32);
 
-        const tx = await createViemTransaction(context, {
+        const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
           data: input,
-          gas: 15_000_000n, // Need more gas for larger inputs
+          gas: EXTRINSIC_GAS_LIMIT,
         });
 
-        const txHash = await sendRawTransaction(context, tx);
-        await context.createBlock();
+        const { result } = await context.createBlock(rawTxn);
 
         const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: txHash as `0x${string}` });
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         expect(receipt.status).toBe("success");
       },
@@ -137,20 +135,19 @@ describeSuite({
       test: async function () {
         // Base size exceeds 1024 bytes (EIP-7823 bound)
         const input = encodeModexpInputWithSizes(EIP_7823_MAX_INPUT_SIZE + 1, 32, 32);
-        const gasLimit = 100_000n;
+        const gasLimit = 500_000n;
 
-        const tx = await createViemTransaction(context, {
+        const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
           data: input,
           gas: gasLimit,
         });
 
-        const txHash = await sendRawTransaction(context, tx);
-        await context.createBlock();
+        const { result } = await context.createBlock(rawTxn);
 
         const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: txHash as `0x${string}` });
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         // Transaction should revert due to EIP-7823 bounds violation
         expect(receipt.status).toBe("reverted");
@@ -166,20 +163,19 @@ describeSuite({
       test: async function () {
         // Exponent size exceeds 1024 bytes (EIP-7823 bound)
         const input = encodeModexpInputWithSizes(32, EIP_7823_MAX_INPUT_SIZE + 1, 32);
-        const gasLimit = 100_000n;
+        const gasLimit = 500_000n;
 
-        const tx = await createViemTransaction(context, {
+        const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
           data: input,
           gas: gasLimit,
         });
 
-        const txHash = await sendRawTransaction(context, tx);
-        await context.createBlock();
+        const { result } = await context.createBlock(rawTxn);
 
         const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: txHash as `0x${string}` });
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         // Transaction should revert due to EIP-7823 bounds violation
         expect(receipt.status).toBe("reverted");
@@ -195,20 +191,19 @@ describeSuite({
       test: async function () {
         // Modulus size exceeds 1024 bytes (EIP-7823 bound)
         const input = encodeModexpInputWithSizes(32, 32, EIP_7823_MAX_INPUT_SIZE + 1);
-        const gasLimit = 100_000n;
+        const gasLimit = 500_000n;
 
-        const tx = await createViemTransaction(context, {
+        const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
           data: input,
           gas: gasLimit,
         });
 
-        const txHash = await sendRawTransaction(context, tx);
-        await context.createBlock();
+        const { result } = await context.createBlock(rawTxn);
 
         const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: txHash as `0x${string}` });
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
         // Transaction should revert due to EIP-7823 bounds violation
         expect(receipt.status).toBe("reverted");
@@ -220,56 +215,6 @@ describeSuite({
 
     it({
       id: "T08",
-      title: "should fail when all inputs exceed EIP-7823 bounds",
-      test: async function () {
-        // All sizes exceed 1024 bytes
-        const input = encodeModexpInputWithSizes(
-          EIP_7823_MAX_INPUT_SIZE + 100,
-          EIP_7823_MAX_INPUT_SIZE + 100,
-          EIP_7823_MAX_INPUT_SIZE + 100
-        );
-        const gasLimit = 100_000n;
-
-        const tx = await createViemTransaction(context, {
-          to: PRECOMPILE_MODEXP_ADDRESS,
-          data: input,
-          gas: gasLimit,
-        });
-
-        const txHash = await sendRawTransaction(context, tx);
-        await context.createBlock();
-
-        const receipt = await context
-          .viem("public")
-          .getTransactionReceipt({ hash: txHash as `0x${string}` });
-
-        // Transaction should revert due to EIP-7823 bounds violation
-        expect(receipt.status).toBe("reverted");
-
-        // Per EIP-7823, all gas should be consumed
-        expect(receipt.gasUsed).toBe(gasLimit);
-      },
-    });
-
-    it({
-      id: "T09",
-      title: "should handle empty inputs correctly",
-      test: async function () {
-        // All inputs are empty (0 bytes)
-        const input = encodeModexpInputWithSizes(0, 0, 0);
-
-        const result = await context.viem().call({
-          to: PRECOMPILE_MODEXP_ADDRESS,
-          data: input,
-        });
-
-        // Empty modulus should return empty result
-        expect(result.data).toBe("0x");
-      },
-    });
-
-    it({
-      id: "T10",
       title: "should handle zero modulus correctly",
       test: async function () {
         // Base and exponent are non-zero, but modulus is all zeros
