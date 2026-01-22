@@ -18,6 +18,7 @@ use crate::mock::{
 	events, roll_to, AccountId, Crowdloan, ExtBuilder, PCall, Precompiles, PrecompilesValue,
 	Runtime, RuntimeCall, RuntimeOrigin,
 };
+use fp_evm::MAX_TRANSACTION_GAS_LIMIT;
 use frame_support::assert_ok;
 use pallet_crowdloan_rewards::Event as CrowdloanEvent;
 use pallet_evm::Call as EvmCall;
@@ -35,11 +36,11 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 		source: Alice.into(),
 		target: Precompile1.into(),
 		input,
-		value: U256::zero(), // No value sent in EVM
-		gas_limit: u64::max_value(),
-		max_fee_per_gas: 0.into(),
+		value: U256::zero(),
+		gas_limit: MAX_TRANSACTION_GAS_LIMIT.low_u64(),
+		max_fee_per_gas: U256::zero(),
 		max_priority_fee_per_gas: Some(U256::zero()),
-		nonce: None, // Use the next nonce
+		nonce: None,
 		access_list: Vec::new(),
 		authorization_list: Vec::new(),
 	}

@@ -20,6 +20,7 @@ use crate::{
 };
 use precompile_utils::{prelude::*, testing::*};
 
+use fp_evm::MAX_TRANSACTION_GAS_LIMIT;
 use frame_support::assert_ok;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use sp_core::{H160, H256, U256};
@@ -40,8 +41,8 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 		target: Precompile1.into(),
 		input,
 		value: U256::zero(),
-		gas_limit: u64::max_value(),
-		max_fee_per_gas: 0.into(),
+		gas_limit: MAX_TRANSACTION_GAS_LIMIT.low_u64(),
+		max_fee_per_gas: U256::zero(),
 		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None,
 		access_list: Vec::new(),
