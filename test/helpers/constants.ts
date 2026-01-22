@@ -9,6 +9,9 @@ import {
 
 const KILOWEI = 1_000n;
 
+// EIP-7825: Maximum transaction gas limit cap (2^24)
+export const EIP_7825_MAX_TRANSACTION_GAS_LIMIT = 16_777_216n;
+
 /**
  * Class allowing to store multiple value for a runtime constant based on the runtime version
  */

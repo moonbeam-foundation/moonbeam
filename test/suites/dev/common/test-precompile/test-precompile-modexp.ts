@@ -1,8 +1,9 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, EXTRINSIC_GAS_LIMIT, createViemTransaction } from "@moonwall/util";
+import { ALITH_ADDRESS, createViemTransaction } from "@moonwall/util";
 import { toHex } from "viem";
 import { testVectors } from "../../../../helpers/modexp";
+import { EIP_7825_MAX_TRANSACTION_GAS_LIMIT } from "../../../../helpers";
 
 // MODEXP precompile address (0x05) - standard Ethereum precompile
 const PRECOMPILE_MODEXP_ADDRESS = "0x0000000000000000000000000000000000000005";
@@ -93,7 +94,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
           data: input,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
 
         const { result } = await context.createBlock(rawTxn);
@@ -116,7 +117,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
           data: input,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
 
         const { result } = await context.createBlock(rawTxn);

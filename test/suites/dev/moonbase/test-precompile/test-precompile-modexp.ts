@@ -1,8 +1,12 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { EXTRINSIC_GAS_LIMIT, createViemTransaction } from "@moonwall/util";
+import { createViemTransaction } from "@moonwall/util";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
-import { expectEVMResult, testVectors } from "../../../../helpers";
+import {
+  expectEVMResult,
+  testVectors,
+  EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
+} from "../../../../helpers";
 import { calculateEIP7623Gas } from "../../../../helpers/fees";
 
 const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
@@ -82,7 +86,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -145,7 +149,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
         const receipt = await context
@@ -181,7 +185,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -219,7 +223,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -256,7 +260,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -293,7 +297,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -330,7 +334,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -367,7 +371,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -404,7 +408,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -441,7 +445,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -478,7 +482,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -515,7 +519,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -552,7 +556,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -589,7 +593,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -626,7 +630,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -663,7 +667,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -700,7 +704,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -755,7 +759,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: inputData,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
@@ -788,7 +792,7 @@ describeSuite({
         const rawTxn = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
           data: ("0x" + inputData) as `0x${string}`,
-          gas: EXTRINSIC_GAS_LIMIT,
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
         const { result } = await context.createBlock(rawTxn);
 
