@@ -17,11 +17,7 @@ function encodeLength(len: number): string {
 
 // Helper to encode MODEXP input from hex strings
 // Format: base_length (32 bytes) || exp_length (32 bytes) || mod_length (32 bytes) || base || exp || mod
-function encodeModexpInputFromHex(
-  baseHex: string,
-  expHex: string,
-  modHex: string
-): `0x${string}` {
+function encodeModexpInputFromHex(baseHex: string, expHex: string, modHex: string): `0x${string}` {
   const baseLen = baseHex.length / 2;
   const expLen = expHex.length / 2;
   const modLen = modHex.length / 2;
