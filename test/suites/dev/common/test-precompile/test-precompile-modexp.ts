@@ -27,6 +27,7 @@ function encodeModexpInputFromHex(baseHex: string, expHex: string, modHex: strin
 }
 
 // Helper to encode MODEXP input with specified sizes (for bounds testing)
+// Uses exponent = 1 (identity operation: base^1 mod m = base mod m) to minimize gas costs
 function encodeModexpInputWithSizes(
   baseLen: number,
   expLen: number,
@@ -34,10 +35,11 @@ function encodeModexpInputWithSizes(
 ): `0x${string}` {
   // Fill base with 0x01 bytes
   const base = "01".repeat(baseLen);
-  // Fill exp with 0x01 bytes
-  const exp = "01".repeat(expLen);
-  // Fill mod with 0x02 bytes (non-zero to avoid division by zero)
-  const mod = "02".repeat(modLen);
+  // Use exponent = 1 (identity) with leading zeros to match expLen
+  // This minimizes iteration count to 0, making computation very cheap
+  const exp = "00".repeat(expLen - 1) + "01";
+  // Fill mod with 0xff bytes (large modulus to avoid zero result issues)
+  const mod = "ff".repeat(modLen);
 
   return `0x${encodeLength(baseLen)}${encodeLength(expLen)}${encodeLength(modLen)}${base}${exp}${mod}`;
 }

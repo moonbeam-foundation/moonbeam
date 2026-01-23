@@ -70,7 +70,7 @@ describeSuite({
       id: "T03",
       title: "EIP example 1 - gas",
       test: async function () {
-        const expectedModExpGasCost = 3728n;
+        const expectedModExpGasCost = 6448n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000001" + // base length
           "0000000000000000000000000000000000000000000000000000000000000020" + // exponent length
@@ -133,7 +133,7 @@ describeSuite({
       id: "T05",
       title: "EIP example 2 - gas",
       test: async function () {
-        const expectedModExpGasCost = 3728n;
+        const expectedModExpGasCost = 6448n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000000" + // base length
           "0000000000000000000000000000000000000000000000000000000000000020" + // exponent length
@@ -244,7 +244,7 @@ describeSuite({
       id: "T08",
       title: "nagydani-1-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 2010n;
+        const expectedModExpGasCost = 4416n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000040" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -355,7 +355,7 @@ describeSuite({
       id: "T11",
       title: "nagydani-2-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 3034n;
+        const expectedModExpGasCost = 10560n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000080" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -466,7 +466,7 @@ describeSuite({
       id: "T14",
       title: "nagydani-3-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 7130n;
+        const expectedModExpGasCost = 35136n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000100" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -577,7 +577,7 @@ describeSuite({
       id: "T17",
       title: "nagydani-4-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 23514n;
+        const expectedModExpGasCost = 133440n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000200" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -688,7 +688,7 @@ describeSuite({
       id: "T20",
       title: "nagydani-5-pow0x10001 - gas",
       test: async function () {
-        const expectedModExpGasCost = 89749n;
+        const expectedModExpGasCost = 526656n;
         const inputData =
           "0000000000000000000000000000000000000000000000000000000000000400" + // base length
           "0000000000000000000000000000000000000000000000000000000000000003" + // exponent length
@@ -725,9 +725,8 @@ describeSuite({
       id: "T21",
       title: "Exponent > 32",
       test: async function () {
-        // We multiply by a factor of 20 for an even mod.
-        // See https://github.com/paritytech/frontier/pull/1017
-        const expectedModExpGasCost = 7104n * 20n;
+        // Gas cost updated to match new Frontier implementation
+        const expectedModExpGasCost = 1128960n;
         const byteArray = new Uint8Array([
           0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
           0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
