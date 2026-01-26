@@ -253,9 +253,9 @@ where
 			base_weight
 		};
 
-		for asset_filter in assets {
-			let assets = asset_filter.inner();
-			let extra = assets.weigh_assets(XcmFungibleWeight::<Runtime>::initiate_transfer());
+		for transfer_filter in assets {
+			let filter = transfer_filter.inner();
+			let extra = filter.weigh_assets(XcmFungibleWeight::<Runtime>::initiate_transfer());
 			weight = weight.saturating_add(extra);
 		}
 		weight
