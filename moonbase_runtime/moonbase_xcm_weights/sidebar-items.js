@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["fungible","generic"],"struct":["XcmWeight"],"trait":["WeightInfo"]};
+window.SIDEBAR_ITEMS = {"mod":["pallet_xcm_benchmarks_fungible","pallet_xcm_benchmarks_generic"],"struct":["XcmWeight"]};
