@@ -1,13 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  GLMR,
-  PRECOMPILES,
-  createViemTransaction,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
-} from "@moonwall/util";
+  GLMR,
+  PRECOMPILES,
+  beforeAll,
+  createViemTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import {
   verifyLatestBlockFees,
   expectEVMResult,

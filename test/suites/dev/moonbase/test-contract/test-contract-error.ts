@@ -1,17 +1,15 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
+  CHARLETH_ADDRESS,
+  CHARLETH_PRIVATE_KEY,
   TransactionTypes,
   beforeAll,
+  createEthersTransaction,
   deployCreateCompiledContract,
   describeSuite,
   expect,
-} from "@moonwall/cli";
-import {
-  CHARLETH_PRIVATE_KEY,
-  CHARLETH_ADDRESS,
-  createEthersTransaction,
-  ALITH_ADDRESS,
-} from "@moonwall/util";
+} from "moonwall";
 import { encodeFunctionData, type Abi } from "viem";
 import { verifyLatestBlockFees } from "../../../../helpers";
 

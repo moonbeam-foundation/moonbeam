@@ -1,11 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   FAITH_PRIVATE_KEY,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
   createViemTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
   getBlockExtrinsic,
-} from "@moonwall/util";
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 
 describeSuite({

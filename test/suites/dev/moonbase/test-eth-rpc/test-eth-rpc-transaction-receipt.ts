@@ -1,6 +1,12 @@
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import {
+  BALTATHAR_ADDRESS,
+  beforeAll,
+  createViemTransaction,
+  describeSuite,
+  expect,
+  extractFee,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
-import { BALTATHAR_ADDRESS, createViemTransaction, extractFee } from "@moonwall/util";
 
 describeSuite({
   id: "D021105",

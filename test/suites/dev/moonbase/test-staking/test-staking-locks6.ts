@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
+import {
+  GLMR,
+  MIN_GLMR_DELEGATOR,
+  alith,
+  beforeAll,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 import { getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({

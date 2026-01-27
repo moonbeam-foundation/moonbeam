@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { EXTRINSIC_GAS_LIMIT, createViemTransaction } from "@moonwall/util";
+import {
+  EXTRINSIC_GAS_LIMIT,
+  beforeAll,
+  createViemTransaction,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import { expectEVMResult, testVectors } from "../../../../helpers";
 import { calculateEIP7623Gas } from "../../../../helpers/fees";

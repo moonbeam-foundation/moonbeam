@@ -1,13 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
+  CHARLETH_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
+  ETHAN_ADDRESS,
   baltathar,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE, verifyLatestBlockFees } from "../../../../helpers";
-import { CHARLETH_ADDRESS, ETHAN_ADDRESS } from "@moonwall/util";
 
 describeSuite({
   id: "D023601",

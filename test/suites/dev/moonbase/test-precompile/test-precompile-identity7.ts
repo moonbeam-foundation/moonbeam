@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_PRIVATE_KEY, baltathar, charleth } from "@moonwall/util";
+import {
+  BALTATHAR_PRIVATE_KEY,
+  baltathar,
+  beforeAll,
+  charleth,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { toHex } from "viem";
 import { PRECOMPILE_IDENTITY_ADDRESS, expectEVMResult } from "../../../../helpers";
 

@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 
-import { describeSuite } from "@moonwall/cli";
-import { createViemTransaction, sendRawTransaction } from "@moonwall/util";
+import { createViemTransaction, describeSuite, sendRawTransaction } from "moonwall";
 /*
  * These test cases trigger bugs in the bn128 precompiles which perform a from_slice()
  * call on unchecked input.

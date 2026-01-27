@@ -1,20 +1,17 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  GLMR,
   beforeEach,
   describeSuite,
+  ethan,
   expect,
   fastFowardToNextEvent,
+  generateKeyringPair,
   maximizeConvictionVotingOf,
   whiteListTrackNoSend,
-} from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  GLMR,
-  type KeyringPair,
-  ethan,
-  generateKeyringPair,
-  BALTATHAR_ADDRESS,
-} from "@moonwall/util";
+} from "moonwall";
 import { getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({

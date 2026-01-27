@@ -1,5 +1,12 @@
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS, BALTATHAR_ADDRESS, generateKeyringPair } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  alith,
+  beforeAll,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { u8aToHex } from "@polkadot/util";
 import {

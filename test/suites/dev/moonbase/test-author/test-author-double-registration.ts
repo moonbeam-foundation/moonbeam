@@ -1,13 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
-  alith,
   ALITH_ADDRESS,
   BALTATHAR_SESSION_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
   DEFAULT_GENESIS_MAPPING,
-} from "@moonwall/util";
+  alith,
+  beforeAll,
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 

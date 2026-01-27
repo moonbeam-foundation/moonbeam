@@ -12,8 +12,16 @@ import type {
   PalletParachainStakingRoundInfo,
 } from "@polkadot/types/lookup";
 import type { ApiDecoration } from "@polkadot/api/types";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { FIVE_MINS, ONE_HOURS, Perbill, Percent, TEN_MINS } from "@moonwall/util";
+import {
+  FIVE_MINS,
+  ONE_HOURS,
+  Perbill,
+  Percent,
+  TEN_MINS,
+  beforeAll,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { rateLimiter, getPreviousRound, getNextRound } from "../../helpers";
 import type { AccountId20, Block } from "@polkadot/types/interfaces";
 

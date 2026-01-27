@@ -1,4 +1,4 @@
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import { type ApiPromise, WsProvider } from "@polkadot/api";
 import { XcmFragment } from "../../../../helpers/xcm.js";
 import {

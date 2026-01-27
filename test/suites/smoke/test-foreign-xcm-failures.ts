@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { getBlockArray, TEN_MINS } from "@moonwall/util";
+import { TEN_MINS, beforeAll, describeSuite, expect, getBlockArray } from "moonwall";
 import type { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";

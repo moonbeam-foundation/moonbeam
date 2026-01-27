@@ -1,12 +1,13 @@
 import "@moonbeam-network/api-augment";
 import {
+  PRECOMPILE_BATCH_ADDRESS,
   beforeAll,
+  createEthersTransaction,
   deployCreateCompiledContract,
   describeSuite,
   expect,
   fetchCompiledContract,
-} from "@moonwall/cli";
-import { PRECOMPILE_BATCH_ADDRESS, createEthersTransaction } from "@moonwall/util";
+} from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 import { type HeavyContract, deployHeavyContracts, ConstantStore } from "../../../../helpers";
 

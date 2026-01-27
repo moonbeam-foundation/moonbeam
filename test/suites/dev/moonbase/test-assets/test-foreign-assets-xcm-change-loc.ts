@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { afterEach, beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { afterEach, beforeAll, describeSuite, expect } from "moonwall";
 
 import { sovereignAccountOfSibling, sendCallAsPara } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";

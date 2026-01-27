@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { createViemTransaction } from "@moonwall/util";
+import { createViemTransaction, describeSuite, expect } from "moonwall";
 import { ConstantStore } from "../../../../helpers/constants";
 import { hexToU8a } from "@polkadot/util";
 import { calculateEIP7623Gas } from "../../../../helpers/fees";

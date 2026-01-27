@@ -1,12 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { TransactionTypes, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
+  TransactionTypes,
   createEthersTransaction,
   createRawTransfer,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
   sendRawTransaction,
-} from "@moonwall/util";
+} from "moonwall";
 
 import { encodeDeployData } from "viem";
 

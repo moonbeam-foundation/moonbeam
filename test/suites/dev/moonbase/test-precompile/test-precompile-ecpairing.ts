@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeEach } from "@moonwall/cli";
+import { describeSuite, expect, beforeEach } from "moonwall";
 import { u8aToHex } from "@polkadot/util";
 
 describeSuite({

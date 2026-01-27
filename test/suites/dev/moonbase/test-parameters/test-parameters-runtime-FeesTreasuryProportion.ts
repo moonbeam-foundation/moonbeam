@@ -1,16 +1,18 @@
-import { describeSuite, expect, TransactionTypes } from "@moonwall/cli";
 import {
-  alith,
   ALITH_ADDRESS,
-  baltathar,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
-  createRawTransfer,
-  extractFee,
   Perbill,
   TREASURY_ACCOUNT,
+  TransactionTypes,
   WEIGHT_PER_GAS,
-} from "@moonwall/util";
+  alith,
+  baltathar,
+  createRawTransfer,
+  describeSuite,
+  expect,
+  extractFee,
+} from "moonwall";
 import { parameterType, UNIT } from "./test-parameters";
 import { BN } from "@polkadot/util";
 import { calculateFeePortions, ConstantStore, verifyLatestBlockFees } from "../../../../helpers";

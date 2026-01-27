@@ -1,12 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { TransactionTypes, beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   GLMR,
+  TransactionTypes,
+  beforeAll,
+  beforeEach,
   createRawTransfer,
+  describeSuite,
+  expect,
   mapExtrinsics,
-} from "@moonwall/util";
+} from "moonwall";
 import type { PrivateKeyAccount } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 

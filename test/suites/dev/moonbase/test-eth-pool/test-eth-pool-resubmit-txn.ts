@@ -1,11 +1,13 @@
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
-  createRawTransfer,
   GLMR,
+  beforeEach,
+  createRawTransfer,
+  describeSuite,
+  expect,
   sendRawTransaction,
-} from "@moonwall/util";
+} from "moonwall";
 import { parseGwei } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 

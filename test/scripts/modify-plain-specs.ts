@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import { ALITH_ADDRESS } from "moonwall";
 import { convertExponentials } from "@zombienet/utils";
 import jsonBg from "json-bigint";
 

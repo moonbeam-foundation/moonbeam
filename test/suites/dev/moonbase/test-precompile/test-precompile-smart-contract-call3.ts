@@ -1,12 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   MIN_GLMR_DELEGATOR,
   PRECOMPILES,
   baltathar,
-} from "@moonwall/util";
+  beforeEach,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 

@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, VOTE_AMOUNT, dorothy, ethan } from "@moonwall/util";
+import { GLMR, VOTE_AMOUNT, beforeAll, describeSuite, dorothy, ethan, expect } from "moonwall";
 
 const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
 

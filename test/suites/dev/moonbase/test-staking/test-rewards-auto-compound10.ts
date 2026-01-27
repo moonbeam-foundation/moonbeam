@@ -1,15 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   GLMR,
-  type KeyringPair,
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
   alith,
   baltathar,
+  beforeAll,
+  describeSuite,
   ethan,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
 import { chunk } from "../../../../helpers";
 
 describeSuite({

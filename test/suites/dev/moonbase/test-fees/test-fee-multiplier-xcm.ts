@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, type KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
+import {
+  BALTATHAR_ADDRESS,
+  alith,
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 import { bnToHex } from "@polkadot/util";
 import {
   type RawXcmMessage,

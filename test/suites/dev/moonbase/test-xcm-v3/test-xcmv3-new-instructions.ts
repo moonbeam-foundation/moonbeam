@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { CHARLETH_ADDRESS, alith, beforeAll, describeSuite, expect } from "moonwall";
 
-import { alith, CHARLETH_ADDRESS } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,

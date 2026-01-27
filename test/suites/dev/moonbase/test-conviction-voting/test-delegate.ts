@@ -1,13 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { type DevModeContext, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   GLMR,
-  type KeyringPair,
   MIN_GLMR_STAKING,
   alith,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
 
 describeSuite({
   id: "D020606",

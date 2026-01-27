@@ -1,18 +1,16 @@
 import "@moonbeam-network/api-augment";
 import {
-  beforeAll,
-  customDevRpcRequest,
-  describeSuite,
-  expect,
-  fetchCompiledContract,
-} from "@moonwall/cli";
-import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
+  beforeAll,
   createRawTransfer,
-} from "@moonwall/util";
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 
 describeSuite({

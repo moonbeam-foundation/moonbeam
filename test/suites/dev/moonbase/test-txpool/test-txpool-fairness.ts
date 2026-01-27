@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
@@ -12,11 +11,13 @@ import {
   baltathar,
   charleth,
   createRawTransfer,
+  describeSuite,
   dorothy,
   ethan,
+  expect,
   generateKeyringPair,
   sendRawTransaction,
-} from "@moonwall/util";
+} from "moonwall";
 
 // for Ethereum txns, we need to send the tip as per-gas so there is no conversion necessary.
 // However, we need to specify a maxFeePerGas that is high enough to allow the priority fee to

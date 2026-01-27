@@ -1,12 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   DEFAULT_GENESIS_MAPPING,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
   createViemTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
 import { u8aToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
 import { ConstantStore } from "../../../../helpers";

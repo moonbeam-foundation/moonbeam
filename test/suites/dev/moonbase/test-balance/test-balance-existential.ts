@@ -1,7 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeEach, TransactionTypes } from "@moonwall/cli";
-import { ALITH_ADDRESS, baltathar, GLMR } from "@moonwall/util";
-import { createRawTransfer } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  TransactionTypes,
+  baltathar,
+  beforeEach,
+  createRawTransfer,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { Wallet } from "ethers";
 import { ConstantStore } from "../../../../helpers";
 

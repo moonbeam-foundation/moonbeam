@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -7,7 +6,10 @@ import {
   CHARLETH_ADDRESS,
   PRECOMPILE_NATIVE_ERC20_ADDRESS,
   baltathar,
-} from "@moonwall/util";
+  beforeEach,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { type PrivateKeyAccount, keccak256, pad, parseEther, toBytes, toHex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../../helpers";

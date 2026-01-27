@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
-import { createViemTransaction } from "@moonwall/util";
+import {
+  beforeAll,
+  createViemTransaction,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { error } from "node:console";
 
 describeSuite({

@@ -1,11 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, generateKeyringPair } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { encodeFunctionData, type Hash } from "viem";
 import moonbaseSamples from "../../helpers/moonbase-tracing-samples.json";
 import moonbeamSamples from "../../helpers/moonbeam-tracing-samples.json";
 import moonriverSamples from "../../helpers/moonriver-tracing-samples.json";
-import { generateKeyringPair } from "@moonwall/util";
 
 interface Sample {
   network: string;

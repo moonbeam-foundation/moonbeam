@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { GLMR, MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith } from "@moonwall/util";
+import { GLMR, MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, describeSuite, expect } from "moonwall";
 import { chunk, createAccounts, countExtrinsics } from "../../../../helpers";
 
 const INITIAL_AMOUNT = 12n * MIN_GLMR_STAKING + 50n * GLMR;

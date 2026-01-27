@@ -1,7 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import {
+  TREASURY_ACCOUNT,
+  alith,
+  beforeAll,
+  describeSuite,
+  ethan,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
-import { alith, ethan, TREASURY_ACCOUNT } from "@moonwall/util";
 import {
   foreignAssetBalance,
   PARA_1000_SOURCE_LOCATION,

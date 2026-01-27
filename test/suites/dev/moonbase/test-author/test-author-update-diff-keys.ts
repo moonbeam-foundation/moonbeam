@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
-import { CHARLETH_ADDRESS, charleth, getBlockExtrinsic } from "@moonwall/util";
+import {
+  CHARLETH_ADDRESS,
+  beforeAll,
+  charleth,
+  describeSuite,
+  expect,
+  getBlockExtrinsic,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 
 // Keys used to set author-mapping in the tests

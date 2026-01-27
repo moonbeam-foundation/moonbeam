@@ -1,6 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, alith, createEthersTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  ALITH_PRIVATE_KEY,
+  alith,
+  beforeAll,
+  createEthersTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { Enum, Struct } from "@polkadot/types";
 import type { Registry } from "@polkadot/types/types/registry";
 import { u8aConcat, u8aToHex } from "@polkadot/util";

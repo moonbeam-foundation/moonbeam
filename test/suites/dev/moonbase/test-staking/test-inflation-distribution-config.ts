@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { ZERO_ADDRESS, dorothy, charleth } from "@moonwall/util";
+import { ZERO_ADDRESS, charleth, describeSuite, dorothy, expect } from "moonwall";
 
 const TWENTY_PERCENT = 20;
 

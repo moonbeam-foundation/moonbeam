@@ -1,6 +1,12 @@
-import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import {
+  BALTATHAR_ADDRESS,
+  GLMR,
+  beforeEach,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { expectEVMResult, expectSubstrateEvent } from "../../../../helpers";
-import { GLMR, BALTATHAR_ADDRESS } from "@moonwall/util";
 import { decodeEventLog } from "viem";
 
 describeSuite({

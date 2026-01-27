@@ -1,7 +1,13 @@
-import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import {
+  ALITH_ADDRESS,
+  beforeAll,
+  createEthersTransaction,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 import { deployHeavyContracts, type HeavyContract } from "../../../../helpers";
-import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
   id: "D022603",

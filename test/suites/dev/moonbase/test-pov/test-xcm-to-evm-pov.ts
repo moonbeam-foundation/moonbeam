@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import { describeSuite, beforeAll, expect, deployCreateCompiledContract } from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 import { type HeavyContract, deployHeavyContracts, expectOk } from "../../../../helpers";
 

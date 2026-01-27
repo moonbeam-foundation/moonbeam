@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "moonwall";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({

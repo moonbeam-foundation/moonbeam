@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { DEFAULT_GENESIS_STAKING, GLMR, alith } from "@moonwall/util";
+import { DEFAULT_GENESIS_STAKING, GLMR, alith, describeSuite, expect } from "moonwall";
 import { getCollatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({

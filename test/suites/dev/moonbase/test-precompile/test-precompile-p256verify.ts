@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import { expectEVMResult } from "../../../../helpers";
 
 const CONTRACT_NAME = "P256Verify";

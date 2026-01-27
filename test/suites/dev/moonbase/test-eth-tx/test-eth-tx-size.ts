@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { EXTRINSIC_GAS_LIMIT, createEthersTransaction } from "@moonwall/util";
+import {
+  EXTRINSIC_GAS_LIMIT,
+  createEthersTransaction,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { EIP7623_GAS_CONSTANTS } from "../../../../helpers/fees";
 
 describeSuite({

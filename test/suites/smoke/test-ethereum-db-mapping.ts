@@ -1,4 +1,4 @@
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "moonwall";
 
 // At rpc-level, `*ByNumber` requests always use the canonical block reference given by Substrate.
 // In the other hand `*ByHash` requests rely on data mapped in the frontier db.

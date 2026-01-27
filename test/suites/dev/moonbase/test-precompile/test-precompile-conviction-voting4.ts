@@ -1,12 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   ETHAN_ADDRESS,
   ETHAN_PRIVATE_KEY,
   GLMR,
-} from "@moonwall/util";
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { type Abi, decodeEventLog } from "viem";
 import {
   ConvictionVoting,

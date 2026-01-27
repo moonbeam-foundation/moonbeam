@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, GLMR, createRawTransfer, sendRawTransaction } from "@moonwall/util";
+import {
+  BALTATHAR_ADDRESS,
+  GLMR,
+  createRawTransfer,
+  describeSuite,
+  expect,
+  sendRawTransaction,
+} from "moonwall";
 import { setTimeout } from "node:timers/promises";
 
 describeSuite({

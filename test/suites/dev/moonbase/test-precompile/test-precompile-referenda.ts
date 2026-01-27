@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  alith,
+  beforeEach,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { decodeEventLog } from "viem";
 import {
   Referenda,

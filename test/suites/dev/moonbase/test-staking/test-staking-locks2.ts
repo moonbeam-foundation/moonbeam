@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_STAKING, baltathar } from "@moonwall/util";
+import { MIN_GLMR_STAKING, baltathar, describeSuite, expect } from "moonwall";
 import { getCollatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({

@@ -1,5 +1,11 @@
-import { afterAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  afterAll,
+  createEthersTransaction,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { sleep } from "../../helpers";
 import { encodeFunctionData } from "viem";
 

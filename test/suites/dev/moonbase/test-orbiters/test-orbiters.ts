@@ -1,6 +1,15 @@
-import { describeSuite, expect } from "@moonwall/cli";
+import {
+  alith,
+  baltathar,
+  charleth,
+  describeSuite,
+  dorothy,
+  ethan,
+  expect,
+  faith,
+  goliath,
+} from "moonwall";
 import "@moonbeam-network/api-augment";
-import { alith, baltathar, charleth, dorothy, ethan, faith, goliath } from "@moonwall/util";
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({

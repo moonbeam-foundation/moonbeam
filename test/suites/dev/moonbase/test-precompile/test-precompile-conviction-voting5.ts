@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import { ALITH_ADDRESS, beforeAll, beforeEach, describeSuite, expect } from "moonwall";
 import {
   jumpBlocks,
   expectEVMResult,

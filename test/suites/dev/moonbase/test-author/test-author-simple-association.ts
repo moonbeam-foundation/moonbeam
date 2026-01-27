@@ -6,8 +6,9 @@ import {
   DEFAULT_GENESIS_BALANCE,
   DEFAULT_GENESIS_MAPPING,
   GLMR,
-} from "@moonwall/util";
-import { expect, describeSuite } from "@moonwall/cli";
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 

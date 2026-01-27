@@ -1,13 +1,16 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
+  GLMR,
+  baltathar,
   beforeAll,
+  createEthersTransaction,
+  customDevRpcRequest,
+  deployCreateCompiledContract,
   describeSuite,
   expect,
-  deployCreateCompiledContract,
   fetchCompiledContract,
-  customDevRpcRequest,
-} from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, baltathar, createEthersTransaction } from "@moonwall/util";
+} from "moonwall";
 import { hexToBigInt, nToHex } from "@polkadot/util";
 import { encodeFunctionData, encodePacked, keccak256, pad, parseEther, type Abi } from "viem";
 import { expectOk } from "../../../../helpers";

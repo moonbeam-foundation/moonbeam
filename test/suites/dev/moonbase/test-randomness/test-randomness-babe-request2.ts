@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, alith } from "@moonwall/util";
+import { GLMR, alith, beforeAll, describeSuite, expect } from "moonwall";
 import { SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({

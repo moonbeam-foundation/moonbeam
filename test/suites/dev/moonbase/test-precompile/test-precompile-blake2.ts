@@ -1,9 +1,8 @@
 import "@moonbeam-network/api-augment";
 
-import { deployCreateCompiledContract, describeSuite } from "@moonwall/cli";
+import { createViemTransaction, deployCreateCompiledContract, describeSuite } from "moonwall";
 import { expectEVMResult } from "../../../../helpers";
 
-import { createViemTransaction } from "@moonwall/util";
 import { encodeFunctionData } from "viem";
 
 describeSuite({

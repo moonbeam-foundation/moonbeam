@@ -1,12 +1,13 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
   TransactionTypes,
+  alith,
   deployCreateCompiledContract,
   describeSuite,
   expect,
   fetchCompiledContract,
-} from "@moonwall/cli";
-import { alith, ALITH_ADDRESS } from "@moonwall/util";
+} from "moonwall";
 import { hexToU8a } from "@polkadot/util";
 import { encodeDeployData, keccak256, numberToHex, toRlp } from "viem";
 import { deployedContractsInLatestBlock, verifyLatestBlockFees } from "../../../../helpers";

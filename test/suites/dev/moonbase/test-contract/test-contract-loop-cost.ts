@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, TransactionTypes } from "@moonwall/cli";
+import { TransactionTypes, createEthersTransaction, describeSuite, expect } from "moonwall";
 import { encodeFunctionData } from "viem";
-import { createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
   id: "D020507",

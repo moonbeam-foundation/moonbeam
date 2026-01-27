@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "moonwall";
 import { stripNulls } from "../../../../helpers";
 
 describeSuite({

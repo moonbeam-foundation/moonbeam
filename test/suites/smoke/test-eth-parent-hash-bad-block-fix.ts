@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { THIRTY_MINS } from "@moonwall/util";
+import { THIRTY_MINS, beforeAll, describeSuite, expect } from "moonwall";
 import type { ApiDecoration } from "@polkadot/api/types";
 
 describeSuite({

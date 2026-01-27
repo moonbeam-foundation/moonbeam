@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { PRECOMPILES, generateKeyringPair, sendRawTransaction } from "@moonwall/util";
+import {
+  PRECOMPILES,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+  sendRawTransaction,
+} from "moonwall";
 import { encodeFunctionData, parseAbiItem } from "viem";
 import { extractRevertReason } from "../../../../helpers";
 

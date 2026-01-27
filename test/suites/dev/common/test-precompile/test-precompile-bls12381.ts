@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 
-import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "moonwall";
 import { encodeFunctionData } from "viem";
 
 describeSuite({

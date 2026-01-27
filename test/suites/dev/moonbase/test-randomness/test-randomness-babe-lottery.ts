@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { GLMR } from "@moonwall/util";
+import { GLMR, beforeEach, describeSuite, expect } from "moonwall";
 import { expectEVMResult, setupLotteryWithParticipants } from "../../../../helpers";
 
 describeSuite({

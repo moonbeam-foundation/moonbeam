@@ -1,6 +1,5 @@
-import { describeSuite, type DevModeContext, expect } from "@moonwall/cli";
+import { alith, describeSuite, expect } from "moonwall";
 import "@moonbeam-network/api-augment";
-import { alith } from "@moonwall/util";
 
 export const UNIT = 1_000_000_000_000_000_000n;
 

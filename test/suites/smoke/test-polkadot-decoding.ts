@@ -1,7 +1,6 @@
 import type { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
-import { describeSuite, beforeAll } from "@moonwall/cli";
-import { ONE_HOURS } from "@moonwall/util";
+import { ONE_HOURS, beforeAll, describeSuite } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { extractStorageKeyComponents } from "../../helpers/storageQueries";
 import { fail } from "node:assert";

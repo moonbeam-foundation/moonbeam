@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { FAITH_ADDRESS, FAITH_PRIVATE_KEY, getBlockExtrinsic } from "@moonwall/util";
+import {
+  FAITH_ADDRESS,
+  FAITH_PRIVATE_KEY,
+  describeSuite,
+  expect,
+  getBlockExtrinsic,
+} from "moonwall";
 import { originalKeys, setAuthorMappingKeysViaPrecompile } from "../../../../helpers";
 
 describeSuite({

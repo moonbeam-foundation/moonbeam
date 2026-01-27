@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { generateKeyringPair } from "@moonwall/util";
+import { describeSuite, expect, generateKeyringPair } from "moonwall";
 
 describeSuite({
   id: "D022718",

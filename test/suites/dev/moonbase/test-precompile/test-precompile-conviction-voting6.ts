@@ -1,6 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, BALTATHAR_PRIVATE_KEY, GLMR } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  BALTATHAR_PRIVATE_KEY,
+  GLMR,
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { expectEVMResult, createProposal, ConvictionVoting } from "../../../../helpers";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)

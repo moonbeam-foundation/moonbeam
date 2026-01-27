@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import yargs from "yargs";
 import chalk from "chalk";
-import { ALITH_PRIVATE_KEY } from "@moonwall/util";
+import { ALITH_PRIVATE_KEY } from "moonwall";
 import type { FrameSupportPreimagesBounded } from "@polkadot/types/lookup";
 import Debug from "debug";
 const debug = Debug("fast-executor");

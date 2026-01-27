@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D024112",

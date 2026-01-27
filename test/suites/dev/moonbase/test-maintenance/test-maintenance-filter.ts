@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, execOpenTechCommitteeProposal } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -7,8 +6,12 @@ import {
   GLMR,
   alith,
   baltathar,
+  beforeAll,
   createRawTransfer,
-} from "@moonwall/util";
+  describeSuite,
+  execOpenTechCommitteeProposal,
+  expect,
+} from "moonwall";
 import { hexToU8a } from "@polkadot/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import {

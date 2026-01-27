@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite } from "@moonwall/cli";
-import { ALITH_PRIVATE_KEY } from "@moonwall/util";
+import { ALITH_PRIVATE_KEY, beforeAll, describeSuite } from "moonwall";
 import { fromBytes } from "viem";
 import {
   verifyLatestBlockFees,

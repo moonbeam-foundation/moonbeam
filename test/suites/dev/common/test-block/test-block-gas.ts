@@ -5,7 +5,7 @@ import {
   expect,
   deployCreateCompiledContract,
   beforeAll,
-} from "@moonwall/cli";
+} from "moonwall";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({

@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { type DevModeContext, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, baltathar } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, baltathar, describeSuite, expect } from "moonwall";
 
 //TODO: Change these to be less literal
 describeSuite({

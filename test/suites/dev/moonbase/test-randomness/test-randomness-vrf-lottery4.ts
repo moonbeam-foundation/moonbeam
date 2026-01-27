@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { GLMR } from "@moonwall/util";
+import { GLMR, beforeAll, describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { expectEVMResult, setupLotteryWithParticipants } from "../../../../helpers";
 
 describeSuite({

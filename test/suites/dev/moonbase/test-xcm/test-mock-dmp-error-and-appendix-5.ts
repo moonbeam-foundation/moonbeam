@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, beforeAll, customDevRpcRequest, describeSuite, expect } from "moonwall";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import {
   RELAY_SOURCE_LOCATION,

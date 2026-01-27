@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -10,9 +9,11 @@ import {
   GLMR,
   WEIGHT_PER_GAS,
   baltathar,
-  createViemTransaction,
   createRawTransfer,
-} from "@moonwall/util";
+  createViemTransaction,
+  describeSuite,
+  expect,
+} from "moonwall";
 
 // This tests an issue where pallet Ethereum in Frontier does not properly account for weight after
 // transaction application. Specifically, it accounts for weight before a transaction by multiplying

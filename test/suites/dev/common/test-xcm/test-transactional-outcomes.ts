@@ -1,5 +1,13 @@
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, alith, ZERO_ADDRESS, BALTATHAR_ADDRESS, baltathar } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  ZERO_ADDRESS,
+  alith,
+  baltathar,
+  beforeAll,
+  describeSuite,
+  expect,
+} from "moonwall";
 import {
   ERC20_TOTAL_SUPPLY,
   XcmFragment,

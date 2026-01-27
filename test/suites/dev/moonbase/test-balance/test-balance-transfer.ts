@@ -1,19 +1,21 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  CHARLETH_ADDRESS,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
+  CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
   GERALD_PRIVATE_KEY,
   GLMR,
+  beforeEach,
   checkBalance,
-  createViemTransaction,
   createRawTransfer,
+  createViemTransaction,
+  describeSuite,
+  expect,
   generateKeyringPair,
   sendRawTransaction,
-} from "@moonwall/util";
+} from "moonwall";
 import {
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   ConstantStore,

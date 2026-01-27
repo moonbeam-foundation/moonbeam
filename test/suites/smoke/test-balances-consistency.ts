@@ -8,8 +8,7 @@ import type {
   PalletReferendaDeposit,
   PalletConvictionVotingVoteVoting,
 } from "@polkadot/types/lookup";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { TWO_HOURS, printTokens } from "@moonwall/util";
+import { TWO_HOURS, beforeAll, describeSuite, expect, printTokens } from "moonwall";
 import type { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit, AccountShortfalls } from "../../helpers";
 import type { ApiPromise } from "@polkadot/api";

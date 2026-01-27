@@ -1,13 +1,13 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
   beforeAll,
   beforeEach,
   customDevRpcRequest,
   describeSuite,
-  expect,
   execOpenTechCommitteeProposal,
-} from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+  expect,
+} from "moonwall";
 import { BN } from "@polkadot/util";
 import {
   registerForeignAsset,

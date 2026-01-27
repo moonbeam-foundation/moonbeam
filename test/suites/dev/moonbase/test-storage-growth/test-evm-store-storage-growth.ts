@@ -2,10 +2,10 @@ import "@moonbeam-network/api-augment";
 import {
   TransactionTypes,
   beforeAll,
+  createEthersTransaction,
   deployCreateCompiledContract,
   describeSuite,
-} from "@moonwall/cli";
-import { createEthersTransaction } from "@moonwall/util";
+} from "moonwall";
 import { expectEVMResult } from "helpers/eth-transactions";
 import { expectOk } from "helpers/expect";
 import { type Abi, encodeFunctionData } from "viem";

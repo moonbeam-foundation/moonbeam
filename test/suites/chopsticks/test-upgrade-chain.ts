@@ -1,12 +1,5 @@
 import "@moonbeam-network/api-augment";
-import {
-  MoonwallContext,
-  beforeAll,
-  describeSuite,
-  expect,
-  type ChopsticksContext,
-} from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { MoonwallContext, alith, beforeAll, describeSuite, expect } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import type { HexString } from "@polkadot/util/types";
 import type { u32 } from "@polkadot/types";

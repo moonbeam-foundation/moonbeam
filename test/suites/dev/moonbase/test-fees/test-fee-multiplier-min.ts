@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, beforeEach, describeSuite, expect } from "moonwall";
 import { nToHex } from "@polkadot/util";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a

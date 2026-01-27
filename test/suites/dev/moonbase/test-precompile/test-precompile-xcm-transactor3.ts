@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite } from "@moonwall/cli";
+import { beforeAll, describeSuite } from "moonwall";
 import { fromBytes } from "viem";
 import {
   RELAY_SOURCE_LOCATION,

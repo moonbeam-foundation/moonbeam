@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { ethers } from "ethers";
 
 describeSuite({

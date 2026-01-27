@@ -1,4 +1,4 @@
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "moonwall";
 import { RELAY_V3_SOURCE_LOCATION } from "../../../../helpers/assets";
 
 describeSuite({

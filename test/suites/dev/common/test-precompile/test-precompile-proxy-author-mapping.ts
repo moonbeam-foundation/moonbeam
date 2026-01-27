@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -7,7 +6,10 @@ import {
   BALTATHAR_SESSION_ADDRESS,
   CONTRACT_PROXY_TYPE_AUTHOR_MAPPING,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult, getAuthorMappingInfo } from "../../../../helpers";
 

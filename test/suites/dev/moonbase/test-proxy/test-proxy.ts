@@ -1,12 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   CHARLETH_ADDRESS,
-  type KeyringPair,
   alith,
+  beforeEach,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
 
 // In these tests Alith will allow signer to perform calls on her behalf.
 // Charleth is used as a target account when making transfers.

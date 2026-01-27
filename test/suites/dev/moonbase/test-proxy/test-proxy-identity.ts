@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, type KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
+import { GLMR, alith, beforeEach, describeSuite, expect, generateKeyringPair } from "moonwall";
 import { BN, u8aToU8a } from "@polkadot/util";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type { ApiPromise } from "@polkadot/api";

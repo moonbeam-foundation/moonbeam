@@ -1,11 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   BALTATHAR_SESSION_ADDRESS,
   baltathar,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({

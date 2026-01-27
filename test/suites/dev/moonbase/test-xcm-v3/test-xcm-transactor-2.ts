@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, dispatchAsGeneralAdmin } from "@moonwall/cli";
+import { describeSuite, expect, dispatchAsGeneralAdmin } from "moonwall";
 
 describeSuite({
   id: "D024022",

@@ -1,13 +1,16 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CONTRACT_RANDOMNESS_STATUS_PENDING,
   CONTRACT_RANDOMNESS_STATUS_READY,
   GLMR,
+  beforeEach,
   createViemTransaction,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 import {

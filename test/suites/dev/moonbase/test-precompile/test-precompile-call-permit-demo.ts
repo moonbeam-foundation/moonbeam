@@ -1,18 +1,16 @@
 import "@moonbeam-network/api-augment";
 import {
-  expect,
-  beforeAll,
-  describeSuite,
-  fetchCompiledContract,
-  deployCreateCompiledContract,
-} from "@moonwall/cli";
-import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   PRECOMPILE_CALL_PERMIT_ADDRESS,
+  beforeAll,
   createViemTransaction,
-} from "@moonwall/util";
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { type Abi, encodeFunctionData, fromHex } from "viem";
 import { expectEVMResult, getSignatureParameters } from "../../../../helpers";
 

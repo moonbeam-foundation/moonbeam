@@ -1,12 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_PRIVATE_KEY,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   GLMR,
   alith,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { Option } from "@polkadot/types";
 import type { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { jumpBlocks, SIMPLE_SALT } from "../../../../helpers";

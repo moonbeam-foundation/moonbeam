@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { TransactionTypes, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, TREASURY_ACCOUNT, createRawTransfer, extractFee } from "@moonwall/util";
+import {
+  BALTATHAR_ADDRESS,
+  TREASURY_ACCOUNT,
+  TransactionTypes,
+  createRawTransfer,
+  describeSuite,
+  expect,
+  extractFee,
+} from "moonwall";
 
 // These tests are checking the default value of FeesTreasuryProportion which is set to 20%
 describeSuite({

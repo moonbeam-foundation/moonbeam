@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import { ALITH_ADDRESS, alith, describeSuite, expect } from "moonwall";
 import {
   ARBITRARY_ASSET_ID,
   RELAY_SOURCE_LOCATION_V4,

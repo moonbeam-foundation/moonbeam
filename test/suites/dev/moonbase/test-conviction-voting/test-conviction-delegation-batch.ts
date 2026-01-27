@@ -1,6 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, alith, baltathar } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  alith,
+  baltathar,
+  beforeAll,
+  describeSuite,
+  expect,
+  proposeReferendaAndDeposit,
+} from "moonwall";
 
 describeSuite({
   id: "D020603",

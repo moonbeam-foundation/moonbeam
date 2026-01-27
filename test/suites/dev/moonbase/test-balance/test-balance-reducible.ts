@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   BALTATHAR_SESSION_ADDRESS,
@@ -7,8 +6,10 @@ import {
   DEFAULT_GENESIS_MAPPING,
   baltathar,
   checkBalance,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
 describeSuite({

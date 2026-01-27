@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_STAKING, alith, baltathar, ethan } from "@moonwall/util";
+import {
+  MIN_GLMR_STAKING,
+  alith,
+  baltathar,
+  beforeAll,
+  describeSuite,
+  ethan,
+  expect,
+} from "moonwall";
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({

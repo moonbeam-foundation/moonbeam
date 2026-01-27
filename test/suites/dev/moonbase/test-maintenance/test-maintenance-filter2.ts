@@ -1,12 +1,14 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
+  alith,
+  baltathar,
   beforeAll,
-  describeSuite,
-  expect,
   customDevRpcRequest,
+  describeSuite,
   execOpenTechCommitteeProposal,
-} from "@moonwall/cli";
-import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
+  expect,
+} from "moonwall";
 import type { u128 } from "@polkadot/types-codec";
 import {
   RELAY_SOURCE_LOCATION,

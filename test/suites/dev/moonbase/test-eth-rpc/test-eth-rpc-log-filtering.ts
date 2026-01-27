@@ -5,7 +5,7 @@ import {
   beforeAll,
   deployCreateCompiledContract,
   customDevRpcRequest,
-} from "@moonwall/cli";
+} from "moonwall";
 import type { TransactionReceipt } from "viem";
 
 describeSuite({

@@ -1,4 +1,4 @@
-import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
+import { describeSuite, expect, customDevRpcRequest } from "moonwall";
 
 describeSuite({
   id: "D021101",

@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, extractInfo, expect, TransactionTypes } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, GLMR, createRawTransfer } from "@moonwall/util";
+import {
+  BALTATHAR_ADDRESS,
+  GLMR,
+  TransactionTypes,
+  createRawTransfer,
+  describeSuite,
+  expect,
+  extractInfo,
+} from "moonwall";
 
 // We use ethers library in this test as apparently web3js's types are not fully EIP-1559
 // compliant yet.

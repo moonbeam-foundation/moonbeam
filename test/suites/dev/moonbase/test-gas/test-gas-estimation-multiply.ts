@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
   beforeAll,
   customDevRpcRequest,
   deployCreateCompiledContract,
   describeSuite,
   expect,
-} from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+} from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 
 describeSuite({

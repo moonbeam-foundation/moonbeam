@@ -23,6 +23,8 @@ tools/*-local.json
 tools/*-local-raw.json
 tools/build
 
+db.sqlite*
+
 # IDEs
 .idea/
 .vscode/

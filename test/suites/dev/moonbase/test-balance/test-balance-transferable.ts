@@ -1,6 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, baltathar, checkBalance, generateKeyringPair } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  baltathar,
+  beforeAll,
+  checkBalance,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 import { createProposal } from "../../../../helpers/voting.ts";
 
 describeSuite({

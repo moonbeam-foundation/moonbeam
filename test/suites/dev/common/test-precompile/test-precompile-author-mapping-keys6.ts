@@ -1,14 +1,17 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ETHAN_ADDRESS,
   ETHAN_PRIVATE_KEY,
   FAITH_ADDRESS,
   FAITH_PRIVATE_KEY,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
+  beforeAll,
   createViemTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
   getBlockExtrinsic,
-} from "@moonwall/util";
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 import { originalKeys, setAuthorMappingKeysViaPrecompile } from "../../../../helpers";
 

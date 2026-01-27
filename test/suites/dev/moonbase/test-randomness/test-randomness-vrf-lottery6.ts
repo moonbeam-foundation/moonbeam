@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR } from "@moonwall/util";
+import { GLMR, beforeAll, describeSuite, expect } from "moonwall";
 import type { TransactionReceipt } from "viem";
 import { setupLotteryWithParticipants } from "../../../../helpers";
 

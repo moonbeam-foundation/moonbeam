@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import { PRECOMPILE_RELAY_DATA_VERIFIER_ADDRESS } from "../../../../helpers";
 
 describeSuite({

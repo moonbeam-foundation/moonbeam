@@ -1,6 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, alith, baltathar, faith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  alith,
+  baltathar,
+  beforeAll,
+  describeSuite,
+  expect,
+  faith,
+  proposeReferendaAndDeposit,
+} from "moonwall";
 import { expectSubstrateEvent, stripNulls } from "../../../../helpers";
 
 describeSuite({

@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
 import {
+  GLMR,
   deployCreateCompiledContract,
   describeSuite,
   expect,
   fetchCompiledContract,
-} from "@moonwall/cli";
-import { GLMR } from "@moonwall/util";
+} from "moonwall";
 import { u8aToHex } from "@polkadot/util";
 import { decodeEventLog, getAddress } from "viem";
 import {

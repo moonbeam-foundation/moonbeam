@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   CHARLETH_ADDRESS,
@@ -9,9 +8,12 @@ import {
   ETHAN_PRIVATE_KEY,
   GLMR,
   MIN_GLMR_STAKING,
+  beforeAll,
+  describeSuite,
   dorothy,
   ethan,
-} from "@moonwall/util";
+  expect,
+} from "moonwall";
 import { nToHex } from "@polkadot/util";
 import { setupWithParticipants } from "../../../../helpers";
 

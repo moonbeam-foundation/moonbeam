@@ -1,10 +1,5 @@
 import "@moonbeam-network/api-augment";
-import {
-  customDevRpcRequest,
-  deployCreateCompiledContract,
-  describeSuite,
-  expect,
-} from "@moonwall/cli";
+import { customDevRpcRequest, deployCreateCompiledContract, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D021603",

@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, describeSuite, expect } from "moonwall";
 import type { SignerOptions } from "@polkadot/api/types";
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata";
 import { u8aToHex } from "@polkadot/util";

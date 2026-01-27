@@ -1,5 +1,4 @@
-import { describeSuite, expect } from "@moonwall/cli";
-import { createEthersTransaction } from "@moonwall/util";
+import { createEthersTransaction, describeSuite, expect } from "moonwall";
 import { encodeFunctionData } from "viem";
 
 describeSuite({

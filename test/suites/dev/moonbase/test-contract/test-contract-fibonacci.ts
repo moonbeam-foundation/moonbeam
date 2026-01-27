@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { TransactionTypes, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { TransactionTypes, describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { encodeDeployData } from "viem";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
 

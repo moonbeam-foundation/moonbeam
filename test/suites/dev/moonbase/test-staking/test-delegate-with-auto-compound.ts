@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, alith, baltathar, ethan, goliath } from "@moonwall/util";
+import {
+  MIN_GLMR_DELEGATOR,
+  alith,
+  baltathar,
+  describeSuite,
+  ethan,
+  expect,
+  goliath,
+} from "moonwall";
 
 describeSuite({
   id: "D023313",

@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_SESSION_ADDRESS, BALTATHAR_SESSION_ADDRESS } from "@moonwall/util";
+import { ALITH_SESSION_ADDRESS, BALTATHAR_SESSION_ADDRESS, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D022748",

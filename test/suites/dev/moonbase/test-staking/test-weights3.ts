@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, alith } from "@moonwall/util";
+import { MIN_GLMR_DELEGATOR, alith, describeSuite, expect } from "moonwall";
 import { chunk, createAccounts, countExtrinsics } from "../../../../helpers";
 
 describeSuite({

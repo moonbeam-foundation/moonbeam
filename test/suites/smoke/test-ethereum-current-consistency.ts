@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite } from "@moonwall/cli";
-import { THIRTY_MINS } from "@moonwall/util";
+import { THIRTY_MINS, describeSuite, expect } from "moonwall";
 // Ethereum use Patricia trees for the various trees in blocks.
 // Since we're going to check that no transactions means an empty receipt
 // tree, we must compute what is the root of such empty trie.

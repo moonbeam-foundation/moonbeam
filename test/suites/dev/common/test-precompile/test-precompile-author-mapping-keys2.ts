@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { FAITH_ADDRESS, FAITH_PRIVATE_KEY, getBlockExtrinsic } from "@moonwall/util";
+import {
+  FAITH_ADDRESS,
+  FAITH_PRIVATE_KEY,
+  beforeAll,
+  describeSuite,
+  expect,
+  getBlockExtrinsic,
+} from "moonwall";
 import {
   concatOriginalKeys,
   originalKeys,

@@ -1,5 +1,4 @@
-import { describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, describeSuite, expect } from "moonwall";
 import { parameterType, UNIT } from "./test-parameters";
 
 describeSuite({

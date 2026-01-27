@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
+import { beforeEach, describeSuite, expect } from "moonwall";
 import { expectEVMResult, createProposal, ConvictionVoting } from "../../../../helpers";
 
 const CONVICTION_VALUES = [0n, 1n, 2n, 3n, 4n, 5n, 6n];

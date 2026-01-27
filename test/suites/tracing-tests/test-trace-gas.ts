@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, customDevRpcRequest, beforeAll, expect } from "@moonwall/cli";
-import { createEthersTransaction } from "@moonwall/util";
+import {
+  beforeAll,
+  createEthersTransaction,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 import { numberToHex } from "@polkadot/util";
 

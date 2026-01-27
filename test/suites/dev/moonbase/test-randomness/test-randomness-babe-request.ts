@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS, GLMR, alith } from "@moonwall/util";
+import {
+  CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
+  GLMR,
+  alith,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({

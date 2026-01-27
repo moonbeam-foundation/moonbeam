@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, customDevRpcRequest, describeSuite, expect } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
