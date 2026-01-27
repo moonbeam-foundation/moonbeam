@@ -73,7 +73,8 @@ describeSuite({
           precompileName: "XcmTransactorV2",
           functionName: "transactThroughDerivativeMultilocation",
           args: [transactor, index, asset, transactWeight, transact_call, feeAmount, overallWeight],
-          gas: 500_000n,
+          // Increase EVM gas limit to account for higher runtime/XCM costs
+          gas: 2_000_000n,
           rawTxOnly: true,
         });
 

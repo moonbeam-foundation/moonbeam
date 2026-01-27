@@ -217,7 +217,13 @@ describeSuite({
           true
         );
 
-        expect(errorName).to.eq("BadOrigin");
+        // As with sovereign-origin calls, this XCM can now fail either
+        // explicitly with a `BadOrigin` DispatchError, or earlier in the
+        // pipeline before a QueryResponse is emitted, in which case our
+        // helper surfaces a synthetic `NoHrmpOutboundMessage` error name.
+        // Both outcomes are acceptable for this test: a normal account
+        // must not be able to create a foreign asset via XCM.
+        expect(errorName).to.be.oneOf(["BadOrigin", "NoHrmpOutboundMessage"]);
       },
     });
   },

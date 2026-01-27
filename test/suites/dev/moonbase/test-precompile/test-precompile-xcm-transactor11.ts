@@ -85,7 +85,8 @@ describeSuite({
             overallWeight,
             refund,
           ],
-          gas: 500_000n,
+          // Increase EVM gas limit to account for higher runtime/XCM costs
+          gas: 2_000_000n,
           rawTxOnly: true,
           privateKey: ALITH_PRIVATE_KEY,
         });
