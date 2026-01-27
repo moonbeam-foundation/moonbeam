@@ -571,13 +571,13 @@ fn deposit(data: Vec<u8>) {
 				CryptoAlith.into(),
 				Precompile1.into(),
 				data,
-				From::from(500),                  // amount sent
+				From::from(500),                     // amount sent
 				MAX_TRANSACTION_GAS_LIMIT.low_u64(), // gas limit
-				0u32.into(),                      // gas price
-				None,             // max priority
-				None,             // nonce
-				vec![],           // access list
-				vec![],           // authorization list
+				0u32.into(),                         // gas price
+				None,                                // max priority
+				None,                                // nonce
+				vec![],                              // access list
+				vec![],                              // authorization list
 			)
 			.expect("it works");
 
@@ -688,13 +688,13 @@ fn deposit_zero() {
 				CryptoAlith.into(),
 				Precompile1.into(),
 				PCall::deposit {}.into(),
-				From::from(0),                    // amount sent
+				From::from(0),                       // amount sent
 				MAX_TRANSACTION_GAS_LIMIT.low_u64(), // gas limit
-				0u32.into(),                      // gas price
-				None,             // max priority
-				None,             // nonce
-				vec![],           // access list
-				vec![],           // authorization list
+				0u32.into(),                         // gas price
+				None,                                // max priority
+				None,                                // nonce
+				vec![],                              // access list
+				vec![],                              // authorization list
 			)
 			.expect("it works");
 
