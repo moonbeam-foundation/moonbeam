@@ -842,16 +842,35 @@ export class XcmFragment {
   async override_weight(context: DevModeContext): Promise<this> {
     const message: XcmVersionedXcm = context
       .polkadotJs()
-      .createType("XcmVersionedXcm", this.as_v2()) as any;
+      // Use V4 here because the runtime only supports v3/v4/v5 variants.
+      // The XCM content is version-agnostic for weighting purposes, and
+      // `weightMessage` accepts any supported `VersionedXcm`.
+      .createType("XcmVersionedXcm", this.as_v4()) as any;
 
-    const instructions = message.asV2;
+    const instructions = message.asV4;
     for (let i = 0; i < instructions.length; i++) {
       if (instructions[i].isBuyExecution === true) {
-        const newWeight = await weightMessage(context, message);
+        const newRefTime = await weightMessage(context, message);
+        const buyExec = instructions[i].asBuyExecution;
+
+        // Preserve the original proofSize from the existing Limited weight, but
+        // override the refTime with the value returned by the precompile.
+        let proofSize = 0n;
+        if (buyExec.weightLimit.isLimited) {
+          const limited = buyExec.weightLimit.asLimited;
+          proofSize = BigInt(limited.proofSize.toString());
+        }
+
         this.instructions[i] = {
           BuyExecution: {
-            fees: instructions[i].asBuyExecution.fees,
-            weightLimit: { Limited: newWeight },
+            // Use a plain JSON representation of the original fees.
+            fees: buyExec.fees.toJSON() as any,
+            weightLimit: {
+              Limited: {
+                refTime: newRefTime,
+                proofSize,
+              },
+            },
           },
         };
         break;
@@ -976,8 +995,9 @@ export const sendCallAsPara = async (
       },
     ],
     weight_limit: {
-      refTime: 40_000_000_000n,
-      proofSize: 150_713n,
+      // Very generous static limit to tolerate higher upstream weights.
+      refTime: 1_000_000_000_000_000n,
+      proofSize: 1_000_000_000n,
     },
     beneficiary: sovereignAccountOfSibling(context, paraId),
   })
@@ -987,8 +1007,9 @@ export const sendCallAsPara = async (
       Transact: {
         originKind: opts?.originKind ?? "Xcm",
         requireWeightAtMost: {
-          refTime: 20_089_165_000n,
-          proofSize: 80_000n,
+          // Match the static BuyExecution limit with an equally generous bound.
+          refTime: 1_000_000_000_000_000n,
+          proofSize: 1_000_000_000n,
         },
         call: {
           encoded: encodedCall,
@@ -1037,31 +1058,44 @@ export const sendCallAsPara = async (
     await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages()
   )[0];
 
-  const transactStatusEncoded = "0x" + transactStatusMsg.data.toHex().slice(4);
-  const transactStatusDecoded = context
-    .polkadotJs()
-    .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
-
   let didSucceed = false;
   let errorName: string | null = null;
 
-  const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
-  expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
-  const dispatch = transactStatusQuery.response.asDispatchResult;
-  if (dispatch.isSuccess) {
-    didSucceed = true;
-  } else {
-    const error = dispatch.asError;
-    const dispatchError = context.polkadotJs().createType("DispatchError", error) as DispatchError;
-    if (dispatchError.isModule) {
-      const err = context.polkadotJs().registry.findMetaError({
-        index: dispatchError.asModule.index,
-        error: dispatchError.asModule.error,
-      });
-      errorName = err.name;
+  if (transactStatusMsg) {
+    const transactStatusEncoded = "0x" + transactStatusMsg.data.toHex().slice(4);
+    const transactStatusDecoded = context
+      .polkadotJs()
+      .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
+
+    const first = transactStatusDecoded.asV5[0];
+    if (first.isSubscribeVersion) {
+      // Successful executions don't generate response messages in the same block
+      // instead, they send a subscription message to the destination parachain.
+      didSucceed = true;
     } else {
-      errorName = dispatchError.type;
+      const transactStatusQuery = first.asQueryResponse;
+      expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
+      const dispatch = transactStatusQuery.response.asDispatchResult;
+      if (dispatch.isSuccess) {
+        didSucceed = true;
+      } else {
+        const error = dispatch.asError;
+        const dispatchError = context
+          .polkadotJs()
+          .createType("DispatchError", error) as DispatchError;
+        if (dispatchError.isModule) {
+          const err = context.polkadotJs().registry.findMetaError({
+            index: dispatchError.asModule.index,
+            error: dispatchError.asModule.error,
+          });
+          errorName = err.name;
+        } else {
+          errorName = dispatchError.type;
+        }
+      }
     }
+  } else {
+    errorName = "NoHrmpOutboundMessage";
   }
 
   if (!allowFailure) {
@@ -1153,44 +1187,47 @@ export const sendCallAsDescendedOrigin = async (
 
   const { block } = await context.createBlock();
 
-  const transactStatusMsg = (
-    await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages()
-  )[0];
-
-  const transactStatusEncoded = "0x" + transactStatusMsg.data.toHex().slice(4);
-  const transactStatusDecoded = context
-    .polkadotJs()
-    .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
-
   let didSucceed = false;
   let errorName: string | null = null;
 
-  if (transactStatusDecoded.asV5[0].isSubscribeVersion) {
-    // Successful executions don't generate response messages in the same block
-    // instead, they send a subscription message to the destination parachain
-    // We assume that the call was successful if we receive a subscription message
-    didSucceed = true;
-  } else {
-    const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
-    expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
-    const dispatch = transactStatusQuery.response.asDispatchResult;
-    if (dispatch.isSuccess) {
+  const outbound = await context.polkadotJs().query.parachainSystem.hrmpOutboundMessages();
+  const transactStatusMsg = outbound[0];
+
+  if (transactStatusMsg) {
+    const transactStatusEncoded = "0x" + transactStatusMsg.data.toHex().slice(4);
+    const transactStatusDecoded = context
+      .polkadotJs()
+      .createType("XcmVersionedXcm", transactStatusEncoded) as XcmVersionedXcm;
+
+    if (transactStatusDecoded.asV5[0].isSubscribeVersion) {
+      // Successful executions don't generate response messages in the same block
+      // instead, they send a subscription message to the destination parachain
+      // We assume that the call was successful if we receive a subscription message
       didSucceed = true;
     } else {
-      const error = dispatch.asError;
-      const dispatchError = context
-        .polkadotJs()
-        .createType("DispatchError", error) as DispatchError;
-      if (dispatchError.isModule) {
-        const err = context.polkadotJs().registry.findMetaError({
-          index: dispatchError.asModule.index,
-          error: dispatchError.asModule.error,
-        });
-        errorName = err.name;
+      const transactStatusQuery = transactStatusDecoded.asV5[0].asQueryResponse;
+      expect(transactStatusQuery.queryId.toNumber()).to.be.eq(QUERY_ID);
+      const dispatch = transactStatusQuery.response.asDispatchResult;
+      if (dispatch.isSuccess) {
+        didSucceed = true;
       } else {
-        errorName = dispatchError.type;
+        const error = dispatch.asError;
+        const dispatchError = context
+          .polkadotJs()
+          .createType("DispatchError", error) as DispatchError;
+        if (dispatchError.isModule) {
+          const err = context.polkadotJs().registry.findMetaError({
+            index: dispatchError.asModule.index,
+            error: dispatchError.asModule.error,
+          });
+          errorName = err.name;
+        } else {
+          errorName = dispatchError.type;
+        }
       }
     }
+  } else {
+    errorName = "NoHrmpOutboundMessage";
   }
 
   if (!allowFailure) {
