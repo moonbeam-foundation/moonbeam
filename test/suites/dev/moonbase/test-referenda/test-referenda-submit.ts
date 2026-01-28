@@ -7,12 +7,15 @@ import {
   describeSuite,
   ethan,
   expect,
-  fastFowardToNextEvent,
   generateKeyringPair,
-  maximizeConvictionVotingOf,
-  whiteListTrackNoSend,
+  type KeyringPair,
 } from "moonwall";
-import { getDelegatorStakingFreeze } from "../../../../helpers";
+import {
+  getDelegatorStakingFreeze,
+  whiteListTrackNoSend,
+  fastFowardToNextEvent,
+  maximizeConvictionVotingOf,
+} from "helpers";
 
 describeSuite({
   id: "D023203",
@@ -37,7 +40,7 @@ describeSuite({
           account: BALTATHAR_ADDRESS,
           percent: 0,
         },
-      ]);
+      ] as any);
 
       const { whitelistedHash: wlHash } = await whiteListTrackNoSend(context, proposal);
       whitelistedHash = wlHash;

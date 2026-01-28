@@ -12,7 +12,6 @@
     "allowImportingTsExtensions": true,
     "moduleDetection": "force",
     "incremental": true,
-    "baseUrl": "./",
     "importHelpers": true,
     "skipDefaultLibCheck": true,
     "preserveConstEnums": true,
@@ -24,10 +23,9 @@
     "skipLibCheck": true,
     "noImplicitAny": false,
     "paths": {
-      "helpers": ["helpers/index.ts"],
-      "helpers/*": ["helpers/*"]
+      "helpers": ["./helpers/index.ts"],
+      "helpers/*": ["./helpers/*"]
     }
   },
-  "include": ["**/helpers/", "scripts"],
-  "exclude": ["node_modules", "suites"]
+  "include": ["**/helpers/", "scripts", "suites"]
 }

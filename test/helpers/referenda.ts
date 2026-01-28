@@ -1,10 +1,62 @@
 import "@moonbeam-network/api-augment";
 import type { DevModeContext } from "moonwall";
 import type { FrameSupportPreimagesBounded } from "@polkadot/types/lookup";
+import type { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import type { KeyringPair } from "@polkadot/keyring/types";
+import { notePreimage, execOpenTechCommitteeProposal, faith, alith } from "moonwall";
 import chalk from "chalk";
 import Debugger from "debug";
 
 const log = Debugger("test:referenda");
+
+/**
+ * Sets up a whitelisted referendum without placing decision deposit or voting.
+ * Used by tests that need to manually control the referendum lifecycle.
+ *
+ * This differs from moonwall's `whiteListedTrack` which executes the full
+ * referendum lifecycle including voting and fast-forwarding.
+ */
+export const whiteListTrackNoSend = async <
+  Call extends SubmittableExtrinsic<ApiType>,
+  ApiType extends ApiTypes,
+>(
+  context: DevModeContext,
+  proposal: string | Call
+): Promise<{ whitelistedHash: string }> => {
+  const proposalHash =
+    typeof proposal === "string" ? proposal : await notePreimage(context, proposal);
+
+  // Construct dispatchWhiteListed call
+  const proposalLen = (await context.pjsApi.query.preimage.requestStatusFor(proposalHash)).unwrap()
+    .asUnrequested.len;
+
+  const dispatchWLCall = context.pjsApi.tx.whitelist.dispatchWhitelistedCall(
+    proposalHash,
+    proposalLen,
+    { refTime: 2_000_000_000, proofSize: 100_000 }
+  );
+
+  // Note preimage of dispatchWhitelistedCall
+  const wLPreimage = await notePreimage(context, dispatchWLCall);
+  const wLPreimageLen = dispatchWLCall.encodedLength - 2;
+
+  // Submit openGov proposal (without placing decision deposit)
+  const openGovProposal = await context.pjsApi.tx.referenda
+    .submit(
+      { Origins: { whitelistedcaller: "WhitelistedCaller" } },
+      { Lookup: { hash: wLPreimage, len: wLPreimageLen } },
+      { After: { After: 0 } }
+    )
+    .signAsync(faith);
+
+  await context.createBlock(openGovProposal);
+
+  // Whitelist the original call via openTechCommittee
+  const whitelistCall = context.pjsApi.tx.whitelist.whitelistCall(proposalHash);
+  await execOpenTechCommitteeProposal(context, whitelistCall);
+
+  return { whitelistedHash: wLPreimage };
+};
 
 export interface ForceReducedReferendaExecutionOptions {
   forceTally?: boolean; // Will force tally to match total issuance
@@ -185,3 +237,64 @@ async function moveScheduledCallTo(
     }
   );
 }
+
+/**
+ * Maximizes conviction voting for voters on an ongoing referendum.
+ * Uses each voter's full free balance minus estimated fees with maximum conviction (6x).
+ */
+export const maximizeConvictionVotingOf = async (
+  context: DevModeContext,
+  voters: KeyringPair[],
+  refIndex: number
+): Promise<void> => {
+  const fee = (
+    await context
+      .polkadotJs()
+      .tx.convictionVoting.vote(refIndex, {
+        Standard: {
+          vote: { aye: true, conviction: "Locked6x" },
+          balance: (await context.polkadotJs().query.system.account(alith.address)).data.free,
+        },
+      })
+      .paymentInfo(alith)
+  ).partialFee;
+
+  await context.createBlock(
+    voters.map(async (voter) =>
+      context
+        .polkadotJs()
+        .tx.convictionVoting.vote(refIndex, {
+          Standard: {
+            vote: { aye: true, conviction: "Locked6x" },
+            balance: (await context.polkadotJs().query.system.account(voter.address)).data.free.sub(
+              fee
+            ),
+          },
+        })
+        .signAsync(voter)
+    )
+  );
+};
+
+/**
+ * Fast-forwards to the next scheduled event in the scheduler agenda.
+ * Useful for advancing through referendum lifecycle phases (preparation, decision, enactment).
+ */
+export const fastFowardToNextEvent = async (context: DevModeContext): Promise<void> => {
+  const [entry] = await context.pjsApi.query.scheduler.agenda.entries();
+  const [key] = entry;
+
+  if (key.isEmpty) {
+    throw new Error("No items in scheduler.agenda");
+  }
+
+  const decodedKey = key.toHuman() as string[];
+  const desiredHeight = Number(decodedKey[0].replace(/,/g, ""));
+  const currentHeight = (await context.pjsApi.rpc.chain.getHeader()).number.toNumber();
+
+  log(
+    `Fast forwarding from block ${currentHeight} to ${desiredHeight} (${desiredHeight - currentHeight + 1} blocks)`
+  );
+
+  await context.jumpBlocks?.(desiredHeight - currentHeight + 1);
+};
