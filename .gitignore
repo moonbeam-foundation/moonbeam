@@ -25,6 +25,7 @@ tools/build
 
 db.sqlite*
 
+tsconfig.tsbuildinfo
 # IDEs
 .idea/
 .vscode/

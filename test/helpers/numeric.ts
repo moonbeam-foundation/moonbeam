@@ -12,14 +12,15 @@ export class Percent {
   }
 
   /**
-   * Calculate percentage of an amount (floor division)
-   * Supports both BN and bigint inputs
+   * Calculate percentage of an amount (round-to-nearest)
+   * Matches Substrate's Percent::from_percent() behavior
    */
   of(amount: BN | bigint): BN | bigint {
     if (amount instanceof BN) {
-      return amount.muln(Number(this.percent)).divn(100);
+      // Round-to-nearest: add 50 before dividing by 100
+      return amount.muln(Number(this.percent)).addn(50).divn(100);
     }
-    return (amount * this.percent) / 100n;
+    return (amount * this.percent + 50n) / 100n;
   }
 
   /**
@@ -76,12 +77,15 @@ export class Perbill {
   }
 
   /**
-   * Calculate the perbill portion of an amount
+   * Calculate the perbill portion of an amount (round-to-nearest)
+   * Matches Substrate's Perbill behavior
    */
   of(amount: BN | bigint): BN | bigint {
     if (amount instanceof BN) {
-      return amount.mul(this.perbill).div(new BN(1_000_000_000));
+      // Round-to-nearest: add half of divisor
+      const half = new BN(500_000_000);
+      return amount.mul(this.perbill).add(half).div(new BN(1_000_000_000));
     }
-    return (amount * BigInt(this.perbill.toString())) / 1_000_000_000n;
+    return (amount * BigInt(this.perbill.toString()) + 500_000_000n) / 1_000_000_000n;
   }
 }
