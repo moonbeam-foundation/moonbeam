@@ -6,7 +6,11 @@ import {
   expect,
   fetchCompiledContract,
 } from "moonwall";
-import { expectEVMResult, expectSubstrateEvent } from "../../../../helpers";
+import {
+  expectEVMResult,
+  expectSubstrateEvent,
+  EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
+} from "../../../../helpers";
 import { decodeEventLog } from "viem";
 
 describeSuite({
@@ -18,7 +22,7 @@ describeSuite({
 
     beforeEach(async function () {
       const { contractAddress } = await context.deployContract!("Suicide", {
-        gas: 45_000_000n,
+        gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
       });
       contract = contractAddress;
     });
