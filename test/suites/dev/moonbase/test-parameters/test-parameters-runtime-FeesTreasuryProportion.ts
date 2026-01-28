@@ -2,7 +2,6 @@ import {
   ALITH_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
-  Perbill,
   TREASURY_ACCOUNT,
   TransactionTypes,
   WEIGHT_PER_GAS,
@@ -15,7 +14,7 @@ import {
 } from "moonwall";
 import { parameterType, UNIT } from "./test-parameters";
 import { BN } from "@polkadot/util";
-import { calculateFeePortions, ConstantStore, verifyLatestBlockFees } from "../../../../helpers";
+import { calculateFeePortions, ConstantStore, verifyLatestBlockFees, Perbill } from "../../../../helpers";
 import { parseGwei } from "viem";
 
 interface TestCase {

@@ -22,15 +22,11 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "noImplicitAny": false
-
-    // "paths": {
-    //   "@helpers/xcm": ["helpers/xcm.js"],
-    //   "@helpers/block": ["helpers/block.js"],
-    //   "@helpers/common": ["helpers/common.js"],
-    //   "@helpers/assets": ["helpers/assets.js"],
-    //   "@helpers/expect": ["helpers/expect.js"],
-    // }  // We can enable this if we commit to using bun.js
+    "noImplicitAny": false,
+    "paths": {
+      "helpers": ["helpers/index.ts"],
+      "helpers/*": ["helpers/*"]
+    }
   },
   "include": ["**/helpers/", "scripts"],
   "exclude": ["node_modules", "suites"]

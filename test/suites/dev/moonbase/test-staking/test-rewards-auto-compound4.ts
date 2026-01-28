@@ -1,14 +1,13 @@
 import "@moonbeam-network/api-augment";
 import {
   MIN_GLMR_DELEGATOR,
-  Percent,
   alith,
   beforeAll,
   describeSuite,
   ethan,
   expect,
 } from "moonwall";
-import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
+import { jumpRounds, getRewardedAndCompoundedEvents, Percent } from "../../../../helpers";
 
 describeSuite({
   id: "D023356",
