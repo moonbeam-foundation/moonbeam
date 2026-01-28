@@ -108,7 +108,7 @@ const BLOCK_STORAGE_LIMIT: u64 = 40 * 1024;
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::from(u64::MAX);
 	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
-	pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
+	pub const WeightPerGas: Weight = Weight::from_parts(25_000, 0);
 	pub GasLimitPovSizeRatio: u64 = {
 		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
 		block_gas_limit.saturating_div(MAX_POV_SIZE)
@@ -117,6 +117,7 @@ parameter_types! {
 		let block_gas_limit = BlockGasLimit::get().min(u64::MAX.into()).low_u64();
 		block_gas_limit.saturating_div(BLOCK_STORAGE_LIMIT)
 	};
+	pub SuicideQuickClearLimit: u32 = 0;
 }
 
 pub type Precompiles<R> =

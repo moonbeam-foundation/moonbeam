@@ -18,6 +18,7 @@ use std::str::from_utf8;
 
 use crate::{eip2612::Eip2612, mock::*, *};
 
+use fp_evm::MAX_TRANSACTION_GAS_LIMIT;
 use libsecp256k1::{sign, Message, SecretKey};
 use precompile_utils::testing::*;
 use sha3::{Digest, Keccak256};
@@ -280,7 +281,7 @@ fn transfer() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(173835756) // 1 weight => 1 gas in mock
+				.expect_cost(8709)
 				.expect_log(log3(
 					Precompile1,
 					SELECTOR_LOG_TRANSFER,
@@ -370,7 +371,7 @@ fn transfer_from() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(173835756) // 1 weight => 1 gas in mock
+				.expect_cost(8709)
 				.expect_log(log3(
 					Precompile1,
 					SELECTOR_LOG_TRANSFER,
@@ -466,7 +467,7 @@ fn transfer_from_self() {
 						value: 400.into(),
 					},
 				)
-				.expect_cost(173835756) // 1 weight => 1 gas in mock
+				.expect_cost(8709)
 				.expect_log(log3(
 					Precompile1,
 					SELECTOR_LOG_TRANSFER,
@@ -570,13 +571,13 @@ fn deposit(data: Vec<u8>) {
 				CryptoAlith.into(),
 				Precompile1.into(),
 				data,
-				From::from(500), // amount sent
-				u64::MAX,        // gas limit
-				0u32.into(),     // gas price
-				None,            // max priority
-				None,            // nonce
-				vec![],          // access list
-				vec![],          // authorization list
+				From::from(500),                     // amount sent
+				MAX_TRANSACTION_GAS_LIMIT.low_u64(), // gas limit
+				0u32.into(),                         // gas price
+				None,                                // max priority
+				None,                                // nonce
+				vec![],                              // access list
+				vec![],                              // authorization list
 			)
 			.expect("it works");
 
@@ -687,13 +688,13 @@ fn deposit_zero() {
 				CryptoAlith.into(),
 				Precompile1.into(),
 				PCall::deposit {}.into(),
-				From::from(0), // amount sent
-				u64::MAX,      // gas limit
-				0u32.into(),   // gas price
-				None,          // max priority
-				None,          // nonce
-				vec![],        // access list
-				vec![],        // authorization list
+				From::from(0),                       // amount sent
+				MAX_TRANSACTION_GAS_LIMIT.low_u64(), // gas limit
+				0u32.into(),                         // gas price
+				None,                                // max priority
+				None,                                // nonce
+				vec![],                              // access list
+				vec![],                              // authorization list
 			)
 			.expect("it works");
 
