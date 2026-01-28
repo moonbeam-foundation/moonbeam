@@ -51,7 +51,12 @@ export class Perbill {
     if (denominator !== undefined) {
       // Fractional form: numerator/denominator expressed as perbill
       // e.g., Perbill(355, 1000) = 355/1000 * 1e9 = 355_000_000
-      const num = typeof numerator === "bigint" ? Number(numerator) : numerator instanceof BN ? numerator.toNumber() : numerator;
+      const num =
+        typeof numerator === "bigint"
+          ? Number(numerator)
+          : numerator instanceof BN
+            ? numerator.toNumber()
+            : numerator;
       this.perbill = new BN(Math.floor((num / denominator) * 1_000_000_000));
     } else {
       // Raw perbill value
