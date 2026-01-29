@@ -295,9 +295,9 @@ declare module "@polkadot/api-base/types/errors" {
        **/
       FeeOverflow: AugmentedError<ApiType>;
       /**
-       * Gas limit is too high.
+       * Gas limit exceeds block gas limit.
        **/
-      GasLimitTooHigh: AugmentedError<ApiType>;
+      GasLimitExceedsBlockLimit: AugmentedError<ApiType>;
       /**
        * Gas limit is too low.
        **/
@@ -326,6 +326,10 @@ declare module "@polkadot/api-base/types/errors" {
        * EVM reentrancy
        **/
       Reentrancy: AugmentedError<ApiType>;
+      /**
+       * EIP-7825: Transaction gas limit exceeds protocol cap (2^24).
+       **/
+      TransactionGasLimitExceedsCap: AugmentedError<ApiType>;
       /**
        * EIP-3607,
        **/
