@@ -32,15 +32,16 @@ use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
 use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
-use sp_std::vec;
 use sp_std::vec::Vec;
 use sp_weights::Weight;
 use xcm::{latest::prelude::*, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 use xcm_executor::traits::ConvertOrigin;
 use xcm_executor::traits::WeightBounds;
-use xcm_executor::traits::WeightTrader;
 
 use xcm_primitives::DEFAULT_PROOF_SIZE;
+
+// Import the pure fee computation function from the weight trader pallet
+use pallet_xcm_weight_trader::compute_fee_amount;
 
 pub type XcmOriginOf<XcmConfig> =
 	<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin;
@@ -62,7 +63,10 @@ pub struct AllExceptXcmExecute<Runtime, XcmConfig>(PhantomData<(Runtime, XcmConf
 
 impl<Runtime, XcmConfig> SelectorFilter for AllExceptXcmExecute<Runtime, XcmConfig>
 where
-	Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config,
+	Runtime: pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_xcm::Config
+		+ pallet_xcm_weight_trader::Config,
 	XcmOriginOf<XcmConfig>: OriginTrait,
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
@@ -94,7 +98,10 @@ pub struct XcmUtilsPrecompile<Runtime, XcmConfig>(PhantomData<(Runtime, XcmConfi
 #[precompile_utils::precompile]
 impl<Runtime, XcmConfig> XcmUtilsPrecompile<Runtime, XcmConfig>
 where
-	Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config,
+	Runtime: pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_xcm::Config
+		+ pallet_xcm_weight_trader::Config,
 	XcmOriginOf<XcmConfig>: OriginTrait,
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
@@ -140,41 +147,13 @@ where
 		// max encoded len: hash (16) + Multilocation + u128 (16)
 		handle.record_db_read::<Runtime>(32 + Location::max_encoded_len())?;
 
-		// We will construct an asset with the max amount, and check how much we
-		// get in return to substract
-		let multiasset: xcm::latest::Asset = (location.clone(), u128::MAX).into();
-		let weight_per_second = 1_000_000_000_000u64;
+		let weight_per_second = Weight::from_parts(1_000_000_000_000u64, DEFAULT_PROOF_SIZE);
 
-		let mut trader = <XcmConfig as xcm_executor::Config>::Trader::new();
+		let amount = compute_fee_amount::<Runtime>(weight_per_second, &location).map_err(|_| {
+			RevertReason::custom("Asset not supported as fee payment").in_field("multilocation")
+		})?;
 
-		let ctx = XcmContext {
-			origin: Some(location),
-			message_id: XcmHash::default(),
-			topic: None,
-		};
-		// buy_weight returns unused assets
-		let unused = trader
-			.buy_weight(
-				Weight::from_parts(weight_per_second, DEFAULT_PROOF_SIZE),
-				vec![multiasset.clone()].into(),
-				&ctx,
-			)
-			.map_err(|_| {
-				RevertReason::custom("Asset not supported as fee payment").in_field("multilocation")
-			})?;
-
-		// we just need to substract from u128::MAX the unused assets
-		if let Some(amount) = unused
-			.fungible
-			.get(&multiasset.id)
-			.map(|&value| u128::MAX.saturating_sub(value))
-		{
-			Ok(amount.into())
-		} else {
-			Err(revert(
-				"Weight was too expensive to be bought with this asset",
-			))
-		}
+		Ok(amount.into())
 	}
 
 	#[precompile::public("weightMessage(bytes)")]
