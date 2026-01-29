@@ -9,6 +9,7 @@ import {
   expect,
   generateKeyringPair,
 } from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { chunk, getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers";
 
 describeSuite({

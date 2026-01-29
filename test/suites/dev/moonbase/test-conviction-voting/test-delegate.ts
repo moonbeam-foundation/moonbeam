@@ -7,7 +7,9 @@ import {
   describeSuite,
   expect,
   generateKeyringPair,
+  type DevModeContext,
 } from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 
 describeSuite({
   id: "D020606",

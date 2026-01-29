@@ -8,6 +8,7 @@ import {
   expect,
   generateKeyringPair,
 } from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { bnToHex } from "@polkadot/util";
 import {
   type RawXcmMessage,
@@ -193,8 +194,8 @@ describeSuite({
 
         // Process xcm message
         await context.createBlock();
-        log("Initial Fee Multiplier: ", initialValue.toString());
-        log("Post value: ", postValue.toString());
+        log(`Initial Fee Multiplier: ${initialValue.toString()}`);
+        log(`Post value: ${postValue.toString()}`);
 
         const postBalance = (await context.polkadotJs().query.system.account(random.address)).data
           .free;
@@ -302,8 +303,8 @@ describeSuite({
         // Enqueue XCM message
         await context.createBlock();
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
-        log("Initial Fee Multiplier: ", initialValue.toString());
-        log("Post value: ", postValue.toString());
+        log(`Initial Fee Multiplier: ${initialValue.toString()}`);
+        log(`Post value: ${postValue.toString()}`);
         expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
 
         // Process xcm message

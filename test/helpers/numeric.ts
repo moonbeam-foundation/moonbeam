@@ -7,14 +7,27 @@ import { BN } from "@polkadot/util";
 export class Percent {
   private readonly percent: bigint;
 
-  constructor(value: number | bigint) {
-    this.percent = BigInt(value);
+  constructor(value: number | bigint | BN) {
+    if (value instanceof BN) {
+      this.percent = BigInt(value.toString());
+    } else {
+      this.percent = BigInt(value);
+    }
+  }
+
+  /**
+   * Get the raw percent value as BN
+   */
+  value(): BN {
+    return new BN(this.percent.toString());
   }
 
   /**
    * Calculate percentage of an amount (round-to-nearest)
    * Matches Substrate's Percent::from_percent() behavior
    */
+  of(amount: BN): BN;
+  of(amount: bigint): bigint;
   of(amount: BN | bigint): BN | bigint {
     if (amount instanceof BN) {
       // Round-to-nearest: add 50 before dividing by 100
@@ -27,6 +40,8 @@ export class Percent {
    * Calculate percentage of an amount (ceiling division)
    * Supports both BN and bigint inputs
    */
+  ofCeil(amount: BN): BN;
+  ofCeil(amount: bigint): bigint;
   ofCeil(amount: BN | bigint): BN | bigint {
     if (amount instanceof BN) {
       const result = amount.muln(Number(this.percent));
@@ -80,6 +95,8 @@ export class Perbill {
    * Calculate the perbill portion of an amount (round-to-nearest)
    * Matches Substrate's Perbill behavior
    */
+  of(amount: BN): BN;
+  of(amount: bigint): bigint;
   of(amount: BN | bigint): BN | bigint {
     if (amount instanceof BN) {
       // Round-to-nearest: add half of divisor

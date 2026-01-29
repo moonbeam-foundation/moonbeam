@@ -32,7 +32,7 @@ describeSuite({
         });
         await context.createBlock();
 
-        log("Contract address: ", await contract.getAddress());
+        log(`Contract address: ${await contract.getAddress()}`);
         expect((await contract.getAddress()).length).toBeGreaterThan(3);
         expect(await context.ethers().provider?.getCode(await contract.getAddress())).to.be.string;
       },

@@ -76,15 +76,18 @@ describeSuite({
         const { result } = await context.createBlock(rawTxn);
         expectEVMResult(result!.events, "Succeed");
 
-        const proxyAddedEvents = result!.events.reduce((acc, e) => {
-          if (context.polkadotJs().events.proxy.ProxyAdded.is(e.event)) {
-            acc.push({
-              account: e.event.data[0].toString(),
-              proxyType: e.event.data[2].toHuman(),
-            });
-          }
-          return acc;
-        }, []);
+        const proxyAddedEvents = result!.events.reduce(
+          (acc, e) => {
+            if (context.polkadotJs().events.proxy.ProxyAdded.is(e.event)) {
+              acc.push({
+                account: e.event.data[0].toString(),
+                proxyType: e.event.data[2].toHuman(),
+              });
+            }
+            return acc;
+          },
+          [] as { account: string; proxyType: any }[]
+        );
 
         expect(proxyAddedEvents).to.deep.equal([
           {
@@ -145,15 +148,18 @@ describeSuite({
         const expectEvents = [context.polkadotJs().events.proxy.ProxyRemoved];
         const { result } = await context.createBlock(rawTxn, { expectEvents, signer: alith });
         expectEVMResult(result!.events, "Succeed");
-        const proxyRemovedEvents = result!.events.reduce((acc, e) => {
-          if (context.polkadotJs().events.proxy.ProxyRemoved.is(e.event)) {
-            acc.push({
-              account: e.event.data[0].toString(),
-              proxyType: e.event.data[2].toHuman(),
-            });
-          }
-          return acc;
-        }, []);
+        const proxyRemovedEvents = result!.events.reduce(
+          (acc, e) => {
+            if (context.polkadotJs().events.proxy.ProxyRemoved.is(e.event)) {
+              acc.push({
+                account: e.event.data[0].toString(),
+                proxyType: e.event.data[2].toHuman(),
+              });
+            }
+            return acc;
+          },
+          [] as { account: string; proxyType: any }[]
+        );
 
         expect(proxyRemovedEvents).to.deep.equal([
           {

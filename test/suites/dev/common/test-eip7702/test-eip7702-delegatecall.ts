@@ -371,12 +371,12 @@ describeSuite({
         expect(receipt.status).toBe("success");
 
         // Check ADDRESS opcode
-        const address = await context.viem().readContract({
+        const address = (await context.viem().readContract({
           address: delegatingEOA.address,
           abi: contextCheckerAbi,
           functionName: "getAddress",
           args: [],
-        });
+        })) as string;
         expect(address.toLowerCase()).toBe(delegatingEOA.address.toLowerCase());
 
         // Check BALANCE opcode

@@ -111,7 +111,7 @@ describeSuite({
             .getTransactionCount({ address: descendedAddress });
 
           // Sanity check that the descended account has been pre-funded.
-          expect(initialBalance).to.be.gte(assetsToTransfer);
+          expect(initialBalance >= assetsToTransfer).to.be.true;
 
           // Get initial contract count
           const initialCount = (
@@ -216,7 +216,7 @@ describeSuite({
           // Make sure the descended address has consumed some or all of its funds
           // paying for XCM fees and EVM execution.
           const finalBalance = await foreignAssetBalance(context, assetId, descendedAddress);
-          expect(finalBalance).to.be.lte(initialBalance);
+          expect(finalBalance <= initialBalance).to.be.true;
 
           const nonce = await context.viem().getTransactionCount({ address: descendedAddress });
           expect(nonce - initialNonce).to.be.eq(2);

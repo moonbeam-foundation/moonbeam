@@ -26,7 +26,7 @@ describeSuite({
             { allowFailures: false }
           );
           expect.fail("An extrinsic should not be created, since the parameter is invalid");
-        } catch (error) {
+        } catch (error: any) {
           expect(error.toString().toLowerCase()).to.contain("value out of bounds");
         }
 
@@ -40,7 +40,7 @@ describeSuite({
             { allowFailures: false }
           );
           expect.fail("An extrinsic should not be created, since the parameter is invalid");
-        } catch (error) {
+        } catch (error: any) {
           expect(error.toString().toLowerCase()).to.contain("value out of bounds");
         }
 

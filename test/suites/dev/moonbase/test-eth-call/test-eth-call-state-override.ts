@@ -53,7 +53,7 @@ describeSuite({
       title: "should have a balance of > 100 GLMR without state override",
       test: async function () {
         const { data } = await context.viem().call({
-          account: baltathar.address,
+          account: baltathar.address as `0x${string}`,
           to: stateOverrideAddress as `0x${string}`,
           data: encodeFunctionData({ abi: contractAbi, functionName: "getSenderBalance" }),
         });
@@ -67,7 +67,7 @@ describeSuite({
       test: async function () {
         const result = await customDevRpcRequest("eth_call", [
           {
-            from: baltathar.address,
+            from: baltathar.address as unknown as bigint,
             to: stateOverrideAddress,
             data: encodeFunctionData({ abi: contractAbi, functionName: "getSenderBalance" }),
           },
@@ -152,12 +152,12 @@ describeSuite({
           encodePacked(
             ["uint256", "uint256"],
             [
-              baltathar.address,
+              baltathar.address as unknown as bigint,
               keccak256(
                 encodePacked(
                   ["uint256", "uint256"],
                   [
-                    ALITH_ADDRESS as any,
+                    ALITH_ADDRESS as unknown as bigint,
                     2n, // slot 2
                   ]
                 )
@@ -198,12 +198,12 @@ describeSuite({
           encodePacked(
             ["uint256", "uint256"],
             [
-              baltathar.address,
+              baltathar.address as unknown as bigint,
               keccak256(
                 encodePacked(
                   ["uint256", "uint256"],
                   [
-                    ALITH_ADDRESS as any,
+                    ALITH_ADDRESS as unknown as bigint,
                     2n, // slot 2
                   ]
                 )

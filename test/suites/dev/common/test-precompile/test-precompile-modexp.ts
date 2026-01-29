@@ -57,7 +57,7 @@ describeSuite({
 
         const result = await context.viem().call({
           to: PRECOMPILE_MODEXP_ADDRESS,
-          data: input,
+          data: input as `0x${string}`,
         });
 
         expect(result.data).toBeTruthy();
@@ -75,7 +75,7 @@ describeSuite({
 
         const result = await context.viem().call({
           to: PRECOMPILE_MODEXP_ADDRESS,
-          data: input,
+          data: input as `0x${string}`,
         });
 
         expect(result.data).toBeTruthy();
@@ -93,7 +93,7 @@ describeSuite({
 
         const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
-          data: input,
+          data: input as `0x${string}`,
           gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
 
@@ -116,7 +116,7 @@ describeSuite({
 
         const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
-          data: input,
+          data: input as `0x${string}`,
           gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
         });
 
@@ -140,7 +140,7 @@ describeSuite({
 
         const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
-          data: input,
+          data: input as `0x${string}`,
           gas: gasLimit,
         });
 
@@ -168,7 +168,7 @@ describeSuite({
 
         const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
-          data: input,
+          data: input as `0x${string}`,
           gas: gasLimit,
         });
 
@@ -196,7 +196,7 @@ describeSuite({
 
         const rawTxn = await createViemTransaction(context, {
           to: PRECOMPILE_MODEXP_ADDRESS,
-          data: input,
+          data: input as `0x${string}`,
           gas: gasLimit,
         });
 
@@ -223,7 +223,7 @@ describeSuite({
 
         const result = await context.viem().call({
           to: PRECOMPILE_MODEXP_ADDRESS,
-          data: input,
+          data: input as `0x${string}`,
         });
 
         // Division by zero should return zero

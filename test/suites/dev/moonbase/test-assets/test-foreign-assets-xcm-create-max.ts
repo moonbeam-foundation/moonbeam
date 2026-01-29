@@ -5,6 +5,9 @@ import { sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
 import { expectSubstrateEvent } from "../../../../helpers/expect.js";
 
+// Maximum number of foreign assets that can be created (from runtime configuration)
+const maxForeignAssets = 256;
+
 describeSuite({
   id: "D020110",
   title: "Creation of Foreign Assets via XCM",

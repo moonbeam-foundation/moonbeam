@@ -59,6 +59,7 @@ describeSuite({
   testCases: ({ context, it }) => {
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
+    let api: ReturnType<typeof context.polkadotJs>;
 
     const initialBalance: bigint = 500_000_000_000_000n;
     const xcMaticToSend = 3_500_000_000n;

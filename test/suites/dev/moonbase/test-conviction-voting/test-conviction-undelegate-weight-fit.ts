@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { alith, beforeAll, describeSuite, expect } from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { createAccounts, chunk, expectSubstrateEvents } from "../../../../helpers";
 
 describeSuite({
@@ -35,7 +36,7 @@ describeSuite({
         );
 
         const undelegatedEvents = expectSubstrateEvents(
-          blockResult,
+          blockResult as any,
           "convictionVoting",
           "Undelegated"
         );

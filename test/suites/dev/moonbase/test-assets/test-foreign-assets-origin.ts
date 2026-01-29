@@ -39,7 +39,7 @@ describeSuite({
         const calls = getCalls();
         for (const call of calls) {
           const { result } = await context.createBlock(call);
-          expect(result.error?.name).to.be.eq("BadOrigin");
+          expect(result!.error?.name).to.be.eq("BadOrigin");
         }
       },
     });

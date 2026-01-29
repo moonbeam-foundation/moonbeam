@@ -64,7 +64,7 @@ describeSuite({
             signer: { type: "ethereum", privateKey: CHARLETH_PRIVATE_KEY },
           });
 
-          expect(result.successful).to.be.true;
+          expect(result!.successful).to.be.true;
 
           const receipt = await context
             .viem("public")
@@ -91,7 +91,7 @@ describeSuite({
             signer: { type: "ethereum", privateKey: CHARLETH_PRIVATE_KEY },
           });
 
-          expect(result.successful).to.be.true;
+          expect(result!.successful).to.be.true;
           await verifyLatestBlockFees(context);
         },
       });

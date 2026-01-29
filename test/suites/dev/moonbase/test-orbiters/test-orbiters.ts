@@ -161,8 +161,8 @@ describeSuite({
         const afterOrbPoolInnactiveCandidatePool = await context
           .polkadotJs()
           .query.parachainStaking.candidatePool();
-        const afterOrbPoolInnactiveCandidates = afterOrbPoolInnactiveCandidatePool
-          .toJSON()
+        const afterOrbPoolInnactiveCandidates = (afterOrbPoolInnactiveCandidatePool
+          .toJSON() as { owner: string }[] ?? [])
           .map((c) => c.owner);
         expect(afterOrbPoolInnactiveCandidates).not.toContain(orbiterPool.address);
       },

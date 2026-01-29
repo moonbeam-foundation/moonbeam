@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { alith, beforeAll, describeSuite, expect } from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { createAccounts, expectSubstrateEvents } from "../../../../helpers";
 
 describeSuite({
@@ -26,7 +27,7 @@ describeSuite({
               .signAsync(alith, { nonce: alithNonce++ })
           ),
       ]);
-      const delegatedEvents = expectSubstrateEvents(blockResult, "convictionVoting", "Delegated");
+      const delegatedEvents = expectSubstrateEvents(blockResult as any, "convictionVoting", "Delegated");
       expect(delegatedEvents.length).to.equal(5);
     });
 
@@ -53,11 +54,11 @@ describeSuite({
         );
 
         const undelegatedEvents = expectSubstrateEvents(
-          blockResult,
+          blockResult as any,
           "convictionVoting",
           "Undelegated"
         );
-        const delegatedEvents = expectSubstrateEvents(blockResult, "convictionVoting", "Delegated");
+        const delegatedEvents = expectSubstrateEvents(blockResult as any, "convictionVoting", "Delegated");
 
         expect(undelegatedEvents.length).to.equal(5);
         expect(delegatedEvents.length).to.equal(5);

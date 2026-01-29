@@ -28,7 +28,7 @@ describeSuite({
       const ethEvent = (await context.polkadotJs().query.system.events()).find(({ event }) =>
         context.polkadotJs().events.ethereum.Executed.is(event)
       );
-      expect((ethEvent.toHuman() as any).event["data"]["exitReason"]["Revert"]).equals("Reverted");
+      expect((ethEvent!.toHuman() as any).event["data"]["exitReason"]["Revert"]).equals("Reverted");
 
       contractAddress = deployedAddr;
     });
@@ -49,7 +49,7 @@ describeSuite({
             .signAsync(alith)
         );
 
-        expect(result.error.name).eq("NotProxy");
+        expect(result!.error!.name).eq("NotProxy");
       },
     });
 

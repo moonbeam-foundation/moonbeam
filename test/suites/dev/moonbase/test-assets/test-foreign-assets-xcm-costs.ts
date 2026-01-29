@@ -62,7 +62,7 @@ describeSuite({
         // Deposit should be reserved on the sovereign account.
         expect(reservedAfter).to.equal(depositAmount);
         // Some fee should have been paid, so free balance must decrease.
-        expect(balanceAfter).to.be.lessThan(balanceBefore);
+        expect(balanceAfter < balanceBefore).to.be.true;
       },
     });
   },

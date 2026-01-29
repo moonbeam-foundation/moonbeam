@@ -4,7 +4,7 @@ import type { ApiPromise } from "@polkadot/api";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";
 import type {
-  EthereumReceiptReceiptV3,
+  EthereumReceiptReceiptV4,
   FpRpcTransactionStatus,
   FrameSystemEventRecord,
 } from "@polkadot/types/lookup";
@@ -21,7 +21,7 @@ type BlockFilteredRecord = {
   extrinsics: GenericExtrinsic<AnyTuple>[];
   events: FrameSystemEventRecord[];
   ethTxns: FpRpcTransactionStatus[];
-  receipts: EthereumReceiptReceiptV3[];
+  receipts: EthereumReceiptReceiptV4[];
 };
 
 describeSuite({

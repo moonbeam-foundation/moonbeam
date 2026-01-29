@@ -96,7 +96,7 @@ describeSuite({
           paraApi.tx.balances
             .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
             .signAndSend(charleth, ({ status, events }) => {
-              log("Transaction status: ", status.toHuman());
+              log(`Transaction status: ${JSON.stringify(status.toHuman())}`);
 
               if (status.isFinalized) {
                 log("Transaction is finalized!");
@@ -118,7 +118,7 @@ describeSuite({
         const balAfter = (
           await paraApi.query.system.account(BALTATHAR_ADDRESS)
         ).data.free.toBigInt();
-        expect(balBefore, `${balBefore} is not less than ${balAfter}`).to.be.lessThan(balAfter);
+        expect(balBefore < balAfter, `${balBefore} is not less than ${balAfter}`).to.be.true;
       },
     });
 

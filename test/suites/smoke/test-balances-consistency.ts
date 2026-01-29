@@ -108,6 +108,7 @@ describeSuite({
     let totalAccounts = 0n;
     let totalIssuance = 0n;
     let symbol: string;
+    let runtimeName: string;
     let paraApi: ApiPromise;
 
     const updateReserveMap = (

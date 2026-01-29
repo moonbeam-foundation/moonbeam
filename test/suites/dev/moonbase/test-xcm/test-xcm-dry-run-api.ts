@@ -117,7 +117,7 @@ describeSuite({
           const randomKeyPair = generateKeyringPair();
 
           // We will dry run a "ReserveAssetDeposited" coming from the relay
-          let xcmMessage = new XcmFragment({
+          let xcmMessage: any = new XcmFragment({
             assets: [
               {
                 multilocation: {
@@ -196,7 +196,7 @@ describeSuite({
             { parents: 1, interior: { X1: { Parachain: paraId } } },
             xcmVersion
           );
-          let xcmMessage = new XcmFragment({
+          let xcmMessage: any = new XcmFragment({
             beneficiary: BALTATHAR_ADDRESS,
             assets: [
               {

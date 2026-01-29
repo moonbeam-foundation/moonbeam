@@ -77,7 +77,7 @@ describeSuite({
           return { networkName: name, blockEvents: [] };
         }
 
-        let api: ApiPromise;
+        let api: ApiPromise | undefined;
         try {
           log(`Connecting to ${name}...`);
           console.debug(`Endpoints: `, endpoints);
@@ -89,6 +89,9 @@ describeSuite({
             if (await api.isReadyOrError.then(() => true).catch(() => false)) {
               break;
             }
+          }
+          if (!api) {
+            throw new Error(`No connection established to ${name}`);
           }
           // Make sure the connection is ready
           await api.isReadyOrError;
@@ -110,8 +113,8 @@ describeSuite({
           }
 
           const getEvents = async (blockNum: number) => {
-            const blockHash = await limiter.schedule(() => api.rpc.chain.getBlockHash(blockNum));
-            const apiAt = await limiter.schedule(() => api.at(blockHash));
+            const blockHash = await limiter.schedule(() => api!.rpc.chain.getBlockHash(blockNum));
+            const apiAt = await limiter.schedule(() => api!.at(blockHash));
             const events = await limiter.schedule(() => apiAt.query.system.events());
             return { blockNum, events };
           };
@@ -121,7 +124,7 @@ describeSuite({
         } catch {
           expect.fail(`Could not connect to parachain: ${name}`);
         } finally {
-          await api.disconnect();
+          await api?.disconnect();
           networkBlockEvents.push({ networkName: name, blockEvents });
         }
       }

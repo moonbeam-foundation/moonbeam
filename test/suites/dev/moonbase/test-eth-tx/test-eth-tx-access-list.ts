@@ -165,7 +165,7 @@ describeSuite({
         try {
           await context.viem().sendRawTransaction({ serializedTransaction: bigTxWithAL });
           error("Transaction should not have been gossiped");
-        } catch (e) {
+        } catch (e: any) {
           expect(e.message).toContain("exceeds block gas limit");
         }
       },

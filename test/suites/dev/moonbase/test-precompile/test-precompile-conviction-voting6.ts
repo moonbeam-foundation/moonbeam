@@ -9,7 +9,12 @@ import {
   describeSuite,
   expect,
 } from "moonwall";
-import { expectEVMResult, createProposal, ConvictionVoting } from "../../../../helpers";
+import {
+  expectEVMResult,
+  extractSingleResult,
+  createProposal,
+  ConvictionVoting,
+} from "../../../../helpers";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
 // Be careful to not reach the maximum number of proposals.
@@ -26,16 +31,16 @@ describeSuite({
 
       convictionVoting = new ConvictionVoting(context);
       const blockAlith_1 = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
-      expectEVMResult(blockAlith_1.result!.events, "Succeed");
+      expectEVMResult(extractSingleResult(blockAlith_1.result).events, "Succeed");
 
       const blockAlith_2 = await convictionVoting.voteYes(proposalIndex, 2n * GLMR, 2n).block();
-      expectEVMResult(blockAlith_2.result!.events, "Succeed");
+      expectEVMResult(extractSingleResult(blockAlith_2.result).events, "Succeed");
 
       const blockBaltathar = await convictionVoting
         .withPrivateKey(BALTATHAR_PRIVATE_KEY)
         .voteYes(proposalIndex, 3n * GLMR, 3n)
         .block();
-      expectEVMResult(blockBaltathar.result!.events, "Succeed");
+      expectEVMResult(extractSingleResult(blockBaltathar.result).events, "Succeed");
     });
 
     beforeEach(async function () {

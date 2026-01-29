@@ -76,7 +76,7 @@ describeSuite({
         proportion: new Perbill(963, 1000),
         transfer_amount: 10n * UNIT,
         tipAmount: 128n,
-        priorityFeePerGas: 128,
+        priorityFeePerGas: 128n,
       },
       {
         proportion: new Perbill(99, 100),
@@ -93,7 +93,7 @@ describeSuite({
     ];
 
     for (const t of testCases) {
-      const treasuryPerbill = new BN(t.proportion.value());
+      const treasuryPerbill = BigInt(t.proportion.value().toString());
       const treasuryPercentage = t.proportion.value().toNumber() / 1e7;
       const burnPercentage = 100 - treasuryPercentage;
 

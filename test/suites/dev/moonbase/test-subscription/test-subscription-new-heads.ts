@@ -303,7 +303,7 @@ class InvariantChecker {
    * as long as the canonical block was among them.
    */
   async checkReceivedCanonicalBlocks(
-    viem: PublicClient
+    viem: Pick<PublicClient, "getBlock">
   ): Promise<{ passed: boolean; missing: Array<{ height: bigint; rpcHash: string }> }> {
     const range = this.collector.getHeightRange();
     if (!range) {
@@ -578,7 +578,7 @@ describeSuite({
           log("\n=== Invariant Checks ===");
 
           // We should have received all canonical blocks
-          const canonicalCheck = await checker.checkReceivedCanonicalBlocks(context.viem());
+          const canonicalCheck = await checker.checkReceivedCanonicalBlocks(context.viem("public"));
           expect(canonicalCheck.passed, "Should receive all canonical blocks").toBe(true);
 
           // No gaps
@@ -667,7 +667,7 @@ describeSuite({
           log("\n=== Invariant Checks ===");
 
           // Key invariant: We should have received all canonical blocks
-          const canonicalCheck = await checker.checkReceivedCanonicalBlocks(context.viem());
+          const canonicalCheck = await checker.checkReceivedCanonicalBlocks(context.viem("public"));
           expect(
             canonicalCheck.passed,
             "Should receive all canonical blocks after deep reorg"
@@ -947,7 +947,7 @@ describeSuite({
           expect(parentCheck.passed, "Parent chain should be continuous").toBe(true);
 
           // Verify against RPC
-          const canonicalCheck = await checker.checkReceivedCanonicalBlocks(context.viem());
+          const canonicalCheck = await checker.checkReceivedCanonicalBlocks(context.viem("public"));
           expect(canonicalCheck.passed, "Should receive all canonical blocks").toBe(true);
 
           const range = sub.collector.getHeightRange();

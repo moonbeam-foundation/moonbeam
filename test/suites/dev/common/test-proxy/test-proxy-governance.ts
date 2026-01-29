@@ -55,9 +55,11 @@ describeSuite({
         );
 
         expect(
-          result?.events.find((event) =>
-            context.polkadotJs().events.proxy.ProxyExecuted.is(event.event)
-          )?.event.data.result.isOk
+          (
+            result?.events.find((event) =>
+              context.polkadotJs().events.proxy.ProxyExecuted.is(event.event)
+            )?.event.data as any
+          ).result.isOk
         ).toBe(true);
 
         // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens

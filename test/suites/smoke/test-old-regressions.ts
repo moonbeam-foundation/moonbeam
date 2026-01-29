@@ -18,7 +18,7 @@ enum Network {
   Moonbase = "moonbase",
 }
 
-class BadBlockRegressionCase {
+interface BadBlockRegressionCase {
   issue: string;
   network: Network;
   contractAddress: `0x${string}`;
@@ -27,10 +27,10 @@ class BadBlockRegressionCase {
 }
 
 interface TransactionRegressionCase {
-  network: Network;
+  network: string;
   runtime: number;
   blockNumber: number;
-  txHash: `0x${string}`;
+  txHash: string;
 }
 
 // Issues/Regressions

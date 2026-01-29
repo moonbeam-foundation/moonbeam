@@ -124,7 +124,7 @@ describeSuite({
           )
         );
 
-        await context.createBlock(txns);
+        await context.createBlock(txns as any);
 
         expect((await context.viem().getBalance({ address: actorAddress })) / GLMR).to.equal(
           addressGLMR - 21000n * 20n

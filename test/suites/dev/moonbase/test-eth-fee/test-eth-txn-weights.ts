@@ -34,7 +34,7 @@ describeSuite({
             gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
             maxFeePerGas: 10_000_000_000n,
             maxPriorityFeePerGas: 0n,
-            to: baltathar.address,
+            to: baltathar.address as `0x${string}`,
           })
         );
 
@@ -62,7 +62,7 @@ describeSuite({
           .find(({ event }) => context.polkadotJs().events.system.ExtrinsicSuccess.is(event));
 
         expect(extSuccessEvent).to.not.be.eq(null);
-        const eventWeight = extSuccessEvent.event.data.dispatchInfo.weight.refTime.toBigInt();
+        const eventWeight = (extSuccessEvent!.event.data as any).dispatchInfo.weight.refTime.toBigInt();
         expect(eventWeight).to.eq(EXPECTED_WEIGHT);
       },
     });

@@ -18,9 +18,9 @@ describeSuite({
           { allowFailures: true }
         );
         expect(result?.events.length === 6);
-        expect(api.events.system.NewAccount.is(result?.events[1].event)).to.be.true;
-        expect(api.events.balances.Endowed.is(result?.events[2].event)).to.be.true;
-        expect(api.events.system.ExtrinsicFailed.is(result?.events[5].event)).to.be.true;
+        expect(api.events.system.NewAccount.is(result!.events[1].event)).to.be.true;
+        expect(api.events.balances.Endowed.is(result!.events[2].event)).to.be.true;
+        expect(api.events.system.ExtrinsicFailed.is(result!.events[5].event)).to.be.true;
       },
     });
   },

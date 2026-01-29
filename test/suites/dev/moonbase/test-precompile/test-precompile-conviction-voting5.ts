@@ -4,6 +4,7 @@ import {
   jumpBlocks,
   expectEVMResult,
   extractRevertReason,
+  extractSingleResult,
   createProposal,
   ConvictionVoting,
 } from "../../../../helpers";
@@ -51,8 +52,10 @@ describeSuite({
       title: `should failed to be removed without track info`,
       test: async function () {
         const block = await convictionVoting.withGas(2_000_000n).removeVote(proposalIndex).block();
-        expectEVMResult(block.result!.events, "Revert", "Reverted");
-        expect(await extractRevertReason(context, block.result!.hash)).to.contain("ClassNeeded");
+        expectEVMResult(extractSingleResult(block.result).events, "Revert", "Reverted");
+        expect(
+          await extractRevertReason(context, extractSingleResult(block.result).hash)
+        ).to.contain("ClassNeeded");
       },
     });
 
@@ -61,7 +64,7 @@ describeSuite({
       title: `should be removable by specifying the track`,
       test: async function () {
         const block = await convictionVoting.removeVoteForTrack(proposalIndex, 1).block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
       },
     });
   },

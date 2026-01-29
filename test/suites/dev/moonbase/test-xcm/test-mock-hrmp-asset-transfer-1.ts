@@ -33,8 +33,8 @@ const STATEMINT_LOCATION = {
       X3: [
         { Parachain: statemint_para_id },
         { PalletInstance: statemint_assets_pallet_instance },
-        { GeneralIndex: 0 },
-      ],
+        { GeneralIndex: 0n },
+      ] as [{ Parachain: number }, { PalletInstance: number }, { GeneralIndex: bigint }],
     },
   },
 };

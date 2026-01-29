@@ -40,14 +40,17 @@ describeSuite({
             .signAsync(ethan)
         );
         expect(block.result!.successful).to.be.true;
-        const leaveEvents = block.result!.events.reduce((acc, event) => {
-          if (context.polkadotJs().events.parachainStaking.CandidateLeft.is(event.event)) {
-            acc.push({
-              account: event.event.data[0].toString(),
-            });
-          }
-          return acc;
-        }, []);
+        const leaveEvents = block.result!.events.reduce(
+          (acc, event) => {
+            if (context.polkadotJs().events.parachainStaking.CandidateLeft.is(event.event)) {
+              acc.push({
+                account: event.event.data[0].toString(),
+              });
+            }
+            return acc;
+          },
+          [] as { account: string }[]
+        );
 
         expect(leaveEvents).to.deep.equal([
           {

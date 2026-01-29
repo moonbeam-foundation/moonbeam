@@ -1,11 +1,18 @@
 import "@moonbeam-network/api-augment";
-import { MoonwallContext, alith, beforeAll, describeSuite, expect } from "moonwall";
+import {
+  MoonwallContext,
+  alith,
+  beforeAll,
+  describeSuite,
+  expect,
+  type ChopsticksContext,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import type { HexString } from "@polkadot/util/types";
 import type { u32 } from "@polkadot/types";
 import { hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
 import { blake2AsHex, xxhashAsU8a } from "@polkadot/util-crypto";
-import { parseEther } from "ethers";
+import { parseEther } from "viem";
 import { existsSync, readFileSync } from "node:fs";
 
 const hash = (prefix: HexString, suffix: Uint8Array) => {
@@ -20,6 +27,9 @@ const upgradeRestrictionSignal = (paraId: u32) => {
 
 const upgradeRuntime = async (context: ChopsticksContext) => {
   const path = (await MoonwallContext.getContext()).rtUpgradePath;
+  if (!path) {
+    throw new Error("Runtime wasm path not configured");
+  }
   if (!existsSync(path)) {
     throw new Error(`Runtime wasm not found at path: ${path}`);
   }

@@ -183,7 +183,7 @@ describeSuite({
               .viem()
               .getBalance({ address: descendAddress });
             const spent = BigInt(initialDescendBalance) - BigInt(descendAccountBalance);
-            expect(spent).to.be.gte(expectedTransferredAmount);
+            expect(spent >= expectedTransferredAmount).to.be.true;
           }
         },
       });

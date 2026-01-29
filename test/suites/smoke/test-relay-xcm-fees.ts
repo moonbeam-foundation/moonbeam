@@ -73,10 +73,10 @@ describeSuite({
         const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 
         const feePerSecondValueForRelay = (
-          await paraApiAt.query.xcmTransactor.destinationAssetFeePerSecond({
+          (await paraApiAt.query.xcmTransactor.destinationAssetFeePerSecond({
             parents: 1,
             interior: "Here",
-          })
+          })) as any
         ).unwrap();
 
         expect(

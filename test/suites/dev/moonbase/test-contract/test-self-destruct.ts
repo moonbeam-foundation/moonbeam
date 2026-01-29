@@ -45,7 +45,7 @@ describeSuite({
           }),
         ]);
 
-        for (const result of block.result) {
+        for (const result of block.result!) {
           const receipt = await context
             .viem("public")
             .getTransactionReceipt({ hash: result.hash as `0x${string}` });

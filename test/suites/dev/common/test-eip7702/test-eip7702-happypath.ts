@@ -425,8 +425,8 @@ describeSuite({
           console.log(`Code after clear: ${codeAfterClear}`);
 
           // Extract delegated address from the code
-          if (codeAfterClear.startsWith("0xef0100")) {
-            const delegatedAddress = "0x" + codeAfterClear.slice(8);
+          if (codeAfterClear!.startsWith("0xef0100")) {
+            const delegatedAddress = "0x" + codeAfterClear!.slice(8);
             console.log(`Delegated address after clear: ${delegatedAddress}`);
 
             // This should be zero address if clearing worked

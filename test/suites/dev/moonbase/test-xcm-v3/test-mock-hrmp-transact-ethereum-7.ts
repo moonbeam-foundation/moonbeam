@@ -203,7 +203,7 @@ describeSuite({
           // derived account may pay partial fees or be fully refunded. We only
           // assert that any spent amount, if non-zero, stays within the
           // originally budgeted upper bound.
-          expect(spentByDerived).to.be.lte(maxFees);
+          expect(spentByDerived <= maxFees).to.be.true;
           // Make sure derived / descended account nonce still zero.
           const derivedAccountNonce = await context
             .viem()

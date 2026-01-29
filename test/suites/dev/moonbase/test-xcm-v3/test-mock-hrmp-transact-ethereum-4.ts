@@ -157,7 +157,7 @@ describeSuite({
           // it stays within the originally budgeted upper bound.
           const descendOriginBalance = await context.viem().getBalance({ address: descendAddress });
           const spent = transferredBalance - BigInt(descendOriginBalance);
-          expect(spent).to.be.lte(feeAmount);
+          expect(spent <= feeAmount).to.be.true;
         }
       },
     });

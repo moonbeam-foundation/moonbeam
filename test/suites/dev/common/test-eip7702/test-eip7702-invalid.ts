@@ -26,7 +26,6 @@ describeSuite({
 
       const contract = await deployCreateCompiledContract(context, "Counter");
       contractAddress = contract.contractAddress;
-      contractAbi = contract.abi;
     });
 
     it({

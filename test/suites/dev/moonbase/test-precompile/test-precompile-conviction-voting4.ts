@@ -18,6 +18,7 @@ import {
   createProposal,
   expectEVMResult,
   expectSubstrateEvent,
+  extractSingleResult,
 } from "../../../../helpers";
 
 describeSuite({
@@ -51,7 +52,7 @@ describeSuite({
       title: `should be removable`,
       test: async function () {
         const block = await convictionVoting.removeVote(proposalIndex).block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const referendum = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(proposalIndex);
@@ -72,7 +73,7 @@ describeSuite({
           .withPrivateKey(ETHAN_PRIVATE_KEY)
           .removeOtherVote(ALITH_ADDRESS, trackId, proposalIndex)
           .block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,
@@ -98,7 +99,7 @@ describeSuite({
       title: `should be removable by specifying the track general_admin`,
       test: async function () {
         const block = await convictionVoting.removeVoteForTrack(proposalIndex, 2).block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const referendum = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(proposalIndex);
@@ -115,7 +116,7 @@ describeSuite({
           .withGas(2_000_000n)
           .removeVoteForTrack(proposalIndex, 0)
           .block();
-        expectEVMResult(block.result!.events, "Revert");
+        expectEVMResult(extractSingleResult(block.result).events, "Revert");
         const referendum = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(proposalIndex);
@@ -133,7 +134,7 @@ describeSuite({
           .withGas(2_000_000n)
           .removeOtherVote(ALITH_ADDRESS, 2, proposalIndex)
           .block();
-        expectEVMResult(block.result!.events, "Revert");
+        expectEVMResult(extractSingleResult(block.result).events, "Revert");
         const referendum = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(proposalIndex);

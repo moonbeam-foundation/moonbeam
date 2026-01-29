@@ -245,10 +245,10 @@ describeSuite({
                     // b'gas_limit:' + 900000(little endian) + zeros padding
                     {
                       GeneralKey: {
-                        data: [
+                        data: new Uint8Array([
                           103, 97, 115, 95, 108, 105, 109, 105, 116, 58, 160, 187, 13, 0, 0, 0, 0,
                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        ],
+                        ]),
                         length: 32,
                       },
                     },

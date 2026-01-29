@@ -40,7 +40,7 @@ describeSuite({
                 account: charleth.address,
                 percent: TWENTY_PERCENT,
               },
-            ])
+            ] as any)
           )
         );
         expect(result!.successful).to.be.true;
@@ -66,7 +66,7 @@ describeSuite({
               account: charleth.address,
               percent: TWENTY_PERCENT,
             },
-          ])
+          ] as any)
         );
         expect(result!.successful).to.be.false;
         expect(result!.error!.name).to.equal("BadOrigin");

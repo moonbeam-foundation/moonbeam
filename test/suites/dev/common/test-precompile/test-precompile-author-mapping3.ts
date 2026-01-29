@@ -10,6 +10,7 @@ import {
   fetchCompiledContract,
   generateKeyringPair,
 } from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { u8aToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
 import { ConstantStore } from "../../../../helpers";

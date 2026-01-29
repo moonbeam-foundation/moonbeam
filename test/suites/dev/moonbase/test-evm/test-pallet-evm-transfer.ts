@@ -41,7 +41,7 @@ describeSuite({
             .catch((e) => e.toString())
         ).to.equal("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
 
-        expect(await context.viem().getBalance({ address: baltathar.address })).to.equal(
+        expect(await context.viem().getBalance({ address: baltathar.address as `0x${string}` })).to.equal(
           DEFAULT_GENESIS_BALANCE
         );
       },
@@ -78,7 +78,7 @@ describeSuite({
               section === "system" && method === "ExtrinsicSuccess"
           )
         ).to.exist;
-        expect(await context.viem().getBalance({ address: baltathar.address })).to.equal(
+        expect(await context.viem().getBalance({ address: baltathar.address as `0x${string}` })).to.equal(
           DEFAULT_GENESIS_BALANCE + 100_000_000_000_000_000_000n
         );
       },

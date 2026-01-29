@@ -9,7 +9,15 @@ import {
 import { Receipt } from "eth-object";
 import { BaseTrie as Trie } from "merkle-patricia-tree";
 import * as RLP from "rlp";
-import { encodeDeployData, toHex } from "viem";
+import { encodeDeployData, toHex, type TransactionReceipt } from "viem";
+
+interface InnerReceipt {
+  logs: TransactionReceipt["logs"];
+  status: "0x0" | "0x1";
+  cumulativeGasUsed: `0x${string}`;
+  logsBloom: `0x${string}`;
+  type: string;
+}
 
 describeSuite({
   id: "D023102",
@@ -85,7 +93,7 @@ describeSuite({
       // modifier: "skip",
       test: async function () {
         const block = await context.viem().getBlock({ blockNumber: 1n });
-        const receipts = [];
+        const receipts: TransactionReceipt[] = [];
         for (const txHash of block.transactions) {
           const receipt = await context
             .viem()

@@ -24,7 +24,7 @@ describeSuite({
             contractAddress: contract,
             functionName: "test",
           });
-        } catch (error) {
+        } catch (error: any) {
           return expect(error.details).to.be.eq(
             "VM Exception while processing transaction: revert Reentrant call detected."
           );

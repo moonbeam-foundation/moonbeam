@@ -124,7 +124,7 @@ describeSuite({
         );
 
         expect(
-          result.events.find((evt) => polkadotJs.events.system.ExtrinsicFailed.is(evt.event)),
+          result!.events.find((evt) => polkadotJs.events.system.ExtrinsicFailed.is(evt.event)),
           "No Event found in block"
         ).toBeTruthy();
       },

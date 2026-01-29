@@ -36,7 +36,7 @@ describeSuite({
                 account: charleth.address,
                 percent: TREASURY_PERCENTAGE,
               },
-            ])
+            ] as any)
           )
           .signAsync(alith),
       ]);

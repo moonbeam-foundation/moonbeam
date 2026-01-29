@@ -13,6 +13,7 @@ import {
   createProposal,
   expectEVMResult,
   expectSubstrateEvent,
+  extractSingleResult,
 } from "../../../../helpers";
 
 describeSuite({
@@ -46,7 +47,7 @@ describeSuite({
       title: `should be removable`,
       test: async function () {
         const block = await convictionVoting.removeVote(proposalIndex).block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,
@@ -73,7 +74,7 @@ describeSuite({
         const trackId = 0;
 
         const block = await convictionVoting.removeVoteForTrack(proposalIndex, trackId).block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,

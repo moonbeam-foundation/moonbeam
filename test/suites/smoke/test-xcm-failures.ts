@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";
-import type { FrameSystemEventRecord, XcmV3MultiLocation } from "@polkadot/types/lookup";
+import type { FrameSystemEventRecord, StagingXcmV3MultiLocation } from "@polkadot/types/lookup";
 import {
   type MoonbeamNetworkName,
   type ParaId,
@@ -38,7 +38,7 @@ describeSuite({
     const isMutedChain = (events: FrameSystemEventRecord[], index: number) => {
       let muted = false;
       if (paraApi.events.polkadotXcm.AssetsTrapped.is(events[Math.max(0, index - 1)].event)) {
-        const { interior } = events[index - 1].event.data[1] as XcmV3MultiLocation;
+        const { interior } = events[index - 1].event.data[1] as StagingXcmV3MultiLocation;
         if (interior.isX1) {
           muted = !!isMuted(chainName, interior.asX1.asParachain.toNumber() as ParaId);
         }

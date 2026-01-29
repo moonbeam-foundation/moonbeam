@@ -35,7 +35,7 @@ describeSuite({
         functionName: "startLottery",
         value: 1n * GLMR,
       });
-      log("Estimated Gas for startLottery", estimatedGasBefore);
+      log(`Estimated Gas for startLottery ${estimatedGasBefore}`);
 
       await context.writeContract!({
         contractName: "RandomnessLotteryDemo",
@@ -111,7 +111,7 @@ describeSuite({
           args: [0],
           account: BALTATHAR_ADDRESS,
         });
-        log("Estimated Gas for startLottery", estimatedGas);
+        log(`Estimated Gas for startLottery ${estimatedGas}`);
         expect(estimatedGas).toMatchInlineSnapshot(`157238n`);
 
         const rawTxn = await context.writePrecompile!({

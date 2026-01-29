@@ -187,16 +187,16 @@ describeSuite({
             .viem()
             .getBalance({ address: sendingAddress });
           const spentByCharleth = charlethBalance - BigInt(charlethAccountBalance);
-          expect(spentByCharleth).to.be.gte(0n);
-          expect(spentByCharleth).to.be.lte(expectedTransferredAmount);
+          expect(spentByCharleth >= 0n).to.be.true;
+          expect(spentByCharleth <= expectedTransferredAmount).to.be.true;
           // EVM nonce behaviour under XCM-driven proxy execution can vary with
           // upstream changes. We only assert it is non-decreasing and grows
           // by at most one per iteration.
           const charlethAccountNonce = await context
             .viem()
             .getTransactionCount({ address: sendingAddress });
-          expect(charlethAccountNonce).to.be.gte(charlethNonce);
-          expect(charlethAccountNonce).to.be.lte(charlethNonce + 1);
+          expect(charlethAccountNonce >= charlethNonce).to.be.true;
+          expect(charlethAccountNonce <= charlethNonce + 1).to.be.true;
           charlethNonce = charlethAccountNonce;
 
           // The XCM sender (proxy delegatee)
@@ -210,7 +210,7 @@ describeSuite({
           // the derived account may pay partial fees or be fully refunded. We
           // only assert any spent amount, if non-zero, stays within the
           // originally budgeted upper bound.
-          expect(spentByDerived).to.be.lte(maxFees);
+          expect(spentByDerived <= maxFees).to.be.true;
           // Make sure derived / descended account nonce still zero.
           const derivedAccountNonce = await context
             .viem()

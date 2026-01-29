@@ -13,6 +13,7 @@ import {
   cancelProposal,
   expectEVMResult,
   expectSubstrateEvent,
+  extractSingleResult,
 } from "../../../../helpers";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
@@ -62,7 +63,7 @@ describeSuite({
           .placeDecisionDeposit(proposalIndex)
           .block();
 
-        expectEVMResult(block!.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block!.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
 
         const evmLog: any = decodeEventLog({
@@ -88,7 +89,7 @@ describeSuite({
             .placeDecisionDeposit(proposalIndex)
             .block();
 
-          expectEVMResult(block.result!.events, "Revert");
+          expectEVMResult(extractSingleResult(block.result).events, "Revert");
           await expect(
             async () => await referenda.reset().placeDecisionDeposit(proposalIndex).tx()
           ).rejects.toThrowError("NotOngoing");
@@ -115,7 +116,7 @@ describeSuite({
         await expect(
           async () => await referenda.reset().placeDecisionDeposit(proposalIndex).tx()
         ).rejects.toThrowError("HasDeposit");
-        expectEVMResult(result!.events, "Revert");
+        expectEVMResult(extractSingleResult(result).events, "Revert");
       },
     });
 
@@ -137,7 +138,7 @@ describeSuite({
           )
           .block();
 
-        expectEVMResult(block!.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block!.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
 
         const evmLog: any = decodeEventLog({
@@ -170,7 +171,7 @@ describeSuite({
           )
           .block();
 
-        expectEVMResult(block!.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block!.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
 
         const evmLog: any = decodeEventLog({
@@ -206,7 +207,7 @@ describeSuite({
           .refundDecisionDeposit(proposalIndex)
           .block();
 
-        expectEVMResult(block!.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block!.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
 
         const evmLog: any = decodeEventLog({
@@ -233,7 +234,7 @@ describeSuite({
           .refundDecisionDeposit(proposalIndex)
           .block();
 
-        expectEVMResult(block!.result!.events, "Revert");
+        expectEVMResult(extractSingleResult(block!.result).events, "Revert");
       },
     });
 
@@ -256,7 +257,7 @@ describeSuite({
           .block();
 
         // Check that the transaction failed
-        expectEVMResult(block!.result!.events, "Revert");
+        expectEVMResult(extractSingleResult(block!.result).events, "Revert");
       },
     });
 
@@ -289,7 +290,7 @@ describeSuite({
           .block();
 
         // Check that the transaction failed
-        expectEVMResult(block!.result!.events, "Revert");
+        expectEVMResult(extractSingleResult(block!.result).events, "Revert");
       },
     });
   },

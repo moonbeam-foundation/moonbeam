@@ -48,12 +48,12 @@ describeSuite({
       );
       expect(
         (
-          await context.readContract!({
+          (await context.readContract!({
             contractAddress: PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
             contractName: "XcmTransactorV3",
             functionName: "indexToAccount",
             args: [SM_TRANSACTOR_INDEX],
-          })
+          })) as string
         ).toLowerCase()
       ).toBe(xcmTransactorCaller.contractAddress.toLowerCase());
     });

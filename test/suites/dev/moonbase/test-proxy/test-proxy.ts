@@ -8,6 +8,7 @@ import {
   expect,
   generateKeyringPair,
 } from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 
 // In these tests Alith will allow signer to perform calls on her behalf.
 // Charleth is used as a target account when making transfers.

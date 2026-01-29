@@ -393,7 +393,7 @@ export function extractPreimageDeposit(
 export async function countExtrinsics(
   context: DevModeContext,
   method: string,
-  logger: Debugger
+  logger?: Debugger
 ): Promise<[number, number, number]> {
   const block = await context.polkadotJs().rpc.chain.getBlock();
   const extrinsicCount = block.block.extrinsics.reduce(
@@ -412,7 +412,7 @@ export async function countExtrinsics(
     blockWeights.normal.proofSize.toNumber() /
     maxBlockWeights.perClass.normal.maxTotal.unwrap().proofSize.toNumber();
 
-  logger(
+  logger?.(
     `  ${chalk.yellow("○")} ${chalk.gray(method)} max ${chalk.green(
       extrinsicCount
     )} per block (w: ${(weightUtil * 100).toFixed(1)}%, p: ${(proofUtil * 100).toFixed(1)}%)`

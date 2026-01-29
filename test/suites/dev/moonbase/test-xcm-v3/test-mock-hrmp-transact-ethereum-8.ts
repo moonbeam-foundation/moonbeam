@@ -163,7 +163,7 @@ describeSuite({
             .viem()
             .getBalance({ address: descendAddress });
           const spent = transferredBalance - BigInt(descendAddressBalance);
-          expect(spent).to.be.lte(expectedTransferredAmountPlusFees);
+          expect(spent <= expectedTransferredAmountPlusFees).to.be.true;
         }
       },
     });

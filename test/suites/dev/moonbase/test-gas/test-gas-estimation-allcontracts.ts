@@ -13,6 +13,12 @@ import {
 } from "moonwall";
 import { randomBytes } from "ethers";
 import { encodeDeployData } from "viem";
+
+interface AbiConstructor {
+  type: "constructor";
+  inputs: { type: string; name?: string }[];
+  stateMutability?: string;
+}
 import { expectEVMResult } from "../../../../helpers";
 
 describeSuite({
@@ -37,7 +43,7 @@ describeSuite({
       },
     });
 
-    const calculateTestCaseNumber = (contractName: string, txnType: EthTransactionType) =>
+    const calculateTestCaseNumber = (contractName: string, txnType: (typeof TransactionTypes)[number]) =>
       contractNames.indexOf(contractName) * TransactionTypes.length +
       TransactionTypes.indexOf(txnType) +
       2;

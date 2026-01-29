@@ -1,7 +1,12 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { type Abi, decodeEventLog } from "viem";
-import { Preimage, expectEVMResult, expectSubstrateEvent } from "../../../../helpers";
+import {
+  Preimage,
+  expectEVMResult,
+  expectSubstrateEvent,
+  extractSingleResult,
+} from "../../../../helpers";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
 // Be careful to not reach the maximum number of proposals.
@@ -30,7 +35,7 @@ describeSuite({
         const block = await preimage.notePreimage(call.toHex()).block();
 
         // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: PreimageAbi,
@@ -57,7 +62,7 @@ describeSuite({
         const block = await preimage.unnotePreimage(call.hash.toHex()).block();
 
         // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: PreimageAbi,

@@ -40,7 +40,7 @@ describeSuite({
         const txHash = result?.hash;
         const txFee = extractFee(result?.events)!.amount.toBigInt();
 
-        const txReceipt = await context.viem().getTransactionReceipt({ hash: txHash });
+        const txReceipt = await context.viem().getTransactionReceipt({ hash: txHash! as `0x${string}` });
         const txReceiptFee = txReceipt.effectiveGasPrice * txReceipt.gasUsed;
 
         const txBlockNextFeeMultiplier = (

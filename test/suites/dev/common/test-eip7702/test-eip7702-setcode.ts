@@ -6,7 +6,7 @@ import {
   expect,
   sendRawTransaction,
 } from "moonwall";
-import { encodeFunctionData, type Abi } from "viem";
+import { encodeFunctionData, keccak256, parseEther, type Abi } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
@@ -794,7 +794,7 @@ describeSuite({
           });
           // If we get here, the test should fail
           expect(true).toBe(false);
-        } catch (error) {
+        } catch (error: any) {
           // Expected to fail since EOA1 has Caller code, not StorageWriter
           expect(error).toBeDefined();
           expect(error.message).toContain("Contract does not have fallback nor receive functions");

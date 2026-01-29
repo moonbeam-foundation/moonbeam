@@ -1,4 +1,4 @@
-import { alith, describeSuite, expect } from "moonwall";
+import { alith, describeSuite, expect, type DevModeContext } from "moonwall";
 import "@moonbeam-network/api-augment";
 
 export const UNIT = 1_000_000_000_000_000_000n;
@@ -80,7 +80,7 @@ describeSuite({
 
           const key = parameterKey(context, module, name);
 
-          const wrappedValue = await context.polkadotJs().query.parameters.parameters(key.toU8a());
+          const wrappedValue = await context.polkadotJs().query.parameters.parameters(key.toU8a()) as any;
           const gotValue = wrappedValue.value.value.value.toU8a();
           expect(gotValue).toEqual(value.toU8a());
         },

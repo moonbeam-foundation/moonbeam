@@ -177,12 +177,12 @@ describeSuite({
         expect(receipt.status).toBe("success");
 
         // Test ADDRESS opcode - should return pointer's address
-        const address = await context.viem().readContract({
+        const address = (await context.viem().readContract({
           address: pointer.address,
           abi: contextCheckerAbi,
           functionName: "getAddress",
           args: [],
-        });
+        })) as string;
         expect(address.toLowerCase()).toBe(pointer.address.toLowerCase());
 
         // Test BALANCE opcode - should return pointer's balance
@@ -544,12 +544,12 @@ describeSuite({
         expect(receipt.status).toBe("success");
 
         // Check which delegation is active - should be contextChecker (last one)
-        const address = await context.viem().readContract({
+        const address = (await context.viem().readContract({
           address: doubleAuth.address,
           abi: contextCheckerAbi,
           functionName: "getAddress",
           args: [],
-        });
+        })) as string;
 
         expect(address.toLowerCase()).toBe(doubleAuth.address.toLowerCase());
         console.log("Last authorization (contextChecker) is active");

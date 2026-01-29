@@ -49,16 +49,19 @@ describeSuite({
         expect(autoCompoundConfigAfter[0].delegator.toString()).toBe(ethan.address);
         expect(autoCompoundConfigAfter[0].value.toBigInt()).toBe(50n);
 
-        const delegationAutoCompoundEvents = result!.events.reduce((acc, event) => {
-          if (context.polkadotJs().events.parachainStaking.AutoCompoundSet.is(event.event)) {
-            acc.push({
-              candidate: event.event.data.candidate.toString(),
-              delegator: event.event.data.delegator.toString(),
-              value: event.event.data.value.toBigInt(),
-            });
-          }
-          return acc;
-        }, []);
+        const delegationAutoCompoundEvents = result!.events.reduce(
+          (acc, event) => {
+            if (context.polkadotJs().events.parachainStaking.AutoCompoundSet.is(event.event)) {
+              acc.push({
+                candidate: event.event.data.candidate.toString(),
+                delegator: event.event.data.delegator.toString(),
+                value: event.event.data.value.toBigInt(),
+              });
+            }
+            return acc;
+          },
+          [] as { candidate: string; delegator: string; value: bigint }[]
+        );
 
         expect(delegationAutoCompoundEvents).to.deep.equal([
           {

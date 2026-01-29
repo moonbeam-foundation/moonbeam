@@ -77,7 +77,7 @@ describeSuite({
       id: "T01",
       title: "Assert balances after XCM message",
       test: async function () {
-        const xcmMessage = new XcmFragment(null)
+        const xcmMessage = new XcmFragment({} as any)
           .push_any({
             WithdrawAsset: [
               {
@@ -211,8 +211,8 @@ describeSuite({
         const mints = events
           .filter((evt) => context.polkadotJs().events.balances.Minted.is(evt.event))
           .map((evt) => evt.event.toJSON().data);
-        const totalMinted = mints.reduce((prev, cur) => prev + BigInt(cur[1]), 0n);
-        const executionCost = BigInt(mints[1][1]);
+        const totalMinted = mints.reduce((prev, cur: any) => prev + BigInt(cur[1]), 0n);
+        const executionCost = BigInt((mints[1] as any)[1]);
 
         expect(mints.length).toBe(2);
         expect(totalMinted).toBe(DEPOSIT);

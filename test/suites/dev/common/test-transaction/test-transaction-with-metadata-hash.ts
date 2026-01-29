@@ -36,7 +36,7 @@ describeSuite({
         let errorMsg = "";
         try {
           await context.polkadotJs().tx.system.remark("0x00").signAndSend(alith, withMetadataOpts);
-        } catch (e) {
+        } catch (e: any) {
           errorMsg = e.message;
         }
 

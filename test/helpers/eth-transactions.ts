@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import type { DevModeContext } from "moonwall";
+import type { DevModeContext, ExtrinsicCreation } from "moonwall";
 import { expect } from "moonwall";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type {
@@ -11,6 +11,30 @@ import type {
 } from "@polkadot/types/lookup";
 import assert from "node:assert";
 import { fromHex } from "viem";
+
+/**
+ * Extracts a single ExtrinsicCreation from a block result.
+ * Handles the case where result may be a single item or an array.
+ * @param result - The block result which can be ExtrinsicCreation | ExtrinsicCreation[] | null
+ * @param index - Optional index when result is an array (default: 0)
+ * @returns The ExtrinsicCreation at the specified index
+ * @throws Error if result is null or if the array is empty
+ */
+export function extractSingleResult(
+  result: ExtrinsicCreation | ExtrinsicCreation[] | null | undefined,
+  index = 0
+): ExtrinsicCreation {
+  if (!result) {
+    throw new Error("Block result is null or undefined");
+  }
+  if (Array.isArray(result)) {
+    if (result.length === 0) {
+      throw new Error("Block result array is empty");
+    }
+    return result[index];
+  }
+  return result;
+}
 
 export type Errors = {
   Succeed: EvmCoreErrorExitSucceed["type"];

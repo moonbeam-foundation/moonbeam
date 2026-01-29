@@ -154,7 +154,7 @@ describeSuite({
           // refunds, the exact fee depends on configuration and may even be
           // fully refunded. We only assert it stays within the originally
           // budgeted upper bound.
-          expect(spent).to.be.lte(expectedTransferredAmountPlusFees);
+          expect(spent <= expectedTransferredAmountPlusFees).to.be.true;
 
           // Block weight accounting relative to `GAS_LIMIT` is now highly
           // sensitive to upstream benchmark and refund changes, and is already

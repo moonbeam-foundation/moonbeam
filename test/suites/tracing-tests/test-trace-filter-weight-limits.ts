@@ -26,7 +26,7 @@ describeSuite({
         const { abi, contractAddress } = await context.deployContract!("BloatedContract");
 
         let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
-        const tx = [];
+        const tx: `0x${string}`[] = [];
         for (let i = 0; i < 500; i++) {
           tx.push(
             await createEthersTransaction(context, {
