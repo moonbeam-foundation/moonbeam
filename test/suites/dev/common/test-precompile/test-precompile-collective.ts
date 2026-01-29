@@ -48,7 +48,11 @@ describeSuite({
           })
         );
         expectEVMResult(block.result!.events, "Succeed");
-        const proposedEvent = expectSubstrateEvent(block as any, "treasuryCouncilCollective", "Proposed");
+        const proposedEvent = expectSubstrateEvent(
+          block as any,
+          "treasuryCouncilCollective",
+          "Proposed"
+        );
         const proposalResult: any = proposedEvent.data.toHuman();
         expect(proposalResult).toMatchObject({
           account: BALTATHAR_ADDRESS,
@@ -120,8 +124,16 @@ describeSuite({
         );
 
         expectEVMResult(block4.result!.events, "Succeed");
-        const approvedEvent = expectSubstrateEvent(block4 as any, "treasuryCouncilCollective", "Approved");
-        const closedEvent = expectSubstrateEvent(block4 as any, "treasuryCouncilCollective", "Closed");
+        const approvedEvent = expectSubstrateEvent(
+          block4 as any,
+          "treasuryCouncilCollective",
+          "Approved"
+        );
+        const closedEvent = expectSubstrateEvent(
+          block4 as any,
+          "treasuryCouncilCollective",
+          "Closed"
+        );
         const assetSpendApprovedEvent = expectSubstrateEvent(
           block4 as any,
           "treasury",

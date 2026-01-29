@@ -48,7 +48,11 @@ describeSuite({
         context.polkadotJs().tx.identity.setIdentity(identityData).signAsync(signer),
       ]);
 
-      const results = Array.isArray(block.result) ? block.result : block.result ? [block.result] : [];
+      const results = Array.isArray(block.result)
+        ? block.result
+        : block.result
+          ? [block.result]
+          : [];
       results.forEach((r, idx) => {
         expect(r.successful, `tx[${idx}] - ${r.error?.name}`).to.be.true;
       });
@@ -146,7 +150,10 @@ describeSuite({
             }
             return acc;
           },
-          { proxyExecuted: null as string | null, judgementGiven: null as { address: string; decision: string } | null }
+          {
+            proxyExecuted: null as string | null,
+            judgementGiven: null as { address: string; decision: string } | null,
+          }
         );
         expect(proxyExecuteEvent).to.deep.equal({
           proxyExecuted: "Ok",

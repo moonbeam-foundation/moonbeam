@@ -62,7 +62,9 @@ describeSuite({
           .find(({ event }) => context.polkadotJs().events.system.ExtrinsicSuccess.is(event));
 
         expect(extSuccessEvent).to.not.be.eq(null);
-        const eventWeight = (extSuccessEvent!.event.data as any).dispatchInfo.weight.refTime.toBigInt();
+        const eventWeight = (
+          extSuccessEvent!.event.data as any
+        ).dispatchInfo.weight.refTime.toBigInt();
         expect(eventWeight).to.eq(EXPECTED_WEIGHT);
       },
     });

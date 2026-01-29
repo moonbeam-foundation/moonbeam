@@ -26,7 +26,11 @@ describeSuite({
           )
         );
 
-        const delegatedEvents = expectSubstrateEvents(blockResult as any, "convictionVoting", "Delegated");
+        const delegatedEvents = expectSubstrateEvents(
+          blockResult as any,
+          "convictionVoting",
+          "Delegated"
+        );
         expect(delegatedEvents.length).to.be.greaterThanOrEqual(25);
       },
     });

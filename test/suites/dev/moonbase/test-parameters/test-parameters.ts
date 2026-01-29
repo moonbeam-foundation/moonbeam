@@ -80,7 +80,9 @@ describeSuite({
 
           const key = parameterKey(context, module, name);
 
-          const wrappedValue = await context.polkadotJs().query.parameters.parameters(key.toU8a()) as any;
+          const wrappedValue = (await context
+            .polkadotJs()
+            .query.parameters.parameters(key.toU8a())) as any;
           const gotValue = wrappedValue.value.value.value.toU8a();
           expect(gotValue).toEqual(value.toU8a());
         },

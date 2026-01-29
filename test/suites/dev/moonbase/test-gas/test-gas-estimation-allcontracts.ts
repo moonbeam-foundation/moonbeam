@@ -43,7 +43,10 @@ describeSuite({
       },
     });
 
-    const calculateTestCaseNumber = (contractName: string, txnType: (typeof TransactionTypes)[number]) =>
+    const calculateTestCaseNumber = (
+      contractName: string,
+      txnType: (typeof TransactionTypes)[number]
+    ) =>
       contractNames.indexOf(contractName) * TransactionTypes.length +
       TransactionTypes.indexOf(txnType) +
       2;

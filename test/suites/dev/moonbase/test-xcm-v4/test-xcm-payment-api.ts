@@ -38,7 +38,9 @@ describeSuite({
           .find(({ name }) => name.toString() === "Balances")!
           .index.toNumber();
 
-        const allowedAssets = await polkadotJs.call.xcmPaymentApi.queryAcceptablePaymentAssets(3) as any;
+        const allowedAssets = (await polkadotJs.call.xcmPaymentApi.queryAcceptablePaymentAssets(
+          3
+        )) as any;
 
         expect(allowedAssets.isOk).to.be.true;
         // Should include the native asset + the foreign one
@@ -131,10 +133,10 @@ describeSuite({
           },
         };
 
-        const deliveryFees = await polkadotJs.call.xcmPaymentApi.queryDeliveryFees(
+        const deliveryFees = (await polkadotJs.call.xcmPaymentApi.queryDeliveryFees(
           dest,
           xcmMessage
-        ) as any;
+        )) as any;
         expect(deliveryFees.isOk).to.be.true;
         // No delivery fees set for now
         expect(deliveryFees.asOk.toHuman()["V3"]).to.be.empty;

@@ -27,7 +27,11 @@ describeSuite({
               .signAsync(alith, { nonce: alithNonce++ })
           ),
       ]);
-      const delegatedEvents = expectSubstrateEvents(blockResult as any, "convictionVoting", "Delegated");
+      const delegatedEvents = expectSubstrateEvents(
+        blockResult as any,
+        "convictionVoting",
+        "Delegated"
+      );
       expect(delegatedEvents.length).to.equal(5);
     });
 
@@ -58,7 +62,11 @@ describeSuite({
           "convictionVoting",
           "Undelegated"
         );
-        const delegatedEvents = expectSubstrateEvents(blockResult as any, "convictionVoting", "Delegated");
+        const delegatedEvents = expectSubstrateEvents(
+          blockResult as any,
+          "convictionVoting",
+          "Delegated"
+        );
 
         expect(undelegatedEvents.length).to.equal(5);
         expect(delegatedEvents.length).to.equal(5);

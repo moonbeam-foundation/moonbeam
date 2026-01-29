@@ -71,18 +71,18 @@ describeSuite({
         const { result } = await context.createBlock(rawTxn);
         expectEVMResult(result!.events, "Succeed");
 
-        const afterBalance = await context.readContract!({
+        const afterBalance = (await context.readContract!({
           contractName: "ERC20Instance",
           contractAddress: contractAddress,
           functionName: "balanceOf",
           args: [ALITH_ADDRESS],
-        }) as bigint;
+        })) as bigint;
 
-        const afterSupply = await context.readContract!({
+        const afterSupply = (await context.readContract!({
           contractName: "ERC20Instance",
           contractAddress: contractAddress,
           functionName: "totalSupply",
-        }) as bigint;
+        })) as bigint;
 
         // We have paid relay execution fees in the foreign asset, so balance and supply should
         // have decreased by the same (non-zero) amount.
