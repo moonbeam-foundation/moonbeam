@@ -6,7 +6,7 @@ describeSuite({
   id: "D023309",
   title: "Staking - Candidate Leave Execute - exact round delay",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [

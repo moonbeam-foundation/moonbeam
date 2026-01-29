@@ -14,7 +14,7 @@ describeSuite({
   id: "D020101",
   title: "XCM - Create new foreign asset",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should check balances consstency",

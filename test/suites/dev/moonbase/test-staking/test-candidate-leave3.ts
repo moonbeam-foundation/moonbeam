@@ -5,7 +5,7 @@ describeSuite({
   id: "D023307",
   title: "Staking - Candidate Leave Schedule - valid request",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         context

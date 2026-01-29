@@ -4,7 +4,7 @@ describeSuite({
   id: "D021101",
   title: "RPC Constants",
   foundationMethods: "dev",
-  testCases: ({ it, context }) => {
+  testCases: ({ it }) => {
     it({
       id: "T01",
       title: "should have 0 hashrate",

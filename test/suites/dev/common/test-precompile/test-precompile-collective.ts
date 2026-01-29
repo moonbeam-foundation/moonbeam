@@ -18,7 +18,7 @@ describeSuite({
   id: "D010415",
   title: "Treasury council precompile #1",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let collectivePrecompileAbi: Abi;
 
     beforeAll(async () => {

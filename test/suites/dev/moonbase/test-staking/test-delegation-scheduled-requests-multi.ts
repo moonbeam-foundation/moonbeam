@@ -6,7 +6,7 @@ describeSuite({
   id: "D023490",
   title: "Staking - Delegation Scheduled Requests - multiple bond less and revoke interactions",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const LESS_AMOUNT = 10n;
 
     beforeAll(async () => {

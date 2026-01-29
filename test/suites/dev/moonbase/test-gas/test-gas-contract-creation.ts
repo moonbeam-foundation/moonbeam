@@ -5,7 +5,7 @@ describeSuite({
   id: "D021701",
   title: "Estimate Gas - Contract creation",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should return contract creation gas cost",

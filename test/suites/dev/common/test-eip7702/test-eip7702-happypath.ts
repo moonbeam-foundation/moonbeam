@@ -286,7 +286,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await getTransactionReceiptWithRetry(context, hash);
+        await getTransactionReceiptWithRetry(context, hash);
 
         // Check that delegation did not occur due to invalid nonce
         const codeAtDelegator = await context.viem().getCode({
@@ -447,7 +447,7 @@ describeSuite({
             });
             console.log(`🐛 BUG: Balance still accessible after clear: ${balanceAfterClear}`);
             expect.fail("🐛 BUG: Balance still accessible after clear: ${balanceAfterClear}");
-          } catch (error) {
+          } catch {
             console.log("✅ Function calls properly fail after clearing");
           }
         }
@@ -494,7 +494,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await getTransactionReceiptWithRetry(context, hash);
+        await getTransactionReceiptWithRetry(context, hash);
 
         // Check that delegation did not occur due to chain ID mismatch
         const codeAtDelegator = await context.viem().getCode({

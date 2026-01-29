@@ -5,7 +5,7 @@ describeSuite({
   id: "D022201",
   title: "Node - RPC",
   foundationMethods: "dev",
-  testCases: ({ context, it }) => {
+  testCases: ({ it }) => {
     it({
       id: "T01",
       title: "should report peer count in hex",

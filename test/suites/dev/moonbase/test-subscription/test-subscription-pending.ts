@@ -13,7 +13,7 @@ describeSuite({
   id: "D023504",
   title: "Subscription -  Pending transactions",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should return a valid subscriptionId",

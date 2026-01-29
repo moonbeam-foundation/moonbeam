@@ -5,7 +5,7 @@ describeSuite({
   id: "D022717",
   title: "Precompiles - ecrecover",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
 
     beforeAll(async function () {

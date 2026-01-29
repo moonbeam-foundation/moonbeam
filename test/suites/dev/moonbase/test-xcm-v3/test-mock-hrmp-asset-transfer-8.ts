@@ -7,7 +7,6 @@ import {
   injectHrmpMessageAndSeal,
   registerForeignAsset,
   foreignAssetBalance,
-  addAssetToWeightTrader,
 } from "../../../../helpers";
 
 const statemint_para_id = 1001;
@@ -37,7 +36,7 @@ describeSuite({
   id: "D024006",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const assetId = 1n;
 
     beforeAll(async () => {

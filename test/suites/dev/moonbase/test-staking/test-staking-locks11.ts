@@ -8,13 +8,13 @@ import {
   expect,
   generateKeyringPair,
 } from "moonwall";
-import { chunk, getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers";
+import { chunk, getNumberOfDelegatorFreezes } from "../../../../helpers";
 
 describeSuite({
   id: "D023376",
   title: "Staking - Freezes - bottom delegator removed",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
     let additionalDelegators: KeyringPair[];
 
@@ -64,7 +64,7 @@ describeSuite({
         );
         expect(freeze_count).to.be.equal(1, "Should have 1 freeze");
 
-        const txns = await [...additionalDelegators].map((account, i) =>
+        const txns = await [...additionalDelegators].map((account) =>
           context
             .polkadotJs()
             .tx.parachainStaking.delegateWithAutoCompound(

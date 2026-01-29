@@ -22,7 +22,7 @@ describeSuite({
   id: "D022604",
   title: "PoV precompile test - gasLimit",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let contracts: HeavyContract[];
     const MAX_CONTRACTS = 50;
     const EXPECTED_POV_ROUGH = 55_000; // bytes

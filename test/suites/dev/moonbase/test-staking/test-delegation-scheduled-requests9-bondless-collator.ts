@@ -14,7 +14,7 @@ describeSuite({
   id: "D023339",
   title: "Staking - Delegation Scheduled Requests with bondless collator - execute bond less early",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const LESS_AMOUNT = 10n;
     let psTx: any;
     let psQuery: any;

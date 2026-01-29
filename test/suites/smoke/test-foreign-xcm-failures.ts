@@ -118,7 +118,7 @@ describeSuite({
 
           blockEvents = await Promise.all(blockNumArray.map((num) => getEvents(num)));
           log(`Finished loading blocks for ${name}.`);
-        } catch (e) {
+        } catch {
           expect.fail(`Could not connect to parachain: ${name}`);
         } finally {
           await api.disconnect();

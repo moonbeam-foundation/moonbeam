@@ -5,7 +5,7 @@ describeSuite({
   id: "D022758",
   title: "Precompiles - Staking - Genesis",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should include collator from the specs",

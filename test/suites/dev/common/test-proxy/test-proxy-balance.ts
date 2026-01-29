@@ -13,7 +13,7 @@ describeSuite({
   id: "D010502",
   title: "Proxy: Balances",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should accept known proxy",

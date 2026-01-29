@@ -1,10 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { alith, beforeAll, describeSuite, expect, generateKeyringPair } from "moonwall";
-import { type ApiPromise, WsProvider } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import type { KeyringPair } from "@polkadot/keyring/types";
-import type { u128 } from "@polkadot/types";
-import { hexToBigInt } from "@polkadot/util";
-import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import {
   XcmFragment,
   type RawXcmMessage,
@@ -24,11 +21,10 @@ describeSuite({
   id: "D024211",
   title: "XCM - XcmPaymentApi - Transact",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let polkadotJs: ApiPromise;
     let amountForFees: bigint;
     let amountForTransfer: bigint;
-    let assetId: u128;
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;

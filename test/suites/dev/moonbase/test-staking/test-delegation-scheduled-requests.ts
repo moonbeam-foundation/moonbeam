@@ -7,7 +7,7 @@ describeSuite({
   id: "D023320",
   title: "Staking - Delegation Scheduled Requests - schedule revoke",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [

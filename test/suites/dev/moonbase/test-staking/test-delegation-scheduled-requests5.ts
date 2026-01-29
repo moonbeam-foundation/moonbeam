@@ -15,7 +15,7 @@ describeSuite({
   id: "D023332",
   title: "Staking - Delegation Scheduled Requests - execute revoke after round delay",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         context

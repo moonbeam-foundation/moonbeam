@@ -6,7 +6,7 @@ describeSuite({
   id: "D020507",
   title: "Contract loop",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let testNumber = 0;
 
     const TestParameters = [
@@ -24,7 +24,7 @@ describeSuite({
       },
     ];
 
-    TestParameters.forEach(({ loop, gas }, index) => {
+    TestParameters.forEach(({ loop, gas }) => {
       for (const txnType of TransactionTypes) {
         testNumber++;
         it({

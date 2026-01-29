@@ -16,7 +16,7 @@ describeSuite({
   id: "D023013",
   title: "Randomness VRF - Lottery Demo",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let lotteryContract: `0x${string}`;
 
     beforeAll(async function () {

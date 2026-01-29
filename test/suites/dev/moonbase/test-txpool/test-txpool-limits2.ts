@@ -6,7 +6,7 @@ describeSuite({
   id: "D023804",
   title: "TxPool - Limits",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should be able to fill a block with 70 contract creations tx",

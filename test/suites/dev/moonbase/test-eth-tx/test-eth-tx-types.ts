@@ -13,7 +13,7 @@ describeSuite({
   id: "D021204",
   title: "Ethereum Transaction - Legacy",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should contain valid legacy Ethereum data",

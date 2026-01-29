@@ -13,9 +13,8 @@ describeSuite({
   id: "D020103",
   title: "XCM - Create new foreign asset",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let address: string;
-    let assetId: bigint;
 
     beforeAll(async () => {
       const { registeredAssetId, contractAddress, registeredAssetLocation } =
@@ -27,7 +26,6 @@ describeSuite({
         );
 
       address = contractAddress;
-      assetId = registeredAssetId;
       expect(contractAddress).toBeDefined();
       expect(registeredAssetId).eq(ARBITRARY_ASSET_ID.toString());
       expect(registeredAssetLocation.toString()).to.eq(

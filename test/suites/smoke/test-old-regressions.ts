@@ -6,13 +6,6 @@ import moonbaseSamples from "../../helpers/moonbase-tracing-samples.json";
 import moonbeamSamples from "../../helpers/moonbeam-tracing-samples.json";
 import moonriverSamples from "../../helpers/moonriver-tracing-samples.json";
 
-interface Sample {
-  network: string;
-  runtime: string;
-  blockNumber: number;
-  txHash: `0x${string}`;
-}
-
 const samples = {
   moonbase: moonbaseSamples,
   moonbeam: moonbeamSamples,

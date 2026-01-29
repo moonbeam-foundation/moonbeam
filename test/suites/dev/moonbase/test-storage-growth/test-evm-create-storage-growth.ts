@@ -13,7 +13,7 @@ describeSuite({
   id: "D023402",
   title: "Storage growth limit - Contract Creation",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     // This is the gas cost of the transaction that deploys the Fibonacci contract:
     // (Account Code Size (112) + Length of the bytecode (550)) * Storage Growth Gas Ratio (366)
     // The length of the bytecode is in the generate Fibonacci.json

@@ -5,9 +5,7 @@ describeSuite({
   id: "D023348",
   title: "Staking - Delegator Join - valid request",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
-    const numberToHex = (n: bigint): string => `0x${n.toString(16).padStart(32, "0")}`;
-
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         context

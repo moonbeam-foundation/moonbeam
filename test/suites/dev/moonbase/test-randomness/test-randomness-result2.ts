@@ -16,7 +16,7 @@ describeSuite({
   id: "D023008",
   title: "Randomness Result - Fulfilling one of multiple random numbers",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should leave 1 randomness result",

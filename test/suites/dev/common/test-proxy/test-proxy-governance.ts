@@ -7,7 +7,7 @@ describeSuite({
   id: "D010504",
   title: "Proxing governance",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         context.polkadotJs().tx.referenda.submit(

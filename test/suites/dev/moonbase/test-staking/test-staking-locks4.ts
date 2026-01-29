@@ -13,7 +13,7 @@ describeSuite({
   id: "D023380",
   title: "Staking - Freezes - candidate balance is frozen",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {

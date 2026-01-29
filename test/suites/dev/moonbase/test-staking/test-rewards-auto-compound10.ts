@@ -17,7 +17,7 @@ describeSuite({
   id: "D023353",
   title: "Staking - Rewards Auto-Compound - bottom delegation kick",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let newDelegator: KeyringPair;
 
     beforeAll(async () => {

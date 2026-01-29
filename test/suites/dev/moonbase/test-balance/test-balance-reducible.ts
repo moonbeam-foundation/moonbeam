@@ -33,7 +33,7 @@ describeSuite({
           .polkadotJs()
           .tx.balances.forceSetBalance(randomAccount.address, 100);
         const encodedProposal = proposal.method.toHex();
-        const encodedHash = blake2AsHex(encodedProposal);
+        blake2AsHex(encodedProposal);
 
         await context.createBlock(
           context.polkadotJs().tx.preimage.notePreimage(encodedProposal).signAsync(baltathar)

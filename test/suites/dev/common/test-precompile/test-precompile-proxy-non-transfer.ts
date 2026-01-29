@@ -24,7 +24,7 @@ describeSuite({
   id: "D010417",
   title: "Proxy : Non transfer - Evm transfer",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     beforeAll(async () => {
       const rawtxn = await context.writePrecompile!({
         precompileName: "Proxy",

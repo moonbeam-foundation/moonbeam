@@ -33,7 +33,7 @@ describeSuite({
   id: "S09",
   title: "Ethereum CurrentBlock and CurrentReceipts should never be 0x00",
   foundationMethods: "read_only",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "C100",
       title: "should have non default field values",

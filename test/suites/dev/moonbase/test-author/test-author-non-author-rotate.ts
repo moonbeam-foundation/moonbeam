@@ -15,7 +15,7 @@ describeSuite({
   id: "D020206",
   title: "Author Mapping - non-author cannot rotate",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
 
     beforeAll(async () => {

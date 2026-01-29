@@ -14,7 +14,7 @@ describeSuite({
   id: "D023374",
   title: "Staking - Freezes - join delegators",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {

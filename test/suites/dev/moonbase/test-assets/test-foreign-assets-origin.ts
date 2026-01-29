@@ -1,22 +1,14 @@
 import "@moonbeam-network/api-augment";
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect, beforeAll } from "moonwall";
-import {
-  ARBITRARY_ASSET_ID,
-  RELAY_SOURCE_LOCATION_V4,
-  registerForeignAsset,
-  relayAssetMetadata,
-  sendCallAsPara,
-  sovereignAccountOfSibling,
-} from "../../../../helpers";
-import { parseAbi } from "viem";
+import { describeSuite, expect } from "moonwall";
+import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers";
 import { fundAccount } from "../../../../helpers/balances";
 
 describeSuite({
   id: "D020104",
   title: "XCM - Origin Tests",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const getCalls = () => [
       context.polkadotJs().tx.evmForeignAssets.createForeignAsset(
         1n,

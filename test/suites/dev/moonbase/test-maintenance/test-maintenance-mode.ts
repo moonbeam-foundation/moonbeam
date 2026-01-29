@@ -7,7 +7,7 @@ describeSuite({
   id: "D021904",
   title: "Maintenance Mode - General",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeEach(async () => {
       const { successful } = await execOpenTechCommitteeProposal(
         context,

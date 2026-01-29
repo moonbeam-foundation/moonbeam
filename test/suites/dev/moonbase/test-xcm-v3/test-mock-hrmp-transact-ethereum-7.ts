@@ -8,26 +8,20 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
 } from "../../../../helpers/xcm.js";
-import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D024013",
   title: "Mock XCM - transact ETHEREUM (proxy) disabled switch",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let charlethBalance: bigint;
     let charlethNonce: number;
     let transferredBalance: bigint;
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
-    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
-      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
-      const constants = ConstantStore(context);
-      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
-
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(
         context,
         charleth.address as `0x${string}`

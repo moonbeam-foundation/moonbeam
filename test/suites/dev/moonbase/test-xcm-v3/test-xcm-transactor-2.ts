@@ -5,7 +5,7 @@ describeSuite({
   id: "D024022",
   title: "Precompiles - xcm transactor",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "Moonbase: GeneralAdmin should be able to dispatch hrmpManage",

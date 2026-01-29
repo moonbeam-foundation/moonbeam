@@ -5,7 +5,7 @@ describeSuite({
   id: "D023810",
   title: "TxPool - New block",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.deployContract!("MultiplyBy7");
       await context.createBlock();

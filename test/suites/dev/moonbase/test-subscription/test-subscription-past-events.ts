@@ -15,7 +15,7 @@ describeSuite({
   id: "D023503",
   title: "Subscription - Past Events",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       const { abi, bytecode } = fetchCompiledContract("EventEmitter");
       let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });

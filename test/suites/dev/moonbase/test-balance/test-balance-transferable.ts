@@ -51,11 +51,6 @@ describeSuite({
           const propNum = await createProposal({ context, from: randomAccount });
           expect(propNum).toBe(0);
 
-          // Balance after proposal
-          const balanceAfter = (
-            await context.polkadotJs().query.system.account(randomAccount.address)
-          ).data.free.toBigInt();
-
           // Check the balance of randomAccount before tranfer
           const balanceBeforeTransfer = await checkBalance(context, randomAddress);
           expect(balanceBeforeTransfer).toBeGreaterThan(9n * GLMR);

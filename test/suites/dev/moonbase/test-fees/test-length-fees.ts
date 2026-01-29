@@ -6,7 +6,7 @@ describeSuite({
   id: "D021506",
   title: "Substrate Length Fees",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should have low balance transfer fees",

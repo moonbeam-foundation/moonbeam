@@ -12,7 +12,7 @@ describeSuite({
   id: "D023401",
   title: "Storage Block (160Kb) - Storage Growth Limit",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should fill a block with 61 tx at most",

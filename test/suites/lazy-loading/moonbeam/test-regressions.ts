@@ -1,18 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "moonwall";
-import type { ApiPromise } from "@polkadot/api";
+import { customDevRpcRequest, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "LL-MOONBEAM-REGRESSIONS",
   title: "Lazy Loading - Regression tests for Moonbeam",
   foundationMethods: "dev",
-  testCases: ({ it, context }) => {
-    let api: ApiPromise;
-
-    beforeAll(async () => {
-      api = context.polkadotJs();
-    });
-
+  testCases: ({ it }) => {
     it({
       id: "T01",
       title: "Validate block containing a EIP7702 transaction",

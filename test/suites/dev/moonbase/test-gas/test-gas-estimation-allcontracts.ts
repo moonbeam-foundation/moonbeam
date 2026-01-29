@@ -19,7 +19,7 @@ describeSuite({
   id: "D021702",
   title: "Estimate Gas - Multiply",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const contractNames = getAllCompiledContracts("contracts/out", true);
 
     beforeAll(async function () {

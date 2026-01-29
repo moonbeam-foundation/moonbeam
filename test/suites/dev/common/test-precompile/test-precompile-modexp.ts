@@ -1,9 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, createViemTransaction } from "@moonwall/util";
+import { describeSuite, expect, createViemTransaction } from "moonwall";
 import { toHex } from "viem";
-import { testVectors } from "../../../../helpers/modexp";
-import { EIP_7825_MAX_TRANSACTION_GAS_LIMIT } from "../../../../helpers";
+import { EIP_7825_MAX_TRANSACTION_GAS_LIMIT, testVectors } from "helpers";
 
 // MODEXP precompile address (0x05) - standard Ethereum precompile
 const PRECOMPILE_MODEXP_ADDRESS = "0x0000000000000000000000000000000000000005";
@@ -48,7 +46,7 @@ describeSuite({
   id: "D010419",
   title: "Precompiles - MODEXP (EIP-7823 bounds)",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     // Test standard MODEXP functionality with known test vectors
     it({
       id: "T01",

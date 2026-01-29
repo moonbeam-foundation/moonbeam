@@ -54,7 +54,6 @@ describeSuite({
   title: "Fee Multiplier - XCM Executions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    const startingBn = 2000000000000000000n;
     let sendingAddress: string;
     let random: KeyringPair;
     let transferredBalance: bigint;
@@ -245,10 +244,6 @@ describeSuite({
         const transferCallEncodedV1 = context
           .polkadotJs()
           .tx.ethereumXcm.transact(xcmTransactions[0] as any)
-          .method.toHex();
-        const transferCallEncodedV2 = context
-          .polkadotJs()
-          .tx.ethereumXcm.transact(xcmTransactions[1] as any)
           .method.toHex();
 
         const initialValue = await context

@@ -15,7 +15,7 @@ describeSuite({
   id: "D024001",
   title: "Mock XCM - receive downward transfer",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const assetId = 1n;
 
     beforeAll(async () => {

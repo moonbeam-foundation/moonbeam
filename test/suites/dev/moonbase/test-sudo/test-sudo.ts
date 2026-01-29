@@ -67,7 +67,6 @@ describeSuite({
       id: "T03",
       title: "should NOT be able to call sudo with another account than sudo account",
       test: async function () {
-        const baltathar_before = await context.polkadotJs().query.system.account(CHARLETH_ADDRESS);
         const { result } = await context.createBlock(
           context
             .polkadotJs()

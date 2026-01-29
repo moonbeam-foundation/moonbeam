@@ -9,7 +9,7 @@ describeSuite({
   id: "D020106",
   title: "Creation Deposits for Foreign Assets via XCM",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const fundAmount = 100_000_000_000_000_000_000_000n;
     const assetId = 2;
 

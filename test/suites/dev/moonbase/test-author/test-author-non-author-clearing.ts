@@ -12,7 +12,7 @@ describeSuite({
   id: "D020205",
   title: "Author Mapping - non author clearing",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should not succeed in clearing an association for a non-author",

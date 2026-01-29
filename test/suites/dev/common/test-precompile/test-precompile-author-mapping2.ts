@@ -18,7 +18,7 @@ describeSuite({
   id: "D010410",
   title: "Precompiles - author mapping",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let firstMappingAccount: KeyringPair;
     let secondMappingAccount: KeyringPair;
 

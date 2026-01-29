@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import {
-  ALITH_ADDRESS,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
   TransactionTypes,
@@ -18,7 +17,7 @@ describeSuite({
   id: "D020502",
   title: "Contract loop error",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let looperAddress: `0x${string}`;
     let looperAbi: Abi;
 

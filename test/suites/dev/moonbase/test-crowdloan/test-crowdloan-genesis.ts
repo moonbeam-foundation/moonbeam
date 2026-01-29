@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { DOROTHY_ADDRESS, describeSuite, expect } from "moonwall";
 import { getAccountPayable } from "../../../../helpers/crowdloan.js";
-import { VESTING_PERIOD } from "../../../../helpers/constants.js";
 
 describeSuite({
   id: "D020702",

@@ -7,7 +7,7 @@ import {
   expect,
   sendRawTransaction,
 } from "moonwall";
-import { type Abi, parseEther } from "viem";
+import { parseEther } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
@@ -18,7 +18,6 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
-    let contractAbi: Abi;
     let chainId: number;
 
     beforeAll(async () => {
@@ -382,7 +381,7 @@ describeSuite({
         await context.createBlock();
 
         // First authorization should succeed, second should be ignored
-        const receipt = await getTransactionReceiptWithRetry(context, hash);
+        await getTransactionReceiptWithRetry(context, hash);
 
         // Transaction may succeed but only one delegation should be set
         const code = await context.viem().getCode({

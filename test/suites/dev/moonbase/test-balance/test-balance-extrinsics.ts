@@ -18,7 +18,7 @@ describeSuite({
   id: "D020302",
   title: "Balance - Extrinsic",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let randomAccount: PrivateKeyAccount;
 
     beforeAll(async function () {

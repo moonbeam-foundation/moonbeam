@@ -17,7 +17,7 @@ describeSuite({
   id: "D022713",
   title: "Precompiles - ClassLocksFor & VotingFor",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVoting: ConvictionVoting;
 

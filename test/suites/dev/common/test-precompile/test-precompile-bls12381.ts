@@ -7,7 +7,7 @@ describeSuite({
   id: "D010413",
   title: "Precompiles - BLS123_81",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let helper1Address;
     let helper1Abi;
 

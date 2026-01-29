@@ -21,7 +21,7 @@ describeSuite({
   id: "D022901",
   title: "Proxy : IdentityJudgement",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let identityHash: `0x${string}`;
     let signer: KeyringPair;
 

@@ -6,7 +6,7 @@ describeSuite({
   id: "D023340",
   title: "Staking - Delegation Scheduled Requests - execute bond less early",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const LESS_AMOUNT = 10n;
 
     beforeAll(async () => {

@@ -5,16 +5,14 @@ describeSuite({
   id: "D023301",
   title: "Staking - Candidate Force Join - bond less than min",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let psTx: any;
-    let psQuery: any;
     let psConst: any;
     let sudo: any;
     let createBlock: any;
 
     beforeAll(async () => {
       psTx = context.polkadotJs().tx.parachainStaking;
-      psQuery = context.polkadotJs().query.parachainStaking;
       psConst = context.polkadotJs().consts.parachainStaking;
       sudo = context.polkadotJs().tx.sudo.sudo;
       createBlock = context.createBlock;

@@ -12,7 +12,7 @@ describeSuite({
   id: "D022760",
   title: "Precompiles - Staking - Collator Leaving",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       const rawTxn = await context.writePrecompile!({
         precompileName: "ParachainStaking",

@@ -22,7 +22,7 @@ describeSuite({
   id: "D021502",
   title: "Max Fee Multiplier",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeEach(async () => {
       const MULTIPLIER_STORAGE_KEY = context
         .polkadotJs()
@@ -108,7 +108,7 @@ describeSuite({
 
         const fillAmount = 600_000_000; // equal to 60% Perbill
 
-        const { block, result } = await context.createBlock(
+        const { result } = await context.createBlock(
           context.polkadotJs().tx.rootTesting.fillBlock(fillAmount),
           { allowFailures: true }
         );

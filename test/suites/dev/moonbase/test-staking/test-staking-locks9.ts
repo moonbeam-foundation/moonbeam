@@ -15,7 +15,7 @@ describeSuite({
   id: "D023384",
   title: "Staking - Freezes - max delegations",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
     let randomCandidates: KeyringPair[];
     let maxDelegationsPerDelegator: bigint;

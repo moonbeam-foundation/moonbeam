@@ -17,7 +17,7 @@ describeSuite({
   id: "D021003",
   title: "EthPool - Multiple pending transactions",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let txHashes: string[];
 
     beforeAll(async function () {

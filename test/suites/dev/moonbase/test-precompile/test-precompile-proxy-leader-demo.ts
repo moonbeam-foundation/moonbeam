@@ -14,7 +14,7 @@ describeSuite({
   id: "D022739",
   title: "Proxy Leader Demo - Preparing Participation Pool",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let leaderContractAddress: `0x${string}`;
 
     beforeAll(async function () {

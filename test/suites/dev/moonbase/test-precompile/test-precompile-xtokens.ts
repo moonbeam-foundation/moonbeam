@@ -22,7 +22,7 @@ describeSuite({
   id: "D022779",
   title: "Precompiles - xtokens",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       await context.deployContract!("XTokensInstance");
     });

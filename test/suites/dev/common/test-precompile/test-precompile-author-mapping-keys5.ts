@@ -14,7 +14,7 @@ describeSuite({
   id: "D010405",
   title: "Precompile Author Mapping - Removing non-existing author",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should revert",

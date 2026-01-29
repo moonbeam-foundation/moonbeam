@@ -14,7 +14,7 @@ describeSuite({
   id: "D023365",
   title: "Staking - Rewards - scheduled bond decrease request",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const EXTRA_BOND_AMOUNT = 1_000_000_000_000_000_000n;
     const BOND_AMOUNT = MIN_GLMR_STAKING + EXTRA_BOND_AMOUNT;
 

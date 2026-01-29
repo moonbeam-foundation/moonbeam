@@ -19,7 +19,7 @@ describeSuite({
   id: "D023382",
   title: "Staking - Freezes - execute revoke",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {

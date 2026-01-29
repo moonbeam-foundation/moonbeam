@@ -6,7 +6,7 @@ describeSuite({
   id: "D023101",
   title: "Receipt - Revert",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should generate a receipt",

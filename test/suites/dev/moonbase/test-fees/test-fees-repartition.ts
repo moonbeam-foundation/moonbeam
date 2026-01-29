@@ -14,7 +14,7 @@ describeSuite({
   id: "D021505",
   title: "Fees - Transaction",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "treasury should be empty at genesis",

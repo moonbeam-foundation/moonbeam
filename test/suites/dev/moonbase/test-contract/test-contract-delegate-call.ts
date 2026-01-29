@@ -34,7 +34,7 @@ describeSuite({
   id: "D020501",
   title: "Delegate Call",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let forwardAddress: `0x${string}`;
     let forwardAbi: Abi;
 

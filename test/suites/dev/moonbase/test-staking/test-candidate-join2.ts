@@ -14,7 +14,7 @@ describeSuite({
   id: "D023303",
   title: "Staking - Candidate Join - already a delegator",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         context

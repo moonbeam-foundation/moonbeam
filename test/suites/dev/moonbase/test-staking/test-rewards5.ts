@@ -17,7 +17,7 @@ describeSuite({
   id: "D023366",
   title: "Staking - Rewards - Bond + Treasury",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const BOND_AMOUNT = MIN_GLMR_STAKING + 1_000_000_000_000_000_000n;
     const PBR_PERCENTAGE = 10;
     const TREASURY_PERCENTAGE = 20;

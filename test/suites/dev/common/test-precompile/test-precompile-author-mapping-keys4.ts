@@ -24,7 +24,7 @@ describeSuite({
   id: "D010404",
   title: "Precompile Author Mapping - Remove Faith keys",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       await setAuthorMappingKeysViaPrecompile(
         context,

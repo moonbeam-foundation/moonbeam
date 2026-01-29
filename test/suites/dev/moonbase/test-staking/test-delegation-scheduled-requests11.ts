@@ -15,7 +15,7 @@ describeSuite({
   id: "D023324",
   title: "Staking - Delegation Scheduled Requests - execute bond less after round delay",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const LESS_AMOUNT = 10n;
 
     beforeAll(async () => {

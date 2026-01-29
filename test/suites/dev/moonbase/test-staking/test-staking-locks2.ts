@@ -6,7 +6,7 @@ describeSuite({
   id: "D023378",
   title: "Staking - Freezes - join candidates",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should set collator staking freeze when joining candidates",

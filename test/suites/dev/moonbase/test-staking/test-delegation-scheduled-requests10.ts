@@ -15,7 +15,7 @@ describeSuite({
   id: "D023322",
   title: "Staking - Delegation Scheduled Requests -execute bond less exact round",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const LESS_AMOUNT = 10n;
 
     beforeAll(async () => {

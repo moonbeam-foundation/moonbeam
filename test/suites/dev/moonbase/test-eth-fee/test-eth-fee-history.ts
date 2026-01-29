@@ -15,7 +15,7 @@ describeSuite({
   id: "D020901",
   title: "Fee History",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     interface FeeHistory {
       oldestBlock: string;
       baseFeePerGas: string[];
@@ -94,7 +94,7 @@ describeSuite({
         const priority_fees = [1, 2, 3];
         const startingBlock = await context.viem().getBlockNumber();
 
-        const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
+        const feeHistory = new Promise<FeeHistory>((resolve) => {
           const unwatch = context.viem().watchBlocks({
             onBlock: async (block) => {
               if (Number(block.number! - startingBlock) === block_count) {
@@ -127,7 +127,7 @@ describeSuite({
         const priority_fees = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         const startingBlock = await context.viem().getBlockNumber();
 
-        const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
+        const feeHistory = new Promise<FeeHistory>((resolve) => {
           const unwatch = context.viem().watchBlocks({
             onBlock: async (block) => {
               if (Number(block.number! - startingBlock) === block_count) {
@@ -181,7 +181,7 @@ describeSuite({
         const priority_fees = [1, 2, 3];
         const startingBlock = await context.viem().getBlockNumber();
 
-        const feeHistory = new Promise<FeeHistory>((resolve, reject) => {
+        const feeHistory = new Promise<FeeHistory>((resolve) => {
           const unwatch = context.viem().watchBlocks({
             onBlock: async (block) => {
               if (Number(block.number! - startingBlock) === block_count) {

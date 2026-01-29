@@ -8,7 +8,7 @@ describeSuite({
   id: "S10",
   title: "Ethereum secondary DB should contains valid data",
   foundationMethods: "read_only",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "C100",
       title: `should get the same response payload on byNumber and byHash requests`,

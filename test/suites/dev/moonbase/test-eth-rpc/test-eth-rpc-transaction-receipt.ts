@@ -12,7 +12,7 @@ describeSuite({
   id: "D021105",
   title: "Ethereum RPC - eth_getTransactionReceipt",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     let polkadotJs: ApiPromise;
 
     beforeAll(() => {

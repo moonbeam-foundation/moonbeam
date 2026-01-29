@@ -105,7 +105,6 @@ describeSuite({
     let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
     let specVersion = 0;
-    let runtimeName: string;
     let totalAccounts = 0n;
     let totalIssuance = 0n;
     let symbol: string;
@@ -692,7 +691,7 @@ describeSuite({
         const failuresExpectedReserveMap: string[] = [];
         if (expectedReserveMap.size > 0) {
           log(`expectedReserveMap size: ${expectedReserveMap.size}`);
-          expectedReserveMap.forEach((value, key) => {
+          expectedReserveMap.forEach((_, key) => {
             failuresExpectedReserveMap.push(`${base64ToHex(key)}`);
           });
         }

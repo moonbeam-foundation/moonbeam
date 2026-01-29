@@ -14,7 +14,7 @@ describeSuite({
   id: "D020210",
   title: "Author Mapping - Remove Charlie keys",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
 
     beforeAll(async function () {

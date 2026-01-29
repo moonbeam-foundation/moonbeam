@@ -15,7 +15,7 @@ describeSuite({
   id: "D023911",
   title: "Mock XCM - receive horizontal transact without withdraw",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance: bigint;
     let sendingAddress: `0x${string}`;
     let random: KeyringPair;

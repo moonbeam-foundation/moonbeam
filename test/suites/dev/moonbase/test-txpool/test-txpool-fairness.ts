@@ -28,7 +28,7 @@ describeSuite({
   id: "D023801",
   title: "Tip should be respected",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should prefer txn with higher tip",
@@ -294,7 +294,7 @@ describeSuite({
           })
         );
 
-        const result = await context.createBlock();
+        await context.createBlock();
 
         const account1Balance = (
           await context.polkadotJs().query.system.account(randomAccount.address.toString())

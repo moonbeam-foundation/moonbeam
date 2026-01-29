@@ -7,7 +7,7 @@ describeSuite({
   id: "D022720",
   title: "Precompiles - Identity precompile",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     beforeAll(async function () {
       await context.createBlock(
         context

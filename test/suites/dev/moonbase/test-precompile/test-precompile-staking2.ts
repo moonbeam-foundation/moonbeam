@@ -14,7 +14,7 @@ describeSuite({
   id: "D022759",
   title: "Precompiles - Staking - Join Candidates",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       const rawTxn = await context.writePrecompile!({
         precompileName: "ParachainStaking",

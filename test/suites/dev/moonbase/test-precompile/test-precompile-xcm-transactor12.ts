@@ -16,7 +16,7 @@ describeSuite({
   id: "D022769",
   title: "Precompiles - xcm transactor V3",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let xcmTransactorCaller;
     const ALITH_TRANSACTOR_INDEX = 0;
     const SM_TRANSACTOR_INDEX = 1;

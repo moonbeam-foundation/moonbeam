@@ -44,7 +44,7 @@ describeSuite({
   id: "D022403",
   title: "Parameters",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     let testCounter = 0;
 
     function testParam(module: string, name: string, valueCreation: [string, unknown]) {

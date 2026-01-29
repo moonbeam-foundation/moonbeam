@@ -16,7 +16,7 @@ describeSuite({
   id: "D022301",
   title: "Orbiters",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     it({
       id: "T01",
       title: "Marking orbiters offline is a noop",

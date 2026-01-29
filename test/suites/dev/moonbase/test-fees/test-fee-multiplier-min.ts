@@ -12,7 +12,7 @@ describeSuite({
   id: "D021503",
   title: "Min Fee Multiplier",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeEach(async () => {
       const MULTIPLIER_STORAGE_KEY = context
         .polkadotJs()
@@ -38,11 +38,6 @@ describeSuite({
       id: "T01",
       title: "should enforce lower bound",
       test: async function () {
-        const MULTIPLIER_STORAGE_KEY = context
-          .polkadotJs()
-          .query.transactionPayment.nextFeeMultiplier.key(0)
-          .toString();
-
         // we set it to u128_max, but the max should have been enforced in on_finalize()
         const multiplier = (
           await context.polkadotJs().query.transactionPayment.nextFeeMultiplier()

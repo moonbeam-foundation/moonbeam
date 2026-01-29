@@ -262,7 +262,7 @@ describeSuite({
         await context.createBlock();
 
         // On time.
-        const { result: result3 } = await context.createBlock(
+        await context.createBlock(
           context
             .polkadotJs()
             .tx.proxy.proxyAnnounced(signer.address, alith.address, null, transfer)

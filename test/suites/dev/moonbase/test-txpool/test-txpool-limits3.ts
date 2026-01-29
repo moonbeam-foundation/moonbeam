@@ -70,11 +70,7 @@ describeSuite({
       title: "should be able have them all published within the following blocks",
       timeout: 40_000,
       test: async function () {
-        const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
-        const deployData = encodeDeployData({
-          abi,
-          bytecode,
-        });
+        fetchCompiledContract("MultiplyBy7");
 
         let blocks = 1;
         for (;;) {

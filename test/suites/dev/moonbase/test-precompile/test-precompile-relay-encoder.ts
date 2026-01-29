@@ -5,7 +5,7 @@ describeSuite({
   id: "D022748",
   title: "Precompiles - relay-encoder",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "allows to get encoding of bond stake call",

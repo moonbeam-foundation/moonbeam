@@ -14,7 +14,7 @@ describeSuite({
   id: "D020211",
   title: "Author Mapping - Update Charlie mapping to the same keys",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
 
     beforeAll(async function () {

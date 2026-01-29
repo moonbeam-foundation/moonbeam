@@ -6,7 +6,7 @@ describeSuite({
   id: "D020213",
   title: "Author Mapping - unregistered author cannot clear association",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "",
       title: "should not succeed in clearing an association for an unregistered author",

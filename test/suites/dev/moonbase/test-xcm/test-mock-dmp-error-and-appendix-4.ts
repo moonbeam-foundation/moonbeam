@@ -19,7 +19,7 @@ describeSuite({
   id: "D023905",
   title: "Mock XCM - downward transfer with always triggered appendix",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const assetId = 1n;
 
     beforeAll(async () => {

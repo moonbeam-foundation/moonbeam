@@ -8,7 +8,7 @@ describeSuite({
   id: "D022709",
   title: "Precompiles - Conviction",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVoting: ConvictionVoting;
 

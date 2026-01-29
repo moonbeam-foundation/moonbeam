@@ -15,7 +15,7 @@ describeSuite({
   id: "D022701",
   title: "Precompile Batch - Overflowing gasLimit",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
     // This case can no longer be tested from frontier 0.9.23 because it is no longer possible to
     // enter a gas_limit that exceeds 65% of the block.

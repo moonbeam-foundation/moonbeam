@@ -16,7 +16,7 @@ describeSuite({
   id: "D022774",
   title: "Precompiles - xcm transactor V2",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let assetAddress;
 
     beforeAll(async () => {

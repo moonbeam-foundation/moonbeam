@@ -1,10 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { alith, beforeAll, describeSuite, expect, generateKeyringPair } from "moonwall";
-import { type ApiPromise, WsProvider } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import type { KeyringPair } from "@polkadot/keyring/types";
-import type { u128 } from "@polkadot/types";
-import { hexToBigInt } from "@polkadot/util";
-import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 import {
   XcmFragment,
   type RawXcmMessage,

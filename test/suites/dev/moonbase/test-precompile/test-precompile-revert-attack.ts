@@ -12,7 +12,7 @@ describeSuite({
   id: "D022750",
   title: "Precompiles - Reverting Staking precompile",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should not revert the whole transaction cost",

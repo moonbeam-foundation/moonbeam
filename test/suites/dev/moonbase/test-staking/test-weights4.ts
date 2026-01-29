@@ -8,7 +8,7 @@ describeSuite({
   id: "D023388",
   title: "Staking - Max Transaction Fit",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "scheduleDelegatorBondLess",
@@ -52,11 +52,7 @@ describeSuite({
 
         const nameParts = expect.getState().currentTestName!.split(" ");
         const methodName = nameParts[nameParts.length - 1];
-        const [numTransactions, weightUtil, proofUtil] = await countExtrinsics(
-          context,
-          methodName,
-          log
-        );
+        const [numTransactions] = await countExtrinsics(context, methodName);
 
         expect(
           numTransactions,

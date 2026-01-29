@@ -6,13 +6,8 @@ import {
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
 } from "../../../../helpers/xcm.js";
-import {
-  registerForeignAsset,
-  foreignAssetBalance,
-  addAssetToWeightTrader,
-} from "../../../../helpers/assets.js";
+import { registerForeignAsset, foreignAssetBalance } from "../../../../helpers/assets.js";
 
-const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 const statemint_para_id = 1001;
 const statemint_assets_pallet_instance = 50;
 
@@ -39,7 +34,7 @@ describeSuite({
   id: "D024205",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const assetId = 1n;
 
     beforeAll(async () => {

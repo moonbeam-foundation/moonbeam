@@ -23,7 +23,7 @@ describeSuite({
   id: "D020903",
   title: "Ethereum Weight Accounting",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should account for weight used",

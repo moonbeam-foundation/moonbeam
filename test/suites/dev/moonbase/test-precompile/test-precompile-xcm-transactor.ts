@@ -13,7 +13,7 @@ describeSuite({
   id: "D022766",
   title: "Precompiles - xcm transactor",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await registerXcmTransactorAndContract(context);
     });

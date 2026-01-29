@@ -5,7 +5,7 @@ describeSuite({
   id: "D022502",
   title: "Web3Api Information",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should include client version",

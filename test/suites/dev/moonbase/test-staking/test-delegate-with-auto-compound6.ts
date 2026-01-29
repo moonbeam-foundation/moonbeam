@@ -5,7 +5,7 @@ describeSuite({
   id: "D023318",
   title: "Staking - Delegate With Auto-Compound - valid request",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     const numberToHex = (n: bigint): string => `0x${n.toString(16).padStart(32, "0")}`;
     let events: any[];
 

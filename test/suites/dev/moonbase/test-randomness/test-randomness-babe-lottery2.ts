@@ -24,7 +24,7 @@ describeSuite({
   id: "D023002",
   title: "Randomness Babe - Lottery Demo",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let lotteryAddress: `0x${string}`;
     let fulFillReceipt: TransactionReceipt;
 

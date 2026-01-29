@@ -16,7 +16,7 @@ describeSuite({
   id: "D024122",
   title: "XCM Moonriver: version compatibility",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance: bigint;
     let sovereignAddress: string;
     let random: KeyringPair;

@@ -5,7 +5,7 @@ describeSuite({
   id: "D024112",
   title: "Mock XCM - EthereumXcm only disable by root",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should check suspend ethereum xcm only callable by root",

@@ -8,7 +8,6 @@ import {
   execOpenTechCommitteeProposal,
   expect,
 } from "moonwall";
-import { BN } from "@polkadot/util";
 import {
   registerForeignAsset,
   addAssetToWeightTrader,
@@ -20,7 +19,7 @@ describeSuite({
   id: "D021903",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let assetId: string;
     const foreignParaId = 2000;
 

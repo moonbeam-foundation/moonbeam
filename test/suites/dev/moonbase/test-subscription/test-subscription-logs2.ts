@@ -6,7 +6,7 @@ describeSuite({
   id: "D023502",
   title: "Subscription - Logs",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let deployedContract: `0x${string}`;
     let deployHash: `0x${string}`;
 

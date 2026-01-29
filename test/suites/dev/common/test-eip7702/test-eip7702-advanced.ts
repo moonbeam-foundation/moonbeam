@@ -28,9 +28,6 @@ describeSuite({
     let chainId: number;
 
     // Precompile addresses
-    const ecrecoverPrecompile = "0x0000000000000000000000000000000000000001";
-    const sha256Precompile = "0x0000000000000000000000000000000000000002";
-    const ripemd160Precompile = "0x0000000000000000000000000000000000000003";
     const identityPrecompile = "0x0000000000000000000000000000000000000004";
 
     beforeAll(async () => {

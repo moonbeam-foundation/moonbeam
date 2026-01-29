@@ -34,7 +34,7 @@ describeSuite({
   id: "D022402",
   title: "Parameters - RuntimeConfig",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     let testCounter = 0;
     const collatorAddress = ALITH_ADDRESS;
     const senderPrivateKey = BALTATHAR_PRIVATE_KEY;

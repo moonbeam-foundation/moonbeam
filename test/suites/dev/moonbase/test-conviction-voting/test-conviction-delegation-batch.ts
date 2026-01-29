@@ -37,12 +37,12 @@ describeSuite({
       id: "T01",
       title: "Alith should be able to delegate to Baltathar in batch",
       test: async function () {
-        const blockResult = await context.createBlock(
+        await context.createBlock(
           // in the same block delegate to all proposals
           context
             .polkadotJs()
             .tx.utility.batchAll(
-              origins.map(([id, _], i) =>
+              origins.map(([id]) =>
                 context
                   .polkadotJs()
                   .tx.convictionVoting.delegate(id, baltathar.address, "Locked1x", 100n * GLMR)
@@ -56,7 +56,7 @@ describeSuite({
 
         // check that all proposals have been delegated to baltathar
         await Promise.all(
-          origins.map(async ([id, _], i) => {
+          origins.map(async ([id]) => {
             const votingFor = await context
               .polkadotJs()
               .query.convictionVoting.votingFor(ALITH_ADDRESS, id);

@@ -15,7 +15,7 @@ describeSuite({
   id: "D020607",
   title: "Conviction Voting - undelegate",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let randomAccounts: KeyringPair[];
 
     beforeAll(async () => {

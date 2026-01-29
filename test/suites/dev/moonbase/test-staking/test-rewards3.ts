@@ -6,7 +6,7 @@ describeSuite({
   id: "D023364",
   title: "Staking - Rewards - scheduled revoke request",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [

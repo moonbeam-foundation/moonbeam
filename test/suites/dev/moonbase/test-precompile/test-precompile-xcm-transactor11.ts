@@ -15,7 +15,7 @@ describeSuite({
   id: "D022768",
   title: "Precompiles - xcm transactor V3",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await registerXcmTransactorDerivativeIndex(context);
       expect(

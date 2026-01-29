@@ -18,7 +18,7 @@ describeSuite({
   id: "D023015",
   title: "Randomness VRF - Fulfilling Lottery Demo",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let lotteryContract: `0x${string}`;
     let fulFillReceipt: TransactionReceipt;
     let dorothyBefore: bigint;

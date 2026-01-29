@@ -16,7 +16,7 @@ describeSuite({
   id: "D023404",
   title: "Storage growth limit - Precompiles",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock();
     });

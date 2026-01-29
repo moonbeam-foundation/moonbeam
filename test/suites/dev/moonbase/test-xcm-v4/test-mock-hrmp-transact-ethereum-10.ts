@@ -13,7 +13,7 @@ describeSuite({
   id: "D024106",
   title: "Mock XCM - transact ETHEREUM input size check fails",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance: bigint;
     let sendingAddress: `0x${string}`;
     let contractDeployed: `0x${string}`;

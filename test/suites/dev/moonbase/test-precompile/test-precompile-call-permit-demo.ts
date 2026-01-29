@@ -18,7 +18,7 @@ describeSuite({
   id: "D022707",
   title: "Precompile - Call Permit - foo",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let callPermitDemoAbi: Abi;
     let callPermitDemoAddr: `0x${string}`;
     let callPermitAbi: Abi;

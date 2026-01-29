@@ -28,7 +28,7 @@ describeSuite({
   id: "D020306",
   title: "Balance Transfers",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let randomAddress: `0x${string}`;
     let GENESIS_BASE_FEE;
 

@@ -7,7 +7,7 @@ describeSuite({
   id: "D023016",
   title: "Randomness VRF - Static fulfilling Lottery Demo",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let lotteryContract: `0x${string}`;
     let fulFillReceipt: TransactionReceipt;
     let lotteryContractStatus: any;

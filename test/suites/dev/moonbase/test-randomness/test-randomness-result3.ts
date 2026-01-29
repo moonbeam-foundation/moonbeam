@@ -14,7 +14,7 @@ describeSuite({
   id: "D023009",
   title: "Randomness Result - Fulfilling all of random numbers",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should empty randomness results",

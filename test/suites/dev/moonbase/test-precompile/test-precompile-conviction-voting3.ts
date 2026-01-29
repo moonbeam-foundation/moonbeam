@@ -19,7 +19,7 @@ describeSuite({
   id: "D022710",
   title: "Precompiles - Conviction on Root Track",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVotingAbi: Abi;
     let convictionVoting: ConvictionVoting;
@@ -33,7 +33,7 @@ describeSuite({
     beforeEach(async function () {
       proposalIndex = await createProposal({ context });
 
-      const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n).block();
+      await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n).block();
       // Verifies the setup is correct
       const referendum = await context
         .polkadotJs()

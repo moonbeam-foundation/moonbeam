@@ -6,7 +6,7 @@ describeSuite({
   id: "S26",
   title: `XCM Mode should be equal to Normal`,
   foundationMethods: "read_only",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let paraApi: ApiPromise;
 
     beforeAll(async function () {

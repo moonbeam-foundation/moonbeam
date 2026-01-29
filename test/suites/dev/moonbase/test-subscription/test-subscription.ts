@@ -13,7 +13,7 @@ describeSuite({
   id: "D023505",
   title: "Subscription - Block headers",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let client: PublicClient;
 
     beforeAll(async () => {

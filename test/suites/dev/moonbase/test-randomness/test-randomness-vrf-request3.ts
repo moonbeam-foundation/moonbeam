@@ -14,7 +14,7 @@ describeSuite({
   id: "D023019",
   title: "Randomness VRF - Requesting a random number",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should refuse a request with less than 2 blocks",

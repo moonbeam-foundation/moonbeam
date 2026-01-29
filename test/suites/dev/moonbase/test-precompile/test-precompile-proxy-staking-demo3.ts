@@ -19,7 +19,7 @@ describeSuite({
   id: "D022744",
   title: "Proxy Call Staking Demo - Leave Participant",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let demoContractAddress: `0x${string}`;
 
     beforeAll(async function () {

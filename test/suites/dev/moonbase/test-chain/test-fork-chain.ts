@@ -6,7 +6,7 @@ describeSuite({
   id: "D020401",
   title: "Chain - Fork",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let randomAddress: `0x${string}`;
 
     beforeEach(async function () {

@@ -9,7 +9,7 @@ describeSuite({
   id: "D020107",
   title: "Gov intervention on created Foreign Assets",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const fundAmount = 100_000_000_000_000_000_000_000n;
     const assetId = 3;
     const assetLocation = {

@@ -16,7 +16,7 @@ describeSuite({
     "Staking - Delegation Scheduled Requests with bondless collator \
         - execute bond less after round delay",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const LESS_AMOUNT = 10n;
     let psTx: any;
     let psQuery: any;

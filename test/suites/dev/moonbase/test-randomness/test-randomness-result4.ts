@@ -8,7 +8,7 @@ describeSuite({
   id: "D023010",
   title: "Randomness Result - Passing targetted block",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should fill the randomness value",

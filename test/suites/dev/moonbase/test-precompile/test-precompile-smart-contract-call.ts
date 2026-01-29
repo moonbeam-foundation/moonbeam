@@ -18,7 +18,7 @@ describeSuite({
   id: "D022753",
   title: "Smart Contract Precompile Call - AddProxy Staking",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let testContractAddress: `0x${string}`;
     beforeEach(async function () {
       const { contractAddress } = await context.deployContract!("SmartContractPrecompileCallTest");

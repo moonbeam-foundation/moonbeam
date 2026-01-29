@@ -7,7 +7,7 @@ describeSuite({
   id: "D022751",
   title: "Precompiles - ripemd160 ",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should be valid",

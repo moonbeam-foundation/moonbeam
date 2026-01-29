@@ -15,7 +15,7 @@ describeSuite({
   id: "D023361",
   title: "Staking - Rewards Auto-Compound - candidate leave",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [

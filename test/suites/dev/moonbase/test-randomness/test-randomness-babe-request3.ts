@@ -6,7 +6,7 @@ describeSuite({
   id: "D023006",
   title: "Randomness Babe - Requesting a random number",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should succeed for 100 random words",

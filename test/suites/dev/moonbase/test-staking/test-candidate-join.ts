@@ -5,7 +5,7 @@ describeSuite({
   id: "D023302",
   title: "Staking - Candidate Join - bond less than min",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should fail",

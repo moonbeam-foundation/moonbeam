@@ -16,7 +16,7 @@ describeSuite({
     "Staking - Delegation Scheduled Requests with bondless collator \
         - execute revoke on last delegation",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let psTx: any;
     let psQuery: any;
     let sudo: any;

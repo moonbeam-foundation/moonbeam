@@ -16,7 +16,7 @@ describeSuite({
   id: "D024203",
   title: "Mock XCM - receive horizontal transfer of DEV with new reanchor",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let random: KeyringPair;
     let transferredBalance: bigint;
     let sovereignAddress: string;

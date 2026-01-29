@@ -5,7 +5,7 @@ describeSuite({
   id: "D023372",
   title: "Staking - Set Auto-Compound - remove existing config if 0% auto-compound",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         context

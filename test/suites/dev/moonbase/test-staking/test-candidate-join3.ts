@@ -6,7 +6,7 @@ describeSuite({
   id: "D023304",
   title: "Staking - Candidate Join - valid request",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const numberToHex = (n: bigint): string => `0x${n.toString(16).padStart(32, "0")}`;
 
     beforeAll(async () => {

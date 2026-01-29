@@ -6,7 +6,7 @@ describeSuite({
   id: "D023005",
   title: "Randomness Babe - Requesting a random number",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       await context.writePrecompile!({
         precompileName: "Randomness",

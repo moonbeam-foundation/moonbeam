@@ -8,7 +8,7 @@ describeSuite({
   id: "D023386",
   title: "Staking - Max Transaction Fit",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "delegateWithAutoCompound",
@@ -17,7 +17,7 @@ describeSuite({
         const randomAccounts = await createAccounts(context, maxTransactions, INITIAL_AMOUNT);
 
         await context.createBlock(
-          randomAccounts.map((account, index) =>
+          randomAccounts.map((account) =>
             context
               .polkadotJs()
               .tx.parachainStaking.delegateWithAutoCompound(
@@ -37,11 +37,7 @@ describeSuite({
 
         const nameParts = expect.getState().currentTestName!.split(" ");
         const methodName = nameParts[nameParts.length - 1];
-        const [numTransactions, weightUtil, proofUtil] = await countExtrinsics(
-          context,
-          methodName,
-          log
-        );
+        const [numTransactions] = await countExtrinsics(context, methodName);
 
         expect(
           numTransactions,

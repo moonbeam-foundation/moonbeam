@@ -13,7 +13,7 @@ describeSuite({
   id: "D020102",
   title: "XCM - Change existing asset's XCM location",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let assetId: bigint;
     let api: ApiPromise;
     beforeAll(async function () {

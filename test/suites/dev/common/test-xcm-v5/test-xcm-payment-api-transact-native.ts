@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect, generateKeyringPair } from "moonwall";
-import { type ApiPromise, WsProvider } from "@polkadot/api";
+import type { ApiPromise } from "@polkadot/api";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import {
   XcmFragment,
@@ -13,7 +13,7 @@ describeSuite({
   id: "D010808",
   title: "XCM - XcmPaymentApi - Transact",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let polkadotJs: ApiPromise;
     let amountForFees: bigint;
     let amountForTransfer: bigint;

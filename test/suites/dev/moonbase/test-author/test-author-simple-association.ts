@@ -16,7 +16,7 @@ describeSuite({
   id: "D020212",
   title: "Author Mapping - simple association",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
     it({
       id: "T01",

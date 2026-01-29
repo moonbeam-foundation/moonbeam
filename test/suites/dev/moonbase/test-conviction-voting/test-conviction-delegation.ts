@@ -17,12 +17,10 @@ describeSuite({
   title: "Conviction Voting - Delegation",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let refIndex: number;
-    let proposalHash: string;
     beforeAll(async () => {
       // The proposal itself
       const proposal = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Me" } });
-      [refIndex, proposalHash] = await proposeReferendaAndDeposit(context, alith, proposal, {
+      await proposeReferendaAndDeposit(context, alith, proposal, {
         System: "root",
       });
     });

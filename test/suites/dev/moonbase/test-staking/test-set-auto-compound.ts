@@ -16,7 +16,7 @@ describeSuite({
   id: "D023367",
   title: "Staking - Set Auto-Compound",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [

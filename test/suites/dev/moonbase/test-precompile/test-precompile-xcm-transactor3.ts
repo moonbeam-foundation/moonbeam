@@ -10,8 +10,6 @@ import {
   registerForeignAsset,
 } from "../../../../helpers";
 
-const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
-
 describeSuite({
   id: "D022771",
   title: "Precompiles - xcm transactor",

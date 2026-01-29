@@ -15,7 +15,7 @@ describeSuite({
   id: "D023315",
   title: "Staking - Delegate With Auto-Compound - wrong candidate delegation hint",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [

@@ -21,7 +21,7 @@ describeSuite({
   id: "D020215",
   title: "Author Mapping - Update different keys",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     const newKeys = [
       "0x0000000000000000000000000000000000000000000000000000000000000003",
       "0x0000000000000000000000000000000000000000000000000000000000000004",

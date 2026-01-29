@@ -23,7 +23,7 @@ describeSuite({
   id: "D024018",
   title: "Mock XCM - Fails trying to pay fees with ERC20",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
     let polkadotJs: ApiPromise;
 

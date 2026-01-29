@@ -16,7 +16,7 @@ describeSuite({
   id: "D024121",
   title: "XCM Moonbase: version compatibility",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance: bigint;
     let sovereignAddress: string;
     let random: KeyringPair;

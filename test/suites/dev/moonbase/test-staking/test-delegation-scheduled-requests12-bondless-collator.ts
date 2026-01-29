@@ -14,7 +14,7 @@ describeSuite({
   id: "D023325",
   title: "Staking - Delegation Scheduled Requests with bondless collator - collator leave",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let whenExecutable: number;
     let psTx: any;
     let psQuery: any;

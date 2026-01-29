@@ -13,7 +13,7 @@ describeSuite({
   id: "D024111",
   title: "Mock XCM - transact ETHEREUM (non-proxy) disabled switch",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance: bigint;
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;

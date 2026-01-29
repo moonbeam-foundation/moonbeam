@@ -17,7 +17,7 @@ describeSuite({
   id: "D020201",
   title: "Author Mapping - double registration",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
 
     beforeAll(async () => {

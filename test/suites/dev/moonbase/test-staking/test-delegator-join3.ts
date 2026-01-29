@@ -16,7 +16,7 @@ describeSuite({
   id: "D023346",
   title: "Staking - Delegator Join - wrong candidate delegation hint",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock([
         context

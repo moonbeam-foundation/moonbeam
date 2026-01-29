@@ -14,7 +14,7 @@ describeSuite({
   id: "D020203",
   title: "Author Mapping - Set Charlie first time keys",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it, log }) => {
     let api: ApiPromise;
 
     beforeAll(async function () {

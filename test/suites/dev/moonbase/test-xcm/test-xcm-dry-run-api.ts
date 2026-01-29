@@ -11,16 +11,12 @@ import type { ApiPromise } from "@polkadot/api";
 import { u8aToHex } from "@polkadot/util";
 import {
   convertXcmFragmentToVersion,
-  descendOriginFromAddress20,
-  ERC20_TOTAL_SUPPLY,
-  mockHrmpChannelExistanceTx,
   sovereignAccountOfSibling,
   wrapWithXcmVersion,
   XCM_VERSIONS,
   XcmFragment,
 } from "../../../../helpers";
 import { parseEther } from "ethers";
-import type { DispatchError } from "@polkadot/types/interfaces";
 
 describeSuite({
   id: "D023916",

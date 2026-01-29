@@ -6,7 +6,7 @@ describeSuite({
   id: "D023001",
   title: "Randomness Babe - Preparing Lottery Demo",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let lotteryAddress: `0x${string}`;
 
     beforeEach(async function () {

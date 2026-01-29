@@ -39,7 +39,7 @@ describeSuite({
   id: "D024002",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const assetId = 1n;
 
     beforeAll(async () => {

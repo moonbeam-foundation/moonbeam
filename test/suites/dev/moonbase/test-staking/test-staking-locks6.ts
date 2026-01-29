@@ -14,7 +14,7 @@ describeSuite({
   id: "D023381",
   title: "Staking - Freezes - schedule revoke",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {

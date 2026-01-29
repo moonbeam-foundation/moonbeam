@@ -6,7 +6,7 @@ import {
   expect,
   sendRawTransaction,
 } from "moonwall";
-import { encodeFunctionData, type Abi, parseEther, parseGwei, keccak256 } from "viem";
+import { encodeFunctionData, type Abi } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";

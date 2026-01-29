@@ -8,7 +8,7 @@ describeSuite({
   id: "D021507",
   title: "Substrate Length Fees - Ethereum txn Interaction",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should not charge length fee for precompile from Ethereum txn",

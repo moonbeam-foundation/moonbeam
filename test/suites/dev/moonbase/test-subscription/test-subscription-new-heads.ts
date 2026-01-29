@@ -477,7 +477,7 @@ describeSuite({
           await sub.collector.waitForHash(block1EthHash);
 
           // Create Fork A (block 2a)
-          const block2a = await context.createBlock([], {
+          await context.createBlock([], {
             parentHash: block1.block.hash,
             finalize: false,
           });
@@ -495,7 +495,7 @@ describeSuite({
           log(`Fork B block #${block2Num} (substrate): ${block2b.block.hash.slice(0, 18)}...`);
 
           // Extend Fork B to make it canonical
-          const block3b = await context.createBlock([], {
+          await context.createBlock([], {
             parentHash: block2b.block.hash,
             finalize: false,
           });
@@ -551,7 +551,7 @@ describeSuite({
           await sub.collector.waitForStability(500);
 
           // Fork A
-          const block2a = await context.createBlock([], {
+          await context.createBlock([], {
             parentHash: block1.block.hash,
             finalize: false,
           });

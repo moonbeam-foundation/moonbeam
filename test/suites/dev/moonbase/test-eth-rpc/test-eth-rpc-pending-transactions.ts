@@ -8,7 +8,6 @@ import {
   describeSuite,
   expect,
 } from "moonwall";
-import { parseGwei } from "viem";
 
 describeSuite({
   id: "D021104",

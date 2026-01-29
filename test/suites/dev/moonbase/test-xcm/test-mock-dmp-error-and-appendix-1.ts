@@ -19,7 +19,7 @@ describeSuite({
   id: "D023902",
   title: "Mock XCM - downward transfer with non-triggered error handler",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const assetId = 1n;
 
     beforeAll(async () => {

@@ -19,7 +19,7 @@ describeSuite({
   id: "D010403",
   title: "Precompile Author Mapping - Update different keys",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       await setAuthorMappingKeysViaPrecompile(
         context,

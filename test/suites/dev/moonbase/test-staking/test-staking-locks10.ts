@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
 import {
-  DevModeContext,
   GLMR,
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
@@ -21,7 +20,7 @@ describeSuite({
   id: "D023375",
   title: "Staking - Freezes - multiple delegations single freeze",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {

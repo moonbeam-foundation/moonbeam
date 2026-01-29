@@ -13,7 +13,7 @@ describeSuite({
   id: "D023313",
   title: "Staking - Delegate With Auto-Compound",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     it({
       id: "T01",
       title: " bond less than min should fail",

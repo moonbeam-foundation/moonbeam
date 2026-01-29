@@ -18,7 +18,7 @@ describeSuite({
   id: "D022745",
   title: "Proxy Call Staking Demo - Unregister Candidate",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let demoContractAddress: `0x${string}`;
 
     beforeAll(async function () {

@@ -14,7 +14,7 @@ describeSuite({
   id: "D023802",
   title: "TxPool - Future Ethereum transaction",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let txHash: string;
     let deployData: string;
 

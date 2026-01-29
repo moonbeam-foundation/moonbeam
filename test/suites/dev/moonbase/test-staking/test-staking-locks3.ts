@@ -14,7 +14,7 @@ describeSuite({
   id: "D023379",
   title: "Staking - Locks - delegator balance is locked",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {

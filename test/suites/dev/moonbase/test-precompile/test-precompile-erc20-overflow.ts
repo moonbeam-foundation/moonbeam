@@ -5,7 +5,7 @@ describeSuite({
   id: "D022718",
   title: "Precompile ERC20 - Transfering through precompile",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
     it({
       id: "T01",

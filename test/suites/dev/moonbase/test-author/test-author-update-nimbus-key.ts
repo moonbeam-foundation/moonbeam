@@ -23,7 +23,7 @@ describeSuite({
   id: "D020216",
   title: "Author Mapping - Update someone else nimbus key",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
 
     beforeAll(async function () {

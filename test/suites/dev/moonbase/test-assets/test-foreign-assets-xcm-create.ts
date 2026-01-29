@@ -7,13 +7,13 @@ import {
   sovereignAccountOfSibling,
 } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
-import { expectSubstrateEvent, expectSystemEvent } from "../../../../helpers/expect.js";
+import { expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
   id: "D020111",
   title: "Creation of Foreign Assets via XCM",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const fundAmount = 100_000_000_000_000_000_000_000n;
 
     beforeAll(async () => {

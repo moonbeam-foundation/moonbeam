@@ -12,7 +12,7 @@ describeSuite({
   id: "D020214",
   title: "Author Mapping - unregistered cannot rotate",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should fail rotating account ids if not registered",

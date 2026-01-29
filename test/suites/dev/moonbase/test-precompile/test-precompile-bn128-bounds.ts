@@ -13,7 +13,7 @@ describeSuite({
   id: "D022703",
   title: "Precompiles - bn128",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should fail gracefully (case 1)",
@@ -42,7 +42,7 @@ describeSuite({
             "02020202020202020202020302020202020202020202020202020202020202020202020202020202" +
             "0302020202020202020202020202") as `0x${string}`;
 
-        const tx = await createViemTransaction(context, {
+        await createViemTransaction(context, {
           to: "0x0000000000000000000000000000000000000007",
           data,
           skipEstimation: true,

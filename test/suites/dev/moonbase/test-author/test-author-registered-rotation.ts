@@ -12,7 +12,7 @@ describeSuite({
   id: "D020208",
   title: "Author Mapping - registered can rotate",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should succeed in rotating account ids for an author",

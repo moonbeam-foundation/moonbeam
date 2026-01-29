@@ -15,7 +15,7 @@ describeSuite({
   id: "D023377",
   title: "Staking - Freezes - bottom and top delegations",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let bottomDelegators: KeyringPair[];
     let topDelegators: KeyringPair[];
 
@@ -51,7 +51,7 @@ describeSuite({
         let numDelegations = 0;
         for (const topDelegatorsChunk of chunk(topDelegators, 20)) {
           await context.createBlock(
-            [...topDelegatorsChunk].map((account, i) => {
+            [...topDelegatorsChunk].map((account) => {
               // add a tip such that the delegation ordering will be preserved,
               // e.g. the first txns sent will have the highest tip
               const tip = BigInt(tipOrdering--) * MILLIGLMR;

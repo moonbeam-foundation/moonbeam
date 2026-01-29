@@ -16,7 +16,7 @@ describeSuite({
   id: "D023373",
   title: "Staking - Consts - MaxDelegationsPerDelegator",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
     let randomCandidates: KeyringPair[];
     let maxDelegationsPerDelegator: bigint;

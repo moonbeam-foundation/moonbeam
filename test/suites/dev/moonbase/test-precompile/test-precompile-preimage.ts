@@ -9,7 +9,7 @@ describeSuite({
   id: "D022738",
   title: "Precompiles - Preimage precompile",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let PreimageAbi: Abi;
     let preimage: Preimage;
 

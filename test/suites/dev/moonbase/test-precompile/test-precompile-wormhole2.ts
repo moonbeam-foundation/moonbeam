@@ -6,7 +6,7 @@ describeSuite({
   id: "D022765",
   title: "Test GMP Killswitch",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should fail with killswitch enabled by default",

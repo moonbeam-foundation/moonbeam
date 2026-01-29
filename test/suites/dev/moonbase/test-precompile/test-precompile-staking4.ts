@@ -13,7 +13,7 @@ describeSuite({
   id: "D022761",
   title: "Precompiles - Staking - Join Delegators",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       const rawTxn = await context.writePrecompile!({
         precompileName: "ParachainStaking",

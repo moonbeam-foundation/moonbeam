@@ -7,7 +7,7 @@ describeSuite({
   id: "D022704",
   title: "Precompiles - bn128add",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should be accessible from a smart contract",

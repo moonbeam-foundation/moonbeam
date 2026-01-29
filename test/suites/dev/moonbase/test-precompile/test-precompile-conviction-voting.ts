@@ -22,7 +22,7 @@ describeSuite({
   id: "D022708",
   title: "Precompiles - Conviction Voting precompile",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVotingAbi: Abi;
     let convictionVoting: ConvictionVoting;

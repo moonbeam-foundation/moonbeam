@@ -9,7 +9,7 @@ describeSuite({
   id: "D022702",
   title: "Precompiles - blake2",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should be accessible from a smart contract",

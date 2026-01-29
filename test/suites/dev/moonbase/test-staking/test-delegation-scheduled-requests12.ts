@@ -15,7 +15,7 @@ describeSuite({
   id: "D023326",
   title: "Staking - Delegation Scheduled Requests - collator leave",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let whenExecutable: number;
     beforeAll(async () => {
       await context.createBlock([

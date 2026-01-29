@@ -15,7 +15,7 @@ describeSuite({
   id: "D024003",
   title: "Mock XCM - receive horizontal transfer of DEV",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let random: KeyringPair;
     let transferredBalance: bigint;
     let sovereignAddress: string;

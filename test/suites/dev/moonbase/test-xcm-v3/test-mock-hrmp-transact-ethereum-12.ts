@@ -14,7 +14,7 @@ describeSuite({
   id: "D024009",
   title: "Mock XCM - receive horizontal transact ETHEREUM (transfer)",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance: bigint;
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
@@ -82,14 +82,12 @@ describeSuite({
           },
         ];
 
-        let expectedTransferredAmount = 0n;
         let expectedTransferredAmountPlusFees = 0n;
 
         const targetXcmWeight = GAS_LIMIT * 25000n + STORAGE_READ_COST + 7_250_000_000n;
         const targetXcmFee = targetXcmWeight * 50_000n;
 
         for (const xcmTransaction of xcmTransactions) {
-          expectedTransferredAmount += amountToTransfer;
           expectedTransferredAmountPlusFees += amountToTransfer + targetXcmFee;
           // TODO need to update lookup types for xcm ethereum transaction V2
           const transferCall = context.polkadotJs().tx.ethereumXcm.transact(xcmTransaction);

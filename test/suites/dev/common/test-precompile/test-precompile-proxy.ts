@@ -28,7 +28,7 @@ describeSuite({
   id: "D010418",
   title: "Precompile - Proxy",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     it({
       id: "T01",
       title: "should fail re-adding proxy account",

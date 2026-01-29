@@ -9,13 +9,13 @@ import {
 import { Receipt } from "eth-object";
 import { BaseTrie as Trie } from "merkle-patricia-tree";
 import * as RLP from "rlp";
-import { type Log, encodeDeployData, toHex } from "viem";
+import { encodeDeployData, toHex } from "viem";
 
 describeSuite({
   id: "D023102",
   title: "Receipt root - With events",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       const deployData = encodeDeployData({
         abi: fetchCompiledContract("EventEmitter").abi,
@@ -127,30 +127,6 @@ describeSuite({
     });
   },
 });
-
-interface InnerReceipt {
-  logs: Log<bigint, number>[];
-  status: string;
-  cumulativeGasUsed: `0x${string}`;
-  logsBloom: `0x${string}`;
-  type: string;
-}
-
-// This is incomplete
-function serializeReceipt(input: InnerReceipt) {
-  const logs = input.logs.map((item) => {
-    const topics = item.topics.map((topic) => Buffer.from(topic));
-    return [Buffer.from(item.address), topics, Buffer.from(item.data)];
-  });
-
-  const receipt = [
-    Buffer.from(input.status),
-    Buffer.from(input.cumulativeGasUsed),
-    Buffer.from(input.logsBloom),
-    logs,
-  ];
-  return RLP.encode(receipt);
-}
 
 function convertTxnType(txnType: "legacy" | "eip2930" | "eip1559") {
   switch (txnType) {

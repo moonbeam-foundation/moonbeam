@@ -20,7 +20,7 @@ describeSuite({
   id: "D022747",
   title: "Precompiles - Referenda precompile",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let proposalIndex: number;
     const { abi: referendaAbi } = fetchCompiledContract("Referenda");
     let referenda: Referenda;

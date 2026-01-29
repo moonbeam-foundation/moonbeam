@@ -6,7 +6,7 @@ describeSuite({
   id: "D022716",
   title: "Precompiles - ecPairing",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
 
     beforeEach(async () => {

@@ -2,7 +2,6 @@ import "@moonbeam-network/api-augment";
 import {
   ALITH_ADDRESS,
   TransactionTypes,
-  alith,
   deployCreateCompiledContract,
   describeSuite,
   expect,
@@ -16,7 +15,7 @@ describeSuite({
   id: "D010201",
   title: "Contract creation",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     for (const txnType of TransactionTypes) {
       it({
         id: `T0-${TransactionTypes.indexOf(txnType) + 1}`,

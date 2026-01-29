@@ -6,7 +6,7 @@ describeSuite({
   id: "D022749",
   title: "Precompiles - relay-verifier",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const proof = {
       at: "0x1272470f226fc0e955838262e8dd17a7d7bad6563739cc53a3b1744ddf0ea872",
       proof: [

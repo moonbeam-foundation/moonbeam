@@ -2,19 +2,11 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, dorothy, expect, getBlockExtrinsic } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 
-// Keys used to set author-mapping in the tests
-const originalKeys = [
-  "0x0000000000000000000000000000000000000000000000000000000000000001",
-  "0x0000000000000000000000000000000000000000000000000000000000000002",
-];
-// Concatenated keys
-const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
-
 describeSuite({
   id: "D020209",
   title: "Author Mapping - Removing non-existing author",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
 
     beforeAll(async function () {

@@ -6,7 +6,7 @@ describeSuite({
   id: "D023359",
   title: "Staking - Rewards Auto-Compound - scheduled revoke request after round snapshot",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [

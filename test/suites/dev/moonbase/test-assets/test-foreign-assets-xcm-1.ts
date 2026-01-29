@@ -9,7 +9,7 @@ describeSuite({
   id: "D020105",
   title: "Create & manage Foreign Assets via XCM",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const fundAmount = 100_000_000_000_000_000_000_000n;
     const assetId = 1;
 

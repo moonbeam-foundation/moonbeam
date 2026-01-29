@@ -12,7 +12,7 @@ describeSuite({
   id: "D010408",
   title: "Precompile Author Mapping - Set Faith mapping with 0 keys",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should revert",

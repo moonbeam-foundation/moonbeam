@@ -6,7 +6,7 @@ describeSuite({
   id: "D023018",
   title: "Randomness VRF - Requesting a random number",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       await context.writePrecompile!({
         precompileName: "Randomness",

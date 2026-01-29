@@ -23,7 +23,7 @@ describeSuite({
   id: "D010601",
   title: "Test transaction with metadata hash",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "Should fail with an invalid metadata hash",
