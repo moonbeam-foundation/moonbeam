@@ -1,13 +1,18 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_SESSION_ADDRESS, CHARLETH_SESSION_ADDRESS, alith } from "@moonwall/util";
+import {
+  BALTATHAR_SESSION_ADDRESS,
+  CHARLETH_SESSION_ADDRESS,
+  alith,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
   id: "D020214",
   title: "Author Mapping - unregistered cannot rotate",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should fail rotating account ids if not registered",

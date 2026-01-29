@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment/moonbase";
 import type { ApiPromise } from "@polkadot/api";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "S26",
   title: `XCM Mode should be equal to Normal`,
   foundationMethods: "read_only",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let paraApi: ApiPromise;
 
     beforeAll(async function () {

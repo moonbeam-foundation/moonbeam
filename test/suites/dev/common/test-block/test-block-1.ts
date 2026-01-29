@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import { ALITH_ADDRESS, beforeAll, describeSuite, expect } from "moonwall";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D010101",
   title: "Block 1",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let specVersion: number;
     beforeAll(async () => {
       await context.createBlock();

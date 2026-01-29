@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite } from "@moonwall/cli";
-import { DOROTHY_ADDRESS, BALTATHAR_ADDRESS, dorothy } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, DOROTHY_ADDRESS, describeSuite, dorothy, expect } from "moonwall";
 import { getAccountPayable } from "../../../../helpers/crowdloan.js";
 import { jumpBlocks } from "../../../../helpers/block.js";
 
@@ -48,7 +47,7 @@ describeSuite({
         const baltatharPayable = await getAccountPayable(context, BALTATHAR_ADDRESS);
         expect(baltatharPayable).not.toBeNull();
 
-        const { baltathar } = await import("@moonwall/util");
+        const { baltathar } = await import("moonwall");
 
         // Try to update to the same address (should fail)
         const result = await context.createBlock(
@@ -91,7 +90,7 @@ describeSuite({
         expect(initialPayable).not.toBeNull();
 
         const relayAddresses = initialPayable!.contributedRelayAddresses;
-        const { baltathar } = await import("@moonwall/util");
+        const { baltathar } = await import("moonwall");
 
         // Update address back to Dorothy
         await context.createBlock(
@@ -155,7 +154,7 @@ describeSuite({
         // Wait for some vesting
         await jumpBlocks(context, 10);
 
-        const { baltathar } = await import("@moonwall/util");
+        const { baltathar } = await import("moonwall");
 
         // Claim from Baltathar's address
         await context.createBlock(

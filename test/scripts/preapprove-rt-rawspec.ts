@@ -3,7 +3,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { convertExponentials } from "@zombienet/utils";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
-import { blake2AsHex, blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
+import { blake2AsHex, xxhashAsU8a } from "@polkadot/util-crypto";
 import jsonBg from "json-bigint";
 
 const JSONbig = jsonBg({ useNativeBigInt: true });

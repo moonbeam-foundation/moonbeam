@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_SESSION_ADDRESS, BALTATHAR_SESSION_ADDRESS } from "@moonwall/util";
+import { ALITH_SESSION_ADDRESS, BALTATHAR_SESSION_ADDRESS, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D022748",
   title: "Precompiles - relay-encoder",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "allows to get encoding of bond stake call",

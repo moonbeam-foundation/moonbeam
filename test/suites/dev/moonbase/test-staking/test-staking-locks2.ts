@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_STAKING, baltathar } from "@moonwall/util";
+import { MIN_GLMR_STAKING, baltathar, describeSuite, expect } from "moonwall";
 import { getCollatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
   id: "D023378",
   title: "Staking - Freezes - join candidates",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should set collator staking freeze when joining candidates",

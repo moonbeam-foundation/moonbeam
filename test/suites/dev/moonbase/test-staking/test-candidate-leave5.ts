@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
+import { MIN_GLMR_STAKING, alith, beforeAll, describeSuite, ethan, expect } from "moonwall";
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
   id: "D023309",
   title: "Staking - Candidate Leave Execute - exact round delay",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [
@@ -41,14 +40,17 @@ describeSuite({
             .signAsync(ethan)
         );
         expect(block.result!.successful).to.be.true;
-        const leaveEvents = block.result!.events.reduce((acc, event) => {
-          if (context.polkadotJs().events.parachainStaking.CandidateLeft.is(event.event)) {
-            acc.push({
-              account: event.event.data[0].toString(),
-            });
-          }
-          return acc;
-        }, []);
+        const leaveEvents = block.result!.events.reduce(
+          (acc, event) => {
+            if (context.polkadotJs().events.parachainStaking.CandidateLeft.is(event.event)) {
+              acc.push({
+                account: event.event.data[0].toString(),
+              });
+            }
+            return acc;
+          },
+          [] as { account: string }[]
+        );
 
         expect(leaveEvents).to.deep.equal([
           {

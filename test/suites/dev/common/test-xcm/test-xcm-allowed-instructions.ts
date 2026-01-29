@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { CHARLETH_ADDRESS, alith, beforeAll, describeSuite, expect } from "moonwall";
 
-import { alith, CHARLETH_ADDRESS } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
@@ -19,7 +18,7 @@ describeSuite({
   id: "D010702",
   title: "XCM - Max Weight Instructions",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let dotAsset: XcmFragmentConfig;
     let amount: bigint;
     const paraId: number = 888;

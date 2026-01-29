@@ -1,18 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, generateKeyringPair } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { encodeFunctionData, type Hash } from "viem";
 import moonbaseSamples from "../../helpers/moonbase-tracing-samples.json";
 import moonbeamSamples from "../../helpers/moonbeam-tracing-samples.json";
 import moonriverSamples from "../../helpers/moonriver-tracing-samples.json";
-import { generateKeyringPair } from "@moonwall/util";
-
-interface Sample {
-  network: string;
-  runtime: string;
-  blockNumber: number;
-  txHash: `0x${string}`;
-}
 
 const samples = {
   moonbase: moonbaseSamples,
@@ -26,7 +18,7 @@ enum Network {
   Moonbase = "moonbase",
 }
 
-class BadBlockRegressionCase {
+interface BadBlockRegressionCase {
   issue: string;
   network: Network;
   contractAddress: `0x${string}`;
@@ -35,10 +27,10 @@ class BadBlockRegressionCase {
 }
 
 interface TransactionRegressionCase {
-  network: Network;
+  network: string;
   runtime: number;
   blockNumber: number;
-  txHash: `0x${string}`;
+  txHash: string;
 }
 
 // Issues/Regressions

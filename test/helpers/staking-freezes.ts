@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import type { DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "moonwall";
 
 /**
  * Get all staking freezes for an account

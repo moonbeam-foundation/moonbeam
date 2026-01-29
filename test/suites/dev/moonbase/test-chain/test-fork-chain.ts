@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect, TransactionTypes } from "@moonwall/cli";
-import { createRawTransfer } from "@moonwall/util";
+import { TransactionTypes, beforeEach, createRawTransfer, describeSuite, expect } from "moonwall";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
   id: "D020401",
   title: "Chain - Fork",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let randomAddress: `0x${string}`;
 
     beforeEach(async function () {

@@ -1,5 +1,12 @@
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  CHARLETH_ADDRESS,
+  alith,
+  beforeEach,
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
 import { expectEVMResult, getTransactionFees } from "../../../../helpers";
@@ -16,7 +23,7 @@ describeSuite({
   id: "D024113",
   title: "Mock XCM - Send two local ERC20",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let erc20ContractAddress1: string;
     let erc20ContractAddress2: string;
 

@@ -1,4 +1,4 @@
-import type { DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "moonwall";
 
 export const getFeesTreasuryProportion = async (context: DevModeContext): Promise<bigint> => {
   const parameter = await context.polkadotJs().query.parameters.parameters({

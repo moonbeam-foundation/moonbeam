@@ -1,13 +1,18 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { FAITH_ADDRESS, FAITH_PRIVATE_KEY, getBlockExtrinsic } from "@moonwall/util";
+import {
+  FAITH_ADDRESS,
+  FAITH_PRIVATE_KEY,
+  describeSuite,
+  expect,
+  getBlockExtrinsic,
+} from "moonwall";
 import { originalKeys, setAuthorMappingKeysViaPrecompile } from "../../../../helpers";
 
 describeSuite({
   id: "D010407",
   title: "Precompile Author Mapping - Set Faith only 1 key",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should revert",

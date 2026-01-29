@@ -1,16 +1,29 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS } from "@moonwall/util";
+import {
+  BALTATHAR_ADDRESS,
+  beforeAll,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { Receipt } from "eth-object";
 import { BaseTrie as Trie } from "merkle-patricia-tree";
 import * as RLP from "rlp";
-import { type Log, encodeDeployData, toHex } from "viem";
+import { encodeDeployData, toHex, type TransactionReceipt } from "viem";
+
+interface InnerReceipt {
+  logs: TransactionReceipt["logs"];
+  status: "0x0" | "0x1";
+  cumulativeGasUsed: `0x${string}`;
+  logsBloom: `0x${string}`;
+  type: string;
+}
 
 describeSuite({
   id: "D023102",
   title: "Receipt root - With events",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       const deployData = encodeDeployData({
         abi: fetchCompiledContract("EventEmitter").abi,
@@ -80,7 +93,7 @@ describeSuite({
       // modifier: "skip",
       test: async function () {
         const block = await context.viem().getBlock({ blockNumber: 1n });
-        const receipts = [];
+        const receipts: TransactionReceipt[] = [];
         for (const txHash of block.transactions) {
           const receipt = await context
             .viem()
@@ -122,30 +135,6 @@ describeSuite({
     });
   },
 });
-
-interface InnerReceipt {
-  logs: Log<bigint, number>[];
-  status: string;
-  cumulativeGasUsed: `0x${string}`;
-  logsBloom: `0x${string}`;
-  type: string;
-}
-
-// This is incomplete
-function serializeReceipt(input: InnerReceipt) {
-  const logs = input.logs.map((item) => {
-    const topics = item.topics.map((topic) => Buffer.from(topic));
-    return [Buffer.from(item.address), topics, Buffer.from(item.data)];
-  });
-
-  const receipt = [
-    Buffer.from(input.status),
-    Buffer.from(input.cumulativeGasUsed),
-    Buffer.from(input.logsBloom),
-    logs,
-  ];
-  return RLP.encode(receipt);
-}
 
 function convertTxnType(txnType: "legacy" | "eip2930" | "eip1559") {
   switch (txnType) {

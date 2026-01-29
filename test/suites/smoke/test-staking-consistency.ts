@@ -9,7 +9,7 @@ import type {
   PalletParachainStakingBond,
   PalletParachainStakingSetOrderedSet,
 } from "@polkadot/types/lookup";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { describeSuite, expect, beforeAll } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({

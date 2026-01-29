@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite } from "@moonwall/cli";
+import { beforeAll, describeSuite } from "moonwall";
 import { fromBytes } from "viem";
 import {
   RELAY_SOURCE_LOCATION,
@@ -9,8 +9,6 @@ import {
   registerXcmTransactorAndContract,
   registerForeignAsset,
 } from "../../../../helpers";
-
-const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
 
 describeSuite({
   id: "D022771",

@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "moonwall";
 import type { Abi } from "viem";
 
 // EIP-7939: CLZ (Count Leading Zeros) opcode

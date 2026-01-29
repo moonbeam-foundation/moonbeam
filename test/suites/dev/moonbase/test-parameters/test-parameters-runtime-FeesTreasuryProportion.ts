@@ -1,19 +1,25 @@
-import { describeSuite, expect, TransactionTypes } from "@moonwall/cli";
 import {
-  alith,
   ALITH_ADDRESS,
-  baltathar,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
-  createRawTransfer,
-  extractFee,
-  Perbill,
   TREASURY_ACCOUNT,
+  TransactionTypes,
   WEIGHT_PER_GAS,
-} from "@moonwall/util";
+  alith,
+  baltathar,
+  createRawTransfer,
+  describeSuite,
+  expect,
+  extractFee,
+} from "moonwall";
 import { parameterType, UNIT } from "./test-parameters";
 import { BN } from "@polkadot/util";
-import { calculateFeePortions, ConstantStore, verifyLatestBlockFees } from "../../../../helpers";
+import {
+  calculateFeePortions,
+  ConstantStore,
+  verifyLatestBlockFees,
+  Perbill,
+} from "../../../../helpers";
 import { parseGwei } from "viem";
 
 interface TestCase {
@@ -28,7 +34,7 @@ describeSuite({
   id: "D022402",
   title: "Parameters - RuntimeConfig",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     let testCounter = 0;
     const collatorAddress = ALITH_ADDRESS;
     const senderPrivateKey = BALTATHAR_PRIVATE_KEY;
@@ -70,7 +76,7 @@ describeSuite({
         proportion: new Perbill(963, 1000),
         transfer_amount: 10n * UNIT,
         tipAmount: 128n,
-        priorityFeePerGas: 128,
+        priorityFeePerGas: 128n,
       },
       {
         proportion: new Perbill(99, 100),
@@ -87,7 +93,7 @@ describeSuite({
     ];
 
     for (const t of testCases) {
-      const treasuryPerbill = new BN(t.proportion.value());
+      const treasuryPerbill = BigInt(t.proportion.value().toString());
       const treasuryPercentage = t.proportion.value().toNumber() / 1e7;
       const burnPercentage = 100 - treasuryPercentage;
 

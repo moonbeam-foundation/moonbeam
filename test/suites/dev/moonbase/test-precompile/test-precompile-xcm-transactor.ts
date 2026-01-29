@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import { ALITH_ADDRESS, beforeAll, describeSuite, expect } from "moonwall";
 import { fromBytes } from "viem";
 import {
   verifyLatestBlockFees,
@@ -14,7 +13,7 @@ describeSuite({
   id: "D022766",
   title: "Precompiles - xcm transactor",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await registerXcmTransactorAndContract(context);
     });
@@ -147,25 +146,25 @@ describeSuite({
 
         await context.createBlock(rawTxn);
 
-        const afterBalance = await context.readContract!({
+        const afterBalance = (await context.readContract!({
           contractName: "ERC20Instance",
           contractAddress: contractAddress,
           functionName: "balanceOf",
           args: [ALITH_ADDRESS],
-        });
+        })) as bigint;
 
-        const afterSupply = await context.readContract!({
+        const afterSupply = (await context.readContract!({
           contractName: "ERC20Instance",
           contractAddress: contractAddress,
           functionName: "totalSupply",
-        });
+        })) as bigint;
 
         // We have paid relay execution fees in the foreign asset, so balance and supply should
         // have decreased by the same (non-zero) amount.
         const initialBalance = 100000000000000n;
         const feePaid = initialBalance - afterBalance;
 
-        expect(feePaid).to.be.gt(0n);
+        expect(feePaid > 0n).to.be.true;
         expect(afterSupply).to.equal(afterBalance);
 
         // 1000 fee for the relay is paid with relay assets

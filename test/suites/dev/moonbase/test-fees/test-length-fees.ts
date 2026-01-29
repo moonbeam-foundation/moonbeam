@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { type DevModeContext, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, baltathar } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, baltathar, describeSuite, expect, type DevModeContext } from "moonwall";
 
 //TODO: Change these to be less literal
 describeSuite({
   id: "D021506",
   title: "Substrate Length Fees",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should have low balance transfer fees",

@@ -1,5 +1,4 @@
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, beforeAll, customDevRpcRequest, describeSuite, expect } from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 import {
   type RawXcmMessage,

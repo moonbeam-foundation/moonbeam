@@ -1,10 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   ALITH_GENESIS_FREE_BALANCE,
   ALITH_GENESIS_RESERVE_BALANCE,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE } from "../../../../helpers";
 
 describeSuite({

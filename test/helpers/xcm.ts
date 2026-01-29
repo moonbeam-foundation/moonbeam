@@ -1,5 +1,5 @@
-import { type DevModeContext, customDevRpcRequest, expect } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS, GLMR } from "@moonwall/util";
+import type { DevModeContext } from "moonwall";
+import { ALITH_ADDRESS, GLMR, alith, customDevRpcRequest, expect } from "moonwall";
 import type { DispatchError, XcmpMessageFormat } from "@polkadot/types/interfaces";
 import type {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,

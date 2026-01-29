@@ -1,12 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
   alith,
   baltathar,
+  beforeAll,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
 import {
   jumpRounds,
   getDelegatorStakingFreeze,
@@ -17,7 +19,7 @@ describeSuite({
   id: "D023383",
   title: "Staking - Freezes - multiple delegations single revoke",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {

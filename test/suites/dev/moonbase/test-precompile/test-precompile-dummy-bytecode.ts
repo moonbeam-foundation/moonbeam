@@ -1,11 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   DUMMY_REVERT_BYTECODE,
   PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
   createEthersTransaction,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 import * as RLP from "rlp";
 import { keccak256 } from "viem";
 
@@ -51,7 +52,7 @@ describeSuite({
         );
 
         const failures = matches.filter((match) => !match);
-        failures.forEach((failure, index) => {
+        failures.forEach((_, index) => {
           log(`Failure at address ${addresses[index]}`);
         });
 

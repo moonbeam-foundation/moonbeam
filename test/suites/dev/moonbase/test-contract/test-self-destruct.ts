@@ -1,5 +1,4 @@
-import { describeSuite, expect } from "@moonwall/cli";
-import { createEthersTransaction } from "@moonwall/util";
+import { createEthersTransaction, describeSuite, expect } from "moonwall";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
@@ -46,7 +45,7 @@ describeSuite({
           }),
         ]);
 
-        for (const result of block.result) {
+        for (const result of block.result!) {
           const receipt = await context
             .viem("public")
             .getTransactionReceipt({ hash: result.hash as `0x${string}` });

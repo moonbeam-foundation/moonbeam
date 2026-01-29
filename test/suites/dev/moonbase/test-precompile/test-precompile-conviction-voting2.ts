@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { expectEVMResult, createProposal, ConvictionVoting } from "../../../../helpers";
+import { beforeEach, describeSuite, expect } from "moonwall";
+import {
+  expectEVMResult,
+  extractSingleResult,
+  createProposal,
+  ConvictionVoting,
+} from "../../../../helpers";
 
 const CONVICTION_VALUES = [0n, 1n, 2n, 3n, 4n, 5n, 6n];
 
@@ -8,7 +13,7 @@ describeSuite({
   id: "D022709",
   title: "Precompiles - Conviction",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVoting: ConvictionVoting;
 
@@ -26,7 +31,7 @@ describeSuite({
             .voteYes(proposalIndex, 1n * 10n ** 18n, conviction)
             .block();
 
-          expectEVMResult(block.result!.events, "Succeed");
+          expectEVMResult(extractSingleResult(block.result).events, "Succeed");
 
           // Verifies the substrate side
           const referendum = await context

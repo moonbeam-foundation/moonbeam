@@ -1,13 +1,16 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
+  GLMR,
+  baltathar,
   beforeAll,
+  createEthersTransaction,
+  customDevRpcRequest,
+  deployCreateCompiledContract,
   describeSuite,
   expect,
-  deployCreateCompiledContract,
   fetchCompiledContract,
-  customDevRpcRequest,
-} from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, baltathar, createEthersTransaction } from "@moonwall/util";
+} from "moonwall";
 import { hexToBigInt, nToHex } from "@polkadot/util";
 import { encodeFunctionData, encodePacked, keccak256, pad, parseEther, type Abi } from "viem";
 import { expectOk } from "../../../../helpers";
@@ -16,7 +19,7 @@ describeSuite({
   id: "D020801",
   title: "Call - State Override",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let stateOverrideAddress: string;
     let contractAbi: Abi;
 
@@ -50,7 +53,7 @@ describeSuite({
       title: "should have a balance of > 100 GLMR without state override",
       test: async function () {
         const { data } = await context.viem().call({
-          account: baltathar.address,
+          account: baltathar.address as `0x${string}`,
           to: stateOverrideAddress as `0x${string}`,
           data: encodeFunctionData({ abi: contractAbi, functionName: "getSenderBalance" }),
         });
@@ -64,7 +67,7 @@ describeSuite({
       test: async function () {
         const result = await customDevRpcRequest("eth_call", [
           {
-            from: baltathar.address,
+            from: baltathar.address as unknown as bigint,
             to: stateOverrideAddress,
             data: encodeFunctionData({ abi: contractAbi, functionName: "getSenderBalance" }),
           },
@@ -149,12 +152,12 @@ describeSuite({
           encodePacked(
             ["uint256", "uint256"],
             [
-              baltathar.address,
+              baltathar.address as unknown as bigint,
               keccak256(
                 encodePacked(
                   ["uint256", "uint256"],
                   [
-                    ALITH_ADDRESS as any,
+                    ALITH_ADDRESS as unknown as bigint,
                     2n, // slot 2
                   ]
                 )
@@ -195,12 +198,12 @@ describeSuite({
           encodePacked(
             ["uint256", "uint256"],
             [
-              baltathar.address,
+              baltathar.address as unknown as bigint,
               keccak256(
                 encodePacked(
                   ["uint256", "uint256"],
                   [
-                    ALITH_ADDRESS as any,
+                    ALITH_ADDRESS as unknown as bigint,
                     2n, // slot 2
                   ]
                 )

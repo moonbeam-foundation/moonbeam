@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTransaction, sendRawTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  beforeAll,
+  createEthersTransaction,
+  describeSuite,
+  expect,
+  sendRawTransaction,
+} from "moonwall";
 import { encodeFunctionData, toHex } from "viem";
 import { ConstantStore } from "../../../../helpers";
 
@@ -8,7 +14,7 @@ describeSuite({
   id: "D023808",
   title: "TxPool - Ethereum Contract Call",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let multiplyBy7Contract: `0x${string}`;
     let txHash: `0x${string}`;
 

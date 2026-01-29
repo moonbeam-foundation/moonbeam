@@ -1,4 +1,4 @@
-import type { DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "moonwall";
 
 export const getPalletIndex = async (name: string, context: DevModeContext): Promise<number> => {
   const metadata = await context.polkadotJs().rpc.state.getMetadata();

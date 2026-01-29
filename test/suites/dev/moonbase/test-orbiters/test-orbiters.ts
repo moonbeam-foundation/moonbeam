@@ -1,13 +1,22 @@
-import { describeSuite, expect } from "@moonwall/cli";
+import {
+  alith,
+  baltathar,
+  charleth,
+  describeSuite,
+  dorothy,
+  ethan,
+  expect,
+  faith,
+  goliath,
+} from "moonwall";
 import "@moonbeam-network/api-augment";
-import { alith, baltathar, charleth, dorothy, ethan, faith, goliath } from "@moonwall/util";
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
   id: "D022301",
   title: "Orbiters",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     it({
       id: "T01",
       title: "Marking orbiters offline is a noop",
@@ -152,9 +161,9 @@ describeSuite({
         const afterOrbPoolInnactiveCandidatePool = await context
           .polkadotJs()
           .query.parachainStaking.candidatePool();
-        const afterOrbPoolInnactiveCandidates = afterOrbPoolInnactiveCandidatePool
-          .toJSON()
-          .map((c) => c.owner);
+        const afterOrbPoolInnactiveCandidates = (
+          (afterOrbPoolInnactiveCandidatePool.toJSON() as { owner: string }[]) ?? []
+        ).map((c) => c.owner);
         expect(afterOrbPoolInnactiveCandidates).not.toContain(orbiterPool.address);
       },
     });

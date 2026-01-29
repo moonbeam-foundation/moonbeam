@@ -1,14 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";
-import type { FrameSystemEventRecord, XcmV3MultiLocation } from "@polkadot/types/lookup";
+import type { FrameSystemEventRecord, StagingXcmV3MultiLocation } from "@polkadot/types/lookup";
 import {
   type MoonbeamNetworkName,
   type ParaId,
   isMuted,
   ForeignChainsEndpoints,
 } from "../../helpers/foreign-chains.js";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { getBlockArray, FIVE_MINS, ONE_HOURS } from "@moonwall/util";
+import { FIVE_MINS, ONE_HOURS, beforeAll, describeSuite, expect, getBlockArray } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : ONE_HOURS;
@@ -39,7 +38,7 @@ describeSuite({
     const isMutedChain = (events: FrameSystemEventRecord[], index: number) => {
       let muted = false;
       if (paraApi.events.polkadotXcm.AssetsTrapped.is(events[Math.max(0, index - 1)].event)) {
-        const { interior } = events[index - 1].event.data[1] as XcmV3MultiLocation;
+        const { interior } = events[index - 1].event.data[1] as StagingXcmV3MultiLocation;
         if (interior.isX1) {
           muted = !!isMuted(chainName, interior.asX1.asParachain.toNumber() as ParaId);
         }
