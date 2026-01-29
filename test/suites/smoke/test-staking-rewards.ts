@@ -12,8 +12,16 @@ import type {
   PalletParachainStakingRoundInfo,
 } from "@polkadot/types/lookup";
 import type { ApiDecoration } from "@polkadot/api/types";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { FIVE_MINS, ONE_HOURS, Perbill, Percent, TEN_MINS } from "@moonwall/util";
+import {
+  FIVE_MINS,
+  ONE_HOURS,
+  Perbill,
+  Percent,
+  TEN_MINS,
+  beforeAll,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { rateLimiter, getPreviousRound, getNextRound } from "../../helpers";
 import type { AccountId20, Block } from "@polkadot/types/interfaces";
 
@@ -105,7 +113,7 @@ describeSuite({
       test: async () => {
         const results = await limiter.schedule(() => {
           const specVersion = paraApi.consts.system.version.specVersion.toNumber();
-          const allTasks = atStakeSnapshot.map(async (coll, index) => {
+          const allTasks = atStakeSnapshot.map(async (coll) => {
             const [
               {
                 args: [_, accountId],
@@ -213,7 +221,7 @@ describeSuite({
             {
               args: [_, accountId],
             },
-            { bond, total, delegations },
+            { delegations },
           ] = coll;
           const scheduledRequests = await limiter.schedule(() =>
             predecessorApiAt.query.parachainStaking.delegationScheduledRequests(

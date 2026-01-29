@@ -1,19 +1,25 @@
-import { describeSuite, expect, TransactionTypes } from "@moonwall/cli";
 import {
-  alith,
   ALITH_ADDRESS,
-  baltathar,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
-  createRawTransfer,
-  extractFee,
-  Perbill,
   TREASURY_ACCOUNT,
+  TransactionTypes,
   WEIGHT_PER_GAS,
-} from "@moonwall/util";
+  alith,
+  baltathar,
+  createRawTransfer,
+  describeSuite,
+  expect,
+  extractFee,
+} from "moonwall";
 import { parameterType, UNIT } from "./test-parameters";
 import { BN } from "@polkadot/util";
-import { calculateFeePortions, ConstantStore, verifyLatestBlockFees } from "../../../../helpers";
+import {
+  calculateFeePortions,
+  ConstantStore,
+  verifyLatestBlockFees,
+  Perbill,
+} from "../../../../helpers";
 import { parseGwei } from "viem";
 
 interface TestCase {
@@ -28,7 +34,7 @@ describeSuite({
   id: "D022402",
   title: "Parameters - RuntimeConfig",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     let testCounter = 0;
     const collatorAddress = ALITH_ADDRESS;
     const senderPrivateKey = BALTATHAR_PRIVATE_KEY;

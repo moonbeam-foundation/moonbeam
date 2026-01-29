@@ -1,11 +1,14 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
+  PRECOMPILE_BATCH_ADDRESS,
+  beforeAll,
+  createEthersTransaction,
+  deployCreateCompiledContract,
   describeSuite,
   expect,
-  beforeAll,
-  deployCreateCompiledContract,
   fetchCompiledContract,
-} from "@moonwall/cli";
+} from "moonwall";
 import {
   type HeavyContract,
   deployHeavyContracts,
@@ -14,13 +17,12 @@ import {
 } from "../../../../helpers";
 
 import { type Abi, encodeFunctionData } from "viem";
-import { ALITH_ADDRESS, PRECOMPILE_BATCH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
   id: "D022604",
   title: "PoV precompile test - gasLimit",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let contracts: HeavyContract[];
     const MAX_CONTRACTS = 50;
     const EXPECTED_POV_ROUGH = 55_000; // bytes

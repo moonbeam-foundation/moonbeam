@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -9,9 +8,11 @@ import {
   GLMR,
   WEIGHT_PER_GAS,
   baltathar,
-  createViemTransaction,
   createRawTransfer,
-} from "@moonwall/util";
+  createViemTransaction,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { EIP_7825_MAX_TRANSACTION_GAS_LIMIT } from "../../../../helpers";
 
 // This tests an issue where pallet Ethereum in Frontier does not properly account for weight after
@@ -22,7 +23,7 @@ describeSuite({
   id: "D020903",
   title: "Ethereum Weight Accounting",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should account for weight used",

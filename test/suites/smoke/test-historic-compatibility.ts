@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { numberToHex } from "@polkadot/util";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { describeSuite, beforeAll, expect } from "moonwall";
 import { type NetworkTestArtifact, tracingTxns } from "../../helpers/tracing-txns.js";
 import type { ApiPromise } from "@polkadot/api";
 import { rateLimiter } from "../../helpers/common.js";

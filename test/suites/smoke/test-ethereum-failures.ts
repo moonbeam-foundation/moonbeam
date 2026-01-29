@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { TWO_MINS, getBlockArray } from "@moonwall/util";
+import { TWO_MINS, beforeAll, describeSuite, expect, getBlockArray } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import type { DispatchInfo } from "@polkadot/types/interfaces";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";
 import type {

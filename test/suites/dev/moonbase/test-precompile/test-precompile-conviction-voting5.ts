@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import { ALITH_ADDRESS, beforeAll, beforeEach, describeSuite, expect } from "moonwall";
 import {
   jumpBlocks,
   expectEVMResult,
@@ -13,7 +12,7 @@ describeSuite({
   id: "D022712",
   title: "Precompiles - Ended proposal",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVoting: ConvictionVoting;
 

@@ -1,4 +1,4 @@
-import { type DevModeContext, expect, fetchCompiledContract } from "@moonwall/cli";
+import type { DevModeContext } from "moonwall";
 import {
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_PRIVATE_KEY,
@@ -8,7 +8,9 @@ import {
   baltathar,
   charleth,
   createViemTransaction,
-} from "@moonwall/util";
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import type { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { encodeFunctionData, parseEther } from "viem";

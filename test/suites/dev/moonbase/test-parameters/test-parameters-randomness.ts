@@ -1,12 +1,11 @@
-import { describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, describeSuite, expect } from "moonwall";
 import { parameterType, UNIT } from "./test-parameters";
 
 describeSuite({
   id: "D022401",
   title: "Parameters - Pallet Randomness",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     it({
       id: `T01 - PalletRandomness - Deposit - CustomTests`,
       title: "Deposit parameter should only be accepted in bounds",

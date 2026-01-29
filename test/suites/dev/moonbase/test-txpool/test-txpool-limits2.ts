@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { createEthersTransaction } from "@moonwall/util";
+import { createEthersTransaction, describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { encodeDeployData } from "viem";
 
 describeSuite({
   id: "D023804",
   title: "TxPool - Limits",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should be able to fill a block with 70 contract creations tx",

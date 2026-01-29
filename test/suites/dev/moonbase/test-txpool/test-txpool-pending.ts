@@ -1,13 +1,20 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTransaction, sendRawTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  beforeAll,
+  createEthersTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+  sendRawTransaction,
+} from "moonwall";
 import { encodeDeployData, toHex } from "viem";
 
 describeSuite({
   id: "D023807",
   title: "TxPool - Pending Ethereum transaction",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let txHash: string;
 
     beforeAll(async () => {

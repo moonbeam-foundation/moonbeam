@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  alith,
+  beforeEach,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { decodeEventLog } from "viem";
 import {
   Referenda,
@@ -14,7 +20,7 @@ describeSuite({
   id: "D022747",
   title: "Precompiles - Referenda precompile",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let proposalIndex: number;
     const { abi: referendaAbi } = fetchCompiledContract("Referenda");
     let referenda: Referenda;

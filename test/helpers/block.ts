@@ -1,12 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { type DevModeContext, expect } from "@moonwall/cli";
-import {
-  type BlockRangeOption,
-  EXTRINSIC_BASE_WEIGHT,
-  WEIGHT_PER_GAS,
-  mapExtrinsics,
-} from "@moonwall/util";
+import type { DevModeContext } from "moonwall";
+import { EXTRINSIC_BASE_WEIGHT, WEIGHT_PER_GAS, expect, mapExtrinsics } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
+
+export interface BlockRangeOption {
+  from: number;
+  to: number;
+  concurrency?: number;
+}
 import type { TxWithEvent } from "@polkadot/api-derive/types";
 import type { Option, u128, u32 } from "@polkadot/types";
 import type { ITuple } from "@polkadot/types-codec/types";
@@ -16,7 +17,7 @@ import type { AccountId20, Block } from "@polkadot/types/interfaces/runtime/type
 import chalk from "chalk";
 import type { Debugger } from "debug";
 import Debug from "debug";
-import { calculateFeePortions, split } from "./fees.ts";
+import { calculateFeePortions } from "./fees.ts";
 import { getFeesTreasuryProportion } from "./parameters.ts";
 
 const debug = Debug("test:blocks");

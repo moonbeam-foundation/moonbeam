@@ -1,13 +1,19 @@
 import "@moonbeam-network/api-augment";
-import { deployCreateCompiledContract, describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR } from "@moonwall/util";
-import { alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  alith,
+  beforeAll,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "moonwall";
 
 describeSuite({
   id: "D010503",
   title: "Proxy Call for Contract",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
 
     beforeAll(async () => {

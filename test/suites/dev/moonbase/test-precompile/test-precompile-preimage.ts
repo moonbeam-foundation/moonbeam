@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { type Abi, decodeEventLog } from "viem";
 import { Preimage, expectEVMResult, expectSubstrateEvent } from "../../../../helpers";
 
@@ -9,7 +9,7 @@ describeSuite({
   id: "D022738",
   title: "Precompiles - Preimage precompile",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let PreimageAbi: Abi;
     let preimage: Preimage;
 

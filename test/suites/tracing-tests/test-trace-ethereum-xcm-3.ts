@@ -1,4 +1,4 @@
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, customDevRpcRequest, describeSuite, expect } from "moonwall";
 import {
   XcmFragment,
   injectHrmpMessage,

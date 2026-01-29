@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { alith, baltathar, beforeAll, describeSuite, ethan, expect } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
-import { alith, baltathar, ethan } from "@moonwall/util";
 import type { FrameSupportPalletId } from "@polkadot/types/lookup";
 
 describeSuite({

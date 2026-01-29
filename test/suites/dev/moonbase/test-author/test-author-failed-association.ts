@@ -1,12 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   ALITH_SESSION_ADDRESS,
   BALTATHAR_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
   baltathar,
-} from "@moonwall/util";
+  beforeAll,
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
@@ -14,7 +16,7 @@ describeSuite({
   id: "D020202",
   title: "Author Mapping - Fail to reassociate alice",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
 
     beforeAll(async () => {

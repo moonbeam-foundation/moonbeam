@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import { encodeFunctionData } from "viem";
 import { deployedContractsInLatestBlock } from "../../../../helpers";
 
@@ -7,7 +7,7 @@ describeSuite({
   id: "D010414",
   title: "Precompiles - Validate PrecompileChecks",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let multiplyBy7Contract;
 
     beforeAll(async () => {

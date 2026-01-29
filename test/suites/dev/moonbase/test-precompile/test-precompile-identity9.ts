@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, beforeAll, describeSuite, expect } from "moonwall";
 import { expectEVMResult, PRECOMPILE_IDENTITY_ADDRESS } from "../../../../helpers";
 
 describeSuite({
   id: "D022733",
   title: "Precompiles - Identity precompile - set fields",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     beforeAll(async function () {
       await context.createBlock(
         context

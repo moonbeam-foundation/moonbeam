@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, ALITH_PRIVATE_KEY } from "@moonwall/util";
+import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, beforeAll, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D022717",
   title: "Precompiles - ecrecover",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
 
     beforeAll(async function () {

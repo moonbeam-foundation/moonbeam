@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite } from "@moonwall/cli";
-import { DOROTHY_ADDRESS, dorothy } from "@moonwall/util";
+import { DOROTHY_ADDRESS, describeSuite, dorothy, expect } from "moonwall";
 import { calculate_vested_amount, getAccountPayable } from "../../../../helpers/crowdloan.js";
 import { jumpBlocks } from "../../../../helpers/block.js";
 

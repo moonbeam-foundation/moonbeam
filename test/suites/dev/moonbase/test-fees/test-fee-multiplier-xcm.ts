@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, type KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
+import {
+  BALTATHAR_ADDRESS,
+  alith,
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 import { bnToHex } from "@polkadot/util";
 import {
   type RawXcmMessage,
@@ -47,7 +54,6 @@ describeSuite({
   title: "Fee Multiplier - XCM Executions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    const startingBn = 2000000000000000000n;
     let sendingAddress: string;
     let random: KeyringPair;
     let transferredBalance: bigint;
@@ -238,10 +244,6 @@ describeSuite({
         const transferCallEncodedV1 = context
           .polkadotJs()
           .tx.ethereumXcm.transact(xcmTransactions[0] as any)
-          .method.toHex();
-        const transferCallEncodedV2 = context
-          .polkadotJs()
-          .tx.ethereumXcm.transact(xcmTransactions[1] as any)
           .method.toHex();
 
         const initialValue = await context

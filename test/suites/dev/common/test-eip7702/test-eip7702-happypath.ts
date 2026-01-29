@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { sendRawTransaction } from "@moonwall/util";
+import {
+  beforeAll,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+  sendRawTransaction,
+} from "moonwall";
 import { keccak256, concat, encodeFunctionData, numberToHex, type Abi } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createViemTransaction } from "./helpers";
@@ -281,7 +286,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await getTransactionReceiptWithRetry(context, hash);
+        await getTransactionReceiptWithRetry(context, hash);
 
         // Check that delegation did not occur due to invalid nonce
         const codeAtDelegator = await context.viem().getCode({
@@ -442,7 +447,7 @@ describeSuite({
             });
             console.log(`🐛 BUG: Balance still accessible after clear: ${balanceAfterClear}`);
             expect.fail("🐛 BUG: Balance still accessible after clear: ${balanceAfterClear}");
-          } catch (error) {
+          } catch {
             console.log("✅ Function calls properly fail after clearing");
           }
         }
@@ -489,7 +494,7 @@ describeSuite({
         const hash = await sendRawTransaction(context, signature);
         await context.createBlock();
 
-        const receipt = await getTransactionReceiptWithRetry(context, hash);
+        await getTransactionReceiptWithRetry(context, hash);
 
         // Check that delegation did not occur due to chain ID mismatch
         const codeAtDelegator = await context.viem().getCode({

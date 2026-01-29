@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import { expectEVMResult } from "../../../../helpers";
 
 const CONTRACT_NAME = "P256Verify";
@@ -9,7 +9,7 @@ describeSuite({
   id: "D022735",
   title: "Precompiles - p256verify",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
 
     beforeAll(async function () {

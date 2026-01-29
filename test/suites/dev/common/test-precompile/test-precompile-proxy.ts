@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -17,7 +16,10 @@ import {
   PRECOMPILE_PROXY_ADDRESS,
   alith,
   createViemTransaction,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeFunctionData, parseEther } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectEVMResult } from "../../../../helpers";
@@ -26,7 +28,7 @@ describeSuite({
   id: "D010418",
   title: "Precompile - Proxy",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     it({
       id: "T01",
       title: "should fail re-adding proxy account",

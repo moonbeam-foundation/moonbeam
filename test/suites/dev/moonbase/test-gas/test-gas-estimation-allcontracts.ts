@@ -1,19 +1,16 @@
 import "@moonbeam-network/api-augment";
 import {
-  type EthTransactionType,
+  ALITH_ADDRESS,
   TransactionTypes,
   beforeAll,
+  createEthersTransaction,
   customDevRpcRequest,
   describeSuite,
   expect,
-  fetchCompiledContract,
-} from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  createEthersTransaction,
   faith,
+  fetchCompiledContract,
   getAllCompiledContracts,
-} from "@moonwall/util";
+} from "moonwall";
 import { randomBytes } from "ethers";
 import { encodeDeployData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
@@ -22,7 +19,7 @@ describeSuite({
   id: "D021702",
   title: "Estimate Gas - Multiply",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const contractNames = getAllCompiledContracts("contracts/out", true);
 
     beforeAll(async function () {

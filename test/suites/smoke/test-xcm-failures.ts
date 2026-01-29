@@ -7,8 +7,7 @@ import {
   isMuted,
   ForeignChainsEndpoints,
 } from "../../helpers/foreign-chains.js";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { getBlockArray, FIVE_MINS, ONE_HOURS } from "@moonwall/util";
+import { FIVE_MINS, ONE_HOURS, beforeAll, describeSuite, expect, getBlockArray } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : ONE_HOURS;

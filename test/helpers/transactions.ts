@@ -1,6 +1,6 @@
 // Ethers is used to handle post-london transactions
-import type { DevModeContext } from "@moonwall/cli";
-import { createViemTransaction } from "@moonwall/util";
+import type { DevModeContext } from "moonwall";
+import { createViemTransaction } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
 

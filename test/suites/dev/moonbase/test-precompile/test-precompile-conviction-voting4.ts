@@ -1,12 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   ETHAN_ADDRESS,
   ETHAN_PRIVATE_KEY,
   GLMR,
-} from "@moonwall/util";
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { type Abi, decodeEventLog } from "viem";
 import {
   ConvictionVoting,
@@ -20,7 +24,7 @@ describeSuite({
   id: "D022711",
   title: "Precompiles - Conviction on General Admin Track",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVotingAbi: Abi;
     let convictionVoting: ConvictionVoting;
@@ -34,7 +38,7 @@ describeSuite({
       convictionVoting = new ConvictionVoting(context);
       proposalIndex = await createProposal({ context, track: "generaladmin" });
 
-      const block = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
+      await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
       // Verifies the setup is correct
       const referendum = await context
         .polkadotJs()

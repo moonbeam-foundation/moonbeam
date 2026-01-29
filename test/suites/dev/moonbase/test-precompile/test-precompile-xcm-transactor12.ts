@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, ALITH_PRIVATE_KEY } from "@moonwall/util";
+import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, beforeAll, describeSuite, expect } from "moonwall";
 import { fromBytes } from "viem";
 import {
   verifyLatestBlockFees,
@@ -17,7 +16,7 @@ describeSuite({
   id: "D022769",
   title: "Precompiles - xcm transactor V3",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let xcmTransactorCaller;
     const ALITH_TRANSACTOR_INDEX = 0;
     const SM_TRANSACTOR_INDEX = 1;

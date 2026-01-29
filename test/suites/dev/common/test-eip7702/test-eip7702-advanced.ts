@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { sendRawTransaction } from "@moonwall/util";
+import {
+  beforeAll,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+  sendRawTransaction,
+} from "moonwall";
 import { encodeFunctionData, decodeFunctionResult, type Abi, parseEther } from "viem";
 import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
@@ -23,9 +28,6 @@ describeSuite({
     let chainId: number;
 
     // Precompile addresses
-    const ecrecoverPrecompile = "0x0000000000000000000000000000000000000001";
-    const sha256Precompile = "0x0000000000000000000000000000000000000002";
-    const ripemd160Precompile = "0x0000000000000000000000000000000000000003";
     const identityPrecompile = "0x0000000000000000000000000000000000000004";
 
     beforeAll(async () => {

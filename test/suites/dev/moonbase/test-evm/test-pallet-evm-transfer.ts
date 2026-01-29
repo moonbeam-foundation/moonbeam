@@ -1,11 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
   baltathar,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 
 // A call from root (sudo) can make a transfer directly in pallet_evm
 // A signed call cannot make a transfer directly in pallet_evm

@@ -1,6 +1,5 @@
-import { describeSuite, type DevModeContext, expect } from "@moonwall/cli";
+import { alith, describeSuite, expect } from "moonwall";
 import "@moonbeam-network/api-augment";
-import { alith } from "@moonwall/util";
 
 export const UNIT = 1_000_000_000_000_000_000n;
 
@@ -45,7 +44,7 @@ describeSuite({
   id: "D022403",
   title: "Parameters",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     let testCounter = 0;
 
     function testParam(module: string, name: string, valueCreation: [string, unknown]) {
