@@ -249,7 +249,7 @@ describeSuite({
         expect(evmLog.args.from).to.equal(ETHAN_ADDRESS);
         expect(evmLog.args.to).to.equal(ALITH_ADDRESS);
         expect(evmLog.args.delegatedAmount).to.equal(amount);
-        expect(evmLog.args.conviction).to.equal(conviction);
+        expect(evmLog.args.conviction).to.equal(Number(conviction));
 
         // Verifies the Substrate side
         const {
