@@ -349,6 +349,15 @@ pub mod pallet {
 	}
 }
 
+/// Helper function to compute fee amount from weight and asset location.
+/// This is used by the XcmTransactorFeeTrader adapter implementation.
+pub fn compute_fee_amount<T: Config>(
+	weight: Weight,
+	asset_location: &Location,
+) -> Result<u128, xcm::v5::Error> {
+	Trader::<T>::compute_amount_to_charge(&weight, asset_location)
+}
+
 pub struct Trader<T: crate::Config>(Weight, Option<Asset>, core::marker::PhantomData<T>);
 
 impl<T: crate::Config> Trader<T> {
