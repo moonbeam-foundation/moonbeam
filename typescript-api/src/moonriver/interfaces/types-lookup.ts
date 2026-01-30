@@ -7287,13 +7287,14 @@ declare module "@polkadot/types/lookup" {
     readonly isGasPriceTooLow: boolean;
     readonly isInvalidNonce: boolean;
     readonly isGasLimitTooLow: boolean;
-    readonly isGasLimitTooHigh: boolean;
+    readonly isGasLimitExceedsBlockLimit: boolean;
     readonly isInvalidChainId: boolean;
     readonly isInvalidSignature: boolean;
     readonly isReentrancy: boolean;
     readonly isTransactionMustComeFromEOA: boolean;
     readonly isUndefined: boolean;
     readonly isCreateOriginNotAllowed: boolean;
+    readonly isTransactionGasLimitExceedsCap: boolean;
     readonly type:
       | "BalanceLow"
       | "FeeOverflow"
@@ -7302,13 +7303,14 @@ declare module "@polkadot/types/lookup" {
       | "GasPriceTooLow"
       | "InvalidNonce"
       | "GasLimitTooLow"
-      | "GasLimitTooHigh"
+      | "GasLimitExceedsBlockLimit"
       | "InvalidChainId"
       | "InvalidSignature"
       | "Reentrancy"
       | "TransactionMustComeFromEOA"
       | "Undefined"
-      | "CreateOriginNotAllowed";
+      | "CreateOriginNotAllowed"
+      | "TransactionGasLimitExceedsCap";
   }
 
   /** @name FpRpcTransactionStatus (616) */
