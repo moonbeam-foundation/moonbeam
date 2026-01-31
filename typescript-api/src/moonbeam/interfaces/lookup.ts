@@ -6169,13 +6169,14 @@ export default {
       "GasPriceTooLow",
       "InvalidNonce",
       "GasLimitTooLow",
-      "GasLimitTooHigh",
+      "GasLimitExceedsBlockLimit",
       "InvalidChainId",
       "InvalidSignature",
       "Reentrancy",
       "TransactionMustComeFromEOA",
       "Undefined",
-      "CreateOriginNotAllowed"
+      "CreateOriginNotAllowed",
+      "TransactionGasLimitExceedsCap"
     ]
   },
   /**
