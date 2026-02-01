@@ -176,7 +176,7 @@ jobs:
       issues: write
     steps:
       - name: Download all results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: results
           pattern: bootnode-results-*
