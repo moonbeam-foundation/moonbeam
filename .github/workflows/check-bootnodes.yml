@@ -162,7 +162,7 @@ jobs:
           } > reports/${{ matrix.network.name }}.txt
 
       - name: Upload results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bootnode-results-${{ matrix.network.name }}
           path: reports/
