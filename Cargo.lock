@@ -10485,6 +10485,7 @@ dependencies = [
  "pallet-evm",
  "pallet-timestamp",
  "pallet-xcm",
+ "pallet-xcm-weight-trader",
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
