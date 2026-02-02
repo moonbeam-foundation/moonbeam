@@ -620,7 +620,9 @@ macro_rules! impl_runtime_apis_plus_common {
 
 				fn initialize_pending_block(header: &<Block as BlockT>::Header) {
 					pallet_randomness::vrf::using_fake_vrf(|| {
-						let _ = Executive::initialize_block(header);
+						pallet_author_slot_filter::using_fake_author(|| {
+							let _ = Executive::initialize_block(header);
+						})
 					})
 				}
 			}
