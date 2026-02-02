@@ -20,6 +20,7 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::traits::ConstU32;
+use frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND;
 use frame_support::{
 	dispatch::{GetDispatchInfo, PostDispatchInfo},
 	traits::OriginTrait,
@@ -147,7 +148,7 @@ where
 		// max encoded len: hash (16) + Multilocation + u128 (16)
 		handle.record_db_read::<Runtime>(32 + Location::max_encoded_len())?;
 
-		let weight_per_second = Weight::from_parts(1_000_000_000_000u64, DEFAULT_PROOF_SIZE);
+		let weight_per_second = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND, DEFAULT_PROOF_SIZE);
 
 		let amount = compute_fee_amount::<Runtime>(weight_per_second, &location).map_err(|_| {
 			RevertReason::custom("Asset not supported as fee payment").in_field("multilocation")
