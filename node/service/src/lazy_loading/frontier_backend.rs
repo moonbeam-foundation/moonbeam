@@ -107,4 +107,16 @@ where
 	async fn latest_block_hash(&self) -> Result<Block::Hash, String> {
 		self.frontier_backend.latest_block_hash().await
 	}
+
+	async fn block_hash_by_number(&self, block_number: u64) -> Result<Option<H256>, String> {
+		let block = self
+			.rpc_client
+			.block_by_number(
+				fc_rpc_v2_api::types::BlockNumberOrTag::Number(block_number),
+				false,
+			)
+			.map_err(|e| format!("failed to get block by number: {:?}", e))?;
+
+		Ok(block.map(|b| b.header.hash))
+	}
 }
