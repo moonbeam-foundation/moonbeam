@@ -143,7 +143,14 @@ mod tests {
 		// Test: Parachain(2) + AccountKey20
 		let location = Location {
 			parents: 1,
-			interior: [Parachain(2), AccountKey20 { network: None, key: [1u8; 20] }].into(),
+			interior: [
+				Parachain(2),
+				AccountKey20 {
+					network: None,
+					key: [1u8; 20],
+				},
+			]
+			.into(),
 		};
 
 		let (chain_part, beneficiary) =
@@ -152,13 +159,23 @@ mod tests {
 		// Chain part should be Parachain(2)
 		assert_eq!(
 			chain_part,
-			Location { parents: 1, interior: [Parachain(2)].into() }
+			Location {
+				parents: 1,
+				interior: [Parachain(2)].into()
+			}
 		);
 
 		// Beneficiary should be AccountKey20
 		assert_eq!(
 			beneficiary,
-			Location { parents: 0, interior: [AccountKey20 { network: None, key: [1u8; 20] }].into() }
+			Location {
+				parents: 0,
+				interior: [AccountKey20 {
+					network: None,
+					key: [1u8; 20]
+				}]
+				.into()
+			}
 		);
 	}
 
@@ -166,7 +183,10 @@ mod tests {
 	fn test_split_location_multiple_beneficiary_junctions_order_preserved() {
 		// Test: Parachain(100) + AccountId32 + GeneralIndex(42)
 		// This test verifies that the order is preserved (AccountId32 comes before GeneralIndex)
-		let account_id = AccountId32 { network: None, id: [2u8; 32] };
+		let account_id = AccountId32 {
+			network: None,
+			id: [2u8; 32],
+		};
 		let general_index = GeneralIndex(42);
 
 		let location = Location {
@@ -180,7 +200,10 @@ mod tests {
 		// Chain part should be Parachain(100)
 		assert_eq!(
 			chain_part,
-			Location { parents: 1, interior: [Parachain(100)].into() }
+			Location {
+				parents: 1,
+				interior: [Parachain(100)].into()
+			}
 		);
 
 		// Beneficiary should preserve order: AccountId32, then GeneralIndex
@@ -197,7 +220,10 @@ mod tests {
 	fn test_split_location_three_beneficiary_junctions_order_preserved() {
 		// Test: Parachain(200) + PalletInstance(5) + AccountId32 + GeneralIndex(10)
 		let pallet = PalletInstance(5);
-		let account_id = AccountId32 { network: None, id: [3u8; 32] };
+		let account_id = AccountId32 {
+			network: None,
+			id: [3u8; 32],
+		};
 		let general_index = GeneralIndex(10);
 
 		let location = Location {
@@ -211,7 +237,10 @@ mod tests {
 		// Chain part should be Parachain(200)
 		assert_eq!(
 			chain_part,
-			Location { parents: 1, interior: [Parachain(200)].into() }
+			Location {
+				parents: 1,
+				interior: [Parachain(200)].into()
+			}
 		);
 
 		// Beneficiary should preserve order: PalletInstance, AccountId32, GeneralIndex
@@ -227,7 +256,10 @@ mod tests {
 	#[test]
 	fn test_split_location_with_global_consensus() {
 		// Test: GlobalConsensus(Polkadot) + Parachain(1) + AccountId32
-		let account_id = AccountId32 { network: None, id: [4u8; 32] };
+		let account_id = AccountId32 {
+			network: None,
+			id: [4u8; 32],
+		};
 
 		let location = Location {
 			parents: 1,
@@ -256,14 +288,20 @@ mod tests {
 		// Beneficiary should be AccountId32
 		assert_eq!(
 			beneficiary,
-			Location { parents: 0, interior: [account_id].into() }
+			Location {
+				parents: 0,
+				interior: [account_id].into()
+			}
 		);
 	}
 
 	#[test]
 	fn test_split_location_parent_only() {
 		// Test: Parent + AccountId32
-		let account_id = AccountId32 { network: None, id: [5u8; 32] };
+		let account_id = AccountId32 {
+			network: None,
+			id: [5u8; 32],
+		};
 
 		let location = Location {
 			parents: 1,
@@ -279,7 +317,10 @@ mod tests {
 		// Beneficiary should be AccountId32
 		assert_eq!(
 			beneficiary,
-			Location { parents: 0, interior: [account_id].into() }
+			Location {
+				parents: 0,
+				interior: [account_id].into()
+			}
 		);
 	}
 
@@ -288,8 +329,14 @@ mod tests {
 		// Test with multiple junctions to verify order is NOT reversed
 		// Original: [Parachain(300), JunctionA, JunctionB, JunctionC]
 		// Expected beneficiary: [JunctionA, JunctionB, JunctionC] (same order)
-		let junction_a = AccountKey20 { network: None, key: [10u8; 20] };
-		let junction_b = AccountId32 { network: None, id: [20u8; 32] };
+		let junction_a = AccountKey20 {
+			network: None,
+			key: [10u8; 20],
+		};
+		let junction_b = AccountId32 {
+			network: None,
+			id: [20u8; 32],
+		};
 		let junction_c = GeneralIndex(30);
 
 		let location = Location {
@@ -303,17 +350,32 @@ mod tests {
 		// Verify chain part
 		assert_eq!(
 			chain_part,
-			Location { parents: 1, interior: [Parachain(300)].into() }
+			Location {
+				parents: 1,
+				interior: [Parachain(300)].into()
+			}
 		);
 
 		// Verify beneficiary order is preserved (A, B, C - not reversed)
 		let beneficiary_interior = beneficiary.interior;
 		match beneficiary_interior {
 			Junctions::X3(junctions) => {
-				assert_eq!(junctions[0], Junction::AccountKey20 { network: None, key: [10u8; 20] });
-				assert_eq!(junctions[1], Junction::AccountId32 { network: None, id: [20u8; 32] });
+				assert_eq!(
+					junctions[0],
+					Junction::AccountKey20 {
+						network: None,
+						key: [10u8; 20]
+					}
+				);
+				assert_eq!(
+					junctions[1],
+					Junction::AccountId32 {
+						network: None,
+						id: [20u8; 32]
+					}
+				);
 				assert_eq!(junctions[2], Junction::GeneralIndex(30));
-			},
+			}
 			_ => panic!("Expected X3 junctions"),
 		}
 	}
@@ -332,11 +394,20 @@ mod tests {
 		// Chain part should be Parachain(400)
 		assert_eq!(
 			chain_part,
-			Location { parents: 1, interior: [Parachain(400)].into() }
+			Location {
+				parents: 1,
+				interior: [Parachain(400)].into()
+			}
 		);
 
 		// Beneficiary should be Here (empty)
-		assert_eq!(beneficiary, Location { parents: 0, interior: Junctions::Here });
+		assert_eq!(
+			beneficiary,
+			Location {
+				parents: 0,
+				interior: Junctions::Here
+			}
+		);
 	}
 
 	#[test]
@@ -344,7 +415,11 @@ mod tests {
 		// Test: Only beneficiary junctions, no chain identifier (should return None)
 		let location = Location {
 			parents: 0,
-			interior: [AccountId32 { network: None, id: [6u8; 32] }].into(),
+			interior: [AccountId32 {
+				network: None,
+				id: [6u8; 32],
+			}]
+			.into(),
 		};
 
 		let result = split_location_into_chain_part_and_beneficiary(location);
@@ -356,7 +431,11 @@ mod tests {
 		// Test: Wrong parent count (not 1)
 		let location = Location {
 			parents: 2,
-			interior: [AccountId32 { network: None, id: [7u8; 32] }].into(),
+			interior: [AccountId32 {
+				network: None,
+				id: [7u8; 32],
+			}]
+			.into(),
 		};
 
 		let result = split_location_into_chain_part_and_beneficiary(location);
