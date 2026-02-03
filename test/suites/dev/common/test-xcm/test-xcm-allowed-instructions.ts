@@ -12,9 +12,9 @@ import {
 import { parseEther } from "ethers";
 import type { ApiPromise } from "@polkadot/api";
 
-// Here we are testing each allowed instruction to be executed. Even if some of them throw an error,
-// the important thing (and what we are testing) is that they are
-// executed and are not blocked with 'WeightNotComputable' due to using max weight.
+// Here we are testing that instructions with finite weights are executed.
+// Some instructions (like `UniversalOrigin`) are now intentionally priced with
+// `Weight::MAX` in the runtime and are therefore treated as unsupported.
 describeSuite({
   id: "D010702",
   title: "XCM - Max Weight Instructions",
@@ -57,7 +57,7 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "Should allow UniversalOrigin instruction",
+      title: "UniversalOrigin is treated as unsupported (max weight)",
       test: async function () {
         const xcmMessage = new XcmFragment(dotAsset)
           .withdraw_asset()
@@ -75,8 +75,9 @@ describeSuite({
           .filter(({ event }) => api.events.messageQueue.Processed.is(event))
           .map((e) => e.event.data.toHuman() as { success: boolean });
 
-        expect(events).to.have.lengthOf(1);
-        expect(events[0].success).to.be.false; // Fails with InvalidLocation (Expected)
+        // UniversalOrigin is now weighted with Weight::MAX, so the message
+        // is rejected during weighing and never reaches the MessageQueue.
+        expect(events).to.have.lengthOf(0);
       },
     });
   },

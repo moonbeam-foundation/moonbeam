@@ -8,6 +8,7 @@ version = "0.1.0"
 [dependencies]
 
 # Moonbeam
+pallet-xcm-weight-trader = { workspace = true }
 xcm-primitives = { workspace = true }
 
 # Substrate
@@ -22,7 +23,7 @@ sp-weights = { workspace = true }
 # Frontier
 fp-evm = { workspace = true }
 pallet-evm = { workspace = true, features = ["forbid-evm-reentrancy"] }
-precompile-utils = { workspace = true }
+precompile-utils = { workspace = true, features = ["codec-xcm"] }
 
 # Polkadot
 pallet-xcm = { workspace = true }
@@ -56,6 +57,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-evm/std",
 	"pallet-timestamp/std",
+	"pallet-xcm-weight-trader/std",
 	"parity-scale-codec/std",
 	"precompile-utils/std",
 	"sp-core/std",
@@ -76,6 +78,7 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
 	"pallet-evm/runtime-benchmarks",
+	"pallet-xcm-weight-trader/runtime-benchmarks",
 	"cumulus-primitives-core/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",

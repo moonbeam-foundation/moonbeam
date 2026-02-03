@@ -19,6 +19,7 @@ use crate::mock::{
 	Precompiles, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
 };
 use core::str::from_utf8;
+use fp_evm::MAX_TRANSACTION_GAS_LIMIT;
 use frame_support::assert_ok;
 use frame_support::sp_runtime::Percent;
 use pallet_evm::Call as EvmCall;
@@ -37,8 +38,8 @@ fn evm_call(source: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 		target: Precompile1.into(),
 		input,
 		value: U256::zero(), // No value sent in EVM
-		gas_limit: u64::max_value(),
-		max_fee_per_gas: 0.into(),
+		gas_limit: MAX_TRANSACTION_GAS_LIMIT.low_u64(),
+		max_fee_per_gas: U256::zero(),
 		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None, // Use the next nonce
 		access_list: Vec::new(),
@@ -686,7 +687,7 @@ fn delegation_request_is_pending_works() {
 						candidate: Address(Alice.into()),
 					},
 				)
-				.expect_cost(269950747)
+				.expect_cost(10798)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -754,7 +755,7 @@ fn candidate_exit_is_pending_works() {
 						candidate_count: 1.into(),
 					},
 				)
-				.expect_cost(269680736)
+				.expect_cost(10787)
 				.expect_no_logs()
 				.execute_returns(());
 
@@ -818,7 +819,7 @@ fn candidate_request_is_pending_works() {
 					Precompile1,
 					PCall::schedule_candidate_bond_less { less: 0.into() },
 				)
-				.expect_cost(138000000)
+				.expect_cost(5520)
 				.expect_no_logs()
 				.execute_returns(());
 

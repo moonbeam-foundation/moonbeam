@@ -126,7 +126,6 @@ cumulus-relay-chain-interface = { workspace = true }
 cumulus-relay-chain-minimal-node = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 nimbus-consensus = { workspace = true }
-# TODO we should be able to depend only on the primitives crate once we move the inherent data provider there.
 nimbus-primitives = { workspace = true }
 polkadot-primitives = { workspace = true }
 xcm-runtime-apis = { workspace = true }

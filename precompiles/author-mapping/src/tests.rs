@@ -18,6 +18,7 @@ use crate::mock::{
 	events, AuthorMappingAccount, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime,
 	RuntimeCall, RuntimeOrigin,
 };
+use fp_evm::MAX_TRANSACTION_GAS_LIMIT;
 use frame_support::assert_ok;
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping::{keys_wrapper, Call as AuthorMappingCall, Event as AuthorMappingEvent};
@@ -38,8 +39,8 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 		target: Precompile1.into(),
 		input,
 		value: U256::zero(), // No value sent in EVM
-		gas_limit: u64::max_value(),
-		max_fee_per_gas: 0.into(),
+		gas_limit: MAX_TRANSACTION_GAS_LIMIT.low_u64(),
+		max_fee_per_gas: U256::zero(),
 		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None, // Use the next nonce
 		access_list: Vec::new(),

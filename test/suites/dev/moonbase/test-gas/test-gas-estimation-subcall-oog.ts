@@ -2,6 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
 import { ALITH_ADDRESS } from "@moonwall/util";
 import { type Abi, decodeEventLog, encodeFunctionData } from "viem";
+import { EIP_7825_MAX_TRANSACTION_GAS_LIMIT } from "../../../../helpers";
 
 describeSuite({
   id: "D021705",
@@ -13,7 +14,12 @@ describeSuite({
     let subCallOogAddress: `0x${string}`;
 
     const bloatedContracts: string[] = [];
-    const MAX_BLOATED_CONTRACTS = 15;
+    // Each bloated contract consumes PoV (contract code ~5KB) + execution + storage write
+    // Estimate ~3M gas per contract to fit within EIP-7825 gas limit
+    const ESTIMATED_GAS_PER_BLOATED_CONTRACT = 3_000_000n;
+    const MAX_BLOATED_CONTRACTS = Math.floor(
+      Number(EIP_7825_MAX_TRANSACTION_GAS_LIMIT / ESTIMATED_GAS_PER_BLOATED_CONTRACT)
+    );
 
     beforeAll(async function () {
       const { contractAddress: contractAddress2 } = await deployCreateCompiledContract(

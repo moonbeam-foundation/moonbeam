@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { describeSuite, expect } from "@moonwall/cli";
 import { createViemTransaction } from "@moonwall/util";
-import { ConstantStore } from "../../../../helpers/constants";
+import { ConstantStore, EIP_7825_MAX_TRANSACTION_GAS_LIMIT } from "../../../../helpers";
 import { hexToU8a } from "@polkadot/util";
 import { calculateEIP7623Gas } from "../../../../helpers/fees";
 
@@ -40,7 +40,7 @@ describeSuite({
 
         const tx = await createViemTransaction(context, {
           to: MODEXP_PRECOMPILE_ADDRESS,
-          gas: BigInt(constants.EXTRINSIC_GAS_LIMIT.get(specVersion.toNumber())),
+          gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
           data: inputData as `0x${string}`,
         });
 

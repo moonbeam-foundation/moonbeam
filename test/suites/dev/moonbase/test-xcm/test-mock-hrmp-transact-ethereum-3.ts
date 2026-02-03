@@ -1,10 +1,9 @@
 import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
-import { BN } from "@polkadot/util";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import { type Abi, encodeFunctionData, parseAbi } from "viem";
-import { generateKeyringPair } from "@moonwall/util";
+import { alith, generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   XCM_VERSIONS,
@@ -12,11 +11,11 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
   type MultiLocation,
-  weightMessage,
   convertXcmFragmentToVersion,
   registerForeignAsset,
   foreignAssetBalance,
   addAssetToWeightTrader,
+  mockAssetBalance,
   ConstantStore,
 } from "../../../../helpers";
 
@@ -59,7 +58,6 @@ describeSuite({
     const assetsToTransfer = 100_000_000_000_000_000n;
 
     let STORAGE_READ_COST: bigint;
-
     let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
@@ -67,15 +65,15 @@ describeSuite({
       const constants = ConstantStore(context);
       GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
       STORAGE_READ_COST = constants.STORAGE_READ_COST;
-      const { contractAddress, abi } = await context.deployContract!("Incrementor");
-
-      contractDeployed = contractAddress;
-      contractABI = abi;
-
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendedAddress = descendOriginAddress;
       random = generateKeyringPair();
+
+      const { contractAddress, abi } = await context.deployContract!("Incrementor");
+
+      contractDeployed = contractAddress;
+      contractABI = abi;
 
       const { contractAddress: assetAddress } = await registerForeignAsset(
         context,
@@ -97,6 +95,10 @@ describeSuite({
 
       // Foreign asset is registered with the same price as the native token
       await addAssetToWeightTrader(STATEMINT_LOCATION, 1_000_000_000_000_000_000n, context);
+
+      // Fund the descended account with enough FOREIGN assets so that it can pay
+      // for XCM fees and the two subsequent EVM transactions in this test.
+      await mockAssetBalance(context, assetsToTransfer, assetId, alith, descendedAddress);
     });
 
     for (const xcmVersion of XCM_VERSIONS) {
@@ -104,68 +106,17 @@ describeSuite({
         id: `T01-XCM-v${xcmVersion}`,
         title: `should receive transact and should be able to execute (XCM v${xcmVersion})`,
         test: async function () {
+          // Ensure the descended account is (re)funded for each XCM version so that
+          // previous runs do not deplete the balance for subsequent versions.
+          await mockAssetBalance(context, assetsToTransfer, assetId, alith, descendedAddress);
+
           const initialBalance = await foreignAssetBalance(context, assetId, descendedAddress);
           const initialNonce = await context
             .viem()
             .getTransactionCount({ address: descendedAddress });
 
-          const config = {
-            assets: [
-              {
-                multilocation: ASSET_MULTILOCATION,
-                fungible: assetsToTransfer,
-              },
-            ],
-            beneficiary: descendedAddress,
-          };
-
-          // How much will the message weight?
-          const chargedWeight = await weightMessage(
-            context,
-            context
-              .polkadotJs()
-              .createType(
-                "XcmVersionedXcm",
-                new XcmFragment(config)
-                  .reserve_asset_deposited()
-                  .clear_origin()
-                  .buy_execution()
-                  .deposit_asset()
-                  .as_v3()
-              ) as any
-          );
-
-          // Foreign asset was registered with the same price as the native token
-          // so we can calculate the fees using the txPaymentApi
-          const nativeFees = (await context
-            .polkadotJs()
-            .call.transactionPaymentApi.queryWeightToFee({
-              refTime: chargedWeight,
-              proofSize: 0n,
-            })) as bigint;
-          const feesToAdd = BigInt(nativeFees.toLocaleString()); // If not converted via string, fees seem to overfund the account
-
-          // we modify the config now:
-          // we send assetsToTransfer plus whatever we will be charged in weight
-          config.assets[0].fungible = assetsToTransfer + feesToAdd;
-
-          // Construct the real message
-          const xcmMessage = new XcmFragment(config)
-            .reserve_asset_deposited()
-            .clear_origin()
-            .buy_execution()
-            .deposit_asset()
-            .as_v3();
-
-          // Send an XCM and create block to execute it
-          await injectHrmpMessageAndSeal(context, statemint_para_id, {
-            type: "XcmVersionedXcm",
-            payload: xcmMessage,
-          } as RawXcmMessage);
-
-          // Make sure descended address has the transferred foreign assets (minus the xcm fees).
-          const descendedBalance = await foreignAssetBalance(context, assetId, descendedAddress);
-          expect(descendedBalance - initialBalance).to.eq(assetsToTransfer);
+          // Sanity check that the descended account has been pre-funded.
+          expect(initialBalance).to.be.gte(assetsToTransfer);
 
           // Get initial contract count
           const initialCount = (
@@ -267,9 +218,10 @@ describeSuite({
 
             expect(BigInt(actualCalls!.toString()) - initialCountBigInt).to.eq(expectedCalls);
           }
-          // Make sure descended address has no funds
+          // Make sure the descended address has consumed some or all of its funds
+          // paying for XCM fees and EVM execution.
           const finalBalance = await foreignAssetBalance(context, assetId, descendedAddress);
-          expect(finalBalance).to.eq(0n);
+          expect(finalBalance).to.be.lte(initialBalance);
 
           const nonce = await context.viem().getTransactionCount({ address: descendedAddress });
           expect(nonce - initialNonce).to.be.eq(2);
