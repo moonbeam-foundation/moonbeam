@@ -40,6 +40,7 @@ mod fee_trader;
 pub use fee_trader::*;
 
 use sp_std::sync::Arc;
+use sp_std::vec::Vec;
 use xcm::latest::{Junction, Junctions, Location};
 
 /// Build Junctions from a slice of junctions
