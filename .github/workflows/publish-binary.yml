@@ -131,7 +131,7 @@ jobs:
         run: |
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           VERSION="${{ github.event.inputs.to }}"
-          TAG="${VERSION}-rc"
+          TAG="${VERSION}-rc2"
 
           echo "tags=${DOCKER_IMAGE}:${TAG}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
