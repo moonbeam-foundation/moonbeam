@@ -32,6 +32,18 @@ fn setup_xcm_router<T: Config>() {
 	T::XcmSender::ensure_successful_delivery(Some(Location::parent()));
 }
 
+/// Relative price used in benchmarks when `fee_amount: None`.
+///
+/// We use a single relative-price value for all benchmark environments (unit tests and real
+/// runtimes), and align test `FeeTrader` behavior with the real pallet.
+///
+/// We deliberately pick a **high** relative price so that the computed fee stays below the
+/// runtime's HRMP max-fee filter (`MaxHrmpRelayFee` is `1e12` for relay asset in Moon* runtimes),
+/// even for the `hrmp_manage` benchmark which includes large extra weight.
+///
+/// In `pallet-xcm-weight-trader` semantics (18 decimals), larger prices mean cheaper fees.
+const BENCHMARK_RELATIVE_PRICE: u128 = 1_000_000_000_000_000_000_000_000u128; // 1e24
+
 #[benchmarks(
 	where T::Transactor: Default, T::CurrencyId: From<Location>
 )]
@@ -126,7 +138,6 @@ mod benchmarks {
 		// Set up XCM router for benchmarks
 		setup_xcm_router::<T>();
 
-		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = Location::parent();
@@ -142,7 +153,7 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), BENCHMARK_RELATIVE_PRICE)
 			.expect("must succeed");
 		Pallet::<T>::register(RawOrigin::Root.into(), user.clone(), 0).expect("must succeed");
 
@@ -183,7 +194,6 @@ mod benchmarks {
 		// Set up XCM router for benchmarks
 		setup_xcm_router::<T>();
 
-		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = Location::parent();
@@ -199,7 +209,7 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), BENCHMARK_RELATIVE_PRICE)
 			.expect("must succeed");
 
 		#[block]
@@ -240,7 +250,6 @@ mod benchmarks {
 		// Set up XCM router for benchmarks
 		setup_xcm_router::<T>();
 
-		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = Location::parent();
@@ -256,7 +265,7 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), BENCHMARK_RELATIVE_PRICE)
 			.expect("must succeed");
 
 		#[extrinsic_call]
@@ -286,7 +295,6 @@ mod benchmarks {
 		// Set up XCM router for benchmarks
 		setup_xcm_router::<T>();
 
-		let fee_per_second = 1;
 		let extra_weight: Weight = Weight::from_parts(300000000u64, 0);
 		let max_weight: Weight = Weight::from_parts(20000000000u64, u64::MAX);
 		let location = Location::parent();
@@ -300,7 +308,7 @@ mod benchmarks {
 			Some(extra_weight),
 		)
 		.expect("must succeed");
-		<T as Config>::FeeTrader::set_asset_price(location.clone(), fee_per_second)
+		<T as Config>::FeeTrader::set_asset_price(location.clone(), BENCHMARK_RELATIVE_PRICE)
 			.expect("must succeed");
 
 		#[extrinsic_call]
