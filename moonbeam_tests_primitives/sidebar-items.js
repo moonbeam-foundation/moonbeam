@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["MemoryFeeTrader"]};
+window.SIDEBAR_ITEMS = {"constant":["RELATIVE_PRICE_DECIMALS"],"struct":["MemoryFeeTrader"]};
