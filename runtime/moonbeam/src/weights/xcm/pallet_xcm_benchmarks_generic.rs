@@ -160,6 +160,13 @@ impl<T: frame_system::Config> WeightInfo<T> {
 		// Minimum execution time: 7_000_000 picoseconds.
 		Weight::from_parts(7_000_000, 0)
 	}
+	pub(crate) fn universal_origin() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 7_000_000 picoseconds.
+		Weight::from_parts(7_000_000, 0)
+	}
 	/// Storage: `Benchmark::Override` (r:0 w:0)
 	/// Proof: `Benchmark::Override` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	pub(crate) fn execute_with_origin() -> Weight {
