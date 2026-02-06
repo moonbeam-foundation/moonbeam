@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { charleth, getBlockExtrinsic } from "@moonwall/util";
+import { beforeAll, charleth, describeSuite, expect, getBlockExtrinsic } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 
 // Keys used to set author-mapping in the tests
@@ -15,7 +14,7 @@ describeSuite({
   id: "D020203",
   title: "Author Mapping - Set Charlie first time keys",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it, log }) => {
     let api: ApiPromise;
 
     beforeAll(async function () {

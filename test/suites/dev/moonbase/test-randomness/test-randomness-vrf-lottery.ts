@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR } from "@moonwall/util";
+import { GLMR, beforeAll, describeSuite, expect } from "moonwall";
 import { setupLotteryWithParticipants } from "../../../../helpers";
 
 describeSuite({
   id: "D023011",
   title: "Randomness VRF - Preparing Lottery Demo",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let lotteryContract: `0x${string}`;
 
     beforeAll(async function () {

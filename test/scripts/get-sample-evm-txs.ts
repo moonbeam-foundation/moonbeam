@@ -97,7 +97,7 @@ const main = async () => {
       const sample: Sample = {
         network: network.name,
         runtime: runtime.specVersion,
-        blockNumber: Number.parseInt(block.number.toString()),
+        blockNumber: Number.parseInt(block.number.toString(), 10),
         txHash: block.transactions[0],
       };
       samples.push(sample);

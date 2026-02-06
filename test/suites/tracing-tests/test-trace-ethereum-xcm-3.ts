@@ -1,4 +1,4 @@
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, customDevRpcRequest, describeSuite, expect } from "moonwall";
 import {
   XcmFragment,
   injectHrmpMessage,
@@ -70,7 +70,7 @@ describeSuite({
       for (const [paraId, sendingAddress] of [
         [1, sendingAddress1],
         [2, sendingAddress2],
-      ]) {
+      ] as [number, `0x${string}`][]) {
         const xcmMessage = new XcmFragment({
           assets: [
             {

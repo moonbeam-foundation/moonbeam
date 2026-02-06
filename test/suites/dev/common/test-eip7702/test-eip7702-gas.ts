@@ -1,7 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { encodeFunctionData, type Abi, parseEther } from "viem";
-import { sendRawTransaction } from "@moonwall/util";
+import {
+  beforeAll,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+  sendRawTransaction,
+} from "moonwall";
+import { encodeFunctionData, type Abi } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
@@ -20,7 +25,6 @@ describeSuite({
     // EIP-7702 gas costs (from EIP-7702 specification)
     const PER_AUTH_BASE_COST = 12500n; // Cost for processing each authorization
     const PER_EMPTY_ACCOUNT_COST = 25000n; // Intrinsic cost per authorization in list
-    const PER_CONTRACT_CODE_BASE_COST = 2500n; // Moonbeam-specific implementation detail
 
     beforeAll(async () => {
       // Get the chainId from the RPC
@@ -387,7 +391,7 @@ describeSuite({
         };
 
         const setSignature = await createViemTransaction(context, setTx);
-        const setHash = await sendRawTransaction(context, setSignature);
+        await sendRawTransaction(context, setSignature);
         await context.createBlock();
 
         // Verify delegation is set

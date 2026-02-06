@@ -1,13 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
   PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
+  beforeAll,
   createViemTransaction,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 import { expectEVMResult, expectSubstrateEvent } from "../../../../helpers";
 
@@ -15,7 +18,7 @@ describeSuite({
   id: "D010415",
   title: "Treasury council precompile #1",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let collectivePrecompileAbi: Abi;
 
     beforeAll(async () => {
@@ -29,7 +32,7 @@ describeSuite({
       test: async function () {
         const proposal = context
           .polkadotJs()
-          .tx.treasury.spend(null, 10, BALTATHAR_ADDRESS, null)
+          .tx.treasury.spend(null as any, 10, BALTATHAR_ADDRESS, null as any)
           .method.toHex();
 
         // A council member attempts to approve the proposal on behalf of the council
@@ -45,7 +48,11 @@ describeSuite({
           })
         );
         expectEVMResult(block.result!.events, "Succeed");
-        const proposedEvent = expectSubstrateEvent(block, "treasuryCouncilCollective", "Proposed");
+        const proposedEvent = expectSubstrateEvent(
+          block as any,
+          "treasuryCouncilCollective",
+          "Proposed"
+        );
         const proposalResult: any = proposedEvent.data.toHuman();
         expect(proposalResult).toMatchObject({
           account: BALTATHAR_ADDRESS,
@@ -67,7 +74,7 @@ describeSuite({
           })
         );
         expectEVMResult(block2.result!.events, "Succeed");
-        let votedEvent = expectSubstrateEvent(block2, "treasuryCouncilCollective", "Voted");
+        let votedEvent = expectSubstrateEvent(block2 as any, "treasuryCouncilCollective", "Voted");
         expect(votedEvent.data.toHuman()).toMatchObject({
           account: BALTATHAR_ADDRESS,
           proposalHash: proposalResult.proposalHash,
@@ -88,7 +95,7 @@ describeSuite({
           })
         );
         expectEVMResult(block3.result!.events, "Succeed");
-        votedEvent = expectSubstrateEvent(block3, "treasuryCouncilCollective", "Voted");
+        votedEvent = expectSubstrateEvent(block3 as any, "treasuryCouncilCollective", "Voted");
         expect(votedEvent.data.toHuman()).toMatchObject({
           account: CHARLETH_ADDRESS,
           proposalHash: proposalResult.proposalHash,
@@ -102,7 +109,7 @@ describeSuite({
           createViemTransaction(context, {
             privateKey: CHARLETH_PRIVATE_KEY,
             to: PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
-            gas: 8_000_000,
+            gas: 8_000_000n,
             data: encodeFunctionData({
               abi: collectivePrecompileAbi,
               functionName: "close",
@@ -117,10 +124,18 @@ describeSuite({
         );
 
         expectEVMResult(block4.result!.events, "Succeed");
-        const approvedEvent = expectSubstrateEvent(block4, "treasuryCouncilCollective", "Approved");
-        const closedEvent = expectSubstrateEvent(block4, "treasuryCouncilCollective", "Closed");
+        const approvedEvent = expectSubstrateEvent(
+          block4 as any,
+          "treasuryCouncilCollective",
+          "Approved"
+        );
+        const closedEvent = expectSubstrateEvent(
+          block4 as any,
+          "treasuryCouncilCollective",
+          "Closed"
+        );
         const assetSpendApprovedEvent = expectSubstrateEvent(
-          block4,
+          block4 as any,
           "treasury",
           "AssetSpendApproved"
         );

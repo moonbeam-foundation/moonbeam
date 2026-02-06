@@ -1,5 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import {
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  extractSingleResult,
+  fetchCompiledContract,
+} from "moonwall";
 import { type Abi, decodeEventLog } from "viem";
 import { Preimage, expectEVMResult, expectSubstrateEvent } from "../../../../helpers";
 
@@ -9,7 +16,7 @@ describeSuite({
   id: "D022738",
   title: "Precompiles - Preimage precompile",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let PreimageAbi: Abi;
     let preimage: Preimage;
 
@@ -30,7 +37,7 @@ describeSuite({
         const block = await preimage.notePreimage(call.toHex()).block();
 
         // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: PreimageAbi,
@@ -57,7 +64,7 @@ describeSuite({
         const block = await preimage.unnotePreimage(call.hash.toHex()).block();
 
         // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: PreimageAbi,

@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
 import {
+  beforeAll,
+  createEthersTransaction,
+  customDevRpcRequest,
+  deployCreateCompiledContract,
   describeSuite,
   expect,
-  beforeAll,
-  deployCreateCompiledContract,
-  customDevRpcRequest,
-} from "@moonwall/cli";
-import { createEthersTransaction } from "@moonwall/util";
+} from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 
 describeSuite({

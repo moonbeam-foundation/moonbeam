@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { BALTATHAR_SESSION_ADDRESS } from "@moonwall/util";
-import { expect, describeSuite } from "@moonwall/cli";
+import { BALTATHAR_SESSION_ADDRESS, describeSuite, expect } from "moonwall";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
   id: "D020213",
   title: "Author Mapping - unregistered author cannot clear association",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "",
       title: "should not succeed in clearing an association for an unregistered author",
@@ -19,9 +18,9 @@ describeSuite({
           { allowFailures: true }
         );
         expect(result?.events.length === 6);
-        expect(api.events.system.NewAccount.is(result?.events[1].event)).to.be.true;
-        expect(api.events.balances.Endowed.is(result?.events[2].event)).to.be.true;
-        expect(api.events.system.ExtrinsicFailed.is(result?.events[5].event)).to.be.true;
+        expect(api.events.system.NewAccount.is(result!.events[1].event)).to.be.true;
+        expect(api.events.balances.Endowed.is(result!.events[2].event)).to.be.true;
+        expect(api.events.system.ExtrinsicFailed.is(result!.events[5].event)).to.be.true;
       },
     });
   },

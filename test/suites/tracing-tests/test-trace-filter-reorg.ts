@@ -1,6 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, customDevRpcRequest } from "@moonwall/cli";
-import { createEthersTransaction, generateKeyringPair } from "@moonwall/util";
+import {
+  createEthersTransaction,
+  customDevRpcRequest,
+  describeSuite,
+  generateKeyringPair,
+} from "moonwall";
 
 describeSuite({
   id: "T17",

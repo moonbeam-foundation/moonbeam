@@ -1,8 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-
-import { ethan } from "@moonwall/util";
-import type { ApiPromise } from "@polkadot/api";
+import { beforeAll, describeSuite, ethan, expect } from "moonwall";
 
 import {
   type AssetMetadata,
@@ -59,10 +56,10 @@ describeSuite({
   id: "D024115",
   title: "Mock XCM - Transfer some ERC20 token and pay with origin chain's token",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
-    let api: ApiPromise;
+    let api: ReturnType<typeof context.polkadotJs>;
 
     const initialBalance: bigint = 500_000_000_000_000n;
     const xcMaticToSend = 3_500_000_000n;

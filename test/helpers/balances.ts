@@ -1,4 +1,5 @@
-import { type DevModeContext, expect } from "@moonwall/cli";
+import type { DevModeContext } from "moonwall";
+import { expect } from "moonwall";
 
 export async function fundAccount(account: `0x${string}`, amount: bigint, context: DevModeContext) {
   await context.createBlock(context.polkadotJs().tx.balances.transferAllowDeath(account, amount), {

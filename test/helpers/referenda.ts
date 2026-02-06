@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import type { DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "moonwall";
 import type { FrameSupportPreimagesBounded } from "@polkadot/types/lookup";
 import chalk from "chalk";
 import Debugger from "debug";

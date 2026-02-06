@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -17,7 +16,10 @@ import {
   PRECOMPILE_PROXY_ADDRESS,
   alith,
   createViemTransaction,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeFunctionData, parseEther } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { expectEVMResult } from "../../../../helpers";
@@ -26,7 +28,7 @@ describeSuite({
   id: "D010418",
   title: "Precompile - Proxy",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     it({
       id: "T01",
       title: "should fail re-adding proxy account",
@@ -74,15 +76,18 @@ describeSuite({
         const { result } = await context.createBlock(rawTxn);
         expectEVMResult(result!.events, "Succeed");
 
-        const proxyAddedEvents = result!.events.reduce((acc, e) => {
-          if (context.polkadotJs().events.proxy.ProxyAdded.is(e.event)) {
-            acc.push({
-              account: e.event.data[0].toString(),
-              proxyType: e.event.data[2].toHuman(),
-            });
-          }
-          return acc;
-        }, []);
+        const proxyAddedEvents = result!.events.reduce(
+          (acc, e) => {
+            if (context.polkadotJs().events.proxy.ProxyAdded.is(e.event)) {
+              acc.push({
+                account: e.event.data[0].toString(),
+                proxyType: e.event.data[2].toHuman(),
+              });
+            }
+            return acc;
+          },
+          [] as { account: string; proxyType: any }[]
+        );
 
         expect(proxyAddedEvents).to.deep.equal([
           {
@@ -143,15 +148,18 @@ describeSuite({
         const expectEvents = [context.polkadotJs().events.proxy.ProxyRemoved];
         const { result } = await context.createBlock(rawTxn, { expectEvents, signer: alith });
         expectEVMResult(result!.events, "Succeed");
-        const proxyRemovedEvents = result!.events.reduce((acc, e) => {
-          if (context.polkadotJs().events.proxy.ProxyRemoved.is(e.event)) {
-            acc.push({
-              account: e.event.data[0].toString(),
-              proxyType: e.event.data[2].toHuman(),
-            });
-          }
-          return acc;
-        }, []);
+        const proxyRemovedEvents = result!.events.reduce(
+          (acc, e) => {
+            if (context.polkadotJs().events.proxy.ProxyRemoved.is(e.event)) {
+              acc.push({
+                account: e.event.data[0].toString(),
+                proxyType: e.event.data[2].toHuman(),
+              });
+            }
+            return acc;
+          },
+          [] as { account: string; proxyType: any }[]
+        );
 
         expect(proxyRemovedEvents).to.deep.equal([
           {

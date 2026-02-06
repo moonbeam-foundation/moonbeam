@@ -1,12 +1,17 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   ETHAN_ADDRESS,
   ETHAN_PRIVATE_KEY,
   GLMR,
-} from "@moonwall/util";
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  extractSingleResult,
+  fetchCompiledContract,
+} from "moonwall";
 import { type Abi, decodeEventLog } from "viem";
 import {
   ConvictionVoting,
@@ -20,7 +25,7 @@ describeSuite({
   id: "D022711",
   title: "Precompiles - Conviction on General Admin Track",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVotingAbi: Abi;
     let convictionVoting: ConvictionVoting;
@@ -34,7 +39,7 @@ describeSuite({
       convictionVoting = new ConvictionVoting(context);
       proposalIndex = await createProposal({ context, track: "generaladmin" });
 
-      const block = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
+      await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
       // Verifies the setup is correct
       const referendum = await context
         .polkadotJs()
@@ -47,7 +52,7 @@ describeSuite({
       title: `should be removable`,
       test: async function () {
         const block = await convictionVoting.removeVote(proposalIndex).block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const referendum = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(proposalIndex);
@@ -68,7 +73,7 @@ describeSuite({
           .withPrivateKey(ETHAN_PRIVATE_KEY)
           .removeOtherVote(ALITH_ADDRESS, trackId, proposalIndex)
           .block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,
@@ -94,7 +99,7 @@ describeSuite({
       title: `should be removable by specifying the track general_admin`,
       test: async function () {
         const block = await convictionVoting.removeVoteForTrack(proposalIndex, 2).block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const referendum = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(proposalIndex);
@@ -111,7 +116,7 @@ describeSuite({
           .withGas(2_000_000n)
           .removeVoteForTrack(proposalIndex, 0)
           .block();
-        expectEVMResult(block.result!.events, "Revert");
+        expectEVMResult(extractSingleResult(block.result).events, "Revert");
         const referendum = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(proposalIndex);
@@ -129,7 +134,7 @@ describeSuite({
           .withGas(2_000_000n)
           .removeOtherVote(ALITH_ADDRESS, 2, proposalIndex)
           .block();
-        expectEVMResult(block.result!.events, "Revert");
+        expectEVMResult(extractSingleResult(block.result).events, "Revert");
         const referendum = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(proposalIndex);

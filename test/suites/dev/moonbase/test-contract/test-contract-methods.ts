@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import { ALITH_ADDRESS, beforeAll, describeSuite, expect } from "moonwall";
 import { encodeFunctionData, type Abi } from "viem";
 
 describeSuite({
   id: "D020508",
   title: "Contract creation",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let multiplyAddress: `0x${string}`;
     let multiplyAbi: Abi;
     let deployHash: `0x${string}`;

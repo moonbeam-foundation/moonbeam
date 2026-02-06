@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeEach, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
-import { alith, baltathar, createEthersTransaction } from "@moonwall/util";
+import {
+  alith,
+  baltathar,
+  beforeEach,
+  createEthersTransaction,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { nToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
 
@@ -15,7 +22,7 @@ describeSuite({
   id: "D021502",
   title: "Max Fee Multiplier",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeEach(async () => {
       const MULTIPLIER_STORAGE_KEY = context
         .polkadotJs()
@@ -101,14 +108,14 @@ describeSuite({
 
         const fillAmount = 600_000_000; // equal to 60% Perbill
 
-        const { block, result } = await context.createBlock(
+        const { result } = await context.createBlock(
           context.polkadotJs().tx.rootTesting.fillBlock(fillAmount),
           { allowFailures: true }
         );
 
         // grab the first withdraw event and hope it's the right one...
         const withdrawEvent = result?.events.filter(({ event }) => event.method === "Withdraw")[0];
-        const amount = withdrawEvent.event.data.amount.toBigInt();
+        const amount = (withdrawEvent!.event.data as any).amount.toBigInt();
         // ~/4 to compensate for the ref time XCM fee changes
         // Previous value: 6_000_000_012_598_000_941_192n
         expect(amount).to.equal(1_500_000_003_224_000_970_299n);
@@ -162,7 +169,7 @@ describeSuite({
         const successEvent = interactionResult?.events.filter(
           ({ event }) => event.method === "ExtrinsicSuccess"
         )[0];
-        const weight = successEvent.event.data.dispatchInfo.weight.refTime.toBigInt();
+        const weight = (successEvent!.event.data as any).dispatchInfo.weight.refTime.toBigInt();
         expect(weight).to.equal(1_734_300_000n);
 
         const withdrawEvents = interactionResult?.events.filter(
@@ -170,7 +177,7 @@ describeSuite({
         );
         expect(withdrawEvents?.length).to.equal(1);
         const withdrawEvent = withdrawEvents![0];
-        const amount = withdrawEvent.event.data.amount.toBigInt();
+        const amount = (withdrawEvent.event.data as any).amount.toBigInt();
         expect(amount).to.equal(2_968_760_727_009_792_092n);
       },
     });

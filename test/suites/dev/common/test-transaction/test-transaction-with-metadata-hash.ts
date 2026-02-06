@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, describeSuite, expect } from "moonwall";
 import type { SignerOptions } from "@polkadot/api/types";
 import { merkleizeMetadata } from "@polkadot-api/merkleize-metadata";
 import { u8aToHex } from "@polkadot/util";
@@ -24,7 +23,7 @@ describeSuite({
   id: "D010601",
   title: "Test transaction with metadata hash",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "Should fail with an invalid metadata hash",
@@ -37,7 +36,7 @@ describeSuite({
         let errorMsg = "";
         try {
           await context.polkadotJs().tx.system.remark("0x00").signAndSend(alith, withMetadataOpts);
-        } catch (e) {
+        } catch (e: any) {
           errorMsg = e.message;
         }
 

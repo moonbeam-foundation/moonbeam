@@ -1,6 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, BALTATHAR_PRIVATE_KEY, GLMR } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  BALTATHAR_PRIVATE_KEY,
+  GLMR,
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  extractSingleResult,
+} from "moonwall";
 import { expectEVMResult, createProposal, ConvictionVoting } from "../../../../helpers";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)
@@ -9,7 +18,7 @@ describeSuite({
   id: "D022713",
   title: "Precompiles - ClassLocksFor & VotingFor",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVoting: ConvictionVoting;
 
@@ -18,16 +27,16 @@ describeSuite({
 
       convictionVoting = new ConvictionVoting(context);
       const blockAlith_1 = await convictionVoting.voteYes(proposalIndex, GLMR, 1n).block();
-      expectEVMResult(blockAlith_1.result!.events, "Succeed");
+      expectEVMResult(extractSingleResult(blockAlith_1.result).events, "Succeed");
 
       const blockAlith_2 = await convictionVoting.voteYes(proposalIndex, 2n * GLMR, 2n).block();
-      expectEVMResult(blockAlith_2.result!.events, "Succeed");
+      expectEVMResult(extractSingleResult(blockAlith_2.result).events, "Succeed");
 
       const blockBaltathar = await convictionVoting
         .withPrivateKey(BALTATHAR_PRIVATE_KEY)
         .voteYes(proposalIndex, 3n * GLMR, 3n)
         .block();
-      expectEVMResult(blockBaltathar.result!.events, "Succeed");
+      expectEVMResult(extractSingleResult(blockBaltathar.result).events, "Succeed");
     });
 
     beforeEach(async function () {

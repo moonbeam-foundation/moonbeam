@@ -1,18 +1,17 @@
 import "@moonbeam-network/api-augment";
 import {
+  GLMR,
   deployCreateCompiledContract,
   describeSuite,
   expect,
   fetchCompiledContract,
-} from "@moonwall/cli";
-import { GLMR } from "@moonwall/util";
+} from "moonwall";
 import { u8aToHex } from "@polkadot/util";
 import { decodeEventLog, getAddress } from "viem";
 import {
   forceReducedReferendaExecution,
   expectSubstrateEvent,
   expectSubstrateEvents,
-  formatTrackName,
   stripNulls,
 } from "../../../../helpers";
 
@@ -20,7 +19,7 @@ describeSuite({
   id: "D022746",
   title: "Precompiles - Referenda Auto Upgrade Demo",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context, log }) => {
     it({
       id: "T01",
       title: "should be accessible from a smart contract",
@@ -33,14 +32,18 @@ describeSuite({
         );
         expect(trackInfo?.toHuman()).to.not.be.empty;
 
-        const { contractAddress: refUpgradeDemoV1Address, abi: refUpgradeDemoV1Abi } =
-          await context.deployContract!("ReferendaAutoUpgradeDemoV1", {
+        const { contractAddress: refUpgradeDemoV1Address } = await context.deployContract!(
+          "ReferendaAutoUpgradeDemoV1",
+          {
             args: [trackName, setStorageCallIndex],
-          });
-        const { contractAddress: refUpgradeDemoV2Address, abi: refUpgradeDemoV2Abi } =
-          await context.deployContract!("ReferendaAutoUpgradeDemoV2", {
+          }
+        );
+        const { contractAddress: refUpgradeDemoV2Address } = await context.deployContract!(
+          "ReferendaAutoUpgradeDemoV2",
+          {
             args: [trackName, setStorageCallIndex],
-          });
+          }
+        );
 
         // We verify the contract is version 1.
         // After running the proposal it will auto-upgrade to version 2.

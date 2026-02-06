@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "moonwall";
 import { getAddress } from "viem";
 
 describeSuite({
   id: "D023101",
   title: "Receipt - Revert",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should generate a receipt",

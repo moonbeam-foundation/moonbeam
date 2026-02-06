@@ -1,12 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_PRIVATE_KEY,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   GLMR,
   alith,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { Option } from "@polkadot/types";
 import type { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { jumpBlocks, SIMPLE_SALT } from "../../../../helpers";
@@ -15,7 +16,7 @@ describeSuite({
   id: "D023008",
   title: "Randomness Result - Fulfilling one of multiple random numbers",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should leave 1 randomness result",

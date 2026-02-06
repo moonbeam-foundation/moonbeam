@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, beforeAll, customDevRpcRequest, describeSuite, expect } from "moonwall";
 import {
   RELAY_SOURCE_LOCATION,
   registerForeignAsset,
@@ -16,7 +15,7 @@ describeSuite({
   id: "D024001",
   title: "Mock XCM - receive downward transfer",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const assetId = 1n;
 
     beforeAll(async () => {

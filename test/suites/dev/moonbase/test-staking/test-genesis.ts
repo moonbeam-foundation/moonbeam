@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { DEFAULT_GENESIS_STAKING, GLMR, alith } from "@moonwall/util";
+import { DEFAULT_GENESIS_STAKING, GLMR, alith, describeSuite, expect } from "moonwall";
 import { getCollatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
   id: "D023349",
   title: "Staking - Genesis",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should match collator frozen bond",

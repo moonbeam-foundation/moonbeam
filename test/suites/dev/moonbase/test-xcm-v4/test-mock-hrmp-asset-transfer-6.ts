@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { alith, beforeAll, describeSuite, expect } from "moonwall";
 
-import { alith } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
@@ -11,7 +10,6 @@ import {
   addAssetToWeightTrader,
 } from "../../../../helpers";
 
-const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 const statemint_para_id = 1001;
 const statemint_assets_pallet_instance = 50;
 

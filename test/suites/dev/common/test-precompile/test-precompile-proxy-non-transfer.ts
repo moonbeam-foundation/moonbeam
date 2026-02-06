@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -12,8 +11,12 @@ import {
   DOROTHY_PRIVATE_KEY,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
   PRECOMPILE_PROXY_ADDRESS,
+  beforeAll,
   createViemTransaction,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult, getAuthorMappingInfo } from "../../../../helpers";
 
@@ -21,7 +24,7 @@ describeSuite({
   id: "D010417",
   title: "Proxy : Non transfer - Evm transfer",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     beforeAll(async () => {
       const rawtxn = await context.writePrecompile!({
         precompileName: "Proxy",

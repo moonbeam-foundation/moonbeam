@@ -1,11 +1,11 @@
 // constants.ts -  Any common values here should be moved to moonwall if suitable
 
-import type { GenericContext } from "@moonwall/cli";
+import type { GenericContext } from "moonwall";
 import {
   ALITH_GENESIS_FREE_BALANCE,
   ALITH_GENESIS_LOCK_BALANCE,
   ALITH_GENESIS_RESERVE_BALANCE,
-} from "@moonwall/util";
+} from "moonwall";
 
 const KILOWEI = 1_000n;
 
