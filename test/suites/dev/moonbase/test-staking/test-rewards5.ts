@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import {
   MIN_GLMR_STAKING,
+  Percent,
   alith,
   baltathar,
   beforeAll,
@@ -10,7 +11,7 @@ import {
   ethan,
   expect,
 } from "moonwall";
-import { jumpBlocks, Percent } from "../../../../helpers";
+import { jumpBlocks } from "../../../../helpers";
 import { BN } from "@polkadot/util";
 
 describeSuite({

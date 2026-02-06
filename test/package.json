@@ -50,7 +50,7 @@
     "json-bigint": "1.0.0",
     "json-stable-stringify": "1.3.0",
     "merkle-patricia-tree": "4.2.4",
-    "moonwall": "1.0.0-dev.0",
+    "moonwall": "1.0.1-dev.0",
     "octokit": "5.0.3",
     "randomness": "1.6.22",
     "rlp": "3.0.0",

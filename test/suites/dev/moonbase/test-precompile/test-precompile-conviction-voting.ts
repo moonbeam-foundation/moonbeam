@@ -7,13 +7,13 @@ import {
   beforeEach,
   describeSuite,
   expect,
+  extractSingleResult,
   fetchCompiledContract,
 } from "moonwall";
 import { type Abi, decodeEventLog } from "viem";
 import {
   expectEVMResult,
   extractRevertReason,
-  extractSingleResult,
   expectSubstrateEvent,
   createProposal,
   ConvictionVoting,

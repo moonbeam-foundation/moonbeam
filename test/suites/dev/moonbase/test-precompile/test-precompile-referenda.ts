@@ -5,6 +5,7 @@ import {
   beforeEach,
   describeSuite,
   expect,
+  extractSingleResult,
   fetchCompiledContract,
 } from "moonwall";
 import { decodeEventLog } from "viem";
@@ -13,7 +14,6 @@ import {
   cancelProposal,
   expectEVMResult,
   expectSubstrateEvent,
-  extractSingleResult,
 } from "../../../../helpers";
 
 // Each test is instantiating a new proposal (Not ideal for isolation but easier to write)

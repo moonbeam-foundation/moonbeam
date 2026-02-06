@@ -1,10 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { ALITH_ADDRESS, beforeAll, beforeEach, describeSuite, expect } from "moonwall";
+import {
+  ALITH_ADDRESS,
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  extractSingleResult,
+} from "moonwall";
 import {
   jumpBlocks,
   expectEVMResult,
   extractRevertReason,
-  extractSingleResult,
   createProposal,
   ConvictionVoting,
 } from "../../../../helpers";

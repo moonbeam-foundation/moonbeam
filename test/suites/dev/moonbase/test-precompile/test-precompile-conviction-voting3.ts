@@ -5,6 +5,7 @@ import {
   beforeEach,
   describeSuite,
   expect,
+  extractSingleResult,
   fetchCompiledContract,
 } from "moonwall";
 import { type Abi, decodeEventLog } from "viem";
@@ -13,7 +14,6 @@ import {
   createProposal,
   expectEVMResult,
   expectSubstrateEvent,
-  extractSingleResult,
 } from "../../../../helpers";
 
 describeSuite({

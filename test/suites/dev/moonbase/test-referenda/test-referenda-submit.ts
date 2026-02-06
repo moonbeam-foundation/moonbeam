@@ -7,15 +7,13 @@ import {
   describeSuite,
   ethan,
   expect,
+  fastFowardToNextEvent,
   generateKeyringPair,
   type KeyringPair,
-} from "moonwall";
-import {
-  getDelegatorStakingFreeze,
-  whiteListTrackNoSend,
-  fastFowardToNextEvent,
   maximizeConvictionVotingOf,
-} from "helpers";
+  whiteListTrackNoSend,
+} from "moonwall";
+import { getDelegatorStakingFreeze } from "helpers";
 
 describeSuite({
   id: "D023203",
