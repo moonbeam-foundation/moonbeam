@@ -68,6 +68,13 @@ jobs:
           curl -sL https://github.com/paritytech/polkadot-sdk/releases/download/$FRAME_OMNI_BENCHER_RELEASE_VERSION/frame-omni-bencher -o frame-omni-bencher
           chmod +x ./frame-omni-bencher
           ./frame-omni-bencher --version
+      - name: Clean previous WASM build outputs
+        shell: bash
+        run: |
+          # This job runs on a bare-metal runner, so the workspace/target dir may be reused
+          # across runs. Remove the wasm-builder output to force a fresh WASM rebuild from
+          # the checked out commit before running benchmarks.
+          rm -rf target/release/wbuild
       - name: Run benchmarks
         shell: bash
         run: |
