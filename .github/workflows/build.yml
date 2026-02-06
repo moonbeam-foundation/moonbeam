@@ -798,7 +798,7 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: failure()
         with:
-          name: failed-node-logs
+          name: failed-node-logs-lazy-loading-${{ matrix.chain }}
           path: ${{ env.NODE_LOGS_ZIP }}
 
   chopsticks-upgrade-test:
@@ -922,7 +922,7 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: failure()
         with:
-          name: failed-node-logs
+          name: failed-node-logs-zombie-${{ matrix.chain }}
           path: ${{ env.NODE_LOGS_ZIP }}
 
   bridge-integration-tests:
