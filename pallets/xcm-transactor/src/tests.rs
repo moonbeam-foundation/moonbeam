@@ -25,6 +25,8 @@ use sp_std::boxed::Box;
 use xcm::latest::prelude::*;
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmFeeTrader};
 
+const TEST_RELATIVE_PRICE: u128 = 1_000_000_000_000_000_000u128; // 1e18
+
 #[test]
 fn test_register_address() {
 	ExtBuilder::default()
@@ -131,13 +133,13 @@ fn test_transact_through_derivative_errors() {
 					},
 					false
 				),
-				DispatchError::Other("Fee per second not set")
+				DispatchError::Other("Asset relative price not set")
 			);
 
-			// Set fee per second using FeeTrader
+			// Set relative price using FeeTrader
 			assert_ok!(<Test as Config>::FeeTrader::set_asset_price(
 				Location::new(1, [Junction::Parachain(1000)]),
-				1
+				TEST_RELATIVE_PRICE
 			));
 
 			// TransactInfo present, but the asset is not a reserve of dest
@@ -165,10 +167,10 @@ fn test_transact_through_derivative_errors() {
 				Error::<Test>::AssetIsNotReserveInDestination
 			);
 
-			// Set fee per second using FeeTrader
+			// Set relative price using FeeTrader
 			assert_ok!(<Test as Config>::FeeTrader::set_asset_price(
 				Location::parent(),
-				1
+				TEST_RELATIVE_PRICE
 			));
 
 			// Cannot exceed the max weight
@@ -279,13 +281,13 @@ fn test_transact_through_signed_errors() {
 					},
 					false
 				),
-				DispatchError::Other("Fee per second not set")
+				DispatchError::Other("Asset relative price not set")
 			);
 
-			// Set fee per second using FeeTrader
+			// Set relative price using FeeTrader
 			assert_ok!(<Test as Config>::FeeTrader::set_asset_price(
 				Location::new(1, [Junction::Parachain(1000)]),
-				1
+				TEST_RELATIVE_PRICE
 			));
 
 			// TransactInfo present, but the asset is not a reserve of dest
@@ -788,7 +790,7 @@ fn test_transact_through_signed_fails_if_fee_per_second_not_set() {
 					},
 					false
 				),
-				DispatchError::Other("Fee per second not set")
+				DispatchError::Other("Asset relative price not set")
 			);
 		})
 }
@@ -808,10 +810,10 @@ fn test_transact_through_signed_works() {
 				Some(1.into())
 			));
 
-			// Set fee per second using FeeTrader
+			// Set relative price using FeeTrader
 			assert_ok!(<Test as Config>::FeeTrader::set_asset_price(
 				Location::parent(),
-				1
+				TEST_RELATIVE_PRICE
 			));
 
 			// transact info and fee per second set

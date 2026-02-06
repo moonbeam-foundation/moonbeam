@@ -58,6 +58,7 @@ construct_runtime!(
 		Evm: pallet_evm,
 		Timestamp: pallet_timestamp,
 		PolkadotXcm: pallet_xcm,
+		XcmWeightTrader: pallet_xcm_weight_trader,
 	}
 );
 
@@ -222,6 +223,56 @@ impl pallet_xcm::Config for Runtime {
 	type AdminOrigin = frame_system::EnsureRoot<AccountId>;
 	type AuthorizedAliasConsideration = Disabled;
 }
+// AccountIdToLocation converter for mock
+pub struct MockAccountIdToLocation;
+impl sp_runtime::traits::Convert<AccountId, Location> for MockAccountIdToLocation {
+	fn convert(account: AccountId) -> Location {
+		let account_h160: H160 = account.into();
+		Location::new(
+			0,
+			[Junction::AccountKey20 {
+				network: None,
+				key: account_h160.into(),
+			}],
+		)
+	}
+}
+
+parameter_types! {
+	pub MockXcmFeesAccount: AccountId = MockAccount::from_u64(99);
+	pub NativeLocation: Location = Location::new(
+		0,
+		[PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)]
+	);
+}
+
+// Simple weight to fee converter
+pub struct MockWeightToFee;
+impl frame_support::weights::WeightToFee for MockWeightToFee {
+	type Balance = Balance;
+	fn weight_to_fee(weight: &Weight) -> Self::Balance {
+		weight.ref_time() as u128
+	}
+}
+
+impl pallet_xcm_weight_trader::Config for Runtime {
+	type AccountIdToLocation = MockAccountIdToLocation;
+	type AddSupportedAssetOrigin = frame_system::EnsureRoot<AccountId>;
+	type AssetLocationFilter = Everything;
+	type AssetTransactor = DummyAssetTransactor;
+	type Balance = Balance;
+	type EditSupportedAssetOrigin = frame_system::EnsureRoot<AccountId>;
+	type NativeLocation = NativeLocation;
+	type PauseSupportedAssetOrigin = frame_system::EnsureRoot<AccountId>;
+	type ResumeSupportedAssetOrigin = frame_system::EnsureRoot<AccountId>;
+	type RemoveSupportedAssetOrigin = frame_system::EnsureRoot<AccountId>;
+	type WeightInfo = ();
+	type WeightToFee = MockWeightToFee;
+	type XcmFeesAccount = MockXcmFeesAccount;
+	#[cfg(feature = "runtime-benchmarks")]
+	type NotFilteredLocation = RelayLocation;
+}
+
 pub type Precompiles<R> = PrecompileSetBuilder<
 	R,
 	(
@@ -460,6 +511,19 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
+
+		// Register Location::parent() as a supported asset in pallet_xcm_weight_trader
+		// with a relative_price of 10^18 so that units_per_second = weight_per_second
+		// (since MockWeightToFee is 1:1 and RELATIVE_PRICE_DECIMALS = 18)
+		pallet_xcm_weight_trader::GenesisConfig::<Runtime> {
+			assets: vec![pallet_xcm_weight_trader::XcmWeightTraderAssetInfo {
+				location: Location::parent(),
+				relative_price: 1_000_000_000_000_000_000u128, // 10^18
+			}],
+			_phantom: Default::default(),
+		}
+		.assimilate_storage(&mut t)
+		.expect("XcmWeightTrader storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));

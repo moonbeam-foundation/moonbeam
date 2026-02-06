@@ -423,9 +423,11 @@ fn test_trader_native_asset() {
 		);
 
 		// Should not refund any funds
-		let actual_weight = weight_to_buy;
+		// `xcm-executor` calls `refund_weight` with the *surplus* weight to refund.
+		// When there is no surplus, nothing should be refunded.
+		let weight_to_refund = Weight::zero();
 		assert_eq!(
-			trader.refund_weight(actual_weight, &dummy_xcm_context),
+			trader.refund_weight(weight_to_refund, &dummy_xcm_context),
 			None
 		);
 
@@ -467,9 +469,9 @@ fn test_trader_native_asset() {
 		);
 
 		// Should be able to refund unused weights
-		let actual_weight = weight_to_buy.saturating_sub(Weight::from_parts(2_000, 0));
+		let weight_to_refund = Weight::from_parts(2_000, 0);
 		assert_eq!(
-			trader.refund_weight(actual_weight, &dummy_xcm_context),
+			trader.refund_weight(weight_to_refund, &dummy_xcm_context),
 			Some(Asset {
 				fun: Fungibility::Fungible(2_000),
 				id: XcmAssetId(Location::here()),
@@ -522,9 +524,9 @@ fn test_trader_parent_asset() {
 		);
 
 		// Should be able to refund unused weights
-		let actual_weight = weight_to_buy.saturating_sub(Weight::from_parts(2_000, 0));
+		let weight_to_refund = Weight::from_parts(2_000, 0);
 		assert_eq!(
-			trader.refund_weight(actual_weight, &dummy_xcm_context),
+			trader.refund_weight(weight_to_refund, &dummy_xcm_context),
 			Some(Asset {
 				fun: Fungibility::Fungible(4_000_000_000_000),
 				id: XcmAssetId(Location::parent()),

@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { createEthersTransaction, describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { encodeDeployData } from "viem";
+import { getBlockWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D023804",
@@ -31,7 +32,7 @@ describeSuite({
         }
 
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(284);
+        expect((await getBlockWithRetry(context)).transactions.length).toBe(284);
       },
     });
   },

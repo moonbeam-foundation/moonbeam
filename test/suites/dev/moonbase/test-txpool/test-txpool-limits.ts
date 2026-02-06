@@ -6,6 +6,7 @@ import {
   expect,
   sendRawTransaction,
 } from "moonwall";
+import { getBlockWithRetry } from "helpers";
 
 describeSuite({
   id: "D023803",
@@ -24,7 +25,7 @@ describeSuite({
         }
 
         await context.createBlock();
-        const maxTxnLen = (await context.viem().getBlock()).transactions.length;
+        const maxTxnLen = (await getBlockWithRetry(context)).transactions.length;
         log(`out ${maxTxnLen}`);
         expect(maxTxnLen).toBeGreaterThan(2300);
       },

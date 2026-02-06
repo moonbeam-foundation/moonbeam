@@ -7,6 +7,7 @@ import {
   fetchCompiledContract,
 } from "moonwall";
 import { encodeDeployData } from "viem";
+import { getBlockWithRetry } from "../../../../helpers/eth-transactions";
 
 describeSuite({
   id: "D023806",
@@ -59,7 +60,7 @@ describeSuite({
           ).length;
           log(`Transactions left in pool: ${txPoolSize}`);
 
-          if ((await context.viem().getBlock()).transactions.length === 0) {
+          if ((await getBlockWithRetry(context)).transactions.length === 0) {
             break;
           }
           blocks++;
