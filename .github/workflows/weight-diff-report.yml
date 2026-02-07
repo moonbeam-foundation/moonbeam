@@ -16,6 +16,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
     weight-diff:
         runs-on: ubuntu-latest
@@ -49,6 +56,9 @@ jobs:
                     - 'runtime/moonbeam/src/weights/db/mod.rs'
 
             - name: Generate Weight Difference Report
+              env:
+                BASE_REF: ${{ github.base_ref }}
+                HEAD_REF: ${{ github.head_ref }}
               run: |
                 generate_report() {
                   local runtime=$1
@@ -58,7 +68,7 @@ jobs:
                   local diffs_sorted_json="${runtime}_diffs_sorted.json"
 
                   for file in ${changed_files}; do
-                    subweight compare commits --threshold 1 --strip-path-prefix ".*/" --format csv --no-color --method exact-worst --path-pattern $file ${{github.base_ref}} ${{github.head_ref}} | sed 1,1d | sed '$d' >> ${diffs_csv}
+                    subweight compare commits --threshold 1 --strip-path-prefix ".*/" --format csv --no-color --method exact-worst --path-pattern "$file" "$BASE_REF" "$HEAD_REF" | sed 1,1d | sed '$d' >> ${diffs_csv}
                   done
 
                   jq -R 'split(",") | {File: .[0], Extrinsic: .[1], Old: .[2], New: .[3], "Change Percent": (.[4] | tonumber)}' ${diffs_csv} | jq -s '.' > ${diffs_json}

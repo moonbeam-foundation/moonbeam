@@ -12,6 +12,13 @@ on:
         description: "Last client release version (example: v0.34.0)"
         required: true
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   setup-scripts:
     runs-on: ubuntu-latest

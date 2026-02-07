@@ -9,6 +9,13 @@ on:
         description: "Next client version (eg. v0.36.0)"
         required: true
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   setup-scripts:
     runs-on: ubuntu-latest
