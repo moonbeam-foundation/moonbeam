@@ -7,6 +7,13 @@ on:
         description: runtime tag (ex. runtime-3400) to publish on docker
         required: true
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   ####### Building binaries #######
 
