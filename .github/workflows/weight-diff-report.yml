@@ -26,6 +26,12 @@ defaults:
 jobs:
     weight-diff:
         runs-on: ubuntu-latest
+        # The weight-diff job needs PR write permission for:
+        # - peter-evans/find-comment@v4
+        # - peter-evans/create-or-update-comment@v5
+        permissions:
+          contents: read
+          pull-requests: write
         steps:
             - name: Checkout
               uses: actions/checkout@v6
