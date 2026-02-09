@@ -53,36 +53,45 @@
 <a href=#53 id=53 data-nosnippet>53</a>	.concat();
 <a href=#54 id=54 data-nosnippet>54</a>	state_overrides.push((key, header.hash().encode()));
 <a href=#55 id=55 data-nosnippet>55</a>
-<a href=#56 id=56 data-nosnippet>56</a>	<span class="kw">let _ </span>= op.reset_storage(
-<a href=#57 id=57 data-nosnippet>57</a>		Storage {
-<a href=#58 id=58 data-nosnippet>58</a>			top: state_overrides.into_iter().collect(),
-<a href=#59 id=59 data-nosnippet>59</a>			children_default: Default::default(),
-<a href=#60 id=60 data-nosnippet>60</a>		},
-<a href=#61 id=61 data-nosnippet>61</a>		StateVersion::V1,
-<a href=#62 id=62 data-nosnippet>62</a>	)<span class="question-mark">?</span>;
-<a href=#63 id=63 data-nosnippet>63</a>
-<a href=#64 id=64 data-nosnippet>64</a>	<span class="comment">// Create empty first block
-<a href=#65 id=65 data-nosnippet>65</a>	</span><span class="kw">let _ </span>= op.set_block_data(
-<a href=#66 id=66 data-nosnippet>66</a>		header.clone(),
-<a href=#67 id=67 data-nosnippet>67</a>		<span class="prelude-val">Some</span>(Default::default()),
-<a href=#68 id=68 data-nosnippet>68</a>		<span class="prelude-val">None</span>,
-<a href=#69 id=69 data-nosnippet>69</a>		<span class="prelude-val">None</span>,
-<a href=#70 id=70 data-nosnippet>70</a>		NewBlockState::Final,
-<a href=#71 id=71 data-nosnippet>71</a>	);
+<a href=#56 id=56 data-nosnippet>56</a>	<span class="comment">// Update System::Number so that frame_system::initialize() doesn't panic
+<a href=#57 id=57 data-nosnippet>57</a>	// with "Block number must be strictly increasing" on the next block.
+<a href=#58 id=58 data-nosnippet>58</a>	</span><span class="kw">let </span>number_key = [
+<a href=#59 id=59 data-nosnippet>59</a>		twox_128(<span class="string">b"System"</span>).as_slice(),
+<a href=#60 id=60 data-nosnippet>60</a>		twox_128(<span class="string">b"Number"</span>).as_slice(),
+<a href=#61 id=61 data-nosnippet>61</a>	]
+<a href=#62 id=62 data-nosnippet>62</a>	.concat();
+<a href=#63 id=63 data-nosnippet>63</a>	state_overrides.push((number_key, next_block_number.encode()));
+<a href=#64 id=64 data-nosnippet>64</a>
+<a href=#65 id=65 data-nosnippet>65</a>	<span class="kw">let _ </span>= op.reset_storage(
+<a href=#66 id=66 data-nosnippet>66</a>		Storage {
+<a href=#67 id=67 data-nosnippet>67</a>			top: state_overrides.into_iter().collect(),
+<a href=#68 id=68 data-nosnippet>68</a>			children_default: Default::default(),
+<a href=#69 id=69 data-nosnippet>69</a>		},
+<a href=#70 id=70 data-nosnippet>70</a>		StateVersion::V1,
+<a href=#71 id=71 data-nosnippet>71</a>	)<span class="question-mark">?</span>;
 <a href=#72 id=72 data-nosnippet>72</a>
-<a href=#73 id=73 data-nosnippet>73</a>	backend.commit_operation(op)
-<a href=#74 id=74 data-nosnippet>74</a>}
-<a href=#75 id=75 data-nosnippet>75</a>
-<a href=#76 id=76 data-nosnippet>76</a><span class="kw">pub fn </span>get_parachain_id(rpc_client: Arc&lt;<span class="kw">super</span>::rpc_client::RPC&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
-<a href=#77 id=77 data-nosnippet>77</a>	<span class="kw">let </span>key = [twox_128(<span class="string">b"ParachainInfo"</span>), twox_128(<span class="string">b"ParachainId"</span>)].concat();
-<a href=#78 id=78 data-nosnippet>78</a>	<span class="kw">let </span>result = rpc_client.storage::&lt;H256&gt;(StorageKey(key), <span class="prelude-val">None</span>);
-<a href=#79 id=79 data-nosnippet>79</a>
-<a href=#80 id=80 data-nosnippet>80</a>	result
-<a href=#81 id=81 data-nosnippet>81</a>		.map(|o| {
-<a href=#82 id=82 data-nosnippet>82</a>			o.and_then(|data| {
-<a href=#83 id=83 data-nosnippet>83</a>				&lt;u32 <span class="kw">as </span>parity_scale_codec::Decode&gt;::decode(<span class="kw-2">&amp;mut </span>data.<span class="number">0</span>.as_slice()).ok()
-<a href=#84 id=84 data-nosnippet>84</a>			})
-<a href=#85 id=85 data-nosnippet>85</a>		})
-<a href=#86 id=86 data-nosnippet>86</a>		.ok()
-<a href=#87 id=87 data-nosnippet>87</a>		.flatten()
-<a href=#88 id=88 data-nosnippet>88</a>}</code></pre></div></section></main></body></html>
+<a href=#73 id=73 data-nosnippet>73</a>	<span class="comment">// Create empty first block
+<a href=#74 id=74 data-nosnippet>74</a>	</span><span class="kw">let _ </span>= op.set_block_data(
+<a href=#75 id=75 data-nosnippet>75</a>		header.clone(),
+<a href=#76 id=76 data-nosnippet>76</a>		<span class="prelude-val">Some</span>(Default::default()),
+<a href=#77 id=77 data-nosnippet>77</a>		<span class="prelude-val">None</span>,
+<a href=#78 id=78 data-nosnippet>78</a>		<span class="prelude-val">None</span>,
+<a href=#79 id=79 data-nosnippet>79</a>		NewBlockState::Final,
+<a href=#80 id=80 data-nosnippet>80</a>	);
+<a href=#81 id=81 data-nosnippet>81</a>
+<a href=#82 id=82 data-nosnippet>82</a>	backend.commit_operation(op)
+<a href=#83 id=83 data-nosnippet>83</a>}
+<a href=#84 id=84 data-nosnippet>84</a>
+<a href=#85 id=85 data-nosnippet>85</a><span class="kw">pub fn </span>get_parachain_id(rpc_client: Arc&lt;<span class="kw">super</span>::rpc_client::RPC&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+<a href=#86 id=86 data-nosnippet>86</a>	<span class="kw">let </span>key = [twox_128(<span class="string">b"ParachainInfo"</span>), twox_128(<span class="string">b"ParachainId"</span>)].concat();
+<a href=#87 id=87 data-nosnippet>87</a>	<span class="kw">let </span>result = rpc_client.storage::&lt;H256&gt;(StorageKey(key), <span class="prelude-val">None</span>);
+<a href=#88 id=88 data-nosnippet>88</a>
+<a href=#89 id=89 data-nosnippet>89</a>	result
+<a href=#90 id=90 data-nosnippet>90</a>		.map(|o| {
+<a href=#91 id=91 data-nosnippet>91</a>			o.and_then(|data| {
+<a href=#92 id=92 data-nosnippet>92</a>				&lt;u32 <span class="kw">as </span>parity_scale_codec::Decode&gt;::decode(<span class="kw-2">&amp;mut </span>data.<span class="number">0</span>.as_slice()).ok()
+<a href=#93 id=93 data-nosnippet>93</a>			})
+<a href=#94 id=94 data-nosnippet>94</a>		})
+<a href=#95 id=95 data-nosnippet>95</a>		.ok()
+<a href=#96 id=96 data-nosnippet>96</a>		.flatten()
+<a href=#97 id=97 data-nosnippet>97</a>}</code></pre></div></section></main></body></html>
