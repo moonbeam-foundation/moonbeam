@@ -53,6 +53,15 @@ pub fn produce_first_block<Block: BlockT + sp_runtime::DeserializeOwned>(
 	.concat();
 	state_overrides.push((key, header.hash().encode()));
 
+	// Update System::Number so that frame_system::initialize() doesn't panic
+	// with "Block number must be strictly increasing" on the next block.
+	let number_key = [
+		twox_128(b"System").as_slice(),
+		twox_128(b"Number").as_slice(),
+	]
+	.concat();
+	state_overrides.push((number_key, next_block_number.encode()));
+
 	let _ = op.reset_storage(
 		Storage {
 			top: state_overrides.into_iter().collect(),
