@@ -527,7 +527,7 @@ jobs:
         uses: dtolnay/rust-toolchain@nightly
         with:
           components: rust-src
-          target: wasm32-unknown-unknown
+          targets: wasm32-unknown-unknown
       - name: Install required dependencies
         run: |
           sudo apt-get install -y libprotobuf-dev protobuf-compiler
