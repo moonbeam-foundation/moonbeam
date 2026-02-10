@@ -140,9 +140,9 @@ describeSuite({
       let processedEvent;
       for (let i = 0; i < 6; i++) {
         const block = await context.polkadotJs().rpc.chain.getBlock();
-        const allRecords = await context.polkadotJs().query.system.events.at(
-          block.block.header.hash
-        );
+        const allRecords = await context
+          .polkadotJs()
+          .query.system.events.at(block.block.header.hash);
 
         processedEvent = allRecords.find(
           ({ event }) =>
