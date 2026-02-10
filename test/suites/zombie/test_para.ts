@@ -127,10 +127,9 @@ describeSuite({
           (await context.ethers().provider?.getBlock("finalized"))?.number,
           "Finalized tag is not present"
         ).to.be.greaterThan(0);
-        expect(
-          (await context.ethers().provider?.getBlock("latest"))?.number,
-          "Latest tag is not present"
-        ).to.be.greaterThan(0);
+        const latestBlock = await context.ethers().provider?.getBlock("latest");
+        expect(latestBlock, "Latest tag is not present").to.not.equal(null);
+        expect(latestBlock?.number, "Latest tag is not present").to.be.greaterThan(0);
       },
     });
   },
