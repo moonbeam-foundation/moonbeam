@@ -128,7 +128,7 @@ describeSuite({
           "Finalized tag is not present"
         ).to.be.greaterThan(0);
         expect(
-          (await context.ethers().provider?.getBlock("latest"))?.number,
+          await context.ethers().provider?.getBlockNumber(),
           "Latest tag is not present"
         ).to.be.greaterThan(0);
       },
