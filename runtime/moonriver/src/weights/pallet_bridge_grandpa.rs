@@ -51,20 +51,20 @@ use sp_std::marker::PhantomData;
 /// Weights for `pallet_bridge_grandpa`.
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_bridge_grandpa::WeightInfo for WeightInfo<T> {
-	/// Storage: `BridgeKusamaGrandpa::CurrentAuthoritySet` (r:1 w:0)
-	/// Proof: `BridgeKusamaGrandpa::CurrentAuthoritySet` (`max_values`: Some(1), `max_size`: Some(50250), added: 50745, mode: `MaxEncodedLen`)
-	/// Storage: `BridgeKusamaGrandpa::PalletOperatingMode` (r:1 w:0)
-	/// Proof: `BridgeKusamaGrandpa::PalletOperatingMode` (`max_values`: Some(1), `max_size`: Some(1), added: 496, mode: `MaxEncodedLen`)
-	/// Storage: `BridgeKusamaGrandpa::BestFinalized` (r:1 w:1)
-	/// Proof: `BridgeKusamaGrandpa::BestFinalized` (`max_values`: Some(1), `max_size`: Some(36), added: 531, mode: `MaxEncodedLen`)
-	/// Storage: `BridgeKusamaGrandpa::FreeHeadersRemaining` (r:1 w:0)
-	/// Proof: `BridgeKusamaGrandpa::FreeHeadersRemaining` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
-	/// Storage: `BridgeKusamaGrandpa::ImportedHashesPointer` (r:1 w:1)
-	/// Proof: `BridgeKusamaGrandpa::ImportedHashesPointer` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
-	/// Storage: `BridgeKusamaGrandpa::ImportedHashes` (r:1 w:1)
-	/// Proof: `BridgeKusamaGrandpa::ImportedHashes` (`max_values`: Some(1024), `max_size`: Some(36), added: 1521, mode: `MaxEncodedLen`)
-	/// Storage: `BridgeKusamaGrandpa::ImportedHeaders` (r:0 w:2)
-	/// Proof: `BridgeKusamaGrandpa::ImportedHeaders` (`max_values`: Some(1024), `max_size`: Some(68), added: 1553, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::CurrentAuthoritySet` (r:1 w:0)
+	/// Proof: `BridgePolkadotGrandpa::CurrentAuthoritySet` (`max_values`: Some(1), `max_size`: Some(50250), added: 50745, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::PalletOperatingMode` (r:1 w:0)
+	/// Proof: `BridgePolkadotGrandpa::PalletOperatingMode` (`max_values`: Some(1), `max_size`: Some(1), added: 496, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::BestFinalized` (r:1 w:1)
+	/// Proof: `BridgePolkadotGrandpa::BestFinalized` (`max_values`: Some(1), `max_size`: Some(36), added: 531, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::FreeHeadersRemaining` (r:1 w:0)
+	/// Proof: `BridgePolkadotGrandpa::FreeHeadersRemaining` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::ImportedHashesPointer` (r:1 w:1)
+	/// Proof: `BridgePolkadotGrandpa::ImportedHashesPointer` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::ImportedHashes` (r:1 w:1)
+	/// Proof: `BridgePolkadotGrandpa::ImportedHashes` (`max_values`: Some(1024), `max_size`: Some(36), added: 1521, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::ImportedHeaders` (r:0 w:2)
+	/// Proof: `BridgePolkadotGrandpa::ImportedHeaders` (`max_values`: Some(1024), `max_size`: Some(68), added: 1553, mode: `MaxEncodedLen`)
 	/// The range of component `p` is `[1, 168]`.
 	/// The range of component `v` is `[50, 100]`.
 	fn submit_finality_proof(p: u32, v: u32, ) -> Weight {
@@ -80,16 +80,16 @@ impl<T: frame_system::Config> pallet_bridge_grandpa::WeightInfo for WeightInfo<T
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
 	}
-	/// Storage: `BridgeKusamaGrandpa::CurrentAuthoritySet` (r:1 w:1)
-	/// Proof: `BridgeKusamaGrandpa::CurrentAuthoritySet` (`max_values`: Some(1), `max_size`: Some(50250), added: 50745, mode: `MaxEncodedLen`)
-	/// Storage: `BridgeKusamaGrandpa::ImportedHashesPointer` (r:1 w:1)
-	/// Proof: `BridgeKusamaGrandpa::ImportedHashesPointer` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
-	/// Storage: `BridgeKusamaGrandpa::ImportedHashes` (r:1 w:1)
-	/// Proof: `BridgeKusamaGrandpa::ImportedHashes` (`max_values`: Some(1024), `max_size`: Some(36), added: 1521, mode: `MaxEncodedLen`)
-	/// Storage: `BridgeKusamaGrandpa::BestFinalized` (r:0 w:1)
-	/// Proof: `BridgeKusamaGrandpa::BestFinalized` (`max_values`: Some(1), `max_size`: Some(36), added: 531, mode: `MaxEncodedLen`)
-	/// Storage: `BridgeKusamaGrandpa::ImportedHeaders` (r:0 w:2)
-	/// Proof: `BridgeKusamaGrandpa::ImportedHeaders` (`max_values`: Some(1024), `max_size`: Some(68), added: 1553, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::CurrentAuthoritySet` (r:1 w:1)
+	/// Proof: `BridgePolkadotGrandpa::CurrentAuthoritySet` (`max_values`: Some(1), `max_size`: Some(50250), added: 50745, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::ImportedHashesPointer` (r:1 w:1)
+	/// Proof: `BridgePolkadotGrandpa::ImportedHashesPointer` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::ImportedHashes` (r:1 w:1)
+	/// Proof: `BridgePolkadotGrandpa::ImportedHashes` (`max_values`: Some(1024), `max_size`: Some(36), added: 1521, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::BestFinalized` (r:0 w:1)
+	/// Proof: `BridgePolkadotGrandpa::BestFinalized` (`max_values`: Some(1), `max_size`: Some(36), added: 531, mode: `MaxEncodedLen`)
+	/// Storage: `BridgePolkadotGrandpa::ImportedHeaders` (r:0 w:2)
+	/// Proof: `BridgePolkadotGrandpa::ImportedHeaders` (`max_values`: Some(1024), `max_size`: Some(68), added: 1553, mode: `MaxEncodedLen`)
 	fn force_set_pallet_state() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `281`

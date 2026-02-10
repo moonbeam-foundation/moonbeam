@@ -118,7 +118,7 @@ impl<T: frame_system::Config> pallet_collective::WeightInfo for WeightInfo<T> {
 		//  Measured:  `145 + m * (20 ±0)`
 		//  Estimated: `3610 + m * (20 ±0)`
 		// Minimum execution time: 19_427_000 picoseconds.
-		Weight::from_parts(19_098_991, 3610)
+		Weight::from_parts(19_427_000, 3610)
 			// Standard Error: 57
 			.saturating_add(Weight::from_parts(1_435, 0).saturating_mul(b.into()))
 			// Standard Error: 591

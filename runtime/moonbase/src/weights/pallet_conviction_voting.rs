@@ -168,7 +168,7 @@ impl<T: frame_system::Config> pallet_conviction_voting::WeightInfo for WeightInf
 		//  Measured:  `1340 + r * (248 ±0)`
 		//  Estimated: `83866 + r * (3387 ±0)`
 		// Minimum execution time: 21_530_000 picoseconds.
-		Weight::from_parts(18_432_308, 83866)
+		Weight::from_parts(21_530_000, 83866)
 			// Standard Error: 63_929
 			.saturating_add(Weight::from_parts(28_161_734, 0).saturating_mul(r.into()))
 			.saturating_add(T::DbWeight::get().reads(4_u64))
