@@ -118,7 +118,6 @@ describeSuite({
           payload: failedXcmMessage,
         });
       }
-      await context.createBlock();
 
       // By calling deployContract() a new block will be created,
       // including the ethereum-xcm transaction (on_initialize) + regular ethereum transaction
@@ -133,20 +132,28 @@ describeSuite({
       // The old buggy runtime rollback the eth-xcm tx because XCM executor rollback evm reverts
       regularEthTxHash = (await context.viem().getBlock()).transactions[0];
 
-      // Get the latest block events
-      const block = await context.polkadotJs().rpc.chain.getBlock();
-      const allRecords = await context.polkadotJs().query.system.events.at(block.block.header.hash);
-
       // Compute XCM message ID
       const messageHash = context.polkadotJs().createType("XcmVersionedXcm", failedXcmMessage).hash;
 
-      // Find messageQueue.Processed event with matching message ID
-      const processedEvent = allRecords.find(
-        ({ event }) =>
-          event.section === "messageQueue" &&
-          event.method === "Processed" &&
-          event.data[0].toString() === messageHash.toHex()
-      );
+      // With updated runtime weights, message processing can spill to the next blocks.
+      // Wait a few blocks and ensure the matching Processed event eventually appears.
+      let processedEvent;
+      for (let i = 0; i < 6; i++) {
+        const block = await context.polkadotJs().rpc.chain.getBlock();
+        const allRecords = await context.polkadotJs().query.system.events.at(
+          block.block.header.hash
+        );
+
+        processedEvent = allRecords.find(
+          ({ event }) =>
+            event.section === "messageQueue" &&
+            event.method === "Processed" &&
+            event.data[0].toString() === messageHash.toHex()
+        );
+
+        if (processedEvent) break;
+        await context.createBlock();
+      }
 
       expect(processedEvent).to.not.be.undefined;
     });
