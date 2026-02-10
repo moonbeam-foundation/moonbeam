@@ -263,25 +263,6 @@ impl<T: frame_system::Config> WeightInfo<T> {
 			.saturating_add(T::DbWeight::get().reads(18))
 			.saturating_add(T::DbWeight::get().writes(6))
 	}
-	/// Storage: `PolkadotXcm::SupportedVersion` (r:1 w:0)
-	/// Proof: `PolkadotXcm::SupportedVersion` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `PolkadotXcm::VersionDiscoveryQueue` (r:1 w:1)
-	/// Proof: `PolkadotXcm::VersionDiscoveryQueue` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `PolkadotXcm::SafeXcmVersion` (r:1 w:0)
-	/// Proof: `PolkadotXcm::SafeXcmVersion` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainSystem::HostConfiguration` (r:1 w:0)
-	/// Proof: `ParachainSystem::HostConfiguration` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainSystem::PendingUpwardMessages` (r:1 w:1)
-	/// Proof: `ParachainSystem::PendingUpwardMessages` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	pub(crate) fn initiate_teleport() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `181`
-		//  Estimated: `3646`
-		// Minimum execution time: 55_761_000 picoseconds.
-		Weight::from_parts(56_865_000, 3646)
-			.saturating_add(T::DbWeight::get().reads(5))
-			.saturating_add(T::DbWeight::get().writes(2))
-	}
 	/// Storage: `EvmForeignAssets::AssetsByLocation` (r:1 w:0)
 	/// Proof: `EvmForeignAssets::AssetsByLocation` (`max_values`: None, `max_size`: None, mode: `Measured`)
 	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
