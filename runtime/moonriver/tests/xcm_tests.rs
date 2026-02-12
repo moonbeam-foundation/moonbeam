@@ -91,7 +91,15 @@ fn set_fee_per_second_for_location(location: Location, fee_per_second: u128) -> 
 
 	// Configure fees for XcmTransactor via the in-memory fee trader only, so that
 	// the initial funding XCM transfers stay free and only transactor calls pay fees.
-	<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(location, fee_per_second).map_err(|_| ())
+	let precision_factor = 10u128.pow(moonbeam_tests_primitives::RELATIVE_PRICE_DECIMALS);
+	let native_amount_per_second =
+		frame_support::weights::constants::WEIGHT_REF_TIME_PER_SECOND as u128;
+	let relative_price = native_amount_per_second
+		.saturating_mul(precision_factor)
+		.checked_div(fee_per_second)
+		.ok_or(())?;
+
+	<MemoryFeeTrader as XcmFeeTrader>::set_asset_price(location, relative_price).map_err(|_| ())
 }
 
 fn currency_to_asset(currency_id: parachain::CurrencyId, amount: u128) -> Asset {

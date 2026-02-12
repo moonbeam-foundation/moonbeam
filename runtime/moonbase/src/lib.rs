@@ -209,7 +209,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("moonbase"),
 	impl_name: Cow::Borrowed("moonbase"),
 	authoring_version: 4,
-	spec_version: 4200,
+	spec_version: 4300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -1579,6 +1579,8 @@ mod benches {
 		[pallet_collective, TreasuryCouncilCollective]
 		[pallet_collective, OpenTechCommitteeCollective]
 		[cumulus_pallet_weight_reclaim, WeightReclaim]
+		[pallet_xcm_benchmarks::fungible, pallet_xcm_benchmarks::fungible::Pallet<Runtime>]
+		[pallet_xcm_benchmarks::generic, pallet_xcm_benchmarks::generic::Pallet<Runtime>]
 	);
 }
 

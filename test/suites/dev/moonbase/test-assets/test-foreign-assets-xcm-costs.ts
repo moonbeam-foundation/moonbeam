@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 
 import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
-import { fundAccount, getFreeBalance } from "../../../../helpers/balances.js";
+import { fundAccount, getFreeBalance, getReservedBalance } from "../../../../helpers/balances.js";
 import { expectSystemEvent } from "../../../../helpers/expect.js";
 
 describeSuite({
@@ -11,10 +11,11 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     const paraId = 4444;
-    let paraSovereignAccount;
-    const feeLimit = 148_566_637_500_000n;
+    let paraSovereignAccount: `0x${string}`;
     const depositAmount = 100_000_000_000_000_000_000n; // 100 tokens
-    const fundAmount = feeLimit + depositAmount;
+    // Generous fee budget to accommodate upstream XCM weight changes.
+    const feeBudget = 10_000_000_000_000_000_000_000n; // 10_000 GLMR
+    const fundAmount = feeBudget + depositAmount;
 
     const assetId = 1;
     const assetLocation = {
@@ -26,7 +27,7 @@ describeSuite({
 
     beforeAll(async () => {
       paraSovereignAccount = sovereignAccountOfSibling(context, paraId) as `0x${string}`;
-      await fundAccount(paraSovereignAccount as `0x${string}`, fundAmount, context);
+      await fundAccount(paraSovereignAccount, fundAmount, context);
     });
 
     it({
@@ -35,6 +36,8 @@ describeSuite({
       test: async function () {
         const balanceBefore = await getFreeBalance(paraSovereignAccount, context);
         expect(balanceBefore).to.equal(fundAmount);
+        const reservedBefore = await getReservedBalance(paraSovereignAccount, context);
+        expect(reservedBefore).to.equal(0n);
         const createForeignAssetCall = context
           .polkadotJs()
           .tx.evmForeignAssets.createForeignAsset(assetId, assetLocation, 18, "TEST", "TEST");
@@ -43,7 +46,7 @@ describeSuite({
           createForeignAssetCall,
           paraId,
           context,
-          feeLimit
+          feeBudget
         );
 
         await expectSystemEvent(
@@ -54,8 +57,12 @@ describeSuite({
         );
 
         const balanceAfter = await getFreeBalance(paraSovereignAccount, context);
-        // The balanceAfter should always be 0. (update the feeLimit value if this fails)
-        expect(balanceAfter).toBe(0n);
+        const reservedAfter = await getReservedBalance(paraSovereignAccount, context);
+
+        // Deposit should be reserved on the sovereign account.
+        expect(reservedAfter).to.equal(depositAmount);
+        // Some fee should have been paid, so free balance must decrease.
+        expect(balanceAfter).to.be.lessThan(balanceBefore);
       },
     });
   },

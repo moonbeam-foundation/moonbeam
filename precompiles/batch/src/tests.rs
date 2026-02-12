@@ -21,7 +21,7 @@ use crate::mock::{
 use crate::{
 	log_subcall_failed, log_subcall_succeeded, Mode, LOG_SUBCALL_FAILED, LOG_SUBCALL_SUCCEEDED,
 };
-use fp_evm::ExitError;
+use fp_evm::{ExitError, MAX_TRANSACTION_GAS_LIMIT};
 use frame_support::assert_ok;
 use pallet_evm::Call as EvmCall;
 use precompile_utils::solidity::revert::revert_as_bytes;
@@ -40,8 +40,8 @@ fn evm_call(from: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 		target: Batch.into(),
 		input,
 		value: U256::zero(), // No value sent in EVM
-		gas_limit: u64::max_value(),
-		max_fee_per_gas: 0.into(),
+		gas_limit: MAX_TRANSACTION_GAS_LIMIT.low_u64(),
+		max_fee_per_gas: U256::zero(),
 		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None, // Use the next nonce
 		access_list: Vec::new(),

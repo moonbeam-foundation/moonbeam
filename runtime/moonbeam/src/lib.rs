@@ -215,7 +215,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("moonbeam"),
 	impl_name: Cow::Borrowed("moonbeam"),
 	authoring_version: 3,
-	spec_version: 4200,
+	spec_version: 4300,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -1577,6 +1577,8 @@ mod benches {
 		[pallet_bridge_parachains, pallet_bridge_parachains::benchmarking::Pallet::<Runtime, bridge_config::BridgeMoonriverInstance>]
 		[pallet_bridge_messages, pallet_bridge_messages::benchmarking::Pallet::<Runtime, bridge_config::WithKusamaMessagesInstance>]
 		[cumulus_pallet_weight_reclaim, WeightReclaim]
+		[pallet_xcm_benchmarks::fungible, pallet_xcm_benchmarks::fungible::Pallet<Runtime>]
+		[pallet_xcm_benchmarks::generic, pallet_xcm_benchmarks::generic::Pallet<Runtime>]
 	);
 }
 

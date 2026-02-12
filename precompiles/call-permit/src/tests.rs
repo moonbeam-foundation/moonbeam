@@ -33,6 +33,63 @@ fn dispatch_cost() -> u64 {
 }
 
 #[test]
+fn expired_permit_deadline_milliseconds() {
+	ExtBuilder::default()
+		.with_balances(vec![(CryptoAlith.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			use pallet_timestamp::Pallet as TimestampPallet;
+
+			let one_second = 1;
+
+			let deadline: U256 = one_second.into();
+
+			let from: H160 = CryptoAlith.into();
+			let to: H160 = Bob.into();
+			let value: U256 = 42u8.into();
+			let data: Vec<u8> = b"Test".to_vec();
+			let gas_limit = 100_000u64;
+			let nonce: U256 = 0u8.into();
+
+			let permit = CallPermitPrecompile::<Runtime>::generate_permit(
+				CallPermit.into(),
+				from,
+				to,
+				value,
+				data.clone(),
+				gas_limit,
+				nonce,
+				deadline,
+			);
+
+			let secret_key = SecretKey::parse(&alith_secret_key()).unwrap();
+			let message = Message::parse(&permit);
+			let (rs, v) = sign(&message, &secret_key);
+
+			// (deadline_ms + 1ms) = should revert with "Permit expired"
+			TimestampPallet::<Runtime>::set_timestamp((one_second * 1000) + 1);
+
+			precompiles()
+				.prepare_test(
+					CryptoBaltathar,
+					CallPermit,
+					PCall::dispatch {
+						from: Address(from),
+						to: Address(to),
+						value,
+						data: data.into(),
+						gas_limit,
+						deadline,
+						v: v.serialize(),
+						r: H256::from(rs.r.b32()),
+						s: H256::from(rs.s.b32()),
+					},
+				)
+				.execute_reverts(|x| x == b"Permit expired");
+		})
+}
+
+#[test]
 fn selectors() {
 	assert!(PCall::dispatch_selectors().contains(&0xb5ea0966));
 	assert!(PCall::nonces_selectors().contains(&0x7ecebe00));

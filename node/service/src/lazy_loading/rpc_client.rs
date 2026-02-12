@@ -222,6 +222,22 @@ impl RPC {
 		self.block_on(request)
 	}
 
+	pub fn block_by_number(
+		&self,
+		block_number: fc_rpc_v2_api::types::BlockNumberOrTag,
+		full: bool,
+	) -> Result<Option<fc_rpc_v2_api::types::Block>, jsonrpsee::core::ClientError> {
+		let request = &|| {
+			fc_rpc_v2_api::eth::EthBlockApiClient::block_by_number(
+				&self.http_client,
+				block_number.clone(),
+				full,
+			)
+		};
+
+		self.block_on(request)
+	}
+
 	fn block_on<F, T, E>(&self, f: &dyn Fn() -> F) -> Result<T, E>
 	where
 		F: Future<Output = Result<T, E>>,

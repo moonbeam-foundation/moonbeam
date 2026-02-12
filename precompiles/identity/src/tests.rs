@@ -23,6 +23,7 @@ use crate::{
 use crate::{
 	Data, IdentityFields, IdentityInfo, Judgement, Registrar, Registration, SubsOf, SuperOf,
 };
+use fp_evm::MAX_TRANSACTION_GAS_LIMIT;
 use frame_support::assert_ok;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use pallet_identity::{
@@ -44,8 +45,8 @@ fn evm_call(source: impl Into<H160>, input: Vec<u8>) -> EvmCall<Runtime> {
 		target: Precompile1.into(),
 		input,
 		value: U256::zero(),
-		gas_limit: u64::max_value(),
-		max_fee_per_gas: 0.into(),
+		gas_limit: MAX_TRANSACTION_GAS_LIMIT.low_u64(),
+		max_fee_per_gas: U256::zero(),
 		max_priority_fee_per_gas: Some(U256::zero()),
 		nonce: None,
 		access_list: Vec::new(),

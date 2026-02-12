@@ -32,7 +32,7 @@ jobs:
             type: relay
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get latest moonbeam release
         if: matrix.network.type == 'parachain'
@@ -162,7 +162,7 @@ jobs:
           } > reports/${{ matrix.network.name }}.txt
 
       - name: Upload results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bootnode-results-${{ matrix.network.name }}
           path: reports/
@@ -176,7 +176,7 @@ jobs:
       issues: write
     steps:
       - name: Download all results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: results
           pattern: bootnode-results-*

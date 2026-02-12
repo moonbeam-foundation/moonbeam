@@ -71,8 +71,9 @@ describeSuite({
                 fungible: FOREIGN_TOKEN,
               },
             ],
+            // Give an ample weight limit so the upstream-weighted message can execute.
             weight_limit: {
-              refTime: 10_000_000_000,
+              refTime: 1_000_000_000_000n,
               proofSize: 256 * 1024,
             },
             beneficiary: alith.address,
