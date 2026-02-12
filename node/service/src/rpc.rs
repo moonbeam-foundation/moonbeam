@@ -286,7 +286,7 @@ where
 		Eth::<_, _, _, _, _, _, MoonbeamEthConfig<_, _>>::new(
 			Arc::clone(&client.clone()),
 			Arc::clone(&pool),
-			graph.clone(),
+			// graph.clone(),
 			convert_transaction,
 			Arc::clone(&sync),
 			signers,

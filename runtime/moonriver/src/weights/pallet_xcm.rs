@@ -384,4 +384,13 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for WeightInfo<T> {
 		// Minimum execution time: 18_446_744_073_709_551_000 picoseconds.
 		Weight::from_parts(18_446_744_073_709_551_000, 0)
 	}
+
+	fn weigh_message() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 8_416_000 picoseconds.
+		Weight::from_parts(8_668_000, 0)
+			.saturating_add(Weight::from_parts(0, 0))
+	}
 }
