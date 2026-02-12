@@ -16,55 +16,81 @@
 
 //! Test primitives for Moonbeam, including mock implementations for testing.
 
-use frame_support::weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight};
+use frame_support::weights::Weight;
 use sp_runtime::DispatchError;
 use sp_std::cell::RefCell;
 use sp_std::collections::btree_map::BTreeMap;
 use xcm::latest::Location;
 use xcm_primitives::XcmFeeTrader;
 
+/// Must match `pallet-xcm-weight-trader`'s `RELATIVE_PRICE_DECIMALS`.
+pub const RELATIVE_PRICE_DECIMALS: u32 = 18;
+
 thread_local! {
-	/// Thread-local storage for fee-per-second values keyed by asset location.
-	static FEE_PER_SECOND: RefCell<BTreeMap<Location, u128>> = RefCell::new(BTreeMap::new());
+	/// Thread-local storage for relative prices keyed by asset location.
+	///
+	/// Semantics match `pallet-xcm-weight-trader`:
+	/// - Price is relative to the chain native asset.
+	/// - It uses 18 decimals of precision.
+	/// - Larger values mean the asset is *more valuable* and therefore requires *less* of it
+	///   to pay for the same amount of weight.
+	static RELATIVE_PRICE: RefCell<BTreeMap<Location, u128>> = RefCell::new(BTreeMap::new());
 }
 
-/// Memory-based fee trader for tests that stores fee-per-second values in memory.
+/// Memory-based fee trader for tests that stores relative prices in memory.
 ///
-/// This implementation calculates fees based on weight and a fee-per-second rate,
-/// similar to how the real weight-trader pallet works. It's useful for testing
-/// XCM fee payment scenarios without requiring a full runtime setup.
+/// This is intentionally aligned with `pallet-xcm-weight-trader`'s behavior to make tests and
+/// benchmarks share the same pricing interpretation:
+/// - `set_asset_price(location, value)` sets a **relative price** (18 decimals), not a fee-per-second.
+/// - `compute_fee(weight, asset)` converts `weight` into a "native fee amount" and then converts that
+///   native amount into the target asset using the stored relative price:
+///
+/// \[
+/// \text{asset\_amount} = \left\lceil \frac{\text{native\_amount} \cdot 10^{18}}{\text{relative\_price}} \right\rceil
+/// \]
+///
+/// For simplicity (and determinism), the "native amount" is derived from `weight.ref_time()`.
 pub struct MemoryFeeTrader;
 
 impl XcmFeeTrader for MemoryFeeTrader {
 	fn compute_fee(weight: Weight, asset_location: &Location) -> Result<u128, DispatchError> {
-		// Get fee-per-second from storage
-		let fee_per_second = FEE_PER_SECOND
+		let relative_price = RELATIVE_PRICE
 			.with(|map| map.borrow().get(asset_location).copied())
-			.ok_or(DispatchError::Other("Fee per second not set"))?;
+			.ok_or(DispatchError::Other("Asset relative price not set"))?;
 
-		// Calculate fee using the same formula as the weight-trader pallet
-		// fee = (fee_per_second * weight.ref_time() + weight_per_second - 1) / weight_per_second
-		let weight_per_second_u128 = WEIGHT_REF_TIME_PER_SECOND as u128;
-		let fee_mul_rounded_up = (fee_per_second.saturating_mul(weight.ref_time() as u128))
-			.saturating_add(weight_per_second_u128 - 1);
-		Ok(fee_mul_rounded_up / weight_per_second_u128)
+		// Stand-in for the runtime's native `WeightToFee`: use ref_time directly.
+		let native_amount: u128 = weight.ref_time() as u128;
+
+		let scale: u128 = 10u128.pow(RELATIVE_PRICE_DECIMALS);
+		let numerator = native_amount
+			.checked_mul(scale)
+			.ok_or(DispatchError::Other("Overflow computing fee"))?;
+
+		// Round up (match weight-trader behavior).
+		let amount = numerator
+			.checked_add(relative_price.saturating_sub(1))
+			.ok_or(DispatchError::Other("Overflow computing fee"))?
+			.checked_div(relative_price)
+			.ok_or(DispatchError::Other("Division by zero"))?;
+
+		Ok(amount)
 	}
 
 	fn get_asset_price(asset_location: &Location) -> Option<u128> {
-		FEE_PER_SECOND.with(|map| map.borrow().get(asset_location).copied())
+		RELATIVE_PRICE.with(|map| map.borrow().get(asset_location).copied())
 	}
 
 	fn set_asset_price(asset_location: Location, value: u128) -> Result<(), DispatchError> {
-		FEE_PER_SECOND.with(|map| {
-			map.borrow_mut().insert(asset_location, value);
-		});
+		if value == 0 {
+			return Err(DispatchError::Other("Relative price cannot be zero"));
+		}
+
+		RELATIVE_PRICE.with(|map| map.borrow_mut().insert(asset_location, value));
 		Ok(())
 	}
 
 	fn remove_asset(asset_location: Location) -> Result<(), DispatchError> {
-		FEE_PER_SECOND.with(|map| {
-			map.borrow_mut().remove(&asset_location);
-		});
+		RELATIVE_PRICE.with(|map| map.borrow_mut().remove(&asset_location));
 		Ok(())
 	}
 }

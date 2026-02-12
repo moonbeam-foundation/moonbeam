@@ -462,10 +462,13 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 		}) = self.1.take()
 		{
 			let weight_to_refund = weight_to_refund.min(self.0);
-			let amount_to_refund: u128 =
+			// `xcm-executor` passes the *surplus* weight to refund here (not the weight used).
+			// We therefore refund the proportional amount that was originally charged for
+			// `weight_to_refund`, and keep the remainder to be deposited to the fees account.
+			let computed_refund_amount: u128 =
 				Self::compute_amount_to_charge(&weight_to_refund, &location).unwrap_or(u128::MAX);
-			let final_amount = amount_to_refund.min(initial_amount);
-			let amount_to_refund = initial_amount.saturating_sub(final_amount);
+			let refund_amount = computed_refund_amount.min(initial_amount);
+			let final_amount = initial_amount.saturating_sub(refund_amount);
 			self.0 -= weight_to_refund;
 			self.1 = Some(Asset {
 				fun: Fungibility::Fungible(final_amount),
@@ -474,11 +477,11 @@ impl<T: crate::Config> WeightTrader for Trader<T> {
 			log::trace!(
 				target: "xcm-weight-trader",
 				"refund_weight amount to refund: {:?}",
-				amount_to_refund
+				refund_amount
 			);
-			if amount_to_refund > 0 {
+			if refund_amount > 0 {
 				Some(Asset {
-					fun: Fungibility::Fungible(amount_to_refund),
+					fun: Fungibility::Fungible(refund_amount),
 					id: XcmAssetId(location),
 				})
 			} else {
