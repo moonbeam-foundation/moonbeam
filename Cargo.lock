@@ -7789,14 +7789,14 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.50.1"
+version = "0.50.2"
 dependencies = [
  "moonbeam-cli",
 ]
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.50.1"
+version = "0.50.2"
 dependencies = [
  "ansi_term",
  "clap",
@@ -7825,7 +7825,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.50.1"
+version = "0.50.2"
 dependencies = [
  "account",
  "bip32",
@@ -8228,7 +8228,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.50.1"
+version = "0.50.2"
 dependencies = [
  "ansi_term",
  "async-backing-primitives",
