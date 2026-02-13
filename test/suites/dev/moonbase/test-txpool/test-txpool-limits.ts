@@ -20,7 +20,8 @@ describeSuite({
         }
 
         await context.createBlock();
-        const maxTxnLen = (await getBlockWithRetry(context)).transactions.length;
+        const block = await getBlockWithRetry(context, { blockNumber: 1n });
+        const maxTxnLen = block.transactions.length;
         log(`out ${maxTxnLen}`);
         expect(maxTxnLen).toBeGreaterThan(2300);
       },
