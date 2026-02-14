@@ -3,6 +3,13 @@ name: Enforce PR labels
 on:
   pull_request:
     types: [labeled, unlabeled, opened, edited, synchronize]
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   enforce-noteworthiness-label:
     runs-on: ubuntu-latest

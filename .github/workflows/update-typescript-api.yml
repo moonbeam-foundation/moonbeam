@@ -5,6 +5,13 @@ on:
   schedule:
     - cron: "0 5 * * *" # Runs every day at 5:00 AM UTC
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     runs-on:

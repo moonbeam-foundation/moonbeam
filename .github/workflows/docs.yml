@@ -12,6 +12,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   deploy-docs:
     name: Deploy docs
@@ -43,12 +50,9 @@ jobs:
           key: ${{ runner.os }}-cargo-doc-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build rustdocs
-        uses: actions-rs/cargo@v1
         env:
           CARGO_INCREMENTAL: "0"
-        with:
-          command: doc
-          args: --all --no-deps
+        run: cargo doc --all --no-deps
 
       # Make an index.html file so we start at the moonbeam_runtime page
       # Copied from https://github.com/substrate-developer-hub/rustdocs/blob/master/index.html

@@ -9,6 +9,13 @@ on:
 env:
   FRAME_OMNI_BENCHER_RELEASE_VERSION: polkadot-stable2509-2
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   set-tags:
     runs-on: ubuntu-latest
@@ -20,13 +27,7 @@ jobs:
       - name: Check git ref
         id: check-git-ref
         run: |
-          if [[ -n "${{ github.event.pull_request.head.sha }}" ]]; then
-            echo "git_ref=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
-          elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
-            echo "git_ref=refs/pull/${{ github.event.inputs.pull_request }}/head" >> "$GITHUB_OUTPUT"
-          else
-            echo "git_ref=${GITHUB_REF}" >> "$GITHUB_OUTPUT"
-          fi
+          echo "git_ref=$GITHUB_REF" >> "$GITHUB_OUTPUT"
 
   verify:
     needs: ["set-tags"]
