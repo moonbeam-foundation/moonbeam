@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, baltathar } from "@moonwall/util";
+import { baltathar, beforeAll, describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 
@@ -8,7 +7,7 @@ describeSuite({
   id: "D022756",
   title: "Smart Contract Precompile Call - Proxy - Real Account",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let testContractAddress: `0x${string}`;
     let testContract2Address: `0x${string}`;
     let multiplyContractAddress: `0x${string}`;

@@ -1,11 +1,6 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { type DevModeContext, expect } from "@moonwall/cli";
-import {
-  type BlockRangeOption,
-  EXTRINSIC_BASE_WEIGHT,
-  WEIGHT_PER_GAS,
-  mapExtrinsics,
-} from "@moonwall/util";
+import type { DevModeContext, BlockRangeOption } from "moonwall";
+import { EXTRINSIC_BASE_WEIGHT, WEIGHT_PER_GAS, expect, mapExtrinsics } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
 import type { Option, u128, u32 } from "@polkadot/types";
@@ -16,7 +11,7 @@ import type { AccountId20, Block } from "@polkadot/types/interfaces/runtime/type
 import chalk from "chalk";
 import type { Debugger } from "debug";
 import Debug from "debug";
-import { calculateFeePortions, split } from "./fees.ts";
+import { calculateFeePortions } from "./fees.ts";
 import { getFeesTreasuryProportion } from "./parameters.ts";
 
 const debug = Debug("test:blocks");
@@ -392,7 +387,7 @@ export function extractPreimageDeposit(
 export async function countExtrinsics(
   context: DevModeContext,
   method: string,
-  logger: Debugger
+  logger?: Debugger
 ): Promise<[number, number, number]> {
   const block = await context.polkadotJs().rpc.chain.getBlock();
   const extrinsicCount = block.block.extrinsics.reduce(
@@ -411,7 +406,7 @@ export async function countExtrinsics(
     blockWeights.normal.proofSize.toNumber() /
     maxBlockWeights.perClass.normal.maxTotal.unwrap().proofSize.toNumber();
 
-  logger(
+  logger?.(
     `  ${chalk.yellow("○")} ${chalk.gray(method)} max ${chalk.green(
       extrinsicCount
     )} per block (w: ${(weightUtil * 100).toFixed(1)}%, p: ${(proofUtil * 100).toFixed(1)}%)`

@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   CHARLETH_ADDRESS,
@@ -9,9 +8,12 @@ import {
   ETHAN_PRIVATE_KEY,
   GLMR,
   MIN_GLMR_STAKING,
+  beforeAll,
+  describeSuite,
   dorothy,
   ethan,
-} from "@moonwall/util";
+  expect,
+} from "moonwall";
 import { nToHex } from "@polkadot/util";
 import { setupWithParticipants } from "../../../../helpers";
 
@@ -19,7 +21,7 @@ describeSuite({
   id: "D022743",
   title: "Proxy Call Staking Demo - New Participant",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let demoContractAddress: `0x${string}`;
 
     beforeAll(async function () {

@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, alith } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, alith, beforeAll, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D023103",
   title: "Receipt - Contract",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let txHash: string;
     let eventContract: `0x${string}`;
 

@@ -1,12 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   ALITH_SESSION_ADDRESS,
   BALTATHAR_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
   baltathar,
-} from "@moonwall/util";
+  beforeAll,
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
@@ -14,7 +16,7 @@ describeSuite({
   id: "D020202",
   title: "Author Mapping - Fail to reassociate alice",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
 
     beforeAll(async () => {
@@ -42,9 +44,9 @@ describeSuite({
 
         // should check events for failure
         expect(result?.events.length === 6);
-        expect(api.events.system.NewAccount.is(result?.events[1].event)).to.be.true;
-        expect(api.events.balances.Endowed.is(result?.events[2].event)).to.be.true;
-        expect(api.events.system.ExtrinsicFailed.is(result?.events[5].event)).to.be.true;
+        expect(api.events.system.NewAccount.is(result!.events[1].event)).to.be.true;
+        expect(api.events.balances.Endowed.is(result!.events[2].event)).to.be.true;
+        expect(api.events.system.ExtrinsicFailed.is(result!.events[5].event)).to.be.true;
 
         //check state
         expect((await api.query.system.account(BALTATHAR_ADDRESS)).data.free.toBigInt()).to.eq(

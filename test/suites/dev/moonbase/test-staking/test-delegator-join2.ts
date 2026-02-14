@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
+import { MIN_GLMR_DELEGATOR, alith, beforeAll, describeSuite, ethan, expect } from "moonwall";
 
 describeSuite({
   id: "D023345",
   title: "Staking - Delegator Join - already delegated",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         context

@@ -1,7 +1,13 @@
-import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
+import {
+  ALITH_ADDRESS,
+  beforeAll,
+  createEthersTransaction,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 import { deployHeavyContracts, type HeavyContract } from "../../../../helpers";
-import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
 
 describeSuite({
   id: "D022603",
@@ -10,7 +16,6 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let contractCallForwarderAddress: `0x${string}`;
     let contracts: HeavyContract[];
-    let callData: `0x${string}`;
     let proxyAbi: Abi;
 
     // The goal of this test is to fill the max PoV limit with normal transactions (75% of 10MB)
@@ -69,7 +74,7 @@ describeSuite({
           transactions.push(rawSigned);
         }
 
-        const { result, block } = await context.createBlock(transactions);
+        await context.createBlock(transactions);
 
         const blockWeight = await context.polkadotJs().query.system.blockWeight();
 

@@ -8,8 +8,7 @@ import type {
   PalletReferendaDeposit,
   PalletConvictionVotingVoteVoting,
 } from "@polkadot/types/lookup";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { TWO_HOURS, printTokens } from "@moonwall/util";
+import { TWO_HOURS, beforeAll, describeSuite, expect, printTokens } from "moonwall";
 import type { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit, AccountShortfalls } from "../../helpers";
 import type { ApiPromise } from "@polkadot/api";
@@ -106,10 +105,10 @@ describeSuite({
     let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
     let specVersion = 0;
-    let runtimeName: string;
     let totalAccounts = 0n;
     let totalIssuance = 0n;
     let symbol: string;
+    let runtimeName: string;
     let paraApi: ApiPromise;
 
     const updateReserveMap = (
@@ -693,7 +692,7 @@ describeSuite({
         const failuresExpectedReserveMap: string[] = [];
         if (expectedReserveMap.size > 0) {
           log(`expectedReserveMap size: ${expectedReserveMap.size}`);
-          expectedReserveMap.forEach((value, key) => {
+          expectedReserveMap.forEach((_, key) => {
             failuresExpectedReserveMap.push(`${base64ToHex(key)}`);
           });
         }

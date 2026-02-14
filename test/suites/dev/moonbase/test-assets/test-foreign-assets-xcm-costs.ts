@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 
 import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount, getFreeBalance, getReservedBalance } from "../../../../helpers/balances.js";
@@ -62,7 +62,7 @@ describeSuite({
         // Deposit should be reserved on the sovereign account.
         expect(reservedAfter).to.equal(depositAmount);
         // Some fee should have been paid, so free balance must decrease.
-        expect(balanceAfter).to.be.lessThan(balanceBefore);
+        expect(balanceAfter < balanceBefore).to.be.true;
       },
     });
   },

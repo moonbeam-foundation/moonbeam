@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { FAITH_ADDRESS, FAITH_PRIVATE_KEY, getBlockExtrinsic } from "@moonwall/util";
+import {
+  FAITH_ADDRESS,
+  FAITH_PRIVATE_KEY,
+  beforeAll,
+  describeSuite,
+  expect,
+  getBlockExtrinsic,
+} from "moonwall";
 import {
   concatNewKeys,
   concatOriginalKeys,
@@ -13,7 +19,7 @@ describeSuite({
   id: "D010403",
   title: "Precompile Author Mapping - Update different keys",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       await setAuthorMappingKeysViaPrecompile(
         context,

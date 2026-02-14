@@ -1,5 +1,12 @@
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { CHARLETH_ADDRESS, BALTATHAR_ADDRESS, alith, setupLogger } from "@moonwall/util";
+import {
+  BALTATHAR_ADDRESS,
+  CHARLETH_ADDRESS,
+  alith,
+  beforeAll,
+  describeSuite,
+  expect,
+  setupLogger,
+} from "moonwall";
 import { parseEther, formatEther, type Signer } from "ethers";
 import { BN } from "@polkadot/util";
 import type { ApiPromise } from "@polkadot/api";
@@ -10,13 +17,11 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ it, context, log }) => {
     let signer: Signer;
-    let w3;
     let polkadotJs: ApiPromise;
     const anotherLogger = setupLogger("anotherLogger");
 
     beforeAll(() => {
       signer = context.ethers();
-      w3 = context.web3();
       polkadotJs = context.polkadotJs();
     });
 
@@ -119,7 +124,7 @@ describeSuite({
         );
 
         expect(
-          result.events.find((evt) => polkadotJs.events.system.ExtrinsicFailed.is(evt.event)),
+          result!.events.find((evt) => polkadotJs.events.system.ExtrinsicFailed.is(evt.event)),
           "No Event found in block"
         ).toBeTruthy();
       },

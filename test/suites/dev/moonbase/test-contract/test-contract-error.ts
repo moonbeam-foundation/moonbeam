@@ -1,17 +1,14 @@
 import "@moonbeam-network/api-augment";
 import {
+  CHARLETH_ADDRESS,
+  CHARLETH_PRIVATE_KEY,
   TransactionTypes,
   beforeAll,
+  createEthersTransaction,
   deployCreateCompiledContract,
   describeSuite,
   expect,
-} from "@moonwall/cli";
-import {
-  CHARLETH_PRIVATE_KEY,
-  CHARLETH_ADDRESS,
-  createEthersTransaction,
-  ALITH_ADDRESS,
-} from "@moonwall/util";
+} from "moonwall";
 import { encodeFunctionData, type Abi } from "viem";
 import { verifyLatestBlockFees } from "../../../../helpers";
 
@@ -20,7 +17,7 @@ describeSuite({
   id: "D020502",
   title: "Contract loop error",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let looperAddress: `0x${string}`;
     let looperAbi: Abi;
 
@@ -67,7 +64,7 @@ describeSuite({
             signer: { type: "ethereum", privateKey: CHARLETH_PRIVATE_KEY },
           });
 
-          expect(result.successful).to.be.true;
+          expect(result!.successful).to.be.true;
 
           const receipt = await context
             .viem("public")
@@ -94,7 +91,7 @@ describeSuite({
             signer: { type: "ethereum", privateKey: CHARLETH_PRIVATE_KEY },
           });
 
-          expect(result.successful).to.be.true;
+          expect(result!.successful).to.be.true;
           await verifyLatestBlockFees(context);
         },
       });

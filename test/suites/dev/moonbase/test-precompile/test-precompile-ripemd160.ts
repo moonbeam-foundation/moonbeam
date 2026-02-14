@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "moonwall";
 import { toHex } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 
@@ -7,7 +7,7 @@ describeSuite({
   id: "D022751",
   title: "Precompiles - ripemd160 ",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should be valid",

@@ -1,13 +1,15 @@
 import "@moonbeam-network/api-augment";
 import {
-  checkBlockFinalized,
-  getBlockTime,
-  fetchHistoricBlockNum,
   TEN_MINS,
   TWO_HOURS,
-} from "@moonwall/util";
+  beforeAll,
+  checkBlockFinalized,
+  describeSuite,
+  expect,
+  fetchHistoricBlockNum,
+  getBlockTime,
+} from "moonwall";
 import semver from "semver";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
 import type { Signer } from "ethers";
 import type { ApiPromise } from "@polkadot/api";
 import { rateLimiter } from "../../helpers/common.js";

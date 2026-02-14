@@ -1,20 +1,22 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   GLMR,
-  type KeyringPair,
   MILLIGLMR,
   MIN_GLMR_DELEGATOR,
   alith,
+  beforeAll,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { chunk, getDelegatorStakingFreeze } from "../../../../helpers";
 
 describeSuite({
   id: "D023377",
   title: "Staking - Freezes - bottom and top delegations",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let bottomDelegators: KeyringPair[];
     let topDelegators: KeyringPair[];
 
@@ -50,7 +52,7 @@ describeSuite({
         let numDelegations = 0;
         for (const topDelegatorsChunk of chunk(topDelegators, 20)) {
           await context.createBlock(
-            [...topDelegatorsChunk].map((account, i) => {
+            [...topDelegatorsChunk].map((account) => {
               // add a tip such that the delegation ordering will be preserved,
               // e.g. the first txns sent will have the highest tip
               const tip = BigInt(tipOrdering--) * MILLIGLMR;

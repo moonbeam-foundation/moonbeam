@@ -1,19 +1,21 @@
 import "@moonbeam-network/api-augment";
-import { type DevModeContext, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   GLMR,
-  type KeyringPair,
   MIN_GLMR_STAKING,
   alith,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+  type DevModeContext,
+} from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 
 describeSuite({
   id: "D020606",
   title: "Conviction Voting - delegate",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should delegate at least 10 txs in a block",

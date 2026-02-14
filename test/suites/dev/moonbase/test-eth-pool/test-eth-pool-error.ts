@@ -1,4 +1,3 @@
-import { afterEach, beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
@@ -7,10 +6,15 @@ import {
   DOROTHY_ADDRESS,
   GOLIATH_ADDRESS,
   GOLIATH_PRIVATE_KEY,
+  afterEach,
+  beforeAll,
   createEthersTransaction,
   createRawTransfer,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
   sendRawTransaction,
-} from "@moonwall/util";
+} from "moonwall";
 import { parseGwei } from "viem";
 import { ALITH_GENESIS_TRANSFERABLE_BALANCE, ConstantStore } from "../../../../helpers";
 import { UNIT } from "../test-parameters/test-parameters";
@@ -19,7 +23,7 @@ describeSuite({
   id: "D021002",
   title: "Ethereum Rpc pool errors",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(await createRawTransfer(context, BALTATHAR_ADDRESS, 3n));
     });

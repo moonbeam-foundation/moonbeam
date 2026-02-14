@@ -1,14 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { alith, beforeAll, describeSuite, expect } from "moonwall";
 
-import { alith } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
   injectHrmpMessageAndSeal,
   registerForeignAsset,
   foreignAssetBalance,
-  addAssetToWeightTrader,
 } from "../../../../helpers";
 
 const statemint_para_id = 1001;
@@ -38,7 +36,7 @@ describeSuite({
   id: "D024006",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const assetId = 1n;
 
     beforeAll(async () => {

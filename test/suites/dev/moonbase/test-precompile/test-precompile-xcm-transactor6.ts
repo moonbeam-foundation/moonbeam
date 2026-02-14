@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite } from "@moonwall/cli";
+import { beforeAll, describeSuite } from "moonwall";
 import { fromBytes } from "viem";
 import {
   RELAY_SOURCE_LOCATION,
@@ -16,7 +16,7 @@ describeSuite({
   id: "D022774",
   title: "Precompiles - xcm transactor V2",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let assetAddress;
 
     beforeAll(async () => {

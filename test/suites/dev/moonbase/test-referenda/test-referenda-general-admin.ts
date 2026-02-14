@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "moonwall";
 import { stripNulls } from "../../../../helpers";
 
 describeSuite({
@@ -9,7 +8,6 @@ describeSuite({
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
     let refIndex: number;
-    let proposalHash: string;
     beforeAll(async () => {
       // Just build the arguments. They dont matter that much though, since
       // we will not make sure it executes in the relay
@@ -42,7 +40,7 @@ describeSuite({
       );
 
       // The origin we want to use, post a referenda and deposit.
-      [refIndex, proposalHash] = await proposeReferendaAndDeposit(context, alith, proposal, {
+      [refIndex] = await proposeReferendaAndDeposit(context, alith, proposal, {
         Origins: "GeneralAdmin",
       });
     });

@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, generateKeyringPair } from "@moonwall/util";
+import { ALITH_ADDRESS, GLMR, describeSuite, expect, generateKeyringPair } from "moonwall";
 
 // A call from root (sudo) can make a transfer directly in pallet_evm
 // A signed call cannot make a transfer directly in pallet_evm
