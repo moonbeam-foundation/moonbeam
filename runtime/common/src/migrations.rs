@@ -297,4 +297,5 @@ pub type MultiBlockMigrations<Runtime> = (
 	ResetStorage<Runtime, pallet_parachain_staking::Pallet<Runtime>, MigratedCandidatesStorageName>,
 	ResetStorage<Runtime, pallet_parachain_staking::Pallet<Runtime>, MigratedDelegatorsStorageName>,
 	pallet_parachain_staking::migrations::MigrateDelegationScheduledRequestsToDoubleMap<Runtime>,
+	pallet_parachain_staking::migrations::MigratePopulatePendingRevocations<Runtime>,
 );

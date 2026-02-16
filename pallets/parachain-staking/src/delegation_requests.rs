@@ -18,8 +18,8 @@
 
 use crate::pallet::{
 	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests,
-	DelegationScheduledRequestsPerCollator, DelegatorState, Error, Event, Pallet, Round,
-	RoundIndex, Total,
+	DelegationScheduledRequestsPerCollator, DelegatorState, Error, Event, Pallet,
+	PendingRevocations, Round, RoundIndex, Total,
 };
 use crate::weights::WeightInfo;
 use crate::{auto_compound::AutoCompoundDelegations, Delegator};
@@ -157,6 +157,7 @@ impl<T: Config> Pallet<T> {
 			delegator.clone(),
 			scheduled_requests,
 		);
+		<PendingRevocations<T>>::insert(collator.clone(), delegator.clone(), ());
 		<DelegatorState<T>>::insert(delegator.clone(), state);
 
 		Self::deposit_event(Event::DelegationRevocationScheduled {
@@ -307,6 +308,10 @@ impl<T: Config> Pallet<T> {
 			},
 		)?;
 
+		if matches!(request.action, DelegationAction::Revoke(_)) {
+			<PendingRevocations<T>>::remove(&collator, &delegator);
+		}
+
 		if scheduled_requests.is_empty() {
 			<DelegationScheduledRequestsPerCollator<T>>::mutate(&collator, |c| {
 				*c = c.saturating_sub(1);
@@ -394,6 +399,9 @@ impl<T: Config> Pallet<T> {
 
 				// remove delegation from auto-compounding info
 				<AutoCompoundDelegations<T>>::remove_auto_compound(&collator, &delegator);
+
+				// clear the pending revocation flag
+				<PendingRevocations<T>>::remove(&collator, &delegator);
 
 				// remove delegation from collator state delegations
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)
@@ -545,6 +553,7 @@ impl<T: Config> Pallet<T> {
 
 		state.less_total = state.less_total.saturating_sub(total_amount);
 		<DelegationScheduledRequests<T>>::remove(collator, delegator);
+		<PendingRevocations<T>>::remove(collator, delegator);
 		<DelegationScheduledRequestsPerCollator<T>>::mutate(collator, |c| {
 			*c = c.saturating_sub(1);
 		});
@@ -560,9 +569,7 @@ impl<T: Config> Pallet<T> {
 		collator: &T::AccountId,
 		delegator: &T::AccountId,
 	) -> bool {
-		<DelegationScheduledRequests<T>>::get(collator, delegator)
-			.iter()
-			.any(|req| matches!(req.action, DelegationAction::Revoke(_)))
+		<PendingRevocations<T>>::contains_key(collator, delegator)
 	}
 }
 

@@ -35,7 +35,7 @@ use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, AwardedPts, Bond, CollatorStatus, DelegationScheduledRequests,
 	DelegationScheduledRequestsPerCollator, DelegatorAdded, EnableMarkingOffline, Error, Event,
-	FreezeReason, InflationDistributionInfo, Points, Range, WasInactive,
+	FreezeReason, InflationDistributionInfo, PendingRevocations, Points, Range, WasInactive,
 };
 use frame_support::migrations::SteppedMigration;
 use frame_support::storage::storage_prefix;
@@ -6972,8 +6972,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 }
 
 #[test]
-fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_but_less_for_future()
-{
+fn test_delegator_scheduled_for_bond_decrease_keeps_earning_full_rewards_until_execution() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
 		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
@@ -7004,6 +7003,9 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 				"collator's total was reduced unexpectedly"
 			);
 
+			// Pending decreases no longer affect the reward snapshot. The
+			// delegator keeps earning full rewards until the decrease is
+			// executed. With equal stakes (20/20), both earn proportionally.
 			roll_to_round_begin(3);
 			assert_events_emitted_match!(Event::NewRound { round: 3, .. });
 			roll_blocks(3);
@@ -7040,8 +7042,8 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 				"collator snapshot's delegator count was reduced unexpectedly"
 			);
 			assert_eq!(
-				30, collator_snapshot.total,
-				"collator snapshot's total was reduced unexpectedly",
+				40, collator_snapshot.total,
+				"collator snapshot's total should not be reduced by pending decreases",
 			);
 		});
 }
@@ -7398,6 +7400,7 @@ fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
 				}])
 				.expect("must succeed"),
 			);
+			PendingRevocations::<Test>::insert(1, 2, ());
 			assert!(ParachainStaking::delegation_request_revoke_exists(&1, &2));
 		});
 }

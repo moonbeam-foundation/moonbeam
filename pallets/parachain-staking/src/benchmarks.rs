@@ -20,8 +20,8 @@
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
 	DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
-	InflationDistributionConfig, InflationDistributionInfo, Pallet, Points, Range, RewardPayment,
-	Round, ScheduledRequest, TopDelegations,
+	InflationDistributionConfig, InflationDistributionInfo, Pallet, PendingRevocations, Points,
+	Range, RewardPayment, Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::v2::*;
 use frame_support::traits::tokens::fungible::{Inspect, Mutate};
@@ -1604,10 +1604,10 @@ mod benchmarks {
 			1,
 		)?;
 
-		// create delegators
+		// create delegators and insert PendingRevocations flags for worst-case PoV
 		for i in 0..y {
 			let seed = USER_SEED + i + 1;
-			let _delegator = create_funded_delegator::<T>(
+			let delegator = create_funded_delegator::<T>(
 				"delegator",
 				seed,
 				min_candidate_stk::<T>() * 1_000_000u32.into(),
@@ -1615,6 +1615,7 @@ mod benchmarks {
 				true,
 				i,
 			)?;
+			<PendingRevocations<T>>::insert(&collator, &delegator, ());
 		}
 
 		let mut _results = None;
@@ -1626,7 +1627,6 @@ mod benchmarks {
 
 		let counted_delegations =
 			_results.expect("get_rewardable_delegators returned some results");
-		assert!(counted_delegations.uncounted_stake == 0u32.into());
 		assert!(counted_delegations.rewardable_delegations.len() as u32 == y);
 		let top_delegations = <TopDelegations<T>>::get(collator.clone())
 			.expect("delegations were set for collator through delegate() calls");
@@ -1661,9 +1661,9 @@ mod benchmarks {
 			)?;
 			seed += 1;
 
-			// create delegators
+			// create delegators and insert PendingRevocations flags for worst-case PoV
 			for _ in 0..y {
-				let _delegator = create_funded_delegator::<T>(
+				let delegator = create_funded_delegator::<T>(
 					"delegator",
 					seed,
 					min_candidate_stk::<T>() * 1_000_000u32.into(),
@@ -1671,6 +1671,7 @@ mod benchmarks {
 					true,
 					9999999,
 				)?;
+				<PendingRevocations<T>>::insert(&collator, &delegator, ());
 				seed += 1;
 			}
 		}
