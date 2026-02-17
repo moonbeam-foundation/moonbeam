@@ -41,11 +41,8 @@ describeSuite({
 
     it({
       id: "T01",
-      title: "should reward same as baltathar despite pending decrease",
+      title: "should reward less than baltathar",
       test: async () => {
-        // Pending decreases no longer reduce the reward snapshot. The
-        // delegator's full stake remains locked and securing the collator,
-        // so both delegators earn equal rewards until the decrease executes.
         const rewardDelay = context.polkadotJs().consts.parachainStaking.rewardPaymentDelay;
         await jumpRounds(context, rewardDelay.addn(1).toNumber());
         const blockHash = (await context.createBlock()).block.hash.toString();
@@ -71,9 +68,9 @@ describeSuite({
         expect(rewardedBalathar).is.not.undefined;
         expect(
           rewardedBalathar!.amount,
-          `Ethan's reward ${rewardedEthan!.amount} should equal Balathar's \
+          `Ethan's reward ${rewardedEthan!.amount} was not less than Balathar's \
       reward ${rewardedBalathar!.amount}`
-        ).toEqual(rewardedEthan!.amount);
+        ).toBeGreaterThan(rewardedEthan!.amount);
       },
     });
   },
