@@ -24,7 +24,10 @@
 
 use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
-use crate::migrations::MigrateDelegationScheduledRequestsToDoubleMap;
+use crate::migrations::{
+	MigrateDelegationScheduledRequestsToDoubleMap,
+	MigratePopulateDelegationScheduledRequestsSummaryMap,
+};
 use crate::mock::{
 	inflation_configs, query_freeze_amount, roll_blocks, roll_to, roll_to_round_begin,
 	roll_to_round_end, set_author, set_block_author, AccountId, Balances, BlockNumber, ExtBuilder,
@@ -34,8 +37,9 @@ use crate::RoundIndex;
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, AwardedPts, Bond, CollatorStatus, DelegationScheduledRequests,
-	DelegationScheduledRequestsPerCollator, DelegatorAdded, EnableMarkingOffline, Error, Event,
-	FreezeReason, InflationDistributionInfo, Points, Range, WasInactive,
+	DelegationScheduledRequestsPerCollator, DelegationScheduledRequestsSummaryMap, DelegatorAdded,
+	EnableMarkingOffline, Error, Event, FreezeReason, InflationDistributionInfo, Points, Range,
+	WasInactive,
 };
 use frame_support::migrations::SteppedMigration;
 use frame_support::storage::storage_prefix;
@@ -6972,8 +6976,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 }
 
 #[test]
-fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_but_less_for_future()
-{
+fn test_delegator_scheduled_for_bond_decrease_earns_reduced_rewards_reflecting_pending_decrease() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
 		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
@@ -7004,6 +7007,9 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 				"collator's total was reduced unexpectedly"
 			);
 
+			// Pending decreases reduce the effective bond in the reward
+			// snapshot. The delegator's effective bond is 10 (20 - 10
+			// pending decrease), so total counted becomes 30 (20 + 10).
 			roll_to_round_begin(3);
 			assert_events_emitted_match!(Event::NewRound { round: 3, .. });
 			roll_blocks(3);
@@ -7041,7 +7047,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 			);
 			assert_eq!(
 				30, collator_snapshot.total,
-				"collator snapshot's total was reduced unexpectedly",
+				"collator snapshot's total should be reduced by pending decrease amount",
 			);
 		});
 }
@@ -7397,6 +7403,11 @@ fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
 					action: DelegationAction::Revoke(5),
 				}])
 				.expect("must succeed"),
+			);
+			DelegationScheduledRequestsSummaryMap::<Test>::insert(
+				1,
+				2,
+				DelegationAction::Revoke(5),
 			);
 			assert!(ParachainStaking::delegation_request_revoke_exists(&1, &2));
 		});
@@ -8722,4 +8733,267 @@ fn delegation_scheduled_requests_stepped_migration_completes_and_preserves_state
 			);
 		}
 	});
+}
+
+#[test]
+fn summary_map_migration_populates_revoke_and_decrease_entries() {
+	ExtBuilder::default().build().execute_with(|| {
+		type Balance = crate::BalanceOf<Test>;
+
+		// Set up DelegationScheduledRequests in double-map format (post double-map migration).
+		// Collator 1, Delegator 10: a single Revoke
+		DelegationScheduledRequests::<Test>::insert(
+			1u64,
+			10u64,
+			BoundedVec::<ScheduledRequest<Balance>, _>::try_from(vec![ScheduledRequest {
+				when_executable: 5,
+				action: DelegationAction::Revoke(100),
+			}])
+			.unwrap(),
+		);
+
+		// Collator 1, Delegator 11: two Decreases (50 + 30 = 80 total)
+		DelegationScheduledRequests::<Test>::insert(
+			1u64,
+			11u64,
+			BoundedVec::<ScheduledRequest<Balance>, _>::try_from(vec![
+				ScheduledRequest {
+					when_executable: 5,
+					action: DelegationAction::Decrease(50),
+				},
+				ScheduledRequest {
+					when_executable: 6,
+					action: DelegationAction::Decrease(30),
+				},
+			])
+			.unwrap(),
+		);
+
+		// Collator 2, Delegator 20: a single Decrease
+		DelegationScheduledRequests::<Test>::insert(
+			2u64,
+			20u64,
+			BoundedVec::<ScheduledRequest<Balance>, _>::try_from(vec![ScheduledRequest {
+				when_executable: 4,
+				action: DelegationAction::Decrease(25),
+			}])
+			.unwrap(),
+		);
+
+		// Drive the stepped migration to completion.
+		let mut cursor: Option<
+			<MigratePopulateDelegationScheduledRequestsSummaryMap<Test> as SteppedMigration>::Cursor,
+		> = None;
+
+		for _ in 0..32 {
+			let mut meter = WeightMeter::new();
+			let next = MigratePopulateDelegationScheduledRequestsSummaryMap::<Test>::step(
+				cursor.clone(),
+				&mut meter,
+			)
+			.expect("migration step must not error");
+			cursor = next;
+			if cursor.is_none() {
+				break;
+			}
+		}
+		assert!(
+			cursor.is_none(),
+			"migration should complete in a bounded number of steps"
+		);
+
+		// Verify summary map entries.
+		assert_eq!(
+			DelegationScheduledRequestsSummaryMap::<Test>::get(1u64, 10u64),
+			Some(DelegationAction::Revoke(100)),
+			"revoke should be stored with the bond amount"
+		);
+		assert_eq!(
+			DelegationScheduledRequestsSummaryMap::<Test>::get(1u64, 11u64),
+			Some(DelegationAction::Decrease(80)),
+			"multiple decreases should be aggregated into total"
+		);
+		assert_eq!(
+			DelegationScheduledRequestsSummaryMap::<Test>::get(2u64, 20u64),
+			Some(DelegationAction::Decrease(25)),
+			"single decrease should be stored as-is"
+		);
+		// Non-existent entries remain None.
+		assert_eq!(
+			DelegationScheduledRequestsSummaryMap::<Test>::get(3u64, 30u64),
+			None,
+			"absent pairs should not have summary entries"
+		);
+	});
+}
+
+/// Verify that `get_rewardable_delegators` (and thus `select_top_candidates`)
+/// produces correct reward snapshots even when `DelegationScheduledRequestsSummaryMap`
+/// has NOT been populated yet — i.e. during the multi-block migration window.
+///
+/// The fallback in `resolve_pending_action` reads the bounded
+/// `DelegationScheduledRequests` double-map entry and derives the summary on
+/// the fly.
+#[test]
+fn get_rewardable_delegators_falls_back_when_summary_map_unpopulated() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			type Balance = crate::BalanceOf<Test>;
+
+			// Simulate the state AFTER the double-map migration but BEFORE the
+			// summary-map migration: requests exist in DelegationScheduledRequests
+			// (double-map) but DelegationScheduledRequestsSummaryMap is empty.
+
+			// Delegator 2 has a pending revocation towards collator 1.
+			DelegationScheduledRequests::<Test>::insert(
+				1u64,
+				2u64,
+				BoundedVec::<ScheduledRequest<Balance>, _>::try_from(vec![ScheduledRequest {
+					when_executable: 3,
+					action: DelegationAction::Revoke(10),
+				}])
+				.unwrap(),
+			);
+
+			// Explicitly confirm summary map is empty for this pair.
+			assert_eq!(
+				DelegationScheduledRequestsSummaryMap::<Test>::get(1u64, 2u64),
+				None,
+				"summary map must be empty to test the fallback path"
+			);
+
+			// get_rewardable_delegators should use the fallback and detect the
+			// pending revocation, zeroing delegator 2's bond.
+			let counted = ParachainStaking::get_rewardable_delegators(&1);
+			assert_eq!(
+				counted.uncounted_stake, 10,
+				"delegator 2's 10-unit bond should be uncounted due to pending revoke"
+			);
+			assert_eq!(counted.rewardable_delegations.len(), 1);
+			assert_eq!(
+				counted.rewardable_delegations[0].amount, 0,
+				"delegator 2's rewardable amount should be zero"
+			);
+
+			// Also verify delegation_request_revoke_exists uses the fallback.
+			assert!(
+				ParachainStaking::delegation_request_revoke_exists(&1, &2),
+				"revoke should be detected via fallback"
+			);
+		});
+}
+
+/// Same as above but for Decrease actions: the fallback should aggregate
+/// multiple pending decreases from the bounded vec.
+#[test]
+fn get_rewardable_delegators_fallback_aggregates_decreases() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			type Balance = crate::BalanceOf<Test>;
+
+			// Delegator 2 has two pending decreases towards collator 1: 3 + 2 = 5.
+			DelegationScheduledRequests::<Test>::insert(
+				1u64,
+				2u64,
+				BoundedVec::<ScheduledRequest<Balance>, _>::try_from(vec![
+					ScheduledRequest {
+						when_executable: 3,
+						action: DelegationAction::Decrease(3),
+					},
+					ScheduledRequest {
+						when_executable: 4,
+						action: DelegationAction::Decrease(2),
+					},
+				])
+				.unwrap(),
+			);
+
+			// Summary map is empty.
+			assert_eq!(
+				DelegationScheduledRequestsSummaryMap::<Test>::get(1u64, 2u64),
+				None,
+			);
+
+			let counted = ParachainStaking::get_rewardable_delegators(&1);
+			// bond = 10, pending decrease = 5 → rewardable = 5, uncounted = 5
+			assert_eq!(
+				counted.uncounted_stake, 5,
+				"5 units should be uncounted due to pending decreases"
+			);
+			assert_eq!(counted.rewardable_delegations.len(), 1);
+			assert_eq!(
+				counted.rewardable_delegations[0].amount, 5,
+				"delegator 2's rewardable amount should be reduced by the aggregated decrease"
+			);
+
+			// Not a revoke, so this should be false.
+			assert!(
+				!ParachainStaking::delegation_request_revoke_exists(&1, &2),
+				"decrease should not be reported as revoke"
+			);
+		});
+}
+
+/// Verify that a round transition during the migration produces correct
+/// AtStake snapshots when the summary map is not yet populated.
+#[test]
+fn round_transition_uses_fallback_when_summary_map_empty() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
+		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			type Balance = crate::BalanceOf<Test>;
+
+			// Preset rewards so payouts happen.
+			(1..=3).for_each(|round| set_author(round, 1, POINTS_PER_ROUND));
+
+			// Simulate migration mid-flight: requests in double-map, no summary.
+			DelegationScheduledRequests::<Test>::insert(
+				1u64,
+				2u64,
+				BoundedVec::<ScheduledRequest<Balance>, _>::try_from(vec![ScheduledRequest {
+					when_executable: 3,
+					action: DelegationAction::Revoke(10),
+				}])
+				.unwrap(),
+			);
+
+			assert_eq!(
+				DelegationScheduledRequestsSummaryMap::<Test>::get(1u64, 2u64),
+				None,
+				"summary map must be empty to test the fallback during round transition"
+			);
+
+			// Roll to round 2 — this triggers select_top_candidates which calls
+			// get_rewardable_delegators. The fallback must detect the pending
+			// revocation and exclude delegator 2 from rewards.
+			roll_to_round_begin(2);
+
+			// The snapshot for round 2 should show delegator 2's bond as zero
+			// (excluded due to pending revoke detected via fallback).
+			let snapshot = AtStake::<Test>::get(2, 1).expect("snapshot must exist for collator 1");
+			let delegator_2_entry = snapshot
+				.delegations
+				.iter()
+				.find(|d| d.owner == 2)
+				.expect("delegator 2 should still appear in snapshot");
+			assert_eq!(
+				delegator_2_entry.amount, 0,
+				"delegator 2's bond in AtStake should be zero due to pending revoke fallback"
+			);
+			assert_eq!(
+				snapshot.total, 20,
+				"total should be collator bond (20) only, excluding revoked delegation"
+			);
+		});
 }
