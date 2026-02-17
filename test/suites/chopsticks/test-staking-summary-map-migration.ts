@@ -78,7 +78,6 @@ describeSuite({
       timeout: 900_000,
       title: "Summary map populated with correct revoke/decrease entries after migration",
       test: async () => {
-        const isMoonbeam = specName === "moonbeam";
         const psQueryBefore: any = api.query.parachainStaking;
 
         // 1. Capture the pre-upgrade DelegationScheduledRequests.
@@ -189,25 +188,23 @@ describeSuite({
             "Summary map entry count must match expected (one per collator/delegator pair with requests)"
           );
 
-          // On non-Moonbeam networks, verify each summary entry's content.
-          if (!isMoonbeam) {
-            for (const [key, expected] of expectedSummaries) {
-              const actual = summaryEntries.get(key);
-              expect(actual).to.not.be.undefined;
+          // Verify each summary entry's action type and amount.
+          for (const [key, expected] of expectedSummaries) {
+            const actual = summaryEntries.get(key);
+            expect(actual).to.not.be.undefined;
 
-              if ("revoke" in expected) {
-                expect(actual?.revoke != null).to.be.true;
-                expect(BigInt(actual.revoke)).to.equal(
-                  expected.revoke,
-                  `Summary[${key}] revoke amount mismatch`
-                );
-              } else {
-                expect(actual?.decrease != null).to.be.true;
-                expect(BigInt(actual.decrease)).to.equal(
-                  expected.decrease,
-                  `Summary[${key}] decrease total mismatch`
-                );
-              }
+            if ("revoke" in expected) {
+              expect(actual?.revoke != null).to.be.true;
+              expect(BigInt(actual.revoke)).to.equal(
+                expected.revoke,
+                `Summary[${key}] revoke amount mismatch`
+              );
+            } else {
+              expect(actual?.decrease != null).to.be.true;
+              expect(BigInt(actual.decrease)).to.equal(
+                expected.decrease,
+                `Summary[${key}] decrease total mismatch`
+              );
             }
           }
 
