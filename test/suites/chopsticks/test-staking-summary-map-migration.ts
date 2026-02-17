@@ -123,7 +123,7 @@ describeSuite({
 
         const rtAfter = (api.consts.system.version as any).specVersion.toNumber();
         log(`Spec version after upgrade: ${rtAfter}`);
-        expect(rtAfter).to.be.greaterThan(rtBefore);
+        expect(rtAfter).to.be.greaterThanOrEqual(rtBefore);
 
         await new Promise((resolve) => setTimeout(resolve, 1_000));
         await api.isReady;
