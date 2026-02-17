@@ -106,11 +106,7 @@ describeSuite({
                 total += BigInt(r.action.decrease);
               }
             }
-            if (total > 0n) {
-              expectedSummaries.set(key, { decrease: total });
-            } else {
-              log(`No summary for ${key}: requests=${JSON.stringify(requestsJson)}`);
-            }
+            expectedSummaries.set(key, { decrease: total });
           }
         }
 
@@ -185,18 +181,6 @@ describeSuite({
           log(
             `DelegationScheduledRequestsSummaryMap entries after migration: ${summaryEntries.size}`
           );
-
-          // Log any entries present in the migration result but missing from our expectation.
-          for (const [key, value] of summaryEntries) {
-            if (!expectedSummaries.has(key)) {
-              log(`Extra summary entry: ${key} => ${JSON.stringify(value)}`);
-            }
-          }
-          for (const [key] of expectedSummaries) {
-            if (!summaryEntries.has(key)) {
-              log(`Missing summary entry: ${key}`);
-            }
-          }
 
           expect(summaryEntries.size).to.equal(
             expectedSummaries.size,
