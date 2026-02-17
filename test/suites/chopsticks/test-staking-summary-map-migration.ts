@@ -108,6 +108,8 @@ describeSuite({
             }
             if (total > 0n) {
               expectedSummaries.set(key, { decrease: total });
+            } else {
+              log(`No summary for ${key}: requests=${JSON.stringify(requestsJson)}`);
             }
           }
         }
@@ -123,7 +125,7 @@ describeSuite({
 
         const rtAfter = (api.consts.system.version as any).specVersion.toNumber();
         log(`Spec version after upgrade: ${rtAfter}`);
-        expect(rtAfter).to.be.greaterThanOrEqual(rtBefore);
+        expect(rtAfter).to.be.greaterThan(rtBefore);
 
         await new Promise((resolve) => setTimeout(resolve, 1_000));
         await api.isReady;
@@ -183,6 +185,19 @@ describeSuite({
           log(
             `DelegationScheduledRequestsSummaryMap entries after migration: ${summaryEntries.size}`
           );
+
+          // Log any entries present in the migration result but missing from our expectation.
+          for (const [key, value] of summaryEntries) {
+            if (!expectedSummaries.has(key)) {
+              log(`Extra summary entry: ${key} => ${JSON.stringify(value)}`);
+            }
+          }
+          for (const [key] of expectedSummaries) {
+            if (!summaryEntries.has(key)) {
+              log(`Missing summary entry: ${key}`);
+            }
+          }
+
           expect(summaryEntries.size).to.equal(
             expectedSummaries.size,
             "Summary map entry count must match expected (one per collator/delegator pair with requests)"
