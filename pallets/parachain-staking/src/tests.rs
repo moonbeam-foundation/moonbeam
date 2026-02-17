@@ -24,7 +24,10 @@
 
 use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
-use crate::migrations::MigrateDelegationScheduledRequestsToDoubleMap;
+use crate::migrations::{
+	MigrateDelegationScheduledRequestsToDoubleMap,
+	MigratePopulateDelegationScheduledRequestsSummaryMap,
+};
 use crate::mock::{
 	inflation_configs, query_freeze_amount, roll_blocks, roll_to, roll_to_round_begin,
 	roll_to_round_end, set_author, set_block_author, AccountId, Balances, BlockNumber, ExtBuilder,
@@ -8729,5 +8732,97 @@ fn delegation_scheduled_requests_stepped_migration_completes_and_preserves_state
 				"per-collator queue counter should match number of delegators with requests"
 			);
 		}
+	});
+}
+
+#[test]
+fn summary_map_migration_populates_revoke_and_decrease_entries() {
+	ExtBuilder::default().build().execute_with(|| {
+		type Balance = crate::BalanceOf<Test>;
+
+		// Set up DelegationScheduledRequests in double-map format (post double-map migration).
+		// Collator 1, Delegator 10: a single Revoke
+		DelegationScheduledRequests::<Test>::insert(
+			1u64,
+			10u64,
+			BoundedVec::<ScheduledRequest<Balance>, _>::try_from(vec![ScheduledRequest {
+				when_executable: 5,
+				action: DelegationAction::Revoke(100),
+			}])
+			.unwrap(),
+		);
+
+		// Collator 1, Delegator 11: two Decreases (50 + 30 = 80 total)
+		DelegationScheduledRequests::<Test>::insert(
+			1u64,
+			11u64,
+			BoundedVec::<ScheduledRequest<Balance>, _>::try_from(vec![
+				ScheduledRequest {
+					when_executable: 5,
+					action: DelegationAction::Decrease(50),
+				},
+				ScheduledRequest {
+					when_executable: 6,
+					action: DelegationAction::Decrease(30),
+				},
+			])
+			.unwrap(),
+		);
+
+		// Collator 2, Delegator 20: a single Decrease
+		DelegationScheduledRequests::<Test>::insert(
+			2u64,
+			20u64,
+			BoundedVec::<ScheduledRequest<Balance>, _>::try_from(vec![ScheduledRequest {
+				when_executable: 4,
+				action: DelegationAction::Decrease(25),
+			}])
+			.unwrap(),
+		);
+
+		// Drive the stepped migration to completion.
+		let mut cursor: Option<
+			<MigratePopulateDelegationScheduledRequestsSummaryMap<Test> as SteppedMigration>::Cursor,
+		> = None;
+
+		for _ in 0..32 {
+			let mut meter = WeightMeter::new();
+			let next = MigratePopulateDelegationScheduledRequestsSummaryMap::<Test>::step(
+				cursor.clone(),
+				&mut meter,
+			)
+			.expect("migration step must not error");
+			cursor = next;
+			if cursor.is_none() {
+				break;
+			}
+		}
+		assert!(
+			cursor.is_none(),
+			"migration should complete in a bounded number of steps"
+		);
+
+		// Verify summary map entries.
+		assert_eq!(
+			DelegationScheduledRequestsSummaryMap::<Test>::get(1u64, 10u64),
+			Some(DelegationAction::Revoke(100)),
+			"revoke should be stored with the bond amount"
+		);
+		assert_eq!(
+			DelegationScheduledRequestsSummaryMap::<Test>::get(1u64, 11u64),
+			Some(DelegationAction::Decrease(80)),
+			"multiple decreases should be aggregated into total"
+		);
+		assert_eq!(
+			DelegationScheduledRequestsSummaryMap::<Test>::get(2u64, 20u64),
+			Some(DelegationAction::Decrease(25)),
+			"single decrease should be stored as-is"
+		);
+		// Non-existent entries remain None.
+		assert_eq!(
+			DelegationScheduledRequestsSummaryMap::<Test>::get(3u64, 30u64),
+			None,
+			"absent pairs should not have summary entries"
+		);
 	});
 }
