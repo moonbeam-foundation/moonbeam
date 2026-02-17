@@ -83,96 +83,32 @@ describeSuite({
 
         // 1. Capture the pre-upgrade DelegationScheduledRequests.
         // The storage is already in double-map format (collator, delegator) -> Vec<{action, ...}>
-        // because the double-map migration ran in a prior upgrade.
+        // because the double-map migration ran in runtime 4102.
         const oldEntries = await psQueryBefore.delegationScheduledRequests.entries();
         let totalOldRequests = 0;
-        const expectedPerCollator: Record<string, number> = {};
         const expectedSummaries = new Map<string, ExpectedSummary>();
 
-        // Detect format from the first entry's key args count.
-        const isDoubleMap =
-          oldEntries.length > 0 && ((oldEntries[0] as any)[0] as any).args?.length === 2;
+        for (const [storageKey, boundedVec] of oldEntries as any) {
+          const requestsJson = (boundedVec as any).toJSON() as any[];
+          totalOldRequests += requestsJson.length;
 
-        log(`Pre-upgrade storage format: ${isDoubleMap ? "double-map" : "single-map"}`);
+          const collator = (storageKey as any).args?.[0]?.toString?.() ?? "";
+          const delegator = (storageKey as any).args?.[1]?.toString?.() ?? "";
+          if (!collator || !delegator) continue;
 
-        if (isDoubleMap) {
-          // Double-map format: key = (collator, delegator), value = Vec<{whenExecutable, action}>
-          const delegatorsPerCollator = new Map<string, Set<string>>();
-
-          for (const [storageKey, boundedVec] of oldEntries as any) {
-            const requestsJson = (boundedVec as any).toJSON() as any[];
-            totalOldRequests += requestsJson.length;
-
-            const collator = (storageKey as any).args?.[0]?.toString?.() ?? "";
-            const delegator = (storageKey as any).args?.[1]?.toString?.() ?? "";
-            if (!collator || !delegator) continue;
-
-            if (!delegatorsPerCollator.has(collator)) {
-              delegatorsPerCollator.set(collator, new Set());
-            }
-            delegatorsPerCollator.get(collator)!.add(delegator);
-
-            const key = `${collator}|${delegator}`;
-            const revokeReq = requestsJson.find((r: any) => r.action?.revoke != null);
-            if (revokeReq) {
-              expectedSummaries.set(key, { revoke: BigInt(revokeReq.action.revoke) });
-            } else {
-              let total = 0n;
-              for (const r of requestsJson) {
-                if (r.action?.decrease != null) {
-                  total += BigInt(r.action.decrease);
-                }
-              }
-              if (total > 0n) {
-                expectedSummaries.set(key, { decrease: total });
+          const key = `${collator}|${delegator}`;
+          const revokeReq = requestsJson.find((r: any) => r.action?.revoke != null);
+          if (revokeReq) {
+            expectedSummaries.set(key, { revoke: BigInt(revokeReq.action.revoke) });
+          } else {
+            let total = 0n;
+            for (const r of requestsJson) {
+              if (r.action?.decrease != null) {
+                total += BigInt(r.action.decrease);
               }
             }
-          }
-
-          for (const [collator, delegators] of delegatorsPerCollator) {
-            expectedPerCollator[collator] = delegators.size;
-          }
-        } else {
-          // Single-map format: key = collator, value = Vec<{delegator, whenExecutable, action}>
-          for (const [storageKey, boundedVec] of oldEntries as any) {
-            const requestsJson = (boundedVec as any).toJSON() as any[];
-            totalOldRequests += requestsJson.length;
-
-            const collator = (storageKey as any).args?.[0]?.toString?.() ?? "";
-            if (!collator) continue;
-
-            const byDelegator = new Map<string, any[]>();
-            const uniqueDelegators = new Set<string>();
-
-            for (const req of requestsJson as any[]) {
-              const delegator = (req as any)?.delegator;
-              if (delegator == null) continue;
-              const delegatorStr = String(delegator);
-              uniqueDelegators.add(delegatorStr);
-              if (!byDelegator.has(delegatorStr)) {
-                byDelegator.set(delegatorStr, []);
-              }
-              byDelegator.get(delegatorStr)!.push(req);
-            }
-
-            expectedPerCollator[collator] = uniqueDelegators.size;
-
-            for (const [delegator, reqs] of byDelegator) {
-              const key = `${collator}|${delegator}`;
-              const revokeReq = reqs.find((r: any) => r.action?.revoke != null);
-              if (revokeReq) {
-                expectedSummaries.set(key, { revoke: BigInt(revokeReq.action.revoke) });
-              } else {
-                let total = 0n;
-                for (const r of reqs) {
-                  if (r.action?.decrease != null) {
-                    total += BigInt(r.action.decrease);
-                  }
-                }
-                if (total > 0n) {
-                  expectedSummaries.set(key, { decrease: total });
-                }
-              }
+            if (total > 0n) {
+              expectedSummaries.set(key, { decrease: total });
             }
           }
         }
