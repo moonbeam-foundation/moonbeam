@@ -26,6 +26,7 @@ use frame_support::{
 };
 use parity_scale_codec::Decode;
 use sp_io;
+use sp_runtime::traits::Saturating;
 
 use crate::*;
 
@@ -317,16 +318,20 @@ where
 	}
 }
 
-/// Migration to populate `PendingRevocations` from existing `DelegationScheduledRequests`.
+/// Migration to populate `DelegationScheduledRequestsSummaryMap` from existing
+/// `DelegationScheduledRequests`.
 ///
 /// Iterates over all `(collator, delegator)` entries in `DelegationScheduledRequests` and
-/// inserts a `PendingRevocations` flag for each pair where a `Revoke` action exists.
+/// computes a summary: `Revoke(amount)` if a revocation exists, or `Decrease(total)` with
+/// the aggregated sum of all pending decrease amounts.
 ///
-/// At any given time the number of pending revokes is small (order of hundreds), so a
+/// At any given time the number of pending requests is small (order of hundreds), so a
 /// stepped migration with a generous per-step budget suffices.
-pub struct MigratePopulatePendingRevocations<T>(sp_std::marker::PhantomData<T>);
+pub struct MigratePopulateDelegationScheduledRequestsSummaryMap<T>(
+	sp_std::marker::PhantomData<T>,
+);
 
-impl<T> SteppedMigration for MigratePopulatePendingRevocations<T>
+impl<T> SteppedMigration for MigratePopulateDelegationScheduledRequestsSummaryMap<T>
 where
 	T: Config,
 {
@@ -337,7 +342,7 @@ where
 	type Identifier = [u8; 16];
 
 	fn id() -> Self::Identifier {
-		*b"MB-PENDREV-MIG01"
+		*b"MB-REQSUMM-MIG01"
 	}
 
 	fn step(
@@ -439,14 +444,28 @@ where
 				}
 			};
 
-			// Read the value and check for any Revoke action.
+			// Read the value and compute the summary action.
 			let requests = DelegationScheduledRequests::<T>::get(&collator, &delegator);
-			let has_revoke = requests
-				.iter()
-				.any(|req| matches!(req.action, DelegationAction::Revoke(_)));
+			let mut summary: Option<DelegationAction<BalanceOf<T>>> = None;
+			for req in requests.iter() {
+				match req.action {
+					DelegationAction::Revoke(amount) => {
+						summary = Some(DelegationAction::Revoke(amount));
+						break; // invariant: revoke is exclusive
+					}
+					DelegationAction::Decrease(amount) => {
+						summary = Some(match summary {
+							Some(DelegationAction::Decrease(existing)) => {
+								DelegationAction::Decrease(existing.saturating_add(amount))
+							}
+							_ => DelegationAction::Decrease(amount),
+						});
+					}
+				}
+			}
 
-			if has_revoke {
-				PendingRevocations::<T>::insert(&collator, &delegator, ());
+			if let Some(action) = summary {
+				DelegationScheduledRequestsSummaryMap::<T>::insert(&collator, &delegator, action);
 			}
 
 			used = used.saturating_add(weight_per_entry);

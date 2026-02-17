@@ -20,7 +20,8 @@
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
 	DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
-	InflationDistributionConfig, InflationDistributionInfo, Pallet, PendingRevocations, Points,
+	DelegationScheduledRequestsSummaryMap, InflationDistributionConfig,
+	InflationDistributionInfo, Pallet, Points,
 	Range, RewardPayment, Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::v2::*;
@@ -1604,7 +1605,7 @@ mod benchmarks {
 			1,
 		)?;
 
-		// create delegators and insert PendingRevocations flags for worst-case PoV
+		// create delegators and insert summary map flags for worst-case PoV
 		for i in 0..y {
 			let seed = USER_SEED + i + 1;
 			let delegator = create_funded_delegator::<T>(
@@ -1615,7 +1616,11 @@ mod benchmarks {
 				true,
 				i,
 			)?;
-			<PendingRevocations<T>>::insert(&collator, &delegator, ());
+			<DelegationScheduledRequestsSummaryMap<T>>::insert(
+				&collator,
+				&delegator,
+				DelegationAction::Revoke(min_delegator_stk::<T>()),
+			);
 		}
 
 		let mut _results = None;
@@ -1661,7 +1666,7 @@ mod benchmarks {
 			)?;
 			seed += 1;
 
-			// create delegators and insert PendingRevocations flags for worst-case PoV
+			// create delegators and insert summary map flags for worst-case PoV
 			for _ in 0..y {
 				let delegator = create_funded_delegator::<T>(
 					"delegator",
@@ -1671,7 +1676,11 @@ mod benchmarks {
 					true,
 					9999999,
 				)?;
-				<PendingRevocations<T>>::insert(&collator, &delegator, ());
+				<DelegationScheduledRequestsSummaryMap<T>>::insert(
+					&collator,
+					&delegator,
+					DelegationAction::Revoke(min_delegator_stk::<T>()),
+				);
 				seed += 1;
 			}
 		}
