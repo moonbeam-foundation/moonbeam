@@ -422,3 +422,115 @@ fn test_governance_can_change_any_asset_location() {
 		));
 	});
 }
+
+#[test]
+fn xcm_deposit_succeeds_on_frozen_xcm_deposit_allowed_asset() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_location = Location::parent();
+		let beneficiary_location = Location::new(
+			0,
+			[AccountKey20 {
+				network: None,
+				key: [1u8; 20],
+			}],
+		);
+
+		// Create foreign asset (deploys the ERC20 contract)
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			asset_location.clone(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		let xcm_asset = xcm::latest::Asset {
+			id: xcm::latest::AssetId(asset_location.clone()),
+			fun: Fungibility::Fungible(100),
+		};
+
+		// Deposit succeeds on an active (unpaused) asset
+		assert_ok!(
+			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
+				&xcm_asset,
+				&beneficiary_location,
+				None,
+			)
+		);
+
+		// Freeze with allow_xcm_deposit = true
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			true,
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
+			Some((1, AssetStatus::FrozenXcmDepositAllowed))
+		);
+
+		// Deposit must still succeed for FrozenXcmDepositAllowed
+		assert_ok!(
+			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
+				&xcm_asset,
+				&beneficiary_location,
+				None,
+			)
+		);
+	});
+}
+
+#[test]
+fn xcm_deposit_blocked_on_frozen_xcm_deposit_forbidden_asset() {
+	// Verifies that deposit_asset correctly rejects deposits when the asset
+	// status is FrozenXcmDepositForbidden (blocked at the pallet level before
+	// reaching the EVM).
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_location = Location::parent();
+		let beneficiary_location = Location::new(
+			0,
+			[AccountKey20 {
+				network: None,
+				key: [1u8; 20],
+			}],
+		);
+
+		// Create foreign asset
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			asset_location.clone(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		let xcm_asset = xcm::latest::Asset {
+			id: xcm::latest::AssetId(asset_location.clone()),
+			fun: Fungibility::Fungible(100),
+		};
+
+		// Freeze with allow_xcm_deposit = false
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			false,
+		));
+		assert_eq!(
+			EvmForeignAssets::assets_by_location(&asset_location),
+			Some((1, AssetStatus::FrozenXcmDepositForbidden))
+		);
+
+		// Deposit is rejected at the pallet level (before EVM call)
+		let result = <EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
+			&xcm_asset,
+			&beneficiary_location,
+			None,
+		);
+		assert!(
+			result.is_err(),
+			"Expected deposit to be rejected for FrozenXcmDepositForbidden, got: {result:?}",
+		);
+	});
+}
