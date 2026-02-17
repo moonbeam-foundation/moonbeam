@@ -77,7 +77,7 @@ pub use RoundIndex;
 
 #[pallet]
 pub mod pallet {
-	use crate::delegation_requests::{CancelledScheduledRequest, ScheduledRequest};
+	use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
 	use frame_support::dispatch::DispatchResultWithPostInfo;
@@ -602,18 +602,20 @@ pub mod pallet {
 	pub(crate) type DelegationScheduledRequestsPerCollator<T: Config> =
 		StorageMap<_, Blake2_128Concat, T::AccountId, u32, ValueQuery>;
 
-	/// Lightweight flag indicating that a delegator has a pending revocation
-	/// for a given collator. Used during round transitions to exclude revoking
-	/// delegators from reward calculations without reading the full
-	/// `DelegationScheduledRequests` entries.
+	/// Summary of pending delegation actions for a (collator, delegator) pair.
+	///
+	/// Stores `DelegationAction::Revoke(bond)` when a revocation is pending, or
+	/// `DelegationAction::Decrease(total)` with the aggregated sum of all pending
+	/// decrease amounts. Used during round transitions to adjust reward
+	/// calculations without reading the full `DelegationScheduledRequests`.
 	#[pallet::storage]
-	pub(crate) type PendingRevocations<T: Config> = StorageDoubleMap<
+	pub(crate) type DelegationScheduledRequestsSummaryMap<T: Config> = StorageDoubleMap<
 		_,
 		Blake2_128Concat,
 		T::AccountId, // collator
 		Blake2_128Concat,
 		T::AccountId, // delegator
-		(),
+		DelegationAction<BalanceOf<T>>,
 		OptionQuery,
 	>;
 
@@ -1726,7 +1728,7 @@ pub mod pallet {
 				Self::max_delegators_per_candidate(),
 				None,
 			);
-			let _ = <PendingRevocations<T>>::clear_prefix(
+			let _ = <DelegationScheduledRequestsSummaryMap<T>>::clear_prefix(
 				&candidate,
 				Self::max_delegators_per_candidate(),
 				None,
@@ -2176,11 +2178,10 @@ pub mod pallet {
 		/// Build the effective list of delegators with their intended bond amount
 		/// for reward calculation.
 		///
-		/// Delegators with a pending revocation (tracked by [PendingRevocations])
-		/// have their bond zeroed out and their full stake counted as uncounted.
-		/// Pending decreases are ignored — delegators with only pending decreases
-		/// keep earning full rewards until execution (their full stake is still
-		/// locked and securing the collator).
+		/// Uses [DelegationScheduledRequestsSummaryMap] to adjust bonds:
+		/// - `Revoke(_)`: bond zeroed out, full amount counted as uncounted stake.
+		/// - `Decrease(total)`: pending decrease total subtracted from bond (capped
+		///   at bond amount), difference counted as uncounted stake.
 		pub(crate) fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
 			let mut uncounted_stake = BalanceOf::<T>::zero();
 			let rewardable_delegations = <TopDelegations<T>>::get(collator)
@@ -2188,9 +2189,17 @@ pub mod pallet {
 				.delegations
 				.into_iter()
 				.map(|mut bond| {
-					if <PendingRevocations<T>>::contains_key(collator, &bond.owner) {
-						uncounted_stake = uncounted_stake.saturating_add(bond.amount);
-						bond.amount = BalanceOf::<T>::zero();
+					match <DelegationScheduledRequestsSummaryMap<T>>::get(collator, &bond.owner) {
+						Some(DelegationAction::Revoke(_)) => {
+							uncounted_stake = uncounted_stake.saturating_add(bond.amount);
+							bond.amount = BalanceOf::<T>::zero();
+						}
+						Some(DelegationAction::Decrease(total)) => {
+							let decrease = total.min(bond.amount);
+							uncounted_stake = uncounted_stake.saturating_add(decrease);
+							bond.amount = bond.amount.saturating_sub(decrease);
+						}
+						None => {}
 					}
 					bond
 				})
