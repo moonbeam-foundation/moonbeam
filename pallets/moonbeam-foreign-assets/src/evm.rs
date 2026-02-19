@@ -38,11 +38,18 @@ const ERC20_CREATE_MAX_CALLDATA_SIZE: usize = 16 * 1024; // 16Ko
 const ERC20_CREATE_GAS_LIMIT: u64 = 3_600_000; // highest failure: 3_600_000
 pub(crate) const ERC20_BURN_FROM_GAS_LIMIT: u64 = 160_000; // highest failure: 154_000
 pub(crate) const ERC20_MINT_INTO_GAS_LIMIT: u64 = 160_000; // highest failure: 154_000
+const ERC20_MINT_INTO_PAUSED_GAS_LIMIT: u64 = 600_000; // unpause + mintInto + pause via batch
 const ERC20_PAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 150_500
 pub(crate) const ERC20_TRANSFER_GAS_LIMIT: u64 = 160_000; // highest failure: 154_000
 pub(crate) const ERC20_APPROVE_GAS_LIMIT: u64 = 160_000; // highest failure: 153_000
 const ERC20_UNPAUSE_GAS_LIMIT: u64 = 160_000; // highest failure: 149_500
 pub(crate) const ERC20_BALANCE_OF_GAS_LIMIT: u64 = 160_000; // Calculated effective gas: max(used: 24276, pov: 150736, storage: 0) = 150736
+
+// Batch precompile at 0x0000000000000000000000000000000000000808
+const BATCH_PRECOMPILE_ADDRESS: H160 = H160([
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x08, 0x08,
+]);
 
 #[derive(Debug, PartialEq)]
 pub enum EvmError {
@@ -188,6 +195,84 @@ impl<T: crate::Config> EvmCaller<T> {
 			input,
 			U256::default(),
 			ERC20_MINT_INTO_GAS_LIMIT,
+			None,
+			None,
+			None,
+			Default::default(),
+			Default::default(),
+			false,
+			false,
+			Some(weight_limit),
+			Some(0),
+			&<T as pallet_evm::Config>::config(),
+		)
+		.map_err(|err| EvmError::MintIntoFail(format!("{:?}", err.error.into())))?;
+
+		ensure!(
+			matches!(
+				exec_info.exit_reason,
+				ExitReason::Succeed(ExitSucceed::Returned | ExitSucceed::Stopped)
+			),
+			{
+				let err = error_on_execution_failure(&exec_info.exit_reason, &exec_info.value);
+				EvmError::MintIntoFail(err)
+			}
+		);
+
+		Ok(())
+	}
+
+	/// Mint tokens into a beneficiary's account on a paused ERC20 contract.
+	/// Encodes a single batchAll call to the batch precompile that atomically
+	/// executes: unpause → mintInto → pause.
+	pub(crate) fn erc20_mint_into_paused(
+		erc20_contract_address: H160,
+		beneficiary: H160,
+		amount: U256,
+	) -> Result<(), EvmError> {
+		// Build call data for each subcall
+		let unpause_data: Vec<u8> = keccak256!("unpause()")[..4].to_vec();
+
+		let mut mint_data = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
+		mint_data.extend_from_slice(&keccak256!("mintInto(address,uint256)")[..4]);
+		mint_data.extend_from_slice(H256::from(beneficiary).as_bytes());
+		mint_data.extend_from_slice(H256::from_uint(&amount).as_bytes());
+
+		let pause_data: Vec<u8> = keccak256!("pause()")[..4].to_vec();
+
+		// Encode batchAll(address[],uint256[],bytes[],uint64[]) targeting the batch precompile
+		let batch_all_hash = keccak256!("batchAll(address[],uint256[],bytes[],uint64[])");
+		let batch_all_selector =
+			u32::from_be_bytes([batch_all_hash[0], batch_all_hash[1], batch_all_hash[2], batch_all_hash[3]]);
+		let batch_input =
+			precompile_utils::solidity::codec::Writer::new_with_selector(batch_all_selector)
+			.write(BoundedVec::<Address, ConstU32<3>>::from(vec![
+				Address(erc20_contract_address),
+				Address(erc20_contract_address),
+				Address(erc20_contract_address),
+			]))
+			.write(BoundedVec::<U256, ConstU32<3>>::from(vec![
+				U256::zero(),
+				U256::zero(),
+				U256::zero(),
+			]))
+			.write(BoundedVec::<UnboundedBytes, ConstU32<3>>::from(vec![
+				unpause_data.into(),
+				mint_data.into(),
+				pause_data.into(),
+			]))
+			.write(BoundedVec::<u64, ConstU32<3>>::from(vec![0u64, 0u64, 0u64]))
+			.build();
+
+		let weight_limit: Weight =
+			T::GasWeightMapping::gas_to_weight(ERC20_MINT_INTO_PAUSED_GAS_LIMIT, true);
+
+		let exec_info = T::EvmRunner::call(
+			Pallet::<T>::account_id(),
+			BATCH_PRECOMPILE_ADDRESS,
+			batch_input,
+			U256::default(),
+			ERC20_MINT_INTO_PAUSED_GAS_LIMIT,
 			None,
 			None,
 			None,
