@@ -129,7 +129,7 @@ impl<O, Original: EnsureOrigin<O, Success = Location>> EnsureOrigin<O>
 pub(crate) struct ForeignAssetsMatcher<T>(core::marker::PhantomData<T>);
 
 impl<T: crate::Config> ForeignAssetsMatcher<T> {
-	fn match_asset(asset: &Asset) -> Result<(H160, U256, AssetId, AssetStatus), MatchError> {
+	fn match_asset(asset: &Asset) -> Result<(H160, U256, AssetStatus), MatchError> {
 		let (amount, location) = match (&asset.fun, &asset.id) {
 			(Fungibility::Fungible(ref amount), XcmAssetId(ref location)) => (amount, location),
 			_ => return Err(MatchError::AssetNotHandled),
@@ -139,7 +139,6 @@ impl<T: crate::Config> ForeignAssetsMatcher<T> {
 			Ok((
 				Pallet::<T>::contract_address_from_asset_id(asset_id),
 				U256::from(*amount),
-				asset_id,
 				asset_status,
 			))
 		} else {
@@ -746,7 +745,7 @@ pub mod pallet {
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
 		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
-			let (contract_address, amount, asset_id, asset_status) =
+			let (contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(what)?;
 
 			if let AssetStatus::FrozenXcmDepositForbidden = asset_status {
@@ -756,24 +755,14 @@ pub mod pallet {
 			let beneficiary = T::XcmLocationToH160::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
-			let needs_unpause = matches!(asset_status, AssetStatus::FrozenXcmDepositAllowed);
-
-			// We perform the evm calls in a storage transaction to ensure that if any
-			// step fails, all contract storage changes are rolled back.
-			frame_support::storage::with_storage_layer(|| -> Result<(), evm::EvmError> {
-				if needs_unpause {
-					EvmCaller::<T>::erc20_unpause(asset_id)
-						.map_err(|_| evm::EvmError::EvmCallFail("unpause fail".into()))?;
+			// We perform the evm transfers in a storage transaction to ensure that if it fail
+			// any contract storage changes are rolled back.
+			frame_support::storage::with_storage_layer(|| {
+				if matches!(asset_status, AssetStatus::FrozenXcmDepositAllowed) {
+					EvmCaller::<T>::erc20_mint_into_paused(contract_address, beneficiary, amount)
+				} else {
+					EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
 				}
-
-				EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)?;
-
-				if needs_unpause {
-					EvmCaller::<T>::erc20_pause(asset_id)
-						.map_err(|_| evm::EvmError::EvmCallFail("pause fail".into()))?;
-				}
-
-				Ok(())
 			})?;
 
 			Ok(())
@@ -785,7 +774,7 @@ pub mod pallet {
 			to: &Location,
 			_context: &XcmContext,
 		) -> Result<AssetsInHolding, XcmError> {
-			let (contract_address, amount, _asset_id, asset_status) =
+			let (contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(asset)?;
 
 			if let AssetStatus::FrozenXcmDepositForbidden | AssetStatus::FrozenXcmDepositAllowed =
@@ -821,7 +810,7 @@ pub mod pallet {
 			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<AssetsInHolding, XcmError> {
-			let (contract_address, amount, _asset_id, asset_status) =
+			let (contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(what)?;
 			let who = T::XcmLocationToH160::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
