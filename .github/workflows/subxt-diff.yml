@@ -9,6 +9,13 @@ on:
         description: runtime spec version (ex. 1601)
         required: true
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   local-diff:
     runs-on: ubuntu-latest
