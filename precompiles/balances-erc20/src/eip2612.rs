@@ -111,9 +111,13 @@ where
 		// Blockchain time is in ms while Ethereum use second timestamps.
 		let timestamp: u128 =
 			<Runtime as pallet_evm::Config>::Timestamp::now().unique_saturated_into();
-		let timestamp: U256 = U256::from(timestamp / 1000);
+		let timestamp: U256 = U256::from(timestamp);
 
-		ensure!(deadline >= timestamp, revert("Permit expired"));
+		let deadline_ms: U256 = deadline
+			.checked_mul(U256::from(1000))
+			.ok_or_else(|| revert("Deadline overflow"))?;
+
+		ensure!(deadline_ms >= timestamp, revert("Permit expired"));
 
 		let nonce = NoncesStorage::<Instance>::get(owner);
 
