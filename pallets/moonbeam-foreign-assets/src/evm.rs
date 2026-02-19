@@ -28,6 +28,7 @@ use precompile_utils::solidity::Codec;
 use precompile_utils_macro::keccak256;
 use sp_runtime::traits::ConstU32;
 use sp_runtime::{DispatchError, SaturatedConversion};
+use sp_std::vec;
 use sp_std::vec::Vec;
 use xcm::latest::Error as XcmError;
 
