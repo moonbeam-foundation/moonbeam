@@ -231,38 +231,44 @@ impl<T: crate::Config> EvmCaller<T> {
 		amount: U256,
 	) -> Result<(), EvmError> {
 		// Build call data for each subcall
-		let unpause_data: Vec<u8> = keccak256!("unpause()")[..4].to_vec();
+		let mut unpause_data = Vec::with_capacity(4);
+		unpause_data.extend_from_slice(&keccak256!("unpause()")[..4]);
 
 		let mut mint_data = Vec::with_capacity(ERC20_CALL_MAX_CALLDATA_SIZE);
 		mint_data.extend_from_slice(&keccak256!("mintInto(address,uint256)")[..4]);
 		mint_data.extend_from_slice(H256::from(beneficiary).as_bytes());
 		mint_data.extend_from_slice(H256::from_uint(&amount).as_bytes());
 
-		let pause_data: Vec<u8> = keccak256!("pause()")[..4].to_vec();
+		let mut pause_data = Vec::with_capacity(4);
+		pause_data.extend_from_slice(&keccak256!("pause()")[..4]);
 
 		// Encode batchAll(address[],uint256[],bytes[],uint64[]) targeting the batch precompile
 		let batch_all_hash = keccak256!("batchAll(address[],uint256[],bytes[],uint64[])");
-		let batch_all_selector =
-			u32::from_be_bytes([batch_all_hash[0], batch_all_hash[1], batch_all_hash[2], batch_all_hash[3]]);
+		let batch_all_selector = u32::from_be_bytes([
+			batch_all_hash[0],
+			batch_all_hash[1],
+			batch_all_hash[2],
+			batch_all_hash[3],
+		]);
 		let batch_input =
 			precompile_utils::solidity::codec::Writer::new_with_selector(batch_all_selector)
-			.write(BoundedVec::<Address, ConstU32<3>>::from(vec![
-				Address(erc20_contract_address),
-				Address(erc20_contract_address),
-				Address(erc20_contract_address),
-			]))
-			.write(BoundedVec::<U256, ConstU32<3>>::from(vec![
-				U256::zero(),
-				U256::zero(),
-				U256::zero(),
-			]))
-			.write(BoundedVec::<UnboundedBytes, ConstU32<3>>::from(vec![
-				unpause_data.into(),
-				mint_data.into(),
-				pause_data.into(),
-			]))
-			.write(BoundedVec::<u64, ConstU32<3>>::from(vec![0u64, 0u64, 0u64]))
-			.build();
+				.write(BoundedVec::<Address, ConstU32<3>>::from(vec![
+					Address(erc20_contract_address),
+					Address(erc20_contract_address),
+					Address(erc20_contract_address),
+				]))
+				.write(BoundedVec::<U256, ConstU32<3>>::from(vec![
+					U256::zero(),
+					U256::zero(),
+					U256::zero(),
+				]))
+				.write(BoundedVec::<UnboundedBytes, ConstU32<3>>::from(vec![
+					unpause_data.into(),
+					mint_data.into(),
+					pause_data.into(),
+				]))
+				.write(BoundedVec::<u64, ConstU32<3>>::from(vec![0u64, 0u64, 0u64]))
+				.build();
 
 		let weight_limit: Weight =
 			T::GasWeightMapping::gas_to_weight(ERC20_MINT_INTO_PAUSED_GAS_LIMIT, true);
