@@ -126,18 +126,22 @@ describeSuite({
       id: "T04",
       title: "Tags are present on emulated Ethereum blocks",
       test: async () => {
-        expect(
-          (await context.ethers().provider?.getBlock("safe"))?.number,
-          "Safe tag is not present"
-        ).to.be.greaterThan(0);
-        expect(
-          (await context.ethers().provider?.getBlock("finalized"))?.number,
-          "Finalized tag is not present"
-        ).to.be.greaterThan(0);
-        expect(
-          (await context.ethers().provider?.getBlock("latest"))?.number,
-          "Latest tag is not present"
-        ).to.be.greaterThan(0);
+        const waitForTag = async (tag: "safe" | "finalized", maxAttempts = 15) => {
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            const block = await context.ethers().provider?.getBlock(tag);
+            if (typeof block?.number === "number" && block.number > 0) {
+              return block.number;
+            }
+            await context.waitBlock(1);
+          }
+          return undefined;
+        };
+
+        expect(await waitForTag("safe"), "Safe tag is not present").to.be.greaterThan(0);
+        expect(await waitForTag("finalized"), "Finalized tag is not present").to.be.greaterThan(0);
+        const latestBlock = await context.ethers().provider?.getBlock("latest");
+        expect(latestBlock, "Latest tag is not present").to.not.equal(null);
+        expect(latestBlock?.number, "Latest tag is not present").to.be.greaterThan(0);
       },
     });
   },

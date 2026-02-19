@@ -5,6 +5,13 @@ on:
     - cron: "0 5 * * 0" # Runs every Sunday at 5:00 AM UTC
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   check-bootnodes:
     runs-on: ubuntu-latest

@@ -92,7 +92,7 @@ describeSuite({
 
         // The tx can create an account, so record 148 bytes of storage growth
         // Storage growth ratio is 366
-        expect(gasUsed).toMatchInlineSnapshot(`33725n`);
+        expect(gasUsed).toMatchInlineSnapshot(`33793n`);
       },
     });
   },

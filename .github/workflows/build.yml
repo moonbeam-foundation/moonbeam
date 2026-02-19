@@ -27,6 +27,13 @@ env:
   NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation"
   CARGO_TERM_COLOR: always
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   ####### Check files and formatting #######
   set-tags:
@@ -517,12 +524,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly
-          override: true
           components: rust-src
-          target: wasm32-unknown-unknown
+          targets: wasm32-unknown-unknown
       - name: Install required dependencies
         run: |
           sudo apt-get install -y libprotobuf-dev protobuf-compiler
