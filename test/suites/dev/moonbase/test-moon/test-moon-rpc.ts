@@ -89,7 +89,7 @@ describeSuite({
       id: "T06",
       title: "should return as finalized when true",
       test: async function () {
-        await context.createBlock(
+        const { result } = await context.createBlock(
           await createViemTransaction(context, {
             to: BALTATHAR_ADDRESS,
             gas: 12_000_000n,
@@ -99,8 +99,7 @@ describeSuite({
           { finalize: true }
         );
 
-        const block = await context.viem().getBlock();
-        const resp = await api.rpc.moon.isTxFinalized(block.transactions[0]);
+        const resp = await api.rpc.moon.isTxFinalized(result!.hash as `0x${string}`);
         expect(resp.isTrue, "Transaction finalization status mismatch").toBe(true);
       },
     });
@@ -109,7 +108,7 @@ describeSuite({
       id: "T07",
       title: "should return as unfinalized when false",
       test: async function () {
-        await context.createBlock(
+        const { result } = await context.createBlock(
           await createViemTransaction(context, {
             to: BALTATHAR_ADDRESS,
             gas: 12_000_000n,
@@ -119,8 +118,7 @@ describeSuite({
           { finalize: false }
         );
 
-        const block = await context.viem().getBlock();
-        const resp = await api.rpc.moon.isTxFinalized(block.transactions[0]);
+        const resp = await api.rpc.moon.isTxFinalized(result!.hash as `0x${string}`);
         expect(resp.isTrue, "Transaction finalization status mismatch").toBe(false);
       },
     });
@@ -139,7 +137,7 @@ describeSuite({
       id: "T09",
       title: "should return as finalized when new block is true",
       test: async function () {
-        await context.createBlock(
+        const { result } = await context.createBlock(
           await createViemTransaction(context, {
             to: BALTATHAR_ADDRESS,
             gas: 12_000_000n,
@@ -148,9 +146,8 @@ describeSuite({
           }),
           { finalize: false }
         );
-        const block = await context.viem().getBlock();
         await context.createBlock([], { finalize: true });
-        const resp = await api.rpc.moon.isTxFinalized(block.transactions[0]);
+        const resp = await api.rpc.moon.isTxFinalized(result!.hash as `0x${string}`);
         expect(resp.isTrue, "Transaction finalization status mismatch").toBe(true);
       },
     });
@@ -159,22 +156,20 @@ describeSuite({
       id: "T10",
       title: "should return as finalized when new block reorg happens",
       test: async function () {
-        const blockHash = (
-          await context.createBlock(
-            await createViemTransaction(context, {
-              to: BALTATHAR_ADDRESS,
-              gas: 12_000_000n,
-              gasPrice: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
-              value: 1_000_000n,
-            }),
-            { finalize: false }
-          )
-        ).block.hash;
+        const { block, result } = await context.createBlock(
+          await createViemTransaction(context, {
+            to: BALTATHAR_ADDRESS,
+            gas: 12_000_000n,
+            gasPrice: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
+            value: 1_000_000n,
+          }),
+          { finalize: false }
+        );
+        const blockHash = block.hash;
 
-        const block = await context.viem().getBlock();
         await context.createBlock([], { finalize: false });
         await context.createBlock([], { finalize: true, parentHash: blockHash });
-        const resp = await api.rpc.moon.isTxFinalized(block.transactions[0]);
+        const resp = await api.rpc.moon.isTxFinalized(result!.hash as `0x${string}`);
         expect(resp.isTrue, "Transaction finalization status mismatch").toBe(true);
       },
     });

@@ -53,11 +53,10 @@ describeSuite({
             ],
           });
 
-          await context.createBlock(txWithAL);
-          const block = await context.viem().getBlock();
+          const { result } = await context.createBlock(txWithAL);
           const receipt = await context
             .viem()
-            .getTransactionReceipt({ hash: block.transactions[0] as `0x${string}` });
+            .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
           const gasCostWithAL = receipt.gasUsed;
           const txSize = txWithAL.length;
 
@@ -117,11 +116,10 @@ describeSuite({
             accessList,
           });
 
-          await context.createBlock(txWithAL);
-          const block = await context.viem().getBlock();
+          const { result } = await context.createBlock(txWithAL);
           const receipt = await context
             .viem()
-            .getTransactionReceipt({ hash: block.transactions[0] as `0x${string}` });
+            .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
           const gasCostWithAL = receipt.gasUsed;
           const txSize = txWithAL.length;
 

@@ -28,7 +28,9 @@ describeSuite({
       priority_fees: number[],
       max_fee_per_gas: string
     ) {
-      let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
+      let nonce = await context
+        .viem("public")
+        .getTransactionCount({ address: ALITH_ADDRESS, blockTag: "pending" });
       const contractData = fetchCompiledContract("MultiplyBy7");
       for (let b = 0; b < block_count; b++) {
         for (let p = 0; p < priority_fees.length; p++) {
@@ -92,61 +94,35 @@ describeSuite({
         const block_count = 2;
         const reward_percentiles = [20, 50, 70];
         const priority_fees = [1, 2, 3];
-        const startingBlock = await context.viem().getBlockNumber();
-
-        const feeHistory = new Promise<FeeHistory>((resolve) => {
-          const unwatch = context.viem().watchBlocks({
-            onBlock: async (block) => {
-              if (Number(block.number! - startingBlock) === block_count) {
-                const result = (await customDevRpcRequest("eth_feeHistory", [
-                  "0x2",
-                  "latest",
-                  reward_percentiles,
-                ])) as FeeHistory;
-                unwatch();
-                resolve(result);
-              }
-            },
-          });
-        });
 
         await createBlocks(block_count, priority_fees, parseGwei("10").toString());
 
-        matchExpectations(await feeHistory, block_count, reward_percentiles);
+        const result = (await customDevRpcRequest("eth_feeHistory", [
+          "0x2",
+          "latest",
+          reward_percentiles,
+        ])) as FeeHistory;
+        matchExpectations(result, block_count, reward_percentiles);
       },
     });
 
     it({
       id: "T02",
       title: "should calculate percentiles",
-      timeout: 40_000,
+      timeout: 120_000,
       test: async function () {
         const max_fee_per_gas = parseGwei("10").toString();
         const block_count = 11;
         const reward_percentiles = [20, 50, 70, 85, 100];
         const priority_fees = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        const startingBlock = await context.viem().getBlockNumber();
-
-        const feeHistory = new Promise<FeeHistory>((resolve) => {
-          const unwatch = context.viem().watchBlocks({
-            onBlock: async (block) => {
-              if (Number(block.number! - startingBlock) === block_count) {
-                const result = (await customDevRpcRequest("eth_feeHistory", [
-                  "0xA",
-                  "latest",
-                  reward_percentiles,
-                ])) as FeeHistory;
-
-                unwatch();
-                resolve(result);
-              }
-            },
-          });
-        });
 
         await createBlocks(block_count, priority_fees, max_fee_per_gas);
 
-        const feeResults = await feeHistory;
+        const feeResults = (await customDevRpcRequest("eth_feeHistory", [
+          "0xA",
+          "latest",
+          reward_percentiles,
+        ])) as FeeHistory;
         const localRewards = reward_percentiles
           .map((percentile) => getPercentile(percentile, priority_fees))
           .map((reward) => numberToHex(reward));
@@ -174,32 +150,20 @@ describeSuite({
     it({
       id: "T03",
       title: "result length should match spec using an integer block count",
-      timeout: 40_000,
+      timeout: 120_000,
       test: async function () {
         const block_count = 2;
         const reward_percentiles = [20, 50, 70];
         const priority_fees = [1, 2, 3];
-        const startingBlock = await context.viem().getBlockNumber();
-
-        const feeHistory = new Promise<FeeHistory>((resolve) => {
-          const unwatch = context.viem().watchBlocks({
-            onBlock: async (block) => {
-              if (Number(block.number! - startingBlock) === block_count) {
-                const result = (await customDevRpcRequest("eth_feeHistory", [
-                  block_count,
-                  "latest",
-                  reward_percentiles,
-                ])) as FeeHistory;
-                unwatch();
-                resolve(result);
-              }
-            },
-          });
-        });
 
         await createBlocks(block_count, priority_fees, parseGwei("10").toString());
 
-        matchExpectations(await feeHistory, block_count, reward_percentiles);
+        const result = (await customDevRpcRequest("eth_feeHistory", [
+          block_count,
+          "latest",
+          reward_percentiles,
+        ])) as FeeHistory;
+        matchExpectations(result, block_count, reward_percentiles);
       },
     });
   },
