@@ -365,45 +365,46 @@
 <a href=#365 id=365 data-nosnippet>365</a>					base_fee: U256::zero(),
 <a href=#366 id=366 data-nosnippet>366</a>					chain_id: <span class="number">0u64</span>,
 <a href=#367 id=367 data-nosnippet>367</a>					is_transactional: <span class="bool-val">true</span>,
-<a href=#368 id=368 data-nosnippet>368</a>				},
-<a href=#369 id=369 data-nosnippet>369</a>				transaction_data.into(),
-<a href=#370 id=370 data-nosnippet>370</a>				weight_limit,
-<a href=#371 id=371 data-nosnippet>371</a>				proof_size_base_cost,
-<a href=#372 id=372 data-nosnippet>372</a>			)
-<a href=#373 id=373 data-nosnippet>373</a>			<span class="comment">// We only validate the gas limit against the evm transaction cost.
-<a href=#374 id=374 data-nosnippet>374</a>			// No need to validate fee payment, as it is handled by the xcm executor.
-<a href=#375 id=375 data-nosnippet>375</a>			</span>.validate_common()
-<a href=#376 id=376 data-nosnippet>376</a>			.map_err(|<span class="kw">_</span>| sp_runtime::DispatchErrorWithPostInfo {
-<a href=#377 id=377 data-nosnippet>377</a>				post_info: PostDispatchInfo {
-<a href=#378 id=378 data-nosnippet>378</a>					actual_weight: <span class="prelude-val">Some</span>(error_weight),
-<a href=#379 id=379 data-nosnippet>379</a>					pays_fee: Pays::Yes,
-<a href=#380 id=380 data-nosnippet>380</a>				},
-<a href=#381 id=381 data-nosnippet>381</a>				error: sp_runtime::DispatchError::Other(<span class="string">"Failed to validate ethereum transaction"</span>),
-<a href=#382 id=382 data-nosnippet>382</a>			})<span class="question-mark">?</span>;
-<a href=#383 id=383 data-nosnippet>383</a>
-<a href=#384 id=384 data-nosnippet>384</a>			<span class="comment">// Once we know a new transaction hash exists - the user can afford storing the
-<a href=#385 id=385 data-nosnippet>385</a>			// transaction on chain - we increase the global nonce.
-<a href=#386 id=386 data-nosnippet>386</a>			</span>&lt;Nonce&lt;T&gt;&gt;::put(current_nonce.saturating_add(U256::one()));
-<a href=#387 id=387 data-nosnippet>387</a>
-<a href=#388 id=388 data-nosnippet>388</a>			<span class="kw">let </span>(dispatch_info, <span class="kw">_</span>) =
-<a href=#389 id=389 data-nosnippet>389</a>				T::ValidatedTransaction::apply(source, transaction, maybe_force_create_address)<span class="question-mark">?</span>;
-<a href=#390 id=390 data-nosnippet>390</a>
-<a href=#391 id=391 data-nosnippet>391</a>			XCM_MESSAGE_HASH::with(|xcm_msg_hash| {
-<a href=#392 id=392 data-nosnippet>392</a>				<span class="self">Self</span>::deposit_event(Event::ExecutedFromXcm {
-<a href=#393 id=393 data-nosnippet>393</a>					xcm_msg_hash: <span class="kw-2">*</span>xcm_msg_hash,
-<a href=#394 id=394 data-nosnippet>394</a>					eth_tx_hash: tx_hash,
-<a href=#395 id=395 data-nosnippet>395</a>				});
-<a href=#396 id=396 data-nosnippet>396</a>			});
-<a href=#397 id=397 data-nosnippet>397</a>
-<a href=#398 id=398 data-nosnippet>398</a>			<span class="prelude-val">Ok</span>(dispatch_info)
-<a href=#399 id=399 data-nosnippet>399</a>		} <span class="kw">else </span>{
-<a href=#400 id=400 data-nosnippet>400</a>			<span class="prelude-val">Err</span>(sp_runtime::DispatchErrorWithPostInfo {
-<a href=#401 id=401 data-nosnippet>401</a>				post_info: PostDispatchInfo {
-<a href=#402 id=402 data-nosnippet>402</a>					actual_weight: <span class="prelude-val">Some</span>(error_weight),
-<a href=#403 id=403 data-nosnippet>403</a>					pays_fee: Pays::Yes,
-<a href=#404 id=404 data-nosnippet>404</a>				},
-<a href=#405 id=405 data-nosnippet>405</a>				error: sp_runtime::DispatchError::Other(<span class="string">"Cannot convert xcm payload to known type"</span>),
-<a href=#406 id=406 data-nosnippet>406</a>			})
-<a href=#407 id=407 data-nosnippet>407</a>		}
-<a href=#408 id=408 data-nosnippet>408</a>	}
-<a href=#409 id=409 data-nosnippet>409</a>}</code></pre></div></section></main></body></html>
+<a href=#368 id=368 data-nosnippet>368</a>					allow_unprotected_txs: <span class="bool-val">false</span>,
+<a href=#369 id=369 data-nosnippet>369</a>				},
+<a href=#370 id=370 data-nosnippet>370</a>				transaction_data.into(),
+<a href=#371 id=371 data-nosnippet>371</a>				weight_limit,
+<a href=#372 id=372 data-nosnippet>372</a>				proof_size_base_cost,
+<a href=#373 id=373 data-nosnippet>373</a>			)
+<a href=#374 id=374 data-nosnippet>374</a>			<span class="comment">// We only validate the gas limit against the evm transaction cost.
+<a href=#375 id=375 data-nosnippet>375</a>			// No need to validate fee payment, as it is handled by the xcm executor.
+<a href=#376 id=376 data-nosnippet>376</a>			</span>.validate_common()
+<a href=#377 id=377 data-nosnippet>377</a>			.map_err(|<span class="kw">_</span>| sp_runtime::DispatchErrorWithPostInfo {
+<a href=#378 id=378 data-nosnippet>378</a>				post_info: PostDispatchInfo {
+<a href=#379 id=379 data-nosnippet>379</a>					actual_weight: <span class="prelude-val">Some</span>(error_weight),
+<a href=#380 id=380 data-nosnippet>380</a>					pays_fee: Pays::Yes,
+<a href=#381 id=381 data-nosnippet>381</a>				},
+<a href=#382 id=382 data-nosnippet>382</a>				error: sp_runtime::DispatchError::Other(<span class="string">"Failed to validate ethereum transaction"</span>),
+<a href=#383 id=383 data-nosnippet>383</a>			})<span class="question-mark">?</span>;
+<a href=#384 id=384 data-nosnippet>384</a>
+<a href=#385 id=385 data-nosnippet>385</a>			<span class="comment">// Once we know a new transaction hash exists - the user can afford storing the
+<a href=#386 id=386 data-nosnippet>386</a>			// transaction on chain - we increase the global nonce.
+<a href=#387 id=387 data-nosnippet>387</a>			</span>&lt;Nonce&lt;T&gt;&gt;::put(current_nonce.saturating_add(U256::one()));
+<a href=#388 id=388 data-nosnippet>388</a>
+<a href=#389 id=389 data-nosnippet>389</a>			<span class="kw">let </span>(dispatch_info, <span class="kw">_</span>) =
+<a href=#390 id=390 data-nosnippet>390</a>				T::ValidatedTransaction::apply(source, transaction, maybe_force_create_address)<span class="question-mark">?</span>;
+<a href=#391 id=391 data-nosnippet>391</a>
+<a href=#392 id=392 data-nosnippet>392</a>			XCM_MESSAGE_HASH::with(|xcm_msg_hash| {
+<a href=#393 id=393 data-nosnippet>393</a>				<span class="self">Self</span>::deposit_event(Event::ExecutedFromXcm {
+<a href=#394 id=394 data-nosnippet>394</a>					xcm_msg_hash: <span class="kw-2">*</span>xcm_msg_hash,
+<a href=#395 id=395 data-nosnippet>395</a>					eth_tx_hash: tx_hash,
+<a href=#396 id=396 data-nosnippet>396</a>				});
+<a href=#397 id=397 data-nosnippet>397</a>			});
+<a href=#398 id=398 data-nosnippet>398</a>
+<a href=#399 id=399 data-nosnippet>399</a>			<span class="prelude-val">Ok</span>(dispatch_info)
+<a href=#400 id=400 data-nosnippet>400</a>		} <span class="kw">else </span>{
+<a href=#401 id=401 data-nosnippet>401</a>			<span class="prelude-val">Err</span>(sp_runtime::DispatchErrorWithPostInfo {
+<a href=#402 id=402 data-nosnippet>402</a>				post_info: PostDispatchInfo {
+<a href=#403 id=403 data-nosnippet>403</a>					actual_weight: <span class="prelude-val">Some</span>(error_weight),
+<a href=#404 id=404 data-nosnippet>404</a>					pays_fee: Pays::Yes,
+<a href=#405 id=405 data-nosnippet>405</a>				},
+<a href=#406 id=406 data-nosnippet>406</a>				error: sp_runtime::DispatchError::Other(<span class="string">"Cannot convert xcm payload to known type"</span>),
+<a href=#407 id=407 data-nosnippet>407</a>			})
+<a href=#408 id=408 data-nosnippet>408</a>		}
+<a href=#409 id=409 data-nosnippet>409</a>	}
+<a href=#410 id=410 data-nosnippet>410</a>}</code></pre></div></section></main></body></html>
