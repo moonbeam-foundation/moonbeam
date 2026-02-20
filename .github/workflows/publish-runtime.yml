@@ -11,6 +11,13 @@ on:
         description: tag (ex. runtime-155) to generate release note and srtool runtimes from
         required: true
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   ####### Build runtimes with srtool #######
 
@@ -107,7 +114,7 @@ jobs:
       contents: write
     needs: ["setup-scripts", "build-srtool-runtimes"]
     outputs:
-      release_url: ${{ steps.create-release.outputs.html_url }}
+      release_url: ${{ steps.create-release.outputs.url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6

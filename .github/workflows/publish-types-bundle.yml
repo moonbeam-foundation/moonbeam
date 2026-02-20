@@ -10,6 +10,13 @@ on:
         required: false
         default: "false"
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   publish-moonbeam-types-bundle:
     runs-on: ubuntu-latest

@@ -11,6 +11,13 @@ on:
         description: tag (ex. v0.44.0) to generate release note and binaries from
         required: true
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build-binary:
     runs-on: moonbeam-release-medium
@@ -51,7 +58,7 @@ jobs:
     permissions:
       contents: write
     outputs:
-      release_url: ${{ steps.create-release.outputs.html_url }}
+      release_url: ${{ steps.create-release.outputs.url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6

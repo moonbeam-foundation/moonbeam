@@ -4,6 +4,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -12,10 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: 1.88.0
-          override: true
       - name: Verify Licenses
         run: |
           cargo install cargo-license@0.7.0
