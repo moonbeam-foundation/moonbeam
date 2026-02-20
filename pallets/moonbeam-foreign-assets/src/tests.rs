@@ -558,6 +558,58 @@ fn pending_deposits_accumulate() {
 }
 
 #[test]
+fn pending_deposits_overflow() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_location = Location::parent();
+		let beneficiary_location = Location::new(
+			0,
+			[AccountKey20 {
+				network: None,
+				key: [1u8; 20],
+			}],
+		);
+		let beneficiary_h160 = H160([1u8; 20]);
+
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			asset_location.clone(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		// Freeze with allow_xcm_deposit = true
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			true,
+		));
+
+		// Seed pending deposits to U256::MAX directly
+		crate::PendingDeposits::<Test>::insert(1, beneficiary_h160, U256::MAX);
+
+		// Any further deposit should overflow
+		let xcm_asset_one = xcm::latest::Asset {
+			id: xcm::latest::AssetId(asset_location.clone()),
+			fun: Fungibility::Fungible(1),
+		};
+		let result = <EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
+			&xcm_asset_one,
+			&beneficiary_location,
+			None,
+		);
+		assert_eq!(result, Err(xcm::latest::Error::Overflow.into()));
+
+		// Pending deposit unchanged
+		assert_eq!(
+			EvmForeignAssets::pending_deposits(1, beneficiary_h160),
+			Some(U256::MAX)
+		);
+	});
+}
+
+#[test]
 fn claim_pending_deposit_success() {
 	ExtBuilder::default().build().execute_with(|| {
 		let asset_location = Location::parent();
