@@ -126,7 +126,7 @@ describeSuite({
 
       // By calling deployContract() a new block will be created,
       // including the ethereum-xcm transaction (on_initialize) + regular ethereum transaction
-      const { contractAddress: eventEmitterAddress_ } = await context.deployContract!(
+      const { contractAddress: eventEmitterAddress_, hash } = await context.deployContract!(
         "EventEmitter",
         {
           from: alith.address,
@@ -138,7 +138,7 @@ describeSuite({
       ).block.header.number.toNumber();
 
       // The old buggy runtime rollback the eth-xcm tx because XCM executor rollback evm reverts
-      regularEthTxHash = (await context.viem().getBlock()).transactions[0];
+      regularEthTxHash = hash;
 
       // Compute XCM message ID
       const messageHash = context.polkadotJs().createType("XcmVersionedXcm", failedXcmMessage).hash;

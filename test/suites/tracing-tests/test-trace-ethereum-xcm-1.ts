@@ -111,16 +111,16 @@ describeSuite({
           })
           .as_v3();
 
+        const processedBlockNumber = (await context.viem().getBlockNumber()) + 1n;
         // Send an XCM and create block to execute it
         await injectHrmpMessageAndSeal(context, 1, {
           type: "XcmVersionedXcm",
           payload: xcmMessage,
         } as RawXcmMessage);
 
-        // Retrieve the stored ethereum transaction hash
-        transactionHashes.push(
-          (await context.viem().getBlock({ blockTag: "latest" })).transactions[0]
-        );
+        // Retrieve the processed block tx hash using explicit block number.
+        const processedBlock = await context.viem().getBlock({ blockNumber: processedBlockNumber });
+        transactionHashes.push(processedBlock.transactions[0]);
       }
     });
 
