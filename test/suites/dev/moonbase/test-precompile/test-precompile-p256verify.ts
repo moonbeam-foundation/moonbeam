@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import { expectEVMResult } from "../../../../helpers";
 
 const CONTRACT_NAME = "P256Verify";
@@ -9,7 +9,7 @@ describeSuite({
   id: "D022735",
   title: "Precompiles - p256verify",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
 
     beforeAll(async function () {
@@ -29,12 +29,12 @@ describeSuite({
         });
         const { result } = await context.createBlock(rawTx);
 
-        const receipt = await (context.viem() as any).getTransactionReceipt({ hash: result.hash });
+        const receipt = await (context.viem() as any).getTransactionReceipt({ hash: result!.hash });
 
         // https://github.com/ethereum/RIPs/blob/master/RIPS/rip-7212.md
         expect(receipt.gasUsed >= 3450);
 
-        expect(result.successful, "Succeed");
+        expect(result!.successful, "Succeed");
         expectEVMResult(result!.events, "Succeed");
       },
     });

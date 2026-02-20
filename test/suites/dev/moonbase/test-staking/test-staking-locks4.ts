@@ -1,12 +1,19 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, MIN_GLMR_STAKING, alith, generateKeyringPair } from "@moonwall/util";
+import {
+  GLMR,
+  MIN_GLMR_STAKING,
+  alith,
+  beforeAll,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 
 describeSuite({
   id: "D023380",
   title: "Staking - Freezes - candidate balance is frozen",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {

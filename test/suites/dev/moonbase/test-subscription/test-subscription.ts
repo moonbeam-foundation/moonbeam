@@ -1,13 +1,19 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, createRawTransfer } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  beforeAll,
+  createRawTransfer,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { type PublicClient, createPublicClient, webSocket } from "viem";
 
 describeSuite({
   id: "D023505",
   title: "Subscription - Block headers",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let client: PublicClient;
 
     beforeAll(async () => {

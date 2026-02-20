@@ -1,19 +1,21 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   GLMR,
-  type KeyringPair,
   MIN_GLMR_DELEGATOR,
   alith,
+  beforeAll,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
-import { chunk, getDelegatorStakingFreeze, getNumberOfDelegatorFreezes } from "../../../../helpers";
+} from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
+import { chunk, getNumberOfDelegatorFreezes } from "../../../../helpers";
 
 describeSuite({
   id: "D023376",
   title: "Staking - Freezes - bottom delegator removed",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
     let additionalDelegators: KeyringPair[];
 
@@ -63,7 +65,7 @@ describeSuite({
         );
         expect(freeze_count).to.be.equal(1, "Should have 1 freeze");
 
-        const txns = await [...additionalDelegators].map((account, i) =>
+        const txns = await [...additionalDelegators].map((account) =>
           context
             .polkadotJs()
             .tx.parachainStaking.delegateWithAutoCompound(

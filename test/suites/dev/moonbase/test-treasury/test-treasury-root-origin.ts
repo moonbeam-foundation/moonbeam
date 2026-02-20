@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { alith, baltathar, beforeAll, describeSuite, ethan, expect } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
-import { alith, baltathar, ethan } from "@moonwall/util";
 import type { FrameSupportPalletId } from "@polkadot/types/lookup";
 
 describeSuite({
@@ -24,7 +23,7 @@ describeSuite({
       title: "Origins that are not Root or members of treasury council cannot spend treasury funds",
       test: async function () {
         const proposal_value = 1000000000n;
-        const tx = api.tx.treasury.spend(null, proposal_value, ethan.address, null);
+        const tx = api.tx.treasury.spend({ Native: null }, proposal_value, ethan.address, null);
         const signedTx = await tx.signAsync(baltathar);
         await context.createBlock(signedTx, {
           expectEvents: [api.events.system.ExtrinsicFailed],
@@ -52,7 +51,7 @@ describeSuite({
 
         // Approve treasury spend to Ethan
         const proposal_value = 1_000_000_000_000_000n;
-        const tx = api.tx.treasury.spend(null, proposal_value, ethan.address, null);
+        const tx = api.tx.treasury.spend({ Native: null }, proposal_value, ethan.address, null);
         const signedTx = await api.tx.sudo.sudo(tx).signAsync(alith);
         await context.createBlock(signedTx, {
           allowFailures: false,

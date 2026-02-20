@@ -6,8 +6,9 @@ import {
   DEFAULT_GENESIS_BALANCE,
   DEFAULT_GENESIS_MAPPING,
   GLMR,
-} from "@moonwall/util";
-import { expect, describeSuite } from "@moonwall/cli";
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
@@ -15,7 +16,7 @@ describeSuite({
   id: "D020212",
   title: "Author Mapping - simple association",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
     it({
       id: "T01",
@@ -47,11 +48,11 @@ describeSuite({
         );
         // check events
         expect(result?.events.length === 8);
-        expect(api.events.balances.Reserved.is(result?.events[1].event)).to.be.true;
-        expect(api.events.authorMapping.KeysRegistered.is(result?.events[2].event)).to.be.true;
-        expect(api.events.system.NewAccount.is(result?.events[3].event)).to.be.true;
-        expect(api.events.balances.Endowed.is(result?.events[4].event)).to.be.true;
-        expect(api.events.system.ExtrinsicSuccess.is(result?.events[7].event)).to.be.true;
+        expect(api.events.balances.Reserved.is(result!.events[1].event)).to.be.true;
+        expect(api.events.authorMapping.KeysRegistered.is(result!.events[2].event)).to.be.true;
+        expect(api.events.system.NewAccount.is(result!.events[3].event)).to.be.true;
+        expect(api.events.balances.Endowed.is(result!.events[4].event)).to.be.true;
+        expect(api.events.system.ExtrinsicSuccess.is(result!.events[7].event)).to.be.true;
 
         // check association
         expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS))?.account).to.eq(

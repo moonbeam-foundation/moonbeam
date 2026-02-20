@@ -13,7 +13,7 @@ const executeScript = async (relativeDir: string, command: string) => {
   const targetDir = join(__dirname, relativeDir);
   const pkgJsonPath = join(targetDir, "package.json");
   try {
-    const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf-8"));
+    JSON.parse(readFileSync(pkgJsonPath, "utf-8"));
     console.log(`Executing ${command} script in package ${relativeDir}`);
     const { stdout, stderr } = await execAsync(command, { cwd: targetDir });
     // If stdout includes Done, print the line including Done in the string
@@ -40,9 +40,9 @@ const writeFile = async (relativeDir: string, fileName: string, data: string) =>
 
 const checkBinary = async () => {
   try {
-    const { stdout, stderr } = await execAsync("ls ../target/release/moonbeam");
+    const { stderr } = await execAsync("ls ../target/release/moonbeam");
     if (stderr) console.error(`stderr: ${stderr}`);
-  } catch (e) {
+  } catch {
     console.error("Moonbeam binary missing, please build it first using `cargo build --release`");
   }
 };

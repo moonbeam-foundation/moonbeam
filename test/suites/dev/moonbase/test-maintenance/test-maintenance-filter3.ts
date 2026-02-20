@@ -1,14 +1,13 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
   beforeAll,
   beforeEach,
   customDevRpcRequest,
   describeSuite,
-  expect,
   execOpenTechCommitteeProposal,
-} from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
-import { BN } from "@polkadot/util";
+  expect,
+} from "moonwall";
 import {
   registerForeignAsset,
   addAssetToWeightTrader,
@@ -20,7 +19,7 @@ describeSuite({
   id: "D021903",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let assetId: string;
     const foreignParaId = 2000;
 

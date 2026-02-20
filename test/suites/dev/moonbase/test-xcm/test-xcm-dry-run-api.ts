@@ -1,19 +1,22 @@
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { alith, ALITH_ADDRESS, BALTATHAR_ADDRESS, generateKeyringPair } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  alith,
+  beforeAll,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { u8aToHex } from "@polkadot/util";
 import {
   convertXcmFragmentToVersion,
-  descendOriginFromAddress20,
-  ERC20_TOTAL_SUPPLY,
-  mockHrmpChannelExistanceTx,
   sovereignAccountOfSibling,
   wrapWithXcmVersion,
   XCM_VERSIONS,
   XcmFragment,
 } from "../../../../helpers";
 import { parseEther } from "ethers";
-import type { DispatchError } from "@polkadot/types/interfaces";
 
 describeSuite({
   id: "D023916",
@@ -114,7 +117,7 @@ describeSuite({
           const randomKeyPair = generateKeyringPair();
 
           // We will dry run a "ReserveAssetDeposited" coming from the relay
-          let xcmMessage = new XcmFragment({
+          let xcmMessage: any = new XcmFragment({
             assets: [
               {
                 multilocation: {
@@ -193,7 +196,7 @@ describeSuite({
             { parents: 1, interior: { X1: { Parachain: paraId } } },
             xcmVersion
           );
-          let xcmMessage = new XcmFragment({
+          let xcmMessage: any = new XcmFragment({
             beneficiary: BALTATHAR_ADDRESS,
             assets: [
               {

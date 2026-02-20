@@ -1,7 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeEach, TransactionTypes } from "@moonwall/cli";
-import { ALITH_ADDRESS, baltathar, GLMR } from "@moonwall/util";
-import { createRawTransfer } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  TransactionTypes,
+  baltathar,
+  beforeEach,
+  createRawTransfer,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { Wallet } from "ethers";
 import { ConstantStore } from "../../../../helpers";
 
@@ -9,7 +16,7 @@ describeSuite({
   id: "D020301",
   title: "Existential Deposit disabled",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     // let randomAccount: PrivateKeyAccount;
     let privateKey: `0x${string}`;
     let randomWeb3Account: any;
@@ -23,7 +30,7 @@ describeSuite({
       // randomAccount = privateKeyToAccount(privateKey);
       randomWeb3Account = context.web3().eth.accounts.create();
       privateKey = randomWeb3Account.privateKey;
-      const { result, block } = await context.createBlock(
+      const { result } = await context.createBlock(
         context.polkadotJs().tx.balances.transferAllowDeath(randomWeb3Account.address, 10n * GLMR)
       );
       expect(result!.successful, result!.error?.name).to.be.true;

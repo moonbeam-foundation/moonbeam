@@ -1,19 +1,20 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS,
   CONTRACT_RANDOMNESS_STATUS_PENDING,
   CONTRACT_RANDOMNESS_STATUS_READY,
   GLMR,
   alith,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 import { expectEVMResult, extractRevertReason, SIMPLE_SALT, jumpBlocks } from "../../../../helpers";
 
 describeSuite({
   id: "D023019",
   title: "Randomness VRF - Requesting a random number",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should refuse a request with less than 2 blocks",

@@ -1,4 +1,4 @@
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "moonwall";
 
 // At rpc-level, `*ByNumber` requests always use the canonical block reference given by Substrate.
 // In the other hand `*ByHash` requests rely on data mapped in the frontier db.
@@ -8,7 +8,7 @@ describeSuite({
   id: "S10",
   title: "Ethereum secondary DB should contains valid data",
   foundationMethods: "read_only",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "C100",
       title: `should get the same response payload on byNumber and byHash requests`,
@@ -19,7 +19,7 @@ describeSuite({
         const latestBlockNumber = await context.ethers().provider!.getBlockNumber();
         // We asume we only want to run the test if there is enough blocks.
         if (latestBlockNumber > 10000) {
-          const failedCheckpoints = [];
+          const failedCheckpoints: number[] = [];
 
           const checkPoint_1 = latestBlockNumber - 10;
           const checkPoint_2 = latestBlockNumber - 100;

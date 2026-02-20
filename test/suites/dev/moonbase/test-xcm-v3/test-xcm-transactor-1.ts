@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, beforeAll, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D024021",
   title: "Precompiles - xcm transactor",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       // register index 0 for Alith
       await context.createBlock(

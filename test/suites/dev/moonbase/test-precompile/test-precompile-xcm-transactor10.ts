@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite } from "@moonwall/cli";
-import { ALITH_PRIVATE_KEY } from "@moonwall/util";
+import { ALITH_PRIVATE_KEY, beforeAll, describeSuite } from "moonwall";
 import { fromBytes } from "viem";
 import {
   verifyLatestBlockFees,
@@ -12,13 +11,11 @@ import {
   PRECOMPILE_XCM_TRANSACTOR_V3_ADDRESS,
 } from "../../../../helpers";
 
-const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
-
 describeSuite({
   id: "D022767",
   title: "Precompiles - xcm transactor V3",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let assetAddress;
     beforeAll(async () => {
       const { contractAddress } = await registerForeignAsset(

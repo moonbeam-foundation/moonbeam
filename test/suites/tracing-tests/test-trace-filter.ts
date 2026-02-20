@@ -1,5 +1,14 @@
-import { afterAll, beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES, GLMR, alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  ALITH_CONTRACT_ADDRESSES,
+  GLMR,
+  afterAll,
+  alith,
+  beforeAll,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { hexToU8a } from "@polkadot/util";
 import { sleep } from "../../helpers";
 

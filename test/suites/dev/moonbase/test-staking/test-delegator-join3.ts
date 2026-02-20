@@ -1,20 +1,22 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
   alith,
   baltathar,
+  beforeAll,
   charleth,
+  describeSuite,
   ethan,
-} from "@moonwall/util";
+  expect,
+} from "moonwall";
 import { verifyDelegatorStateMatchesFreezes } from "../../../../helpers/staking-freezes";
 
 describeSuite({
   id: "D023346",
   title: "Staking - Delegator Join - wrong candidate delegation hint",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock([
         context

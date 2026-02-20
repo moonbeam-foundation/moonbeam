@@ -1,5 +1,12 @@
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_PRIVATE_KEY, alith, createEthersTransaction } from "@moonwall/util";
+import {
+  ALITH_PRIVATE_KEY,
+  alith,
+  beforeAll,
+  createEthersTransaction,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 import { nestedSingle } from "../../helpers";
 import BS_TRACER from "../../helpers/tracer/blockscout_tracer.min.json";

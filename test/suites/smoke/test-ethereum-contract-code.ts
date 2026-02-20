@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ONE_HOURS } from "@moonwall/util";
+import { ONE_HOURS, beforeAll, describeSuite, expect } from "moonwall";
 import { compactStripLength, hexToU8a, u8aConcat, u8aToHex } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
 import chalk from "chalk";
@@ -26,7 +25,7 @@ describeSuite({
       // https://github.com/etclabscore/core-geth/blob/master/params/vars/protocol_params.go
       const MAX_CONTRACT_SIZE_BYTES = 24576;
       const getBytecodeSize = (storageValue: Uint8Array) => {
-        const [len, bytecode] = compactStripLength(storageValue);
+        const [, bytecode] = compactStripLength(storageValue);
         const hex = u8aToHex(bytecode);
         return (hex.length - 2) / 2;
       };

@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, alith, charleth } from "@moonwall/util";
+import {
+  BALTATHAR_ADDRESS,
+  MoonwallContext,
+  alith,
+  beforeAll,
+  charleth,
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { ethers } from "ethers";
 import fs from "node:fs";
@@ -89,7 +96,7 @@ describeSuite({
           paraApi.tx.balances
             .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
             .signAndSend(charleth, ({ status, events }) => {
-              log("Transaction status: ", status.toHuman());
+              log(`Transaction status: ${JSON.stringify(status.toHuman())}`);
 
               if (status.isFinalized) {
                 log("Transaction is finalized!");
@@ -111,7 +118,7 @@ describeSuite({
         const balAfter = (
           await paraApi.query.system.account(BALTATHAR_ADDRESS)
         ).data.free.toBigInt();
-        expect(balBefore, `${balBefore} is not less than ${balAfter}`).to.be.lessThan(balAfter);
+        expect(balBefore < balAfter, `${balBefore} is not less than ${balAfter}`).to.be.true;
       },
     });
 

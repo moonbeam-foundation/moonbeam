@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect } from "@moonwall/cli";
-import { GLMR, alith } from "@moonwall/util";
+import { GLMR, alith, describeSuite, expect } from "moonwall";
 import { SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
   id: "D023017",
   title: "Randomness VRF - Requesting a random number",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should be successful",

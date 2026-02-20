@@ -1,13 +1,21 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, baltathar, ethan } from "@moonwall/util";
+import {
+  MIN_GLMR_DELEGATOR,
+  MIN_GLMR_STAKING,
+  alith,
+  baltathar,
+  beforeAll,
+  describeSuite,
+  ethan,
+  expect,
+} from "moonwall";
 import { jumpToRound } from "../../../../helpers";
 
 describeSuite({
   id: "D023322",
   title: "Staking - Delegation Scheduled Requests -execute bond less exact round",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const LESS_AMOUNT = 10n;
 
     beforeAll(async () => {

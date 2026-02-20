@@ -1,20 +1,23 @@
 import "@moonbeam-network/api-augment";
-import { type DevModeContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   GLMR,
-  type KeyringPair,
   MIN_GLMR_STAKING,
   alith,
+  beforeAll,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+  type DevModeContext,
+} from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { chunk } from "../../../../helpers";
 
 describeSuite({
   id: "D020607",
   title: "Conviction Voting - undelegate",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let randomAccounts: KeyringPair[];
 
     beforeAll(async () => {

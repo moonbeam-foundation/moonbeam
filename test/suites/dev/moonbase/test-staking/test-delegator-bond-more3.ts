@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
+import { MIN_GLMR_STAKING, alith, beforeAll, describeSuite, ethan, expect } from "moonwall";
 
 describeSuite({
   id: "D023343",
   title: "Staking - Bond More - revoke scheduled",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         context

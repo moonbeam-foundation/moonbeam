@@ -1,4 +1,4 @@
-import { customDevRpcRequest, describeSuite, expect, TransactionTypes } from "@moonwall/cli";
+import { customDevRpcRequest, describeSuite, expect, TransactionTypes } from "moonwall";
 import BS_TRACER_V2 from "../../helpers/tracer/blockscout_tracer_v2.min.json";
 import { nestedSingle } from "../../helpers";
 

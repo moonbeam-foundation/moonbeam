@@ -1,18 +1,20 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   ETHAN_ADDRESS,
   ETHAN_PRIVATE_KEY,
   MIN_GLMR_STAKING,
+  beforeAll,
+  describeSuite,
   ethan,
-} from "@moonwall/util";
+  expect,
+} from "moonwall";
 
 describeSuite({
   id: "D022762",
   title: "Precompiles - Staking - Join Delegators",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       await context.writePrecompile!({
         precompileName: "ParachainStaking",

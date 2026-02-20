@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
+import { MIN_GLMR_DELEGATOR, alith, beforeAll, describeSuite, ethan, expect } from "moonwall";
 
 const numberToHex = (n: bigint): string => `0x${n.toString(16).padStart(32, "0")}`;
 
@@ -8,7 +7,7 @@ describeSuite({
   id: "D023327",
   title: "Staking - Delegation Scheduled Requests - cancel scheduled revoke",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock([
         context

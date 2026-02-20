@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, alith, baltathar, ethan } from "@moonwall/util";
+import { MIN_GLMR_DELEGATOR, alith, baltathar, describeSuite, ethan, expect } from "moonwall";
 
 describeSuite({
   id: "D023344",
   title: "Staking - Delegator Join",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "bond less than min should fail",

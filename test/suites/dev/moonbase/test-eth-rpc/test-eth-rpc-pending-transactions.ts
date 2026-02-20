@@ -1,12 +1,13 @@
-import { describeSuite, expect, customDevRpcRequest } from "@moonwall/cli";
 import {
-  createRawTransfer,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
-} from "@moonwall/util";
-import { parseGwei } from "viem";
+  createRawTransfer,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+} from "moonwall";
 
 describeSuite({
   id: "D021104",

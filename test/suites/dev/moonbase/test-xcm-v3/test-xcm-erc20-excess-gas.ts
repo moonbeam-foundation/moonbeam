@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  CHARLETH_ADDRESS,
+  alith,
+  beforeEach,
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
 import { expectEVMResult, getTransactionFees } from "../../../../helpers";
@@ -238,10 +245,10 @@ describeSuite({
                     // b'gas_limit:' + 900000(little endian) + zeros padding
                     {
                       GeneralKey: {
-                        data: [
+                        data: new Uint8Array([
                           103, 97, 115, 95, 108, 105, 109, 105, 116, 58, 160, 187, 13, 0, 0, 0, 0,
                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        ],
+                        ]),
                         length: 32,
                       },
                     },

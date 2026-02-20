@@ -1,18 +1,19 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   BALTATHAR_SESSION_ADDRESS,
   baltathar,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
   id: "D010501",
   title: "Proxy : Author Mapping - simple association",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should succeed in adding an association",

@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { BALTATHAR_PRIVATE_KEY, baltathar, charleth } from "@moonwall/util";
+import {
+  BALTATHAR_PRIVATE_KEY,
+  baltathar,
+  beforeAll,
+  charleth,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { decodeEventLog, toHex } from "viem";
 import {
   PRECOMPILE_IDENTITY_ADDRESS,
@@ -12,7 +19,7 @@ describeSuite({
   id: "D022722",
   title: "Precompiles - Identity precompile - add sub",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     beforeAll(async function () {
       await context.createBlock(
         context

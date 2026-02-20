@@ -1,18 +1,18 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 
-import { sendCallAsPara, sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
+import { sovereignAccountOfSibling } from "../../../../helpers/xcm.js";
 import { fundAccount } from "../../../../helpers/balances.js";
 import { expectSubstrateEvent } from "../../../../helpers/expect.js";
+
+// Maximum number of foreign assets that can be created (from runtime configuration)
+const maxForeignAssets = 256;
 
 describeSuite({
   id: "D020110",
   title: "Creation of Foreign Assets via XCM",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
-    const fundAmount = 100_000_000_000_000_000_000_000n;
-    const maxForeignAssets = 256;
-
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       // Sibling Paras
       const siblingParas = [3000, 4000];

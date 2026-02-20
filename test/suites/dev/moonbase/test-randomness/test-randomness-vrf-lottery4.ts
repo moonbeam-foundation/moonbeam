@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { GLMR } from "@moonwall/util";
+import { GLMR, beforeAll, describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { expectEVMResult, setupLotteryWithParticipants } from "../../../../helpers";
 
 describeSuite({
@@ -19,7 +18,7 @@ describeSuite({
         functionName: "startLottery",
         value: 1n * GLMR,
       });
-      log("Estimated Gas for startLottery", estimatedGas);
+      log(`Estimated Gas for startLottery ${estimatedGas}`);
       expect(estimatedGas).to.equal(111850n);
 
       await context.writeContract!({
@@ -46,7 +45,7 @@ describeSuite({
           functionName: "fulfillRequest",
           args: [0],
         });
-        log("Estimated Gas for startLottery", estimatedGas);
+        log(`Estimated Gas for startLottery ${estimatedGas}`);
         expect(estimatedGas).to.equal(162997n);
 
         const rawTxn = await context.writePrecompile!({

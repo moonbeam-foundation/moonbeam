@@ -1,5 +1,12 @@
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  CHARLETH_ADDRESS,
+  alith,
+  beforeAll,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { hexToNumber, parseEther } from "viem";
 import {
   ERC20_TOTAL_SUPPLY,

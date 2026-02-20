@@ -1,10 +1,13 @@
-import { customDevRpcRequest, describeSuite, expect, TransactionTypes } from "@moonwall/cli";
 import {
-  alith,
   ALITH_PRIVATE_KEY,
-  createEthersTransaction,
   PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS,
-} from "@moonwall/util";
+  TransactionTypes,
+  alith,
+  createEthersTransaction,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+} from "moonwall";
 import BS_TRACER_V2 from "../../helpers/tracer/blockscout_tracer_v2.min.json";
 
 describeSuite({

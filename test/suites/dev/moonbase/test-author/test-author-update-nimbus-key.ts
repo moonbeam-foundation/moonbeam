@@ -1,12 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
 import {
   CHARLETH_ADDRESS,
-  charleth,
-  dorothy,
-  getBlockExtrinsic,
   DOROTHY_ADDRESS,
-} from "@moonwall/util";
+  beforeAll,
+  charleth,
+  describeSuite,
+  dorothy,
+  expect,
+  getBlockExtrinsic,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 
 // Keys used to set author-mapping in the tests
@@ -21,7 +23,7 @@ describeSuite({
   id: "D020216",
   title: "Author Mapping - Update someone else nimbus key",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
 
     beforeAll(async function () {

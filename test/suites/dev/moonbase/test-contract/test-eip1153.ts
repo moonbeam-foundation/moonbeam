@@ -1,10 +1,10 @@
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D020511",
   title: "EIP-1153 - Transient storage",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let contract: `0x${string}`;
 
     beforeAll(async function () {
@@ -24,7 +24,7 @@ describeSuite({
             contractAddress: contract,
             functionName: "test",
           });
-        } catch (error) {
+        } catch (error: any) {
           return expect(error.details).to.be.eq(
             "VM Exception while processing transaction: revert Reentrant call detected."
           );

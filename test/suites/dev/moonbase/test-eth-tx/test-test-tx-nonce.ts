@@ -1,25 +1,23 @@
 import "@moonbeam-network/api-augment";
 import {
-  beforeAll,
-  customDevRpcRequest,
-  describeSuite,
-  expect,
-  fetchCompiledContract,
-} from "@moonwall/cli";
-import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CHARLETH_ADDRESS,
+  beforeAll,
   createRawTransfer,
-} from "@moonwall/util";
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
   id: "D021205",
   title: "Ethereum Transaction - Nonce",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should be at 0 before using it",
@@ -67,7 +65,6 @@ describeSuite({
       id: "T05",
       title: "pending transaction nonce",
       test: async function () {
-        const blockNumber = await context.viem().getBlockNumber();
         const nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
 
         await customDevRpcRequest("eth_sendRawTransaction", [
@@ -120,7 +117,7 @@ describeSuite({
   id: "D011304",
   title: "Ethereum Transaction - Nonce #2",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let incrementorAddress: `0x${string}`;
 
     beforeAll(async () => {
@@ -130,7 +127,7 @@ describeSuite({
       //   abi: incAbi,
       // } = await deployCreateCompiledContract(context, "Incrementor");
 
-      const { contractAddress, abi } = await context.deployContract!("Incrementor");
+      const { contractAddress } = await context.deployContract!("Incrementor");
       // incrementorContract = incContract;
       incrementorAddress = contractAddress;
     });

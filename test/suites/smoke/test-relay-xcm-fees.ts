@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
 import type { ApiDecoration } from "@polkadot/api/types";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { extractWeight } from "@moonwall/util";
+import { beforeAll, describeSuite, expect, extractWeight } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
@@ -74,10 +73,10 @@ describeSuite({
         const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 
         const feePerSecondValueForRelay = (
-          await paraApiAt.query.xcmTransactor.destinationAssetFeePerSecond({
+          (await paraApiAt.query.xcmTransactor.destinationAssetFeePerSecond({
             parents: 1,
             interior: "Here",
-          })
+          })) as any
         ).unwrap();
 
         expect(

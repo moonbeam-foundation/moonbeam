@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "moonwall";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D021501",
   title: "Genesis Fee Multiplier",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should start with genesis value",

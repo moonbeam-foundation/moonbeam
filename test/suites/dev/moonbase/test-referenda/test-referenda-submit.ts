@@ -1,21 +1,19 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  GLMR,
   beforeEach,
   describeSuite,
+  ethan,
   expect,
   fastFowardToNextEvent,
+  generateKeyringPair,
+  type KeyringPair,
   maximizeConvictionVotingOf,
   whiteListTrackNoSend,
-} from "@moonwall/cli";
-import {
-  ALITH_ADDRESS,
-  GLMR,
-  type KeyringPair,
-  ethan,
-  generateKeyringPair,
-  BALTATHAR_ADDRESS,
-} from "@moonwall/util";
-import { getDelegatorStakingFreeze } from "../../../../helpers";
+} from "moonwall";
+import { getDelegatorStakingFreeze } from "helpers";
 
 describeSuite({
   id: "D023203",
@@ -40,7 +38,7 @@ describeSuite({
           account: BALTATHAR_ADDRESS,
           percent: 0,
         },
-      ]);
+      ] as any);
 
       const { whitelistedHash: wlHash } = await whiteListTrackNoSend(context, proposal);
       whitelistedHash = wlHash;

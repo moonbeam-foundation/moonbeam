@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { THIRTY_MINS, WEIGHT_PER_GAS, extractWeight, getBlockArray } from "@moonwall/util";
+import {
+  THIRTY_MINS,
+  WEIGHT_PER_GAS,
+  beforeAll,
+  describeSuite,
+  expect,
+  extractWeight,
+  getBlockArray,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import type { GenericExtrinsic } from "@polkadot/types";
 import type { FrameSystemEventRecord } from "@polkadot/types/lookup";

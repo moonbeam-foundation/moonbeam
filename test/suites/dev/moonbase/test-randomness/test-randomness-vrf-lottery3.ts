@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { CONTRACT_RANDOMNESS_STATUS_PENDING, GLMR } from "@moonwall/util";
+import {
+  CONTRACT_RANDOMNESS_STATUS_PENDING,
+  GLMR,
+  beforeAll,
+  describeSuite,
+  expect,
+} from "moonwall";
 import {
   expectEVMResult,
   extractRevertReason,
@@ -11,7 +16,7 @@ describeSuite({
   id: "D023013",
   title: "Randomness VRF - Lottery Demo",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let lotteryContract: `0x${string}`;
 
     beforeAll(async function () {

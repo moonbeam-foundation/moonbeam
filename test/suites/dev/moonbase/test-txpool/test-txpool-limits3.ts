@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  beforeAll,
+  createEthersTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeDeployData } from "viem";
 import { getBlockWithRetry } from "../../../../helpers/eth-transactions";
 
@@ -65,11 +71,7 @@ describeSuite({
       title: "should be able have them all published within the following blocks",
       timeout: 40_000,
       test: async function () {
-        const { abi, bytecode } = fetchCompiledContract("MultiplyBy7");
-        const deployData = encodeDeployData({
-          abi,
-          bytecode,
-        });
+        fetchCompiledContract("MultiplyBy7");
 
         let blocks = 1;
         for (;;) {

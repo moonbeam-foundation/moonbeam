@@ -1,5 +1,5 @@
-import { type DevModeContext, filterAndApply } from "@moonwall/cli";
-import { alith, baltathar } from "@moonwall/util";
+import type { DevModeContext } from "moonwall";
+import { alith, baltathar, filterAndApply } from "moonwall";
 import { expectSubstrateEvent } from "./expect.js";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import type { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";

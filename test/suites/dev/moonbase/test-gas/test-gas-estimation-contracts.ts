@@ -1,19 +1,20 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
+  PRECOMPILE_BATCH_ADDRESS,
   customDevRpcRequest,
   deployCreateCompiledContract,
   describeSuite,
   expect,
   fetchCompiledContract,
-} from "@moonwall/cli";
-import { ALITH_ADDRESS, PRECOMPILE_BATCH_ADDRESS } from "@moonwall/util";
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 
 describeSuite({
   id: "D021703",
   title: "Estimate Gas - Contract estimation",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: `T01`,
       title: `evm should return invalid opcode`,

@@ -1,5 +1,11 @@
-import { afterAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  afterAll,
+  createEthersTransaction,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { sleep } from "../../helpers";
 import { encodeFunctionData } from "viem";
 
@@ -20,7 +26,7 @@ describeSuite({
         const { abi, contractAddress } = await context.deployContract!("BloatedContract");
 
         let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });
-        const tx = [];
+        const tx: `0x${string}`[] = [];
         for (let i = 0; i < 500; i++) {
           tx.push(
             await createEthersTransaction(context, {

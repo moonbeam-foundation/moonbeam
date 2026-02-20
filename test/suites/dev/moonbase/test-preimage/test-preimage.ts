@@ -1,14 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, notePreimage } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  MICROGLMR,
-  alith,
   BALTATHAR_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
-} from "@moonwall/util";
+  MICROGLMR,
+  alith,
+  describeSuite,
+  expect,
+  notePreimage,
+} from "moonwall";
 import { blake2AsHex } from "@polkadot/util-crypto";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 describeSuite({
   id: "D022801",

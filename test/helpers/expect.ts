@@ -1,4 +1,5 @@
-import { type BlockCreationResponse, type DevModeContext, expect } from "@moonwall/cli";
+import type { BlockCreationResponse, DevModeContext } from "moonwall";
+import { expect } from "moonwall";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type {
   ApiTypes,

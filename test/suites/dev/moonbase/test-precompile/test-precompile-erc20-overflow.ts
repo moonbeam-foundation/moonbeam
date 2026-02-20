@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { generateKeyringPair } from "@moonwall/util";
+import { describeSuite, expect, generateKeyringPair } from "moonwall";
 
 describeSuite({
   id: "D022718",
   title: "Precompile ERC20 - Transfering through precompile",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
     it({
       id: "T01",

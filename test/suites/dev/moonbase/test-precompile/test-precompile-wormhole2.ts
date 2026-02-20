@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "moonwall";
 import { expectEVMResult, extractRevertReason } from "../../../../helpers";
 
 describeSuite({
   id: "D022765",
   title: "Test GMP Killswitch",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should fail with killswitch enabled by default",

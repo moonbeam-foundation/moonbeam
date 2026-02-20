@@ -1,11 +1,14 @@
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   CONTRACT_PROXY_TYPE_ANY,
   FAITH_ADDRESS,
   FAITH_PRIVATE_KEY,
   PRECOMPILE_PROXY_ADDRESS,
-} from "@moonwall/util";
+  beforeAll,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { expectEVMResult } from "helpers/eth-transactions";
 import { encodeFunctionData } from "viem";
 
@@ -13,7 +16,7 @@ describeSuite({
   id: "D023404",
   title: "Storage growth limit - Precompiles",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock();
     });

@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { beforeEach, describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { encodeFunctionData } from "viem";
 import { verifyLatestBlockFees } from "../../../../helpers";
 
@@ -7,7 +7,7 @@ describeSuite({
   id: "D020506",
   title: "Contract loop",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     // let incrementorAbi: Abi;
     let incrementorAddress: `0x${string}`;
 
@@ -18,7 +18,7 @@ describeSuite({
       //   abi: incAbi,
       // } = await deployCreateCompiledContract(context, "Incrementor");
 
-      const { contractAddress, abi } = await context.deployContract!("Incrementor");
+      const { contractAddress } = await context.deployContract!("Incrementor");
       // incrementorContract = incContract;
       incrementorAddress = contractAddress;
     });

@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  alith,
+  beforeEach,
+  describeSuite,
+  expect,
+  extractSingleResult,
+  fetchCompiledContract,
+} from "moonwall";
 import { decodeEventLog } from "viem";
 import {
   Referenda,
@@ -14,7 +21,7 @@ describeSuite({
   id: "D022747",
   title: "Precompiles - Referenda precompile",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let proposalIndex: number;
     const { abi: referendaAbi } = fetchCompiledContract("Referenda");
     let referenda: Referenda;
@@ -56,7 +63,7 @@ describeSuite({
           .placeDecisionDeposit(proposalIndex)
           .block();
 
-        expectEVMResult(block!.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block!.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
 
         const evmLog: any = decodeEventLog({
@@ -82,7 +89,7 @@ describeSuite({
             .placeDecisionDeposit(proposalIndex)
             .block();
 
-          expectEVMResult(block.result!.events, "Revert");
+          expectEVMResult(extractSingleResult(block.result).events, "Revert");
           await expect(
             async () => await referenda.reset().placeDecisionDeposit(proposalIndex).tx()
           ).rejects.toThrowError("NotOngoing");
@@ -109,7 +116,7 @@ describeSuite({
         await expect(
           async () => await referenda.reset().placeDecisionDeposit(proposalIndex).tx()
         ).rejects.toThrowError("HasDeposit");
-        expectEVMResult(result!.events, "Revert");
+        expectEVMResult(extractSingleResult(result).events, "Revert");
       },
     });
 
@@ -131,7 +138,7 @@ describeSuite({
           )
           .block();
 
-        expectEVMResult(block!.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block!.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
 
         const evmLog: any = decodeEventLog({
@@ -164,7 +171,7 @@ describeSuite({
           )
           .block();
 
-        expectEVMResult(block!.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block!.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
 
         const evmLog: any = decodeEventLog({
@@ -200,7 +207,7 @@ describeSuite({
           .refundDecisionDeposit(proposalIndex)
           .block();
 
-        expectEVMResult(block!.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block!.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
 
         const evmLog: any = decodeEventLog({
@@ -227,7 +234,7 @@ describeSuite({
           .refundDecisionDeposit(proposalIndex)
           .block();
 
-        expectEVMResult(block!.result!.events, "Revert");
+        expectEVMResult(extractSingleResult(block!.result).events, "Revert");
       },
     });
 
@@ -250,7 +257,7 @@ describeSuite({
           .block();
 
         // Check that the transaction failed
-        expectEVMResult(block!.result!.events, "Revert");
+        expectEVMResult(extractSingleResult(block!.result).events, "Revert");
       },
     });
 
@@ -283,7 +290,7 @@ describeSuite({
           .block();
 
         // Check that the transaction failed
-        expectEVMResult(block!.result!.events, "Revert");
+        expectEVMResult(extractSingleResult(block!.result).events, "Revert");
       },
     });
   },

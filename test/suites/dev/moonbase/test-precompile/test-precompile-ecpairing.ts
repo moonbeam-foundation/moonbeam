@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeEach } from "@moonwall/cli";
+import { describeSuite, expect, beforeEach } from "moonwall";
 import { u8aToHex } from "@polkadot/util";
 
 describeSuite({
   id: "D022716",
   title: "Precompiles - ecPairing",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let contractAddress: `0x${string}`;
 
     beforeEach(async () => {

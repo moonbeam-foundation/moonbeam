@@ -2,10 +2,10 @@ import "@moonbeam-network/api-augment";
 import {
   TransactionTypes,
   beforeAll,
+  createEthersTransaction,
   deployCreateCompiledContract,
   describeSuite,
-} from "@moonwall/cli";
-import { createEthersTransaction } from "@moonwall/util";
+} from "moonwall";
 import { expectEVMResult } from "helpers/eth-transactions";
 import { expectOk } from "helpers/expect";
 import { type Abi, encodeFunctionData } from "viem";
@@ -14,13 +14,9 @@ describeSuite({
   id: "D023403",
   title: "Storage growth limit - New Entries",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let storageLoopAddress: `0x${string}`;
     let storageLoopAbi: Abi;
-    // Number of bytes added to storage for a new entry.
-    const ACCOUNT_STORAGE_SIZE = 116;
-    // Ratio of gas to storage growth. (BlockGasLimit (15_000_000) / BlockStorageLimit (40kb))
-    const GAS_LIMIT_STORAGE_GROWTH_RATIO = 366;
     beforeAll(async () => {
       const { contractAddress, abi } = await deployCreateCompiledContract(context, "StorageLoop");
       storageLoopAddress = contractAddress;

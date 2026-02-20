@@ -1,13 +1,18 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, baltathar, BALTATHAR_SESSION_ADDRESS } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_SESSION_ADDRESS,
+  baltathar,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { getMappingInfo } from "../../../../helpers";
 
 describeSuite({
   id: "D020205",
   title: "Author Mapping - non author clearing",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should not succeed in clearing an association for a non-author",
@@ -24,7 +29,7 @@ describeSuite({
         );
 
         expect(result?.events.length === 4);
-        expect(api.events.system.ExtrinsicFailed.is(result?.events[3].event)).to.be.true;
+        expect(api.events.system.ExtrinsicFailed.is(result!.events[3].event)).to.be.true;
       },
     });
   },
