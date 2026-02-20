@@ -606,12 +606,15 @@ pub mod pallet {
 				Error::<T>::AssetNotActive
 			);
 
-			let amount = PendingDeposits::<T>::take(asset_id, beneficiary)
+			let amount = PendingDeposits::<T>::get(asset_id, beneficiary)
 				.ok_or(Error::<T>::NoPendingDeposit)?;
 
 			let contract_address = Self::contract_address_from_asset_id(asset_id);
 
+			// Both the storage removal and the EVM mint run inside the same
+			// transactional layer so they are rolled back atomically on failure.
 			frame_support::storage::with_storage_layer(|| {
+				PendingDeposits::<T>::remove(asset_id, beneficiary);
 				EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
 			})
 			.map_err(|_| Error::<T>::EvmCallMintIntoFail)?;
