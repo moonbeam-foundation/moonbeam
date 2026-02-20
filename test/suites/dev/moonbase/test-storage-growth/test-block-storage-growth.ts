@@ -27,8 +27,9 @@ describeSuite({
           await sendRawTransaction(context, rawTxn);
         }
 
+        const blockNumber = (await context.viem().getBlockNumber()) + 1n;
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(264);
+        expect((await context.viem().getBlock({ blockNumber })).transactions.length).toBe(264);
       },
     });
   },

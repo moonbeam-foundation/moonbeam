@@ -691,12 +691,14 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 parameter_types! {
 	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
+	pub const AllowUnprotectedTxs: bool = true;
 }
 
 impl pallet_ethereum::Config for Runtime {
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
+	type AllowUnprotectedTxs = AllowUnprotectedTxs;
 }
 
 /// Relay chain slot duration, in milliseconds.
