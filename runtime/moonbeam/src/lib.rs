@@ -691,7 +691,7 @@ impl fp_rpc::ConvertTransaction<opaque::UncheckedExtrinsic> for TransactionConve
 
 parameter_types! {
 	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
-	pub const AllowUnprotectedTxs: bool = false;
+	pub const AllowUnprotectedTxs: bool = true;
 }
 
 impl pallet_ethereum::Config for Runtime {

@@ -297,7 +297,7 @@ where
 			fee_history_cache,
 			fee_history_limit,
 			10,
-			false,
+			true,
 			forced_parent_hashes,
 			pending_create_inherent_data_providers,
 			Some(pending_consenus_data_provider),

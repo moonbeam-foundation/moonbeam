@@ -852,7 +852,7 @@ impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
 
 parameter_types! {
 	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
-	pub const AllowUnprotectedTxs: bool = false;
+	pub const AllowUnprotectedTxs: bool = true;
 }
 
 impl pallet_ethereum::Config for Runtime {
