@@ -77,9 +77,9 @@ describeSuite({
         "should return two-dimensional reward list for the requested block range"
       ).to.be.eq(block_count);
 
-      const failures = feeResults.reward.filter((item) => {
-        item.length !== reward_percentiles.length;
-      });
+      const failures = feeResults.reward.filter(
+        (item) => item.length !== reward_percentiles.length
+      );
       expect(
         failures.length,
         "each block has a reward list which's size is the requested percentile list"
