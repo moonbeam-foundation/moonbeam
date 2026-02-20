@@ -816,9 +816,11 @@ fn xcm_deposit_blocked_on_frozen_xcm_deposit_forbidden_asset() {
 			&beneficiary_location,
 			None,
 		);
-		assert!(
-			result.is_err(),
-			"Expected deposit to be rejected for FrozenXcmDepositForbidden, got: {result:?}",
+		assert_eq!(
+			result,
+			Err(XcmError::FailedToTransactAsset(
+				"asset is frozen and XCM deposits are forbidden"
+			)),
 		);
 	});
 }

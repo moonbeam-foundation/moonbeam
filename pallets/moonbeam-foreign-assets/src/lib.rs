@@ -816,7 +816,9 @@ pub mod pallet {
 				ForeignAssetsMatcher::<T>::match_asset(what)?;
 
 			if let AssetStatus::FrozenXcmDepositForbidden = asset_status {
-				return Err(MatchError::AssetNotHandled.into());
+				return Err(XcmError::FailedToTransactAsset(
+					"asset is frozen and XCM deposits are forbidden",
+				));
 			}
 
 			let beneficiary = T::XcmLocationToH160::convert_location(who)
@@ -859,7 +861,7 @@ pub mod pallet {
 			if let AssetStatus::FrozenXcmDepositForbidden | AssetStatus::FrozenXcmDepositAllowed =
 				asset_status
 			{
-				return Err(MatchError::AssetNotHandled.into());
+				return Err(XcmError::FailedToTransactAsset("asset is frozen"));
 			}
 
 			let from = T::XcmLocationToH160::convert_location(from)
@@ -897,7 +899,7 @@ pub mod pallet {
 			if let AssetStatus::FrozenXcmDepositForbidden | AssetStatus::FrozenXcmDepositAllowed =
 				asset_status
 			{
-				return Err(MatchError::AssetNotHandled.into());
+				return Err(XcmError::FailedToTransactAsset("asset is frozen"));
 			}
 
 			// We perform the evm transfers in a storage transaction to ensure that if it fail
