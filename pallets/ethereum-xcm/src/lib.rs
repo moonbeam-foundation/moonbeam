@@ -365,6 +365,7 @@ impl<T: Config> Pallet<T> {
 					base_fee: U256::zero(),
 					chain_id: 0u64,
 					is_transactional: true,
+					allow_unprotected_txs: false,
 				},
 				transaction_data.into(),
 				weight_limit,
