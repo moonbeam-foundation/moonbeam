@@ -27,7 +27,9 @@ describeSuite({
           await context.deployContract!("EventEmitter");
         });
 
-        const block = await context.viem().getBlock();
+        const txHash = logs[0].transactionHash as `0x${string}`;
+        const tx = await context.viem().getTransaction({ hash: txHash });
+        const block = await context.viem().getBlock({ blockHash: tx.blockHash! });
 
         expect(logs[0]).to.include({
           blockHash: block.hash,
@@ -35,7 +37,7 @@ describeSuite({
           data: "0x",
           logIndex: 0n,
           removed: false,
-          transactionHash: block.transactions[0],
+          transactionHash: txHash,
           transactionIndex: 0n,
         });
       },

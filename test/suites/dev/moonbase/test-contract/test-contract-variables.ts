@@ -32,7 +32,7 @@ describeSuite({
       id: "T02",
       title: "should return parent block number + 1 when accessed by RPC call",
       test: async function () {
-        const block = await context.viem().getBlock();
+        const header = await context.polkadotJs().rpc.chain.getHeader();
         expect(
           await context.readContract!({
             contractName: "BlockVariables",
@@ -46,7 +46,7 @@ describeSuite({
             contractAddress: blockContract,
             functionName: "getNumber",
           })
-        ).toBe(block.number);
+        ).toBe(header.number.toBigInt());
       },
     });
 

@@ -52,12 +52,10 @@ describeSuite({
           data: "0x",
           txnType: "eip1559",
         });
-        await context.createBlock(rawTxn);
-
-        const block = await context.viem().getBlock();
+        const { result } = await context.createBlock(rawTxn);
         const receipt = await context
           .viem()
-          .getTransactionReceipt({ hash: block.transactions[0] as `0x${string}` });
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
         // The receipt should contain an effective gas price of 2GWEI.
         expect(receipt.effectiveGasPrice).to.be.eq(maxFeePerGas);
       },

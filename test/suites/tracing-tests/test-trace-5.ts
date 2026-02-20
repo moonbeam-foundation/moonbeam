@@ -105,9 +105,10 @@ describeSuite({
           contracts.abiCaller,
           nonce++
         );
+        const blockNumber = (await context.viem().getBlockNumber()) + 1n;
         await context.createBlock();
-        const block = await context.viem().getBlock({ blockTag: "latest" });
-        const block_number = context.web3().utils.toHex(await context.viem().getBlockNumber());
+        const block = await context.viem().getBlock({ blockNumber });
+        const block_number = context.web3().utils.toHex(blockNumber);
         const block_hash = block.hash;
         // Trace block by number.
         let traceTx = await customDevRpcRequest("debug_traceBlockByNumber", [

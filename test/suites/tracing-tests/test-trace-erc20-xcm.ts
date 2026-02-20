@@ -27,6 +27,7 @@ describeSuite({
     let transactionHash: string;
     let eventEmitterAddress: `0x${string}`;
     let createTransactionHash: string;
+    let deployBlockNumber: number;
     beforeAll(async () => {
       const { contractAddress, status } = await context.deployContract!("ERC20WithInitialSupply", {
         args: ["ERC20", "20S", ALITH_ADDRESS, ERC20_TOTAL_SUPPLY],
@@ -116,12 +117,14 @@ describeSuite({
         .as_v3();
 
       // Mock the reception of the xcm message
+      const successfulXcmBlockNumber = (await context.viem().getBlockNumber()) + 1n;
       await injectHrmpMessageAndSeal(context, paraId, {
         type: "XcmVersionedXcm",
         payload: xcmMessage,
       });
 
-      transactionHash = (await context.viem().getBlock()).transactions[0];
+      transactionHash = (await context.viem().getBlock({ blockNumber: successfulXcmBlockNumber }))
+        .transactions[0];
 
       // Erc20 tokens should have been received
       expect(
@@ -183,15 +186,17 @@ describeSuite({
 
       // By calling deployContract() a new block will be created,
       // including the ethereum xcm transaction + regular ethereum transaction
-      const { contractAddress: eventEmitterAddress_ } = await context.deployContract!(
+      const { contractAddress: eventEmitterAddress_, hash } = await context.deployContract!(
         "EventEmitter",
         {
           from: alith.address,
         } as any
       );
       eventEmitterAddress = eventEmitterAddress_;
-
-      createTransactionHash = (await context.viem().getBlock()).transactions[0];
+      deployBlockNumber = (
+        await context.polkadotJs().rpc.chain.getBlock()
+      ).block.header.number.toNumber();
+      createTransactionHash = hash;
 
       // Get the latest block events
       const block = await context.polkadotJs().rpc.chain.getBlock();
@@ -234,9 +239,8 @@ describeSuite({
       id: "T02",
       title: "should doesn't include the failed ERC20 xcm transaction in block trace",
       test: async function () {
-        const number = await context.viem().getBlockNumber();
         const trace = await customDevRpcRequest("debug_traceBlockByNumber", [
-          number.toString(),
+          deployBlockNumber.toString(),
           { tracer: "callTracer" },
         ]);
 

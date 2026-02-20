@@ -153,12 +153,14 @@ impl pallet_evm::Config for Test {
 
 parameter_types! {
 	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
+	pub const AllowUnprotectedTxs: bool = true;
 }
 
 impl pallet_ethereum::Config for Test {
 	type StateRoot = IntermediateStateRoot<<Test as frame_system::Config>::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
+	type AllowUnprotectedTxs = AllowUnprotectedTxs;
 }
 
 /// Gets parameters of last `ForeignAssetCreatedHook::on_asset_created` hook invocation

@@ -150,15 +150,15 @@ describeSuite({
             .as_v3();
 
           // Send an XCM and create block to execute it
+          const blockNumber = (await context.viem().getBlockNumber()) + 1n;
           await injectHrmpMessageAndSeal(context, 1, {
             type: "XcmVersionedXcm",
             payload: xcmMessage,
           } as RawXcmMessage);
-
-          const block = await context.viem().getBlock({ blockTag: "latest" });
+          const ethBlock = await context.viem().getBlock({ blockNumber });
           // Input size is valid - on the limit -, expect block to include a transaction.
           // That means the pallet-ethereum-xcm decoded the provided input to a BoundedVec.
-          expect(block.transactions.length).to.be.eq(1);
+          expect(ethBlock.transactions.length).to.be.eq(1);
         }
       },
     });

@@ -148,7 +148,7 @@ describeSuite({
           abi: fetchCompiledContract("Incrementor").abi,
           functionName: "incr",
         });
-        await context.createBlock(
+        const { result } = await context.createBlock(
           context.createTxn!({
             privateKey: BALTATHAR_PRIVATE_KEY,
             to: incrementorAddress,
@@ -158,7 +158,10 @@ describeSuite({
             txnType: "legacy",
           })
         );
-        const block = await context.viem().getBlock({ blockTag: "latest" });
+        const receipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+        const block = await context.viem().getBlock({ blockHash: receipt.blockHash });
         expect(block.transactions.length, "should include the transaction in the block").to.be.eq(
           1
         );

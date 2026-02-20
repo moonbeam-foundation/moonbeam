@@ -26,9 +26,9 @@ describeSuite({
       id: "T01",
       title: "should appear in the block transaction list",
       test: async () => {
-        const block = await context.viem().getBlock();
-        const txHash = block.transactions[0];
-        expect(txHash).toBe(deployHash);
+        const tx = await context.viem().getTransaction({ hash: deployHash });
+        const block = await context.viem().getBlock({ blockHash: tx.blockHash! });
+        expect(block.transactions).toContain(deployHash);
       },
     });
 
