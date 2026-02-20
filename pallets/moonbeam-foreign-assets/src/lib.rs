@@ -158,6 +158,15 @@ pub enum AssetStatus {
 	FrozenXcmDepositForbidden,
 }
 
+impl AssetStatus {
+	pub fn is_frozen(&self) -> bool {
+		matches!(
+			self,
+			AssetStatus::FrozenXcmDepositAllowed | AssetStatus::FrozenXcmDepositForbidden
+		)
+	}
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EvmForeignAssetInfo {
 	pub asset_id: AssetId,
@@ -763,10 +772,7 @@ pub mod pallet {
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
 
-			ensure!(
-				asset_status == AssetStatus::Active,
-				Error::<T>::AssetAlreadyFrozen
-			);
+			ensure!(!asset_status.is_frozen(), Error::<T>::AssetAlreadyFrozen);
 
 			EvmCaller::<T>::erc20_pause(asset_id)?;
 
@@ -789,11 +795,7 @@ pub mod pallet {
 			let (_asset_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
 				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
 
-			ensure!(
-				asset_status == AssetStatus::FrozenXcmDepositAllowed
-					|| asset_status == AssetStatus::FrozenXcmDepositForbidden,
-				Error::<T>::AssetNotFrozen
-			);
+			ensure!(asset_status.is_frozen(), Error::<T>::AssetNotFrozen);
 
 			EvmCaller::<T>::erc20_unpause(asset_id)?;
 
@@ -858,9 +860,7 @@ pub mod pallet {
 			let (_asset_id, contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(asset)?;
 
-			if let AssetStatus::FrozenXcmDepositForbidden | AssetStatus::FrozenXcmDepositAllowed =
-				asset_status
-			{
+			if asset_status.is_frozen() {
 				return Err(XcmError::FailedToTransactAsset("asset is frozen"));
 			}
 
@@ -896,9 +896,7 @@ pub mod pallet {
 			let who = T::XcmLocationToH160::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
-			if let AssetStatus::FrozenXcmDepositForbidden | AssetStatus::FrozenXcmDepositAllowed =
-				asset_status
-			{
+			if asset_status.is_frozen() {
 				return Err(XcmError::FailedToTransactAsset("asset is frozen"));
 			}
 
