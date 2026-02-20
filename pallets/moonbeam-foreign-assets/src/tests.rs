@@ -434,6 +434,7 @@ fn xcm_deposit_succeeds_on_frozen_xcm_deposit_allowed_asset() {
 				key: [1u8; 20],
 			}],
 		);
+		let beneficiary_h160 = H160([1u8; 20]);
 
 		// Create foreign asset (deploys the ERC20 contract)
 		assert_ok!(EvmForeignAssets::create_foreign_asset(
@@ -450,13 +451,18 @@ fn xcm_deposit_succeeds_on_frozen_xcm_deposit_allowed_asset() {
 			fun: Fungibility::Fungible(100),
 		};
 
-		// Deposit succeeds on an active (unpaused) asset
+		// Deposit succeeds on an active (unpaused) asset — mints directly via EVM
 		assert_ok!(
 			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
 				&xcm_asset,
 				&beneficiary_location,
 				None,
 			)
+		);
+		// No pending deposit for active asset
+		assert_eq!(
+			EvmForeignAssets::pending_deposits(1, beneficiary_h160),
+			None
 		);
 
 		// Freeze with allow_xcm_deposit = true
@@ -470,13 +476,243 @@ fn xcm_deposit_succeeds_on_frozen_xcm_deposit_allowed_asset() {
 			Some((1, AssetStatus::FrozenXcmDepositAllowed))
 		);
 
-		// Deposit must still succeed for FrozenXcmDepositAllowed
+		// Deposit succeeds but goes to PendingDeposits storage (not EVM mint)
 		assert_ok!(
 			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
 				&xcm_asset,
 				&beneficiary_location,
 				None,
 			)
+		);
+		assert_eq!(
+			EvmForeignAssets::pending_deposits(1, beneficiary_h160),
+			Some(U256::from(100))
+		);
+	});
+}
+
+#[test]
+fn pending_deposits_accumulate() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_location = Location::parent();
+		let beneficiary_location = Location::new(
+			0,
+			[AccountKey20 {
+				network: None,
+				key: [1u8; 20],
+			}],
+		);
+		let beneficiary_h160 = H160([1u8; 20]);
+
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			asset_location.clone(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		// Freeze with allow_xcm_deposit = true
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			true,
+		));
+
+		let xcm_asset_100 = xcm::latest::Asset {
+			id: xcm::latest::AssetId(asset_location.clone()),
+			fun: Fungibility::Fungible(100),
+		};
+		let xcm_asset_200 = xcm::latest::Asset {
+			id: xcm::latest::AssetId(asset_location.clone()),
+			fun: Fungibility::Fungible(200),
+		};
+
+		// First deposit
+		assert_ok!(
+			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
+				&xcm_asset_100,
+				&beneficiary_location,
+				None,
+			)
+		);
+		assert_eq!(
+			EvmForeignAssets::pending_deposits(1, beneficiary_h160),
+			Some(U256::from(100))
+		);
+
+		// Second deposit accumulates
+		assert_ok!(
+			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
+				&xcm_asset_200,
+				&beneficiary_location,
+				None,
+			)
+		);
+		assert_eq!(
+			EvmForeignAssets::pending_deposits(1, beneficiary_h160),
+			Some(U256::from(300))
+		);
+	});
+}
+
+#[test]
+fn claim_pending_deposit_success() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_location = Location::parent();
+		let beneficiary_location = Location::new(
+			0,
+			[AccountKey20 {
+				network: None,
+				key: [1u8; 20],
+			}],
+		);
+		let beneficiary_h160 = H160([1u8; 20]);
+
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			asset_location.clone(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		// Freeze with allow_xcm_deposit = true
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			true,
+		));
+
+		let xcm_asset = xcm::latest::Asset {
+			id: xcm::latest::AssetId(asset_location.clone()),
+			fun: Fungibility::Fungible(500),
+		};
+
+		// Deposit goes to pending
+		assert_ok!(
+			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
+				&xcm_asset,
+				&beneficiary_location,
+				None,
+			)
+		);
+		assert_eq!(
+			EvmForeignAssets::pending_deposits(1, beneficiary_h160),
+			Some(U256::from(500))
+		);
+
+		// Unfreeze the asset
+		assert_ok!(EvmForeignAssets::unfreeze_foreign_asset(
+			RuntimeOrigin::root(),
+			1
+		));
+
+		// Verify balance is zero before claim
+		let balance_before =
+			crate::evm::EvmCaller::<Test>::erc20_balance_of(1, beneficiary_h160).unwrap();
+		assert_eq!(balance_before, U256::zero());
+
+		// Claim the pending deposit (any signed origin can call this)
+		assert_ok!(EvmForeignAssets::claim_pending_deposit(
+			RuntimeOrigin::signed(PARA_A),
+			1,
+			beneficiary_h160,
+		));
+
+		// Pending deposit should be cleared
+		assert_eq!(
+			EvmForeignAssets::pending_deposits(1, beneficiary_h160),
+			None
+		);
+
+		// Verify beneficiary received the tokens
+		let balance_after =
+			crate::evm::EvmCaller::<Test>::erc20_balance_of(1, beneficiary_h160).unwrap();
+		assert_eq!(balance_after, U256::from(500));
+	});
+}
+
+#[test]
+fn claim_pending_deposit_fails_when_asset_frozen() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_location = Location::parent();
+		let beneficiary_h160 = H160([1u8; 20]);
+		let beneficiary_location = Location::new(
+			0,
+			[AccountKey20 {
+				network: None,
+				key: [1u8; 20],
+			}],
+		);
+
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			asset_location.clone(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		// Freeze
+		assert_ok!(EvmForeignAssets::freeze_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			true,
+		));
+
+		let xcm_asset = xcm::latest::Asset {
+			id: xcm::latest::AssetId(asset_location.clone()),
+			fun: Fungibility::Fungible(100),
+		};
+
+		// Deposit goes to pending
+		assert_ok!(
+			<EvmForeignAssets as xcm_executor::traits::TransactAsset>::deposit_asset(
+				&xcm_asset,
+				&beneficiary_location,
+				None,
+			)
+		);
+
+		// Claim fails because asset is still frozen
+		assert_noop!(
+			EvmForeignAssets::claim_pending_deposit(
+				RuntimeOrigin::signed(PARA_A),
+				1,
+				beneficiary_h160,
+			),
+			Error::<Test>::AssetNotActive
+		);
+	});
+}
+
+#[test]
+fn claim_pending_deposit_fails_when_no_pending() {
+	ExtBuilder::default().build().execute_with(|| {
+		let asset_location = Location::parent();
+		let beneficiary_h160 = H160([1u8; 20]);
+
+		assert_ok!(EvmForeignAssets::create_foreign_asset(
+			RuntimeOrigin::root(),
+			1,
+			asset_location.clone(),
+			18,
+			encode_ticker("MTT"),
+			encode_token_name("Mytoken"),
+		));
+
+		// No pending deposit exists — claim fails
+		assert_noop!(
+			EvmForeignAssets::claim_pending_deposit(
+				RuntimeOrigin::signed(PARA_A),
+				1,
+				beneficiary_h160,
+			),
+			Error::<Test>::NoPendingDeposit
 		);
 	});
 }

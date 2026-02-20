@@ -129,7 +129,7 @@ impl<O, Original: EnsureOrigin<O, Success = Location>> EnsureOrigin<O>
 pub(crate) struct ForeignAssetsMatcher<T>(core::marker::PhantomData<T>);
 
 impl<T: crate::Config> ForeignAssetsMatcher<T> {
-	fn match_asset(asset: &Asset) -> Result<(H160, U256, AssetStatus), MatchError> {
+	fn match_asset(asset: &Asset) -> Result<(AssetId, H160, U256, AssetStatus), MatchError> {
 		let (amount, location) = match (&asset.fun, &asset.id) {
 			(Fungibility::Fungible(ref amount), XcmAssetId(ref location)) => (amount, location),
 			_ => return Err(MatchError::AssetNotHandled),
@@ -137,6 +137,7 @@ impl<T: crate::Config> ForeignAssetsMatcher<T> {
 
 		if let Some((asset_id, asset_status)) = AssetsByLocation::<T>::get(&location) {
 			Ok((
+				asset_id,
 				Pallet::<T>::contract_address_from_asset_id(asset_id),
 				U256::from(*amount),
 				asset_status,
@@ -271,6 +272,8 @@ pub mod pallet {
 		InvalidSymbol,
 		InvalidTokenName,
 		LocationAlreadyExists,
+		NoPendingDeposit,
+		AssetNotActive,
 		TooManyForeignAssets,
 	}
 
@@ -302,6 +305,19 @@ pub mod pallet {
 		},
 		/// Tokens have been locked for asset creation
 		TokensLocked(T::AccountId, AssetId, AssetBalance),
+		/// A deposit was recorded as pending because the asset is frozen
+		PendingDepositRecorded {
+			asset_id: AssetId,
+			beneficiary: H160,
+			amount: U256,
+			total_pending: U256,
+		},
+		/// A pending deposit was claimed and minted
+		PendingDepositClaimed {
+			asset_id: AssetId,
+			beneficiary: H160,
+			amount: U256,
+		},
 	}
 
 	/// Mapping from an asset id to a Foreign asset type.
@@ -325,6 +341,13 @@ pub mod pallet {
 	#[pallet::getter(fn assets_creation_details)]
 	pub type AssetsCreationDetails<T: Config> =
 		StorageMap<_, Blake2_128Concat, AssetId, AssetDepositDetails<T>>;
+
+	/// Pending deposits for frozen assets, keyed by (asset_id, beneficiary).
+	/// Deposits for the same (asset_id, beneficiary) accumulate via checked_add.
+	#[pallet::storage]
+	#[pallet::getter(fn pending_deposits)]
+	pub type PendingDeposits<T: Config> =
+		StorageDoubleMap<_, Blake2_128Concat, AssetId, Blake2_128Concat, H160, U256, OptionQuery>;
 
 	#[derive(Clone, Decode, Encode, Eq, PartialEq, Debug, TypeInfo, MaxEncodedLen)]
 	pub struct AssetDepositDetails<T: Config> {
@@ -560,6 +583,47 @@ pub mod pallet {
 
 			Self::do_unfreeze_asset(asset_id, xcm_location)
 		}
+
+		/// Claim a pending deposit for a given asset and beneficiary.
+		/// Callable by any signed origin (permissionless). Tokens are minted to the
+		/// beneficiary, not the caller. Requires the asset to be active (unfrozen).
+		#[pallet::call_index(4)]
+		#[pallet::weight(<T as Config>::WeightInfo::claim_pending_deposit())]
+		pub fn claim_pending_deposit(
+			origin: OriginFor<T>,
+			asset_id: AssetId,
+			beneficiary: H160,
+		) -> DispatchResult {
+			ensure_signed(origin)?;
+
+			let xcm_location =
+				AssetsById::<T>::get(&asset_id).ok_or(Error::<T>::AssetDoesNotExist)?;
+			let (_id, asset_status) = AssetsByLocation::<T>::get(&xcm_location)
+				.ok_or(Error::<T>::CorruptedStorageOrphanLocation)?;
+
+			ensure!(
+				asset_status == AssetStatus::Active,
+				Error::<T>::AssetNotActive
+			);
+
+			let amount = PendingDeposits::<T>::take(asset_id, beneficiary)
+				.ok_or(Error::<T>::NoPendingDeposit)?;
+
+			let contract_address = Self::contract_address_from_asset_id(asset_id);
+
+			frame_support::storage::with_storage_layer(|| {
+				EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
+			})
+			.map_err(|_| Error::<T>::EvmCallMintIntoFail)?;
+
+			Self::deposit_event(Event::PendingDepositClaimed {
+				asset_id,
+				beneficiary,
+				amount,
+			});
+
+			Ok(())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -745,7 +809,7 @@ pub mod pallet {
 		// we have just traced from which account it should have been withdrawn.
 		// So we will retrieve these information and make the transfer from the origin account.
 		fn deposit_asset(what: &Asset, who: &Location, _context: Option<&XcmContext>) -> XcmResult {
-			let (contract_address, amount, asset_status) =
+			let (asset_id, contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(what)?;
 
 			if let AssetStatus::FrozenXcmDepositForbidden = asset_status {
@@ -755,15 +819,27 @@ pub mod pallet {
 			let beneficiary = T::XcmLocationToH160::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
 
-			// We perform the evm transfers in a storage transaction to ensure that if it fail
-			// any contract storage changes are rolled back.
-			frame_support::storage::with_storage_layer(|| {
-				if matches!(asset_status, AssetStatus::FrozenXcmDepositAllowed) {
-					EvmCaller::<T>::erc20_mint_into_paused(contract_address, beneficiary, amount)
-				} else {
+			if matches!(asset_status, AssetStatus::FrozenXcmDepositAllowed) {
+				let total_pending = PendingDeposits::<T>::get(asset_id, beneficiary)
+					.unwrap_or(U256::zero())
+					.checked_add(amount)
+					.ok_or(XcmError::Overflow)?;
+
+				PendingDeposits::<T>::insert(asset_id, beneficiary, total_pending);
+
+				Pallet::<T>::deposit_event(Event::PendingDepositRecorded {
+					asset_id,
+					beneficiary,
+					amount,
+					total_pending,
+				});
+			} else {
+				// We perform the evm transfers in a storage transaction to ensure
+				// that if it fails any contract storage changes are rolled back.
+				frame_support::storage::with_storage_layer(|| {
 					EvmCaller::<T>::erc20_mint_into(contract_address, beneficiary, amount)
-				}
-			})?;
+				})?;
+			}
 
 			Ok(())
 		}
@@ -774,7 +850,7 @@ pub mod pallet {
 			to: &Location,
 			_context: &XcmContext,
 		) -> Result<AssetsInHolding, XcmError> {
-			let (contract_address, amount, asset_status) =
+			let (_asset_id, contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(asset)?;
 
 			if let AssetStatus::FrozenXcmDepositForbidden | AssetStatus::FrozenXcmDepositAllowed =
@@ -810,7 +886,7 @@ pub mod pallet {
 			who: &Location,
 			_context: Option<&XcmContext>,
 		) -> Result<AssetsInHolding, XcmError> {
-			let (contract_address, amount, asset_status) =
+			let (_asset_id, contract_address, amount, asset_status) =
 				ForeignAssetsMatcher::<T>::match_asset(what)?;
 			let who = T::XcmLocationToH160::convert_location(who)
 				.ok_or(MatchError::AccountIdConversionFailed)?;
