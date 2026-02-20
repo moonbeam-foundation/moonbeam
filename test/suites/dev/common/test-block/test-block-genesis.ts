@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import { ConstantStore } from "../../../../helpers";
 
 describeSuite({
   id: "D010104",
   title: "Block genesis",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let specVersion: number;
     beforeAll(async () => {
       expect(await context.viem().getBlockNumber()).toBe(0n);

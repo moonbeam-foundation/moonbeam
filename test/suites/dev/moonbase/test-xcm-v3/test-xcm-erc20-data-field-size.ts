@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { CHARLETH_ADDRESS, alith } from "@moonwall/util";
+import { CHARLETH_ADDRESS, alith, beforeEach, describeSuite, expect } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import {
   sovereignAccountOfSibling,

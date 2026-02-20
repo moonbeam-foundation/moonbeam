@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { deployCreateCompiledContract, describeSuite } from "@moonwall/cli";
-import { createViemTransaction } from "@moonwall/util";
+import { createViemTransaction, deployCreateCompiledContract, describeSuite } from "moonwall";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 
@@ -8,7 +7,7 @@ describeSuite({
   id: "D022704",
   title: "Precompiles - bn128add",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should be accessible from a smart contract",

@@ -1,16 +1,11 @@
 import "@moonbeam-network/api-augment";
-import {
-  customDevRpcRequest,
-  deployCreateCompiledContract,
-  describeSuite,
-  expect,
-} from "@moonwall/cli";
+import { customDevRpcRequest, deployCreateCompiledContract, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D021603",
   title: "Filter Block API",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should return block information",

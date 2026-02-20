@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  extractSingleResult,
+  fetchCompiledContract,
+} from "moonwall";
 import { type Abi, decodeEventLog } from "viem";
 import {
   ConvictionVoting,
@@ -13,7 +20,7 @@ describeSuite({
   id: "D022710",
   title: "Precompiles - Conviction on Root Track",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVotingAbi: Abi;
     let convictionVoting: ConvictionVoting;
@@ -27,7 +34,7 @@ describeSuite({
     beforeEach(async function () {
       proposalIndex = await createProposal({ context });
 
-      const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n).block();
+      await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n).block();
       // Verifies the setup is correct
       const referendum = await context
         .polkadotJs()
@@ -40,7 +47,7 @@ describeSuite({
       title: `should be removable`,
       test: async function () {
         const block = await convictionVoting.removeVote(proposalIndex).block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,
@@ -67,7 +74,7 @@ describeSuite({
         const trackId = 0;
 
         const block = await convictionVoting.removeVoteForTrack(proposalIndex, trackId).block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,

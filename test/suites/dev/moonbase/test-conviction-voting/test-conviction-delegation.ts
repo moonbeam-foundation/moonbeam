@@ -1,6 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, proposeReferendaAndDeposit } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, alith, baltathar, faith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  alith,
+  baltathar,
+  beforeAll,
+  describeSuite,
+  expect,
+  faith,
+  proposeReferendaAndDeposit,
+} from "moonwall";
 import { expectSubstrateEvent, stripNulls } from "../../../../helpers";
 
 describeSuite({
@@ -8,12 +17,10 @@ describeSuite({
   title: "Conviction Voting - Delegation",
   foundationMethods: "dev",
   testCases: ({ context, it }) => {
-    let refIndex: number;
-    let proposalHash: string;
     beforeAll(async () => {
       // The proposal itself
       const proposal = context.polkadotJs().tx.identity.setIdentity({ display: { raw: "Me" } });
-      [refIndex, proposalHash] = await proposeReferendaAndDeposit(context, alith, proposal, {
+      await proposeReferendaAndDeposit(context, alith, proposal, {
         System: "root",
       });
     });

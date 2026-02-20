@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import { RUNTIME_CONSTANTS } from "../../../helpers";
 import type { ApiPromise } from "@polkadot/api";
 import fs from "node:fs/promises";

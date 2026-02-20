@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { FIVE_MINS } from "@moonwall/util";
+import { FIVE_MINS, beforeAll, describeSuite, expect } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import type { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";

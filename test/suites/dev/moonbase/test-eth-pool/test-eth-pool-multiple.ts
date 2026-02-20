@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, fetchCompiledContract } from "moonwall";
 import { encodeDeployData } from "viem";
 
 /*
@@ -17,7 +17,7 @@ describeSuite({
   id: "D021003",
   title: "EthPool - Multiple pending transactions",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let txHashes: string[];
 
     beforeAll(async function () {

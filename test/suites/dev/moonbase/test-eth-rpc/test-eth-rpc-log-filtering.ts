@@ -5,14 +5,14 @@ import {
   beforeAll,
   deployCreateCompiledContract,
   customDevRpcRequest,
-} from "@moonwall/cli";
+} from "moonwall";
 import type { TransactionReceipt } from "viem";
 
 describeSuite({
   id: "D021103",
   title: "Ethereum RPC - Filtering non-matching logs",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let nonMatchingCases: ReturnType<typeof getNonMatchingCases>;
 
     const getNonMatchingCases = (receipt: TransactionReceipt) => {

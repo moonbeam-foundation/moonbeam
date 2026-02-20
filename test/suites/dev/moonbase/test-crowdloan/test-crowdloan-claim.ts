@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite } from "@moonwall/cli";
-import { DOROTHY_ADDRESS, dorothy } from "@moonwall/util";
+import { DOROTHY_ADDRESS, describeSuite, dorothy, expect } from "moonwall";
 import { calculate_vested_amount, getAccountPayable } from "../../../../helpers/crowdloan.js";
 import { jumpBlocks } from "../../../../helpers/block.js";
 
@@ -89,16 +88,16 @@ describeSuite({
           await jumpBlocks(context, 5);
 
           const payableBefore = await getAccountPayable(context, DOROTHY_ADDRESS);
-          const claimedBefore = payableBefore!.claimedReward.toBigInt();
+          const claimedBefore: bigint = payableBefore!.claimedReward.toBigInt();
 
           await context.createBlock(
             context.polkadotJs().tx.crowdloanRewards.claim().signAsync(dorothy)
           );
 
           const payableAfter = await getAccountPayable(context, DOROTHY_ADDRESS);
-          const claimedAfter = payableAfter!.claimedReward.toBigInt();
+          const claimedAfter: bigint = payableAfter!.claimedReward.toBigInt();
 
-          const claimAmount = claimedAfter - claimedBefore;
+          const claimAmount: bigint = claimedAfter - claimedBefore;
           if (claimAmount > 0n) {
             claims.push(claimAmount);
           }

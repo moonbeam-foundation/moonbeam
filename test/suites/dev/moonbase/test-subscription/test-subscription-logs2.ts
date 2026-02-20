@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_CONTRACT_ADDRESSES } from "@moonwall/util";
+import { ALITH_CONTRACT_ADDRESSES, beforeAll, describeSuite, expect } from "moonwall";
 import type { Log } from "web3";
 
 describeSuite({
   id: "D023502",
   title: "Subscription - Logs",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let deployedContract: `0x${string}`;
     let deployHash: `0x${string}`;
 

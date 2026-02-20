@@ -1,11 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  baltathar,
   BALTATHAR_SESSION_ADDRESS,
   CHARLETH_SESSION_ADDRESS,
-} from "@moonwall/util";
+  baltathar,
+  beforeAll,
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { getMappingInfo } from "../../../../helpers";
 
@@ -13,7 +15,7 @@ describeSuite({
   id: "D020206",
   title: "Author Mapping - non-author cannot rotate",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let api: ApiPromise;
 
     beforeAll(async () => {

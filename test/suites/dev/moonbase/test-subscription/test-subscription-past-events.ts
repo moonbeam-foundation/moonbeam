@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, ALITH_CONTRACT_ADDRESSES, createEthersTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  ALITH_CONTRACT_ADDRESSES,
+  beforeAll,
+  createEthersTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeDeployData } from "viem";
 import { web3SubscribeHistoricalLogs } from "../../../../helpers";
 
@@ -8,7 +15,7 @@ describeSuite({
   id: "D023503",
   title: "Subscription - Past Events",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       const { abi, bytecode } = fetchCompiledContract("EventEmitter");
       let nonce = await context.viem().getTransactionCount({ address: ALITH_ADDRESS });

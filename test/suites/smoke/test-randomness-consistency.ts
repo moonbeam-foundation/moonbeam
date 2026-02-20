@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import type { ApiDecoration } from "@polkadot/api/types";
 import { BN, hexToBigInt } from "@polkadot/util";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { describeSuite, expect, beforeAll } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import randomLib from "randomness";
 import type { Bit } from "randomness/lib/types";
@@ -115,7 +115,7 @@ describeSuite({
         }
 
         const query = await apiAt.query.randomness.randomnessResults.entries();
-        query.forEach(([key, results]) => {
+        query.forEach(([key]) => {
           // offset is:
           // * 2 for "0x"
           // * 32 for module

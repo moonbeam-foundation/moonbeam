@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, alith } from "@moonwall/util";
+import { MIN_GLMR_DELEGATOR, alith, describeSuite, expect } from "moonwall";
 import { chunk, createAccounts, countExtrinsics } from "../../../../helpers";
 
 describeSuite({
   id: "D023387",
   title: "Staking - Max Transaction Fit",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "delegatorBondMore",
@@ -54,11 +53,7 @@ describeSuite({
 
         const nameParts = expect.getState().currentTestName!.split(" ");
         const methodName = nameParts[nameParts.length - 1];
-        const [numTransactions, weightUtil, proofUtil] = await countExtrinsics(
-          context,
-          methodName,
-          log
-        );
+        const [numTransactions] = await countExtrinsics(context, methodName);
 
         expect(
           numTransactions,

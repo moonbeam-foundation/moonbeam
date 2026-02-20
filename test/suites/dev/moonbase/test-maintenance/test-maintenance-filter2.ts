@@ -1,13 +1,14 @@
 import "@moonbeam-network/api-augment";
 import {
+  ALITH_ADDRESS,
+  alith,
+  baltathar,
   beforeAll,
-  describeSuite,
-  expect,
   customDevRpcRequest,
+  describeSuite,
   execOpenTechCommitteeProposal,
-} from "@moonwall/cli";
-import { ALITH_ADDRESS, alith, baltathar } from "@moonwall/util";
-import type { u128 } from "@polkadot/types-codec";
+  expect,
+} from "moonwall";
 import {
   RELAY_SOURCE_LOCATION,
   addAssetToWeightTrader,
@@ -23,24 +24,18 @@ describeSuite({
   id: "D021902",
   title: "Maintenance Mode - Filter2",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
-    let assetId: u128;
-    const foreignParaId = 2000;
-    let foreignAssetId: u128;
-
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       // registering asset using new foreign assets system
       const balance = 100000000000000n;
 
       // Register foreign asset
-      const { registeredAssetId } = await registerForeignAsset(
+      await registerForeignAsset(
         context,
         ARBITRARY_ASSET_ID,
         RELAY_SOURCE_LOCATION,
         relayAssetMetadata
       );
-
-      assetId = context.polkadotJs().createType("u128", registeredAssetId);
 
       // Mock asset balance for baltathar
       await mockAssetBalance(

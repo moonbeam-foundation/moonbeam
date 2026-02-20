@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { GLMR, MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith } from "@moonwall/util";
+import { GLMR, MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, describeSuite, expect } from "moonwall";
 import { createAccounts, countExtrinsics } from "../../../../helpers";
 
 const INITIAL_AMOUNT = 12n * MIN_GLMR_STAKING + 50n * GLMR;
@@ -9,7 +8,7 @@ describeSuite({
   id: "D023385",
   title: "Staking - Max Transaction Fit",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "joinCandidates",
@@ -29,11 +28,7 @@ describeSuite({
         /// Boilerplate to get the number of transactions
         const nameParts = expect.getState().currentTestName!.split(" ");
         const methodName = nameParts[nameParts.length - 1];
-        const [numTransactions, weightUtil, proofUtil] = await countExtrinsics(
-          context,
-          methodName,
-          log
-        );
+        const [numTransactions] = await countExtrinsics(context, methodName);
 
         expect(
           numTransactions,
@@ -68,11 +63,7 @@ describeSuite({
         /// Boilerplate to get the number of transactions
         const nameParts = expect.getState().currentTestName!.split(" ");
         const methodName = nameParts[nameParts.length - 1];
-        const [numTransactions, weightUtil, proofUtil] = await countExtrinsics(
-          context,
-          methodName,
-          log
-        );
+        const [numTransactions] = await countExtrinsics(context, methodName);
 
         expect(
           numTransactions,

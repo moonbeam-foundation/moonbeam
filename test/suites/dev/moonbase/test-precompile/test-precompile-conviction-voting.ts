@@ -1,6 +1,15 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, ETHAN_ADDRESS, ETHAN_PRIVATE_KEY } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  ETHAN_ADDRESS,
+  ETHAN_PRIVATE_KEY,
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  extractSingleResult,
+  fetchCompiledContract,
+} from "moonwall";
 import { type Abi, decodeEventLog } from "viem";
 import {
   expectEVMResult,
@@ -14,7 +23,7 @@ describeSuite({
   id: "D022708",
   title: "Precompiles - Conviction Voting precompile",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVotingAbi: Abi;
     let convictionVoting: ConvictionVoting;
@@ -36,7 +45,7 @@ describeSuite({
         const block = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n).block();
 
         // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,
@@ -65,7 +74,7 @@ describeSuite({
       test: async function () {
         const block = await convictionVoting.voteNo(proposalIndex, 1n * 10n ** 18n, 1n).block();
 
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,
@@ -93,10 +102,10 @@ describeSuite({
       title: "should allow to replace yes by a no",
       test: async function () {
         const block1 = await convictionVoting.voteYes(proposalIndex, 1n * 10n ** 18n, 1n).block();
-        expectEVMResult(block1.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block1.result).events, "Succeed");
 
         const block2 = await convictionVoting.voteNo(proposalIndex, 1n * 10n ** 18n, 1n).block();
-        expectEVMResult(block2.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block2.result).events, "Succeed");
         const referendum = await context
           .polkadotJs()
           .query.referenda.referendumInfoFor(proposalIndex);
@@ -114,8 +123,11 @@ describeSuite({
           .voteNo(999999, 1n * 10n ** 18n, 1n)
           .block();
 
-        expectEVMResult(block.result!.events, "Revert", "Reverted");
-        const revertReason = await extractRevertReason(context, block.result!.hash);
+        expectEVMResult(extractSingleResult(block.result).events, "Revert", "Reverted");
+        const revertReason = await extractRevertReason(
+          context,
+          extractSingleResult(block.result).hash
+        );
         expect(revertReason).toContain("NotOngoing");
       },
     });
@@ -128,9 +140,12 @@ describeSuite({
           .withGas(1_000_000n)
           .voteYes(proposalIndex, 1n * 10n ** 18n, 7n)
           .block();
-        expectEVMResult(block.result!.events, "Revert", "Reverted");
+        expectEVMResult(extractSingleResult(block.result).events, "Revert", "Reverted");
 
-        const revertReason = await extractRevertReason(context, block.result!.hash);
+        const revertReason = await extractRevertReason(
+          context,
+          extractSingleResult(block.result).hash
+        );
         expect(revertReason).to.contain("Must be an integer between 0 and 6 included");
       },
     });
@@ -145,7 +160,7 @@ describeSuite({
         const block = await convictionVoting.voteSplit(proposalIndex, ayes, nays).block();
 
         // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,
@@ -182,7 +197,7 @@ describeSuite({
           .block();
 
         // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,
@@ -213,7 +228,7 @@ describeSuite({
       test: async function () {
         const trackId = 0;
         const amount = 1n * 10n ** 10n;
-        const conviction = 1;
+        const conviction = 1n;
         // Delegates the vote
         const block = await convictionVoting
           .withPrivateKey(ETHAN_PRIVATE_KEY)
@@ -221,7 +236,7 @@ describeSuite({
           .block();
 
         // Verifies the EVM Side
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
         const { data } = expectSubstrateEvent(block, "evm", "Log");
         const evmLog = decodeEventLog({
           abi: convictionVotingAbi,
@@ -234,7 +249,7 @@ describeSuite({
         expect(evmLog.args.from).to.equal(ETHAN_ADDRESS);
         expect(evmLog.args.to).to.equal(ALITH_ADDRESS);
         expect(evmLog.args.delegatedAmount).to.equal(amount);
-        expect(evmLog.args.conviction).to.equal(conviction);
+        expect(evmLog.args.conviction).to.equal(Number(conviction));
 
         // Verifies the Substrate side
         const {
@@ -250,7 +265,7 @@ describeSuite({
             .block();
 
           // Verifies the EVM Side
-          expectEVMResult(block.result!.events, "Succeed");
+          expectEVMResult(extractSingleResult(block.result).events, "Succeed");
           const { data } = expectSubstrateEvent(block, "evm", "Log");
           const evmLog = decodeEventLog({
             abi: convictionVotingAbi,

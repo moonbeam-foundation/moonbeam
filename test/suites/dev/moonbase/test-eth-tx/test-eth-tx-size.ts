@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { createEthersTransaction } from "@moonwall/util";
+import { createEthersTransaction, customDevRpcRequest, describeSuite, expect } from "moonwall";
 import { EIP7623_GAS_CONSTANTS } from "../../../../helpers/fees";
 import { EIP_7825_MAX_TRANSACTION_GAS_LIMIT } from "../../../../helpers";
 
@@ -8,7 +7,7 @@ describeSuite({
   id: "D021203",
   title: "Ethereum Transaction - Large Transaction",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     // EIP-7623: When sending pure data (all 0xFF bytes) with no execution,
     // the floor cost dominates: 21000 + nonzero_bytes * 40
     const { BASE_TX_COST, COST_FLOOR_PER_NON_ZERO_BYTE } = EIP7623_GAS_CONSTANTS;

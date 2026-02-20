@@ -1,12 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   CHARLETH_ADDRESS,
-  type KeyringPair,
   alith,
+  beforeEach,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 
 // In these tests Alith will allow signer to perform calls on her behalf.
 // Charleth is used as a target account when making transfers.
@@ -261,7 +263,7 @@ describeSuite({
         await context.createBlock();
 
         // On time.
-        const { result: result3 } = await context.createBlock(
+        await context.createBlock(
           context
             .polkadotJs()
             .tx.proxy.proxyAnnounced(signer.address, alith.address, null, transfer)

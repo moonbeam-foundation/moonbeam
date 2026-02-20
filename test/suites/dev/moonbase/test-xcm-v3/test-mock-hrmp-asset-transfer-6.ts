@@ -1,7 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-
-import { alith } from "@moonwall/util";
+import { alith, beforeAll, describeSuite, expect } from "moonwall";
 
 import {
   XcmFragment,
@@ -54,7 +52,7 @@ describeSuite({
   id: "D024005",
   title: "Mock XCM - receive horizontal transfer",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const assetIdZero = 1n;
     const assetIdOne = 2n;
 

@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll, deployCreateCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  beforeAll,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { encodeFunctionData, type Abi } from "viem";
 
 const PRECOMPILE_PREFIXES = [
@@ -29,7 +34,7 @@ describeSuite({
   id: "D020501",
   title: "Delegate Call",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let forwardAddress: `0x${string}`;
     let forwardAbi: Abi;
 

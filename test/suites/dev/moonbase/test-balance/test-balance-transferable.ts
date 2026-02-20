@@ -1,6 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, GLMR, baltathar, checkBalance, generateKeyringPair } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  GLMR,
+  baltathar,
+  beforeAll,
+  checkBalance,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 import { createProposal } from "../../../../helpers/voting.ts";
 
 describeSuite({
@@ -42,11 +50,6 @@ describeSuite({
           // Create a proposal
           const propNum = await createProposal({ context, from: randomAccount });
           expect(propNum).toBe(0);
-
-          // Balance after proposal
-          const balanceAfter = (
-            await context.polkadotJs().query.system.account(randomAccount.address)
-          ).data.free.toBigInt();
 
           // Check the balance of randomAccount before tranfer
           const balanceBeforeTransfer = await checkBalance(context, randomAddress);

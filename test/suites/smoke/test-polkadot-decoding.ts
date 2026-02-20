@@ -1,7 +1,6 @@
 import type { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
-import { describeSuite, beforeAll } from "@moonwall/cli";
-import { ONE_HOURS } from "@moonwall/util";
+import { ONE_HOURS, beforeAll, describeSuite } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { extractStorageKeyComponents } from "../../helpers/storageQueries";
 import { fail } from "node:assert";
@@ -26,14 +25,12 @@ describeSuite({
   testCases: ({ context, it, log }) => {
     let atBlockNumber = 0;
     let apiAt: ApiDecoration<"promise">;
-    let specVersion = 0;
     let paraApi: ApiPromise;
 
     beforeAll(async function () {
       paraApi = context.polkadotJs("para");
       atBlockNumber = (await paraApi.rpc.chain.getHeader()).number.toNumber();
       apiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
-      specVersion = apiAt.consts.system.version.specVersion.toNumber();
     });
 
     // This test simply load all the storage items to make sure they can be loaded.
@@ -149,7 +146,7 @@ describeSuite({
               const failMsg = `Failed to fetch storage at (${moduleName}::${fn}) `;
               const RNGDetails = `using startKey "${currentStartKey}" at block ${atBlockNumber}`;
               const msg = chalk.red(`${failMsg} ${RNGDetails}`);
-              log(msg, e);
+              log(`${msg} ${e}`);
               const reproducing = `To reproduce this failed case, set the STARTING_KEY_OVERRIDE 
               variable to "${currentStartKey}" at the top of the test file and run the test again.`;
               log(chalk.red(reproducing));

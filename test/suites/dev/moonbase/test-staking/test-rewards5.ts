@@ -1,14 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   MIN_GLMR_STAKING,
+  Percent,
   alith,
   baltathar,
-  ethan,
-  dorothy,
+  beforeAll,
   charleth,
-  Percent,
-} from "@moonwall/util";
+  describeSuite,
+  dorothy,
+  ethan,
+  expect,
+} from "moonwall";
 import { jumpBlocks } from "../../../../helpers";
 import { BN } from "@polkadot/util";
 
@@ -16,7 +18,7 @@ describeSuite({
   id: "D023366",
   title: "Staking - Rewards - Bond + Treasury",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const BOND_AMOUNT = MIN_GLMR_STAKING + 1_000_000_000_000_000_000n;
     const PBR_PERCENTAGE = 10;
     const TREASURY_PERCENTAGE = 20;
@@ -35,7 +37,7 @@ describeSuite({
                 account: charleth.address,
                 percent: TREASURY_PERCENTAGE,
               },
-            ])
+            ] as any)
           )
           .signAsync(alith),
       ]);

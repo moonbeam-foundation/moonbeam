@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
@@ -7,7 +6,9 @@ import {
   alith,
   baltathar,
   checkBalance,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 import fs from "node:fs";
 import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
 

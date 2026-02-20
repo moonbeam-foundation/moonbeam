@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import {
   ASSET_HUB_LOCATION,
@@ -13,7 +13,7 @@ describeSuite({
   id: "D020102",
   title: "XCM - Change existing asset's XCM location",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let assetId: bigint;
     let api: ApiPromise;
     beforeAll(async function () {

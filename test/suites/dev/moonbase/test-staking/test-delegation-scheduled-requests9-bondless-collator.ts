@@ -1,13 +1,20 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, alith, baltathar, ethan } from "@moonwall/util";
+import {
+  MIN_GLMR_DELEGATOR,
+  alith,
+  baltathar,
+  beforeAll,
+  describeSuite,
+  ethan,
+  expect,
+} from "moonwall";
 import { jumpToRound } from "../../../../helpers/block.js";
 
 describeSuite({
   id: "D023339",
   title: "Staking - Delegation Scheduled Requests with bondless collator - execute bond less early",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const LESS_AMOUNT = 10n;
     let psTx: any;
     let psQuery: any;

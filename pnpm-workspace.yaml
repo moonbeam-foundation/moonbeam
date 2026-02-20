@@ -1,4 +1,21 @@
 packages:
-  - "test"
-  - "typescript-api"
-  - "types-bundle"
+  - test
+  - typescript-api
+  - types-bundle
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - bufferutil
+  - cpu-features
+  - es5-ext
+  - esbuild
+  - keccak
+  - msgpackr-extract
+  - protobufjs
+  - secp256k1
+  - sqlite3
+  - ssh2
+  - utf-8-validate
+  - web3
+  - web3-bzz
+  - web3-shh

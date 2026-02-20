@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import { describeSuite, beforeAll, expect, deployCreateCompiledContract } from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 import { type HeavyContract, deployHeavyContracts, expectOk } from "../../../../helpers";
 
@@ -15,7 +15,7 @@ describeSuite({
   id: "D022606",
   title: "XCM to EVM - PoV tests",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance;
     let sendingAddress: `0x${string}`;
     let proxyAbi: Abi;
@@ -145,7 +145,7 @@ describeSuite({
           payload: xcmMessage,
         } as RawXcmMessage);
         // This block is the one that processes the xcm messages
-        const { result, block } = await context.createBlock();
+        const { block } = await context.createBlock();
 
         // With 500k gas we are allowed to use ~150k of POV, so verify the range.
         // The tx is still included in the block because it contains the failed tx,
@@ -246,7 +246,7 @@ describeSuite({
         } as RawXcmMessage);
 
         // This block is the one that processes the xcm messages
-        const { result, block } = await context.createBlock();
+        const { block } = await context.createBlock();
 
         expect(block.proofSize).to.be.at.least(EXPECTED_POV_ROUGH / 1.1);
         expect(block.proofSize).to.be.at.most(EXPECTED_POV_ROUGH * 1.1);

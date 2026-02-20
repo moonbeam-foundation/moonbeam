@@ -1,10 +1,10 @@
 import {
+  alith,
   customDevRpcRequest,
+  deployCreateCompiledContract,
   describeSuite,
   expect,
-  deployCreateCompiledContract,
-} from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+} from "moonwall";
 import { createContracts, nestedCall, nestedSingle } from "../../helpers";
 
 describeSuite({

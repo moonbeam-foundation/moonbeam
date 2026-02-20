@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, dispatchAsGeneralAdmin } from "@moonwall/cli";
+import { describeSuite, expect, dispatchAsGeneralAdmin } from "moonwall";
 
 describeSuite({
   id: "D024022",
   title: "Precompiles - xcm transactor",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "Moonbase: GeneralAdmin should be able to dispatch hrmpManage",

@@ -1,9 +1,10 @@
+import type { DevModeContext } from "moonwall";
 import {
-  type DevModeContext,
+  alith,
+  createEthersTransaction,
   customDevRpcRequest,
   deployCreateCompiledContract,
-} from "@moonwall/cli";
-import { alith, createEthersTransaction } from "@moonwall/util";
+} from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 
 export async function createContracts(context: DevModeContext) {

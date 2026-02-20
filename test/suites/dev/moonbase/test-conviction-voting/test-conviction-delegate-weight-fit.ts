@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { type KeyringPair, alith } from "@moonwall/util";
+import { alith, beforeAll, describeSuite, expect } from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { createAccounts, expectSubstrateEvents } from "../../../../helpers";
 
 describeSuite({
@@ -26,7 +26,11 @@ describeSuite({
           )
         );
 
-        const delegatedEvents = expectSubstrateEvents(blockResult, "convictionVoting", "Delegated");
+        const delegatedEvents = expectSubstrateEvents(
+          blockResult as any,
+          "convictionVoting",
+          "Delegated"
+        );
         expect(delegatedEvents.length).to.be.greaterThanOrEqual(25);
       },
     });

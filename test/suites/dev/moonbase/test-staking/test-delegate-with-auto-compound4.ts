@@ -1,19 +1,21 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
   alith,
   baltathar,
+  beforeAll,
   charleth,
+  describeSuite,
   ethan,
-} from "@moonwall/util";
+  expect,
+} from "moonwall";
 
 describeSuite({
   id: "D023316",
   title: "Staking - Delegate With Auto-Compound - wrong candidate auto-compounding delegation hint",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [

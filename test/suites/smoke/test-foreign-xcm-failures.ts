@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
-import { getBlockArray, TEN_MINS } from "@moonwall/util";
+import { TEN_MINS, beforeAll, describeSuite, expect, getBlockArray } from "moonwall";
 import type { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { rateLimiter, checkTimeSliceForUpgrades } from "../../helpers/common.js";
@@ -78,7 +77,7 @@ describeSuite({
           return { networkName: name, blockEvents: [] };
         }
 
-        let api: ApiPromise;
+        let api: ApiPromise | undefined;
         try {
           log(`Connecting to ${name}...`);
           console.debug(`Endpoints: `, endpoints);
@@ -90,6 +89,9 @@ describeSuite({
             if (await api.isReadyOrError.then(() => true).catch(() => false)) {
               break;
             }
+          }
+          if (!api) {
+            throw new Error(`No connection established to ${name}`);
           }
           // Make sure the connection is ready
           await api.isReadyOrError;
@@ -111,18 +113,18 @@ describeSuite({
           }
 
           const getEvents = async (blockNum: number) => {
-            const blockHash = await limiter.schedule(() => api.rpc.chain.getBlockHash(blockNum));
-            const apiAt = await limiter.schedule(() => api.at(blockHash));
+            const blockHash = await limiter.schedule(() => api!.rpc.chain.getBlockHash(blockNum));
+            const apiAt = await limiter.schedule(() => api!.at(blockHash));
             const events = await limiter.schedule(() => apiAt.query.system.events());
             return { blockNum, events };
           };
 
           blockEvents = await Promise.all(blockNumArray.map((num) => getEvents(num)));
           log(`Finished loading blocks for ${name}.`);
-        } catch (e) {
+        } catch {
           expect.fail(`Could not connect to parachain: ${name}`);
         } finally {
-          await api.disconnect();
+          await api?.disconnect();
           networkBlockEvents.push({ networkName: name, blockEvents });
         }
       }

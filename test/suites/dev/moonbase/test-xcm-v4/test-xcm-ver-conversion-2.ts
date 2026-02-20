@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, generateKeyringPair } from "moonwall";
 
 import type { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
@@ -17,7 +16,7 @@ describeSuite({
   id: "D024122",
   title: "XCM Moonriver: version compatibility",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance: bigint;
     let sovereignAddress: string;
     let random: KeyringPair;

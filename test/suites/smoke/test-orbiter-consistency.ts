@@ -7,7 +7,7 @@ import type {
 } from "@polkadot/types/lookup";
 import type { AccountId20 } from "@polkadot/types/interfaces";
 import { sortObjectByKeys } from "../../helpers/common.js";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { describeSuite, expect, beforeAll } from "moonwall";
 import type { StorageKey } from "@polkadot/types";
 import type { ApiPromise } from "@polkadot/api";
 

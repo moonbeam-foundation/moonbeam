@@ -1,12 +1,20 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, MIN_GLMR_DELEGATOR, alith, baltathar, generateKeyringPair } from "@moonwall/util";
+import {
+  GLMR,
+  MIN_GLMR_DELEGATOR,
+  alith,
+  baltathar,
+  beforeAll,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 
 describeSuite({
   id: "D023379",
   title: "Staking - Locks - delegator balance is locked",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {

@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import { ALITH_ADDRESS, beforeAll, describeSuite, expect } from "moonwall";
 import { fromBytes } from "viem";
 import {
   verifyLatestBlockFees,
@@ -15,7 +14,7 @@ describeSuite({
   id: "D022775",
   title: "Precompiles - xcm transactor V2",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await registerXcmTransactorDerivativeIndex(context);
       expect(

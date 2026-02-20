@@ -1,13 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   DEFAULT_GENESIS_MAPPING,
-  type KeyringPair,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
+  beforeAll,
   createViemTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { u8aToHex } from "@polkadot/util";
 import { encodeFunctionData } from "viem";
 import { ConstantStore } from "../../../../helpers";
@@ -16,7 +19,7 @@ describeSuite({
   id: "D010411",
   title: "Precompiles - author mapping",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let mappingAccount: KeyringPair;
 
     beforeAll(async () => {

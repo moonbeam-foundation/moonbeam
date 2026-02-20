@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect, generateKeyringPair } from "moonwall";
 
 import type { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   XCM_VERSIONS,
@@ -10,26 +9,19 @@ import {
   injectHrmpMessageAndSeal,
   descendOriginFromAddress20,
   convertXcmFragmentToVersion,
-  ConstantStore,
 } from "../../../../helpers";
 
 describeSuite({
   id: "D023913",
   title: "Mock XCM - receive horizontal transact ETHEREUM (transfer)",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance: bigint;
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;
     let random: KeyringPair;
-    let STORAGE_READ_COST: bigint;
-    let GAS_LIMIT_POV_RATIO: number;
 
     beforeAll(async () => {
-      const specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();
-      const constants = ConstantStore(context);
-      GAS_LIMIT_POV_RATIO = Number(constants.GAS_PER_POV_BYTES.get(specVersion));
-      STORAGE_READ_COST = constants.STORAGE_READ_COST;
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendAddress = descendOriginAddress;
@@ -191,7 +183,7 @@ describeSuite({
               .viem()
               .getBalance({ address: descendAddress });
             const spent = BigInt(initialDescendBalance) - BigInt(descendAccountBalance);
-            expect(spent).to.be.gte(expectedTransferredAmount);
+            expect(spent >= expectedTransferredAmount).to.be.true;
           }
         },
       });

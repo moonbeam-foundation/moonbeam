@@ -1,7 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, deployCreateCompiledContract } from "@moonwall/cli";
+import {
+  beforeAll,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+  sendRawTransaction,
+} from "moonwall";
 import { encodeFunctionData, type Abi } from "viem";
-import { sendRawTransaction } from "@moonwall/util";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createFundedAccount, createViemTransaction } from "./helpers";
 import { getTransactionReceiptWithRetry } from "../../../../helpers/eth-transactions";
@@ -366,12 +371,12 @@ describeSuite({
         expect(receipt.status).toBe("success");
 
         // Check ADDRESS opcode
-        const address = await context.viem().readContract({
+        const address = (await context.viem().readContract({
           address: delegatingEOA.address,
           abi: contextCheckerAbi,
           functionName: "getAddress",
           args: [],
-        });
+        })) as string;
         expect(address.toLowerCase()).toBe(delegatingEOA.address.toLowerCase());
 
         // Check BALANCE opcode

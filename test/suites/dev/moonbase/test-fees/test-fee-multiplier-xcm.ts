@@ -1,6 +1,14 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, type KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
+import {
+  BALTATHAR_ADDRESS,
+  alith,
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { bnToHex } from "@polkadot/util";
 import {
   type RawXcmMessage,
@@ -47,7 +55,6 @@ describeSuite({
   title: "Fee Multiplier - XCM Executions",
   foundationMethods: "dev",
   testCases: ({ context, it, log }) => {
-    const startingBn = 2000000000000000000n;
     let sendingAddress: string;
     let random: KeyringPair;
     let transferredBalance: bigint;
@@ -187,8 +194,8 @@ describeSuite({
 
         // Process xcm message
         await context.createBlock();
-        log("Initial Fee Multiplier: ", initialValue.toString());
-        log("Post value: ", postValue.toString());
+        log(`Initial Fee Multiplier: ${initialValue.toString()}`);
+        log(`Post value: ${postValue.toString()}`);
 
         const postBalance = (await context.polkadotJs().query.system.account(random.address)).data
           .free;
@@ -238,10 +245,6 @@ describeSuite({
         const transferCallEncodedV1 = context
           .polkadotJs()
           .tx.ethereumXcm.transact(xcmTransactions[0] as any)
-          .method.toHex();
-        const transferCallEncodedV2 = context
-          .polkadotJs()
-          .tx.ethereumXcm.transact(xcmTransactions[1] as any)
           .method.toHex();
 
         const initialValue = await context
@@ -300,8 +303,8 @@ describeSuite({
         // Enqueue XCM message
         await context.createBlock();
         const postValue = await context.polkadotJs().query.transactionPayment.nextFeeMultiplier();
-        log("Initial Fee Multiplier: ", initialValue.toString());
-        log("Post value: ", postValue.toString());
+        log(`Initial Fee Multiplier: ${initialValue.toString()}`);
+        log(`Post value: ${postValue.toString()}`);
         expect(initialValue.eq(postValue), "Fee Multiplier has changed between blocks").to.be.true;
 
         // Process xcm message

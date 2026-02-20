@@ -1,19 +1,17 @@
 import "@moonbeam-network/api-augment";
 import {
-  beforeAll,
-  describeSuite,
-  fetchCompiledContract,
-  expect,
-  customDevRpcRequest,
-} from "@moonwall/cli";
-import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
+  PRECOMPILE_NATIVE_ERC20_ADDRESS,
   alith,
   baltathar,
+  beforeAll,
   createEthersTransaction,
-  PRECOMPILE_NATIVE_ERC20_ADDRESS,
-} from "@moonwall/util";
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeFunctionData, erc20Abi } from "viem";
 import {
   expectEVMResult,

@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_STAKING, alith, ethan } from "@moonwall/util";
+import { MIN_GLMR_STAKING, alith, beforeAll, describeSuite, ethan, expect } from "moonwall";
 import { verifyCandidateInfoMatchesFreezes } from "../../../../helpers/staking-freezes";
 
 describeSuite({
   id: "D023304",
   title: "Staking - Candidate Join - valid request",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const numberToHex = (n: bigint): string => `0x${n.toString(16).padStart(32, "0")}`;
 
     beforeAll(async () => {

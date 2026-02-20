@@ -1,11 +1,13 @@
-import { describeSuite, expect, beforeEach } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   GLMR,
-  createViemTransaction,
+  beforeEach,
   checkBalance,
-} from "@moonwall/util";
+  createViemTransaction,
+  describeSuite,
+  expect,
+} from "moonwall";
 
 describeSuite({
   id: "D021202",

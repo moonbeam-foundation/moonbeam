@@ -1,22 +1,24 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   GLMR,
-  type KeyringPair,
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
   alith,
   baltathar,
+  beforeAll,
+  describeSuite,
   ethan,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { chunk } from "../../../../helpers";
 
 describeSuite({
   id: "D023353",
   title: "Staking - Rewards Auto-Compound - bottom delegation kick",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let newDelegator: KeyringPair;
 
     beforeAll(async () => {

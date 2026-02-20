@@ -1,9 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-
-import type { KeyringPair } from "@polkadot/keyring/types";
+import { alith, beforeAll, describeSuite, expect } from "moonwall";
 import { type Abi, encodeFunctionData, parseAbi } from "viem";
-import { alith, generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   XCM_VERSIONS,
@@ -51,7 +48,6 @@ describeSuite({
     const assetId = 1n;
     let sendingAddress: `0x${string}`;
     let descendedAddress: `0x${string}`;
-    let random: KeyringPair;
     let contractDeployed: `0x${string}`;
     let contractABI: Abi;
 
@@ -68,7 +64,6 @@ describeSuite({
       const { originAddress, descendOriginAddress } = descendOriginFromAddress20(context);
       sendingAddress = originAddress;
       descendedAddress = descendOriginAddress;
-      random = generateKeyringPair();
 
       const { contractAddress, abi } = await context.deployContract!("Incrementor");
 
@@ -116,7 +111,7 @@ describeSuite({
             .getTransactionCount({ address: descendedAddress });
 
           // Sanity check that the descended account has been pre-funded.
-          expect(initialBalance).to.be.gte(assetsToTransfer);
+          expect(initialBalance >= assetsToTransfer).to.be.true;
 
           // Get initial contract count
           const initialCount = (
@@ -221,7 +216,7 @@ describeSuite({
           // Make sure the descended address has consumed some or all of its funds
           // paying for XCM fees and EVM execution.
           const finalBalance = await foreignAssetBalance(context, assetId, descendedAddress);
-          expect(finalBalance).to.be.lte(initialBalance);
+          expect(finalBalance <= initialBalance).to.be.true;
 
           const nonce = await context.viem().getTransactionCount({ address: descendedAddress });
           expect(nonce - initialNonce).to.be.eq(2);

@@ -1,20 +1,22 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   GLMR,
-  type KeyringPair,
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
   alith,
+  beforeAll,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { chunk, jumpRounds } from "../../../../helpers";
 
 describeSuite({
   id: "D023351",
   title: "Staking - Rewards Auto-Compound - PoV Size",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let newDelegator: KeyringPair;
 
     beforeAll(async () => {
@@ -61,7 +63,7 @@ describeSuite({
       // we use a maxDelegationCount here, since the transactions can come out of order.
       for (const delChunk of chunk(otherDelegators, 8)) {
         await context.createBlock(
-          delChunk.map((d, i) =>
+          delChunk.map((d) =>
             context
               .polkadotJs()
               .tx.parachainStaking.delegateWithAutoCompound(

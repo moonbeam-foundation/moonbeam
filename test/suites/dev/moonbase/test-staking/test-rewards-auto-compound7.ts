@@ -1,13 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, alith, ethan } from "@moonwall/util";
+import { MIN_GLMR_DELEGATOR, alith, beforeAll, describeSuite, ethan, expect } from "moonwall";
 import { jumpRounds, getRewardedAndCompoundedEvents } from "../../../../helpers";
 
 describeSuite({
   id: "D023359",
   title: "Staking - Rewards Auto-Compound - scheduled revoke request after round snapshot",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [
