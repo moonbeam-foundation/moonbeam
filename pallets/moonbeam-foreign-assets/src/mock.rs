@@ -153,7 +153,7 @@ impl pallet_evm::Config for Test {
 
 parameter_types! {
 	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
-	pub const AllowUnprotectedTxs: bool = true;
+	pub const AllowUnprotectedTxs: bool = false;
 }
 
 impl pallet_ethereum::Config for Test {

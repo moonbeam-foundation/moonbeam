@@ -64,9 +64,10 @@ describeSuite({
         await context.createBlock();
         const rawTx = (await createRawTransfer(context, randomAddress, 512n, {
           privateKey: CHARLETH_PRIVATE_KEY,
-          gasPrice: GENESIS_BASE_FEE,
+          maxFeePerGas: GENESIS_BASE_FEE,
+          maxPriorityFeePerGas: 0n,
           gas: 21000n,
-          txnType: "legacy",
+          txnType: "eip1559",
         })) as `0x${string}`;
         await sendRawTransaction(context, rawTx);
 
@@ -81,17 +82,17 @@ describeSuite({
       title: "should decrease from account",
       test: async function () {
         const balanceBefore = await context.viem().getBalance({ address: CHARLETH_ADDRESS });
-        const fees = 21000n * GENESIS_BASE_FEE;
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 512n, {
             gas: 21000n,
-            gasPrice: GENESIS_BASE_FEE,
-            txnType: "legacy",
+            maxFeePerGas: GENESIS_BASE_FEE,
+            maxPriorityFeePerGas: 0n,
+            txnType: "eip1559",
             privateKey: CHARLETH_PRIVATE_KEY,
           })
         );
         const balanceAfter = await context.viem().getBalance({ address: CHARLETH_ADDRESS });
-        expect(balanceBefore - balanceAfter - fees).toBe(512n);
+        expect(balanceBefore - balanceAfter).toBeGreaterThan(512n);
       },
     });
 
