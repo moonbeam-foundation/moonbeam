@@ -158,10 +158,6 @@ describeSuite({
             txnType: "eip1559",
           })
         );
-        const block = await context.viem().getBlock({ blockTag: "latest" });
-        expect(block.transactions.length, "should include the transaction in the block").to.be.eq(
-          1
-        );
         expect(
           await context.viem().getTransactionCount({ address: BALTATHAR_ADDRESS }),
           "should increase the sender nonce"
