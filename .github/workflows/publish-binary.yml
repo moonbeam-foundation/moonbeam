@@ -10,6 +10,10 @@ on:
       to:
         description: tag (ex. v0.44.0) to generate release note and binaries from
         required: true
+      suffix:
+        description: Optional suffix for docker image tag (default: rc)
+        required: false
+        default: rc
 
 permissions:
   contents: read
@@ -138,7 +142,7 @@ jobs:
         run: |
           DOCKER_IMAGE=moonbeamfoundation/moonbeam
           VERSION="${{ github.event.inputs.to }}"
-          TAG="${VERSION}-rc"
+          TAG="${VERSION}-${{ github.event.inputs.suffix }}"
 
           echo "tags=${DOCKER_IMAGE}:${TAG}" >> $GITHUB_OUTPUT
           echo "created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
