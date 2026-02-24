@@ -2179,47 +2179,12 @@ pub mod pallet {
 
 		/// Resolve the pending delegation action summary for a `(collator, delegator)` pair.
 		///
-		/// First checks [`DelegationScheduledRequestsSummaryMap`]. If not found, falls
-		/// back to a bounded point-read of [`DelegationScheduledRequests`] and derives
-		/// the summary from the bounded vec.
-		///
-		/// This fallback guarantees correctness while the multi-block migration that
-		/// populates [`DelegationScheduledRequestsSummaryMap`] is still running.
+		/// Reads from [`DelegationScheduledRequestsSummaryMap`].
 		pub(crate) fn resolve_pending_action(
 			collator: &T::AccountId,
 			delegator: &T::AccountId,
 		) -> Option<DelegationAction<BalanceOf<T>>> {
-			// Fast path: summary map already populated for this pair.
-			if let Some(action) =
-				<DelegationScheduledRequestsSummaryMap<T>>::get(collator, delegator)
-			{
-				return Some(action);
-			}
-
-			// Fallback: derive from the bounded DelegationScheduledRequests vec.
-			let requests = <DelegationScheduledRequests<T>>::get(collator, delegator);
-			if requests.is_empty() {
-				return None;
-			}
-
-			let mut summary: Option<DelegationAction<BalanceOf<T>>> = None;
-			for req in requests.iter() {
-				match req.action {
-					DelegationAction::Revoke(amount) => {
-						// Invariant: revoke is exclusive — return immediately.
-						return Some(DelegationAction::Revoke(amount));
-					}
-					DelegationAction::Decrease(amount) => {
-						summary = Some(match summary {
-							Some(DelegationAction::Decrease(existing)) => {
-								DelegationAction::Decrease(existing.saturating_add(amount))
-							}
-							_ => DelegationAction::Decrease(amount),
-						});
-					}
-				}
-			}
-			summary
+			<DelegationScheduledRequestsSummaryMap<T>>::get(collator, delegator)
 		}
 
 		/// Build the effective list of delegators with their intended bond amount
