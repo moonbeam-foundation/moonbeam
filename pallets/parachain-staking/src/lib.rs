@@ -2177,20 +2177,10 @@ pub mod pallet {
 			(weight, collator_count, delegation_count, total)
 		}
 
-		/// Resolve the pending delegation action summary for a `(collator, delegator)` pair.
-		///
-		/// Reads from [`DelegationScheduledRequestsSummaryMap`].
-		pub(crate) fn resolve_pending_action(
-			collator: &T::AccountId,
-			delegator: &T::AccountId,
-		) -> Option<DelegationAction<BalanceOf<T>>> {
-			<DelegationScheduledRequestsSummaryMap<T>>::get(collator, delegator)
-		}
-
 		/// Build the effective list of delegators with their intended bond amount
 		/// for reward calculation.
 		///
-		/// Uses [`Self::resolve_pending_action`] to adjust bonds:
+		/// Reads [`DelegationScheduledRequestsSummaryMap`] to adjust bonds:
 		/// - `Revoke(_)`: bond zeroed out, full amount counted as uncounted stake.
 		/// - `Decrease(total)`: pending decrease total subtracted from bond (capped
 		///   at bond amount), difference counted as uncounted stake.
@@ -2201,7 +2191,7 @@ pub mod pallet {
 				.delegations
 				.into_iter()
 				.map(|mut bond| {
-					match Self::resolve_pending_action(collator, &bond.owner) {
+					match <DelegationScheduledRequestsSummaryMap<T>>::get(collator, &bond.owner) {
 						Some(DelegationAction::Revoke(_)) => {
 							uncounted_stake = uncounted_stake.saturating_add(bond.amount);
 							bond.amount = BalanceOf::<T>::zero();

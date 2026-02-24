@@ -617,7 +617,7 @@ impl<T: Config> Pallet<T> {
 		delegator: &T::AccountId,
 	) -> bool {
 		matches!(
-			Self::resolve_pending_action(collator, delegator),
+			<DelegationScheduledRequestsSummaryMap<T>>::get(collator, delegator),
 			Some(DelegationAction::Revoke(_))
 		)
 	}
