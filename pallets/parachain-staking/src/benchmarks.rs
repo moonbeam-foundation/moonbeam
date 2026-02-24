@@ -19,10 +19,9 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, BottomDelegations, Call, CandidateBondLessRequest, Config,
-	DelegationAction, EnableMarkingOffline, InflationDistributionAccount,
-	DelegationScheduledRequestsSummaryMap, InflationDistributionConfig,
-	InflationDistributionInfo, Pallet, Points,
-	Range, RewardPayment, Round, ScheduledRequest, TopDelegations,
+	DelegationAction, DelegationScheduledRequestsSummaryMap, EnableMarkingOffline,
+	InflationDistributionAccount, InflationDistributionConfig, InflationDistributionInfo, Pallet,
+	Points, Range, RewardPayment, Round, ScheduledRequest, TopDelegations,
 };
 use frame_benchmarking::v2::*;
 use frame_support::traits::tokens::fungible::{Inspect, Mutate};

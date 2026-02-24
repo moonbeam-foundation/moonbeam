@@ -77,7 +77,9 @@ pub use RoundIndex;
 
 #[pallet]
 pub mod pallet {
-	use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
+	use crate::delegation_requests::{
+		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
+	};
 	use crate::{set::BoundedOrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
 	use frame_support::dispatch::DispatchResultWithPostInfo;
