@@ -32,8 +32,9 @@ use crate::mock::{
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
 	AtStake, AwardedPts, Bond, CollatorStatus, DelegationScheduledRequests,
-	DelegationScheduledRequestsPerCollator, DelegatorAdded, EnableMarkingOffline, Error, Event,
-	FreezeReason, InflationDistributionInfo, Points, Range, WasInactive,
+	DelegationScheduledRequestsPerCollator, DelegationScheduledRequestsSummaryMap, DelegatorAdded,
+	EnableMarkingOffline, Error, Event, FreezeReason, InflationDistributionInfo, Points, Range,
+	WasInactive,
 };
 use frame_support::traits::fungible::MutateFreeze;
 use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
@@ -6965,8 +6966,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 }
 
 #[test]
-fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_but_less_for_future()
-{
+fn test_delegator_scheduled_for_bond_decrease_earns_reduced_rewards_reflecting_pending_decrease() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 40), (3, 20), (4, 20)])
 		.with_candidates(vec![(1, 20), (3, 20), (4, 20)])
@@ -6997,6 +6997,9 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 				"collator's total was reduced unexpectedly"
 			);
 
+			// Pending decreases reduce the effective bond in the reward
+			// snapshot. The delegator's effective bond is 10 (20 - 10
+			// pending decrease), so total counted becomes 30 (20 + 10).
 			roll_to_round_begin(3);
 			assert_events_emitted_match!(Event::NewRound { round: 3, .. });
 			roll_blocks(3);
@@ -7034,7 +7037,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 			);
 			assert_eq!(
 				30, collator_snapshot.total,
-				"collator snapshot's total was reduced unexpectedly",
+				"collator snapshot's total should be reduced by pending decrease amount",
 			);
 		});
 }
@@ -7390,6 +7393,11 @@ fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
 					action: DelegationAction::Revoke(5),
 				}])
 				.expect("must succeed"),
+			);
+			DelegationScheduledRequestsSummaryMap::<Test>::insert(
+				1,
+				2,
+				DelegationAction::Revoke(5),
 			);
 			assert!(ParachainStaking::delegation_request_revoke_exists(&1, &2));
 		});
