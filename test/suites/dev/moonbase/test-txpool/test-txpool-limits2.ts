@@ -31,8 +31,9 @@ describeSuite({
           await context.viem().sendRawTransaction({ serializedTransaction: tx });
         }
 
+        const blockNumber = (await context.viem().getBlockNumber()) + 1n;
         await context.createBlock();
-        expect((await getBlockWithRetry(context)).transactions.length).toBe(284);
+        expect((await getBlockWithRetry(context, { blockNumber })).transactions.length).toBe(284);
       },
     });
   },

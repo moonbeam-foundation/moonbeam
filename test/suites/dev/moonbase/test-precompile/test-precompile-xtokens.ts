@@ -236,9 +236,10 @@ describeSuite({
           to: PRECOMPILES.Xtokens,
           value: 0n,
           data,
-          txnType: "legacy",
+          txnType: "eip1559",
           gas: 500_000n,
-          gasPrice: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
+          maxFeePerGas: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
+          maxPriorityFeePerGas: 0n,
           privateKey: CHARLETH_PRIVATE_KEY,
         });
 
@@ -250,7 +251,7 @@ describeSuite({
 
         expectEVMResult(result!.events, "Succeed");
 
-        const fees = receipt.gasUsed * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
+        const fees = receipt.gasUsed * receipt.effectiveGasPrice;
         expect(balBefore - balAfter).to.equal(amountTransferred + fees);
         await verifyLatestBlockFees(context, amountTransferred);
       },

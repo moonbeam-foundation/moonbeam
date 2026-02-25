@@ -110,9 +110,11 @@ describeSuite({
       }
 
       // Block that processes the hrmp messasges in the message queue
+      const processedBlockNumber = (await context.viem().getBlockNumber()) + 1n;
       await context.createBlock();
 
-      const txHashes = (await context.viem().getBlock({ blockTag: "latest" })).transactions;
+      const txHashes = (await context.viem().getBlock({ blockNumber: processedBlockNumber }))
+        .transactions;
       expect(txHashes.length).toBe(2);
       transactionHashes.push(...txHashes);
     });

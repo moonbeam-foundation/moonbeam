@@ -885,6 +885,7 @@ impl xcm_primitives::HrmpEncodeCall for MockHrmpEncoder {
 
 parameter_types! {
 	pub const PostBlockAndTxnHashes: PostLogContent = PostLogContent::BlockAndTxnHashes;
+	pub const AllowUnprotectedTxs: bool = false;
 }
 
 impl pallet_ethereum::Config for Runtime {
@@ -892,6 +893,7 @@ impl pallet_ethereum::Config for Runtime {
 		pallet_ethereum::IntermediateStateRoot<<Runtime as frame_system::Config>::Version>;
 	type PostLogContent = PostBlockAndTxnHashes;
 	type ExtraDataLength = ConstU32<30>;
+	type AllowUnprotectedTxs = AllowUnprotectedTxs;
 }
 parameter_types! {
 	pub ReservedXcmpWeight: Weight = Weight::from_parts(u64::max_value(), 0);

@@ -40,7 +40,7 @@ describeSuite({
               txnType,
             });
 
-            await context.createBlock(rawSigned);
+            const { result } = await context.createBlock(rawSigned);
 
             expect(
               await context.readContract!({
@@ -49,8 +49,10 @@ describeSuite({
                 functionName: "count",
               })
             ).toBe(loop);
-            const block = await context.viem().getBlock();
-            expect(block.gasUsed).toBe(gas);
+            const receipt = await context
+              .viem()
+              .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
+            expect(receipt.gasUsed).toBe(gas);
           },
         });
       }
