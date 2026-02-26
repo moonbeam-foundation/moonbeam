@@ -173,4 +173,43 @@
 <a href=#173 id=173 data-nosnippet>173</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">16_u64</span>))
 <a href=#174 id=174 data-nosnippet>174</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">6_u64</span>))
 <a href=#175 id=175 data-nosnippet>175</a>	}
-<a href=#176 id=176 data-nosnippet>176</a>}</code></pre></div></section></main></body></html>
+<a href=#176 id=176 data-nosnippet>176</a>	<span class="doccomment">/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:0)
+<a href=#177 id=177 data-nosnippet>177</a>	/// Proof: `EvmForeignAssets::AssetsById` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#178 id=178 data-nosnippet>178</a>	/// Storage: `EvmForeignAssets::AssetsByLocation` (r:1 w:0)
+<a href=#179 id=179 data-nosnippet>179</a>	/// Proof: `EvmForeignAssets::AssetsByLocation` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#180 id=180 data-nosnippet>180</a>	/// Storage: `EvmForeignAssets::PendingDeposits` (r:1 w:1)
+<a href=#181 id=181 data-nosnippet>181</a>	/// Proof: `EvmForeignAssets::PendingDeposits` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#182 id=182 data-nosnippet>182</a>	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+<a href=#183 id=183 data-nosnippet>183</a>	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#184 id=184 data-nosnippet>184</a>	/// Storage: `EthereumXcm::EthereumXcmSuspended` (r:1 w:0)
+<a href=#185 id=185 data-nosnippet>185</a>	/// Proof: `EthereumXcm::EthereumXcmSuspended` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#186 id=186 data-nosnippet>186</a>	/// Storage: `EthereumXcm::Nonce` (r:1 w:1)
+<a href=#187 id=187 data-nosnippet>187</a>	/// Proof: `EthereumXcm::Nonce` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#188 id=188 data-nosnippet>188</a>	/// Storage: `EthereumChainId::ChainId` (r:1 w:0)
+<a href=#189 id=189 data-nosnippet>189</a>	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+<a href=#190 id=190 data-nosnippet>190</a>	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
+<a href=#191 id=191 data-nosnippet>191</a>	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
+<a href=#192 id=192 data-nosnippet>192</a>	/// Storage: `EVM::AccountCodesMetadata` (r:2 w:0)
+<a href=#193 id=193 data-nosnippet>193</a>	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#194 id=194 data-nosnippet>194</a>	/// Storage: `System::Account` (r:1 w:1)
+<a href=#195 id=195 data-nosnippet>195</a>	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+<a href=#196 id=196 data-nosnippet>196</a>	/// Storage: `System::Digest` (r:1 w:0)
+<a href=#197 id=197 data-nosnippet>197</a>	/// Proof: `System::Digest` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+<a href=#198 id=198 data-nosnippet>198</a>	/// Storage: `EVM::AccountCodes` (r:1 w:0)
+<a href=#199 id=199 data-nosnippet>199</a>	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#200 id=200 data-nosnippet>200</a>	/// Storage: `EVM::AccountStorages` (r:3 w:2)
+<a href=#201 id=201 data-nosnippet>201</a>	/// Proof: `EVM::AccountStorages` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#202 id=202 data-nosnippet>202</a>	/// Storage: `Ethereum::CounterForPending` (r:1 w:1)
+<a href=#203 id=203 data-nosnippet>203</a>	/// Proof: `Ethereum::CounterForPending` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
+<a href=#204 id=204 data-nosnippet>204</a>	/// Storage: `Ethereum::Pending` (r:2 w:1)
+<a href=#205 id=205 data-nosnippet>205</a>	/// Proof: `Ethereum::Pending` (`max_values`: None, `max_size`: None, mode: `Measured`)
+<a href=#206 id=206 data-nosnippet>206</a>	</span><span class="kw">fn </span>claim_pending_deposit() -&gt; Weight {
+<a href=#207 id=207 data-nosnippet>207</a>		<span class="comment">// Proof Size summary in bytes:
+<a href=#208 id=208 data-nosnippet>208</a>		//  Measured:  `23994`
+<a href=#209 id=209 data-nosnippet>209</a>		//  Estimated: `32409`
+<a href=#210 id=210 data-nosnippet>210</a>		// Minimum execution time: 131_000_000 picoseconds.
+<a href=#211 id=211 data-nosnippet>211</a>		</span>Weight::from_parts(<span class="number">135_000_000</span>, <span class="number">32409</span>)
+<a href=#212 id=212 data-nosnippet>212</a>			.saturating_add(T::DbWeight::get().reads(<span class="number">19_u64</span>))
+<a href=#213 id=213 data-nosnippet>213</a>			.saturating_add(T::DbWeight::get().writes(<span class="number">7_u64</span>))
+<a href=#214 id=214 data-nosnippet>214</a>	}
+<a href=#215 id=215 data-nosnippet>215</a>}</code></pre></div></section></main></body></html>
