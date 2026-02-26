@@ -45,6 +45,7 @@ tools/build
 skills/
 .factory/
 .windsurf/
+.pi/
 
 # AI Agent instruction files
 CLAUDE.md

@@ -202,7 +202,10 @@ cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 
 sp-timestamp = { workspace = true }
+parachains-common = { workspace = true, features = ["std"] }
 polkadot-runtime-parachains = { workspace = true }
+westend-runtime = { workspace = true }
+xcm-emulator = { workspace = true }
 xcm-simulator = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
