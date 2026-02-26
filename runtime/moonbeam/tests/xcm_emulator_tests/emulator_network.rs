@@ -16,13 +16,11 @@
 
 //! Network declaration for xcm-emulator.
 //!
-//! Wires a Westend relay chain and the real Moonbeam runtime into a single
-//! test network using the `decl_test_*` macros from `xcm-emulator`.
+//! Wires a Westend relay chain, the real Moonbeam runtime (para 2004),
+//! and a sibling Moonbeam instance (para 2005) into a single test network.
 
 use crate::emulator_relay;
 
-// The emulator macros expand code that calls `OnInitialize` / `OnFinalize`
-// on `AllPalletsWithoutSystem`, so these traits must be in scope.
 use frame_support::traits::OnInitialize;
 use xcm_emulator::decl_test_networks;
 use xcm_emulator::decl_test_parachains;
@@ -31,6 +29,18 @@ use xcm_emulator::Parachain;
 use xcm_emulator::TestExt;
 
 pub const MOONBEAM_PARA_ID: u32 = 2004;
+pub const SIBLING_PARA_ID: u32 = 2005;
+
+// ---- Well-known test accounts (20-byte) ------------------------------------
+pub const ALITH: [u8; 20] = [1u8; 20];
+pub const BALTATHAR: [u8; 20] = [2u8; 20];
+pub const CHARLETH: [u8; 20] = [3u8; 20];
+
+// ---- Well-known relay accounts (32-byte) -----------------------------------
+pub const RELAY_ALICE: sp_runtime::AccountId32 = sp_runtime::AccountId32::new([1u8; 32]);
+
+// ---- DOT constants ---------------------------------------------------------
+pub const ONE_DOT: u128 = 10_000_000_000; // 10 decimals
 
 // ---------------------------------------------------------------------------
 // Relay chain declaration (Westend runtime)
@@ -47,19 +57,19 @@ decl_test_relay_chains! {
 		pallets = {
 			XcmPallet: westend_runtime::XcmPallet,
 			Balances: westend_runtime::Balances,
+			Hrmp: westend_runtime::Hrmp,
+			Utility: westend_runtime::Utility,
 		}
 	}
 }
 
 // ---------------------------------------------------------------------------
-// Moonbeam parachain declaration
+// Moonbeam parachain declaration (para 2004)
 // ---------------------------------------------------------------------------
 decl_test_parachains! {
 	pub struct MoonbeamPara {
-		genesis = moonbeam_genesis(),
+		genesis = moonbeam_genesis(MOONBEAM_PARA_ID),
 		on_init = {
-			// Satisfy Moonbeam's mandatory inherent checks for the
-			// very first block created during `Parachain::init()`.
 			crate::emulator_network::satisfy_moonbeam_inherents();
 		},
 		runtime = moonbeam_runtime,
@@ -73,6 +83,42 @@ decl_test_parachains! {
 			PolkadotXcm: moonbeam_runtime::PolkadotXcm,
 			Balances: moonbeam_runtime::Balances,
 			EvmForeignAssets: moonbeam_runtime::EvmForeignAssets,
+			XcmWeightTrader: moonbeam_runtime::XcmWeightTrader,
+			XcmTransactor: moonbeam_runtime::XcmTransactor,
+			Treasury: moonbeam_runtime::Treasury,
+			EthereumXcm: moonbeam_runtime::EthereumXcm,
+			Proxy: moonbeam_runtime::Proxy,
+			EVM: moonbeam_runtime::EVM,
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Sibling parachain declaration (para 2005) — another Moonbeam instance
+// ---------------------------------------------------------------------------
+decl_test_parachains! {
+	pub struct SiblingPara {
+		genesis = moonbeam_genesis(SIBLING_PARA_ID),
+		on_init = {
+			crate::emulator_network::satisfy_moonbeam_inherents();
+		},
+		runtime = moonbeam_runtime,
+		core = {
+			XcmpMessageHandler: moonbeam_runtime::XcmpQueue,
+			LocationToAccountId: moonbeam_runtime::xcm_config::LocationToAccountId,
+			ParachainInfo: moonbeam_runtime::ParachainInfo,
+			MessageOrigin: cumulus_primitives_core::AggregateMessageOrigin,
+		},
+		pallets = {
+			PolkadotXcm: moonbeam_runtime::PolkadotXcm,
+			Balances: moonbeam_runtime::Balances,
+			EvmForeignAssets: moonbeam_runtime::EvmForeignAssets,
+			XcmWeightTrader: moonbeam_runtime::XcmWeightTrader,
+			XcmTransactor: moonbeam_runtime::XcmTransactor,
+			Treasury: moonbeam_runtime::Treasury,
+			EthereumXcm: moonbeam_runtime::EthereumXcm,
+			Proxy: moonbeam_runtime::Proxy,
+			EVM: moonbeam_runtime::EVM,
 		}
 	}
 }
@@ -85,23 +131,18 @@ decl_test_networks! {
 		relay_chain = WestendRelay,
 		parachains = vec![
 			MoonbeamPara,
+			SiblingPara,
 		],
 		bridge = ()
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Moonbeam per-block workaround
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// Helpers
+// ===========================================================================
 
-/// Execute a closure on the Moonbeam parachain, automatically satisfying
-/// mandatory inherent checks before the closure returns.
-///
-/// **Always use this instead of `MoonbeamPara::execute_with` directly.**
-/// Moonbeam's `pallet_author_inherent` and `pallet_randomness` assert in
-/// `on_finalize` that their inherents were dispatched. The emulator doesn't
-/// dispatch them, so every block would panic without the fixup. This wrapper
-/// ensures the fixup is never forgotten.
+/// Execute a closure on the Moonbeam parachain (para 2004), automatically
+/// satisfying mandatory inherent checks.
 pub fn moonbeam_execute_with<R>(f: impl FnOnce() -> R) -> R {
 	MoonbeamPara::<PolkadotMoonbeamNet>::execute_with(|| {
 		satisfy_moonbeam_inherents();
@@ -109,29 +150,134 @@ pub fn moonbeam_execute_with<R>(f: impl FnOnce() -> R) -> R {
 	})
 }
 
+/// Execute a closure on the Sibling parachain (para 2005), automatically
+/// satisfying mandatory inherent checks.
+pub fn sibling_execute_with<R>(f: impl FnOnce() -> R) -> R {
+	SiblingPara::<PolkadotMoonbeamNet>::execute_with(|| {
+		satisfy_moonbeam_inherents();
+		f()
+	})
+}
+
 /// Patch storage to satisfy Moonbeam's mandatory inherent checks.
-///
-/// Called automatically by [`moonbeam_execute_with`]. You should not need to
-/// call this directly.
-fn satisfy_moonbeam_inherents() {
-	// Author inherent
+/// Called automatically by [`moonbeam_execute_with`] / [`sibling_execute_with`].
+pub(crate) fn satisfy_moonbeam_inherents() {
 	pallet_author_inherent::Author::<moonbeam_runtime::Runtime>::put(
 		moonbeam_runtime::AccountId::from([1u8; 20]),
 	);
 	pallet_author_inherent::InherentIncluded::<moonbeam_runtime::Runtime>::put(true);
 
-	// Randomness inherent (storage is pub(crate), write directly)
 	frame_support::storage::unhashed::put(
 		&frame_support::storage::storage_prefix(b"Randomness", b"InherentIncluded"),
 		&(),
 	);
-
-	// Reset `NotFirstBlock` so the NEXT block's `on_initialize` takes the
-	// genesis path and skips VRF verification (which requires a VRF pre-
-	// digest we cannot inject through the emulator).
 	frame_support::storage::unhashed::kill(&frame_support::storage::storage_prefix(
 		b"Randomness",
 		b"NotFirstBlock",
+	));
+}
+
+/// Initialise network and clear `NotFirstBlock` on both parachains.
+pub fn init_network() {
+	// Trigger `Parachain::init()` on every chain by executing on relay.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {});
+
+	// Clear NotFirstBlock so VRF verification is skipped in subsequent blocks.
+	MoonbeamPara::<PolkadotMoonbeamNet>::ext_wrapper(|| {
+		frame_support::storage::unhashed::kill(&frame_support::storage::storage_prefix(
+			b"Randomness",
+			b"NotFirstBlock",
+		));
+	});
+	SiblingPara::<PolkadotMoonbeamNet>::ext_wrapper(|| {
+		frame_support::storage::unhashed::kill(&frame_support::storage::storage_prefix(
+			b"Randomness",
+			b"NotFirstBlock",
+		));
+	});
+}
+
+/// Register DOT as a foreign asset on a Moonbeam-runtime chain and configure
+/// its price in the XCM weight trader. Call inside `moonbeam_execute_with` or
+/// `sibling_execute_with`.
+///
+/// Returns the `asset_id` that was used for registration.
+pub fn register_dot_asset(asset_id: u128) {
+	let dot_location = xcm::latest::Location::parent();
+
+	frame_support::assert_ok!(moonbeam_runtime::EvmForeignAssets::create_foreign_asset(
+		moonbeam_runtime::RuntimeOrigin::root(),
+		asset_id,
+		dot_location.clone(),
+		10,
+		b"DOT".to_vec().try_into().unwrap(),
+		b"Polkadot".to_vec().try_into().unwrap(),
+	));
+
+	// relative_price large enough so that 10 DOT covers XCM execution fees.
+	frame_support::assert_ok!(moonbeam_runtime::XcmWeightTrader::add_asset(
+		moonbeam_runtime::RuntimeOrigin::root(),
+		dot_location,
+		10_000_000_000_000_000_000_000_000_000u128, // 10^28
+	));
+}
+
+/// Configure `pallet_xcm_transactor` relay indices for Westend.
+/// Call inside `moonbeam_execute_with` or `sibling_execute_with`.
+pub fn set_westend_relay_indices() {
+	use pallet_xcm_transactor::relay_indices::RelayChainIndices;
+
+	// Westend pallet indices (from construct_runtime):
+	// Staking=6, Utility=16, Hrmp=51, Balances=4
+	let indices = RelayChainIndices {
+		staking: 6u8,
+		utility: 16u8,
+		hrmp: 51u8,
+		// Call indices within staking pallet:
+		bond: 0u8,
+		bond_extra: 1u8,
+		unbond: 2u8,
+		withdraw_unbonded: 3u8,
+		validate: 4u8,
+		nominate: 5u8,
+		chill: 6u8,
+		set_payee: 7u8,
+		set_controller: 8u8,
+		rebond: 19u8,
+		// Utility::as_derivative
+		as_derivative: 1u8,
+		// HRMP call indices:
+		init_open_channel: 0u8,
+		accept_open_channel: 1u8,
+		close_channel: 2u8,
+		cancel_open_request: 6u8,
+	};
+
+	pallet_xcm_transactor::RelayIndices::<moonbeam_runtime::Runtime>::put(indices);
+}
+
+/// Open HRMP channels between two parachains on the relay.
+/// Must be called inside `WestendRelay::execute_with`.
+pub fn open_hrmp_channels(sender: u32, recipient: u32) {
+	use frame_support::assert_ok;
+
+	assert_ok!(westend_runtime::Hrmp::force_open_hrmp_channel(
+		westend_runtime::RuntimeOrigin::root(),
+		sender.into(),
+		recipient.into(),
+		8,    // max_capacity
+		1024, // max_message_size
+	));
+	assert_ok!(westend_runtime::Hrmp::force_open_hrmp_channel(
+		westend_runtime::RuntimeOrigin::root(),
+		recipient.into(),
+		sender.into(),
+		8,
+		1024,
+	));
+	assert_ok!(westend_runtime::Hrmp::force_process_hrmp_open(
+		westend_runtime::RuntimeOrigin::root(),
+		2,
 	));
 }
 
@@ -139,11 +285,7 @@ fn satisfy_moonbeam_inherents() {
 // Moonbeam genesis helper
 // ---------------------------------------------------------------------------
 
-/// Build a minimal `Storage` for Moonbeam in the emulator network.
-///
-/// We replicate the essentials from `ExtBuilder` but return raw `Storage`
-/// instead of `TestExternalities`, as required by the emulator macros.
-fn moonbeam_genesis() -> sp_core::storage::Storage {
+fn moonbeam_genesis(para_id: u32) -> sp_core::storage::Storage {
 	use moonbeam_runtime::{currency::GLMR, AccountId, Runtime};
 	use sp_runtime::BuildStorage;
 
@@ -152,7 +294,7 @@ fn moonbeam_genesis() -> sp_core::storage::Storage {
 		.unwrap();
 
 	parachain_info::GenesisConfig::<Runtime> {
-		parachain_id: MOONBEAM_PARA_ID.into(),
+		parachain_id: para_id.into(),
 		_config: Default::default(),
 	}
 	.assimilate_storage(&mut t)
@@ -160,9 +302,9 @@ fn moonbeam_genesis() -> sp_core::storage::Storage {
 
 	pallet_balances::GenesisConfig::<Runtime> {
 		balances: vec![
-			(AccountId::from([1u8; 20]), GLMR * 1000),
-			(AccountId::from([2u8; 20]), GLMR * 1000),
-			(AccountId::from([3u8; 20]), GLMR * 1000),
+			(AccountId::from(ALITH), GLMR * 10_000),
+			(AccountId::from(BALTATHAR), GLMR * 10_000),
+			(AccountId::from(CHARLETH), GLMR * 10_000),
 		],
 		dev_accounts: None,
 	}

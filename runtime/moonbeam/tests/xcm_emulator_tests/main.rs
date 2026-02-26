@@ -16,15 +16,18 @@
 
 //! XCM Emulator Integration Tests (Level 2A)
 //!
-//! These tests use `xcm-emulator` with the real Moonbeam runtime connected to a
-//! minimal mock relay chain. Unlike the `xcm-simulator` tests, the emulator goes
-//! through `cumulus_pallet_parachain_system` and `pallet_message_queue` for
-//! realistic message dispatch (DMP / UMP / XCMP).
+//! Uses the real `moonbeam_runtime` connected to `westend_runtime` as relay
+//! and a sibling `moonbeam_runtime` instance. Tests exercise:
 //!
-//! The existing xcm-simulator integration tests remain intact as a fallback.
+//! - Transfers: relay→para, para→relay, para→para (DMP/UMP/XCMP)
+//! - Fee collection: treasury receives execution fees, insufficient fees fail
+//! - Transact: sovereign transact to relay
+//! - HRMP: open, accept, close channels via `pallet_xcm_transactor`
+//! - Account sufficiency: fresh accounts receive foreign assets
 
 #![cfg(test)]
 
 mod emulator_network;
 mod emulator_relay;
+mod emulator_transact_tests;
 mod emulator_transfer_tests;

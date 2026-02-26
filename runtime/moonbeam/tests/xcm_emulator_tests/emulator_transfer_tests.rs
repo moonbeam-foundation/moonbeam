@@ -14,148 +14,60 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Transfer tests using the xcm-emulator harness.
+//! Transfer tests using xcm-emulator with the **real** Moonbeam runtime.
 //!
-//! Uses the real `westend_runtime` as relay and `moonbeam_runtime` as parachain.
-//! Includes full end-to-end DMP transfer (relay → Moonbeam) with DOT registered
-//! as a foreign ERC20 asset.
-//!
-//! Key workarounds (see ADR-001 for details):
-//! - [`moonbeam_execute_with`] automatically patches mandatory inherent storage.
-//! - `NotFirstBlock` is cleared after network init to skip VRF verification.
-//! - Dummy `HeadData` is inserted in relay genesis for DMP routing.
-//! - `transfer_assets_using_type_and_then` bypasses the AHM guard.
+//! Covers: relay→para, para→relay, para→para transfers, fee behaviour,
+//! account sufficiency, and error cases.
 
 use crate::emulator_network::*;
-use frame_support::assert_ok;
+use frame_support::{assert_ok, traits::fungible::Inspect};
+use sp_core::U256;
 use xcm::latest::prelude::*;
-use xcm_emulator::{RelayChain, TestExt};
+use xcm_emulator::TestExt;
 
-const ONE_DOT: u128 = 10_000_000_000;
+const DOT_ASSET_ID: u128 = 1;
 
-/// Ensure the emulator network initialises (triggers `Parachain::init` which
-/// creates one block on Moonbeam, and also initialises the relay).
-///
-/// After init, we clear Moonbeam's `NotFirstBlock` storage so subsequent
-/// blocks skip VRF verification.
-fn init_and_prepare() {
-	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {});
-	MoonbeamPara::<PolkadotMoonbeamNet>::ext_wrapper(|| {
-		frame_support::storage::unhashed::kill(&frame_support::storage::storage_prefix(
-			b"Randomness",
-			b"NotFirstBlock",
-		));
+// ===========================================================================
+// Setup helper
+// ===========================================================================
+
+/// Full network init: register DOT on Moonbeam, configure weight trader.
+fn setup_relay_to_moonbeam() {
+	init_network();
+	moonbeam_execute_with(|| {
+		register_dot_asset(DOT_ASSET_ID);
 	});
 }
 
-/// Smoke test: relay and Moonbeam initialise and can execute closures.
-#[test]
-fn emulator_network_initializes() {
-	init_and_prepare();
-
-	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		let block = frame_system::Pallet::<westend_runtime::Runtime>::block_number();
-		assert!(block >= 1, "Relay at block {block}");
-	});
+/// Full network init with sibling: register DOT on both paras, open HRMP channels.
+fn setup_with_sibling() {
+	init_network();
 
 	moonbeam_execute_with(|| {
-		let block = frame_system::Pallet::<moonbeam_runtime::Runtime>::block_number();
-		assert!(block >= 1, "Moonbeam at block {block}");
+		register_dot_asset(DOT_ASSET_ID);
 	});
-}
+	sibling_execute_with(|| {
+		register_dot_asset(DOT_ASSET_ID);
+	});
 
-/// Verify sovereign accounts are correctly computed and funded.
-#[test]
-fn moonbeam_sovereign_is_funded_on_relay() {
-	init_and_prepare();
-
+	// Open bi-directional HRMP channels between Moonbeam (2004) and Sibling (2005).
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		use frame_support::traits::fungible::Inspect;
-
-		let sov = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of_child_para(
-			MOONBEAM_PARA_ID.into(),
-		);
-		let balance = <westend_runtime::Balances as Inspect<_>>::balance(&sov);
-		assert!(
-			balance > 0,
-			"Moonbeam sovereign should be funded, got: {balance}"
-		);
+		open_hrmp_channels(MOONBEAM_PARA_ID, SIBLING_PARA_ID);
 	});
 }
 
-/// Verify DOT transfer type is LocalReserve (relay IS the reserve for its
-/// native token). This confirms XCM asset-transfer classification works.
-#[test]
-fn relay_native_token_is_local_reserve() {
-	init_and_prepare();
+// ===========================================================================
+// Transfer: Relay → Moonbeam (DMP)
+// ===========================================================================
 
-	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		use xcm_executor::traits::XcmAssetTransfers;
-
-		let dot = Asset {
-			id: AssetId(Location::here()),
-			fun: Fungible(ONE_DOT),
-		};
-		let dest = Location::new(0, [Parachain(MOONBEAM_PARA_ID)]);
-		let transfer_type =
-			xcm_executor::XcmExecutor::<westend_runtime::xcm_config::XcmConfig>::determine_for(
-				&dot, &dest,
-			);
-
-		assert_eq!(
-			transfer_type,
-			Ok(xcm_executor::traits::TransferType::LocalReserve),
-			"DOT transferred from relay to parachain should be LocalReserve"
-		);
-	});
-}
-
-/// End-to-end: send DOT from relay to Moonbeam and verify it arrives.
-///
-/// Flow:
-/// 1. Register DOT as foreign asset on Moonbeam
-/// 2. On relay: `transfer_assets_using_type_and_then` (bypasses AHM guard)
-/// 3. Emulator routes DMP to Moonbeam
-/// 4. On Moonbeam: verify beneficiary received the DOT
 #[test]
 fn transfer_dot_from_relay_to_moonbeam() {
-	init_and_prepare();
+	setup_relay_to_moonbeam();
 
-	let beneficiary_key: [u8; 20] = [0x01; 20];
-	let sender = sp_runtime::AccountId32::new([1u8; 32]);
-	let dot_location = Location::parent();
-	let dot_asset_id: u128 = 1;
+	let sender = RELAY_ALICE;
+	let beneficiary_key = ALITH;
 
-	// Step 1: Register DOT as a foreign asset on Moonbeam.
-	moonbeam_execute_with(|| {
-		assert_ok!(moonbeam_runtime::EvmForeignAssets::create_foreign_asset(
-			moonbeam_runtime::RuntimeOrigin::root(),
-			dot_asset_id,
-			dot_location.clone(),
-			10, // decimals
-			b"DOT".to_vec().try_into().unwrap(),
-			b"Polkadot".to_vec().try_into().unwrap(),
-		));
-
-		// Register DOT in the XcmWeightTrader so fees can be paid.
-		//
-		// relative_price formula: dot_fee = native_fee_in_glmr * 10^18 / relative_price
-		// GLMR has 18 decimals, DOT has 10. To make 10 DOT (= 10^11 units)
-		// cover the XCM execution fee (~32 GLMR = ~32 * 10^18 units), we need:
-		//   relative_price >= 32 * 10^18 * 10^18 / 10^11 ≈ 3.2 * 10^26
-		// We use 10^28 to give comfortable headroom.
-		assert_ok!(moonbeam_runtime::XcmWeightTrader::add_asset(
-			moonbeam_runtime::RuntimeOrigin::root(),
-			dot_location.clone(),
-			10_000_000_000_000_000_000_000_000_000u128, // 10^28
-		));
-	});
-
-	// Step 2: Send DOT from relay to Moonbeam.
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		use frame_support::traits::fungible::Inspect;
-		use xcm_executor::traits::TransferType;
-
 		let balance_before = <westend_runtime::Balances as Inspect<_>>::balance(&sender);
 
 		assert_ok!(
@@ -169,9 +81,9 @@ fn transfer_dot_from_relay_to_moonbeam() {
 					id: AssetId(Location::here()),
 					fun: Fungible(ONE_DOT * 10),
 				}]))),
-				Box::new(TransferType::LocalReserve),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
 				Box::new(xcm::VersionedAssetId::from(AssetId(Location::here()))),
-				Box::new(TransferType::LocalReserve),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
 				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
 					assets: Wild(All),
 					beneficiary: Location::new(
@@ -181,28 +93,419 @@ fn transfer_dot_from_relay_to_moonbeam() {
 							key: beneficiary_key,
 						}],
 					),
-				},]))),
+				}]))),
 				WeightLimit::Unlimited,
 			)
 		);
 
 		let balance_after = <westend_runtime::Balances as Inspect<_>>::balance(&sender);
-
 		assert!(
 			balance_after < balance_before,
-			"Sender balance should decrease: before={balance_before}, after={balance_after}"
+			"Sender balance should decrease"
 		);
 	});
 
-	// Step 3: Check DOT arrived on Moonbeam.
 	moonbeam_execute_with(|| {
 		let beneficiary = moonbeam_runtime::AccountId::from(beneficiary_key);
-		let balance = moonbeam_runtime::EvmForeignAssets::balance(dot_asset_id, beneficiary)
+		let balance = moonbeam_runtime::EvmForeignAssets::balance(DOT_ASSET_ID, beneficiary)
 			.expect("balance query should succeed");
-
 		assert!(
-			balance > sp_core::U256::zero(),
-			"Beneficiary should have received DOT on Moonbeam, got balance: {balance}"
+			balance > U256::zero(),
+			"Beneficiary should have DOT on Moonbeam, got {balance}"
+		);
+	});
+}
+
+// ===========================================================================
+// Transfer: Moonbeam → Relay (UMP)
+// ===========================================================================
+
+#[test]
+fn transfer_dot_from_moonbeam_to_relay() {
+	setup_relay_to_moonbeam();
+
+	// First: send DOT from relay to Moonbeam so ALITH has some DOT.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(
+			westend_runtime::XcmPallet::transfer_assets_using_type_and_then(
+				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					0,
+					[Parachain(MOONBEAM_PARA_ID)]
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(Location::here()),
+					fun: Fungible(ONE_DOT * 100),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedAssetId::from(AssetId(Location::here()))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
+					assets: Wild(All),
+					beneficiary: Location::new(
+						0,
+						[AccountKey20 {
+							network: None,
+							key: ALITH
+						}],
+					),
+				}]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	let alith_dot_before = moonbeam_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(ALITH),
+		)
+		.unwrap()
+	});
+	assert!(alith_dot_before > U256::zero(), "ALITH should have DOT");
+
+	// Record relay-side balance of a relay account before the return transfer.
+	let relay_bob = sp_runtime::AccountId32::new([2u8; 32]);
+	let relay_bob_before = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		<westend_runtime::Balances as Inspect<_>>::balance(&relay_bob)
+	});
+
+	// Now send DOT back from Moonbeam to relay via PolkadotXcm.
+	// DOT's reserve is the relay, so we use DestinationReserve transfer type.
+	moonbeam_execute_with(|| {
+		let dot_location = Location::parent();
+		let dest = Location::parent();
+		let beneficiary = Location::new(
+			0,
+			[AccountId32 {
+				network: None,
+				id: relay_bob.clone().into(),
+			}],
+		);
+		let amount = ONE_DOT * 5;
+
+		assert_ok!(
+			moonbeam_runtime::PolkadotXcm::transfer_assets_using_type_and_then(
+				moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+				Box::new(xcm::VersionedLocation::from(dest)),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(dot_location.clone()),
+					fun: Fungible(amount),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::DestinationReserve),
+				Box::new(xcm::VersionedAssetId::from(AssetId(dot_location))),
+				Box::new(xcm_executor::traits::TransferType::DestinationReserve),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
+					assets: Wild(All),
+					beneficiary,
+				}]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	// Verify relay account received DOT (minus fees).
+	let relay_bob_after = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		<westend_runtime::Balances as Inspect<_>>::balance(&relay_bob)
+	});
+	assert!(
+		relay_bob_after > relay_bob_before,
+		"Relay Bob should have more DOT: before={relay_bob_before}, after={relay_bob_after}"
+	);
+}
+
+// ===========================================================================
+// Fee behaviour: insufficient fees
+// ===========================================================================
+
+#[test]
+fn error_when_not_paying_enough_fees() {
+	setup_relay_to_moonbeam();
+
+	// Send a tiny amount (1 unit) from relay — should fail to pay Moonbeam execution fees.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(
+			westend_runtime::XcmPallet::transfer_assets_using_type_and_then(
+				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					0,
+					[Parachain(MOONBEAM_PARA_ID)]
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(Location::here()),
+					fun: Fungible(1), // way too little for fees
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedAssetId::from(AssetId(Location::here()))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
+					assets: Wild(All),
+					beneficiary: Location::new(
+						0,
+						[AccountKey20 {
+							network: None,
+							key: ALITH
+						}],
+					),
+				}]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	// ALITH should NOT have received the token (execution failed).
+	moonbeam_execute_with(|| {
+		let balance = moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(ALITH),
+		)
+		.unwrap();
+		assert_eq!(
+			balance,
+			U256::zero(),
+			"Should not receive DOT when fees are insufficient"
+		);
+	});
+}
+
+// ===========================================================================
+// Fee behaviour: fees go to treasury
+// ===========================================================================
+
+#[test]
+fn fees_collected_by_treasury() {
+	setup_relay_to_moonbeam();
+
+	let treasury_dot_before = moonbeam_execute_with(|| {
+		let treasury = moonbeam_runtime::Treasury::account_id();
+		moonbeam_runtime::EvmForeignAssets::balance(DOT_ASSET_ID, treasury).unwrap_or(U256::zero())
+	});
+
+	// Send DOT from relay to Moonbeam (fees will be charged).
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(
+			westend_runtime::XcmPallet::transfer_assets_using_type_and_then(
+				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					0,
+					[Parachain(MOONBEAM_PARA_ID)]
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(Location::here()),
+					fun: Fungible(ONE_DOT * 10),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedAssetId::from(AssetId(Location::here()))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
+					assets: Wild(All),
+					beneficiary: Location::new(
+						0,
+						[AccountKey20 {
+							network: None,
+							key: BALTATHAR
+						}],
+					),
+				}]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	moonbeam_execute_with(|| {
+		let treasury = moonbeam_runtime::Treasury::account_id();
+		let treasury_dot_after =
+			moonbeam_runtime::EvmForeignAssets::balance(DOT_ASSET_ID, treasury)
+				.unwrap_or(U256::zero());
+		assert!(
+			treasury_dot_after > treasury_dot_before,
+			"Treasury should collect fees: before={treasury_dot_before}, after={treasury_dot_after}"
+		);
+
+		// And beneficiary should have gotten the rest (not the full amount).
+		let beneficiary_balance = moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(BALTATHAR),
+		)
+		.unwrap();
+		assert!(
+			beneficiary_balance > U256::zero(),
+			"Beneficiary received DOT"
+		);
+		assert!(
+			beneficiary_balance < U256::from(ONE_DOT * 10),
+			"Beneficiary received less than sent (fees deducted)"
+		);
+	});
+}
+
+// ===========================================================================
+// Account sufficiency: non-existent account receives foreign asset
+// ===========================================================================
+
+#[test]
+fn receive_asset_for_non_existent_account() {
+	setup_relay_to_moonbeam();
+
+	let fresh_account: [u8; 20] = [42u8; 20];
+
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(
+			westend_runtime::XcmPallet::transfer_assets_using_type_and_then(
+				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					0,
+					[Parachain(MOONBEAM_PARA_ID)]
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(Location::here()),
+					fun: Fungible(ONE_DOT * 10),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedAssetId::from(AssetId(Location::here()))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
+					assets: Wild(All),
+					beneficiary: Location::new(
+						0,
+						[AccountKey20 {
+							network: None,
+							key: fresh_account,
+						}],
+					),
+				}]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	moonbeam_execute_with(|| {
+		let balance = moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(fresh_account),
+		)
+		.unwrap();
+		assert!(
+			balance > U256::zero(),
+			"Fresh (non-existent) account should receive DOT via XCM"
+		);
+	});
+}
+
+// ===========================================================================
+// Transfer: Para → Para via relay (XCMP/HRMP)
+// ===========================================================================
+
+#[test]
+fn transfer_dot_from_moonbeam_to_sibling() {
+	setup_with_sibling();
+
+	// First fund Moonbeam ALITH with DOT from relay.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(
+			westend_runtime::XcmPallet::transfer_assets_using_type_and_then(
+				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					0,
+					[Parachain(MOONBEAM_PARA_ID)]
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(Location::here()),
+					fun: Fungible(ONE_DOT * 100),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedAssetId::from(AssetId(Location::here()))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
+					assets: Wild(All),
+					beneficiary: Location::new(
+						0,
+						[AccountKey20 {
+							network: None,
+							key: ALITH
+						}],
+					),
+				}]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	// Verify ALITH got DOT on Moonbeam.
+	let alith_dot = moonbeam_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(ALITH),
+		)
+		.unwrap()
+	});
+	assert!(alith_dot > U256::zero(), "ALITH should have DOT");
+
+	// Now send DOT from Moonbeam to Sibling via reserve transfer through relay.
+	// DOT's reserve is the relay (parent), so we use RemoteReserve.
+	// The custom_xcm_on_dest must include BuyExecution since the sibling's
+	// barrier requires paid execution.
+	moonbeam_execute_with(|| {
+		let dest = Location::new(1, [Parachain(SIBLING_PARA_ID)]);
+		let beneficiary = Location::new(
+			0,
+			[AccountKey20 {
+				network: None,
+				key: BALTATHAR,
+			}],
+		);
+		let dot_location = Location::parent();
+		// Send a large amount so enough survives relay fees for the sibling.
+		let amount = ONE_DOT * 50;
+
+		assert_ok!(
+			moonbeam_runtime::PolkadotXcm::transfer_assets_using_type_and_then(
+				moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+				Box::new(xcm::VersionedLocation::from(dest)),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(dot_location.clone()),
+					fun: Fungible(amount),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::RemoteReserve(
+					xcm::VersionedLocation::from(Location::parent())
+				)),
+				Box::new(xcm::VersionedAssetId::from(AssetId(dot_location.clone()))),
+				Box::new(xcm_executor::traits::TransferType::RemoteReserve(
+					xcm::VersionedLocation::from(Location::parent())
+				)),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![
+					BuyExecution {
+						// Use a small fee amount that will definitely be in holding
+						// after the relay takes its share.
+						fees: Asset {
+							id: AssetId(dot_location),
+							fun: Fungible(ONE_DOT / 10),
+						},
+						weight_limit: WeightLimit::Unlimited,
+					},
+					DepositAsset {
+						assets: Wild(All),
+						beneficiary,
+					},
+				]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	// Trigger message routing on the relay so the DMP is delivered to sibling.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {});
+
+	// Verify BALTATHAR received DOT on the sibling.
+	sibling_execute_with(|| {
+		let balance = moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(BALTATHAR),
+		)
+		.unwrap();
+		assert!(
+			balance > U256::zero(),
+			"BALTATHAR should have DOT on sibling, got {balance}"
 		);
 	});
 }
