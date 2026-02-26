@@ -173,4 +173,43 @@ impl<T: frame_system::Config> pallet_moonbeam_foreign_assets::WeightInfo for Wei
 			.saturating_add(T::DbWeight::get().reads(16_u64))
 			.saturating_add(T::DbWeight::get().writes(6_u64))
 	}
+	/// Storage: `EvmForeignAssets::AssetsById` (r:1 w:0)
+	/// Proof: `EvmForeignAssets::AssetsById` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EvmForeignAssets::AssetsByLocation` (r:1 w:0)
+	/// Proof: `EvmForeignAssets::AssetsByLocation` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EvmForeignAssets::PendingDeposits` (r:1 w:1)
+	/// Proof: `EvmForeignAssets::PendingDeposits` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `MaintenanceMode::MaintenanceMode` (r:1 w:0)
+	/// Proof: `MaintenanceMode::MaintenanceMode` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumXcm::EthereumXcmSuspended` (r:1 w:0)
+	/// Proof: `EthereumXcm::EthereumXcmSuspended` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumXcm::Nonce` (r:1 w:1)
+	/// Proof: `EthereumXcm::Nonce` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EthereumChainId::ChainId` (r:1 w:0)
+	/// Proof: `EthereumChainId::ChainId` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
+	/// Storage: `TransactionPayment::NextFeeMultiplier` (r:1 w:0)
+	/// Proof: `TransactionPayment::NextFeeMultiplier` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
+	/// Storage: `EVM::AccountCodesMetadata` (r:2 w:0)
+	/// Proof: `EVM::AccountCodesMetadata` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `System::Digest` (r:1 w:0)
+	/// Proof: `System::Digest` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountCodes` (r:1 w:0)
+	/// Proof: `EVM::AccountCodes` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `EVM::AccountStorages` (r:3 w:2)
+	/// Proof: `EVM::AccountStorages` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	/// Storage: `Ethereum::CounterForPending` (r:1 w:1)
+	/// Proof: `Ethereum::CounterForPending` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
+	/// Storage: `Ethereum::Pending` (r:2 w:1)
+	/// Proof: `Ethereum::Pending` (`max_values`: None, `max_size`: None, mode: `Measured`)
+	fn claim_pending_deposit() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `24182`
+		//  Estimated: `32597`
+		// Minimum execution time: 132_000_000 picoseconds.
+		Weight::from_parts(138_000_000, 32597)
+			.saturating_add(T::DbWeight::get().reads(19_u64))
+			.saturating_add(T::DbWeight::get().writes(7_u64))
+	}
 }

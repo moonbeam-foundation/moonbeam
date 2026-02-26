@@ -221,6 +221,16 @@ impl xcm_executor::traits::ConvertLocation<AccountId> for SiblingAccountOf {
 	}
 }
 
+pub struct MockLocationToH160;
+impl xcm_executor::traits::ConvertLocation<H160> for MockLocationToH160 {
+	fn convert_location(location: &Location) -> Option<H160> {
+		match location.unpack() {
+			(0, [Junction::AccountKey20 { network: _, key }]) => Some(H160::from(*key)),
+			_ => None,
+		}
+	}
+}
+
 pub struct SiblingOrigin;
 impl EnsureOrigin<<Test as frame_system::Config>::RuntimeOrigin> for SiblingOrigin {
 	type Success = Location;
@@ -268,7 +278,7 @@ impl crate::Config for Test {
 	type OnForeignAssetCreated = NoteDownHook<Location>;
 	type MaxForeignAssets = ConstU32<3>;
 	type WeightInfo = ();
-	type XcmLocationToH160 = ();
+	type XcmLocationToH160 = MockLocationToH160;
 	type ForeignAssetCreationDeposit = ForeignAssetCreationDeposit;
 	type Balance = Balance;
 
