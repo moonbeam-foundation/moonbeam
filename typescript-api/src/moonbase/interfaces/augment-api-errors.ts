@@ -352,6 +352,7 @@ declare module "@polkadot/api-base/types/errors" {
       AssetAlreadyFrozen: AugmentedError<ApiType>;
       AssetDoesNotExist: AugmentedError<ApiType>;
       AssetIdFiltered: AugmentedError<ApiType>;
+      AssetNotActive: AugmentedError<ApiType>;
       AssetNotFrozen: AugmentedError<ApiType>;
       AssetNotInSiblingPara: AugmentedError<ApiType>;
       CannotConvertLocationToAccount: AugmentedError<ApiType>;
@@ -370,6 +371,7 @@ declare module "@polkadot/api-base/types/errors" {
       InvalidTokenName: AugmentedError<ApiType>;
       LocationAlreadyExists: AugmentedError<ApiType>;
       LocationOutsideOfOrigin: AugmentedError<ApiType>;
+      NoPendingDeposit: AugmentedError<ApiType>;
       TooManyForeignAssets: AugmentedError<ApiType>;
       /**
        * Generic error
