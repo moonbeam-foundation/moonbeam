@@ -24,7 +24,7 @@ jobs:
       - name: Local build new Node
         uses: ./.github/workflow-templates/cargo-build
       - name: Upload Node
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: moonbeam
           path: build
