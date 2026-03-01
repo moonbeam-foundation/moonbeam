@@ -4483,6 +4483,10 @@ export default {
       },
       unfreeze_foreign_asset: {
         assetId: "u128"
+      },
+      claim_pending_deposit: {
+        assetId: "u128",
+        beneficiary: "H160"
       }
     }
   },
@@ -4798,7 +4802,18 @@ export default {
         assetId: "u128",
         xcmLocation: "StagingXcmV5Location"
       },
-      TokensLocked: "(AccountId20,u128,U256)"
+      TokensLocked: "(AccountId20,u128,U256)",
+      PendingDepositRecorded: {
+        assetId: "u128",
+        beneficiary: "H160",
+        amount: "U256",
+        totalPending: "U256"
+      },
+      PendingDepositClaimed: {
+        assetId: "u128",
+        beneficiary: "H160",
+        amount: "U256"
+      }
     }
   },
   /**
@@ -6589,7 +6604,7 @@ export default {
    **/
   MoonbaseRuntimeRuntime: "Null",
   /**
-   * Lookup718: pallet_moonbeam_foreign_assets::pallet::Error<T>
+   * Lookup719: pallet_moonbeam_foreign_assets::pallet::Error<T>
    **/
   PalletMoonbeamForeignAssetsError: {
     _enum: [
@@ -6612,11 +6627,13 @@ export default {
       "InvalidSymbol",
       "InvalidTokenName",
       "LocationAlreadyExists",
+      "NoPendingDeposit",
+      "AssetNotActive",
       "TooManyForeignAssets"
     ]
   },
   /**
-   * Lookup720: pallet_xcm_weight_trader::pallet::Error<T>
+   * Lookup721: pallet_xcm_weight_trader::pallet::Error<T>
    **/
   PalletXcmWeightTraderError: {
     _enum: [
@@ -6630,52 +6647,52 @@ export default {
     ]
   },
   /**
-   * Lookup721: pallet_migrations::pallet::Error<T>
+   * Lookup722: pallet_migrations::pallet::Error<T>
    **/
   PalletMigrationsError: {
     _enum: ["Ongoing"]
   },
   /**
-   * Lookup723: cumulus_pallet_weight_reclaim::StorageWeightReclaim<T, S>
+   * Lookup724: cumulus_pallet_weight_reclaim::StorageWeightReclaim<T, S>
    **/
   CumulusPalletWeightReclaimStorageWeightReclaim:
     "(FrameSystemExtensionsCheckNonZeroSender,FrameSystemExtensionsCheckSpecVersion,FrameSystemExtensionsCheckTxVersion,FrameSystemExtensionsCheckGenesis,Era,FrameSystemExtensionsCheckNonce,FrameSystemExtensionsCheckWeight,PalletTransactionPaymentChargeTransactionPayment,FrameMetadataHashExtensionCheckMetadataHash)",
   /**
-   * Lookup725: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T>
+   * Lookup726: frame_system::extensions::check_non_zero_sender::CheckNonZeroSender<T>
    **/
   FrameSystemExtensionsCheckNonZeroSender: "Null",
   /**
-   * Lookup726: frame_system::extensions::check_spec_version::CheckSpecVersion<T>
+   * Lookup727: frame_system::extensions::check_spec_version::CheckSpecVersion<T>
    **/
   FrameSystemExtensionsCheckSpecVersion: "Null",
   /**
-   * Lookup727: frame_system::extensions::check_tx_version::CheckTxVersion<T>
+   * Lookup728: frame_system::extensions::check_tx_version::CheckTxVersion<T>
    **/
   FrameSystemExtensionsCheckTxVersion: "Null",
   /**
-   * Lookup728: frame_system::extensions::check_genesis::CheckGenesis<T>
+   * Lookup729: frame_system::extensions::check_genesis::CheckGenesis<T>
    **/
   FrameSystemExtensionsCheckGenesis: "Null",
   /**
-   * Lookup731: frame_system::extensions::check_nonce::CheckNonce<T>
+   * Lookup732: frame_system::extensions::check_nonce::CheckNonce<T>
    **/
   FrameSystemExtensionsCheckNonce: "Compact<u32>",
   /**
-   * Lookup732: frame_system::extensions::check_weight::CheckWeight<T>
+   * Lookup733: frame_system::extensions::check_weight::CheckWeight<T>
    **/
   FrameSystemExtensionsCheckWeight: "Null",
   /**
-   * Lookup733: pallet_transaction_payment::ChargeTransactionPayment<T>
+   * Lookup734: pallet_transaction_payment::ChargeTransactionPayment<T>
    **/
   PalletTransactionPaymentChargeTransactionPayment: "Compact<u128>",
   /**
-   * Lookup734: frame_metadata_hash_extension::CheckMetadataHash<T>
+   * Lookup735: frame_metadata_hash_extension::CheckMetadataHash<T>
    **/
   FrameMetadataHashExtensionCheckMetadataHash: {
     mode: "FrameMetadataHashExtensionMode"
   },
   /**
-   * Lookup735: frame_metadata_hash_extension::Mode
+   * Lookup736: frame_metadata_hash_extension::Mode
    **/
   FrameMetadataHashExtensionMode: {
     _enum: ["Disabled", "Enabled"]
