@@ -1,7 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { alith, baltathar, beforeAll, describeSuite, ethan, expect } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
-import { alith, baltathar, ethan } from "@moonwall/util";
 import type { FrameSupportPalletId } from "@polkadot/types/lookup";
 
 describeSuite({
@@ -48,7 +47,7 @@ describeSuite({
 
         // Approve treasury spend to Ethan
         const proposal_value = 1_000_000_000_000_000n;
-        const tx = api.tx.treasury.spend(null, proposal_value, ethan.address, null);
+        const tx = api.tx.treasury.spend({ Native: null }, proposal_value, ethan.address, null);
         const signedTx = api.tx.treasuryCouncilCollective.propose(2, tx, 1_000).signAsync(alith);
         const blockResult = await context.createBlock(signedTx, {
           allowFailures: false,

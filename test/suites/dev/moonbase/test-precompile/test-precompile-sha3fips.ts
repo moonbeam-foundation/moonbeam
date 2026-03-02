@@ -1,11 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
+import { describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D022752",
   title: "Precompiles - sha3fips",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     // Test taken from https://github.com/binance-chain/bsc/pull/118
     it({
       id: "T01",

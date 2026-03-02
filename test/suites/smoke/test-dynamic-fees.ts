@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { WEIGHT_PER_GAS, getBlockArray } from "@moonwall/util";
+import { WEIGHT_PER_GAS, beforeAll, describeSuite, expect, getBlockArray } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import type { GenericExtrinsic } from "@polkadot/types";
 import type { u128, u32 } from "@polkadot/types-codec";
 import type {
   EthereumBlock,
-  EthereumReceiptReceiptV3,
+  EthereumReceiptReceiptV4,
   FpRpcTransactionStatus,
   FrameSupportDispatchPerDispatchClassWeight,
   FrameSystemEventRecord,
@@ -37,7 +36,7 @@ type BlockFilteredRecord = {
   transactionStatuses: FpRpcTransactionStatus[];
   weights: FrameSupportDispatchPerDispatchClassWeight;
   events: FrameSystemEventRecord[];
-  receipts: EthereumReceiptReceiptV3[];
+  receipts: EthereumReceiptReceiptV4[];
   normalizedRefTime: Perbill;
   normalizedProofSize: Perbill;
   limitingDimension: string;
@@ -524,7 +523,7 @@ describeSuite({
           return;
         }
 
-        const extractGasAmount = (item: EthereumReceiptReceiptV3) => {
+        const extractGasAmount = (item: EthereumReceiptReceiptV4) => {
           switch (true) {
             case item.isEip1559:
               return item.asEip1559.usedGas.toBigInt();

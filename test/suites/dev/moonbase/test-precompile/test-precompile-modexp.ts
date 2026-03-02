@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { createViemTransaction } from "@moonwall/util";
+import { beforeAll, createViemTransaction, describeSuite, expect } from "moonwall";
 import { hexToU8a, u8aToHex } from "@polkadot/util";
 import {
   expectEVMResult,
@@ -15,7 +14,7 @@ describeSuite({
   id: "D022734",
   title: "Precompiles - modexp",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let hasherAddress: `0x${string}`;
 
     beforeAll(async function () {

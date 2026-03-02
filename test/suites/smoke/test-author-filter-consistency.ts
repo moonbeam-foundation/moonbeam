@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
+import { describeSuite, beforeAll, expect } from "moonwall";
 import type { ApiDecoration } from "@polkadot/api/types";
 import type { ApiPromise } from "@polkadot/api";
 

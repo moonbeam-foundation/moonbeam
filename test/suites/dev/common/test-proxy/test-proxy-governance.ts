@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, VOTE_AMOUNT, dorothy, ethan } from "@moonwall/util";
+import { GLMR, VOTE_AMOUNT, beforeAll, describeSuite, dorothy, ethan, expect } from "moonwall";
 
 const proposalHash = "0xf3d039875302d49d52fb1af6877a2c46bc55b004afb8130f94dd9d0489ca3185";
 
@@ -8,7 +7,7 @@ describeSuite({
   id: "D010504",
   title: "Proxing governance",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         context.polkadotJs().tx.referenda.submit(
@@ -56,9 +55,11 @@ describeSuite({
         );
 
         expect(
-          result?.events.find((event) =>
-            context.polkadotJs().events.proxy.ProxyExecuted.is(event.event)
-          )?.event.data.result.isOk
+          (
+            result?.events.find((event) =>
+              context.polkadotJs().events.proxy.ProxyExecuted.is(event.event)
+            )?.event.data as any
+          ).result.isOk
         ).toBe(true);
 
         // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens

@@ -1,4 +1,4 @@
-import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { customDevRpcRequest, describeSuite, expect } from "moonwall";
 import { encodeFunctionData } from "viem";
 import { createContracts } from "../../helpers";
 

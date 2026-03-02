@@ -5,6 +5,13 @@ on:
   schedule:
     - cron: "0 0 * * *" # Runs every day at 12 AM UTC
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   scout-audit:
     runs-on: ubuntu-latest

@@ -1,11 +1,10 @@
-import { describeSuite, beforeAll, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, createRawTransfer } from "@moonwall/util";
+import { BALTATHAR_ADDRESS, beforeAll, createRawTransfer, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D021106",
   title: "Transaction Index",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(createRawTransfer(context, BALTATHAR_ADDRESS, 0));
     });

@@ -1,13 +1,21 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { MIN_GLMR_DELEGATOR, MIN_GLMR_STAKING, alith, baltathar, ethan } from "@moonwall/util";
+import {
+  MIN_GLMR_DELEGATOR,
+  MIN_GLMR_STAKING,
+  alith,
+  baltathar,
+  beforeAll,
+  describeSuite,
+  ethan,
+  expect,
+} from "moonwall";
 import { jumpRounds } from "../../../../helpers";
 
 describeSuite({
   id: "D023360",
   title: "Staking - Rewards Auto-Compound - delegator revoke",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await context.createBlock(
         [

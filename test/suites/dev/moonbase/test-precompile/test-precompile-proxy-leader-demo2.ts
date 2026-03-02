@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import { expectEVMResult, setupPoolWithParticipants } from "../../../../helpers";
 
 describeSuite({
   id: "D022740",
   title: "Proxy Leader Demo - Start Voting",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let leaderContractAddress: `0x${string}`;
 
     beforeAll(async function () {

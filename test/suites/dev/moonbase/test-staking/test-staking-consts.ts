@@ -1,21 +1,23 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   GLMR,
-  type KeyringPair,
   MIN_GLMR_DELEGATOR,
   MIN_GLMR_STAKING,
   alith,
+  beforeAll,
+  describeSuite,
+  expect,
   generateKeyringPair,
-} from "@moonwall/util";
+} from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { chunk } from "../../../../helpers";
 
 describeSuite({
   id: "D023373",
   title: "Staking - Consts - MaxDelegationsPerDelegator",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
     let randomCandidates: KeyringPair[];
     let maxDelegationsPerDelegator: bigint;

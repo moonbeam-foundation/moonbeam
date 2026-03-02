@@ -1,7 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, createRawTransfer, sendRawTransaction } from "@moonwall/util";
-import { getBlockWithRetry } from "../../../../helpers/eth-transactions";
+import {
+  BALTATHAR_ADDRESS,
+  createRawTransfer,
+  describeSuite,
+  expect,
+  sendRawTransaction,
+} from "moonwall";
+import { getBlockWithRetry } from "helpers";
 
 describeSuite({
   id: "D023803",

@@ -5,14 +5,14 @@ import {
   expect,
   deployCreateCompiledContract,
   beforeAll,
-} from "@moonwall/cli";
+} from "moonwall";
 import { ConstantStore, EIP_7825_MAX_TRANSACTION_GAS_LIMIT } from "../../../../helpers";
 
 describeSuite({
   id: "D010103",
   title: "Block creation - suite 2",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let specVersion: number;
     beforeAll(async () => {
       specVersion = (await context.polkadotJs().runtimeVersion.specVersion).toNumber();

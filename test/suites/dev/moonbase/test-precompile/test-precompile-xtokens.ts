@@ -1,13 +1,16 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  GLMR,
-  PRECOMPILES,
-  createViemTransaction,
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
-} from "@moonwall/util";
+  GLMR,
+  PRECOMPILES,
+  beforeAll,
+  createViemTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import {
   verifyLatestBlockFees,
   expectEVMResult,
@@ -19,7 +22,7 @@ describeSuite({
   id: "D022779",
   title: "Precompiles - xtokens",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async function () {
       await context.deployContract!("XTokensInstance");
     });
@@ -233,9 +236,10 @@ describeSuite({
           to: PRECOMPILES.Xtokens,
           value: 0n,
           data,
-          txnType: "legacy",
+          txnType: "eip1559",
           gas: 500_000n,
-          gasPrice: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
+          maxFeePerGas: BigInt(DEFAULT_TXN_MAX_BASE_FEE),
+          maxPriorityFeePerGas: 0n,
           privateKey: CHARLETH_PRIVATE_KEY,
         });
 
@@ -247,7 +251,7 @@ describeSuite({
 
         expectEVMResult(result!.events, "Succeed");
 
-        const fees = receipt.gasUsed * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
+        const fees = receipt.gasUsed * receipt.effectiveGasPrice;
         expect(balBefore - balAfter).to.equal(amountTransferred + fees);
         await verifyLatestBlockFees(context, amountTransferred);
       },

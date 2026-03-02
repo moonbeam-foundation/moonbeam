@@ -1,10 +1,5 @@
-import type { DevModeContext } from "@moonwall/cli";
-import {
-  BALTATHAR_PRIVATE_KEY,
-  CHARLETH_PRIVATE_KEY,
-  DOROTHY_PRIVATE_KEY,
-  alith,
-} from "@moonwall/util";
+import type { DevModeContext } from "moonwall";
+import { BALTATHAR_PRIVATE_KEY, CHARLETH_PRIVATE_KEY, DOROTHY_PRIVATE_KEY, alith } from "moonwall";
 import type { PalletRandomnessRandomnessResult } from "@polkadot/types/lookup";
 import { nToHex } from "@polkadot/util";
 import { fromBytes, parseEther } from "viem";

@@ -1,5 +1,4 @@
-import type { BlockCreation, DevModeContext, PrecompileCallOptions } from "@moonwall/cli";
-import type { KeyringPair } from "@moonwall/util";
+import type { BlockCreation, DevModeContext, KeyringPair, PrecompileCallOptions } from "moonwall";
 
 class PrecompileContract {
   precompileName: string;

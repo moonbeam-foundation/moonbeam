@@ -1,14 +1,19 @@
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
-import { hexToNumber, parseEther } from "viem";
+import {
+  ALITH_ADDRESS,
+  CHARLETH_ADDRESS,
+  alith,
+  beforeAll,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+} from "moonwall";
+import { parseEther } from "viem";
 import {
   ERC20_TOTAL_SUPPLY,
   XcmFragment,
   type XcmFragmentConfig,
   expectEVMResult,
-  injectEncodedHrmpMessageAndSeal,
   injectHrmpMessage,
-  injectHrmpMessageAndSeal,
   sovereignAccountOfSibling,
 } from "../../helpers";
 
@@ -19,7 +24,6 @@ describeSuite({
   testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
     let eventEmitterAddress: `0x${string}`;
-    let ethXcmTxHash: string;
     let regularEthTxHash: string;
     let deployBlockNumber: number;
     beforeAll(async () => {
@@ -122,7 +126,7 @@ describeSuite({
 
       // By calling deployContract() a new block will be created,
       // including the ethereum-xcm transaction (on_initialize) + regular ethereum transaction
-      const { contractAddress: eventEmitterAddress_ } = await context.deployContract!(
+      const { contractAddress: eventEmitterAddress_, hash } = await context.deployContract!(
         "EventEmitter",
         {
           from: alith.address,
@@ -134,7 +138,7 @@ describeSuite({
       ).block.header.number.toNumber();
 
       // The old buggy runtime rollback the eth-xcm tx because XCM executor rollback evm reverts
-      regularEthTxHash = (await context.viem().getBlock()).transactions[0];
+      regularEthTxHash = hash;
 
       // Compute XCM message ID
       const messageHash = context.polkadotJs().createType("XcmVersionedXcm", failedXcmMessage).hash;

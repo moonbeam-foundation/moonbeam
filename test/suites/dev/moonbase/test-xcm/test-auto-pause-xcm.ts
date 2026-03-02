@@ -1,8 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import {
+  beforeAll,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 
 import type { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,

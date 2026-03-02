@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, createEthersTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  beforeAll,
+  createEthersTransaction,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { type Abi, encodeFunctionData } from "viem";
 import { expectEVMResult, type HeavyContract, deployHeavyContracts } from "../../../../helpers";
 

@@ -1,6 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  beforeAll,
+  beforeEach,
+  describeSuite,
+  expect,
+  extractSingleResult,
+} from "moonwall";
 import {
   jumpBlocks,
   expectEVMResult,
@@ -13,7 +19,7 @@ describeSuite({
   id: "D022712",
   title: "Precompiles - Ended proposal",
   foundationMethods: "dev",
-  testCases: ({ it, log, context }) => {
+  testCases: ({ it, context }) => {
     let proposalIndex: number;
     let convictionVoting: ConvictionVoting;
 
@@ -52,8 +58,10 @@ describeSuite({
       title: `should failed to be removed without track info`,
       test: async function () {
         const block = await convictionVoting.withGas(2_000_000n).removeVote(proposalIndex).block();
-        expectEVMResult(block.result!.events, "Revert", "Reverted");
-        expect(await extractRevertReason(context, block.result!.hash)).to.contain("ClassNeeded");
+        expectEVMResult(extractSingleResult(block.result).events, "Revert", "Reverted");
+        expect(
+          await extractRevertReason(context, extractSingleResult(block.result).hash)
+        ).to.contain("ClassNeeded");
       },
     });
 
@@ -62,7 +70,7 @@ describeSuite({
       title: `should be removable by specifying the track`,
       test: async function () {
         const block = await convictionVoting.removeVoteForTrack(proposalIndex, 1).block();
-        expectEVMResult(block.result!.events, "Succeed");
+        expectEVMResult(extractSingleResult(block.result).events, "Succeed");
       },
     });
   },

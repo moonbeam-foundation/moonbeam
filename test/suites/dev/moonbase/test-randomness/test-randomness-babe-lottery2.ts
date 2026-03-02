@@ -1,5 +1,4 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
@@ -8,9 +7,13 @@ import {
   GLMR,
   MILLIGLMR,
   baltathar,
+  beforeAll,
   charleth,
+  describeSuite,
   dorothy,
-} from "@moonwall/util";
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { type TransactionReceipt, decodeEventLog } from "viem";
 import {
   fakeBabeResultTransaction,
@@ -21,7 +24,7 @@ describeSuite({
   id: "D023002",
   title: "Randomness Babe - Lottery Demo",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let lotteryAddress: `0x${string}`;
     let fulFillReceipt: TransactionReceipt;
 

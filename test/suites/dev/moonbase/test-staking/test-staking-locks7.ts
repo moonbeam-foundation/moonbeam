@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, MIN_GLMR_DELEGATOR, alith, generateKeyringPair } from "@moonwall/util";
+import {
+  GLMR,
+  MIN_GLMR_DELEGATOR,
+  alith,
+  beforeAll,
+  describeSuite,
+  expect,
+  generateKeyringPair,
+} from "moonwall";
 import {
   jumpRounds,
   getDelegatorStakingFreeze,
@@ -12,7 +19,7 @@ describeSuite({
   id: "D023382",
   title: "Staking - Freezes - execute revoke",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const randomAccount = generateKeyringPair();
 
     beforeAll(async function () {

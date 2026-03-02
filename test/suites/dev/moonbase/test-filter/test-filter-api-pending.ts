@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { customDevRpcRequest, describeSuite, expect } from "@moonwall/cli";
+import { customDevRpcRequest, describeSuite, expect } from "moonwall";
 import { fromHex } from "viem";
 
 describeSuite({
   id: "D021602",
   title: "Filter Pending Transaction API",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ it }) => {
     it({
       id: "T01",
       title: "should not be supported",

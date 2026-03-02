@@ -11,6 +11,13 @@ on:
         description: docker tag to apply to the image
         required: true
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   ####### Building binaries #######
 
