@@ -234,7 +234,7 @@ substrate-rpc-client = { git = "https://github.com/moonbeam-foundation/polkadot-
 
 # Frontier (wasm)
 
-ethereum = { version = "0.18.2", default-features = false, features = [
+ethereum = { git = "https://github.com/moonbeam-foundation/ethereum", branch = "moonbeam-polkadot-stable2506", default-features = false, features = [
     "with-scale",
 ] }
 ethereum-types = { version = "0.15.1", default-features = false }
@@ -360,7 +360,9 @@ nimbus-consensus = { git = "https://github.com/Moonsong-Labs/moonkit", branch = 
 async-trait = { version = "0.1.42" }
 derive_more = "0.99.17"
 environmental = { version = "1.1.4", default-features = false }
-frame-metadata = { version = "23.0.0", default-features = false, features = ["current"] }
+frame-metadata = { version = "23.0.0", default-features = false, features = [
+    "current",
+] }
 frame-metadata-hash-extension = { git = "https://github.com/moonbeam-foundation/polkadot-sdk", branch = "moonbeam-polkadot-stable2506", default-features = false }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.4.1", default-features = false }

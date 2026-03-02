@@ -1,12 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, generateKeyringPair } from "@moonwall/util";
+import { GLMR, beforeAll, describeSuite, expect, generateKeyringPair } from "moonwall";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { u8aToHex } from "@polkadot/util";
 import { expectEVMResult, descendOriginFromAddress20, ConstantStore } from "../../../../helpers";
 
 // See `pallet_xcm_benchmarks_generic::clear_origin` in the Moonbase runtime weights.
-export const CLEAR_ORIGIN_WEIGHT = 7_000_000n;
+export const CLEAR_ORIGIN_WEIGHT = 889_000n;
 
 describeSuite({
   id: "D022778",

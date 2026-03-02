@@ -1,5 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { type DevModeContext, expect } from "@moonwall/cli";
+import type { DevModeContext } from "moonwall";
+import { expect } from "moonwall";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type {
   EvmCoreErrorExitError,

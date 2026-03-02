@@ -24,6 +24,13 @@ env:
   NODE_OPTIONS: "--max-old-space-size=12288"
   GRCOV_VERSION: 0.8.18
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   ####### Check files and formatting #######
 
@@ -136,7 +143,7 @@ jobs:
       - name: Enable coverage gathering
         run: |
           # Enable coverage when running tests
-          echo "LLVM_PROFILE_FILE=$(pwd)/proffiles/default_%m_%p.profraw" >> $GITHUB_ENV
+          echo "LLVM_PROFILE_FILE=$(pwd)/proffiles/default_%m.profraw" >> $GITHUB_ENV
       - name: Unit tests
         run: |
           # curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash

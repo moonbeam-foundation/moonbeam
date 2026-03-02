@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite } from "@moonwall/cli";
-import { ALITH_PRIVATE_KEY } from "@moonwall/util";
+import { ALITH_PRIVATE_KEY, beforeAll, describeSuite } from "moonwall";
 import { fromBytes } from "viem";
 import {
   verifyLatestBlockFees,
@@ -13,7 +12,7 @@ describeSuite({
   id: "D022777",
   title: "Precompiles - xcm transactor V3",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       await registerXcmTransactorAndContract(context);
     });

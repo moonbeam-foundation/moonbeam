@@ -9,6 +9,13 @@ on:
         description: "Polkadot version to bump to (ex: v1.7.2)"
         required: true
 
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
 jobs:
   create_bump_ticket:
     runs-on: ubuntu-latest

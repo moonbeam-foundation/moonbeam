@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { createViemTransaction } from "@moonwall/util";
+import { createViemTransaction, describeSuite, expect } from "moonwall";
 import { ConstantStore, EIP_7825_MAX_TRANSACTION_GAS_LIMIT } from "../../../../helpers";
 import { hexToU8a } from "@polkadot/util";
 import { calculateEIP7623Gas } from "../../../../helpers/fees";
@@ -9,7 +8,7 @@ describeSuite({
   id: "D021507",
   title: "Substrate Length Fees - Ethereum txn Interaction",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should not charge length fee for precompile from Ethereum txn",

@@ -18,8 +18,9 @@
 
 extern crate alloc;
 
-use crate::{AssetStatus, AssetsById, Call, Config, Pallet};
+use crate::{AssetStatus, AssetsById, Call, Config, Pallet, PendingDeposits};
 use alloc::format;
+use ethereum_types::{H160, U256};
 use frame_benchmarking::v2::*;
 use frame_support::pallet_prelude::*;
 use frame_system::RawOrigin;
@@ -232,6 +233,38 @@ mod benchmarks {
 			Pallet::<T>::assets_by_location(location_of(asset_id)),
 			Some((asset_id, AssetStatus::Active))
 		);
+
+		Ok(())
+	}
+
+	#[benchmark]
+	fn claim_pending_deposit() -> Result<(), BenchmarkError> {
+		let asset_id = 1u128;
+		let symbol = format!("MT{}", asset_id);
+		let name = format!("Mytoken{}", asset_id);
+
+		Pallet::<T>::create_foreign_asset(
+			RawOrigin::Root.into(),
+			asset_id,
+			location_of(asset_id),
+			18,
+			str_to_bv(&symbol),
+			str_to_bv(&name),
+		)?;
+
+		let beneficiary = H160([1u8; 20]);
+		let amount = U256::from(1_000_000u128);
+
+		// Insert a pending deposit directly into storage
+		PendingDeposits::<T>::insert(asset_id, beneficiary, amount);
+
+		let caller: T::AccountId = frame_benchmarking::whitelisted_caller();
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(caller), asset_id, beneficiary);
+
+		// Verify pending deposit was cleared
+		assert_eq!(PendingDeposits::<T>::get(asset_id, beneficiary), None);
 
 		Ok(())
 	}

@@ -1,14 +1,17 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   ETHAN_ADDRESS,
   ETHAN_PRIVATE_KEY,
   FAITH_ADDRESS,
   FAITH_PRIVATE_KEY,
   PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
+  beforeAll,
   createViemTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
   getBlockExtrinsic,
-} from "@moonwall/util";
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 import { originalKeys, setAuthorMappingKeysViaPrecompile } from "../../../../helpers";
 
@@ -16,7 +19,7 @@ describeSuite({
   id: "D010406",
   title: "Precompile Author Mapping - Update someone else nimbus key",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     const concatOriginalKeys = `0x${originalKeys.map((key) => key.slice(2)).join("")}`;
 
     beforeAll(async function () {

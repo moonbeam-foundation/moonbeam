@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { alith, beforeAll, describeSuite, expect } from "moonwall";
 
 import { BN } from "@polkadot/util";
-import { alith } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
@@ -34,8 +33,8 @@ const STATEMINT_LOCATION = {
       X3: [
         { Parachain: statemint_para_id },
         { PalletInstance: statemint_assets_pallet_instance },
-        { GeneralIndex: 0 },
-      ],
+        { GeneralIndex: 0n },
+      ] as [{ Parachain: number }, { PalletInstance: number }, { GeneralIndex: bigint }],
     },
   },
 };

@@ -1139,6 +1139,67 @@ fn permit_invalid_deadline() {
 		});
 }
 
+#[test]
+fn permit_expired_deadline_milliseconds() {
+	ExtBuilder::default()
+		.with_balances(vec![(CryptoAlith.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			let one_second = 1;
+
+			let owner: H160 = CryptoAlith.into();
+			let spender: H160 = Bob.into();
+			let value: U256 = 500u16.into();
+			let deadline: U256 = one_second.into();
+
+			let permit = Eip2612::<Runtime, NativeErc20Metadata>::generate_permit(
+				Precompile1.into(),
+				owner,
+				spender,
+				value,
+				0u8.into(), // nonce
+				deadline,
+			);
+
+			let secret_key = SecretKey::parse(&alith_secret_key()).unwrap();
+			let message = Message::parse(&permit);
+			let (rs, v) = sign(&message, &secret_key);
+
+			// (deadline_ms + 1ms) = should revert with "Permit expired"
+			pallet_timestamp::Pallet::<Runtime>::set_timestamp((one_second * 1000) + 1);
+
+			precompiles()
+				.prepare_test(
+					Charlie, // can be anyone
+					Precompile1,
+					PCall::eip2612_permit {
+						owner: Address(owner),
+						spender: Address(spender),
+						value,
+						deadline,
+						v: v.serialize(),
+						r: rs.r.b32().into(),
+						s: rs.s.b32().into(),
+					},
+				)
+				.execute_reverts(|output| output == b"Permit expired");
+
+			// Allowance should remain zero
+			precompiles()
+				.prepare_test(
+					CryptoAlith,
+					Precompile1,
+					PCall::allowance {
+						owner: Address(CryptoAlith.into()),
+						spender: Address(Bob.into()),
+					},
+				)
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns(U256::from(0u16));
+		});
+}
+
 // This test checks the validity of a metamask signed message against the permit precompile
 // The code used to generate the signature is the following.
 // You will need to import ALICE_PRIV_KEY in metamask.

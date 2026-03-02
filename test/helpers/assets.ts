@@ -1,10 +1,10 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { u8aToHex } from "@polkadot/util";
-import type { DevModeContext } from "@moonwall/cli";
+import type { DevModeContext } from "moonwall";
 import { blake2AsU8a, xxhashAsU8a } from "@polkadot/util-crypto";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import { encodeFunctionData, parseAbi } from "viem";
-import { alith } from "@moonwall/util";
+import { alith } from "moonwall";
 
 export const EVM_FOREIGN_ASSETS_PALLET_ACCOUNT = "0x6d6f646c666f7267617373740000000000000000";
 export const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;

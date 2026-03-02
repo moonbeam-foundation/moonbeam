@@ -1,8 +1,7 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { alith, beforeAll, describeSuite, expect, generateKeyringPair } from "moonwall";
 
 import type { KeyringPair } from "@polkadot/keyring/types";
-import { generateKeyringPair, alith } from "@moonwall/util";
 import {
   XcmFragment,
   type RawXcmMessage,
@@ -14,7 +13,7 @@ describeSuite({
   id: "D024111",
   title: "Mock XCM - transact ETHEREUM (non-proxy) disabled switch",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let transferredBalance: bigint;
     let sendingAddress: `0x${string}`;
     let descendAddress: `0x${string}`;

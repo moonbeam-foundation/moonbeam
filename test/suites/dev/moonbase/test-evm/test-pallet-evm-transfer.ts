@@ -1,11 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
   BALTATHAR_ADDRESS,
   DEFAULT_GENESIS_BALANCE,
   baltathar,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 
 // A call from root (sudo) can make a transfer directly in pallet_evm
 // A signed call cannot make a transfer directly in pallet_evm
@@ -40,9 +41,9 @@ describeSuite({
             .catch((e) => e.toString())
         ).to.equal("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
 
-        expect(await context.viem().getBalance({ address: baltathar.address })).to.equal(
-          DEFAULT_GENESIS_BALANCE
-        );
+        expect(
+          await context.viem().getBalance({ address: baltathar.address as `0x${string}` })
+        ).to.equal(DEFAULT_GENESIS_BALANCE);
       },
     });
 
@@ -77,9 +78,9 @@ describeSuite({
               section === "system" && method === "ExtrinsicSuccess"
           )
         ).to.exist;
-        expect(await context.viem().getBalance({ address: baltathar.address })).to.equal(
-          DEFAULT_GENESIS_BALANCE + 100_000_000_000_000_000_000n
-        );
+        expect(
+          await context.viem().getBalance({ address: baltathar.address as `0x${string}` })
+        ).to.equal(DEFAULT_GENESIS_BALANCE + 100_000_000_000_000_000_000n);
       },
     });
   },

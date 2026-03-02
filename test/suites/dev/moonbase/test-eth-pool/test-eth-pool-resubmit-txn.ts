@@ -1,11 +1,13 @@
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
-  createRawTransfer,
   GLMR,
+  beforeEach,
+  createRawTransfer,
+  describeSuite,
+  expect,
   sendRawTransaction,
-} from "@moonwall/util";
+} from "moonwall";
 import { parseGwei } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
@@ -13,7 +15,7 @@ describeSuite({
   id: "D021005",
   title: "Resubmit transations",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let randomAddress: `0x${string}`;
     let currentNonce: number;
     let actorPrivateKey: `0x${string}`;
@@ -122,7 +124,7 @@ describeSuite({
           )
         );
 
-        await context.createBlock(txns);
+        await context.createBlock(txns as any);
 
         expect((await context.viem().getBalance({ address: actorAddress })) / GLMR).to.equal(
           addressGLMR - 21000n * 20n

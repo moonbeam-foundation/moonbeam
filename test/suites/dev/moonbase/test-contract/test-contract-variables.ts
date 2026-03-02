@@ -1,10 +1,10 @@
-import { beforeAll, describeSuite, expect } from "@moonwall/cli";
+import { beforeAll, describeSuite, expect } from "moonwall";
 
 describeSuite({
   id: "D020509",
   title: "Block Contract - Block variables",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let blockContract: `0x${string}`;
 
     beforeAll(async function () {
@@ -32,7 +32,7 @@ describeSuite({
       id: "T02",
       title: "should return parent block number + 1 when accessed by RPC call",
       test: async function () {
-        const block = await context.viem().getBlock();
+        const header = await context.polkadotJs().rpc.chain.getHeader();
         expect(
           await context.readContract!({
             contractName: "BlockVariables",
@@ -46,7 +46,7 @@ describeSuite({
             contractAddress: blockContract,
             functionName: "getNumber",
           })
-        ).toBe(block.number);
+        ).toBe(header.number.toBigInt());
       },
     });
 

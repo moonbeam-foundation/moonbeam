@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite } from "@moonwall/cli";
+import { expect, describeSuite } from "moonwall";
 
 describeSuite({
   id: "D020703",

@@ -1,14 +1,19 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, BALTATHAR_ADDRESS, createEthersTransaction } from "@moonwall/util";
-import type { EthereumTransactionTransactionV2 } from "@polkadot/types/lookup";
+import {
+  ALITH_ADDRESS,
+  BALTATHAR_ADDRESS,
+  createEthersTransaction,
+  describeSuite,
+  expect,
+} from "moonwall";
+import type { EthereumTransactionTransactionV3 } from "@polkadot/types/lookup";
 import { DEFAULT_TXN_MAX_BASE_FEE } from "../../../../helpers";
 
 describeSuite({
   id: "D021204",
   title: "Ethereum Transaction - Legacy",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should contain valid legacy Ethereum data",
@@ -26,7 +31,7 @@ describeSuite({
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
         const extrinsic = signedBlock.block.extrinsics.find(
           (ex) => ex.method.section === "ethereum"
-        )!.args[0] as EthereumTransactionTransactionV2;
+        )!.args[0] as EthereumTransactionTransactionV3;
 
         expect(extrinsic.isLegacy).to.be.true;
 
@@ -68,7 +73,7 @@ describeSuite({
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
         const extrinsic = signedBlock.block.extrinsics.find(
           (ex) => ex.method.section === "ethereum"
-        )!.args[0] as EthereumTransactionTransactionV2;
+        )!.args[0] as EthereumTransactionTransactionV3;
 
         expect(extrinsic.isEip2930).to.be.true;
 
@@ -112,7 +117,7 @@ describeSuite({
         const signedBlock = await context.polkadotJs().rpc.chain.getBlock();
         const extrinsic = signedBlock.block.extrinsics.find(
           (ex) => ex.method.section === "ethereum"
-        )!.args[0] as EthereumTransactionTransactionV2;
+        )!.args[0] as EthereumTransactionTransactionV3;
 
         expect(extrinsic.isEip1559).to.be.true;
 

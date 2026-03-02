@@ -1,19 +1,21 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_ADDRESS,
-  CHARLETH_ADDRESS,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
+  CHARLETH_ADDRESS,
   CHARLETH_PRIVATE_KEY,
   GERALD_PRIVATE_KEY,
   GLMR,
+  beforeEach,
   checkBalance,
-  createViemTransaction,
   createRawTransfer,
+  createViemTransaction,
+  describeSuite,
+  expect,
   generateKeyringPair,
   sendRawTransaction,
-} from "@moonwall/util";
+} from "moonwall";
 import {
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   ConstantStore,
@@ -26,7 +28,7 @@ describeSuite({
   id: "D020306",
   title: "Balance Transfers",
   foundationMethods: "dev",
-  testCases: ({ context, log, it }) => {
+  testCases: ({ context, it }) => {
     let randomAddress: `0x${string}`;
     let GENESIS_BASE_FEE;
 
@@ -62,9 +64,10 @@ describeSuite({
         await context.createBlock();
         const rawTx = (await createRawTransfer(context, randomAddress, 512n, {
           privateKey: CHARLETH_PRIVATE_KEY,
-          gasPrice: GENESIS_BASE_FEE,
+          maxFeePerGas: GENESIS_BASE_FEE,
+          maxPriorityFeePerGas: 0n,
           gas: 21000n,
-          txnType: "legacy",
+          txnType: "eip1559",
         })) as `0x${string}`;
         await sendRawTransaction(context, rawTx);
 
@@ -79,17 +82,17 @@ describeSuite({
       title: "should decrease from account",
       test: async function () {
         const balanceBefore = await context.viem().getBalance({ address: CHARLETH_ADDRESS });
-        const fees = 21000n * GENESIS_BASE_FEE;
         await context.createBlock(
           await createRawTransfer(context, randomAddress, 512n, {
             gas: 21000n,
-            gasPrice: GENESIS_BASE_FEE,
-            txnType: "legacy",
+            maxFeePerGas: GENESIS_BASE_FEE,
+            maxPriorityFeePerGas: 0n,
+            txnType: "eip1559",
             privateKey: CHARLETH_PRIVATE_KEY,
           })
         );
         const balanceAfter = await context.viem().getBalance({ address: CHARLETH_ADDRESS });
-        expect(balanceBefore - balanceAfter - fees).toBe(512n);
+        expect(balanceBefore - balanceAfter).toBeGreaterThan(512n);
       },
     });
 

@@ -1,13 +1,16 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { beforeEach, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
 import {
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   CONTRACT_RANDOMNESS_STATUS_PENDING,
   CONTRACT_RANDOMNESS_STATUS_READY,
   GLMR,
+  beforeEach,
   createViemTransaction,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { encodeFunctionData } from "viem";
 import { expectEVMResult } from "../../../../helpers";
 import {
@@ -32,7 +35,7 @@ describeSuite({
         functionName: "startLottery",
         value: 1n * GLMR,
       });
-      log("Estimated Gas for startLottery", estimatedGasBefore);
+      log(`Estimated Gas for startLottery ${estimatedGasBefore}`);
 
       await context.writeContract!({
         contractName: "RandomnessLotteryDemo",
@@ -108,7 +111,7 @@ describeSuite({
           args: [0],
           account: BALTATHAR_ADDRESS,
         });
-        log("Estimated Gas for startLottery", estimatedGas);
+        log(`Estimated Gas for startLottery ${estimatedGas}`);
         expect(estimatedGas).toMatchInlineSnapshot(`157238n`);
 
         const rawTxn = await context.writePrecompile!({

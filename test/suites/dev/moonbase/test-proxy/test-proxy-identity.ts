@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { GLMR, type KeyringPair, alith, generateKeyringPair } from "@moonwall/util";
+import { GLMR, alith, beforeEach, describeSuite, expect, generateKeyringPair } from "moonwall";
+import type { KeyringPair } from "@polkadot/keyring/types";
 import { BN, u8aToU8a } from "@polkadot/util";
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type { ApiPromise } from "@polkadot/api";
@@ -22,7 +22,7 @@ describeSuite({
   id: "D022901",
   title: "Proxy : IdentityJudgement",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let identityHash: `0x${string}`;
     let signer: KeyringPair;
 
@@ -48,7 +48,12 @@ describeSuite({
         context.polkadotJs().tx.identity.setIdentity(identityData).signAsync(signer),
       ]);
 
-      block.result?.forEach((r, idx) => {
+      const results = Array.isArray(block.result)
+        ? block.result
+        : block.result
+          ? [block.result]
+          : [];
+      results.forEach((r, idx) => {
         expect(r.successful, `tx[${idx}] - ${r.error?.name}`).to.be.true;
       });
 
@@ -97,14 +102,17 @@ describeSuite({
         );
 
         expect(blockAdd.result?.successful).to.be.true;
-        const proxyAddEvent = blockAdd.result?.events.reduce((acc, e) => {
-          if (context.polkadotJs().events.proxy.ProxyAdded.is(e.event)) {
-            acc.push({
-              proxyType: e.event.data[2].toString(),
-            });
-          }
-          return acc;
-        }, []);
+        const proxyAddEvent = blockAdd.result?.events.reduce(
+          (acc, e) => {
+            if (context.polkadotJs().events.proxy.ProxyAdded.is(e.event)) {
+              acc.push({
+                proxyType: e.event.data[2].toString(),
+              });
+            }
+            return acc;
+          },
+          [] as { proxyType: string }[]
+        );
         expect(proxyAddEvent).to.deep.equal([
           {
             proxyType: "IdentityJudgement",
@@ -142,7 +150,10 @@ describeSuite({
             }
             return acc;
           },
-          { proxyExecuted: null, judgementGiven: null }
+          {
+            proxyExecuted: null as string | null,
+            judgementGiven: null as { address: string; decision: string } | null,
+          }
         );
         expect(proxyExecuteEvent).to.deep.equal({
           proxyExecuted: "Ok",

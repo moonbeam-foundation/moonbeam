@@ -1,5 +1,11 @@
-import { beforeEach, describeSuite, expect } from "@moonwall/cli";
-import { ALITH_ADDRESS, CHARLETH_ADDRESS, alith } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  CHARLETH_ADDRESS,
+  alith,
+  beforeEach,
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { parseEther } from "ethers";
 import { expectEVMResult } from "../../../../helpers";
@@ -17,7 +23,7 @@ describeSuite({
   id: "D024018",
   title: "Mock XCM - Fails trying to pay fees with ERC20",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     let erc20ContractAddress: string;
     let polkadotJs: ApiPromise;
 

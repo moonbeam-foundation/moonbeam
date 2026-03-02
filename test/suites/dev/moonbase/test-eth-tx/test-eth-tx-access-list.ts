@@ -1,6 +1,11 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, deployCreateCompiledContract, describeSuite, expect } from "@moonwall/cli";
-import { createViemTransaction } from "@moonwall/util";
+import {
+  beforeAll,
+  createViemTransaction,
+  deployCreateCompiledContract,
+  describeSuite,
+  expect,
+} from "moonwall";
 import { error } from "node:console";
 
 describeSuite({
@@ -48,11 +53,10 @@ describeSuite({
             ],
           });
 
-          await context.createBlock(txWithAL);
-          const block = await context.viem().getBlock();
+          const { result } = await context.createBlock(txWithAL);
           const receipt = await context
             .viem()
-            .getTransactionReceipt({ hash: block.transactions[0] as `0x${string}` });
+            .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
           const gasCostWithAL = receipt.gasUsed;
           const txSize = txWithAL.length;
 
@@ -112,11 +116,10 @@ describeSuite({
             accessList,
           });
 
-          await context.createBlock(txWithAL);
-          const block = await context.viem().getBlock();
+          const { result } = await context.createBlock(txWithAL);
           const receipt = await context
             .viem()
-            .getTransactionReceipt({ hash: block.transactions[0] as `0x${string}` });
+            .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
           const gasCostWithAL = receipt.gasUsed;
           const txSize = txWithAL.length;
 
@@ -160,7 +163,7 @@ describeSuite({
         try {
           await context.viem().sendRawTransaction({ serializedTransaction: bigTxWithAL });
           error("Transaction should not have been gossiped");
-        } catch (e) {
+        } catch (e: any) {
           expect(e.message).toContain("exceeds block gas limit");
         }
       },

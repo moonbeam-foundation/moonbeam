@@ -1,11 +1,10 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import { TEN_MINS, beforeAll, describeSuite, expect } from "moonwall";
 import type { BN } from "@polkadot/util";
 import type { QueryableStorageEntry } from "@polkadot/api/types";
 import type { u32 } from "@polkadot/types";
 import type { AccountId20 } from "@polkadot/types/interfaces";
 import type { ApiPromise } from "@polkadot/api";
-import { TEN_MINS } from "@moonwall/util";
 import { rateLimiter } from "../../helpers/common.js";
 
 const limiter = rateLimiter();

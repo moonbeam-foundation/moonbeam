@@ -1,6 +1,13 @@
 import "@moonbeam-network/api-augment";
-import { MoonwallContext, beforeAll, describeSuite, expect } from "@moonwall/cli";
-import { BALTATHAR_ADDRESS, alith, charleth } from "@moonwall/util";
+import {
+  BALTATHAR_ADDRESS,
+  MoonwallContext,
+  alith,
+  beforeAll,
+  charleth,
+  describeSuite,
+  expect,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 import { ethers } from "ethers";
 import fs from "node:fs";
@@ -89,7 +96,7 @@ describeSuite({
           paraApi.tx.balances
             .transferAllowDeath(BALTATHAR_ADDRESS, ethers.parseEther("2"))
             .signAndSend(charleth, ({ status, events }) => {
-              log("Transaction status: ", status.toHuman());
+              log(`Transaction status: ${JSON.stringify(status.toHuman())}`);
 
               if (status.isFinalized) {
                 log("Transaction is finalized!");
@@ -111,7 +118,7 @@ describeSuite({
         const balAfter = (
           await paraApi.query.system.account(BALTATHAR_ADDRESS)
         ).data.free.toBigInt();
-        expect(balBefore, `${balBefore} is not less than ${balAfter}`).to.be.lessThan(balAfter);
+        expect(balBefore < balAfter, `${balBefore} is not less than ${balAfter}`).to.be.true;
       },
     });
 
@@ -119,18 +126,22 @@ describeSuite({
       id: "T04",
       title: "Tags are present on emulated Ethereum blocks",
       test: async () => {
-        expect(
-          (await context.ethers().provider?.getBlock("safe"))?.number,
-          "Safe tag is not present"
-        ).to.be.greaterThan(0);
-        expect(
-          (await context.ethers().provider?.getBlock("finalized"))?.number,
-          "Finalized tag is not present"
-        ).to.be.greaterThan(0);
-        expect(
-          (await context.ethers().provider?.getBlock("latest"))?.number,
-          "Latest tag is not present"
-        ).to.be.greaterThan(0);
+        const waitForTag = async (tag: "safe" | "finalized", maxAttempts = 15) => {
+          for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            const block = await context.ethers().provider?.getBlock(tag);
+            if (typeof block?.number === "number" && block.number > 0) {
+              return block.number;
+            }
+            await context.waitBlock(1);
+          }
+          return undefined;
+        };
+
+        expect(await waitForTag("safe"), "Safe tag is not present").to.be.greaterThan(0);
+        expect(await waitForTag("finalized"), "Finalized tag is not present").to.be.greaterThan(0);
+        const latestBlock = await context.ethers().provider?.getBlock("latest");
+        expect(latestBlock, "Latest tag is not present").to.not.equal(null);
+        expect(latestBlock?.number, "Latest tag is not present").to.be.greaterThan(0);
       },
     });
   },

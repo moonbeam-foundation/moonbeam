@@ -1,19 +1,20 @@
 import "@moonbeam-network/api-augment/moonbase";
-import { describeSuite, expect } from "@moonwall/cli";
 import {
   ALITH_PRIVATE_KEY,
   BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   GLMR,
   alith,
-} from "@moonwall/util";
+  describeSuite,
+  expect,
+} from "moonwall";
 import { jumpBlocks, SIMPLE_SALT } from "../../../../helpers";
 
 describeSuite({
   id: "D023009",
   title: "Randomness Result - Fulfilling all of random numbers",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should empty randomness results",

@@ -1,11 +1,13 @@
-import { customDevRpcRequest, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-
 import {
-  alith,
   ALITH_PRIVATE_KEY,
-  createEthersTransaction,
   PRECOMPILE_BATCH_ADDRESS,
-} from "@moonwall/util";
+  alith,
+  createEthersTransaction,
+  customDevRpcRequest,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 
 import { encodeFunctionData } from "viem";
 

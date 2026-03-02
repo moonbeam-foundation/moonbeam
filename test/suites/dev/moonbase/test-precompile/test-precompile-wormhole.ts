@@ -1,6 +1,14 @@
 import "@moonbeam-network/api-augment";
-import { beforeAll, describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { ALITH_ADDRESS, ALITH_PRIVATE_KEY, alith, createEthersTransaction } from "@moonwall/util";
+import {
+  ALITH_ADDRESS,
+  ALITH_PRIVATE_KEY,
+  alith,
+  beforeAll,
+  createEthersTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+} from "moonwall";
 import { Enum, Struct } from "@polkadot/types";
 import type { Registry } from "@polkadot/types/types/registry";
 import { u8aConcat, u8aToHex } from "@polkadot/util";
@@ -385,7 +393,6 @@ describeSuite({
         });
 
         const whAmount = 999n;
-        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
 
         const transferVAA = await makeTestVAA(
           Number(whAmount),
@@ -423,7 +430,6 @@ describeSuite({
           .createType("VersionedMultiLocation", versionedMultiLocation);
 
         const whAmount = 999n;
-        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
         const fee = 1234500n;
 
         const userAction = new XcmRoutingUserActionWithFee(context.pjsApi.registry, {
@@ -527,7 +533,6 @@ describeSuite({
           .createType("VersionedMultiLocation", versionedMultiLocation);
 
         const whAmount = 100n;
-        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
         const fee = 0n;
 
         const userAction = new XcmRoutingUserActionWithFee(context.pjsApi.registry, {
@@ -648,7 +653,6 @@ describeSuite({
         });
 
         const whAmount = 42n;
-        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
 
         const transferVAA = await makeTestVAA(
           Number(whAmount),
@@ -706,7 +710,6 @@ describeSuite({
         });
 
         const whAmount = 999n;
-        const realAmount = whAmount * WH_IMPLICIT_MULTIPLIER;
 
         const transferVAA = await makeTestVAA(
           Number(whAmount),

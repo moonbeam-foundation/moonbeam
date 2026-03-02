@@ -1,12 +1,18 @@
-import { describeSuite, expect, beforeAll } from "@moonwall/cli";
+import {
+  BALTATHAR_ADDRESS,
+  beforeAll,
+  createViemTransaction,
+  describeSuite,
+  expect,
+  extractFee,
+} from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
-import { BALTATHAR_ADDRESS, createViemTransaction, extractFee } from "@moonwall/util";
 
 describeSuite({
   id: "D021105",
   title: "Ethereum RPC - eth_getTransactionReceipt",
   foundationMethods: "dev",
-  testCases: ({ it, context, log }) => {
+  testCases: ({ it, context }) => {
     let polkadotJs: ApiPromise;
 
     beforeAll(() => {
@@ -34,7 +40,9 @@ describeSuite({
         const txHash = result?.hash;
         const txFee = extractFee(result?.events)!.amount.toBigInt();
 
-        const txReceipt = await context.viem().getTransactionReceipt({ hash: txHash });
+        const txReceipt = await context
+          .viem()
+          .getTransactionReceipt({ hash: txHash! as `0x${string}` });
         const txReceiptFee = txReceipt.effectiveGasPrice * txReceipt.gasUsed;
 
         const txBlockNextFeeMultiplier = (

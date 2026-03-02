@@ -1,6 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { beforeEach, describeSuite, expect, execOpenTechCommitteeProposal } from "@moonwall/cli";
-import { alith } from "@moonwall/util";
+import { alith, beforeEach, describeSuite, execOpenTechCommitteeProposal, expect } from "moonwall";
 import type { Result } from "@polkadot/types";
 import type { SpRuntimeDispatchError } from "@polkadot/types/lookup";
 
@@ -8,7 +7,7 @@ describeSuite({
   id: "D021904",
   title: "Maintenance Mode - General",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeEach(async () => {
       const { successful } = await execOpenTechCommitteeProposal(
         context,

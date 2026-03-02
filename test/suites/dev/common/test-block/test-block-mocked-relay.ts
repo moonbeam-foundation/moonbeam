@@ -1,12 +1,12 @@
 import "@moonbeam-network/api-augment";
-import { expect, describeSuite, beforeAll } from "@moonwall/cli";
+import { expect, describeSuite, beforeAll } from "moonwall";
 import type { CumulusPrimitivesParachainInherentParachainInherentData } from "@polkadot/types/lookup";
 
 describeSuite({
   id: "D010105",
   title: "Block - Mocked relaychain block",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     beforeAll(async () => {
       expect(await context.viem().getBlockNumber()).toBe(0n);
     });

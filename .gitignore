@@ -23,6 +23,9 @@ tools/*-local.json
 tools/*-local-raw.json
 tools/build
 
+db.sqlite*
+
+tsconfig.tsbuildinfo
 # IDEs
 .idea/
 .vscode/

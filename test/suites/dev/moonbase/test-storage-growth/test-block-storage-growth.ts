@@ -1,13 +1,18 @@
 import "@moonbeam-network/api-augment";
-import { describeSuite, expect, fetchCompiledContract } from "@moonwall/cli";
-import { createEthersTransaction, sendRawTransaction } from "@moonwall/util";
+import {
+  createEthersTransaction,
+  describeSuite,
+  expect,
+  fetchCompiledContract,
+  sendRawTransaction,
+} from "moonwall";
 import { encodeDeployData } from "viem";
 
 describeSuite({
   id: "D023401",
   title: "Storage Block (160Kb) - Storage Growth Limit",
   foundationMethods: "dev",
-  testCases: ({ context, it, log }) => {
+  testCases: ({ context, it }) => {
     it({
       id: "T01",
       title: "should fill a block with 61 tx at most",
@@ -27,8 +32,9 @@ describeSuite({
           await sendRawTransaction(context, rawTxn);
         }
 
+        const blockNumber = (await context.viem().getBlockNumber()) + 1n;
         await context.createBlock();
-        expect((await context.viem().getBlock()).transactions.length).toBe(264);
+        expect((await context.viem().getBlock({ blockNumber })).transactions.length).toBe(264);
       },
     });
   },
