@@ -204,6 +204,7 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 sp-timestamp = { workspace = true }
 parachains-common = { workspace = true, features = ["std"] }
 polkadot-runtime-parachains = { workspace = true }
+pallet-delegated-staking = { workspace = true }
 westend-runtime = { workspace = true }
 xcm-emulator = { workspace = true }
 xcm-simulator = { workspace = true }
@@ -400,6 +401,10 @@ on-chain-release-build = [
 # stripped from the final binary
 disable-genesis-builder = []
 
+force-xcm-processor = [
+	"westend-runtime/force-xcm-processor",
+]
+
 runtime-benchmarks = [
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
@@ -476,7 +481,9 @@ runtime-benchmarks = [
 	"pallet-evm-precompile-xcm-transactor/runtime-benchmarks",
 	"pallet-evm-precompile-xcm-utils/runtime-benchmarks",
 	"pallet-evm-precompile-xtokens/runtime-benchmarks",
-	"xcm-primitives/runtime-benchmarks"
+	"xcm-primitives/runtime-benchmarks",
+	"pallet-delegated-staking/runtime-benchmarks",
+	"westend-runtime/runtime-benchmarks"
 ]
 
 try-runtime = [

@@ -389,11 +389,11 @@ parameter_types! {
 
 impl pallet_message_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	#[cfg(feature = "runtime-benchmarks")]
+	#[cfg(all(feature = "runtime-benchmarks", not(feature = "force-xcm-processor")))]
 	type MessageProcessor = pallet_message_queue::mock_helpers::NoopMessageProcessor<
 		cumulus_primitives_core::AggregateMessageOrigin,
 	>;
-	#[cfg(not(feature = "runtime-benchmarks"))]
+	#[cfg(any(not(feature = "runtime-benchmarks"), feature = "force-xcm-processor"))]
 	type MessageProcessor = pallet_ethereum_xcm::MessageProcessorWrapper<
 		xcm_builder::ProcessXcmMessage<AggregateMessageOrigin, XcmExecutor, RuntimeCall>,
 	>;
