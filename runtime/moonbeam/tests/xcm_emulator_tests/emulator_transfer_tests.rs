@@ -20,7 +20,10 @@
 //! account sufficiency, and error cases.
 
 use crate::emulator_network::*;
-use frame_support::{assert_ok, traits::fungible::Inspect};
+use frame_support::{
+	assert_ok,
+	traits::{fungible::Inspect, tokens::fungible::Mutate},
+};
 use sp_core::U256;
 use xcm::latest::prelude::*;
 use xcm_emulator::TestExt;
@@ -506,6 +509,131 @@ fn transfer_dot_from_moonbeam_to_sibling() {
 		assert!(
 			balance > U256::zero(),
 			"BALTATHAR should have DOT on sibling, got {balance}"
+		);
+	});
+}
+
+// ===========================================================================
+// EVM account with native balance receives foreign assets
+// ===========================================================================
+
+#[test]
+fn evm_account_receives_foreign_asset() {
+	setup_relay_to_moonbeam();
+
+	// ALITH has GLMR from genesis. Send DOT and verify both balances coexist.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(
+			westend_runtime::XcmPallet::transfer_assets_using_type_and_then(
+				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					0,
+					[Parachain(MOONBEAM_PARA_ID)],
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(Location::here()),
+					fun: Fungible(ONE_DOT * 10),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedAssetId::from(AssetId(Location::here()))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
+					assets: Wild(All),
+					beneficiary: Location::new(
+						0,
+						[AccountKey20 { network: None, key: ALITH }],
+					),
+				}]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	moonbeam_execute_with(|| {
+		// ALITH should have both native GLMR and foreign DOT.
+		let glmr = <moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(ALITH),
+		);
+		assert!(glmr > 0, "ALITH should still have GLMR");
+
+		let dot = moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(ALITH),
+		)
+		.unwrap();
+		assert!(dot > U256::zero(), "ALITH should also have DOT");
+	});
+}
+
+// ===========================================================================
+// Foreign assets survive native balance drainage
+// ===========================================================================
+
+#[test]
+fn foreign_assets_survive_native_balance_drain() {
+	setup_relay_to_moonbeam();
+
+	let test_account: [u8; 20] = [77u8; 20];
+
+	// Give the test account some GLMR.
+	moonbeam_execute_with(|| {
+		<moonbeam_runtime::Balances as Mutate<_>>::mint_into(
+			&moonbeam_runtime::AccountId::from(test_account),
+			moonbeam_runtime::currency::GLMR,
+		)
+		.expect("Should mint GLMR");
+	});
+
+	// Send DOT to the test account.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(
+			westend_runtime::XcmPallet::transfer_assets_using_type_and_then(
+				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					0,
+					[Parachain(MOONBEAM_PARA_ID)],
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(Location::here()),
+					fun: Fungible(ONE_DOT * 10),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedAssetId::from(AssetId(Location::here()))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
+					assets: Wild(All),
+					beneficiary: Location::new(
+						0,
+						[AccountKey20 { network: None, key: test_account }],
+					),
+				}]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	// Drain all GLMR, then verify foreign asset is still accessible.
+	moonbeam_execute_with(|| {
+		let balance = <moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(test_account),
+		);
+		let _ = <moonbeam_runtime::Balances as Mutate<_>>::burn_from(
+			&moonbeam_runtime::AccountId::from(test_account),
+			balance,
+			frame_support::traits::tokens::Preservation::Expendable,
+			frame_support::traits::tokens::Precision::BestEffort,
+			frame_support::traits::tokens::Fortitude::Force,
+		);
+
+		// Foreign asset balance should still be accessible.
+		let dot = moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(test_account),
+		)
+		.unwrap();
+		assert!(
+			dot > U256::zero(),
+			"Foreign asset should survive native balance drain"
 		);
 	});
 }

@@ -16,16 +16,21 @@
 
 //! XcmTransactor tests using the **real** Moonbeam runtime against Westend relay.
 //!
-//! Covers: transact_through_sovereign (relay), HRMP channel management.
+//! Covers:
+//! - transact_through_sovereign (relay) — basic, fee_payer=None, custom fee/weight, refund
+//! - transact_through_derivative (relay) — basic, custom fee/weight, refund
+//! - transact_through_signed (relay) — basic, custom fee/weight, refund
+//! - HRMP channel management (init/accept/close)
 
 use crate::emulator_network::*;
 use frame_support::{
 	assert_ok,
 	traits::fungible::Inspect,
 };
-use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
+use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
 use xcm::latest::prelude::*;
+use xcm_executor::traits::ConvertLocation;
 use xcm_emulator::{RelayChain, TestExt};
 
 const DOT_ASSET_ID: u128 = 1;
@@ -47,13 +52,71 @@ fn setup_transactor() {
 			Box::new(xcm::VersionedLocation::from(Location::parent())),
 			3_000u64.into(),          // extra_weight (relay charges per instruction)
 			20_000_000_000u64.into(), // max_weight
-			None,
+			// 4 instructions in transact_through_signed
+			Some(4_000u64.into()),
 		));
 	});
 
 	// Fund Moonbeam's sovereign on relay so it can pay fees for UMP transacts.
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		// The sovereign is already funded via relay genesis (endowment).
+	});
+}
+
+/// Encode a `system::remark_with_event` call for the Westend relay.
+fn relay_remark_call() -> Vec<u8> {
+	westend_runtime::RuntimeCall::System(
+		frame_system::Call::<westend_runtime::Runtime>::remark_with_event {
+			remark: b"hello from Moonbeam".to_vec(),
+		},
+	)
+	.encode()
+}
+
+/// Derive the relay account for a signed XCM origin from a parachain user.
+/// The XCM `DescendOrigin(AccountKey20(key))` shifts the origin to
+/// `Parachain(para_id)/AccountKey20(key)`, which the relay's `LocationConverter`
+/// hashes into a 32-byte account.
+fn relay_derived_account(para_id: u32, key: [u8; 20]) -> sp_runtime::AccountId32 {
+	let location = Location::new(
+		0,
+		[
+			Parachain(para_id),
+			AccountKey20 {
+				network: None,
+				key,
+			},
+		],
+	);
+	westend_runtime::xcm_config::LocationConverter::convert_location(&location)
+		.expect("Should derive relay account from parachain signed origin")
+}
+
+/// Assert that the relay processed a UMP message and emitted a Remarked event.
+fn assert_relay_remark_executed() {
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		let events = westend_runtime::System::events();
+
+		let was_processed = events.iter().any(|e| {
+			matches!(
+				&e.event,
+				westend_runtime::RuntimeEvent::MessageQueue(
+					pallet_message_queue::Event::Processed { success: true, .. }
+				)
+			)
+		});
+		assert!(
+			was_processed,
+			"Relay should have successfully processed the UMP transact"
+		);
+
+		let has_remark = events.iter().any(|e| {
+			matches!(
+				&e.event,
+				westend_runtime::RuntimeEvent::System(frame_system::Event::Remarked { .. })
+			)
+		});
+		assert!(has_remark, "Relay should have emitted a Remarked event");
 	});
 }
 
@@ -114,14 +177,6 @@ fn transact_through_sovereign_to_relay() {
 		"Sovereign should be funded from genesis"
 	);
 
-	// Encode a system::remark_with_event call for the relay.
-	let encoded = westend_runtime::RuntimeCall::System(
-		frame_system::Call::<westend_runtime::Runtime>::remark_with_event {
-			remark: b"hello from Moonbeam".to_vec(),
-		},
-	)
-	.encode();
-
 	moonbeam_execute_with(|| {
 		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_sovereign(
 			moonbeam_runtime::RuntimeOrigin::root(),
@@ -133,7 +188,7 @@ fn transact_through_sovereign_to_relay() {
 				))),
 				fee_amount: Some(ONE_DOT), // explicit fee
 			},
-			encoded,
+			relay_remark_call(),
 			OriginKind::SovereignAccount,
 			TransactWeights {
 				transact_required_weight_at_most: 1_000_000_000u64.into(),
@@ -143,33 +198,7 @@ fn transact_through_sovereign_to_relay() {
 		));
 	});
 
-	// Verify the remark was executed on the relay.
-	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		let events = westend_runtime::System::events();
-
-		let was_processed = events.iter().any(|e| {
-			matches!(
-				&e.event,
-				westend_runtime::RuntimeEvent::MessageQueue(
-					pallet_message_queue::Event::Processed { success: true, .. }
-				)
-			)
-		});
-		assert!(
-			was_processed,
-			"Relay should have successfully processed the UMP transact"
-		);
-
-		let has_remark = events.iter().any(|e| {
-			matches!(
-				&e.event,
-				westend_runtime::RuntimeEvent::System(
-					frame_system::Event::Remarked { .. }
-				)
-			)
-		});
-		assert!(has_remark, "Relay should have emitted a Remarked event");
-	});
+	assert_relay_remark_executed();
 
 	// Verify the sovereign paid fees for the XCM execution.
 	let sovereign_after = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
@@ -294,4 +323,471 @@ fn hrmp_init_accept_close_via_xcm_transactor() {
 			"HRMP channel Moonbeam → Sibling should be established"
 		);
 	});
+}
+
+// ===========================================================================
+// HRMP: close channel via XcmTransactor
+// ===========================================================================
+
+#[test]
+fn hrmp_close_via_xcm_transactor() {
+	init_network();
+
+	moonbeam_execute_with(|| {
+		register_dot_asset(DOT_ASSET_ID);
+		set_westend_relay_indices();
+	});
+
+	// Force-open a channel so we can close it.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		open_hrmp_channels(MOONBEAM_PARA_ID, SIBLING_PARA_ID);
+	});
+
+	// Close the channel from Moonbeam side via XcmTransactor.
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::hrmp_manage(
+			moonbeam_runtime::RuntimeOrigin::root(),
+			HrmpOperation::Close(xcm_emulator::HrmpChannelId {
+				sender: MOONBEAM_PARA_ID.into(),
+				recipient: SIBLING_PARA_ID.into(),
+			}),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 100),
+			},
+			TransactWeights {
+				transact_required_weight_at_most: 5_000_000_000u64.into(),
+				overall_weight: Some(Limited(10_000_000_000u64.into())),
+			},
+		));
+	});
+
+	// Verify the close event on relay.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		let events = westend_runtime::System::events();
+		let has_close = events.iter().any(|e| {
+			matches!(
+				&e.event,
+				westend_runtime::RuntimeEvent::Hrmp(
+					polkadot_runtime_parachains::hrmp::Event::ChannelClosed { .. }
+				)
+			)
+		});
+		assert!(has_close, "Relay should have emitted ChannelClosed");
+	});
+}
+
+// ===========================================================================
+// Transact through sovereign: fee_payer = None
+// ===========================================================================
+
+#[test]
+fn transact_through_sovereign_fee_payer_none() {
+	setup_transactor();
+
+	// With fee_payer = None, no local withdraw happens — only the sovereign on
+	// relay pays. The sovereign must be funded from genesis.
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_sovereign(
+			moonbeam_runtime::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
+			None, // no fee payer — no local withdraw
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT),
+			},
+			relay_remark_call(),
+			OriginKind::SovereignAccount,
+			TransactWeights {
+				transact_required_weight_at_most: 1_000_000_000u64.into(),
+				overall_weight: Some(Limited(2_000_000_000u64.into())),
+			},
+			false,
+		));
+	});
+
+	assert_relay_remark_executed();
+}
+
+// ===========================================================================
+// Transact through sovereign: custom fee & weight (no refund)
+// ===========================================================================
+
+#[test]
+fn transact_through_sovereign_custom_fee_weight() {
+	setup_transactor();
+	fund_moonbeam_alith_with_dot(ONE_DOT * 1000);
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_sovereign(
+			moonbeam_runtime::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
+			Some(moonbeam_runtime::AccountId::from(ALITH)),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 5), // explicit larger fee
+			},
+			relay_remark_call(),
+			OriginKind::SovereignAccount,
+			TransactWeights {
+				transact_required_weight_at_most: 2_000_000_000u64.into(),
+				overall_weight: Some(Limited(4_000_000_000u64.into())),
+			},
+			false,
+		));
+	});
+
+	assert_relay_remark_executed();
+}
+
+// ===========================================================================
+// Transact through sovereign: custom fee, weight & refund
+// ===========================================================================
+
+#[test]
+fn transact_through_sovereign_custom_fee_weight_refund() {
+	setup_transactor();
+	fund_moonbeam_alith_with_dot(ONE_DOT * 1000);
+
+	let sovereign_before = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
+			Location::new(0, [Parachain(MOONBEAM_PARA_ID)]),
+		);
+		<westend_runtime::Balances as Inspect<_>>::balance(&sovereign)
+	});
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_sovereign(
+			moonbeam_runtime::RuntimeOrigin::root(),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
+			Some(moonbeam_runtime::AccountId::from(ALITH)),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 10), // overpay to test refund
+			},
+			relay_remark_call(),
+			OriginKind::SovereignAccount,
+			TransactWeights {
+				transact_required_weight_at_most: 2_000_000_000u64.into(),
+				overall_weight: Some(Limited(4_000_000_000u64.into())),
+			},
+			true, // refund = true
+		));
+	});
+
+	assert_relay_remark_executed();
+
+	// With refund=true, leftover fees are deposited back to the sovereign.
+	// The sovereign should have lost less than the full 10 DOT fee.
+	let sovereign_after = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
+			Location::new(0, [Parachain(MOONBEAM_PARA_ID)]),
+		);
+		<westend_runtime::Balances as Inspect<_>>::balance(&sovereign)
+	});
+	let fee_spent = sovereign_before.saturating_sub(sovereign_after);
+	assert!(
+		fee_spent < ONE_DOT * 10,
+		"With refund, sovereign should spend less than the full fee: spent={fee_spent}"
+	);
+}
+
+// ===========================================================================
+// Transact through signed (para → relay)
+// ===========================================================================
+
+#[test]
+fn transact_through_signed_to_relay() {
+	setup_transactor();
+	fund_moonbeam_alith_with_dot(ONE_DOT * 1000);
+
+	let derived_account = relay_derived_account(MOONBEAM_PARA_ID, ALITH);
+
+	// Fund the derived account on relay so it can pay XCM fees.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(westend_runtime::Balances::transfer_allow_death(
+			westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+			derived_account.clone().into(),
+			ONE_DOT * 100,
+		));
+	});
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_signed(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 10),
+			},
+			relay_remark_call(),
+			TransactWeights {
+				transact_required_weight_at_most: 1_000_000_000u64.into(),
+				overall_weight: Some(Limited(4_000_000_000u64.into())),
+			},
+			false,
+		));
+	});
+
+	assert_relay_remark_executed();
+}
+
+// ===========================================================================
+// Transact through signed: custom fee & weight
+// ===========================================================================
+
+#[test]
+fn transact_through_signed_custom_fee_weight() {
+	setup_transactor();
+	fund_moonbeam_alith_with_dot(ONE_DOT * 1000);
+
+	let derived_account = relay_derived_account(MOONBEAM_PARA_ID, ALITH);
+
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(westend_runtime::Balances::transfer_allow_death(
+			westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+			derived_account.clone().into(),
+			ONE_DOT * 100,
+		));
+	});
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_signed(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 5),
+			},
+			relay_remark_call(),
+			TransactWeights {
+				transact_required_weight_at_most: 2_000_000_000u64.into(),
+				overall_weight: Some(Limited(6_000_000_000u64.into())),
+			},
+			false,
+		));
+	});
+
+	assert_relay_remark_executed();
+}
+
+// ===========================================================================
+// Transact through signed: custom fee, weight & refund
+// ===========================================================================
+
+#[test]
+fn transact_through_signed_custom_fee_weight_refund() {
+	setup_transactor();
+	fund_moonbeam_alith_with_dot(ONE_DOT * 1000);
+
+	let derived_account = relay_derived_account(MOONBEAM_PARA_ID, ALITH);
+
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(westend_runtime::Balances::transfer_allow_death(
+			westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+			derived_account.clone().into(),
+			ONE_DOT * 100,
+		));
+	});
+
+	let derived_before = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		<westend_runtime::Balances as Inspect<_>>::balance(&derived_account)
+	});
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_signed(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::parent())),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 20), // overpay
+			},
+			relay_remark_call(),
+			TransactWeights {
+				transact_required_weight_at_most: 2_000_000_000u64.into(),
+				overall_weight: Some(Limited(6_000_000_000u64.into())),
+			},
+			true, // refund = true
+		));
+	});
+
+	assert_relay_remark_executed();
+
+	// With refund, the derived account should get surplus back.
+	let derived_after = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		<westend_runtime::Balances as Inspect<_>>::balance(&derived_account)
+	});
+	let fee_spent = derived_before.saturating_sub(derived_after);
+	assert!(
+		fee_spent < ONE_DOT * 20,
+		"With refund, derived account should spend less than the full fee: spent={fee_spent}"
+	);
+}
+
+// ===========================================================================
+// Transact through derivative
+// ===========================================================================
+
+/// Setup for derivative transact tests.
+/// Registers ALITH as the owner of derivative index 0 and funds the derivative
+/// sub-account on the relay.
+fn setup_derivative() {
+	setup_transactor();
+	fund_moonbeam_alith_with_dot(ONE_DOT * 1000);
+
+	let derivative_index: u16 = 0;
+
+	// Register ALITH as the owner of index 0.
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::register(
+			moonbeam_runtime::RuntimeOrigin::root(),
+			moonbeam_runtime::AccountId::from(ALITH),
+			derivative_index,
+		));
+	});
+
+	// Fund the derivative account on relay.
+	// The derivative is computed from the sovereign account of Moonbeam parachain.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
+			Location::new(0, [Parachain(MOONBEAM_PARA_ID)]),
+		);
+		let derivative = pallet_utility::Pallet::<westend_runtime::Runtime>::derivative_account_id(
+			sovereign,
+			derivative_index,
+		);
+		assert_ok!(westend_runtime::Balances::transfer_allow_death(
+			westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+			derivative.into(),
+			ONE_DOT * 100,
+		));
+	});
+}
+
+#[test]
+fn transact_through_derivative_to_relay() {
+	setup_derivative();
+
+	moonbeam_execute_with(|| {
+		assert_ok!(
+			moonbeam_runtime::XcmTransactor::transact_through_derivative(
+				moonbeam_runtime::RuntimeOrigin::signed(
+					moonbeam_runtime::AccountId::from(ALITH),
+				),
+				moonbeam_runtime::xcm_config::Transactors::Relay,
+				0u16, // derivative index
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(
+						xcm::VersionedLocation::from(Location::parent()),
+					)),
+					fee_amount: Some(ONE_DOT * 10),
+				},
+				// Inner call (unwrapped — the pallet wraps it in as_derivative).
+				relay_remark_call(),
+				TransactWeights {
+					transact_required_weight_at_most: 2_000_000_000u64.into(),
+					overall_weight: Some(Limited(4_000_000_000u64.into())),
+				},
+				false,
+			)
+		);
+	});
+
+	assert_relay_remark_executed();
+}
+
+#[test]
+fn transact_through_derivative_custom_fee_weight() {
+	setup_derivative();
+
+	moonbeam_execute_with(|| {
+		assert_ok!(
+			moonbeam_runtime::XcmTransactor::transact_through_derivative(
+				moonbeam_runtime::RuntimeOrigin::signed(
+					moonbeam_runtime::AccountId::from(ALITH),
+				),
+				moonbeam_runtime::xcm_config::Transactors::Relay,
+				0u16,
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(
+						xcm::VersionedLocation::from(Location::parent()),
+					)),
+					fee_amount: Some(ONE_DOT * 5),
+				},
+				relay_remark_call(),
+				TransactWeights {
+					transact_required_weight_at_most: 3_000_000_000u64.into(),
+					overall_weight: Some(Limited(6_000_000_000u64.into())),
+				},
+				false,
+			)
+		);
+	});
+
+	assert_relay_remark_executed();
+}
+
+#[test]
+fn transact_through_derivative_custom_fee_weight_refund() {
+	setup_derivative();
+
+	let sovereign_before = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
+			Location::new(0, [Parachain(MOONBEAM_PARA_ID)]),
+		);
+		<westend_runtime::Balances as Inspect<_>>::balance(&sovereign)
+	});
+
+	moonbeam_execute_with(|| {
+		assert_ok!(
+			moonbeam_runtime::XcmTransactor::transact_through_derivative(
+				moonbeam_runtime::RuntimeOrigin::signed(
+					moonbeam_runtime::AccountId::from(ALITH),
+				),
+				moonbeam_runtime::xcm_config::Transactors::Relay,
+				0u16,
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(
+						xcm::VersionedLocation::from(Location::parent()),
+					)),
+					fee_amount: Some(ONE_DOT * 20), // overpay
+				},
+				relay_remark_call(),
+				TransactWeights {
+					transact_required_weight_at_most: 2_000_000_000u64.into(),
+					overall_weight: Some(Limited(4_000_000_000u64.into())),
+				},
+				true, // refund
+			)
+		);
+	});
+
+	assert_relay_remark_executed();
+
+	// With refund, surplus should be deposited back to the sovereign (SelfLocation).
+	let sovereign_after = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
+			Location::new(0, [Parachain(MOONBEAM_PARA_ID)]),
+		);
+		<westend_runtime::Balances as Inspect<_>>::balance(&sovereign)
+	});
+	let fee_spent = sovereign_before.saturating_sub(sovereign_after);
+	assert!(
+		fee_spent < ONE_DOT * 20,
+		"With refund, sovereign should spend less than the full fee: spent={fee_spent}"
+	);
 }
