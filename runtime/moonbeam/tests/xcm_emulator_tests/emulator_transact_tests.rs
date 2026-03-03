@@ -21,7 +21,7 @@
 use crate::emulator_network::*;
 use frame_support::{
 	assert_ok,
-	traits::{fungible::Inspect, PalletInfo as PalletInfoT},
+	traits::fungible::Inspect,
 };
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
@@ -114,18 +114,13 @@ fn transact_through_sovereign_to_relay() {
 		"Sovereign should be funded from genesis"
 	);
 
-	// Encode a simple system::remark call for the relay.
-	let mut encoded: Vec<u8> = Vec::new();
-	let index = <westend_runtime::Runtime as frame_system::Config>::PalletInfo::index::<
-		westend_runtime::System,
-	>()
-	.unwrap() as u8;
-	encoded.push(index);
-	let mut call_bytes = frame_system::Call::<westend_runtime::Runtime>::remark {
-		remark: b"hello from Moonbeam".to_vec(),
-	}
+	// Encode a system::remark_with_event call for the relay.
+	let encoded = westend_runtime::RuntimeCall::System(
+		frame_system::Call::<westend_runtime::Runtime>::remark_with_event {
+			remark: b"hello from Moonbeam".to_vec(),
+		},
+	)
 	.encode();
-	encoded.append(&mut call_bytes);
 
 	moonbeam_execute_with(|| {
 		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_sovereign(
@@ -148,11 +143,38 @@ fn transact_through_sovereign_to_relay() {
 		));
 	});
 
-	// Verify the transact was dispatched on relay (sovereign paid some fees).
+	// Verify the remark was executed on the relay.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		let events = westend_runtime::System::events();
+
+		let was_processed = events.iter().any(|e| {
+			matches!(
+				&e.event,
+				westend_runtime::RuntimeEvent::MessageQueue(
+					pallet_message_queue::Event::Processed { success: true, .. }
+				)
+			)
+		});
+		assert!(
+			was_processed,
+			"Relay should have successfully processed the UMP transact"
+		);
+
+		let has_remark = events.iter().any(|e| {
+			matches!(
+				&e.event,
+				westend_runtime::RuntimeEvent::System(
+					frame_system::Event::Remarked { .. }
+				)
+			)
+		});
+		assert!(has_remark, "Relay should have emitted a Remarked event");
+	});
+
+	// Verify the sovereign paid fees for the XCM execution.
 	let sovereign_after = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		<westend_runtime::Balances as Inspect<_>>::balance(&sovereign)
 	});
-	// The sovereign should have spent some DOT for the XCM execution.
 	assert!(
 		sovereign_after <= sovereign_before,
 		"Sovereign should have spent DOT: before={sovereign_before}, after={sovereign_after}"
@@ -200,7 +222,7 @@ fn hrmp_init_accept_close_via_xcm_transactor() {
 		));
 	});
 
-	// Verify the request arrived on relay.
+	// Verify the open-channel request arrived on relay.
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		let events = westend_runtime::System::events();
 		let has_open_request = events.iter().any(|e| {
@@ -211,22 +233,9 @@ fn hrmp_init_accept_close_via_xcm_transactor() {
 				)
 			)
 		});
-		// In the real Westend runtime, the HRMP init may fail for various reasons
-		// (e.g., session requirements, deposit calculations). If the UMP message
-		// was processed successfully (the Transact ran), the channel management
-		// was dispatched even if the inner HRMP call failed. What matters is that
-		// the XCM Transact reached the relay.
-		let was_processed = events.iter().any(|e| {
-			matches!(
-				&e.event,
-				westend_runtime::RuntimeEvent::MessageQueue(
-					pallet_message_queue::Event::Processed { success: true, .. }
-				)
-			)
-		});
 		assert!(
-			has_open_request || was_processed,
-			"Relay should have processed the UMP transact (HRMP event or successful UMP processing)"
+			has_open_request,
+			"Relay should have emitted OpenChannelRequested"
 		);
 	});
 
@@ -252,17 +261,37 @@ fn hrmp_init_accept_close_via_xcm_transactor() {
 
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		let events = westend_runtime::System::events();
-		let was_processed = events.iter().any(|e| {
+		let has_accept = events.iter().any(|e| {
 			matches!(
 				&e.event,
-				westend_runtime::RuntimeEvent::MessageQueue(
-					pallet_message_queue::Event::Processed { success: true, .. }
+				westend_runtime::RuntimeEvent::Hrmp(
+					polkadot_runtime_parachains::hrmp::Event::OpenChannelAccepted { .. }
 				)
 			)
 		});
 		assert!(
-			was_processed,
-			"Relay should have processed the accept UMP message"
+			has_accept,
+			"Relay should have emitted OpenChannelAccepted"
+		);
+	});
+
+	// Step 3: Process the pending open requests and verify the channel is established.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(westend_runtime::Hrmp::force_process_hrmp_open(
+			westend_runtime::RuntimeOrigin::root(),
+			1,
+		));
+
+		use polkadot_runtime_parachains::hrmp;
+		let channel = hrmp::HrmpChannels::<westend_runtime::Runtime>::get(
+			xcm_emulator::HrmpChannelId {
+				sender: MOONBEAM_PARA_ID.into(),
+				recipient: SIBLING_PARA_ID.into(),
+			},
+		);
+		assert!(
+			channel.is_some(),
+			"HRMP channel Moonbeam → Sibling should be established"
 		);
 	});
 }

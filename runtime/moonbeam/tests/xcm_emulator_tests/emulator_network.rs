@@ -200,8 +200,6 @@ pub fn init_network() {
 /// Register DOT as a foreign asset on a Moonbeam-runtime chain and configure
 /// its price in the XCM weight trader. Call inside `moonbeam_execute_with` or
 /// `sibling_execute_with`.
-///
-/// Returns the `asset_id` that was used for registration.
 pub fn register_dot_asset(asset_id: u128) {
 	let dot_location = xcm::latest::Location::parent();
 

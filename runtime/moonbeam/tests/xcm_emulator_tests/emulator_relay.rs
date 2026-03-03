@@ -66,7 +66,7 @@ pub fn relay_genesis() -> Storage {
 
 	let mut storage = genesis_config
 		.build_storage()
-		.expect("Failed to build relay genesis storage");
+		.expect("Should build relay genesis storage");
 
 	// Register both parachains so DMP and HRMP consider them valid.
 	use frame_support::storage::generator::StorageMap;
