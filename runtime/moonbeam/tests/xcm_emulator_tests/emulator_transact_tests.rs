@@ -791,3 +791,198 @@ fn transact_through_derivative_custom_fee_weight_refund() {
 		"With refund, sovereign should spend less than the full fee: spent={fee_spent}"
 	);
 }
+
+// ===========================================================================
+// Transact through signed: para → para
+// ===========================================================================
+
+/// Setup for para-to-para transact tests via signed origin.
+/// Opens HRMP channels between Moonbeam and Sibling, registers DOT on both,
+/// and funds the derived account on the sibling.
+fn setup_para_to_para_signed() -> moonbeam_runtime::AccountId {
+	init_network();
+
+	// Register DOT + relay indices on Moonbeam.
+	moonbeam_execute_with(|| {
+		register_dot_asset(DOT_ASSET_ID);
+		set_westend_relay_indices();
+	});
+
+	// Open HRMP channels.
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		open_hrmp_channels(MOONBEAM_PARA_ID, SIBLING_PARA_ID);
+	});
+
+	// Register DOT on sibling so it can accept DOT as XCM fee.
+	sibling_execute_with(|| {
+		register_dot_asset(DOT_ASSET_ID);
+	});
+
+	// Compute the derived account on the sibling for ALITH's signed origin from Moonbeam.
+	// After DescendOrigin(AccountKey20(ALITH)), the sibling sees origin
+	// Location::new(1, [Parachain(2004), AccountKey20(ALITH)]).
+	let derived_on_sibling: moonbeam_runtime::AccountId = sibling_execute_with(|| {
+		<moonbeam_runtime::xcm_config::LocationToAccountId as ConvertLocation<
+			moonbeam_runtime::AccountId,
+		>>::convert_location(&Location::new(
+			1,
+			[
+				Parachain(MOONBEAM_PARA_ID),
+				AccountKey20 {
+					network: None,
+					key: ALITH,
+				},
+			],
+		))
+		.expect("Should derive sibling account for Moonbeam ALITH")
+	});
+
+	// Fund the derived account on sibling with DOT (relay → sibling DMP).
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(
+			westend_runtime::XcmPallet::transfer_assets_using_type_and_then(
+				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					0,
+					[Parachain(SIBLING_PARA_ID)],
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(Location::here()),
+					fun: Fungible(ONE_DOT * 100),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedAssetId::from(AssetId(Location::here()))),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
+					assets: Wild(All),
+					beneficiary: Location::new(
+						0,
+						[AccountKey20 {
+							network: None,
+							key: derived_on_sibling.into(),
+						}],
+					),
+				}]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	// Verify the derived account received DOT.
+	sibling_execute_with(|| {
+		let balance = moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			derived_on_sibling,
+		)
+		.unwrap();
+		assert!(
+			balance > sp_core::U256::zero(),
+			"Derived account on sibling should have DOT"
+		);
+	});
+
+	derived_on_sibling
+}
+
+/// Encode a `system::remark_with_event` call for the sibling (Moonbeam runtime).
+fn sibling_remark_call() -> Vec<u8> {
+	moonbeam_runtime::RuntimeCall::System(
+		frame_system::Call::<moonbeam_runtime::Runtime>::remark_with_event {
+			remark: b"hello from Moonbeam to sibling".to_vec(),
+		},
+	)
+	.encode()
+}
+
+/// Assert that the sibling processed the HRMP transact and emitted a Remarked event.
+fn assert_sibling_remark_executed() {
+	sibling_execute_with(|| {
+		let events = moonbeam_runtime::System::events();
+
+		let has_remark = events.iter().any(|e| {
+			matches!(
+				&e.event,
+				moonbeam_runtime::RuntimeEvent::System(frame_system::Event::Remarked { .. })
+			)
+		});
+		assert!(
+			has_remark,
+			"Sibling should have emitted Remarked event from transact"
+		);
+	});
+}
+
+#[test]
+fn transact_through_signed_para_to_para() {
+	setup_para_to_para_signed();
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_signed(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(SIBLING_PARA_ID)],
+			))),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 10),
+			},
+			sibling_remark_call(),
+			TransactWeights {
+				transact_required_weight_at_most: 1_000_000_000u64.into(),
+				overall_weight: Some(Limited(4_000_000_000u64.into())),
+			},
+			false,
+		));
+	});
+
+	assert_sibling_remark_executed();
+}
+
+#[test]
+fn transact_through_signed_para_to_para_refund() {
+	let derived_on_sibling = setup_para_to_para_signed();
+
+	let dot_before = sibling_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(DOT_ASSET_ID, derived_on_sibling)
+			.unwrap()
+	});
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_signed(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(SIBLING_PARA_ID)],
+			))),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 20), // overpay
+			},
+			sibling_remark_call(),
+			TransactWeights {
+				transact_required_weight_at_most: 1_000_000_000u64.into(),
+				// Refund appendix (RefundSurplus + DepositAsset) needs extra weight.
+				overall_weight: Some(Limited(8_000_000_000u64.into())),
+			},
+			true, // refund = true
+		));
+	});
+
+	assert_sibling_remark_executed();
+
+	// With refund, the derived account should get surplus back.
+	let dot_after = sibling_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(DOT_ASSET_ID, derived_on_sibling)
+			.unwrap()
+	});
+	let spent = dot_before.saturating_sub(dot_after);
+	assert!(
+		spent < sp_core::U256::from(ONE_DOT * 20),
+		"With refund, derived account should spend less than the full 20 DOT fee: spent={spent}"
+	);
+}
