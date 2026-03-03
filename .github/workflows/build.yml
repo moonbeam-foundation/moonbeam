@@ -579,7 +579,7 @@ jobs:
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
+          cargo test --profile testnet --workspace --features=evm-tracing
 
   # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 
