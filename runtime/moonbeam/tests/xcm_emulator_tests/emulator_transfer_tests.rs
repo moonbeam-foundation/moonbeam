@@ -637,3 +637,255 @@ fn foreign_assets_survive_native_balance_drain() {
 		);
 	});
 }
+
+// ===========================================================================
+// Native asset (GLMR) para → para transfers
+// ===========================================================================
+
+const GLMR_ASSET_ID: u128 = 2;
+
+/// Register Moonbeam's native GLMR as a foreign asset on the sibling and
+/// configure the XCM weight trader price.
+fn register_glmr_on_sibling() {
+	sibling_execute_with(|| {
+		// From the sibling's perspective, Moonbeam's native token lives at:
+		// ../Parachain(2004)/PalletInstance(10)  (pallet_balances = index 10)
+		let glmr_location = xcm::latest::Location::new(
+			1,
+			[
+				Parachain(MOONBEAM_PARA_ID),
+				PalletInstance(10u8),
+			],
+		);
+
+		frame_support::assert_ok!(
+			moonbeam_runtime::EvmForeignAssets::create_foreign_asset(
+				moonbeam_runtime::RuntimeOrigin::root(),
+				GLMR_ASSET_ID,
+				glmr_location.clone(),
+				18, // GLMR has 18 decimals
+				b"GLMR".to_vec().try_into().unwrap(),
+				b"Glimmer".to_vec().try_into().unwrap(),
+			)
+		);
+
+		frame_support::assert_ok!(moonbeam_runtime::XcmWeightTrader::add_asset(
+			moonbeam_runtime::RuntimeOrigin::root(),
+			glmr_location,
+			10_000_000_000_000_000_000_000_000_000u128, // 10^28 (generous relative price)
+		));
+	});
+}
+
+/// Setup for GLMR para→para transfers: open HRMP, register DOT on Moonbeam,
+/// register GLMR on sibling.
+fn setup_glmr_para_to_para() {
+	setup_with_sibling();
+	register_glmr_on_sibling();
+}
+
+/// Transfer GLMR from Moonbeam to Sibling (reserve-backed).
+#[test]
+fn transfer_glmr_from_moonbeam_to_sibling() {
+	setup_glmr_para_to_para();
+
+	let alith_before = moonbeam_execute_with(|| {
+		<moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(ALITH),
+		)
+	});
+
+	let amount = moonbeam_runtime::currency::GLMR; // 1 GLMR
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::PolkadotXcm::transfer_assets(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(SIBLING_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 { network: None, key: BALTATHAR }],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(Location::new(0, [PalletInstance(10)])),
+				fun: Fungible(amount),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	// ALITH should have less GLMR after the transfer.
+	let alith_after = moonbeam_execute_with(|| {
+		<moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(ALITH),
+		)
+	});
+	assert!(
+		alith_after < alith_before,
+		"ALITH should have less GLMR after transfer"
+	);
+	assert!(
+		alith_before - alith_after >= amount,
+		"ALITH should have spent at least {amount}"
+	);
+
+	// BALTATHAR should have GLMR on sibling (as foreign asset).
+	sibling_execute_with(|| {
+		let balance = moonbeam_runtime::EvmForeignAssets::balance(
+			GLMR_ASSET_ID,
+			moonbeam_runtime::AccountId::from(BALTATHAR),
+		)
+		.unwrap();
+		assert!(
+			balance > U256::zero(),
+			"BALTATHAR should have GLMR on sibling"
+		);
+	});
+}
+
+/// Roundtrip: GLMR from Moonbeam → Sibling → back to Moonbeam.
+#[test]
+fn transfer_glmr_roundtrip_moonbeam_sibling() {
+	setup_glmr_para_to_para();
+
+	let alith_initial = moonbeam_execute_with(|| {
+		<moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(ALITH),
+		)
+	});
+
+	let amount = moonbeam_runtime::currency::GLMR; // 1 GLMR
+
+	// Step 1: Send GLMR from Moonbeam to Sibling (BALTATHAR).
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::PolkadotXcm::transfer_assets(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(SIBLING_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 { network: None, key: BALTATHAR }],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(Location::new(0, [PalletInstance(10)])),
+				fun: Fungible(amount),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	// Verify BALTATHAR got GLMR on sibling.
+	let glmr_on_sibling = sibling_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			GLMR_ASSET_ID,
+			moonbeam_runtime::AccountId::from(BALTATHAR),
+		)
+		.unwrap()
+	});
+	assert!(
+		glmr_on_sibling > U256::zero(),
+		"BALTATHAR should have GLMR on sibling: {glmr_on_sibling}"
+	);
+
+	// Step 2: Send GLMR back from Sibling to Moonbeam (ALITH).
+	// From the sibling's perspective, GLMR is at ../Parachain(2004)/PalletInstance(10).
+	sibling_execute_with(|| {
+		let glmr_location = Location::new(
+			1,
+			[Parachain(MOONBEAM_PARA_ID), PalletInstance(10)],
+		);
+
+		assert_ok!(moonbeam_runtime::PolkadotXcm::transfer_assets(
+			moonbeam_runtime::RuntimeOrigin::signed(
+				moonbeam_runtime::AccountId::from(BALTATHAR),
+			),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(MOONBEAM_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 { network: None, key: ALITH }],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(glmr_location),
+				fun: Fungible(glmr_on_sibling.as_u128()),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	// ALITH should have recovered most of the GLMR (minus fees on both hops).
+	let alith_final = moonbeam_execute_with(|| {
+		<moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(ALITH),
+		)
+	});
+	// After roundtrip, ALITH loses some to fees but should still have most.
+	let total_lost = alith_initial.saturating_sub(alith_final);
+	assert!(
+		total_lost < amount,
+		"Roundtrip should only lose fees, not the full amount: lost={total_lost}, sent={amount}"
+	);
+}
+
+/// GLMR transfer with trader: fees are deducted from GLMR on the sibling.
+#[test]
+fn transfer_glmr_to_sibling_with_trader_fees() {
+	setup_glmr_para_to_para();
+
+	let amount = moonbeam_runtime::currency::GLMR * 100; // 100 GLMR
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::PolkadotXcm::transfer_assets(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(SIBLING_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 { network: None, key: BALTATHAR }],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(Location::new(0, [PalletInstance(10)])),
+				fun: Fungible(amount),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	sibling_execute_with(|| {
+		let received = moonbeam_runtime::EvmForeignAssets::balance(
+			GLMR_ASSET_ID,
+			moonbeam_runtime::AccountId::from(BALTATHAR),
+		)
+		.unwrap();
+
+		// BALTATHAR should receive less than the full amount (fees deducted).
+		assert!(
+			received > U256::zero() && received < U256::from(amount),
+			"Should receive less than full amount due to fees: received={received}, sent={amount}"
+		);
+
+		// Treasury should have received some GLMR as fees.
+		let treasury = moonbeam_runtime::Treasury::account_id();
+		let treasury_fee = moonbeam_runtime::EvmForeignAssets::balance(
+			GLMR_ASSET_ID,
+			treasury,
+		)
+		.unwrap();
+		assert!(
+			treasury_fee > U256::zero(),
+			"Treasury should have collected GLMR fees"
+		);
+	});
+}
