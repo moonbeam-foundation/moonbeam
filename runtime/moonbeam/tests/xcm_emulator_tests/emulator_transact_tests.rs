@@ -25,10 +25,11 @@
 use crate::emulator_network::*;
 use frame_support::{
 	assert_ok,
-	traits::fungible::Inspect,
+	traits::fungible::{Inspect, Mutate},
 };
 use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
+use sp_core::U256;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertLocation;
 use xcm_emulator::{RelayChain, TestExt};
@@ -984,5 +985,243 @@ fn transact_through_signed_para_to_para_refund() {
 	assert!(
 		spent < sp_core::U256::from(ONE_DOT * 20),
 		"With refund, derived account should spend less than the full 20 DOT fee: spent={spent}"
+	);
+}
+
+// ===========================================================================
+// Transact through signed: para → para (EthereumXcm)
+// ===========================================================================
+
+/// Common setup for Ethereum XCM transact tests.
+/// Returns the derived account on the sibling.
+fn setup_para_to_para_ethereum() -> moonbeam_runtime::AccountId {
+	let derived_on_sibling = setup_para_to_para_signed();
+
+	// The derived account needs GLMR on the sibling for EVM value transfers.
+	sibling_execute_with(|| {
+		<moonbeam_runtime::Balances as Mutate<_>>::mint_into(
+			&derived_on_sibling,
+			moonbeam_runtime::currency::GLMR * 10,
+		)
+		.expect("Should mint GLMR for derived account on sibling");
+	});
+
+	derived_on_sibling
+}
+
+/// Encode an `EthereumXcm::transact` call that does an EVM value transfer.
+fn ethereum_xcm_transfer_call(recipient: sp_core::H160, value: u128) -> Vec<u8> {
+	use sp_runtime::BoundedVec;
+
+	let eth_tx =
+		xcm_primitives::EthereumXcmTransaction::V1(xcm_primitives::EthereumXcmTransactionV1 {
+			gas_limit: U256::from(21000),
+			fee_payment: xcm_primitives::EthereumXcmFee::Auto,
+			action: pallet_ethereum::TransactionAction::Call(recipient),
+			value: U256::from(value),
+			input: BoundedVec::<
+				u8,
+				sp_core::ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>,
+			>::try_from(vec![])
+			.unwrap(),
+			access_list: None,
+		});
+
+	moonbeam_runtime::RuntimeCall::EthereumXcm(
+		pallet_ethereum_xcm::Call::<moonbeam_runtime::Runtime>::transact {
+			xcm_transaction: eth_tx,
+		},
+	)
+	.encode()
+}
+
+/// EVM transfer to ALITH on sibling via EthereumXcm::transact.
+#[test]
+fn transact_through_signed_para_to_para_ethereum() {
+	let _derived = setup_para_to_para_ethereum();
+
+	let transfer_value = 100u128;
+	let alith_h160 = sp_core::H160::from(ALITH);
+
+	let alith_balance_before = sibling_execute_with(|| {
+		<moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(ALITH),
+		)
+	});
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_signed(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(SIBLING_PARA_ID)],
+			))),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 10),
+			},
+			ethereum_xcm_transfer_call(alith_h160, transfer_value),
+			TransactWeights {
+				transact_required_weight_at_most: 4_000_000_000u64.into(),
+				overall_weight: Some(Limited(8_000_000_000u64.into())),
+			},
+			false,
+		));
+	});
+
+	let alith_balance_after = sibling_execute_with(|| {
+		<moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(ALITH),
+		)
+	});
+	assert_eq!(
+		alith_balance_after - alith_balance_before,
+		transfer_value,
+		"ALITH should receive {transfer_value} WEI on sibling via EthereumXcm transact"
+	);
+}
+
+/// EthereumXcm::transact_through_proxy fails without a proxy set up.
+#[test]
+fn transact_through_signed_para_to_para_ethereum_no_proxy_fails() {
+	let _derived = setup_para_to_para_ethereum();
+
+	let alith_h160 = sp_core::H160::from(ALITH);
+	let transfer_value = 100u128;
+
+	// Encode a transact_through_proxy call without any proxy being set.
+	let eth_tx =
+		xcm_primitives::EthereumXcmTransaction::V2(xcm_primitives::EthereumXcmTransactionV2 {
+			gas_limit: U256::from(21000),
+			action: pallet_ethereum::TransactionAction::Call(alith_h160),
+			value: U256::from(transfer_value),
+			input: sp_runtime::BoundedVec::try_from(vec![]).unwrap(),
+			access_list: None,
+		});
+
+	let proxy_call = moonbeam_runtime::RuntimeCall::EthereumXcm(
+		pallet_ethereum_xcm::Call::<moonbeam_runtime::Runtime>::transact_through_proxy {
+			transact_as: alith_h160,
+			xcm_transaction: eth_tx,
+		},
+	)
+	.encode();
+
+	let alith_balance_before = sibling_execute_with(|| {
+		<moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(ALITH),
+		)
+	});
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_signed(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(SIBLING_PARA_ID)],
+			))),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 10),
+			},
+			proxy_call,
+			TransactWeights {
+				transact_required_weight_at_most: 4_000_000_000u64.into(),
+				overall_weight: Some(Limited(8_000_000_000u64.into())),
+			},
+			false,
+		));
+	});
+
+	// The EVM transfer should NOT have happened (proxy not set).
+	let alith_balance_after = sibling_execute_with(|| {
+		<moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(ALITH),
+		)
+	});
+	assert_eq!(
+		alith_balance_after, alith_balance_before,
+		"ALITH balance should be unchanged — transact_through_proxy should fail without proxy"
+	);
+}
+
+/// EthereumXcm::transact_through_proxy succeeds with a proxy set up.
+#[test]
+fn transact_through_signed_para_to_para_ethereum_proxy_succeeds() {
+	let derived = setup_para_to_para_ethereum();
+
+	let recipient: [u8; 20] = [42u8; 20];
+	let transfer_value = 100u128;
+
+	// Set up proxy: ALITH delegates to the derived account on the sibling.
+	sibling_execute_with(|| {
+		assert_ok!(moonbeam_runtime::Proxy::add_proxy(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			derived,
+			moonbeam_runtime::ProxyType::Any,
+			0,
+		));
+	});
+
+	let recipient_balance_before = sibling_execute_with(|| {
+		<moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(recipient),
+		)
+	});
+
+	// Encode a transact_through_proxy call targeting ALITH as proxy principal,
+	// EVM transfer to `recipient`.
+	let eth_tx =
+		xcm_primitives::EthereumXcmTransaction::V2(xcm_primitives::EthereumXcmTransactionV2 {
+			gas_limit: U256::from(21000),
+			action: pallet_ethereum::TransactionAction::Call(sp_core::H160::from(recipient)),
+			value: U256::from(transfer_value),
+			input: sp_runtime::BoundedVec::try_from(vec![]).unwrap(),
+			access_list: None,
+		});
+
+	let proxy_call = moonbeam_runtime::RuntimeCall::EthereumXcm(
+		pallet_ethereum_xcm::Call::<moonbeam_runtime::Runtime>::transact_through_proxy {
+			transact_as: sp_core::H160::from(ALITH),
+			xcm_transaction: eth_tx,
+		},
+	)
+	.encode();
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::XcmTransactor::transact_through_signed(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(SIBLING_PARA_ID)],
+			))),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+					Location::parent(),
+				))),
+				fee_amount: Some(ONE_DOT * 10),
+			},
+			proxy_call,
+			TransactWeights {
+				transact_required_weight_at_most: 4_000_000_000u64.into(),
+				overall_weight: Some(Limited(8_000_000_000u64.into())),
+			},
+			false,
+		));
+	});
+
+	let recipient_balance_after = sibling_execute_with(|| {
+		<moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(recipient),
+		)
+	});
+	assert_eq!(
+		recipient_balance_after - recipient_balance_before,
+		transfer_value,
+		"Recipient should receive {transfer_value} WEI via EthereumXcm proxy transact"
 	);
 }
