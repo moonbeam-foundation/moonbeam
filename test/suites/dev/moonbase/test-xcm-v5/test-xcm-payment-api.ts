@@ -154,7 +154,7 @@ describeSuite({
             V3: {
               Concrete: { parents: 1, interior: "Here" },
             },
-          },
+          }
         )) as any;
         // No delivery fees set for now
         expect(deliveryFees.isOk).to.be.false;
