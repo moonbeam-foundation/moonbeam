@@ -9,6 +9,21 @@ import {
 
 const KILOWEI = 1_000n;
 
+/// The default byte size of a transaction slot (32 KiB).
+///
+/// Reference:
+/// - geth: <https://github.com/ethereum/go-ethereum/blob/master/core/txpool/legacypool/legacypool.go> (`txSlotSize`)
+/// - reth: <https://github.com/paradigmxyz/reth/blob/main/crates/transaction-pool/src/validate/constants.rs#L4>
+export const TX_SLOT_BYTE_SIZE = 32 * 1024;
+
+/// The default maximum size a single transaction can have (128 KiB).
+/// This is the RLP-encoded size of the signed transaction.
+///
+/// Reference:
+/// - geth: <https://github.com/ethereum/go-ethereum/blob/master/core/txpool/legacypool/legacypool.go> (`txMaxSize`)
+/// - reth: <https://github.com/paradigmxyz/reth/blob/main/crates/transaction-pool/src/validate/constants.rs#L11>
+export const DEFAULT_MAX_TX_INPUT_BYTES = 4 * TX_SLOT_BYTE_SIZE;
+
 // EIP-7825: Maximum transaction gas limit cap (2^24)
 export const EIP_7825_MAX_TRANSACTION_GAS_LIMIT = 16_777_216n;
 
