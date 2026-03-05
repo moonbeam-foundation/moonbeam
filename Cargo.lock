@@ -4163,7 +4163,7 @@ dependencies = [
 [[package]]
 name = "fc-api"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#22da39d0de6571c799d48512232e6b89fc6ee42d"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#c28328d37827463cd287bf8288979bc77e2e27c0"
 dependencies = [
  "async-trait",
  "fp-storage",
