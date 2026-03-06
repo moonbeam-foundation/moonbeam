@@ -7893,6 +7893,7 @@ name = "moonbase-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
+ "asset-hub-westend-runtime",
  "async-backing-primitives",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-weight-reclaim",
@@ -8039,6 +8040,8 @@ dependencies = [
  "strum 0.26.3",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
+ "westend-runtime",
+ "xcm-emulator",
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-runtime-apis",
@@ -8641,6 +8644,7 @@ name = "moonriver-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
+ "asset-hub-westend-runtime",
  "async-backing-primitives",
  "bp-header-chain",
  "bp-messages",
@@ -8799,6 +8803,8 @@ dependencies = [
  "strum 0.26.3",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
+ "westend-runtime",
+ "xcm-emulator",
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-runtime-apis",
