@@ -889,3 +889,549 @@ fn transfer_glmr_to_sibling_with_trader_fees() {
 		);
 	});
 }
+
+// ===========================================================================
+// Multi-hop: 3-chain GLMR transfer (Moonbeam → Sibling → Moonbeam → ParaC)
+// ===========================================================================
+
+/// Register Moonbeam GLMR as foreign asset on the current chain context.
+/// Call inside `sibling_execute_with` or `para_c_execute_with`.
+fn register_glmr_foreign_asset(source_para_id: u32) {
+	let glmr_location =
+		xcm::latest::Location::new(1, [Parachain(source_para_id), PalletInstance(10u8)]);
+
+	frame_support::assert_ok!(
+		moonbeam_runtime::EvmForeignAssets::create_foreign_asset(
+			moonbeam_runtime::RuntimeOrigin::root(),
+			GLMR_ASSET_ID,
+			glmr_location.clone(),
+			18,
+			b"GLMR".to_vec().try_into().unwrap(),
+			b"Glimmer".to_vec().try_into().unwrap(),
+		)
+	);
+
+	frame_support::assert_ok!(moonbeam_runtime::XcmWeightTrader::add_asset(
+		moonbeam_runtime::RuntimeOrigin::root(),
+		glmr_location,
+		10_000_000_000_000_000_000_000_000_000u128,
+	));
+}
+
+/// Full 3-chain setup: register DOT everywhere, open all HRMP pairs,
+/// register GLMR on sibling and ParaC.
+fn setup_three_chains() {
+	init_network();
+
+	moonbeam_execute_with(|| register_dot_asset(DOT_ASSET_ID));
+	sibling_execute_with(|| register_dot_asset(DOT_ASSET_ID));
+	para_c_execute_with(|| register_dot_asset(DOT_ASSET_ID));
+
+	sibling_execute_with(|| register_glmr_foreign_asset(MOONBEAM_PARA_ID));
+	para_c_execute_with(|| register_glmr_foreign_asset(MOONBEAM_PARA_ID));
+
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		open_hrmp_channels(MOONBEAM_PARA_ID, SIBLING_PARA_ID);
+		open_hrmp_channels(SIBLING_PARA_ID, PARA_C_ID);
+		open_hrmp_channels(MOONBEAM_PARA_ID, PARA_C_ID);
+	});
+}
+
+/// Transfer GLMR across three chains: Moonbeam (A) → Sibling (B) → back
+/// to Moonbeam (A) → ParaC (C). Verifies the 3-chain network topology and
+/// that GLMR can traverse all three chains.
+///
+/// A single-XCM B→C hop through reserve A requires the reserve chain to
+/// auto-forward `InitiateTransfer`, which is not yet fully supported.
+/// This test uses two proven single-hop legs instead.
+#[test]
+fn transfer_glmr_across_three_chains() {
+	setup_three_chains();
+
+	let amount = moonbeam_runtime::currency::GLMR;
+
+	// ── Leg 1: Moonbeam → Sibling ─────────────────────────────────────────
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::PolkadotXcm::transfer_assets(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(SIBLING_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: BALTATHAR,
+				}],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(Location::new(0, [PalletInstance(10)])),
+				fun: Fungible(amount),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	let baltathar_on_sibling = sibling_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			GLMR_ASSET_ID,
+			moonbeam_runtime::AccountId::from(BALTATHAR),
+		)
+		.unwrap_or_default()
+	});
+	assert!(
+		baltathar_on_sibling > U256::zero(),
+		"BALTATHAR should have received GLMR on sibling (got {baltathar_on_sibling})"
+	);
+
+	// ── Leg 2: Sibling → Moonbeam (back to reserve) ──────────────────────
+	let return_amount: u128 = baltathar_on_sibling.try_into().unwrap();
+
+	sibling_execute_with(|| {
+		let glmr_on_sibling =
+			Location::new(1, [Parachain(MOONBEAM_PARA_ID), PalletInstance(10u8)]);
+
+		assert_ok!(moonbeam_runtime::PolkadotXcm::transfer_assets(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(BALTATHAR)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(MOONBEAM_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: ALITH,
+				}],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(glmr_on_sibling),
+				fun: Fungible(return_amount),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	// ── Leg 3: Moonbeam → ParaC ──────────────────────────────────────────
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::PolkadotXcm::transfer_assets(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(PARA_C_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: CHARLETH,
+				}],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(Location::new(0, [PalletInstance(10)])),
+				fun: Fungible(amount / 2),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	let charleth_on_para_c = para_c_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			GLMR_ASSET_ID,
+			moonbeam_runtime::AccountId::from(CHARLETH),
+		)
+		.unwrap_or_default()
+	});
+	assert!(
+		charleth_on_para_c > U256::zero(),
+		"CHARLETH should have received GLMR on ParaC (got {charleth_on_para_c})"
+	);
+}
+
+// ===========================================================================
+// DOT transfers via RemoteReserve (relay as reserve)
+// ===========================================================================
+
+/// Fund ALITH with DOT via relay DMP.
+fn fund_moonbeam_alith_with_dot(amount: u128) {
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		let beneficiary = Location::new(
+			0,
+			[AccountKey20 {
+				network: None,
+				key: ALITH,
+			}],
+		);
+		let assets: xcm::VersionedAssets = (Location::here(), amount).into();
+		let fees_id: xcm::VersionedAssetId = AssetId(Location::here()).into();
+		let xcm_on_dest = Xcm::<()>(vec![DepositAsset {
+			assets: Wild(All),
+			beneficiary,
+		}]);
+
+		assert_ok!(
+			westend_runtime::XcmPallet::transfer_assets_using_type_and_then(
+				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE.clone()),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					0,
+					[Parachain(MOONBEAM_PARA_ID)]
+				))),
+				Box::new(assets),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(fees_id),
+				Box::new(xcm_executor::traits::TransferType::LocalReserve),
+				Box::new(xcm::VersionedXcm::V5(xcm_on_dest)),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+}
+
+/// Send DOT from Moonbeam to a sibling using `RemoteReserve` through the
+/// relay. DOT's reserve is the relay (parent), so a direct
+/// `DestinationReserve` is invalid — the relay must mediate.
+#[test]
+fn transfer_dot_to_sibling_via_remote_reserve() {
+	setup_with_sibling();
+
+	let send_amount = ONE_DOT * 100;
+	fund_moonbeam_alith_with_dot(send_amount);
+
+	let alith_dot_before = moonbeam_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(ALITH),
+		)
+		.unwrap_or_default()
+	});
+	assert!(
+		alith_dot_before > U256::zero(),
+		"ALITH should have DOT before transfer"
+	);
+
+	let transfer = ONE_DOT * 50;
+
+	moonbeam_execute_with(|| {
+		let dot_location = Location::parent();
+
+		assert_ok!(
+			moonbeam_runtime::PolkadotXcm::transfer_assets_using_type_and_then(
+				moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					1,
+					[Parachain(SIBLING_PARA_ID)],
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(dot_location.clone()),
+					fun: Fungible(transfer),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::RemoteReserve(
+					xcm::VersionedLocation::from(Location::parent()),
+				)),
+				Box::new(xcm::VersionedAssetId::from(AssetId(dot_location.clone()))),
+				Box::new(xcm_executor::traits::TransferType::RemoteReserve(
+					xcm::VersionedLocation::from(Location::parent()),
+				)),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![
+					BuyExecution {
+						fees: Asset {
+							id: AssetId(dot_location),
+							fun: Fungible(ONE_DOT / 10),
+						},
+						weight_limit: WeightLimit::Unlimited,
+					},
+					DepositAsset {
+						assets: Wild(All),
+						beneficiary: Location::new(
+							0,
+							[AccountKey20 {
+								network: None,
+								key: BALTATHAR,
+							}],
+						),
+					},
+				]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {});
+
+	let alith_dot_after = moonbeam_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(ALITH),
+		)
+		.unwrap_or_default()
+	});
+	assert!(
+		alith_dot_after < alith_dot_before,
+		"ALITH DOT should decrease after transfer"
+	);
+
+	let baltathar_dot = sibling_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(BALTATHAR),
+		)
+		.unwrap_or_default()
+	});
+	assert!(
+		baltathar_dot > U256::zero(),
+		"BALTATHAR should have DOT on sibling (got {baltathar_dot})"
+	);
+}
+
+/// Roundtrip: DOT from Moonbeam → Sibling → back to Moonbeam, both legs
+/// using RemoteReserve through the relay.
+#[test]
+fn transfer_dot_roundtrip_via_remote_reserve() {
+	setup_with_sibling();
+
+	let send_amount = ONE_DOT * 100;
+	fund_moonbeam_alith_with_dot(send_amount);
+
+	let outbound = ONE_DOT * 50;
+	let dot_location = Location::parent();
+
+	// ── Moonbeam → Sibling ────────────────────────────────────────────────
+	moonbeam_execute_with(|| {
+		assert_ok!(
+			moonbeam_runtime::PolkadotXcm::transfer_assets_using_type_and_then(
+				moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					1,
+					[Parachain(SIBLING_PARA_ID)],
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(dot_location.clone()),
+					fun: Fungible(outbound),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::RemoteReserve(
+					xcm::VersionedLocation::from(Location::parent()),
+				)),
+				Box::new(xcm::VersionedAssetId::from(AssetId(dot_location.clone()))),
+				Box::new(xcm_executor::traits::TransferType::RemoteReserve(
+					xcm::VersionedLocation::from(Location::parent()),
+				)),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![
+					BuyExecution {
+						fees: Asset {
+							id: AssetId(dot_location.clone()),
+							fun: Fungible(ONE_DOT / 10),
+						},
+						weight_limit: WeightLimit::Unlimited,
+					},
+					DepositAsset {
+						assets: Wild(All),
+						beneficiary: Location::new(
+							0,
+							[AccountKey20 {
+								network: None,
+								key: BALTATHAR,
+							}],
+						),
+					},
+				]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {});
+
+	let baltathar_dot = sibling_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(BALTATHAR),
+		)
+		.unwrap_or_default()
+	});
+	assert!(baltathar_dot > U256::zero(), "Sibling should have DOT");
+
+	// ── Sibling → Moonbeam ────────────────────────────────────────────────
+	let return_amount_raw: u128 = baltathar_dot.try_into().unwrap();
+	let return_half = return_amount_raw / 2;
+
+	sibling_execute_with(|| {
+		assert_ok!(
+			moonbeam_runtime::PolkadotXcm::transfer_assets_using_type_and_then(
+				moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(
+					BALTATHAR,
+				)),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					1,
+					[Parachain(MOONBEAM_PARA_ID)],
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(dot_location.clone()),
+					fun: Fungible(return_half),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::RemoteReserve(
+					xcm::VersionedLocation::from(Location::parent()),
+				)),
+				Box::new(xcm::VersionedAssetId::from(AssetId(dot_location.clone()))),
+				Box::new(xcm_executor::traits::TransferType::RemoteReserve(
+					xcm::VersionedLocation::from(Location::parent()),
+				)),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![
+					BuyExecution {
+						fees: Asset {
+							id: AssetId(dot_location),
+							fun: Fungible(ONE_DOT / 10),
+						},
+						weight_limit: WeightLimit::Unlimited,
+					},
+					DepositAsset {
+						assets: Wild(All),
+						beneficiary: Location::new(
+							0,
+							[AccountKey20 {
+								network: None,
+								key: ALITH,
+							}],
+						),
+					},
+				]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {});
+
+	let alith_dot_final = moonbeam_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			DOT_ASSET_ID,
+			moonbeam_runtime::AccountId::from(ALITH),
+		)
+		.unwrap_or_default()
+	});
+	assert!(
+		alith_dot_final > U256::from(send_amount - outbound),
+		"ALITH should have more DOT than after the outbound leg (got {alith_dot_final})"
+	);
+}
+
+/// Transfer GLMR to a sibling as a self-reserve asset (GLMR pays its own
+/// fees). Exercises `transfer_assets` with a single asset where the fee
+/// asset and the transfer asset are the same.
+#[test]
+fn transfer_glmr_self_reserve_to_sibling() {
+	setup_with_sibling();
+	register_glmr_on_sibling();
+
+	let glmr_amount = moonbeam_runtime::currency::GLMR;
+
+	moonbeam_execute_with(|| {
+		assert_ok!(moonbeam_runtime::PolkadotXcm::transfer_assets(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(SIBLING_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: BALTATHAR,
+				}],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(Location::new(0, [PalletInstance(10)])),
+				fun: Fungible(glmr_amount),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	let bal_glmr = sibling_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			GLMR_ASSET_ID,
+			moonbeam_runtime::AccountId::from(BALTATHAR),
+		)
+		.unwrap_or_default()
+	});
+	assert!(
+		bal_glmr > U256::zero(),
+		"BALTATHAR should have received GLMR on sibling (got {bal_glmr})"
+	);
+}
+
+/// Receive a sibling-native foreign asset on Moonbeam.
+/// A sibling sends its own native token (another Moonbeam instance's GLMR)
+/// to Moonbeam, which receives it as an EVM foreign asset.
+#[test]
+fn receive_sibling_native_asset() {
+	setup_with_sibling();
+
+	// On Moonbeam, register the sibling's GLMR (PalletInstance(10) on para 2005)
+	// as a foreign asset with id=3.
+	const SIBLING_GLMR_ASSET_ID: u128 = 3;
+	moonbeam_execute_with(|| {
+		let sibling_glmr_location = xcm::latest::Location::new(
+			1,
+			[Parachain(SIBLING_PARA_ID), PalletInstance(10u8)],
+		);
+
+		frame_support::assert_ok!(
+			moonbeam_runtime::EvmForeignAssets::create_foreign_asset(
+				moonbeam_runtime::RuntimeOrigin::root(),
+				SIBLING_GLMR_ASSET_ID,
+				sibling_glmr_location.clone(),
+				18,
+				b"sGLMR".to_vec().try_into().unwrap(),
+				b"Sibling Glimmer".to_vec().try_into().unwrap(),
+			)
+		);
+
+		frame_support::assert_ok!(moonbeam_runtime::XcmWeightTrader::add_asset(
+			moonbeam_runtime::RuntimeOrigin::root(),
+			sibling_glmr_location,
+			10_000_000_000_000_000_000_000_000_000u128,
+		));
+	});
+
+	let amount = moonbeam_runtime::currency::GLMR;
+
+	sibling_execute_with(|| {
+		assert_ok!(moonbeam_runtime::PolkadotXcm::transfer_assets(
+			moonbeam_runtime::RuntimeOrigin::signed(moonbeam_runtime::AccountId::from(ALITH)),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(MOONBEAM_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: BALTATHAR,
+				}],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(Location::new(0, [PalletInstance(10)])),
+				fun: Fungible(amount),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	let bal = moonbeam_execute_with(|| {
+		moonbeam_runtime::EvmForeignAssets::balance(
+			SIBLING_GLMR_ASSET_ID,
+			moonbeam_runtime::AccountId::from(BALTATHAR),
+		)
+		.unwrap_or_default()
+	});
+	assert!(
+		bal > U256::zero(),
+		"BALTATHAR should have sibling GLMR on Moonbeam (got {bal})"
+	);
+}

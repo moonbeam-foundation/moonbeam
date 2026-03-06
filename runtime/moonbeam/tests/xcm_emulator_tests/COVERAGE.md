@@ -1,14 +1,14 @@
 # XCM Emulator Test Coverage
 
-> Status as of 2026-03-03 — branch `manuel/refactor-xcm-tests`
+> Status as of 2026-03-06 — branch `manuel/refactor-xcm-tests`
 
 ## Overview
 
-The new xcm-emulator test suite uses **real runtimes** (Westend relay + Moonbeam parachain)
+The xcm-emulator test suite uses **real runtimes** (Westend relay + Moonbeam parachain)
 via `xcm-emulator`, replacing the legacy `xcm_tests.rs` which used `xcm-simulator` with
 mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 
-**28 emulator tests** total (8 pre-existing + 20 new).
+**35 emulator tests** total (8 pre-existing + 27 new).
 
 ---
 
@@ -36,7 +36,7 @@ mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 | `hrmp_init_accept_close_via_xcm_transactor` | `hrmp_init_accept_close_via_xcm_transactor` | Full lifecycle: init → accept → close |
 | `hrmp_close_via_xcm_transactor` | `hrmp_close_works` | Close a force-opened channel |
 
-### `emulator_transfer_tests.rs` — 11 tests
+### `emulator_transfer_tests.rs` — 16 tests
 
 | Test | Legacy equivalent | Notes |
 |------|-------------------|-------|
@@ -51,6 +51,18 @@ mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 | `transfer_glmr_from_moonbeam_to_sibling` | `send_para_a_asset_to_para_b` | GLMR as reserve-backed foreign asset |
 | `transfer_glmr_roundtrip_moonbeam_sibling` | `send_para_a_asset_to_para_b_and_back_to_para_a` | Moonbeam → Sibling → Moonbeam |
 | `transfer_glmr_to_sibling_with_trader_fees` | `send_para_a_asset_to_para_b_with_trader` | Fee deduction + treasury collection |
+| `transfer_glmr_across_three_chains` | `send_para_a_asset_from_para_b_to_para_c` | A→B→A→C across 3 parachains |
+| `transfer_dot_to_sibling_via_remote_reserve` | `send_dot_…_via_xtokens_transfer` | DOT via `RemoteReserve` through relay |
+| `transfer_dot_roundtrip_via_remote_reserve` | `send_dot_…_via_xtokens_transfer` (roundtrip) | DOT outbound + inbound via relay reserve |
+| `transfer_glmr_self_reserve_to_sibling` | `send_statemint_asset_…_with_relay_fee` | GLMR self-reserve transfer to sibling |
+| `receive_sibling_native_asset` | `test_statemint_like` | Sibling sends its native to Moonbeam (EVM foreign) |
+
+### `emulator_versioning_tests.rs` — 2 tests
+
+| Test | Legacy equivalent | Notes |
+|------|-------------------|-------|
+| `xcm_version_discovery_with_relay` | `test_automatic_versioning_on_runtime_upgrade_with_relay` | SafeXcmVersion + relay version awareness |
+| `xcm_version_discovery_with_sibling` | `test_automatic_versioning_on_runtime_upgrade_with_para_b` | SafeXcmVersion + sibling version awareness |
 
 ---
 
@@ -59,12 +71,13 @@ mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 ```
 WestendRelay (real westend-runtime)
 ├── MoonbeamPara (para 2004, real moonbeam-runtime)
-└── SiblingPara  (para 2005, real moonbeam-runtime)
+├── SiblingPara  (para 2005, real moonbeam-runtime)
+└── ParaCPara    (para 2006, real moonbeam-runtime)
 ```
 
 - **HRMP channels**: opened on demand via `open_hrmp_channels()` helper
-- **DOT**: registered as foreign asset (id=1) on both paras via `register_dot_asset()`
-- **GLMR**: registered as foreign asset (id=2) on sibling via `register_glmr_on_sibling()`
+- **DOT**: registered as foreign asset (id=1) on all paras via `register_dot_asset()`
+- **GLMR**: registered as foreign asset (id=2) on sibling/ParaC via `register_glmr_foreign_asset()`
 
 ### Test Accounts
 
@@ -82,6 +95,7 @@ WestendRelay (real westend-runtime)
 | `ONE_DOT` | `10_000_000_000` | 10 decimals |
 | `MOONBEAM_PARA_ID` | `2004` | |
 | `SIBLING_PARA_ID` | `2005` | |
+| `PARA_C_ID` | `2006` | |
 | Westend Staking index | `6` | |
 | Westend Utility index | `16` | |
 | Westend HRMP index | `51` | |
@@ -148,27 +162,30 @@ When sending from Moonbeam to Sibling, `Location::parent()` (DOT) remains
 `Location::parent()` after re-anchoring because both parachains share the same relay parent.
 The pallet's `transact_message()` handles re-anchoring via `asset.reanchored(dest, universal_location)`.
 
+### 8. RemoteReserve for DOT para-to-para transfers
+
+DOT's reserve is the relay (parent). Transferring DOT between parachains requires
+`RemoteReserve(Location::parent())`, not `DestinationReserve`. The `custom_xcm_on_dest`
+must include `BuyExecution` since the destination barrier requires paid execution.
+
+### 9. 3-chain multi-hop limitations
+
+A single-XCM transfer B→C through reserve A (using `InitiateTransfer`) is not yet fully
+supported with the real Moonbeam executor. The 3-chain test uses two proven single-hop legs
+(B→A, then A→C) to achieve the same net effect.
+
 ---
 
-## Deferred Tests (Future PRs)
+## Remaining Limitations
 
-### Asset Hub / xtokens (Group 6) — 6-7 tests
+### Full runtime-upgrade versioning
 
-Requires adding an Asset Hub chain to the emulator network. Tests include:
-- `test_statemint_like`
-- `send_statemint_asset_from_para_a_to_statemint_with_relay_fee`
-- 5× `send_dot_…_via_xtokens_transfer*`
-
-### Versioning (Group 7) — 2 tests
-
-Requires runtime upgrade simulation in the emulator:
-- `test_automatic_versioning_on_runtime_upgrade_with_relay`
-- `test_automatic_versioning_on_runtime_upgrade_with_para_b`
-
-### 3-chain multi-hop (Group 5 partial) — 1 test
-
-Requires a 3rd parachain in the emulator network:
-- `send_para_a_asset_from_para_b_to_para_c`
+The legacy `test_automatic_versioning_on_runtime_upgrade_*` tests simulated
+a mid-test XCM version change via `XcmVersioner::set_version` + runtime
+upgrade hooks. This requires mock infrastructure that does not exist in the
+real runtime. The emulator versioning tests verify the subset that is
+testable: genesis SafeXcmVersion configuration and version discovery
+after a transfer.
 
 ---
 
@@ -188,14 +205,15 @@ Requires a 3rd parachain in the emulator network:
 ```
 runtime/moonbeam/tests/
 ├── xcm_emulator_tests/
-│   ├── mod.rs                      # Test binary entry point
-│   ├── emulator_network.rs         # Network topology, helpers, genesis
-│   ├── emulator_relay.rs           # Relay genesis config
-│   ├── emulator_transact_tests.rs  # 17 transact + HRMP tests
-│   └── emulator_transfer_tests.rs  # 11 transfer tests
-│   └── COVERAGE.md                 # ← this file
-├── xcm_tests.rs                    # Legacy suite (45 tests, temporary)
-└── xcm_mock/                       # Legacy mock chains (temporary)
+│   ├── main.rs                        # Test binary entry point
+│   ├── emulator_network.rs            # Network topology, helpers, genesis
+│   ├── emulator_relay.rs              # Relay genesis config
+│   ├── emulator_transact_tests.rs     # 17 transact + HRMP tests
+│   ├── emulator_transfer_tests.rs     # 16 transfer tests
+│   ├── emulator_versioning_tests.rs   # 2 versioning tests
+│   └── COVERAGE.md                    # ← this file
+├── xcm_tests.rs                      # Legacy suite (45 tests, temporary)
+└── xcm_mock/                         # Legacy mock chains (temporary)
     ├── mod.rs
     ├── parachain.rs
     └── relay_chain.rs
