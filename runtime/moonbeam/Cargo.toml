@@ -401,10 +401,6 @@ on-chain-release-build = [
 # stripped from the final binary
 disable-genesis-builder = []
 
-force-xcm-processor = [
-	"westend-runtime/force-xcm-processor",
-]
-
 runtime-benchmarks = [
 	"cumulus-pallet-xcmp-queue/runtime-benchmarks",
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
