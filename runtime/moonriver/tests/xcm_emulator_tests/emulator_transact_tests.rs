@@ -31,8 +31,8 @@ use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWe
 use parity_scale_codec::Encode;
 use sp_core::U256;
 use xcm::latest::prelude::*;
-use xcm_executor::traits::ConvertLocation;
 use xcm_emulator::{RelayChain, TestExt};
+use xcm_executor::traits::ConvertLocation;
 
 const DOT_ASSET_ID: u128 = 1;
 
@@ -79,16 +79,7 @@ fn relay_remark_call() -> Vec<u8> {
 /// `Parachain(para_id)/AccountKey20(key)`, which the relay's `LocationConverter`
 /// hashes into a 32-byte account.
 fn relay_derived_account(para_id: u32, key: [u8; 20]) -> sp_runtime::AccountId32 {
-	let location = Location::new(
-		0,
-		[
-			Parachain(para_id),
-			AccountKey20 {
-				network: None,
-				key,
-			},
-		],
-	);
+	let location = Location::new(0, [Parachain(para_id), AccountKey20 { network: None, key }]);
 	westend_runtime::xcm_config::LocationConverter::convert_location(&location)
 		.expect("Should derive relay account from parachain signed origin")
 }
@@ -179,24 +170,26 @@ fn transact_through_sovereign_to_relay() {
 	);
 
 	moonriver_execute_with(|| {
-		assert_ok!(moonriver_runtime::XcmTransactor::transact_through_sovereign(
-			moonriver_runtime::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::from(Location::parent())),
-			Some(moonriver_runtime::AccountId::from(ALITH)),
-			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
-					Location::parent()
-				))),
-				fee_amount: Some(ONE_DOT), // explicit fee
-			},
-			relay_remark_call(),
-			OriginKind::SovereignAccount,
-			TransactWeights {
-				transact_required_weight_at_most: 1_000_000_000u64.into(),
-				overall_weight: Some(Limited(2_000_000_000u64.into())),
-			},
-			false,
-		));
+		assert_ok!(
+			moonriver_runtime::XcmTransactor::transact_through_sovereign(
+				moonriver_runtime::RuntimeOrigin::root(),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
+				Some(moonriver_runtime::AccountId::from(ALITH)),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+						Location::parent()
+					))),
+					fee_amount: Some(ONE_DOT), // explicit fee
+				},
+				relay_remark_call(),
+				OriginKind::SovereignAccount,
+				TransactWeights {
+					transact_required_weight_at_most: 1_000_000_000u64.into(),
+					overall_weight: Some(Limited(2_000_000_000u64.into())),
+				},
+				false,
+			)
+		);
 	});
 
 	assert_relay_remark_executed();
@@ -299,10 +292,7 @@ fn hrmp_init_accept_close_via_xcm_transactor() {
 				)
 			)
 		});
-		assert!(
-			has_accept,
-			"Relay should have emitted OpenChannelAccepted"
-		);
+		assert!(has_accept, "Relay should have emitted OpenChannelAccepted");
 	});
 
 	// Step 3: Process the pending open requests and verify the channel is established.
@@ -313,12 +303,11 @@ fn hrmp_init_accept_close_via_xcm_transactor() {
 		));
 
 		use polkadot_runtime_parachains::hrmp;
-		let channel = hrmp::HrmpChannels::<westend_runtime::Runtime>::get(
-			xcm_emulator::HrmpChannelId {
+		let channel =
+			hrmp::HrmpChannels::<westend_runtime::Runtime>::get(xcm_emulator::HrmpChannelId {
 				sender: MOONBEAM_PARA_ID.into(),
 				recipient: SIBLING_PARA_ID.into(),
-			},
-		);
+			});
 		assert!(
 			channel.is_some(),
 			"HRMP channel Moonriver → Sibling should be established"
@@ -391,24 +380,26 @@ fn transact_through_sovereign_fee_payer_none() {
 	// With fee_payer = None, no local withdraw happens — only the sovereign on
 	// relay pays. The sovereign must be funded from genesis.
 	moonriver_execute_with(|| {
-		assert_ok!(moonriver_runtime::XcmTransactor::transact_through_sovereign(
-			moonriver_runtime::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::from(Location::parent())),
-			None, // no fee payer — no local withdraw
-			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
-					Location::parent(),
-				))),
-				fee_amount: Some(ONE_DOT),
-			},
-			relay_remark_call(),
-			OriginKind::SovereignAccount,
-			TransactWeights {
-				transact_required_weight_at_most: 1_000_000_000u64.into(),
-				overall_weight: Some(Limited(2_000_000_000u64.into())),
-			},
-			false,
-		));
+		assert_ok!(
+			moonriver_runtime::XcmTransactor::transact_through_sovereign(
+				moonriver_runtime::RuntimeOrigin::root(),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
+				None, // no fee payer — no local withdraw
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+						Location::parent(),
+					))),
+					fee_amount: Some(ONE_DOT),
+				},
+				relay_remark_call(),
+				OriginKind::SovereignAccount,
+				TransactWeights {
+					transact_required_weight_at_most: 1_000_000_000u64.into(),
+					overall_weight: Some(Limited(2_000_000_000u64.into())),
+				},
+				false,
+			)
+		);
 	});
 
 	assert_relay_remark_executed();
@@ -424,24 +415,26 @@ fn transact_through_sovereign_custom_fee_weight() {
 	fund_moonriver_alith_with_dot(ONE_DOT * 1000);
 
 	moonriver_execute_with(|| {
-		assert_ok!(moonriver_runtime::XcmTransactor::transact_through_sovereign(
-			moonriver_runtime::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::from(Location::parent())),
-			Some(moonriver_runtime::AccountId::from(ALITH)),
-			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
-					Location::parent(),
-				))),
-				fee_amount: Some(ONE_DOT * 5), // explicit larger fee
-			},
-			relay_remark_call(),
-			OriginKind::SovereignAccount,
-			TransactWeights {
-				transact_required_weight_at_most: 2_000_000_000u64.into(),
-				overall_weight: Some(Limited(4_000_000_000u64.into())),
-			},
-			false,
-		));
+		assert_ok!(
+			moonriver_runtime::XcmTransactor::transact_through_sovereign(
+				moonriver_runtime::RuntimeOrigin::root(),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
+				Some(moonriver_runtime::AccountId::from(ALITH)),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+						Location::parent(),
+					))),
+					fee_amount: Some(ONE_DOT * 5), // explicit larger fee
+				},
+				relay_remark_call(),
+				OriginKind::SovereignAccount,
+				TransactWeights {
+					transact_required_weight_at_most: 2_000_000_000u64.into(),
+					overall_weight: Some(Limited(4_000_000_000u64.into())),
+				},
+				false,
+			)
+		);
 	});
 
 	assert_relay_remark_executed();
@@ -464,24 +457,26 @@ fn transact_through_sovereign_custom_fee_weight_refund() {
 	});
 
 	moonriver_execute_with(|| {
-		assert_ok!(moonriver_runtime::XcmTransactor::transact_through_sovereign(
-			moonriver_runtime::RuntimeOrigin::root(),
-			Box::new(xcm::VersionedLocation::from(Location::parent())),
-			Some(moonriver_runtime::AccountId::from(ALITH)),
-			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
-					Location::parent(),
-				))),
-				fee_amount: Some(ONE_DOT * 10), // overpay to test refund
-			},
-			relay_remark_call(),
-			OriginKind::SovereignAccount,
-			TransactWeights {
-				transact_required_weight_at_most: 2_000_000_000u64.into(),
-				overall_weight: Some(Limited(4_000_000_000u64.into())),
-			},
-			true, // refund = true
-		));
+		assert_ok!(
+			moonriver_runtime::XcmTransactor::transact_through_sovereign(
+				moonriver_runtime::RuntimeOrigin::root(),
+				Box::new(xcm::VersionedLocation::from(Location::parent())),
+				Some(moonriver_runtime::AccountId::from(ALITH)),
+				CurrencyPayment {
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+						Location::parent(),
+					))),
+					fee_amount: Some(ONE_DOT * 10), // overpay to test refund
+				},
+				relay_remark_call(),
+				OriginKind::SovereignAccount,
+				TransactWeights {
+					transact_required_weight_at_most: 2_000_000_000u64.into(),
+					overall_weight: Some(Limited(4_000_000_000u64.into())),
+				},
+				true, // refund = true
+			)
+		);
 	});
 
 	assert_relay_remark_executed();
@@ -686,15 +681,13 @@ fn transact_through_derivative_to_relay() {
 	moonriver_execute_with(|| {
 		assert_ok!(
 			moonriver_runtime::XcmTransactor::transact_through_derivative(
-				moonriver_runtime::RuntimeOrigin::signed(
-					moonriver_runtime::AccountId::from(ALITH),
-				),
+				moonriver_runtime::RuntimeOrigin::signed(moonriver_runtime::AccountId::from(ALITH),),
 				moonriver_runtime::xcm_config::Transactors::Relay,
 				0u16, // derivative index
 				CurrencyPayment {
-					currency: Currency::AsMultiLocation(Box::new(
-						xcm::VersionedLocation::from(Location::parent()),
-					)),
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+						Location::parent()
+					),)),
 					fee_amount: Some(ONE_DOT * 10),
 				},
 				// Inner call (unwrapped — the pallet wraps it in as_derivative).
@@ -718,15 +711,13 @@ fn transact_through_derivative_custom_fee_weight() {
 	moonriver_execute_with(|| {
 		assert_ok!(
 			moonriver_runtime::XcmTransactor::transact_through_derivative(
-				moonriver_runtime::RuntimeOrigin::signed(
-					moonriver_runtime::AccountId::from(ALITH),
-				),
+				moonriver_runtime::RuntimeOrigin::signed(moonriver_runtime::AccountId::from(ALITH),),
 				moonriver_runtime::xcm_config::Transactors::Relay,
 				0u16,
 				CurrencyPayment {
-					currency: Currency::AsMultiLocation(Box::new(
-						xcm::VersionedLocation::from(Location::parent()),
-					)),
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+						Location::parent()
+					),)),
 					fee_amount: Some(ONE_DOT * 5),
 				},
 				relay_remark_call(),
@@ -756,15 +747,13 @@ fn transact_through_derivative_custom_fee_weight_refund() {
 	moonriver_execute_with(|| {
 		assert_ok!(
 			moonriver_runtime::XcmTransactor::transact_through_derivative(
-				moonriver_runtime::RuntimeOrigin::signed(
-					moonriver_runtime::AccountId::from(ALITH),
-				),
+				moonriver_runtime::RuntimeOrigin::signed(moonriver_runtime::AccountId::from(ALITH),),
 				moonriver_runtime::xcm_config::Transactors::Relay,
 				0u16,
 				CurrencyPayment {
-					currency: Currency::AsMultiLocation(Box::new(
-						xcm::VersionedLocation::from(Location::parent()),
-					)),
+					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
+						Location::parent()
+					),)),
 					fee_amount: Some(ONE_DOT * 20), // overpay
 				},
 				relay_remark_call(),
@@ -871,11 +860,8 @@ fn setup_para_to_para_signed() -> moonriver_runtime::AccountId {
 
 	// Verify the derived account received DOT.
 	sibling_execute_with(|| {
-		let balance = moonriver_runtime::EvmForeignAssets::balance(
-			DOT_ASSET_ID,
-			derived_on_sibling,
-		)
-		.unwrap();
+		let balance =
+			moonriver_runtime::EvmForeignAssets::balance(DOT_ASSET_ID, derived_on_sibling).unwrap();
 		assert!(
 			balance > sp_core::U256::zero(),
 			"Derived account on sibling should have DOT"
@@ -947,8 +933,7 @@ fn transact_through_signed_para_to_para_refund() {
 	let derived_on_sibling = setup_para_to_para_signed();
 
 	let dot_before = sibling_execute_with(|| {
-		moonriver_runtime::EvmForeignAssets::balance(DOT_ASSET_ID, derived_on_sibling)
-			.unwrap()
+		moonriver_runtime::EvmForeignAssets::balance(DOT_ASSET_ID, derived_on_sibling).unwrap()
 	});
 
 	moonriver_execute_with(|| {
@@ -978,8 +963,7 @@ fn transact_through_signed_para_to_para_refund() {
 
 	// With refund, the derived account should get surplus back.
 	let dot_after = sibling_execute_with(|| {
-		moonriver_runtime::EvmForeignAssets::balance(DOT_ASSET_ID, derived_on_sibling)
-			.unwrap()
+		moonriver_runtime::EvmForeignAssets::balance(DOT_ASSET_ID, derived_on_sibling).unwrap()
 	});
 	let spent = dot_before.saturating_sub(dot_after);
 	assert!(
@@ -1027,11 +1011,11 @@ fn ethereum_xcm_transfer_call(recipient: sp_core::H160, value: u128) -> Vec<u8> 
 			access_list: None,
 		});
 
-	moonriver_runtime::RuntimeCall::EthereumXcm(
-		pallet_ethereum_xcm::Call::<moonriver_runtime::Runtime>::transact {
-			xcm_transaction: eth_tx,
-		},
-	)
+	moonriver_runtime::RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::<
+		moonriver_runtime::Runtime,
+	>::transact {
+		xcm_transaction: eth_tx,
+	})
 	.encode()
 }
 
@@ -1044,9 +1028,9 @@ fn transact_through_signed_para_to_para_ethereum() {
 	let alith_h160 = sp_core::H160::from(ALITH);
 
 	let alith_balance_before = sibling_execute_with(|| {
-		<moonriver_runtime::Balances as Inspect<_>>::balance(
-			&moonriver_runtime::AccountId::from(ALITH),
-		)
+		<moonriver_runtime::Balances as Inspect<_>>::balance(&moonriver_runtime::AccountId::from(
+			ALITH,
+		))
 	});
 
 	moonriver_execute_with(|| {
@@ -1072,9 +1056,9 @@ fn transact_through_signed_para_to_para_ethereum() {
 	});
 
 	let alith_balance_after = sibling_execute_with(|| {
-		<moonriver_runtime::Balances as Inspect<_>>::balance(
-			&moonriver_runtime::AccountId::from(ALITH),
-		)
+		<moonriver_runtime::Balances as Inspect<_>>::balance(&moonriver_runtime::AccountId::from(
+			ALITH,
+		))
 	});
 	assert_eq!(
 		alith_balance_after - alith_balance_before,
@@ -1101,18 +1085,18 @@ fn transact_through_signed_para_to_para_ethereum_no_proxy_fails() {
 			access_list: None,
 		});
 
-	let proxy_call = moonriver_runtime::RuntimeCall::EthereumXcm(
-		pallet_ethereum_xcm::Call::<moonriver_runtime::Runtime>::transact_through_proxy {
-			transact_as: alith_h160,
-			xcm_transaction: eth_tx,
-		},
-	)
+	let proxy_call = moonriver_runtime::RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::<
+		moonriver_runtime::Runtime,
+	>::transact_through_proxy {
+		transact_as: alith_h160,
+		xcm_transaction: eth_tx,
+	})
 	.encode();
 
 	let alith_balance_before = sibling_execute_with(|| {
-		<moonriver_runtime::Balances as Inspect<_>>::balance(
-			&moonriver_runtime::AccountId::from(ALITH),
-		)
+		<moonriver_runtime::Balances as Inspect<_>>::balance(&moonriver_runtime::AccountId::from(
+			ALITH,
+		))
 	});
 
 	moonriver_execute_with(|| {
@@ -1139,9 +1123,9 @@ fn transact_through_signed_para_to_para_ethereum_no_proxy_fails() {
 
 	// The EVM transfer should NOT have happened (proxy not set).
 	let alith_balance_after = sibling_execute_with(|| {
-		<moonriver_runtime::Balances as Inspect<_>>::balance(
-			&moonriver_runtime::AccountId::from(ALITH),
-		)
+		<moonriver_runtime::Balances as Inspect<_>>::balance(&moonriver_runtime::AccountId::from(
+			ALITH,
+		))
 	});
 	assert_eq!(
 		alith_balance_after, alith_balance_before,
@@ -1168,9 +1152,9 @@ fn transact_through_signed_para_to_para_ethereum_proxy_succeeds() {
 	});
 
 	let recipient_balance_before = sibling_execute_with(|| {
-		<moonriver_runtime::Balances as Inspect<_>>::balance(
-			&moonriver_runtime::AccountId::from(recipient),
-		)
+		<moonriver_runtime::Balances as Inspect<_>>::balance(&moonriver_runtime::AccountId::from(
+			recipient,
+		))
 	});
 
 	// Encode a transact_through_proxy call targeting ALITH as proxy principal,
@@ -1184,12 +1168,12 @@ fn transact_through_signed_para_to_para_ethereum_proxy_succeeds() {
 			access_list: None,
 		});
 
-	let proxy_call = moonriver_runtime::RuntimeCall::EthereumXcm(
-		pallet_ethereum_xcm::Call::<moonriver_runtime::Runtime>::transact_through_proxy {
-			transact_as: sp_core::H160::from(ALITH),
-			xcm_transaction: eth_tx,
-		},
-	)
+	let proxy_call = moonriver_runtime::RuntimeCall::EthereumXcm(pallet_ethereum_xcm::Call::<
+		moonriver_runtime::Runtime,
+	>::transact_through_proxy {
+		transact_as: sp_core::H160::from(ALITH),
+		xcm_transaction: eth_tx,
+	})
 	.encode();
 
 	moonriver_execute_with(|| {
@@ -1215,9 +1199,9 @@ fn transact_through_signed_para_to_para_ethereum_proxy_succeeds() {
 	});
 
 	let recipient_balance_after = sibling_execute_with(|| {
-		<moonriver_runtime::Balances as Inspect<_>>::balance(
-			&moonriver_runtime::AccountId::from(recipient),
-		)
+		<moonriver_runtime::Balances as Inspect<_>>::balance(&moonriver_runtime::AccountId::from(
+			recipient,
+		))
 	});
 	assert_eq!(
 		recipient_balance_after - recipient_balance_before,

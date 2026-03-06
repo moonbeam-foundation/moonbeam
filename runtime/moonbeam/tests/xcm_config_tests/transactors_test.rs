@@ -240,8 +240,7 @@ fn transactor_withdraws_registered_foreign_asset() {
 			);
 
 			// Withdraw DOT from Bob
-			let result =
-				<AssetTransactors as TransactAsset>::withdraw_asset(&asset, &source, None);
+			let result = <AssetTransactors as TransactAsset>::withdraw_asset(&asset, &source, None);
 
 			assert!(
 				result.is_ok(),

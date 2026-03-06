@@ -26,8 +26,8 @@
 use crate::xcm_common::*;
 use moonbeam_runtime::{Runtime, RuntimeCall};
 use parity_scale_codec::Encode;
-use xcm_executor::traits::QueryHandler;
 use xcm::latest::prelude::*;
+use xcm_executor::traits::QueryHandler;
 
 const ONE_DOT: u128 = 10_000_000_000; // DOT has 10 decimals
 

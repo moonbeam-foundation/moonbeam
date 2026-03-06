@@ -41,16 +41,14 @@ fn register_glmr_foreign_asset(source_para_id: u32) {
 	let glmr_location =
 		xcm::latest::Location::new(1, [Parachain(source_para_id), PalletInstance(10u8)]);
 
-	frame_support::assert_ok!(
-		moonriver_runtime::EvmForeignAssets::create_foreign_asset(
-			moonriver_runtime::RuntimeOrigin::root(),
-			MOVR_ASSET_ID,
-			glmr_location.clone(),
-			18,
-			b"MOVR".to_vec().try_into().unwrap(),
-			b"Moonriver".to_vec().try_into().unwrap(),
-		)
-	);
+	frame_support::assert_ok!(moonriver_runtime::EvmForeignAssets::create_foreign_asset(
+		moonriver_runtime::RuntimeOrigin::root(),
+		MOVR_ASSET_ID,
+		glmr_location.clone(),
+		18,
+		b"MOVR".to_vec().try_into().unwrap(),
+		b"Moonriver".to_vec().try_into().unwrap(),
+	));
 
 	frame_support::assert_ok!(moonriver_runtime::XcmWeightTrader::add_asset(
 		moonriver_runtime::RuntimeOrigin::root(),
@@ -112,18 +110,20 @@ fn xcm_version_discovery_with_relay() {
 	// We verify the relay can weigh XCM (a proxy for version-awareness).
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
-		let weight = westend_runtime::Runtime::query_xcm_weight(
-			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
-		);
+		let weight =
+			westend_runtime::Runtime::query_xcm_weight(xcm::VersionedXcm::from(Xcm::<()>(vec![
+				ClearOrigin,
+			])));
 		assert!(weight.is_ok(), "Relay should be version-aware");
 	});
 
 	// Moonbeam should have its safe_xcm_version set from genesis.
 	moonriver_execute_with(|| {
 		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
-		let weight = moonriver_runtime::Runtime::query_xcm_weight(
-			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
-		);
+		let weight =
+			moonriver_runtime::Runtime::query_xcm_weight(xcm::VersionedXcm::from(Xcm::<()>(vec![
+				ClearOrigin,
+			])));
 		assert!(weight.is_ok(), "Moonriver should be version-aware");
 	});
 }
@@ -172,17 +172,19 @@ fn xcm_version_discovery_with_sibling() {
 	// After the transfer both chains should be version-aware.
 	sibling_execute_with(|| {
 		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
-		let weight = moonriver_runtime::Runtime::query_xcm_weight(
-			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
-		);
+		let weight =
+			moonriver_runtime::Runtime::query_xcm_weight(xcm::VersionedXcm::from(Xcm::<()>(vec![
+				ClearOrigin,
+			])));
 		assert!(weight.is_ok(), "Sibling should be version-aware");
 	});
 
 	moonriver_execute_with(|| {
 		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
-		let weight = moonriver_runtime::Runtime::query_xcm_weight(
-			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
-		);
+		let weight =
+			moonriver_runtime::Runtime::query_xcm_weight(xcm::VersionedXcm::from(Xcm::<()>(vec![
+				ClearOrigin,
+			])));
 		assert!(weight.is_ok(), "Moonriver should be version-aware");
 	});
 }

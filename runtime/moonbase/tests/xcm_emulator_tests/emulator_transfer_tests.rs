@@ -541,7 +541,10 @@ fn evm_account_receives_foreign_asset() {
 					assets: Wild(All),
 					beneficiary: Location::new(
 						0,
-						[AccountKey20 { network: None, key: ALITH }],
+						[AccountKey20 {
+							network: None,
+							key: ALITH
+						}],
 					),
 				}]))),
 				WeightLimit::Unlimited,
@@ -604,7 +607,10 @@ fn foreign_assets_survive_native_balance_drain() {
 					assets: Wild(All),
 					beneficiary: Location::new(
 						0,
-						[AccountKey20 { network: None, key: test_account }],
+						[AccountKey20 {
+							network: None,
+							key: test_account
+						}],
 					),
 				}]))),
 				WeightLimit::Unlimited,
@@ -650,24 +656,17 @@ fn register_unit_on_sibling() {
 	sibling_execute_with(|| {
 		// From the sibling's perspective, Moonbase's native token lives at:
 		// ../Parachain(2004)/PalletInstance(3)  (pallet_balances = index 10)
-		let glmr_location = xcm::latest::Location::new(
-			1,
-			[
-				Parachain(MOONBEAM_PARA_ID),
-				PalletInstance(3u8),
-			],
-		);
+		let glmr_location =
+			xcm::latest::Location::new(1, [Parachain(MOONBEAM_PARA_ID), PalletInstance(3u8)]);
 
-		frame_support::assert_ok!(
-			moonbase_runtime::EvmForeignAssets::create_foreign_asset(
-				moonbase_runtime::RuntimeOrigin::root(),
-				UNIT_ASSET_ID,
-				glmr_location.clone(),
-				18, // GLMR has 18 decimals
-				b"UNIT".to_vec().try_into().unwrap(),
-				b"Moonbase".to_vec().try_into().unwrap(),
-			)
-		);
+		frame_support::assert_ok!(moonbase_runtime::EvmForeignAssets::create_foreign_asset(
+			moonbase_runtime::RuntimeOrigin::root(),
+			UNIT_ASSET_ID,
+			glmr_location.clone(),
+			18, // GLMR has 18 decimals
+			b"UNIT".to_vec().try_into().unwrap(),
+			b"Moonbase".to_vec().try_into().unwrap(),
+		));
 
 		frame_support::assert_ok!(moonbase_runtime::XcmWeightTrader::add_asset(
 			moonbase_runtime::RuntimeOrigin::root(),
@@ -690,9 +689,9 @@ fn transfer_unit_from_moonbase_to_sibling() {
 	setup_unit_para_to_para();
 
 	let alith_before = moonbase_execute_with(|| {
-		<moonbase_runtime::Balances as Inspect<_>>::balance(
-			&moonbase_runtime::AccountId::from(ALITH),
-		)
+		<moonbase_runtime::Balances as Inspect<_>>::balance(&moonbase_runtime::AccountId::from(
+			ALITH,
+		))
 	});
 
 	let amount = moonbase_runtime::currency::UNIT; // 1 GLMR
@@ -706,7 +705,10 @@ fn transfer_unit_from_moonbase_to_sibling() {
 			))),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				0,
-				[AccountKey20 { network: None, key: BALTATHAR }],
+				[AccountKey20 {
+					network: None,
+					key: BALTATHAR
+				}],
 			))),
 			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 				id: AssetId(Location::new(0, [PalletInstance(3)])),
@@ -719,9 +721,9 @@ fn transfer_unit_from_moonbase_to_sibling() {
 
 	// ALITH should have less GLMR after the transfer.
 	let alith_after = moonbase_execute_with(|| {
-		<moonbase_runtime::Balances as Inspect<_>>::balance(
-			&moonbase_runtime::AccountId::from(ALITH),
-		)
+		<moonbase_runtime::Balances as Inspect<_>>::balance(&moonbase_runtime::AccountId::from(
+			ALITH,
+		))
 	});
 	assert!(
 		alith_after < alith_before,
@@ -752,9 +754,9 @@ fn transfer_unit_roundtrip_moonbase_sibling() {
 	setup_unit_para_to_para();
 
 	let alith_initial = moonbase_execute_with(|| {
-		<moonbase_runtime::Balances as Inspect<_>>::balance(
-			&moonbase_runtime::AccountId::from(ALITH),
-		)
+		<moonbase_runtime::Balances as Inspect<_>>::balance(&moonbase_runtime::AccountId::from(
+			ALITH,
+		))
 	});
 
 	let amount = moonbase_runtime::currency::UNIT; // 1 GLMR
@@ -769,7 +771,10 @@ fn transfer_unit_roundtrip_moonbase_sibling() {
 			))),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				0,
-				[AccountKey20 { network: None, key: BALTATHAR }],
+				[AccountKey20 {
+					network: None,
+					key: BALTATHAR
+				}],
 			))),
 			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 				id: AssetId(Location::new(0, [PalletInstance(3)])),
@@ -796,22 +801,20 @@ fn transfer_unit_roundtrip_moonbase_sibling() {
 	// Step 2: Send GLMR back from Sibling to Moonbase (ALITH).
 	// From the sibling's perspective, GLMR is at ../Parachain(2004)/PalletInstance(3).
 	sibling_execute_with(|| {
-		let glmr_location = Location::new(
-			1,
-			[Parachain(MOONBEAM_PARA_ID), PalletInstance(3)],
-		);
+		let glmr_location = Location::new(1, [Parachain(MOONBEAM_PARA_ID), PalletInstance(3)]);
 
 		assert_ok!(moonbase_runtime::PolkadotXcm::transfer_assets(
-			moonbase_runtime::RuntimeOrigin::signed(
-				moonbase_runtime::AccountId::from(BALTATHAR),
-			),
+			moonbase_runtime::RuntimeOrigin::signed(moonbase_runtime::AccountId::from(BALTATHAR),),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				1,
 				[Parachain(MOONBEAM_PARA_ID)],
 			))),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				0,
-				[AccountKey20 { network: None, key: ALITH }],
+				[AccountKey20 {
+					network: None,
+					key: ALITH
+				}],
 			))),
 			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 				id: AssetId(glmr_location),
@@ -824,9 +827,9 @@ fn transfer_unit_roundtrip_moonbase_sibling() {
 
 	// ALITH should have recovered most of the GLMR (minus fees on both hops).
 	let alith_final = moonbase_execute_with(|| {
-		<moonbase_runtime::Balances as Inspect<_>>::balance(
-			&moonbase_runtime::AccountId::from(ALITH),
-		)
+		<moonbase_runtime::Balances as Inspect<_>>::balance(&moonbase_runtime::AccountId::from(
+			ALITH,
+		))
 	});
 	// After roundtrip, ALITH loses some to fees but should still have most.
 	let total_lost = alith_initial.saturating_sub(alith_final);
@@ -852,7 +855,10 @@ fn transfer_unit_to_sibling_with_trader_fees() {
 			))),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				0,
-				[AccountKey20 { network: None, key: BALTATHAR }],
+				[AccountKey20 {
+					network: None,
+					key: BALTATHAR
+				}],
 			))),
 			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 				id: AssetId(Location::new(0, [PalletInstance(3)])),
@@ -878,11 +884,8 @@ fn transfer_unit_to_sibling_with_trader_fees() {
 
 		// Treasury should have received some GLMR as fees.
 		let treasury = moonbase_runtime::Treasury::account_id();
-		let treasury_fee = moonbase_runtime::EvmForeignAssets::balance(
-			UNIT_ASSET_ID,
-			treasury,
-		)
-		.unwrap();
+		let treasury_fee =
+			moonbase_runtime::EvmForeignAssets::balance(UNIT_ASSET_ID, treasury).unwrap();
 		assert!(
 			treasury_fee > U256::zero(),
 			"Treasury should have collected GLMR fees"
@@ -1213,21 +1216,17 @@ fn receive_sibling_native_asset() {
 	// as a foreign asset with id=3.
 	const SIBLING_UNIT_ASSET_ID: u128 = 3;
 	moonbase_execute_with(|| {
-		let sibling_glmr_location = xcm::latest::Location::new(
-			1,
-			[Parachain(SIBLING_PARA_ID), PalletInstance(3u8)],
-		);
+		let sibling_glmr_location =
+			xcm::latest::Location::new(1, [Parachain(SIBLING_PARA_ID), PalletInstance(3u8)]);
 
-		frame_support::assert_ok!(
-			moonbase_runtime::EvmForeignAssets::create_foreign_asset(
-				moonbase_runtime::RuntimeOrigin::root(),
-				SIBLING_UNIT_ASSET_ID,
-				sibling_glmr_location.clone(),
-				18,
-				b"sGLMR".to_vec().try_into().unwrap(),
-				b"Sibling Glimmer".to_vec().try_into().unwrap(),
-			)
-		);
+		frame_support::assert_ok!(moonbase_runtime::EvmForeignAssets::create_foreign_asset(
+			moonbase_runtime::RuntimeOrigin::root(),
+			SIBLING_UNIT_ASSET_ID,
+			sibling_glmr_location.clone(),
+			18,
+			b"sGLMR".to_vec().try_into().unwrap(),
+			b"Sibling Glimmer".to_vec().try_into().unwrap(),
+		));
 
 		frame_support::assert_ok!(moonbase_runtime::XcmWeightTrader::add_asset(
 			moonbase_runtime::RuntimeOrigin::root(),

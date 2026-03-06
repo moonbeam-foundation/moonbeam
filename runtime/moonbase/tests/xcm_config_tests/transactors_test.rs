@@ -239,8 +239,7 @@ fn transactor_withdraws_registered_foreign_asset() {
 				}],
 			);
 
-			let result =
-				<AssetTransactors as TransactAsset>::withdraw_asset(&asset, &source, None);
+			let result = <AssetTransactors as TransactAsset>::withdraw_asset(&asset, &source, None);
 
 			assert!(
 				result.is_ok(),

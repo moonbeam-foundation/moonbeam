@@ -224,16 +224,14 @@ fn transfer_trust_backed_asset_from_asset_hub_to_moonbase() {
 			],
 		);
 
-		frame_support::assert_ok!(
-			moonbase_runtime::EvmForeignAssets::create_foreign_asset(
-				moonbase_runtime::RuntimeOrigin::root(),
-				USDT_FOREIGN_ID,
-				usdt_location.clone(),
-				6, // USDT decimals
-				b"USDT".to_vec().try_into().unwrap(),
-				b"Tether USD".to_vec().try_into().unwrap(),
-			)
-		);
+		frame_support::assert_ok!(moonbase_runtime::EvmForeignAssets::create_foreign_asset(
+			moonbase_runtime::RuntimeOrigin::root(),
+			USDT_FOREIGN_ID,
+			usdt_location.clone(),
+			6, // USDT decimals
+			b"USDT".to_vec().try_into().unwrap(),
+			b"Tether USD".to_vec().try_into().unwrap(),
+		));
 
 		frame_support::assert_ok!(moonbase_runtime::XcmWeightTrader::add_asset(
 			moonbase_runtime::RuntimeOrigin::root(),
@@ -273,28 +271,26 @@ fn transfer_trust_backed_asset_from_asset_hub_to_moonbase() {
 	asset_hub_execute_with(|| {
 		let usdt_on_ah = Location::new(0, [PalletInstance(50u8), GeneralIndex(asset_id as u128)]);
 
-		assert_ok!(
-			asset_hub_westend_runtime::PolkadotXcm::transfer_assets(
-				asset_hub_westend_runtime::RuntimeOrigin::signed(asset_owner.clone()),
-				Box::new(xcm::VersionedLocation::from(Location::new(
-					1,
-					[Parachain(MOONBEAM_PARA_ID)],
-				))),
-				Box::new(xcm::VersionedLocation::from(Location::new(
-					0,
-					[AccountKey20 {
-						network: None,
-						key: ALITH,
-					}],
-				))),
-				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
-					id: AssetId(usdt_on_ah),
-					fun: Fungible(transfer_amount),
-				}]))),
+		assert_ok!(asset_hub_westend_runtime::PolkadotXcm::transfer_assets(
+			asset_hub_westend_runtime::RuntimeOrigin::signed(asset_owner.clone()),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(MOONBEAM_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
 				0,
-				WeightLimit::Unlimited,
-			)
-		);
+				[AccountKey20 {
+					network: None,
+					key: ALITH,
+				}],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(usdt_on_ah),
+				fun: Fungible(transfer_amount),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
 	});
 
 	// ALITH on Moonbeam should have received USDT as a foreign asset.
