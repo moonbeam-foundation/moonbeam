@@ -19,7 +19,7 @@ on:
 
 # Cancel any previous job still running this workflow for this branch
 # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs#example-using-concurrency-to-cancel-any-in-progress-job-or-run
-concurrency:  
+concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
@@ -332,7 +332,7 @@ jobs:
     if: |
       needs.set-tags.outputs.any_changed == 'true' &&
       github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.fork != true && 
+      github.event.pull_request.head.repo.fork != true &&
       github.actor != 'dependabot[bot]'
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
@@ -577,7 +577,6 @@ jobs:
           rustup show
           rustup target add wasm32-unknown-unknown
       # Verify that the runtime-benchmarks feature compiles on its own
-      # (it is intentionally excluded from tests because no test code depends on it)
       - name: Check runtime-benchmarks compilation
         run: |
           cargo check --profile testnet --workspace --features=runtime-benchmarks
@@ -675,7 +674,7 @@ jobs:
       - name: Upload HTML report to s3
         if: |
           needs.set-tags.outputs.any_changed == 'true' &&
-          github.event.pull_request.head.repo.fork != true && 
+          github.event.pull_request.head.repo.fork != true &&
           github.actor != 'dependabot[bot]'
         uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
