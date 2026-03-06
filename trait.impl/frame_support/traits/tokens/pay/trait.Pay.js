@@ -1,9 +1,9 @@
 (function() {
-    var implementors = Object.fromEntries([["moonbeam_runtime_common",[["impl&lt;R, TreasuryAccount, NativeAsset&gt; Pay for <a class=\"struct\" href=\"moonbeam_runtime_common/impl_multiasset_paymaster/struct.MultiAssetPaymaster.html\" title=\"struct moonbeam_runtime_common::impl_multiasset_paymaster::MultiAssetPaymaster\">MultiAssetPaymaster</a>&lt;R, TreasuryAccount, NativeAsset&gt;<div class=\"where\">where\n    R: Config + Config,\n    TreasuryAccount: Get&lt;R::AccountId&gt;,\n    NativeAsset: Mutate&lt;R::AccountId&gt; + Inspect&lt;R::AccountId&gt;,</div>"]]]]);
+    var implementors = Object.fromEntries([["moonbeam_runtime_common",[["impl&lt;R, TreasuryAccount, NativeAsset&gt; Pay for <a class=\"struct\" href=\"moonbeam_runtime_common/impl_multiasset_paymaster/struct.MultiAssetPaymaster.html\" title=\"struct moonbeam_runtime_common::impl_multiasset_paymaster::MultiAssetPaymaster\">MultiAssetPaymaster</a>&lt;R, TreasuryAccount, NativeAsset&gt;<div class=\"where\">where\n    R: Config + <a class=\"trait\" href=\"pallet_moonbeam_foreign_assets/pallet/trait.Config.html\" title=\"trait pallet_moonbeam_foreign_assets::pallet::Config\">Config</a>,\n    TreasuryAccount: Get&lt;R::AccountId&gt;,\n    NativeAsset: Mutate&lt;R::AccountId&gt; + Inspect&lt;R::AccountId&gt;,</div>"]]]]);
     if (window.register_implementors) {
         window.register_implementors(implementors);
     } else {
         window.pending_implementors = implementors;
     }
 })()
-//{"start":57,"fragment_lengths":[528]}
+//{"start":57,"fragment_lengths":[679]}
