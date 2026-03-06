@@ -293,20 +293,6 @@ pub fn dispatch_xcm_buses() {
 	}
 }
 
-/// Execute in relay context and then dispatch all XCM messages
-pub fn relay_execute_and_dispatch<R>(f: impl FnOnce() -> R) -> R {
-	let result = relay_execute_with(f);
-	dispatch_xcm_buses();
-	result
-}
-
-/// Execute in Moonbeam context and then dispatch all XCM messages
-pub fn moonbeam_execute_and_dispatch<R>(f: impl FnOnce() -> R) -> R {
-	let result = moonbeam_execute_with(f);
-	dispatch_xcm_buses();
-	result
-}
-
 // ============================================================================
 // Helper Functions
 // ============================================================================
@@ -329,5 +315,4 @@ pub fn asset_hub_sovereign_account() -> sp_runtime::AccountId32 {
 /// Helper to get parachain IDs
 pub mod para_ids {
 	pub const MOONBEAM: u32 = super::MOONBEAM_PARA_ID;
-	pub const ASSET_HUB: u32 = super::ASSET_HUB_PARA_ID;
 }
