@@ -8,7 +8,7 @@ The xcm-emulator test suite uses **real runtimes** (Westend relay + Moonbeam par
 via `xcm-emulator`, replacing the legacy `xcm_tests.rs` which used `xcm-simulator` with
 mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 
-**38 emulator tests** total (8 pre-existing + 27 new + 3 Asset Hub).
+**37 emulator tests** total (8 pre-existing + 26 new + 3 Asset Hub).
 
 ---
 
@@ -36,7 +36,7 @@ mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 | `hrmp_init_accept_close_via_xcm_transactor` | `hrmp_init_accept_close_via_xcm_transactor` | Full lifecycle: init → accept → close |
 | `hrmp_close_via_xcm_transactor` | `hrmp_close_works` | Close a force-opened channel |
 
-### `emulator_transfer_tests.rs` — 16 tests
+### `emulator_transfer_tests.rs` — 15 tests
 
 | Test | Legacy equivalent | Notes |
 |------|-------------------|-------|
@@ -51,7 +51,6 @@ mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 | `transfer_glmr_from_moonbeam_to_sibling` | `send_para_a_asset_to_para_b` | GLMR as reserve-backed foreign asset |
 | `transfer_glmr_roundtrip_moonbeam_sibling` | `send_para_a_asset_to_para_b_and_back_to_para_a` | Moonbeam → Sibling → Moonbeam |
 | `transfer_glmr_to_sibling_with_trader_fees` | `send_para_a_asset_to_para_b_with_trader` | Fee deduction + treasury collection |
-| `transfer_glmr_across_three_chains` | `send_para_a_asset_from_para_b_to_para_c` | A→B→A→C across 3 parachains |
 | `transfer_dot_to_sibling_via_remote_reserve` | `send_dot_…_via_xtokens_transfer` | DOT via `RemoteReserve` through relay |
 | `transfer_dot_roundtrip_via_remote_reserve` | `send_dot_…_via_xtokens_transfer` (roundtrip) | DOT outbound + inbound via relay reserve |
 | `transfer_glmr_self_reserve_to_sibling` | `send_statemint_asset_…_with_relay_fee` | GLMR self-reserve transfer to sibling |
@@ -80,8 +79,7 @@ mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 WestendRelay (real westend-runtime)
 ├── AssetHubPara (para 1000, real asset-hub-westend-runtime)
 ├── MoonbeamPara (para 2004, real moonbeam-runtime)
-├── SiblingPara  (para 2005, real moonbeam-runtime)
-└── ParaCPara    (para 2006, real moonbeam-runtime)
+└── SiblingPara  (para 2005, real moonbeam-runtime)
 ```
 
 - **HRMP channels**: opened on demand via `open_hrmp_channels()` helper
@@ -94,8 +92,7 @@ WestendRelay (real westend-runtime)
 |------|-----|-------------|
 | `ALITH` | `[1u8; 20]` | Primary Moonbeam user (H160) |
 | `BALTATHAR` | `[2u8; 20]` | Secondary Moonbeam user |
-| `CHARLETH` | `[3u8; 20]` | Third Moonbeam user |
-| `RELAY_ALICE` | `[1u8; 32]` | Relay chain user (AccountId32) |
+| `RELAY_ALICE` | `[1u8; 32]` | Relay chain / Asset Hub user (AccountId32) |
 
 ### Constants
 
@@ -104,7 +101,6 @@ WestendRelay (real westend-runtime)
 | `ONE_DOT` | `10_000_000_000` | 10 decimals |
 | `MOONBEAM_PARA_ID` | `2004` | |
 | `SIBLING_PARA_ID` | `2005` | |
-| `PARA_C_ID` | `2006` | |
 | Westend Staking index | `6` | |
 | Westend Utility index | `16` | |
 | Westend HRMP index | `51` | |
@@ -186,12 +182,6 @@ cannot auto-detect and `RemoteReserve` does not handle across the teleport
 boundary. Trust-backed assets (USDT, etc.) from Asset Hub work because AH
 is the reserve for those assets — a straightforward reserve transfer.
 
-### 10. 3-chain multi-hop limitations
-
-A single-XCM transfer B→C through reserve A (using `InitiateTransfer`) is not yet fully
-supported with the real Moonbeam executor. The 3-chain test uses two proven single-hop legs
-(B→A, then A→C) to achieve the same net effect.
-
 ---
 
 ## Remaining Limitations
@@ -228,7 +218,7 @@ runtime/moonbeam/tests/
 │   ├── emulator_relay.rs              # Relay genesis config
 │   ├── emulator_asset_hub_tests.rs     # 3 Asset Hub ↔ Moonbeam tests
 │   ├── emulator_transact_tests.rs     # 17 transact + HRMP tests
-│   ├── emulator_transfer_tests.rs     # 16 transfer tests
+│   ├── emulator_transfer_tests.rs     # 15 transfer tests
 │   ├── emulator_versioning_tests.rs   # 2 versioning tests
 │   └── COVERAGE.md                    # ← this file
 ├── xcm_tests.rs                      # Legacy suite (45 tests, temporary)

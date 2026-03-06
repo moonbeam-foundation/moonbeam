@@ -31,13 +31,10 @@ use xcm_emulator::TestExt;
 pub const ASSET_HUB_PARA_ID: u32 = 1000;
 pub const MOONBEAM_PARA_ID: u32 = 2004;
 pub const SIBLING_PARA_ID: u32 = 2005;
-pub const PARA_C_ID: u32 = 2006;
 
 // ---- Well-known test accounts (20-byte) ------------------------------------
 pub const ALITH: [u8; 20] = [1u8; 20];
 pub const BALTATHAR: [u8; 20] = [2u8; 20];
-pub const CHARLETH: [u8; 20] = [3u8; 20];
-
 // ---- Well-known relay accounts (32-byte) -----------------------------------
 pub const RELAY_ALICE: sp_runtime::AccountId32 = sp_runtime::AccountId32::new([1u8; 32]);
 
@@ -126,37 +123,6 @@ decl_test_parachains! {
 }
 
 // ---------------------------------------------------------------------------
-// Third parachain declaration (para 2006) — another Moonbeam instance
-// Used for 3-chain multi-hop tests (A → B → C).
-// ---------------------------------------------------------------------------
-decl_test_parachains! {
-	pub struct ParaCPara {
-		genesis = moonbeam_genesis(PARA_C_ID),
-		on_init = {
-			crate::emulator_network::satisfy_moonbeam_inherents();
-		},
-		runtime = moonbeam_runtime,
-		core = {
-			XcmpMessageHandler: moonbeam_runtime::XcmpQueue,
-			LocationToAccountId: moonbeam_runtime::xcm_config::LocationToAccountId,
-			ParachainInfo: moonbeam_runtime::ParachainInfo,
-			MessageOrigin: cumulus_primitives_core::AggregateMessageOrigin,
-		},
-		pallets = {
-			PolkadotXcm: moonbeam_runtime::PolkadotXcm,
-			Balances: moonbeam_runtime::Balances,
-			EvmForeignAssets: moonbeam_runtime::EvmForeignAssets,
-			XcmWeightTrader: moonbeam_runtime::XcmWeightTrader,
-			XcmTransactor: moonbeam_runtime::XcmTransactor,
-			Treasury: moonbeam_runtime::Treasury,
-			EthereumXcm: moonbeam_runtime::EthereumXcm,
-			Proxy: moonbeam_runtime::Proxy,
-			EVM: moonbeam_runtime::EVM,
-		}
-	}
-}
-
-// ---------------------------------------------------------------------------
 // Asset Hub Westend declaration (para 1000, real asset-hub-westend-runtime)
 // ---------------------------------------------------------------------------
 decl_test_parachains! {
@@ -191,7 +157,6 @@ decl_test_networks! {
 			AssetHubPara,
 			MoonbeamPara,
 			SiblingPara,
-			ParaCPara,
 		],
 		bridge = ()
 	}
@@ -222,15 +187,6 @@ pub fn sibling_execute_with<R>(f: impl FnOnce() -> R) -> R {
 /// Execute a closure on Asset Hub (para 1000).
 pub fn asset_hub_execute_with<R>(f: impl FnOnce() -> R) -> R {
 	AssetHubPara::<PolkadotMoonbeamNet>::execute_with(f)
-}
-
-/// Execute a closure on ParaC (para 2006), automatically
-/// satisfying mandatory inherent checks.
-pub fn para_c_execute_with<R>(f: impl FnOnce() -> R) -> R {
-	ParaCPara::<PolkadotMoonbeamNet>::execute_with(|| {
-		satisfy_moonbeam_inherents();
-		f()
-	})
 }
 
 /// Patch storage to satisfy Moonbeam's mandatory inherent checks.
@@ -264,12 +220,6 @@ pub fn init_network() {
 		));
 	});
 	SiblingPara::<PolkadotMoonbeamNet>::ext_wrapper(|| {
-		frame_support::storage::unhashed::kill(&frame_support::storage::storage_prefix(
-			b"Randomness",
-			b"NotFirstBlock",
-		));
-	});
-	ParaCPara::<PolkadotMoonbeamNet>::ext_wrapper(|| {
 		frame_support::storage::unhashed::kill(&frame_support::storage::storage_prefix(
 			b"Randomness",
 			b"NotFirstBlock",
@@ -418,7 +368,6 @@ fn moonbeam_genesis(para_id: u32) -> sp_core::storage::Storage {
 		balances: vec![
 			(AccountId::from(ALITH), GLMR * 10_000),
 			(AccountId::from(BALTATHAR), GLMR * 10_000),
-			(AccountId::from(CHARLETH), GLMR * 10_000),
 		],
 		dev_accounts: None,
 	}
