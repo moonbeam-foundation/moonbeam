@@ -363,7 +363,7 @@ jobs:
           LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$TARGET_BRANCH\" and .event == \"push\" and .status == \"completed\") | .databaseId" | head -n 1)
           echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
       - name: "Download runtimes from target branch"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: runtimes-target-branch
@@ -371,7 +371,7 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
       - name: "Download uncompressed-runtimes from target branch"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-target-branch
@@ -387,13 +387,13 @@ jobs:
           echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
           echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: runtimes-current-branch
           merge-multiple: true
       - name: "Download branch built uncompressed-runtimes"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-current-branch
@@ -605,7 +605,7 @@ jobs:
   #         cache: "pnpm"
   #         cache-dependency-path: pnpm-lock.yaml
   #     - name: "Download branch built node"
-  #       uses: actions/download-artifact@v7
+  #       uses: actions/download-artifact@v8
   #       with:
   #         name: moonbeam
   #         path: target/release
@@ -654,13 +654,13 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built runtime"
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
@@ -710,7 +710,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: build
@@ -727,7 +727,7 @@ jobs:
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
@@ -782,12 +782,12 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
@@ -843,7 +843,7 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp/node_logs
       - name: "Download runtime"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -890,12 +890,12 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
@@ -944,12 +944,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
