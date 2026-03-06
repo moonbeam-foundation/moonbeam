@@ -32,7 +32,6 @@ use xcm_executor::traits::WeightTrader;
 use xcm_executor::AssetsInHolding;
 
 const ONE_GLMR: u128 = GLMR;
-const ONE_DOT: u128 = 10_000_000_000; // DOT has 10 decimals
 
 fn native_location() -> Location {
 	Location::new(0, [PalletInstance(Balances::index() as u8)])

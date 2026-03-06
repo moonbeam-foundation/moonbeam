@@ -56,6 +56,25 @@ pub fn execute_xcm_with_weight(
 	)
 }
 
+/// Execute an XCM message with pre-credited weight.
+///
+/// `TakeWeightCredit` barrier passes when the message weight is within the
+/// credited amount; use this to test that barrier path.
+pub fn execute_xcm_with_credit(
+	origin: Location,
+	message: Xcm<RuntimeCall>,
+	weight_credit: Weight,
+) -> Outcome {
+	let hash = message.using_encoded(sp_io::hashing::blake2_256);
+	XcmExecutor::<XcmExecutorConfig>::prepare_and_execute(
+		origin,
+		message,
+		&mut hash.clone(),
+		Weight::MAX,
+		weight_credit,
+	)
+}
+
 /// Helper to check if an outcome is a barrier error.
 ///
 /// Barrier rejections can surface as either `Outcome::Error` or

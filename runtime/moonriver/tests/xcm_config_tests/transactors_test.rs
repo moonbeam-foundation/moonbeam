@@ -211,6 +211,103 @@ fn transactor_fails_for_unregistered_asset() {
 }
 
 #[test]
+fn transactor_withdraws_registered_foreign_asset() {
+	let dot_location = Location::parent();
+
+	ExtBuilder::default()
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_id: 1,
+			xcm_location: dot_location.clone(),
+			decimals: 10,
+			name: "Polkadot",
+			symbol: "DOT",
+			balances: vec![(bob_account(), ONE_DOT * 10)],
+		}])
+		.build()
+		.execute_with(|| {
+			use moonriver_runtime::xcm_config::AssetTransactors;
+
+			let asset = Asset {
+				id: AssetId(dot_location.clone()),
+				fun: Fungible(ONE_DOT),
+			};
+			let source = Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: BOB,
+				}],
+			);
+
+			let result =
+				<AssetTransactors as TransactAsset>::withdraw_asset(&asset, &source, None);
+
+			assert!(
+				result.is_ok(),
+				"Withdraw of registered foreign asset should succeed: {:?}",
+				result
+			);
+		});
+}
+
+#[test]
+fn transactor_handles_erc20_bridge_asset() {
+	ExtBuilder::default()
+		.with_balances(vec![(alice_account(), ONE_MOVR * 100)])
+		.build()
+		.execute_with(|| {
+			use moonriver_runtime::xcm_config::AssetTransactors;
+			use moonriver_runtime::Erc20XcmBridge;
+
+			let bridge_pallet_location = {
+				use frame_support::traits::PalletInfoAccess;
+				Location::new(
+					0,
+					[PalletInstance(
+						<Erc20XcmBridge as PalletInfoAccess>::index() as u8,
+					)],
+				)
+			};
+
+			let fake_contract: [u8; 20] = [0xAA; 20];
+			let erc20_asset_location = Location::new(
+				0,
+				[
+					PalletInstance(bridge_pallet_location.first_interior().map_or(0, |j| {
+						if let Junction::PalletInstance(idx) = j {
+							*idx
+						} else {
+							0
+						}
+					})),
+					AccountKey20 {
+						network: None,
+						key: fake_contract,
+					},
+				],
+			);
+
+			let asset = Asset {
+				id: AssetId(erc20_asset_location),
+				fun: Fungible(1_000),
+			};
+			let destination = Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: BOB,
+				}],
+			);
+
+			let result =
+				<AssetTransactors as TransactAsset>::deposit_asset(&asset, &destination, None);
+
+			// Either Ok or Err — the important thing is no panic.
+			let _ = result;
+		});
+}
+
+#[test]
 fn transactor_handles_relay_sovereign_account() {
 	ExtBuilder::default()
 		.with_balances(vec![(alice_account(), ONE_MOVR * 100)])

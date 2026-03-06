@@ -174,8 +174,9 @@ Requires a 3rd parachain in the emulator network:
 
 ## Known Issues
 
-- **Pre-existing failure**: `xcm_config_tests::barriers_test::barrier_passes_unpaid_with_weight_credit`
-  fails on moonbeam-runtime — unrelated to this work.
+- ~~**Pre-existing failure**: `xcm_config_tests::barriers_test::barrier_passes_unpaid_with_weight_credit`
+  fails on moonbeam-runtime~~ — **Fixed**: the test now uses `execute_xcm_with_credit()`
+  which supplies sufficient `Weight` credit so `TakeWeightCredit` passes.
 - **Cargo `[patch]` limitation**: Cannot point `[patch]` to remote `polkadot-sdk` branch
   (same-source error). Local path patches in `Cargo.toml` remain for the `force-xcm-processor`
   feature on `westend-runtime`.

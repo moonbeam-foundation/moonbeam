@@ -211,6 +211,112 @@ fn transactor_fails_for_unregistered_asset() {
 }
 
 #[test]
+fn transactor_withdraws_registered_foreign_asset() {
+	let dot_location = Location::parent();
+
+	ExtBuilder::default()
+		.with_xcm_assets(vec![XcmAssetInitialization {
+			asset_id: 1,
+			xcm_location: dot_location.clone(),
+			decimals: 10,
+			name: "Polkadot",
+			symbol: "DOT",
+			balances: vec![(bob_account(), ONE_DOT * 10)],
+		}])
+		.build()
+		.execute_with(|| {
+			use moonbeam_runtime::xcm_config::AssetTransactors;
+
+			let asset = Asset {
+				id: AssetId(dot_location.clone()),
+				fun: Fungible(ONE_DOT),
+			};
+			let source = Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: BOB,
+				}],
+			);
+
+			// Withdraw DOT from Bob
+			let result =
+				<AssetTransactors as TransactAsset>::withdraw_asset(&asset, &source, None);
+
+			assert!(
+				result.is_ok(),
+				"Withdraw of registered foreign asset should succeed: {:?}",
+				result
+			);
+		});
+}
+
+#[test]
+fn transactor_handles_erc20_bridge_asset() {
+	ExtBuilder::default()
+		.with_balances(vec![(alice_account(), ONE_GLMR * 100)])
+		.build()
+		.execute_with(|| {
+			use moonbeam_runtime::xcm_config::AssetTransactors;
+			use moonbeam_runtime::Erc20XcmBridge;
+
+			// ERC20 bridge assets are identified by the bridge pallet location +
+			// AccountKey20(contract_address).
+			let bridge_pallet_location = {
+				use frame_support::traits::PalletInfoAccess;
+				Location::new(
+					0,
+					[PalletInstance(
+						<Erc20XcmBridge as PalletInfoAccess>::index() as u8,
+					)],
+				)
+			};
+
+			// Deposit of an ERC20 bridge asset with a non-existent contract
+			// should fail gracefully (no panic).
+			let fake_contract: [u8; 20] = [0xAA; 20];
+			let erc20_asset_location = Location::new(
+				0,
+				[
+					PalletInstance(bridge_pallet_location.first_interior().map_or(0, |j| {
+						if let Junction::PalletInstance(idx) = j {
+							*idx
+						} else {
+							0
+						}
+					})),
+					AccountKey20 {
+						network: None,
+						key: fake_contract,
+					},
+				],
+			);
+
+			let asset = Asset {
+				id: AssetId(erc20_asset_location),
+				fun: Fungible(1_000),
+			};
+			let destination = Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: BOB,
+				}],
+			);
+
+			// Attempting deposit of an ERC20 bridge asset with no deployed
+			// contract should return an error (asset not handled or EVM
+			// revert), not panic.
+			let result =
+				<AssetTransactors as TransactAsset>::deposit_asset(&asset, &destination, None);
+
+			// Either Ok (if the bridge gracefully handles missing contracts)
+			// or Err — the important thing is no panic.
+			let _ = result;
+		});
+}
+
+#[test]
 fn transactor_handles_relay_sovereign_account() {
 	ExtBuilder::default()
 		.with_balances(vec![(alice_account(), ONE_GLMR * 100)])

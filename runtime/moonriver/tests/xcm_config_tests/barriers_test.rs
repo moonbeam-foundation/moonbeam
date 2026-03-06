@@ -24,8 +24,10 @@
 //! - AllowSubscriptionsFrom<Everything>: Version subscription messages
 
 use crate::xcm_common::*;
-use moonriver_runtime::RuntimeCall;
+use moonriver_runtime::{Runtime, RuntimeCall};
+use parity_scale_codec::Encode;
 use xcm::latest::prelude::*;
+use xcm_executor::traits::QueryHandler;
 
 const ONE_DOT: u128 = 10_000_000_000; // DOT has 10 decimals
 
@@ -87,9 +89,10 @@ fn barrier_allows_paid_execution_from_sibling() {
 #[test]
 fn barrier_passes_unpaid_with_weight_credit() {
 	ExtBuilder::default().build().execute_with(|| {
-		// Note: TakeWeightCredit is the first barrier, which passes if weight credit is available.
-		// In the XcmExecutor, weight is credited before barrier checks, so simple messages pass.
-		// This test verifies that TakeWeightCredit works as expected.
+		// TakeWeightCredit is the first barrier and passes when the message
+		// weight is within the pre-credited amount.  `execute_xcm` passes
+		// Weight::zero() as credit, so unpaid messages are rejected there.
+		// Use `execute_xcm_with_credit` with a generous credit instead.
 		let origin = Location::parent();
 		let message: Xcm<RuntimeCall> = Xcm(vec![DepositAsset {
 			assets: Wild(All),
@@ -102,7 +105,7 @@ fn barrier_passes_unpaid_with_weight_credit() {
 			),
 		}]);
 
-		let outcome = execute_xcm(origin, message);
+		let outcome = execute_xcm_with_credit(origin, message, Weight::MAX);
 		// TakeWeightCredit allows this to pass the barrier (may fail later for other reasons)
 		assert!(
 			!is_barrier_error(&outcome),
@@ -223,5 +226,146 @@ fn barrier_with_computed_origin_has_depth_limit() {
 		// Message should pass the barrier (TakeWeightCredit or WithComputedOrigin)
 		// It may fail later for other reasons (no funds), but not barrier
 		assert!(!is_barrier_error(&outcome));
+	});
+}
+
+#[test]
+fn barrier_allows_paid_execution_from_account_key20() {
+	ExtBuilder::default().build().execute_with(|| {
+		let origin = Location::new(
+			0,
+			[AccountKey20 {
+				network: Some(NetworkId::Polkadot),
+				key: ALICE,
+			}],
+		);
+		let message: Xcm<RuntimeCall> = Xcm(vec![
+			WithdrawAsset((Location::parent(), ONE_DOT).into()),
+			BuyExecution {
+				fees: (Location::parent(), ONE_DOT).into(),
+				weight_limit: WeightLimit::Unlimited,
+			},
+			DepositAsset {
+				assets: Wild(All),
+				beneficiary: Location::new(
+					0,
+					[AccountKey20 {
+						network: None,
+						key: BOB,
+					}],
+				),
+			},
+		]);
+
+		let outcome = execute_xcm(origin, message);
+		assert!(
+			!is_barrier_error(&outcome),
+			"Paid execution from AccountKey20 should pass the barrier"
+		);
+	});
+}
+
+#[test]
+fn barrier_rejects_unpaid_execution_from_sibling() {
+	ExtBuilder::default().build().execute_with(|| {
+		let origin = Location::new(1, [Parachain(2000)]);
+		let message: Xcm<RuntimeCall> = Xcm(vec![
+			UnpaidExecution {
+				weight_limit: Unlimited,
+				check_origin: None,
+			},
+			DepositAsset {
+				assets: Wild(All),
+				beneficiary: Location::new(
+					0,
+					[AccountKey20 {
+						network: None,
+						key: ALICE,
+					}],
+				),
+			},
+		]);
+
+		let outcome = execute_xcm(origin, message);
+		assert!(
+			is_barrier_error(&outcome),
+			"UnpaidExecution from sibling should be rejected by barrier"
+		);
+	});
+}
+
+#[test]
+fn barrier_rejects_unpaid_transact_from_sibling() {
+	ExtBuilder::default().build().execute_with(|| {
+		let origin = Location::new(1, [Parachain(2000)]);
+		let encoded_call = RuntimeCall::System(frame_system::Call::remark_with_event {
+			remark: vec![1, 2, 3],
+		})
+		.encode();
+
+		let message: Xcm<RuntimeCall> = Xcm(vec![
+			UnpaidExecution {
+				weight_limit: Unlimited,
+				check_origin: None,
+			},
+			Transact {
+				origin_kind: OriginKind::SovereignAccount,
+				call: encoded_call.into(),
+				fallback_max_weight: Some(Weight::from_parts(100_000_000, 10_000)),
+			},
+		]);
+
+		let outcome = execute_xcm(origin, message);
+		assert!(
+			is_barrier_error(&outcome),
+			"UnpaidExecution + Transact from sibling should be rejected"
+		);
+	});
+}
+
+#[test]
+fn barrier_allows_known_query_response() {
+	ExtBuilder::default().build().execute_with(|| {
+		let relay_origin = Location::parent();
+
+		let query_id = pallet_xcm::Pallet::<Runtime>::new_query(
+			relay_origin.clone(),
+			100u32.into(),
+			Location::here(),
+		);
+
+		let message: Xcm<RuntimeCall> = Xcm(vec![QueryResponse {
+			query_id,
+			response: Response::Null,
+			max_weight: Weight::from_parts(1_000_000, 64 * 1024),
+			querier: Some(Location::here()),
+		}]);
+
+		let outcome = execute_xcm(relay_origin, message);
+		assert!(
+			!is_barrier_error(&outcome),
+			"Known query response should pass AllowKnownQueryResponses barrier"
+		);
+	});
+}
+
+#[test]
+fn barrier_rejects_unknown_query_response() {
+	ExtBuilder::default().build().execute_with(|| {
+		let origin = Location::parent();
+		let unknown_query_id = 999_999u64;
+
+		let message: Xcm<RuntimeCall> = Xcm(vec![QueryResponse {
+			query_id: unknown_query_id,
+			response: Response::Null,
+			max_weight: Weight::from_parts(1_000_000, 64 * 1024),
+			querier: Some(Location::here()),
+		}]);
+
+		let outcome = execute_xcm(origin, message);
+		assert!(
+			is_barrier_error(&outcome),
+			"Unknown query response should be rejected by barrier"
+		);
 	});
 }

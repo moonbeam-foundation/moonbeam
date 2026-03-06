@@ -203,3 +203,41 @@ fn reserves_rejects_asset_with_mismatched_origin() {
 		);
 	});
 }
+
+#[test]
+fn reserves_accepts_dot_from_relay() {
+	ExtBuilder::default().build().execute_with(|| {
+		let dot_asset = Asset {
+			id: AssetId(Location::parent()),
+			fun: Fungible(ONE_DOT),
+		};
+		let relay_origin = Location::parent();
+
+		use moonriver_runtime::xcm_config::SelfLocationAbsolute;
+		use xcm_primitives::{AbsoluteAndRelativeReserve, MultiNativeAsset};
+
+		assert!(
+			MultiNativeAsset::<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>::contains(
+				&dot_asset,
+				&relay_origin
+			),
+			"DOT from relay should be accepted as reserve"
+		);
+	});
+}
+
+#[test]
+fn teleport_always_rejected() {
+	ExtBuilder::default().build().execute_with(|| {
+		let dot = Asset {
+			id: AssetId(Location::parent()),
+			fun: Fungible(ONE_DOT),
+		};
+		let relay_origin = Location::parent();
+
+		assert!(
+			!<() as ContainsPair<Asset, Location>>::contains(&dot, &relay_origin),
+			"IsTeleporter = () should reject every asset/origin pair"
+		);
+	});
+}
