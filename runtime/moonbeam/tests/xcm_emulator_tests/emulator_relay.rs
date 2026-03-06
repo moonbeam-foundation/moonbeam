@@ -25,10 +25,12 @@ use parity_scale_codec::Encode;
 use sp_core::storage::Storage;
 use sp_runtime::{traits::AccountIdConversion, AccountId32, BuildStorage};
 
-use crate::emulator_network::{MOONBEAM_PARA_ID, PARA_C_ID, SIBLING_PARA_ID};
+use crate::emulator_network::{ASSET_HUB_PARA_ID, MOONBEAM_PARA_ID, PARA_C_ID, SIBLING_PARA_ID};
 
 /// Build relay `Storage` with both parachains registered and funded.
 pub fn relay_genesis() -> Storage {
+	let asset_hub_sovereign: AccountId32 =
+		polkadot_parachain::primitives::Id::from(ASSET_HUB_PARA_ID).into_account_truncating();
 	let moonbeam_sovereign: AccountId32 =
 		polkadot_parachain::primitives::Id::from(MOONBEAM_PARA_ID).into_account_truncating();
 	let sibling_sovereign: AccountId32 =
@@ -55,6 +57,7 @@ pub fn relay_genesis() -> Storage {
 			balances: vec![
 				(AccountId32::new([1u8; 32]), endowment),
 				(AccountId32::new([2u8; 32]), endowment),
+				(asset_hub_sovereign, endowment),
 				(moonbeam_sovereign, endowment),
 				(sibling_sovereign, endowment),
 				(para_c_sovereign, endowment),
@@ -73,7 +76,7 @@ pub fn relay_genesis() -> Storage {
 
 	// Register both parachains so DMP and HRMP consider them valid.
 	use frame_support::storage::generator::StorageMap;
-	for para_id in [MOONBEAM_PARA_ID, SIBLING_PARA_ID, PARA_C_ID] {
+	for para_id in [ASSET_HUB_PARA_ID, MOONBEAM_PARA_ID, SIBLING_PARA_ID, PARA_C_ID] {
 		let pid = polkadot_parachain::primitives::Id::from(para_id);
 		let head_data = polkadot_parachain::primitives::HeadData(vec![0u8; 32]);
 		let key = polkadot_runtime_parachains::paras::Heads::<westend_runtime::Runtime>::storage_map_final_key(pid);

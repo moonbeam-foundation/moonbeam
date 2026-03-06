@@ -205,6 +205,7 @@ sp-timestamp = { workspace = true }
 parachains-common = { workspace = true, features = ["std"] }
 polkadot-runtime-parachains = { workspace = true }
 pallet-delegated-staking = { workspace = true }
+asset-hub-westend-runtime = { workspace = true }
 westend-runtime = { workspace = true }
 xcm-emulator = { workspace = true }
 xcm-simulator = { workspace = true }

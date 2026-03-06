@@ -8,7 +8,7 @@ The xcm-emulator test suite uses **real runtimes** (Westend relay + Moonbeam par
 via `xcm-emulator`, replacing the legacy `xcm_tests.rs` which used `xcm-simulator` with
 mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 
-**35 emulator tests** total (8 pre-existing + 27 new).
+**38 emulator tests** total (8 pre-existing + 27 new + 3 Asset Hub).
 
 ---
 
@@ -57,6 +57,14 @@ mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 | `transfer_glmr_self_reserve_to_sibling` | `send_statemint_asset_…_with_relay_fee` | GLMR self-reserve transfer to sibling |
 | `receive_sibling_native_asset` | `test_statemint_like` | Sibling sends its native to Moonbeam (EVM foreign) |
 
+### `emulator_asset_hub_tests.rs` — 3 tests
+
+| Test | Notes |
+|------|-------|
+| `transfer_dot_from_relay_to_asset_hub` | Relay teleports DOT to real Asset Hub Westend runtime |
+| `relay_funds_both_asset_hub_and_moonbeam` | Relay funds AH (teleport) + Moonbeam (reserve) in same network |
+| `transfer_trust_backed_asset_from_asset_hub_to_moonbeam` | USDT (trust-backed, id=1984) from AH to Moonbeam EVM foreign asset |
+
 ### `emulator_versioning_tests.rs` — 2 tests
 
 | Test | Legacy equivalent | Notes |
@@ -70,6 +78,7 @@ mock chains. Both suites coexist temporarily to allow incremental PR splitting.
 
 ```
 WestendRelay (real westend-runtime)
+├── AssetHubPara (para 1000, real asset-hub-westend-runtime)
 ├── MoonbeamPara (para 2004, real moonbeam-runtime)
 ├── SiblingPara  (para 2005, real moonbeam-runtime)
 └── ParaCPara    (para 2006, real moonbeam-runtime)
@@ -168,7 +177,16 @@ DOT's reserve is the relay (parent). Transferring DOT between parachains require
 `RemoteReserve(Location::parent())`, not `DestinationReserve`. The `custom_xcm_on_dest`
 must include `BuyExecution` since the destination barrier requires paid execution.
 
-### 9. 3-chain multi-hop limitations
+### 9. DOT transfers between Asset Hub and Moonbeam
+
+DOT between relay↔Asset Hub uses **teleport** (system parachain), while
+relay↔Moonbeam uses **reserve**. Direct DOT transfers between AH and
+Moonbeam require a teleport+reserve hybrid that `pallet_xcm::transfer_assets`
+cannot auto-detect and `RemoteReserve` does not handle across the teleport
+boundary. Trust-backed assets (USDT, etc.) from Asset Hub work because AH
+is the reserve for those assets — a straightforward reserve transfer.
+
+### 10. 3-chain multi-hop limitations
 
 A single-XCM transfer B→C through reserve A (using `InitiateTransfer`) is not yet fully
 supported with the real Moonbeam executor. The 3-chain test uses two proven single-hop legs
@@ -208,6 +226,7 @@ runtime/moonbeam/tests/
 │   ├── main.rs                        # Test binary entry point
 │   ├── emulator_network.rs            # Network topology, helpers, genesis
 │   ├── emulator_relay.rs              # Relay genesis config
+│   ├── emulator_asset_hub_tests.rs     # 3 Asset Hub ↔ Moonbeam tests
 │   ├── emulator_transact_tests.rs     # 17 transact + HRMP tests
 │   ├── emulator_transfer_tests.rs     # 16 transfer tests
 │   ├── emulator_versioning_tests.rs   # 2 versioning tests

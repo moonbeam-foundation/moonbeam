@@ -28,6 +28,7 @@ use xcm_emulator::decl_test_relay_chains;
 use xcm_emulator::Parachain;
 use xcm_emulator::TestExt;
 
+pub const ASSET_HUB_PARA_ID: u32 = 1000;
 pub const MOONBEAM_PARA_ID: u32 = 2004;
 pub const SIBLING_PARA_ID: u32 = 2005;
 pub const PARA_C_ID: u32 = 2006;
@@ -156,12 +157,38 @@ decl_test_parachains! {
 }
 
 // ---------------------------------------------------------------------------
+// Asset Hub Westend declaration (para 1000, real asset-hub-westend-runtime)
+// ---------------------------------------------------------------------------
+decl_test_parachains! {
+	pub struct AssetHubPara {
+		genesis = asset_hub_genesis(),
+		on_init = {
+			asset_hub_westend_runtime::AuraExt::on_initialize(1);
+		},
+		runtime = asset_hub_westend_runtime,
+		core = {
+			XcmpMessageHandler: asset_hub_westend_runtime::XcmpQueue,
+			LocationToAccountId: asset_hub_westend_runtime::xcm_config::LocationToAccountId,
+			ParachainInfo: asset_hub_westend_runtime::ParachainInfo,
+			MessageOrigin: cumulus_primitives_core::AggregateMessageOrigin,
+		},
+		pallets = {
+			PolkadotXcm: asset_hub_westend_runtime::PolkadotXcm,
+			Balances: asset_hub_westend_runtime::Balances,
+			Assets: asset_hub_westend_runtime::Assets,
+			ForeignAssets: asset_hub_westend_runtime::ForeignAssets,
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
 // Network declaration
 // ---------------------------------------------------------------------------
 decl_test_networks! {
 	pub struct PolkadotMoonbeamNet {
 		relay_chain = WestendRelay,
 		parachains = vec![
+			AssetHubPara,
 			MoonbeamPara,
 			SiblingPara,
 			ParaCPara,
@@ -190,6 +217,11 @@ pub fn sibling_execute_with<R>(f: impl FnOnce() -> R) -> R {
 		satisfy_moonbeam_inherents();
 		f()
 	})
+}
+
+/// Execute a closure on Asset Hub (para 1000).
+pub fn asset_hub_execute_with<R>(f: impl FnOnce() -> R) -> R {
+	AssetHubPara::<PolkadotMoonbeamNet>::execute_with(f)
 }
 
 /// Execute a closure on ParaC (para 2006), automatically
@@ -330,6 +362,42 @@ pub fn open_hrmp_channels(sender: u32, recipient: u32) {
 // ---------------------------------------------------------------------------
 // Moonbeam genesis helper
 // ---------------------------------------------------------------------------
+
+fn asset_hub_genesis() -> sp_core::storage::Storage {
+	use sp_runtime::BuildStorage;
+
+	let endowment: u128 = 1_000_000_000_000_000; // 100k WND
+
+	let mut t = frame_system::GenesisConfig::<asset_hub_westend_runtime::Runtime>::default()
+		.build_storage()
+		.unwrap();
+
+	parachain_info::GenesisConfig::<asset_hub_westend_runtime::Runtime> {
+		parachain_id: ASSET_HUB_PARA_ID.into(),
+		_config: Default::default(),
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	pallet_balances::GenesisConfig::<asset_hub_westend_runtime::Runtime> {
+		balances: vec![
+			(sp_runtime::AccountId32::new([1u8; 32]), endowment),
+			(sp_runtime::AccountId32::new([2u8; 32]), endowment),
+		],
+		..Default::default()
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	pallet_xcm::GenesisConfig::<asset_hub_westend_runtime::Runtime> {
+		safe_xcm_version: Some(xcm::latest::VERSION),
+		..Default::default()
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	t
+}
 
 fn moonbeam_genesis(para_id: u32) -> sp_core::storage::Storage {
 	use moonbeam_runtime::{currency::GLMR, AccountId, Runtime};

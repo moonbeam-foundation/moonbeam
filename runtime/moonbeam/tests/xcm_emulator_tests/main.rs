@@ -29,6 +29,7 @@
 
 mod emulator_network;
 mod emulator_relay;
+mod emulator_asset_hub_tests;
 mod emulator_transact_tests;
 mod emulator_transfer_tests;
 mod emulator_versioning_tests;
