@@ -5661,11 +5661,17 @@ declare module "@polkadot/types/lookup" {
     readonly asUnfreezeForeignAsset: {
       readonly assetId: u128;
     } & Struct;
+    readonly isClaimPendingDeposit: boolean;
+    readonly asClaimPendingDeposit: {
+      readonly assetId: u128;
+      readonly beneficiary: H160;
+    } & Struct;
     readonly type:
       | "CreateForeignAsset"
       | "ChangeXcmLocation"
       | "FreezeForeignAsset"
-      | "UnfreezeForeignAsset";
+      | "UnfreezeForeignAsset"
+      | "ClaimPendingDeposit";
   }
 
   /** @name PalletParametersCall (395) */
@@ -5999,12 +6005,27 @@ declare module "@polkadot/types/lookup" {
     } & Struct;
     readonly isTokensLocked: boolean;
     readonly asTokensLocked: ITuple<[AccountId20, u128, U256]>;
+    readonly isPendingDepositRecorded: boolean;
+    readonly asPendingDepositRecorded: {
+      readonly assetId: u128;
+      readonly beneficiary: H160;
+      readonly amount: U256;
+      readonly totalPending: U256;
+    } & Struct;
+    readonly isPendingDepositClaimed: boolean;
+    readonly asPendingDepositClaimed: {
+      readonly assetId: u128;
+      readonly beneficiary: H160;
+      readonly amount: U256;
+    } & Struct;
     readonly type:
       | "ForeignAssetCreated"
       | "ForeignAssetXcmLocationChanged"
       | "ForeignAssetFrozen"
       | "ForeignAssetUnfrozen"
-      | "TokensLocked";
+      | "TokensLocked"
+      | "PendingDepositRecorded"
+      | "PendingDepositClaimed";
   }
 
   /** @name PalletParametersEvent (430) */
@@ -8011,7 +8032,7 @@ declare module "@polkadot/types/lookup" {
   /** @name MoonbaseRuntimeRuntime (717) */
   type MoonbaseRuntimeRuntime = Null;
 
-  /** @name PalletMoonbeamForeignAssetsError (718) */
+  /** @name PalletMoonbeamForeignAssetsError (719) */
   interface PalletMoonbeamForeignAssetsError extends Enum {
     readonly isAssetAlreadyExists: boolean;
     readonly isAssetAlreadyFrozen: boolean;
@@ -8032,6 +8053,8 @@ declare module "@polkadot/types/lookup" {
     readonly isInvalidSymbol: boolean;
     readonly isInvalidTokenName: boolean;
     readonly isLocationAlreadyExists: boolean;
+    readonly isNoPendingDeposit: boolean;
+    readonly isAssetNotActive: boolean;
     readonly isTooManyForeignAssets: boolean;
     readonly type:
       | "AssetAlreadyExists"
@@ -8053,10 +8076,12 @@ declare module "@polkadot/types/lookup" {
       | "InvalidSymbol"
       | "InvalidTokenName"
       | "LocationAlreadyExists"
+      | "NoPendingDeposit"
+      | "AssetNotActive"
       | "TooManyForeignAssets";
   }
 
-  /** @name PalletXcmWeightTraderError (720) */
+  /** @name PalletXcmWeightTraderError (721) */
   interface PalletXcmWeightTraderError extends Enum {
     readonly isAssetAlreadyAdded: boolean;
     readonly isAssetAlreadyPaused: boolean;
@@ -8075,13 +8100,13 @@ declare module "@polkadot/types/lookup" {
       | "PriceOverflow";
   }
 
-  /** @name PalletMigrationsError (721) */
+  /** @name PalletMigrationsError (722) */
   interface PalletMigrationsError extends Enum {
     readonly isOngoing: boolean;
     readonly type: "Ongoing";
   }
 
-  /** @name CumulusPalletWeightReclaimStorageWeightReclaim (723) */
+  /** @name CumulusPalletWeightReclaimStorageWeightReclaim (724) */
   interface CumulusPalletWeightReclaimStorageWeightReclaim
     extends ITuple<
       [
@@ -8097,33 +8122,33 @@ declare module "@polkadot/types/lookup" {
       ]
     > {}
 
-  /** @name FrameSystemExtensionsCheckNonZeroSender (725) */
+  /** @name FrameSystemExtensionsCheckNonZeroSender (726) */
   type FrameSystemExtensionsCheckNonZeroSender = Null;
 
-  /** @name FrameSystemExtensionsCheckSpecVersion (726) */
+  /** @name FrameSystemExtensionsCheckSpecVersion (727) */
   type FrameSystemExtensionsCheckSpecVersion = Null;
 
-  /** @name FrameSystemExtensionsCheckTxVersion (727) */
+  /** @name FrameSystemExtensionsCheckTxVersion (728) */
   type FrameSystemExtensionsCheckTxVersion = Null;
 
-  /** @name FrameSystemExtensionsCheckGenesis (728) */
+  /** @name FrameSystemExtensionsCheckGenesis (729) */
   type FrameSystemExtensionsCheckGenesis = Null;
 
-  /** @name FrameSystemExtensionsCheckNonce (731) */
+  /** @name FrameSystemExtensionsCheckNonce (732) */
   interface FrameSystemExtensionsCheckNonce extends Compact<u32> {}
 
-  /** @name FrameSystemExtensionsCheckWeight (732) */
+  /** @name FrameSystemExtensionsCheckWeight (733) */
   type FrameSystemExtensionsCheckWeight = Null;
 
-  /** @name PalletTransactionPaymentChargeTransactionPayment (733) */
+  /** @name PalletTransactionPaymentChargeTransactionPayment (734) */
   interface PalletTransactionPaymentChargeTransactionPayment extends Compact<u128> {}
 
-  /** @name FrameMetadataHashExtensionCheckMetadataHash (734) */
+  /** @name FrameMetadataHashExtensionCheckMetadataHash (735) */
   interface FrameMetadataHashExtensionCheckMetadataHash extends Struct {
     readonly mode: FrameMetadataHashExtensionMode;
   }
 
-  /** @name FrameMetadataHashExtensionMode (735) */
+  /** @name FrameMetadataHashExtensionMode (736) */
   interface FrameMetadataHashExtensionMode extends Enum {
     readonly isDisabled: boolean;
     readonly isEnabled: boolean;
