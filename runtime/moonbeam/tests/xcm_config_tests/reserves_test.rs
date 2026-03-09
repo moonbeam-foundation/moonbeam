@@ -27,7 +27,7 @@
 
 use crate::xcm_common::*;
 use frame_support::traits::ContainsPair;
-use moonbeam_runtime::xcm_config::AssetHubLocation;
+use moonbeam_runtime::xcm_config::{AssetHubLocation, XcmExecutorConfig};
 use xcm::latest::prelude::*;
 use xcm_primitives::IsBridgedConcreteAssetFrom;
 
@@ -231,17 +231,17 @@ fn reserves_accepts_dot_from_relay() {
 #[test]
 fn teleport_always_rejected() {
 	ExtBuilder::default().build().execute_with(|| {
-		// Moonbeam's IsTeleporter is `()`, so no asset/origin pair should pass.
+		type IsTeleporter = <XcmExecutorConfig as xcm_executor::Config>::IsTeleporter;
+
 		let dot = Asset {
 			id: AssetId(Location::parent()),
 			fun: Fungible(ONE_DOT),
 		};
 		let relay_origin = Location::parent();
 
-		// `()` implements ContainsPair and always returns false
 		assert!(
-			!<() as ContainsPair<Asset, Location>>::contains(&dot, &relay_origin),
-			"IsTeleporter = () should reject every asset/origin pair"
+			!IsTeleporter::contains(&dot, &relay_origin),
+			"IsTeleporter should reject every asset/origin pair"
 		);
 	});
 }

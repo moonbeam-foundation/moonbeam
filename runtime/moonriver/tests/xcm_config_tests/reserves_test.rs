@@ -27,7 +27,7 @@
 
 use crate::xcm_common::*;
 use frame_support::traits::ContainsPair;
-use moonriver_runtime::xcm_config::AssetHubLocation;
+use moonriver_runtime::xcm_config::{AssetHubLocation, XcmExecutorConfig};
 use xcm::latest::prelude::*;
 use xcm_primitives::IsBridgedConcreteAssetFrom;
 
@@ -229,6 +229,8 @@ fn reserves_accepts_dot_from_relay() {
 #[test]
 fn teleport_always_rejected() {
 	ExtBuilder::default().build().execute_with(|| {
+		type IsTeleporter = <XcmExecutorConfig as xcm_executor::Config>::IsTeleporter;
+
 		let dot = Asset {
 			id: AssetId(Location::parent()),
 			fun: Fungible(ONE_DOT),
@@ -236,8 +238,8 @@ fn teleport_always_rejected() {
 		let relay_origin = Location::parent();
 
 		assert!(
-			!<() as ContainsPair<Asset, Location>>::contains(&dot, &relay_origin),
-			"IsTeleporter = () should reject every asset/origin pair"
+			!IsTeleporter::contains(&dot, &relay_origin),
+			"IsTeleporter should reject every asset/origin pair"
 		);
 	});
 }
