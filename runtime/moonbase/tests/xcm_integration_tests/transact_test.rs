@@ -25,17 +25,12 @@
 //! - Weight and fee handling for transact
 
 use crate::networks::*;
-use moonbase_runtime::{
-	currency::UNIT, xcm_config::XcmOriginToTransactDispatchOrigin, RuntimeCall, RuntimeOrigin,
-};
+use moonbase_runtime::{xcm_config::XcmOriginToTransactDispatchOrigin, RuntimeCall, RuntimeOrigin};
 use parity_scale_codec::Encode;
 use sp_runtime::traits::Dispatchable;
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertOrigin;
-
-#[allow(dead_code)]
-const ONE_UNIT: u128 = UNIT;
 
 #[test]
 fn transact_origin_converts_relay_to_dispatch_origin() {

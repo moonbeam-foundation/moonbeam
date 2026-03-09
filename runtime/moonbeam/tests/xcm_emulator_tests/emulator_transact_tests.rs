@@ -34,8 +34,6 @@ use xcm::latest::prelude::*;
 use xcm_emulator::{RelayChain, TestExt};
 use xcm_executor::traits::ConvertLocation;
 
-const DOT_ASSET_ID: u128 = 1;
-
 // ===========================================================================
 // Setup
 // ===========================================================================

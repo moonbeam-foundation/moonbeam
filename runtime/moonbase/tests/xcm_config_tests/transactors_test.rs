@@ -24,12 +24,9 @@
 
 use crate::xcm_common::*;
 use frame_support::traits::{Currency, PalletInfoAccess};
-use moonbase_runtime::{currency::UNIT, AccountId, Balances};
+use moonbase_runtime::{AccountId, Balances};
 use xcm::latest::prelude::*;
 use xcm_executor::traits::TransactAsset;
-
-const ONE_UNIT: u128 = UNIT;
-const ONE_DOT: u128 = 10_000_000_000;
 
 fn alice_account() -> AccountId {
 	AccountId::from(ALICE)

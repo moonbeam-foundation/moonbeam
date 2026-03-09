@@ -29,9 +29,6 @@ use frame_support::assert_ok;
 use xcm::latest::prelude::*;
 use xcm_emulator::TestExt;
 
-const DOT_ASSET_ID: u128 = 1;
-const UNIT_ASSET_ID: u128 = 2;
-
 // ===========================================================================
 // Helpers
 // ===========================================================================

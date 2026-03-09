@@ -24,6 +24,7 @@ use crate::chains::{
 	moonbeam::{moonbeam_ext, MOONBEAM_PARA_ID},
 	relay_mock::relay_ext,
 };
+use moonbeam_runtime::currency::GLMR;
 use parity_scale_codec::{Decode, Encode};
 use sp_io::TestExternalities;
 use sp_runtime::traits::AccountIdConversion;
@@ -33,6 +34,10 @@ use std::collections::VecDeque;
 use xcm::latest::prelude::*;
 use xcm_executor::XcmExecutor;
 use xcm_simulator::{DmpMessageHandlerT, ParaId, XcmpMessageHandlerT};
+
+pub const ONE_DOT: u128 = 10_000_000_000; // DOT has 10 decimals
+#[allow(dead_code)]
+pub const ONE_GLMR: u128 = GLMR;
 
 // ============================================================================
 // Message Buses

@@ -25,17 +25,12 @@
 //! - Weight and fee handling for transact
 
 use crate::networks::*;
-use moonbeam_runtime::{
-	currency::GLMR, xcm_config::XcmOriginToTransactDispatchOrigin, RuntimeCall, RuntimeOrigin,
-};
+use moonbeam_runtime::{xcm_config::XcmOriginToTransactDispatchOrigin, RuntimeCall, RuntimeOrigin};
 use parity_scale_codec::Encode;
 use sp_runtime::traits::Dispatchable;
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertOrigin;
-
-#[allow(dead_code)]
-const ONE_GLMR: u128 = GLMR;
 
 #[test]
 fn transact_origin_converts_relay_to_dispatch_origin() {

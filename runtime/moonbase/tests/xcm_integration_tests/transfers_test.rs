@@ -26,14 +26,10 @@
 
 use crate::common::*;
 use crate::networks::*;
-use moonbase_runtime::{currency::UNIT, xcm_config::LocationToAccountId, AccountId, Balances};
+use moonbase_runtime::{xcm_config::LocationToAccountId, AccountId, Balances};
 use parity_scale_codec::Encode;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertLocation;
-
-const ONE_DOT: u128 = 10_000_000_000;
-#[allow(dead_code)]
-const ONE_UNIT: u128 = UNIT;
 
 // ============================================================================
 // Configuration Tests

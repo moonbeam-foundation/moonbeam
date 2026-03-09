@@ -22,12 +22,9 @@
 //! - Multi-asset fee support
 
 use crate::networks::*;
-use moonbase_runtime::{currency::UNIT, Runtime, Treasury};
+use moonbase_runtime::{Runtime, Treasury};
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
-
-#[allow(dead_code)]
-const ONE_UNIT: u128 = UNIT;
 
 #[test]
 fn xcm_fees_go_to_treasury() {

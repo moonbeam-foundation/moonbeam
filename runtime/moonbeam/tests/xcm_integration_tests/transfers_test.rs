@@ -26,14 +26,10 @@
 
 use crate::common::*;
 use crate::networks::*;
-use moonbeam_runtime::{currency::GLMR, xcm_config::LocationToAccountId, AccountId, Balances};
+use moonbeam_runtime::{xcm_config::LocationToAccountId, AccountId, Balances};
 use parity_scale_codec::Encode;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertLocation;
-
-const ONE_DOT: u128 = 10_000_000_000;
-#[allow(dead_code)]
-const ONE_GLMR: u128 = GLMR;
 
 // ============================================================================
 // Configuration Tests

@@ -23,15 +23,13 @@
 
 use crate::xcm_common::*;
 use frame_support::traits::PalletInfoAccess;
-use moonbase_runtime::{currency::UNIT, Balances, Runtime};
+use moonbase_runtime::{Balances, Runtime};
 use pallet_xcm_weight_trader::{Pallet as XcmWeightTrader, Trader};
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
 use xcm::VersionedAssetId;
 use xcm_executor::traits::WeightTrader;
 use xcm_executor::AssetsInHolding;
-
-const ONE_UNIT: u128 = UNIT;
 
 fn native_location() -> Location {
 	Location::new(0, [PalletInstance(Balances::index() as u8)])

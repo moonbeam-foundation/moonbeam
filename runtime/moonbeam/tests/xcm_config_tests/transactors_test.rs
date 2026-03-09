@@ -24,12 +24,9 @@
 
 use crate::xcm_common::*;
 use frame_support::traits::{Currency, PalletInfoAccess};
-use moonbeam_runtime::{currency::GLMR, AccountId, Balances};
+use moonbeam_runtime::{AccountId, Balances};
 use xcm::latest::prelude::*;
 use xcm_executor::traits::TransactAsset;
-
-const ONE_GLMR: u128 = GLMR;
-const ONE_DOT: u128 = 10_000_000_000;
 
 fn alice_account() -> AccountId {
 	AccountId::from(ALICE)

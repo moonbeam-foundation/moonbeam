@@ -23,14 +23,11 @@
 
 use crate::common::*;
 use crate::networks::*;
-use moonbeam_runtime::{currency::GLMR, xcm_config::XcmExecutorConfig, RuntimeCall};
+use moonbeam_runtime::{xcm_config::XcmExecutorConfig, RuntimeCall};
 use parity_scale_codec::Encode;
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
 use xcm_executor::XcmExecutor;
-
-#[allow(dead_code)]
-const ONE_GLMR: u128 = GLMR;
 
 fn execute_xcm_message(origin: Location, message: Xcm<RuntimeCall>) -> Outcome {
 	let hash = message.using_encoded(sp_io::hashing::blake2_256);

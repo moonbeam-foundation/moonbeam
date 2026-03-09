@@ -26,16 +26,13 @@
 
 use crate::networks::*;
 use moonriver_runtime::{
-	currency::MOVR, xcm_config::XcmOriginToTransactDispatchOrigin, RuntimeCall, RuntimeOrigin,
+	xcm_config::XcmOriginToTransactDispatchOrigin, RuntimeCall, RuntimeOrigin,
 };
 use parity_scale_codec::Encode;
 use sp_runtime::traits::Dispatchable;
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertOrigin;
-
-#[allow(dead_code)]
-const ONE_MOVR: u128 = MOVR;
 
 #[test]
 fn transact_origin_converts_relay_to_dispatch_origin() {

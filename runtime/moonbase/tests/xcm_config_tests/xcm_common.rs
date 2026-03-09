@@ -20,11 +20,14 @@
 
 pub use crate::common::*;
 
-use moonbase_runtime::{xcm_config::XcmExecutorConfig, RuntimeCall};
+use moonbase_runtime::{currency::UNIT, xcm_config::XcmExecutorConfig, RuntimeCall};
 use parity_scale_codec::Encode;
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
 use xcm_executor::XcmExecutor;
+
+pub const ONE_DOT: u128 = 10_000_000_000; // DOT has 10 decimals
+pub const ONE_UNIT: u128 = UNIT;
 
 /// Execute an XCM message and return the outcome.
 ///

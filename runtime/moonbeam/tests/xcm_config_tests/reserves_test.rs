@@ -32,7 +32,6 @@ use xcm::latest::prelude::*;
 use xcm_primitives::IsBridgedConcreteAssetFrom;
 
 const ASSET_HUB_PARA_ID: u32 = 1000;
-const ONE_DOT: u128 = 10_000_000_000;
 
 #[test]
 fn reserves_accepts_dot_from_asset_hub() {

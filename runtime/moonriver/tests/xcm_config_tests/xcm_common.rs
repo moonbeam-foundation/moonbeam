@@ -20,11 +20,14 @@
 
 pub use crate::common::*;
 
-use moonriver_runtime::{xcm_config::XcmExecutorConfig, RuntimeCall};
+use moonriver_runtime::{currency::MOVR, xcm_config::XcmExecutorConfig, RuntimeCall};
 use parity_scale_codec::Encode;
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
 use xcm_executor::XcmExecutor;
+
+pub const ONE_DOT: u128 = 10_000_000_000; // DOT has 10 decimals
+pub const ONE_MOVR: u128 = MOVR;
 
 /// Execute an XCM message and return the outcome.
 ///

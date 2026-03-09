@@ -22,12 +22,9 @@
 //! - Multi-asset fee support
 
 use crate::networks::*;
-use moonriver_runtime::{currency::MOVR, Runtime, Treasury};
+use moonriver_runtime::{Runtime, Treasury};
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
-
-#[allow(dead_code)]
-const ONE_MOVR: u128 = MOVR;
 
 #[test]
 fn xcm_fees_go_to_treasury() {

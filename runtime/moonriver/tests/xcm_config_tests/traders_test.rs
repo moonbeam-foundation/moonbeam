@@ -23,15 +23,13 @@
 
 use crate::xcm_common::*;
 use frame_support::traits::PalletInfoAccess;
-use moonriver_runtime::{currency::MOVR, Balances, Runtime};
+use moonriver_runtime::{Balances, Runtime};
 use pallet_xcm_weight_trader::{Pallet as XcmWeightTrader, Trader};
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
 use xcm::VersionedAssetId;
 use xcm_executor::traits::WeightTrader;
 use xcm_executor::AssetsInHolding;
-
-const ONE_MOVR: u128 = MOVR;
 
 fn native_location() -> Location {
 	Location::new(0, [PalletInstance(Balances::index() as u8)])

@@ -29,8 +29,6 @@ use parity_scale_codec::Encode;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::QueryHandler;
 
-const ONE_DOT: u128 = 10_000_000_000; // DOT has 10 decimals
-
 #[test]
 fn barrier_allows_paid_execution_from_relay() {
 	ExtBuilder::default().build().execute_with(|| {

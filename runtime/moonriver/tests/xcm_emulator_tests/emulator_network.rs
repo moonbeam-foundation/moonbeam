@@ -38,6 +38,10 @@ pub const BALTATHAR: [u8; 20] = [2u8; 20];
 // ---- Well-known relay accounts (32-byte) -----------------------------------
 pub const RELAY_ALICE: sp_runtime::AccountId32 = sp_runtime::AccountId32::new([1u8; 32]);
 
+// ---- Asset ID constants ----------------------------------------------------
+pub const DOT_ASSET_ID: u128 = 1;
+pub const MOVR_ASSET_ID: u128 = 2;
+
 // ---- DOT constants ---------------------------------------------------------
 pub const ONE_DOT: u128 = 10_000_000_000; // 10 decimals
 

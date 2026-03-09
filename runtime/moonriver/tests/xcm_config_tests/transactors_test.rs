@@ -24,12 +24,9 @@
 
 use crate::xcm_common::*;
 use frame_support::traits::{Currency, PalletInfoAccess};
-use moonriver_runtime::{currency::MOVR, AccountId, Balances};
+use moonriver_runtime::{AccountId, Balances};
 use xcm::latest::prelude::*;
 use xcm_executor::traits::TransactAsset;
-
-const ONE_MOVR: u128 = MOVR;
-const ONE_DOT: u128 = 10_000_000_000;
 
 fn alice_account() -> AccountId {
 	AccountId::from(ALICE)

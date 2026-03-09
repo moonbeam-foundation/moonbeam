@@ -22,12 +22,9 @@
 //! - Multi-asset fee support
 
 use crate::networks::*;
-use moonbeam_runtime::{currency::GLMR, Runtime, Treasury};
+use moonbeam_runtime::{Runtime, Treasury};
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
-
-#[allow(dead_code)]
-const ONE_GLMR: u128 = GLMR;
 
 #[test]
 fn xcm_fees_go_to_treasury() {

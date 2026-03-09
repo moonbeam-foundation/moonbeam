@@ -28,8 +28,6 @@ use sp_core::U256;
 use xcm::latest::prelude::*;
 use xcm_emulator::TestExt;
 
-const DOT_ASSET_ID: u128 = 1;
-
 // ===========================================================================
 // Setup helper
 // ===========================================================================
@@ -647,8 +645,6 @@ fn foreign_assets_survive_native_balance_drain() {
 // ===========================================================================
 // Native asset (GLMR) para → para transfers
 // ===========================================================================
-
-const MOVR_ASSET_ID: u128 = 2;
 
 /// Register Moonriver's native GLMR as a foreign asset on the sibling and
 /// configure the XCM weight trader price.
