@@ -119,35 +119,20 @@ fn location_converts_account_key20_directly() {
 }
 
 #[test]
-fn location_converts_only_supported_patterns() {
+fn location_rejects_unsupported_multi_junction_patterns() {
 	ExtBuilder::default().build().execute_with(|| {
-		// LocationToAccountId supports specific patterns:
-		// - ParentIsPreset: Location::parent()
-		// - SiblingParachainConvertsVia: siblings with only Parachain junction
-		// - AccountKey20Aliases: AccountKey20 junctions
-		// - HashedDescription: describable patterns
-		// - ExternalConsensusLocationsConverterFor: foreign consensus
-
-		// Complex sibling locations with extra interior junctions may NOT be supported
-		// by the current configuration, as HashedDescription's DescribeFamily
-		// doesn't describe all arbitrary patterns.
+		// HashedDescription<_, DescribeFamily<DescribeAllTerminal>> only describes
+		// locations whose tail (after the family prefix) is a single terminal junction.
+		// A sibling with multiple interior junctions beyond Parachain is not describable
+		// by DescribeAllTerminal and no other converter handles it, so it must return None.
 		let complex_location =
 			Location::new(1, [Parachain(2000), PalletInstance(10), GeneralIndex(42)]);
 
-		// This pattern may or may not convert depending on DescribeFamily configuration
-		let account = LocationToAccountId::convert_location(&complex_location);
-
-		// The current configuration may not support this pattern
-		// If it doesn't convert, that's expected behavior - not all patterns are supported
-		if account.is_some() {
-			// If it does convert, same location should produce same account
-			let account_again = LocationToAccountId::convert_location(&complex_location);
-			assert_eq!(
-				account, account_again,
-				"Same location should produce same account"
-			);
-		}
-		// Test passes either way - we're verifying current behavior, not mandating support
+		assert_eq!(
+			LocationToAccountId::convert_location(&complex_location),
+			None,
+			"Multi-junction sibling location should not convert to an account"
+		);
 	});
 }
 
