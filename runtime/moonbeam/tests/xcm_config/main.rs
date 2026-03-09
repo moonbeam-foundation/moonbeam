@@ -35,6 +35,7 @@ mod xcm_common;
 
 mod barriers;
 mod location;
+mod origin;
 mod reserves;
 mod traders;
 mod transactors;

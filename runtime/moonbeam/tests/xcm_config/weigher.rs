@@ -135,3 +135,20 @@ fn weigher_handles_transact_instruction() {
 		);
 	});
 }
+
+#[test]
+fn message_queue_heap_size_sufficient_for_xcm() {
+	ExtBuilder::default().build().execute_with(|| {
+		// MessageQueueHeapSize is used as MaxPageSize and HeapSize for pallet_message_queue.
+		// It must be large enough to hold any valid XCM message, including those
+		// received via HRMP. A minimum of 100KB ensures compatibility.
+		use moonbeam_runtime::xcm_config::MessageQueueHeapSize;
+
+		let heap_size = MessageQueueHeapSize::get();
+
+		assert!(
+			heap_size >= 100 * 1024,
+			"MessageQueueHeapSize ({heap_size}) should be at least 100KB for HRMP compatibility"
+		);
+	});
+}

@@ -23,7 +23,7 @@
 
 use crate::xcm_common::*;
 use frame_support::traits::PalletInfoAccess;
-use moonbeam_runtime::{Balances, Runtime};
+use moonbeam_runtime::{Balances, Runtime, Treasury};
 use pallet_xcm_weight_trader::{Pallet as XcmWeightTrader, Trader};
 use sp_weights::Weight;
 use xcm::latest::prelude::*;
@@ -261,5 +261,18 @@ fn trader_handles_insufficient_payment() {
 		// Should fail - insufficient payment
 		assert!(result.is_err(), "Insufficient payment should be rejected");
 		assert_eq!(result.unwrap_err(), XcmError::TooExpensive);
+	});
+}
+
+#[test]
+fn xcm_fees_go_to_treasury() {
+	ExtBuilder::default().build().execute_with(|| {
+		use moonbeam_runtime::xcm_config::XcmFeesAccount;
+
+		assert_eq!(
+			XcmFeesAccount::get(),
+			Treasury::account_id(),
+			"XCM fee destination should be the treasury account"
+		);
 	});
 }

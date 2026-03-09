@@ -24,8 +24,12 @@
 //! - ExternalConsensusLocationsConverterFor: Bridged locations map to accounts
 
 use crate::xcm_common::*;
-use moonbase_runtime::{xcm_config::LocationToAccountId, AccountId};
+use moonbase_runtime::{
+	xcm_config::{LocationToAccountId, LocationToH160},
+	AccountId,
+};
 use polkadot_parachain::primitives::Sibling;
+use sp_core::H160;
 use sp_runtime::traits::AccountIdConversion;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertLocation;
@@ -149,6 +153,29 @@ fn location_converts_bridged_parachain() {
 		assert!(
 			account.is_some(),
 			"Bridged parachain should convert to account"
+		);
+	});
+}
+
+#[test]
+fn location_to_h160_converts_account_key20() {
+	ExtBuilder::default().build().execute_with(|| {
+		// LocationToH160 wraps LocationToAccountId and converts to H160,
+		// used by EVM-related XCM operations.
+		let location = Location::new(
+			0,
+			[AccountKey20 {
+				network: Some(NetworkId::ByGenesis(xcm::v5::WESTEND_GENESIS_HASH)),
+				key: ALICE,
+			}],
+		);
+
+		let h160 = LocationToH160::convert_location(&location);
+
+		assert_eq!(
+			h160,
+			Some(H160::from(ALICE)),
+			"LocationToH160 should convert AccountKey20 to the matching H160"
 		);
 	});
 }
