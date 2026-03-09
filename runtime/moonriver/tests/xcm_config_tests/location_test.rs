@@ -25,6 +25,8 @@
 
 use crate::xcm_common::*;
 use moonriver_runtime::{xcm_config::LocationToAccountId, AccountId};
+use polkadot_parachain::primitives::Sibling;
+use sp_runtime::traits::AccountIdConversion;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertLocation;
 
@@ -57,22 +59,38 @@ fn location_converts_relay_to_account() {
 #[test]
 fn location_converts_sibling_parachain_to_sovereign_account() {
 	ExtBuilder::default().build().execute_with(|| {
+		// SiblingParachainConvertsVia derives a sovereign account from the parachain ID
+		// using Sibling's AccountIdConversion::into_account_truncating.
 		let sibling_para_id = 2000u32;
 		let sibling_location = Location::new(1, [Parachain(sibling_para_id)]);
 		let account = LocationToAccountId::convert_location(&sibling_location);
 
-		assert!(
-			account.is_some(),
-			"Sibling parachain should convert to account"
+		let expected: AccountId = Sibling::from(sibling_para_id).into_account_truncating();
+		assert_eq!(
+			account,
+			Some(expected),
+			"Sibling parachain should convert to sovereign account derived from para ID"
 		);
+	});
+}
 
-		// Different parachains should have different sovereign accounts
-		let other_sibling_location = Location::new(1, [Parachain(3000)]);
-		let other_account = LocationToAccountId::convert_location(&other_sibling_location);
+#[test]
+fn location_converts_different_siblings_to_different_accounts() {
+	ExtBuilder::default().build().execute_with(|| {
+		let account_a = LocationToAccountId::convert_location(&Location::new(1, [Parachain(2000)]));
+		let account_b = LocationToAccountId::convert_location(&Location::new(1, [Parachain(3000)]));
 
+		assert!(
+			account_a.is_some(),
+			"Sibling 2000 should convert to account"
+		);
+		assert!(
+			account_b.is_some(),
+			"Sibling 3000 should convert to account"
+		);
 		assert_ne!(
-			account, other_account,
-			"Different siblings should have different accounts"
+			account_a, account_b,
+			"Different sibling parachains should have different sovereign accounts"
 		);
 	});
 }
