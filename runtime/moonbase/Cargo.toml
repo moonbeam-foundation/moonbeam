@@ -189,7 +189,6 @@ frame-metadata = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 sp-timestamp = { workspace = true }
 xcm-emulator = { workspace = true }
-xcm-simulator = { workspace = true }
 westend-runtime = { workspace = true }
 asset-hub-westend-runtime = { workspace = true }
 pallet-assets = { workspace = true }

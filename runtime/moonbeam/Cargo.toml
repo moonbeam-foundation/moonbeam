@@ -208,7 +208,6 @@ pallet-delegated-staking = { workspace = true }
 asset-hub-westend-runtime = { workspace = true }
 westend-runtime = { workspace = true }
 xcm-emulator = { workspace = true }
-xcm-simulator = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 moonbeam-tests-primitives = { workspace = true }

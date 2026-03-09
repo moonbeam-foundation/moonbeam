@@ -205,7 +205,6 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 sp-timestamp = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 xcm-emulator = { workspace = true }
-xcm-simulator = { workspace = true }
 westend-runtime = { workspace = true }
 asset-hub-westend-runtime = { workspace = true }
 

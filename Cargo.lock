@@ -8045,7 +8045,6 @@ dependencies = [
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-runtime-apis",
- "xcm-simulator",
 ]
 
 [[package]]
@@ -8456,7 +8455,6 @@ dependencies = [
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-runtime-apis",
- "xcm-simulator",
 ]
 
 [[package]]
@@ -8808,7 +8806,6 @@ dependencies = [
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-runtime-apis",
- "xcm-simulator",
 ]
 
 [[package]]
