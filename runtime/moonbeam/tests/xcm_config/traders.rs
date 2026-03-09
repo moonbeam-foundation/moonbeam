@@ -230,14 +230,18 @@ fn trader_refunds_unused_weight() {
 		let unused_weight = weight_bought.saturating_sub(weight_used);
 		let refund = trader.refund_weight(unused_weight, &context);
 
-		// Should get some refund
-		if let Some(refunded_asset) = refund {
-			match refunded_asset.fun {
-				Fungible(amount) => {
-					assert!(amount > 0, "Should receive non-zero refund");
-				}
-				_ => panic!("Expected fungible refund"),
+		// Must get a refund
+		let refunded_asset = refund.expect("refund_weight must return Some for unused weight");
+		assert_eq!(
+			refunded_asset.id,
+			AssetId(native_location()),
+			"Refunded asset must be the native token"
+		);
+		match refunded_asset.fun {
+			Fungible(amount) => {
+				assert!(amount > 0, "Refunded amount must be non-zero");
 			}
+			_ => panic!("Expected fungible refund"),
 		}
 	});
 }
