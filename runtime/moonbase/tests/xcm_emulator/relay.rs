@@ -79,17 +79,15 @@ pub fn relay_genesis() -> Storage {
 		storage.top.insert(key, head_data.encode());
 
 		// Also register the ParaLifecycle as Parachain so HRMP considers them valid.
-		// ParaLifecycles is a StorageMap with Twox64Concat hasher on ParaId.
-		// prefix = twox128("Paras") ++ twox128("ParaLifecycles")
-		// key suffix = twox64(ParaId.encode()) ++ ParaId.encode()
+		// ParaLifecycles<T> is pub(super) so we cannot use storage_map_final_key();
+		// reconstruct the key manually (Twox64Concat hasher on ParaId).
 		let prefix = frame_support::storage::storage_prefix(b"Paras", b"ParaLifecycles");
 		let encoded_id = pid.encode();
 		let mut full_key = prefix.to_vec();
 		full_key.extend(&sp_io::hashing::twox_64(&encoded_id));
 		full_key.extend(&encoded_id);
-		// ParaLifecycle::Parachain is the third variant (index 2)
-		// Onboarding=0, Parathread=1, Parachain=2
-		storage.top.insert(full_key, 2u8.encode());
+		let lifecycle = polkadot_runtime_parachains::paras::ParaLifecycle::Parachain;
+		storage.top.insert(full_key, lifecycle.encode());
 	}
 
 	storage
