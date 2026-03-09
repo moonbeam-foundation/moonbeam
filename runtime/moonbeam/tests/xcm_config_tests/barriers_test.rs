@@ -196,17 +196,18 @@ fn barrier_allows_set_topic() {
 }
 
 #[test]
-fn barrier_with_computed_origin_has_depth_limit() {
+fn barrier_with_computed_origin_rejects_when_depth_limit_exceeded() {
 	ExtBuilder::default().build().execute_with(|| {
-		// WithComputedOrigin has ConstU32<8> which limits the computed origin's junction depth.
-		// Note: TakeWeightCredit is checked first, so messages may pass before WithComputedOrigin.
-		// This test verifies that messages can still execute even with multiple DescendOrigin
-		// instructions, as TakeWeightCredit processes them first.
+		// WithComputedOrigin is configured with ConstU32<8>, meaning it will skip at most 8
+		// DescendOrigin (or similar) instructions when computing the origin. If the message
+		// contains more than 8 such instructions, WithComputedOrigin cannot reach the inner
+		// barriers (AllowTopLevelPaidExecutionFrom, AllowSubscriptionsFrom) and the message
+		// is rejected.
 		let origin = Location::parent();
 
+		// Build a message with 9 DescendOrigin instructions, exceeding the limit of 8
 		let mut instructions: Vec<Instruction<RuntimeCall>> = Vec::new();
-		// Add DescendOrigin instructions
-		for i in 0..3 {
+		for i in 0..9 {
 			instructions.push(DescendOrigin(
 				[AccountId32 {
 					network: None,
@@ -223,9 +224,43 @@ fn barrier_with_computed_origin_has_depth_limit() {
 
 		let message: Xcm<RuntimeCall> = Xcm(instructions);
 		let outcome = execute_xcm(origin, message);
-		// Message should pass the barrier (TakeWeightCredit or WithComputedOrigin)
-		// It may fail later for other reasons (no funds), but not barrier
-		assert!(!is_barrier_error(&outcome));
+		assert!(
+			is_barrier_error(&outcome),
+			"Message exceeding WithComputedOrigin depth limit of 8 should be rejected"
+		);
+	});
+}
+
+#[test]
+fn barrier_with_computed_origin_allows_at_depth_limit() {
+	ExtBuilder::default().build().execute_with(|| {
+		// WithComputedOrigin is configured with ConstU32<8>. A message with exactly 8
+		// DescendOrigin instructions should still be processed by the inner barriers.
+		let origin = Location::parent();
+
+		let mut instructions: Vec<Instruction<RuntimeCall>> = Vec::new();
+		for i in 0..8 {
+			instructions.push(DescendOrigin(
+				[AccountId32 {
+					network: None,
+					id: [i as u8; 32],
+				}]
+				.into(),
+			));
+		}
+		instructions.push(WithdrawAsset((Location::parent(), ONE_DOT).into()));
+		instructions.push(BuyExecution {
+			fees: (Location::parent(), ONE_DOT).into(),
+			weight_limit: WeightLimit::Unlimited,
+		});
+
+		let message: Xcm<RuntimeCall> = Xcm(instructions);
+		let outcome = execute_xcm(origin, message);
+		// Should pass the barrier (may fail later for other reasons like no funds)
+		assert!(
+			!is_barrier_error(&outcome),
+			"Message within WithComputedOrigin depth limit of 8 should pass the barrier"
+		);
 	});
 }
 
