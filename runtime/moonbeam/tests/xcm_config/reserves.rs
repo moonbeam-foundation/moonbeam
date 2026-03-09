@@ -31,6 +31,9 @@ use moonbeam_runtime::xcm_config::{AssetHubLocation, XcmExecutorConfig};
 use xcm::latest::prelude::*;
 use xcm_primitives::IsBridgedConcreteAssetFrom;
 
+/// The actual `IsReserve` type wired into the XCM executor.
+type IsReserve = <XcmExecutorConfig as xcm_executor::Config>::IsReserve;
+
 const ASSET_HUB_PARA_ID: u32 = 1000;
 
 #[test]
@@ -50,6 +53,10 @@ fn reserves_accepts_dot_from_asset_hub() {
 		assert!(
 			RelayFromAssetHub::contains(&dot_asset, &asset_hub_origin),
 			"DOT from Asset Hub should be accepted as reserve"
+		);
+		assert!(
+			IsReserve::contains(&dot_asset, &asset_hub_origin),
+			"IsReserve must accept DOT from Asset Hub (runtime wiring)"
 		);
 	});
 }
@@ -74,6 +81,10 @@ fn reserves_accepts_bridged_assets_from_asset_hub() {
 				&asset_hub_origin
 			),
 			"Bridged assets from Asset Hub should be accepted"
+		);
+		assert!(
+			IsReserve::contains(&bridged_asset, &asset_hub_origin),
+			"IsReserve must accept bridged assets from Asset Hub (runtime wiring)"
 		);
 	});
 }
@@ -150,6 +161,10 @@ fn reserves_accepts_self_reserve() {
 			),
 			"Self reserve asset should be accepted when origin is here()"
 		);
+		assert!(
+			IsReserve::contains(&native_asset, &self_origin),
+			"IsReserve must accept self-reserve (runtime wiring)"
+		);
 	});
 }
 
@@ -176,6 +191,10 @@ fn reserves_accepts_sibling_native_asset() {
 				&sibling_origin
 			),
 			"Sibling native asset should be accepted when origin matches reserve"
+		);
+		assert!(
+			IsReserve::contains(&sibling_asset, &sibling_origin),
+			"IsReserve must accept sibling native asset (runtime wiring)"
 		);
 	});
 }
@@ -224,6 +243,10 @@ fn reserves_accepts_dot_from_relay() {
 				&relay_origin
 			),
 			"DOT from relay should be accepted as reserve"
+		);
+		assert!(
+			IsReserve::contains(&dot_asset, &relay_origin),
+			"IsReserve must accept DOT from relay (runtime wiring)"
 		);
 	});
 }
