@@ -126,29 +126,30 @@ fn reserves_rejects_non_bridged_assets_via_bridged_filter() {
 #[test]
 fn reserves_accepts_self_reserve() {
 	ExtBuilder::default().build().execute_with(|| {
-		// Self reserve asset (MOVR)
 		use frame_support::traits::PalletInfoAccess;
+		use moonriver_runtime::xcm_config::SelfLocationAbsolute;
 		use moonriver_runtime::Balances;
+		use xcm_primitives::{AbsoluteAndRelativeReserve, MultiNativeAsset};
 
 		let self_reserve = Location::new(0, [PalletInstance(Balances::index() as u8)]);
 
-		let glmr_asset = Asset {
+		let native_asset = Asset {
 			id: AssetId(self_reserve),
 			fun: Fungible(1_000_000_000_000_000_000), // 1 MOVR
 		};
 
-		// Self reserve should be handled by MultiNativeAsset
-		// The origin for self reserve is Location::here()
-		let _self_origin = Location::here();
+		// MultiNativeAsset accepts an asset when the origin matches the asset's
+		// reserve. For our own native token the reserve is ourselves
+		// (Location::here()), so origin = here() must pass.
+		let self_origin = Location::here();
 
-		// This tests that our self-reserve token is properly configured
-		// The actual Reserve trait check would verify this
-		use xcm_executor::AssetsInHolding;
-
-		// Just verify the asset can be constructed properly
-		let mut assets = AssetsInHolding::new();
-		assets.subsume(glmr_asset.clone());
-		assert!(!assets.is_empty());
+		assert!(
+			MultiNativeAsset::<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>::contains(
+				&native_asset,
+				&self_origin
+			),
+			"Self reserve asset should be accepted when origin is here()"
+		);
 	});
 }
 
