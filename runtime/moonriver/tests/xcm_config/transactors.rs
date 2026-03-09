@@ -25,6 +25,7 @@
 use crate::xcm_common::*;
 use frame_support::traits::{Currency, PalletInfoAccess};
 use moonriver_runtime::{AccountId, Balances};
+use sp_core::U256;
 use xcm::latest::prelude::*;
 use xcm_executor::traits::TransactAsset;
 
@@ -157,6 +158,9 @@ fn foreign_asset_transactor_deposits_registered_asset() {
 		.execute_with(|| {
 			use moonriver_runtime::xcm_config::AssetTransactors;
 
+			let balance_before = moonriver_runtime::EvmForeignAssets::balance(1, bob_account())
+				.unwrap_or(U256::zero());
+
 			let asset = Asset {
 				id: AssetId(dot_location.clone()),
 				fun: Fungible(ONE_DOT),
@@ -173,10 +177,17 @@ fn foreign_asset_transactor_deposits_registered_asset() {
 			let result =
 				<AssetTransactors as TransactAsset>::deposit_asset(&asset, &destination, None);
 
-			// Should succeed for registered foreign asset
 			assert!(
 				result.is_ok(),
 				"Deposit of registered foreign asset should succeed"
+			);
+
+			let balance_after = moonriver_runtime::EvmForeignAssets::balance(1, bob_account())
+				.expect("balance query should succeed after deposit");
+			assert_eq!(
+				balance_after - balance_before,
+				U256::from(ONE_DOT),
+				"Bob's foreign asset balance should increase by the deposited amount"
 			);
 		});
 }
@@ -224,6 +235,9 @@ fn transactor_withdraws_registered_foreign_asset() {
 		.execute_with(|| {
 			use moonriver_runtime::xcm_config::AssetTransactors;
 
+			let balance_before = moonriver_runtime::EvmForeignAssets::balance(1, bob_account())
+				.expect("balance query should succeed");
+
 			let asset = Asset {
 				id: AssetId(dot_location.clone()),
 				fun: Fungible(ONE_DOT),
@@ -242,6 +256,14 @@ fn transactor_withdraws_registered_foreign_asset() {
 				result.is_ok(),
 				"Withdraw of registered foreign asset should succeed: {:?}",
 				result
+			);
+
+			let balance_after = moonriver_runtime::EvmForeignAssets::balance(1, bob_account())
+				.expect("balance query should succeed after withdraw");
+			assert_eq!(
+				balance_before - balance_after,
+				U256::from(ONE_DOT),
+				"Bob's foreign asset balance should decrease by the withdrawn amount"
 			);
 		});
 }
