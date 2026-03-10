@@ -17,7 +17,7 @@
 //! Tests for XcmOriginToTransactDispatchOrigin and SafeCallFilter configuration.
 //!
 //! XcmOriginToTransactDispatchOrigin converts XCM locations + OriginKind into
-//! dispatch origins for Transact. Moonbase uses:
+//! dispatch origins for Transact. Moonriver uses:
 //! - SovereignSignedViaLocation: SovereignAccount kind → Signed origin
 //! - RelayChainAsNative: Native kind from relay → relay origin
 //! - SiblingParachainAsNative: Native kind from sibling → sibling origin
