@@ -441,6 +441,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 					b.clone(),
 					3,
 					0,
+					None, // TODO: Add state pruning blocks from node config
 					SyncStrategy::Parachain,
 					sync.clone(),
 					pubsub_notification_sinks.clone(),
