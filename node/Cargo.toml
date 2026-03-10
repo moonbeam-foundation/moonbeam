@@ -29,3 +29,6 @@ metadata-hash = ["moonbeam-cli/metadata-hash"]
 runtime-benchmarks = [
 	"moonbeam-cli/runtime-benchmarks"
 ]
+try-runtime = [
+	"moonbeam-cli/try-runtime"
+]
