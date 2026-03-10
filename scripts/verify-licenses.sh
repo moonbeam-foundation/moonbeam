@@ -52,6 +52,7 @@ NAMES=(
     "rustls-webpki"
     "ring"
     "nimbus-consensus"
+    "moka"
 )
 licenses_filter=$(printf ' .license != "%s" and' "${LICENSES[@]}")
 authors_filter=$(printf ' .authors != "%s" and' "${AUTHORS[@]}")

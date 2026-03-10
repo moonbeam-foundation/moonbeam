@@ -24,7 +24,7 @@ jobs:
       - name: Local build new Node
         uses: ./.github/workflow-templates/cargo-build
       - name: Upload Node
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: moonbeam
           path: build
@@ -39,7 +39,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Download Node
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release

@@ -19,7 +19,7 @@ on:
 
 # Cancel any previous job still running this workflow for this branch
 # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs#example-using-concurrency-to-cancel-any-in-progress-job-or-run
-concurrency:  
+concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
@@ -311,19 +311,19 @@ jobs:
           features: metadata-hash
       - name: Upload runtimes
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: runtimes
           path: runtimes
       - name: Upload uncompressed runtimes
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes
       - name: Upload binary
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: moonbeam
           path: build
@@ -332,7 +332,7 @@ jobs:
     if: |
       needs.set-tags.outputs.any_changed == 'true' &&
       github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.fork != true && 
+      github.event.pull_request.head.repo.fork != true &&
       github.actor != 'dependabot[bot]'
     name: "Check WASM runtimes with Twiggy"
     runs-on: ubuntu-latest
@@ -363,7 +363,7 @@ jobs:
           LATEST_TARGET_BRANCH_BUILD=$(gh run -R moonbeam-foundation/moonbeam list -w Build --limit=100 --json databaseId,url,headBranch,event,status,conclusion,createdAt --jq ".[] | select(.headBranch == \"$TARGET_BRANCH\" and .event == \"push\" and .status == \"completed\") | .databaseId" | head -n 1)
           echo "LATEST_TARGET_BRANCH_BUILD=$LATEST_TARGET_BRANCH_BUILD" >> $GITHUB_OUTPUT
       - name: "Download runtimes from target branch"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: runtimes-target-branch
@@ -371,7 +371,7 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ steps.latest-target-build.outputs.LATEST_TARGET_BRANCH_BUILD }}
       - name: "Download uncompressed-runtimes from target branch"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-target-branch
@@ -387,13 +387,13 @@ jobs:
           echo "PREVIOUS_MOONBEAM=$PREVIOUS_MOONBEAM" >> $GITHUB_ENV
           echo "PREVIOUS_MOONRIVER=$PREVIOUS_MOONRIVER" >> $GITHUB_ENV
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: runtimes-current-branch
           merge-multiple: true
       - name: "Download branch built uncompressed-runtimes"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: uncompressed-runtimes
           path: uncompressed-runtimes-current-branch
@@ -437,7 +437,7 @@ jobs:
           twiggy diff -n 100 --format json uncompressed-runtimes-target-branch/moonriver_runtime.wasm uncompressed-runtimes-current-branch/moonriver_runtime.wasm > twiggy-diff-reports/twiggy_diff_moonriver.json
 
       - name: Upload Twiggy diff reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: twiggy-diff-reports
           path: twiggy-diff-reports
@@ -576,10 +576,14 @@ jobs:
           rustup override unset
           rustup show
           rustup target add wasm32-unknown-unknown
+      # Verify that the runtime-benchmarks feature compiles on its own
+      - name: Check runtime-benchmarks compilation
+        run: |
+          cargo check --profile testnet --workspace --features=runtime-benchmarks
       # Checks are run after uploading artifacts since they are modified by the tests
       - name: Unit tests
         run: |
-          cargo test --profile testnet --workspace --features=evm-tracing,runtime-benchmarks
+          cargo test --profile testnet --workspace --features=evm-tracing
 
   # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 
@@ -601,7 +605,7 @@ jobs:
   #         cache: "pnpm"
   #         cache-dependency-path: pnpm-lock.yaml
   #     - name: "Download branch built node"
-  #       uses: actions/download-artifact@v7
+  #       uses: actions/download-artifact@v8
   #       with:
   #         name: moonbeam
   #         path: target/release
@@ -650,13 +654,13 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built runtime"
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
         if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
@@ -670,7 +674,7 @@ jobs:
       - name: Upload HTML report to s3
         if: |
           needs.set-tags.outputs.any_changed == 'true' &&
-          github.event.pull_request.head.repo.fork != true && 
+          github.event.pull_request.head.repo.fork != true &&
           github.actor != 'dependabot[bot]'
         uses: opslayertech/upload-s3-action@v1.1.0
         id: S3
@@ -706,7 +710,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: build
@@ -723,7 +727,7 @@ jobs:
       - run: |
           mkdir -p target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
@@ -778,12 +782,12 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
@@ -800,7 +804,7 @@ jobs:
           export NODE_LOGS_ZIP="node_logs_$TIMESTAMP.zip"
           find test/tmp/node_logs -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
           echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: failed-node-logs-lazy-loading-${{ matrix.chain }}
@@ -839,7 +843,7 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp/node_logs
       - name: "Download runtime"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
@@ -886,12 +890,12 @@ jobs:
           mkdir -p target/release/wbuild/${{ matrix.chain }}-runtime/
           mkdir -p test/tmp
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: "Download branch built node"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
@@ -924,7 +928,7 @@ jobs:
           MOST_RECENT_ZOMBIE_DIR=$(ls -td /tmp/zombie-* | head -n 1)
           find $MOST_RECENT_ZOMBIE_DIR -maxdepth 1 -type f -name '*.log' -exec zip -r $NODE_LOGS_ZIP {} \;
           echo "NODE_LOGS_ZIP=${NODE_LOGS_ZIP}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: failed-node-logs-zombie-${{ matrix.chain }}
@@ -940,12 +944,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: "Download branch built runtime"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: runtimes
           path: target/release
       - name: "Download branch built node"
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: moonbeam
           path: target/release
@@ -964,7 +968,7 @@ jobs:
           export LOGS_ZIP="bridge_integration_tests_$TIMESTAMP.zip"
           find /tmp/bridge-integration-tests -maxdepth 3 -type f -name '*.log' -exec zip -r $LOGS_ZIP {} \;
           echo "LOGS_ZIP=${LOGS_ZIP}" >> $GITHUB_ENV
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: bridge-integration-tests-logs
