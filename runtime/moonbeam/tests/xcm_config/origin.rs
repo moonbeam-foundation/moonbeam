@@ -158,13 +158,20 @@ fn safe_call_filter_allows_all_calls() {
 	ExtBuilder::default().build().execute_with(|| {
 		use frame_support::traits::Contains;
 
-		// Moonbase's SafeCallFilter currently allows all calls (returns true).
+		// Moonbeam's SafeCallFilter currently allows all calls (returns true).
 		// This is intentional — filtering is handled at the EVM level.
+		// Verify with calls from two distinct pallets to confirm the filter
+		// is truly permissive, not a pallet-specific whitelist.
 		let remark_call = RuntimeCall::System(frame_system::Call::remark { remark: vec![] });
-
 		assert!(
 			SafeCallFilter::contains(&remark_call),
 			"SafeCallFilter should allow System::remark"
+		);
+
+		let utility_call = RuntimeCall::Utility(pallet_utility::Call::batch { calls: vec![] });
+		assert!(
+			SafeCallFilter::contains(&utility_call),
+			"SafeCallFilter should allow Utility::batch"
 		);
 	});
 }
