@@ -102,26 +102,33 @@ fn xcm_version_discovery_with_relay() {
 		);
 	});
 
-	// After the transfer the relay should be able to determine Moonbeam's
-	// supported XCM version via its version discovery/subscription mechanism.
-	// We verify the relay can weigh XCM (a proxy for version-awareness).
+	// Verify the relay can version-wrap an XCM destined for Moonriver.
+	// query_delivery_fees calls validate_send → ChildParachainRouter::validate →
+	// wrap_version, which requires SupportedVersion or SafeXcmVersion to be set.
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
-		let weight =
-			westend_runtime::Runtime::query_xcm_weight(xcm::VersionedXcm::from(Xcm::<()>(vec![
-				ClearOrigin,
-			])));
-		assert!(weight.is_ok(), "Relay should be version-aware");
+		let fees = westend_runtime::Runtime::query_delivery_fees(
+			xcm::VersionedLocation::from(Location::new(0, [Parachain(MOONBEAM_PARA_ID)])),
+			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
+		);
+		assert!(
+			fees.is_ok(),
+			"Relay should resolve XCM version for Moonriver destination"
+		);
 	});
 
-	// Moonbeam should have its safe_xcm_version set from genesis.
+	// Verify Moonriver can version-wrap an XCM destined for the relay.
+	// SafeXcmVersion is set from genesis, which wrap_version uses as fallback.
 	moonriver_execute_with(|| {
 		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
-		let weight =
-			moonriver_runtime::Runtime::query_xcm_weight(xcm::VersionedXcm::from(Xcm::<()>(vec![
-				ClearOrigin,
-			])));
-		assert!(weight.is_ok(), "Moonriver should be version-aware");
+		let fees = moonriver_runtime::Runtime::query_delivery_fees(
+			xcm::VersionedLocation::from(Location::parent()),
+			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
+		);
+		assert!(
+			fees.is_ok(),
+			"Moonriver should resolve XCM version for relay destination"
+		);
 	});
 }
 
@@ -166,22 +173,31 @@ fn xcm_version_discovery_with_sibling() {
 		));
 	});
 
-	// After the transfer both chains should be version-aware.
+	// Verify sibling can version-wrap an XCM destined for Moonriver.
+	// query_delivery_fees calls validate_send → XcmpQueue::validate →
+	// wrap_version, which requires SupportedVersion or SafeXcmVersion.
 	sibling_execute_with(|| {
 		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
-		let weight =
-			moonriver_runtime::Runtime::query_xcm_weight(xcm::VersionedXcm::from(Xcm::<()>(vec![
-				ClearOrigin,
-			])));
-		assert!(weight.is_ok(), "Sibling should be version-aware");
+		let fees = moonriver_runtime::Runtime::query_delivery_fees(
+			xcm::VersionedLocation::from(Location::new(1, [Parachain(MOONBEAM_PARA_ID)])),
+			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
+		);
+		assert!(
+			fees.is_ok(),
+			"Sibling should resolve XCM version for Moonriver destination"
+		);
 	});
 
+	// Verify Moonriver can version-wrap an XCM destined for the sibling.
 	moonriver_execute_with(|| {
 		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
-		let weight =
-			moonriver_runtime::Runtime::query_xcm_weight(xcm::VersionedXcm::from(Xcm::<()>(vec![
-				ClearOrigin,
-			])));
-		assert!(weight.is_ok(), "Moonriver should be version-aware");
+		let fees = moonriver_runtime::Runtime::query_delivery_fees(
+			xcm::VersionedLocation::from(Location::new(1, [Parachain(SIBLING_PARA_ID)])),
+			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
+		);
+		assert!(
+			fees.is_ok(),
+			"Moonriver should resolve XCM version for sibling destination"
+		);
 	});
 }
