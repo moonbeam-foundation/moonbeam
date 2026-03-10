@@ -193,7 +193,11 @@ fn trader_cannot_buy_weight_twice() {
 			id: AssetId(native_location()),
 			fun: Fungible(ONE_UNIT),
 		});
-		let _ = trader.buy_weight(weight_to_buy, payment1, &context);
+		let first_result = trader.buy_weight(weight_to_buy, payment1, &context);
+		assert!(
+			first_result.is_ok(),
+			"First buy_weight must succeed for the second-purchase test to be meaningful"
+		);
 
 		// Second purchase should fail
 		let mut payment2 = AssetsInHolding::new();
