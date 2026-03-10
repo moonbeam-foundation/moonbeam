@@ -6,7 +6,7 @@ default_command = "polkadot"
 default_args = [
     "-lruntime::bridge-grandpa=trace"
 ]
-chain = "kusama-local"
+chain = "rococo-local"
 
 [[relaychain.nodes]]
 name = "alice"

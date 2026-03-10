@@ -7,6 +7,10 @@ license = "GPL-3.0-only"
 name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 
+[package.metadata.cargo-udeps.ignore]
+# Used inside macro-generated code in apis.rs (impl_runtime_apis!)
+normal = ["pallet-author-slot-filter"]
+
 [dependencies]
 log = { workspace = true }
 

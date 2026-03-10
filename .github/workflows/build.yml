@@ -812,7 +812,10 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   chopsticks-upgrade-test:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    # TODO: Re-enable once chopsticks supports the new cumulus setValidationData
+    # 2-arg format and relay slot calculation after runtime upgrades (stable2512).
+    # See: https://github.com/AcalaNetwork/chopsticks/issues/940
+    if: false # ${{ needs.set-tags.outputs.any_changed == 'true' }}
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
