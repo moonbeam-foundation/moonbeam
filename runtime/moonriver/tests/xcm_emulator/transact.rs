@@ -1071,13 +1071,16 @@ fn transact_through_signed_para_to_para_ethereum_no_proxy_fails() {
 	let _derived = setup_para_to_para_ethereum();
 
 	let alith_h160 = sp_core::H160::from(ALITH);
+	// Use a distinct recipient so a self-transfer cannot mask proxy rejection.
+	let recipient: [u8; 20] = [42u8; 20];
+	let recipient_h160 = sp_core::H160::from(recipient);
 	let transfer_value = 100u128;
 
 	// Encode a transact_through_proxy call without any proxy being set.
 	let eth_tx =
 		xcm_primitives::EthereumXcmTransaction::V2(xcm_primitives::EthereumXcmTransactionV2 {
 			gas_limit: U256::from(21000),
-			action: pallet_ethereum::TransactionAction::Call(alith_h160),
+			action: pallet_ethereum::TransactionAction::Call(recipient_h160),
 			value: U256::from(transfer_value),
 			input: sp_runtime::BoundedVec::try_from(vec![]).unwrap(),
 			access_list: None,
@@ -1091,9 +1094,9 @@ fn transact_through_signed_para_to_para_ethereum_no_proxy_fails() {
 	})
 	.encode();
 
-	let alith_balance_before = sibling_execute_with(|| {
+	let recipient_balance_before = sibling_execute_with(|| {
 		<moonriver_runtime::Balances as Inspect<_>>::balance(&moonriver_runtime::AccountId::from(
-			ALITH,
+			recipient,
 		))
 	});
 
@@ -1120,14 +1123,14 @@ fn transact_through_signed_para_to_para_ethereum_no_proxy_fails() {
 	});
 
 	// The EVM transfer should NOT have happened (proxy not set).
-	let alith_balance_after = sibling_execute_with(|| {
+	let recipient_balance_after = sibling_execute_with(|| {
 		<moonriver_runtime::Balances as Inspect<_>>::balance(&moonriver_runtime::AccountId::from(
-			ALITH,
+			recipient,
 		))
 	});
 	assert_eq!(
-		alith_balance_after, alith_balance_before,
-		"ALITH balance should be unchanged — transact_through_proxy should fail without proxy"
+		recipient_balance_after, recipient_balance_before,
+		"Recipient balance should be unchanged — transact_through_proxy should fail without proxy"
 	);
 }
 
