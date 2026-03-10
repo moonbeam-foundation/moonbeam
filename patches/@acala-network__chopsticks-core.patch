@@ -1,0 +1,112 @@
+diff --git a/dist/cjs/blockchain/inherent/parachain/validation-data.js b/dist/cjs/blockchain/inherent/parachain/validation-data.js
+index f904469464d323bf160a9b8a42e434496b9d30a1..4db415ca811a541897db62faf72289446afa98fd 100644
+--- a/dist/cjs/blockchain/inherent/parachain/validation-data.js
++++ b/dist/cjs/blockchain/inherent/parachain/validation-data.js
+@@ -51,6 +51,20 @@ const MOCK_VALIDATION_DATA = {
+     horizontalMessages: [],
+     downwardMessages: []
+ };
++const tryDecodeValidationData = (extrinsics, meta)=>{
++    try {
++        const validationDataExtrinsic = extrinsics.find((extrinsic)=>{
++            const firstArg = meta.registry.createType('GenericExtrinsic', extrinsic)?.args?.[0];
++            return firstArg && 'validationData' in firstArg;
++        });
++        if (!validationDataExtrinsic) {
++            return undefined;
++        }
++        return meta.registry.createType('GenericExtrinsic', validationDataExtrinsic).args[0].toJSON();
++    } catch {
++        return undefined;
++    }
++};
+ const getValidationData = async (parent, fallback = true)=>{
+     const meta = await parent.meta;
+     if (parent.number === 0) {
+@@ -68,14 +82,23 @@ const getValidationData = async (parent, fallback = true)=>{
+     }
+     try {
+         const extrinsics = await parent.extrinsics;
+-        const validationDataExtrinsic = extrinsics.find((extrinsic)=>{
+-            const firstArg = meta.registry.createType('GenericExtrinsic', extrinsic)?.args?.[0];
+-            return firstArg && 'validationData' in firstArg;
+-        });
+-        if (!validationDataExtrinsic) {
++        // Try decoding with the block's own metadata first
++        let data = tryDecodeValidationData(extrinsics, meta);
++        // If that fails, try decoding with parent's parent metadata (pre-upgrade)
++        if (!data) {
++            const grandParent = await parent.parentBlock;
++            if (grandParent) {
++                const grandParentMeta = await grandParent.meta;
++                data = tryDecodeValidationData(extrinsics, grandParentMeta);
++                if (data) {
++                    logger.debug('Decoded validation data from block %d using pre-upgrade metadata', parent.number);
++                }
++            }
++        }
++        if (!data) {
+             throw new Error('Missing validation data from block');
+         }
+-        return meta.registry.createType('GenericExtrinsic', validationDataExtrinsic).args[0].toJSON();
++        return data;
+     } catch (e) {
+         logger.warn('Failed to get validation data from block %d %s', parent.number, e);
+         if (fallback) {
+diff --git a/dist/esm/blockchain/inherent/parachain/validation-data.js b/dist/esm/blockchain/inherent/parachain/validation-data.js
+index cff4abd9c9ce1c0967b95ca28789a6023bdc0bcc..a53429ae38317dd75955fc30ea7b270bdb88d7ea 100644
+--- a/dist/esm/blockchain/inherent/parachain/validation-data.js
++++ b/dist/esm/blockchain/inherent/parachain/validation-data.js
+@@ -36,6 +36,20 @@ const MOCK_VALIDATION_DATA = {
+     horizontalMessages: [],
+     downwardMessages: []
+ };
++const tryDecodeValidationData = (extrinsics, meta)=>{
++    try {
++        const validationDataExtrinsic = extrinsics.find((extrinsic)=>{
++            const firstArg = meta.registry.createType('GenericExtrinsic', extrinsic)?.args?.[0];
++            return firstArg && 'validationData' in firstArg;
++        });
++        if (!validationDataExtrinsic) {
++            return undefined;
++        }
++        return meta.registry.createType('GenericExtrinsic', validationDataExtrinsic).args[0].toJSON();
++    } catch {
++        return undefined;
++    }
++};
+ const getValidationData = async (parent, fallback = true)=>{
+     const meta = await parent.meta;
+     if (parent.number === 0) {
+@@ -53,14 +67,25 @@ const getValidationData = async (parent, fallback = true)=>{
+     }
+     try {
+         const extrinsics = await parent.extrinsics;
+-        const validationDataExtrinsic = extrinsics.find((extrinsic)=>{
+-            const firstArg = meta.registry.createType('GenericExtrinsic', extrinsic)?.args?.[0];
+-            return firstArg && 'validationData' in firstArg;
+-        });
+-        if (!validationDataExtrinsic) {
++        // Try decoding with the block's own metadata first
++        let data = tryDecodeValidationData(extrinsics, meta);
++        // If that fails (e.g. after a runtime upgrade where the block's metadata changed
++        // but the extrinsics were encoded with the pre-upgrade format), try decoding with
++        // the parent's parent metadata (pre-upgrade metadata).
++        if (!data) {
++            const grandParent = await parent.parentBlock;
++            if (grandParent) {
++                const grandParentMeta = await grandParent.meta;
++                data = tryDecodeValidationData(extrinsics, grandParentMeta);
++                if (data) {
++                    logger.debug('Decoded validation data from block %d using pre-upgrade metadata', parent.number);
++                }
++            }
++        }
++        if (!data) {
+             throw new Error('Missing validation data from block');
+         }
+-        return meta.registry.createType('GenericExtrinsic', validationDataExtrinsic).args[0].toJSON();
++        return data;
+     } catch (e) {
+         logger.warn('Failed to get validation data from block %d %s', parent.number, e);
+         if (fallback) {

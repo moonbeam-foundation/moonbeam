@@ -19,6 +19,11 @@
   "devDependencies": {
     "@biomejs/biome": "2.2.5"
   },
+  "pnpm": {
+    "patchedDependencies": {
+      "@acala-network/chopsticks-core@1.2.7": "patches/@acala-network__chopsticks-core.patch"
+    }
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"
