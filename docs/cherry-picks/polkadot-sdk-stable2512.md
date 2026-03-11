@@ -1,9 +1,5 @@
 # Cherry-picks for stable2512
 
-Editor: Rodrigo Quelhas
-Tags: Reference
-Last edited by: Manuel Mauro
-
 ## `polkadot-sdk`
 
 | Applied | Title | Commit | Cherry pick | Status | Upstream PR | Note |
