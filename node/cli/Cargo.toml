@@ -65,3 +65,8 @@ runtime-benchmarks = [
 	"sc-service/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks"
 ]
+try-runtime = [
+	"moonbeam-service/try-runtime",
+	"polkadot-cli/try-runtime",
+	"sp-runtime/try-runtime",
+]
