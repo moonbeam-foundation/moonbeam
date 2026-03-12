@@ -29,7 +29,7 @@ use xcm_emulator::Parachain;
 use xcm_emulator::TestExt;
 
 pub const ASSET_HUB_PARA_ID: u32 = 1000;
-pub const MOONBEAM_PARA_ID: u32 = 2004;
+pub const MOONBASE_PARA_ID: u32 = 2004;
 pub const SIBLING_PARA_ID: u32 = 2005;
 
 // ---- Well-known test accounts (20-byte) ------------------------------------
@@ -71,7 +71,7 @@ decl_test_relay_chains! {
 // ---------------------------------------------------------------------------
 decl_test_parachains! {
 	pub struct MoonbasePara {
-		genesis = moonbase_genesis(MOONBEAM_PARA_ID),
+		genesis = moonbase_genesis(MOONBASE_PARA_ID),
 		on_init = {
 			crate::network::satisfy_moonbase_inherents();
 		},

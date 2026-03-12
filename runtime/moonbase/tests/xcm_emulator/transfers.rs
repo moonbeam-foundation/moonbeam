@@ -53,7 +53,7 @@ fn setup_with_sibling() {
 
 	// Open bi-directional HRMP channels between Moonbase (2004) and Sibling (2005).
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		open_hrmp_channels(MOONBEAM_PARA_ID, SIBLING_PARA_ID);
+		open_hrmp_channels(MOONBASE_PARA_ID, SIBLING_PARA_ID);
 	});
 }
 
@@ -76,7 +76,7 @@ fn transfer_dot_from_relay_to_moonbase() {
 				westend_runtime::RuntimeOrigin::signed(sender.clone()),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)]
+					[Parachain(MOONBASE_PARA_ID)]
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(Location::here()),
@@ -132,7 +132,7 @@ fn transfer_dot_from_moonbase_to_relay() {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)]
+					[Parachain(MOONBASE_PARA_ID)]
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(Location::here()),
@@ -230,7 +230,7 @@ fn error_when_not_paying_enough_fees() {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)]
+					[Parachain(MOONBASE_PARA_ID)]
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(Location::here()),
@@ -289,7 +289,7 @@ fn fees_collected_by_treasury() {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)]
+					[Parachain(MOONBASE_PARA_ID)]
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(Location::here()),
@@ -356,7 +356,7 @@ fn receive_asset_for_non_existent_account() {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)]
+					[Parachain(MOONBASE_PARA_ID)]
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(Location::here()),
@@ -408,7 +408,7 @@ fn transfer_dot_from_moonbase_to_sibling() {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)]
+					[Parachain(MOONBASE_PARA_ID)]
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(Location::here()),
@@ -526,7 +526,7 @@ fn evm_account_receives_foreign_asset() {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)],
+					[Parachain(MOONBASE_PARA_ID)],
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(Location::here()),
@@ -592,7 +592,7 @@ fn foreign_assets_survive_native_balance_drain() {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)],
+					[Parachain(MOONBASE_PARA_ID)],
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(Location::here()),
@@ -653,7 +653,7 @@ fn register_unit_on_sibling() {
 		// From the sibling's perspective, Moonbase's native token lives at:
 		// ../Parachain(2004)/PalletInstance(3)  (pallet_balances = index 10)
 		let glmr_location =
-			xcm::latest::Location::new(1, [Parachain(MOONBEAM_PARA_ID), PalletInstance(3u8)]);
+			xcm::latest::Location::new(1, [Parachain(MOONBASE_PARA_ID), PalletInstance(3u8)]);
 
 		frame_support::assert_ok!(moonbase_runtime::EvmForeignAssets::create_foreign_asset(
 			moonbase_runtime::RuntimeOrigin::root(),
@@ -797,13 +797,13 @@ fn transfer_unit_roundtrip_moonbase_sibling() {
 	// Step 2: Send GLMR back from Sibling to Moonbase (ALITH).
 	// From the sibling's perspective, GLMR is at ../Parachain(2004)/PalletInstance(3).
 	sibling_execute_with(|| {
-		let glmr_location = Location::new(1, [Parachain(MOONBEAM_PARA_ID), PalletInstance(3)]);
+		let glmr_location = Location::new(1, [Parachain(MOONBASE_PARA_ID), PalletInstance(3)]);
 
 		assert_ok!(moonbase_runtime::PolkadotXcm::transfer_assets(
 			moonbase_runtime::RuntimeOrigin::signed(moonbase_runtime::AccountId::from(BALTATHAR),),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				1,
-				[Parachain(MOONBEAM_PARA_ID)],
+				[Parachain(MOONBASE_PARA_ID)],
 			))),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				0,
@@ -915,7 +915,7 @@ fn fund_moonbase_alith_with_dot(amount: u128) {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE.clone()),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)]
+					[Parachain(MOONBASE_PARA_ID)]
 				))),
 				Box::new(assets),
 				Box::new(xcm_executor::traits::TransferType::LocalReserve),
@@ -1103,7 +1103,7 @@ fn transfer_dot_roundtrip_via_remote_reserve() {
 				)),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					1,
-					[Parachain(MOONBEAM_PARA_ID)],
+					[Parachain(MOONBASE_PARA_ID)],
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(dot_location.clone()),
@@ -1238,7 +1238,7 @@ fn receive_sibling_native_asset() {
 			moonbase_runtime::RuntimeOrigin::signed(moonbase_runtime::AccountId::from(ALITH)),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				1,
-				[Parachain(MOONBEAM_PARA_ID)],
+				[Parachain(MOONBASE_PARA_ID)],
 			))),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				0,

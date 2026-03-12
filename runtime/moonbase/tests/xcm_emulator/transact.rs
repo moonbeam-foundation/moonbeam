@@ -118,7 +118,7 @@ fn fund_moonbase_alith_with_dot(amount: u128) {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)]
+					[Parachain(MOONBASE_PARA_ID)]
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(Location::here()),
@@ -156,7 +156,7 @@ fn transact_through_sovereign_to_relay() {
 	let sovereign = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(Location::new(
 			0,
-			[Parachain(MOONBEAM_PARA_ID)],
+			[Parachain(MOONBASE_PARA_ID)],
 		))
 	});
 	let sovereign_before = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
@@ -263,7 +263,7 @@ fn hrmp_init_accept_close_via_xcm_transactor() {
 		assert_ok!(moonbase_runtime::XcmTransactor::hrmp_manage(
 			moonbase_runtime::RuntimeOrigin::root(),
 			HrmpOperation::Accept {
-				para_id: MOONBEAM_PARA_ID.into(),
+				para_id: MOONBASE_PARA_ID.into(),
 			},
 			CurrencyPayment {
 				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedLocation::from(
@@ -301,7 +301,7 @@ fn hrmp_init_accept_close_via_xcm_transactor() {
 		use polkadot_runtime_parachains::hrmp;
 		let channel =
 			hrmp::HrmpChannels::<westend_runtime::Runtime>::get(xcm_emulator::HrmpChannelId {
-				sender: MOONBEAM_PARA_ID.into(),
+				sender: MOONBASE_PARA_ID.into(),
 				recipient: SIBLING_PARA_ID.into(),
 			});
 		assert!(
@@ -326,7 +326,7 @@ fn hrmp_close_via_xcm_transactor() {
 
 	// Force-open a channel so we can close it.
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		open_hrmp_channels(MOONBEAM_PARA_ID, SIBLING_PARA_ID);
+		open_hrmp_channels(MOONBASE_PARA_ID, SIBLING_PARA_ID);
 	});
 
 	// Close the channel from Moonbase side via XcmTransactor.
@@ -334,7 +334,7 @@ fn hrmp_close_via_xcm_transactor() {
 		assert_ok!(moonbase_runtime::XcmTransactor::hrmp_manage(
 			moonbase_runtime::RuntimeOrigin::root(),
 			HrmpOperation::Close(xcm_emulator::HrmpChannelId {
-				sender: MOONBEAM_PARA_ID.into(),
+				sender: MOONBASE_PARA_ID.into(),
 				recipient: SIBLING_PARA_ID.into(),
 			}),
 			CurrencyPayment {
@@ -443,7 +443,7 @@ fn transact_through_sovereign_custom_fee_weight_refund() {
 
 	let sovereign_before = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
-			Location::new(0, [Parachain(MOONBEAM_PARA_ID)]),
+			Location::new(0, [Parachain(MOONBASE_PARA_ID)]),
 		);
 		<westend_runtime::Balances as Inspect<_>>::balance(&sovereign)
 	});
@@ -475,7 +475,7 @@ fn transact_through_sovereign_custom_fee_weight_refund() {
 	// The sovereign should have lost less than the full 10 DOT fee.
 	let sovereign_after = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
-			Location::new(0, [Parachain(MOONBEAM_PARA_ID)]),
+			Location::new(0, [Parachain(MOONBASE_PARA_ID)]),
 		);
 		<westend_runtime::Balances as Inspect<_>>::balance(&sovereign)
 	});
@@ -495,7 +495,7 @@ fn transact_through_signed_to_relay() {
 	setup_transactor();
 	fund_moonbase_alith_with_dot(ONE_DOT * 1000);
 
-	let derived_account = relay_derived_account(MOONBEAM_PARA_ID, ALITH);
+	let derived_account = relay_derived_account(MOONBASE_PARA_ID, ALITH);
 
 	// Fund the derived account on relay so it can pay XCM fees.
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
@@ -537,7 +537,7 @@ fn transact_through_signed_custom_fee_weight() {
 	setup_transactor();
 	fund_moonbase_alith_with_dot(ONE_DOT * 1000);
 
-	let derived_account = relay_derived_account(MOONBEAM_PARA_ID, ALITH);
+	let derived_account = relay_derived_account(MOONBASE_PARA_ID, ALITH);
 
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		assert_ok!(westend_runtime::Balances::transfer_allow_death(
@@ -578,7 +578,7 @@ fn transact_through_signed_custom_fee_weight_refund() {
 	setup_transactor();
 	fund_moonbase_alith_with_dot(ONE_DOT * 1000);
 
-	let derived_account = relay_derived_account(MOONBEAM_PARA_ID, ALITH);
+	let derived_account = relay_derived_account(MOONBASE_PARA_ID, ALITH);
 
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		assert_ok!(westend_runtime::Balances::transfer_allow_death(
@@ -650,7 +650,7 @@ fn setup_derivative() {
 	// The derivative is computed from the sovereign account of Moonbase parachain.
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
-			Location::new(0, [Parachain(MOONBEAM_PARA_ID)]),
+			Location::new(0, [Parachain(MOONBASE_PARA_ID)]),
 		);
 		let derivative = pallet_utility::Pallet::<westend_runtime::Runtime>::derivative_account_id(
 			sovereign,
@@ -729,7 +729,7 @@ fn transact_through_derivative_custom_fee_weight_refund() {
 
 	let sovereign_before = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
-			Location::new(0, [Parachain(MOONBEAM_PARA_ID)]),
+			Location::new(0, [Parachain(MOONBASE_PARA_ID)]),
 		);
 		<westend_runtime::Balances as Inspect<_>>::balance(&sovereign)
 	});
@@ -761,7 +761,7 @@ fn transact_through_derivative_custom_fee_weight_refund() {
 	// With refund, surplus should be deposited back to the sovereign (SelfLocation).
 	let sovereign_after = WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
-			Location::new(0, [Parachain(MOONBEAM_PARA_ID)]),
+			Location::new(0, [Parachain(MOONBASE_PARA_ID)]),
 		);
 		<westend_runtime::Balances as Inspect<_>>::balance(&sovereign)
 	});
@@ -790,7 +790,7 @@ fn setup_para_to_para_signed() -> moonbase_runtime::AccountId {
 
 	// Open HRMP channels.
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		open_hrmp_channels(MOONBEAM_PARA_ID, SIBLING_PARA_ID);
+		open_hrmp_channels(MOONBASE_PARA_ID, SIBLING_PARA_ID);
 	});
 
 	// Register DOT on sibling so it can accept DOT as XCM fee.
@@ -807,7 +807,7 @@ fn setup_para_to_para_signed() -> moonbase_runtime::AccountId {
 		>>::convert_location(&Location::new(
 			1,
 			[
-				Parachain(MOONBEAM_PARA_ID),
+				Parachain(MOONBASE_PARA_ID),
 				AccountKey20 {
 					network: None,
 					key: ALITH,

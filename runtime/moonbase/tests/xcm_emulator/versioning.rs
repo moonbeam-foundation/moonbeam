@@ -90,7 +90,7 @@ fn xcm_version_discovery_with_relay() {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE.clone()),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)]
+					[Parachain(MOONBASE_PARA_ID)]
 				))),
 				Box::new(assets),
 				Box::new(xcm_executor::traits::TransferType::LocalReserve),
@@ -108,7 +108,7 @@ fn xcm_version_discovery_with_relay() {
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
 		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
 		let fees = westend_runtime::Runtime::query_delivery_fees(
-			xcm::VersionedLocation::from(Location::new(0, [Parachain(MOONBEAM_PARA_ID)])),
+			xcm::VersionedLocation::from(Location::new(0, [Parachain(MOONBASE_PARA_ID)])),
 			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
 		);
 		assert!(
@@ -141,11 +141,11 @@ fn xcm_version_discovery_with_sibling() {
 	sibling_execute_with(|| register_dot_asset(DOT_ASSET_ID));
 
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		open_hrmp_channels(MOONBEAM_PARA_ID, SIBLING_PARA_ID);
+		open_hrmp_channels(MOONBASE_PARA_ID, SIBLING_PARA_ID);
 	});
 
 	// Register GLMR on sibling so we can do a transfer.
-	sibling_execute_with(|| register_glmr_foreign_asset(MOONBEAM_PARA_ID));
+	sibling_execute_with(|| register_glmr_foreign_asset(MOONBASE_PARA_ID));
 
 	let amount = moonbase_runtime::currency::UNIT;
 
@@ -179,7 +179,7 @@ fn xcm_version_discovery_with_sibling() {
 	sibling_execute_with(|| {
 		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
 		let fees = moonbase_runtime::Runtime::query_delivery_fees(
-			xcm::VersionedLocation::from(Location::new(1, [Parachain(MOONBEAM_PARA_ID)])),
+			xcm::VersionedLocation::from(Location::new(1, [Parachain(MOONBASE_PARA_ID)])),
 			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
 		);
 		assert!(

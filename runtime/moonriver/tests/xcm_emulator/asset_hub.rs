@@ -37,7 +37,7 @@ fn setup_asset_hub_and_moonriver() {
 	moonriver_execute_with(|| register_dot_asset(DOT_ASSET_ID));
 
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		open_hrmp_channels(ASSET_HUB_PARA_ID, MOONBEAM_PARA_ID);
+		open_hrmp_channels(ASSET_HUB_PARA_ID, MOONRIVER_PARA_ID);
 	});
 }
 
@@ -49,7 +49,7 @@ fn fund_moonriver_alith_with_dot(amount: u128) {
 				westend_runtime::RuntimeOrigin::signed(RELAY_ALICE.clone()),
 				Box::new(xcm::VersionedLocation::from(Location::new(
 					0,
-					[Parachain(MOONBEAM_PARA_ID)]
+					[Parachain(MOONRIVER_PARA_ID)]
 				))),
 				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 					id: AssetId(Location::here()),
@@ -273,7 +273,7 @@ fn transfer_trust_backed_asset_from_asset_hub_to_moonriver() {
 			asset_hub_westend_runtime::RuntimeOrigin::signed(asset_owner.clone()),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				1,
-				[Parachain(MOONBEAM_PARA_ID)],
+				[Parachain(MOONRIVER_PARA_ID)],
 			))),
 			Box::new(xcm::VersionedLocation::from(Location::new(
 				0,
