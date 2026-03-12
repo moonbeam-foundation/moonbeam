@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-patchedDependencies:
-  '@acala-network/chopsticks-core@1.2.7':
-    hash: iz5naboyuqfjjoiyyynbh63lbu
-    path: patches/@acala-network__chopsticks-core.patch
-
 importers:
 
   .:
@@ -20,8 +15,8 @@ importers:
   test:
     dependencies:
       '@acala-network/chopsticks':
-        specifier: 1.2.7
-        version: 1.2.7(bufferutil@4.0.9)(debug@4.4.3)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)
+        specifier: 1.2.8
+        version: 1.2.8(bufferutil@4.0.9)(debug@4.4.3)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)
       '@biomejs/biome':
         specifier: ^2.2.5
         version: 2.2.5
@@ -232,7 +227,7 @@ importers:
         version: 24.7.0
       axios:
         specifier: ^1.12.2
-        version: 1.12.2(debug@4.4.3)
+        version: 1.12.2
       chalk:
         specifier: ^5.6.2
         version: 5.6.2
@@ -248,19 +243,19 @@ importers:
 
 packages:
 
-  '@acala-network/chopsticks-core@1.2.7':
-    resolution: {integrity: sha512-TU//5U2Mx4YAQYjew+05i95j+YsfusuUJAST8Oy7Jkeaflc5CdzGXGc2Tjcn7J6VOSQA1/ngbDjdDIyf4Xjjlw==}
+  '@acala-network/chopsticks-core@1.2.8':
+    resolution: {integrity: sha512-45KxX3TKv83/k7ljUUqI+eq5QpdD4EsBMV++bFuePWOjsqNwdnPXnL7MzmxnTOe1wXAypblD9CLDn7AsJNhUOQ==}
     engines: {node: '>=v22'}
 
-  '@acala-network/chopsticks-db@1.2.7':
-    resolution: {integrity: sha512-QVF22l8kehU4SxSdIHd8VsRZyxQGNQjR92fFzybS+zDJXN1B7cIItMfHMe0giiH1aEoA4V1DW9Y6eC4PV7JVGg==}
+  '@acala-network/chopsticks-db@1.2.8':
+    resolution: {integrity: sha512-ighq/Z2jrh0dbLnob3Im4e1DcYEq+UahIfnUk+ZUTH2lh8ega6zHDHCUazPsw11apqghkd5RgbY0oT6QNAphYQ==}
     engines: {node: '>=v22'}
 
-  '@acala-network/chopsticks-executor@1.2.7':
-    resolution: {integrity: sha512-pDptKUkKpy74b0Ui29QYsm4Gr7BFa3ehZ6VKbe8Chgveye7bMEIMJYpiXSbzovHwz47NGMJD0+d4v8NzWi7V9g==}
+  '@acala-network/chopsticks-executor@1.2.8':
+    resolution: {integrity: sha512-pSmXFm9zz72lR+Tp0f8Pc/qPKKiNMd/0mFF2pZCl3tvWK2wpIMOw0ez3tc2TL0VuHQb5QhTxSR456B8QZHkOyg==}
 
-  '@acala-network/chopsticks@1.2.7':
-    resolution: {integrity: sha512-kqahze0KrCqb0zX9OUW003iNux2g6WZF+WEU2uayPGJ7pIx1PE9Dq4+8cCMR99MKo6OwmCsslFDueUG4BwyZyQ==}
+  '@acala-network/chopsticks@1.2.8':
+    resolution: {integrity: sha512-9ozTpSz8d747duYMhttYaBL3rUf51yXiTQLmcZ5gMmQYc77KlEgXntiT5r78gn3J6ZsWl++SGcBj+H66kcwtkA==}
     engines: {node: '>=v22'}
     hasBin: true
 
@@ -3624,6 +3619,9 @@ packages:
   axios@1.12.2:
     resolution: {integrity: sha512-vMJzPewAlRyOgxV2dU0Cuz2O8zzzx9VYtbJOaBgXFeLc4IV/Eg50n4LowmehOOR61S8ZMpc2K5Sa7g6A4jfkUw==}
 
+  axios@1.13.6:
+    resolution: {integrity: sha512-ChTCHMouEe2kn713WHbQGcuYrr6fXTBiu460OTwWrWob16g1bXn4vtz07Ope7ewMozJAnEquLk5lWQWtBig9DQ==}
+
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
@@ -4584,6 +4582,10 @@ packages:
 
   form-data@4.0.4:
     resolution: {integrity: sha512-KrGhL9Q4zjj0kiUt5OO4Mr/A/jlI2jDYs5eHBpYHPcBEVSiipAvn2Ko2HnPe20rmcuuvMHNdZFp+4IlGTMF0Ow==}
+    engines: {node: '>= 6'}
+
+  form-data@4.0.5:
+    resolution: {integrity: sha512-8RipRLol37bNs2bhoV67fiTEvdTrbMUYcFTiy3+wuuOnUog2QBHCZWXDRijWQfAkhBj2Uf5UnVaiWwA5vdd82w==}
     engines: {node: '>= 6'}
 
   formdata-polyfill@4.0.10:
@@ -7614,9 +7616,9 @@ packages:
 
 snapshots:
 
-  '@acala-network/chopsticks-core@1.2.7(patch_hash=iz5naboyuqfjjoiyyynbh63lbu)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@acala-network/chopsticks-core@1.2.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
-      '@acala-network/chopsticks-executor': 1.2.7
+      '@acala-network/chopsticks-executor': 1.2.8
       '@polkadot/rpc-provider': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@polkadot/types': 16.4.8
       '@polkadot/types-codec': 16.4.8
@@ -7636,9 +7638,9 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@acala-network/chopsticks-db@1.2.7(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)':
+  '@acala-network/chopsticks-db@1.2.8(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)':
     dependencies:
-      '@acala-network/chopsticks-core': 1.2.7(patch_hash=iz5naboyuqfjjoiyyynbh63lbu)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@acala-network/chopsticks-core': 1.2.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@polkadot/util': 14.0.1
       idb: 8.0.3
       reflect-metadata: 0.2.2
@@ -7666,15 +7668,15 @@ snapshots:
       - typeorm-aurora-data-api-driver
       - utf-8-validate
 
-  '@acala-network/chopsticks-executor@1.2.7':
+  '@acala-network/chopsticks-executor@1.2.8':
     dependencies:
       '@polkadot/util': 14.0.1
       '@polkadot/wasm-util': 7.5.4(@polkadot/util@14.0.1)
 
-  '@acala-network/chopsticks@1.2.7(bufferutil@4.0.9)(debug@4.4.3)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)':
+  '@acala-network/chopsticks@1.2.8(bufferutil@4.0.9)(debug@4.4.3)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)':
     dependencies:
-      '@acala-network/chopsticks-core': 1.2.7(patch_hash=iz5naboyuqfjjoiyyynbh63lbu)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@acala-network/chopsticks-db': 1.2.7(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)
+      '@acala-network/chopsticks-core': 1.2.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@acala-network/chopsticks-db': 1.2.8(bufferutil@4.0.9)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)
       '@dmsnell/diff-match-patch': 1.1.0
       '@pnpm/npm-conf': 3.0.0
       '@polkadot/api': 16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -7683,7 +7685,7 @@ snapshots:
       '@polkadot/types': 16.4.8
       '@polkadot/util': 14.0.1
       '@polkadot/util-crypto': 14.0.1(@polkadot/util@14.0.1)
-      axios: 1.12.2(debug@4.4.3)
+      axios: 1.13.6(debug@4.4.3)
       comlink: 4.4.2
       dotenv: 16.6.1
       global-agent: 3.0.0
@@ -10694,7 +10696,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@polkadot/networks': 14.0.1
       '@polkadot/util': 14.0.1
-      '@polkadot/wasm-crypto': 7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))
+      '@polkadot/wasm-crypto': 7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))
       '@polkadot/wasm-util': 7.5.4(@polkadot/util@14.0.1)
       '@polkadot/x-bigint': 14.0.1
       '@polkadot/x-randomvalues': 14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))
@@ -10833,11 +10835,11 @@ snapshots:
       '@polkadot/x-randomvalues': 13.5.9(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))
       tslib: 2.8.1
 
-  '@polkadot/wasm-bridge@7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))':
+  '@polkadot/wasm-bridge@7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))':
     dependencies:
       '@polkadot/util': 14.0.1
       '@polkadot/wasm-util': 7.5.4(@polkadot/util@14.0.1)
-      '@polkadot/x-randomvalues': 14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))
+      '@polkadot/x-randomvalues': 14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))
       tslib: 2.8.1
 
   '@polkadot/wasm-crypto-asmjs@4.6.1(@polkadot/util@6.11.1)':
@@ -10914,14 +10916,14 @@ snapshots:
       '@polkadot/x-randomvalues': 13.5.9(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))
       tslib: 2.8.1
 
-  '@polkadot/wasm-crypto-init@7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))':
+  '@polkadot/wasm-crypto-init@7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))':
     dependencies:
       '@polkadot/util': 14.0.1
-      '@polkadot/wasm-bridge': 7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))
+      '@polkadot/wasm-bridge': 7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))
       '@polkadot/wasm-crypto-asmjs': 7.5.4(@polkadot/util@14.0.1)
       '@polkadot/wasm-crypto-wasm': 7.5.4(@polkadot/util@14.0.1)
       '@polkadot/wasm-util': 7.5.4(@polkadot/util@14.0.1)
-      '@polkadot/x-randomvalues': 14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))
+      '@polkadot/x-randomvalues': 14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))
       tslib: 2.8.1
 
   '@polkadot/wasm-crypto-wasm@4.6.1(@polkadot/util@6.11.1)':
@@ -11024,15 +11026,15 @@ snapshots:
       '@polkadot/x-randomvalues': 13.5.9(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))
       tslib: 2.8.1
 
-  '@polkadot/wasm-crypto@7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))':
+  '@polkadot/wasm-crypto@7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))':
     dependencies:
       '@polkadot/util': 14.0.1
-      '@polkadot/wasm-bridge': 7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))
+      '@polkadot/wasm-bridge': 7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))
       '@polkadot/wasm-crypto-asmjs': 7.5.4(@polkadot/util@14.0.1)
-      '@polkadot/wasm-crypto-init': 7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))
+      '@polkadot/wasm-crypto-init': 7.5.4(@polkadot/util@14.0.1)(@polkadot/x-randomvalues@14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6)))
       '@polkadot/wasm-crypto-wasm': 7.5.4(@polkadot/util@14.0.1)
       '@polkadot/wasm-util': 7.5.4(@polkadot/util@14.0.1)
-      '@polkadot/x-randomvalues': 14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))
+      '@polkadot/x-randomvalues': 14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))
       tslib: 2.8.1
 
   '@polkadot/wasm-util@6.4.1(@polkadot/util@10.4.2)':
@@ -11176,6 +11178,13 @@ snapshots:
       '@polkadot/util': 13.5.6
       '@polkadot/wasm-util': 7.5.4(@polkadot/util@13.5.6)
       '@polkadot/x-global': 13.5.9
+      tslib: 2.8.1
+
+  '@polkadot/x-randomvalues@14.0.1(@polkadot/util@13.5.6)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))':
+    dependencies:
+      '@polkadot/util': 13.5.6
+      '@polkadot/wasm-util': 7.5.4(@polkadot/util@13.5.6)
+      '@polkadot/x-global': 14.0.1
       tslib: 2.8.1
 
   '@polkadot/x-randomvalues@14.0.1(@polkadot/util@14.0.1)(@polkadot/wasm-util@7.5.4(@polkadot/util@13.5.6))':
@@ -12234,10 +12243,18 @@ snapshots:
 
   aws4@1.13.2: {}
 
-  axios@1.12.2(debug@4.4.3):
+  axios@1.12.2:
     dependencies:
       follow-redirects: 1.15.11(debug@4.4.3)
       form-data: 4.0.4
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
+  axios@1.13.6(debug@4.4.3):
+    dependencies:
+      follow-redirects: 1.15.11(debug@4.4.3)
+      form-data: 4.0.5
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
@@ -13378,6 +13395,14 @@ snapshots:
       hasown: 2.0.2
       mime-types: 2.1.35
 
+  form-data@4.0.5:
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      es-set-tostringtag: 2.1.0
+      hasown: 2.0.2
+      mime-types: 2.1.35
+
   formdata-polyfill@4.0.10:
     dependencies:
       fetch-blob: 3.2.0
@@ -14402,7 +14427,7 @@ snapshots:
 
   moonwall@1.0.1(@polkadot/api-base@16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@polkadot/api-derive@16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@polkadot/api@16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@polkadot/keyring@13.5.6(@polkadot/util-crypto@13.5.6(@polkadot/util@13.5.6))(@polkadot/util@13.5.6))(@polkadot/rpc-provider@16.4.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@polkadot/types-codec@16.4.8)(@polkadot/types@16.4.8)(@polkadot/util-crypto@13.5.6(@polkadot/util@13.5.6))(@polkadot/util@13.5.6)(@types/node@24.7.0)(@types/react@19.2.7)(bufferutil@4.0.9)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.5.6)(rxjs@7.8.2)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(tsx@4.20.6)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76):
     dependencies:
-      '@acala-network/chopsticks': 1.2.7(bufferutil@4.0.9)(debug@4.4.3)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)
+      '@acala-network/chopsticks': 1.2.8(bufferutil@4.0.9)(debug@4.4.3)(ts-node@10.9.2(@types/node@24.7.0)(typescript@5.9.3))(utf-8-validate@5.0.10)
       '@ast-grep/napi': 0.40.5
       '@effect/cluster': 0.56.3(@effect/platform@0.94.4(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.4(effect@3.19.16))(effect@3.19.16))(@effect/sql@0.49.0(@effect/experimental@0.58.0(@effect/platform@0.94.4(effect@3.19.16))(effect@3.19.16))(@effect/platform@0.94.4(effect@3.19.16))(effect@3.19.16))(@effect/workflow@0.16.0(@effect/experimental@0.58.0(@effect/platform@0.94.4(effect@3.19.16))(effect@3.19.16))(@effect/platform@0.94.4(effect@3.19.16))(@effect/rpc@0.73.0(@effect/platform@0.94.4(effect@3.19.16))(effect@3.19.16))(effect@3.19.16))(effect@3.19.16)
       '@effect/experimental': 0.58.0(@effect/platform@0.94.4(effect@3.19.16))(effect@3.19.16)
