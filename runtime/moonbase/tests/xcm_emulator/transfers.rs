@@ -656,7 +656,7 @@ fn foreign_assets_survive_native_balance_drain() {
 fn register_unit_on_sibling() {
 	sibling_execute_with(|| {
 		// From the sibling's perspective, Moonbase's native token lives at:
-		// ../Parachain(2004)/PalletInstance(3)  (pallet_balances = index 10)
+		// ../Parachain(2004)/PalletInstance(3)  (pallet_balances = index 3)
 		let glmr_location =
 			xcm::latest::Location::new(1, [Parachain(MOONBASE_PARA_ID), PalletInstance(3u8)]);
 
