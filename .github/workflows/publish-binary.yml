@@ -80,8 +80,6 @@ jobs:
           node-version-file: "test/.nvmrc"
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - name: Download Original Tools
         uses: actions/download-artifact@v8
         with:
