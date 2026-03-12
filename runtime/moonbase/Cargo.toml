@@ -188,7 +188,9 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 frame-metadata = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 sp-timestamp = { workspace = true }
-xcm-simulator = { workspace = true }
+xcm-emulator = { workspace = true }
+westend-runtime = { workspace = true }
+asset-hub-westend-runtime = { workspace = true }
 pallet-assets = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
