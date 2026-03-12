@@ -71,7 +71,7 @@ describeSuite({
             // Fourth extrinsic
             case 3:
               expect(section === "authorMapping" && method === "addAssociation").to.be.true;
-              expect(events.length === 6);
+              expect(events.length).to.equal(6);
               expect(api.events.system.NewAccount.is(events[2].event)).to.be.true;
               expect(api.events.balances.Endowed.is(events[3].event)).to.be.true;
               expect(api.events.system.ExtrinsicFailed.is(events[5].event)).to.be.true;

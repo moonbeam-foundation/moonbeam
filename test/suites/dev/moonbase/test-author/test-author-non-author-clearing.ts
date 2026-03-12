@@ -28,7 +28,7 @@ describeSuite({
           { allowFailures: true, signer: baltathar }
         );
 
-        expect(result?.events.length === 5);
+        expect(result?.events.length).to.equal(5);
         expect(api.events.system.ExtrinsicFailed.is(result!.events[4].event)).to.be.true;
       },
     });

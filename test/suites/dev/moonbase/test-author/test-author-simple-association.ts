@@ -47,7 +47,7 @@ describeSuite({
           api.tx.authorMapping.addAssociation(BALTATHAR_SESSION_ADDRESS)
         );
         // check events
-        expect(result?.events.length === 9);
+        expect(result?.events.length).to.equal(9);
         expect(api.events.balances.Reserved.is(result!.events[1].event)).to.be.true;
         expect(api.events.authorMapping.KeysRegistered.is(result!.events[2].event)).to.be.true;
         expect(api.events.system.NewAccount.is(result!.events[4].event)).to.be.true;

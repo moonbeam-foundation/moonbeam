@@ -23,7 +23,7 @@ describeSuite({
           api.tx.authorMapping.clearAssociation(BALTATHAR_SESSION_ADDRESS)
         );
         //check events
-        expect(result?.events.length === 6);
+        expect(result?.events.length).to.equal(6);
         expect(api.events.balances.Unreserved.is(result!.events[1].event)).to.be.true;
         expect(api.events.authorMapping.KeysRemoved.is(result!.events[2].event)).to.be.true;
         expect(api.events.system.ExtrinsicSuccess.is(result!.events[6].event)).to.be.true;
