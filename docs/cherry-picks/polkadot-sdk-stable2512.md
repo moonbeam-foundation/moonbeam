@@ -80,6 +80,6 @@
 
 | Applied | Title | Commit | Cherry pick | Status | Upstream PR | Note |
 | --- | --- | --- | --- | --- | --- | --- |
-| Yes | Update to polkadot-sdk stable2512 | | Dropped | PR Merged | [Moonsong-Labs/moonkit#89](https://github.com/Moonsong-Labs/moonkit/pull/89) | The PR can be merged once we update Moonkit main branch to stable2512 |
-| Yes | Add slot based collator | | Dropped | PR Merged | [Moonsong-Labs/moonkit#86](https://github.com/Moonsong-Labs/moonkit/pull/86) | The PR can be merged once we update Moonkit main branch to stable2512 |
+| Yes | Update to polkadot-sdk stable2512 | | Dropped | PR Merged | [Moonsong-Labs/moonkit#89](https://github.com/Moonsong-Labs/moonkit/pull/89) | Merged |
+| Yes | Add slot based collator | | Dropped | PR Merged | [Moonsong-Labs/moonkit#86](https://github.com/Moonsong-Labs/moonkit/pull/86) | Merged |
 | Yes | Add using_fake_author logic to author-slot-filter | [Moonsong-Labs/moonkit@0417bb7](https://github.com/Moonsong-Labs/moonkit/commit/0417bb7b65ad920d2eb382bb2ec3705cdcc5e761) | Included | PR Merged | [Moonsong-Labs/moonkit#92](https://github.com/Moonsong-Labs/moonkit/pull/92) |  |
