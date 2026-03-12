@@ -814,7 +814,7 @@ fn transfer_glmr_roundtrip_moonbeam_sibling() {
 			))),
 			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
 				id: AssetId(glmr_location),
-				fun: Fungible(glmr_on_sibling.as_u128()),
+				fun: Fungible(glmr_on_sibling.try_into().unwrap()),
 			}]))),
 			0,
 			WeightLimit::Unlimited,
