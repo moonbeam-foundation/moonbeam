@@ -1,4 +1,4 @@
-// Copyright 2019-2025 Moonriver Foundation.
+// Copyright 2019-2025 Moonbeam Foundation.
 // This file is part of Moonriver.
 
 // Moonriver is free software: you can redistribute it and/or modify
