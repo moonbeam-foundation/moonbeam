@@ -629,6 +629,11 @@ fn foreign_assets_survive_native_balance_drain() {
 			frame_support::traits::tokens::Fortitude::Force,
 		);
 
+		let remaining = <moonbeam_runtime::Balances as Inspect<_>>::balance(
+			&moonbeam_runtime::AccountId::from(test_account),
+		);
+		assert_eq!(remaining, 0, "Native balance should be zero after drain");
+
 		// Foreign asset balance should still be accessible.
 		let dot = moonbeam_runtime::EvmForeignAssets::balance(
 			DOT_ASSET_ID,
