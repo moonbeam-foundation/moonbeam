@@ -35,7 +35,7 @@ pub fn relay_genesis() -> Storage {
 		polkadot_parachain::primitives::Id::from(MOONBEAM_PARA_ID).into_account_truncating();
 	let sibling_sovereign: AccountId32 =
 		polkadot_parachain::primitives::Id::from(SIBLING_PARA_ID).into_account_truncating();
-	let endowment: u128 = 1_000_000_000_000_000; // 100 000 DOT
+	let endowment: u128 = 1_000_000_000_000_000; // 1 000 WND (12 decimals)
 
 	let mut host_config = polkadot_runtime_parachains::configuration::HostConfiguration::default();
 	host_config.max_downward_message_size = 1 << 20;
