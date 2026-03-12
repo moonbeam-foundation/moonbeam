@@ -6,7 +6,7 @@ default_command = "polkadot"
 default_args = [
     "-lruntime::bridge-grandpa=trace"
 ]
-chain_spec_path = "zombienet/specs/kusama-local.json"
+chain = "rococo-local"
 
 [[relaychain.nodes]]
 name = "alice"

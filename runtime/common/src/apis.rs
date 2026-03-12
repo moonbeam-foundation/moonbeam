@@ -79,7 +79,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					VERSION
 				}
 
-				fn execute_block(block: Block) {
+				fn execute_block(block: <Block as BlockT>::LazyBlock) {
 					Executive::execute_block(block)
 				}
 
@@ -91,12 +91,6 @@ macro_rules! impl_runtime_apis_plus_common {
 			impl cumulus_primitives_core::RelayParentOffsetApi<Block> for Runtime {
 				fn relay_parent_offset() -> u32 {
 					crate::RELAY_PARENT_OFFSET
-				}
-			}
-
-			impl cumulus_primitives_core::GetCoreSelectorApi<Block> for Runtime {
-				fn core_selector() -> (cumulus_primitives_core::CoreSelector, cumulus_primitives_core::ClaimQueueOffset) {
-					ParachainSystem::core_selector()
 				}
 			}
 
@@ -130,7 +124,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn check_inherents(
-					block: Block,
+					block: <Block as BlockT>::LazyBlock,
 					data: sp_inherents::InherentData,
 				) -> sp_inherents::CheckInherentsResult {
 					data.check_extrinsics(&block)
@@ -791,9 +785,10 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn query_delivery_fees(
-					destination: VersionedLocation, message: VersionedXcm<()>
+					destination: VersionedLocation, message: VersionedXcm<()>, asset_id: VersionedAssetId
 				) -> Result<VersionedAssets, XcmPaymentApiError> {
-					PolkadotXcm::query_delivery_fees(destination, message)
+					type AssetExchanger = <xcm_config::XcmExecutorConfig as xcm_executor::Config>::AssetExchanger;
+					PolkadotXcm::query_delivery_fees::<AssetExchanger>(destination, message, asset_id)
 				}
 			}
 
@@ -1256,7 +1251,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn execute_block(
-					block: Block,
+					block: <Block as BlockT>::LazyBlock,
 					state_root_check: bool,
 					signature_check: bool,
 					select: frame_try_runtime::TryStateSelect

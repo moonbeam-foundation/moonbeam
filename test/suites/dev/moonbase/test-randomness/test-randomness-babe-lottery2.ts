@@ -50,7 +50,7 @@ describeSuite({
         args: [0],
         account: BALTATHAR_ADDRESS,
       });
-      expect(estimatedGas).to.equal(166698n);
+      expect(estimatedGas).to.equal(157675n);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",

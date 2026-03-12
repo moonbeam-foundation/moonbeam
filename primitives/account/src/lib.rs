@@ -156,6 +156,7 @@ impl From<sp_runtime::MultiSignature> for EthereumSignature {
 				panic!("Sr25519 not supported for EthereumSignature")
 			}
 			sp_runtime::MultiSignature::Ecdsa(sig) => Self(sig),
+			sp_runtime::MultiSignature::Eth(sig) => Self(ecdsa::Signature::from(sig.0)),
 		}
 	}
 }

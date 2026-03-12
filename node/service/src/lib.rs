@@ -27,11 +27,10 @@ pub mod rpc;
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_collator::service::CollatorService;
 use cumulus_client_consensus_common::ParachainBlockImport as TParachainBlockImport;
-use cumulus_client_consensus_proposer::Proposer;
 use cumulus_client_parachain_inherent::{MockValidationDataInherentDataProvider, MockXcmConfig};
 use cumulus_client_service::{
 	prepare_node_config, start_relay_chain_tasks, CollatorSybilResistance, DARecoveryProfile,
-	ParachainHostFunctions, StartRelayChainTasksParams,
+	ParachainHostFunctions, ParachainTracingExecuteBlock, StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::{
 	relay_chain::{self, well_known_keys, CollatorPair},
@@ -68,7 +67,7 @@ use sc_client_api::{
 };
 use sc_consensus::{BlockImport, ImportQueue};
 use sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
-use sc_network::{config::FullNetworkConfiguration, NetworkBackend, NetworkBlock};
+use sc_network::{config::FullNetworkConfiguration, NetworkBackend, NetworkBlock, PeerId};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
 	error::Error as ServiceError, ChainSpec, Configuration, PartialComponents, TFullBackend,
@@ -726,9 +725,8 @@ async fn start_node_impl<RuntimeApi, Customizations, Net>(
 ) -> sc_service::error::Result<(TaskManager, Arc<FullClient<RuntimeApi>>)>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection
-		+ cumulus_primitives_core::GetCoreSelectorApi<Block>
-		+ cumulus_primitives_core::RelayParentOffsetApi<Block>,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection + cumulus_primitives_core::RelayParentOffsetApi<Block>,
 	Customizations: ClientCustomizations + 'static,
 	Net: NetworkBackend<Block, Hash>,
 {
@@ -961,6 +959,7 @@ where
 		system_rpc_tx,
 		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
+		tracing_execute_block: Some(Arc::new(ParachainTracingExecuteBlock::new(client.clone()))),
 	})?;
 
 	if let Some(hwbench) = hwbench {
@@ -1023,6 +1022,7 @@ where
 			params.keystore_container.keystore(),
 			para_id,
 			collator_key.expect("Command line arguments do not allow this. qed"),
+			network.local_peer_id(),
 			overseer_handle,
 			announce_block,
 			force_authoring,
@@ -1050,6 +1050,7 @@ fn start_consensus<RuntimeApi, SO>(
 	keystore: KeystorePtr,
 	para_id: ParaId,
 	collator_key: CollatorPair,
+	collator_peer_id: PeerId,
 	overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 	force_authoring: bool,
@@ -1060,13 +1061,12 @@ fn start_consensus<RuntimeApi, SO>(
 ) -> Result<(), sc_service::Error>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection
-		+ cumulus_primitives_core::GetCoreSelectorApi<Block>
-		+ cumulus_primitives_core::RelayParentOffsetApi<Block>,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection + cumulus_primitives_core::RelayParentOffsetApi<Block>,
 	sc_client_api::StateBackendFor<FullBackend, Block>: sc_client_api::StateBackend<BlakeTwo256>,
 	SO: SyncOracle + Send + Sync + Clone + 'static,
 {
-	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
+	let proposer = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
 		client.clone(),
 		transaction_pool,
@@ -1074,7 +1074,6 @@ where
 		telemetry.clone(),
 	);
 
-	let proposer = Proposer::new(proposer_factory);
 	let collator_service = CollatorService::new(
 		client.clone(),
 		Arc::new(task_manager.spawn_handle()),
@@ -1133,11 +1132,14 @@ where
 
 			let params = nimbus_consensus::collators::lookahead::Params {
 				additional_digests_provider: maybe_provide_vrf_digest,
-				additional_relay_keys: vec![relay_chain::well_known_keys::EPOCH_INDEX.to_vec()],
+				additional_relay_state_keys: vec![
+					relay_chain::well_known_keys::EPOCH_INDEX.to_vec()
+				],
 				authoring_duration: block_authoring_duration,
 				block_import,
 				code_hash_provider,
 				collator_key,
+				collator_peer_id,
 				collator_service,
 				create_inherent_data_providers,
 				force_authoring,
@@ -1202,6 +1204,7 @@ where
 				block_import,
 				code_hash_provider,
 				collator_key,
+				collator_peer_id,
 				collator_service,
 				create_inherent_data_providers: move |b, a| async move {
 					create_inherent_data_providers(b, a).await
@@ -1250,8 +1253,7 @@ where
 	RuntimeApi:
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
-		RuntimeApiCollection + cumulus_primitives_core::GetCoreSelectorApi<Block>
-		+ cumulus_primitives_core::RelayParentOffsetApi<Block>,
+		RuntimeApiCollection + cumulus_primitives_core::RelayParentOffsetApi<Block>,
 	Customizations: ClientCustomizations + 'static,
 {
 	match parachain_config.network.network_backend {
@@ -1714,7 +1716,7 @@ where
 
 	let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
 		network,
-		client,
+		client: client.clone(),
 		keystore: keystore_container.keystore(),
 		task_manager: &mut task_manager,
 		transaction_pool,
@@ -1725,6 +1727,7 @@ where
 		config,
 		tx_handler_controller,
 		telemetry: None,
+		tracing_execute_block: Some(Arc::new(ParachainTracingExecuteBlock::new(client.clone()))),
 	})?;
 
 	if let Some(hwbench) = hwbench {
@@ -1984,6 +1987,7 @@ mod tests {
 				rate_limit: Default::default(),
 				rate_limit_whitelisted_ips: vec![],
 				rate_limit_trust_proxy_headers: false,
+				request_logger_limit: 1024,
 			},
 			data_path: Default::default(),
 			prometheus_config: None,
