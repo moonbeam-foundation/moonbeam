@@ -21,7 +21,6 @@
 //!
 //! Moonbase's Reserves configuration allows:
 //! - IsBridgedConcreteAssetFrom<AssetHubLocation>: Bridged assets from Asset Hub
-//! - IsBridgedConcreteAssetFrom<bp_moonriver::GlobalConsensusLocation>: Assets from Moonriver
 //! - Case<RelayChainNativeAssetFromAssetHub>: DOT from Asset Hub
 //! - MultiNativeAsset<AbsoluteAndRelativeReserve<SelfLocationAbsolute>>: Self-reserve
 
