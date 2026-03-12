@@ -290,9 +290,9 @@ dependencies = [
 
 [[package]]
 name = "anstream"
-version = "0.6.21"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43d5b281e737544384e969a5ccad3f1cdd24b48086a0fc1b2a5262a26b8f4f4a"
+checksum = "824a212faf96e9acacdbd09febd34438f8f711fb84e09a8916013cd7815ca28d"
 dependencies = [
  "anstyle",
  "anstyle-parse",
@@ -311,9 +311,9 @@ checksum = "5192cca8006f1fd4f7237516f40fa183bb07f8fbdfedaa0036de5ea9b0b45e78"
 
 [[package]]
 name = "anstyle-parse"
-version = "0.2.7"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e7644824f0aa2c7b9384579234ef10eb7efb6a0deb83f9630a49594dd9c15c2"
+checksum = "52ce7f38b242319f7cabaa6813055467063ecdc9d355bbb4ce0c68908cd8130e"
 dependencies = [
  "utf8parse",
 ]
@@ -2009,9 +2009,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.60"
+version = "4.5.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2797f34da339ce31042b27d23607e051786132987f595b02ba4f6a6dffb7030a"
+checksum = "52fa72306bb30daf11bc97773431628e5b4916e97aaa74b7d3f625d4d495da02"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -2028,9 +2028,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.60"
+version = "4.5.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24a241312cea5059b13574bb9b3861cabf758b879c15190b37b6d6fd63ab6876"
+checksum = "2071365c5c56eae7d77414029dde2f4f4ba151cf68d5a3261c9a40de428ace93"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2041,9 +2041,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.5.55"
+version = "4.5.61"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a92793da1a46a5f2a02a6f4c46c6496b28c43638adea8306fcb0caa1634f24e5"
+checksum = "dec5be1eea072311774b7b84ded287adbd9f293f9d23456817605c6042f4f5e0"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -2053,9 +2053,9 @@ dependencies = [
 
 [[package]]
 name = "clap_lex"
-version = "1.0.0"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a822ea5bc7590f9d40f1ba12c0dc3c2760f3482c6984db1573ad11031420831"
+checksum = "0e78417baa3b3114dc0e95e7357389a249c4da97c3c2b540700079db6171bfd7"
 
 [[package]]
 name = "coarsetime"
@@ -4196,7 +4196,7 @@ dependencies = [
 [[package]]
 name = "fc-api"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "async-trait",
  "fp-storage",
@@ -4208,7 +4208,7 @@ dependencies = [
 [[package]]
 name = "fc-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "async-trait",
  "fp-consensus",
@@ -4224,7 +4224,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -4254,7 +4254,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "ethereum-types",
  "fc-db",
@@ -4278,7 +4278,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4332,7 +4332,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4348,7 +4348,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-v2-api"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "ethereum-types",
  "fc-rpc-v2-types",
@@ -4358,7 +4358,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-v2-types"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "const-hex",
  "ethereum-types",
@@ -4369,7 +4369,7 @@ dependencies = [
 [[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4573,7 +4573,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "hex",
  "impl-serde",
@@ -4591,7 +4591,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -4602,7 +4602,7 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4614,7 +4614,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "environmental",
  "evm",
@@ -4630,7 +4630,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -4646,7 +4646,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -4658,7 +4658,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -7821,14 +7821,14 @@ dependencies = [
 
 [[package]]
 name = "moonbeam"
-version = "0.50.57"
+version = "0.50.58"
 dependencies = [
  "moonbeam-cli",
 ]
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.50.57"
+version = "0.50.58"
 dependencies = [
  "ansi_term",
  "clap",
@@ -7857,7 +7857,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.50.57"
+version = "0.50.58"
 dependencies = [
  "account",
  "bip32",
@@ -8260,7 +8260,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.50.57"
+version = "0.50.58"
 dependencies = [
  "ansi_term",
  "async-backing-primitives",
@@ -9162,9 +9162,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.21.3"
+version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
+checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 dependencies = [
  "critical-section",
  "portable-atomic",
@@ -9190,9 +9190,9 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
 name = "openssl"
-version = "0.10.75"
+version = "0.10.76"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08838db121398ad17ab8531ce9de97b244589089e290a384c900cb9ff7434328"
+checksum = "951c002c75e16ea2c65b8c7e4d3d51d5530d8dfa7d060b4776828c88cfb18ecf"
 dependencies = [
  "bitflags 2.11.0",
  "cfg-if",
@@ -9222,9 +9222,9 @@ checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.111"
+version = "0.9.112"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82cab2d520aa75e3c58898289429321eb788c3106963d0dc886ec7a5f4adc321"
+checksum = "57d55af3b3e226502be1526dfdba67ab0e9c96fc293004e79576b2b9edb0dbdb"
 dependencies = [
  "cc",
  "libc",
@@ -9894,7 +9894,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "environmental",
  "ethereum",
@@ -9949,7 +9949,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "cumulus-primitives-storage-weight-reclaim",
  "environmental",
@@ -9974,7 +9974,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-chain-id"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -10052,7 +10052,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "fp-evm",
 ]
@@ -10060,7 +10060,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bls12381"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "ark-bls12-381 0.4.0",
  "ark-ec 0.4.2",
@@ -10072,7 +10072,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -10228,7 +10228,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "fp-evm",
  "num",
@@ -10430,7 +10430,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -10441,7 +10441,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -13414,7 +13414,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "derive_more 1.0.0",
  "environmental",
@@ -13443,7 +13443,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils-macro"
 version = "0.1.0"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#bb14484ec2e7cc982e499093f600ff9cf16b9bb8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=artur%2Fmoon-stalled-latest#2aec6e4e516d4b5794dbeb80b0f91b4679b40de1"
 dependencies = [
  "case",
  "num_enum 0.7.5",
