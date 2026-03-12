@@ -45,7 +45,7 @@ describeSuite({
           functionName: "fulfillRequest",
           args: [0],
         });
-        log(`Estimated Gas for startLottery ${estimatedGas}`);
+        log(`Estimated Gas for fulfillRequest ${estimatedGas}`);
         expect(estimatedGas).to.equal(165855n);
 
         const rawTxn = await context.writePrecompile!({
