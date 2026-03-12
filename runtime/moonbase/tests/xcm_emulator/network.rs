@@ -257,14 +257,26 @@ pub fn register_dot_asset(asset_id: u128) {
 /// Configure `pallet_xcm_transactor` relay indices for Westend.
 /// Call inside `moonbase_execute_with` or `sibling_execute_with`.
 pub fn set_westend_relay_indices() {
+	use frame_support::traits::PalletInfoAccess;
 	use pallet_xcm_transactor::relay_indices::RelayChainIndices;
 
-	// Westend pallet indices (from construct_runtime):
-	// Staking=6, Utility=16, Hrmp=51, Balances=4
+	// Validate pallet indices against the Westend runtime so we fail fast if
+	// they drift after a relay upgrade.
+	let staking_idx = westend_runtime::Staking::index() as u8;
+	let utility_idx = westend_runtime::Utility::index() as u8;
+	let hrmp_idx = westend_runtime::Hrmp::index() as u8;
+
+	assert_eq!(staking_idx, 6u8, "Westend Staking pallet index has changed");
+	assert_eq!(
+		utility_idx, 16u8,
+		"Westend Utility pallet index has changed"
+	);
+	assert_eq!(hrmp_idx, 51u8, "Westend Hrmp pallet index has changed");
+
 	let indices = RelayChainIndices {
-		staking: 6u8,
-		utility: 16u8,
-		hrmp: 51u8,
+		staking: staking_idx,
+		utility: utility_idx,
+		hrmp: hrmp_idx,
 		// Call indices within staking pallet:
 		bond: 0u8,
 		bond_extra: 1u8,
