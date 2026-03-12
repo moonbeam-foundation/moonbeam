@@ -332,7 +332,7 @@ pub fn open_hrmp_channels(sender: u32, recipient: u32) {
 fn asset_hub_genesis() -> sp_core::storage::Storage {
 	use sp_runtime::BuildStorage;
 
-	let endowment: u128 = 1_000_000_000_000_000; // 100k WND
+	let endowment: u128 = 1_000_000_000_000_000; // 1 000 WND (12 decimals)
 
 	let mut t = frame_system::GenesisConfig::<asset_hub_westend_runtime::Runtime>::default()
 		.build_storage()
