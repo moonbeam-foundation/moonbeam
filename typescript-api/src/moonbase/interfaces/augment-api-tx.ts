@@ -813,6 +813,18 @@ declare module "@polkadot/api-base/types/submittable" {
         [u128, StagingXcmV5Location]
       >;
       /**
+       * Claim a pending deposit for a given asset and beneficiary.
+       * Callable by any signed origin (permissionless). Tokens are minted to the
+       * beneficiary, not the caller. Requires the asset to be active (unfrozen).
+       **/
+      claimPendingDeposit: AugmentedSubmittable<
+        (
+          assetId: u128 | AnyNumber | Uint8Array,
+          beneficiary: H160 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [u128, H160]
+      >;
+      /**
        * Create new asset with the ForeignAssetCreator
        **/
       createForeignAsset: AugmentedSubmittable<
