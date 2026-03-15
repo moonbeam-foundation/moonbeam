@@ -88,6 +88,7 @@ import type {
   PalletParachainStakingCandidateMetadata,
   PalletParachainStakingCollatorSnapshot,
   PalletParachainStakingDelayedPayout,
+  PalletParachainStakingDelegationRequestsDelegationAction,
   PalletParachainStakingDelegationRequestsScheduledRequest,
   PalletParachainStakingDelegations,
   PalletParachainStakingDelegator,
@@ -765,6 +766,19 @@ declare module "@polkadot/api-base/types/storage" {
       counterForAssetsById: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
+       * Pending deposits for frozen assets, keyed by (asset_id, beneficiary).
+       * Deposits for the same (asset_id, beneficiary) accumulate via checked_add.
+       **/
+      pendingDeposits: AugmentedQuery<
+        ApiType,
+        (
+          arg1: u128 | AnyNumber | Uint8Array,
+          arg2: H160 | string | Uint8Array
+        ) => Observable<Option<U256>>,
+        [u128, H160]
+      > &
+        QueryableStorageEntry<ApiType, [u128, H160]>;
+      /**
        * Generic query
        **/
       [key: string]: QueryableStorageEntry<ApiType>;
@@ -1241,6 +1255,23 @@ declare module "@polkadot/api-base/types/storage" {
         [AccountId20]
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
+      /**
+       * Summary of pending delegation actions for a (collator, delegator) pair.
+       *
+       * Stores `DelegationAction::Revoke(bond)` when a revocation is pending, or
+       * `DelegationAction::Decrease(total)` with the aggregated sum of all pending
+       * decrease amounts. Used during round transitions to adjust reward
+       * calculations without reading the full `DelegationScheduledRequests`.
+       **/
+      delegationScheduledRequestsSummaryMap: AugmentedQuery<
+        ApiType,
+        (
+          arg1: AccountId20 | string | Uint8Array,
+          arg2: AccountId20 | string | Uint8Array
+        ) => Observable<Option<PalletParachainStakingDelegationRequestsDelegationAction>>,
+        [AccountId20, AccountId20]
+      > &
+        QueryableStorageEntry<ApiType, [AccountId20, AccountId20]>;
       /**
        * Get delegator state associated with an account if account is delegating else None
        **/
