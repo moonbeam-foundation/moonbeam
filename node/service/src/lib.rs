@@ -815,6 +815,7 @@ where
 			overrides: overrides.clone(),
 			fee_history_limit,
 			fee_history_cache: fee_history_cache.clone(),
+			state_pruning: parachain_config.state_pruning.clone(),
 		},
 		sync_service.clone(),
 		pubsub_notification_sinks.clone(),
@@ -835,6 +836,7 @@ where
 					overrides: overrides.clone(),
 					fee_history_limit,
 					fee_history_cache: fee_history_cache.clone(),
+					state_pruning: parachain_config.state_pruning.clone(),
 				},
 			)
 		} else {
@@ -1605,6 +1607,7 @@ where
 			overrides: overrides.clone(),
 			fee_history_limit,
 			fee_history_cache: fee_history_cache.clone(),
+			state_pruning: config.state_pruning.clone(),
 		},
 		sync_service.clone(),
 		pubsub_notification_sinks.clone(),
@@ -1624,6 +1627,7 @@ where
 					overrides: overrides.clone(),
 					fee_history_limit,
 					fee_history_cache: fee_history_cache.clone(),
+					state_pruning: config.state_pruning.clone(),
 				},
 			)
 		} else {

@@ -717,6 +717,7 @@ where
 					overrides: overrides.clone(),
 					fee_history_limit,
 					fee_history_cache: fee_history_cache.clone(),
+					state_pruning: config.state_pruning.clone(),
 				},
 			)
 		} else {

@@ -533,6 +533,22 @@ declare module "@polkadot/api-base/types/events" {
         }
       >;
       /**
+       * A pending deposit was claimed and minted
+       **/
+      PendingDepositClaimed: AugmentedEvent<
+        ApiType,
+        [assetId: u128, beneficiary: H160, amount: U256],
+        { assetId: u128; beneficiary: H160; amount: U256 }
+      >;
+      /**
+       * A deposit was recorded as pending because the asset is frozen
+       **/
+      PendingDepositRecorded: AugmentedEvent<
+        ApiType,
+        [assetId: u128, beneficiary: H160, amount: U256, totalPending: U256],
+        { assetId: u128; beneficiary: H160; amount: U256; totalPending: U256 }
+      >;
+      /**
        * Tokens have been locked for asset creation
        **/
       TokensLocked: AugmentedEvent<ApiType, [AccountId20, u128, U256]>;

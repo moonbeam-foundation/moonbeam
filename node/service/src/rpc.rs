@@ -41,6 +41,7 @@ use sc_client_api::{
 	client::BlockchainEvents,
 	BlockOf,
 };
+use sc_client_db::PruningMode;
 use sc_consensus_manual_seal::rpc::{EngineCommand, ManualSeal, ManualSealApiServer};
 use sc_network::service::traits::NetworkService;
 use sc_network_sync::SyncingService;
@@ -401,6 +402,7 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub overrides: Arc<dyn StorageOverride<B>>,
 	pub fee_history_limit: u64,
 	pub fee_history_cache: FeeHistoryCache,
+	pub state_pruning: Option<PruningMode>,
 }
 
 /// Spawn the tasks that are required to run Moonbeam.
@@ -440,6 +442,13 @@ pub fn spawn_essential_tasks<B, C, BE>(
 					b.clone(),
 					3,
 					0,
+					params.state_pruning.and_then(|mode| {
+						if let PruningMode::Constrained(c) = mode {
+							c.max_blocks.map(u64::from)
+						} else {
+							None
+						}
+					}),
 					SyncStrategy::Parachain,
 					sync.clone(),
 					pubsub_notification_sinks.clone(),
