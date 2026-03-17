@@ -75,6 +75,7 @@
 | Yes | Wait for chain head and eth "latest" in createAndFinalizeBlock() | [moonbeam-foundation/frontier@8ff2482](https://github.com/moonbeam-foundation/frontier/commit/8ff24823827ca5e04a495aafbd3ded0cab242e91) | Included | PR Upstream Merged | [polkadot-evm/frontier#1855](https://github.com/polkadot-evm/frontier/pull/1855) |  |
 | Yes | Avoid eth_blockNumber returning 0x00 when mapping-sync lags | [moonbeam-foundation/frontier@7de9aea](https://github.com/moonbeam-foundation/frontier/commit/7de9aea2454cb15aac81cf4d239bfed5b6ee0ffa) | Included | PR Upstream Merged | [polkadot-evm/frontier#1832](https://github.com/polkadot-evm/frontier/pull/1832) |  |
 | Yes | Validate transaction size | [moonbeam-foundation/frontier@b6d0dfb](https://github.com/moonbeam-foundation/frontier/commit/b6d0dfba6170b2eb00bfe8f16d7c9f48ef4d345b) | Included | Upstream PR not merged | [polkadot-evm/frontier#1807](https://github.com/polkadot-evm/frontier/pull/1807) |  |
+| Yes | Improve "latest" block resolution on pruned nodes | [moonbeam-foundation/frontier@5439643](https://github.com/moonbeam-foundation/frontier/commit/54396433082b24b6e798df589d49a5172c0b9d35) | Included | Upstream PR not merged | [polkadot-evm/frontier#1856](https://github.com/polkadot-evm/frontier/pull/1856) | Cherry-picked from stable2506 commit [615b2aec](https://github.com/moonbeam-foundation/frontier/commit/615b2aecce141e6d9744b126ac2929e9fc2bddcc). Adds `state_pruning_blocks` param to `MappingSyncWorker::new()` for correct block resolution on pruned nodes. |
 
 ## `moonkit`
 
