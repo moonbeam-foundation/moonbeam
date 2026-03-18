@@ -1,0 +1,38 @@
+name: Check Workspace Inherentance
+
+on:
+  pull_request:
+    paths-ignore:
+      - "Cargo.toml"
+  push:
+    branches:
+      - master
+
+# Cancel any previous job still running this workflow for this branch
+# https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs#example-using-concurrency-to-cancel-any-in-progress-job-or-run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check-workspace-dependency-inherentance:
+    runs-on:
+      labels: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify dependency inheritance
+        uses: RomarQ/cargo-workspace-inheritance-check@v1
+        with:
+          # If a dependency is explicitly provided in a workspace member 
+          # crate, it should promoted as workspace dependency
+          promotion-failure: true
+          promotion-threshold: 1
