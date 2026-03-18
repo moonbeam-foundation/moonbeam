@@ -1,9 +1,9 @@
-name: Check Workspace Inherentance
+name: Check Workspace Inherintance
 
 on:
   pull_request:
-    paths-ignore:
-      - "Cargo.toml"
+    paths:
+      - "**/Cargo.toml"
   push:
     branches:
       - master
