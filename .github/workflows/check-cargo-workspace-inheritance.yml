@@ -1,4 +1,4 @@
-name: Check Workspace Inherintance
+name: Check Workspace Inheritance
 
 on:
   pull_request:
@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 jobs:
-  check-workspace-dependency-inherentance:
+  check-workspace-dependency-inheritance:
     runs-on:
       labels: ubuntu-latest
     permissions:
