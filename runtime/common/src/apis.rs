@@ -785,10 +785,19 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn query_delivery_fees(
-					destination: VersionedLocation, message: VersionedXcm<()>, asset_id: VersionedAssetId
+					destination: VersionedLocation, message: VersionedXcm<()>, _asset_id: VersionedAssetId
 				) -> Result<VersionedAssets, XcmPaymentApiError> {
-					type AssetExchanger = <xcm_config::XcmExecutorConfig as xcm_executor::Config>::AssetExchanger;
-					PolkadotXcm::query_delivery_fees::<AssetExchanger>(destination, message, asset_id)
+					// Moonbeam does not charge delivery fees. Return a successful
+					// zero-fee result so clients can treat Moonbeam like any other
+					// chain without special-casing an error path.
+					let _: xcm::latest::Location = destination
+						.try_into()
+						.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
+					let _: xcm::latest::Xcm<()> = message
+						.try_into()
+						.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
+
+					Ok(VersionedAssets::from(xcm::latest::Assets::new()))
 				}
 			}
 

@@ -142,8 +142,10 @@ describeSuite({
             },
           }
         )) as any;
-        // No delivery fees set for now
-        expect(deliveryFees.isOk).to.be.false;
+        // Moonbeam does not charge delivery fees, so the API returns Ok with zero fees
+        expect(deliveryFees.isOk).to.be.true;
+        const feeAssets = Object.values(deliveryFees.asOk.toJSON())[0] as any[];
+        expect(feeAssets.length).to.be.equal(0);
       },
     });
   },
