@@ -10,6 +10,10 @@ import type {
   CumulusPalletParachainSystemCall,
   CumulusPalletParachainSystemError,
   CumulusPalletParachainSystemEvent,
+  CumulusPalletParachainSystemParachainInherentAbridgedInboundMessagesCollection,
+  CumulusPalletParachainSystemParachainInherentBasicParachainInherentData,
+  CumulusPalletParachainSystemParachainInherentInboundMessageId,
+  CumulusPalletParachainSystemParachainInherentInboundMessagesData,
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   CumulusPalletParachainSystemRelayStateSnapshotRelayDispatchQueueRemainingCapacity,
   CumulusPalletParachainSystemUnincludedSegmentAncestor,
@@ -26,7 +30,7 @@ import type {
   CumulusPalletXcmpQueueOutboundState,
   CumulusPalletXcmpQueueQueueConfigData,
   CumulusPrimitivesCoreAggregateMessageOrigin,
-  CumulusPrimitivesParachainInherentParachainInherentData,
+  CumulusPrimitivesParachainInherentHashedMessage,
   EthbloomBloom,
   EthereumBlock,
   EthereumHeader,
@@ -65,6 +69,8 @@ import type {
   FrameSupportPreimagesBounded,
   FrameSupportScheduleDispatchTime,
   FrameSupportStorageDisabled,
+  FrameSupportStorageNoDrop,
+  FrameSupportTokensFungibleImbalance,
   FrameSupportTokensFungibleUnionOfNativeOrWithId,
   FrameSupportTokensMiscBalanceStatus,
   FrameSupportTokensMiscIdAmountRuntimeFreezeReason,
@@ -127,6 +133,7 @@ import type {
   PalletBalancesEvent,
   PalletBalancesReasons,
   PalletBalancesReserveData,
+  PalletBalancesUnexpectedKind,
   PalletCollectiveCall,
   PalletCollectiveError,
   PalletCollectiveEvent,
@@ -315,12 +322,12 @@ import type {
   PolkadotCorePrimitivesInboundHrmpMessage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
   PolkadotParachainPrimitivesPrimitivesHrmpChannelId,
-  PolkadotPrimitivesV8AbridgedHostConfiguration,
-  PolkadotPrimitivesV8AbridgedHrmpChannel,
-  PolkadotPrimitivesV8AsyncBackingAsyncBackingParams,
-  PolkadotPrimitivesV8PersistedValidationData,
-  PolkadotPrimitivesV8UpgradeGoAhead,
-  PolkadotPrimitivesV8UpgradeRestriction,
+  PolkadotPrimitivesV9AbridgedHostConfiguration,
+  PolkadotPrimitivesV9AbridgedHrmpChannel,
+  PolkadotPrimitivesV9AsyncBackingAsyncBackingParams,
+  PolkadotPrimitivesV9PersistedValidationData,
+  PolkadotPrimitivesV9UpgradeGoAhead,
+  PolkadotPrimitivesV9UpgradeRestriction,
   SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpArithmeticArithmeticError,
   SpRuntimeBlakeTwo256,
@@ -423,6 +430,10 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletParachainSystemCall: CumulusPalletParachainSystemCall;
     CumulusPalletParachainSystemError: CumulusPalletParachainSystemError;
     CumulusPalletParachainSystemEvent: CumulusPalletParachainSystemEvent;
+    CumulusPalletParachainSystemParachainInherentAbridgedInboundMessagesCollection: CumulusPalletParachainSystemParachainInherentAbridgedInboundMessagesCollection;
+    CumulusPalletParachainSystemParachainInherentBasicParachainInherentData: CumulusPalletParachainSystemParachainInherentBasicParachainInherentData;
+    CumulusPalletParachainSystemParachainInherentInboundMessageId: CumulusPalletParachainSystemParachainInherentInboundMessageId;
+    CumulusPalletParachainSystemParachainInherentInboundMessagesData: CumulusPalletParachainSystemParachainInherentInboundMessagesData;
     CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot: CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot;
     CumulusPalletParachainSystemRelayStateSnapshotRelayDispatchQueueRemainingCapacity: CumulusPalletParachainSystemRelayStateSnapshotRelayDispatchQueueRemainingCapacity;
     CumulusPalletParachainSystemUnincludedSegmentAncestor: CumulusPalletParachainSystemUnincludedSegmentAncestor;
@@ -439,7 +450,7 @@ declare module "@polkadot/types/types/registry" {
     CumulusPalletXcmpQueueOutboundState: CumulusPalletXcmpQueueOutboundState;
     CumulusPalletXcmpQueueQueueConfigData: CumulusPalletXcmpQueueQueueConfigData;
     CumulusPrimitivesCoreAggregateMessageOrigin: CumulusPrimitivesCoreAggregateMessageOrigin;
-    CumulusPrimitivesParachainInherentParachainInherentData: CumulusPrimitivesParachainInherentParachainInherentData;
+    CumulusPrimitivesParachainInherentHashedMessage: CumulusPrimitivesParachainInherentHashedMessage;
     EthbloomBloom: EthbloomBloom;
     EthereumBlock: EthereumBlock;
     EthereumHeader: EthereumHeader;
@@ -478,6 +489,8 @@ declare module "@polkadot/types/types/registry" {
     FrameSupportPreimagesBounded: FrameSupportPreimagesBounded;
     FrameSupportScheduleDispatchTime: FrameSupportScheduleDispatchTime;
     FrameSupportStorageDisabled: FrameSupportStorageDisabled;
+    FrameSupportStorageNoDrop: FrameSupportStorageNoDrop;
+    FrameSupportTokensFungibleImbalance: FrameSupportTokensFungibleImbalance;
     FrameSupportTokensFungibleUnionOfNativeOrWithId: FrameSupportTokensFungibleUnionOfNativeOrWithId;
     FrameSupportTokensMiscBalanceStatus: FrameSupportTokensMiscBalanceStatus;
     FrameSupportTokensMiscIdAmountRuntimeFreezeReason: FrameSupportTokensMiscIdAmountRuntimeFreezeReason;
@@ -540,6 +553,7 @@ declare module "@polkadot/types/types/registry" {
     PalletBalancesEvent: PalletBalancesEvent;
     PalletBalancesReasons: PalletBalancesReasons;
     PalletBalancesReserveData: PalletBalancesReserveData;
+    PalletBalancesUnexpectedKind: PalletBalancesUnexpectedKind;
     PalletCollectiveCall: PalletCollectiveCall;
     PalletCollectiveError: PalletCollectiveError;
     PalletCollectiveEvent: PalletCollectiveEvent;
@@ -728,12 +742,12 @@ declare module "@polkadot/types/types/registry" {
     PolkadotCorePrimitivesInboundHrmpMessage: PolkadotCorePrimitivesInboundHrmpMessage;
     PolkadotCorePrimitivesOutboundHrmpMessage: PolkadotCorePrimitivesOutboundHrmpMessage;
     PolkadotParachainPrimitivesPrimitivesHrmpChannelId: PolkadotParachainPrimitivesPrimitivesHrmpChannelId;
-    PolkadotPrimitivesV8AbridgedHostConfiguration: PolkadotPrimitivesV8AbridgedHostConfiguration;
-    PolkadotPrimitivesV8AbridgedHrmpChannel: PolkadotPrimitivesV8AbridgedHrmpChannel;
-    PolkadotPrimitivesV8AsyncBackingAsyncBackingParams: PolkadotPrimitivesV8AsyncBackingAsyncBackingParams;
-    PolkadotPrimitivesV8PersistedValidationData: PolkadotPrimitivesV8PersistedValidationData;
-    PolkadotPrimitivesV8UpgradeGoAhead: PolkadotPrimitivesV8UpgradeGoAhead;
-    PolkadotPrimitivesV8UpgradeRestriction: PolkadotPrimitivesV8UpgradeRestriction;
+    PolkadotPrimitivesV9AbridgedHostConfiguration: PolkadotPrimitivesV9AbridgedHostConfiguration;
+    PolkadotPrimitivesV9AbridgedHrmpChannel: PolkadotPrimitivesV9AbridgedHrmpChannel;
+    PolkadotPrimitivesV9AsyncBackingAsyncBackingParams: PolkadotPrimitivesV9AsyncBackingAsyncBackingParams;
+    PolkadotPrimitivesV9PersistedValidationData: PolkadotPrimitivesV9PersistedValidationData;
+    PolkadotPrimitivesV9UpgradeGoAhead: PolkadotPrimitivesV9UpgradeGoAhead;
+    PolkadotPrimitivesV9UpgradeRestriction: PolkadotPrimitivesV9UpgradeRestriction;
     SessionKeysPrimitivesVrfVrfCryptoPublic: SessionKeysPrimitivesVrfVrfCryptoPublic;
     SpArithmeticArithmeticError: SpArithmeticArithmeticError;
     SpRuntimeBlakeTwo256: SpRuntimeBlakeTwo256;
