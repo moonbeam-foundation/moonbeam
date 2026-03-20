@@ -6,13 +6,7 @@ default_command = "polkadot"
 default_args = [
     "-lruntime::bridge-grandpa=trace"
 ]
-# NOTE: We use rococo-local because the stable2512 polkadot binary no longer
-# ships polkadot-local as a built-in chain spec (it moved to the
-# polkadot-fellows/runtimes chain-spec-generator). This is safe for bridge
-# testing: all relay chain variants share the same header format and GRANDPA
-# protocol. The bridge relayer commands (e.g. "polkadot-to-moonriver") refer
-# to pallet instance names on the parachain, not the actual relay chain type.
-chain = "rococo-local"
+chain_spec_path = "zombienet/specs/polkadot-local.json"
 
 [[relaychain.nodes]]
 name = "alice"
