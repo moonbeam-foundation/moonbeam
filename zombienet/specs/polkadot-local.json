@@ -77,42 +77,58 @@
         "configuration": {
           "config": {
             "approval_voting_params": {
-              "max_approval_coalesce_count": 1
+              "max_approval_coalesce_count": 6
             },
             "async_backing_params": {
               "allowed_ancestry_len": 2,
-              "max_candidate_depth": 2
+              "max_candidate_depth": 3
             },
-            "code_retention_period": 1200,
+            "code_retention_period": 14400,
             "dispute_period": 6,
-            "dispute_post_conclusion_acceptance_period": 100,
-            "executor_params": [],
-            "hrmp_channel_max_capacity": 8,
-            "hrmp_channel_max_message_size": 1048576,
-            "hrmp_channel_max_total_size": 8192,
-            "hrmp_max_message_num_per_candidate": 5,
-            "hrmp_max_parachain_inbound_channels": 4,
-            "hrmp_max_parachain_outbound_channels": 4,
-            "hrmp_recipient_deposit": 0,
-            "hrmp_sender_deposit": 0,
+            "dispute_post_conclusion_acceptance_period": 600,
+            "executor_params": [
+              {
+                "MaxMemoryPages": 8192
+              },
+              {
+                "PvfExecTimeout": [
+                  "Backing",
+                  2500
+                ]
+              },
+              {
+                "PvfExecTimeout": [
+                  "Approval",
+                  15000
+                ]
+              }
+            ],
+            "hrmp_channel_max_capacity": 1000,
+            "hrmp_channel_max_message_size": 102400,
+            "hrmp_channel_max_total_size": 102400,
+            "hrmp_max_message_num_per_candidate": 10,
+            "hrmp_max_parachain_inbound_channels": 128,
+            "hrmp_max_parachain_outbound_channels": 128,
+            "hrmp_recipient_deposit": 100000000000,
+            "hrmp_sender_deposit": 100000000000,
             "max_code_size": 3145728,
-            "max_downward_message_size": 1048576,
-            "max_head_data_size": 32768,
+            "max_downward_message_size": 51200,
+            "max_head_data_size": 20480,
             "max_pov_size": 10485760,
-            "max_upward_message_num_per_candidate": 5,
-            "max_upward_message_size": 51200,
-            "max_upward_queue_count": 8,
+            "max_upward_message_num_per_candidate": 16,
+            "max_upward_message_size": 65531,
+            "max_upward_queue_count": 174762,
             "max_upward_queue_size": 1048576,
             "max_validators": null,
-            "minimum_backing_votes": 1,
-            "minimum_validation_upgrade_delay": 5,
-            "n_delay_tranches": 25,
-            "needed_approvals": 2,
-            "no_show_slots": 2,
+            "minimum_backing_votes": 2,
+            "minimum_validation_upgrade_delay": 20,
+            "n_delay_tranches": 213,
+            "needed_approvals": 30,
+            "no_show_slots": 3,
             "node_features": {
               "bits": 8,
               "data": [
-                11
+                3
               ],
               "head": {
                 "index": 0,
@@ -121,22 +137,22 @@
               "order": "bitvec::order::Lsb0"
             },
             "pvf_voting_ttl": 2,
-            "relay_vrf_modulo_samples": 2,
+            "relay_vrf_modulo_samples": 6,
             "scheduler_params": {
-              "group_rotation_frequency": 20,
-              "lookahead": 1,
+              "group_rotation_frequency": 10,
+              "lookahead": 3,
               "max_availability_timeouts": 0,
-              "max_validators_per_core": null,
-              "num_cores": 0,
-              "on_demand_base_fee": 10000000,
+              "max_validators_per_core": 5,
+              "num_cores": 1,
+              "on_demand_base_fee": 250000000,
               "on_demand_fee_variability": 30000000,
-              "on_demand_queue_max_size": 10000,
+              "on_demand_queue_max_size": 500,
               "on_demand_target_queue_utilization": 250000000,
-              "paras_availability_period": 4,
+              "paras_availability_period": 10,
               "ttl": 5
             },
-            "validation_upgrade_cooldown": 2,
-            "validation_upgrade_delay": 2,
+            "validation_upgrade_cooldown": 14400,
+            "validation_upgrade_delay": 600,
             "zeroth_delay_tranche_width": 0
           }
         },
