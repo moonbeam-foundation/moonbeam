@@ -23,7 +23,7 @@ describeSuite({
 
     it({
       id: "C100",
-      title: "should have value over relay expected fees",
+      title: "should register relay asset as active with positive relativePrice in xcmWeightTrader.supportedAssets",
       test: async function () {
         const relayRuntime = relayApi.runtimeVersion.specName.toString();
         const paraRuntime = paraApi.runtimeVersion.specName.toString();
