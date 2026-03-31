@@ -123,8 +123,8 @@
             "pvf_voting_ttl": 2,
             "relay_vrf_modulo_samples": 2,
             "scheduler_params": {
-              "group_rotation_frequency": 20,
-              "lookahead": 1,
+              "group_rotation_frequency": 10,
+              "lookahead": 3,
               "max_availability_timeouts": 0,
               "max_validators_per_core": null,
               "num_cores": 0,
