@@ -785,7 +785,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn query_delivery_fees(
-					destination: VersionedLocation, message: VersionedXcm<()>, _asset_id: VersionedAssetId
+					destination: VersionedLocation, message: VersionedXcm<()>, asset_id: VersionedAssetId
 				) -> Result<VersionedAssets, XcmPaymentApiError> {
 					// Moonbeam does not charge delivery fees. Return a successful
 					// zero-fee result so clients can treat Moonbeam like any other
@@ -794,6 +794,9 @@ macro_rules! impl_runtime_apis_plus_common {
 						.try_into()
 						.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
 					let _: xcm::latest::Xcm<()> = message
+						.try_into()
+						.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
+					let _: xcm::latest::AssetId = asset_id
 						.try_into()
 						.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
 
