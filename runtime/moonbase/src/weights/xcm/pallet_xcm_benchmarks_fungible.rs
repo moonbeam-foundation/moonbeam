@@ -277,6 +277,9 @@ impl<T: frame_system::Config> WeightInfo<T> {
 	/// Proof: `ParachainSystem::HostConfiguration` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `ParachainSystem::PendingUpwardMessages` (r:1 w:1)
 	/// Proof: `ParachainSystem::PendingUpwardMessages` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	// This benchmark helper is generated even though the runtime disables teleport and
+	// returns `Weight::MAX` from the XCM weigher instead of calling it.
+	#[allow(dead_code)]
 	pub(crate) fn initiate_teleport() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `181`
