@@ -796,7 +796,7 @@
 <a href=#796 id=796 data-nosnippet>796</a>				<span class="kw">let </span>id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(<span class="number">1000</span>));
 <a href=#797 id=797 data-nosnippet>797</a>
 <a href=#798 id=798 data-nosnippet>798</a>				<span class="kw">let </span>parachain_account =
-<a href=#799 id=799 data-nosnippet>799</a>					AccountIdConversion::&lt;polkadot_primitives::v8::AccountId&gt;::into_account_truncating(<span class="kw-2">&amp;</span>id);
+<a href=#799 id=799 data-nosnippet>799</a>					AccountIdConversion::&lt;polkadot_primitives::v9::AccountId&gt;::into_account_truncating(<span class="kw-2">&amp;</span>id);
 <a href=#800 id=800 data-nosnippet>800</a>
 <a href=#801 id=801 data-nosnippet>801</a>				<span class="kw">let </span>tokio_handle = config.tokio_handle.clone();
 <a href=#802 id=802 data-nosnippet>802</a>				<span class="kw">let </span>polkadot_config =
