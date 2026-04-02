@@ -34,6 +34,7 @@ tsconfig.tsbuildinfo
 .kluster
 
 # AI Agent local configs
+.pi/
 .opencode/
 .claude/
 .codex/

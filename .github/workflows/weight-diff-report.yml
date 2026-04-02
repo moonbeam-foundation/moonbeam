@@ -77,7 +77,7 @@ jobs:
                     subweight compare commits --threshold 1 --strip-path-prefix ".*/" --format csv --no-color --method exact-worst --path-pattern "$file" "$BASE_REF" "$HEAD_REF" | sed 1,1d | sed '$d' >> ${diffs_csv}
                   done
 
-                  jq -R 'split(",") | {File: .[0], Extrinsic: .[1], Old: .[2], New: .[3], "Change Percent": (.[4] | tonumber)}' ${diffs_csv} | jq -s '.' > ${diffs_json}
+                  jq -R 'split(",") | select((.[4] // "") | test("^-?[0-9]")) | {File: .[0], Extrinsic: .[1], Old: .[2], New: .[3], "Change Percent": (.[4] | tonumber)}' ${diffs_csv} | jq -s '.' > ${diffs_json}
                   jq 'sort_by(.["Change Percent"] | abs ) | reverse' ${diffs_json} > ${diffs_sorted_json}
 
                   echo "## ${runtime^} Weight Difference Report" >> weight_diff_report.md

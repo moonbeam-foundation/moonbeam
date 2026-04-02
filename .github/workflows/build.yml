@@ -530,7 +530,7 @@ jobs:
           targets: wasm32-unknown-unknown
       - name: Install required dependencies
         run: |
-          sudo apt-get install -y libprotobuf-dev protobuf-compiler
+          sudo apt-get install -y libprotobuf-dev protobuf-compiler libclang-dev
           cargo +nightly install cargo-udeps
       - name: Check for unused dependencies
         run: |

@@ -36,9 +36,11 @@ import type {
   FrameSupportTokensMiscBalanceStatus,
   FrameSystemDispatchEventInfo,
   MoonbeamRuntimeProxyType,
+  MoonbeamRuntimeRuntimeHoldReason,
   MoonbeamRuntimeRuntimeParamsRuntimeParametersKey,
   MoonbeamRuntimeRuntimeParamsRuntimeParametersValue,
   NimbusPrimitivesNimbusCryptoPublic,
+  PalletBalancesUnexpectedKind,
   PalletConvictionVotingTally,
   PalletConvictionVotingVoteAccountVote,
   PalletMultisigTimepoint,
@@ -150,6 +152,18 @@ declare module "@polkadot/api-base/types/events" {
         { who: AccountId20; amount: u128 }
       >;
       /**
+       * Some debt has been dropped from the Total Issuance.
+       **/
+      BurnedDebt: AugmentedEvent<ApiType, [amount: u128], { amount: u128 }>;
+      /**
+       * Held balance was burned from an account.
+       **/
+      BurnedHeld: AugmentedEvent<
+        ApiType,
+        [reason: MoonbeamRuntimeRuntimeHoldReason, who: AccountId20, amount: u128],
+        { reason: MoonbeamRuntimeRuntimeHoldReason; who: AccountId20; amount: u128 }
+      >;
+      /**
        * Some amount was deposited (e.g. for transaction fees).
        **/
       Deposit: AugmentedEvent<
@@ -183,6 +197,14 @@ declare module "@polkadot/api-base/types/events" {
         { who: AccountId20; amount: u128 }
       >;
       /**
+       * Some balance was placed on hold.
+       **/
+      Held: AugmentedEvent<
+        ApiType,
+        [reason: MoonbeamRuntimeRuntimeHoldReason, who: AccountId20, amount: u128],
+        { reason: MoonbeamRuntimeRuntimeHoldReason; who: AccountId20; amount: u128 }
+      >;
+      /**
        * Total issuance was increased by `amount`, creating a credit to be balanced.
        **/
       Issued: AugmentedEvent<ApiType, [amount: u128], { amount: u128 }>;
@@ -201,6 +223,18 @@ declare module "@polkadot/api-base/types/events" {
         ApiType,
         [who: AccountId20, amount: u128],
         { who: AccountId20; amount: u128 }
+      >;
+      /**
+       * Some credit was balanced and added to the TotalIssuance.
+       **/
+      MintedCredit: AugmentedEvent<ApiType, [amount: u128], { amount: u128 }>;
+      /**
+       * Some balance was released from hold.
+       **/
+      Released: AugmentedEvent<
+        ApiType,
+        [reason: MoonbeamRuntimeRuntimeHoldReason, who: AccountId20, amount: u128],
+        { reason: MoonbeamRuntimeRuntimeHoldReason; who: AccountId20; amount: u128 }
       >;
       /**
        * Total issuance was decreased by `amount`, creating a debt to be balanced.
@@ -281,6 +315,46 @@ declare module "@polkadot/api-base/types/events" {
         [from: AccountId20, to: AccountId20, amount: u128],
         { from: AccountId20; to: AccountId20; amount: u128 }
       >;
+      /**
+       * The `transferred` balance is placed on hold at the `dest` account.
+       **/
+      TransferAndHold: AugmentedEvent<
+        ApiType,
+        [
+          reason: MoonbeamRuntimeRuntimeHoldReason,
+          source: AccountId20,
+          dest: AccountId20,
+          transferred: u128
+        ],
+        {
+          reason: MoonbeamRuntimeRuntimeHoldReason;
+          source: AccountId20;
+          dest: AccountId20;
+          transferred: u128;
+        }
+      >;
+      /**
+       * A transfer of `amount` on hold from `source` to `dest` was initiated.
+       **/
+      TransferOnHold: AugmentedEvent<
+        ApiType,
+        [
+          reason: MoonbeamRuntimeRuntimeHoldReason,
+          source: AccountId20,
+          dest: AccountId20,
+          amount: u128
+        ],
+        {
+          reason: MoonbeamRuntimeRuntimeHoldReason;
+          source: AccountId20;
+          dest: AccountId20;
+          amount: u128;
+        }
+      >;
+      /**
+       * An unexpected/defensive event was triggered.
+       **/
+      Unexpected: AugmentedEvent<ApiType, [PalletBalancesUnexpectedKind]>;
       /**
        * Some balance was unlocked.
        **/
@@ -449,26 +523,26 @@ declare module "@polkadot/api-base/types/events" {
       /**
        * An account has delegated their vote to another account. \[who, target\]
        **/
-      Delegated: AugmentedEvent<ApiType, [AccountId20, AccountId20]>;
+      Delegated: AugmentedEvent<ApiType, [AccountId20, AccountId20, u16]>;
       /**
        * An \[account\] has cancelled a previous delegation operation.
        **/
-      Undelegated: AugmentedEvent<ApiType, [AccountId20]>;
+      Undelegated: AugmentedEvent<ApiType, [AccountId20, u16]>;
       /**
        * An account has voted
        **/
       Voted: AugmentedEvent<
         ApiType,
-        [who: AccountId20, vote: PalletConvictionVotingVoteAccountVote],
-        { who: AccountId20; vote: PalletConvictionVotingVoteAccountVote }
+        [who: AccountId20, vote: PalletConvictionVotingVoteAccountVote, pollIndex: u32],
+        { who: AccountId20; vote: PalletConvictionVotingVoteAccountVote; pollIndex: u32 }
       >;
       /**
        * A vote has been removed
        **/
       VoteRemoved: AugmentedEvent<
         ApiType,
-        [who: AccountId20, vote: PalletConvictionVotingVoteAccountVote],
-        { who: AccountId20; vote: PalletConvictionVotingVoteAccountVote }
+        [who: AccountId20, vote: PalletConvictionVotingVoteAccountVote, pollIndex: u32],
+        { who: AccountId20; vote: PalletConvictionVotingVoteAccountVote; pollIndex: u32 }
       >;
       /**
        * The lockup period of a conviction vote expired, and the funds have been unlocked.
@@ -2021,13 +2095,17 @@ declare module "@polkadot/api-base/types/events" {
           pure: AccountId20,
           who: AccountId20,
           proxyType: MoonbeamRuntimeProxyType,
-          disambiguationIndex: u16
+          disambiguationIndex: u16,
+          at: u32,
+          extrinsicIndex: u32
         ],
         {
           pure: AccountId20;
           who: AccountId20;
           proxyType: MoonbeamRuntimeProxyType;
           disambiguationIndex: u16;
+          at: u32;
+          extrinsicIndex: u32;
         }
       >;
       /**

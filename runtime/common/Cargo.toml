@@ -7,6 +7,10 @@ license = "GPL-3.0-only"
 name = "moonbeam-runtime-common"
 version = "0.8.0-dev"
 
+[package.metadata.cargo-udeps.ignore]
+# Used inside macro-generated code in apis.rs (impl_runtime_apis!)
+normal = ["pallet-author-slot-filter"]
+
 [dependencies]
 log = { workspace = true }
 
@@ -34,6 +38,7 @@ sp-io = { workspace = true }
 
 # Moonkit
 pallet-author-inherent = { workspace = true }
+pallet-author-slot-filter = { workspace = true }
 
 # Polkadot
 xcm = { workspace = true }
@@ -57,6 +62,7 @@ std = [
 	"pallet-xcm-bridge/std",
 	"pallet-moonbeam-foreign-assets/std",
 	"pallet-author-inherent/std",
+	"pallet-author-slot-filter/std",
 	"pallet-migrations/std",
 	"pallet-xcm-weight-trader/std",
 	"pallet-message-queue/std",
@@ -81,6 +87,7 @@ runtime-benchmarks = [
 	"cumulus-primitives-core/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
+	"pallet-author-slot-filter/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-identity/runtime-benchmarks",
 	"pallet-treasury/runtime-benchmarks",
@@ -99,6 +106,7 @@ try-runtime = [
 	"frame-support/try-runtime",
 	"pallet-migrations/try-runtime",
 	"pallet-author-inherent/try-runtime",
+	"pallet-author-slot-filter/try-runtime",
 	"frame-system/try-runtime",
 	"pallet-balances/try-runtime",
 	"pallet-identity?/try-runtime",
