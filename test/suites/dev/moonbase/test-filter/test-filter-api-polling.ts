@@ -73,11 +73,14 @@ describeSuite({
             topics: receipt.logs[0].topics,
           },
         ]);
-        const poll = await customDevRpcRequest("eth_getFilterChanges", [filterId]);
+        // `eth_getFilterLogs` scans the filter block range. `eth_getFilterChanges` only streams
+        // new logs from Frontier's logs journal after the filter was created, so the first poll
+        // does not replay history (logs already in the chain when the filter is installed).
+        const logs = await customDevRpcRequest("eth_getFilterLogs", [filterId]);
 
-        expect(poll.length).to.be.eq(1);
-        expect(poll[0].address).to.be.eq(contractAddress);
-        expect(poll[0].topics).to.be.deep.eq(receipt.logs[0].topics);
+        expect(logs.length).to.be.eq(1);
+        expect(logs[0].address).to.be.eq(contractAddress);
+        expect(logs[0].topics).to.be.deep.eq(receipt.logs[0].topics);
       },
     });
   },
