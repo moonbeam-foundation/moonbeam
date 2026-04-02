@@ -1,6 +1,6 @@
 ZOMBINET_VERSION := v1.3.138
 POLKADOT_VERSION := stable2512-3
-BRIDGE_RELAY_VERSION := v1.8.19-moonbeam-stable2512
+BRIDGE_RELAY_VERSION := v1.8.19
 
 ZOMBINET_DOWNLOAD_URL := https://github.com/paritytech/zombienet/releases/download/${ZOMBINET_VERSION}
 POLKADOT_DOWNLOAD_URL := https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-${POLKADOT_VERSION}
