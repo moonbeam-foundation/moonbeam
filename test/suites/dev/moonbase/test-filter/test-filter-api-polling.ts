@@ -73,6 +73,9 @@ describeSuite({
             topics: receipt.logs[0].topics,
           },
         ]);
+        const changes = await customDevRpcRequest("eth_getFilterChanges", [filterId]);
+        expect(changes.length).to.be.eq(0);
+
         // `eth_getFilterLogs` scans the filter block range. `eth_getFilterChanges` only streams
         // new logs from Frontier's logs journal after the filter was created, so the first poll
         // does not replay history (logs already in the chain when the filter is installed).
