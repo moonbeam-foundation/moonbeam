@@ -106,10 +106,11 @@ fn xcm_version_discovery_with_relay() {
 	// query_delivery_fees calls validate_send → ChildParachainRouter::validate →
 	// wrap_version, which requires SupportedVersion or SafeXcmVersion to be set.
 	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
-		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
+		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV2;
 		let fees = westend_runtime::Runtime::query_delivery_fees(
 			xcm::VersionedLocation::from(Location::new(0, [Parachain(MOONBEAM_PARA_ID)])),
 			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
+			xcm::VersionedAssetId::from(AssetId(Location::here())),
 		);
 		assert!(
 			fees.is_ok(),
@@ -120,10 +121,11 @@ fn xcm_version_discovery_with_relay() {
 	// Verify Moonbeam can version-wrap an XCM destined for the relay.
 	// SafeXcmVersion is set from genesis, which wrap_version uses as fallback.
 	moonbeam_execute_with(|| {
-		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
+		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV2;
 		let fees = moonbeam_runtime::Runtime::query_delivery_fees(
 			xcm::VersionedLocation::from(Location::parent()),
 			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
+			xcm::VersionedAssetId::from(AssetId(Location::here())),
 		);
 		assert!(
 			fees.is_ok(),
@@ -177,10 +179,11 @@ fn xcm_version_discovery_with_sibling() {
 	// query_delivery_fees calls validate_send → XcmpQueue::validate →
 	// wrap_version, which requires SupportedVersion or SafeXcmVersion.
 	sibling_execute_with(|| {
-		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
+		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV2;
 		let fees = moonbeam_runtime::Runtime::query_delivery_fees(
 			xcm::VersionedLocation::from(Location::new(1, [Parachain(MOONBEAM_PARA_ID)])),
 			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
+			xcm::VersionedAssetId::from(AssetId(Location::here())),
 		);
 		assert!(
 			fees.is_ok(),
@@ -190,10 +193,11 @@ fn xcm_version_discovery_with_sibling() {
 
 	// Verify Moonbeam can version-wrap an XCM destined for the sibling.
 	moonbeam_execute_with(|| {
-		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV1;
+		use xcm_runtime_apis::fees::runtime_decl_for_xcm_payment_api::XcmPaymentApiV2;
 		let fees = moonbeam_runtime::Runtime::query_delivery_fees(
 			xcm::VersionedLocation::from(Location::new(1, [Parachain(SIBLING_PARA_ID)])),
 			xcm::VersionedXcm::from(Xcm::<()>(vec![ClearOrigin])),
+			xcm::VersionedAssetId::from(AssetId(Location::here())),
 		);
 		assert!(
 			fees.is_ok(),
