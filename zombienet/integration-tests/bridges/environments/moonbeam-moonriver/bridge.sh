@@ -71,13 +71,13 @@ function relay_headers_and_messages() {
         --moonbeam-uri ws://localhost:8800 \
         --moonbeam-version-mode Auto \
         --moonbeam-signer $CHARLETH_PRIVATE_KEY \
-        --moonbeam-transactions-mortality 4 \
+        --moonbeam-transactions-mortality 32 \
         --kusama-uri ws://localhost:9901 \
         --kusama-version-mode Auto \
         --moonriver-uri ws://localhost:8801 \
         --moonriver-version-mode Auto \
         --moonriver-signer $CHARLETH_PRIVATE_KEY \
-        --moonriver-transactions-mortality 4 \
+        --moonriver-transactions-mortality 32 \
         --lane "${LANE_ID}"
 }
 
@@ -92,7 +92,7 @@ function run_finality_relay() {
         --target-uri ws://localhost:8801 \
         --target-version-mode Auto \
         --target-signer $BALTATHAR_PRIVATE_KEY \
-        --target-transactions-mortality 4&
+        --target-transactions-mortality 32&
 
     RUST_LOG=runtime=trace,rpc=trace,bridge=trace \
         $relayer_path relay-headers kusama-to-moonbeam \
@@ -102,7 +102,7 @@ function run_finality_relay() {
         --target-uri ws://localhost:8800 \
         --target-version-mode Auto \
         --target-signer $BALTATHAR_PRIVATE_KEY \
-        --target-transactions-mortality 4
+        --target-transactions-mortality 32
 }
 
 case "$1" in

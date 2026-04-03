@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import type { ApiDecoration } from "@polkadot/api/types";
-import { beforeAll, describeSuite, expect, extractWeight } from "moonwall";
+import { beforeAll, describeSuite, expect } from "moonwall";
 import type { ApiPromise } from "@polkadot/api";
 
 describeSuite({
@@ -9,9 +9,7 @@ describeSuite({
   foundationMethods: "read_only",
   testCases: ({ context, it, log }) => {
     let atBlockNumber = 0;
-    let relayAtBlockNumber = 0;
     let paraApiAt: ApiDecoration<"promise">;
-    let relayApiAt: ApiDecoration<"promise">;
     let paraApi: ApiPromise;
     let relayApi: ApiPromise;
 
@@ -21,14 +19,12 @@ describeSuite({
 
       atBlockNumber = (await paraApi.rpc.chain.getHeader()).number.toNumber();
       paraApiAt = await paraApi.at(await paraApi.rpc.chain.getBlockHash(atBlockNumber));
-
-      relayAtBlockNumber = (await relayApi.rpc.chain.getHeader()).number.toNumber();
-      relayApiAt = await relayApi.at(await relayApi.rpc.chain.getBlockHash(relayAtBlockNumber));
     });
 
     it({
       id: "C100",
-      title: "should have value over relay expected fees",
+      title:
+        "should register relay asset as active with positive relativePrice in xcmWeightTrader.supportedAssets",
       test: async function () {
         const relayRuntime = relayApi.runtimeVersion.specName.toString();
         const paraRuntime = paraApi.runtimeVersion.specName.toString();
@@ -46,55 +42,38 @@ describeSuite({
           return;
         }
 
-        const units = relayRuntime.startsWith("polkadot")
-          ? 10_000_000_000n
-          : relayRuntime.startsWith("kusama") ||
-              relayRuntime.startsWith("rococo") ||
-              relayRuntime.startsWith("westend")
-            ? 1_000_000_000_000n
-            : 1_000_000_000_000n;
+        // The old xcmTransactor.destinationAssetFeePerSecond storage has been removed
+        // and replaced by xcmWeightTrader.supportedAssets, which stores (isActive, relativePrice).
+        // The relativePrice represents the foreign asset price relative to the native asset,
+        // scaled by 10^18 (RELATIVE_PRICE_DECIMALS).
+        const relayLocation = {
+          parents: 1,
+          interior: "Here",
+        };
 
-        const seconds = 1_000_000_000_000n;
-
-        const cent =
-          relayRuntime.startsWith("polkadot") ||
-          relayRuntime.startsWith("rococo") ||
-          relayRuntime.startsWith("westend")
-            ? units / 100n
-            : relayRuntime.startsWith("kusama")
-              ? units / 3_000n
-              : units / 100n;
-        const coef = cent / 10n;
-
-        const relayBaseWeight = extractWeight(
-          relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic
-        ).toBigInt();
-
-        const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
-
-        const feePerSecondValueForRelay = (
-          (await paraApiAt.query.xcmTransactor.destinationAssetFeePerSecond({
-            parents: 1,
-            interior: "Here",
-          })) as any
-        ).unwrap();
+        const supportedAsset = (await paraApiAt.query.xcmWeightTrader.supportedAssets(
+          relayLocation
+        )) as any;
 
         expect(
-          feePerSecondValueForRelay.toBigInt() >= expectedFeePerSecond,
-          "failed check: feePerSecond: " +
-            `${feePerSecondValueForRelay} > expected ${expectedFeePerSecond}`
+          supportedAsset.isSome,
+          "Relay asset location {parents:1, interior:Here} should be registered" +
+            " in xcmWeightTrader.supportedAssets"
         ).to.be.true;
+
+        const [isActive, relativePrice] = supportedAsset.unwrap();
+
+        expect(isActive.isTrue, "Relay asset should be active (enabled) in xcmWeightTrader").to.be
+          .true;
+
         expect(
-          // Conservative approach to allow up to 2 time the fees
-          feePerSecondValueForRelay.toBigInt() < expectedFeePerSecond * 2n,
-          `failed check: feePerSecond: ${feePerSecondValueForRelay} < expected ${
-            expectedFeePerSecond * 2n
-          }`
+          relativePrice.toBigInt() > 0n,
+          "Relay asset relative price should be greater than zero"
         ).to.be.true;
 
         log(
-          `Verified feePerSecond for relayMultiLocation transactInfos ` +
-            `within relay base weight range`
+          `Verified relay asset in xcmWeightTrader.supportedAssets: ` +
+            `active=${isActive}, relativePrice=${relativePrice}`
         );
       },
     });

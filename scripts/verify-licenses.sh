@@ -25,6 +25,7 @@ LICENSES=(
     "BSD-2-Clause"
     "BSD-3-Clause OR MIT"
     "BSD-3-Clause"
+    "BSD-3-Clause OR GPL-2.0"
     "CC0-1.0"
     "GPL-3.0-only"
     "GPL-3.0-or-later WITH Classpath-exception-2.0"

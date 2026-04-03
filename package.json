@@ -19,6 +19,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.2.5"
   },
+  "pnpm": {},
   "keywords": [],
   "author": "",
   "license": "ISC"

@@ -2,6 +2,10 @@
 language: "en-US"
 early_access: false
 reviews:
+  path_filters:
+    - "!typescript-api/**"
+    - "!**/weights.rs"
+    - "!**/weights/**/*.rs"
   auto_review:
     enabled: true
     drafts: false

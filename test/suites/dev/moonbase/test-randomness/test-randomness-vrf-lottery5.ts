@@ -51,7 +51,7 @@ describeSuite({
         args: [0],
       });
 
-      expect(estimatedGas).to.be.equal(162997n);
+      expect(estimatedGas).to.be.equal(165855n);
 
       const rawTxn = await context.writePrecompile!({
         precompileName: "Randomness",
@@ -66,7 +66,7 @@ describeSuite({
         .viem()
         .getTransactionReceipt({ hash: result!.hash as `0x${string}` });
 
-      expect(fulFillReceipt.gasUsed).to.equal(91622n);
+      expect(fulFillReceipt.gasUsed).to.equal(91420n);
     });
     it({
       id: "T01",
