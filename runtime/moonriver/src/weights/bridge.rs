@@ -21,8 +21,11 @@ use ::pallet_bridge_parachains::WeightInfoExt as ParachainsWeightInfoExt;
 
 impl GrandpaWeightInfoExt for super::pallet_bridge_grandpa::WeightInfo<Runtime> {
 	fn submit_finality_proof_overhead_from_runtime() -> Weight {
-		// Update this value if pallet_bridge_relayers is added to the runtime.
-		Weight::zero()
+		// stable2512 wraps bridge transactions in `StorageWeightReclaim`, and bridge
+		// extrinsics now need a non-zero proof-size allowance for runtime-level
+		// post-dispatch overhead. We conservatively mirror the legacy bridge-hub
+		// relayer proof-size overhead here until reference-machine benchmarks are rerun.
+		Weight::from_parts(0, 4_714)
 	}
 }
 
@@ -32,8 +35,7 @@ impl ParachainsWeightInfoExt for super::pallet_bridge_parachains::WeightInfo<Run
 	}
 
 	fn submit_parachain_heads_overhead_from_runtime() -> Weight {
-		// Update this value if pallet_bridge_relayers is added to the runtime.
-		Weight::zero()
+		Weight::from_parts(0, 4_714)
 	}
 }
 
@@ -43,12 +45,10 @@ impl MessagesWeightInfoExt for super::pallet_bridge_messages::WeightInfo<Runtime
 	}
 
 	fn receive_messages_proof_overhead_from_runtime() -> Weight {
-		// Update this value if pallet_bridge_relayers is added to the runtime.
-		Weight::zero()
+		Weight::from_parts(0, 4_714)
 	}
 
 	fn receive_messages_delivery_proof_overhead_from_runtime() -> Weight {
-		// Update this value if pallet_bridge_relayers is added to the runtime.
-		Weight::zero()
+		Weight::from_parts(0, 3_538)
 	}
 }

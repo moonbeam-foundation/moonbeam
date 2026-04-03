@@ -1,6 +1,6 @@
 ZOMBINET_VERSION := v1.3.138
-POLKADOT_VERSION := stable2509-2
-BRIDGE_RELAY_VERSION := v1.8.10
+POLKADOT_VERSION := stable2512-3
+BRIDGE_RELAY_VERSION := v1.8.19
 
 ZOMBINET_DOWNLOAD_URL := https://github.com/paritytech/zombienet/releases/download/${ZOMBINET_VERSION}
 POLKADOT_DOWNLOAD_URL := https://github.com/paritytech/polkadot-sdk/releases/download/polkadot-${POLKADOT_VERSION}
@@ -47,22 +47,22 @@ download-binaries: $(BINARIES:%=zombienet/bin/%)
 
 zombienet/bin/${BRIDGE_RELAY_BIN}:
 	@echo "Downloading ${BRIDGE_RELAY_DOWNLOAD_URL}/${BRIDGE_RELAY_BIN}${BRIDGE_RELAY_BIN_POSTFIX}"
-	@curl -L -o "zombienet/bin/${BRIDGE_RELAY_BIN}" "${BRIDGE_RELAY_DOWNLOAD_URL}/${BRIDGE_RELAY_BIN}${BRIDGE_RELAY_BIN_POSTFIX}"
+	@curl -fL -o "zombienet/bin/${BRIDGE_RELAY_BIN}" "${BRIDGE_RELAY_DOWNLOAD_URL}/${BRIDGE_RELAY_BIN}${BRIDGE_RELAY_BIN_POSTFIX}"
 	@chmod +x "zombienet/bin/${BRIDGE_RELAY_BIN}"
 
 zombienet/bin/${ZOMBIENET_BIN}:
 	@echo "Downloading ${ZOMBINET_DOWNLOAD_URL}/${ZOMBIENET_BIN}${ZOMBIENET_BIN_POSTFIX}"
-	@curl -L -o "zombienet/bin/${ZOMBIENET_BIN}" "${ZOMBINET_DOWNLOAD_URL}/${ZOMBIENET_BIN}${ZOMBIENET_BIN_POSTFIX}"
+	@curl -fL -o "zombienet/bin/${ZOMBIENET_BIN}" "${ZOMBINET_DOWNLOAD_URL}/${ZOMBIENET_BIN}${ZOMBIENET_BIN_POSTFIX}"
 	@chmod +x "zombienet/bin/${ZOMBIENET_BIN}"
 
 zombienet/bin/${POLKADOT_BIN}:
 	@echo "Downloading ${POLKADOT_DOWNLOAD_URL}/${POLKADOT_BIN}${POLKADOT_BIN_POSTFIX}"
-	@curl -L -o "zombienet/bin/${POLKADOT_BIN}$*" "${POLKADOT_DOWNLOAD_URL}/${POLKADOT_BIN}${POLKADOT_BIN_POSTFIX}"
+	@curl -fL -o "zombienet/bin/${POLKADOT_BIN}$*" "${POLKADOT_DOWNLOAD_URL}/${POLKADOT_BIN}${POLKADOT_BIN_POSTFIX}"
 	@chmod +x "zombienet/bin/${POLKADOT_BIN}"
 
 zombienet/bin/${POLKADOT_BIN}%:
 	@echo "Downloading ${POLKADOT_DOWNLOAD_URL}/${POLKADOT_BIN}$*${POLKADOT_BIN_POSTFIX}"
-	@curl -L -o "zombienet/bin/${POLKADOT_BIN}$*" "${POLKADOT_DOWNLOAD_URL}/${POLKADOT_BIN}$*${POLKADOT_BIN_POSTFIX}"
+	@curl -fL -o "zombienet/bin/${POLKADOT_BIN}$*" "${POLKADOT_DOWNLOAD_URL}/${POLKADOT_BIN}$*${POLKADOT_BIN_POSTFIX}"
 	@chmod +x "zombienet/bin/${POLKADOT_BIN}$*"
 
 zombienet/bin/moonbeam:

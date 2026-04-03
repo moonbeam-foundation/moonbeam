@@ -19,7 +19,7 @@ describeSuite({
         value: 1n * GLMR,
       });
       log(`Estimated Gas for startLottery ${estimatedGas}`);
-      expect(estimatedGas).to.equal(111850n);
+      expect(estimatedGas).to.equal(112363n);
 
       await context.writeContract!({
         contractAddress: lotteryContract,
@@ -45,8 +45,8 @@ describeSuite({
           functionName: "fulfillRequest",
           args: [0],
         });
-        log(`Estimated Gas for startLottery ${estimatedGas}`);
-        expect(estimatedGas).to.equal(162997n);
+        log(`Estimated Gas for fulfillRequest ${estimatedGas}`);
+        expect(estimatedGas).to.equal(165855n);
 
         const rawTxn = await context.writePrecompile!({
           precompileName: "Randomness",

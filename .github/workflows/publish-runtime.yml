@@ -68,7 +68,7 @@ jobs:
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         if: github.repository == 'moonbeam-foundation/moonbeam'
         with:
           username: ${{ secrets.MBF_DOCKERHUB_USERNAME }}
@@ -146,7 +146,7 @@ jobs:
           name: original-tools
           path: original-tools
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v5
         with:
           version: 9
       - name: Generate release body

@@ -138,6 +138,10 @@ impl std::str::FromStr for AccountId20 {
 	Deserialize,
 	DecodeWithMemTracking,
 )]
+
+// Note: the inner `ecdsa::Signature` is blake2-tagged, but `EthereumSignature::verify`
+// does its own keccak hashing and never calls the tag-dependent `.recover()` method.
+// If that invariant changes, the inner type should be switched to `KeccakSignature`.
 pub struct EthereumSignature(ecdsa::Signature);
 
 impl From<ecdsa::Signature> for EthereumSignature {
@@ -156,6 +160,8 @@ impl From<sp_runtime::MultiSignature> for EthereumSignature {
 				panic!("Sr25519 not supported for EthereumSignature")
 			}
 			sp_runtime::MultiSignature::Ecdsa(sig) => Self(sig),
+			// Same byte layout as `ecdsa::Signature` — see note on the struct.
+			sp_runtime::MultiSignature::Eth(sig) => Self(ecdsa::Signature::from(sig.0)),
 		}
 	}
 }
