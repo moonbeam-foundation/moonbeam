@@ -41,7 +41,7 @@
     "@polkadot/util-crypto": "14.0.2",
     "@substrate/txwrapper-core": "7.5.3",
     "@substrate/txwrapper-substrate": "7.5.3",
-    "@vitest/ui": "3.2.4",
+    "@vitest/ui": "4.0.18",
     "@zombienet/orchestrator": "0.0.110",
     "@zombienet/utils": "0.0.29",
     "chalk": "5.6.2",
@@ -58,7 +58,7 @@
     "solc": "0.8.31",
     "tsx": "^4.20.6",
     "viem": "2.41.2",
-    "vitest": "3.2.4",
+    "vitest": "4.0.18",
     "web3": "4.16.0",
     "yaml": "2.8.1"
   },

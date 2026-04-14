@@ -69,8 +69,8 @@ importers:
         specifier: 7.5.3
         version: 7.5.3(@polkadot/util-crypto@14.0.2(@polkadot/util@14.0.2))(@polkadot/util@14.0.2)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@vitest/ui':
-        specifier: 3.2.4
-        version: 3.2.4(vitest@3.2.4)
+        specifier: 4.0.18
+        version: 4.0.18(vitest@4.0.18)
       '@zombienet/orchestrator':
         specifier: 0.0.110
         version: 0.0.110(@polkadot/util@14.0.2)(@types/node@24.7.0)(bufferutil@4.0.9)(chokidar@3.6.0)(utf-8-validate@5.0.10)
@@ -120,8 +120,8 @@ importers:
         specifier: 2.41.2
         version: 2.41.2(bufferutil@4.0.9)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)
       vitest:
-        specifier: 3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@24.7.0)(@vitest/ui@3.2.4)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.20.6)(yaml@2.8.1)
+        specifier: 4.0.18
+        version: 4.0.18(@types/node@24.7.0)(@vitest/ui@4.0.18)(jsdom@23.2.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(tsx@4.20.6)(yaml@2.8.2)
       web3:
         specifier: 4.16.0
         version: 4.16.0(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@5.0.10)(zod@3.25.76)
