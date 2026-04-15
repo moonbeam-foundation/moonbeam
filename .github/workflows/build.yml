@@ -524,8 +524,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@master
         with:
+          toolchain: nightly-2026-04-01
           components: rust-src
           targets: wasm32v1-none
       - name: Install required dependencies
