@@ -528,7 +528,7 @@ jobs:
         with:
           toolchain: nightly-2026-04-01
           components: rust-src
-          targets: wasm32v1-none
+          targets: wasm32v1-none, wasm32-unknown-unknown
       - name: Install required dependencies
         run: |
           sudo apt-get install -y libprotobuf-dev protobuf-compiler libclang-dev
