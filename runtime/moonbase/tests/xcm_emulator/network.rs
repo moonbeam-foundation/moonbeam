@@ -46,7 +46,9 @@ impl BlockProducer for MoonbaseBlockProducer {
 
 	fn pre_runtime_digest(_relay_block_number: u32) -> Digest {
 		let author = NimbusId::from(sp_core::sr25519::Public::from_raw([1u8; 32]));
-		Digest { logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())] }
+		Digest {
+			logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
+		}
 	}
 }
 
