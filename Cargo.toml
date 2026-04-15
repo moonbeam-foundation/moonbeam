@@ -491,4 +491,3 @@ debug = 1               # debug symbols are useful for profilers
 debug-assertions = true # Enable debug-assert! for non-production profiles
 inherits = "release"
 overflow-checks = true
-

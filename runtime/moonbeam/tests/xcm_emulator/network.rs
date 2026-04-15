@@ -22,11 +22,33 @@
 use crate::relay;
 
 use frame_support::traits::OnInitialize;
+use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
+use parity_scale_codec::Encode;
+use sp_runtime::{Digest, DigestItem};
 use xcm_emulator::decl_test_networks;
 use xcm_emulator::decl_test_parachains;
 use xcm_emulator::decl_test_relay_chains;
+use xcm_emulator::BlockProducer;
 use xcm_emulator::Parachain;
 use xcm_emulator::TestExt;
+
+/// `BlockProducer` for Moonbeam's Nimbus-based consensus.
+///
+/// xcm-emulator defaults to an Aura-backed producer; Moonbeam does not use
+/// pallet-aura, so we plug in a Nimbus pre-runtime digest with a 6s block
+/// interval (matching `moonbeam_runtime::MILLISECS_PER_BLOCK`).
+pub struct MoonbeamBlockProducer;
+
+impl BlockProducer for MoonbeamBlockProducer {
+	fn slot_duration() -> u64 {
+		moonbeam_runtime::MILLISECS_PER_BLOCK
+	}
+
+	fn pre_runtime_digest(_relay_block_number: u32) -> Digest {
+		let author = NimbusId::from(sp_core::sr25519::Public::from_raw([1u8; 32]));
+		Digest { logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())] }
+	}
+}
 
 pub const ASSET_HUB_PARA_ID: u32 = 1000;
 pub const MOONBEAM_PARA_ID: u32 = 2004;
@@ -49,7 +71,7 @@ pub const ONE_DOT: u128 = 10_000_000_000; // 10 decimals
 // Relay chain declaration (Westend runtime)
 // ---------------------------------------------------------------------------
 decl_test_relay_chains! {
-	#[api_version(13)]
+	#[api_version(15)]
 	pub struct WestendRelay {
 		genesis = relay::relay_genesis(),
 		on_init = (),
@@ -81,6 +103,7 @@ decl_test_parachains! {
 			LocationToAccountId: moonbeam_runtime::xcm_config::LocationToAccountId,
 			ParachainInfo: moonbeam_runtime::ParachainInfo,
 			MessageOrigin: cumulus_primitives_core::AggregateMessageOrigin,
+			BlockProducer: crate::network::MoonbeamBlockProducer,
 		},
 		pallets = {
 			PolkadotXcm: moonbeam_runtime::PolkadotXcm,
@@ -111,6 +134,7 @@ decl_test_parachains! {
 			LocationToAccountId: moonbeam_runtime::xcm_config::LocationToAccountId,
 			ParachainInfo: moonbeam_runtime::ParachainInfo,
 			MessageOrigin: cumulus_primitives_core::AggregateMessageOrigin,
+			BlockProducer: crate::network::MoonbeamBlockProducer,
 		},
 		pallets = {
 			PolkadotXcm: moonbeam_runtime::PolkadotXcm,
