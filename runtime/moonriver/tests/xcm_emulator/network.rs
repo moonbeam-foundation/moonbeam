@@ -370,12 +370,32 @@ fn asset_hub_genesis() -> sp_core::storage::Storage {
 	.assimilate_storage(&mut t)
 	.unwrap();
 
+	// Pre-fund Asset Hub's XCM checking account so relay→AH teleports of the
+	// native (WND) asset don't fail with `NotWithdrawable`. Asset Hub tracks
+	// teleported-out WND in this account; in a fresh test genesis it starts
+	// at zero, so an incoming teleport cannot withdraw against it.
+	let checking_account: sp_runtime::AccountId32 =
+		sp_runtime::traits::AccountIdConversion::into_account_truncating(&frame_support::PalletId(
+			*b"py/xcmch",
+		));
+
 	pallet_balances::GenesisConfig::<asset_hub_westend_runtime::Runtime> {
 		balances: vec![
 			(sp_runtime::AccountId32::new([1u8; 32]), endowment),
 			(sp_runtime::AccountId32::new([2u8; 32]), endowment),
+			(checking_account, endowment),
 		],
 		..Default::default()
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	// Populate at least one Aura authority. Asset Hub runs on pallet-aura
+	// and `FindAuthor` panics on `slot % authorities_len()` if it's empty.
+	xcm_emulator::pallet_aura::GenesisConfig::<asset_hub_westend_runtime::Runtime> {
+		authorities: vec![parachains_common::AuraId::from(
+			sp_core::sr25519::Public::from_raw([1u8; 32]),
+		)],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -411,6 +431,17 @@ fn moonriver_genesis(para_id: u32) -> sp_core::storage::Storage {
 			(AccountId::from(BALTATHAR), MOVR * 10_000),
 		],
 		dev_accounts: None,
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
+
+	// Map the NimbusId emitted by `MoonriverBlockProducer` to ALITH so
+	// `pallet_author_inherent::FindAuthor` can resolve a block author.
+	pallet_author_mapping::GenesisConfig::<Runtime> {
+		mappings: vec![(
+			NimbusId::from(sp_core::sr25519::Public::from_raw([1u8; 32])),
+			AccountId::from(ALITH),
+		)],
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
