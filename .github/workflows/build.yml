@@ -524,19 +524,20 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
+          toolchain: nightly-2026-04-01
           components: rust-src
-          targets: wasm32-unknown-unknown
+          targets: wasm32v1-none, wasm32-unknown-unknown
       - name: Install required dependencies
         run: |
           sudo apt-get install -y libprotobuf-dev protobuf-compiler libclang-dev
-          cargo +nightly install cargo-udeps
+          cargo +nightly-2026-04-01 install cargo-udeps
       - name: Check for unused dependencies
         run: |
           # There may be false negatives/positives
           # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
-          cargo +nightly udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
+          cargo +nightly-2026-04-01 udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
     if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
