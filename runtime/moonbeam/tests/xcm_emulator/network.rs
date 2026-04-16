@@ -29,7 +29,6 @@ use xcm_emulator::decl_test_networks;
 use xcm_emulator::decl_test_parachains;
 use xcm_emulator::decl_test_relay_chains;
 use xcm_emulator::BlockProducer;
-use xcm_emulator::Parachain;
 use xcm_emulator::TestExt;
 
 /// `BlockProducer` for Moonbeam's Nimbus-based consensus.

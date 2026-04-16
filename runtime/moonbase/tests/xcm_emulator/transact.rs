@@ -652,10 +652,7 @@ fn setup_derivative() {
 		let sovereign = WestendRelay::<PolkadotMoonbeamNet>::sovereign_account_id_of(
 			Location::new(0, [Parachain(MOONBASE_PARA_ID)]),
 		);
-		let derivative = pallet_utility::Pallet::<westend_runtime::Runtime>::derivative_account_id(
-			sovereign,
-			derivative_index,
-		);
+		let derivative = pallet_utility::derivative_account_id(sovereign, derivative_index);
 		assert_ok!(westend_runtime::Balances::transfer_allow_death(
 			westend_runtime::RuntimeOrigin::signed(RELAY_ALICE),
 			derivative.into(),
