@@ -28,7 +28,7 @@
 | Yes | Backport PR#10305 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#10305](https://github.com/paritytech/polkadot-sdk/pull/10305) |  |
 | Yes | Backport PR#9703 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9703](https://github.com/paritytech/polkadot-sdk/pull/9703) |  |
 | Yes | Backport PR#9990 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9990](https://github.com/paritytech/polkadot-sdk/pull/9990) |  |
-| Yes | xcm-emulator: overridable block producer for non-Aura parachains | [moonbeam-foundation/polkadot-sdk@04250209](https://github.com/moonbeam-foundation/polkadot-sdk/commit/04250209b76) | Included | Needs PR upstream |  | Adds a `BlockProducer` trait (default `AuraBlockProducer`) and an optional `BlockProducer:` field to `decl_test_parachains!` so Nimbus-based runtimes can plug in a custom slot duration and pre-runtime digest. Required to wire Moonbeam runtimes into xcm-emulator-based integration tests without implementing `pallet_aura::Config`. |
+| Yes | xcm-emulator: overridable block producer for non-Aura parachains | [moonbeam-foundation/polkadot-sdk@04250209](https://github.com/moonbeam-foundation/polkadot-sdk/commit/04250209b76) | Included | Upstream PR not merged | [paritytech/polkadot-sdk#11791](https://github.com/paritytech/polkadot-sdk/pull/11791) | Adds a `BlockProducer` trait (default `AuraBlockProducer`) and an optional `BlockProducer:` field to `decl_test_parachains!` so Nimbus-based runtimes can plug in a custom slot duration and pre-runtime digest. Required to wire Moonbeam runtimes into xcm-emulator-based integration tests without implementing `pallet_aura::Config`. |
 
 ## `ethereum`
 
