@@ -27,6 +27,9 @@ export const DEFAULT_MAX_TX_INPUT_BYTES = 4 * TX_SLOT_BYTE_SIZE;
 // EIP-7825: Maximum transaction gas limit cap (2^24)
 export const EIP_7825_MAX_TRANSACTION_GAS_LIMIT = 16_777_216n;
 
+// Moonbeam overrides the EIP-7825 default because it is too low for current block limits.
+export const TX_MAX_GAS_LIMIT = 35_000_000n;
+
 /**
  * Class allowing to store multiple value for a runtime constant based on the runtime version
  */
