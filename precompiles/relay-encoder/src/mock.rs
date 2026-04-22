@@ -370,6 +370,7 @@ impl pallet_evm::Config for Runtime {
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
+	type TransactionGasLimit = ();
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 	type OnCreate = ();

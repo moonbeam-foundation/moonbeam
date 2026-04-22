@@ -781,6 +781,7 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = ();
 	type ChainId = ();
 	type BlockGasLimit = BlockGasLimit;
+	type TransactionGasLimit = moonbase_runtime::TransactionGasLimit;
 	type OnChargeTransaction = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
