@@ -75,6 +75,7 @@ use moonbeam_runtime_common::{
 		ProofSizeToFee, RefTimeToFee, WeightToFee,
 	},
 	impl_multiasset_paymaster::MultiAssetPaymaster,
+	TX_MAX_GAS_LIMIT,
 };
 pub use pallet_author_slot_filter::EligibilityValue;
 use pallet_ethereum::Call::transact;
@@ -427,6 +428,7 @@ pub const BLOCK_STORAGE_LIMIT: u64 = 160 * 1024;
 parameter_types! {
 	pub BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
+	pub TransactionGasLimit: Option<U256> = Some(U256::from(TX_MAX_GAS_LIMIT));
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
 	/// than this will decrease the weight and more will increase.
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(35);
@@ -540,6 +542,7 @@ impl pallet_evm::Config for Runtime {
 		DealWithEthereumPriorityFees<Runtime>,
 	>;
 	type BlockGasLimit = BlockGasLimit;
+	type TransactionGasLimit = TransactionGasLimit;
 	type FindAuthor = FindAuthorAdapter<AuthorInherent>;
 	type OnCreate = ();
 	type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
