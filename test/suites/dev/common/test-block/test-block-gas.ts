@@ -5,8 +5,12 @@ import {
   expect,
   deployCreateCompiledContract,
   beforeAll,
-} from "@moonwall/cli";
-import { ConstantStore, EIP_7825_MAX_TRANSACTION_GAS_LIMIT } from "../../../../helpers";
+} from "moonwall/cli";
+import {
+  ConstantStore,
+  EIP_7825_MAX_TRANSACTION_GAS_LIMIT,
+  TX_MAX_GAS_LIMIT,
+} from "../../../../helpers";
 
 describeSuite({
   id: "D010103",
@@ -35,13 +39,13 @@ describeSuite({
 
       it({
         id: `T0${TransactionTypes.indexOf(txnType) * 2 + 1}`,
-        title: `${txnType} should fail exceeding EIP-7825 transaction gas limit cap`,
+        title: `${txnType} should fail exceeding transaction gas limit cap`,
         test: async function () {
           await expect(
             async () =>
               await deployCreateCompiledContract(context, "MultiplyBy7", {
                 type: txnType,
-                gas: EIP_7825_MAX_TRANSACTION_GAS_LIMIT + 1n,
+                gas: TX_MAX_GAS_LIMIT + 1n,
               }),
             "Transaction should be reverted but instead contract deployed"
           ).rejects.toThrowError("exceeds transaction gas limit cap");

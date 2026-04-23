@@ -138,6 +138,7 @@ impl pallet_evm::Config for Test {
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type ChainId = ();
 	type BlockGasLimit = BlockGasLimit;
+	type TransactionGasLimit = ();
 	type OnChargeTransaction = ();
 	type FindAuthor = ();
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
