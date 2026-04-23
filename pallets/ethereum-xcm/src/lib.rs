@@ -362,6 +362,7 @@ impl<T: Config> Pallet<T> {
 							T::ReservedXcmpWeight::get(),
 						),
 					),
+					transaction_gas_limit: <T as pallet_evm::Config>::TransactionGasLimit::get(),
 					base_fee: U256::zero(),
 					chain_id: 0u64,
 					is_transactional: true,
