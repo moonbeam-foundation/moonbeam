@@ -31,4 +31,9 @@
 <a href=#31 id=31 data-nosnippet>31</a><span class="kw">pub mod </span>migrations;
 <a href=#32 id=32 data-nosnippet>32</a><span class="kw">pub mod </span>tests;
 <a href=#33 id=33 data-nosnippet>33</a><span class="kw">pub mod </span>types;
-<a href=#34 id=34 data-nosnippet>34</a><span class="kw">pub mod </span>xcm_origins;</code></pre></div></section></main></body></html>
+<a href=#34 id=34 data-nosnippet>34</a><span class="kw">pub mod </span>xcm_origins;
+<a href=#35 id=35 data-nosnippet>35</a>
+<a href=#36 id=36 data-nosnippet>36</a><span class="comment">// The default transaction gas limit from EIP-7825 is 16,777,216, which is too low
+<a href=#37 id=37 data-nosnippet>37</a>// for Moonbeam. Without this cap, Substrate enforces a maximum of 65% of the block
+<a href=#38 id=38 data-nosnippet>38</a>// gas limit (39 million gas for Moonbeam), so we enforce a cap close to that value.
+<a href=#39 id=39 data-nosnippet>39</a></span><span class="kw">pub const </span>TX_MAX_GAS_LIMIT: u64 = <span class="number">35_000_000</span>;</code></pre></div></section></main></body></html>
