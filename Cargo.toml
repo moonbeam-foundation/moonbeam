@@ -405,6 +405,9 @@ tokio-retry = { version = "0.3.0" }
 tracing = "0.1.37"
 url = { version = "2.4.0" }
 
+[patch."https://github.com/moonbeam-foundation/ethereum"]
+ethereum = { version = "0.18.2" }
+
 # The list of dependencies below (which can be both direct and indirect dependencies) are crates
 # that are suspected to be CPU-intensive, and that are unlikely to require debugging (as some of
 # their debug info might be missing) or to require to be frequently recompiled. We compile these
