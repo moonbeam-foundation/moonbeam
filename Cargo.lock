@@ -4224,6 +4224,7 @@ name = "fc-mapping-sync"
 version = "2.0.0-dev"
 source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2506#5997e1f444782cc51cdcb473f3d7e36535f9f8ef"
 dependencies = [
+ "ethereum-types",
  "fc-db",
  "fc-storage",
  "fp-consensus",
