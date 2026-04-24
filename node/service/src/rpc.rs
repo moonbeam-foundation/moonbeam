@@ -30,7 +30,7 @@ use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use fc_mapping_sync::{kv::MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
-	pending::ConsensusDataProvider, EthBlockDataCacheTask, EthTask, StorageOverride,
+	pending::ConsensusDataProvider, EthBlockDataCacheTask, EthTask, LogsJournal, StorageOverride,
 };
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool, TransactionRequest};
 use futures::StreamExt;
@@ -159,9 +159,7 @@ pub fn create_full<C, P, BE>(
 	subscription_task_executor: SubscriptionTaskExecutor,
 	maybe_tracing_config: Option<TracingConfig>,
 	pubsub_notification_sinks: Arc<
-		fc_mapping_sync::EthereumBlockNotificationSinks<
-			fc_mapping_sync::EthereumBlockNotification<Block>,
-		>,
+		fc_mapping_sync::EthereumBlockNotificationSinks<Block>,
 	>,
 	pending_consenus_data_provider: Box<dyn ConsensusDataProvider<Block>>,
 	para_id: ParaId,
@@ -308,6 +306,12 @@ where
 		.into_rpc(),
 	)?;
 
+	let logs_journal = Arc::new(LogsJournal::new(
+		subscription_task_executor.clone(),
+		overrides.clone(),
+		pubsub_notification_sinks.clone(),
+	));
+
 	if let Some(filter_pool) = filter_pool {
 		io.merge(
 			EthFilter::new(
@@ -319,6 +323,7 @@ where
 				max_past_logs,
 				max_block_range,
 				block_data_cache,
+				logs_journal.clone(),
 			)
 			.into_rpc(),
 		)?;
@@ -343,6 +348,7 @@ where
 			subscription_task_executor,
 			overrides,
 			pubsub_notification_sinks.clone(),
+			logs_journal.clone(),
 		)
 		.into_rpc(),
 	)?;
@@ -411,11 +417,7 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 pub fn spawn_essential_tasks<B, C, BE>(
 	params: SpawnTasksParams<B, C, BE>,
 	sync: Arc<SyncingService<B>>,
-	pubsub_notification_sinks: Arc<
-		fc_mapping_sync::EthereumBlockNotificationSinks<
-			fc_mapping_sync::EthereumBlockNotification<B>,
-		>,
-	>,
+	pubsub_notification_sinks: Arc<fc_mapping_sync::EthereumBlockNotificationSinks<B>>,
 ) where
 	C: ProvideRuntimeApi<B> + BlockOf,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,

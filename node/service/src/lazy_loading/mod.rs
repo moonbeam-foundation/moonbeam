@@ -697,9 +697,8 @@ where
 	// notification to the subscriber on receiving a message through this channel.
 	// This way we avoid race conditions when using native substrate block import notification
 	// stream.
-	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<
-		fc_mapping_sync::EthereumBlockNotification<Block>,
-	> = Default::default();
+	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<Block> =
+		Default::default();
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
 
 	let ethapi_cmd = rpc_config.ethapi.clone();
