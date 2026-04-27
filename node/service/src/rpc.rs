@@ -456,6 +456,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 					SyncStrategy::Parachain,
 					sync.clone(),
 					pubsub_notification_sinks.clone(),
+					None,
 				)
 				.for_each(|()| futures::future::ready(())),
 			);
