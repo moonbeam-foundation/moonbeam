@@ -202,8 +202,12 @@ cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 
 sp-timestamp = { workspace = true }
+parachains-common = { workspace = true, features = ["std"] }
 polkadot-runtime-parachains = { workspace = true }
-xcm-simulator = { workspace = true }
+pallet-delegated-staking = { workspace = true }
+asset-hub-westend-runtime = { workspace = true }
+westend-runtime = { workspace = true }
+xcm-emulator = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 moonbeam-tests-primitives = { workspace = true }
@@ -473,7 +477,9 @@ runtime-benchmarks = [
 	"pallet-evm-precompile-xcm-transactor/runtime-benchmarks",
 	"pallet-evm-precompile-xcm-utils/runtime-benchmarks",
 	"pallet-evm-precompile-xtokens/runtime-benchmarks",
-	"xcm-primitives/runtime-benchmarks"
+	"xcm-primitives/runtime-benchmarks",
+	"pallet-delegated-staking/runtime-benchmarks",
+	"westend-runtime/runtime-benchmarks"
 ]
 
 try-runtime = [
