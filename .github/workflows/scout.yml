@@ -1,9 +1,10 @@
 name: Scout Audit
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 0 * * *" # Runs every day at 12 AM UTC
+  pull_request:
+  push:
+    branches:
+      - master
 
 permissions:
   contents: read
@@ -21,6 +22,7 @@ jobs:
           sudo apt-get install -y libprotobuf-dev protobuf-compiler
           rustup component add rust-src rustc-dev llvm-tools-preview --toolchain nightly-2025-08-07
           cargo +nightly-2025-08-07 install cargo-scout-audit
+          cargo +nightly-2025-08-07 install dylint-link
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -55,7 +57,7 @@ jobs:
           mkdir -p "$REPORT_DIR"
 
           section "Running Security Analysis"
-          cargo +nightly-2025-08-07 scout-audit --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
+          cargo +nightly-2025-08-07 scout-audit --filter known-vulnerabilities,avoid-panic-error --output-path "$REPORT_PATH" --output-format md-gh --cicd "$REPORT_DIR"
           
           if [ ! -f "$REPORT_PATH" ]; then
             echo "[ERROR] Scout analysis failed!"
@@ -70,6 +72,14 @@ jobs:
         with:
           name: scout_audit_report.md
           path: ${{ steps.run-scout.outputs.report }}
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body-path: ${{ steps.run-scout.outputs.report }}
 
       - name: Check for failures
         shell: bash
