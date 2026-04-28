@@ -32,3 +32,8 @@ pub mod migrations;
 pub mod tests;
 pub mod types;
 pub mod xcm_origins;
+
+// The default transaction gas limit from EIP-7825 is 16,777,216, which is too low
+// for Moonbeam. Without this cap, Substrate enforces a maximum of 65% of the block
+// gas limit (39 million gas for Moonbeam), so we enforce a cap close to that value.
+pub const TX_MAX_GAS_LIMIT: u64 = 35_000_000;
