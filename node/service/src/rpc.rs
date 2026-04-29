@@ -434,6 +434,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 	// Maps emulated ethereum data to substrate native data.
 	match *params.frontier_backend {
 		fc_db::Backend::KeyValue(ref b) => {
+			let mapping_sync_metrics = Arc::new(fc_mapping_sync::MappingSyncMetrics::default());
 			params.task_manager.spawn_essential_handle().spawn(
 				"frontier-mapping-sync-worker",
 				Some("frontier"),
@@ -456,7 +457,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 					SyncStrategy::Parachain,
 					sync.clone(),
 					pubsub_notification_sinks.clone(),
-					None,
+					Some(mapping_sync_metrics),
 				)
 				.for_each(|()| futures::future::ready(())),
 			);
