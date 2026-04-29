@@ -803,6 +803,7 @@ where
 	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<Block> =
 		Default::default();
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
+	let mapping_sync_metrics = Arc::new(fc_mapping_sync::MappingSyncMetrics::default());
 
 	rpc::spawn_essential_tasks(
 		rpc::SpawnTasksParams {
@@ -818,6 +819,7 @@ where
 		},
 		sync_service.clone(),
 		pubsub_notification_sinks.clone(),
+		Some(mapping_sync_metrics.clone()),
 	);
 
 	let ethapi_cmd = rpc_config.ethapi.clone();
@@ -868,6 +870,8 @@ where
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
 		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
+		let prometheus_registry = prometheus_registry.clone();
+		let mapping_sync_metrics = mapping_sync_metrics.clone();
 
 		let keystore = params.keystore_container.keystore();
 		move |subscription_task_executor| {
@@ -914,6 +918,8 @@ where
 				block_data_cache: block_data_cache.clone(),
 				overrides: overrides.clone(),
 				forced_parent_hashes,
+				prometheus_registry: prometheus_registry.clone(),
+				mapping_sync_metrics: Some(mapping_sync_metrics.clone()),
 			};
 			let pending_consensus_data_provider = Box::new(PendingConsensusDataProvider::new(
 				client.clone(),
@@ -1594,6 +1600,7 @@ where
 	let pubsub_notification_sinks: fc_mapping_sync::EthereumBlockNotificationSinks<Block> =
 		Default::default();
 	let pubsub_notification_sinks = Arc::new(pubsub_notification_sinks);
+	let mapping_sync_metrics = Arc::new(fc_mapping_sync::MappingSyncMetrics::default());
 
 	rpc::spawn_essential_tasks(
 		rpc::SpawnTasksParams {
@@ -1609,6 +1616,7 @@ where
 		},
 		sync_service.clone(),
 		pubsub_notification_sinks.clone(),
+		Some(mapping_sync_metrics.clone()),
 	);
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
@@ -1640,7 +1648,7 @@ where
 		overrides.clone(),
 		rpc_config.eth_log_block_cache,
 		rpc_config.eth_statuses_cache,
-		prometheus_registry,
+		prometheus_registry.clone(),
 	));
 
 	let rpc_builder = {
@@ -1656,6 +1664,8 @@ where
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
 		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
+		let prometheus_registry = prometheus_registry.clone();
+		let mapping_sync_metrics = mapping_sync_metrics.clone();
 
 		let keystore = keystore_container.keystore();
 		move |subscription_task_executor| {
@@ -1682,6 +1692,8 @@ where
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
 				forced_parent_hashes: None,
+				prometheus_registry: prometheus_registry.clone(),
+				mapping_sync_metrics: Some(mapping_sync_metrics.clone()),
 			};
 
 			let pending_consensus_data_provider = Box::new(PendingConsensusDataProvider::new(

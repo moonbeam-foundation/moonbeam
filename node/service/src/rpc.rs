@@ -49,6 +49,7 @@ use sc_network::service::traits::NetworkService;
 use sc_network_sync::SyncingService;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_service::TaskManager;
+use substrate_prometheus_endpoint::Registry as PrometheusRegistry;
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::{CallApiAt, ProvideRuntimeApi};
 use sp_blockchain::{
@@ -145,6 +146,10 @@ pub struct FullDeps<C, P, BE> {
 	pub block_data_cache: Arc<EthBlockDataCacheTask<Block>>,
 	/// Mandated parent hashes for a given block hash.
 	pub forced_parent_hashes: Option<BTreeMap<H256, H256>>,
+	/// Prometheus registry for Frontier pubsub / mapping-sync gauges (when RPC exposes metrics).
+	pub prometheus_registry: Option<PrometheusRegistry>,
+	/// KV mapping-sync worker updates `best_at_import_entries` for `frontier_mapping_sync_best_at_import_entries`.
+	pub mapping_sync_metrics: Option<Arc<fc_mapping_sync::MappingSyncMetrics>>,
 }
 
 pub struct TracingConfig {
@@ -208,6 +213,8 @@ where
 		overrides,
 		block_data_cache,
 		forced_parent_hashes,
+		prometheus_registry,
+		mapping_sync_metrics,
 	} = deps;
 
 	io.merge(System::new(Arc::clone(&client), Arc::clone(&pool)).into_rpc())?;
@@ -311,6 +318,14 @@ where
 		overrides.clone(),
 		pubsub_notification_sinks.clone(),
 	));
+
+	fc_rpc::spawn_frontier_pubsub_metrics_task(
+		prometheus_registry.as_ref(),
+		pubsub_notification_sinks.clone(),
+		logs_journal.clone(),
+		subscription_task_executor.clone(),
+		mapping_sync_metrics,
+	);
 
 	if let Some(filter_pool) = filter_pool {
 		io.merge(
@@ -418,6 +433,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 	params: SpawnTasksParams<B, C, BE>,
 	sync: Arc<SyncingService<B>>,
 	pubsub_notification_sinks: Arc<fc_mapping_sync::EthereumBlockNotificationSinks<B>>,
+	mapping_sync_metrics: Option<Arc<fc_mapping_sync::MappingSyncMetrics>>,
 ) where
 	C: ProvideRuntimeApi<B> + BlockOf,
 	C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + 'static,
@@ -434,7 +450,6 @@ pub fn spawn_essential_tasks<B, C, BE>(
 	// Maps emulated ethereum data to substrate native data.
 	match *params.frontier_backend {
 		fc_db::Backend::KeyValue(ref b) => {
-			let mapping_sync_metrics = Arc::new(fc_mapping_sync::MappingSyncMetrics::default());
 			params.task_manager.spawn_essential_handle().spawn(
 				"frontier-mapping-sync-worker",
 				Some("frontier"),
@@ -457,7 +472,7 @@ pub fn spawn_essential_tasks<B, C, BE>(
 					SyncStrategy::Parachain,
 					sync.clone(),
 					pubsub_notification_sinks.clone(),
-					Some(mapping_sync_metrics),
+					mapping_sync_metrics,
 				)
 				.for_each(|()| futures::future::ready(())),
 			);

@@ -731,7 +731,7 @@ where
 		overrides.clone(),
 		rpc_config.eth_log_block_cache,
 		rpc_config.eth_statuses_cache,
-		prometheus_registry,
+		prometheus_registry.clone(),
 	));
 
 	let rpc_builder = {
@@ -747,6 +747,7 @@ where
 		let fee_history_cache = fee_history_cache.clone();
 		let block_data_cache = block_data_cache.clone();
 		let pubsub_notification_sinks = pubsub_notification_sinks.clone();
+		let prometheus_registry = prometheus_registry.clone();
 
 		let keystore = keystore_container.keystore();
 		let command_sink_for_task = command_sink.clone();
@@ -777,6 +778,8 @@ where
 				overrides: overrides.clone(),
 				block_data_cache: block_data_cache.clone(),
 				forced_parent_hashes: None,
+				prometheus_registry: prometheus_registry.clone(),
+				mapping_sync_metrics: None,
 			};
 
 			let pending_consensus_data_provider = Box::new(PendingConsensusDataProvider::new(
