@@ -103,7 +103,7 @@ jobs:
           cp moonbeam-znver3 ../moonbeam-znver3
       - name: Create draft release with binaries
         id: create-release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.to }}
           name: Moonbeam ${{ github.event.inputs.to }}

@@ -188,7 +188,7 @@ jobs:
 
       - name: Create draft release with runtime assets
         id: create-release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.inputs.to }}
           name: Runtime ${{ github.event.inputs.to }}
