@@ -43,7 +43,7 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
         name: Install pnpm
         with:
           version: 9
