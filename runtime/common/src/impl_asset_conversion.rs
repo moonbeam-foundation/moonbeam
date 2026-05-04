@@ -22,6 +22,7 @@ use frame_support::traits::{
 };
 use moonbeam_core_primitives::{AssetId, Balance};
 use pallet_xcm_weight_trader::RELATIVE_PRICE_DECIMALS;
+use sp_core::U256;
 use sp_runtime::traits::MaybeEquivalence;
 
 pub struct AssetRateConverter<T, NativeAsset>(PhantomData<(T, NativeAsset)>);
@@ -47,11 +48,15 @@ impl<
 				let relative_price =
 					pallet_xcm_weight_trader::Pallet::<T>::get_asset_relative_price(&location)
 						.ok_or(pallet_xcm_weight_trader::Error::<T>::AssetNotFound)?;
-				Ok(balance
-					.checked_mul(relative_price)
+				let result = U256::from(balance)
+					.checked_mul(U256::from(relative_price))
 					.ok_or(pallet_xcm_weight_trader::Error::<T>::PriceOverflow)?
-					.checked_div(10u128.pow(RELATIVE_PRICE_DECIMALS))
-					.ok_or(pallet_xcm_weight_trader::Error::<T>::PriceOverflow)?)
+					.checked_div(U256::from(10u128.pow(RELATIVE_PRICE_DECIMALS)))
+					.ok_or(pallet_xcm_weight_trader::Error::<T>::PriceOverflow)?;
+				let result: Balance = result
+					.try_into()
+					.map_err(|_| pallet_xcm_weight_trader::Error::<T>::PriceOverflow)?;
+				Ok(result)
 			}
 		}
 	}
