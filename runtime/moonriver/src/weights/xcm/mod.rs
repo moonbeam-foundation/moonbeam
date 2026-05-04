@@ -55,6 +55,34 @@ impl WeighMultiAssets for Assets {
 	}
 }
 
+fn erc20_asset_weight<Runtime>(asset: &Asset, benchmark_weight: Weight) -> Weight
+where
+	Runtime: pallet_erc20_xcm_bridge::Config,
+{
+	if pallet_erc20_xcm_bridge::Pallet::<Runtime>::is_erc20_asset(asset) {
+		let gas_weight =
+			pallet_erc20_xcm_bridge::Pallet::<Runtime>::weight_of_erc20_transfer(&asset.id);
+		Weight::from_parts(
+			benchmark_weight.ref_time().max(gas_weight.ref_time()),
+			benchmark_weight.proof_size().max(gas_weight.proof_size()),
+		)
+	} else {
+		benchmark_weight
+	}
+}
+
+fn weigh_erc20_assets<Runtime>(assets: &Assets, benchmark_weight: Weight) -> XCMWeight
+where
+	Runtime: pallet_erc20_xcm_bridge::Config,
+{
+	assets
+		.inner()
+		.into_iter()
+		.fold(Weight::zero(), |weight, asset| {
+			weight.saturating_add(erc20_asset_weight::<Runtime>(asset, benchmark_weight))
+		})
+}
+
 pub struct XcmWeight<Runtime, Call>(core::marker::PhantomData<(Runtime, Call)>);
 impl<Runtime, Call> XcmWeightInfo<Call> for XcmWeight<Runtime, Call>
 where
@@ -63,7 +91,7 @@ where
 		+ pallet_moonbeam_foreign_assets::Config,
 {
 	fn withdraw_asset(assets: &Assets) -> XCMWeight {
-		assets.weigh_assets(XcmFungibleWeight::<Runtime>::withdraw_asset())
+		weigh_erc20_assets::<Runtime>(assets, XcmFungibleWeight::<Runtime>::withdraw_asset())
 	}
 	// Currently there is no trusted reserve
 	fn reserve_asset_deposited(assets: &Assets) -> XCMWeight {
@@ -82,10 +110,13 @@ where
 		XcmGeneric::<Runtime>::query_response()
 	}
 	fn transfer_asset(assets: &Assets, _dest: &Location) -> XCMWeight {
-		assets.weigh_assets(XcmFungibleWeight::<Runtime>::transfer_asset())
+		weigh_erc20_assets::<Runtime>(assets, XcmFungibleWeight::<Runtime>::transfer_asset())
 	}
 	fn transfer_reserve_asset(assets: &Assets, _dest: &Location, _xcm: &Xcm<()>) -> XCMWeight {
-		assets.weigh_assets(XcmFungibleWeight::<Runtime>::transfer_reserve_asset())
+		weigh_erc20_assets::<Runtime>(
+			assets,
+			XcmFungibleWeight::<Runtime>::transfer_reserve_asset(),
+		)
 	}
 	fn transact(
 		_origin_type: &OriginKind,
