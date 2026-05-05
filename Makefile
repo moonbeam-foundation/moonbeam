@@ -85,6 +85,10 @@ start-zombienet-moonbeam: all
 	@zombienet/bin/${ZOMBIENET_BIN} spawn zombienet/configs/moonbeam-polkadot.toml
 
 export PATH = $(ZOMBINET_PATHS)
+start-zombienet-moonbase: all
+	@zombienet/bin/${ZOMBIENET_BIN} spawn zombienet/configs/moonbase-rococo.toml
+
+export PATH = $(ZOMBINET_PATHS)
 start-zombienet-moonriver: all
 	@zombienet/bin/${ZOMBIENET_BIN} spawn zombienet/configs/moonriver-kusama.toml
 

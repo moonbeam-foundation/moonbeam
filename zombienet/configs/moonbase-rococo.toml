@@ -1,0 +1,69 @@
+# Moonbase parachain on a Rococo relay (Rococo runtime) for easier debugging vs Polkadot relay.
+# Same layout as moonbeam-polkadot.toml; relay spec is rococo-local.
+
+[settings]
+provider = "native"
+
+[relaychain]
+default_command = "polkadot"
+default_args = [
+    "-lruntime::bridge-grandpa=trace"
+]
+chain = "rococo-local"
+
+# Elastic scaling: lookahead + async backing for velocity 3.
+# num_cores must match how many relay cores actually have validators: with max_validators_per_core = 1
+# and three cores (0,1,2), use three relay validators. Assign those cores to para 1000 after spawn
+# via Polkadot.js Apps (see docs/moonbase-multi-core.md §2c). If num_cores is much
+# larger than the validator set, collations hit cores with no assignment (collator-protocol WARN).
+# Zombienet merges [relaychain.genesis] into chainSpec.genesis; paths must use runtimeGenesis.patch.
+[relaychain.genesis.runtimeGenesis.patch.configuration.config.scheduler_params]
+lookahead = 4
+num_cores = 3
+max_validators_per_core = 1
+
+[relaychain.genesis.runtimeGenesis.patch.configuration.config.async_backing_params]
+max_candidate_depth = 3
+allowed_ancestry_len = 2
+
+[[relaychain.nodes]]
+name = "alice"
+validator = true
+rpc_port = 9900
+args = [
+    "--blocks-pruning=archive",
+    "--state-pruning=archive",
+]
+
+[[relaychain.nodes]]
+name = "bob"
+validator = true
+
+[[relaychain.nodes]]
+name = "charlie"
+validator = true
+
+[[parachains]]
+id = 1_000
+chain = "moonbase-local"
+cumulus_based = true
+
+[parachains.genesis.runtimeGenesis.config.authorFilter]
+eligibleCount = 1
+
+[[parachains.collators]]
+name = "alith"
+command = "moonbeam"
+rpc_port = 8800
+args = [
+    "--no-hardware-benchmarks",
+    "--no-telemetry",
+    "-lruntime::bridge-grandpa=trace",
+    "--pool-type=fork-aware",
+    "--authoring=slot-based"
+]
+
+[types.Header]
+number = "u64"
+parent_hash = "Hash"
+post_state = "Hash"

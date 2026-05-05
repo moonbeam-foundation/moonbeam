@@ -210,7 +210,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("moonbase"),
 	impl_name: Cow::Borrowed("moonbase"),
 	authoring_version: 4,
-	spec_version: 4300,
+	spec_version: 4301,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 3,
@@ -743,14 +743,15 @@ parameter_types! {
 
 /// Relay chain slot duration, in milliseconds.
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
+/// Build with an offset of 1 behind the relay chain (Polkadot SDK elastic scaling guide).
+pub const RELAY_PARENT_OFFSET: u32 = 1;
+/// How many parachain blocks are processed by the relay chain per parent. Must match
+/// relay core assignment (3 cores for Moonbase elastic scaling).
+const BLOCK_PROCESSING_VELOCITY: u32 = 3;
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
-/// into the relay chain.
-const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
-/// Build with an offset of 1 behind the relay chain.
-const RELAY_PARENT_OFFSET: u32 = 1;
-/// How many parachain blocks are processed by the relay chain per parent. Limits the
-/// number of blocks authored per slot.
-const BLOCK_PROCESSING_VELOCITY: u32 = 1;
+/// into the relay chain. Formula from Polkadot SDK `enable_elastic_scaling` guide.
+const UNINCLUDED_SEGMENT_CAPACITY: u32 =
+	(2 + RELAY_PARENT_OFFSET) * BLOCK_PROCESSING_VELOCITY + 1;
 
 type ConsensusHook = pallet_async_backing::consensus_hook::FixedVelocityConsensusHook<
 	Runtime,
@@ -771,7 +772,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ConsensusHook = ConsensusHook;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type WeightInfo = moonbase_weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
-	type RelayParentOffset = ConstU32<0>;
+	type RelayParentOffset = ConstU32<{ RELAY_PARENT_OFFSET }>;
 }
 
 impl parachain_info::Config for Runtime {}
