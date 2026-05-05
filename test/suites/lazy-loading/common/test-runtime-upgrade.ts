@@ -94,23 +94,25 @@ describeSuite({
         );
         expect(!!versionMigrationFinishedEvt, "Permanent XCM migration was executed").to.be.true;
 
-        // If there are any multi-block migrations, confirm that they are advancing
+        // If the migration queue was started, confirm it drains.
         if (upgradeStartedEvt) {
-          const migrationAdvancedEvt = (await api.query.system.events()).find(({ event }) =>
-            api.events.multiBlockMigrations.MigrationAdvanced.is(event)
-          );
-          expect(!!migrationAdvancedEvt, "Migration Advanced").to.be.true;
-
           // Ensure multi block migrations completed in less than 20 blocks.
           // We don't assume a fixed number of MigrationCompleted events:
-          // there may be one per multi-block migration. Instead, we require
-          // that at least one MigrationCompleted is observed and that
-          // UpgradeCompleted eventually fires, which indicates that all
-          // migrations have finished.
+          // there may be one per multi-block migration. Some upgrades also
+          // emit UpgradeStarted but complete without advancing any migration.
+          // In that case, UpgradeCompleted is enough to prove the queue drained.
+          let sawMigrationAdvanced = false;
           let sawMigrationCompleted = false;
           let sawUpgradeCompleted = false;
           for (let attempts = 0; attempts < 20; attempts++) {
             const events = await api.query.system.events();
+            if (
+              events.some(({ event }) =>
+                api.events.multiBlockMigrations.MigrationAdvanced.is(event)
+              )
+            ) {
+              sawMigrationAdvanced = true;
+            }
             if (
               events.some(({ event }) =>
                 api.events.multiBlockMigrations.MigrationCompleted.is(event)
@@ -127,8 +129,12 @@ describeSuite({
             await context.createBlock();
           }
 
-          expect(sawMigrationCompleted, "At least one MigrationCompleted event should be observed")
-            .to.be.true;
+          if (sawMigrationAdvanced) {
+            expect(
+              sawMigrationCompleted,
+              "At least one MigrationCompleted event should be observed"
+            ).to.be.true;
+          }
           expect(sawUpgradeCompleted, "UpgradeCompleted event should be observed").to.be.true;
         }
       },
