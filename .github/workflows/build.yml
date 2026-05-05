@@ -848,9 +848,17 @@ jobs:
         with:
           name: runtimes
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
-      - name: "Install and run upgrade test"
-        run: |
-          pnpm install
+      - name: Install dependencies (with retry)
+        uses: nick-fields/retry@v4
+        env:
+          # Retries + longer waits to reduce flakes.
+          npm_config_fetch_timeout: 300000
+          npm_config_fetch_retries: 5
+        with:
+          max_attempts: 3
+          timeout_minutes: 20
+          retry_on: error
+          command: pnpm install
       - name: Run Upgrade Test (with retry)
         uses: nick-fields/retry@v4
         with:

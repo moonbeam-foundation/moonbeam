@@ -391,7 +391,7 @@
         "compile-wasm.ts compile -b ../target/release/moonbeam -o wasm -c moonbeam-dev",
         "prepare-lazy-loading-overrides.ts process configs/lazyLoadingStateOverrides.json tmp/lazyLoadingStateOverrides.json ../target/release/wbuild/moonbeam-runtime/moonbeam_runtime.compact.compressed.wasm"
       ],
-      "multiThreads": 4,
+      "multiThreads": false,
       "envVars": ["DEBUG_COLORS=1"],
       "reporters": ["basic", "html", "json"],
       "reportFile": {
@@ -403,6 +403,7 @@
           {
             "name": "moonbeam",
             "binPath": "../target/release/moonbeam",
+            "cacheStartupArtifacts": true,
             "newRpcBehaviour": true,
             "legacy": false,
             "options": [
