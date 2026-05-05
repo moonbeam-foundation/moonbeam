@@ -537,7 +537,7 @@ jobs:
         run: |
           # There may be false negatives/positives
           # In case of false positives, check https://github.com/est31/cargo-udeps?tab=readme-ov-file#ignoring-some-of-the-dependencies
-          cargo +nightly-2026-04-01 udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime,xcm-emulator-tests --all-targets
+          cargo +nightly-2026-04-01 udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
     if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
@@ -585,53 +585,6 @@ jobs:
       - name: Unit tests
         run: |
           cargo test --profile testnet --workspace --features=evm-tracing
-
-  xcm-emulator-test:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
-    runs-on:
-      labels: bare-metal
-    permissions:
-      contents: read
-    needs: ["set-tags"]
-    env:
-      RUSTC_WRAPPER: "sccache"
-      CARGO_INCREMENTAL: "0"
-      SCCACHE_CACHE_SIZE: "100GB"
-      SCCACHE_GHA_ENABLED: true
-    strategy:
-      fail-fast: false
-      matrix:
-        runtime: [moonbeam-runtime, moonriver-runtime, moonbase-runtime]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.set-tags.outputs.git_ref }}
-      - name: Run sccache-cache
-        uses: mozilla-actions/sccache-action@v0.0.10
-      - name: Setup Variables
-        shell: bash
-        run: |
-          echo "RUSTFLAGS=-C opt-level=3 -D warnings -C linker=clang -C link-arg=-fuse-ld=$(pwd)/mold/bin/mold" >> $GITHUB_ENV
-      - name: Setup Mold Linker
-        shell: bash
-        run: |
-          mkdir -p mold
-          curl -L --retry 10 --silent --show-error https://github.com/rui314/mold/releases/download/v2.39.0/mold-2.39.0-$(uname -m)-linux.tar.gz | tar -C $(realpath mold) --strip-components=1 -xzf -
-      - name: Setup Rust toolchain
-        run: |
-          if ! which "rustup" > /dev/null; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          fi
-          rustup override unset
-          rustup show
-          rustup target add wasm32-unknown-unknown
-      # Pulls the heavy Westend + Asset Hub Westend dependency graph that the
-      # default `rust-test` job intentionally avoids. Keep this job separate
-      # so regular runtime test runs stay lean.
-      - name: xcm-emulator integration tests (${{ matrix.runtime }})
-        run: |
-          cargo test --profile testnet -p ${{ matrix.runtime }} --features xcm-emulator-tests --test xcm_emulator
 
   # Renable typegen_check when we have a bot in place to update PR for us in case of missing it
 

@@ -193,12 +193,6 @@ frame-benchmarking = { workspace = true, optional = true }
 frame-system-benchmarking = { workspace = true, optional = true }
 frame-try-runtime = { workspace = true, optional = true }
 
-# xcm-emulator tests (gated behind `xcm-emulator-tests` feature; see [[test]] below).
-asset-hub-westend-runtime = { workspace = true, optional = true }
-polkadot-runtime-parachains = { workspace = true, optional = true }
-westend-runtime = { workspace = true, optional = true }
-xcm-emulator = { workspace = true, optional = true }
-
 [dev-dependencies]
 frame-metadata = { workspace = true }
 hex = { workspace = true, features = ["std"] }
@@ -209,14 +203,14 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 
 sp-timestamp = { workspace = true }
 parachains-common = { workspace = true, features = ["std"] }
+polkadot-runtime-parachains = { workspace = true }
+pallet-delegated-staking = { workspace = true }
+asset-hub-westend-runtime = { workspace = true }
+westend-runtime = { workspace = true }
+xcm-emulator = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 moonbeam-tests-primitives = { workspace = true }
-
-[[test]]
-name = "xcm_emulator"
-path = "tests/xcm_emulator/main.rs"
-required-features = ["xcm-emulator-tests"]
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true }
@@ -472,7 +466,7 @@ runtime-benchmarks = [
 	"pallet-message-queue/runtime-benchmarks",
 	"polkadot-parachain/runtime-benchmarks",
 	"polkadot-runtime-common/runtime-benchmarks",
-	"polkadot-runtime-parachains?/runtime-benchmarks",
+	"polkadot-runtime-parachains/runtime-benchmarks",
 	"xcm-executor/runtime-benchmarks",
 	"xcm/runtime-benchmarks",
 	"pallet-evm-precompile-collective/runtime-benchmarks",
@@ -484,18 +478,8 @@ runtime-benchmarks = [
 	"pallet-evm-precompile-xcm-utils/runtime-benchmarks",
 	"pallet-evm-precompile-xtokens/runtime-benchmarks",
 	"xcm-primitives/runtime-benchmarks",
-	"westend-runtime?/runtime-benchmarks",
-]
-
-# Enables the xcm-emulator integration test suite (`tests/xcm_emulator/`),
-# which depends on the real Westend + Asset Hub Westend runtimes and the
-# `xcm-emulator` framework. Off by default to keep regular runtime test
-# builds lean — opt in via `--features xcm-emulator-tests`.
-xcm-emulator-tests = [
-	"asset-hub-westend-runtime",
-	"polkadot-runtime-parachains",
-	"westend-runtime",
-	"xcm-emulator",
+	"pallet-delegated-staking/runtime-benchmarks",
+	"westend-runtime/runtime-benchmarks"
 ]
 
 try-runtime = [
