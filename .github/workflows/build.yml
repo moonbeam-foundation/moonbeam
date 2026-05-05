@@ -53,6 +53,7 @@ jobs:
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
       any_changed: ${{ steps.changed-files.outputs.any_changed }}
+      self_hosted_allowed: ${{ steps.check-git-ref.outputs.self_hosted_allowed }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -64,14 +65,21 @@ jobs:
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "git_ref=${{ github.event.pull_request.head.sha }}" >> $GITHUB_OUTPUT
             echo "test_s3_dir=test-pulls/${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            if [[ "${{ github.event.pull_request.head.repo.fork }}" == "true" ]]; then
+              echo "self_hosted_allowed=false" >> $GITHUB_OUTPUT
+            else
+              echo "self_hosted_allowed=true" >> $GITHUB_OUTPUT
+            fi
           elif [[ -n "${{ github.event.inputs.pull_request }}" ]]; then
             echo "git_branch=$(echo ${GITHUB_HEAD_REF})" >> $GITHUB_OUTPUT
             echo "test_s3_dir=test-pulls/${{ github.event.inputs.pull_request }}" >> $GITHUB_OUTPUT
             echo "git_ref=refs/pull/${{ github.event.inputs.pull_request }}/head" >> $GITHUB_OUTPUT
+            echo "self_hosted_allowed=false" >> $GITHUB_OUTPUT
           else
             echo "test_s3_dir=test-branches/master" >> $GITHUB_OUTPUT
             echo "git_branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
             echo "git_ref=$GITHUB_REF" >> $GITHUB_OUTPUT
+            echo "self_hosted_allowed=true" >> $GITHUB_OUTPUT
           fi
           echo "repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}"
           echo "github.repository: ${{ github.repository }}"
@@ -124,6 +132,7 @@ jobs:
           echo sha: ${{ steps.get-sha.outputs.sha }}
           echo sha8: ${{ steps.get-sha.outputs.sha8 }}
           echo image_exists: ${{ steps.check-docker-image.outputs.image_exists }}
+          echo self_hosted_allowed: ${{ steps.check-git-ref.outputs.self_hosted_allowed }}
           echo latest_rt: ${{ steps.get-latest-rt.outputs.latest_rt }}
           echo latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
           echo polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
@@ -265,7 +274,9 @@ jobs:
   ####### Building and Testing binaries #######
 
   cargo-clippy:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -293,6 +304,9 @@ jobs:
         run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy --features try-runtime,runtime-benchmarks -- -Dclippy::todo
 
   build:
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -517,7 +531,9 @@ jobs:
 
   check-unused-dependencies:
     needs: ["set-tags"]
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on: moonbeam-release-medium
     permissions:
       contents: read
@@ -540,7 +556,9 @@ jobs:
           cargo +nightly-2026-04-01 udeps --workspace --features runtime-benchmarks,evm-tracing,try-runtime --all-targets
 
   rust-test:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -629,6 +647,9 @@ jobs:
   #         fi
 
   dev-test:
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -700,7 +721,9 @@ jobs:
       #     -d@test/tmp/testResults.json || echo "Curl command failed but continuing"
 
   typescript-tracing-tests:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -752,7 +775,9 @@ jobs:
           pnpm moonwall test dev_moonbase_tracing
 
   lazy-loading-tests:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
@@ -812,7 +837,9 @@ jobs:
           path: ${{ env.NODE_LOGS_ZIP }}
 
   chopsticks-upgrade-test:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
@@ -862,7 +889,9 @@ jobs:
             bun moonwall test upgrade_${{matrix.chain}}
 
   zombie_upgrade_test:
-    if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
+    if: |
+      needs.set-tags.outputs.any_changed == 'true' &&
+      needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
