@@ -50,7 +50,7 @@ pallet-author-inherent = { workspace = true, features = ["std"] }
 pallet-author-mapping = { workspace = true, features = ["std"] }
 
 # Moonbeam / Frontier
-pallet-ethereum = { workspace = true, features = ["std"] }
+pallet-ethereum = { workspace = true, features = ["std", "forbid-evm-reentrancy"] }
 pallet-ethereum-xcm = { workspace = true, features = ["std"] }
 pallet-xcm-transactor = { workspace = true, features = ["std"] }
 xcm-primitives = { workspace = true, features = ["std"] }
