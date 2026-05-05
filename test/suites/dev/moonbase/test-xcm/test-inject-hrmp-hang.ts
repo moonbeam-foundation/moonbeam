@@ -1,14 +1,17 @@
 import "@moonbeam-network/api-augment";
 import { customDevRpcRequest, describeSuite, expect } from "moonwall";
 
+// Must match the `flume::bounded(100)` capacity for the HRMP channel
+// in node/service/src/lib.rs.
 const HRMP_CHANNEL_CAPACITY = 100;
 const HANG_TIMEOUT_MS = 5_000;
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | "__timeout__"> {
-  return Promise.race([
-    p,
-    new Promise<"__timeout__">((resolve) => setTimeout(() => resolve("__timeout__"), ms)),
-  ]);
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<"__timeout__">((resolve) => {
+    timer = setTimeout(() => resolve("__timeout__"), ms);
+  });
+  return Promise.race([p, timeout]).finally(() => clearTimeout(timer));
 }
 
 describeSuite({
