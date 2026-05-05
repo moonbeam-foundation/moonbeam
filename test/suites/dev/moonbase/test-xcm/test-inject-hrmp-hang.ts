@@ -28,13 +28,15 @@ describeSuite({
           await customDevRpcRequest("xcm_injectHrmpMessage", [1, []]);
         }
 
-        // Once the channel is full, send_async parks the future and the
-        // RPC handler never returns — the connection is held open until
-        // a block drains the queue. The handler should fail fast instead.
-        const result = await withTimeout(
-          customDevRpcRequest("xcm_injectHrmpMessage", [1, []]),
-          HANG_TIMEOUT_MS
+        // Once the channel is full, the previous (buggy) implementation
+        // parked send_async and the RPC handler never returned. The fixed
+        // handler must fail fast — either with a JSON-RPC error or, if a
+        // block was authored in between, with a successful result.
+        const call = customDevRpcRequest("xcm_injectHrmpMessage", [1, []]).then(
+          () => "ok" as const,
+          (err: Error) => ({ rpcError: err.message })
         );
+        const result = await withTimeout(call, HANG_TIMEOUT_MS);
 
         expect(
           result,
