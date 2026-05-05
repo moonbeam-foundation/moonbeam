@@ -203,10 +203,6 @@ cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-test-relay-sproof-builder = { workspace = true }
 
 sp-timestamp = { workspace = true }
-polkadot-runtime-parachains = { workspace = true }
-xcm-emulator = { workspace = true }
-westend-runtime = { workspace = true }
-asset-hub-westend-runtime = { workspace = true }
 
 precompile-utils = { workspace = true, features = ["std", "testing"] }
 moonbeam-tests-primitives = { workspace = true }
@@ -357,7 +353,6 @@ std = [
 	"polkadot-core-primitives/std",
 	"polkadot-parachain/std",
 	"polkadot-runtime-common/std",
-	"polkadot-runtime-parachains/std",
 	"sp-debug-derive/std",
 	"sp-keyring/std",
 	"sp-weights/std",
@@ -471,7 +466,6 @@ runtime-benchmarks = [
 	"pallet-message-queue/runtime-benchmarks",
 	"polkadot-parachain/runtime-benchmarks",
 	"polkadot-runtime-common/runtime-benchmarks",
-	"polkadot-runtime-parachains/runtime-benchmarks",
 	"xcm-executor/runtime-benchmarks",
 	"xcm/runtime-benchmarks",
 	"pallet-evm-precompile-collective/runtime-benchmarks",
@@ -547,7 +541,6 @@ try-runtime = [
 	"frame-try-runtime/try-runtime",
 	"pallet-assets/try-runtime",
 	"polkadot-runtime-common/try-runtime",
-	"polkadot-runtime-parachains/try-runtime",
 	"sp-runtime/try-runtime",
 	"pallet-moonbeam-foreign-assets/try-runtime",
 	"pallet-xcm-weight-trader/try-runtime"

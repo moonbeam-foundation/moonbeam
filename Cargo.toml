@@ -40,8 +40,11 @@ members = [
     "primitives/bridge/moonbeam",
     "primitives/bridge/moonriver",
     "runtime/moonbase",
+    "runtime/moonbase/xcm-emulator-tests",
     "runtime/moonbeam",
+    "runtime/moonbeam/xcm-emulator-tests",
     "runtime/moonriver",
+    "runtime/moonriver/xcm-emulator-tests",
     "runtime/summarize-precompile-checks",
 ]
 resolver = "2"

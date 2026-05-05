@@ -8160,7 +8160,6 @@ name = "moonbase-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
- "asset-hub-westend-runtime",
  "async-backing-primitives",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-weight-reclaim",
@@ -8274,7 +8273,6 @@ dependencies = [
  "polkadot-core-primitives",
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
- "polkadot-runtime-parachains",
  "precompile-utils",
  "rlp 0.6.1",
  "scale-info",
@@ -8307,9 +8305,42 @@ dependencies = [
  "strum 0.26.3",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
+ "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
+ "xcm-runtime-apis",
+]
+
+[[package]]
+name = "moonbase-xcm-emulator-tests"
+version = "0.0.1"
+dependencies = [
+ "asset-hub-westend-runtime",
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "moonbase-runtime",
+ "nimbus-primitives",
+ "pallet-author-inherent",
+ "pallet-author-mapping",
+ "pallet-balances",
+ "pallet-ethereum",
+ "pallet-ethereum-xcm",
+ "pallet-message-queue",
+ "pallet-utility",
+ "pallet-xcm",
+ "pallet-xcm-transactor",
+ "parachains-common",
+ "parity-scale-codec",
+ "polkadot-parachain-primitives",
+ "polkadot-runtime-parachains",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "staging-parachain-info",
+ "staging-xcm",
+ "staging-xcm-executor",
  "westend-runtime",
  "xcm-emulator",
- "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-runtime-apis",
 ]
@@ -8558,7 +8589,6 @@ name = "moonbeam-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
- "asset-hub-westend-runtime",
  "async-backing-primitives",
  "bp-header-chain",
  "bp-messages",
@@ -8615,7 +8645,6 @@ dependencies = [
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
- "pallet-delegated-staking",
  "pallet-emergency-para-xcm",
  "pallet-erc20-xcm-bridge",
  "pallet-ethereum",
@@ -8685,7 +8714,6 @@ dependencies = [
  "polkadot-core-primitives",
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
- "polkadot-runtime-parachains",
  "precompile-utils",
  "rlp 0.6.1",
  "scale-info",
@@ -8717,8 +8745,6 @@ dependencies = [
  "strum 0.26.3",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
- "westend-runtime",
- "xcm-emulator",
  "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-runtime-apis",
@@ -8906,11 +8932,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-xcm-emulator-tests"
+version = "0.0.1"
+dependencies = [
+ "asset-hub-westend-runtime",
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "moonbeam-runtime",
+ "nimbus-primitives",
+ "pallet-author-inherent",
+ "pallet-author-mapping",
+ "pallet-balances",
+ "pallet-ethereum",
+ "pallet-ethereum-xcm",
+ "pallet-message-queue",
+ "pallet-utility",
+ "pallet-xcm",
+ "pallet-xcm-transactor",
+ "parachains-common",
+ "parity-scale-codec",
+ "polkadot-parachain-primitives",
+ "polkadot-runtime-parachains",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "staging-parachain-info",
+ "staging-xcm",
+ "staging-xcm-executor",
+ "westend-runtime",
+ "xcm-emulator",
+ "xcm-primitives 0.1.1",
+ "xcm-runtime-apis",
+]
+
+[[package]]
 name = "moonriver-runtime"
 version = "0.8.4"
 dependencies = [
  "account",
- "asset-hub-westend-runtime",
  "async-backing-primitives",
  "bp-header-chain",
  "bp-messages",
@@ -9036,7 +9096,6 @@ dependencies = [
  "polkadot-core-primitives",
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
- "polkadot-runtime-parachains",
  "precompile-utils",
  "rlp 0.6.1",
  "scale-info",
@@ -9069,9 +9128,42 @@ dependencies = [
  "strum 0.26.3",
  "strum_macros 0.24.3",
  "substrate-wasm-builder",
+ "xcm-primitives 0.1.0",
+ "xcm-primitives 0.1.1",
+ "xcm-runtime-apis",
+]
+
+[[package]]
+name = "moonriver-xcm-emulator-tests"
+version = "0.0.1"
+dependencies = [
+ "asset-hub-westend-runtime",
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "moonriver-runtime",
+ "nimbus-primitives",
+ "pallet-author-inherent",
+ "pallet-author-mapping",
+ "pallet-balances",
+ "pallet-ethereum",
+ "pallet-ethereum-xcm",
+ "pallet-message-queue",
+ "pallet-utility",
+ "pallet-xcm",
+ "pallet-xcm-transactor",
+ "parachains-common",
+ "parity-scale-codec",
+ "polkadot-parachain-primitives",
+ "polkadot-runtime-parachains",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "staging-parachain-info",
+ "staging-xcm",
+ "staging-xcm-executor",
  "westend-runtime",
  "xcm-emulator",
- "xcm-primitives 0.1.0",
  "xcm-primitives 0.1.1",
  "xcm-runtime-apis",
 ]

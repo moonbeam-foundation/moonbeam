@@ -1,0 +1,56 @@
+[package]
+name = "moonbeam-xcm-emulator-tests"
+authors = { workspace = true }
+description = "XCM emulator integration tests for moonbeam-runtime"
+edition = "2021"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+publish = false
+version = "0.0.1"
+
+[lib]
+path = "src/lib.rs"
+
+[dev-dependencies]
+# The runtime under test
+moonbeam-runtime = { path = "../" }
+
+# Heavy XCM emulator deps (the whole reason this crate is split out)
+asset-hub-westend-runtime = { workspace = true }
+polkadot-runtime-parachains = { workspace = true, features = ["std"] }
+westend-runtime = { workspace = true }
+xcm-emulator = { workspace = true }
+
+# Substrate / FRAME (std)
+frame-support = { workspace = true, features = ["std"] }
+frame-system = { workspace = true, features = ["std"] }
+pallet-balances = { workspace = true, features = ["std"] }
+pallet-message-queue = { workspace = true, features = ["std"] }
+pallet-utility = { workspace = true, features = ["std"] }
+pallet-xcm = { workspace = true, features = ["std"] }
+parachain-info = { workspace = true, features = ["std"] }
+parachains-common = { workspace = true, features = ["std"] }
+parity-scale-codec = { workspace = true, features = ["std"] }
+sp-core = { workspace = true, features = ["std"] }
+sp-io = { workspace = true, features = ["std"] }
+sp-runtime = { workspace = true, features = ["std"] }
+
+# Cumulus
+cumulus-primitives-core = { workspace = true, features = ["std"] }
+
+# Polkadot / XCM
+polkadot-parachain = { workspace = true, features = ["std"] }
+xcm = { workspace = true, features = ["std"] }
+xcm-executor = { workspace = true, features = ["std"] }
+xcm-runtime-apis = { workspace = true, features = ["std"] }
+
+# Moonkit
+nimbus-primitives = { workspace = true, features = ["std"] }
+pallet-author-inherent = { workspace = true, features = ["std"] }
+pallet-author-mapping = { workspace = true, features = ["std"] }
+
+# Moonbeam / Frontier
+pallet-ethereum = { workspace = true, features = ["std"] }
+pallet-ethereum-xcm = { workspace = true, features = ["std"] }
+pallet-xcm-transactor = { workspace = true, features = ["std"] }
+xcm-primitives = { workspace = true, features = ["std"] }
