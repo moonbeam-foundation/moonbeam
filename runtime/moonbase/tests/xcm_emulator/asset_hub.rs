@@ -304,3 +304,199 @@ fn transfer_trust_backed_asset_from_asset_hub_to_moonbase() {
 		"ALITH should have received USDT on Moonbeam (got {alith_usdt})"
 	);
 }
+
+/// Moonbase → Asset Hub return-leg coverage for a trust-backed asset.
+///
+/// AH is the reserve for trust-backed assets (`pallet-assets`, `PalletInstance(50)`),
+/// so from Moonbase this is a `DestinationReserve` transfer. The forward leg
+/// (AH → Moonbase) leaves USDT in Moonbase's sovereign account on AH; the
+/// return leg withdraws from that sovereign back to the recipient on AH.
+///
+/// What this test verifies on the Moonbase side:
+///   - `transfer_assets_using_type_and_then` with `DestinationReserve` succeeds.
+///   - The foreign-asset balance burns by the transfer amount.
+///   - The XCM message is delivered to AH and `WithdrawAsset` succeeds against
+///     Moonbase's sovereign account on AH (USDT is burned from the sovereign).
+///
+/// What this test does NOT verify on the AH side: that the recipient ends up
+/// with USDT. AH's `SwapFirstAssetTrader` requires either a USDT⇄WND pool with
+/// enough depth or DOT in the holding to satisfy `BuyExecution`. Configuring
+/// that is out of scope here; the post-fee delivery path is exercised by
+/// dedicated AH tests upstream in polkadot-sdk.
+#[test]
+fn transfer_trust_backed_asset_from_moonbase_to_asset_hub() {
+	setup_asset_hub_and_moonbase();
+
+	let asset_id: u32 = 1984;
+	let asset_owner = sp_runtime::AccountId32::new([1u8; 32]);
+	let mint_amount: u128 = 1_000_000_000_000;
+
+	asset_hub_execute_with(|| {
+		assert_ok!(asset_hub_westend_runtime::Assets::force_create(
+			asset_hub_westend_runtime::RuntimeOrigin::root(),
+			asset_id.into(),
+			asset_owner.clone().into(),
+			true,
+			1_000,
+		));
+		assert_ok!(asset_hub_westend_runtime::Assets::mint(
+			asset_hub_westend_runtime::RuntimeOrigin::signed(asset_owner.clone()),
+			asset_id.into(),
+			asset_owner.clone().into(),
+			mint_amount,
+		));
+	});
+
+	const USDT_FOREIGN_ID: u128 = 11;
+	let usdt_on_moonbase = Location::new(
+		1,
+		[
+			Parachain(ASSET_HUB_PARA_ID),
+			PalletInstance(50u8),
+			GeneralIndex(asset_id as u128),
+		],
+	);
+	moonbase_execute_with(|| {
+		assert_ok!(moonbase_runtime::EvmForeignAssets::create_foreign_asset(
+			moonbase_runtime::RuntimeOrigin::root(),
+			USDT_FOREIGN_ID,
+			usdt_on_moonbase.clone(),
+			6,
+			b"USDT".to_vec().try_into().unwrap(),
+			b"Tether USD".to_vec().try_into().unwrap(),
+		));
+		assert_ok!(moonbase_runtime::XcmWeightTrader::add_asset(
+			moonbase_runtime::RuntimeOrigin::root(),
+			usdt_on_moonbase.clone(),
+			10_000_000_000_000_000_000_000_000_000u128,
+		));
+	});
+
+	WestendRelay::<PolkadotMoonbeamNet>::execute_with(|| {
+		assert_ok!(westend_runtime::XcmPallet::limited_teleport_assets(
+			westend_runtime::RuntimeOrigin::signed(RELAY_ALICE.clone()),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[Parachain(ASSET_HUB_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountId32 {
+					network: None,
+					id: asset_owner.clone().into(),
+				}],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(Location::here()),
+				fun: Fungible(ONE_DOT * 100),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	let forward_amount: u128 = 2_000_000_000;
+	asset_hub_execute_with(|| {
+		let usdt_on_ah = Location::new(0, [PalletInstance(50u8), GeneralIndex(asset_id as u128)]);
+
+		assert_ok!(asset_hub_westend_runtime::PolkadotXcm::transfer_assets(
+			asset_hub_westend_runtime::RuntimeOrigin::signed(asset_owner.clone()),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				1,
+				[Parachain(MOONBASE_PARA_ID)],
+			))),
+			Box::new(xcm::VersionedLocation::from(Location::new(
+				0,
+				[AccountKey20 {
+					network: None,
+					key: ALITH,
+				}],
+			))),
+			Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+				id: AssetId(usdt_on_ah),
+				fun: Fungible(forward_amount),
+			}]))),
+			0,
+			WeightLimit::Unlimited,
+		));
+	});
+
+	let alith_usdt_before_return = moonbase_execute_with(|| {
+		moonbase_runtime::EvmForeignAssets::balance(
+			USDT_FOREIGN_ID,
+			moonbase_runtime::AccountId::from(ALITH),
+		)
+		.unwrap_or_default()
+	});
+	assert!(
+		alith_usdt_before_return > U256::zero(),
+		"ALITH should hold USDT before return leg (got {alith_usdt_before_return})"
+	);
+
+	let moonbase_sovereign_on_ah: sp_runtime::AccountId32 =
+		<asset_hub_westend_runtime::xcm_config::LocationToAccountId as xcm_executor::traits::ConvertLocation<
+			sp_runtime::AccountId32,
+		>>::convert_location(&Location::new(1, [Parachain(MOONBASE_PARA_ID)]))
+		.expect("sibling sovereign convert");
+	let sovereign_usdt_before = asset_hub_execute_with(|| {
+		asset_hub_westend_runtime::Assets::balance(asset_id, moonbase_sovereign_on_ah.clone())
+	});
+	assert_eq!(
+		sovereign_usdt_before, forward_amount,
+		"Moonbase sovereign on AH should hold the forwarded USDT"
+	);
+
+	let return_amount: u128 = 1_000_000_000;
+	let return_recipient = sp_runtime::AccountId32::new([3u8; 32]);
+	moonbase_execute_with(|| {
+		assert_ok!(
+			moonbase_runtime::PolkadotXcm::transfer_assets_using_type_and_then(
+				moonbase_runtime::RuntimeOrigin::signed(moonbase_runtime::AccountId::from(ALITH)),
+				Box::new(xcm::VersionedLocation::from(Location::new(
+					1,
+					[Parachain(ASSET_HUB_PARA_ID)],
+				))),
+				Box::new(xcm::VersionedAssets::from(Assets::from(vec![Asset {
+					id: AssetId(usdt_on_moonbase.clone()),
+					fun: Fungible(return_amount),
+				}]))),
+				Box::new(xcm_executor::traits::TransferType::DestinationReserve),
+				Box::new(xcm::VersionedAssetId::from(AssetId(usdt_on_moonbase))),
+				Box::new(xcm_executor::traits::TransferType::DestinationReserve),
+				Box::new(xcm::VersionedXcm::from(Xcm::<()>(vec![DepositAsset {
+					assets: Wild(All),
+					beneficiary: Location::new(
+						0,
+						[AccountId32 {
+							network: None,
+							id: return_recipient.into(),
+						}],
+					),
+				}]))),
+				WeightLimit::Unlimited,
+			)
+		);
+	});
+
+	let alith_usdt_after_return = moonbase_execute_with(|| {
+		moonbase_runtime::EvmForeignAssets::balance(
+			USDT_FOREIGN_ID,
+			moonbase_runtime::AccountId::from(ALITH),
+		)
+		.unwrap_or_default()
+	});
+	assert_eq!(
+		alith_usdt_after_return,
+		alith_usdt_before_return - U256::from(return_amount),
+		"ALITH USDT on Moonbase should drop by {return_amount}"
+	);
+
+	let sovereign_usdt_after = asset_hub_execute_with(|| {
+		asset_hub_westend_runtime::Assets::balance(asset_id, moonbase_sovereign_on_ah)
+	});
+	assert_eq!(
+		sovereign_usdt_after,
+		sovereign_usdt_before - return_amount,
+		"Moonbase sovereign on AH should be debited by {return_amount}"
+	);
+}
