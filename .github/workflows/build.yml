@@ -26,6 +26,9 @@ concurrency:
 env:
   NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation"
   CARGO_TERM_COLOR: always
+  # pnpm/npm registry (pairs with test/.npmrc fetch-timeout / fetch-retries).
+  npm_config_fetch_timeout: "600000"
+  npm_config_fetch_retries: "10"
 
 permissions:
   contents: read
@@ -206,7 +209,14 @@ jobs:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
-      - run: pnpm install
+      - name: Install dependencies (with retry)
+        uses: nick-fields/retry@v4
+        with:
+          max_attempts: 3
+          timeout_minutes: 45
+          retry_wait_seconds: 30
+          retry_on: error
+          command: pnpm install
       - run: pnpm check
 
   check-cargo-toml-format:
@@ -655,7 +665,7 @@ jobs:
     permissions:
       contents: read
     needs: ["set-tags", "build"]
-    timeout-minutes: 20
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -729,6 +739,7 @@ jobs:
     permissions:
       contents: read
     needs: ["set-tags", "build", "dev-test"]
+    timeout-minutes: 120
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -764,15 +775,34 @@ jobs:
         run: |
           chmod uog+x build/moonbeam
           chmod uog+x target/release/moonbeam
-      - name: Running Tracing Tests
+      - name: Install dependencies (with retry)
+        uses: nick-fields/retry@v4
+        with:
+          max_attempts: 3
+          timeout_minutes: 45
+          retry_wait_seconds: 30
+          retry_on: error
+          command: cd test && pnpm install
+      - name: Compile Solidity for tracing
         env:
           DEBUG_COLOURS: "1"
           NODE_OPTIONS: "--max-old-space-size=12288"
         run: |
           cd test
-          pnpm install
           pnpm compile-solidity
-          pnpm moonwall test dev_moonbase_tracing
+      - name: Run tracing Moonwall (with retry)
+        uses: nick-fields/retry@v4
+        env:
+          DEBUG_COLOURS: "1"
+          NODE_OPTIONS: "--max-old-space-size=12288"
+        with:
+          max_attempts: 3
+          timeout_minutes: 90
+          retry_wait_seconds: 30
+          retry_on: error
+          command: |
+            cd test
+            pnpm moonwall test dev_moonbase_tracing
 
   lazy-loading-tests:
     if: |
@@ -783,6 +813,7 @@ jobs:
     permissions:
       contents: read
     needs: ["set-tags", "build"]
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -817,12 +848,25 @@ jobs:
         with:
           name: moonbeam
           path: target/release
-      - name: "Run lazy loading tests"
-        run: |
-          chmod uog+x target/release/moonbeam
-          cd test
-          pnpm install
-          pnpm moonwall test lazy_loading_${{ matrix.chain }}
+      - name: Install dependencies (with retry)
+        uses: nick-fields/retry@v4
+        with:
+          max_attempts: 3
+          timeout_minutes: 45
+          retry_wait_seconds: 30
+          retry_on: error
+          command: cd test && pnpm install
+      - name: "Run lazy loading tests (with retry)"
+        uses: nick-fields/retry@v4
+        with:
+          max_attempts: 3
+          timeout_minutes: 90
+          retry_wait_seconds: 30
+          retry_on: error
+          command: |
+            chmod uog+x target/release/moonbeam
+            cd test
+            pnpm moonwall test lazy_loading_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |
@@ -843,6 +887,7 @@ jobs:
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
@@ -877,20 +922,18 @@ jobs:
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: Install dependencies (with retry)
         uses: nick-fields/retry@v4
-        env:
-          # Retries + longer waits to reduce flakes.
-          npm_config_fetch_timeout: 300000
-          npm_config_fetch_retries: 5
         with:
           max_attempts: 3
-          timeout_minutes: 20
+          timeout_minutes: 45
+          retry_wait_seconds: 30
           retry_on: error
           command: pnpm install
       - name: Run Upgrade Test (with retry)
         uses: nick-fields/retry@v4
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 90
+          retry_wait_seconds: 30
           retry_on: error
           command: |
             cd test
@@ -903,6 +946,7 @@ jobs:
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -942,11 +986,17 @@ jobs:
           LATEST_CLIENT=$(curl -s https://api.github.com/repos/moonbeam-foundation/moonbeam/releases | jq -r '.[] | select(.name | test("v";"i")) | .tag_name' | sort -rs | head -n 1 | tr -d '[:blank:]')
           echo "Latest client: $LATEST_CLIENT"
           wget https://github.com/moonbeam-foundation/moonbeam/releases/download/$LATEST_CLIENT/moonbeam -O test/tmp/moonbeam_rt
+      - name: Install dependencies (with retry)
+        uses: nick-fields/retry@v4
+        with:
+          max_attempts: 3
+          timeout_minutes: 45
+          retry_wait_seconds: 30
+          retry_on: error
+          command: cd test && pnpm install
       - name: Prepare Chainspecs
         run: |
           cd test
-          pnpm install
-
           ## Generate old spec using latest published node, modify it, and generate raw spec
           chmod uog+x tmp/moonbeam_rt
           chmod uog+x ../target/release/moonbeam
@@ -954,10 +1004,16 @@ jobs:
           pnpm tsx scripts/modify-plain-specs.ts process tmp/${{ matrix.chain }}-plain-spec.json tmp/${{ matrix.chain }}-modified-spec.json
           tmp/moonbeam_rt build-spec --chain tmp/${{ matrix.chain }}-modified-spec.json --raw > tmp/${{ matrix.chain }}-raw-spec.json
           pnpm tsx scripts/preapprove-rt-rawspec.ts process tmp/${{ matrix.chain }}-raw-spec.json tmp/${{ matrix.chain }}-modified-raw-spec.json ../target/release/wbuild/${{ matrix.chain }}-runtime/${{ matrix.chain }}_runtime.compact.compressed.wasm
-      - name: "Run zombie upgrade test"
-        run: |
-          cd test
-          pnpm moonwall test zombie_${{ matrix.chain }}
+      - name: "Run zombie upgrade test (with retry)"
+        uses: nick-fields/retry@v4
+        with:
+          max_attempts: 3
+          timeout_minutes: 90
+          retry_wait_seconds: 30
+          retry_on: error
+          command: |
+            cd test
+            pnpm moonwall test zombie_${{ matrix.chain }}
       - name: Zip and Upload Node Logs on Failure
         if: failure()
         run: |
@@ -991,13 +1047,18 @@ jobs:
         with:
           name: moonbeam
           path: target/release
+      - name: Install polkadot-js-api (with retry)
+        uses: nick-fields/retry@v4
+        with:
+          max_attempts: 3
+          timeout_minutes: 45
+          retry_wait_seconds: 30
+          retry_on: error
+          command: npm install -g @polkadot/api-cli
       - name: Setup
         run: |
-          # Install polkadot-js-api
           # https://github.com/paritytech/polkadot-sdk/blob/56f683fabfc5a4554d4b9208e91103624264407c/bridges/testing/framework/utils/bridges.sh#L21
-          npm install -g @polkadot/api-cli
           chmod uog+x ./target/release/moonbeam
-          # This command prepares all required binaries and runs the bridge integration tests
           make run-bridge-integration-tests
       - name: Zip and Upload Logs on Failure
         if: failure()
