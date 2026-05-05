@@ -53,7 +53,6 @@ jobs:
       latest_rt: ${{ steps.get-sha.outputs.latest_rt }}
       latest_rt_sha8: ${{ steps.get-sha.outputs.latest_rt_sha8 }}
       any_changed: ${{ steps.changed-files.outputs.any_changed }}
-      rust_changed: ${{ steps.rust-changed-files.outputs.any_changed }}
       self_hosted_allowed: ${{ steps.check-git-ref.outputs.self_hosted_allowed }}
     steps:
       - name: Check git ref
@@ -148,15 +147,6 @@ jobs:
             **/**.txt
             **.md
             **.txt
-      - name: Detect Rust source changes (gates the xcm-emulator-test job)
-        id: rust-changed-files
-        uses: tj-actions/changed-files@v47
-        with:
-          files: |
-            **/*.rs
-            **/Cargo.toml
-            Cargo.lock
-            rust-toolchain*
 
   check-copyright:
     if: ${{ needs.set-tags.outputs.any_changed == 'true' }}
@@ -620,10 +610,20 @@ jobs:
   # default `rust-test` job. Compiles the heavy graph once and runs all
   # three runtimes' tests in a single job (sccache reuse). Only fires when
   # Rust source files change.
+  # Opt-in only on PRs: the XCM emulator suite is heavy (Westend + Asset Hub
+  # Westend), so we don't want it on the critical path of every PR. It runs
+  # when:
+  #   - a PR is labelled `XCM`,
+  #   - the workflow is triggered manually (`workflow_dispatch`), or
+  #   - on push to `master`/`perm-*` (so master is at least eventually
+  #     validated, since there's no merge queue to gate pre-merge).
   xcm-emulator-test:
     if: |
-      needs.set-tags.outputs.rust_changed == 'true' &&
-      needs.set-tags.outputs.self_hosted_allowed == 'true'
+      (
+        github.event_name == 'push'
+        || github.event_name == 'workflow_dispatch'
+        || (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'XCM'))
+      ) && needs.set-tags.outputs.self_hosted_allowed == 'true'
     runs-on:
       labels: bare-metal
     permissions:
