@@ -30,6 +30,7 @@ use frame_support::sp_runtime::Percent;
 use frame_support::traits::{fungible::Inspect, Get};
 use pallet_evm::AddressMapping;
 use pallet_parachain_staking::ScheduledRequest;
+use parity_scale_codec::{Compact, Encode};
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
@@ -52,10 +53,10 @@ pub struct ParachainStakingPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> ParachainStakingPrecompile<Runtime>
 where
 	Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
-	Runtime::AccountId: Into<H160>,
+	Runtime::AccountId: Into<H160> + MaxEncodedLen,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<pallet_parachain_staking::Call<Runtime>>,
-	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec + MaxEncodedLen,
 	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	// Constants
@@ -960,24 +961,28 @@ where
 			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
 	}
 
-	/// Proof-size upper bound for one `DelegatorState` storage read.
-	///
-	/// Layout:
-	/// - key:   `Twox64Concat`(8) + `AccountId`(20)                                = 28
-	/// - value: `Delegator { id: AccountId(20), delegations: OrderedSet<Bond>,
-	///                       total: Balance(16), less_total: Balance(16),
-	///                       status: DelegatorStatus(<= 5) }`
-	///   where `OrderedSet<Bond>` SCALE-encodes as a 2-byte compact length prefix
-	///   (sufficient for any `MaxDelegationsPerDelegator < 16_384`) followed by
-	///   `MaxDelegationsPerDelegator` × `Bond`(36).
-	///
-	/// Fixed overhead = 28 + 20 + 2 + 16 + 16 + 5 = 87 bytes.
-	pub fn delegator_state_storage_read_proof_size() -> usize {
-		const FIXED_OVERHEAD: usize = 87;
-		const BOND_SIZE: usize = 36;
-		let max_delegations =
-			<Runtime as pallet_parachain_staking::Config>::MaxDelegationsPerDelegator::get()
-				as usize;
-		FIXED_OVERHEAD + (BOND_SIZE * max_delegations)
+	/// Proof-size upper bound for one read of [`pallet_parachain_staking::Pallet::delegator_state`]
+	/// storage (`Twox64Concat` + `AccountId` key, max-sized SCALE `Delegator` value).
+	pub(crate) fn delegator_state_storage_read_proof_size() -> usize {
+		/// [`frame_support::Twox64Concat`] output length (bytes); Substrate storage key prefix.
+		const TWOX64_CONCAT_PREFIX_LEN: usize = 8;
+		let max_d =
+			<Runtime as pallet_parachain_staking::Config>::MaxDelegationsPerDelegator::get();
+		let delegation_compact_prefix = Compact(max_d).encode().len();
+		let max_bonds_bytes = (max_d as usize).saturating_mul(pallet_parachain_staking::Bond::<
+			Runtime::AccountId,
+			BalanceOf<Runtime>,
+		>::max_encoded_len());
+		// Delegator Max Size = AccountId + MaxDelegationsCompact + (max_d * BondSize) + Balance + Balance + DelegatorStatus
+		let value_max = Runtime::AccountId::max_encoded_len()
+			.saturating_add(delegation_compact_prefix)
+			.saturating_add(max_bonds_bytes)
+			.saturating_add(BalanceOf::<Runtime>::max_encoded_len())
+			.saturating_add(BalanceOf::<Runtime>::max_encoded_len())
+			.saturating_add(pallet_parachain_staking::DelegatorStatus::max_encoded_len());
+		// Total = TWOX64_CONCAT_PREFIX_LEN + AccountId + value_max
+		TWOX64_CONCAT_PREFIX_LEN
+			.saturating_add(Runtime::AccountId::max_encoded_len())
+			.saturating_add(value_max)
 	}
 }
