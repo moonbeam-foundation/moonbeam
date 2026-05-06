@@ -1549,10 +1549,8 @@ where
 							}
 						};
 
-						let relay_parent_offset = client_for_xcm
-							.runtime_api()
-							.relay_parent_offset(block)
-							.unwrap_or_default();
+						let relay_parent_offset =
+							client_for_xcm.runtime_api().relay_parent_offset(block)?;
 
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,

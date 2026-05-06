@@ -241,14 +241,12 @@ where
 		);
 
 		let maybe_current_para_head = client_for_cidp.expect_header(block);
-		let relay_parent_offset = client_for_cidp
-			.runtime_api()
-			.relay_parent_offset(block)
-			.unwrap_or_default();
+		let maybe_relay_parent_offset = client_for_cidp.runtime_api().relay_parent_offset(block);
 		async move {
 			let current_para_block_head = Some(polkadot_primitives::HeadData(
 				maybe_current_para_head?.encode(),
 			));
+			let relay_parent_offset = maybe_relay_parent_offset?;
 
 			let builder = RelayStateSproofBuilder {
 				para_id,
