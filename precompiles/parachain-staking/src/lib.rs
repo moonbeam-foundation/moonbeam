@@ -197,12 +197,7 @@ where
 		delegator: Address,
 	) -> EvmResult<u32> {
 		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
-		// CandidateInfo:
-		// Twox64Concat(8) + AccountId(20) + Delegator(56 + MaxDelegationsPerDelegator)
-		handle.record_db_read::<Runtime>(
-			84 + (<Runtime as pallet_parachain_staking::Config>::MaxDelegationsPerDelegator::get()
-				as usize),
-		)?;
+		handle.record_db_read::<Runtime>(Self::delegator_state_storage_read_proof_size())?;
 		let result = if let Some(state) =
 			<pallet_parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
 		{
@@ -252,12 +247,7 @@ where
 		delegator: Address,
 		candidate: Address,
 	) -> EvmResult<U256> {
-		// DelegatorState:
-		// Twox64Concat(8) + AccountId(20) + Delegator(56 + MaxDelegationsPerDelegator)
-		handle.record_db_read::<Runtime>(
-			84 + (<Runtime as pallet_parachain_staking::Config>::MaxDelegationsPerDelegator::get()
-				as usize),
-		)?;
+		handle.record_db_read::<Runtime>(Self::delegator_state_storage_read_proof_size())?;
 		let (candidate, delegator) = (
 			Runtime::AddressMapping::into_account_id(candidate.0),
 			Runtime::AddressMapping::into_account_id(delegator.0),
@@ -316,12 +306,7 @@ where
 	#[precompile::view]
 	fn is_delegator(handle: &mut impl PrecompileHandle, delegator: Address) -> EvmResult<bool> {
 		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
-		// DelegatorState:
-		// Twox64Concat(8) + AccountId(20) + Delegator(56 + MaxDelegationsPerDelegator)
-		handle.record_db_read::<Runtime>(
-			84 + (<Runtime as pallet_parachain_staking::Config>::MaxDelegationsPerDelegator::get()
-				as usize),
-		)?;
+		handle.record_db_read::<Runtime>(Self::delegator_state_storage_read_proof_size())?;
 		let is_delegator = pallet_parachain_staking::Pallet::<Runtime>::is_delegator(&delegator);
 
 		Ok(is_delegator)
@@ -940,12 +925,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		delegator: Address,
 	) -> EvmResult<U256> {
-		// DelegatorState:
-		// Twox64Concat(8) + AccountId(20) + Delegator(56 + MaxDelegationsPerDelegator)
-		handle.record_db_read::<Runtime>(
-			84 + (<Runtime as pallet_parachain_staking::Config>::MaxDelegationsPerDelegator::get()
-				as usize),
-		)?;
+		handle.record_db_read::<Runtime>(Self::delegator_state_storage_read_proof_size())?;
 
 		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 
@@ -978,5 +958,26 @@ where
 		value
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
+	}
+
+	/// Proof-size upper bound for one `DelegatorState` storage read.
+	///
+	/// Layout:
+	/// - key:   `Twox64Concat`(8) + `AccountId`(20)                                = 28
+	/// - value: `Delegator { id: AccountId(20), delegations: OrderedSet<Bond>,
+	///                       total: Balance(16), less_total: Balance(16),
+	///                       status: DelegatorStatus(<= 5) }`
+	///   where `OrderedSet<Bond>` SCALE-encodes as a 2-byte compact length prefix
+	///   (sufficient for any `MaxDelegationsPerDelegator < 16_384`) followed by
+	///   `MaxDelegationsPerDelegator` × `Bond`(36).
+	///
+	/// Fixed overhead = 28 + 20 + 2 + 16 + 16 + 5 = 87 bytes.
+	pub fn delegator_state_storage_read_proof_size() -> usize {
+		const FIXED_OVERHEAD: usize = 87;
+		const BOND_SIZE: usize = 36;
+		let max_delegations =
+			<Runtime as pallet_parachain_staking::Config>::MaxDelegationsPerDelegator::get()
+				as usize;
+		FIXED_OVERHEAD + (BOND_SIZE * max_delegations)
 	}
 }
