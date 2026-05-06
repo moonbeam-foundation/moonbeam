@@ -23,7 +23,7 @@ use precompile_utils::{prelude::*, testing::*};
 use fp_evm::MAX_TRANSACTION_GAS_LIMIT;
 use frame_support::assert_ok;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use sp_core::{H160, H256, U256};
+use sp_core::{MaxEncodedLen, H160, H256, U256};
 use sp_runtime::{
 	traits::{Dispatchable, PostDispatchInfoOf},
 	DispatchResultWithInfo,
@@ -577,4 +577,15 @@ fn test_class_locks_for_returns_correct_value() {
 					amount: U256::from(100_000),
 				}]);
 		})
+}
+
+#[test]
+fn test_class_locks_for_proof_size_accounts_for_balances() {
+	// 28 bytes for the Twox64Concat account key, plus the max encoded
+	// ClassLocksFor value, including each lock's balance.
+	assert_eq!(crate::ClassLocksForOf::<Runtime>::max_encoded_len(), 52);
+	assert_eq!(
+		28 + crate::ClassLocksForOf::<Runtime>::max_encoded_len(),
+		80
+	);
 }
