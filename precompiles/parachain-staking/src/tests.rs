@@ -15,15 +15,20 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, roll_to, roll_to_round_begin, set_points, ExtBuilder, PCall, ParachainStaking,
-	Precompiles, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
+	events, roll_to, roll_to_round_begin, set_points, AccountId, ExtBuilder, PCall,
+	ParachainStaking, Precompiles, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
 };
+use crate::ParachainStakingPrecompile;
 use core::str::from_utf8;
 use fp_evm::MAX_TRANSACTION_GAS_LIMIT;
 use frame_support::assert_ok;
+use frame_support::pallet_prelude::MaxEncodedLen;
 use frame_support::sp_runtime::Percent;
+use frame_support::traits::fungible::Inspect;
 use pallet_evm::Call as EvmCall;
 use pallet_parachain_staking::Event as StakingEvent;
+use pallet_parachain_staking::{Bond, Config as StakingConfig, DelegatorStatus};
+use parity_scale_codec::{Compact, Encode};
 use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
@@ -1745,4 +1750,27 @@ fn test_deprecated_solidity_selectors_are_supported() {
 			)
 		}
 	}
+}
+
+/// Mirrors the proof-size composition in [`ParachainStakingPrecompile::delegator_state_storage_read_proof_size`]
+/// so this test fails if the helper drifts from the SCALE upper-bound model.
+#[test]
+fn delegator_state_storage_read_proof_size_matches_scale_upper_bound() {
+	type Bal =
+		<<Runtime as pallet_parachain_staking::Config>::Currency as Inspect<AccountId>>::Balance;
+
+	const TWOX64_CONCAT_PREFIX_LEN: usize = 8;
+	let max_d = <Runtime as StakingConfig>::MaxDelegationsPerDelegator::get();
+	let expected = TWOX64_CONCAT_PREFIX_LEN
+		.saturating_add(AccountId::max_encoded_len())
+		.saturating_add(AccountId::max_encoded_len())
+		.saturating_add(Compact(max_d).encode().len())
+		.saturating_add((max_d as usize).saturating_mul(Bond::<AccountId, Bal>::max_encoded_len()))
+		.saturating_add(Bal::max_encoded_len())
+		.saturating_add(Bal::max_encoded_len())
+		.saturating_add(DelegatorStatus::max_encoded_len());
+
+	let charged = ParachainStakingPrecompile::<Runtime>::delegator_state_storage_read_proof_size();
+
+	assert_eq!(charged, expected);
 }
