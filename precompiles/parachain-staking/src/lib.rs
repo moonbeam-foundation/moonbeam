@@ -30,6 +30,7 @@ use frame_support::sp_runtime::Percent;
 use frame_support::traits::{fungible::Inspect, Get};
 use pallet_evm::AddressMapping;
 use pallet_parachain_staking::ScheduledRequest;
+use parity_scale_codec::{Compact, Encode};
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_runtime::traits::Dispatchable;
@@ -52,10 +53,10 @@ pub struct ParachainStakingPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> ParachainStakingPrecompile<Runtime>
 where
 	Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
-	Runtime::AccountId: Into<H160>,
+	Runtime::AccountId: Into<H160> + MaxEncodedLen,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	Runtime::RuntimeCall: From<pallet_parachain_staking::Call<Runtime>>,
-	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec + MaxEncodedLen,
 	<Runtime as pallet_evm::Config>::AddressMapping: AddressMapping<Runtime::AccountId>,
 {
 	// Constants
@@ -978,5 +979,30 @@ where
 		value
 			.try_into()
 			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
+	}
+
+	/// Proof-size upper bound for one read of [`pallet_parachain_staking::Pallet::delegator_state`]
+	/// storage (`Twox64Concat` + `AccountId` key, max-sized SCALE `Delegator` value).
+	pub(crate) fn delegator_state_storage_read_proof_size() -> usize {
+		/// [`frame_support::Twox64Concat`] output length (bytes); Substrate storage key prefix.
+		const TWOX64_CONCAT_PREFIX_LEN: usize = 8;
+		let max_d =
+			<Runtime as pallet_parachain_staking::Config>::MaxDelegationsPerDelegator::get();
+		let delegation_compact_prefix = Compact(max_d).encode().len();
+		let max_bonds_bytes = (max_d as usize).saturating_mul(pallet_parachain_staking::Bond::<
+			Runtime::AccountId,
+			BalanceOf<Runtime>,
+		>::max_encoded_len());
+		// Delegator Max Size = AccountId + MaxDelegationsCompact + (max_d * BondSize) + Balance + Balance + DelegatorStatus
+		let value_max = Runtime::AccountId::max_encoded_len()
+			.saturating_add(delegation_compact_prefix)
+			.saturating_add(max_bonds_bytes)
+			.saturating_add(BalanceOf::<Runtime>::max_encoded_len())
+			.saturating_add(BalanceOf::<Runtime>::max_encoded_len())
+			.saturating_add(pallet_parachain_staking::DelegatorStatus::max_encoded_len());
+		// Total = TWOX64_CONCAT_PREFIX_LEN + AccountId + value_max
+		TWOX64_CONCAT_PREFIX_LEN
+			.saturating_add(Runtime::AccountId::max_encoded_len())
+			.saturating_add(value_max)
 	}
 }
