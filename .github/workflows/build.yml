@@ -889,9 +889,10 @@ jobs:
     runs-on:
       labels: bare-metal
     needs: ["set-tags", "build"]
-    timeout-minutes: 180
+    timeout-minutes: 240
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
     env:
@@ -902,14 +903,17 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 9.1.4
+      # setup-node before pnpm so pnpm is not the standalone @pnpm/exe bundle (that stack trace
+      # shows /snapshot/... and ignores host NODE_OPTIONS like --dns-result-order=ipv4first).
       - uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.1.4
+          standalone: false
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -924,9 +928,14 @@ jobs:
           path: target/release/wbuild/${{ matrix.chain }}-runtime/
       - name: Install dependencies (with retry)
         uses: nick-fields/retry@v4
+        env:
+          NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation --dns-result-order=ipv4first"
+          npm_config_fetch_timeout: "600000"
+          npm_config_fetch_retries: "10"
+          npm_config_network_concurrency: "2"
         with:
           max_attempts: 3
-          timeout_minutes: 45
+          timeout_minutes: 120
           retry_wait_seconds: 30
           retry_on: error
           command: pnpm install
