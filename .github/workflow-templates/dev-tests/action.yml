@@ -41,7 +41,7 @@ runs:
       shell: bash
       env:
         DEBUG_COLOURS: "1"
-        NODE_OPTIONS: "--max-old-space-size=12288"
+        NODE_OPTIONS: "--max-old-space-size=12288 --dns-result-order=ipv4first"
       run: |
         chmod uog+x target/release/moonbeam
         cd test
@@ -51,7 +51,7 @@ runs:
       uses: nick-fields/retry@v4
       env:
         DEBUG_COLOURS: "1"
-        NODE_OPTIONS: "--max-old-space-size=12288"
+        NODE_OPTIONS: "--max-old-space-size=12288 --dns-result-order=ipv4first"
       with:
         max_attempts: 3
         timeout_minutes: 90

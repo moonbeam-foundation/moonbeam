@@ -24,11 +24,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation"
+  # ipv4first: avoid ETIMEDOUT via broken IPv6 paths to registry.npmjs.org (Cloudflare).
+  NODE_OPTIONS: "--max-old-space-size=12288 --no-deprecation --dns-result-order=ipv4first"
   CARGO_TERM_COLOR: always
-  # pnpm/npm registry (pairs with test/.npmrc fetch-timeout / fetch-retries).
+  # Align with root .npmrc; env vars ensure subprocesses pick these up reliably.
   npm_config_fetch_timeout: "600000"
   npm_config_fetch_retries: "10"
+  npm_config_network_concurrency: "4"
 
 permissions:
   contents: read
@@ -786,7 +788,7 @@ jobs:
       - name: Compile Solidity for tracing
         env:
           DEBUG_COLOURS: "1"
-          NODE_OPTIONS: "--max-old-space-size=12288"
+          NODE_OPTIONS: "--max-old-space-size=12288 --dns-result-order=ipv4first"
         run: |
           cd test
           pnpm compile-solidity
@@ -794,7 +796,7 @@ jobs:
         uses: nick-fields/retry@v4
         env:
           DEBUG_COLOURS: "1"
-          NODE_OPTIONS: "--max-old-space-size=12288"
+          NODE_OPTIONS: "--max-old-space-size=12288 --dns-result-order=ipv4first"
         with:
           max_attempts: 3
           timeout_minutes: 90
