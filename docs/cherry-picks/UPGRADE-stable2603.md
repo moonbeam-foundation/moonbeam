@@ -25,10 +25,29 @@
 
 ## Phase 0 — Preparation
 
-- [ ] Fetch upstream tag `polkadot-stable2603-1` in `~/Workspace/polkadot-sdk` and confirm the corresponding `stable2603` branch sha.
-- [ ] Fetch `frontier-stable2603` from `polkadot-evm/frontier`.
-- [ ] Confirm rust-ethereum/evm and rust-ethereum/ethereum upstream commits to base on (no version bump expected for evm — staying on 0.43.x).
-- [ ] Confirm moonkit base-bump PR status (Moonsong-Labs). **Blocker** for moonkit Phase 1.
+- [x] Fetch upstream tag `polkadot-stable2603-1` in `~/Workspace/polkadot-sdk` and confirm the corresponding `stable2603` branch sha.
+- [x] Fetch `frontier-stable2603` from `polkadot-evm/frontier`.
+- [x] Confirm rust-ethereum/evm and rust-ethereum/ethereum upstream commits to base on (no version bump expected for evm — staying on 0.43.x).
+- [x] Confirm moonkit base-bump PR status (Moonsong-Labs). **Blocker** for moonkit Phase 1.
+
+### Resolved bases
+
+| Fork | Base | SHA | Notes |
+| --- | --- | --- | --- |
+| polkadot-sdk | tag `polkadot-stable2603-1` | `f8cfbb96055978d5031f60153c9dfbff33814183` | Released 2026-05-01. `upstream/stable2603` branch HEAD = `d3dfb281ee0f62c3b8bcda36c35c46f82f2d8878`. Use the tag. |
+| frontier | **no stable2603 cut upstream yet** | `upstream/stable2512` = `9d49e36ed5bac38241594f8ba055fdb94991483a` | polkadot-evm/frontier has not branched stable2603. `upstream/master` is 43 commits ahead and already contains several PRs we listed as Included (e.g. #1856 latest-block-resolution on pruned nodes, #1855, #1832). **Decision needed** — see blockers. |
+| evm | current `moonbeam-polkadot-stable2512` | `bb9cdde4` | Upstream `rust-ethereum/evm` has moved to v1.0; we stay on the 0.43.x fork. No new upstream commits to pull. The new branch is effectively a rename of stable2512. |
+| ethereum | upstream master | `d7bdf28` | Master HEAD is `Refactor transaction signature validation (#75)`, which is already absorbed in our stable2512 line. Fork stable2512 head `58a5a8a` adds the unmerged #77 cherry-pick. |
+| moonkit | **no stable2603 base-bump PR yet** | latest merged was #89 stable2512 (2026-01-14) | Most recent merged PR is #94 (2026-05-04, dynamic relay-parent offset). **Blocker** — see below. |
+
+### New blockers found in Phase 0
+
+- **B1 (frontier upstream)** — `polkadot-evm/frontier` has not yet branched `stable2603`. Options:
+  1. Wait for upstream to cut `stable2603` (preferred).
+  2. Base our `moonbeam-polkadot-stable2603` off a chosen `upstream/master` SHA and rebase onto `stable2603` once upstream cuts it.
+  3. Coordinate with polkadot-evm maintainers to expedite.
+- **B2 (moonkit upstream)** — No PR in `Moonsong-Labs/moonkit` titled or scoped to "stable2603". The base-bump must either be authored by us (PR upstream) or wait for Moonsong-Labs. Phase 1.4 cannot proceed until this PR exists.
+- **F1 (frontier #1856 actually merged)** — `Improve "latest" block resolution on pruned nodes` (#1856) appears in `upstream/master` even though the stable2512 tracker marked it "Upstream PR not merged". When verifying frontier cherry-picks, confirm this and update the tracker.
 
 ## Phase 1 — Fork branches + cherry-pick re-application
 
