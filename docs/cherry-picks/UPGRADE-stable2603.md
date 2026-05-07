@@ -42,12 +42,9 @@
 
 ### New blockers found in Phase 0
 
-- **B1 (frontier upstream)** — `polkadot-evm/frontier` has not yet branched `stable2603`. Options:
-  1. Wait for upstream to cut `stable2603` (preferred).
-  2. Base our `moonbeam-polkadot-stable2603` off a chosen `upstream/master` SHA and rebase onto `stable2603` once upstream cuts it.
-  3. Coordinate with polkadot-evm maintainers to expedite.
-- **B2 (moonkit upstream)** — No PR in `Moonsong-Labs/moonkit` titled or scoped to "stable2603". The base-bump must either be authored by us (PR upstream) or wait for Moonsong-Labs. Phase 1.4 cannot proceed until this PR exists.
-- **F1 (frontier #1856 actually merged)** — `Improve "latest" block resolution on pruned nodes` (#1856) appears in `upstream/master` even though the stable2512 tracker marked it "Upstream PR not merged". When verifying frontier cherry-picks, confirm this and update the tracker.
+- **B1 (frontier upstream)** — `polkadot-evm/frontier` has not yet branched `stable2603`. **Resolution:** we own this. Branch from a chosen `upstream/master` SHA in `~/Workspace/frontier`, bump polkadot-sdk dependencies stable2512 → stable2603 ourselves, and use that as the upstream base for our `moonbeam-polkadot-stable2603` cherry-picks. When polkadot-evm cuts an official `stable2603`, rebase our work onto it. Tracked as Phase 1.5a below.
+- **B2 (moonkit upstream)** — No PR in `Moonsong-Labs/moonkit` titled or scoped to "stable2603". **Resolution:** author the upstream base-bump PR ourselves on `Moonsong-Labs/moonkit` and coordinate with Moonsong-Labs for review. Tracked as Phase 1.4a below.
+- **F1 (frontier #1856 actually merged)** — `Improve "latest" block resolution on pruned nodes` (#1856) appears in `upstream/master` (commit `46cf7a43e`) even though the stable2512 tracker marked it "Upstream PR not merged". When verifying frontier cherry-picks, confirm this and update the tracker (move row from Included → Dropped if our chosen frontier base contains it).
 
 ## Phase 1 — Fork branches + cherry-pick re-application
 
@@ -81,8 +78,22 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 - [ ] Confirm `using_fake_author` (#92) is in `main` — should be no-op.
 - [ ] Push branch and update tracker.
 
-### 1.5 frontier
-- [ ] Create `moonbeam-polkadot-stable2603` from upstream tag `frontier-stable2603`.
+### 1.4a moonkit upstream base-bump PR (we author)
+- [ ] In `~/Workspace/moonkit`, branch off `upstream/main` (e.g. `mb/polkadot-sdk-stable2603`).
+- [ ] Bump polkadot-sdk dependencies in moonkit's `Cargo.toml` from `stable2512` → `stable2603`.
+- [ ] Compile-fix loop until `cargo check --workspace` is clean.
+- [ ] Open PR on `Moonsong-Labs/moonkit`; coordinate review with Moonsong-Labs.
+- [ ] Once merged, proceed to Phase 1.4.
+
+### 1.5a frontier upstream base-bump (we own — B1)
+- [ ] In `~/Workspace/frontier`, branch off a chosen `upstream/master` SHA (e.g. `mb/polkadot-sdk-stable2603`). Pick the most recent stable master commit that doesn't introduce unrelated risk.
+- [ ] Bump polkadot-sdk dependencies in frontier's `Cargo.toml` from `stable2512` → `stable2603`.
+- [ ] Compile-fix loop until `cargo check --workspace` is clean.
+- [ ] Push to `moonbeam-foundation/frontier` (this is *our* effective upstream base for Phase 1.5).
+- [ ] When `polkadot-evm/frontier` officially cuts `stable2603`, rebase the work onto the official branch.
+
+### 1.5 frontier (moonbeam fork)
+- [ ] Create `moonbeam-polkadot-stable2603` from the Phase 1.5a base in `moonbeam-foundation/frontier`.
 - [ ] Re-cherry-pick (still required):
   - [ ] CI branch name (rename `stable2512` → `stable2603` during cherry-pick)
   - [ ] Do client side check of withdraw-ability (#1546)
