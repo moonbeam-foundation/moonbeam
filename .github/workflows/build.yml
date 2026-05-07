@@ -903,17 +903,17 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
-      # setup-node before pnpm so pnpm is not the standalone @pnpm/exe bundle (that stack trace
-      # shows /snapshot/... and ignores host NODE_OPTIONS like --dns-result-order=ipv4first).
+      # pnpm must be installed before setup-node when using cache: pnpm (setup-node runs `pnpm` to restore cache).
+      # standalone: false avoids the bundled @pnpm/exe so installs respect NODE_OPTIONS (e.g. ipv4first).
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.1.4
+          standalone: false
       - uses: actions/setup-node@v6
         with:
           node-version-file: "test/.nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 9.1.4
-          standalone: false
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
