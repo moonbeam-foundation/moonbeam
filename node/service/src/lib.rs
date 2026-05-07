@@ -34,7 +34,7 @@ use cumulus_client_service::{
 };
 use cumulus_primitives_core::{
 	relay_chain::{self, well_known_keys, CollatorPair},
-	CollectCollationInfo, ParaId,
+	CollectCollationInfo, ParaId, RelayParentOffsetApi,
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface, RelayChainResult};
@@ -1297,7 +1297,8 @@ pub async fn new_dev<RuntimeApi, Customizations, Net>(
 ) -> Result<TaskManager, ServiceError>
 where
 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi>> + Send + Sync + 'static,
-	RuntimeApi::RuntimeApi: RuntimeApiCollection,
+	RuntimeApi::RuntimeApi:
+		RuntimeApiCollection + cumulus_primitives_core::RelayParentOffsetApi<Block>,
 	Customizations: ClientCustomizations + 'static,
 	Net: NetworkBackend<Block, Hash>,
 {
@@ -1548,6 +1549,9 @@ where
 							}
 						};
 
+						let relay_parent_offset =
+							client_for_xcm.runtime_api().relay_parent_offset(block)?;
+
 						let mocked_parachain = MockValidationDataInherentDataProvider {
 							current_para_block,
 							para_id: parachain_id,
@@ -1559,7 +1563,8 @@ where
 								UpgradeGoAhead::GoAhead
 							}),
 							current_para_block_head,
-							relay_offset: additional_relay_offset.load(Ordering::SeqCst),
+							relay_offset: relay_parent_offset
+								.saturating_add(additional_relay_offset.load(Ordering::SeqCst)),
 							relay_blocks_per_para_block: 1,
 							para_blocks_per_relay_epoch: 10,
 							relay_randomness_config: (),
