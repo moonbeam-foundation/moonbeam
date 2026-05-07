@@ -97,10 +97,11 @@ impl DevApiServer for DevRpc {
 		};
 
 		// Push the message to the shared channel where it will be queued up
-		// to be injected into an upcoming block.
+		// to be injected into an upcoming block. Use a non-blocking send so
+		// the RPC fails fast when the queue is full instead of parking the
+		// connection until a block drains it.
 		downward_message_channel
-			.send_async(msg)
-			.await
+			.try_send(msg)
 			.map_err(|err| internal_err(err.to_string()))?;
 
 		Ok(())
@@ -144,10 +145,11 @@ impl DevApiServer for DevRpc {
 		};
 
 		// Push the message to the shared channel where it will be queued up
-		// to be injected into an upcoming block.
+		// to be injected into an upcoming block. Use a non-blocking send so
+		// the RPC fails fast when the queue is full instead of parking the
+		// connection until a block drains it.
 		hrmp_message_channel
-			.send_async((sender, msg))
-			.await
+			.try_send((sender, msg))
 			.map_err(|err| internal_err(err.to_string()))?;
 
 		Ok(())
