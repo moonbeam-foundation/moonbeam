@@ -36,6 +36,7 @@ rpc_port = 8801
 args = [
     "--no-hardware-benchmarks",
     "--no-telemetry",
+    "--authoring=slot-based",
     "-lruntime::bridge-grandpa=trace",
     "--pool-type=fork-aware"
 ]
