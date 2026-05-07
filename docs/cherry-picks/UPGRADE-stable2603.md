@@ -50,17 +50,17 @@
 
 Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 
-### 1.1 polkadot-sdk
-- [ ] Create `moonbeam-polkadot-stable2603` from `upstream/stable2603` (or the `polkadot-stable2603-1` tag).
-- [ ] Re-cherry-pick `Add command PrecompileWasmCmd` (PR #1641 still open).
-- [ ] Re-cherry-pick `Comment log "Unexpected underflow in reducing consumer"` (Permanent).
-- [ ] Re-cherry-pick `Bound WildMultiAsset max assets limit to 20` (Permanent).
-- [ ] Re-cherry-pick `Account for pallet-parameters weight in benchmarks` (PR #6477 open).
-- [ ] **Verify**: is [paritytech/polkadot-sdk#7835](https://github.com/paritytech/polkadot-sdk/pull/7835) in stable2603? If yes → **drop** `Add storage benchmark --keys-limit option`. If no → re-cherry-pick.
-- [ ] **Verify**: is pallet-revive still a dependency of pallet-xcm in stable2603? If no → **drop** `Remove pallet-revive from pallet-xcm`. If yes → re-cherry-pick.
-- [ ] **Verify**: confirm [paritytech/polkadot-sdk#10444](https://github.com/paritytech/polkadot-sdk/pull/10444) is in stable2603 — drop `Fix charge_transaction_payment benchmark` (pre-marked Dropped in tracker).
-- [ ] Push `moonbeam-polkadot-stable2603` to `moonbeam-foundation/polkadot-sdk`.
-- [ ] Update commit hashes in [`polkadot-sdk-stable2603.md`](./polkadot-sdk-stable2603.md).
+### 1.1 polkadot-sdk ✅
+- [x] Create `moonbeam-polkadot-stable2603` from the `polkadot-stable2603-1` tag.
+- [x] Re-cherry-pick `Add command PrecompileWasmCmd` → `909be1fe0ca` (adapted to `BackendRuntimeCode::new(state, TryPendingCode::No)`).
+- [x] Re-cherry-pick `Comment log "Unexpected underflow in reducing consumer"` → `834c1d794d3`.
+- [x] Re-cherry-pick `Bound WildMultiAsset max assets limit to 20` → `edc21b0c2d5`.
+- [x] Re-cherry-pick `Account for pallet-parameters weight in benchmarks` → `443bfd80e24`.
+- [x] **Drop** `Add storage benchmark --keys-limit option` — flags ship natively in stable2603's `benchmarking-cli/src/storage/cmd.rs`.
+- [x] **Drop** `Remove pallet-revive from pallet-xcm` — `pallet-xcm/Cargo.toml` no longer depends on `pallet-revive` in stable2603.
+- [x] **Drop** `Fix charge_transaction_payment benchmark` — merged into stable2603 as `4b934d0a252`.
+- [x] Push `moonbeam-polkadot-stable2603` to `moonbeam-foundation/polkadot-sdk`.
+- [x] Update commit hashes in [`polkadot-sdk-stable2603.md`](./polkadot-sdk-stable2603.md).
 
 ### 1.2 evm
 - [ ] Create `moonbeam-polkadot-stable2603` from current 0.43.x base.
