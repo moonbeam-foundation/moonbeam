@@ -197,7 +197,7 @@ fn transact_through_sovereign_to_relay() {
 		<westend_runtime::Balances as Inspect<_>>::balance(&sovereign)
 	});
 	assert!(
-		sovereign_after <= sovereign_before,
+		sovereign_after < sovereign_before,
 		"Sovereign should have spent DOT: before={sovereign_before}, after={sovereign_after}"
 	);
 }
