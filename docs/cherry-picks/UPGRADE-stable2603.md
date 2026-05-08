@@ -101,15 +101,18 @@ The new rows added with `Cherry pick: TBD` / `Status: TBD` need a Phase 2 decisi
 Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 
 ### 1.1 polkadot-sdk ✅
-- [x] Create `moonbeam-polkadot-stable2603` from the `polkadot-stable2603-1` tag.
-- [x] Re-cherry-pick `Add command PrecompileWasmCmd` → `909be1fe0ca` (adapted to `BackendRuntimeCode::new(state, TryPendingCode::No)`).
-- [x] Re-cherry-pick `Comment log "Unexpected underflow in reducing consumer"` → `834c1d794d3`.
-- [x] Re-cherry-pick `Bound WildMultiAsset max assets limit to 20` → `edc21b0c2d5`.
-- [x] Re-cherry-pick `Account for pallet-parameters weight in benchmarks` → `443bfd80e24`.
+- [x] Create `moonbeam-polkadot-stable2603` from the `polkadot-stable2603-1` tag, then rebase onto `upstream/stable2603` head (`afb51b7a8c6`, 2026-05-08) to absorb 4 upstream backports (#11964, #11856, #11987, #12017).
+- [x] Re-cherry-pick `Add command PrecompileWasmCmd` → `782834a6e01` (adapted to `BackendRuntimeCode::new(state, TryPendingCode::No)`).
+- [x] Re-cherry-pick `Comment log "Unexpected underflow in reducing consumer"` → `9bd6657821d`.
+- [x] Re-cherry-pick `Bound WildMultiAsset max assets limit to 20` → `ab3fdc2508b`.
+- [x] Re-cherry-pick `Account for pallet-parameters weight in benchmarks` → `7f60ea3867c`.
+- [x] Re-cherry-pick (Phase 0.5) `improve weight reclaim logs (call metadata, warn level)` → `161cd252773`.
+- [x] Re-cherry-pick (Phase 0.5) `xcm-emulator: make slot/digest producer overridable for non-Aura parachains` → `beaf6b6c50a`. Trivial additive conflict with stable2603's `native_total_supply_tracker` macro arm — resolved by keeping both.
 - [x] **Drop** `Add storage benchmark --keys-limit option` — flags ship natively in stable2603's `benchmarking-cli/src/storage/cmd.rs`.
 - [x] **Drop** `Remove pallet-revive from pallet-xcm` — `pallet-xcm/Cargo.toml` no longer depends on `pallet-revive` in stable2603.
 - [x] **Drop** `Fix charge_transaction_payment benchmark` — merged into stable2603 as `4b934d0a252`.
-- [x] Push `moonbeam-polkadot-stable2603` to `moonbeam-foundation/polkadot-sdk`.
+- [x] **Drop** `bridges: retry outdated grandpa justifications with newer headers` — was reverted on stable2512 itself; do not re-apply.
+- [x] Force-push `moonbeam-polkadot-stable2603` to `moonbeam-foundation/polkadot-sdk` (history rewritten by rebase).
 - [x] Update commit hashes in [`polkadot-sdk-stable2603.md`](./polkadot-sdk-stable2603.md).
 
 ### 1.2 evm
