@@ -19,7 +19,6 @@
 | Yes | Add storage benchmark --keys-limit option |  | Dropped | PR Upstream Merged |  | stable2603 ships `--keys-limit` and `--child-keys-limit` natively in `substrate/utils/frame/benchmarking-cli/src/storage/cmd.rs`. |
 | Yes | Remove pallet-revive from pallet-xcm |  | Dropped | PR Upstream Merged |  | stable2603's `polkadot/xcm/pallet-xcm/Cargo.toml` no longer depends on `pallet-revive`. |
 | Yes | Fix charge_transaction_payment benchmark |  | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#10444](https://github.com/paritytech/polkadot-sdk/pull/10444) | Merged into stable2603 as `4b934d0a252`. |
-| Yes | ParachainTracingExecuteBlock |  | Dropped but needs refactoring | PR Upstream Merged | [paritytech/polkadot-sdk#9214](https://github.com/paritytech/polkadot-sdk/pull/9214) | Replaced by [paritytech/polkadot-sdk#9871](https://github.com/paritytech/polkadot-sdk/pull/9871) <br> Refactoring on moonbeam repo: we should use the new config cumulus_service::ParachainTracingExecuteBlock (default None config doesn't work) |
 
 ## `ethereum`
 
