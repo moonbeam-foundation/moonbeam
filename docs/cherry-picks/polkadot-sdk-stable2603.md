@@ -24,7 +24,6 @@
 
 | Applied | Title | Commit | Cherry pick | Status | Upstream PR | Note |
 | --- | --- | --- | --- | --- | --- | --- |
-| No | Refactor transaction signature validation |  | Dropped | PR Merged | [rust-ethereum/ethereum#75](https://github.com/rust-ethereum/ethereum/pull/75) |  |
 | Yes | Add encoded length methods to transactions | [moonbeam-foundation/ethereum@58a5a8a](https://github.com/moonbeam-foundation/ethereum/commit/58a5a8a1eeec58fa8a9ca8c6fab20a028ddcc1e5) | Included | PR not merged | [rust-ethereum/ethereum#77](https://github.com/rust-ethereum/ethereum/pull/77) |  |
 
 ## `evm`
