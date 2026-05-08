@@ -11,23 +11,7 @@
 | Yes | Add storage benchmark --keys-limit option | [moonbeam-foundation/polkadot-sdk@3e68f82](https://github.com/moonbeam-foundation/polkadot-sdk/commit/3e68f824efd7347b2deeae21d3d8705a5a437382) | Included | Temporary | [moonbeam-foundation/polkadot-sdk@ef91563](https://github.com/moonbeam-foundation/polkadot-sdk/commit/ef915632fbda727583b13813417664ecefc000b8) | We don't need this cherry-pick anymore since the following upstream PR introduced the same behavior change: [paritytech/polkadot-sdk#7835](https://github.com/paritytech/polkadot-sdk/pull/7835/changes#diff-29eba3163978b333d93a2e7b3d0f3d3bafe2cc99891ebd0cc38d499bb80bb7a9R318) |
 | Yes | ParachainTracingExecuteBlock | ⚠️ [moonbeam-foundation/polkadot-sdk#20](https://github.com/moonbeam-foundation/polkadot-sdk/pull/20) | Dropped but needs refactoring | PR Upstream Merged | [paritytech/polkadot-sdk#9214](https://github.com/paritytech/polkadot-sdk/pull/9214) | Replaced by [paritytech/polkadot-sdk#9871](https://github.com/paritytech/polkadot-sdk/pull/9871) <br> Refactoring on moonbeam repo: we should use the new config cumulus_service::ParachainTracingExecuteBlock (default None config doesn't work) |
 | Yes | Remove pallet-revive from pallet-xcm | [moonbeam-foundation/polkadot-sdk@015c5fb](https://github.com/moonbeam-foundation/polkadot-sdk/commit/015c5fbe3f8947131d740abf68957cd341ec70df) | Included | Temporary |  | Can be dropped once they move pallet-revive dependency from pallet-xcm |
-| Yes | Backport PR#8108 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#8108](https://github.com/paritytech/polkadot-sdk/pull/8108) |  |
-| Yes | Backport PR#10102 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#10102](https://github.com/paritytech/polkadot-sdk/pull/10102) |  |
-| Yes | Backport PR#9262 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9262](https://github.com/paritytech/polkadot-sdk/pull/9262) | Can be dropped Polkadot stable2509 |
-| Yes | Add supported_version to pallet-xcm genesis config | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9225](https://github.com/paritytech/polkadot-sdk/pull/9225) | Can be dropped Polkadot stable2509 |
-| Yes | Stronger WASM compression | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9875](https://github.com/paritytech/polkadot-sdk/pull/9875) |  |
-| Yes | Backport PR#9791 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9791](https://github.com/paritytech/polkadot-sdk/pull/9791) |  |
 | Yes | Fix charge_transaction_payment benchmark | [moonbeam-foundation/polkadot-sdk@5a9a382](https://github.com/moonbeam-foundation/polkadot-sdk/commit/5a9a382caf251cf9bbeb238e50753cf3bb7de111) | Included | PR Upstream Merged | [paritytech/polkadot-sdk#10444](https://github.com/paritytech/polkadot-sdk/pull/10444) | Merged after polkadot stable2512, can be dropped with Polkadot stable 2603 |
-| Yes | Backport PR#9419 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9419](https://github.com/paritytech/polkadot-sdk/pull/9419) |  |
-| Yes | Backport PR#8939 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#8939](https://github.com/paritytech/polkadot-sdk/pull/8939) |  |
-| Yes | Backport PR#9319 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9319](https://github.com/paritytech/polkadot-sdk/pull/9319) |  |
-| Yes | Backport PR#9927 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9927](https://github.com/paritytech/polkadot-sdk/pull/9927) |  |
-| Yes | Backport PR#9976 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9976](https://github.com/paritytech/polkadot-sdk/pull/9976) |  |
-| Yes | Backport PR#9178 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9178](https://github.com/paritytech/polkadot-sdk/pull/9178) |  |
-| Yes | Backport PR#9929 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9929](https://github.com/paritytech/polkadot-sdk/pull/9929) |  |
-| Yes | Backport PR#10305 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#10305](https://github.com/paritytech/polkadot-sdk/pull/10305) |  |
-| Yes | Backport PR#9703 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9703](https://github.com/paritytech/polkadot-sdk/pull/9703) |  |
-| Yes | Backport PR#9990 | | Dropped | PR Upstream Merged | [paritytech/polkadot-sdk#9990](https://github.com/paritytech/polkadot-sdk/pull/9990) |  |
 
 ## `ethereum`
 
