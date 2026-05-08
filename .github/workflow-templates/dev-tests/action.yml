@@ -32,9 +32,9 @@ runs:
       uses: nick-fields/retry@v4
       with:
         max_attempts: 3
-        timeout_minutes: 45
+        timeout_minutes: 15
         retry_wait_seconds: 30
-        retry_on: error
+        retry_on_exit_code: 1
         command: cd test && pnpm install
 
     - name: Compile Solidity
@@ -54,9 +54,9 @@ runs:
         NODE_OPTIONS: "--max-old-space-size=12288 --dns-result-order=ipv4first"
       with:
         max_attempts: 3
-        timeout_minutes: 90
+        timeout_minutes: 15
         retry_wait_seconds: 30
-        retry_on: error
+        retry_on_exit_code: 1
         command: |
           cd test
           pnpm moonwall test ${{ inputs.moonwall_environment }} --ts ${{ inputs.shard }}/${{inputs.shard-count}} || [[ '${{ inputs.force-pass }}' == 'true' ]]
