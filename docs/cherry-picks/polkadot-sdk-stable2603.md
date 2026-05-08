@@ -31,7 +31,7 @@
 
 | Applied | Title | Commit | Cherry pick | Status | Upstream PR | Note |
 | --- | --- | --- | --- | --- | --- | --- |
-| Yes | Add support for EIP-7939 (CLZ opcode) | TBD | Included | PR Upstream Merged | [rust-ethereum/evm#400](https://github.com/rust-ethereum/evm/pull/400) | Upstream merged PR#400 but on a different major version (v1.0). Still needed on the moonbeam 0.43.x fork. |
+| Yes | Add support for EIP-7939 (CLZ opcode) | [moonbeam-foundation/evm@a656db9](https://github.com/moonbeam-foundation/evm/commit/a656db9050c65170b050360c3fa66c0fd8bf226a) | Included | PR Upstream Merged | [rust-ethereum/evm#400](https://github.com/rust-ethereum/evm/pull/400) | Upstream merged PR#400 but on a different major version (v1.0). Still needed on the moonbeam 0.43.x fork. |
 | Yes | Depend on moonbeam-foundation ethereum fork | [moonbeam-foundation/evm@bb9cdde](https://github.com/moonbeam-foundation/evm/commit/bb9cdde4) | Included | Permanent |  | Discovered in Phase 0.5 audit. Pins the moonbeam-foundation/ethereum fork as the `ethereum` dependency. Required so the encoded-length cherry-pick from `rust-ethereum/ethereum#77` is reachable. |
 
 ## `frontier`

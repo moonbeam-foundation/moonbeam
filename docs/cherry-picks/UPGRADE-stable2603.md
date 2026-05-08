@@ -115,10 +115,10 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 - [x] Force-push `moonbeam-polkadot-stable2603` to `moonbeam-foundation/polkadot-sdk` (history rewritten by rebase).
 - [x] Update commit hashes in [`polkadot-sdk-stable2603.md`](./polkadot-sdk-stable2603.md).
 
-### 1.2 evm
-- [ ] Create `moonbeam-polkadot-stable2603` from current 0.43.x base.
-- [ ] Re-cherry-pick `Add support for EIP-7939 (CLZ opcode)` (still needed; upstream merged on v1.0 only).
-- [ ] Push branch and update tracker.
+### 1.2 evm ✅
+- [x] Create `moonbeam-polkadot-stable2603` from current 0.43.x base. `rust-ethereum/evm` master has moved to v1.0; we stay on the 0.43.x fork. The new branch points at the same SHA as `stable2512` (`bb9cdde4`) — there is no upstream advancement to absorb.
+- [x] Re-cherry-pick `Add support for EIP-7939 (CLZ opcode)` (still needed; upstream merged on v1.0 only). Already on the branch as `a656db90` — inherited as-is.
+- [x] Push branch and update tracker.
 
 ### 1.3 ethereum ✅
 - [x] Create `moonbeam-polkadot-stable2603` from `upstream/master` head. `upstream/master` (`d7bdf2888253a30f160d434688e378636e253870`) is exactly the merge-base with `moonbeam-polkadot-stable2512`, so the new branch points at the same SHA as `stable2512` (`58a5a8a1eeec58fa8a9ca8c6fab20a028ddcc1e5`) — no upstream advancement to absorb.
