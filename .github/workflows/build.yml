@@ -215,7 +215,7 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 30
           retry_wait_seconds: 30
           retry_on_exit_code: 1
           command: pnpm install
@@ -781,7 +781,7 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 30
           retry_wait_seconds: 30
           retry_on_exit_code: 1
           command: cd test && pnpm install
@@ -799,7 +799,7 @@ jobs:
           NODE_OPTIONS: "--max-old-space-size=12288 --dns-result-order=ipv4first"
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 30
           retry_wait_seconds: 30
           retry_on_exit_code: 1
           command: |
@@ -854,7 +854,7 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 30
           retry_wait_seconds: 30
           retry_on_exit_code: 1
           command: cd test && pnpm install
@@ -862,7 +862,7 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 30
           retry_wait_seconds: 30
           retry_on_exit_code: 1
           command: |
@@ -935,7 +935,7 @@ jobs:
           npm_config_network_concurrency: "2"
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 30
           retry_wait_seconds: 30
           retry_on_exit_code: 1
           command: pnpm install
@@ -943,7 +943,7 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 30
           retry_wait_seconds: 30
           retry_on_exit_code: 1
           command: |
@@ -1001,7 +1001,7 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 30
           retry_wait_seconds: 30
           retry_on_exit_code: 1
           command: cd test && pnpm install
@@ -1019,7 +1019,7 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 30
           retry_wait_seconds: 30
           retry_on_exit_code: 1
           command: |
@@ -1062,7 +1062,7 @@ jobs:
         uses: nick-fields/retry@v4
         with:
           max_attempts: 3
-          timeout_minutes: 15
+          timeout_minutes: 30
           retry_wait_seconds: 30
           retry_on_exit_code: 1
           command: npm install -g @polkadot/api-cli
