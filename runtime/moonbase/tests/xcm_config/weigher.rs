@@ -20,7 +20,10 @@
 //! they contain. Moonbase uses WeightInfoBounds with custom XcmWeight implementation.
 
 use crate::xcm_common::*;
-use moonbase_runtime::{xcm_config::XcmWeigher, RuntimeCall};
+use moonbase_runtime::{
+	xcm_config::{MaxInstructions, XcmWeigher},
+	RuntimeCall,
+};
 use parity_scale_codec::Encode;
 use sp_runtime::traits::Zero;
 use sp_weights::Weight;
@@ -98,14 +101,13 @@ fn weigher_weight_increases_with_more_instructions() {
 #[test]
 fn weigher_respects_max_instructions() {
 	ExtBuilder::default().build().execute_with(|| {
-		// MaxInstructions is 100 in xcm_config
-		// Create a message with more than 100 instructions
-		let instructions: Vec<Instruction<RuntimeCall>> = (0..150).map(|_| ClearOrigin).collect();
+		let too_many = (MaxInstructions::get() as usize).saturating_add(1);
+		let instructions: Vec<Instruction<RuntimeCall>> =
+			(0..too_many).map(|_| ClearOrigin).collect();
 		let message: Xcm<RuntimeCall> = Xcm(instructions);
 
 		let weight = XcmWeigher::weight(&mut message.clone(), Weight::MAX);
 
-		// Should fail because it exceeds MaxInstructions
 		assert!(
 			weight.is_err(),
 			"Message exceeding MaxInstructions should fail weighing"
