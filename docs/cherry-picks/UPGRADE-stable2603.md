@@ -120,10 +120,10 @@ Order: **polkadot-sdk → (evm, ethereum) → (moonkit, frontier)**.
 - [ ] Re-cherry-pick `Add support for EIP-7939 (CLZ opcode)` (still needed; upstream merged on v1.0 only).
 - [ ] Push branch and update tracker.
 
-### 1.3 ethereum
-- [ ] Create `moonbeam-polkadot-stable2603` from `upstream/master` head.
-- [ ] Re-cherry-pick `Add encoded length methods to transactions` (rust-ethereum/ethereum#77 still open).
-- [ ] Push branch and update tracker.
+### 1.3 ethereum ✅
+- [x] Create `moonbeam-polkadot-stable2603` from `upstream/master` head. `upstream/master` (`d7bdf2888253a30f160d434688e378636e253870`) is exactly the merge-base with `moonbeam-polkadot-stable2512`, so the new branch points at the same SHA as `stable2512` (`58a5a8a1eeec58fa8a9ca8c6fab20a028ddcc1e5`) — no upstream advancement to absorb.
+- [x] Re-cherry-pick `Add encoded length methods to transactions` (rust-ethereum/ethereum#77 still open). Already on the branch as `58a5a8a` — inherited as-is.
+- [x] Push branch and update tracker.
 
 ### 1.4 moonkit (blocked on Moonsong-Labs)
 - [ ] Wait for / coordinate the stable2603 base-bump PR into `main`.
